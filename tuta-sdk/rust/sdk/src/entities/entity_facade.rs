@@ -151,58 +151,60 @@ impl EntityFacade {
     }
 
     fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<MappedValue, ApiCallError> {
-        /// If the value is default-encrypted (empty string) then return default value and empty IV
-        if (matches!(model_value.cardinality, Cardinality::One)
-            || matches!(model_value.cardinality, Cardinality::ZeroOrOne))
-            && model_value.encrypted
-            && matches!(value, ElementValue::String(_))
-            && value.assert_string() == ""
-        {
-            let value = self.resolve_default_value(&model_value.value_type);
-            return Ok(MappedValue {
-                value,
-                iv: Some(Vec::new()),
-                error: None,
-            });
-        }
-
-        // We want to ensure we use the same IV for final encrypted values, as this will guarantee
-        // we get the same value back.
-        let final_iv: Option<Vec<u8>> = if model_value.encrypted && model_value.is_final {
-            match &value {
-                ElementValue::Bytes(bytes) => Some(self.extract_iv(bytes, key)?),
-                ElementValue::Null => None,
-                _ => return Err(ApiCallError::InternalSdkError { error_message: format!("Invalid encrypted data {key}. Not bytes, value: {:?}", value) })
+        match (&model_value.cardinality, &model_value.encrypted, value) {
+            (Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::String(s)) if s == "" => {
+                // If the value is default-encrypted (empty string) then return default value and
+                // empty IV. When re-encrypting we should put the empty value back to not increase
+                // used storage.
+                let value = self.resolve_default_value(&model_value.value_type);
+                return Ok(MappedValue {
+                    value,
+                    iv: Some(Vec::new()),
+                    error: None,
+                });
             }
-        } else {
-            None
-        };
-
-        if value == ElementValue::Null {
-            if model_value.cardinality != Cardinality::ZeroOrOne {
-                return Err(ApiCallError::InternalSdkError { error_message: format!("Value {key} with cardinality ONE can't be null") });
-            }
-            return Ok(MappedValue {value: ElementValue::Null, iv: final_iv, error: None});
-        }
-
-        if model_value.encrypted {
-            let parsed_value = session_key.decrypt_data(value.assert_bytes().as_slice())
-                .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() })
-                .and_then(|dec_value| self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value));
-            match parsed_value {
-                Ok(value) => Ok(MappedValue {value, iv: final_iv, error: None}),
-                Err(err) => {
-                    Ok(MappedValue {value: self.resolve_default_value(&model_value.value_type), iv: None, error: Some(format!("Failed to decrypt {key}. {err}")) })
+            (Cardinality::ZeroOrOne, _, ElementValue::Null) => {
+                // If it's null, and it's permissible then we keep it as such
+                Ok(MappedValue {value: ElementValue::Null, iv: None, error: None})
+            },
+            (Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::Bytes(bytes)) => {
+                // If it's a proper encrypted value then we need to decrypt it, parse it and
+                // possibly record the IV.
+                let parsed_value = session_key.decrypt_data(bytes.as_slice())
+                    .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() })
+                    .and_then(|dec_value| self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value));
+                match parsed_value {
+                    Ok(value) => {
+                        // We want to ensure we use the same IV for final encrypted values, as this
+                        // will guarantee we get the same value back when we encrypt it.
+                        let iv = if model_value.is_final {
+                            Some(self.extract_iv(bytes, key)?)
+                        } else {
+                            None
+                        };
+                        Ok(MappedValue {value, iv, error: None})
+                    },
+                    Err(err) => {
+                        Ok(MappedValue {value: self.resolve_default_value(&model_value.value_type), iv: None, error: Some(format!("Failed to decrypt {key}. {err}")) })
+                    }
                 }
-            }
-        } else {
-            Ok(MappedValue { value, iv: None, error: None })
+            },
+            (Cardinality::One | Cardinality::ZeroOrOne, false, value) => {
+                Ok(MappedValue { value, iv: None, error: None })
+            },
+            _ => Err(ApiCallError::internal(format!("Invalid value/cardinality combination for key `{key}`")))
         }
     }
 
-    fn extract_iv(&self, encrypted_data: &Vec<u8>, key: &str) -> Result<Vec<u8>, ApiCallError>  {
+    fn extract_iv(&self, mut encrypted_data: Vec<u8>, key: &str) -> Result<Vec<u8>, ApiCallError>  {
         if encrypted_data.len() >= IV_BYTE_SIZE {
-            Ok(encrypted_data.as_slice()[0..IV_BYTE_SIZE].to_vec())
+            // We are trying to do something smart here, but it's probably in vain.
+            // We do truncate the vector to the length of IV, and then we shrink it. Shrinking will
+            // probably reallocate it which makes it pointless but maybe it doesn't, it depends on
+            // the allocator.
+            encrypted_data.truncate(IV_BYTE_SIZE);
+            encrypted_data.shrink_to_fit();
+            Ok(encrypted_data)
         } else {
             Err(ApiCallError::InternalSdkError { error_message: format!("Invalid data length for {key}: {}", encrypted_data.len())})
         }
