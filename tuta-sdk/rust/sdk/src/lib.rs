@@ -259,6 +259,9 @@ pub enum ApiCallError {
 }
 
 impl ApiCallError {
+    fn internal(message: String) -> ApiCallError {
+        ApiCallError::InternalSdkError { error_message: message }
+    }
     fn internal_with_err<E: Error>(error: E, message: &str) -> ApiCallError {
         ApiCallError::InternalSdkError { error_message: format!("{}: {}", error, message) }
     }
