@@ -28,6 +28,7 @@ pub struct AccountingInfo {
     pub appStoreSubscription: Option<IdTuple>,
     pub invoiceInfo: Option<GeneratedId>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AccountingInfo {
@@ -119,6 +120,7 @@ pub struct AlarmServicePost {
     pub _format: i64,
     pub alarmNotifications: Vec<AlarmNotification>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AlarmServicePost {
@@ -183,6 +185,7 @@ pub struct AuditLogEntry {
     pub groupInfo: Option<IdTuple>,
     pub modifiedGroupInfo: Option<IdTuple>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AuditLogEntry {
@@ -1081,6 +1084,7 @@ pub struct CustomerServerProperties {
     pub whitelabelRegistrationDomains: Vec<StringWrapper>,
     pub whitelistedDomains: Option<DomainsRef>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CustomerServerProperties {
@@ -1416,6 +1420,7 @@ pub struct GiftCard {
     pub status: i64,
     pub value: i64,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GiftCard {
@@ -1439,6 +1444,7 @@ pub struct GiftCardCreateData {
     pub ownerKeyVersion: i64,
     pub value: i64,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GiftCardCreateData {
@@ -1543,6 +1549,7 @@ pub struct GiftCardRedeemGetReturn {
     pub value: i64,
     pub giftCard: IdTuple,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GiftCardRedeemGetReturn {
@@ -1630,6 +1637,7 @@ pub struct GroupInfo {
     pub localAdmin: Option<GeneratedId>,
     pub mailAddressAliases: Vec<MailAddressAlias>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GroupInfo {
@@ -1741,6 +1749,7 @@ pub struct GroupKeyUpdate {
     pub groupKeyVersion: i64,
     pub bucketKey: BucketKey,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GroupKeyUpdate {
@@ -1980,6 +1989,7 @@ pub struct Invoice {
     pub customer: GeneratedId,
     pub items: Vec<InvoiceItem>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Invoice {
@@ -2402,6 +2412,7 @@ pub struct MissedNotification {
     pub alarmNotifications: Vec<AlarmNotification>,
     pub notificationInfos: Vec<NotificationInfo>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MissedNotification {
@@ -2515,6 +2526,7 @@ pub struct OrderProcessingAgreement {
     pub customer: GeneratedId,
     pub signerUserGroupInfo: IdTuple,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for OrderProcessingAgreement {
@@ -2605,6 +2617,7 @@ pub struct PaymentDataServicePutData {
     pub paymentToken: Option<String>,
     pub creditCard: Option<CreditCard>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for PaymentDataServicePutData {
@@ -2950,6 +2963,7 @@ pub struct PushIdentifier {
     pub lastUsageTime: DateTime,
     pub pushServiceType: i64,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for PushIdentifier {
@@ -2999,6 +3013,7 @@ pub struct ReceivedGroupInvitation {
     pub sentInvitation: IdTuple,
     pub sharedGroup: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ReceivedGroupInvitation {
@@ -3556,6 +3571,7 @@ pub struct Session {
     pub challenges: Vec<Challenge>,
     pub user: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Session {
@@ -3951,6 +3967,7 @@ pub struct UserAlarmInfo {
     pub _permissions: GeneratedId,
     pub alarmInfo: AlarmInfo,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for UserAlarmInfo {
@@ -4356,6 +4373,7 @@ pub struct WhitelabelChild {
     pub mailAddress: String,
     pub customer: GeneratedId,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for WhitelabelChild {

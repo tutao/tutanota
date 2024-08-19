@@ -62,8 +62,10 @@ impl EntityFacade {
             }
         }
 
-        mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(mapped_errors));
-        // mapped_decrypted.insert("final_ivs".to_string(), ElementValue::Dict(mapped_ivs));
+        if type_model.encrypted {
+            mapped_decrypted.insert("errors".to_string(), ElementValue::Dict(mapped_errors));
+            mapped_decrypted.insert("final_ivs".to_string(), ElementValue::Dict(mapped_ivs));
+        }
         Ok(mapped_decrypted)
     }
 
