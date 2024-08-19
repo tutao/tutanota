@@ -117,7 +117,7 @@ import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import type { ParsedEvent } from "../calendar-app/calendar/export/CalendarImporter.js"
+import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
 
 assertMainOrNode()
@@ -456,6 +456,7 @@ class MailLocator {
 				this.mailFacade,
 				this.cryptoFacade,
 				() => this.contactImporter(),
+				() => this.calendarModel(),
 			)
 	}
 
@@ -892,8 +893,8 @@ class MailLocator {
 				return acc
 			}, new Map())
 
-			const { calendarSelectionDialog, parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarImporter.js")
-			const { showCalendarImportDialog } = await import("../calendar-app/calendar/export/CalendarImporterDialog.js")
+			const { calendarSelectionDialog, parseCalendarFile } = await import("../common/calendar/import/CalendarImporter.js")
+			const { showCalendarImportDialog } = await import("../common/calendar/import/CalendarImporterDialog.js")
 
 			let parsedEvents: ParsedEvent[] = []
 

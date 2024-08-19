@@ -174,7 +174,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/calendar-app/calendar/export") ||
 		isIn("src/common/misc/DateParser") ||
 		isIn("src/calendar-app/calendar/model") ||
-		isIn("src/calendar-app/calendar/gui")
+		isIn("src/calendar-app/calendar/gui") ||
+		isIn("src/common/calendar/import")
 	) {
 		// this contains code that is important to the calendar view but might be used by other parts of the app on the main thread
 		// like time-based input components and formatting code.

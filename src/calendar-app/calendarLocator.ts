@@ -107,7 +107,7 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import type { ParsedEvent } from "./calendar/export/CalendarImporter.js"
+import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 
 assertMainOrNode()
 
@@ -730,19 +730,9 @@ class CalendarLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 		if (areAllICSFiles) {
-			const calendarModel = await this.calendarModel()
-			const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
-			const calendarInfos = await calendarModel.getCalendarInfos()
-			const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
-				acc.set(gc.group, gc.color)
-				return acc
-			}, new Map())
-
-			const { calendarSelectionDialog, parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarImporter.js")
-			const { showCalendarImportDialog } = await import("../calendar-app/calendar/export/CalendarImporterDialog.js")
+			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/import/CalendarImporter.js")
 
 			let parsedEvents: ParsedEvent[] = []
-
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
@@ -751,10 +741,7 @@ class CalendarLocator {
 				parsedEvents.push(...data.contents)
 			}
 
-			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
-				dialog.close()
-				showCalendarImportDialog(selectedCalendar.groupRoot, parsedEvents)
-			})
+			await importCalendarFile(await this.calendarModel(), this.logins.getUserController(), parsedEvents)
 		}
 	}
 
