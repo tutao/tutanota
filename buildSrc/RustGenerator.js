@@ -52,8 +52,8 @@ pub struct ${typeName} {\n`
 	}
 
 	if (type.encrypted) {
-		buf += `\tpub errors: Option<Errors>,\n`
-		buf += `\tpub final_ivs: HashMap<String, FinalIv>,\n`
+		buf += `\tpub _errors: Option<Errors>,\n`
+		buf += `\tpub _finalIvs: HashMap<String, FinalIv>,\n`
 	}
 	buf += "}"
 

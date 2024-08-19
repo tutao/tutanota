@@ -775,7 +775,7 @@ impl SerializeStruct for ElementValueStructSerializer {
     {
         match self {
             Self::Struct { map } => {
-                if key == "errors" {
+                if key == "_errors" {
                     // Throw decryption errors away since they are not part of the actual type.
                     return Ok(());
                 }
@@ -1123,7 +1123,7 @@ mod tests {
         #[allow(dead_code)]
         #[derive(Deserialize)]
         struct StructWithErrors {
-            errors: HashMap<String, ElementValue>,
+            _errors: HashMap<String, ElementValue>,
         }
 
         impl Entity for StructWithErrors {
@@ -1133,7 +1133,7 @@ mod tests {
         }
 
         let data = HashMap::from_iter([(
-            "errors".to_owned(),
+            "_errors".to_owned(),
             ElementValue::Dict(HashMap::from_iter([
                 (
                     "first".to_owned(),
@@ -1204,8 +1204,8 @@ mod tests {
             group: GeneratedId::test_random(),
             localAdmin: None,
             mailAddressAliases: vec![],
-            errors: Default::default(),
-            final_ivs: Default::default(),
+            _errors: Default::default(),
+            _finalIvs: Default::default(),
         };
         let mapper = InstanceMapper::new();
         let parsed_entity = mapper.serialize_entity(group_info).unwrap();
@@ -1224,7 +1224,7 @@ mod tests {
         let mut parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
         let type_model = type_model_provider.get_type_model(type_ref.app, type_ref.type_).unwrap();
         if type_model.encrypted {
-            parsed_entity.insert("final_ivs".to_owned(), ElementValue::Dict(Default::default()));
+            parsed_entity.insert("_finalIvs".to_owned(), ElementValue::Dict(Default::default()));
         }
         parsed_entity
     }
