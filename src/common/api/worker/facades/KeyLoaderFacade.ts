@@ -28,7 +28,6 @@ export class KeyLoaderFacade {
 	 * @param groupId the id of the group
 	 * @param requestedVersion the requestedVersion of the key to be loaded
 	 * @param currentGroupKey needs to be set if the user is not a member of the group (e.g. an admin)
-	 * @param attempts how many times should we try reloading the user. This is mainly to prevent infinite recursions. MUST be at max 1.
 	 */
 	async loadSymGroupKey(groupId: Id, requestedVersion: number, currentGroupKey?: VersionedKey): Promise<AesKey> {
 		if (currentGroupKey != null && currentGroupKey.version < requestedVersion) {

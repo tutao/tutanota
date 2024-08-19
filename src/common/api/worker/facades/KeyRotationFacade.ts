@@ -230,8 +230,10 @@ export class KeyRotationFacade {
 			this.pendingKeyRotations.teamOrCustomerGroupKeyRotations = []
 		}
 
+		let invitationData: GroupInvitationPostData[] = []
 		if (!isEmpty(this.pendingKeyRotations.userAreaGroupsKeyRotations)) {
-			const groupKeyRotationData = await this.rotateUserAreaGroupKeys(user)
+			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user)
+			invitationData = preparedReInvites
 			if (groupKeyRotationData != null) {
 				serviceData.groupKeyUpdates = serviceData.groupKeyUpdates.concat(groupKeyRotationData)
 			}
@@ -241,6 +243,11 @@ export class KeyRotationFacade {
 			return
 		}
 		await this.serviceExecutor.post(GroupKeyRotationService, serviceData)
+
+		if (!isEmpty(invitationData)) {
+			const shareFacade = await this.shareFacade()
+			await promiseMap(invitationData, (preparedInvite) => shareFacade.sendGroupInvitationRequest(preparedInvite))
+		}
 	}
 
 	/**
@@ -259,14 +266,17 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
-	private async rotateUserAreaGroupKeys(user: User) {
+	private async rotateUserAreaGroupKeys(user: User): Promise<{
+		groupKeyRotationData: GroupKeyRotationData[]
+		preparedReInvites: GroupInvitationPostData[]
+	}> {
 		//group key rotation is skipped if
 		// * user is not an admin user
 		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.Admin)
 		if (adminGroupMembership == null) {
 			// group key rotations are currently only scheduled for single user customers, so this user must be an admin
 			console.log("Only admin user can rotate the group")
-			return
+			return { groupKeyRotationData: [], preparedReInvites: [] }
 		}
 
 		// * the encrypting keys are 128-bit keys. (user group key, admin group key)
@@ -275,7 +285,7 @@ export class KeyRotationFacade {
 		if (hasNonQuantumSafeKeys(currentUserGroupKey.object, currentAdminGroupKey.object)) {
 			// admin group key rotation should be scheduled first on the server, so this should not happen
 			console.log("Keys cannot be rotated as the encrypting keys are not pq secure")
-			return
+			return { groupKeyRotationData: [], preparedReInvites: [] }
 		}
 
 		const groupKeyUpdates = new Array<GroupKeyRotationData>()
@@ -291,9 +301,7 @@ export class KeyRotationFacade {
 			preparedReInvites = preparedReInvites.concat(preparedReInvitations)
 		}
 
-		const shareFacade = await this.shareFacade()
-		await promiseMap(preparedReInvites, (preparedInvite) => shareFacade.sendGroupInvitationRequest(preparedInvite))
-		return groupKeyUpdates
+		return { groupKeyRotationData: groupKeyUpdates, preparedReInvites }
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
