@@ -26,7 +26,7 @@ import {
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import type { ParsedCalendarData } from "../export/CalendarImporter"
+import type { ParsedCalendarData } from "../../../common/calendar/import/CalendarImporter.js"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -310,7 +310,7 @@ export class CalendarModel {
 			// was already resolved and the entity updated.
 			const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
-			const { parseCalendarFile } = await import("../export/CalendarImporter")
+			const { parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
 			return await parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {

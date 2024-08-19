@@ -53,7 +53,7 @@ import { NativePushFacade } from "../../../../native/common/generatedipc/NativeP
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
-import { EventWrapper } from "../../../../../calendar-app/calendar/export/CalendarImporterDialog.js"
+import { EventWrapper } from "../../../../calendar/import/CalendarImporterDialog.js"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
