@@ -457,7 +457,7 @@ class CalendarLocator {
 			const domainConfig = isBrowser()
 				? calendarLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				calendarLocator.domainConfigProvider().getCurrentDomainConfig()
+				  calendarLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				calendarLocator.logins,
@@ -613,6 +613,7 @@ class CalendarLocator {
 					async () => this.fileApp,
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
+					AppType.Calendar,
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -727,7 +728,7 @@ class CalendarLocator {
 
 	private async handleFileImport(filesUris: ReadonlyArray<string>) {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
-		const areAllICSFiles = files.every(file => file.mimeType === CALENDAR_MIME_TYPE)
+		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 		if (areAllICSFiles) {
 			const calendarModel = await this.calendarModel()
 			const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings

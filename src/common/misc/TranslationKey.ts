@@ -1745,3 +1745,4 @@ export type TranslationKeyType =
 	| "importEvents_label"
 	| "calendarImportSelection_label"
 	| "icsInSharingFiles_msg"
+	| "invalidCalendarFile_msg"

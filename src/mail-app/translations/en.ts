@@ -1758,8 +1758,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"importEvents_label": "Import Events",
-		"calendarDefaultReminder_label": "Default reminder before event",
 		"calendarImportSelection_label": "Select a calendar to import your events into",
 		"icsInSharingFiles_msg": "One or more calendar files were detected. Would you like to import or attach them?",
+		"invalidCalendarFile_msg": "One or more files aren't valid calendar files."
 	}
 }
