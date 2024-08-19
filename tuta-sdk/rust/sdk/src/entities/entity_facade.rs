@@ -21,6 +21,12 @@ pub struct EntityFacade {
     type_model_provider: Arc<TypeModelProvider>,
 }
 
+struct MappedValue {
+    value: ElementValue,
+    iv: Option<[u8; IV_BYTE_SIZE]>,
+    error: Option<String>,
+}
+
 #[cfg_attr(test, mockall::automock)]
 impl EntityFacade {
     pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
@@ -41,14 +47,14 @@ impl EntityFacade {
 
         for (&key, model_value) in type_model.values.iter() {
             let stored_element = entity.remove(key).unwrap_or_else(|| ElementValue::Null);
-            let (decrypted, ivs, error) = self.map_value(stored_element, session_key, key, model_value)?;
+            let MappedValue {value, iv, error } = self.map_value(stored_element, session_key, key, model_value)?;
 
-            mapped_decrypted.insert(key.to_string(), decrypted);
+            mapped_decrypted.insert(key.to_string(), value);
             if let Some(error) = error {
                 mapped_errors.insert(key.to_string(), ElementValue::String(error));
             }
-            if ivs.is_some() {
-                mapped_ivs.insert(key.to_string(), ElementValue::Bytes(ivs.unwrap().to_vec()));
+            if iv.is_some() {
+                mapped_ivs.insert(key.to_string(), ElementValue::Bytes(iv.unwrap().to_vec()));
             }
         }
 
@@ -139,14 +145,17 @@ impl EntityFacade {
         }
     }
 
-    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<(ElementValue, Option<[u8; IV_BYTE_SIZE]>, Option<String>), ApiCallError> {
+    fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<MappedValue, ApiCallError> {
         // We want to ensure we use the same IV for final encrypted values, as this will guarantee
         // we get the same value back.
         let final_iv: Option<[u8; IV_BYTE_SIZE]> = if model_value.encrypted && model_value.is_final {
             match &value {
                 ElementValue::Bytes(bytes) => Some(self.extract_iv(bytes.as_slice())),
                 ElementValue::Null => None,
-                ElementValue::String(s) if s == "" => return Ok((self.resolve_default_value(&model_value.value_type), None, None)),
+                ElementValue::String(s) if s == "" => {
+                    let value = self.resolve_default_value(&model_value.value_type);
+                    return Ok(MappedValue { value, iv: None, error: None})
+                },
                 _ => return Err(ApiCallError::InternalSdkError { error_message: format!("Invalid encrypted data {key}. Not bytes, value: {:?}", value) })
             }
         } else {
@@ -157,31 +166,24 @@ impl EntityFacade {
             if model_value.cardinality != Cardinality::ZeroOrOne {
                 return Err(ApiCallError::InternalSdkError { error_message: format!("Value {key} with cardinality ONE can't be null") });
             }
-
-            return Ok((ElementValue::Null, final_iv, None));
+            return Ok(MappedValue {value: ElementValue::Null, iv: final_iv, error: None});
         } else if model_value.cardinality == Cardinality::One && value == ElementValue::String(String::new()) {
-            return Ok((self.resolve_default_value(&model_value.value_type), final_iv, None));
+            let value = self.resolve_default_value(&model_value.value_type);
+            return Ok(MappedValue {value, iv: final_iv, error: None});
         }
 
         if model_value.encrypted {
-            let decrypted_value = session_key.decrypt_data(value.assert_bytes().as_slice())
-                .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() });
-
-            match decrypted_value {
-                Ok(dec_value) => {
-                    match self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value) {
-                        Ok(p_dec_value) => Ok((p_dec_value, final_iv, None)),
-                        Err(err) => {
-                            Ok((self.resolve_default_value(&model_value.value_type), None, Some(format!("Failed to decrypt {key}. {err}"))))
-                        }
-                    }
-                }
+            let parsed_value = session_key.decrypt_data(value.assert_bytes().as_slice())
+                .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() })
+                .and_then(|dec_value| self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value));
+            match parsed_value {
+                Ok(value) => Ok(MappedValue {value, iv: final_iv, error: None}),
                 Err(err) => {
-                    Ok((self.resolve_default_value(&model_value.value_type), None, Some(format!("Failed to decrypt {key}. {err}"))))
+                    Ok(MappedValue {value: self.resolve_default_value(&model_value.value_type), iv: None, error: Some(format!("Failed to decrypt {key}. {err}")) })
                 }
             }
         } else {
-            Ok((value, final_iv, None))
+            Ok(MappedValue { value, iv: None, error: None })
         }
     }
 
@@ -254,7 +256,7 @@ mod tests {
     use std::time::SystemTime;
 
     use rand::random;
-    use crate::crypto::{Aes256Key, Iv};
+    use crate::crypto::{Aes256Key, Iv, IV_BYTE_SIZE};
 
     use crate::crypto::key::GenericAesKey;
     use crate::date::DateTime;
@@ -295,6 +297,17 @@ mod tests {
         assert_eq!("Matthias", decrypted_mail.get("sender").unwrap().assert_dict().get("name").unwrap().assert_str());
         assert_eq!("map-free@tutanota.de", decrypted_mail.get("sender").unwrap().assert_dict().get("address").unwrap().assert_str());
         assert!(decrypted_mail.get("attachments").unwrap().assert_array().is_empty());
+        assert_eq!(
+            decrypted_mail
+                .get("final_ivs")
+                .expect("has_final_ivs")
+                .assert_dict()
+                .get("subject")
+                .expect("has_subject")
+                .assert_bytes()
+                .len(),
+            IV_BYTE_SIZE
+        );
     }
 
     fn make_json_entity() -> RawEntity {
