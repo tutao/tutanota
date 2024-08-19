@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
+use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::de::{DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, Unexpected, VariantAccess, Visitor};
-use serde::ser::{SerializeSeq, SerializeStruct};
-use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
+use serde::ser::{Impossible, SerializeMap, SerializeSeq, SerializeStruct};
 use thiserror::Error;
 
 use crate::custom_id::CustomId;
@@ -234,7 +234,7 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
         V: Visitor<'de>,
     {
         let type_name = self.value.type_variant_name();
-        Err(de::Error::custom(format_args!("deserialize_any is not supported! key: {} value: {type_name}", self.key)))
+        Err(de::Error::custom(format_args!("deserialize_any is not supported! key: `{}`, value type: `{type_name}`", self.key)))
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -550,7 +550,7 @@ impl Serializer for ElementValueSerializer {
     type SerializeTuple = ser::Impossible<ElementValue, SerError>;
     type SerializeTupleStruct = ser::Impossible<ElementValue, SerError>;
     type SerializeTupleVariant = ser::Impossible<ElementValue, SerError>;
-    type SerializeMap = ser::Impossible<ElementValue, SerError>;
+    type SerializeMap = ElementValueMapSerializer;
     type SerializeStruct = ElementValueStructSerializer;
     type SerializeStructVariant = ser::Impossible<ElementValue, SerError>;
 
@@ -713,7 +713,7 @@ impl Serializer for ElementValueSerializer {
     }
 
     fn serialize_map(self, _: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        unsupported("map")
+        Ok(ElementValueMapSerializer { map: HashMap::new(), next_key: None })
     }
 
     fn serialize_struct(
@@ -821,6 +821,38 @@ impl SerializeStruct for ElementValueStructSerializer {
     }
 }
 
+/// Yet Another Serializer, this one serializes a map with dynamic keys.
+struct ElementValueMapSerializer {
+    next_key: Option<String>,
+    map: HashMap<String, ElementValue>,
+}
+
+impl SerializeMap for ElementValueMapSerializer {
+    type Ok = ElementValue;
+    type Error = SerError;
+
+    fn serialize_key<T>(&mut self, key: &T) -> Result<(), Self::Error>
+    where
+        T: ?Sized + Serialize
+    {
+        self.next_key = Some(key.serialize(MapKeySerializer)?);
+        Ok(())
+    }
+
+    fn serialize_value<T>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: ?Sized + Serialize
+    {
+        let key = self.next_key.take().expect("key must be serialized first");
+        self.map.insert(key, value.serialize(ElementValueSerializer)?);
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(ElementValue::Dict(self.map))
+    }
+}
+
 impl ElementValue {
     fn as_unexpected(&self) -> Unexpected {
         match self {
@@ -836,6 +868,142 @@ impl ElementValue {
             ElementValue::Dict(_) => Unexpected::Map,
             ElementValue::Array(_) => Unexpected::Seq,
         }
+    }
+}
+
+/// Yet Another Serializer, this one serializes a single string
+struct MapKeySerializer;
+
+impl Serializer for MapKeySerializer {
+    type Ok = String;
+    type Error = SerError;
+    type SerializeSeq = Impossible<String, SerError>;
+    type SerializeTuple = Impossible<String, SerError>;
+    type SerializeTupleStruct = Impossible<String, SerError>;
+    type SerializeTupleVariant = Impossible<String, SerError>;
+    type SerializeMap = Impossible<String, SerError>;
+    type SerializeStruct = Impossible<String, SerError>;
+    type SerializeStructVariant = Impossible<String, SerError>;
+
+    fn serialize_bool(self, _: bool) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_i64(self, _: i64) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_u8(self, _: u8) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_u16(self, _: u16) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_f64(self, _: f64) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_char(self, _: char) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        Ok(v.to_owned())
+    }
+
+    fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_some<T>(self, _: &T) -> Result<Self::Ok, Self::Error>
+    where
+        T: ?Sized + Serialize
+    {
+        unreachable!()
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_unit_struct(self, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_unit_variant(self, _: &'static str, _: u32, _: &'static str) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_newtype_struct<T>(self, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error>
+    where
+        T: ?Sized + Serialize
+    {
+        unreachable!()
+    }
+
+    fn serialize_newtype_variant<T>(self, _: &'static str, _: u32, _: &'static str, _: &T) -> Result<Self::Ok, Self::Error>
+    where
+        T: ?Sized + Serialize
+    {
+        unreachable!()
+    }
+
+    fn serialize_seq(self, _: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_tuple(self, _: usize) -> Result<Self::SerializeTuple, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_tuple_struct(self, _: &'static str, _: usize) -> Result<Self::SerializeTupleStruct, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_tuple_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_map(self, _: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_struct(self, _: &'static str, _: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        unreachable!()
+    }
+
+    fn serialize_struct_variant(self, _: &'static str, _: u32, _: &'static str, _: usize) -> Result<Self::SerializeStructVariant, Self::Error> {
+        unreachable!()
     }
 }
 
@@ -1037,6 +1205,7 @@ mod tests {
             localAdmin: None,
             mailAddressAliases: vec![],
             errors: Default::default(),
+            final_ivs: Default::default(),
         };
         let mapper = InstanceMapper::new();
         let parsed_entity = mapper.serialize_entity(group_info).unwrap();
@@ -1049,9 +1218,14 @@ mod tests {
 
     fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {
         let raw_entity: RawEntity = serde_json::from_str(email_string).unwrap();
-        let type_model_provider = init_type_model_provider();
-        let json_serializer = JsonSerializer::new(Arc::new(type_model_provider));
-        let parsed_entity = json_serializer.parse(&T::type_ref(), raw_entity).unwrap();
+        let type_model_provider = Arc::new(init_type_model_provider());
+        let json_serializer = JsonSerializer::new(type_model_provider.clone());
+        let type_ref = T::type_ref();
+        let mut parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
+        let type_model = type_model_provider.get_type_model(type_ref.app, type_ref.type_).unwrap();
+        if type_model.encrypted {
+            parsed_entity.insert("final_ivs".to_owned(), ElementValue::Dict(Default::default()));
+        }
         parsed_entity
     }
 }

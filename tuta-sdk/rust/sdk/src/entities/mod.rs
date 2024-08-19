@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 pub use crate::IdTuple;
 use crate::TypeRef;
 
@@ -22,6 +23,20 @@ use crate::element_value::ElementValue;
 pub trait Entity: 'static {
     fn type_ref() -> TypeRef;
 }
+
+/// A wrapper for the value in final_ivs map on entities.
+/// Once we decrypt a final field we want to be able to re-encrypt it
+/// to the same exact value. For that we need to use the same initialization
+/// vector.
+/// FinalIv holds such an IV for a specific field.
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(transparent)]
+pub struct FinalIv(
+    #[serde(with = "serde_bytes")]
+    Vec<u8>
+);
+
+uniffi::custom_newtype!(FinalIv, Vec<u8>);
 
 type Errors = HashMap<String, ElementValue>;
 

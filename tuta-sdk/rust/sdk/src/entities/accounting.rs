@@ -33,6 +33,7 @@ pub struct CustomerAccountReturn {
     pub outstandingBookingsPrice: i64,
     pub postings: Vec<CustomerAccountPosting>,
 	pub errors: Option<Errors>,
+	pub final_ivs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CustomerAccountReturn {
