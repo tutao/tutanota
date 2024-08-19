@@ -13,6 +13,7 @@ import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { NativeFileApp } from "../common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
+import { AppType } from "../../misc/ClientConstants.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -22,8 +23,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		private readonly fileApp: lazyAsync<NativeFileApp>,
 		private readonly pushService: lazyAsync<NativePushServiceApp>,
 		private readonly fileImportHandler: (filesUris: ReadonlyArray<string>) => unknown,
-	) {
-	}
+		private readonly appType: AppType,
+	) {}
 
 	/**
 	 * create a mail editor as requested from the native side, ie because a
@@ -60,6 +61,14 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CALENDAR)
 
+				if (this.appType === AppType.Calendar) {
+					if (!allFilesAreICS) {
+						return Dialog.message("invalidCalendarFile_msg")
+					}
+
+					return this.handleFileImport(filesUris)
+				}
+
 				let willImport = false
 				if (allFilesAreVCards) {
 					willImport = await Dialog.choice("vcardInSharingFiles_msg", [
@@ -85,13 +94,13 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 					const address = (addresses && addresses[0]) || ""
 					const recipients = address
 						? {
-							to: [
-								{
-									name: "",
-									address: address,
-								},
-							],
-						}
+								to: [
+									{
+										name: "",
+										address: address,
+									},
+								],
+						  }
 						: {}
 					editor = await newMailEditorFromTemplate(
 						mailboxDetails,
