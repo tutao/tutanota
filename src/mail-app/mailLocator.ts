@@ -285,8 +285,8 @@ class MailLocator {
 	readonly mailOpenedListener: MailOpenedListener = {
 		onEmailOpened: isDesktop()
 			? (mail) => {
-				this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			}
+					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
+			  }
 			: noOp,
 	}
 
@@ -570,7 +570,7 @@ class MailLocator {
 			const domainConfig = isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				mailLocator.domainConfigProvider().getCurrentDomainConfig()
+				  mailLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				mailLocator.logins,
@@ -734,6 +734,7 @@ class MailLocator {
 					async () => this.fileApp,
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
+					AppType.Integrated,
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -870,8 +871,8 @@ class MailLocator {
 
 	private async handleFileImport(filesUris: ReadonlyArray<string>) {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
-		const areAllFilesVCard = files.every(file => file.mimeType === VCARD_MIME_TYPES.X_VCARD || file.mimeType === VCARD_MIME_TYPES.VCARD)
-		const areAllFilesICS = files.every(file => file.mimeType === CALENDAR_MIME_TYPE)
+		const areAllFilesVCard = files.every((file) => file.mimeType === VCARD_MIME_TYPES.X_VCARD || file.mimeType === VCARD_MIME_TYPES.VCARD)
+		const areAllFilesICS = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 
 		if (areAllFilesVCard) {
 			const importer = await this.contactImporter()

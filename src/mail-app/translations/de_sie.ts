@@ -1792,8 +1792,8 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"importEvents_label": "Terminen wird importiert",
-		"calendarDefaultReminder_label": "Standard-Terminerinnerung",
 		"calendarImportSelection_label": "Wählen Sie einen Kalender aus, in den Sie Ihre Ereignisse importieren möchten.",
 		"icsInSharingFiles_msg": "Eine oder mehrere Kalenderdateien wurden erkannt. Möchten Sie sie importieren oder anhängen?",
+		"invalidCalendarFile_msg": "Eine oder mehrere Dateien sind keine gültigen Kalenderdateien."
 	}
 }
