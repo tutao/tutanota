@@ -141,7 +141,7 @@ export class MailboxModel {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
 					await this._init()
-					m.redraw
+					m.redraw()
 				}
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				let newMemberships = this.logins.getUserController().getMailGroupMemberships()

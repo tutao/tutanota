@@ -5,12 +5,13 @@ import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaCo
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
-import type { SearchFacade } from "../../../common/api/worker/search/SearchFacade"
+import type { SearchFacade } from "../../workerUtils/index/SearchFacade.js"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { CommonSearchModel } from "../../../common/search/CommonSearchModel.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -28,8 +29,8 @@ export class SearchModel {
 	lastQueryString: Stream<string | null>
 	indexingSupported: boolean
 	_searchFacade: SearchFacade
-	private _lastQuery: SearchQuery | null
-	_lastSearchPromise: Promise<SearchResult | void>
+	private lastQuery: SearchQuery | null
+	private lastSearchPromise: Promise<SearchResult | void>
 	cancelSignal: Stream<boolean>
 
 	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
@@ -46,17 +47,17 @@ export class SearchModel {
 			indexedMailCount: 0,
 			failedIndexingUpTo: null,
 		})
-		this._lastQuery = null
-		this._lastSearchPromise = Promise.resolve()
+		this.lastQuery = null
+		this.lastSearchPromise = Promise.resolve()
 		this.cancelSignal = stream(false)
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
-		if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
-			return this._lastSearchPromise
+		if (this.lastQuery && searchQueryEquals(searchQuery, this.lastQuery)) {
+			return this.lastSearchPromise
 		}
 
-		this._lastQuery = searchQuery
+		this.lastQuery = searchQuery
 		const { query, restriction, minSuggestionCount, maxResults } = searchQuery
 		this.lastQueryString(query)
 		let result = this.result()
@@ -83,7 +84,7 @@ export class SearchModel {
 				moreResultsEntries: [],
 			}
 			this.result(result)
-			this._lastSearchPromise = Promise.resolve(result)
+			this.lastSearchPromise = Promise.resolve(result)
 		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
@@ -114,8 +115,8 @@ export class SearchModel {
 
 			if (this.cancelSignal()) {
 				this.result(calendarResult)
-				this._lastSearchPromise = Promise.resolve(calendarResult)
-				return this._lastSearchPromise
+				this.lastSearchPromise = Promise.resolve(calendarResult)
+				return this.lastSearchPromise
 			}
 
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, this.cancelSignal)
@@ -133,8 +134,8 @@ export class SearchModel {
 
 			if (this.cancelSignal()) {
 				this.result(calendarResult)
-				this._lastSearchPromise = Promise.resolve(calendarResult)
-				return this._lastSearchPromise
+				this.lastSearchPromise = Promise.resolve(calendarResult)
+				return this.lastSearchPromise
 			}
 
 			if (tokens.length > 0) {
@@ -183,17 +184,17 @@ export class SearchModel {
 
 						if (this.cancelSignal()) {
 							this.result(calendarResult)
-							this._lastSearchPromise = Promise.resolve(calendarResult)
-							return this._lastSearchPromise
+							this.lastSearchPromise = Promise.resolve(calendarResult)
+							return this.lastSearchPromise
 						}
 					}
 				}
 			}
 
 			this.result(calendarResult)
-			this._lastSearchPromise = Promise.resolve(calendarResult)
+			this.lastSearchPromise = Promise.resolve(calendarResult)
 		} else {
-			this._lastSearchPromise = this._searchFacade
+			this.lastSearchPromise = this._searchFacade
 				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
 				.then((result) => {
 					this.result(result)
@@ -207,12 +208,12 @@ export class SearchModel {
 				)
 		}
 
-		return this._lastSearchPromise
+		return this.lastSearchPromise
 	}
 
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {
 		let isNew = false
-		let lastQuery = this._lastQuery
+		let lastQuery = this.lastQuery
 		if (lastQuery == null) {
 			isNew = true
 		} else if (lastQuery.query !== query) {

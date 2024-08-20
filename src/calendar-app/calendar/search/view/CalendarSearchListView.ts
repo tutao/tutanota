@@ -15,7 +15,7 @@ import { KindaCalendarRow } from "../../gui/CalendarRow.js"
 
 assertMainOrNode()
 
-export class SearchResultListEntry {
+export class CalendarSearchResultListEntry {
 	constructor(readonly entry: CalendarEvent) {}
 
 	get _id(): IdTuple {
@@ -24,14 +24,14 @@ export class SearchResultListEntry {
 }
 
 export interface CalendarSearchListViewAttrs {
-	listModel: ListModel<SearchResultListEntry>
-	onSingleSelection: (item: SearchResultListEntry) => unknown
+	listModel: ListModel<CalendarSearchResultListEntry>
+	onSingleSelection: (item: CalendarSearchResultListEntry) => unknown
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 }
 
 export class CalendarSearchListView implements Component<CalendarSearchListViewAttrs> {
-	private listModel: ListModel<SearchResultListEntry>
+	private listModel: ListModel<CalendarSearchResultListEntry>
 
 	constructor({ attrs }: Vnode<CalendarSearchListViewAttrs>) {
 		this.listModel = attrs.listModel
@@ -57,14 +57,14 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 					onRetryLoading: () => {
 						attrs.listModel?.retryLoading()
 					},
-					onSingleSelection: (item: SearchResultListEntry) => {
+					onSingleSelection: (item: CalendarSearchResultListEntry) => {
 						attrs.listModel?.onSingleSelection(item)
 						attrs.onSingleSelection(item)
 					},
-					onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
+					onSingleTogglingMultiselection: (item: CalendarSearchResultListEntry) => {
 						attrs.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
 					},
-					onRangeSelectionTowards: (item: SearchResultListEntry) => {
+					onRangeSelectionTowards: (item: CalendarSearchResultListEntry) => {
 						attrs.listModel.selectRangeTowards(item)
 					},
 					onStopLoading() {
@@ -74,10 +74,10 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 
 						attrs.listModel.stopLoading()
 					},
-			  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
+			  } satisfies ListAttrs<CalendarSearchResultListEntry, SearchResultListRow>)
 	}
 
-	private readonly calendarRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
+	private readonly calendarRenderConfig: RenderConfig<CalendarSearchResultListEntry, SearchResultListRow> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
@@ -89,14 +89,14 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 	}
 }
 
-export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
+export class SearchResultListRow implements VirtualRow<CalendarSearchResultListEntry> {
 	top: number
 	// set from List
 	domElement: HTMLElement | null = null
 
 	// this is our own entry which we need for some reason (probably easier to deal with than a lot of sum type entries)
-	private _entity: SearchResultListEntry | null = null
-	get entity(): SearchResultListEntry | null {
+	private _entity: CalendarSearchResultListEntry | null = null
+	get entity(): CalendarSearchResultListEntry | null {
 		return this._entity
 	}
 
@@ -107,7 +107,7 @@ export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 		this.top = 0
 	}
 
-	update(entry: SearchResultListEntry, selected: boolean, isInMultiSelect: boolean): void {
+	update(entry: CalendarSearchResultListEntry, selected: boolean, isInMultiSelect: boolean): void {
 		this._delegate.domElement = this.domElement!
 		this._entity = entry
 
