@@ -34,17 +34,17 @@ class NetworkUtils {
 		val defaultClient = createHttpClient()
 		private fun createHttpClient(): OkHttpClient {
 			val builder: OkHttpClient.Builder = OkHttpClient()
-				.newBuilder()
-				.connectTimeout(5, TimeUnit.SECONDS)
-				.writeTimeout(5, TimeUnit.SECONDS)
-				.readTimeout(5, TimeUnit.SECONDS)
-				.run {
-					if (BuildConfig.DEBUG) {
-						connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
-					} else {
-						connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
+					.newBuilder()
+					.connectTimeout(5, TimeUnit.SECONDS)
+					.writeTimeout(5, TimeUnit.SECONDS)
+					.readTimeout(5, TimeUnit.SECONDS)
+					.run {
+						if (BuildConfig.DEBUG) {
+							connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
+						} else {
+							connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
+						}
 					}
-				}
 
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 				// setup TLSv1.3 for old android versions

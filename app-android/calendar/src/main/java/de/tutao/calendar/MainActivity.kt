@@ -562,8 +562,9 @@ class MainActivity : FragmentActivity() {
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
 			if (intent != null) {
-			super.startActivityForResult(intent, requestCode)
-		}}
+				super.startActivityForResult(intent, requestCode)
+			}
+		}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
