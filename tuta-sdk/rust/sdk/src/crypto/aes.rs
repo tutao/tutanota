@@ -199,8 +199,15 @@ pub enum AesDecryptError {
     HmacError,
 }
 
+/// Result of decryption operation.
+/// IV is usually part of the ciphertext. Returned iv is a part of the provided ciphertext.
+pub struct PlaintextAndIv<'a> {
+    pub data: Vec<u8>,
+    pub iv: &'a [u8],
+}
+
 /// Decrypt using AES-128-CBC using prepended IV with PKCS7 padding and optional HMAC-SHA-256
-pub fn aes_128_decrypt(key: &Aes128Key, encrypted_bytes: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
+pub fn aes_128_decrypt<'a>(key: &Aes128Key, encrypted_bytes: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::WithPadding, EnforceMac::AllowNoMac)
 }
 
@@ -217,12 +224,12 @@ pub fn aes_128_decrypt_no_padding_fixed_iv(key: &Aes128Key, encrypted_bytes: &[u
 }
 
 /// Decrypt using AES-256-CBC using prepended IV with PKCS7 padding and HMAC-SHA-512
-pub fn aes_256_decrypt(key: &Aes256Key, encrypted_bytes: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
+pub fn aes_256_decrypt<'a>(key: &Aes256Key, encrypted_bytes: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::WithPadding, EnforceMac::EnforceMac)
 }
 
 /// Decrypt an encryption key with AES-256-CBC using prepended IV without padding and HMAC-SHA-512
-pub fn aes_256_decrypt_no_padding(key: &Aes256Key, encrypted_bytes: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
+pub fn aes_256_decrypt_no_padding<'a>(key: &Aes256Key, encrypted_bytes: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::NoPadding, EnforceMac::EnforceMac)
 }
 
@@ -382,7 +389,7 @@ fn has_mac(bytes: &[u8]) -> bool {
 
 /// Decrypts the AES-encrypted raw string `encrypted_bytes` into a plain text raw string
 /// using AES using prepended IV with optional PKCS7 padding and optional HMAC-SHA
-fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: PaddingMode, enforce_mac: EnforceMac) -> Result<Vec<u8>, AesDecryptError> {
+fn aes_decrypt<'a, Key: AesKey>(key: &Key, encrypted_bytes: &'a [u8], padding_mode: PaddingMode, enforce_mac: EnforceMac) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
     if encrypted_bytes.len() < IV_BYTE_SIZE {
         return Err(AesDecryptError::InvalidDataSizeError);
     }
@@ -405,7 +412,7 @@ fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: Pad
 
     // Return early if there is nothing to decrypt
     if encrypted_bytes.is_empty() {
-        return Ok(vec!());
+        return Ok(PlaintextAndIv { data: vec![], iv: iv_bytes });
     }
 
     let mut decryptor = cbc::Decryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), iv_bytes).unwrap();
@@ -415,7 +422,7 @@ fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: Pad
         PaddingMode::WithPadding => decryptor.decrypt_padded_vec_mut::<Pkcs7>(encrypted_bytes)?
     };
 
-    Ok(plaintext_data)
+    Ok(PlaintextAndIv { data: plaintext_data, iv: iv_bytes })
 }
 
 #[cfg(test)]
@@ -501,7 +508,7 @@ mod tests {
             let decrypted_bytes = aes_128_decrypt(
                 &key,
                 &ciphertext,
-            ).unwrap();
+            ).unwrap().data;
 
             let expected_plaintext = td.plain_text_base64;
             assert_eq!(expected_plaintext, decrypted_bytes);
@@ -549,7 +556,7 @@ mod tests {
             let decrypted_bytes = aes_128_decrypt(
                 &key,
                 &ciphertext,
-            ).unwrap();
+            ).unwrap().data;
 
             let expected_plaintext = td.plain_text_base64;
             assert_eq!(expected_plaintext, decrypted_bytes, "failed test: {}", BASE64_STANDARD.encode(&ciphertext));
@@ -583,7 +590,7 @@ mod tests {
             let decrypted_bytes = aes_256_decrypt(
                 &key,
                 &ciphertext,
-            ).unwrap();
+            ).unwrap().data;
 
             let expected_plaintext = td.plain_text_base64;
             assert_eq!(expected_plaintext, decrypted_bytes, "failed test: {}", BASE64_STANDARD.encode(&ciphertext));
@@ -616,7 +623,7 @@ mod tests {
             let decrypted_bytes = aes_256_decrypt_no_padding(
                 &key,
                 encrypted_key.as_slice(),
-            ).unwrap();
+            ).unwrap().data;
 
             let expected_plain_key = td.key_to_encrypt256;
             assert_eq!(expected_plain_key, decrypted_bytes);
@@ -649,7 +656,7 @@ mod tests {
             let decrypted_bytes = aes_256_decrypt_no_padding(
                 &key,
                 encrypted_key.as_slice(),
-            ).unwrap();
+            ).unwrap().data;
 
             let expected_plain_key = td.key_to_encrypt128;
             assert_eq!(expected_plain_key, decrypted_bytes);

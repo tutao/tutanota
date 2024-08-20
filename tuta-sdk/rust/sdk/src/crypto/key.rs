@@ -45,7 +45,7 @@ impl GenericAesKey {
     pub fn decrypt_aes_key(&self, encrypted_key: &[u8]) -> Result<GenericAesKey, KeyLoadError> {
         let decrypted = match self {
             Self::Aes128(key) => aes_128_decrypt_no_padding_fixed_iv(&key, encrypted_key)?,
-            Self::Aes256(key) => aes_256_decrypt_no_padding(&key, encrypted_key)?,
+            Self::Aes256(key) => aes_256_decrypt_no_padding(&key, encrypted_key)?.data,
         };
 
         let decrypted = Zeroizing::new(decrypted);
@@ -56,6 +56,14 @@ impl GenericAesKey {
     ///
     /// The return decrypted data is not zeroized
     pub fn decrypt_data(&self, ciphertext: &[u8]) -> Result<Vec<u8>, AesDecryptError> {
+        let decrypted = match self {
+            Self::Aes128(key) => aes_128_decrypt(&key, ciphertext)?,
+            Self::Aes256(key) => aes_256_decrypt(&key, ciphertext)?,
+        };
+        Ok(decrypted.data)
+    }
+
+    pub fn decrypt_data_and_iv<'a>(&self, ciphertext: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
         let decrypted = match self {
             Self::Aes128(key) => aes_128_decrypt(&key, ciphertext)?,
             Self::Aes256(key) => aes_256_decrypt(&key, ciphertext)?,

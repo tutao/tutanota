@@ -7,7 +7,7 @@ use std::time::SystemTime;
 
 use crate::ApiCallError;
 use crate::crypto::crypto_facade::ResolvedSessionKey;
-use crate::crypto::IV_BYTE_SIZE;
+use crate::crypto::{IV_BYTE_SIZE, PlaintextAndIv};
 use crate::date::DateTime;
 use crate::crypto::key::GenericAesKey;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -170,22 +170,22 @@ impl EntityFacade {
             (Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::Bytes(bytes)) => {
                 // If it's a proper encrypted value then we need to decrypt it, parse it and
                 // possibly record the IV.
-                let parsed_value = session_key.decrypt_data(bytes.as_slice())
-                    .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() })
-                    .and_then(|dec_value| self.parse_decrypted_value(model_value.value_type.to_owned(), dec_value));
-                match parsed_value {
+                let PlaintextAndIv { data: plaintext, iv } = session_key.decrypt_data_and_iv(bytes.as_slice())
+                    .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() })?;
+
+                match self.parse_decrypted_value(model_value.value_type.to_owned(), plaintext) {
                     Ok(value) => {
                         // We want to ensure we use the same IV for final encrypted values, as this
                         // will guarantee we get the same value back when we encrypt it.
-                        let iv = if model_value.is_final {
-                            Some(self.extract_iv(bytes, key)?)
-                        } else {
-                            None
-                        };
+                        let iv = if model_value.is_final { Some(iv.to_vec()) } else { None };
                         Ok(MappedValue {value, iv, error: None})
                     },
                     Err(err) => {
-                        Ok(MappedValue {value: self.resolve_default_value(&model_value.value_type), iv: None, error: Some(format!("Failed to decrypt {key}. {err}")) })
+                        Ok(MappedValue {
+                            value: self.resolve_default_value(&model_value.value_type),
+                            iv: None,
+                            error: Some(format!("Failed to decrypt {key}. {err}")),
+                        })
                     }
                 }
             },
@@ -193,20 +193,6 @@ impl EntityFacade {
                 Ok(MappedValue { value, iv: None, error: None })
             },
             _ => Err(ApiCallError::internal(format!("Invalid value/cardinality combination for key `{key}`")))
-        }
-    }
-
-    fn extract_iv(&self, mut encrypted_data: Vec<u8>, key: &str) -> Result<Vec<u8>, ApiCallError>  {
-        if encrypted_data.len() >= IV_BYTE_SIZE {
-            // We are trying to do something smart here, but it's probably in vain.
-            // We do truncate the vector to the length of IV, and then we shrink it. Shrinking will
-            // probably reallocate it which makes it pointless but maybe it doesn't, it depends on
-            // the allocator.
-            encrypted_data.truncate(IV_BYTE_SIZE);
-            encrypted_data.shrink_to_fit();
-            Ok(encrypted_data)
-        } else {
-            Err(ApiCallError::InternalSdkError { error_message: format!("Invalid data length for {key}: {}", encrypted_data.len())})
         }
     }
 
@@ -321,9 +307,8 @@ mod tests {
                 .assert_dict()
                 .get("subject")
                 .expect("has_subject")
-                .assert_bytes()
-                .len(),
-            IV_BYTE_SIZE
+                .assert_bytes(),
+            vec![0x54, 0x58, 0x02, 0x8b, 0x82, 0xca, 0xb8, 0xa2, 0xd2, 0x01, 0x94, 0xa5, 0x0f, 0x53, 0x72, 0x06],
         );
     }
 
