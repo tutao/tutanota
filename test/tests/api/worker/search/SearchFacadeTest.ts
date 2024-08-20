@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { SearchFacade } from "../../../../../src/common/api/worker/search/SearchFacade.js"
+import { SearchFacade } from "../../../../../src/mail-app/workerUtils/index/SearchFacade.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import type { TypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"

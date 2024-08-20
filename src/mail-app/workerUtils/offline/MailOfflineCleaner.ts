@@ -1,5 +1,5 @@
-import { UserTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
-import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/api/common/TutanotaConstants.js"
+import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants.js"
 import { assertNotNull, DAY_IN_MILLIS, groupByAndMap } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
@@ -10,7 +10,7 @@ import {
 	getElementId,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../common/api/common/utils/EntityUtils.js"
+} from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	FileTypeRef,
 	MailBoxTypeRef,
@@ -19,10 +19,10 @@ import {
 	MailFolderTypeRef,
 	MailSetEntryTypeRef,
 	MailTypeRef,
-} from "../../common/api/entities/tutanota/TypeRefs.js"
-import { FolderSystem } from "../../common/api/common/mail/FolderSystem.js"
-import { isDraft, isSpamOrTrashFolder } from "../mail/model/MailUtils.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../common/api/worker/offline/OfflineStorage.js"
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
+import { isDraft, isSpamOrTrashFolder } from "../../mail/model/MailChecks.js"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void> {

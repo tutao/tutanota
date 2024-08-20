@@ -5,40 +5,13 @@ import { MailState } from "../../../common/api/common/TutanotaConstants"
 import { getLetId } from "../../../common/api/common/utils/EntityUtils"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
-import { DataFile } from "../../../common/api/common/DataFile"
 import { FileController } from "../../../common/file/FileController"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { loadMailDetails } from "../view/MailViewerUtils.js"
 import { loadMailHeaders } from "../model/MailUtils.js"
-
-/**
- * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
- * Ideally this would just be {Mail, Headers, Body, FileReference[]}
- * but we can't send Dates over to the native side, so we may as well just extract everything here
- */
-export type MailBundleRecipient = {
-	address: string
-	name?: string
-}
-export type MailBundle = {
-	mailId: IdTuple
-	subject: string
-	body: string
-	sender: MailBundleRecipient
-	to: MailBundleRecipient[]
-	cc: MailBundleRecipient[]
-	bcc: MailBundleRecipient[]
-	replyTo: MailBundleRecipient[]
-	isDraft: boolean
-	isRead: boolean
-	sentOn: number
-	// UNIX timestamp
-	receivedOn: number // UNIX timestamp,
-	headers: string | null
-	attachments: DataFile[]
-}
+import { MailBundle } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 /**
  * Downloads the mail body and the attachments for an email, to prepare for exporting

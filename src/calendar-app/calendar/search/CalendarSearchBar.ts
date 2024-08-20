@@ -396,17 +396,8 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		}
 
 		if (this.isQuickSearch()) {
-			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				calendarLocator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (calendarLocator.search.isNewSearch(query, moreResults.restriction)) {
-						return
-					} else {
-						this.loadAndDisplayResult(query, moreResults, limit)
-					}
-				})
-			} else {
-				this.showResultsInOverlay(safeResult)
-			}
+			// Calendar does not have a quick search bar, so this has been taken out
+			// but this is left in case this changes in the future
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
 			searchRouter.routeTo(query, safeResult.restriction)

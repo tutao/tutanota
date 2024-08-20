@@ -1,60 +1,45 @@
-import type { Commands } from "../common/threading/MessageDispatcher.js"
-import { errorToObj, MessageDispatcher, Request } from "../common/threading/MessageDispatcher.js"
-import { BookingFacade } from "./facades/lazy/BookingFacade.js"
-import { NotAuthenticatedError } from "../common/error/RestError"
-import { ProgrammingError } from "../common/error/ProgrammingError"
-import { initLocator, locator, resetLocator } from "./WorkerLocator"
-import { assertWorkerOrNode, isMainOrNode } from "../common/Env"
-import type { BrowserData } from "../../misc/ClientConstants"
-import { CryptoFacade } from "./crypto/CryptoFacade"
-import type { GiftCardFacade } from "./facades/lazy/GiftCardFacade.js"
-import type { LoginFacade, LoginListener } from "./facades/LoginFacade"
-import type { CustomerFacade } from "./facades/lazy/CustomerFacade.js"
-import type { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade.js"
-import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
-import { CalendarFacade } from "./facades/lazy/CalendarFacade.js"
-import { MailFacade } from "./facades/lazy/MailFacade.js"
-import { ShareFacade } from "./facades/lazy/ShareFacade.js"
-import { CounterFacade } from "./facades/lazy/CounterFacade.js"
-import type { Indexer } from "./search/Indexer"
-import { SearchFacade } from "./search/SearchFacade"
-import { MailAddressFacade } from "./facades/lazy/MailAddressFacade.js"
-import { UserManagementFacade } from "./facades/lazy/UserManagementFacade.js"
-import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
+import type { Commands } from "../../../common/api/common/threading/MessageDispatcher.js"
+import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
+import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
+import { NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
+import { assertWorkerOrNode, isMainOrNode } from "../../../common/api/common/Env.js"
+import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
+import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
+import type { LoginFacade } from "../../../common/api/worker/facades/LoginFacade.js"
+import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
+import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
+import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+import { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
+import { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
+import type { Indexer } from "../index/Indexer.js"
+import { SearchFacade } from "../index/SearchFacade.js"
+import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
+import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
+import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/tutanota-crypto"
-import type { NativeInterface } from "../../native/common/NativeInterface"
-import type { EntityRestInterface } from "./rest/EntityRestClient"
-import { RestClient } from "./rest/RestClient"
-import { IServiceExecutor } from "../common/ServiceRequest.js"
-import { BlobFacade } from "./facades/lazy/BlobFacade.js"
-import { ExposedCacheStorage } from "./rest/DefaultEntityRestCache.js"
-import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
-import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
-import { EventBusClient } from "./EventBusClient.js"
-import { EntropyFacade } from "./facades/EntropyFacade.js"
-import { ExposedProgressTracker } from "../main/ProgressTracker.js"
-import { ExposedEventController } from "../main/EventController.js"
-import { ExposedOperationProgressTracker } from "../main/OperationProgressTracker.js"
-import { WorkerFacade } from "./facades/WorkerFacade.js"
-import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
-import { WebWorkerTransport } from "../common/threading/Transport.js"
+import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
+import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
+import { RestClient } from "../../../common/api/worker/rest/RestClient.js"
+import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
+import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
+import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
+import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
+import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
+import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
+import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
+import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
+import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
+import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
+import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { ExposedEventBus, MainInterface, WorkerRandomizer } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { ContactFacade } from "./facades/lazy/ContactFacade.js"
-import { RecoverCodeFacade } from "./facades/lazy/RecoverCodeFacade.js"
-import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
-import { OfflineStorageCleaner } from "./offline/OfflineStorage.js"
 
 assertWorkerOrNode()
-
-export interface WorkerRandomizer {
-	generateRandomNumber(numBytes: number): Promise<number>
-}
-
-export interface ExposedEventBus {
-	tryReconnect: EventBusClient["tryReconnect"]
-	close: EventBusClient["close"]
-}
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
 export interface WorkerInterface {
@@ -88,16 +73,6 @@ export interface WorkerInterface {
 	readonly contactFacade: ContactFacade
 }
 
-/** Interface for the "main"/webpage context of the app, interface for the worker client. */
-export interface MainInterface {
-	readonly loginListener: LoginListener
-	readonly wsConnectivityListener: WebsocketConnectivityListener
-	readonly progressTracker: ExposedProgressTracker
-	readonly eventController: ExposedEventController
-	readonly operationProgressTracker: ExposedOperationProgressTracker
-	readonly infoMessageHandler: InfoMessageHandler
-}
-
 type WorkerRequest = Request<WorkerRequestType>
 
 export class WorkerImpl implements NativeInterface {
@@ -109,7 +84,7 @@ export class WorkerImpl implements NativeInterface {
 		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main")
 	}
 
-	async init(browserData: BrowserData, offlineStorageCleaner: OfflineStorageCleaner): Promise<void> {
+	async init(browserData: BrowserData): Promise<void> {
 		// import("tuta-sdk").then(async (module) => {
 		// 	// await module.default("wasm/tutasdk.wasm")
 		// 	const entityClient = new module.EntityClient()
@@ -119,7 +94,7 @@ export class WorkerImpl implements NativeInterface {
 		// 	entityClient.free()
 		// })
 
-		await initLocator(this, browserData, offlineStorageCleaner)
+		await initLocator(this, browserData)
 		const workerScope = this._scope
 
 		// only register oncaught error handler if we are in the *real* worker scope

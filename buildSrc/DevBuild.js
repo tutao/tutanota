@@ -98,7 +98,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, app }) {
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
-	const workerFile = isCalendarBuild ? "src/calendar-app/calendar-worker.ts" : "src/mail-app/mail-worker.ts"
+	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
 	await runStep("Web: Assets", async () => {
 		await prepareAssets(stage, host, version, domainConfigs, buildDir)

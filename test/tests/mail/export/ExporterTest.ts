@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import type { MailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 import { _formatSmtpDateTime, mailToEml } from "../../../../src/mail-app/mail/export/Exporter.js"
 import { base64ToUint8Array, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
+import { MailBundle } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
 
 o.spec("Exporter", function () {
 	o.spec("mail to eml", function () {

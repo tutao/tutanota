@@ -83,7 +83,7 @@ import("../mail-app/translations/en.js")
 		setupNavShortcuts()
 
 		// this needs to stay after client.init
-		windowFacade.init(calendarLocator.logins, calendarLocator.indexerFacade, calendarLocator.connectivityModel)
+		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel, null)
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
 		}

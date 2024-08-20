@@ -14,7 +14,7 @@ import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeMo
 import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
-import { aes256EncryptSearchIndexEntry, Aes256Key, aesDecrypt, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, Aes256Key, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))

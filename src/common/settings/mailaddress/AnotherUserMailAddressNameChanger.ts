@@ -1,6 +1,5 @@
-import { AddressToName, MailAddressNameChanger } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
-import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
+import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 
 /**
  *  A {@link MailAddressNameChanger} intended for admins to set names for aliases bound to user mailboxes.

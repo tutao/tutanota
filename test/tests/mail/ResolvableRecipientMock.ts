@@ -3,7 +3,7 @@ import { Recipient, RecipientType } from "../../../src/common/api/common/recipie
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { User } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { createNewContact, isTutanotaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
+import { createNewContact, isTutaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes
@@ -43,7 +43,7 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 		private user: User,
 	) {
 		this.name = name ?? ""
-		this.type = type ?? (isTutanotaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.UNKNOWN)
+		this.type = type ?? (isTutaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.UNKNOWN)
 
 		if (resolveMode === ResolveMode.Eager) {
 			this.lazyResolve.getAsync()
