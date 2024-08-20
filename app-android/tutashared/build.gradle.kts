@@ -3,6 +3,7 @@ plugins {
 	id("org.jetbrains.kotlin.android")
 	id("com.google.devtools.ksp")
 	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.21"
+	id("kotlin-android")
 }
 
 group = "de.tutao"
@@ -33,18 +34,6 @@ android {
 
 	buildFeatures {
 		buildConfig = true
-	}
-
-	buildFeatures {
-		buildConfig = true
-	}
-
-	buildTypes.map {
-		// keep in sync with src/native/main/NativePushServiceApp.ts
-		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"99\"")
-		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"73\"")
-		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
-		it.buildConfigField("String", "VERSION_NAME", "\"240.240731.0\"")
 	}
 
 	buildTypes {

@@ -6,7 +6,6 @@ import androidx.annotation.VisibleForTesting
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.data.AppDatabase
-import de.tutao.tutashared.ipc.CredentialEncryptionMode
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.PersistedCredentials

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.BuildConfig
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
 import de.tutao.calendar.push.SseClient.SseListener
@@ -110,28 +109,28 @@ class PushNotificationService : LifecycleJobService() {
 		)
 		lifecycleScope.launch {
 			sseStorage.observeUsers().collect { userInfos ->
-			Log.d(TAG, "sse storage updated " + userInfos.size)
-			// Closing the connection sends RST packets over network and it triggers StrictMode
-			// violations so we dispatch it to another thread.
-				withContext(Dispatchers.IO) {
-				val userIds = userInfos.mapTo(HashSet()) { it.userId }
+				Log.d(TAG, "sse storage updated " + userInfos.size)
+				// Closing the connection sends RST packets over network and it triggers StrictMode
+				// violations so we dispatch it to another thread.
+					withContext(Dispatchers.IO) {
+					val userIds = userInfos.mapTo(HashSet()) { it.userId }
 
-				if (userIds.isEmpty()) {
-					sseClient.stopConnection()
-					removeForegroundNotification()
-					finishJobIfNeeded()
-				} else {
-					sseClient.restartConnectionIfNeeded(
-						SseInfo(
-							sseStorage.getPushIdentifier()!!,
-							userIds,
-							sseStorage.getSseOrigin()!!
-						)
-					)
+						if (userIds.isEmpty()) {
+							sseClient.stopConnection()
+							removeForegroundNotification()
+							finishJobIfNeeded()
+						} else {
+							sseClient.restartConnectionIfNeeded(
+								SseInfo(
+									sseStorage.getPushIdentifier()!!,
+									userIds,
+									sseStorage.getSseOrigin()!!
+								)
+							)
+						}
+					}
 				}
 			}
-		}
-		}
 
 			localNotificationsFacade.createNotificationChannels()
 		}
