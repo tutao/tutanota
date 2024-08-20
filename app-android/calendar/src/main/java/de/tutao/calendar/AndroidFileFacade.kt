@@ -387,9 +387,9 @@ class AndroidFileFacade(
 			while (chunk * maxChunkSizeBytes <= fileSize) {
 				val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
 				val chunkedInputStream = BoundedInputStream.builder()
-		  .setInputStream(inputStream)
-		  .setMaxCount(maxChunkSizeBytes.toLong())
-		  .get()
+				  .setInputStream(inputStream)
+					.setMaxCount(maxChunkSizeBytes.toLong())
+					.get()
 				val tmpFile = File(tempDir.decrypt, tmpFilename)
 				writeFileStream(tmpFile, chunkedInputStream)
 				chunkUris.add(tmpFile.toUri().toString())

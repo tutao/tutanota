@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import de.tutao.tutashared.alarms.AlarmNotificationEntity
 
+
 @Dao
 interface AlarmInfoDao {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
