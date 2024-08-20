@@ -31,6 +31,7 @@ import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
@@ -39,6 +40,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
@@ -50,11 +53,9 @@ import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils
-import de.tutao.tutashared.atLeastOreo
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
-import de.tutao.tutashared.data.User
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
@@ -201,13 +202,11 @@ class MainActivity : FragmentActivity() {
 			cacheMode = WebSettings.LOAD_NO_CACHE
 			// needed for external content in mail
 			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-			if (atLeastOreo()) {
 				// Safe browsing is not needed because we are loading our own resources only.
 				// Also we don't want to report every URL that we load to Google.
 				// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
 				safeBrowsingEnabled = false
 			}
-		}
 
 		webView.clearCache(true)
 
@@ -291,6 +290,11 @@ class MainActivity : FragmentActivity() {
 
 		setContentView(webView)
 
+		// Set callback for back press
+		onBackPressedDispatcher.addCallback(this) {
+			onBackPressedCallback()
+		}
+
 		lifecycleScope.launch {
 			val queryParameters = mutableMapOf<String, String>()
 			// If opened from notifications, tell Web app to not login automatically, we will pass
@@ -299,16 +303,19 @@ class MainActivity : FragmentActivity() {
 				queryParameters["noAutoLogin"] = "true"
 			}
 
-			webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
-				sseStorage.observeUsers().observe(this@MainActivity) { userInfos: List<User> ->
-					if (userInfos!!.isEmpty()) {
+
+			// Start observing SSE users in the background.
+			// If there are no users we need to tell web part to invalidate alarms.
+			launch {
+				sseStorage.observeUsers()
+					.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+					.collect { userInfos ->
+						if (userInfos.isEmpty()) {
 						Log.d(TAG, "invalidateAlarms")
-						lifecycleScope.launchWhenCreated {
 							commonNativeFacade.invalidateAlarms()
 						}
 					}
 				}
-			}
 
 			startWebApp(queryParameters)
 		}
@@ -376,6 +383,7 @@ class MainActivity : FragmentActivity() {
 			"ttf" -> "font/ttf"
 			"wasm" -> "application/wasm"
 			"icc" -> "application/vnd.iccprofile"
+			"cmap" -> "text/plain" // used for invoices; no good mime type for cmap, so just use plain text
 			else -> error("Unknown extension $ext for url $url")
 		}
 	}
@@ -383,7 +391,7 @@ class MainActivity : FragmentActivity() {
 	override fun onStart() {
 		super.onStart()
 		Log.d(TAG, "onStart")
-		lifecycleScope.launchWhenCreated {
+		lifecycleScope.launch {
 			mobileFacade.visibilityChange(true)
 		}
 	}
@@ -429,7 +437,7 @@ class MainActivity : FragmentActivity() {
 		handleIntent(intent)
 	}
 
-	private fun handleIntent(intent: Intent) = lifecycleScope.launchWhenCreated {
+	private fun handleIntent(intent: Intent) = lifecycleScope.launch {
 		// When we redirect to the app from outside, for example after doing payment verification,
 		// we don't want to do any kind of intent handling
 		val data = intent.data
@@ -439,7 +447,7 @@ class MainActivity : FragmentActivity() {
 		}
 
 		if (data != null && data.toString().startsWith("tutacalendar://")) {
-			return@launchWhenCreated
+			return@launch
 		}
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
@@ -555,13 +563,12 @@ class MainActivity : FragmentActivity() {
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
-			@Suppress("DEPRECATION")
-			((intent)?.let { super.startActivityForResult(it, requestCode) })
+			if (intent != null) {
+				super.startActivityForResult(intent, requestCode)
+			}
 		}
 
-	@Deprecated("Deprecated in Java")
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-		@Suppress("DEPRECATION")
 		super.onActivityResult(requestCode, resultCode, data)
 		val continuation = activityRequests.remove(requestCode)
 		if (continuation != null) {
@@ -721,13 +728,9 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openCalendar(userId)
 	}
 
-	// this still works, but there's onBackPressedDispatcher.addCallback
-	// it should work on all API levels we support:
-	// https://stackoverflow.com/questions/72634225/onbackpressed-is-deprecated-what-is-the-alternative
-	@Deprecated("Deprecated in Java")
-	override fun onBackPressed() {
+	private fun onBackPressedCallback() {
 		if (commonSystemFacade.initialized) {
-			lifecycleScope.launchWhenCreated {
+			lifecycleScope.launch {
 				val result = mobileFacade.handleBackPress()
 				try {
 					if (!result) {

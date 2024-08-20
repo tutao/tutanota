@@ -1,5 +1,6 @@
 package de.tutao.calendar.push
 
+import android.Manifest
 import android.annotation.TargetApi
 import android.app.DownloadManager
 import android.app.Notification
@@ -9,6 +10,7 @@ import android.app.PendingIntent
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
@@ -18,6 +20,7 @@ import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -106,6 +109,13 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			.setSmallIcon(R.drawable.ic_download)
 			.setAutoCancel(true)
 			.build()
+		if (ActivityCompat.checkSelfPermission(
+				context,
+				Manifest.permission.POST_NOTIFICATIONS
+			) != PackageManager.PERMISSION_GRANTED
+		) {
+			return
+		}
 		notificationManager.notify(mailNotificationId("downloads"), notification)
 	}
 

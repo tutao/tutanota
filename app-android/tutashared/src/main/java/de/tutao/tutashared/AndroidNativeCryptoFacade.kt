@@ -4,18 +4,14 @@ import android.content.Context
 import android.net.Uri
 import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
-import de.tutao.tutashared.ipc.DataWrapper
-import de.tutao.tutashared.ipc.EncryptedFileInfo
-import de.tutao.tutashared.ipc.KyberEncapsulation
-import de.tutao.tutashared.ipc.KyberKeyPair
-import de.tutao.tutashared.ipc.KyberPrivateKey
-import de.tutao.tutashared.ipc.KyberPublicKey
-import de.tutao.tutashared.ipc.NativeCryptoFacade
-import de.tutao.tutashared.ipc.RsaPrivateKey
-import de.tutao.tutashared.ipc.RsaPublicKey
-import de.tutao.tutashared.ipc.wrap
+import de.tutao.tutasdk.KyberException
+import de.tutao.tutasdk.kyberDecapsulateWithPrivKey
+import de.tutao.tutasdk.kyberEncapsulateWithPubKey
+import de.tutao.tutashared.ipc.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.input.CountingInputStream
+import org.apache.commons.io.input.BoundedInputStream
 import java.io.*
 import java.math.BigInteger
 import java.security.*
@@ -134,29 +130,32 @@ class AndroidNativeCryptoFacade(
 		}
 	}
 
-	@Throws(CryptoError::class)
 	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
-		return generateKyberKeypairImpl(seed.data)
+		val (publicKey, privateKey) = de.tutao.tutasdk.generateKyberKeypair()
+		return KyberKeyPair(KyberPublicKey(publicKey.wrap()), KyberPrivateKey(privateKey.wrap()))
 	}
 
-	@Throws(CryptoError::class)
-	private external fun generateKyberKeypairImpl(seed: ByteArray): KyberKeyPair
 
 	@Throws(CryptoError::class)
 	override suspend fun kyberEncapsulate(publicKey: KyberPublicKey, seed: DataWrapper): KyberEncapsulation {
-		return this.kyberEncapsulateImpl(publicKey.raw.data, seed.data)
-	}
+		val sdkEncapsulation = try {
+			kyberEncapsulateWithPubKey(publicKey.raw.data)
+		} catch (e: KyberException) {
+			throw CryptoError(e)
+		}
 
-	@Throws(CryptoError::class)
-	private external fun kyberEncapsulateImpl(publicKey: ByteArray, seed: ByteArray): KyberEncapsulation
+		return KyberEncapsulation(sdkEncapsulation.ciphertext.wrap(), sdkEncapsulation.sharedSecret.wrap())
+	}
 
 	@Throws(CryptoError::class)
 	override suspend fun kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: DataWrapper): DataWrapper {
-		return DataWrapper(this.kyberDecapsulateImpl(ciphertext.data, privateKey.raw.data))
-	}
+		return try {
+			kyberDecapsulateWithPrivKey(privateKey.raw.data, ciphertext.data).wrap()
+		} catch (e: KyberException) {
+			throw CryptoError(e)
+		}
 
-	@Throws(CryptoError::class)
-	private external fun kyberDecapsulateImpl(ciphertext: ByteArray, privateKey: ByteArray): ByteArray
+	}
 
 	@Throws(CryptoError::class)
 	override suspend fun argon2idHashRaw(
@@ -263,10 +262,14 @@ class AndroidNativeCryptoFacade(
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
 		val parsedFileUri = Uri.parse(fileUri)
 		val outputFile = File(tempDir.encrypt, getFileInfo(context, parsedFileUri).name)
-		val inputStream = CountingInputStream(context.contentResolver.openInputStream(parsedFileUri))
-		val out: OutputStream = FileOutputStream(outputFile)
+		val inputStream = BoundedInputStream.builder()
+			.setInputStream(context.contentResolver.openInputStream(parsedFileUri))
+			.get()
+		val out: OutputStream = withContext(Dispatchers.IO) {
+			FileOutputStream(outputFile)
+		}
 		aesEncrypt(key.data, inputStream, out, iv.data, usePadding = true, useMac = true)
-		return EncryptedFileInfo(outputFile.toUri(), inputStream.byteCount.toInt())
+		return EncryptedFileInfo(outputFile.toUri(), inputStream.count.toInt())
 	}
 
 	@Throws(IOException::class, CryptoError::class)

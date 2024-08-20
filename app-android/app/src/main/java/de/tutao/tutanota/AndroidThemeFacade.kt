@@ -8,8 +8,6 @@ import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.core.view.WindowInsetsControllerCompat
-import de.tutao.tutanota.ipc.ThemeFacade
-import de.tutao.tutashared.atLeastOreo
 import de.tutao.tutashared.getDefaultSharedPreferences
 import de.tutao.tutashared.ipc.ThemeFacade
 import de.tutao.tutashared.isLightHexColor

@@ -16,4 +16,5 @@ data class PersistedCredentials(
 	val accessToken: DataWrapper,
 	val databaseKey: DataWrapper?,
 	val encryptedPassword: String,
+	val encryptedPassphraseKey: DataWrapper?,
 )

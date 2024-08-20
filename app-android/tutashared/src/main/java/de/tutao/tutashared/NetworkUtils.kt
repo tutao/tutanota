@@ -2,9 +2,15 @@ package de.tutao.tutashared
 
 import android.os.Build
 import android.util.Log
+import de.tutao.tutasdk.HttpMethod
+import de.tutao.tutasdk.RestClient
+import de.tutao.tutasdk.RestClientOptions
+import de.tutao.tutasdk.RestResponse
 import okhttp3.ConnectionSpec
+import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.conscrypt.Conscrypt
 import java.security.Security
 import java.util.concurrent.TimeUnit
@@ -28,17 +34,17 @@ class NetworkUtils {
 		val defaultClient = createHttpClient()
 		private fun createHttpClient(): OkHttpClient {
 			val builder: OkHttpClient.Builder = OkHttpClient()
-				.newBuilder()
-				.connectTimeout(5, TimeUnit.SECONDS)
-				.writeTimeout(5, TimeUnit.SECONDS)
-				.readTimeout(5, TimeUnit.SECONDS)
-				.run {
-					if (BuildConfig.DEBUG) {
-						connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
-					} else {
-						connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
+					.newBuilder()
+					.connectTimeout(5, TimeUnit.SECONDS)
+					.writeTimeout(5, TimeUnit.SECONDS)
+					.readTimeout(5, TimeUnit.SECONDS)
+					.run {
+						if (BuildConfig.DEBUG) {
+							connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
+						} else {
+							connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
+						}
 					}
-				}
 
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 				// setup TLSv1.3 for old android versions
@@ -63,6 +69,25 @@ class NetworkUtils {
 			val client: OkHttpClient = builder.build()
 			return client
 		}
+	}
+}
+
+class SdkRestClient : RestClient {
+	override suspend fun requestBinary(url: String, method: HttpMethod, options: RestClientOptions): RestResponse {
+		val request = Request.Builder()
+				.url(url)
+				.method(method.toString(), options.body?.toRequestBody())
+				.headers(options.headers.toHeaders())
+				.build();
+		val response = NetworkUtils.defaultClient
+				.newBuilder()
+				.connectTimeout(30, TimeUnit.SECONDS)
+				.writeTimeout(20, TimeUnit.SECONDS)
+				.readTimeout(20, TimeUnit.SECONDS)
+				.build()
+				.newCall(request)
+				.execute()
+		return RestResponse(response.code.toUInt(), response.headers.toMap(), response.body?.bytes())
 	}
 }
 

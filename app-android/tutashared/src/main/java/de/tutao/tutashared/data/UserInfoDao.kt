@@ -1,15 +1,15 @@
 package de.tutao.tutashared.data
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class UserInfoDao {
-	@get:Query("SELECT * FROM User")
-	abstract val users: List<User>
+	@Query("SELECT * FROM User")
+	abstract fun users(): List<User>
 
 	@Query("SELECT * FROM User")
-	abstract fun observeUsers(): LiveData<List<User>>
+	abstract fun observeUsers(): Flow<List<User>>
 
 	@Query("SELECT * FROM PushIdentifierKey WHERE pushIdentifierId = :pushIdentifier")
 	abstract fun getPushIdentifierKey(pushIdentifier: String): PushIdentifierKey?

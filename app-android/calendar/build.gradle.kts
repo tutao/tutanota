@@ -118,13 +118,13 @@ android {
 }
 
 dependencies {
-	implementation(project(":tutashared"))
 	val room_version = "2.4.2"
 	val lifecycle_version = "2.4.1"
 	val activity_version = "1.4.0"
 	val coroutines_version = "1.8.0"
 
 	implementation("de.tutao:tutasdk")
+	implementation(project(":tutashared"))
 
 	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
 	//noinspection GradleDependency

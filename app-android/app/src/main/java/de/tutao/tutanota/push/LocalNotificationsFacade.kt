@@ -31,7 +31,6 @@ import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
 import de.tutao.tutanota.getMimeType
-import de.tutao.tutashared.atLeastNougat
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.push.SseStorage
 import java.io.File

@@ -91,9 +91,7 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 
 fun atLeastTiramisu() : Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-fun atLeastOreo(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-
-fun atLeastNougat(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+fun atLeastQuinceTart(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
 @Throws(JSONException::class)
 fun JSONObject.toMap(): MutableMap<String, String> {

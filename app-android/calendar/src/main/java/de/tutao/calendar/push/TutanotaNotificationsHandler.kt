@@ -3,17 +3,14 @@ package de.tutao.calendar.push
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.calendar.R
-import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
-import de.tutao.tutashared.addCommonHeadersWithTutanotaModelVersion
 import de.tutao.calendar.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -46,7 +43,6 @@ class TutanotaNotificationsHandler(
 		}
 		val missedNotification = downloadMissedNotification(sseInfo)
 		if (missedNotification != null) {
-			handleNotificationInfos(sseInfo, missedNotification.notificationInfos)
 			handleAlarmNotifications(missedNotification.alarmNotifications)
 			sseStorage.setLastProcessedNotificationId(missedNotification.lastProcessedNotificationId)
 			sseStorage.setLastMissedNotificationCheckTime(Date())
@@ -205,72 +201,10 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(MalformedURLException::class)
-	private fun makeEmailMetaDownloadUrl(sseInfo: SseInfo, notificationInfo: NotificationInfo): URL {
-		val listId = notificationInfo.mailId?.listId
-		val listElementId = notificationInfo.mailId?.listElementId
-		return URL("${sseInfo.sseOrigin}/rest/tutanota/mail/$listId/$listElementId")
-	}
-
-	@Throws(MalformedURLException::class)
 	private fun makeAlarmNotificationUrl(sseInfo: SseInfo): URL {
 		val customId =
 			sseInfo.pushIdentifier.toByteArray(StandardCharsets.UTF_8).toBase64().base64ToBase64Url()
 		return URL(sseInfo.sseOrigin + "/rest/sys/missednotification/" + customId)
-	}
-
-	private fun handleNotificationInfos(sseInfo: SseInfo, notificationInfos: List<NotificationInfo>) {
-		lifecycleScope.launch(Dispatchers.IO) {
-			val metadatas = notificationInfos.map {
-				try {
-					Pair(it, downloadEmailMetadata(sseInfo, it))
-				} catch (e: Throwable) {
-					Log.w(TAG, e)
-					Pair(it, null)
-				}
-
-			}
-			localNotificationsFacade.sendEmailNotifications(metadatas)
-		}
-	}
-
-	private suspend fun downloadEmailMetadata(sseInfo: SseInfo, notificationInfo: NotificationInfo): MailMetadata? {
-		val url = makeEmailMetaDownloadUrl(sseInfo, notificationInfo)
-
-		val credentials = credentialsEncryption.loadByUserId(notificationInfo.userId)
-		if (credentials == null) {
-			Log.w(TAG, "Not found credentials to download notification, userId ${notificationInfo.userId}")
-			return null
-		}
-
-		val requestBuilder = Request.Builder()
-			.url(url)
-			.method("GET", null)
-			.header("Content-Type", "application/json")
-			.header("userIds", notificationInfo.userId ?: "")
-			.header("accessToken", credentials.accessToken)
-		// why here v is sys model version but on ios it is entity model version?
-		addCommonHeadersWithTutanotaModelVersion(requestBuilder)
-
-		val req = requestBuilder.build()
-
-		val response = defaultClient
-				.newBuilder()
-				.connectTimeout(30, TimeUnit.SECONDS)
-				.writeTimeout(20, TimeUnit.SECONDS)
-				.readTimeout(20, TimeUnit.SECONDS)
-				.build()
-				.newCall(req)
-				.execute()
-
-		val responseCode = response.code
-		Log.d(TAG, "Notification email metadata response code $responseCode")
-		handleResponseCode(response)
-
-		response.body?.byteStream().use { inputStream ->
-			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
-			Log.d(TAG, "Loaded notifications email metadata response")
-			return json.decodeFromString(responseString)
-		}
 	}
 
 	private fun handleAlarmNotifications(alarmNotifications: List<EncryptedAlarmNotification>) {

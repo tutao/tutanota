@@ -20,9 +20,11 @@ import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.bytes
 import de.tutao.tutashared.getFileInfo
+import de.tutao.tutashared.getNonClobberingFileName
 import de.tutao.tutashared.ipc.*
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toHexString
+import de.tutao.tutashared.writeBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
@@ -385,9 +387,9 @@ class AndroidFileFacade(
 			while (chunk * maxChunkSizeBytes <= fileSize) {
 				val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
 				val chunkedInputStream = BoundedInputStream.builder()
-		  .setInputStream(inputStream)
-		  .setMaxCount(maxChunkSizeBytes.toLong())
-		  .get()
+					.setInputStream(inputStream)
+					.setMaxCount(maxChunkSizeBytes.toLong())
+					.get()
 				val tmpFile = File(tempDir.decrypt, tmpFilename)
 				writeFileStream(tmpFile, chunkedInputStream)
 				chunkUris.add(tmpFile.toUri().toString())
@@ -455,31 +457,4 @@ fun getMimeType(fileUri: Uri, context: Context): String {
 		}
 	}
 	return "application/octet-stream"
-}
-
-fun getNonClobberingFileName(parentFile: File, child: String): String {
-	// should only happen if parent is not a dir
-	val siblings = parentFile.listFiles() ?: return child
-
-	val file = File(child)
-	val base = file.nameWithoutExtension
-	val ext = file.extension
-
-	fun doGetNonClobberingFileName(
-		siblings: Array<File>,
-		base: String,
-		ext: String, suffix: Int = 0
-	): String {
-		val nameToTry = if (suffix == 0) {
-			"$base.$ext"
-		} else {
-			"$base ($suffix).$ext"
-		}
-		if (siblings.firstOrNull { it.name == nameToTry } == null) {
-			return nameToTry
-		}
-		// yay tail recursion
-		return doGetNonClobberingFileName(siblings, base, ext, suffix + 1)
-	}
-	return doGetNonClobberingFileName(siblings, base, ext)
 }
