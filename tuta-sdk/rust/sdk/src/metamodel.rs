@@ -114,8 +114,25 @@ pub struct TypeModel {
     #[serde(rename = "type")]
     pub element_type: ElementType,
     pub versioned: bool,
-    pub encrypted: bool,
+    encrypted: bool,
     pub root_id: &'static str,
     pub values: HashMap<&'static str, ModelValue>,
     pub associations: HashMap<&'static str, ModelAssociation>,
+}
+
+impl TypeModel {
+    /// Whether entity is marked as encrypted in the metamodel.
+    /// This is not the case for aggregates even though they might contain encrypted fields.
+    pub fn marked_encrypted(&self) -> bool {
+        self.encrypted
+    }
+    /// Whether it is expected that the type might contain encrypted fields.
+    pub fn is_encrypted(&self) -> bool {
+        if self.element_type == ElementType::Aggregated {
+            // Aggregates do not track whether they are encrypted
+            self.values.values().any(|v| v.encrypted)
+        } else {
+            self.encrypted
+        }
+    }
 }

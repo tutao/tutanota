@@ -1012,15 +1012,13 @@ mod tests {
     use std::sync::Arc;
 
     use crate::entities::sys::{Group, GroupInfo};
-    use crate::entities::tutanota::{
-        MailboxGroupRoot, OutOfOfficeNotification, OutOfOfficeNotificationRecipientList,
-    };
+    use crate::entities::tutanota::{Mail, MailboxGroupRoot, OutOfOfficeNotification, OutOfOfficeNotificationRecipientList};
     use crate::generated_id::GeneratedId;
     use crate::json_element::RawEntity;
     use crate::json_serializer::JsonSerializer;
     use crate::type_model_provider::init_type_model_provider;
     use crate::TypeRef;
-    use crate::util::test_utils::generate_random_group;
+    use crate::util::test_utils::{create_test_entity, generate_random_group};
 
     use super::*;
 
@@ -1216,6 +1214,16 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_ser_mail() {
+        let mut mail = create_test_entity::<Mail>();
+        mail.sender = create_test_entity();
+        let sender_name = "Sender name".to_owned();
+        mail.sender.name = sender_name.clone();
+        let serialized = InstanceMapper::new().serialize_entity(mail).unwrap();
+        assert_eq!(sender_name, serialized.get("sender").unwrap().assert_dict().get("name").unwrap().assert_str())
+    }
+
     fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {
         let raw_entity: RawEntity = serde_json::from_str(email_string).unwrap();
         let type_model_provider = Arc::new(init_type_model_provider());
@@ -1223,7 +1231,7 @@ mod tests {
         let type_ref = T::type_ref();
         let mut parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
         let type_model = type_model_provider.get_type_model(type_ref.app, type_ref.type_).unwrap();
-        if type_model.encrypted {
+        if type_model.is_encrypted() {
             parsed_entity.insert("_finalIvs".to_owned(), ElementValue::Dict(Default::default()));
         }
         parsed_entity

@@ -53,6 +53,10 @@ pub struct ${typeName} {\n`
 
 	if (type.encrypted) {
 		buf += `\tpub _errors: Option<Errors>,\n`
+	}
+
+	// aggregates do not say whether they are encrypted or not. For some reason!
+	if (type.encrypted || Object.values(type.values).some((v) => v.encrypted)) {
 		buf += `\tpub _finalIvs: HashMap<String, FinalIv>,\n`
 	}
 	buf += "}"
