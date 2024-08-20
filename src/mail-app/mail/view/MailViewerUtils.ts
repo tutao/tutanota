@@ -1,17 +1,7 @@
-import {
-	ALLOWED_IMAGE_FORMATS,
-	Keys,
-	MailReportType,
-	MailState,
-	MAX_BASE64_IMAGE_SIZE,
-	ReplyType,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-} from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, neverNull, ofClass, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
+import { assertNotNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { DataFile } from "../../../common/api/common/DataFile"
-import { showFileChooser } from "../../../common/file/FileController.js"
 import m from "mithril"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
@@ -28,42 +18,16 @@ import { LockedError } from "../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
-import { getMailAddressDisplayText, ImageHandler } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { hasValidEncryptionAuthForTeamOrSystemMail } from "./MailGuiUtils.js"
 import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
-import { isDraft } from "../model/MailUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel.js"
 import { isDesktop } from "../../../common/api/common/Env.js"
-
-export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
-		const tooBig: DataFile[] = []
-
-		for (let file of files) {
-			if (file.size > MAX_BASE64_IMAGE_SIZE) {
-				tooBig.push(file)
-			} else {
-				const b64 = uint8ArrayToBase64(file.data)
-				const dataUrlString = `data:${file.mimeType};base64,${b64}`
-				handler.insertImage(dataUrlString, {
-					style: "max-width: 100%",
-				})
-			}
-		}
-
-		if (tooBig.length > 0) {
-			Dialog.message(() =>
-				lang.get("tooBigInlineImages_msg", {
-					"{size}": MAX_BASE64_IMAGE_SIZE / 1024,
-				}),
-			)
-		}
-	})
-}
+import { isDraft } from "../model/MailChecks.js"
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }

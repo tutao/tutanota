@@ -1,5 +1,5 @@
 import { ListModel } from "../../../../common/misc/ListModel.js"
-import { SearchResultListEntry } from "./CalendarSearchListView.js"
+import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, Mail, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
@@ -27,7 +27,6 @@ import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, ge
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/calendar/date/CalendarUtils.js"
-import { SearchFacade } from "../../../../common/api/worker/search/SearchFacade.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -42,8 +41,6 @@ import { locator } from "../../../../common/api/main/CommonLocator.js"
 
 const SEARCH_PAGE_SIZE = 100
 
-export type SearchableTypes = Mail | Contact | CalendarEvent
-
 export enum PaidFunctionResult {
 	Success,
 	PaidSubscriptionNeeded,
@@ -52,7 +49,7 @@ export enum PaidFunctionResult {
 export type ConfirmCallback = () => Promise<boolean>
 
 export class CalendarSearchViewModel {
-	listModel: ListModel<SearchResultListEntry>
+	listModel: ListModel<CalendarSearchResultListEntry>
 
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
@@ -78,7 +75,6 @@ export class CalendarSearchViewModel {
 	constructor(
 		readonly router: SearchRouter,
 		private readonly search: CalendarSearchModel,
-		private readonly searchFacade: SearchFacade,
 		private readonly logins: LoginController,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
@@ -224,7 +220,7 @@ export class CalendarSearchViewModel {
 
 		if (args.id != null) {
 			const { start, id } = decodeCalendarSearchKey(args.id)
-			this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
+			this.loadAndSelectIfNeeded(id, ({ entry }: CalendarSearchResultListEntry) => {
 				entry = entry as CalendarEvent
 				return id === getElementId(entry) && start === entry.startTime.getTime()
 			})
@@ -384,18 +380,18 @@ export class CalendarSearchViewModel {
 			.filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
-	private onListStateChange(newState: ListState<SearchResultListEntry>) {
+	private onListStateChange(newState: ListState<CalendarSearchResultListEntry>) {
 		this.updateSearchUrl()
 		this.updateUi()
 	}
 
-	private createList(): ListModel<SearchResultListEntry> {
+	private createList(): ListModel<CalendarSearchResultListEntry> {
 		// since we recreate the list every time we set a new result object,
 		// we bind the value of result for the lifetime of this list model
 		// at this point
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
-		return new ListModel<SearchResultListEntry>({
+		return new ListModel<CalendarSearchResultListEntry>({
 			topId: GENERATED_MAX_ID,
 			fetch: async (startId: Id, count: number) => {
 				const lastResult = this._searchResult
@@ -410,7 +406,7 @@ export class CalendarSearchViewModel {
 				}
 
 				const { items, newSearchResult } = await this.loadSearchResults(lastResult, startId, count)
-				const entries = items.map((instance) => new SearchResultListEntry(instance))
+				const entries = items.map((instance) => new CalendarSearchResultListEntry(instance))
 				const complete = !hasMoreResults(newSearchResult)
 
 				return { items: entries, complete }
@@ -424,7 +420,7 @@ export class CalendarSearchViewModel {
 				if (id) {
 					return this.entityClient
 						.load(lastResult.restriction.type, id)
-						.then((entity) => new SearchResultListEntry(entity))
+						.then((entity) => new CalendarSearchResultListEntry(entity))
 						.catch(
 							ofClass(NotFoundError, (_) => {
 								return null
@@ -434,7 +430,7 @@ export class CalendarSearchViewModel {
 					return null
 				}
 			},
-			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) =>
+			sortCompare: (o1: CalendarSearchResultListEntry, o2: CalendarSearchResultListEntry) =>
 				downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime(),
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
@@ -463,7 +459,7 @@ export class CalendarSearchViewModel {
 		startId: Id,
 		count: number,
 	): Promise<{ items: CalendarEvent[]; newSearchResult: SearchResult }> {
-		const updatedResult = hasMoreResults(currentResult) ? await this.searchFacade.getMoreSearchResults(currentResult, count) : currentResult
+		const updatedResult = currentResult
 
 		// we need to override global reference for other functions
 		this._searchResult = updatedResult

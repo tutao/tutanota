@@ -8,7 +8,6 @@ import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandl
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
-import { SearchModel } from "../../../mail-app/search/model/SearchModel.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { SettingsFacade } from "../../native/common/generatedipc/SettingsFacade.js"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
@@ -22,8 +21,6 @@ import type { CalendarFacade } from "../worker/facades/lazy/CalendarFacade.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
 import type { ShareFacade } from "../worker/facades/lazy/ShareFacade.js"
 import type { CounterFacade } from "../worker/facades/lazy/CounterFacade.js"
-import type { Indexer } from "../worker/search/Indexer.js"
-import type { SearchFacade } from "../worker/search/SearchFacade.js"
 import type { BookingFacade } from "../worker/facades/lazy/BookingFacade.js"
 import type { MailAddressFacade } from "../worker/facades/lazy/MailAddressFacade.js"
 import type { BlobFacade } from "../worker/facades/lazy/BlobFacade.js"
@@ -34,7 +31,6 @@ import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { CryptoFacade } from "../worker/crypto/CryptoFacade.js"
 import { ExposedCacheStorage } from "../worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
-import { WorkerRandomizer } from "../worker/WorkerImpl.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { MailboxDetail, MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { EventController } from "./EventController.js"
@@ -51,8 +47,6 @@ import { MailAddressTableModel } from "../../settings/mailaddress/MailAddressTab
 import { GroupInfo } from "../entities/sys/TypeRefs.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { Router } from "../../gui/ScopedRouter.js"
-import type { IMailLocator } from "../../../mail-app/mailLocator.js"
-import type { ICalendarLocator } from "../../../calendar-app/calendarLocator.js"
 import { NativeInterfaceMain } from "../../native/main/NativeInterfaceMain.js"
 import { CommonSystemFacade } from "../../native/common/generatedipc/CommonSystemFacade.js"
 import { ThemeFacade } from "../../native/common/generatedipc/ThemeFacade.js"
@@ -69,9 +63,10 @@ import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/cal
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
-import { CalendarSearchModel } from "../../../calendar-app/calendar/search/model/CalendarSearchModel.js"
 import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
 import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
+import { WorkerRandomizer } from "../worker/workerInterfaces.js"
+import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -84,7 +79,7 @@ export interface CommonLocator {
 	secondFactorHandler: SecondFactorHandler
 	loginListener: PageContextLoginListener
 	newsModel: NewsModel
-	search: SearchModel | CalendarSearchModel
+	search: CommonSearchModel
 	infoMessageHandler: InfoMessageHandler
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade
@@ -100,8 +95,6 @@ export interface CommonLocator {
 	mailFacade: MailFacade
 	shareFacade: ShareFacade
 	counterFacade: CounterFacade
-	indexerFacade: Indexer
-	searchFacade: SearchFacade
 	bookingFacade: BookingFacade
 	mailAddressFacade: MailAddressFacade
 	blobFacade: BlobFacade
@@ -177,6 +170,6 @@ export let locator: CommonLocator = new Proxy<CommonLocator>({} as unknown as Co
 	},
 })
 
-export function initCommonLocator(loc: IMailLocator | ICalendarLocator) {
+export function initCommonLocator(loc: CommonLocator) {
 	locator = loc
 }

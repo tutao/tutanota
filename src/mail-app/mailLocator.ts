@@ -22,8 +22,8 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { Indexer } from "../common/api/worker/search/Indexer.js"
-import { SearchFacade } from "../common/api/worker/search/SearchFacade.js"
+import { Indexer } from "./workerUtils/index/Indexer.js"
+import { SearchFacade } from "./workerUtils/index/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { BlobFacade } from "../common/api/worker/facades/lazy/BlobFacade.js"
@@ -44,7 +44,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../common/native/common/ge
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
-import { WorkerRandomizer } from "../common/api/worker/WorkerImpl.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
@@ -118,12 +117,16 @@ import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
 import { locator } from "../common/api/main/CommonLocator.js"
-import { AppType } from "../common/misc/ClientConstants.js"
-import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import { assertSystemFolderOfType } from "./mail/model/MailUtils.js"
+import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
+import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
+import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
+import { isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import m from "mithril"
-import { assertSystemFolderOfType, isMailInSpamOrTrash } from "./mail/model/MailUtils.js"
+import { AppType } from "../common/misc/ClientConstants.js"
+import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 
 assertMainOrNode()
 
@@ -541,12 +544,12 @@ class MailLocator {
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
-		const { OwnMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/OwnMailAddressNameChanger.js")
+		const { OwnMailAddressNameChanger } = await import("../common/settings/mailaddress/OwnMailAddressNameChanger.js")
 		return new OwnMailAddressNameChanger(this.mailboxModel, this.entityClient)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
-		const { AnotherUserMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
+		const { AnotherUserMailAddressNameChanger } = await import("../common/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
 	}
 
@@ -566,7 +569,12 @@ class MailLocator {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../common/login/CredentialRemovalHandler.js")
 		return isBrowser()
 			? new NoopCredentialRemovalHandler()
-			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, isApp() ? this.nativeContactsSyncManager() : null)
+			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async (login, userId) => {
+					if (isApp()) {
+						await mailLocator.nativeContactsSyncManager().disableSync(userId, login)
+					}
+					await mailLocator.indexerFacade.deleteIndex(userId)
+			  })
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -656,7 +664,7 @@ class MailLocator {
 			workerFacade,
 			sqlCipherFacade,
 			contactFacade,
-		} = this.worker.getWorkerInterface()
+		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
 		this.giftCardFacade = giftCardFacade
@@ -791,7 +799,7 @@ class MailLocator {
 							m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)
 						}
 					},
-					AppType.Integrated
+					AppType.Integrated,
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -863,7 +871,20 @@ class MailLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
-		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
+		this.contactModel = new ContactModel(
+			this.entityClient,
+			this.logins,
+			this.eventController,
+			async (query: string, field: string, minSuggestionCount: number, maxResults?: number) => {
+				const { createRestriction } = await import("./search/model/SearchUtils.js")
+				return mailLocator.searchFacade.search(
+					query,
+					createRestriction(SearchCategoryTypes.contact, null, null, field, [], null),
+					minSuggestionCount,
+					maxResults,
+				)
+			},
+		)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.appStorePaymentPicker = new AppStorePaymentPicker()
 

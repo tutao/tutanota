@@ -11,18 +11,17 @@ import {
 import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { SearchFacade } from "../api/worker/search/SearchFacade.js"
 import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityEventsListener, EventController } from "../api/main/EventController.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
-import { createRestriction, SearchCategoryTypes } from "../../mail-app/search/model/SearchUtils.js"
 import { DbError } from "../api/common/error/DbError.js"
 import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
+import type { SearchResult } from "../api/worker/search/SearchTypes.js"
 
 assertMainOrNode()
 
@@ -40,10 +39,10 @@ export class ContactModel {
 	private contactListInfo: Stream<ReadonlyArray<ContactListInfo>> = stream()
 
 	constructor(
-		private readonly searchFacade: SearchFacade,
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
+		private readonly contactSearch: (query: string, field: string, minSuggestionCount: number, maxResults?: number) => Promise<SearchResult>,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
 		this.eventController.addEntityListener(this.entityEventsReceived)
@@ -84,11 +83,7 @@ export class ContactModel {
 		const cleanedMailAddress = cleanMailAddress(mailAddress)
 		let result
 		try {
-			result = await this.searchFacade.search(
-				'"' + cleanedMailAddress + '"',
-				createRestriction(SearchCategoryTypes.contact, null, null, "mailAddress", [], null),
-				0,
-			)
+			result = await this.contactSearch('"' + cleanedMailAddress + '"', "mailAddress", 0)
 		} catch (e) {
 			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
 			// search manually.
@@ -131,7 +126,7 @@ export class ContactModel {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const result = await this.searchFacade.search(query, createRestriction(SearchCategoryTypes.contact, null, null, field, [], null), minSuggestionCount)
+		const result = await this.contactSearch(query, field, minSuggestionCount)
 		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result.results)
 	}
 

@@ -1,7 +1,7 @@
 import { FolderSystem, type IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
-import { getListId } from "../../../common/api/common/utils/EntityUtils.js"
+import { assertNotNull, contains, first, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import { getListId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -56,39 +56,14 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	}
 	const folderStructures = foldersModel.folders()
 	const folderSystem = folderStructures[mailboxDetails.mailbox.folders._id]
-	return folderSystem.getIndentedList().filter((f: IndentedFolder) => f.folder.mails !== getListId(firstMail))
-}
-
-export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
-	const systemFolder = system.getSystemFolderByType(type)
-	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
-}
-
-export function isDraft(mail: Mail): boolean {
-	return mail.mailDetailsDraft != null
-}
-
-export async function isMailInSpamOrTrash(mail: Mail, mailModel: MailModel): Promise<boolean> {
-	const folders = await mailModel.getMailboxFoldersForMail(mail)
-	const mailFolder = folders?.getFolderByMail(mail)
-	if (folders && mailFolder) {
-		return isSpamOrTrashFolder(folders, mailFolder)
-	} else {
-		return false
-	}
-}
-
-/**
- * Returns true if given folder is the {@link MailFolderType.SPAM} or {@link MailFolderType.TRASH} folder, or a descendant of those folders.
- */
-export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): boolean {
-	// not using isOfTypeOrSubfolderOf because checking the type first is cheaper
-	return (
-		folder.folderType === MailSetKind.TRASH ||
-		folder.folderType === MailSetKind.SPAM ||
-		isSubfolderOfType(system, folder, MailSetKind.TRASH) ||
-		isSubfolderOfType(system, folder, MailSetKind.SPAM)
-	)
+	return folderSystem.getIndentedList().filter((f: IndentedFolder) => {
+		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
+			const folderId = firstMail.sets[0]
+			return !isSameId(f.folder._id, folderId)
+		} else {
+			return f.folder.mails !== getListId(firstMail)
+		}
+	})
 }
 
 /**
@@ -99,10 +74,6 @@ export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): b
  */
 export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
-}
-
-export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
-	return folder.folderType === type || isSubfolderOfType(system, folder, type)
 }
 
 export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFolder, omitLast = false) {

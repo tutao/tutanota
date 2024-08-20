@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
-import { customTypeEncoders, OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import { customTypeEncoders, OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { instance, object, when } from "testdouble"
 import * as cborg from "cborg"
 import { GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
@@ -27,11 +27,11 @@ import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from 
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { WorkerImpl } from "../../../../../src/common/api/worker/WorkerImpl.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
+import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -69,8 +69,8 @@ o.spec("OfflineStorageDb", function () {
 	let dateProviderMock: DateProvider
 	let storage: OfflineStorage
 	let migratorMock: OfflineStorageMigrator
+	let offlineStorageCleanerMock: OfflineStorageCleaner
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
-	let worker: WorkerImpl
 
 	o.beforeEach(async function () {
 		dbFacade = new DesktopSqlCipher(nativePath, database, false)
@@ -78,8 +78,9 @@ o.spec("OfflineStorageDb", function () {
 		dateProviderMock = object<DateProvider>()
 		migratorMock = instance(OfflineStorageMigrator)
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
+		offlineStorageCleanerMock = new MailOfflineCleaner()
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock)
+		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, offlineStorageCleanerMock)
 	})
 
 	o.afterEach(async function () {

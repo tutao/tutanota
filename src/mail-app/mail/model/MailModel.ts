@@ -10,7 +10,7 @@ import {
 	MailFolder,
 	MailFolderTypeRef,
 	MailSetEntryTypeRef,
-	MailTypeRef
+	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
@@ -20,7 +20,7 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 } from "../../../common/api/common/TutanotaConstants.js"
-import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -35,7 +35,8 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { assertSystemFolderOfType, isSpamOrTrashFolder } from "./MailUtils.js"
+import { assertSystemFolderOfType } from "./MailUtils.js"
+import { isSpamOrTrashFolder } from "./MailChecks.js"
 
 export class MailModel {
 	readonly mailboxCounters: Stream<MailboxCounters> = stream({})
@@ -183,6 +184,28 @@ export class MailModel {
 	}
 
 	/**
+	 * Finally move all given mails. Caller must ensure that mails are only from
+	 * * one folder (because we send one source folder)
+	 * * from one list (for locking it on the server)
+	 */
+	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
+		// Do not move if target is the same as the current mailFolder
+		const sourceMailFolder = this.getMailFolderForMail(mails[0])
+		let moveMails = mails.filter((m) => sourceMailFolder !== targetMailFolder && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
+
+		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
+			const mailChunks = splitInChunks(
+				MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+				mails.map((m) => m._id),
+			)
+
+			for (const mailChunk of mailChunks) {
+				await this.mailFacade.moveMails(mailChunk, sourceMailFolder._id, targetMailFolder._id)
+			}
+		}
+	}
+
+	/**
 	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
 	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
 	 */
@@ -198,7 +221,7 @@ export class MailModel {
 				// group another time because mails in the same Set can be from different mail bags.
 				const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
 				for (const [listId, mailsInList] of mailsPerList) {
-					await this.moveMails(mailsInList, targetMailFolder)
+					await this._moveMails(mailsInList, targetMailFolder)
 				}
 			} else {
 				console.log("Move mail: no mail folder for folder id", folderId)
@@ -233,7 +256,7 @@ export class MailModel {
 					if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
 						await this.finallyDeleteMails(mailsInList)
 					} else {
-						await this.moveMails(mailsInList, trashFolder)
+						await this._moveMails(mailsInList, trashFolder)
 					}
 				} else {
 					console.log("Delete mail: no mail folder for list id", folder)
@@ -394,11 +417,7 @@ export class MailModel {
 				someNonEmpty = true
 			}
 		}
-		if (
-			(await this.isEmptyFolder(folder)) &&
-			folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
-			!someNonEmpty
-		) {
+		if ((await this.isEmptyFolder(folder)) && folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) && !someNonEmpty) {
 			await this.finallyDeleteCustomMailFolder(folder)
 			return true
 		} else {

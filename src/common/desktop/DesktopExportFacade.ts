@@ -1,9 +1,7 @@
 import { ExportFacade } from "../native/common/generatedipc/ExportFacade.js"
-import { MailBundle } from "../../mail-app/mail/export/Bundler.js"
 import { createDataFile, DataFile } from "../api/common/DataFile.js"
 import { fileExists } from "./PathUtils.js"
 import path from "node:path"
-import { MailExportMode } from "../../mail-app/mail/export/Exporter.js"
 import { DesktopConfigKey } from "./config/ConfigKeys.js"
 import { DesktopConfig } from "./config/DesktopConfig.js"
 import { NativeImage } from "electron"
@@ -12,6 +10,7 @@ import { Attachment, Email, MessageEditorFormat } from "@tutao/oxmsg"
 import { sanitizeFilename } from "../api/common/utils/FileUtils.js"
 import { promises as fs } from "node:fs"
 import { TempFs } from "./files/TempFs.js"
+import { MailBundle, MailExportMode } from "../mailFunctionality/SharedMailUtils.js"
 
 const EXPORT_DIR = "export"
 

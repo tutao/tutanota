@@ -30,7 +30,7 @@ import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/
 import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
 import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import { IndexerCore } from "../../../../../src/common/api/worker/search/IndexerCore.js"
+import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"

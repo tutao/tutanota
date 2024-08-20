@@ -13,7 +13,7 @@ import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
 import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { isTutanotaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
+import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 
 export enum AddressStatus {
 	Primary,
@@ -99,8 +99,8 @@ export class MailAddressTableModel {
 			.sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
 			.map(({ mailAddress, enabled }) => {
 				const status =
-					// O(aliases * TUTANOTA_MAIL_ADDRESS_DOMAINS)
-					isTutanotaMailAddress(mailAddress) ? (enabled ? AddressStatus.Alias : AddressStatus.DisabledAlias) : AddressStatus.Custom
+					// O(aliases * TUTA_MAIL_ADDRESS_DOMAINS)
+					isTutaMailAddress(mailAddress) ? (enabled ? AddressStatus.Alias : AddressStatus.DisabledAlias) : AddressStatus.Custom
 
 				return {
 					name: nameMappings.get(mailAddress) ?? "",

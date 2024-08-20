@@ -60,8 +60,9 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { BottomNav } from "../../gui/BottomNav.js"
 
 import { mailLocator } from "../../mailLocator.js"
-import { getFolderName, isSpamOrTrashFolder } from "../model/MailUtils.js"
+import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
+import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 
 assertMainOrNode()
 

@@ -1,6 +1,6 @@
-import { MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { DbTransaction } from "./DbFacade"
-import { resolveTypeReference } from "../../common/EntityFunctions"
+import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
+import { resolveTypeReference } from "../../../common/api/common/EntityFunctions.js"
 import {
 	arrayHash,
 	asyncFind,
@@ -34,8 +34,8 @@ import type {
 	SearchIndexMetaDataRow,
 	SearchRestriction,
 	SearchResult,
-} from "./SearchTypes"
-import type { TypeInfo } from "./IndexUtils"
+} from "../../../common/api/worker/search/SearchTypes.js"
+import type { TypeInfo } from "../../../common/api/worker/search/IndexUtils.js"
 import {
 	decryptMetaData,
 	decryptSearchIndexEntry,
@@ -46,19 +46,19 @@ import {
 	markStart,
 	printMeasure,
 	typeRefToTypeInfo,
-} from "./IndexUtils"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../common/TutanotaConstants"
-import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, getListId, timestampToGeneratedId } from "../../common/utils/EntityUtils"
-import { INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "./MailIndexer"
-import { SuggestionFacade } from "./SuggestionFacade"
-import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants.js"
-import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { iterateBinaryBlocks } from "./SearchIndexEncoding"
-import type { BrowserData } from "../../../misc/ClientConstants"
-import type { TypeModel } from "../../common/EntityTypes"
-import { EntityClient } from "../../common/EntityClient"
-import { UserFacade } from "../facades/UserFacade"
-import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
+} from "../../../common/api/worker/search/IndexUtils.js"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants.js"
+import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, getListId, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
+import { INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "./MailIndexer.js"
+import { SuggestionFacade } from "./SuggestionFacade.js"
+import { AssociationType, Cardinality, ValueType } from "../../../common/api/common/EntityConstants.js"
+import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
+import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import type { TypeModel } from "../../../common/api/common/EntityTypes.js"
+import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
+import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
 
 type RowsToReadForIndexKey = {
 	indexKey: string

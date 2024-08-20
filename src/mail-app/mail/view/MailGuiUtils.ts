@@ -13,7 +13,7 @@ import {
 	MailReportType,
 	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
-	getMailFolderType
+	getMailFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
@@ -28,16 +28,10 @@ import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { MailModel } from "../model/MailModel.js"
 import { mailLocator } from "../../mailLocator.js"
-import {
-	assertSystemFolderOfType,
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getMoveTargetFolderSystems,
-	isOfTypeOrSubfolderOf,
-	isSpamOrTrashFolder,
-} from "../model/MailUtils.js"
+import { assertSystemFolderOfType, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []

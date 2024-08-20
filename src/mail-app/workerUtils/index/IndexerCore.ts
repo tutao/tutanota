@@ -1,4 +1,4 @@
-import type { DbTransaction } from "./DbFacade"
+import type { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import type { $Promisable, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,
@@ -17,7 +17,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../common/utils/EntityUtils"
+import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	compareMetaEntriesOldest,
 	decryptIndexKey,
@@ -29,7 +29,7 @@ import {
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
 	typeRefToTypeInfo,
-} from "./IndexUtils"
+} from "../../../common/api/worker/search/IndexUtils.js"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -45,13 +45,13 @@ import type {
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
-} from "./SearchTypes"
-import type { QueuedBatch } from "../EventQueue.js"
-import { EventQueue } from "../EventQueue.js"
-import { CancelledError } from "../../common/error/CancelledError"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
-import type { BrowserData } from "../../../misc/ClientConstants"
-import { InvalidDatabaseStateError } from "../../common/error/InvalidDatabaseStateError"
+} from "../../../common/api/worker/search/SearchTypes.js"
+import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
+import { EventQueue } from "../../../common/api/worker/EventQueue.js"
+import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpaceForNumbers,
@@ -59,10 +59,17 @@ import {
 	encodeNumbers,
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges,
-} from "./SearchIndexEncoding"
-import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
+} from "../../../common/api/worker/search/SearchIndexEncoding.js"
+import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
 import { aes256EncryptSearchIndexEntry, aesDecrypt, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./IndexTables.js"
+import {
+	ElementDataOS,
+	GroupDataOS,
+	MetaDataOS,
+	SearchIndexMetaDataOS,
+	SearchIndexOS,
+	SearchIndexWordsIndex,
+} from "../../../common/api/worker/search/IndexTables.js"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

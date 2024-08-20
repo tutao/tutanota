@@ -17,9 +17,10 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { px, size } from "../../../common/gui/size.js"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton.js"
-import { getFolderName, isSpamOrTrashFolder, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
-import { getFolderIcon } from "./MailGuiUtils.js"
 import { MailModel } from "../model/MailModel.js"
+import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
+import { getFolderIcon } from "./MailGuiUtils.js"
+import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel

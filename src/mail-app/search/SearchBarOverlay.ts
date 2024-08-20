@@ -23,6 +23,7 @@ import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGui
 import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
 
 import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
+import { mailLocator } from "../mailLocator.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -107,7 +108,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								},
 								m(Button, {
 									label: "cancel_action",
-									click: () => locator.indexerFacade.cancelMailIndexing(),
+									click: () => mailLocator.indexerFacade.cancelMailIndexing(),
 									//icon: () => Icons.Cancel
 									type: ButtonType.Secondary,
 								}),
@@ -148,7 +149,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 						},
 						m(Button, {
 							label: "retry_action",
-							click: () => locator.indexerFacade.extendMailIndex(failedIndexingUpTo),
+							click: () => mailLocator.indexerFacade.extendMailIndex(failedIndexingUpTo),
 							type: ButtonType.Secondary,
 						}),
 					),

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { WorkerImpl } from "../../../../../src/common/api/worker/WorkerImpl.js"
+import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy/CounterFacade.js"

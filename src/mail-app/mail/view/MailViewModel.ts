@@ -42,8 +42,9 @@ import { ListFetchResult } from "../../../common/gui/base/ListUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel } from "../model/MailModel.js"
-import { assertSystemFolderOfType, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailUtils.js"
+import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
+import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -94,9 +95,9 @@ export class MailViewModel {
 	async showMailWithFolderId(folderId?: Id, mailId?: Id): Promise<void> {
 		if (folderId) {
 			const folderStructures = this.mailModel.folders()
-			for(const folders of Object.values(folderStructures)) {
+			for (const folders of Object.values(folderStructures)) {
 				const folder = folders.getFolderById(folderId)
-				if(folder) {
+				if (folder) {
 					return this.showMail(folder, mailId)
 				}
 			}

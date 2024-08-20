@@ -1,5 +1,5 @@
-import { UserTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
-import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/api/common/TutanotaConstants.js"
+import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants.js"
 import { assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef } from "@tutao/tutanota-utils"
 import {
 	elementIdPart,
@@ -9,12 +9,19 @@ import {
 	getElementId,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../common/api/common/utils/EntityUtils.js"
-import { FileTypeRef, MailDetailsBlobTypeRef, MailDetailsDraftTypeRef, MailFolderTypeRef, MailTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { FolderSystem } from "../../common/api/common/mail/FolderSystem.js"
-import { isDraft, isSpamOrTrashFolder } from "../mail/model/MailUtils.js"
-import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../common/api/worker/offline/OfflineStorage.js"
+} from "../../../common/api/common/utils/EntityUtils.js"
+import {
+	FileTypeRef,
+	MailBoxTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailFolderTypeRef,
+	MailTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { ListElementEntity } from "../../../common/api/common/EntityTypes.js"
+import type { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
+import { isDraft, isSpamOrTrashFolder } from "../../mail/model/MailChecks.js"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void> {
@@ -30,14 +37,25 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		const cutoffTimestamp = now - timeRangeMillisSafe
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 
-		const folders = await offlineStorage.getListElementsOfType(MailFolderTypeRef)
-		const folderSystem = new FolderSystem(folders)
-
-		for (const folder of folders) {
-			if (isSpamOrTrashFolder(folderSystem, folder)) {
-				await this.deleteMailList(offlineStorage, folder.mails, GENERATED_MAX_ID)
+		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
+		for (const mailBox of mailBoxes) {
+			const isMailsetMigrated = mailBox.currentMailBag != null
+			if (isMailsetMigrated) {
+				var mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
+				for (const mailListId of mailListIds) {
+					await this.deleteMailList(offlineStorage, mailListId, cutoffId)
+				}
 			} else {
-				await this.deleteMailList(offlineStorage, folder.mails, cutoffId)
+				const folders = await offlineStorage.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
+
+				const folderSystem = new FolderSystem(folders)
+				for (const folder of folders) {
+					if (isSpamOrTrashFolder(folderSystem, folder)) {
+						await this.deleteMailList(offlineStorage, folder.mails, GENERATED_MAX_ID)
+					} else {
+						await this.deleteMailList(offlineStorage, folder.mails, cutoffId)
+					}
+				}
 			}
 		}
 	}

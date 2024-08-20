@@ -1,7 +1,7 @@
-import type { Db } from "./SearchTypes"
+import type { Db } from "../../../common/api/worker/search/SearchTypes.js"
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { aesDecrypt, aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { SearchTermSuggestionsOS } from "./IndexTables.js"
+import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
 
 export type SuggestionsType = Record<string, string[]>
 

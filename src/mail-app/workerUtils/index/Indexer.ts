@@ -1,9 +1,15 @@
-import { ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../entities/sys/TypeRefs.js"
-import type { DatabaseEntry, DbKey, DbTransaction } from "./DbFacade"
-import { b64UserIdHash, DbFacade } from "./DbFacade"
+import {
+	ENTITY_EVENT_BATCH_TTL_DAYS,
+	getMembershipGroupType,
+	GroupType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+} from "../../../common/api/common/TutanotaConstants.js"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import type { EntityUpdate, GroupMembership, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
+import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	assertNotNull,
 	contains,
@@ -22,31 +28,38 @@ import {
 	promiseMap,
 	TypeRef,
 } from "@tutao/tutanota-utils"
-import { firstBiggerThanSecond, GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, isSameId, timestampToGeneratedId } from "../../common/utils/EntityUtils"
-import { _createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo } from "./IndexUtils"
-import type { Db, GroupData } from "./SearchTypes"
-import { IndexingErrorReason } from "./SearchTypes"
-import { ContactIndexer } from "./ContactIndexer"
-import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { MailIndexer } from "./MailIndexer"
-import { IndexerCore } from "./IndexerCore"
-import type { EntityRestClient } from "../rest/EntityRestClient"
-import { OutOfSyncError } from "../../common/error/OutOfSyncError"
-import { SuggestionFacade } from "./SuggestionFacade"
-import { DbError } from "../../common/error/DbError"
-import type { QueuedBatch } from "../EventQueue.js"
-import { EventQueue } from "../EventQueue.js"
-import { CancelledError } from "../../common/error/CancelledError"
-import { MembershipRemovedError } from "../../common/error/MembershipRemovedError"
-import type { BrowserData } from "../../../misc/ClientConstants"
-import { InvalidDatabaseStateError } from "../../common/error/InvalidDatabaseStateError"
-import { LocalTimeDateProvider } from "../DateProvider"
-import { EntityClient } from "../../common/EntityClient"
-import { deleteObjectStores } from "../utils/DbUtils"
+import {
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	generatedIdToTimestamp,
+	getElementId,
+	isSameId,
+	timestampToGeneratedId,
+} from "../../../common/api/common/utils/EntityUtils.js"
+import { _createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils.js"
+import type { Db, GroupData } from "../../../common/api/worker/search/SearchTypes.js"
+import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
+import { ContactIndexer } from "./ContactIndexer.js"
+import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { MailIndexer } from "./MailIndexer.js"
+import { IndexerCore } from "./IndexerCore.js"
+import type { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
+import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError.js"
+import { SuggestionFacade } from "./SuggestionFacade.js"
+import { DbError } from "../../../common/api/common/error/DbError.js"
+import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
+import { EventQueue } from "../../../common/api/worker/EventQueue.js"
+import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
+import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
+import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
+import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
+import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
 import { aes256EncryptSearchIndexEntry, aes256RandomKey, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
-import { CacheInfo } from "../facades/LoginFacade.js"
-import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
+import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
+import { CacheInfo } from "../../../common/api/worker/facades/LoginFacade.js"
+import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import {
 	ElementDataOS,
 	EncryptedIndexerMetaData,
@@ -57,11 +70,11 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
-} from "./IndexTables.js"
-import { MailFacade } from "../facades/lazy/MailFacade.js"
-import { encryptKeyWithVersionedKey, VersionedKey } from "../crypto/CryptoFacade.js"
-import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
-import { getIndexerMetaData, updateEncryptionMetadata } from "../facades/lazy/ConfigurationDatabase.js"
+} from "../../../common/api/worker/search/IndexTables.js"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoFacade.js"
+import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
+import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 
 export type InitParams = {
 	user: User

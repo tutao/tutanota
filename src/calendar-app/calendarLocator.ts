@@ -20,8 +20,6 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { Indexer } from "../common/api/worker/search/Indexer.js"
-import { SearchFacade } from "../common/api/worker/search/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { BlobFacade } from "../common/api/worker/facades/lazy/BlobFacade.js"
@@ -42,7 +40,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../common/native/common/ge
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
-import { WorkerRandomizer } from "../common/api/worker/WorkerImpl.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
@@ -111,6 +108,8 @@ import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { locator } from "../common/api/main/CommonLocator.js"
 import m from "mithril"
+import { DbError } from "../common/api/common/error/DbError.js"
+import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 
 assertMainOrNode()
 
@@ -137,8 +136,6 @@ class CalendarLocator {
 	mailFacade!: MailFacade
 	shareFacade!: ShareFacade
 	counterFacade!: CounterFacade
-	indexerFacade!: Indexer
-	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	blobFacade!: BlobFacade
@@ -216,7 +213,6 @@ class CalendarLocator {
 			return new CalendarSearchViewModel(
 				searchRouter,
 				this.search,
-				this.searchFacade,
 				this.logins,
 				this.entityClient,
 				this.eventController,
@@ -235,7 +231,6 @@ class CalendarLocator {
 			return new CalendarSearchViewModel(
 				searchRouter,
 				this.search,
-				this.searchFacade,
 				this.logins,
 				this.entityClient,
 				this.eventController,
@@ -428,12 +423,12 @@ class CalendarLocator {
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
-		const { OwnMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/OwnMailAddressNameChanger.js")
+		const { OwnMailAddressNameChanger } = await import("../common/settings/mailaddress/OwnMailAddressNameChanger.js")
 		return new OwnMailAddressNameChanger(this.mailboxModel, this.entityClient)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
-		const { AnotherUserMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
+		const { AnotherUserMailAddressNameChanger } = await import("../common/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
 	}
 
@@ -453,7 +448,10 @@ class CalendarLocator {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../common/login/CredentialRemovalHandler.js")
 		return isBrowser()
 			? new NoopCredentialRemovalHandler()
-			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, null)
+			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async () => {
+					// nothing needs to be specifically done for the calendar app right now.
+					noOp()
+			  })
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -526,8 +524,6 @@ class CalendarLocator {
 			mailFacade,
 			shareFacade,
 			counterFacade,
-			indexerFacade,
-			searchFacade,
 			bookingFacade,
 			mailAddressFacade,
 			blobFacade,
@@ -553,8 +549,6 @@ class CalendarLocator {
 		this.mailFacade = mailFacade
 		this.shareFacade = shareFacade
 		this.counterFacade = counterFacade
-		this.indexerFacade = indexerFacade
-		this.searchFacade = searchFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.blobFacade = blobFacade
@@ -707,7 +701,9 @@ class CalendarLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
-		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
+		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, () => {
+			throw new DbError("Calendar cannot search for contacts through db")
+		})
 		this.appStorePaymentPicker = new AppStorePaymentPicker()
 
 		// THEME

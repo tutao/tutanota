@@ -33,7 +33,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
 	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
-	const workerFile = isCalendarApp ? "src/calendar-app/calendar-worker.ts" : "src/mail-app/mail-worker.ts"
+	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
 	console.log("Building app", app)
 

@@ -15,7 +15,8 @@ import { groupByAndMap } from "@tutao/tutanota-utils"
 import { mailLocator } from "../../mailLocator.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString, isSpamOrTrashFolder } from "../model/MailUtils.js"
+import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
+import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 
 /**
  * Dialog for Edit and Add folder are the same.
