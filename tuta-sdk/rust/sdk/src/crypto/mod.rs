@@ -3,34 +3,31 @@
 // TODO: Remove the above allowance when starting to implement higher level functions
 
 
-mod aes;
-
-#[cfg(test)]
-pub use aes::Iv;
+pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 #[allow(unused_imports)]
 pub use aes::Aes128Key;
-pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
+#[cfg(test)]
+pub use aes::Iv;
+pub use aes::PlaintextAndIv;
+pub use argon2_id::generate_key_from_passphrase;
+pub use hkdf::hkdf;
+pub use sha::sha256;
+#[allow(unused_imports)]
+pub use tuta_crypt::PQKeyPairs;
+
+mod aes;
 
 mod sha;
 
-pub use sha::sha256;
-
 mod hkdf;
 
-pub use hkdf::hkdf;
-
 pub(crate) mod argon2_id;
-
-pub use argon2_id::generate_key_from_passphrase;
 
 mod ecc;
 pub(crate) mod kyber;
 pub(crate) mod rsa;
 
 mod tuta_crypt;
-
-#[allow(unused_imports)]
-pub use tuta_crypt::PQKeyPairs;
 
 pub mod key_encryption;
 pub mod crypto_facade;

@@ -71,7 +71,7 @@ impl PQMessage {
             CryptoProtocolVersion::TutaCrypt,
         );
 
-        let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?;
+        let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?.data;
         Ok(Aes256Key::try_from(bucket_key)?)
     }
 
