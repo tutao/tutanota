@@ -10,6 +10,7 @@ pub struct CustomerAccountPosting {
     #[serde(rename = "type")]
     pub r#type: i64,
     pub valueDate: DateTime,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CustomerAccountPosting {

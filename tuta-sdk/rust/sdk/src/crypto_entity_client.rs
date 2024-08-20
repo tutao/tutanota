@@ -37,7 +37,7 @@ impl CryptoEntityClient {
         let type_model = self.entity_client.get_type_model(&type_ref)?;
         let mut parsed_entity = self.entity_client.load(&type_ref, id).await?;
 
-        if type_model.encrypted {
+        if type_model.marked_encrypted() {
             let possible_session_key = self.crypto_facade
                 .resolve_session_key(&mut parsed_entity, type_model)
                 .await

@@ -80,6 +80,7 @@ pub struct AlarmInfo {
     pub alarmIdentifier: String,
     pub trigger: String,
     pub calendarRef: CalendarEventRef,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AlarmInfo {
@@ -103,6 +104,7 @@ pub struct AlarmNotification {
     pub notificationSessionKeys: Vec<NotificationSessionKey>,
     pub repeatRule: Option<RepeatRule>,
     pub user: GeneratedId,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AlarmNotification {
@@ -822,6 +824,7 @@ pub struct CreditCard {
     pub expirationMonth: String,
     pub expirationYear: String,
     pub number: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreditCard {
@@ -1101,6 +1104,7 @@ impl Entity for CustomerServerProperties {
 pub struct DateWrapper {
     pub _id: CustomId,
     pub date: DateTime,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DateWrapper {
@@ -1245,6 +1249,7 @@ pub struct EmailSenderListElement {
     #[serde(rename = "type")]
     pub r#type: i64,
     pub value: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EmailSenderListElement {
@@ -2110,6 +2115,7 @@ pub struct InvoiceItem {
     pub totalPrice: i64,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for InvoiceItem {
@@ -3257,6 +3263,7 @@ pub struct RepeatRule {
     pub interval: i64,
     pub timeZone: String,
     pub excludedDates: Vec<DateWrapper>,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for RepeatRule {

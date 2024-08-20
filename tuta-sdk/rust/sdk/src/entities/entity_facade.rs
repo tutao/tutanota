@@ -73,10 +73,13 @@ impl EntityFacade {
             }
         }
 
-        if type_model.encrypted {
+        if type_model.is_encrypted() {
+            // Only top-level types are expected to have `_errors` in the end but it is removed
+            // from the aggregates by `extract_errors()`.
             mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
             mapped_decrypted.insert("_finalIvs".to_string(), ElementValue::Dict(mapped_ivs));
         }
+
         Ok(mapped_decrypted)
     }
 
@@ -140,7 +143,7 @@ impl EntityFacade {
     }
 
     fn extract_errors(&self, association_name: &str, errors: &mut Errors, dec_aggregate: &mut ParsedEntity) {
-        match dec_aggregate.remove("errors") {
+        match dec_aggregate.remove("_errors") {
             Some(ElementValue::Dict(err_dict)) => {
                 if !err_dict.is_empty() {
                     errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
@@ -309,6 +312,17 @@ mod tests {
                 .expect("has_subject")
                 .assert_bytes(),
             vec![0x54, 0x58, 0x02, 0x8b, 0x82, 0xca, 0xb8, 0xa2, 0xd2, 0x01, 0x94, 0xa5, 0x0f, 0x53, 0x72, 0x06],
+        );
+        assert_eq!(
+            decrypted_mail
+                .get("sender")
+                .expect("has sender")
+                .assert_dict()
+                .get("_finalIvs")
+                .expect("has _finalIvs")
+                .assert_dict()
+            .len(),
+            1,
         );
     }
 
