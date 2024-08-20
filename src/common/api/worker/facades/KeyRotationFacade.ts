@@ -579,7 +579,6 @@ export class KeyRotationFacade {
 		const groupKeyUpdates = new Array<GroupKeyUpdateData>()
 		// try to reduce the amount of requests
 		const groupedMembers = groupBy(otherMembers, (member) => listIdPart(member.userGroupInfo))
-		const notFoundRecipients: Array<string> = []
 		const membersToRemove = new Array<GroupMember>()
 		for (const [listId, members] of groupedMembers) {
 			const userGroupInfos = await this.entityClient.loadMultiple(
@@ -592,6 +591,9 @@ export class KeyRotationFacade {
 				const memberMailAddress = assertNotNull(userGroupInfoForMember?.mailAddress) // user group info must always have a mail address
 				const bucketKey = this.cryptoWrapper.aes256RandomKey()
 				const sessionKey = this.cryptoWrapper.aes256RandomKey()
+				// always pass an empty list because we don't want the encryption to be skipped in case other recipients weren't found
+				// recipients that are not found will be null anyway, and added to membersToRemove
+				const notFoundRecipients: Array<string> = []
 				const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
 					this.userFacade.getUserGroupId(),
 					bucketKey,
@@ -621,7 +623,6 @@ export class KeyRotationFacade {
 		}
 		const groupManagementFacade = await this.groupManagementFacade()
 		if (membersToRemove.length !== 0) {
-			// must be in sync with length of notFoundRecipients
 			for (const member of membersToRemove) {
 				await groupManagementFacade.removeUserFromGroup(member.user, groupId)
 			}
