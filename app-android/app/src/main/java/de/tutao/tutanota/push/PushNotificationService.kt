@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
-import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.push.SseClient.SseListener
