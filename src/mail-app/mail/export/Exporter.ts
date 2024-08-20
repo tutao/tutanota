@@ -10,7 +10,6 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { createDataFile, DataFile, getCleanedMimeType } from "../../../common/api/common/DataFile"
-import type { MailBundle, MailBundleRecipient } from "./Bundler"
 import { makeMailBundle } from "./Bundler"
 import { isDesktop } from "../../../common/api/common/Env"
 import { sanitizeFilename } from "../../../common/api/common/utils/FileUtils"
@@ -22,8 +21,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { OperationId } from "../../../common/api/main/OperationProgressTracker.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
-// .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
-export type MailExportMode = "msg" | "eml"
+import { MailBundle, MailBundleRecipient, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 export async function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
 	return mode === "eml" ? mailToEmlFile(bundle, fileName) : locator.fileApp.mailToMsg(bundle, fileName)

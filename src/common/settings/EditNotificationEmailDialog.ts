@@ -22,7 +22,8 @@ import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
-import { insertInlineImageB64ClickHandler } from "../../mail-app/mail/view/MailViewerUtils.js"
+
+import { insertInlineImageB64ClickHandler } from "../mailFunctionality/SharedMailUtils.js"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined

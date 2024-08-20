@@ -2,14 +2,16 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import { Contact, createContact, createContactMailAddress, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
-import { assertNotNull, contains, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, neverNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import {
+	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
 	ConversationType, EncryptionAuthStatus,
-	getMailFolderType,
 	GroupType,
 	MailState,
-	MAX_ATTACHMENT_SIZE, SYSTEM_GROUP_MAIL_ADDRESS, TUTA_MAIL_ADDRESS_DOMAINS,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+	MAX_BASE64_IMAGE_SIZE,
+	MAX_ATTACHMENT_SIZE, TUTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
@@ -18,7 +20,9 @@ import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { Attachment } from "./SendMailModel.js"
-import { TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../../.rollup.cache/home/and/dev/repositories/tutanota-3/build/src/common/api/common/TutanotaConstants.js"
+import { showFileChooser } from "../file/FileController.js"
+import { DataFile } from "../api/common/DataFile.js"
+import { Dialog } from "../gui/base/Dialog.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -209,8 +213,8 @@ export enum RecipientField {
 	BCC = "bcc",
 }
 
-export function isTutanotaMailAddress(mailAddress: string): boolean {
-	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
+export function isTutaMailAddress(mailAddress: string): boolean {
+	return TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
 
 export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
@@ -248,4 +252,60 @@ export function isSystemNotification(mail: Mail): boolean {
 
 export function isNoReplyTeamAddress(address: string): boolean {
 	return address === "no-reply@tutao.de" || address === "no-reply@tutanota.de"
+}
+
+export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
+	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
+		const tooBig: DataFile[] = []
+
+		for (let file of files) {
+			if (file.size > MAX_BASE64_IMAGE_SIZE) {
+				tooBig.push(file)
+			} else {
+				const b64 = uint8ArrayToBase64(file.data)
+				const dataUrlString = `data:${file.mimeType};base64,${b64}`
+				handler.insertImage(dataUrlString, {
+					style: "max-width: 100%",
+				})
+			}
+		}
+
+		if (tooBig.length > 0) {
+			Dialog.message(() =>
+				lang.get("tooBigInlineImages_msg", {
+					"{size}": MAX_BASE64_IMAGE_SIZE / 1024,
+				}),
+			)
+		}
+	})
+}
+
+// .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
+export type MailExportMode = "msg" | "eml"
+/**
+ * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
+ * Ideally this would just be {Mail, Headers, Body, FileReference[]}
+ * but we can't send Dates over to the native side, so we may as well just extract everything here
+ */
+export type MailBundleRecipient = {
+	address: string
+	name?: string
+}
+
+export type MailBundle = {
+	mailId: IdTuple
+	subject: string
+	body: string
+	sender: MailBundleRecipient
+	to: MailBundleRecipient[]
+	cc: MailBundleRecipient[]
+	bcc: MailBundleRecipient[]
+	replyTo: MailBundleRecipient[]
+	isDraft: boolean
+	isRead: boolean
+	sentOn: number
+	// UNIX timestamp
+	receivedOn: number // UNIX timestamp,
+	headers: string | null
+	attachments: DataFile[]
 }

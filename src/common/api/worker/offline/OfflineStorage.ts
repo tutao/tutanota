@@ -1,14 +1,9 @@
 import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import {
-	constructMailSetEntryId,
 	CUSTOM_MIN_ID,
-	DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP,
-	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
 	getElementId,
-	listIdPart,
-	timestampToGeneratedId,
 } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
@@ -20,9 +15,7 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64UrlToBase64,
-	DAY_IN_MILLIS,
 	getTypeId,
-	groupByAndMap,
 	groupByAndMapUniquely,
 	mapNullable,
 	splitInChunks,
@@ -30,20 +23,11 @@ import {
 } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
-import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
 import {
 	CalendarEventTypeRef,
-	FileTypeRef,
-	MailBoxTypeRef,
-	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
-	MailFolderTypeRef,
-	MailSetEntryTypeRef,
-	MailTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
-import { UserTypeRef } from "../../entities/sys/TypeRefs.js"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../rest/CustomCacheHandler.js"
 import { EntityRestClient } from "../rest/EntityRestClient.js"
@@ -53,8 +37,6 @@ import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlV
 import { AssociationType, Cardinality, Type as TypeId, ValueType } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { isDraft, isSpamOrTrashFolder } from "../../../../mail-app/mail/model/MailUtils.js"
-import { FolderSystem } from "../../common/mail/FolderSystem.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c

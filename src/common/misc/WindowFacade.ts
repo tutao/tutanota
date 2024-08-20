@@ -2,8 +2,8 @@ import m, { Params } from "mithril"
 import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
-import type { Indexer } from "../api/worker/search/Indexer"
-import { remove } from "@tutao/tutanota-utils"
+import type { Indexer } from "../../mail-app/workerUtils/index/Indexer.js"
+import { noOp, remove } from "@tutao/tutanota-utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 
@@ -24,6 +24,7 @@ export class WindowFacade {
 	private _ignoreNextPopstate: boolean = false
 	private connectivityModel!: WebsocketConnectivityModel
 	private logins: LoginController | null = null
+	private appBasedVisibilityChage: (visible: boolean) => void = noOp
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -99,7 +100,7 @@ export class WindowFacade {
 		}
 	}
 
-	init(logins: LoginController, indexerFacade: Indexer, connectivityModel: WebsocketConnectivityModel) {
+	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel, appBasedVisibilityChage: ((visible: boolean) => void) | null) {
 		this.logins = logins
 
 		if (window.addEventListener && !isApp()) {
@@ -108,7 +109,7 @@ export class WindowFacade {
 			window.addEventListener("unload", (e) => this._onUnload())
 		}
 
-		this.indexerFacade = indexerFacade
+		this.appBasedVisibilityChage = appBasedVisibilityChage ?? noOp
 		this.connectivityModel = connectivityModel
 
 		if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
@@ -257,7 +258,7 @@ export class WindowFacade {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 
-				this.indexerFacade?.onVisibilityChanged(!document.hidden)
+				this.appBasedVisibilityChage(!document.hidden)
 
 				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground

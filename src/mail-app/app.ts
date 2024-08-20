@@ -97,7 +97,9 @@ import("./translations/en.js")
 		const { BottomNav } = await import("./gui/BottomNav.js")
 
 		// this needs to stay after client.init
-		windowFacade.init(mailLocator.logins, mailLocator.indexerFacade, mailLocator.connectivityModel)
+		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel, (visible) => {
+			mailLocator.indexerFacade?.onVisibilityChanged(!document.hidden)
+		})
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
@@ -126,11 +128,10 @@ import("./translations/en.js")
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						mailLocator.nativeContactsSyncManager()?.syncContacts()
 					}
-				},
-				async onFullLoginSuccess() {
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
 				},
+				async onFullLoginSuccess() {},
 			}
 		})
 

@@ -33,8 +33,6 @@ import { SubscriptionViewer } from "../../../common/subscription/SubscriptionVie
 import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
 import { ReferralSettingsViewer } from "../../../common/settings/ReferralSettingsViewer.js"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
-import { TemplateDetailsViewer } from "../../../mail-app/settings/TemplateDetailsViewer.js"
-import { KnowledgeBaseSettingsDetailsViewer } from "../../../mail-app/settings/KnowledgeBaseListView.js"
 import { NavButton, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
@@ -295,7 +293,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		m.redraw()
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
+	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | null) {
 		return (this.detailsViewer = viewer)
 	}
 
