@@ -46,7 +46,7 @@ export class InstanceMapper {
 				}
 
 				decrypted._errors[key] = JSON.stringify(e)
-				console.log("error when decrypting value on type:", `[${model.app},${model.name}]`, "key:", key)
+				console.log("error when decrypting value on type:", `[${model.app},${model.name}]`, "key:", key, e)
 			} finally {
 				if (valueType.encrypted) {
 					if (valueType.final) {
@@ -90,6 +90,9 @@ export class InstanceMapper {
 	}
 
 	encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: AesKey | null): Promise<Record<string, unknown>> {
+		if (model.encrypted && sk == null) {
+			throw new ProgrammingError(`Encrypting ${model.app}/${model.name} requires a session key!`)
+		}
 		let encrypted: Record<string, unknown> = {}
 		let i = instance as any
 

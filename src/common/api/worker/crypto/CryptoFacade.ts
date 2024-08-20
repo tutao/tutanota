@@ -296,18 +296,20 @@ export class CryptoFacade {
 	}
 
 	/**
-	 * In case the given bucketKey is a literal the literal will be converted to an instance and return. In case the BucketKey is already an instance the instance is returned.
+	 * In case the given bucketKey is a literal the literal will be converted to an instance and return. In case the BucketKey is already an instance the
+	 * instance is returned.
 	 * @param bucketKeyInstanceOrLiteral The bucket key as literal or instance
 	 */
 	async convertBucketKeyToInstanceIfNecessary(bucketKeyInstanceOrLiteral: Record<string, any>): Promise<BucketKey> {
-		if (!this.isLiteralInstance(bucketKeyInstanceOrLiteral)) {
-			// bucket key was already decoded from base 64
-			return bucketKeyInstanceOrLiteral as BucketKey
-		} else {
-			// decryptAndMapToInstance is misleading here, but we want to map the BucketKey aggregate and its session key from a literal to an instance
-			// to have the encrypted keys in binary format and not as base 64. There is actually no decryption ongoing, just mapToInstance.
+		if (this.isLiteralInstance(bucketKeyInstanceOrLiteral)) {
+			// decryptAndMapToInstance is misleading here (it's not going to be decrypted), but we want to map the BucketKey aggregate and its session key from
+			// a literal to an instance to have the encrypted keys in binary format and not as base 64. There is actually no decryption ongoing, just
+			// mapToInstance.
 			const bucketKeyTypeModel = await resolveTypeReference(BucketKeyTypeRef)
 			return (await this.instanceMapper.decryptAndMapToInstance(bucketKeyTypeModel, bucketKeyInstanceOrLiteral, null)) as BucketKey
+		} else {
+			// bucket key was already decoded
+			return bucketKeyInstanceOrLiteral as BucketKey
 		}
 	}
 
@@ -482,6 +484,9 @@ export class CryptoFacade {
 		instance._ownerKeyVersion = key.encryptingKeyVersion.toString()
 	}
 
+	/**
+	 * @return Whether the {@param elementOrLiteral} is a unmapped type, as used in JSON for transport or if it's a runtime representation of a type.
+	 */
 	private isLiteralInstance(elementOrLiteral: Record<string, any>): boolean {
 		return typeof elementOrLiteral._type === "undefined"
 	}

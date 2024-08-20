@@ -178,7 +178,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {
-				console.log(`could not resolve session key for instance of type ${typeModel.app}/${typeModel.name}`)
+				console.log(`could not resolve session key for instance of type ${typeModel.app}/${typeModel.name}`, e)
 				return null
 			} else {
 				throw e
