@@ -61,7 +61,7 @@ impl CryptoFacade {
     /// Returns the session key from `entity` and resolves the bucket key fields contained inside
     /// if present
     pub async fn resolve_session_key(&self, entity: &mut ParsedEntity, model: &TypeModel) -> Result<Option<ResolvedSessionKey>, SessionKeyResolutionError> {
-        if !model.encrypted {
+        if !model.marked_encrypted() {
             return Ok(None);
         }
 

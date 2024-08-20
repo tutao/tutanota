@@ -45,6 +45,7 @@ pub struct Body {
     pub _id: CustomId,
     pub compressedText: Option<Vec<u8>>,
     pub text: Option<String>,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Body {
@@ -116,6 +117,7 @@ pub struct CalendarEventAttendee {
     pub _id: CustomId,
     pub status: i64,
     pub address: EncryptedMailAddress,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarEventAttendee {
@@ -240,6 +242,7 @@ pub struct CalendarRepeatRule {
     pub interval: i64,
     pub timeZone: String,
     pub excludedDates: Vec<sys::DateWrapper>,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarRepeatRule {
@@ -309,6 +312,7 @@ pub struct ContactAddress {
     pub customTypeName: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactAddress {
@@ -328,6 +332,7 @@ pub struct ContactCustomDate {
     pub dateIso: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactCustomDate {
@@ -420,6 +425,7 @@ pub struct ContactMailAddress {
     pub customTypeName: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactMailAddress {
@@ -439,6 +445,7 @@ pub struct ContactMessengerHandle {
     pub handle: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactMessengerHandle {
@@ -458,6 +465,7 @@ pub struct ContactPhoneNumber {
     pub number: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactPhoneNumber {
@@ -475,6 +483,7 @@ pub struct ContactPronouns {
     pub _id: CustomId,
     pub language: String,
     pub pronouns: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactPronouns {
@@ -494,6 +503,7 @@ pub struct ContactRelationship {
     pub person: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactRelationship {
@@ -513,6 +523,7 @@ pub struct ContactSocialId {
     pub socialId: String,
     #[serde(rename = "type")]
     pub r#type: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactSocialId {
@@ -532,6 +543,7 @@ pub struct ContactWebsite {
     #[serde(rename = "type")]
     pub r#type: i64,
     pub url: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactWebsite {
@@ -846,6 +858,7 @@ pub struct DraftData {
     pub removedAttachments: Vec<IdTuple>,
     pub replyTos: Vec<EncryptedMailAddress>,
     pub toRecipients: Vec<DraftRecipient>,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftData {
@@ -863,6 +876,7 @@ pub struct DraftRecipient {
     pub _id: CustomId,
     pub mailAddress: String,
     pub name: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftRecipient {
@@ -943,6 +957,7 @@ pub struct EmailTemplateContent {
     pub _id: CustomId,
     pub languageCode: String,
     pub text: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EmailTemplateContent {
@@ -979,6 +994,7 @@ pub struct EncryptedMailAddress {
     pub _id: CustomId,
     pub address: String,
     pub name: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EncryptedMailAddress {
@@ -1180,6 +1196,7 @@ pub struct GroupSettings {
     pub sourceUrl: Option<String>,
     pub defaultAlarmsList: Vec<DefaultAlarmInfo>,
     pub group: GeneratedId,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GroupSettings {
@@ -1197,6 +1214,7 @@ pub struct Header {
     pub _id: CustomId,
     pub compressedHeaders: Option<Vec<u8>>,
     pub headers: Option<String>,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Header {
@@ -1274,6 +1292,7 @@ pub struct InboxRule {
     pub r#type: String,
     pub value: String,
     pub targetFolder: IdTuple,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for InboxRule {
@@ -1371,6 +1390,7 @@ impl Entity for KnowledgeBaseEntry {
 pub struct KnowledgeBaseEntryKeyword {
     pub _id: CustomId,
     pub keyword: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for KnowledgeBaseEntryKeyword {
@@ -1452,6 +1472,7 @@ pub struct MailAddress {
     pub address: String,
     pub name: String,
     pub contact: Option<IdTuple>,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailAddress {
@@ -1469,6 +1490,7 @@ pub struct MailAddressProperties {
     pub _id: CustomId,
     pub mailAddress: String,
     pub senderName: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailAddressProperties {
