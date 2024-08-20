@@ -35,7 +35,8 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { assertSystemFolderOfType, isSpamOrTrashFolder } from "./MailUtils.js"
+import { assertSystemFolderOfType } from "./MailUtils.js"
+import { isSpamOrTrashFolder } from "./MailChecks.js"
 
 export class MailModel {
 	readonly mailboxCounters: Stream<MailboxCounters> = stream({})
@@ -422,11 +423,7 @@ export class MailModel {
 				someNonEmpty = true
 			}
 		}
-		if (
-			(await this.isEmptyFolder(folder)) &&
-			mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
-			!someNonEmpty
-		) {
+		if ((await this.isEmptyFolder(folder)) && mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) && !someNonEmpty) {
 			await this.finallyDeleteCustomMailFolder(folder)
 			return true
 		} else {

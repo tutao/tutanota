@@ -6,12 +6,12 @@ import { client } from "../../misc/ClientDetector"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, downcast } from "@tutao/tutanota-utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
-import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "../worker/rest/RestClient"
 import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
+import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 
 assertMainOrNode()
 
@@ -109,8 +109,8 @@ export class WorkerClient {
 		}
 	}
 
-	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface>(async (request) => this._postRequest(request))
+	getWorkerInterface(): CommonWorkerInterface {
+		return exposeRemote<CommonWorkerInterface>(async (request) => this._postRequest(request))
 	}
 
 	restRequest(...args: Parameters<RestClient["request"]>): Promise<any | null> {

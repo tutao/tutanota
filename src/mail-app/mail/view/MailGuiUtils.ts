@@ -30,16 +30,10 @@ import {
 	hasValidEncryptionAuthForTeamOrSystemMail,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import {
-	assertSystemFolderOfType,
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getMoveTargetFolderSystems,
-	isOfTypeOrSubfolderOf,
-	isSpamOrTrashFolder,
-} from "../model/MailUtils.js"
+import { assertSystemFolderOfType, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import type { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {

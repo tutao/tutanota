@@ -7,7 +7,7 @@ import {
 	ContactSocialIdTypeRef,
 	ContactTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { ContactIndexer } from "../../../../../src/common/api/worker/search/ContactIndexer.js"
+import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"

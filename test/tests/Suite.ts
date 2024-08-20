@@ -144,7 +144,7 @@ export async function run({ integration, filter }: { integration?: boolean; filt
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { WorkerImpl } = await import("../../src/common/api/worker/WorkerImpl.js")
+	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl.js")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process != "undefined") {

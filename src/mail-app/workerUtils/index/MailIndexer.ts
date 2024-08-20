@@ -1,5 +1,5 @@
-import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
-import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../entities/tutanota/TypeRefs.js"
+import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants"
+import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FileTypeRef,
 	MailboxGroupRootTypeRef,
@@ -8,9 +8,9 @@ import {
 	MailDetailsDraftTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { typeModels } from "../../entities/tutanota/TypeModels"
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
 import { assertNotNull, first, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import {
 	elementIdPart,
@@ -21,29 +21,36 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../common/utils/EntityUtils"
-import { _createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "./IndexUtils"
-import { Db, GroupData, IndexingErrorReason, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
-import { CancelledError } from "../../common/error/CancelledError"
-import { IndexerCore } from "./IndexerCore"
-import { DbError } from "../../common/error/DbError"
-import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
-import type { DateProvider } from "../DateProvider"
-import type { EntityUpdate, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
-import { EntityRestClient, OwnerEncSessionKeyProvider } from "../rest/EntityRestClient"
-import { EntityClient } from "../../common/EntityClient"
-import { ProgressMonitor } from "../../common/utils/ProgressMonitor"
-import type { SomeEntity } from "../../common/EntityTypes"
-import { EphemeralCacheStorage } from "../rest/EphemeralCacheStorage"
-import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"
-import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "./IndexTables.js"
-import { MailFacade } from "../facades/lazy/MailFacade.js"
-import { containsEventOfType, EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
-import { b64UserIdHash } from "./DbFacade.js"
-import { hasError } from "../../common/utils/ErrorUtils.js"
-import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../common/CommonMailUtils.js"
+} from "../../../common/api/common/utils/EntityUtils.js"
+import {
+	_createNewIndexUpdate,
+	encryptIndexKeyBase64,
+	filterMailMemberships,
+	getPerformanceTimestamp,
+	htmlToText,
+	typeRefToTypeInfo,
+} from "../../../common/api/worker/search/IndexUtils.js"
+import { Db, GroupData, IndexingErrorReason, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes.js"
+import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
+import { IndexerCore } from "./IndexerCore.js"
+import { DbError } from "../../../common/api/common/error/DbError.js"
+import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
+import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
+import type { EntityUpdate, GroupMembership, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { EntityRestClient, OwnerEncSessionKeyProvider } from "../../../common/api/worker/rest/EntityRestClient.js"
+import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
+import type { SomeEntity } from "../../../common/api/common/EntityTypes.js"
+import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
+import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
+import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+import { containsEventOfType, EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
+import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
+import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 
-import { isDraft } from "../../../../mail-app/mail/model/MailUtils.js"
+import { isDraft } from "../../mail/model/MailChecks.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
