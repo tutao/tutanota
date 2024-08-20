@@ -43,7 +43,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/gen
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
 import { FolderSystem } from "../../common/mail/FolderSystem.js"
-import { Type as TypeId } from "../../common/EntityConstants.js"
+import { AssociationType, Cardinality, Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { isDraft, isSpamOrTrashFolder } from "../../common/CommonMailUtils.js"
@@ -661,17 +661,47 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		}
 	}
 
-	private deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): T {
+	/**
+	 * Convert the type from CBOR representation to the runtime type
+	 */
+	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T> {
 		const deserialized = cborg.decode(loaded, { tags: customTypeDecoders })
-		// TypeRef cannot be deserialized back automatically. We could write a codec for it but we don't actually
-		// need to store it so we just "patch" it.
+
+		const typeModel = await resolveTypeReference(typeRef)
+		return (await this.fixupTypeRefs(typeModel, deserialized)) as T
+	}
+
+	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {
+		// TypeRef cannot be deserialized back automatically. We could write a codec for it but we don't actually need to store it so we just "patch" it.
 		// Some places rely on TypeRef being a class and not a plain object.
-		deserialized._type = typeRef
+		// We also have to update all aggregates, recursively.
+		deserialized._type = new TypeRef(typeModel.app, typeModel.name)
+		for (const [associationName, associationModel] of Object.entries(typeModel.associations)) {
+			if (associationModel.type === AssociationType.Aggregation) {
+				const aggregateTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refType)
+				const aggregateTypeModel = await resolveTypeReference(aggregateTypeRef)
+				switch (associationModel.cardinality) {
+					case Cardinality.One:
+					case Cardinality.ZeroOrOne:
+						const aggregate = deserialized[associationName]
+						if (aggregate) {
+							await this.fixupTypeRefs(aggregateTypeModel, aggregate)
+						}
+						break
+					case Cardinality.Any:
+						const aggregateList = deserialized[associationName]
+						for (const aggregate of aggregateList) {
+							await this.fixupTypeRefs(aggregateTypeModel, aggregate)
+						}
+						break
+				}
+			}
+		}
 		return deserialized
 	}
 
-	private deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Array<T> {
-		return loaded.map((entity) => this.deserialize(typeRef, entity))
+	private deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Promise<Array<T>> {
+		return Promise.all(loaded.map((entity) => this.deserialize(typeRef, entity)))
 	}
 
 	/**
