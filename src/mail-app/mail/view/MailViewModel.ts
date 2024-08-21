@@ -90,8 +90,14 @@ export class MailViewModel {
 	}
 
 	async showMailWithFolderId(folderId?: Id, mailId?: Id): Promise<void> {
-		const folder: MailFolder | null = folderId ? (await this.getMailboxDetails()).folders.getFolderById(folderId) : null
-		return this.showMail(folder, mailId)
+		if (folderId) {
+			const mailboxDetails = await this.mailModel.getMailboxDetails()
+			const mailboxDetail: MailboxDetail | null = mailboxDetails.find((md) => md.folders.getFolderById(folderId)) ?? null
+			const folder = mailboxDetail?.folders.getFolderById(folderId)
+			return this.showMail(folder, mailId)
+		} else {
+			return this.showMail(null, mailId)
+		}
 	}
 
 	async showMail(folder?: MailFolder | null, mailId?: Id) {
