@@ -2560,7 +2560,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.list_accent_fg,
 		},
 		".status-banner.offline": {
-			"background-color": "#840010",
+			"background-color": "#ca0606", // WARNING_RED from InfoBanner
 		},
 		".status-banner.offline .content-accent-fg": {
 			color: "#ffffff",
