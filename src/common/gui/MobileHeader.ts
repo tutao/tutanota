@@ -44,13 +44,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 				attrs.columnType === "first"
 					? m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: attrs.backAction })
 					: styles.isSingleColumnLayout()
-					? m(IconButton, {
-							title: "back_action",
-							icon: BootIcons.Back,
-							click: () => {
-								attrs.backAction()
-							},
-					  })
+					? m(MobileHeaderBackButton, { backAction: attrs.backAction })
 					: null,
 			center: firstVisibleColumn
 				? m(MobileHeaderTitle, {
@@ -67,6 +61,16 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 		})
 	}
 }
+
+export const MobileHeaderBackButton = pureComponent(({ backAction }: { backAction: () => unknown }) => {
+	return m(IconButton, {
+		title: "back_action",
+		icon: BootIcons.Back,
+		click: () => {
+			backAction()
+		},
+	})
+})
 
 export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { title?: string | Children; bottom: Children; onTap?: ClickHandler }) => {
 	// normally min-width: is 0 but inside flex it's auto and we need to teach it how to shrink
