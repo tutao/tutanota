@@ -4,8 +4,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { BaseMobileHeader } from "../../../common/gui/BaseMobileHeader.js"
 import { OfflineIndicator } from "../../../common/gui/base/OfflineIndicator.js"
 import { ProgressBar } from "../../../common/gui/base/ProgressBar.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "../gui/CalendarGuiUtils.js"
+import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import { MobileHeaderMenuButton, MobileHeaderTitle } from "../../../common/gui/MobileHeader.js"
 import { AppHeaderAttrs } from "../../../common/gui/Header.js"
 import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
@@ -21,6 +20,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
 import { SEARCH_PREFIX } from "../../../common/misc/RouteChange.js"
 import { client } from "../../../common/misc/ClientDetector.js"
+import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType

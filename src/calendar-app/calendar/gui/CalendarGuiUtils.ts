@@ -64,7 +64,7 @@ import {
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
-import { CalendarEventTimes, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
@@ -134,13 +134,6 @@ export function calendarWeek(date: Date, weekStart: WeekStart) {
 	return lang.get("weekNumber_label", {
 		"{week}": String(getWeekNumber(date)),
 	})
-}
-
-export enum CalendarViewType {
-	DAY = "day",
-	WEEK = "week",
-	MONTH = "month",
-	AGENDA = "agenda",
 }
 
 export function calendarNavConfiguration(
