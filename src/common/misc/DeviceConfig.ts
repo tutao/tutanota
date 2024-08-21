@@ -7,8 +7,8 @@ import { assertMainOrNodeBoot, isApp } from "../api/common/Env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
-import { CalendarViewType } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
+import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
