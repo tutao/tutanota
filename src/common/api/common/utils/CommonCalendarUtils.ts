@@ -162,3 +162,10 @@ export function getEventWithDefaultTimes(startDate: Date = getNextHalfHour()): C
 export function serializeAlarmInterval(interval: AlarmInterval): string {
 	return `${interval.value}${interval.unit}`
 }
+
+export enum CalendarViewType {
+	DAY = "day",
+	WEEK = "week",
+	MONTH = "month",
+	AGENDA = "agenda",
+}

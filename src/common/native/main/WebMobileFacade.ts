@@ -10,8 +10,8 @@ import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityMode
 import { MailModel } from "../../mailFunctionality/MailModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
-
 import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
+import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils.js"
 import { getElementId } from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
@@ -65,6 +65,15 @@ export class WebMobileFacade implements MobileFacade {
 				viewSlider.focusPreviousColumn()
 				return true
 			} else if (currentRoute.startsWith(CALENDAR_PREFIX)) {
+				if (history.state?.origin === CalendarViewType.MONTH) {
+					const date = history.state.dateString ?? new Date().toISOString().substring(0, 10)
+					m.route.set("/calendar/:view/:date", {
+						view: CalendarViewType.MONTH,
+						date,
+					})
+					return true
+				}
+
 				if (this.baseViewPrefix === CALENDAR_PREFIX) {
 					// we are at the main view and want to exit the app
 					return false
@@ -73,7 +82,7 @@ export class WebMobileFacade implements MobileFacade {
 					return true
 				}
 			} else if (currentRoute.startsWith(CONTACTS_PREFIX) || currentRoute.startsWith(SETTINGS_PREFIX) || currentRoute.startsWith(SEARCH_PREFIX)) {
-				// go back to mail from other paths
+				// go back to mail or calendar from other paths
 				m.route.set(this.baseViewPrefix)
 				return true
 			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {

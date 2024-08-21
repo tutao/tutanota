@@ -42,7 +42,6 @@ import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import {
 	calendarNavConfiguration,
-	CalendarViewType,
 	calendarWeek,
 	daysHaveEvents,
 	getGroupColors,
@@ -61,7 +60,13 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
-import { getEventWithDefaultTimes, getNextHalfHour, serializeAlarmInterval, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import {
+	CalendarViewType,
+	getEventWithDefaultTimes,
+	getNextHalfHour,
+	serializeAlarmInterval,
+	setNextHalfHour,
+} from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -202,7 +207,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									},
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, calendarViewType) => {
-										this.setUrl(calendarViewType, date)
+										this.setUrl(calendarViewType, date, true)
 									},
 									onChangeMonth: (next) => this.viewPeriod(CalendarViewType.MONTH, next),
 									amPmFormat: locator.logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
@@ -398,7 +403,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.viewModel.ignoreNextValidTimeSelection = false
 				this.setUrl(m.route.param("view"), new Date())
 			},
-			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate()),
+			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
 		})
 	}
 
@@ -421,7 +426,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.viewModel.ignoreNextValidTimeSelection = false
 				this.setUrl(m.route.param("view"), new Date())
 			},
-			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate()),
+			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
 			onTap: (_event, dom) => {
 				if (this.currentViewType !== CalendarViewType.MONTH && styles.isSingleColumnLayout()) {
 					this.viewModel.setDaySelectorExpanded(!this.viewModel.isDaySelectorExpanded())
@@ -902,8 +907,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return this.viewSlider
 	}
 
-	private setUrl(view: string, date: Date, replace: boolean = false) {
+	private setUrl(view: string, date: Date, replace: boolean = false, resetState: boolean = false) {
 		const dateString = DateTime.fromJSDate(date).toISODate()
+
 		m.route.set(
 			"/calendar/:view/:date",
 			{
@@ -912,8 +918,22 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			{
 				replace,
+				state: this.buildRouteState(view, resetState, dateString),
 			},
 		)
+	}
+
+	private buildRouteState(view: string, resetState: boolean, dateString: string) {
+		const shouldBuild = isApp() && !resetState && view === CalendarViewType.AGENDA
+		if (!shouldBuild) return undefined
+
+		const returnDate = history.state?.dateString ?? dateString
+		if (
+			m.route.get().includes(CalendarViewType.MONTH) ||
+			(m.route.get().includes(CalendarViewType.AGENDA) && history.state?.origin === CalendarViewType.MONTH)
+		) {
+			return { origin: CalendarViewType.MONTH, dateString: returnDate }
+		}
 	}
 
 	private async onEventSelected(selectedEvent: CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
