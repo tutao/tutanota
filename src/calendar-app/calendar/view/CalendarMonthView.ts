@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
-import type { CalendarDay, CalendarMonth } from "../../../common/calendar/date/CalendarUtils"
+import { CalendarDay, CalendarMonth } from "../../../common/calendar/date/CalendarUtils"
 import {
 	getAllDayDateForTimezone,
 	getDiffIn24hIntervals,
@@ -15,7 +15,7 @@ import {
 import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
-import { isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
@@ -26,7 +26,6 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import {
 	CALENDAR_EVENT_HEIGHT,
-	CalendarViewType,
 	changePeriodOnWheel,
 	EventLayoutMode,
 	getCalendarMonth,

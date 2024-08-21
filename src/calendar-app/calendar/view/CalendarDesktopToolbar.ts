@@ -1,11 +1,11 @@
-import { CalendarNavConfiguration, CalendarViewType, getIconForViewType } from "../gui/CalendarGuiUtils.js"
+import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../../../common/gui/theme.js"
 import { px, size } from "../../../common/gui/size.js"
 import { lang, TranslationText } from "../../../common/misc/LanguageViewModel.js"
 import { IconSegmentControl } from "../../../common/gui/base/IconSegmentControl.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { TodayIconButton } from "./TodayIconButton.js"
+import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
 type CalendarDesktopToolbarAttrs = {
 	navConfig: CalendarNavConfiguration
