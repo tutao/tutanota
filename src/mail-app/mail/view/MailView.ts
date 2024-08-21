@@ -368,6 +368,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								mailModel: locator.mailModel,
 						  })
 						: m(BottomNav),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

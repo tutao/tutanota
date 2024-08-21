@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { isSameDayOfDate, noOp } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 
@@ -20,8 +20,7 @@ export type OfflineIndicatorAttrs =
  * adds action prompts (if any)
  * it's returned as a span so the consumer can decide how to layout it.
  */
-function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
-	const { state } = attr
+function attrToFirstLine(state: OfflineIndicatorState | null): Children {
 	switch (state) {
 		case OfflineIndicatorState.Online:
 		case OfflineIndicatorState.Synchronizing:
@@ -37,19 +36,19 @@ function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
  * the second line provides additional information about the current state.
  * it's returned as a span so the consumer can decide how to layout it.
  */
-function attrToSecondLine(a: OfflineIndicatorAttrs): Children {
-	switch (a.state) {
+function attrToSecondLine(connectionState: OfflineIndicatorAttrs | null): Children {
+	switch (connectionState?.state) {
 		case OfflineIndicatorState.Online:
 			return m("span", lang.get("upToDate_label"))
 		case OfflineIndicatorState.Offline:
-			if (a.lastUpdate) {
-				return m("span", lang.get("lastSync_label", { "{date}": formatDate(a.lastUpdate) }))
+			if (connectionState.lastUpdate) {
+				return m("span", lang.get("lastSync_label", { "{date}": formatDate(connectionState.lastUpdate) }))
 			} else {
 				// never synced, don't show last sync label
 				return null
 			}
 		case OfflineIndicatorState.Synchronizing:
-			return m("span", lang.get("synchronizing_label", { "{progress}": formatPercentage(a.progress) }))
+			return m("span", lang.get("synchronizing_label", { "{progress}": formatPercentage(connectionState.progress) }))
 		case OfflineIndicatorState.Connecting:
 			return m("span", lang.get("reconnecting_label"))
 	}
@@ -70,22 +69,51 @@ function formatDate(date: Date): string {
 	return isSameDayOfDate(new Date(), date) ? lang.formats.time.format(date) : lang.formats.simpleDate.format(date)
 }
 
-export class OfflineIndicator implements Component<OfflineIndicatorAttrs> {
-	view(vnode: Vnode<OfflineIndicatorAttrs>): Children {
-		const a = vnode.attrs
-		const isOffline = a.state === OfflineIndicatorState.Offline
+export class ConnectionStateIndicator implements Component<OfflineIndicatorAttrs> {
+	private dom: HTMLElement | null = null
+	private lastConnectionState: OfflineIndicatorAttrs | null = null
+	private bannerHeight = 0
+
+	oncreate(vnode: VnodeDOM<OfflineIndicatorAttrs>) {
+		this.dom = vnode.dom as HTMLElement
+		this.bannerHeight = (this.dom as HTMLElement).getBoundingClientRect()?.height
+		this.dom.style.marginTop = `${-this.bannerHeight}px`
+		setTimeout(() => (this.dom!.style.transition = `margin-top .3s linear .2s, color .2s linear, background-color .2s linear`), 500)
+	}
+
+	onupdate({ attrs }: Vnode<OfflineIndicatorAttrs>) {
+		if (attrs.state === this.lastConnectionState?.state) return
+		this.lastConnectionState = attrs
+		m.redraw()
+	}
+
+	view(): Children {
+		const isOffline = this.lastConnectionState?.state === OfflineIndicatorState.Offline
+		const extraClasses = isOffline ? ".offline" : ""
+		let margin = "0"
+		if (!isOffline && this.lastConnectionState?.state === OfflineIndicatorState.Online) margin = `${-this.bannerHeight}px`
+
 		return m(
-			"button.small",
+			`.status-banner.center.small.pt-xs.pb-xs.pl.pr${extraClasses}`,
 			{
-				class: a.isSingleColumn ? "center mb-xs" : "mlr-l flex col",
-				type: "button",
-				href: "#",
-				tabindex: "0",
-				role: "button",
-				"aria-disabled": !isOffline,
-				onclick: isOffline ? a.reconnectAction : noOp,
+				style: {
+					"margin-top": margin,
+				},
 			},
-			a.isSingleColumn ? attrToFirstLine(a) : [attrToFirstLine(a), attrToSecondLine(a)],
+			[
+				m(
+					"button.small.center",
+					{
+						type: "button",
+						href: "#",
+						tabindex: "0",
+						role: "button",
+						"aria-disabled": !isOffline,
+						onclick: this.lastConnectionState?.state === OfflineIndicatorState.Offline ? this.lastConnectionState?.reconnectAction : noOp,
+					},
+					[attrToFirstLine(this.lastConnectionState?.state ?? null), " ", attrToSecondLine(this.lastConnectionState)],
+				),
+			],
 		)
 	}
 }

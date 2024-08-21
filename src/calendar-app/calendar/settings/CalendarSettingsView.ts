@@ -326,6 +326,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				header: m(Header, {
 					...attrs.header,
 				}),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

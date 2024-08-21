@@ -5,7 +5,6 @@ import { FeatureType } from "../api/common/TutanotaConstants.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
 import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -39,12 +38,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 	 * @private
 	 */
 	private renderNavigation(attrs: HeaderAttrs): Children {
-		return m(".flex-grow.flex.justify-end.items-center", [
-			attrs.searchBar ? attrs.searchBar() : null,
-			m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
-			m(".nav-bar-spacer"),
-			m(NavBar, this.renderButtons()),
-		])
+		return m(".flex-grow.flex.justify-end.items-center", [attrs.searchBar ? attrs.searchBar() : null, m(NavBar, this.renderButtons())])
 	}
 
 	private renderButtons(): Children {

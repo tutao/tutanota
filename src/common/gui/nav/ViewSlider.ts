@@ -12,6 +12,8 @@ import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../../RootView.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
 import { client } from "../../misc/ClientDetector.js"
+import { ConnectionStateIndicator } from "../base/OfflineIndicator.js"
+import { OfflineIndicatorViewModel } from "../base/OfflineIndicatorViewModel.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -30,6 +32,7 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
 interface ViewSliderAttrs {
 	header: Children
 	bottomNav?: Children
+	offlineIndicatorViewModel: OfflineIndicatorViewModel
 }
 
 /**
@@ -109,6 +112,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 					},
 				},
 				[
+					m(ConnectionStateIndicator, attrs.offlineIndicatorViewModel.getCurrentAttrs()),
 					styles.isUsingBottomNavigation() ? null : attrs.header,
 					m(
 						".view-columns.flex-grow.rel",

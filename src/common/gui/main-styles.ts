@@ -2556,5 +2556,20 @@ styles.registerStyle("main", () => {
 		".posr-ml": {
 			right: px(size.vpad_ml),
 		},
+		".status-banner": {
+			"background-color": theme.list_accent_fg,
+		},
+		".status-banner.offline": {
+			"background-color": "#840010",
+		},
+		".status-banner.offline .content-accent-fg": {
+			color: "#ffffff",
+		},
+		".status-banner button": {
+			color: `${theme.list_alternate_bg} !important`,
+		},
+		".status-banner.offline button": {
+			color: "#ffffff !important",
+		},
 	}
 })

@@ -541,6 +541,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						}),
 					...attrs.header,
 				}),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

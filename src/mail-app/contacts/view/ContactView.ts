@@ -360,6 +360,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						  this.contactListViewModel.listModel?.state.inMultiselect
 						? m(MobileBottomActionBar, this.detailsViewerActions())
 						: m(BottomNav),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

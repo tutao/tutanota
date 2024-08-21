@@ -536,6 +536,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					...attrs.header,
 				}),
 				bottomNav: this.renderBottomNav(),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

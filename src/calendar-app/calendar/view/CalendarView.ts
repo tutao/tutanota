@@ -860,6 +860,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					...attrs.header,
 				}),
 				bottomNav: attrs.bottomNav?.(),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

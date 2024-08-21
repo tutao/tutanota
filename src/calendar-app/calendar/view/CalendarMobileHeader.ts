@@ -2,7 +2,6 @@ import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { BaseMobileHeader } from "../../../common/gui/BaseMobileHeader.js"
-import { OfflineIndicator } from "../../../common/gui/base/OfflineIndicator.js"
 import { ProgressBar } from "../../../common/gui/base/ProgressBar.js"
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import { MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } from "../../../common/gui/MobileHeader.js"
@@ -58,7 +57,6 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 							onExpandedChange: () => {},
 					  })
 					: attrs.navConfiguration.title,
-				bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				onTap: attrs.onTap,
 			}),
 			right: [

@@ -462,6 +462,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					...attrs.header,
 				}),
 				bottomNav: m(BottomNav),
+				offlineIndicatorViewModel: attrs.header.offlineIndicatorModel,
 			}),
 		)
 	}

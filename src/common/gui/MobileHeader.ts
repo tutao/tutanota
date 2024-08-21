@@ -6,7 +6,6 @@ import { BaseMobileHeader } from "./BaseMobileHeader.js"
 import { IconButton } from "./base/IconButton.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
 import { styles } from "./styles.js"
-import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { CounterBadge } from "./base/CounterBadge.js"
 import { px } from "./size.js"
@@ -49,7 +48,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 			center: firstVisibleColumn
 				? m(MobileHeaderTitle, {
 						title: attrs.title,
-						bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
+						bottom: null,
 				  })
 				: null,
 			right: [
@@ -72,7 +71,7 @@ export const MobileHeaderBackButton = pureComponent(({ backAction }: { backActio
 	})
 })
 
-export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { title?: string | Children; bottom: Children; onTap?: ClickHandler }) => {
+export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { title?: string | Children; bottom?: Children; onTap?: ClickHandler }) => {
 	// normally min-width: is 0 but inside flex it's auto and we need to teach it how to shrink
 	// align-self: stretch restrict the child to the parent width
 	// text-ellipsis already sets min-width to 0
@@ -82,7 +81,7 @@ export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { titl
 			{ onclick: (event: MouseEvent) => onTap?.(event, event.target as HTMLElement) },
 			title ?? NBSP,
 		),
-		bottom,
+		bottom ?? null,
 	])
 })
 
