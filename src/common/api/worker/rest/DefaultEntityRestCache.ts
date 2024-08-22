@@ -106,6 +106,8 @@ export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never
  * (mainly password changes)
  */
 export interface ExposedCacheStorage {
+	get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
+
 	/**
 	 * Load range of entities. Does not include {@param start}.
 	 * If {@param reverse} is false then returns entities newer than {@param start} in ascending order sorted by

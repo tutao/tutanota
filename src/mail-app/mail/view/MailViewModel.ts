@@ -21,8 +21,7 @@ import { Router } from "../../../common/gui/ScopedRouter.js"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { assertSystemFolderOfType, getMailFilterForType, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { isOfTypeOrSubfolderOf } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { assertSystemFolderOfType, getMailFilterForType, isOfTypeOrSubfolderOf, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isSpamOrTrashFolder, isSubfolderOfType } from "../../../common/api/common/CommonMailUtils.js"
 
 export interface MailOpenedListener {
@@ -94,6 +93,14 @@ export class MailViewModel {
 		}
 
 		await this.setListId(listIdToUse)
+
+		if (listId && mailId) {
+			const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
+			if (cached) {
+				this.conversationViewModel = this.conversationViewModelFactory({ mail: cached, showFolder: false })
+				this.updateUi()
+			}
+		}
 
 		// if there is a target id and we are not loading for this id already then start loading towards that id
 		if (this.targetMailId && this.targetMailId != this.loadingToTargetId) {
