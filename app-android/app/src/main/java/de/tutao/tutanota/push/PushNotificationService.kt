@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.util.Log
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.LifecycleJobService
@@ -19,6 +18,7 @@ import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.ipc.NativeCredentialsFacade
+import de.tutao.tutanota.offline.AndroidSqlCipherFacade
 import de.tutao.tutanota.push.SseClient.SseListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -164,7 +164,11 @@ class PushNotificationService : LifecycleJobService() {
 		if (atLeastQuinceTart() && this.state == State.STARTED && attemptForeground) {
 			Log.d(TAG, "Starting foreground")
 			try {
-				startForeground(1, localNotificationsFacade.makeConnectionNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+				startForeground(
+					1,
+					localNotificationsFacade.makeConnectionNotification(),
+					ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+				)
 			} catch (e: IllegalStateException) {
 				// probably ForegroundServiceStartNotAllowedException
 				Log.w(TAG, "Could not start the service in foreground", e)
@@ -238,7 +242,8 @@ class PushNotificationService : LifecycleJobService() {
 				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				defaultClient,
-				lifecycleScope
+				lifecycleScope,
+				{ AndroidSqlCipherFacade(this@PushNotificationService) }
 			)
 
 		override fun onStartingConnection(): Boolean {
