@@ -3,15 +3,20 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 
+use minicbor::{Encode, Encoder};
+use minicbor::encode::Write;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use rest_client::{RestClient, RestClientError};
+
 #[mockall_double::double]
 use crate::crypto::crypto_facade::CryptoFacade;
 #[mockall_double::double]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacade;
+use crate::entities::tutanota::Mail;
 #[mockall_double::double]
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
@@ -265,5 +270,75 @@ impl From<InstanceMapperError> for ApiCallError {
 impl From<ParseFailureError> for ApiCallError {
     fn from(_value: ParseFailureError) -> Self {
         ApiCallError::InternalSdkError { error_message: "Parse error".to_owned() }
+    }
+}
+
+#[uniffi::export]
+pub fn serialize_mail(mail: Mail) -> Vec<u8> {
+    let entity_map = InstanceMapper::new().serialize_entity(mail).unwrap();
+    let mut vec = Vec::new();
+    let mut encoder = Encoder::new(&mut vec);
+    encoder.encode(&entity_map).unwrap();
+    vec
+}
+
+impl<C> Encode<C> for ElementValue {
+    fn encode<W: Write>(
+        &self,
+        e: &mut Encoder<W>,
+        _: &mut C,
+    ) -> Result<(), minicbor::encode::Error<W::Error>> {
+        match self {
+            ElementValue::Null => e.null()?,
+            ElementValue::String(s) => e.str(s)?,
+            // JS-specific: some numbers might be big, so we encode them as strings
+            ElementValue::Number(n) => e.str(n.to_string().as_str())?,
+            ElementValue::Bytes(b) => e.bytes(b)?,
+            // See OfflineStorage dateEncoder for this tag
+            ElementValue::Date(d) => e.tag(minicbor::data::Tag::new(100))?.u64(d.as_millis())?,
+            ElementValue::Bool(b) => e.bool(b.clone())?,
+            ElementValue::IdGeneratedId(s) => e.str(s.as_str())?,
+            ElementValue::IdCustomId(s) => e.str(s.as_str())?,
+            ElementValue::IdTupleId(id) => e
+                .array(2)?
+                .str(id.list_id.as_str())?
+                .str(id.element_id.as_str())?,
+            ElementValue::Dict(d) => {
+                e.map(d.len() as u64)?;
+                for (k, v) in d {
+                    e.str(k)?;
+                    e.encode(v)?;
+                }
+                e
+            }
+            ElementValue::Array(a) => {
+                e.array(a.len() as u64)?;
+                for v in a {
+                    e.encode(v)?;
+                }
+                e
+            }
+        };
+        Ok(())
+    }
+
+    fn is_nil(&self) -> bool {
+        return if let ElementValue::Null = self {
+            true
+        } else {
+            false
+        };
+    }
+}
+#[cfg(test)]
+mod tests {
+    use crate::util::test_utils::create_test_entity;
+
+    use super::*;
+
+    #[test]
+    fn test_serialize_mail_does_not_panic() {
+        let mail = create_test_entity::<Mail>();
+        serialize_mail(mail);
     }
 }
