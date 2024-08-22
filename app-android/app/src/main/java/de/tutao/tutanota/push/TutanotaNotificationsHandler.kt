@@ -11,13 +11,18 @@ import de.tutao.tutanota.alarms.EncryptedAlarmNotification
 import de.tutao.tutanota.base64ToBase64Url
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.ipc.NativeCredentialsFacade
+import de.tutao.tutanota.ipc.wrap
+import de.tutao.tutanota.offline.AndroidSqlCipherFacade
+import de.tutao.tutanota.offline.sqlTagged
 import de.tutao.tutanota.toBase64
 import de.tutao.tutasdk.CredentialType
 import de.tutao.tutasdk.Credentials
 import de.tutao.tutasdk.Sdk
+import de.tutao.tutasdk.serializeMail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import net.sqlcipher.SQLException
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -36,7 +41,8 @@ class TutanotaNotificationsHandler(
 	private val credentialsEncryption: NativeCredentialsFacade,
 	private val alarmNotificationsManager: AlarmNotificationsManager,
 	private val defaultClient: OkHttpClient,
-	private val lifecycleScope: LifecycleCoroutineScope
+	private val lifecycleScope: LifecycleCoroutineScope,
+	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
 ) {
 
 	private val json = Json { ignoreUnknownKeys = true }
@@ -259,6 +265,27 @@ class TutanotaNotificationsHandler(
 			?: throw IllegalArgumentException("Missing mailId for notification ${sseInfo.pushIdentifier}")
 
 		val mail = sdk.mailFacade().loadEmailByIdEncrypted(mailId)
+		if (unencryptedCredentials.databaseKey != null) {
+			Log.d(TAG, "Inserting mail $mailId into offline db")
+			val serializedMail = serializeMail(mail)
+			val sqlCipherFacade = this.getSqlCipherFacade()
+			try {
+				sqlCipherFacade.openDb(unencryptedCredentials.credentialInfo.userId, unencryptedCredentials.databaseKey)
+				sqlCipherFacade.run(
+					"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)", listOf(
+						"tutanota/Mail".sqlTagged(),
+						mailId.listId.sqlTagged(),
+						mailId.elementId.sqlTagged(),
+						(mail.ownerGroup ?: "").sqlTagged(),
+						serializedMail.wrap().sqlTagged(),
+					)
+				)
+			} catch (e: SQLException) {
+				Log.w(TAG, "Failed to insert mail into offline db: $mailId", e)
+			} finally {
+				sqlCipherFacade.closeDb()
+			}
+		}
 
 		val senderAddress = mail.sender.address
 		val senderName = mail.sender.name
