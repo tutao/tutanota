@@ -201,13 +201,14 @@ pub enum AesDecryptError {
 
 /// Result of decryption operation.
 /// IV is usually part of the ciphertext. Returned iv is a part of the provided ciphertext.
-pub struct PlaintextAndIv<'a> {
+pub struct PlaintextAndIv {
     pub data: Vec<u8>,
-    pub iv: &'a [u8],
+    // IV is small enough that a copy is the same size as a reference
+    pub iv: [u8; IV_BYTE_SIZE],
 }
 
 /// Decrypt using AES-128-CBC using prepended IV with PKCS7 padding and optional HMAC-SHA-256
-pub fn aes_128_decrypt<'a>(key: &Aes128Key, encrypted_bytes: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
+pub fn aes_128_decrypt(key: &Aes128Key, encrypted_bytes: &[u8]) -> Result<PlaintextAndIv, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::WithPadding, EnforceMac::AllowNoMac)
 }
 
@@ -224,12 +225,12 @@ pub fn aes_128_decrypt_no_padding_fixed_iv(key: &Aes128Key, encrypted_bytes: &[u
 }
 
 /// Decrypt using AES-256-CBC using prepended IV with PKCS7 padding and HMAC-SHA-512
-pub fn aes_256_decrypt<'a>(key: &Aes256Key, encrypted_bytes: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
+pub fn aes_256_decrypt(key: &Aes256Key, encrypted_bytes: &[u8]) -> Result<PlaintextAndIv, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::WithPadding, EnforceMac::EnforceMac)
 }
 
 /// Decrypt an encryption key with AES-256-CBC using prepended IV without padding and HMAC-SHA-512
-pub fn aes_256_decrypt_no_padding<'a>(key: &Aes256Key, encrypted_bytes: &'a [u8]) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
+pub fn aes_256_decrypt_no_padding(key: &Aes256Key, encrypted_bytes: &[u8]) -> Result<PlaintextAndIv, AesDecryptError> {
     aes_decrypt(key, encrypted_bytes, PaddingMode::NoPadding, EnforceMac::EnforceMac)
 }
 
@@ -389,7 +390,7 @@ fn has_mac(bytes: &[u8]) -> bool {
 
 /// Decrypts the AES-encrypted raw string `encrypted_bytes` into a plain text raw string
 /// using AES using prepended IV with optional PKCS7 padding and optional HMAC-SHA
-fn aes_decrypt<'a, Key: AesKey>(key: &Key, encrypted_bytes: &'a [u8], padding_mode: PaddingMode, enforce_mac: EnforceMac) -> Result<PlaintextAndIv<'a>, AesDecryptError> {
+fn aes_decrypt<Key: AesKey>(key: &Key, encrypted_bytes: &[u8], padding_mode: PaddingMode, enforce_mac: EnforceMac) -> Result<PlaintextAndIv, AesDecryptError> {
     if encrypted_bytes.len() < IV_BYTE_SIZE {
         return Err(AesDecryptError::InvalidDataSizeError);
     }
@@ -412,7 +413,7 @@ fn aes_decrypt<'a, Key: AesKey>(key: &Key, encrypted_bytes: &'a [u8], padding_mo
 
     // Return early if there is nothing to decrypt
     if encrypted_bytes.is_empty() {
-        return Ok(PlaintextAndIv { data: vec![], iv: iv_bytes });
+        return Ok(PlaintextAndIv { data: vec![], iv: iv_bytes.try_into().expect("iv is correct size")});
     }
 
     let mut decryptor = cbc::Decryptor::<Key::CbcKeyType>::new_from_slices(key.get_bytes(), iv_bytes).unwrap();
@@ -422,7 +423,7 @@ fn aes_decrypt<'a, Key: AesKey>(key: &Key, encrypted_bytes: &'a [u8], padding_mo
         PaddingMode::WithPadding => decryptor.decrypt_padded_vec_mut::<Pkcs7>(encrypted_bytes)?
     };
 
-    Ok(PlaintextAndIv { data: plaintext_data, iv: iv_bytes })
+    Ok(PlaintextAndIv { data: plaintext_data, iv: iv_bytes.try_into().expect("iv is correct size") })
 }
 
 #[cfg(test)]
