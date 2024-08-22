@@ -7,6 +7,7 @@ edition = "2021"
 async-trait = "0.1.77"
 serde = { version = "1.0.201", features = ["derive"] }
 serde_json = "1.0.117"
+minicbor = { version = "0.24.2" , features = ["std", "alloc"]}
 thiserror = "1.0.60"
 base64 = "0.22.1"
 aes = { version = "0.8.4", features = ["zeroize"] }
