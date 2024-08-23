@@ -84,14 +84,14 @@ impl PQMessage {
         bucket_key: &Aes256Key,
         iv: Iv,
     ) -> Result<Self, PQError> {
-        let ecc_shared_secret = ecc_encapsulate(&sender_ecc_keypair.private_key, &ephemeral_ecc_keypair.private_key, &recipient_ecc_key);
+        let ecc_shared_secret = ecc_encapsulate(&sender_ecc_keypair.private_key, &ephemeral_ecc_keypair.private_key, recipient_ecc_key);
         let encapsulation = recipient_kyber_key.encapsulate();
 
         let kek = derive_pq_kek(
             &sender_ecc_keypair.public_key,
             &ephemeral_ecc_keypair.public_key,
-            &recipient_ecc_key,
-            &recipient_kyber_key,
+            recipient_ecc_key,
+            recipient_kyber_key,
             &encapsulation.ciphertext,
             &encapsulation.shared_secret,
             &ecc_shared_secret,
@@ -101,8 +101,8 @@ impl PQMessage {
         let kek_enc_bucket_key = aes_256_encrypt(&kek, bucket_key.as_bytes(), &iv, PaddingMode::WithPadding)?;
 
         Ok(Self {
-            sender_identity_public_key: sender_ecc_keypair.public_key.to_owned(),
-            ephemeral_public_key: ephemeral_ecc_keypair.public_key.to_owned(),
+            sender_identity_public_key: sender_ecc_keypair.public_key.clone(),
+            ephemeral_public_key: ephemeral_ecc_keypair.public_key.clone(),
             encapsulation: PQBucketKeyEncapsulation {
                 kyber_ciphertext: encapsulation.ciphertext,
                 kek_enc_bucket_key,
@@ -114,7 +114,7 @@ impl PQMessage {
 #[derive(Copy, Clone)]
 #[repr(u8)]
 enum CryptoProtocolVersion {
-    RSA = 0,
+    Rsa = 0,
     SymmetricEncryption = 1,
     TutaCrypt = 2,
 }
@@ -240,7 +240,7 @@ mod tests {
             let iv = Iv::from_bytes(&i.seed[i.seed.len() - 16..]).unwrap();
 
             let encapsulation = PQMessage::encapsulate(
-                &sender_ecc_keypair,
+                sender_ecc_keypair,
                 &ephemeral_ecc_keypair,
                 &ecc_keys.public_key,
                 &kyber_keys.public_key,

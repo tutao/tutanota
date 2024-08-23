@@ -123,7 +123,7 @@ impl Debug for KyberPrivateKey {
 impl KyberPrivateKey {
     /// Instantiate a private key from bytes
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, KyberKeyError> {
-        let private_key = PQCryptoKyber1024SecretKey::from_bytes(&bytes)
+        let private_key = PQCryptoKyber1024SecretKey::from_bytes(bytes)
             .map_err(|reason| KyberKeyError { reason: format!("kyber API error: {reason}") })?;
 
         Ok(Self { private_key })

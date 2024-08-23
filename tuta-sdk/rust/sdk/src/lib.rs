@@ -99,9 +99,9 @@ impl AuthHeadersProvider for SdkState {
     /// This version has client_version in header, unlike the LoginState version
     fn create_auth_headers(&self, model_version: u32) -> HashMap<String, String> {
         let mut headers = HashMap::from([
-            ("accessToken".to_string(), self.credentials.access_token.to_owned()),
+            ("accessToken".to_string(), self.credentials.access_token.clone()),
         ]);
-        headers.insert("cv".to_owned(), self.client_version.to_owned());
+        headers.insert("cv".to_owned(), self.client_version.clone());
         headers.insert("v".to_owned(), model_version.to_string());
         headers
     }
@@ -173,7 +173,7 @@ impl Sdk {
             user_facade.clone(),
             self.typed_entity_client.clone()
         ));
-        let randomizer = RandomizerFacade::from_core(rand_core::OsRng::default());
+        let randomizer = RandomizerFacade::from_core(rand_core::OsRng);
         let crypto_facade = Arc::new(CryptoFacade::new(
             key_loader.clone(),
             self.instance_mapper.clone(),
@@ -206,6 +206,7 @@ pub struct LoggedInSdk {
 #[uniffi::export]
 impl LoggedInSdk {
     /// Generates a new interface to operate on mail entities
+    #[must_use]
     pub fn mail_facade(&self) -> MailFacade {
         MailFacade::new(self.crypto_entity_client.clone())
     }
@@ -226,6 +227,7 @@ pub struct IdTuple {
 }
 
 impl IdTuple {
+    #[must_use]
     pub fn new(list_id: GeneratedId, element_id: GeneratedId) -> Self {
         Self { list_id, element_id }
     }
@@ -280,6 +282,7 @@ impl From<ParseFailureError> for ApiCallError {
 }
 
 #[uniffi::export]
+#[must_use]
 pub fn serialize_mail(mail: Mail) -> Vec<u8> {
     let entity_map = InstanceMapper::new().serialize_entity(mail).unwrap();
     let mut vec = Vec::new();
@@ -302,7 +305,7 @@ impl<C> Encode<C> for ElementValue {
             ElementValue::Bytes(b) => e.bytes(b)?,
             // See OfflineStorage dateEncoder for this tag
             ElementValue::Date(d) => e.tag(minicbor::data::Tag::new(100))?.u64(d.as_millis())?,
-            ElementValue::Bool(b) => e.bool(b.clone())?,
+            ElementValue::Bool(b) => e.bool(*b)?,
             ElementValue::IdGeneratedId(s) => e.str(s.as_str())?,
             ElementValue::IdCustomId(s) => e.str(s.as_str())?,
             ElementValue::IdTupleId(id) => e
@@ -329,11 +332,7 @@ impl<C> Encode<C> for ElementValue {
     }
 
     fn is_nil(&self) -> bool {
-        return if let ElementValue::Null = self {
-            true
-        } else {
-            false
-        };
+        matches!(self, ElementValue::Null)
     }
 }
 #[cfg(test)]
@@ -345,6 +344,6 @@ mod tests {
     #[test]
     fn test_serialize_mail_does_not_panic() {
         let mail = create_test_entity::<Mail>();
-        serialize_mail(mail);
+        let _ = serialize_mail(mail);
     }
 }

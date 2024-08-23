@@ -1,4 +1,4 @@
-///! Contains code to handle AES128/AES256 encryption and decryption
+//! Contains code to handle AES128/AES256 encryption and decryption
 
 use aes::cipher::{BlockCipher, BlockSizeUser};
 use aes::cipher::block_padding::Pkcs7;
@@ -141,7 +141,7 @@ impl Clone for Iv {
     /// This is implemented so that entity_facade_test_utils will work. You should never, ever, ever
     /// re-use an IV, as this can lead to information leakage.
     fn clone(&self) -> Self {
-        Iv(self.0.clone())
+        Iv(self.0)
     }
 }
 

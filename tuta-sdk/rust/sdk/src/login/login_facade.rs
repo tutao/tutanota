@@ -98,14 +98,14 @@ impl LoginFacade {
 
         let user: User = self.typed_entity_client.load(&credentials.user_id).await?;
 
-        let user_facade = self.init_session(user, passphrase_key).await?;
+        let user_facade = self.init_session(user, passphrase_key)?;
 
         Ok(user_facade)
     }
 
     /// Derive a key given a KDF type, passphrase, and salt
     #[allow(dead_code)]
-    async fn load_user_passphrase_key(&self, user: &User, passphrase: &str) -> Result<Aes256Key, ApiCallError> {
+    fn load_user_passphrase_key(&self, user: &User, passphrase: &str) -> Result<Aes256Key, ApiCallError> {
         let Some(salt) = user.salt.as_ref() else {
             return Err(InternalSdkError { error_message: "Salt is missing from User!".to_string() });
         };
@@ -118,11 +118,11 @@ impl LoginFacade {
     }
 
     /// Initialize a session with given user id and return a new UserFacade
-    async fn init_session(&self, user: User, user_passphrase_key: GenericAesKey) -> Result<UserFacade, LoginError> {
+    fn init_session(&self, user: User, user_passphrase_key: GenericAesKey) -> Result<UserFacade, LoginError> {
         let user_facade = (self.user_facade_factory)(user);
 
         user_facade.unlock_user_group_key(user_passphrase_key)
-            .map_err(|e| LoginError::InvalidKey { error_message: format!("Failed to unlock user group key: {}", e.to_string()) })?;
+            .map_err(|e| LoginError::InvalidKey { error_message: format!("Failed to unlock user group key: {e}") })?;
         Ok(user_facade)
     }
 
@@ -135,7 +135,7 @@ impl LoginFacade {
         let access_key = GenericAesKey::from_bytes(access_key_raw.as_slice())
             .map_err(|e| LoginError::ApiCall {
                 source: InternalSdkError {
-                    error_message: format!("Failed to create AES key from access key string: {}", e.to_string())
+                    error_message: format!("Failed to create AES key from access key string: {e}")
                 }
             })?;
         Ok(access_key)

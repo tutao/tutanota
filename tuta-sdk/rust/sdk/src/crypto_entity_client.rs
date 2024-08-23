@@ -132,7 +132,7 @@ mod tests {
         );
         let mail_type_ref = TypeRef { app: "tutanota", type_: "Mail" };
         let mail_type_model: &'static TypeModel = my_favorite_leak
-            .get_type_model(&mail_type_ref.app, &mail_type_ref.type_)
+            .get_type_model(mail_type_ref.app, mail_type_ref.type_)
             .expect("Error in type_model_provider");
 
         // Set up the mock of the plain unencrypted entity client

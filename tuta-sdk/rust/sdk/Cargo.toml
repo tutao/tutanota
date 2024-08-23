@@ -47,3 +47,16 @@ tokio = { version = "1.38.0", features = ["rt", "macros"] }
 [lib]
 crate-type = ["cdylib", "staticlib", "lib"]
 name = "tutasdk"
+
+[lints.clippy]
+new_without_default = "allow"     # we don't want to implement Default for everything
+enum_variant_names = "allow"      # creates more problems than it solves
+let_and_return = "allow"          # we commonly use this style
+too_many_arguments = "allow"      # this is fine
+
+# "pedantic" lints worth warning on
+manual_let_else = "warn"
+must_use_candidate = "warn"
+unused_async = "warn"
+implicit_clone = "warn"
+explicit_iter_loop = "warn"
