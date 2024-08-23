@@ -685,7 +685,6 @@ export class SearchViewModel {
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 		return new ListModel<SearchResultListEntry>({
-			topId: GENERATED_MAX_ID,
 			fetch: async (startId: Id, count: number) => {
 				const lastResult = this._searchResult
 				if (lastResult !== this._searchResult) {

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { GENERATED_MAX_ID, getElementId, getListId, sortCompareById, timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils.js"
+import { getElementId, getListId, sortCompareById, timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
@@ -15,7 +15,6 @@ o.spec("ListModel", function () {
 	let fetchDefer: DeferredObject<ListFetchResult<KnowledgeBaseEntry>>
 	let listModel: ListModel<KnowledgeBaseEntry>
 	const defaultListConfig = {
-		topId: GENERATED_MAX_ID,
 		fetch: () => fetchDefer.promise,
 		sortCompare: sortCompareById,
 		loadSingle: () => {

@@ -81,7 +81,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 	private makeListModel() {
 		const listModel = new ListModel<EmailTemplate>({
-			topId: GENERATED_MAX_ID,
 			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
 				const titleA = a.title.toUpperCase()
 				const titleB = b.title.toUpperCase()

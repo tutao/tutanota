@@ -1,5 +1,6 @@
 import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import {
+	CUSTOM_MIN_ID,
 	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -14,6 +15,10 @@ import { EncodeOptions, Token, Type } from "cborg"
 import {
 	assert,
 	assertNotNull,
+	base64ExtToBase64,
+	base64ToBase64Ext,
+	base64ToBase64Url,
+	base64UrlToBase64,
 	DAY_IN_MILLIS,
 	getTypeId,
 	groupByAndMap,
@@ -44,7 +49,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/gen
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
 import { FolderSystem } from "../../common/mail/FolderSystem.js"
-import { Type as TypeId } from "../../common/EntityConstants.js"
+import { Type as TypeId, ValueType } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { isDraft, isSpamOrTrashFolder } from "../../common/CommonMailUtils.js"
@@ -109,7 +114,7 @@ const TableDefinitions = Object.freeze({
 		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
 } as const)
 
-type Range = { lower: string; upper: string }
+type Range = { lower: Id; upper: Id }
 
 export interface OfflineStorageInitArgs {
 	userId: Id
@@ -183,6 +188,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const type = getTypeId(typeRef)
 		let typeModel: TypeModel
 		typeModel = await resolveTypeReference(typeRef)
+		elementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -231,6 +237,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
 		const type = getTypeId(typeRef)
 		const typeModel = await resolveTypeReference(typeRef)
+		elementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -251,6 +258,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
 		if (elementIds.length === 0) return []
+		const typeModel = await resolveTypeReference(typeRef)
+		elementIds = elementIds.map((el) => ensureBase64Ext(typeModel, el))
+
 		const type = getTypeId(typeRef)
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(
 			MAX_SAFE_SQL_VARS - 2,
@@ -265,31 +275,44 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const type = getTypeId(typeRef)
-		const range = await this.getRange(type, listId)
+		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
 			throw new Error(`no range exists for ${type} and list ${listId}`)
 		}
-		const { lower, upper } = range
 		const { query, params } = sql`SELECT elementId FROM list_entities
 WHERE type = ${type}
 AND listId = ${listId}
-AND (elementId = ${lower}
-OR ${firstIdBigger("elementId", lower)})
-AND NOT(${firstIdBigger("elementId", upper)})`
+AND (elementId = ${range.lower}
+OR ${firstIdBigger("elementId", range.lower)})
+AND NOT(${firstIdBigger("elementId", range.upper)})`
 		const rows = await this.sqlCipherFacade.all(query, params)
 		return rows.map((row) => row.elementId.value as string)
 	}
 
+	/** don't use this internally in this class, use OfflineStorage::getRange instead. OfflineStorage is
+	 * using converted custom IDs internally which is undone when using this to access the range.
+	 */
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
-		return this.getRange(getTypeId(typeRef), listId)
+		let range = await this.getRange(typeRef, listId)
+		const typeModel = await resolveTypeReference(typeRef)
+		if (range == null) return range
+		return {
+			lower: customIdToBase64Url(typeModel, range.lower),
+			upper: customIdToBase64Url(typeModel, range.upper),
+		}
 	}
 
-	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
-		const range = await this.getRangeForList(typeRef, listId)
-		return range != null && !firstBiggerThanSecond(id, range.upper) && !firstBiggerThanSecond(range.lower, id)
+	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
+		const typeModel = await resolveTypeReference(typeRef)
+		elementId = ensureBase64Ext(typeModel, elementId)
+
+		const range = await this.getRange(typeRef, listId)
+		return range != null && !firstBiggerThanSecond(elementId, range.upper) && !firstBiggerThanSecond(range.lower, elementId)
 	}
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		const typeModel = await resolveTypeReference(typeRef)
+		start = ensureBase64Ext(typeModel, start)
 		const type = getTypeId(typeRef)
 		let formattedQuery
 		if (reverse) {
@@ -313,10 +336,11 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 
 	async put(originalEntity: SomeEntity): Promise<void> {
 		const serializedEntity = this.serialize(originalEntity)
-		const { listId, elementId } = expandId(originalEntity._id)
+		let { listId, elementId } = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
 		const ownerGroup = originalEntity._ownerGroup
 		const typeModel = await resolveTypeReference(originalEntity._type)
+		elementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery: FormattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -334,19 +358,25 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
-	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
+	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
+		lowerId = ensureBase64Ext(await resolveTypeReference(typeRef), lowerId)
 		const type = getTypeId(typeRef)
-		const { query, params } = sql`UPDATE ranges SET lower = ${id} WHERE type = ${type} AND listId = ${listId}`
+		const { query, params } = sql`UPDATE ranges SET lower = ${lowerId} WHERE type = ${type} AND listId = ${listId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
+	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
+		upperId = ensureBase64Ext(await resolveTypeReference(typeRef), upperId)
 		const type = getTypeId(typeRef)
-		const { query, params } = sql`UPDATE ranges SET upper = ${id} WHERE type = ${type} AND listId = ${listId}`
+		const { query, params } = sql`UPDATE ranges SET upper = ${upperId} WHERE type = ${type} AND listId = ${listId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
+		const typeModel = await resolveTypeReference(typeRef)
+		lower = ensureBase64Ext(typeModel, lower)
+		upper = ensureBase64Ext(typeModel, upper)
+
 		const type = getTypeId(typeRef)
 		const { query, params } = sql`INSERT OR REPLACE INTO ranges VALUES (${type}, ${listId}, ${lower}, ${upper})`
 		return this.sqlCipherFacade.run(query, params)
@@ -506,7 +536,7 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		for (const mailBox of mailBoxes) {
 			const isMailsetMigrated = mailBox.currentMailBag != null
 			if (isMailsetMigrated) {
-				var mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
+				const mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
 				for (const mailListId of mailListIds) {
 					await this.deleteMailList(mailListId, cutoffId)
 				}
@@ -531,9 +561,12 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		}
 	}
 
-	private async getRange(type: string, listId: Id): Promise<Range | null> {
+	private async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
+		const type = getTypeId(typeRef)
+
 		const { query, params } = sql`SELECT upper, lower FROM ranges WHERE type = ${type} AND listId = ${listId}`
 		const row = (await this.sqlCipherFacade.get(query, params)) ?? null
+
 		return mapNullable(row, untagSqlObject) as Range | null
 	}
 
@@ -552,6 +585,8 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	 * 	2. We might need them in the future for showing the whole thread
 	 */
 	private async deleteMailList(listId: Id, cutoffId: Id): Promise<void> {
+		// fixme: do we want to remove mailsetentries as well here?
+		// we don't have the mailsetentry list id
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
 		await this.lockRangesDbAccess(listId)
 		try {
@@ -647,8 +682,11 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 
 	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
+		const typeModel = await resolveTypeReference(typeRef)
+		const isCustomId = isCustomIdType(typeModel)
+		cutoffId = ensureBase64Ext(typeModel, cutoffId)
 
-		const range = await this.getRange(type, listId)
+		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
 			return
 		}
@@ -657,8 +695,9 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		// saved range if we would be removing elements from the list, in order to not lose the information that the range is complete in storage.
 		// So we have to check how old the oldest element in said range is. If it is newer than cutoffId, then we will not modify the range,
 		// otherwise we will just modify it normally
-		if (range.lower === GENERATED_MIN_ID) {
-			const entities = await this.provideFromRange(typeRef, listId, GENERATED_MIN_ID, 1, false)
+		const expectedMinId = isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID
+		if (range.lower === expectedMinId) {
+			const entities = await this.provideFromRange(typeRef, listId, expectedMinId, 1, false)
 			const id = mapNullable(entities[0], getElementId)
 			const rangeWontBeModified = id == null || firstBiggerThanSecond(id, cutoffId) || id === cutoffId
 			if (rangeWontBeModified) {
@@ -758,4 +797,25 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
 		l = "?"
 	}
 	return new SqlFragment(`(CASE WHEN length(${l}) > length(${r}) THEN 1 WHEN length(${l}) < length(${r}) THEN 0 ELSE ${l} > ${r} END)`, [v, v, v])
+}
+
+export function isCustomIdType(typeModel: TypeModel): boolean {
+	return typeModel.values._id.type === ValueType.CustomId
+}
+
+/**
+ * We store customIds as base64ext in the db to make them sortable, but we get them as base64url from the server.
+ */
+export function ensureBase64Ext(typeModel: TypeModel, elementId: Id): Id {
+	if (isCustomIdType(typeModel)) {
+		return base64ToBase64Ext(base64UrlToBase64(elementId))
+	}
+	return elementId
+}
+
+export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
+	if (isCustomIdType(typeModel)) {
+		return base64ToBase64Url(base64ExtToBase64(elementId))
+	}
+	return elementId
 }

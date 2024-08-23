@@ -1,4 +1,4 @@
-import { elementIdPart, getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../gui/base/List.js"
 
 import { OperationType } from "../api/common/TutanotaConstants.js"
@@ -25,13 +25,18 @@ import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
-export interface ListModelConfig<ListElementType> {
-	topId: Id
-
+export type ListModelConfig<ListElementType> = {
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
 	fetch(startId: Id, count: number): Promise<ListFetchResult<ListElementType>>
+
+	/**
+	 * some lists load elements via an index indirection,
+	 * so they use a different list to load than is actually displayed.
+	 * in fact, the displayed entities might not even be stored in the same list
+	 */
+	getLoadIdForElement?: (element: ListElementType | null | undefined) => Id
 
 	/**
 	 * Returns null if the given element could not be loaded
@@ -53,7 +58,14 @@ type PrivateListState<ElementType> = Omit<ListState<ElementType>, "items" | "act
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
 export class ListModel<ElementType extends ListElement> {
-	constructor(private readonly config: ListModelConfig<ElementType>) {}
+	private readonly config: Required<ListModelConfig<ElementType>>
+
+	constructor(config: ListModelConfig<ElementType>) {
+		if (config.getLoadIdForElement == null) {
+			config.getLoadIdForElement = (element: ElementType) => (element != null ? getElementId(element) : GENERATED_MAX_ID)
+		}
+		this.config = config as Required<ListModelConfig<ElementType>>
+	}
 
 	private loadState: "created" | "initialized" = "created"
 	private loading: Promise<unknown> = Promise.resolve()
@@ -153,7 +165,8 @@ export class ListModel<ElementType extends ListElement> {
 		this.loading = Promise.resolve().then(async () => {
 			const lastItem = last(this.rawState.unfilteredItems)
 			try {
-				const { items: newItems, complete } = await this.config.fetch(lastItem ? getElementId(lastItem) : this.config.topId, PageSize)
+				const idToLoadFrom = this.config.getLoadIdForElement(lastItem)
+				const { items: newItems, complete } = await this.config.fetch(idToLoadFrom, PageSize)
 				// if the loading was cancelled in the meantime, don't insert anything so that it's not confusing
 				if (this.state.loadingStatus === ListLoadingState.ConnectionLost) {
 					return

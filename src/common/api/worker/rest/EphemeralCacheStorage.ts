@@ -111,6 +111,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const entity = clone(originalEntity)
 		const typeRef = entity._type
 		const typeModel = await resolveTypeReference(typeRef)
+		// fixme: maybe we can fix the sortability of the custom id types here, directly before inserting?
 		switch (typeModel.type) {
 			case TypeId.Element:
 				const elementEntity = entity as ElementEntity

@@ -159,7 +159,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 	private makeListModel(): ListModel<GroupInfo> {
 		const listModel = new ListModel<GroupInfo>({
-			topId: GENERATED_MAX_ID,
 			sortCompare: compareGroupInfos,
 			fetch: async (startId) => {
 				if (startId === GENERATED_MAX_ID) {

@@ -73,7 +73,7 @@ export function base64ToBase64Ext(base64: Base64): Base64Ext {
 	let base64ext = ""
 
 	for (let i = 0; i < base64.length; i++) {
-		let index = base64Lookup[base64.charAt(i)]
+		const index = base64Lookup[base64.charAt(i)]
 		base64ext += base64extAlphabet[index]
 	}
 

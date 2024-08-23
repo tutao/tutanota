@@ -1,4 +1,3 @@
-import type { Hex } from "@tutao/tutanota-utils"
 import {
 	base64ExtToBase64,
 	base64ToBase64Ext,
@@ -7,9 +6,11 @@ import {
 	base64UrlToBase64,
 	clone,
 	compare,
+	Hex,
 	hexToBase64,
 	isSameTypeRef,
 	pad,
+	repeat,
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
@@ -38,18 +39,22 @@ export const GENERATED_MIN_ID = "------------"
 export const GENERATED_ID_BYTES_LENGTH = 9
 
 /**
+ * The byte length of a custom Id used by mail set entries
+ * 4 bytes timestamp (1024ms resolution)
+ * 9 bytes mail element Id
+ */
+export const MAIL_SET_ENTRY_ID_BYTE_LENGTH = 13
+
+/**
  * The minimum ID for elements with custom id stored on the server
  */
 export const CUSTOM_MIN_ID = ""
 /**
- * the maximum custom element id is enforced to be less than 256 bytes on the server. decoding this as b64url gives 255 bytes.
+ * the maximum custom element id is enforced to be less than 256 bytes on the server. decoding this as Base64Url gives 255 bytes.
  *
- * NOTE: this is currently only used as a marker value when caching calendar events.
+ * NOTE: this is currently only used as a marker value when caching CalenderEvent and MailSetEntry.
  */
-export const CUSTOM_MAX_ID =
-	"_______________________________________________________________________________________________________________________________________________________" +
-	"_______________________________________________________________________________________________________________________________________________________" +
-	"______________________________________"
+export const CUSTOM_MAX_ID = repeat("_", 340)
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
@@ -126,7 +131,7 @@ export function firstBiggerThanSecondCustomId(firstId: Id, secondId: Id): boolea
 	return compare(customIdToUint8array(firstId), customIdToUint8array(secondId)) === 1
 }
 
-function customIdToUint8array(id: Id): Uint8Array {
+export function customIdToUint8array(id: Id): Uint8Array {
 	if (id === "") {
 		return new Uint8Array()
 	}
@@ -441,6 +446,27 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 	}
 
 	_removeIdentityFields(entity)
+}
+
+/** construct a mail set entry Id for a given mail. see MailFolderHelper.java */
+export function constructMailSetEntryId(receiveDate: Date, mailId: Id): string {
+	const buffer = new DataView(new ArrayBuffer(MAIL_SET_ENTRY_ID_BYTE_LENGTH))
+	const mailIdBytes = base64ToUint8Array(base64ExtToBase64(mailId))
+
+	// shifting the received timestamp by 10 bit reduces the resolution from 1ms to 1024ms.
+	// truncating to 4 bytes leaves us with enough space for epoch + 4_294_967_295 not-quite-seconds
+	// (until around 2109-05-15 15:00)
+	const timestamp: bigint = BigInt(Math.trunc(receiveDate.getTime()))
+	const truncatedReceiveDate = (timestamp >> 10n) & 0xffffffffn
+
+	// we don't need the leading zeroes
+	buffer.setBigUint64(0, truncatedReceiveDate << 32n)
+
+	for (let i = 0; i < mailIdBytes.length; i++) {
+		buffer.setUint8(i + 4, mailIdBytes[i])
+	}
+
+	return uint8arrayToCustomId(new Uint8Array(buffer.buffer))
 }
 
 export const LEGACY_TO_RECIPIENTS_ID = 112

@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import {
+	constructMailSetEntryId,
 	create,
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
@@ -29,6 +30,16 @@ o.spec("EntityUtils", function () {
 		o(generatedIdToTimestamp(timestampToGeneratedId(0))).equals(0)
 		o(generatedIdToTimestamp("zzzzzzzzzzzz")).equals(maxTimestamp)
 		o(generatedIdToTimestamp("IwQvgF------")).equals(1370563200000)
+	})
+
+	o("test constructcustomId for mailSetEntry", function () {
+		const mailId: Id = "-----------0"
+
+		const expected = "V7iDsQAAAAAAAAAAAQ"
+		const receiveDate = new Date("2017-10-03 13:46:13")
+
+		const calculatedId = constructMailSetEntryId(receiveDate, mailId)
+		o(expected).equals(calculatedId)
 	})
 
 	o("create new entity without error object ", function () {
