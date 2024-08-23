@@ -109,13 +109,11 @@ mod tests {
     fn can_deserialize_email() {
         let json = include_str!("../test_data/email_response.json");
         let parsed = serde_json::from_str::<HashMap<String, JsonElement>>(json).unwrap();
-        let address_map = match parsed.get("firstRecipient").unwrap() {
-            JsonElement::Dict(map) => map,
-            _ => panic!("Not a map!")
+        let JsonElement::Dict(address_map) = parsed.get("firstRecipient").unwrap() else {
+            panic!("Not a map!")
         };
-        let address = match address_map.get("address").unwrap() {
-            JsonElement::String(address) => address,
-            _ => panic!("Not a string")
+        let JsonElement::String(address) = address_map.get("address").unwrap() else {
+            panic!("Not a string")
         };
         assert_eq!("bed-free@tutanota.de", address);
     }

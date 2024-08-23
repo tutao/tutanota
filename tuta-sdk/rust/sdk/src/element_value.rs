@@ -27,7 +27,7 @@ pub type ParsedEntity = HashMap<String, ElementValue>;
 impl ElementValue {
     pub fn assert_number(&self) -> i64 {
         match self {
-            ElementValue::Number(number) => number.clone(),
+            ElementValue::Number(number) => *number,
             _ => panic!("Invalid type"),
         }
     }
@@ -38,14 +38,14 @@ impl ElementValue {
 
     pub fn assert_array(&self) -> Vec<ElementValue> {
         match self {
-            ElementValue::Array(value) => value.to_vec(),
+            ElementValue::Array(value) => value.clone(),
             _ => panic!("Invalid type"),
         }
     }
 
     pub fn assert_bytes(&self) -> Vec<u8> {
         match self {
-            ElementValue::Bytes(value) => value.to_vec(),
+            ElementValue::Bytes(value) => value.clone(),
             _ => panic!("Invalid type"),
         }
     }

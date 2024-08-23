@@ -2,7 +2,7 @@
 pub fn hkdf(salt: &[u8], input_key_material: &[u8], info: &[u8], length_bytes: usize) -> Vec<u8> {
     let generator = hkdf::Hkdf::<sha2::Sha256>::new(Some(salt), input_key_material);
     let mut output_buffer = vec![0u8; length_bytes];
-    generator.expand(&info, &mut output_buffer).unwrap();
+    generator.expand(info, &mut output_buffer).unwrap();
     output_buffer
 }
 

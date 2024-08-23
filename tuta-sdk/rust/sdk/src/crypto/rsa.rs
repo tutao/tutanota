@@ -18,9 +18,7 @@ pub struct RSAPublicKey(rsa::RsaPublicKey);
 
 impl RSAPublicKey {
     pub fn new(public_key: rsa::RsaPublicKey) -> Self {
-        RSAPublicKey {
-            0: public_key,
-        }
+        Self(public_key)
     }
 
     /// Create a key from a PEM-encoded ASN.1 SPKI
@@ -40,7 +38,7 @@ impl RSAPublicKey {
     /// Returns `Err` if the modulus is the wrong size.
     pub fn from_components(modulus: &[u8], public_exponent: u32) -> Result<Self, RSAKeyError> {
         rsa::RsaPublicKey::new(BigUint::from_bytes_be(modulus), public_exponent.into())
-            .map(|o| Self(o))
+            .map(Self)
             .map_err(|e| RSAKeyError { reason: format!("rsa public key parse error: {e}") })
     }
 
@@ -76,9 +74,7 @@ pub struct RSAPrivateKey(rsa::RsaPrivateKey);
 
 impl RSAPrivateKey {
     pub fn new(private_key: rsa::RsaPrivateKey) -> Self {
-        RSAPrivateKey {
-            0: private_key,
-        }
+        Self(private_key)
     }
     /// Derives an PKCS1 RSA private key from an ASN.1-DER encoded private key
     pub fn from_pkcs1_der(private_key: &[u8]) -> Result<Self, RSAKeyError> {
@@ -223,9 +219,9 @@ fn decode_nibble_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SIZE
     let mut result = [[0u8; 0].as_slice(); SIZE];
     let mut remaining = arrays;
 
-    for i in 0..SIZE {
+    for (array_index, array_result) in result.iter_mut().enumerate() {
         if remaining.len() < 2 {
-            return Err(RSAKeyError { reason: format!("invalid encoded RSA key (only got {i} array(s), expected {SIZE})") });
+            return Err(RSAKeyError { reason: format!("invalid encoded RSA key (only got {array_index} array(s), expected {SIZE})") });
         }
         let (len_bytes, after) = remaining.split_at(2);
 
@@ -235,7 +231,7 @@ fn decode_nibble_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SIZE
         }
         let (arr, new_remaining) = after.split_at(length);
 
-        result[i] = arr;
+        *array_result = arr;
         remaining = new_remaining;
     }
 
@@ -316,7 +312,8 @@ impl RngCore for SeedBufferRng {
     }
 
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        Ok(self.fill_bytes(dest))
+        self.fill_bytes(dest);
+        Ok(())
     }
 }
 

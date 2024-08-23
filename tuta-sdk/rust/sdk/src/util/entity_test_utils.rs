@@ -37,7 +37,7 @@ pub fn generate_email_entity(
     let encrypted_mail = typed_entity_to_encrypted_entity(original_mail.clone(), session_key, iv);
     let original_mail = typed_entity_to_parsed_entity(original_mail);
 
-    return (encrypted_mail, original_mail);
+    (encrypted_mail, original_mail)
 }
 
 /// Convert a typed entity into an encrypted `ParsedEntity` dictionary type.

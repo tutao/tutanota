@@ -81,9 +81,9 @@ pub fn decode_byte_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SI
     let mut result = [[0u8; 0].as_slice(); SIZE];
     let mut remaining = arrays;
 
-    for i in 0..SIZE {
+    for (array_index, array_result) in result.iter_mut().enumerate() {
         if remaining.len() < 2 {
-            return Err(ByteArrayError { reason: format!("expected more byte arrays (only got {i}, expected {SIZE})") });
+            return Err(ByteArrayError { reason: format!("expected more byte arrays (only got {array_index}, expected {SIZE})") });
         }
         let (len_bytes, after) = remaining.split_at(2);
 
@@ -93,7 +93,7 @@ pub fn decode_byte_arrays<const SIZE: usize>(arrays: &[u8]) -> Result<[&[u8]; SI
         }
         let (arr, new_remaining) = after.split_at(length);
 
-        result[i] = arr;
+        *array_result = arr;
         remaining = new_remaining;
     }
 

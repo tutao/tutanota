@@ -53,7 +53,7 @@ impl JsonSerializer {
         type_ref: &TypeRef,
         mut raw_entity: RawEntity,
     ) -> Result<ParsedEntity, InstanceMapperError> {
-        let type_model = self.get_type_model(&type_ref)?;
+        let type_model = self.get_type_model(type_ref)?;
         let mut mapped: HashMap<String, ElementValue> = HashMap::new();
         for (&value_name, value_type) in &type_model.values {
             // reuse the name
@@ -67,7 +67,7 @@ impl JsonSerializer {
 
             let mapped_value = match (&value_type.cardinality, value) {
                 (Cardinality::ZeroOrOne, JsonElement::Null) => ElementValue::Null,
-                (Cardinality::One, JsonElement::String(v)) if v == "" => {
+                (Cardinality::One, JsonElement::String(v)) if v.is_empty() => {
                     ElementValue::String(String::new())
                 }
                 (Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
@@ -79,7 +79,7 @@ impl JsonSerializer {
                     })?)
                 }
                 (_, value) if !value_type.encrypted => {
-                    self.parse_value(&type_model, &value_name, &value_type, value)?
+                    self.parse_value(type_model, &value_name, value_type, value)?
                 }
                 _ => {
                     return Err(InvalidValue {
@@ -198,7 +198,7 @@ impl JsonSerializer {
         for element in elements {
             match element {
                 JsonElement::Dict(a) => {
-                    let parsed = self.parse(&association_type_ref, a)?;
+                    let parsed = self.parse(association_type_ref, a)?;
                     parsed_aggregates.push(ElementValue::Dict(parsed));
                 }
                 _ => {
@@ -221,9 +221,7 @@ impl JsonSerializer {
         elements
             .into_iter()
             .map(|json_element| {
-                let id_vec = if let JsonElement::Array(id_vec) = json_element {
-                    id_vec
-                } else {
+                let JsonElement::Array(id_vec) = json_element else {
                     return Err(InvalidValue {
                         field: association_name.to_owned(),
                         type_ref: outer_type_ref.clone(),
@@ -244,7 +242,7 @@ impl JsonSerializer {
         type_ref: &TypeRef,
         mut entity: ParsedEntity,
     ) -> Result<RawEntity, InstanceMapperError> {
-        let type_model = self.get_type_model(&type_ref)?;
+        let type_model = self.get_type_model(type_ref)?;
         let mut mapped: RawEntity = HashMap::new();
         for (&value_name, value_type) in &type_model.values {
             // we take out of the map to reuse the names/values
@@ -258,7 +256,7 @@ impl JsonSerializer {
 
             if !value_type.encrypted {
                 let serialized_value =
-                    self.serialize_value(&type_model, &value_name, &value_type, value)?;
+                    self.serialize_value(type_model, &value_name, value_type, value)?;
                 mapped.insert(value_name, serialized_value);
             } else if let ElementValue::Null = value {
                 mapped.insert(value_name, JsonElement::Null);
@@ -359,7 +357,7 @@ impl JsonSerializer {
         for element in elements {
             match element {
                 ElementValue::Dict(a) => {
-                    let serialized = self.serialize(&association_type_ref, a)?;
+                    let serialized = self.serialize(association_type_ref, a)?;
                     serialized_elements.push(JsonElement::Dict(serialized));
                 }
                 ElementValue::String(v) => {
@@ -380,7 +378,7 @@ impl JsonSerializer {
     /// from the `InstanceMapper`'s `TypeModelProvider`
     fn get_type_model(&self, type_ref: &TypeRef) -> Result<&TypeModel, InstanceMapperError> {
         self.type_model_provider
-            .get_type_model(&type_ref.app, &type_ref.type_)
+            .get_type_model(type_ref.app, type_ref.type_)
             .ok_or_else(|| InstanceMapperError::TypeNotFound {
                 type_ref: type_ref.clone(),
             })

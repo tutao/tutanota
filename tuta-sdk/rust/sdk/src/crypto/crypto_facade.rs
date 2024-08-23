@@ -20,15 +20,15 @@ use crate::util::ArrayCastingError;
 
 /// The name of the field that contains the session key encrypted
 /// by the owner group's key in an entity
-const OWNER_ENC_SESSION_FIELD: &'static str = "_ownerEncSessionKey";
+const OWNER_ENC_SESSION_FIELD: &str = "_ownerEncSessionKey";
 /// The name of the owner-encrypted session key version field in an entity
-const OWNER_KEY_VERSION_FIELD: &'static str = "_ownerKeyVersion";
+const OWNER_KEY_VERSION_FIELD: &str = "_ownerKeyVersion";
 /// The name of the owner group field in an entity
-const OWNER_GROUP_FIELD: &'static str = "_ownerGroup";
+const OWNER_GROUP_FIELD: &str = "_ownerGroup";
 /// The name of the ID field in an entity
-const ID_FIELD: &'static str = "_id";
+const ID_FIELD: &str = "_id";
 /// The name of the bucket key field in an entity
-const BUCKET_KEY_FIELD: &'static str = "bucketKey";
+const BUCKET_KEY_FIELD: &str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
@@ -88,7 +88,7 @@ impl CryptoFacade {
 
         let group_key: GenericAesKey = self.key_loader_facade.load_sym_group_key(owner_group, owner_key_version, None).await?;
 
-        let session_key = group_key.decrypt_aes_key(&owner_enc_session_key)?;
+        let session_key = group_key.decrypt_aes_key(owner_enc_session_key)?;
         // TODO: performance: should we reuse owner_enc_session_key?
         Ok(Some(ResolvedSessionKey { session_key, owner_enc_session_key: owner_enc_session_key.clone() }))
     }
@@ -158,7 +158,7 @@ impl CryptoFacade {
                 }
                 AsymmetricKeyPair::RSAEccKeyPair(RSAEccKeyPair { rsa_key_pair: k, .. }) | AsymmetricKeyPair::RSAKeyPair(k) => {
                     let bucket_key_bytes = Zeroizing::new(k.private_key.decrypt(pub_enc_bucket_key)?);
-                    let decrypted_bucket_key = GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?.into();
+                    let decrypted_bucket_key = GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?;
                     ResolvedBucketKey {
                         decrypted_bucket_key,
                         sender_identity_key: None,
@@ -167,7 +167,7 @@ impl CryptoFacade {
             }
         } else if let Some(_group_enc_bucket_key) = &bucket_key.groupEncBucketKey {
             // TODO: to be used with secure external
-            let _key_group = bucket_key.keyGroup.as_ref().unwrap_or_else(|| owner_group);
+            let _key_group = bucket_key.keyGroup.as_ref().unwrap_or(owner_group);
             auth_status = Some(EncryptionAuthStatus::AESNoAuthentication);
             todo!("secure external resolveWithGroupReference")
         } else {
@@ -216,7 +216,7 @@ pub enum EncryptionAuthStatus {
 #[repr(i64)]
 pub enum CryptoProtocolVersion {
     /// Legacy asymmetric encryption (RSA-2048)
-    RSA = 0,
+    Rsa = 0,
 
     /// Secure external
     SymmetricEncryption = 1,
@@ -249,7 +249,7 @@ impl<'a> EntityOwnerKeyData<'a> {
         }
 
         let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_FIELD, Bytes)?;
-        let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.map(|v| *v);
+        let owner_key_version = get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.copied();
         let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;
 
         Ok(EntityOwnerKeyData {
@@ -347,7 +347,7 @@ mod test {
         let crypto_facade = make_crypto_facade(randomizer_facade.clone(), constants.group_key.clone(), constants.sender_key_version, asymmetric_keypair.clone());
         let pub_enc_bucket_key = asymmetric_keypair.public_key.encrypt(&randomizer_facade, constants.bucket_key.as_bytes()).unwrap();
 
-        let mut raw_mail = make_raw_mail(&constants, pub_enc_bucket_key, CryptoProtocolVersion::RSA as i64);
+        let mut raw_mail = make_raw_mail(&constants, pub_enc_bucket_key, CryptoProtocolVersion::Rsa as i64);
         let mail_type_model = get_mail_type_model();
         let key = crypto_facade.resolve_session_key(&mut raw_mail, &mail_type_model)
             .await
@@ -366,7 +366,7 @@ mod test {
         let crypto_facade = make_crypto_facade(randomizer_facade.clone(), constants.group_key.clone(), constants.sender_key_version, asymmetric_keypair.clone());
         let pub_enc_bucket_key = asymmetric_keypair.rsa_key_pair.public_key.encrypt(&randomizer_facade, constants.bucket_key.as_bytes()).unwrap();
 
-        let mut raw_mail = make_raw_mail(&constants, pub_enc_bucket_key, CryptoProtocolVersion::RSA as i64);
+        let mut raw_mail = make_raw_mail(&constants, pub_enc_bucket_key, CryptoProtocolVersion::Rsa as i64);
         let mail_type_model = get_mail_type_model();
         let key = crypto_facade.resolve_session_key(&mut raw_mail, &mail_type_model)
             .await
@@ -379,7 +379,7 @@ mod test {
     fn get_mail_type_model() -> TypeModel {
         let provider = init_type_model_provider();
         let mail_type_ref = Mail::type_ref();
-        provider.get_type_model(&mail_type_ref.app, &mail_type_ref.type_).unwrap().to_owned()
+        provider.get_type_model(mail_type_ref.app, mail_type_ref.type_).unwrap().to_owned()
     }
 
     fn make_raw_mail(constants: &BucketKeyConstants, pub_enc_bucket_key: Vec<u8>, protocol_version: i64) -> ParsedEntity {
@@ -418,15 +418,15 @@ mod test {
 
     impl BucketKeyConstants {
         fn new(randomizer_facade: &RandomizerFacade) -> Self {
-            let group_key = GenericAesKey::from(Aes256Key::generate(&randomizer_facade));
-            let bucket_key = Aes256Key::generate(&randomizer_facade);
-            let mail_session_key = GenericAesKey::from(Aes256Key::generate(&randomizer_facade));
+            let group_key = GenericAesKey::from(Aes256Key::generate(randomizer_facade));
+            let bucket_key = Aes256Key::generate(randomizer_facade);
+            let mail_session_key = GenericAesKey::from(Aes256Key::generate(randomizer_facade));
             let instance_id = GeneratedId::test_random();
             let instance_list = GeneratedId::test_random();
             let key_group = GeneratedId::test_random();
             let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
 
-            let bucket_enc_session_key_iv = Iv::generate(&randomizer_facade);
+            let bucket_enc_session_key_iv = Iv::generate(randomizer_facade);
             let bucket_enc_session_key = bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
             let sender_key_version = 1;
             let recipient_key_version = sender_key_version;
@@ -451,7 +451,7 @@ mod test {
 
         let mut key_loader = MockKeyLoaderFacade::default();
         key_loader.expect_get_current_sym_group_key()
-            .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, object: group_key.clone().into() }))
+            .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, object: group_key.clone() }))
             .once();
         key_loader.expect_load_key_pair()
             .returning(move |_, _| Ok(asymmetric_keypair.clone().into()))

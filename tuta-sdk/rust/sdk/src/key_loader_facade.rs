@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::sync::Arc;
 use base64::Engine;
 use futures::future::BoxFuture;
@@ -41,13 +42,13 @@ impl KeyLoaderFacade {
             None => self.get_current_sym_group_key(group_id).await?
         };
 
-        return if group_key.version == version {
+        if group_key.version == version {
             Ok(group_key.object)
         } else {
             let group: Group = self.entity_client.load(&group_id.to_owned()).await?;
             let FormerGroupKey { symmetric_group_key, .. } = self.find_former_group_key(&group, &group_key, version).await?;
             Ok(symmetric_group_key)
-        };
+        }
     }
 
     async fn find_former_group_key(&self, group: &Group, current_group_key: &VersionedAesKey, target_key_version: i64) -> Result<FormerGroupKey, KeyLoadError> {
@@ -70,19 +71,19 @@ impl KeyLoaderFacade {
             let version = self.decode_group_key_version(&former_key._id.element_id)?;
             let next_version = version + 1;
 
-            if next_version > last_version {
-                continue;
-            } else if next_version == last_version {
-                last_version = version;
-                last_group_key = last_group_key.decrypt_aes_key(&former_key.ownerEncGKey).map_err(|e| {
-                    KeyLoadError { reason: e.to_string() }
-                })?;
-                last_group_key_instance = Some(former_key);
-                if last_version <= target_key_version {
-                    break;
+            match next_version.cmp(&last_version) {
+                Ordering::Less => return Err(KeyLoadError { reason: format!("Unexpected group key version {version}; expected {last_version}") }),
+                Ordering::Greater => continue,
+                Ordering::Equal => {
+                    last_version = version;
+                    last_group_key = last_group_key.decrypt_aes_key(&former_key.ownerEncGKey).map_err(|e| {
+                        KeyLoadError { reason: e.to_string() }
+                    })?;
+                    last_group_key_instance = Some(former_key);
+                    if last_version <= target_key_version {
+                        break;
+                    }
                 }
-            } else {
-                return Err(KeyLoadError { reason: format!("Unexpected group key version {version}; expected {last_version}") });
             }
         }
 
@@ -112,11 +113,11 @@ impl KeyLoaderFacade {
 
         // The call leads to recursive calls down the chain, so BoxFuture is used to wrap the recursive async calls
         fn get_key_for_version<'a>(facade: &'a KeyLoaderFacade, group_id: &'a GeneratedId) -> BoxFuture<'a, Result<VersionedAesKey, KeyLoadError>> {
-            Box::pin(facade.load_and_decrypt_current_sym_group_key(&group_id))
+            Box::pin(facade.load_and_decrypt_current_sym_group_key(group_id))
         }
 
-        let key = get_key_for_version(self, &group_id).await?;
-        self.user_facade.key_cache().put_group_key(&group_id, &key);
+        let key = get_key_for_version(self, group_id).await?;
+        self.user_facade.key_cache().put_group_key(group_id, &key);
         Ok(key)
     }
 
@@ -157,10 +158,10 @@ impl KeyLoaderFacade {
         }
     }
     fn get_and_decrypt_key_pair(&self, group: &Group, group_key: &GenericAesKey) -> Result<AsymmetricKeyPair, KeyLoadError> {
-        return match &group.currentKeys {
+        match &group.currentKeys {
             Some(keys) => decrypt_key_pair(group_key, keys),
-            _ => Err(KeyLoadError { reason: format!("no key pair on group {}", group._id) })
-        };
+            None => Err(KeyLoadError { reason: format!("no key pair on group {}", group._id) })
+        }
     }
 }
 
@@ -247,7 +248,7 @@ mod tests {
 
             let owner_enc_g_key = last_key.encrypt_key(current_key, Iv::generate(randomizer_facade)).as_slice().to_vec();
             let sym_enc_priv_ecc_key = current_key.encrypt_data(
-                &pq_key_pair.ecc_keys.private_key.clone().as_bytes().to_vec(),
+                pq_key_pair.ecc_keys.private_key.clone().as_bytes(),
                 Iv::generate(randomizer_facade)).unwrap();
 
             former_keys.insert(0, GroupKey {
@@ -277,7 +278,7 @@ mod tests {
                     symEncPrivRsaKey: None,
                 }),
             });
-            last_key = current_key.clone().into();
+            last_key = current_key.clone();
         }
 
         (former_keys.try_into().unwrap_or_else(|_| panic!()), former_key_pairs_decrypted, former_keys_decrypted)
@@ -333,7 +334,7 @@ mod tests {
             let user_group_id = user_group._id.clone();
             let sym_enc_g_key = user_group_key.object.encrypt_key(
                 &current_group_key.object,
-                Iv::generate(&randomizer),
+                Iv::generate(randomizer),
             );
             let current_group_key = current_group_key.clone();
             user_facade_mock.expect_get_membership()
@@ -438,7 +439,7 @@ mod tests {
                 AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
                 AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
                 AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
-                    assert_eq!(pq_key_pair, former_key_pairs_decrypted[i])
+                    assert_eq!(pq_key_pair, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
                 }
             }
         }
@@ -508,7 +509,7 @@ mod tests {
             match keypair {
                 GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
                 GenericAesKey::Aes256(returned_group_key) => {
-                    assert_eq!(returned_group_key, former_keys_decrypted[i])
+                    assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
                 }
             }
         }
