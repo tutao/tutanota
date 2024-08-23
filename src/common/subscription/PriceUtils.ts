@@ -11,6 +11,7 @@ import { UserError } from "../api/main/UserError.js"
 import { isIOSApp } from "../api/common/Env"
 import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../api/main/CommonLocator.js"
+import { client } from "../misc/ClientDetector"
 
 export const enum PaymentInterval {
 	Monthly = 1,
@@ -139,7 +140,7 @@ export class PriceAndConfigProvider {
 			referralCode: referralCode,
 		})
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
-		if (isIOSApp()) {
+		if (isIOSApp() && !client.isCalendarApp()) {
 			this.mobilePrices = new Map()
 
 			const allPrices = await locator.mobilePaymentsFacade.getPlanPrices()
@@ -176,7 +177,7 @@ export class PriceAndConfigProvider {
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): SubscriptionPrice {
 		const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 		const rawPrice = price.toString()
-		if (isIOSApp()) {
+		if (isIOSApp() && !client.isCalendarApp()) {
 			const planName = PlanTypeToName[subscription]
 			const mobilePlan = this.getMobilePrices().get(planName.toLowerCase())
 			if (mobilePlan) {
