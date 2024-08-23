@@ -6,7 +6,7 @@ import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/T
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
-import { GENERATED_MAX_ID, getElementId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -29,7 +29,6 @@ export class ContactViewModel {
 	) {}
 
 	readonly listModel: ListModel<Contact> = new ListModel<Contact>({
-		topId: GENERATED_MAX_ID,
 		fetch: async () => {
 			const items = await this.entityClient.loadAll(ContactTypeRef, this.contactListId)
 			return { items, complete: true }

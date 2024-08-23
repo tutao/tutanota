@@ -8,7 +8,7 @@ import {
 	ContactTypeRef,
 	createContactListEntry,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { GENERATED_MAX_ID, getEtId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getEtId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -83,7 +83,6 @@ export class ContactListViewModel {
 
 	private readonly _listModel = memoized((listId: Id) => {
 		const newListModel = new ListModel<ContactListEntry>({
-			topId: GENERATED_MAX_ID,
 			fetch: async () => {
 				const items = await this.getRecipientsForList(listId)
 				return { items, complete: true }

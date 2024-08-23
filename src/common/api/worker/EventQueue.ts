@@ -4,7 +4,7 @@ import { ConnectionError, ServiceUnavailableError } from "../common/error/RestEr
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
-import { MailTypeRef } from "../entities/tutanota/TypeRefs.js"
+import { MailSetEntryTypeRef, MailTypeRef } from "../entities/tutanota/TypeRefs.js"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../common/utils/EntityUpdateUtils.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
@@ -26,11 +26,12 @@ type QueueAction = (nextElement: QueuedBatch) => Promise<void>
 const MOVABLE_EVENT_TYPE_REFS = [
 	// moved in MoveMailService
 	MailTypeRef, // moved in SwitchAccountTypeService
+	MailSetEntryTypeRef,
 	CustomerInfoTypeRef,
 ]
 
 /**
- * Whether the entity of the event supports MOVE operation. MOVE is supposed to be immutable so we cannot apply it to all instances.
+ * Whether the entity of the event supports MOVE operation. MOVE is supposed to be immutable, so we cannot apply it to all instances.
  */
 function isMovableEventType(event: EntityUpdate): boolean {
 	return MOVABLE_EVENT_TYPE_REFS.some((typeRef) => isSameTypeRefByAttr(typeRef, event.application, event.type))

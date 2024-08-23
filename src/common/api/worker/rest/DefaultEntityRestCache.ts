@@ -2,7 +2,7 @@ import type { EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider 
 import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
@@ -20,8 +20,8 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
+import { CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
@@ -30,6 +30,7 @@ import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { isCustomIdType } from "../offline/OfflineStorage.js"
 
 assertWorkerOrNode()
 
@@ -377,12 +378,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		try {
 			const range = await this.storage.getRangeForList(typeRef, listId)
-
+			if (getTypeId(typeRef) == "tutanota/MailSetEntry") {
+				console.log(getTypeId(typeRef), listId, start, count, reverse)
+				console.log("range", range)
+			}
 			if (range == null) {
 				await this.populateNewListWithRange(typeRef, listId, start, count, reverse)
-			} else if (isStartIdWithinRange(range, start)) {
+			} else if (isStartIdWithinRange(range, start, typeModel)) {
 				await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
-			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start)) {
+			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
 				await this.extendAwayFromRange(typeRef, listId, start, count, reverse)
 			} else {
 				await this.extendTowardsRange(typeRef, listId, start, count, reverse)
@@ -512,12 +516,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		wasReverseRequest: boolean,
 		receivedEntities: T[],
 	) {
+		const isCustomId = isCustomIdType(await resolveTypeReference(typeRef))
 		let elementsToAdd = receivedEntities
 		if (wasReverseRequest) {
 			// Ensure that elements are cached in ascending (not reverse) order
 			elementsToAdd = receivedEntities.reverse()
 			if (receivedEntities.length < countRequested) {
-				await this.storage.setLowerRangeForList(typeRef, listId, GENERATED_MIN_ID)
+				console.log("finished loading, setting min id")
+				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
 			} else {
 				// After reversing the list the first element in the list is the lower range limit
 				await this.storage.setLowerRangeForList(typeRef, listId, getElementId(getFirstOrThrow(receivedEntities)))
@@ -526,7 +532,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			// Last element in the list is the upper range limit
 			if (receivedEntities.length < countRequested) {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
-				await this.storage.setUpperRangeForList(typeRef, listId, GENERATED_MAX_ID)
+				console.log("finished loading, setting max id")
+				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
 			} else {
 				await this.storage.setUpperRangeForList(typeRef, listId, getElementId(lastThrow(receivedEntities)))
 			}
@@ -556,7 +563,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 		const { lower, upper } = range
 		let indexOfStart = allRangeList.indexOf(start)
-		if ((!reverse && upper === GENERATED_MAX_ID) || (reverse && lower === GENERATED_MIN_ID)) {
+
+		const typeModel = await resolveTypeReference(typeRef)
+		const isCustomId = isCustomIdType(typeModel)
+		if (
+			(!reverse && (isCustomId ? upper == CUSTOM_MAX_ID : upper === GENERATED_MAX_ID)) ||
+			(reverse && (isCustomId ? lower == CUSTOM_MIN_ID : lower === GENERATED_MIN_ID))
+		) {
 			// we have already loaded the complete range in the desired direction, so we do not have to load from server
 			elementsToRead = 0
 		} else if (allRangeList.length === 0) {
@@ -571,7 +584,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				elementsToRead = count - (allRangeList.length - 1 - indexOfStart)
 				startElementId = allRangeList[allRangeList.length - 1] // use the  highest id in allRange as start element
 			}
-		} else if (lower === start || (firstBiggerThanSecond(start, lower) && firstBiggerThanSecond(allRangeList[0], start))) {
+		} else if (lower === start || (firstBiggerThanSecond(start, lower, typeModel) && firstBiggerThanSecond(allRangeList[0], start, typeModel))) {
 			// Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID, or start is between lower range id and lowest element in range
 			if (!reverse) {
 				// if not reverse read only elements that are not in allRange
@@ -579,7 +592,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				elementsToRead = count - allRangeList.length
 			}
 			// if reverse read all elements
-		} else if (upper === start || (firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1]) && firstBiggerThanSecond(upper, start))) {
+		} else if (
+			upper === start ||
+			(firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1], typeModel) && firstBiggerThanSecond(upper, start, typeModel))
+		) {
 			// Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID, or start is between upper range id and highest element in range
 			if (reverse) {
 				// if not reverse read only elements that are not in allRange
@@ -606,18 +622,17 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
 		const updatesArray = batch.events
 		for (const update of updatesArray) {
-			if (update.application !== "monitor") {
-				// monitor application is ignored
-				// mails are ignored because move operations are handled as a special event (and no post multiple is possible)
-				if (
-					update.operation === OperationType.CREATE &&
-					getUpdateInstanceId(update).instanceListId != null &&
-					!isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
-				) {
-					createUpdatesForLETs.push(update)
-				} else {
-					regularUpdates.push(update)
-				}
+			// monitor application is ignored
+			if (update.application === "monitor") continue
+			// mails are ignored because move operations are handled as a special event (and no post multiple is possible)
+			if (
+				update.operation === OperationType.CREATE &&
+				getUpdateInstanceId(update).instanceListId != null &&
+				!isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
+			) {
+				createUpdatesForLETs.push(update)
+			} else {
+				regularUpdates.push(update)
 			}
 		}
 
@@ -722,15 +737,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (instanceListId != null) {
 			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
 
-			const element = deleteEvent && isSameTypeRef(MailTypeRef, typeRef) ? await this.storage.get(typeRef, deleteEvent.instanceListId, instanceId) : null
-			if (deleteEvent != null && element != null) {
+			const mail = deleteEvent && isSameTypeRef(MailTypeRef, typeRef) ? await this.storage.get(MailTypeRef, deleteEvent.instanceListId, instanceId) : null
+			// avoid downloading new mail element for non-mailSet user.
+			// can be removed once all mailbox have been migrated to mailSet (once lastNonOutdatedClientVersion is >= v242)
+			if (deleteEvent != null && mail != null && isEmpty(mail.sets)) {
 				// It is a move event for cached mail
 				await this.storage.deleteIfExists(typeRef, deleteEvent.instanceListId, instanceId)
-				await this.updateListIdOfMailAndUpdateCache(element as Mail, instanceListId, instanceId)
+				await this.updateListIdOfMailAndUpdateCache(mail, instanceListId, instanceId)
 				return update
 			} else if (await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId)) {
 				// No need to try to download something that's not there anymore
 				// We do not consult custom handlers here because they are only needed for list elements.
+				console.log("downloading create event for", getTypeId(typeRef), instanceListId, instanceId)
 				return this.entityRestClient
 					.load(typeRef, [instanceListId, instanceId])
 					.then((entity) => this.storage.put(entity))
@@ -880,16 +898,16 @@ export function getUpdateInstanceId(update: EntityUpdate): { instanceListId: Id 
 /**
  * Check if a range request begins inside an existing range
  */
-function isStartIdWithinRange(range: Range, startId: Id): boolean {
-	return !firstBiggerThanSecond(startId, range.upper) && !firstBiggerThanSecond(range.lower, startId)
+function isStartIdWithinRange(range: Range, startId: Id, typeModel: TypeModel): boolean {
+	return !firstBiggerThanSecond(startId, range.upper, typeModel) && !firstBiggerThanSecond(range.lower, startId, typeModel)
 }
 
 /**
  * Check if a range request is going away from an existing range
  * Assumes that the range request doesn't start inside the range
  */
-function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, start: string) {
-	return reverse ? firstBiggerThanSecond(range.lower, start) : firstBiggerThanSecond(start, range.upper)
+function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, start: string, typeModel: TypeModel) {
+	return reverse ? firstBiggerThanSecond(range.lower, start, typeModel) : firstBiggerThanSecond(start, range.upper, typeModel)
 }
 
 /**
@@ -909,5 +927,9 @@ function isIgnoredType(typeRef: TypeRef<unknown>): boolean {
  * isIgnoredType(ref) -/-> !isCachedType(ref)
  */
 function isCachedType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boolean {
-	return !isIgnoredType(typeRef) && typeModel.values._id.type === ValueType.GeneratedId
+	return (!isIgnoredType(typeRef) && isGeneratedIdType(typeModel)) || isSameTypeRef(typeRef, MailSetEntryTypeRef)
+}
+
+function isGeneratedIdType(typeModel: TypeModel): boolean {
+	return typeModel.values._id.type === ValueType.GeneratedId
 }

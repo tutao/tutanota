@@ -82,7 +82,6 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 
 	private makeListModel() {
 		const listModel = new ListModel<KnowledgeBaseEntry>({
-			topId: GENERATED_MAX_ID,
 			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
 				var titleA = a.title.toUpperCase()
 				var titleB = b.title.toUpperCase()

@@ -1,13 +1,14 @@
 import o from "@tutao/otest"
 import { OfflineMigration, OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
-import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import { ensureBase64Ext, OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
-import { ModelInfos } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { typedEntries } from "@tutao/tutanota-utils"
+import { ModelInfos, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { repeat, typedEntries } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../../../../src/common/api/common/error/OutOfSyncError.js"
+import { CalendarEventTypeRef, MailSetEntryTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 
 o.spec("OfflineStorageMigrator", function () {
 	const modelInfos: ModelInfos = {
@@ -113,5 +114,18 @@ o.spec("OfflineStorageMigrator", function () {
 
 		verify(migration.migrate(storage, sqlCipherFacade), { times: 0 })
 		verify(storage.setStoredModelVersion("tutanota", matchers.anything()), { times: 0 })
+	})
+
+	o("sanity check for customids", async function () {
+		const mailSetEntryCustomId = "ZFvk7GRb5OwzgABABQ"
+		const typeModel = await resolveTypeReference(MailSetEntryTypeRef)
+		const convertedId = ensureBase64Ext(typeModel, mailSetEntryCustomId)
+		console.log(convertedId)
+	})
+
+	o("sanity check for max custom id", async function () {
+		const typeModel = await resolveTypeReference(CalendarEventTypeRef)
+		const convertedId = ensureBase64Ext(typeModel, repeat("z", 340))
+		console.log(convertedId)
 	})
 })

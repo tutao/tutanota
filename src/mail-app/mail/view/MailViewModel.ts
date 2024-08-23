@@ -1,11 +1,13 @@
-import { ListModel } from "../../../common/misc/ListModel.js"
+import { ListModel, ListModelConfig } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { Mail, MailFolder, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
+	constructMailSetEntryId,
+	CUSTOM_MAX_ID,
+	customIdToUint8array,
 	elementIdPart,
 	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
 	listIdPart,
@@ -13,6 +15,7 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	assertNotNull,
+	compare,
 	count,
 	debounce,
 	groupByAndMap,
@@ -46,6 +49,13 @@ import { isSpamOrTrashFolder, isSubfolderOfType } from "../../../common/api/comm
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
+}
+
+/** sort mail set mails in descending order according to their receivedDate, not their element id */
+function sortCompareMailSetMails(firstMail: Mail, secondMail: Mail): number {
+	const firstMailEntryId = constructMailSetEntryId(firstMail.receivedDate, getElementId(firstMail))
+	const secondMailEntryId = constructMailSetEntryId(secondMail.receivedDate, getElementId(secondMail))
+	return compare(customIdToUint8array(secondMailEntryId), customIdToUint8array(firstMailEntryId))
 }
 
 /** ViewModel for the overall mail view. */
@@ -215,8 +225,11 @@ export class MailViewModel {
 	}
 
 	private listModelForFolder = memoized((folderId: Id) => {
+		const customGetLoadIdForElement: ListModelConfig<Mail>["getLoadIdForElement"] = (mail) =>
+			mail == null ? CUSTOM_MAX_ID : constructMailSetEntryId(mail.receivedDate, getElementId(mail))
+
 		return new ListModel<Mail>({
-			topId: GENERATED_MAX_ID,
+			getLoadIdForElement: this._folder?.isMailSet ? customGetLoadIdForElement : undefined,
 			fetch: async (startId, count) => {
 				const folder = assertNotNull(this._folder)
 				const { complete, items } = await this.loadMailRange(folder, startId, count)
@@ -225,10 +238,12 @@ export class MailViewModel {
 				}
 				return { complete, items }
 			},
-			loadSingle: (listId: Id, elementId: Id): Promise<Mail | null> => {
+			loadSingle: async (listId: Id, elementId: Id): Promise<Mail | null> => {
+				// await this.entityClient.load(MailSetEntryTypeRef, )
 				return this.entityClient.load(MailTypeRef, [listId, elementId])
 			},
-			sortCompare: sortCompareByReverseId,
+			sortCompare: (firstMail, secondMail): number =>
+				assertNotNull(this._folder).isMailSet ? sortCompareMailSetMails(firstMail, secondMail) : sortCompareByReverseId(firstMail, secondMail),
 			autoSelectBehavior: () => this.conversationPrefProvider.getMailAutoSelectBehavior(),
 		})
 	})
@@ -354,9 +369,10 @@ export class MailViewModel {
 		}
 	}
 
-	private async loadMailSetMailRange(folder: MailFolder, start: string, count: number) {
+	private async loadMailSetMailRange(folder: MailFolder, startId: string, count: number): Promise<ListFetchResult<Mail>> {
+		console.log("range request for ", folder.entries, startId, count)
 		try {
-			const loadMailSetEntries = () => this.entityClient.loadRange(MailSetEntryTypeRef, folder.entries, start, count, true)
+			const loadMailSetEntries = () => this.entityClient.loadRange(MailSetEntryTypeRef, folder.entries, startId, count, true)
 			const loadMails = (listId: Id, mailIds: Array<Id>) => this.entityClient.loadMultiple(MailTypeRef, listId, mailIds)
 
 			const mails = await this.acquireMails(loadMailSetEntries, loadMails)
@@ -382,7 +398,7 @@ export class MailViewModel {
 			// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
 			// the items we have and also show that we couldn't load everything.
 			if (isOfflineError(e)) {
-				const loadMailSetEntries = () => this.cacheStorage.provideFromRange(MailSetEntryTypeRef, folder.entries, start, count, true)
+				const loadMailSetEntries = () => this.cacheStorage.provideFromRange(MailSetEntryTypeRef, folder.entries, startId, count, true)
 				const loadMails = (listId: Id, mailIds: Array<Id>) => this.cacheStorage.provideMultiple(MailTypeRef, listId, mailIds)
 				const items = await this.acquireMails(loadMailSetEntries, loadMails)
 				if (items.length === 0) throw e
@@ -396,8 +412,12 @@ export class MailViewModel {
 	/**
 	 * Load mails either from remote or from offline storage. Loader functions must be implemented for each use case.
 	 */
-	private async acquireMails(loadMailSetEntries: () => Promise<MailSetEntry[]>, loadMails: (listId: Id, mailIds: Array<Id>) => Promise<Mail[]>) {
+	private async acquireMails(
+		loadMailSetEntries: () => Promise<MailSetEntry[]>,
+		loadMails: (listId: Id, mailIds: Array<Id>) => Promise<Mail[]>,
+	): Promise<Array<Mail>> {
 		const mailSetEntries = await loadMailSetEntries()
+		console.log("entries", mailSetEntries)
 		const mailListIdToMailIds = groupByAndMap(
 			mailSetEntries,
 			(mse) => listIdPart(mse.mail),
@@ -407,11 +427,11 @@ export class MailViewModel {
 		for (const [listId, mailIds] of mailListIdToMailIds) {
 			mails.push(...(await loadMails(listId, mailIds)))
 		}
-		mails.sort((a, b) => b.receivedDate.getTime() - a.receivedDate.getTime())
+		console.log("mails", mails)
 		return mails
 	}
 
-	private async loadLegacyMailRange(folder: MailFolder, start: string, count: number) {
+	private async loadLegacyMailRange(folder: MailFolder, start: string, count: number): Promise<ListFetchResult<Mail>> {
 		const listId = folder.mails
 		try {
 			const items = await this.entityClient.loadRange(MailTypeRef, listId, start, count, true)
