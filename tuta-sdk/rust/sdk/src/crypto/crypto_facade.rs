@@ -13,7 +13,6 @@ use crate::IdTuple;
 use crate::instance_mapper::InstanceMapper;
 #[mockall_double::double]
 use crate::key_loader_facade::KeyLoaderFacade;
-use crate::key_loader_facade::VersionedAesKey;
 use crate::metamodel::TypeModel;
 use crate::util::ArrayCastingError;
 
@@ -95,8 +94,6 @@ impl CryptoFacade {
         let Some(owner_group) = owner_key_data.owner_group else {
             return Err(SessionKeyResolutionError { reason: "entity has no ownerGroup".to_owned() });
         };
-
-        let VersionedAesKey { version: _version, .. } = self.key_loader_facade.get_current_sym_group_key(owner_group).await?;
 
         let ResolvedBucketKey {
             decrypted_bucket_key,
@@ -288,7 +285,7 @@ mod test {
     use crate::generated_id::GeneratedId;
     use crate::IdTuple;
     use crate::instance_mapper::InstanceMapper;
-    use crate::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
+    use crate::key_loader_facade::MockKeyLoaderFacade;
     use crate::metamodel::TypeModel;
     use crate::type_model_provider::init_type_model_provider;
     use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
@@ -431,13 +428,13 @@ mod test {
         }
     }
 
-    fn make_crypto_facade<T: Into<AsymmetricKeyPair> + Clone + Send + Sync + 'static>(group_key: GenericAesKey, sender_key_version: i64, asymmetric_keypair: T) -> CryptoFacade {
-        let group_key = group_key.clone();
-
+    fn make_crypto_facade<T: Into<AsymmetricKeyPair> + Clone + Send + Sync + 'static>(_group_key: GenericAesKey, _sender_key_version: i64, asymmetric_keypair: T) -> CryptoFacade {
         let mut key_loader = MockKeyLoaderFacade::default();
-        key_loader.expect_get_current_sym_group_key()
-            .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, object: group_key.clone().into() }))
-            .once();
+        // Not loaded at the moment as we don't need versions unless we do auth
+        // let group_key = group_key.clone();
+        // key_loader.expect_get_current_sym_group_key()
+        //     .returning(move |_| Ok(VersionedAesKey { version: sender_key_version, object: group_key.clone().into() }))
+        //     .once();
         key_loader.expect_load_key_pair()
             .returning(move |_, _| Ok(asymmetric_keypair.clone().into()))
             .once();
