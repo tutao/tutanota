@@ -238,42 +238,26 @@ impl FromStr for PreconditionFailedReason {
         use PreconditionFailedReason::*;
 
         // Check and return if the string matches a value of `UnsubscribeFailureReason`
-        match UnsubscribeFailureReason::from_str(s) {
-            Ok(reason) => return Ok(UnsubscribeFailure(reason)),
-            Err(_) => {}
+        if let Ok(reason) = UnsubscribeFailureReason::from_str(s) {
+            Ok(UnsubscribeFailure(reason))
+        } else if let Ok(reason) = BookingFailureReason::from_str(s) {
+            Ok(BookingFailure(reason))
+        } else if let Ok(reason) = DomainFailureReason::from_str(s) {
+            Ok(DomainFailure(reason))
+        } else if let Ok(reason) = CustomDomainFailureReason::from_str(s) {
+            Ok(CustomDomainFailure(reason))
+        } else if let Ok(reason) = TemplateGroupFailureReason::from_str(s) {
+            Ok(TemplateGroupFailure(reason))
+        } else if let Ok(reason) = UsageTestFailureReason::from_str(s) {
+            Ok(UsageTestFailure(reason))
+        } else {
+            match s {
+                "lock.locked" => Ok(FailureLocked),
+                "mailaddressaliasservice.group_disabled" => Ok(FailureUserDisabled),
+                "outofoffice.not_available_on_current_plan" => Ok(FailureUpgradeRequired),
+                _ => Err(ParseFailureError)
+            }
         }
-
-        match BookingFailureReason::from_str(s) {
-            Ok(reason) => return Ok(BookingFailure(reason)),
-            Err(_) => {}
-        }
-
-        match DomainFailureReason::from_str(s) {
-            Ok(reason) => return Ok(DomainFailure(reason)),
-            Err(_) => {}
-        }
-
-        match CustomDomainFailureReason::from_str(s) {
-            Ok(reason) => return Ok(CustomDomainFailure(reason)),
-            Err(_) => {}
-        }
-
-        match TemplateGroupFailureReason::from_str(s) {
-            Ok(reason) => return Ok(TemplateGroupFailure(reason)),
-            Err(_) => {}
-        }
-
-        match UsageTestFailureReason::from_str(s) {
-            Ok(reason) => return Ok(UsageTestFailure(reason)),
-            Err(_) => {}
-        }
-
-        return match s {
-            "lock.locked" => Ok(FailureLocked),
-            "mailaddressaliasservice.group_disabled" => Ok(FailureUserDisabled),
-            "outofoffice.not_available_on_current_plan" => Ok(FailureUpgradeRequired),
-            _ => Err(ParseFailureError)
-        };
     }
 }
 
@@ -394,7 +378,7 @@ mod tests {
     #[test]
     fn from_http_response_non_error_test() {
         let error = HttpError::from_http_response(202, None);
-        error.expect_err(&"from_http_response_non_error_test received an Ok value!");
+        error.expect_err("from_http_response_non_error_test received an Ok value!");
     }
 
     #[test]

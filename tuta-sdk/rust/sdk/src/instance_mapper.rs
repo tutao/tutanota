@@ -25,7 +25,7 @@ impl InstanceMapper {
         map: ParsedEntity,
     ) -> Result<T, DeError> {
         let de = DictionaryDeserializer::from_iterable(map);
-        T::deserialize(de).map_err(|e| e.into())
+        T::deserialize(de)
     }
 
     #[allow(unused)] // TODO: Remove this when implementing mutations for entities
@@ -77,6 +77,7 @@ impl de::Error for DeError {
 /// (De)Serialization consist of two parts:
 ///  - (De)Serialize (how to write this type to an arbitrary data format)
 ///  - (De)Serializer (how to write arbitrary data to a specific data format)
+///
 /// Serde generates (De)Serialize implementations for our generated Entity's.
 ///
 /// We implement the other half, custom "data format",
@@ -216,7 +217,7 @@ struct ElementValueDeserializer<'s> {
 
 impl<'s> ElementValueDeserializer<'s> {
     fn wrong_type_err(&self, expected: &str) -> DeError {
-        DeError::wrong_type(&self.key, &self.value, expected)
+        DeError::wrong_type(self.key, &self.value, expected)
     }
 }
 
@@ -278,7 +279,7 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
             ElementValue::String(str) => visitor.visit_string(str),
             ElementValue::IdGeneratedId(GeneratedId(id))
             | ElementValue::IdCustomId(CustomId(id)) => visitor.visit_string(id),
-            _ => Err(self.wrong_type_err(&"string")),
+            _ => Err(self.wrong_type_err("string")),
         };
     }
 
@@ -379,7 +380,7 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
             let deserializer = DictionaryDeserializer::from_iterable(dict);
             deserializer.deserialize_struct(name, fields, visitor)
         } else {
-            Err(self.wrong_type_err(&"dict"))
+            Err(self.wrong_type_err("dict"))
         }
     }
 
@@ -388,10 +389,10 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
         V: Visitor<'de>,
     {
         if let ElementValue::Dict(dict) = self.value {
-            let de = DictionaryDeserializer::from_iterable(dict.into_iter());
+            let de = DictionaryDeserializer::from_iterable(dict);
             visitor.visit_map(de)
         } else {
-            Err(self.wrong_type_err(&"dict"))
+            Err(self.wrong_type_err("dict"))
         }
     }
 
@@ -1053,8 +1054,7 @@ mod tests {
         let mapper = InstanceMapper::new();
         let group_result = mapper.parse_entity::<Group>(parsed_entity);
         let err = group_result.unwrap_err();
-        assert_eq!(
-            true,
+        assert!(
             err.to_string().contains("_id"),
             "error message should contain _id"
         )
@@ -1069,10 +1069,9 @@ mod tests {
         .into();
         let mapper = InstanceMapper::new();
         let group_result = mapper.parse_entity::<Group>(parsed_entity);
-        assert_eq!(true, group_result.is_err(), "result is an err");
+        assert!(group_result.is_err(), "result is an err");
         let e = group_result.unwrap_err().to_string();
-        assert_eq!(
-            true,
+        assert!(
             e.contains("missing field"),
             "error message should contain missing field"
         );

@@ -15,6 +15,7 @@ use crate::element_value::ElementValue::Bool;
 use crate::entities::Errors;
 use crate::metamodel::{AssociationType, Cardinality, ModelAssociation, ModelValue, TypeModel, ValueType};
 use crate::type_model_provider::TypeModelProvider;
+use crate::util::array_cast_slice;
 
 /// Provides high level functions to handle encryption/decryption of entities
 #[derive(uniffi::Object)]
@@ -40,7 +41,7 @@ impl EntityFacade {
         }
     }
     pub fn decrypt_and_map(&self, type_model: &TypeModel, mut entity: ParsedEntity, resolved_session_key: ResolvedSessionKey) -> Result<ParsedEntity, ApiCallError> {
-        let mut mapped_decrypted = self.decrypt_and_map_inner(&type_model, entity, &resolved_session_key.session_key)?;
+        let mut mapped_decrypted = self.decrypt_and_map_inner(type_model, entity, &resolved_session_key.session_key)?;
         mapped_decrypted.insert("_ownerEncSessionKey".to_owned(), ElementValue::Bytes(resolved_session_key.owner_enc_session_key.clone()));
         Ok(mapped_decrypted)
     }
@@ -50,22 +51,22 @@ impl EntityFacade {
         let mut mapped_errors: Errors = Default::default();
         let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
-        for (&key, model_value) in type_model.values.iter() {
-            let stored_element = entity.remove(key).unwrap_or_else(|| ElementValue::Null);
+        for (&key, model_value) in &type_model.values {
+            let stored_element = entity.remove(key).unwrap_or(ElementValue::Null);
             let MappedValue {value, iv, error } = self.map_value(stored_element, session_key, key, model_value)?;
 
             mapped_decrypted.insert(key.to_string(), value);
             if let Some(error) = error {
                 mapped_errors.insert(key.to_string(), ElementValue::String(error));
             }
-            if iv.is_some() {
-                mapped_ivs.insert(key.to_string(), ElementValue::Bytes(iv.unwrap().to_vec()));
+            if let Some(iv) = iv {
+                mapped_ivs.insert(key.to_string(), ElementValue::Bytes(iv.clone()));
             }
         }
 
-        for (&association_name, association_model) in type_model.associations.iter() {
+        for (&association_name, association_model) in &type_model.associations {
             let association_entry = entity.remove(association_name).unwrap_or(ElementValue::Null);
-            let (mapped_association, errors) = self.map_associations(type_model, association_entry, &session_key, &association_name, association_model)?;
+            let (mapped_association, errors) = self.map_associations(type_model, association_entry, session_key, association_name, association_model)?;
 
             mapped_decrypted.insert(association_name.to_string(), mapped_association);
             if !errors.is_empty() {
@@ -86,15 +87,12 @@ impl EntityFacade {
     fn map_associations(&self, type_model: &TypeModel, association_data: ElementValue, session_key: &GenericAesKey, association_name: &str, association_model: &ModelAssociation) -> Result<(ElementValue, Errors), ApiCallError> {
         let mut errors: Errors = Default::default();
         let dependency = match association_model.dependency {
-            Some(ref dep) => dep,
+            Some(dep) => dep,
             None => type_model.app
         };
 
-        let aggregate_type_model = match self.type_model_provider.get_type_model(dependency, association_model.ref_type) {
-            Some(type_model) => type_model,
-            // Undefined type model or type ref should be treated as panic as the system isn't
-            // capable of dealing with unknown types
-            None => panic!("Undefined type_model {}", association_model.ref_type)
+        let Some(aggregate_type_model) = self.type_model_provider.get_type_model(dependency, association_model.ref_type) else {
+            panic!("Undefined type_model {}", association_model.ref_type)
         };
 
         return if let AssociationType::Aggregation = association_model.association_type {
@@ -110,7 +108,7 @@ impl EntityFacade {
 
                                 // Errors should be grouped inside the top-most object, so they should be
                                 // extracted and removed from aggregates
-                                if decrypted_aggregate.get("_errors").is_some() {
+                                if decrypted_aggregate.contains_key("_errors") {
                                     let error_key = &format!("{}_{}", association_name, index);
                                     self.extract_errors(error_key, &mut errors, &mut decrypted_aggregate);
                                 }
@@ -143,28 +141,25 @@ impl EntityFacade {
     }
 
     fn extract_errors(&self, association_name: &str, errors: &mut Errors, dec_aggregate: &mut ParsedEntity) {
-        match dec_aggregate.remove("_errors") {
-            Some(ElementValue::Dict(err_dict)) => {
-                if !err_dict.is_empty() {
-                    errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
-                }
+        if let Some(ElementValue::Dict(err_dict)) = dec_aggregate.remove("_errors") {
+            if !err_dict.is_empty() {
+                errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
             }
-            _ => ()
         }
     }
 
     fn map_value(&self, value: ElementValue, session_key: &GenericAesKey, key: &str, model_value: &ModelValue) -> Result<MappedValue, ApiCallError> {
         match (&model_value.cardinality, &model_value.encrypted, value) {
-            (Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::String(s)) if s == "" => {
+            (Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::String(s)) if s.is_empty() => {
                 // If the value is default-encrypted (empty string) then return default value and
                 // empty IV. When re-encrypting we should put the empty value back to not increase
                 // used storage.
                 let value = self.resolve_default_value(&model_value.value_type);
-                return Ok(MappedValue {
+                Ok(MappedValue {
                     value,
                     iv: Some(Vec::new()),
                     error: None,
-                });
+                })
             }
             (Cardinality::ZeroOrOne, _, ElementValue::Null) => {
                 // If it's null, and it's permissible then we keep it as such
@@ -176,7 +171,7 @@ impl EntityFacade {
                 let PlaintextAndIv { data: plaintext, iv } = session_key.decrypt_data_and_iv(bytes.as_slice())
                     .map_err(|e| ApiCallError::InternalSdkError { error_message: e.to_string() })?;
 
-                match self.parse_decrypted_value(model_value.value_type.to_owned(), plaintext) {
+                match self.parse_decrypted_value(model_value.value_type.clone(), plaintext) {
                     Ok(value) => {
                         // We want to ensure we use the same IV for final encrypted values, as this
                         // will guarantee we get the same value back when we encrypt it.
@@ -200,15 +195,15 @@ impl EntityFacade {
     }
 
     fn resolve_default_value(&self, value_type: &ValueType) -> ElementValue {
-        return match value_type {
+        match value_type {
             ValueType::String => ElementValue::String(String::new()),
             ValueType::Number => ElementValue::Number(0),
             ValueType::Bytes => ElementValue::Bytes(Vec::new()),
             ValueType::Date => ElementValue::Date(DateTime::new(SystemTime::UNIX_EPOCH)),
             ValueType::Boolean => Bool(false),
             ValueType::CompressedString => ElementValue::String(String::new()),
-            _ => panic!("Invalid type")
-        };
+            v => unreachable!("Invalid type {v:?}")
+        }
     }
 
     fn parse_decrypted_value(&self, value_type: ValueType, bytes: Vec<u8>) -> Result<ElementValue, ApiCallError> {
@@ -219,8 +214,8 @@ impl EntityFacade {
                 Ok(ElementValue::String(string))
             },
             ValueType::Number => {
-                if bytes.len().eq(&0) {
-                    return Ok(ElementValue::Null);
+                if bytes.is_empty() {
+                    Ok(ElementValue::Null)
                 } else {
                     // Encrypted numbers are encrypted strings.
                     let string = String::from_utf8(bytes)
@@ -231,27 +226,22 @@ impl EntityFacade {
                     Ok(ElementValue::Number(number))
                 }
             }
-            ValueType::Bytes => Ok(ElementValue::Bytes(bytes.to_vec())),
+            ValueType::Bytes => Ok(ElementValue::Bytes(bytes.clone())),
             ValueType::Date => {
-                let bytes = match bytes.try_into() {
-                    Ok(bytes) => bytes,
-                    Err(_) => return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse bytes slice".to_string() })
-                };
+                let bytes = array_cast_slice(bytes.as_slice(), "u64")
+                    .map_err(|e| ApiCallError::internal_with_err(e, "Invalid date bytes"))?;
                 Ok(ElementValue::Date(DateTime::from_millis(u64::from_be_bytes(bytes))))
             }
             ValueType::Boolean => {
-                let value = if bytes.eq("1".as_bytes()) {
-                    true
-                } else if bytes.eq("0".as_bytes()) {
-                    false
-                } else {
-                    return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse boolean bytes".to_string() });
+                let value = match bytes.as_slice() {
+                    b"0" => false,
+                    b"1" => true,
+                    _ => return Err(ApiCallError::InternalSdkError { error_message: "Failed to parse boolean bytes".to_owned() })
                 };
-
                 Ok(Bool(value))
             }
             ValueType::CompressedString => unimplemented!("compressed string"),
-            _ => panic!("Failed to parse bytes into ElementValue")
+            v => unreachable!("Can't parse {v:?} into ElementValue")
         };
     }
 }
@@ -290,7 +280,7 @@ mod tests {
 
         let entity_facade = EntityFacade::new(Arc::clone(&type_model_provider));
         let type_ref = Mail::type_ref();
-        let type_model = type_model_provider.get_type_model(&type_ref.app, &type_ref.type_)
+        let type_model = type_model_provider.get_type_model(type_ref.app, type_ref.type_)
             .unwrap();
 
         let decrypted_mail = entity_facade.decrypt_and_map(type_model, encrypted_mail, ResolvedSessionKey { session_key: sk, owner_enc_session_key }).unwrap();
@@ -298,7 +288,7 @@ mod tests {
         let mail: Mail = instance_mapper.parse_entity(decrypted_mail.clone()).unwrap();
 
         assert_eq!(&DateTime::from_millis(1720612041643), decrypted_mail.get("receivedDate").unwrap().assert_date());
-        assert_eq!(true, decrypted_mail.get("confidential").unwrap().assert_bool());
+        assert!(decrypted_mail.get("confidential").unwrap().assert_bool());
         assert_eq!("Html email features", decrypted_mail.get("subject").unwrap().assert_str());
         assert_eq!("Matthias", decrypted_mail.get("sender").unwrap().assert_dict().get("name").unwrap().assert_str());
         assert_eq!("map-free@tutanota.de", decrypted_mail.get("sender").unwrap().assert_dict().get("address").unwrap().assert_str());

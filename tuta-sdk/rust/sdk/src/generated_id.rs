@@ -11,12 +11,14 @@ pub const GENERATED_ID_BYTES_LENGTH: usize = 9;
 pub struct GeneratedId(pub String);
 
 impl GeneratedId {
+    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Generates and returns a random `CustomId`
     #[cfg(test)]
+    #[must_use]
     pub fn test_random() -> Self {
         use crate::util::test_utils::generate_random_string;
         // not the actual alphabet we use in real generated IDs, but we aren't dealing with parsing generated IDs yet, so it's fine

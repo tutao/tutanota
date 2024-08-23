@@ -8,18 +8,22 @@ use serde::de::{Error, Visitor};
 pub struct DateTime(SystemTime);
 
 impl DateTime {
+    #[must_use]
     pub fn new(time: SystemTime) -> Self {
         Self(time)
     }
 
+    #[must_use]
     pub fn from_millis(millis: u64) -> Self {
         Self(SystemTime::UNIX_EPOCH + Duration::from_millis(millis))
     }
 
+    #[must_use]
     pub fn get_time(self) -> SystemTime {
         self.0
     }
 
+    #[must_use]
     pub fn as_millis(self) -> u64 {
         self.0.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as u64
     }

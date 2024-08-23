@@ -48,7 +48,7 @@ impl EntityClient {
         type_ref: &TypeRef,
         id: &Id,
     ) -> Result<ParsedEntity, ApiCallError> {
-        let type_model = self.get_type_model(&type_ref)?;
+        let type_model = self.get_type_model(type_ref)?;
         let url = format!("{}/rest/{}/{}/{}", self.base_url, type_ref.app, type_ref.type_, id);
         let model_version: u32 = type_model.version.parse().map_err(|_| {
             let message = format!("Tried to parse invalid model_version {}", type_model.version);
@@ -71,23 +71,21 @@ impl EntityClient {
         }
         let response_bytes = response.body.expect("no body");
         let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice()).unwrap();
-        let parsed_entity = self.json_serializer.parse(&type_ref, response_entity)?;
+        let parsed_entity = self.json_serializer.parse(type_ref, response_entity)?;
         Ok(parsed_entity)
     }
 
     /// Returns the definition of an entity/instance type using the internal `TypeModelProvider`
     pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&TypeModel, ApiCallError> {
-        let type_model = match self.type_model_provider.get_type_model(&type_ref.app, &type_ref.type_) {
-            Some(value) => value,
-            None => {
+        self.type_model_provider.get_type_model(type_ref.app, type_ref.type_)
+            .ok_or_else(|| {
                 let message = format!("Model {} not found in app {}", type_ref.type_, type_ref.app);
-                return Err(ApiCallError::InternalSdkError { error_message: message });
-            }
-        };
-        Ok(type_model)
+                ApiCallError::InternalSdkError { error_message: message }
+            })
     }
 
     /// Fetches and returns all entities/instances in a list element type
+    #[allow(clippy::unused_async)]
     pub async fn load_all(
         &self,
         _type_ref: &TypeRef,
@@ -99,6 +97,7 @@ impl EntityClient {
 
     /// Fetches and returns a specified number (`count`) of entities/instances
     /// in a list element type starting at the index `start_id`
+    #[allow(clippy::unused_async)]
     pub async fn load_range(
         &self,
         _type_ref: &TypeRef,
@@ -111,11 +110,13 @@ impl EntityClient {
     }
 
     /// Stores a newly created entity/instance as a single element on the backend
+    #[allow(clippy::unused_async)]
     pub async fn setup_element(&self, _type_ref: &TypeRef, _entity: RawEntity) -> Vec<String> {
         todo!("entity client setup_element")
     }
 
     /// Stores a newly created entity/instance as a part of a list element on the backend
+    #[allow(clippy::unused_async)]
     pub async fn setup_list_element(
         &self,
         _type_ref: &TypeRef,
@@ -150,11 +151,13 @@ impl EntityClient {
     }
 
     /// Deletes an existing single entity/instance on the backend
+    #[allow(clippy::unused_async)]
     pub async fn erase_element(&self, _type_ref: &TypeRef, _id: &GeneratedId) -> Result<(), ApiCallError> {
         todo!("entity client erase_element")
     }
 
     /// Deletes an existing entity/instance of a list element type on the backend
+    #[allow(clippy::unused_async)]
     pub async fn erase_list_element(&self, _type_ref: &TypeRef, _id: IdTuple) -> Result<(), ApiCallError> {
         todo!("entity client erase_list_element")
     }

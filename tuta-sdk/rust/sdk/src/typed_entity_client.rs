@@ -26,6 +26,7 @@ impl TypedEntityClient {
         }
     }
 
+    #[allow(clippy::unused_async)]
     pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(
         &self,
         id: &Id,
@@ -38,18 +39,20 @@ impl TypedEntityClient {
         }
         let parsed_entity = self.entity_client.load::<Id>(&T::type_ref(), id).await?;
         let typed_entity = self.instance_mapper.parse_entity::<T>(parsed_entity).map_err(|e| {
-            let message = format!("Failed to parse entity into proper types: {}", e.to_string());
+            let message = format!("Failed to parse entity into proper types: {e}");
             ApiCallError::InternalSdkError { error_message: message }
         })?;
         Ok(typed_entity)
     }
 
     #[allow(dead_code)]
+    #[allow(clippy::unused_async)]
     async fn load_all<T: Entity + Deserialize<'static>>(&self, _list_id: &IdTuple, _start: Option<String>) -> Result<Vec<T>, ApiCallError> {
         todo!("typed entity client load_all")
     }
 
     #[allow(dead_code)]
+    #[allow(clippy::unused_async)]
     pub async fn load_range<T: Entity + Deserialize<'static>>(&self, _list_id: &GeneratedId, _start_id: &GeneratedId, _count: usize, _list_load_direction: ListLoadDirection) -> Result<Vec<T>, ApiCallError> {
         todo!("typed entity client load_range")
     }

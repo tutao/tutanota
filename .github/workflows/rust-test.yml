@@ -31,6 +31,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      - name: sdk warning check with clippy
+        working-directory: tuta-sdk/rust
+        run: cargo clippy --package tuta-sdk --no-deps -- -Dwarnings # -Dwarnings changes warnings to errors so that the check fails
       - name: sdk tests
         working-directory: tuta-sdk/rust
         run: cargo test
