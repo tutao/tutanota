@@ -237,8 +237,8 @@ export class WindowManager {
 		return w
 	}
 
-	async openMailBox(info: UserInfo): Promise<void> {
-		return (await this.findWindowWithUserId(info.userId)).openMailBox(info, null)
+	async openMailBox(info: UserInfo, path?: string | null): Promise<void> {
+		return (await this.findWindowWithUserId(info.userId)).openMailBox(info, path)
 	}
 
 	async openCalendar(info: UserInfo): Promise<void> {

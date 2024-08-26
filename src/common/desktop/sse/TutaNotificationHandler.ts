@@ -62,12 +62,22 @@ export class TutaNotificationHandler {
 		)
 	}
 
-	private onMailNotificationClick(res: NotificationResult, ni: NotificationInfo) {
+	private onMailNotificationClick(res: NotificationResult, notificationInfo: NotificationInfo) {
 		if (res === NotificationResult.Click) {
-			this.windowManager.openMailBox({
-				userId: ni.userId,
-				mailAddress: ni.mailAddress,
-			})
+			let requestedPath: string | null
+			if (notificationInfo.mailId) {
+				const mailIdParam = encodeURIComponent(`${notificationInfo.mailId.listId},${notificationInfo.mailId.listElementId}`)
+				requestedPath = `?mail=${mailIdParam}`
+			} else {
+				requestedPath = null
+			}
+			this.windowManager.openMailBox(
+				{
+					userId: notificationInfo.userId,
+					mailAddress: notificationInfo.mailAddress,
+				},
+				requestedPath,
+			)
 		}
 	}
 
