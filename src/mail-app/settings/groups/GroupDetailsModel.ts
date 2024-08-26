@@ -118,9 +118,7 @@ export class GroupDetailsModel {
 			return await locator.groupManagementFacade.deactivateGroup(group, !deactivate)
 		} catch (e) {
 			if (!(e instanceof PreconditionFailedError)) throw e
-			if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-				throw new UserError("localAdminGroupAssignedError_msg")
-			} else if (!deactivate) {
+			if (!deactivate) {
 				throw new UserError("emailAddressInUse_msg")
 			} else {
 				throw new UserError("stillReferencedFromContactForm_msg")
@@ -169,20 +167,12 @@ export class GroupDetailsModel {
 		if (deactivate && members.length > 0) {
 			throw new UserError("groupNotEmpty_msg")
 		} else {
-			let bookingItemType
-			let bookingText: TranslationKey
-
 			const userController = locator.logins.getUserController()
 			const planType = await userController.getPlanType()
 			const useLegacyBookingItem = await userController.useLegacyBookingItem()
 
-			if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-				bookingItemType = useLegacyBookingItem ? toFeatureType(planType) : BookingItemFeatureType.LocalAdminGroup
-				bookingText = deactivate ? "cancelLocalAdminGroup_label" : "localAdminGroup_label"
-			} else {
-				bookingItemType = useLegacyBookingItem ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup
-				bookingText = deactivate ? "cancelSharedMailbox_label" : "sharedMailbox_label"
-			}
+			const bookingItemType = useLegacyBookingItem ? toFeatureType(planType) : BookingItemFeatureType.SharedMailGroup
+			const bookingText: TranslationKey = deactivate ? "cancelSharedMailbox_label" : "sharedMailbox_label"
 
 			return {
 				featureType: bookingItemType,
@@ -199,20 +189,9 @@ export class GroupDetailsModel {
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		// remove all users that are already member
 		let globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
-		let myLocalAdminShips = locator.logins
-			.getUserController()
-			.getLocalAdminGroupMemberships()
-			.map((gm) => gm.group)
 		let availableUserGroupInfos = userGroupInfos.filter((userGroupInfo) => {
 			if (
-				!globalAdmin && // if we are global admin we may add anyone, don't filter
-				!(
-					// don't filter if both:
-					(
-						userGroupInfo.localAdmin != null && // the user does have a local admin and
-						myLocalAdminShips.includes(userGroupInfo.localAdmin)
-					) // we are a member of the users local admin group
-				)
+				!globalAdmin // if we are not a  global admin we may not add anyone, don't filter
 			) {
 				return false
 			} else {

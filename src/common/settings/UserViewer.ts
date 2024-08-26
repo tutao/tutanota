@@ -55,7 +55,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.teamGroupInfos.getAsync().then(async (availableTeamGroupInfos) => {
 			if (availableTeamGroupInfos.length > 0) {
-				this.availableTeamGroupInfos = availableTeamGroupInfos.filter((info) => info.groupType === GroupType.LocalAdmin)
+				this.availableTeamGroupInfos = availableTeamGroupInfos
 				this.groupsTableAttrs = {
 					columnHeading: ["name_label", "groupType_label"],
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
@@ -281,17 +281,13 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			Dialog.message("userAccountDeactivated_msg")
 		} else {
 			const globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
-			const localAdminGroupIds = locator.logins
-				.getUserController()
-				.getLocalAdminGroupMemberships()
-				.map((gm) => gm.group)
 
 			const availableGroupInfos = this.teamGroupInfos
 				.getLoaded()
 				.filter(
 					(g) =>
-						// global admins may add all groups, local admins may only add groups they either are the admin of or it is their own local admin group
-						(globalAdmin || localAdminGroupIds.some((groupId) => groupId === g.localAdmin || groupId === g.group)) &&
+						// global admins may add all groups
+						globalAdmin &&
 						// can't add deleted groups
 						!g.deleted &&
 						// can't add if the user is already in the group

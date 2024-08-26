@@ -1,9 +1,9 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
 import { size } from "../gui/size.js"
-import type { GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
+import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { contains, LazyLoaded, memoized, noOp } from "@tutao/tutanota-utils"
+import { contains, LazyLoaded, noOp } from "@tutao/tutanota-utils"
 import { UserViewer } from "./UserViewer.js"
 import { FeatureType, GroupType } from "../api/common/TutanotaConstants.js"
 import { Icon } from "../gui/base/Icon.js"
@@ -207,13 +207,6 @@ export class UserListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	private readonly localAdminGroups = memoized((user: User) => {
-		return locator.logins
-			.getUserController()
-			.getLocalAdminGroupMemberships()
-			.map((gm) => gm.group)
-	})
-
 	private makeListModel(): ListModel<GroupInfo> {
 		const listModel = new ListModel<GroupInfo>({
 			sortCompare: compareGroupInfos,
@@ -240,7 +233,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
-		listModel.setFilter((gi) => this.groupFilter(gi) && this.queryFilter(gi))
+		listModel.setFilter((gi) => this.groupFilter() && this.queryFilter(gi))
 
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = listModel.stateStream.map((state) => {
@@ -271,12 +264,8 @@ export class UserListView implements UpdatableSettingsViewer {
 		)
 	}
 
-	private groupFilter = (gi: GroupInfo) => {
-		if (locator.logins.getUserController().isGlobalAdmin()) {
-			return true
-		} else {
-			return !!gi.localAdmin && this.localAdminGroups(locator.logins.getUserController().user).includes(gi.localAdmin)
-		}
+	private groupFilter = () => {
+		return locator.logins.getUserController().isGlobalAdmin()
 	}
 
 	private updateQuery(query: string) {
