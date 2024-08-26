@@ -75,7 +75,7 @@ export class RecoverCodeFacade {
 			authVerifier: createAuthVerifierAsBase64Url(passphraseKey),
 		}
 
-		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, undefined, extraHeaders)
+		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
 		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(recoveryCodeEntity.userKeyVersion))
 		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}

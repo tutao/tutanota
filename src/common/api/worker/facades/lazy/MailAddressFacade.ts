@@ -150,13 +150,9 @@ export class MailAddressFacade {
 			viaUser
 				? await this.groupManagement.getGroupKeyViaUser(mailGroupId, version, viaUser)
 				: await this.groupManagement.getGroupKeyViaAdminEncGKey(mailGroupId, version)
-		const mailboxProperties = await this.nonCachingEntityClient.load(
-			MailboxPropertiesTypeRef,
-			mailboxGroupRoot.mailboxProperties,
-			undefined,
-			undefined,
-			groupKeyProvider,
-		)
+		const mailboxProperties = await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties, {
+			ownerKeyProvider: groupKeyProvider,
+		})
 
 		return mailboxProperties.mailAddressProperties.length === 0 ? this.mailboxPropertiesWithLegacySenderName(mailboxProperties, viaUser) : mailboxProperties
 	}
@@ -218,7 +214,7 @@ export class MailAddressFacade {
 				? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
 				: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)
 		await this.nonCachingEntityClient.update(mailboxProperties, { ownerKeyProvider: groupKeyProvider })
-		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, groupKeyProvider)
+		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, { ownerKeyProvider: groupKeyProvider })
 	}
 
 	private async collectSenderNames(mailboxProperties: MailboxProperties): Promise<Map<string, string>> {

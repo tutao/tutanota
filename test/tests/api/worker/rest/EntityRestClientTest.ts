@@ -157,7 +157,7 @@ o.spec("EntityRestClient", function () {
 				}),
 			).thenResolve(JSON.stringify({ instance: "calendar" }))
 
-			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { foo: "bar" }, { baz: "quux" })
+			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { queryParams: { foo: "bar" }, extraHeaders: { baz: "quux" } })
 		})
 
 		o("when loading encrypted instance and not being logged in it throws an error", async function () {
@@ -181,7 +181,7 @@ o.spec("EntityRestClient", function () {
 			const sessionKey = [3, 2, 1]
 			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
 
-			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], undefined, undefined, async (_) => ownerKey)
+			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { ownerKeyProvider: async (_) => ownerKey })
 
 			const typeModel = await resolveTypeReference(CalendarEventTypeRef)
 			verify(instanceMapperMock.decryptAndMapToInstance(typeModel, anything(), sessionKey))

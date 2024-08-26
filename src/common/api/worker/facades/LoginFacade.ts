@@ -1002,8 +1002,10 @@ export class LoginFacade {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
 
 		const { userId, accessToken } = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null)
-		const user = await entityClient.load(UserTypeRef, userId, undefined, {
-			accessToken,
+		const user = await entityClient.load(UserTypeRef, userId, {
+			extraHeaders: {
+				accessToken,
+			},
 		})
 		if (user.auth == null || user.auth.recoverCode == null) {
 			throw new Error("missing recover code")
@@ -1013,7 +1015,7 @@ export class LoginFacade {
 			recoverCodeVerifier: recoverCodeVerifierBase64,
 		}
 
-		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, undefined, recoverCodeExtraHeaders)
+		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, { extraHeaders: recoverCodeExtraHeaders })
 		try {
 			const groupKey = aes256DecryptWithRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()

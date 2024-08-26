@@ -571,7 +571,7 @@ o.spec("SendMailModel", function () {
 			await model.handleEntityEvent(downcast(NotificationMailTypeRef))
 			await model.handleEntityEvent(downcast(ChallengeTypeRef))
 			await model.handleEntityEvent(downcast(MailTypeRef))
-			verify(entity.load(anything(), anything(), anything(), anything()), { times: 0 })
+			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
 
 		o("contact updated email kept", async function () {

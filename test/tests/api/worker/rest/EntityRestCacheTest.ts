@@ -101,7 +101,7 @@ node(() => testEntityRestCache("offline", getOfflineStorage))()
 export function testEntityRestCache(name: string, getStorage: (userId: Id) => Promise<CacheStorage>) {
 	const groupId = "groupId"
 	const batchId = "batchId"
-	o.spec(`entity rest cache ${name}`, function () {
+	o.spec(`EntityRestCache ${name}`, function () {
 		let storage: CacheStorage
 		let cache: DefaultEntityRestCache
 
@@ -1588,24 +1588,24 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				load: spy(() => contact),
 			})
 			const cache = new DefaultEntityRestCache(client, storage)
-			await cache.load(
-				ContactTypeRef,
-				contactId,
-				{
+			await cache.load(ContactTypeRef, contactId, {
+				queryParams: {
 					myParam: "param",
 				},
-				{
+				extraHeaders: {
 					myHeader: "header",
 				},
-			)
-			// @ts-ignore
-			o(isSameTypeRef(client.load.args[0], ContactTypeRef)).equals(true)
-			o(client.load.args[1]).deepEquals(contactId)
-			o(client.load.args[2]).deepEquals({
-				myParam: "param",
 			})
-			o(client.load.args[3]).deepEquals({
-				myHeader: "header",
+			const [typeRef, id, opts] = client.load.args as Parameters<EntityRestClient["load"]>
+			o(isSameTypeRef(typeRef, ContactTypeRef)).equals(true)
+			o(id).deepEquals(contactId)
+			o(opts).deepEquals({
+				queryParams: {
+					myParam: "param",
+				},
+				extraHeaders: {
+					myHeader: "header",
+				},
 			})
 		})
 		o("single entity is cached after being loaded", async function () {
