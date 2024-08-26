@@ -33,7 +33,7 @@ o.spec("SimpleColorEditor", function () {
 		themeController = {
 			applyCustomizations: spy(),
 			getDefaultTheme: () => {
-				return themes["light"]
+				return themes()["light"]
 			},
 		} as Partial<ThemeController> as ThemeController
 		whitelabelConfig = createTestEntity(WhitelabelConfigTypeRef)

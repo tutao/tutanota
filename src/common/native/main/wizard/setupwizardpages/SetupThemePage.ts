@@ -5,6 +5,7 @@ import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../..
 import { themeOptions, ThemePreference } from "../../../../gui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../../api/main/CommonLocator.js"
+import { client } from "../../../../misc/ClientDetector.js"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 	// The whitelabel themes formatted as `RadioSelectorOption`s.
@@ -32,7 +33,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 				? null
 				: m(RadioSelector, {
 						name: "theme_label",
-						options: [...themeOptions, ...this.customThemes],
+						options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
 						class: "mb-s",
 						selectedOption: locator.themeController.themePreference,
 						onOptionSelected: (option) => {
