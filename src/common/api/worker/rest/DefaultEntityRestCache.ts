@@ -1,5 +1,11 @@
-import type { EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "./EntityRestClient"
-import { EntityRestClient, EntityRestClientSetupOptions } from "./EntityRestClient"
+import {
+	CacheMode,
+	EntityRestClient,
+	EntityRestClientSetupOptions,
+	EntityRestInterface,
+	OwnerEncSessionKeyProvider,
+	OwnerKeyProvider,
+} from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
 import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
@@ -239,6 +245,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		queryParameters?: Dict,
 		extraHeaders?: Dict,
 		ownerKeyProvider?: OwnerKeyProvider,
+		cacheMode: CacheMode = CacheMode.Cache,
 	): Promise<T> {
 		const { listId, elementId } = expandId(id)
 
@@ -247,7 +254,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
 		}
 
-		const cachedEntity = await this.storage.get(typeRef, listId, elementId)
+		let cachedEntity: T | null
+		if (cacheMode == CacheMode.Cache) {
+			cachedEntity = await this.storage.get(typeRef, listId, elementId)
+		} else {
+			cachedEntity = null
+		}
 
 		if (cachedEntity == null) {
 			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)

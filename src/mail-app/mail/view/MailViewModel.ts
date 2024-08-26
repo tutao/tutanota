@@ -17,6 +17,7 @@ import {
 	assertNotNull,
 	count,
 	debounce,
+	first,
 	groupByAndMap,
 	lastThrow,
 	lazyMemoized,
@@ -34,7 +35,7 @@ import { MailSetKind, OperationType } from "../../../common/api/common/TutanotaC
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import Stream from "mithril/stream"
@@ -45,6 +46,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common
 import { EventController } from "../../../common/api/main/EventController.js"
 import { assertSystemFolderOfType, getMailFilterForType, isOfTypeOrSubfolderOf, MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isSpamOrTrashFolder, isSubfolderOfType } from "../../../common/api/common/CommonMailUtils.js"
+import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -69,13 +71,18 @@ function sortCompareMailSetMails(firstMail: Mail, secondMail: Mail): number {
 	}
 }
 
+const TAG = "MailVM"
+
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	private _folder: MailFolder | null = null
-	/** id of the mail we are trying to load based on the URL */
-	private targetMailId: Id | null = null
-	/** needed to prevent parallel target loads */
-	private loadingToTargetId: Id | null = null
+	/** id of the mail that was requested to be displayed, independent of the list state. */
+	private stickyMailId: Id | null = null
+	/**
+	 * When the URL contains both folder id and mail id we will try to select that mail but we might need to load the list until we find it.
+	 * This is that mail id that we are loading.
+	 */
+	private loadingTargetId: Id | null = null
 	private conversationViewModel: ConversationViewModel | null = null
 	private _filterType: MailFilterType | null = null
 
@@ -121,50 +128,73 @@ export class MailViewModel {
 		}
 	}
 
-	async showExplicitMailPreview([listId, elementId]: IdTuple): Promise<void> {
+	async showStickyMail([listId, elementId]: IdTuple, onMissingExplicitMailTarget: () => unknown): Promise<void> {
 		// If we are already displaying the requested email, do nothing
 		if (this.conversationViewModel && isSameId(this.conversationViewModel.primaryMail._id, elementId)) {
 			return
 		}
-		this.targetMailId = elementId
-		const cached = await this.cacheStorage.get(MailTypeRef, listId, elementId)
-
-		if (this.targetMailId != elementId) return
-
-		if (cached) {
-			console.log("showing cached mail")
-			this.conversationViewModel = this.conversationViewModelFactory({ mail: cached, showFolder: false })
-			this.updateUi()
-
-			const folder = this.mailModel.getMailFolderForMail(cached)
-			const folderToUse = await this.selectFolderToUse(folder ?? null)
-			// make sure that we display *something* in the list
-			await this.setListId(folderToUse)
+		if (this.stickyMailId === elementId) {
+			return
 		}
+
+		console.log(TAG, "Loading sticky mail", listId, elementId)
+		this.stickyMailId = elementId
+
+		// This should be very quick as we only wait for the cache,
+		await this.loadExplicitMailTarget(listId, elementId, onMissingExplicitMailTarget)
+
+		if (this.stickyMailId !== elementId) return
+
+		// Make sure that we display *something* in the list, otherwise it'll be empty on mobile
+		// We could try to open the location of the mail, but it might have been moved around soon after
+		this.setListId(await this.getFolderForUserInbox())
 	}
 
-	async showMail(folder?: MailFolder | null, mailId?: Id) {
+	private async showMail(folder?: MailFolder | null, mailId?: Id) {
 		// an optimization to not open an email that we already display
 		if (folder != null && mailId != null && this.conversationViewModel && isSameId(elementIdPart(this.conversationViewModel.primaryMail._id), mailId)) {
 			return
 		}
+		// If we are already loading towards the email that is passed to us in the URL then we don't need to do anything. We already updated URL on the
+		// previous call.
+		if (
+			folder != null &&
+			mailId != null &&
+			this._folder &&
+			this.loadingTargetId &&
+			isSameId(folder._id, this._folder._id) &&
+			isSameId(this.loadingTargetId, mailId)
+		) {
+			return
+		}
+		console.log(TAG, "showMail", folder?._id, mailId)
 
-		// important to set it early enough because setting listId will trigger URL update.
+		// important: to set it early enough because setting listId will trigger URL update.
 		// if we don't set this one before setListId, url update will cause this function to be called again but without target mail, and we will lose the
-		// target URL
-		this.targetMailId = typeof mailId === "string" ? mailId : null
-		const folderToUse = await this.selectFolderToUse(folder ?? null)
-		await this.setListId(folderToUse)
+		// target id
+		const loadingTargetId = mailId ?? null
+		this.loadingTargetId = loadingTargetId
 
-		// if there is a target id, and we are not loading for this id already then start loading towards that id
-		if (this.targetMailId && this.targetMailId != this.loadingToTargetId) {
-			this.mailFolderElementIdToSelectedMailId = mapWith(this.mailFolderElementIdToSelectedMailId, getElementId(folderToUse), this.targetMailId)
+		// if the URL has changed then we probably want to reset the explicitly shown email
+		this.stickyMailId = null
+
+		const folderToUse = await this.selectFolderToUse(folder ?? null)
+		// Selecting folder is async, check that the target hasn't changed inbetween
+		if (this.loadingTargetId !== loadingTargetId) return
+
+		// This will cause a URL update indirectly
+		this.setListId(folderToUse)
+
+		// If we have a mail that should be selected start loading towards it.
+		// We already checked in the beginning that we are not loading to the same target. We set the loadingTarget early so there should be no races.
+		if (loadingTargetId) {
+			// Record the selected mail for the folder
+			this.mailFolderElementIdToSelectedMailId = mapWith(this.mailFolderElementIdToSelectedMailId, getElementId(folderToUse), loadingTargetId)
 			try {
-				this.loadingToTargetId = this.targetMailId
-				await this.loadAndSelectMail(folderToUse, this.targetMailId)
+				await this.loadAndSelectMail(folderToUse, loadingTargetId)
 			} finally {
-				this.loadingToTargetId = null
-				this.targetMailId = null
+				// We either selected the mail and we don't need the target anymore or we didn't find it and we should remove the target
+				this.loadingTargetId = null
 			}
 		} else {
 			// update URL if the view was just opened without any url params
@@ -186,6 +216,51 @@ export class MailViewModel {
 		}
 	}
 
+	private async loadExplicitMailTarget(listId: Id, mailId: Id, onMissingTargetEmail: () => unknown) {
+		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
+		if (cached) {
+			console.log(TAG, "opening cached mail", mailId)
+			this.createConversationViewModel({ mail: cached, showFolder: false })
+			this.listModel?.selectNone()
+			this.updateUi()
+		}
+
+		if (this.stickyMailId !== mailId) {
+			console.log(TAG, "target mail id changed 1", mailId, this.stickyMailId)
+			return
+		}
+
+		let mail: Mail | null
+		try {
+			mail = await this.entityClient
+				.load(MailTypeRef, [listId, mailId], undefined, undefined, undefined, CacheMode.Bypass)
+				.catch(ofClass(NotFoundError, () => null))
+		} catch (e) {
+			if (isOfflineError(e)) {
+				return
+			} else {
+				throw e
+			}
+		}
+
+		if (this.stickyMailId !== mailId) {
+			console.log(TAG, "target mail id changed 2", mailId, this.stickyMailId)
+			return
+		}
+
+		if (mail) {
+			this.createConversationViewModel({ mail, showFolder: false })
+			this.listModel?.selectNone()
+			this.updateUi()
+		} else {
+			console.log(TAG, "Explicit mail target is not found", listId, mailId)
+			onMissingTargetEmail()
+			// We already know that email is not there, we can reset the target here and avoid list loading
+			this.stickyMailId = null
+			this.updateUrl()
+		}
+	}
+
 	private async loadAndSelectMail(folder: MailFolder, mailId: Id) {
 		const foundMail = await this.listModel?.loadAndSelect(
 			mailId,
@@ -195,7 +270,7 @@ export class MailViewModel {
 				// if listModel is gone for some reason, stop
 				!this.listModel ||
 				// if the target mail has changed, stop
-				this.targetMailId !== mailId ||
+				this.loadingTargetId !== mailId ||
 				// if we loaded past the target item we won't find it, stop
 				(this.listModel.state.items.length > 0 && firstBiggerThanSecond(mailId, getElementId(lastThrow(this.listModel.state.items)))),
 		)
@@ -240,7 +315,7 @@ export class MailViewModel {
 		return this._folder
 	}
 
-	private async setListId(folder: MailFolder) {
+	private setListId(folder: MailFolder) {
 		if (folder === this._folder) {
 			return
 		}
@@ -251,7 +326,7 @@ export class MailViewModel {
 		this._folder = folder
 		this.listStreamSubscription?.end(true)
 		this.listStreamSubscription = this.listModel!.stateStream.map((state) => this.onListStateChange(state))
-		await this.listModel!.loadInitial()
+		this.listModel!.loadInitial()
 	}
 
 	getConversationViewModel(): ConversationViewModel | null {
@@ -319,20 +394,26 @@ export class MailViewModel {
 	)
 
 	private onListStateChange(newState: ListState<Mail>) {
-		if (!newState.inMultiselect && newState.selectedItems.size === 1) {
-			const mail = this.listModel!.getSelectedAsArray()[0]
-			if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, mail._id)) {
+		// If we are showing sticky mail ignore the state changes from the list. We will reset the target on user selection, url changes and
+		// entity events separately.
+		const targetItem = this.stickyMailId
+			? newState.items.find((item) => getElementId(item) === this.stickyMailId)
+			: !newState.inMultiselect && newState.selectedItems.size === 1
+			? first(this.listModel!.getSelectedAsArray())
+			: null
+		if (targetItem != null) {
+			if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, targetItem._id)) {
 				this.mailFolderElementIdToSelectedMailId = mapWith(
 					this.mailFolderElementIdToSelectedMailId,
 					getElementId(assertNotNull(this.getFolder())),
-					getElementId(mail),
+					getElementId(targetItem),
 				)
 
 				this.createConversationViewModel({
-					mail,
+					mail: targetItem,
 					showFolder: false,
 				})
-				this.mailOpenedListener.onEmailOpened(mail)
+				this.mailOpenedListener.onEmailOpened(targetItem)
 			}
 		} else {
 			this.conversationViewModel?.dispose()
@@ -346,11 +427,14 @@ export class MailViewModel {
 	private updateUrl() {
 		const folder = this._folder
 		const folderId = folder ? getElementId(folder) : null
-		const mailId = this.targetMailId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
+		// If we are loading towards an email we want to keep it in the URL, otherwise we will reset it.
+		// Otherwise, if we have a single selected email then that should be in the URL.
+		const mailId = this.loadingTargetId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
+		const stickyMail = this.stickyMailId
 		if (mailId != null) {
-			this.router.routeTo("/mail/:folderId/:mailId", { folderId, mailId })
+			this.router.routeTo("/mail/:folderId/:mailId", { folderId, mailId, mail: stickyMail })
 		} else {
-			this.router.routeTo("/mail/:folderId", { folderId: folderId ?? "" })
+			this.router.routeTo("/mail/:folderId", { folderId: folderId ?? "", mail: stickyMail })
 		}
 	}
 
@@ -359,15 +443,19 @@ export class MailViewModel {
 		this.conversationViewModel = this.conversationViewModelFactory(viewModelParams)
 	}
 
-	async entityEventsReceivedForLegacy(updates: ReadonlyArray<EntityUpdateData>) {
+	private async entityEventsReceivedForLegacy(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailTypeRef, update) && update.instanceListId === this._folder?.mails) {
+				if (update.instanceId === this.stickyMailId && update.operation === OperationType.DELETE) {
+					// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
+					this.stickyMailId = null
+				}
 				await this.listModel?.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		const folder = this._folder
 		const listModel = this.listModel
 
@@ -378,7 +466,9 @@ export class MailViewModel {
 			return this.entityEventsReceivedForLegacy(updates)
 		}
 
-		let [mailEvent, oldEntryEvent, newEntryEvent]: EntityUpdateData[] = []
+		let mailEvent: EntityUpdateData | null = null
+		let oldEntryEvent: EntityUpdateData | null = null
+		let newEntryEvent: EntityUpdateData | null = null
 		for (const event of updates) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
 				mailEvent = event
@@ -391,14 +481,24 @@ export class MailViewModel {
 			}
 		}
 
-		if (isSameId(folder.entries, newEntryEvent?.instanceListId)) {
-			await this.listModel?.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, OperationType.CREATE)
-		} else if (isSameId(folder.entries, oldEntryEvent?.instanceListId)) {
-			await this.listModel?.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, OperationType.DELETE)
+		// Mail list only contains Mail's but the contents of the list depend on the MailSetEntry's. When MailSetEntry gets
+		// created or deleted we need to dispatch a CREATE or DELETE event as if it happened for the Mail entity.
+		if (mailEvent && newEntryEvent && isSameId(folder.entries, newEntryEvent.instanceListId)) {
+			await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, OperationType.CREATE)
+		} else if (mailEvent && oldEntryEvent && isSameId(folder.entries, oldEntryEvent.instanceListId)) {
+			// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
+			if (mailEvent.instanceId === this.stickyMailId) {
+				this.stickyMailId = null
+			}
+			await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, OperationType.DELETE)
 		} else if (mailEvent && !oldEntryEvent && !newEntryEvent) {
+			// In case it is just a mail update then we need to update not the structure of the list but just one entry in it.
+			// We download the email (it should already be downloaded by MailModel for inbox rules) and check if it's still in
+			// our folder.
+			// If it is, we dispatch the update event for the mail.
 			const mail = await this.entityClient.load(MailTypeRef, [mailEvent.instanceListId, mailEvent.instanceId])
 			if (mail.sets.some((id) => isSameId(elementIdPart(id), getElementId(folder)))) {
-				await this.listModel?.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, mailEvent.operation)
+				await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, mailEvent.operation)
 			}
 		}
 	}
@@ -563,5 +663,57 @@ export class MailViewModel {
 		} else {
 			throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
 		}
+	}
+
+	onSingleSelection(mail: Mail) {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.onSingleSelection(mail)
+	}
+
+	areAllSelected(): boolean {
+		return this.listModel?.areAllSelected() ?? false
+	}
+
+	selectNone(): void {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.selectNone()
+	}
+
+	selectAll(): void {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.selectAll()
+	}
+
+	onSingleInclusiveSelection(mail: Mail, clearSelectionOnMultiSelectStart?: boolean) {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.onSingleInclusiveSelection(mail, clearSelectionOnMultiSelectStart)
+	}
+
+	onRangeSelectionTowards(mail: Mail) {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.selectRangeTowards(mail)
+	}
+
+	selectPrevious(multiselect: boolean) {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.selectPrevious(multiselect)
+	}
+
+	selectNext(multiselect: boolean) {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.selectNext(multiselect)
+	}
+
+	onSingleExclusiveSelection(mail: Mail) {
+		this.stickyMailId = null
+		this.loadingTargetId = null
+		this.listModel?.onSingleExclusiveSelection(mail)
 	}
 }
