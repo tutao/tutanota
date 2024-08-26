@@ -423,7 +423,11 @@ export class MailModel {
 				someNonEmpty = true
 			}
 		}
-		if ((await this.isEmptyFolder(folder)) && mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) && !someNonEmpty) {
+		if (
+			(await this.isEmptyFolder(folder)) &&
+			mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
+			!someNonEmpty
+		) {
 			await this.finallyDeleteCustomMailFolder(folder)
 			return true
 		} else {
