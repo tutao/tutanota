@@ -449,7 +449,7 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 }
 
 /** construct a mail set entry Id for a given mail. see MailFolderHelper.java */
-export function constructMailSetEntryId(receiveDate: Date, mailId: Id): string {
+export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 	const buffer = new DataView(new ArrayBuffer(MAIL_SET_ENTRY_ID_BYTE_LENGTH))
 	const mailIdBytes = base64ToUint8Array(base64ExtToBase64(mailId))
 

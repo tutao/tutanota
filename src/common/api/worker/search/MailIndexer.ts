@@ -277,7 +277,8 @@ export class MailIndexer {
 	}
 
 	/**
-	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled. If the mailboxes are already fully indexed, they are not indexed again.
+	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled.
+	 * If the mailboxes are already fully indexed, they are not indexed again.
 	 */
 	async indexMailboxes(user: User, oldestTimestamp: number): Promise<void> {
 		if (!this.mailIndexingEnabled) {

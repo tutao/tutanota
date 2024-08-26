@@ -1,5 +1,6 @@
 import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import {
+	constructMailSetEntryId,
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	firstBiggerThanSecond,
@@ -39,6 +40,7 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailFolderTypeRef,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
 import { UserTypeRef } from "../../entities/sys/TypeRefs.js"
@@ -528,27 +530,39 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		const now = this.dateProvider.now()
 		const daysSinceDayAfterEpoch = now / DAY_IN_MILLIS - 1
 		const timeRangeMillisSafe = Math.min(daysSinceDayAfterEpoch, timeRange) * DAY_IN_MILLIS
-		// from may 15th 2109 onward, exceeding daysSinceDayAfterEpoch in the time range setting will
+		// from May 15th 2109 onward, exceeding daysSinceDayAfterEpoch in the time range setting will
 		// lead to an overflow in our 42 bit timestamp in the id.
 		const cutoffTimestamp = now - timeRangeMillisSafe
-		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
+
 		const mailBoxes = await this.getElementsOfType(MailBoxTypeRef)
+		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 		for (const mailBox of mailBoxes) {
 			const isMailsetMigrated = mailBox.currentMailBag != null
+			const folders = await this.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
 			if (isMailsetMigrated) {
+				// deleting mailsetentries first to make sure that once we start deleting mail
+				// we don't have any entries that reference that mail
+				const folderSystem = new FolderSystem(folders)
+				for (const mailSet of folders) {
+					if (isSpamOrTrashFolder(folderSystem, mailSet)) {
+						// current mailSetEntry maximum date is: 2019-05-15 -ish ( see MailFolderHelper.java: makeMailSetEntryCustomId )
+						await this.deleteMailSetEntries(mailSet.entries, new Date("2109-05-15 15:00").getTime())
+					} else {
+						await this.deleteMailSetEntries(mailSet.entries, cutoffTimestamp)
+					}
+				}
+
 				const mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
 				for (const mailListId of mailListIds) {
-					await this.deleteMailList(mailListId, cutoffId)
+					await this.deleteMailListLegacy(mailListId, cutoffId)
 				}
 			} else {
-				const folders = await this.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
-
 				const folderSystem = new FolderSystem(folders)
 				for (const folder of folders) {
 					if (isSpamOrTrashFolder(folderSystem, folder)) {
-						await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
+						await this.deleteMailListLegacy(folder.mails, GENERATED_MAX_ID)
 					} else {
-						await this.deleteMailList(folder.mails, cutoffId)
+						await this.deleteMailListLegacy(folder.mails, cutoffId)
 					}
 				}
 			}
@@ -571,9 +585,12 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	}
 
 	/**
-	 * This method deletes mails from {@param listId} what are older than {@param cutoffId}. as well as associated data
+	 * This method deletes mails from {@param listId} what are older than {@param cutoffId} as well as associated data.
 	 *
-	 * For each mail we delete its body, headers, and all referenced attachments.
+	 * it's considered legacy because once we start importing mail into mail bags, maintaining mail list ranges doesn't make
+	 * sense anymore - mail order in a list is arbitrary at that point.
+	 *
+	 * For each mail we delete the mail, its body, headers, all references mail set entries and all referenced attachments.
 	 *
 	 * When we delete the Files, we also delete the whole range for the user's File list. We need to delete the whole
 	 * range because we only have one file list per mailbox, so if we delete something from the middle of it, the range
@@ -584,23 +601,19 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	 * 	1. They are in the same list for the whole conversation so we can't adjust the range
 	 * 	2. We might need them in the future for showing the whole thread
 	 */
-	private async deleteMailList(listId: Id, cutoffId: Id): Promise<void> {
-		// fixme: do we want to remove mailsetentries as well here?
-		// we don't have the mailsetentry list id
+	private async deleteMailListLegacy(listId: Id, cutoffId: Id): Promise<void> {
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
 		await this.lockRangesDbAccess(listId)
 		try {
 			// This must be done before deleting mails to know what the new range has to be
-			await this.updateRangeForList(MailTypeRef, listId, cutoffId)
+			await this.updateRangeForListAndDeleteObsoleteData(MailTypeRef, listId, cutoffId)
 		} finally {
 			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
 			await this.unlockRangesDbAccess(listId)
 		}
 
 		const mailsToDelete: IdTuple[] = []
-		const headersToDelete: Id[] = []
-		const attachmentsTodelete: IdTuple[] = []
-		const mailbodiesToDelete: Id[] = []
+		const attachmentsToDelete: IdTuple[] = []
 		const mailDetailsBlobToDelete: IdTuple[] = []
 		const mailDetailsDraftToDelete: IdTuple[] = []
 
@@ -609,7 +622,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
 				mailsToDelete.push(mail._id)
 				for (const id of mail.attachments) {
-					attachmentsTodelete.push(id)
+					attachmentsToDelete.push(id)
 				}
 
 				if (isDraft(mail)) {
@@ -628,12 +641,38 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
 		}
-		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
+		for (let [listId, elementIds] of groupByAndMap(attachmentsToDelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(FileTypeRef, listId, elementIds)
 			await this.deleteRange(FileTypeRef, listId)
 		}
 
 		await this.deleteIn(MailTypeRef, listId, mailsToDelete.map(elementIdPart))
+	}
+
+	/**
+	 * delete all mail set entries of a mail set that reference some mail with a receivedDate older than
+	 * cutoffTimestamp. this doesn't clean up mails or their associated data because we could be breaking the
+	 * offline list range invariant by deleting data from the middle of a mail range. cleaning up mails is done
+	 * the legacy way currently even for mailset users.
+	 */
+	private async deleteMailSetEntries(entriesListId: Id, cutoffTimestamp: number) {
+		const cutoffId = constructMailSetEntryId(new Date(cutoffTimestamp), GENERATED_MAX_ID)
+		await this.lockRangesDbAccess(entriesListId)
+		try {
+			await this.updateRangeForListAndDeleteObsoleteData(MailSetEntryTypeRef, entriesListId, cutoffId)
+		} finally {
+			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
+			await this.unlockRangesDbAccess(entriesListId)
+		}
+
+		const mailSetEntriesToDelete: IdTuple[] = []
+		const mailSetEntries = await this.getWholeList(MailSetEntryTypeRef, entriesListId)
+		for (let mailSetEntry of mailSetEntries) {
+			if (firstBiggerThanSecond(cutoffId, getElementId(mailSetEntry))) {
+				mailSetEntriesToDelete.push(mailSetEntry._id)
+			}
+		}
+		await this.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
@@ -665,8 +704,8 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 
 	/**
 	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId).
-	 * @param listId the mail list that we want to lock
+	 * offline available mail list / mailset ranges for each mail list (referenced using the listId).
+	 * @param listId the mail list or mail set entry list that we want to lock
 	 */
 	async lockRangesDbAccess(listId: Id) {
 		await this.sqlCipherFacade.lockRangesDbAccess(listId)
@@ -680,11 +719,10 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		await this.sqlCipherFacade.unlockRangesDbAccess(listId)
 	}
 
-	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {
-		const type = getTypeId(typeRef)
+	private async updateRangeForListAndDeleteObsoleteData<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await resolveTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
-		cutoffId = ensureBase64Ext(typeModel, cutoffId)
+		const convertedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
 
 		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
@@ -699,20 +737,20 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		if (range.lower === expectedMinId) {
 			const entities = await this.provideFromRange(typeRef, listId, expectedMinId, 1, false)
 			const id = mapNullable(entities[0], getElementId)
-			const rangeWontBeModified = id == null || firstBiggerThanSecond(id, cutoffId) || id === cutoffId
+			const rangeWontBeModified = id == null || firstBiggerThanSecond(id, convertedCutoffId) || id === convertedCutoffId
 			if (rangeWontBeModified) {
 				return
 			}
 		}
 
-		if (firstBiggerThanSecond(cutoffId, range.lower)) {
+		if (firstBiggerThanSecond(convertedCutoffId, range.lower)) {
 			// If the upper id of the range is below the cutoff, then the entire range will be deleted from the storage
 			// so we just delete the range as well
 			// Otherwise, we only want to modify
-			if (firstBiggerThanSecond(cutoffId, range.upper)) {
+			if (firstBiggerThanSecond(convertedCutoffId, range.upper)) {
 				await this.deleteRange(typeRef, listId)
 			} else {
-				await this.setLowerRangeForList(typeRef, listId, cutoffId)
+				await this.setLowerRangeForList(typeRef, listId, rawCutoffId)
 			}
 		}
 	}
