@@ -93,14 +93,6 @@ export class UserController {
 		}
 	}
 
-	isGlobalOrLocalAdmin(): boolean {
-		if (this.isInternalUser()) {
-			return this.user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
-		} else {
-			return false
-		}
-	}
-
 	/**
 	 * Checks if the account type of the logged-in user is FREE.
 	 * @returns True if the account type is FREE otherwise false
@@ -193,10 +185,6 @@ export class UserController {
 
 	getUserMailGroupMembership(): GroupMembership {
 		return this.getMailGroupMemberships()[0]
-	}
-
-	getLocalAdminGroupMemberships(): GroupMembership[] {
-		return this.user.memberships.filter((membership) => membership.groupType === GroupType.LocalAdmin)
 	}
 
 	getTemplateMemberships(): GroupMembership[] {

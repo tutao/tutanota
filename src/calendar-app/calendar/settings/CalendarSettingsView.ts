@@ -397,8 +397,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		m.route.set(url + location.hash)
 	}
 
-	_isGlobalOrLocalAdmin(user: User): boolean {
-		return user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
+	_isGlobalAdmin(user: User): boolean {
+		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
 	private async updateShowBusinessSettings() {
@@ -414,7 +414,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 				// the user admin status might have changed
 				if (
-					!this._isGlobalOrLocalAdmin(user) &&
+					!this._isGlobalAdmin(user) &&
 					this.currentViewer &&
 					(this.adminFolders.some((f) => f.isActive()) || this.subscriptionFolders.some((f) => f.isActive()))
 				) {

@@ -226,8 +226,6 @@ export function getGroupTypeDisplayName(groupType: NumberString | null): string 
 		return ""
 	} else if (groupType === GroupType.Mail) {
 		return lang.get("sharedMailbox_label")
-	} else if (groupType === GroupType.LocalAdmin) {
-		return lang.get("localAdmin_label")
 	} else if (groupType === GroupType.User) {
 		return lang.get("userColumn_label")
 	} else if (groupType === GroupType.Template) {
