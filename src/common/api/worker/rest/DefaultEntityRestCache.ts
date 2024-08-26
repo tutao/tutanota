@@ -1,6 +1,7 @@
 import {
 	CacheMode,
 	EntityRestClient,
+	EntityRestClientLoadOptions,
 	EntityRestClientSetupOptions,
 	EntityRestInterface,
 	OwnerEncSessionKeyProvider,
@@ -239,30 +240,24 @@ export interface CacheStorage extends ExposedCacheStorage {
 export class DefaultEntityRestCache implements EntityRestCache {
 	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
 
-	async load<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		id: PropertyType<T, "_id">,
-		queryParameters?: Dict,
-		extraHeaders?: Dict,
-		ownerKeyProvider?: OwnerKeyProvider,
-		cacheMode: CacheMode = CacheMode.Cache,
-	): Promise<T> {
+	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+		const { queryParams, cacheMode = CacheMode.Cache } = opts
 		const { listId, elementId } = expandId(id)
 
 		// if a specific version is requested we have to load again and do not want to store it in the cache
-		if (queryParameters?.version != null) {
-			return await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
+		if (queryParams?.version != null) {
+			return await this.entityRestClient.load(typeRef, id, opts)
 		}
 
 		let cachedEntity: T | null
-		if (cacheMode == CacheMode.Cache) {
+		if (cacheMode === CacheMode.Cache) {
 			cachedEntity = await this.storage.get(typeRef, listId, elementId)
 		} else {
 			cachedEntity = null
 		}
 
 		if (cachedEntity == null) {
-			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders, ownerKeyProvider)
+			const entity = await this.entityRestClient.load(typeRef, id, opts)
 			if (!isIgnoredType(typeRef)) {
 				await this.storage.put(entity)
 			}

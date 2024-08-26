@@ -4,6 +4,7 @@ import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"
+import { EntityRestClientLoadOptions } from "./EntityRestClient.js"
 
 export class AdminClientDummyEntityRestCache implements EntityRestCache {
 	async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
@@ -14,7 +15,7 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 		throw new ProgrammingError("erase not implemented")
 	}
 
-	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, queryParameters?: Dict, extraHeaders?: Dict): Promise<T> {
+	async load<T extends SomeEntity>(_typeRef: TypeRef<T>, _id: PropertyType<T, "_id">, _opts: EntityRestClientLoadOptions): Promise<T> {
 		throw new ProgrammingError("load not implemented")
 	}
 

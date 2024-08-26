@@ -329,7 +329,7 @@ o.spec("CalendarModel", function () {
 			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade(
 				{
-					getEventsByUid: (loadUid) => Promise.resolve(null),
+					getEventsByUid: (_loadUid) => Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -556,7 +556,7 @@ o.spec("CalendarModel", function () {
 						},
 					],
 				})
-				await o(() => restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)).asyncThrows(NotFoundError)
+				await o(() => restClientMock.load(CalendarEventTypeRef, existingEvent._id)).asyncThrows(NotFoundError)
 			})
 			o("event is cancelled by someone else than organizer", async function () {
 				const uid = "uid"
@@ -592,7 +592,7 @@ o.spec("CalendarModel", function () {
 						},
 					],
 				})
-				o(await restClientMock.load(CalendarEventTypeRef, existingEvent._id, null)).equals(existingEvent)("Calendar event was not deleted")
+				o(await restClientMock.load(CalendarEventTypeRef, existingEvent._id)).equals(existingEvent)("Calendar event was not deleted")
 			})
 		})
 		o("reprocess deferred calendar events with no owner enc session key", async function () {

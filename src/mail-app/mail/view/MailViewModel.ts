@@ -232,9 +232,7 @@ export class MailViewModel {
 
 		let mail: Mail | null
 		try {
-			mail = await this.entityClient
-				.load(MailTypeRef, [listId, mailId], undefined, undefined, undefined, CacheMode.Bypass)
-				.catch(ofClass(NotFoundError, () => null))
+			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { cacheMode: CacheMode.Bypass }).catch(ofClass(NotFoundError, () => null))
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return

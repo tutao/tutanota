@@ -47,22 +47,31 @@ export interface EntityRestClientUpdateOptions {
 	ownerKeyProvider?: OwnerKeyProvider
 }
 
+/**
+ * Whether to use the cache to fetch the entity
+ */
+export const enum CacheMode {
+	/** Prefer cached value if it's there or fall back to network. */
+	Cache,
+	/** Prefer the value from network, do not fetch from cache. The entity will still be cached upon loading. */
+	Bypass,
+}
+
+export interface EntityRestClientLoadOptions {
+	queryParams?: Dict
+	extraHeaders?: Dict
+	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
+	ownerKeyProvider?: OwnerKeyProvider
+	/** Defaults to {@link CacheMode.Cache }*/
+	cacheMode?: CacheMode
+}
+
 export interface OwnerEncSessionKeyProvider {
 	(instanceElementId: Id): Promise<VersionedEncryptedKey>
 }
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: number): Promise<AesKey>
-}
-
-/**
- * Whether to use the cache to fetch the entity
- */
-export enum CacheMode {
-	/** Prefer cached value if it's there or fall back to network. */
-	Cache,
-	/** Prefer the value from network, do not fetch from cache. The entity will still be cached upon loading. */
-	Bypass,
 }
 
 /**
@@ -73,14 +82,7 @@ export interface EntityRestInterface {
 	 * Reads a single element from the server (or cache). Entities are decrypted before they are returned.
 	 * @param ownerKey Use this key to decrypt session key instead of trying to resolve the owner key based on the ownerGroup.
 	 */
-	load<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		id: PropertyType<T, "_id">,
-		queryParameters?: Dict,
-		extraHeaders?: Dict,
-		ownerKeyProvider?: OwnerKeyProvider,
-		cacheMode?: CacheMode,
-	): Promise<T>
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, loadOptions?: EntityRestClientLoadOptions): Promise<T>
 
 	/**
 	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
@@ -150,21 +152,15 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
-	async load<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		id: PropertyType<T, "_id">,
-		queryParameters?: Dict,
-		extraHeaders?: Dict,
-		ownerKeyProvider?: OwnerKeyProvider,
-	): Promise<T> {
+	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
 		const { listId, elementId } = expandId(id)
 		const { path, queryParams, headers, typeModel } = await this._validateAndPrepareRestRequest(
 			typeRef,
 			listId,
 			elementId,
-			queryParameters,
-			extraHeaders,
-			ownerKeyProvider,
+			opts.queryParams,
+			opts.extraHeaders,
+			opts.ownerKeyProvider,
 		)
 		const json = await this.restClient.request(path, HttpMethod.GET, {
 			queryParams,
@@ -173,7 +169,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 		const entity = JSON.parse(json)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
-		const sessionKey = await this.resolveSessionKey(ownerKeyProvider, migratedEntity, typeModel)
+		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity, typeModel)
 
 		const instance = await this.instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
 		return this._crypto.applyMigrationsForInstance(instance)

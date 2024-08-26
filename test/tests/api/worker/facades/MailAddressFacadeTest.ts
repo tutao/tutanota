@@ -13,7 +13,7 @@ import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, User
 import { MailAddressFacade } from "../../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { arrayEquals, freshVersioned } from "@tutao/tutanota-utils"
-import { OwnerKeyProvider } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 
 o.spec("MailAddressFacadeTest", function () {
 	let worker: WorkerImpl
@@ -65,10 +65,8 @@ o.spec("MailAddressFacadeTest", function () {
 				nonCachingEntityClient.load(
 					MailboxPropertiesTypeRef,
 					mailboxPropertiesId,
-					undefined,
-					undefined,
-					matchers.argThat(async (arg: OwnerKeyProvider) => {
-						const providedMailGroupKey = await arg(mailGroupKey.version)
+					matchers.argThat(async (opts: EntityRestClientLoadOptions) => {
+						const providedMailGroupKey = await opts.ownerKeyProvider!(mailGroupKey.version)
 						return arrayEquals(mailGroupKey.object, providedMailGroupKey)
 					}),
 				),
@@ -124,10 +122,8 @@ o.spec("MailAddressFacadeTest", function () {
 				nonCachingEntityClient.load(
 					MailboxPropertiesTypeRef,
 					mailboxPropertiesId,
-					undefined,
-					undefined,
-					matchers.argThat(async (arg: OwnerKeyProvider) => {
-						const providedMailGroupKey = await arg(mailGroupKey.version)
+					matchers.argThat(async (opts: EntityRestClientLoadOptions) => {
+						const providedMailGroupKey = await opts.ownerKeyProvider!(mailGroupKey.version)
 						return arrayEquals(mailGroupKey.object, providedMailGroupKey)
 					}),
 				),
