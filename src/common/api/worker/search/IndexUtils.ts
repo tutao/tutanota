@@ -14,7 +14,7 @@ import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeMo
 import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
-import { aes256EncryptSearchIndexEntry, aesDecrypt, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -153,10 +153,6 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 	}
 
 	return typeInfo
-}
-
-export function userIsLocalOrGlobalAdmin(user: User): boolean {
-	return user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
 }
 
 export function userIsGlobalAdmin(user: User): boolean {

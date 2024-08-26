@@ -47,18 +47,8 @@ export async function loadUserExportData(entityClient: EntityClient, logins: Log
 	const { user } = logins.getUserController()
 	const { userGroups } = await entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
 
-	const localAdminGroupIds = new Set(
-		logins
-			.getUserController()
-			.getLocalAdminGroupMemberships()
-			.map((gm) => gm.group),
-	)
+	const groupsAdministeredByUser = await entityClient.loadAll(GroupInfoTypeRef, userGroups)
 
-	const groupsAdministeredByUser = (await entityClient.loadAll(GroupInfoTypeRef, userGroups)).filter(
-		// if we are a global admin we keep all group infos
-		// otherwise we only keep group infos of users who the logged in user administrates
-		(info) => logins.getUserController().isGlobalAdmin() || (info.localAdmin && localAdminGroupIds.has(info.localAdmin)),
-	)
 	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, neverNull(user.customer))
 	return promiseMap(groupsAdministeredByUser, async (info) => {
 		const group = await entityClient.load(GroupTypeRef, info.group)

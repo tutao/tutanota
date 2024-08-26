@@ -110,7 +110,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								},
 								this._renderSidebarSectionChildren(this._userFolders),
 							),
-							this.logins.isUserLoggedIn() && this.logins.getUserController().isGlobalOrLocalAdmin()
+							this.logins.isUserLoggedIn() && this.logins.getUserController().isGlobalAdmin()
 								? m(
 										SidebarSection,
 										{
@@ -415,8 +415,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		m.route.set(url + location.hash)
 	}
 
-	_isGlobalOrLocalAdmin(user: User): boolean {
-		return user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
+	_isGlobalAdmin(user: User): boolean {
+		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
 	focusSettingsDetailsColumn() {
@@ -435,7 +435,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				const user = this.logins.getUserController().user
 
 				// the user admin status might have changed
-				if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer && this._adminFolders.some((f) => f.isActive())) {
+				if (!this._isGlobalAdmin(user) && this._currentViewer && this._adminFolders.some((f) => f.isActive())) {
 					this._setUrl(this._userFolders[0].url)
 				}
 				m.redraw()

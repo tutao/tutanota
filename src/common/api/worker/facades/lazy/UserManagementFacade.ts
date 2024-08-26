@@ -1,7 +1,7 @@
 import { AccountType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
 import { createMembershipAddData, createResetPasswordPostIn, createUserDataDelete, GroupTypeRef, User } from "../../../entities/sys/TypeRefs.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
@@ -133,12 +133,7 @@ export class UserManagementFacade {
 		operationId: OperationId,
 	): Promise<void> {
 		let adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
-
-		if (adminGroupIds.length === 0) {
-			adminGroupIds = this.userFacade.getGroupIds(GroupType.LocalAdmin)
-		}
-
-		const adminGroupId = adminGroupIds[0]
+		const adminGroupId = getFirstOrThrow(adminGroupIds)
 
 		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 

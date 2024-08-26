@@ -7,6 +7,7 @@ import {
 	base64ToBase64Url,
 	base64UrlToBase64,
 	getFirstOrThrow,
+	isEmpty,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import type { GiftCardRedeemGetReturn } from "../../../entities/sys/TypeRefs.js"
@@ -37,7 +38,7 @@ export class GiftCardFacade {
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
 		const adminGroupIds = this.user.getGroupIds(GroupType.Admin)
 
-		if (adminGroupIds.length === 0) {
+		if (isEmpty(adminGroupIds)) {
 			throw new Error("missing admin membership")
 		}
 

@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import type { GroupInfo, GroupMembership } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { GroupInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LazyLoaded, memoized, noOp } from "@tutao/tutanota-utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
@@ -48,7 +48,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 
 	private listId: LazyLoaded<Id>
-	private localAdminGroupMemberships: GroupMembership[]
 	private listStateSubscription: Stream<unknown> | null = null
 
 	constructor(private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown, private readonly focusDetailsViewer: () => unknown) {
@@ -61,7 +60,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 					return customer.teamGroups
 				})
 		})
-		this.localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 
 		this.listModel.loadInitial()
 
@@ -148,7 +146,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
 				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
-				this.localAdminGroupMemberships = locator.logins.getUserController().getLocalAdminGroupMemberships()
 				this.listModel.reapplyFilter()
 			}
 
@@ -182,7 +179,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
-		listModel.setFilter((item: GroupInfo) => this.groupFilter(item) && this.queryFilter(item))
+		listModel.setFilter((item: GroupInfo) => this.groupFilter() && this.queryFilter(item))
 
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = listModel.stateStream.map((state) => {
@@ -206,12 +203,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 		return gi.name.toLowerCase().includes(lowercaseSearch) || (!!gi.mailAddress && gi.mailAddress?.toLowerCase().includes(lowercaseSearch))
 	}
 
-	private groupFilter = (gi: GroupInfo) => {
-		if (locator.logins.getUserController().isGlobalAdmin()) {
-			return true
-		} else {
-			return !!gi.localAdmin && this.localAdminGroupMemberships.map((gm) => gm.group).includes(gi.localAdmin)
-		}
+	private groupFilter = () => {
+		return locator.logins.getUserController().isGlobalAdmin()
 	}
 
 	private updateQuery(query: string) {
