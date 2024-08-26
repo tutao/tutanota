@@ -128,10 +128,13 @@ o.spec("TutaNotificationHandler", () => {
 			)
 			listenerCaptor.value(NotificationResult.Click)
 			verify(
-				wm.openMailBox({
-					userId: "user1",
-					mailAddress: notificationInfo.mailAddress,
-				}),
+				wm.openMailBox(
+					{
+						userId: "user1",
+						mailAddress: notificationInfo.mailAddress,
+					},
+					"?mail=mailListId%2CmailElementId",
+				),
 			)
 		})
 
@@ -193,10 +196,13 @@ o.spec("TutaNotificationHandler", () => {
 			verify(notifier.submitGroupedNotification("sender@example.com", "recipient@example.com", "mailListId,mailElementId", listenerCaptor.capture()))
 			listenerCaptor.value(NotificationResult.Click)
 			verify(
-				wm.openMailBox({
-					userId: "user1",
-					mailAddress: notificationInfo.mailAddress,
-				}),
+				wm.openMailBox(
+					{
+						userId: "user1",
+						mailAddress: notificationInfo.mailAddress,
+					},
+					"?mail=mailListId%2CmailElementId",
+				),
 			)
 		})
 	})
