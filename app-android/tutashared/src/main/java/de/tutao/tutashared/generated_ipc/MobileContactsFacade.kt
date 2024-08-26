@@ -49,4 +49,21 @@ interface MobileContactsFacade {
 		username: String,
 		contactId: String?,
 	): Unit
+	/**
+	 * Whether contacts can be persisted locally
+	 */
+	suspend fun isLocalStorageAvailable(
+	): Boolean
+	/**
+	 * Find all contacts that match the list, returning their raw IDs.
+	 */
+	suspend fun findLocalMatches(
+		contacts: List<StructuredContact>,
+	): List<String>
+	/**
+	 * Erase all native contacts with the given raw IDs.
+	 */
+	suspend fun deleteLocalContacts(
+		contacts: List<String>,
+	): Unit
 }

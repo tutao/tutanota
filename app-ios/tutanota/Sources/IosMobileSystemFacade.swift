@@ -41,11 +41,7 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		}
 	}
 
-	@MainActor func openLink(_ uri: String) async throws -> Bool {
-		await withCheckedContinuation({ continuation in
-			UIApplication.shared.open(URL(string: uri)!, options: [:]) { success in continuation.resume(returning: success) }
-		})
-	}
+	@MainActor func openLink(_ uri: String) async throws -> Bool { await UIApplication.shared.open(URL(string: uri)!, options: [:]) }
 
 	@MainActor func shareText(_ text: String, _ title: String) async throws -> Bool {
 		// code from here: https://stackoverflow.com/a/35931947

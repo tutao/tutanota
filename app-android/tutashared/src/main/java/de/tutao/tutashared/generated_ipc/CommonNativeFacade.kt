@@ -20,6 +20,9 @@ interface CommonNativeFacade {
 		subject: String,
 		mailToUrlString: String,
 	): Unit
+	/**
+	 * Opens the mailbox of an address, optionally to an email specified by requestedPath
+	 */
 	suspend fun openMailBox(
 		userId: String,
 		address: String,

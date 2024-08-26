@@ -1795,6 +1795,11 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+
+    "importContactRemoveDuplicatesConfirm_msg": "(TRANSLATE ME) Found {count} duplicate contact(s) on your device while syncing. Do you want to delete them from your device? Please note that this cannot be undone.",
+    "importContactRemoveImportedContactsConfirm_msg": "(TRANSLATE ME) Do you want to delete the imported contacts from your device? Please note that this cannot be undone.",
+    "externalContactSyncDetectedWarning_msg": "(TRANSLATE ME) Contact synchronization is enabled for iCloud or another contact app on your device. Please disable any other apps that synchronize contacts to avoid issues with syncing Tuta contacts.",
+    "enableAnyway_action": "Trotzdem aktivieren"
 	}
 }

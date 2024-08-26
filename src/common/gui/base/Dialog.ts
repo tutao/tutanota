@@ -555,6 +555,53 @@ export class Dialog implements ModalComponent {
 	}
 
 	/**
+	 * Shows a (not-cancellable) multiple-choice dialog.
+	 * @returns the selected option.
+	 */
+	static choiceVertical<T>(
+		message: TranslationText,
+		choices: Array<{
+			text: TranslationText
+			value: T
+			type?: "primary" | "secondary"
+		}>,
+	): Promise<T> {
+		return new Promise((resolve) => {
+			const choose = (choice: T) => {
+				dialog.close()
+				setTimeout(() => resolve(choice), DefaultAnimationTime)
+			}
+
+			const buttonAttrs = choices.map((choice) => {
+				return {
+					label: choice.text,
+					click: () => choose(choice.value),
+					type: choice.type === "primary" ? ButtonType.Primary : ButtonType.Secondary,
+				}
+			})
+
+			// Wrap in a function to ensure that m() is called in every view() update for the infoToAppend
+			function getContent(): Children {
+				return lang.getMaybeLazy(message)
+			}
+
+			const dialog = new Dialog(DialogType.Alert, {
+				view: () =>
+					m(".flex.flex-column.pl-l.pr-l.pb-s", [
+						m("#dialog-message.dialog-max-height.text-break.text-prewrap.selectable.scroll", getContent()),
+						buttonAttrs.length === 0
+							? null
+							: m(
+									".flex.flex-column",
+									buttonAttrs.map((a) => m(Button, a)),
+							  ),
+					]),
+			})
+			dialog.show()
+		})
+	}
+
+	/**
 	 * show a dialog (resp. monologue) with no buttons that can not be closed, not even with ESC.
 	 */
 	static deadEnd(message: TranslationText) {

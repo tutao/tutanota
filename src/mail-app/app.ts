@@ -33,12 +33,11 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "../common/login/CredentialsMigrationView.js"
 import type { CredentialsMigrationViewModel } from "../common/login/CredentialsMigrationViewModel.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 
 import { AppType } from "../common/misc/ClientConstants.js"
-import type { LazySearchBar } from "./LazySearchBar.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -126,7 +125,15 @@ import("./translations/en.js")
 				async onPartialLoginSuccess() {
 					if (isApp()) {
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
-						mailLocator.nativeContactsSyncManager()?.syncContacts()
+						const syncManager = mailLocator.nativeContactsSyncManager()
+						if (syncManager.isEnabled() && isIOSApp()) {
+							const canSync = await syncManager.canSync()
+							if (!canSync) {
+								await syncManager.disableSync()
+								return
+							}
+						}
+						syncManager.syncContacts()
 					}
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
@@ -206,7 +213,14 @@ import("./translations/en.js")
 				},
 				mailLocator.logins,
 			),
-			termination: makeViewResolver<TerminationViewAttrs, TerminationView, { makeViewModel: () => TerminationViewModel; header: AppHeaderAttrs }>(
+			termination: makeViewResolver<
+				TerminationViewAttrs,
+				TerminationView,
+				{
+					makeViewModel: () => TerminationViewModel
+					header: AppHeaderAttrs
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { TerminationViewModel } = await import("../common/termination/TerminationViewModel.js")
@@ -232,7 +246,14 @@ import("./translations/en.js")
 			),
 			contact: contactViewResolver,
 			contactList: contactViewResolver,
-			externalLogin: makeViewResolver<ExternalLoginViewAttrs, ExternalLoginView, { header: AppHeaderAttrs; makeViewModel: () => ExternalLoginViewModel }>(
+			externalLogin: makeViewResolver<
+				ExternalLoginViewAttrs,
+				ExternalLoginView,
+				{
+					header: AppHeaderAttrs
+					makeViewModel: () => ExternalLoginViewModel
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { ExternalLoginView } = await import("./mail/view/ExternalLoginView.js")
@@ -264,7 +285,12 @@ import("./translations/en.js")
 							component: MailView,
 							cache: previousCache ?? {
 								drawerAttrsFactory: await mailLocator.drawerAttrsFactory(),
-								cache: { mailList: null, selectedFolder: null, conversationViewModel: null, conversationViewPreference: null },
+								cache: {
+									mailList: null,
+									selectedFolder: null,
+									conversationViewModel: null,
+									conversationViewPreference: null,
+								},
 								header: await mailLocator.appHeaderAttrs(),
 								mailViewModel: await mailLocator.mailViewModel(),
 							},
@@ -330,7 +356,11 @@ import("./translations/en.js")
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, makeViewModel: cache.searchViewModelFactory }),
+					prepareAttrs: (cache) => ({
+						drawerAttrs: cache.drawerAttrsFactory(),
+						header: cache.header,
+						makeViewModel: cache.searchViewModelFactory,
+					}),
 				},
 				mailLocator.logins,
 			),
@@ -456,7 +486,13 @@ import("./translations/en.js")
 				},
 				mailLocator.logins,
 			),
-			webauthnmobile: makeViewResolver<MobileWebauthnAttrs, MobileWebauthnView, { browserWebauthn: BrowserWebauthn }>(
+			webauthnmobile: makeViewResolver<
+				MobileWebauthnAttrs,
+				MobileWebauthnView,
+				{
+					browserWebauthn: BrowserWebauthn
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { MobileWebauthnView } = await import("../common/login/MobileWebauthnView.js")

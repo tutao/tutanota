@@ -53,18 +53,18 @@ public enum ContactWebsiteType: String, Codable {
 	case custom = "3"
 }
 
-protocol StableHashable { func hash(into: inout MurmurHash3.FourBytesHash) }
+public protocol StableHashable { func hash(into: inout MurmurHash3.FourBytesHash) }
 
-extension String: StableHashable { func hash(into hasher: inout MurmurHash3.FourBytesHash) { hasher.update(self.data(using: .utf8)!) } }
+extension String: StableHashable { public func hash(into hasher: inout MurmurHash3.FourBytesHash) { hasher.update(self.data(using: .utf8)!) } }
 
-extension Optional: StableHashable where Wrapped: StableHashable { func hash(into hasher: inout MurmurHash3.FourBytesHash) {} }
+extension Optional: StableHashable where Wrapped: StableHashable { public func hash(into hasher: inout MurmurHash3.FourBytesHash) {} }
 
 extension Array: StableHashable where Element: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) { for element in self { element.hash(into: &hasher) } }
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) { for element in self { element.hash(into: &hasher) } }
 }
 
 extension StructuredMailAddress: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		address.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
@@ -72,7 +72,7 @@ extension StructuredMailAddress: StableHashable {
 }
 
 extension StructuredAddress: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		address.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
@@ -80,7 +80,7 @@ extension StructuredAddress: StableHashable {
 }
 
 extension StructuredPhoneNumber: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		number.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
@@ -88,7 +88,7 @@ extension StructuredPhoneNumber: StableHashable {
 }
 
 extension StructuredCustomDate: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		dateIso.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
@@ -96,7 +96,7 @@ extension StructuredCustomDate: StableHashable {
 }
 
 extension StructuredMessengerHandle: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		handle.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
@@ -104,7 +104,7 @@ extension StructuredMessengerHandle: StableHashable {
 }
 
 extension StructuredRelationship: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		person.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
@@ -112,19 +112,46 @@ extension StructuredRelationship: StableHashable {
 }
 
 extension StructuredWebsite: StableHashable {
-	func hash(into hasher: inout MurmurHash3.FourBytesHash) {
+	public func hash(into hasher: inout MurmurHash3.FourBytesHash) {
 		url.hash(into: &hasher)
 		type.hash(into: &hasher)
 		customTypeName.hash(into: &hasher)
 	}
 }
 
-extension RawRepresentable where RawValue: StableHashable { func hash(into hasher: inout MurmurHash3.FourBytesHash) { rawValue.hash(into: &hasher) } }
+extension RawRepresentable where RawValue: StableHashable { public func hash(into hasher: inout MurmurHash3.FourBytesHash) { rawValue.hash(into: &hasher) } }
 
 extension StructuredContact {
 	public func stableHash() -> UInt32 {
 		var hash = MurmurHash3.FourBytesHash()
 		id?.hash(into: &hash)
+		firstName.hash(into: &hash)
+		lastName.hash(into: &hash)
+		nickname.hash(into: &hash)
+		company.hash(into: &hash)
+		birthday.hash(into: &hash)
+		mailAddresses.hash(into: &hash)
+		phoneNumbers.hash(into: &hash)
+		addresses.hash(into: &hash)
+		customDate.hash(into: &hash)
+		department.hash(into: &hash)
+		messengerHandles.hash(into: &hash)
+		middleName.hash(into: &hash)
+		nameSuffix.hash(into: &hash)
+		phoneticFirst.hash(into: &hash)
+		phoneticLast.hash(into: &hash)
+		phoneticMiddle.hash(into: &hash)
+		relationships.hash(into: &hash)
+		websites.hash(into: &hash)
+		// Do not take notes into account for hash as we cannot write them to native contacts anyway.
+		// If we do try to use them for hash we will think that the contact is edited each time.
+		//		notes.hash(into: &hash)
+		title.hash(into: &hash)
+		role.hash(into: &hash)
+		return hash.digest()
+	}
+	public func stableHashWithoutId() -> UInt32 {
+		var hash = MurmurHash3.FourBytesHash()
 		firstName.hash(into: &hash)
 		lastName.hash(into: &hash)
 		nickname.hash(into: &hash)

@@ -444,7 +444,12 @@ class MailLocator {
 
 	contactImporter = async (): Promise<ContactImporter> => {
 		const { ContactImporter } = await import("../mail-app/contacts/ContactImporter.js")
-		return new ContactImporter(this.contactFacade, this.systemPermissionHandler)
+		return new ContactImporter(
+			this.contactFacade,
+			this.systemPermissionHandler,
+			isApp() ? this.mobileContactsFacade : null,
+			isApp() ? this.nativeContactsSyncManager() : null,
+		)
 	}
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
@@ -1022,7 +1027,7 @@ class MailLocator {
 		return popupModel
 	}
 
-	readonly nativeContactsSyncManager = lazyMemoized(() => {
+	readonly nativeContactsSyncManager: () => NativeContactsSyncManager = lazyMemoized(() => {
 		assert(isApp(), "isApp")
 		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})

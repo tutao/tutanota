@@ -1777,3 +1777,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "importContactRemoveDuplicatesConfirm_msg"
+	| "importContactRemoveImportedContactsConfirm_msg"
+	| "externalContactSyncDetectedWarning_msg"
+	| "enableAnyway_action"

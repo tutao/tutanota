@@ -9,6 +9,9 @@ export interface CommonNativeFacade {
 	 */
 	createMailEditor(filesUris: ReadonlyArray<string>, text: string, addresses: ReadonlyArray<string>, subject: string, mailToUrlString: string): Promise<void>
 
+	/**
+	 * Opens the mailbox of an address, optionally to an email specified by requestedPath
+	 */
 	openMailBox(userId: string, address: string, requestedPath: string | null): Promise<void>
 
 	openCalendar(userId: string): Promise<void>

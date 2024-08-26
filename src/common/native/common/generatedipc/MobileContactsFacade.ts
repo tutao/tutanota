@@ -37,4 +37,19 @@ export interface MobileContactsFacade {
 	 * Delete all or a specific Tuta contact from system's contact book
 	 */
 	deleteContacts(username: string, contactId: string | null): Promise<void>
+
+	/**
+	 * Whether contacts can be persisted locally
+	 */
+	isLocalStorageAvailable(): Promise<boolean>
+
+	/**
+	 * Find all contacts that match the list, returning their raw IDs.
+	 */
+	findLocalMatches(contacts: ReadonlyArray<StructuredContact>): Promise<ReadonlyArray<string>>
+
+	/**
+	 * Erase all native contacts with the given raw IDs.
+	 */
+	deleteLocalContacts(contacts: ReadonlyArray<string>): Promise<void>
 }
