@@ -1,10 +1,5 @@
 import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import {
-	CUSTOM_MIN_ID,
-	firstBiggerThanSecond,
-	GENERATED_MIN_ID,
-	getElementId,
-} from "../../common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -25,9 +20,7 @@ import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.j
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
-import {
-	CalendarEventTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../rest/CustomCacheHandler.js"
 import { EntityRestClient } from "../rest/EntityRestClient.js"

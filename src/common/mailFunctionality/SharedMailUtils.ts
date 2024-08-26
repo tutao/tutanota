@@ -6,12 +6,14 @@ import { assertNotNull, contains, neverNull, uint8ArrayToBase64 } from "@tutao/t
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
-	ConversationType, EncryptionAuthStatus,
+	ConversationType,
+	EncryptionAuthStatus,
 	GroupType,
 	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 	MAX_BASE64_IMAGE_SIZE,
-	MAX_ATTACHMENT_SIZE, TUTA_MAIL_ADDRESS_DOMAINS,
+	MAX_ATTACHMENT_SIZE,
+	TUTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
