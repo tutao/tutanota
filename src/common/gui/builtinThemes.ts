@@ -4,6 +4,7 @@
 import { getLogoSvg } from "./base/Logo"
 import type { Theme, ThemeId } from "./theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
+import { client } from "../misc/ClientDetector.js"
 
 assertMainOrNodeBoot()
 
@@ -21,7 +22,8 @@ const grey_darker_0 = "#707070"
 const grey_darker_1 = "#303030"
 const red = "#850122"
 const dunkel = "#410002"
-const blue = "#005885"
+const blue = "#013E85"
+const light_blue = "#4C89FF"
 
 /**
  *      dark theme background
@@ -41,7 +43,7 @@ const dark_lighter_1 = "#363636"
 const dark_lighter_0 = "#232323"
 const dark = "#222222"
 const dark_darker_0 = "#111111"
-const green = "#00d2a7"
+const light_red = "#ff5353"
 const logo_text_bright_grey = "#c5c7c7"
 
 // These are constants that have been chosen because they work across themes
@@ -52,9 +54,10 @@ export const stateBgFocus = "rgba(139,139,139,0.29)"
 export const stateBgActive = "rgba(139,139,139,0.38)"
 
 type Themes = Record<ThemeId, Theme>
-export const themes: Themes = {
-	light: Object.freeze({
-		themeId: "light",
+
+export const themes = (): Themes => {
+	const lightRed = Object.freeze({
+		themeId: !client.isCalendarApp() ? "light" : "light_secondary",
 		logo: getLogoSvg(red, dunkel),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
@@ -86,29 +89,29 @@ export const themes: Themes = {
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
-	}),
-	dark: Object.freeze({
-		themeId: "dark",
+	})
+	const darkRed = Object.freeze({
+		themeId: !client.isCalendarApp() ? "dark" : "dark_secondary",
 		logo: getLogoSvg(logo_text_bright_grey, logo_text_bright_grey),
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
 		content_fg: light_lighter_1,
 		content_button: light_lighter_0,
-		content_button_selected: green,
+		content_button_selected: light_red,
 		content_button_icon_bg: dark_lighter_2,
 		content_button_icon: light_lighter_1,
 		content_button_icon_selected: dark_lighter_0,
-		content_accent: green,
+		content_accent: light_red,
 		content_bg: dark_darker_0,
 		content_border: dark_lighter_1,
 		content_message_bg: dark_lighter_2,
 		header_bg: dark,
 		header_box_shadow_bg: dark_darker_0,
 		header_button: light_lighter_0,
-		header_button_selected: green,
+		header_button_selected: light_red,
 		list_bg: dark_darker_0,
 		list_alternate_bg: dark_lighter_0,
-		list_accent_fg: green,
+		list_accent_fg: light_red,
 		list_message_bg: dark_lighter_2,
 		list_border: dark_lighter_1,
 		modal_bg: dark_darker_0,
@@ -118,13 +121,13 @@ export const themes: Themes = {
 		navigation_button: light_lighter_0,
 		navigation_button_icon_bg: dark_lighter_2,
 		navigation_button_icon: light_lighter_1,
-		navigation_button_selected: green,
+		navigation_button_selected: light_red,
 		navigation_button_icon_selected: light_lighter_0,
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
-	}),
-	blue: Object.freeze({
-		themeId: "blue",
+	})
+	const lightBlue = Object.freeze({
+		themeId: client.isCalendarApp() ? "light" : "light_secondary",
 		// blue is not really our brand color, treat blue like whitelabel color
 		logo: getLogoSvg(grey, grey),
 		button_bubble_bg: grey_lighter_3,
@@ -157,5 +160,48 @@ export const themes: Themes = {
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
-	}),
+	})
+	const darkBlue = Object.freeze({
+		themeId: client.isCalendarApp() ? "dark" : "dark_secondary",
+		logo: getLogoSvg(logo_text_bright_grey, logo_text_bright_grey),
+		button_bubble_bg: dark_lighter_2,
+		button_bubble_fg: light_lighter_1,
+		content_fg: light_lighter_1,
+		content_button: light_lighter_0,
+		content_button_selected: light_blue,
+		content_button_icon_bg: dark_lighter_2,
+		content_button_icon: light_lighter_1,
+		content_button_icon_selected: dark_lighter_0,
+		content_accent: light_blue,
+		content_bg: dark_darker_0,
+		content_border: dark_lighter_1,
+		content_message_bg: dark_lighter_2,
+		header_bg: dark,
+		header_box_shadow_bg: dark_darker_0,
+		header_button: light_lighter_0,
+		header_button_selected: light_blue,
+		list_bg: dark_darker_0,
+		list_alternate_bg: dark_lighter_0,
+		list_accent_fg: light_blue,
+		list_message_bg: dark_lighter_2,
+		list_border: dark_lighter_1,
+		modal_bg: dark_darker_0,
+		elevated_bg: dark_lighter_0,
+		navigation_bg: dark_lighter_0,
+		navigation_border: dark_lighter_1,
+		navigation_button: light_lighter_0,
+		navigation_button_icon_bg: dark_lighter_2,
+		navigation_button_icon: light_lighter_1,
+		navigation_button_selected: light_blue,
+		navigation_button_icon_selected: light_lighter_0,
+		navigation_menu_bg: dark_darker_0,
+		navigation_menu_icon: light_grey,
+	})
+
+	return {
+		light: client.isCalendarApp() ? lightBlue : lightRed,
+		dark: client.isCalendarApp() ? darkBlue : darkRed,
+		light_secondary: client.isCalendarApp() ? lightRed : lightBlue,
+		dark_secondary: client.isCalendarApp() ? darkRed : darkBlue,
+	}
 }
