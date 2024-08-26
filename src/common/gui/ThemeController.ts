@@ -71,9 +71,19 @@ export class ThemeController {
 
 	private async updateSavedBuiltinThemes() {
 		// In case we change built-in themes we want to save new copy on the device.
-		for (const theme of typedValues(themes)) {
+		for (const theme of typedValues(themes())) {
 			await this.updateSavedThemeDefinition(theme)
 		}
+
+		// Remove blue theme because we don't have it anymore
+		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
+		findAndRemove(oldThemes, (t) => t.themeId === "blue")
+		await this.themeFacade.setThemes(oldThemes)
+
+		// Check if the blue theme was selected and fallback for auto
+		const themePreference = await this.themeFacade.getThemePreference()
+		if (!themePreference || themePreference !== "blue") return
+		await this.setThemePreference("auto:light|dark", true)
 	}
 
 	async reloadTheme() {
@@ -91,9 +101,9 @@ export class ThemeController {
 	}
 
 	private async getTheme(themeId: ThemeId): Promise<Theme> {
-		if (themes[themeId]) {
+		if (themes()[themeId]) {
 			// Make a defensive copy so that original theme definition is not modified.
-			return Object.assign({}, themes[themeId])
+			return Object.assign({}, themes()[themeId])
 		} else {
 			const loadedThemes = (await this.themeFacade.getThemes()) as ReadonlyArray<Theme>
 			const customTheme = loadedThemes.find((t) => t.themeId === themeId)
@@ -202,12 +212,12 @@ export class ThemeController {
 	}
 
 	getDefaultTheme(): Theme {
-		return Object.assign({}, themes[defaultThemeId])
+		return Object.assign({}, themes()[defaultThemeId])
 	}
 
 	getBaseTheme(baseId: BaseThemeId): Theme {
 		// Make a defensive copy so that original theme definition is not modified.
-		return Object.assign({}, themes[baseId])
+		return Object.assign({}, themes()[baseId])
 	}
 
 	shouldAllowChangingTheme(): boolean {
@@ -234,7 +244,7 @@ export class ThemeController {
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
 		return mapAndFilterNull(await this.themeFacade.getThemes(), (theme) => {
-			return !(theme.themeId in themes) ? theme.themeId : null
+			return !(theme.themeId in themes()) ? theme.themeId : null
 		})
 	}
 }
