@@ -17,6 +17,9 @@ public protocol CommonNativeFacade {
 		_ subject: String,
 		_ mailToUrlString: String
 	) async throws -> Void
+	/**
+	 * Opens the mailbox of an address, optionally to an email specified by requestedPath
+	 */
 	func openMailBox(
 		_ userId: String,
 		_ address: String,

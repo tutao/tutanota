@@ -34,8 +34,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	}
 
 	private async enableSync(attrs: SetupContactsPageAttrs): Promise<void> {
-		attrs.syncManager.enableSync()
-		const success = await attrs.syncManager.syncContacts()
+		const success = await attrs.syncManager.enableSync()
 		if (!success) {
 			await attrs.syncManager.disableSync()
 			await Dialog.message("allowContactReadWrite_msg")

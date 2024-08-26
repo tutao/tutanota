@@ -11,6 +11,12 @@ import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { PermissionType } from "../../../common/native/common/generatedipc/PermissionType"
+import { NativeContactsSyncManager } from "../model/NativeContactsSyncManager"
+import { Dialog } from "../../../common/gui/base/Dialog"
+import { isIOSApp, isTest } from "../../../common/api/common/Env"
+import { assert } from "@tutao/tutanota-utils"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {
 	[ContactAddressType.PRIVATE]: "private_label",

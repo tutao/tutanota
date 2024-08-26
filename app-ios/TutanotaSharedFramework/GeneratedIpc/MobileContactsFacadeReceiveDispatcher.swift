@@ -52,6 +52,22 @@ public class MobileContactsFacadeReceiveDispatcher {
 				contactId
 			)
 			return "null"
+		case "isLocalStorageAvailable":
+			let result = try await self.facade.isLocalStorageAvailable(
+			)
+			return toJson(result)
+		case "findLocalMatches":
+			let contacts = try! JSONDecoder().decode([StructuredContact].self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.findLocalMatches(
+				contacts
+			)
+			return toJson(result)
+		case "deleteLocalContacts":
+			let contacts = try! JSONDecoder().decode([String].self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.deleteLocalContacts(
+				contacts
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

@@ -12,7 +12,7 @@ import {
 	createContactWebsite,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"
-import { defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/tutanota-utils"
+import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/tutanota-utils"
 import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
 import { elementIdPart, getElementId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils.js"
 import {
@@ -32,16 +32,24 @@ import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError.js"
 import { MobileContactsFacade } from "../../../common/native/common/generatedipc/MobileContactsFacade.js"
 import { ContactSyncResult } from "../../../common/native/common/generatedipc/ContactSyncResult.js"
-import { isIOSApp } from "../../../common/api/common/Env.js"
+import { assertMainOrNode, isApp, isIOSApp } from "../../../common/api/common/Env.js"
 import { ContactStoreError } from "../../../common/api/common/error/ContactStoreError.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { Dialog } from "../../../common/gui/base/Dialog.js"
+import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { PermissionType } from "../../../common/native/common/generatedipc/PermissionType"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+
+assertMainOrNode()
 
 export class NativeContactsSyncManager {
 	private entityUpdateLock: Promise<void> = Promise.resolve()
 
 	constructor(
 		private readonly loginController: LoginController,
-		private readonly mobilContactsFacade: MobileContactsFacade,
+		private readonly mobileContactsFacade: MobileContactsFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly contactModel: ContactModel,
@@ -73,7 +81,7 @@ export class NativeContactsSyncManager {
 			} else if (event.operation === OperationType.UPDATE) {
 				getFromMap(contactsIdToCreateOrUpdate, event.instanceListId, () => []).push(event.instanceId)
 			} else if (event.operation === OperationType.DELETE) {
-				await this.mobilContactsFacade
+				await this.mobileContactsFacade
 					.deleteContacts(loginUsername, event.instanceId)
 					.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 					.catch(ofClass(ContactStoreError, (e) => console.warn("Could not delete contact during sync: ", e)))
@@ -114,7 +122,7 @@ export class NativeContactsSyncManager {
 		}
 
 		if (contactsToInsertOrUpdate.length > 0) {
-			await this.mobilContactsFacade
+			await this.mobileContactsFacade
 				.saveContacts(loginUsername, contactsToInsertOrUpdate)
 				.catch(ofClass(PermissionError, (e) => this.handleNoPermissionError(userId, e)))
 				.catch(ofClass(ContactStoreError, (e) => console.warn("Could not save contacts:", e)))
@@ -125,53 +133,100 @@ export class NativeContactsSyncManager {
 		return this.deviceConfig.getUserSyncContactsWithPhonePreference(this.loginController.getUserController().userId) ?? false
 	}
 
-	enableSync() {
+	/**
+	 * @return is sync succeeded. It might fail if we don't have a permission.
+	 */
+	async enableSync(): Promise<boolean> {
+		const loginUsername = this.loginController.getUserController().loginUsername
+		const contactListId = await this.contactModel.getContactListId()
+		if (contactListId == null) return false
+		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
+		const structuredContacts = contacts.map((c) => this.toStructuredContact(c))
+		try {
+			await this.mobileContactsFacade.syncContacts(loginUsername, structuredContacts)
+		} catch (e) {
+			console.warn("Could not sync contacts:", e)
+			if (e instanceof PermissionError) {
+				return false
+			} else if (e instanceof ContactStoreError) {
+				return false
+			}
+
+			throw e
+		}
+
 		this.deviceConfig.setUserSyncContactsWithPhonePreference(this.loginController.getUserController().userId, true)
+		await this.askToDedupeContacts(structuredContacts)
+		return true
+	}
+
+	/**
+	 * Check if syncing contacts is possible/allowed right now.
+	 *
+	 * On Android, this method simply requests permission to access contacts. On iOS, this also checks iCloud sync, as
+	 * it can interfere with
+	 */
+	async canSync(): Promise<boolean> {
+		if (!isApp()) {
+			throw new ProgrammingError("Can only check Contact permissions on app")
+		}
+
+		const isContactPermissionGranted = await locator.systemPermissionHandler.requestPermission(PermissionType.Contacts, "allowContactReadWrite_msg")
+		if (!isContactPermissionGranted) {
+			return false
+		}
+
+		return !isIOSApp() || this.checkIfExternalCloudSyncOnIos()
+	}
+
+	/**
+	 * Check that we are allowed to sync contacts on an iOS device
+	 * @returns false if no permission or iCloud sync is enabled and the user cancelled, or true if permission is granted and iCloud sync is disabled (or the user bypassed the warning dialog)
+	 */
+	private async checkIfExternalCloudSyncOnIos(): Promise<boolean> {
+		assert(isIOSApp(), "Can only check cloud syncing on iOS")
+
+		let localContactStorage = await this.mobileContactsFacade.isLocalStorageAvailable()
+		if (!localContactStorage) {
+			const choice = await Dialog.choiceVertical("externalContactSyncDetectedWarning_msg", [
+				{ text: "settings_label", value: "settings", type: "primary" },
+				{ text: "enableAnyway_action", value: "enable" },
+				{ text: "cancel_action", value: "cancel" },
+			])
+			switch (choice) {
+				case "enable":
+					break
+				case "settings":
+					locator.systemFacade.openLink("App-prefs:CONTACTS&path=ACCOUNTS")
+					return false
+				case "cancel":
+					return false
+			}
+		}
+
+		return true
 	}
 
 	/**
 	 * @return is sync succeeded. It might fail if we don't have a permission.
 	 */
 	async syncContacts(): Promise<boolean> {
+		if (!this.isEnabled()) {
+			return false
+		}
+
 		const contactListId = await this.contactModel.getContactListId()
+		if (contactListId == null) {
+			return false
+		}
+
 		const userId = this.loginController.getUserController().userId
 		const loginUsername = this.loginController.getUserController().loginUsername
-		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
-
-		if (contactListId == null || !allowSync) return false
-
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
-		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => {
-			return {
-				id: getElementId(contact),
-				firstName: contact.firstName,
-				lastName: contact.lastName,
-				mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
-				phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
-				nickname: contact.nickname ?? "",
-				company: contact.company,
-				birthday: contact.birthdayIso,
-				addresses: extractStructuredAddresses(contact.addresses),
-				rawId: null,
-				deleted: false,
-				customDate: extractStructuredCustomDates(contact.customDate),
-				department: contact.department,
-				messengerHandles: extractStructuredMessengerHandle(contact.messengerHandles),
-				middleName: contact.middleName,
-				nameSuffix: contact.nameSuffix,
-				phoneticFirst: contact.phoneticFirst,
-				phoneticLast: contact.phoneticLast,
-				phoneticMiddle: contact.phoneticMiddle,
-				relationships: extractStructuredRelationships(contact.relationships),
-				websites: extractStructuredWebsites(contact.websites),
-				notes: contact.comment,
-				title: contact.title ?? "",
-				role: contact.role,
-			}
-		})
+		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => this.toStructuredContact(contact))
 
 		try {
-			const syncResult = await this.mobilContactsFacade.syncContacts(loginUsername, structuredContacts)
+			const syncResult = await this.mobileContactsFacade.syncContacts(loginUsername, structuredContacts)
 			await this.applyDeviceChangesToServerContacts(contacts, syncResult, contactListId)
 		} catch (e) {
 			if (e instanceof PermissionError) {
@@ -184,8 +239,48 @@ export class NativeContactsSyncManager {
 
 			throw e
 		}
-
 		return true
+	}
+
+	private async askToDedupeContacts(contactsToDedupe: readonly StructuredContact[]) {
+		const duplicateContacts = await this.mobileContactsFacade.findLocalMatches(contactsToDedupe)
+		if (duplicateContacts.length === 0) {
+			// no duplicate contacts; no need to ask
+			return
+		}
+
+		const shouldDedupe = await Dialog.confirm(() => lang.get("importContactRemoveDuplicatesConfirm_msg", { "{count}": duplicateContacts.length }))
+		if (shouldDedupe) {
+			await showProgressDialog("progressDeleting_msg", this.mobileContactsFacade.deleteLocalContacts(duplicateContacts))
+		}
+	}
+
+	private toStructuredContact(contact: Contact): StructuredContact {
+		return {
+			id: getElementId(contact),
+			firstName: contact.firstName,
+			lastName: contact.lastName,
+			mailAddresses: extractStructuredMailAddresses(contact.mailAddresses),
+			phoneNumbers: extractStructuredPhoneNumbers(contact.phoneNumbers),
+			nickname: contact.nickname ?? "",
+			company: contact.company,
+			birthday: contact.birthdayIso,
+			addresses: extractStructuredAddresses(contact.addresses),
+			rawId: null,
+			customDate: extractStructuredCustomDates(contact.customDate),
+			department: contact.department,
+			messengerHandles: extractStructuredMessengerHandle(contact.messengerHandles),
+			middleName: contact.middleName,
+			nameSuffix: contact.nameSuffix,
+			phoneticFirst: contact.phoneticFirst,
+			phoneticLast: contact.phoneticLast,
+			phoneticMiddle: contact.phoneticMiddle,
+			relationships: extractStructuredRelationships(contact.relationships),
+			websites: extractStructuredWebsites(contact.websites),
+			notes: contact.comment,
+			title: contact.title ?? "",
+			role: contact.role,
+		}
 	}
 
 	async disableSync(userId?: string, login?: string) {
@@ -193,7 +288,7 @@ export class NativeContactsSyncManager {
 
 		if (this.deviceConfig.getUserSyncContactsWithPhonePreference(userIdToRemove)) {
 			this.deviceConfig.setUserSyncContactsWithPhonePreference(userIdToRemove, false)
-			await this.mobilContactsFacade
+			await this.mobileContactsFacade
 				.deleteContacts(login ?? this.loginController.getUserController().loginUsername, null)
 				.catch(ofClass(PermissionError, (e) => console.log("No permission to clear contacts", e)))
 		}
@@ -217,7 +312,7 @@ export class NativeContactsSyncManager {
 			const entityId = await this.entityClient.setup(listId, newContact)
 			const loginUsername = this.loginController.getUserController().loginUsername
 			// save the contact right away so that we don't lose the server id to native contact mapping if we don't process entity update quickly enough
-			await this.mobilContactsFacade.saveContacts(loginUsername, [
+			await this.mobileContactsFacade.saveContacts(loginUsername, [
 				{
 					...contact,
 					id: entityId,

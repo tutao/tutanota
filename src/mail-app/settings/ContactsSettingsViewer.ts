@@ -1,5 +1,5 @@
 import m, { Child, Children } from "mithril"
-import { assertMainOrNode, isApp } from "../../common/api/common/Env"
+import { assertMainOrNode, isApp, isIOSApp } from "../../common/api/common/Env"
 import { lang } from "../../common/misc/LanguageViewModel"
 import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
@@ -11,6 +11,7 @@ import { Button, ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { assert } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -91,27 +92,34 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: mailLocator.nativeContactsSyncManager()?.isEnabled(),
-			selectionChangedHandler: (contactSyncEnabled: boolean) => {
-				if (isApp()) {
-					if (!contactSyncEnabled) {
-						mailLocator.nativeContactsSyncManager()?.disableSync()
-					} else {
-						mailLocator.nativeContactsSyncManager()?.enableSync()
-						// We just enable if the synchronization started successfully
-						mailLocator
-							.nativeContactsSyncManager()
-							?.syncContacts()
-							.then((allowed) => {
-								if (!allowed) {
-									this.handleContactsSynchronizationFail()
-								}
-							})
-					}
-				}
+			selectedValue: mailLocator.nativeContactsSyncManager().isEnabled(),
+			selectionChangedHandler: async (contactSyncEnabled: boolean) => {
+				await this.onContactSyncSelectionChanged(contactSyncEnabled)
 			},
 			dropdownWidth: 250,
 		})
+	}
+
+	private async onContactSyncSelectionChanged(contactSyncEnabled: boolean) {
+		assert(isApp(), "isApp")
+		const syncManager = mailLocator.nativeContactsSyncManager()
+
+		if (!contactSyncEnabled) {
+			syncManager.disableSync()
+		} else {
+			const canSync = await syncManager.canSync()
+			if (!canSync) {
+				return
+			}
+
+			await syncManager.enableSync()
+			// We just enable if the synchronization started successfully
+			const isSyncAllowed = await syncManager.syncContacts()
+			if (!isSyncAllowed) {
+				this.handleContactsSynchronizationFail()
+			}
+			m.redraw()
+		}
 	}
 
 	updateTutaPropertiesSettings(props: TutanotaProperties) {

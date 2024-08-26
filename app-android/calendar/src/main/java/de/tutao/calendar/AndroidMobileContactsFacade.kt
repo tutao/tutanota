@@ -56,6 +56,18 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		throw Exception("Contact deletion isn't available on Calendar app")
 	}
 
+	// no need to check on Android - this is just for iOS
+	override suspend fun isLocalStorageAvailable(): Boolean {
+		throw Exception("Contact sync isn't available on Calendar app")
+	}
+
+	override suspend fun findLocalMatches(contacts: List<StructuredContact>): List<String> {
+		throw Exception("Contact sync isn't available on Calendar app")
+	}
+
+	override suspend fun deleteLocalContacts(contacts: List<String>) {
+		throw Exception("Contact sync isn't available on Calendar app")
+	}
 
 	companion object {
 		private val PROJECTION = arrayOf(

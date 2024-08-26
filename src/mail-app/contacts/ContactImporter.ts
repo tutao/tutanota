@@ -1,5 +1,5 @@
 import { Dialog, DialogType } from "../../common/gui/base/Dialog.js"
-import { assert, assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../../common/api/common/error/ImportError.js"
@@ -23,7 +23,6 @@ import { size } from "../../common/gui/size.js"
 import { UserError } from "../../common/api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
-import { isApp } from "../../common/api/common/Env.js"
 import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksDialog.js"
 import { StructuredContact } from "../../common/native/common/generatedipc/StructuredContact.js"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils.js"
@@ -36,9 +35,17 @@ import { mailLocator } from "../mailLocator.js"
 import { FileReference } from "../../common/api/common/utils/FileUtils.js"
 import { AttachmentType, getAttachmentType } from "../../common/gui/AttachmentBubble.js"
 import { NativeFileApp } from "../../common/native/common/FileApp.js"
+import { MobileContactsFacade } from "../../common/native/common/generatedipc/MobileContactsFacade.js"
+import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
+import { isIOSApp } from "../../common/api/common/Env"
 
 export class ContactImporter {
-	constructor(private readonly contactFacade: ContactFacade, private readonly systemPermissionHandler: SystemPermissionHandler) {}
+	constructor(
+		private readonly contactFacade: ContactFacade,
+		private readonly systemPermissionHandler: SystemPermissionHandler,
+		private readonly mobileContactsFacade: MobileContactsFacade | null,
+		private readonly nativeContactSyncManager: NativeContactsSyncManager | null,
+	) {}
 
 	async importContactsFromFile(vCardData: string | string[], contactListId: string) {
 		const vCardList = Array.isArray(vCardData) ? ContactImporter.combineVCardData(vCardData) : vCardFileToVCards(vCardData)
@@ -96,46 +103,80 @@ export class ContactImporter {
 	}
 
 	private async importContactsFromDevice() {
-		assert(isApp(), "isApp")
-		const contactBooks = await showProgressDialog("pleaseWait_msg", locator.mobileContactsFacade.getContactBooks())
-		let books: readonly ContactBook[]
-		if (contactBooks.length === 0) {
+		// these will only ever be null if !isApp()
+		const mobileContactsFacade = assertNotNull(this.mobileContactsFacade)
+
+		const books = await this.selectContactBooks(mobileContactsFacade)
+		if (books == null) {
 			return
-		} else if (contactBooks.length === 1) {
-			books = contactBooks
-		} else {
-			const importDialog = new ImportNativeContactBooksDialog(contactBooks)
-			const selectedBooks = await importDialog.show()
-			if (selectedBooks == null || selectedBooks.length === 0) return
-			books = selectedBooks
 		}
 
 		const contactListId = await locator.contactModel.getContactListId()
 		const contactGroupId = await locator.contactModel.getContactGroupId()
-		const contactsToImport: Contact[] = (
-			await promiseMap(books, async (book) => {
-				const structuredContacts = await locator.mobileContactsFacade.getContactsInContactBook(
-					book.id,
-					locator.logins.getUserController().loginUsername,
-				)
-				return structuredContacts.map((contact) => this.contactFromStructuredContact(contactGroupId, contact))
-			})
-		).flat()
 
-		const importer = await mailLocator.contactImporter()
+		const allImportableStructuredContacts: StructuredContact[] = (
+			await promiseMap(
+				books,
+				async (book) => await mobileContactsFacade.getContactsInContactBook(book.id, locator.logins.getUserController().loginUsername),
+			)
+		).flat()
+		const allImportableContacts = new Map(
+			allImportableStructuredContacts.map((structuredContact) => [
+				this.contactFromStructuredContact(contactGroupId, structuredContact),
+				structuredContact,
+			]),
+		)
 
 		showContactImportDialog(
-			contactsToImport,
-			(dialog, selectedContacts) => {
+			[...allImportableContacts.keys()],
+			async (dialog, selectedContacts) => {
 				dialog.close()
-				importer.importContacts(selectedContacts, assertNotNull(contactListId))
+				await this.onContactImportConfirmed(contactListId, selectedContacts, allImportableContacts)
 			},
 			"importContacts_label",
 		)
 	}
 
+	private async onContactImportConfirmed(contactListId: string | null, selectedContacts: Contact[], allImportableContacts: Map<Contact, StructuredContact>) {
+		const importer = await mailLocator.contactImporter()
+		const mobileContactsFacade = assertNotNull(this.mobileContactsFacade)
+		const nativeContactSyncManager = assertNotNull(this.nativeContactSyncManager)
+
+		const selectedStructuredContacts: StructuredContact[] = selectedContacts.map((selectedContact) =>
+			assertNotNull(allImportableContacts.get(selectedContact)),
+		)
+
+		await importer.importContacts(selectedContacts, assertNotNull(contactListId))
+		const imported = nativeContactSyncManager.isEnabled() && (await nativeContactSyncManager.syncContacts())
+
+		// On iOS, we want to give the option to remove the contacts locally, but we obviously only want to do
+		// this if syncing is successful, assuming syncing is enabled.
+		//
+		// Do nothing further if not on iOS, or if syncing is disabled or failed.
+		if (imported && isIOSApp()) {
+			const contactsWeJustImported = selectedStructuredContacts.map((contact) => assertNotNull(contact.rawId))
+			const remove = await Dialog.confirm("importContactRemoveImportedContactsConfirm_msg")
+			if (remove) {
+				await showProgressDialog("progressDeleting_msg", mobileContactsFacade.deleteLocalContacts(contactsWeJustImported))
+			}
+		}
+	}
+
+	private async selectContactBooks(mobileContactsFacade: MobileContactsFacade): Promise<readonly ContactBook[] | null> {
+		const contactBooks = await showProgressDialog("pleaseWait_msg", mobileContactsFacade.getContactBooks())
+		if (contactBooks.length === 0) {
+			return null
+		} else if (contactBooks.length === 1) {
+			return contactBooks
+		} else {
+			const importDialog = new ImportNativeContactBooksDialog(contactBooks)
+			const selectedBooks = await importDialog.show()
+			if (selectedBooks == null || selectedBooks.length === 0) return null
+			return selectedBooks
+		}
+	}
+
 	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact): Contact {
-		const userId = locator.logins.getUserController().userId
 		return createContact({
 			_ownerGroup: ownerGroupId,
 			nickname: contact.nickname,
@@ -203,7 +244,7 @@ export class ContactImporter {
 /**
  * Show a dialog with a preview of a given list of contacts
  * @param contacts The contact list to be previewed
- * @param okAction The action to be executed when the user press the import button
+ * @param okAction The action to be executed when the user press the import button with at least one contact selected
  */
 export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: TranslationText) {
 	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()

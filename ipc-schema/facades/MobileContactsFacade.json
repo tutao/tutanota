@@ -66,6 +66,29 @@
 				}
 			],
 			"ret": "void"
+		},
+		"isLocalStorageAvailable": {
+			"doc": "Whether contacts can be persisted locally",
+			"arg": [],
+			"ret": "boolean"
+		},
+		"findLocalMatches": {
+			"doc": "Find all contacts that match the list, returning their raw IDs.",
+			"arg": [
+				{
+					"contacts": "List<StructuredContact>"
+				}
+			],
+			"ret": "List<string>"
+		},
+		"deleteLocalContacts": {
+			"doc": "Erase all native contacts with the given raw IDs.",
+			"arg": [
+				{
+					"contacts": "List<string>"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

@@ -62,6 +62,25 @@ class MobileContactsFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"isLocalStorageAvailable" -> {
+				val result: Boolean = this.facade.isLocalStorageAvailable(
+				)
+				return json.encodeToString(result)
+			}
+			"findLocalMatches" -> {
+				val contacts: List<StructuredContact> = json.decodeFromString(arg[0])
+				val result: List<String> = this.facade.findLocalMatches(
+					contacts,
+				)
+				return json.encodeToString(result)
+			}
+			"deleteLocalContacts" -> {
+				val contacts: List<String> = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.deleteLocalContacts(
+					contacts,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileContactsFacade: $method")
 		}
 	}
