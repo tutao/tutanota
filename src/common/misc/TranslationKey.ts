@@ -1778,3 +1778,7 @@ export type TranslationKeyType =
 	| "calendarImportSelection_label"
 	| "icsInSharingFiles_msg"
 	| "invalidCalendarFile_msg"
+	| "light_blue"
+	| "dark_blue"
+	| "light_red"
+	| "dark_red"

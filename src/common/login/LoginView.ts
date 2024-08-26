@@ -208,8 +208,12 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						click: () => locator.themeController.setThemePreference("dark"),
 					},
 					{
-						label: "blue_label",
-						click: () => locator.themeController.setThemePreference("blue"),
+						label: client.isCalendarApp() ? "light_red" : "light_blue",
+						click: () => locator.themeController.setThemePreference("light_secondary"),
+					},
+					{
+						label: client.isCalendarApp() ? "dark_red" : "dark_blue",
+						click: () => locator.themeController.setThemePreference("dark_secondary"),
 					},
 				]
 				const customButtons = (await locator.themeController.getCustomThemes()).map((themeId) => {
