@@ -8,11 +8,12 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, endsWith, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
-
 	MailReportType,
-	MailSetKind, MailState,
+	MailSetKind,
+	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
-	getMailFolderType, EncryptionAuthStatus
+	getMailFolderType,
+	EncryptionAuthStatus,
 } from "../../../common/api/common/TutanotaConstants"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
@@ -26,9 +27,7 @@ import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { MailModel } from "../model/MailModel.js"
-import {
-	hasValidEncryptionAuthForTeamOrSystemMail,
-} from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { assertSystemFolderOfType, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
