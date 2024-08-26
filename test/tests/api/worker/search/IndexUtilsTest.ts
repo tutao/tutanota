@@ -12,7 +12,6 @@ import {
 	htmlToText,
 	typeRefToTypeInfo,
 	userIsGlobalAdmin,
-	userIsLocalOrGlobalAdmin,
 } from "../../../../../src/common/api/worker/search/IndexUtils.js"
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
@@ -121,16 +120,6 @@ o.spec("Index Utils", () => {
 		o(typeRefToTypeInfo(ContactTypeRef).appId).equals(1)
 		const ContactTypeModel = await resolveTypeReference(ContactTypeRef)
 		o(typeRefToTypeInfo(ContactTypeRef).typeId).equals(ContactTypeModel.id)
-	})
-	o("userIsLocalOrGlobalAdmin", function () {
-		let user = createTestEntity(UserTypeRef)
-		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
-		user.memberships[0].groupType = GroupType.Admin
-		o(userIsLocalOrGlobalAdmin(user)).equals(true)
-		user.memberships[0].groupType = GroupType.LocalAdmin
-		o(userIsLocalOrGlobalAdmin(user)).equals(true)
-		user.memberships[0].groupType = GroupType.Mail
-		o(userIsLocalOrGlobalAdmin(user)).equals(false)
 	})
 	o("userIsGlobalAdmin", function () {
 		let user = createTestEntity(UserTypeRef)

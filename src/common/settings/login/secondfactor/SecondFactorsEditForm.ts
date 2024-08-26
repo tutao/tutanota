@@ -85,7 +85,7 @@ export class SecondFactorsEditForm {
 			const type = assertEnumValue(SecondFactorType, f.type)
 			return {
 				cells: [factorName, lang.get(SecondFactorTypeToNameTextId[type])],
-				actionButtonAttrs: locator.logins.getUserController().isGlobalOrLocalAdmin() ? removeButtonAttrs : null,
+				actionButtonAttrs: locator.logins.getUserController().isGlobalAdmin() ? removeButtonAttrs : null,
 			}
 		})
 		m.redraw()

@@ -34,7 +34,6 @@ o.spec("user data export", function () {
 			user,
 			// we only test the case where we are global admin for now
 			isGlobalAdmin: () => true,
-			getLocalAdminGroupMemberships: () => [],
 		})
 
 		entityClientMock = object()

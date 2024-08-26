@@ -155,10 +155,6 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 	return typeInfo
 }
 
-export function userIsLocalOrGlobalAdmin(user: User): boolean {
-	return user.memberships.some((m) => m.groupType === GroupType.Admin || m.groupType === GroupType.LocalAdmin)
-}
-
 export function userIsGlobalAdmin(user: User): boolean {
 	return user.memberships.some((m) => m.groupType === GroupType.Admin)
 }
