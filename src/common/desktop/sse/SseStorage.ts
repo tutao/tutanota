@@ -24,7 +24,11 @@ export class SseStorage {
 			}
 		} else {
 			newSseInfo = previousSseInfo
-			newSseInfo.userIds.push(userId)
+			newSseInfo.identifier = identifier
+			newSseInfo.sseOrigin = sseOrigin
+			if (!newSseInfo.userIds.includes(userId)) {
+				newSseInfo.userIds.push(userId)
+			}
 		}
 		await this.conf.setVar(DesktopConfigEncKey.sseInfo, newSseInfo)
 		// Provide right defaults for extended notification mode.
