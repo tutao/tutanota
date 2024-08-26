@@ -417,7 +417,6 @@ export class MailViewModel {
 		loadMails: (listId: Id, mailIds: Array<Id>) => Promise<Mail[]>,
 	): Promise<Array<Mail>> {
 		const mailSetEntries = await loadMailSetEntries()
-		console.log("entries", mailSetEntries)
 		const mailListIdToMailIds = groupByAndMap(
 			mailSetEntries,
 			(mse) => listIdPart(mse.mail),
@@ -427,7 +426,6 @@ export class MailViewModel {
 		for (const [listId, mailIds] of mailListIdToMailIds) {
 			mails.push(...(await loadMails(listId, mailIds)))
 		}
-		console.log("mails", mails)
 		return mails
 	}
 
