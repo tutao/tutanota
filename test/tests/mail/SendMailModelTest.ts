@@ -49,6 +49,7 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
+import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 
 const { anything, argThat } = matchers
 
@@ -153,6 +154,7 @@ o.spec("SendMailModel", function () {
 
 		const mailboxDetails: MailboxDetail = {
 			mailbox: createTestEntity(MailBoxTypeRef),
+			folders: new FolderSystem([]),
 			mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "mailgroup@addre.ss",
 			}),
