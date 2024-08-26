@@ -1754,6 +1754,10 @@ export default {
 		"importEvents_label": "Import Events",
 		"calendarImportSelection_label": "Select a calendar to import your events into",
 		"icsInSharingFiles_msg": "One or more calendar files were detected. Would you like to import or attach them?",
-		"invalidCalendarFile_msg": "One or more files aren't valid calendar files."
+		"invalidCalendarFile_msg": "One or more files aren't valid calendar files.",
+		"light_blue": "Light Blue",
+		"dark_blue": "Dark Blue",
+		"light_red": "Light Red",
+		"dark_red": "Dark Red"
 	}
 }
