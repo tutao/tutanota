@@ -887,6 +887,7 @@ export default {
 		"mailExportProgress_msg": "Bereite {current} von {total} E-Mails für den Export vor...",
 		"mailFolder_label": "E-Mail-Ordner",
 		"mailHeaders_title": "E-Mail-Header",
+		"mailMoved_msg": "Diese E-Mail wurde in einen anderen Ordner verschoben.",
 		"mailName_label": "Absendername",
 		"mailPartsNotLoaded_msg": "Einige Teile der E-Mail konnten nicht geladen werden, da die Verbindung abgebrochen ist.",
 		"mailServer_label": "E-Mail-Server",

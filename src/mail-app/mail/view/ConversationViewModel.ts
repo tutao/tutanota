@@ -291,10 +291,13 @@ export class ConversationViewModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.onEntityEvent)
-		for (const item of this.conversationItems()) {
-			if (item.type === "mail") {
-				item.viewModel.dispose()
+		// hack: init has been called if loadingPromise is set
+		if (this.loadingPromise != null) {
+			this.eventController.removeEntityListener(this.onEntityEvent)
+			for (const item of this.conversationItems()) {
+				if (item.type === "mail") {
+					item.viewModel.dispose()
+				}
 			}
 		}
 	}

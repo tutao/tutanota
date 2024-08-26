@@ -883,6 +883,7 @@ export default {
 		"mailExportProgress_msg": "Preparing {current} of {total} emails for export...",
 		"mailFolder_label": "Email folder",
 		"mailHeaders_title": "Email headers",
+		"mailMoved_msg": "This email has been moved to another folder.",
 		"mailName_label": "Sender name",
 		"mailPartsNotLoaded_msg": "Some parts of the email failed to load due to a lost connection.",
 		"mailServer_label": "Mail server",

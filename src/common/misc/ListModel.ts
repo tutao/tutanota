@@ -578,7 +578,7 @@ export class ListModel<ElementType extends ListElement> {
 	}
 }
 
-export function selectionAttrsForList(listModel: ListModel<ListElement> | null) {
+export function selectionAttrsForList(listModel: Pick<ListModel<ListElement>, "areAllSelected" | "selectNone" | "selectAll"> | null) {
 	return {
 		selected: listModel?.areAllSelected() ?? false,
 		selectNone: () => listModel?.selectNone(),

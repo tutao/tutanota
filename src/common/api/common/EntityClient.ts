@@ -1,5 +1,11 @@
-import type { EntityRestClientUpdateOptions, EntityRestInterface, OwnerEncSessionKeyProvider, OwnerKeyProvider } from "../worker/rest/EntityRestClient"
-import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
+import {
+	CacheMode,
+	EntityRestClientSetupOptions,
+	EntityRestClientUpdateOptions,
+	EntityRestInterface,
+	OwnerEncSessionKeyProvider,
+	OwnerKeyProvider,
+} from "../worker/rest/EntityRestClient"
 import type { RootInstance } from "../entities/sys/TypeRefs.js"
 import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
 import {
@@ -25,8 +31,15 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict, ownerKey?: OwnerKeyProvider): Promise<T> {
-		return this._target.load(typeRef, id, query, extraHeaders, ownerKey)
+	load<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		query?: Dict,
+		extraHeaders?: Dict,
+		ownerKey?: OwnerKeyProvider,
+		cacheMode: CacheMode = CacheMode.Cache,
+	): Promise<T> {
+		return this._target.load(typeRef, id, query, extraHeaders, ownerKey, cacheMode)
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {

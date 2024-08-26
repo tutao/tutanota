@@ -867,6 +867,7 @@ export type TranslationKeyType =
 	| "mailExportProgress_msg"
 	| "mailFolder_label"
 	| "mailHeaders_title"
+	| "mailMoved_msg"
 	| "mailName_label"
 	| "mailPartsNotLoaded_msg"
 	| "mailServer_label"

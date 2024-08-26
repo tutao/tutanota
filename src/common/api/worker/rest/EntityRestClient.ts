@@ -56,6 +56,16 @@ export interface OwnerKeyProvider {
 }
 
 /**
+ * Whether to use the cache to fetch the entity
+ */
+export enum CacheMode {
+	/** Prefer cached value if it's there or fall back to network. */
+	Cache,
+	/** Prefer the value from network, do not fetch from cache. The entity will still be cached upon loading. */
+	Bypass,
+}
+
+/**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.
  */
 export interface EntityRestInterface {
@@ -69,6 +79,7 @@ export interface EntityRestInterface {
 		queryParameters?: Dict,
 		extraHeaders?: Dict,
 		ownerKeyProvider?: OwnerKeyProvider,
+		cacheMode?: CacheMode,
 	): Promise<T>
 
 	/**

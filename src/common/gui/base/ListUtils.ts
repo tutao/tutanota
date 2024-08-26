@@ -29,54 +29,56 @@ export interface ListFetchResult<ElementType> {
 	complete: boolean
 }
 
-export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode, list: () => ListModel<ListElement> | null): Array<Shortcut> {
+export type ListSelectionCallbacks = Pick<ListModel<ListElement>, "selectPrevious" | "selectNext" | "areAllSelected" | "selectAll" | "selectNone">
+
+export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode, callbacks: () => ListSelectionCallbacks | null): Array<Shortcut> {
 	const multiselectionEnabled = multiselectMode == MultiselectMode.Enabled ? () => true : () => false
 	return [
 		{
 			key: Keys.UP,
-			exec: mapLazily(list, (list) => list?.selectPrevious(false)),
+			exec: mapLazily(callbacks, (list) => list?.selectPrevious(false)),
 			help: "selectPrevious_action",
 		},
 		{
 			key: Keys.K,
-			exec: mapLazily(list, (list) => list?.selectPrevious(false)),
+			exec: mapLazily(callbacks, (list) => list?.selectPrevious(false)),
 			help: "selectPrevious_action",
 		},
 		{
 			key: Keys.UP,
 			shift: true,
-			exec: mapLazily(list, (list) => list?.selectPrevious(true)),
+			exec: mapLazily(callbacks, (list) => list?.selectPrevious(true)),
 			help: "addPrevious_action",
 			enabled: multiselectionEnabled,
 		},
 		{
 			key: Keys.K,
 			shift: true,
-			exec: mapLazily(list, (list) => list?.selectPrevious(true)),
+			exec: mapLazily(callbacks, (list) => list?.selectPrevious(true)),
 			help: "addPrevious_action",
 			enabled: multiselectionEnabled,
 		},
 		{
 			key: Keys.DOWN,
-			exec: mapLazily(list, (list) => list?.selectNext(false)),
+			exec: mapLazily(callbacks, (list) => list?.selectNext(false)),
 			help: "selectNext_action",
 		},
 		{
 			key: Keys.J,
-			exec: mapLazily(list, (list) => list?.selectNext(false)),
+			exec: mapLazily(callbacks, (list) => list?.selectNext(false)),
 			help: "selectNext_action",
 		},
 		{
 			key: Keys.DOWN,
 			shift: true,
-			exec: mapLazily(list, (list) => list?.selectNext(true)),
+			exec: mapLazily(callbacks, (list) => list?.selectNext(true)),
 			help: "addNext_action",
 			enabled: multiselectionEnabled,
 		},
 		{
 			key: Keys.J,
 			shift: true,
-			exec: mapLazily(list, (list) => list?.selectNext(true)),
+			exec: mapLazily(callbacks, (list) => list?.selectNext(true)),
 			help: "addNext_action",
 			enabled: multiselectionEnabled,
 		},
@@ -84,7 +86,7 @@ export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode,
 			key: Keys.A,
 			ctrlOrCmd: true,
 			shift: true,
-			exec: mapLazily(list, (list) => (list?.areAllSelected() ? list.selectNone() : list?.selectAll())),
+			exec: mapLazily(callbacks, (list) => (list?.areAllSelected() ? list.selectNone() : list?.selectAll())),
 			help: "selectAllLoaded_action",
 			// this specific shortcut conflicts with a chrome shortcut. it was chosen because it's adjacent to ctrl + A
 			// for select all.
