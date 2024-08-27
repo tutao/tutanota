@@ -2,13 +2,12 @@
 //! Contains implementations of cryptographic algorithms and their primitives
 // TODO: Remove the above allowance when starting to implement higher level functions
 
-
-pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 #[allow(unused_imports)]
 pub use aes::Aes128Key;
 #[cfg(test)]
 pub use aes::Iv;
 pub use aes::PlaintextAndIv;
+pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 pub use argon2_id::generate_key_from_passphrase;
 pub use hkdf::hkdf;
 pub use sha::sha256;
@@ -29,9 +28,9 @@ pub(crate) mod rsa;
 
 mod tuta_crypt;
 
-pub mod key_encryption;
-pub mod crypto_facade;
-pub mod key;
-pub mod randomizer_facade;
 #[cfg(test)]
 mod compatibility_test_utils;
+pub mod crypto_facade;
+pub mod key;
+pub mod key_encryption;
+pub mod randomizer_facade;

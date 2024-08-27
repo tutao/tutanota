@@ -18,13 +18,13 @@ pub struct ${typeName} {\n`
 	for (let [valueName, valueProperties] of Object.entries(type.values)) {
 		const rustType = rustValueType(valueName, type, valueProperties)
 		if (valueName === "type") {
-			buf += `    #[serde(rename = "type")]\n`
-			buf += `    pub r#type: ${rustType},\n`
+			buf += `\t#[serde(rename = "type")]\n`
+			buf += `\tpub r#type: ${rustType},\n`
 		} else if (valueProperties.type === "Bytes") {
-			buf += `    #[serde(with = "serde_bytes")]\n`
-			buf += `    pub ${valueName}: ${rustType},\n`
+			buf += `\t#[serde(with = "serde_bytes")]\n`
+			buf += `\tpub ${valueName}: ${rustType},\n`
 		} else {
-			buf += `    pub ${valueName}: ${rustType},\n`
+			buf += `\tpub ${valueName}: ${rustType},\n`
 		}
 	}
 
@@ -44,10 +44,10 @@ pub struct ${typeName} {\n`
 		}
 
 		if (associationName === "type") {
-			buf += `    #[serde(rename = "type")]\n`
-			buf += `    pub r#type: ${rustType},\n`
+			buf += `\t#[serde(rename = "type")]\n`
+			buf += `\tpub r#type: ${rustType},\n`
 		} else {
-			buf += `    pub ${associationName}: ${rustType},\n`
+			buf += `\tpub ${associationName}: ${rustType},\n`
 		}
 	}
 
@@ -64,13 +64,13 @@ pub struct ${typeName} {\n`
 	buf += "\n\n"
 
 	buf += `impl Entity for ${typeName} {\n`
-	buf += "    fn type_ref() -> TypeRef {\n"
-	buf += `        TypeRef {\n`
-	buf += `            app: "${modelName}",\n`
-	buf += `            type_: "${typeName}",\n`
-	buf += `         }\n`
-	buf += "    }\n"
-	buf += "}\n"
+	buf += "\tfn type_ref() -> TypeRef {\n"
+	buf += `\t\tTypeRef {\n`
+	buf += `\t\t\tapp: "${modelName}",\n`
+	buf += `\t\t\ttype_: "${typeName}",\n`
+	buf += `\t\t}\n`
+	buf += "\t}\n"
+	buf += "}"
 
 	return buf
 }
@@ -80,11 +80,13 @@ pub struct ${typeName} {\n`
  * @return {string}
  */
 export function combineRustTypes(types) {
+	if (types.length === 0) return "\n"
 	return `#![allow(non_snake_case, unused_imports)]
 use super::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-${types.join("\n\n")}`
+${types.join("\n\n")}
+`
 }
 
 /**

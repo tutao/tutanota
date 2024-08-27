@@ -1,5 +1,5 @@
-mod login_facade;
 mod credentials;
+mod login_facade;
 
-pub use login_facade::{LoginFacade, LoginError};
 pub use credentials::*;
+pub use login_facade::{LoginError, LoginFacade};
