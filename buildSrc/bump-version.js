@@ -57,8 +57,10 @@ async function run({ platform }) {
  * @param newVersionString {string}
  */
 async function bumpIosVersion(newVersionString) {
+	const calendarInfoPlistName = "app-ios/calendar/Info.plist"
 	const infoPlistName = "app-ios/tutanota/Info.plist"
 	await replaceCfBundleVersion(infoPlistName, newVersionString)
+	await replaceCfBundleVersion(calendarInfoPlistName, newVersionString)
 	await replaceCfBundleVersion("app-ios/TutanotaNotificationExtension/Info.plist", newVersionString)
 }
 
