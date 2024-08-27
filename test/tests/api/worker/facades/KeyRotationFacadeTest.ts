@@ -718,7 +718,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
 						_id: [keyRotationsListId, adminGroupId],
 						targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
-						groupKeyRotationType: GroupKeyRotationType.Admin,
+						groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount,
 					}),
 					teamOrCustomerGroupKeyRotations: [],
 					userAreaGroupsKeyRotations: [],
@@ -791,7 +791,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
 						_id: [keyRotationsListId, adminGroupId],
 						targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
-						groupKeyRotationType: GroupKeyRotationType.Admin,
+						groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount,
 					}),
 					teamOrCustomerGroupKeyRotations: [],
 					userAreaGroupsKeyRotations: [],
