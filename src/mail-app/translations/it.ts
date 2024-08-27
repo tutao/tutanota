@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2024-08-08T11:12:25Z",
+	"updated_at": "2024-08-18T04:27:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -988,6 +988,7 @@ export default {
 		"notificationSettings_action": "Notifiche",
 		"notificationSync_msg": "Sincronizzazione delle notifiche",
 		"notificationTargets_label": "Obiettivi della notifica",
+		"noTitle_label": "<Nessun titolo>",
 		"notSigned_msg": "Non firmato.",
 		"noUpdateAvailable_msg": "Nessun aggiornamento trovato.",
 		"noValidMembersToAdd_msg": "Non stai amministrando nessun utente che non sia già membro di questo gruppo.",
@@ -1342,6 +1343,7 @@ export default {
 		"resumeSetup_label": "Riprendi la configurazione",
 		"retry_action": "Riprova",
 		"revealPassword_action": "Rivela la password",
+		"richNotificationsNewsItem_msg": "La tua app email preferita può ora mostrare l'oggetto e il mittente nelle notifiche! Abilita questa funzionalità adesso:",
 		"richText_label": "Rich text",
 		"role_placeholder": "Ruolo",
 		"runInBackground_action": "Esegui in background",

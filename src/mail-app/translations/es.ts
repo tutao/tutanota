@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-08-09T11:31:46Z",
+	"updated_at": "2024-08-27T08:06:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1194,6 +1194,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "Acuerdo de procesamiento de datos RGPD",
 		"pricing.gdpr_label": "Cumple con el RGPD",
 		"pricing.gdpr_tooltip": "Todos los datos se almacenan de conformidad con las estrictas regulaciones europeas de protección de datos de acuerdo con el RGPD.",
+		"pricing.getStarted_label": "Empezar",
 		"pricing.includesTaxes_msg": "Impuestos incluidos.",
 		"pricing.login_title": "Inicia sesión en tu propio sitio web",
 		"pricing.login_tooltip": "Coloca el inicio de sesión de Tuta en tu propio sitio web para tus empleados y visitantes.",
@@ -1220,7 +1221,7 @@ export default {
 		"pricing.privateUse_label": "Privado",
 		"pricing.roles_label": "Múltiples funciones de administrador",
 		"pricing.roles_tooltip": "Define administradores globales que tengan acceso a todo y administradores locales que sólo puedan gestionar a miembros de un determinado equipo.",
-		"pricing.saveAmount_label": "Guardar {amount}",
+		"pricing.saveAmount_label": "Ahorrar {amount}",
 		"pricing.search_msg": "Búsqueda ilimitada",
 		"pricing.search_tooltip": "Busca en todo tu buzón de forma confidencial, a través de nuestro índice de búsqueda encriptado.",
 		"pricing.security_label": "Seguridad",

@@ -1189,6 +1189,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "一般資料保護規則（GDPR）資料處理協議",
 		"pricing.gdpr_label": "符合一般資料保護規則（GDPR）",
 		"pricing.gdpr_tooltip": "所有資料都根據一般資料保護規則（GDPR）儲存，符合嚴格的歐洲資料保護規則。",
+		"pricing.getStarted_label": "開始",
 		"pricing.includesTaxes_msg": "含稅。",
 		"pricing.login_title": "在自己的網站上登入",
 		"pricing.login_tooltip": "將Tuta登入放在您自己的網站上以供您的僱員及外部用戶使用。",
