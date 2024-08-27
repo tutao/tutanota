@@ -1192,10 +1192,12 @@ export enum CryptoProtocolVersion {
 
 export enum GroupKeyRotationType {
 	User = "0",
-	Admin = "1",
+	AdminGroupKeyRotationSingleUserAccount = "1", // scheduled for accounts that only have one user (incl. deactivated users)
 	Team = "2",
 	UserArea = "3",
 	Customer = "4",
+	AdminGroupKeyRotationMultipleUserAccount = "5", // scheduled for accounts that have multiple users but only a single admin user
+	AdminGroupKeyRotationMultipleAdminAccount = "6", // scheduled for accounts that have multiple admin users
 }
 
 export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)
