@@ -23,6 +23,14 @@ import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from ".
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
  */
 export const GENERATED_MAX_ID = "zzzzzzzzzzzz"
+/**
+ * we support creation of customIds for mailset entries until around this date.
+ *
+ * this is intended to be after any reasonable real custom id we generate for mail set entries.
+ *
+ * current mailSetEntry maximum date is: 2019-05-15 -ish ( see MailFolderHelper.java: makeMailSetEntryCustomId )
+ */
+export const DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP = new Date("2109-05-16 15:00 UTC").getTime()
 
 /**
  *
@@ -457,7 +465,8 @@ export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 	// truncating to 4 bytes leaves us with enough space for epoch + 4_294_967_295 not-quite-seconds
 	// (until around 2109-05-15 15:00)
 	const timestamp: bigint = BigInt(Math.trunc(receiveDate.getTime()))
-	const truncatedReceiveDate = (timestamp >> 10n) & 0xffffffffn
+
+	const truncatedReceiveDate = (timestamp >> 10n) & 0x00000000ffffffffn
 
 	// we don't need the leading zeroes
 	buffer.setBigUint64(0, truncatedReceiveDate << 32n)

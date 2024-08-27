@@ -35,8 +35,8 @@ o.spec("EntityUtils", function () {
 	o("test constructcustomId for mailSetEntry", function () {
 		const mailId: Id = "-----------0"
 
-		const expected = "V7iDsQAAAAAAAAAAAQ"
-		const receiveDate = new Date("2017-10-03 13:46:13")
+		const expected = "V7ifKQAAAAAAAAAAAQ"
+		const receiveDate = new Date("2017-10-03 13:46:13 UTC")
 
 		const calculatedId = constructMailSetEntryId(receiveDate, mailId)
 		o(expected).equals(calculatedId)

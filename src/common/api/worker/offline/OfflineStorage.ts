@@ -2,6 +2,7 @@ import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../c
 import {
 	constructMailSetEntryId,
 	CUSTOM_MIN_ID,
+	DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP,
 	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -545,8 +546,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 				const folderSystem = new FolderSystem(folders)
 				for (const mailSet of folders) {
 					if (isSpamOrTrashFolder(folderSystem, mailSet)) {
-						// current mailSetEntry maximum date is: 2019-05-15 -ish ( see MailFolderHelper.java: makeMailSetEntryCustomId )
-						await this.deleteMailSetEntries(mailSet.entries, new Date("2109-05-15 15:00").getTime())
+						await this.deleteMailSetEntries(mailSet.entries, DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP)
 					} else {
 						await this.deleteMailSetEntries(mailSet.entries, cutoffTimestamp)
 					}
