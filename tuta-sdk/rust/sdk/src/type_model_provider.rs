@@ -10,19 +10,19 @@ pub type TypeName = &'static str;
 
 /// Contains a map between backend apps and entity/instance types within them
 pub struct TypeModelProvider {
-    app_models: HashMap<AppName, HashMap<TypeName, TypeModel>>,
+	app_models: HashMap<AppName, HashMap<TypeName, TypeModel>>,
 }
 
 impl TypeModelProvider {
-    pub fn new(app_models: HashMap<AppName, HashMap<TypeName, TypeModel>>) -> TypeModelProvider {
-        TypeModelProvider { app_models }
-    }
+	pub fn new(app_models: HashMap<AppName, HashMap<TypeName, TypeModel>>) -> TypeModelProvider {
+		TypeModelProvider { app_models }
+	}
 
-    /// Gets an entity/instance type with a specified name in a backend app
-    pub fn get_type_model(&self, app_name: &str, entity_name: &str) -> Option<&TypeModel> {
-        let app_map = self.app_models.get(app_name)?;
-        app_map.get(entity_name)
-    }
+	/// Gets an entity/instance type with a specified name in a backend app
+	pub fn get_type_model(&self, app_name: &str, entity_name: &str) -> Option<&TypeModel> {
+		let app_map = self.app_models.get(app_name)?;
+		app_map.get(entity_name)
+	}
 }
 
 // Reads all provided type models into a map.
@@ -44,19 +44,18 @@ macro_rules! read_type_models {
     }}
 }
 
-
 /// Creates a new `TypeModelProvider` populated with the type models from the JSON type model files
 pub fn init_type_model_provider() -> TypeModelProvider {
-    let type_model_map = read_type_models![
-        "accounting",
-        "base",
-        "gossip",
-        "monitor",
-        "storage",
-        "sys",
-        "tutanota",
-        "usage"
-        ];
-    let type_model_provider = TypeModelProvider::new(type_model_map);
-    type_model_provider
+	let type_model_map = read_type_models![
+		"accounting",
+		"base",
+		"gossip",
+		"monitor",
+		"storage",
+		"sys",
+		"tutanota",
+		"usage"
+	];
+	let type_model_provider = TypeModelProvider::new(type_model_map);
+	type_model_provider
 }

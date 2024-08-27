@@ -2,73 +2,76 @@
 
 use rand::random;
 
-use crate::crypto::Aes256Key;
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+use crate::crypto::Aes256Key;
 use crate::custom_id::CustomId;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::entities::Entity;
 use crate::entities::sys::{ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, TypeInfo};
+use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
-use crate::IdTuple;
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ValueType};
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
+use crate::IdTuple;
 
 /// Generates a URL-safe random string of length `Size`.
 #[must_use]
 pub fn generate_random_string<const SIZE: usize>() -> String {
-    use base64::engine::Engine;
-    let random_bytes: [u8; SIZE] = make_thread_rng_facade().generate_random_array();
-    base64::engine::general_purpose::URL_SAFE.encode(random_bytes)
+	use base64::engine::Engine;
+	let random_bytes: [u8; SIZE] = make_thread_rng_facade().generate_random_array();
+	base64::engine::general_purpose::URL_SAFE.encode(random_bytes)
 }
 
-pub fn generate_random_group(current_keys: Option<KeyPair>, former_keys: Option<GroupKeysRef>) -> Group {
-    Group {
-        _format: 0,
-        _id: GeneratedId::test_random(),
-        _ownerGroup: None,
-        _permissions: GeneratedId::test_random(),
-        groupInfo: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
-        administratedGroups: None,
-        archives: vec![ArchiveType {
-            _id: CustomId::test_random(),
-            active: ArchiveRef {
-                _id: CustomId::test_random(),
-                archiveId: GeneratedId::test_random(),
-            },
-            inactive: vec![],
-            r#type: TypeInfo {
-                _id: CustomId::test_random(),
-                application: "app".to_string(),
-                typeId: 1,
-            },
-        }],
-        currentKeys: current_keys,
-        customer: None,
-        formerGroupKeys: former_keys,
-        invitations: GeneratedId::test_random(),
-        members: GeneratedId::test_random(),
-        groupKeyVersion: 1,
-        admin: None,
-        r#type: 46,
-        adminGroupEncGKey: None,
-        adminGroupKeyVersion: None,
-        enabled: true,
-        external: false,
-        pubAdminGroupEncGKey: Some(vec![1, 2, 3]),
-        storageCounter: None,
-        user: None,
-    }
+pub fn generate_random_group(
+	current_keys: Option<KeyPair>,
+	former_keys: Option<GroupKeysRef>,
+) -> Group {
+	Group {
+		_format: 0,
+		_id: GeneratedId::test_random(),
+		_ownerGroup: None,
+		_permissions: GeneratedId::test_random(),
+		groupInfo: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
+		administratedGroups: None,
+		archives: vec![ArchiveType {
+			_id: CustomId::test_random(),
+			active: ArchiveRef {
+				_id: CustomId::test_random(),
+				archiveId: GeneratedId::test_random(),
+			},
+			inactive: vec![],
+			r#type: TypeInfo {
+				_id: CustomId::test_random(),
+				application: "app".to_string(),
+				typeId: 1,
+			},
+		}],
+		currentKeys: current_keys,
+		customer: None,
+		formerGroupKeys: former_keys,
+		invitations: GeneratedId::test_random(),
+		members: GeneratedId::test_random(),
+		groupKeyVersion: 1,
+		admin: None,
+		r#type: 46,
+		adminGroupEncGKey: None,
+		adminGroupKeyVersion: None,
+		enabled: true,
+		external: false,
+		pubAdminGroupEncGKey: Some(vec![1, 2, 3]),
+		storageCounter: None,
+		user: None,
+	}
 }
 
 pub fn random_aes256_key() -> Aes256Key {
-    Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap()
+	Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap()
 }
 
 /// Moves the object T into heap and leaks it.
 #[inline(always)]
 pub fn leak<T>(what: T) -> &'static T {
-    Box::leak(Box::new(what))
+	Box::leak(Box::new(what))
 }
 
 /// Generate a test entity.
@@ -93,13 +96,17 @@ pub fn leak<T>(what: T) -> &'static T {
 /// ```
 #[must_use]
 pub fn create_test_entity<'a, T: Entity + serde::Deserialize<'a>>() -> T {
-    let mapper = InstanceMapper::new();
-    let entity = create_test_entity_dict::<T>();
-    let type_ref = T::type_ref();
-    match mapper.parse_entity(entity) {
-        Ok(n) => n,
-        Err(e) => panic!("Failed to create test entity {app}/{type_}: parse error {e}", app = type_ref.app, type_ = type_ref.type_)
-    }
+	let mapper = InstanceMapper::new();
+	let entity = create_test_entity_dict::<T>();
+	let type_ref = T::type_ref();
+	match mapper.parse_entity(entity) {
+		Ok(n) => n,
+		Err(e) => panic!(
+			"Failed to create test entity {app}/{type_}: parse error {e}",
+			app = type_ref.app,
+			type_ = type_ref.type_
+		),
+	}
 }
 
 /// Generate a test entity as a raw `ParsedEntity` dictionary type.
@@ -112,10 +119,10 @@ pub fn create_test_entity<'a, T: Entity + serde::Deserialize<'a>>() -> T {
 /// **NOTE:** The resulting dictionary is unencrypted.
 #[must_use]
 pub fn create_test_entity_dict<'a, T: Entity + serde::Deserialize<'a>>() -> ParsedEntity {
-    let provider = init_type_model_provider();
-    let type_ref = T::type_ref();
-    let entity = create_test_entity_dict_with_provider(&provider, type_ref.app, type_ref.type_);
-    entity
+	let provider = init_type_model_provider();
+	let type_ref = T::type_ref();
+	let entity = create_test_entity_dict_with_provider(&provider, type_ref.app, type_ref.type_);
+	entity
 }
 
 /// Convert a typed entity into a raw `ParsedEntity` dictionary type.
@@ -125,25 +132,34 @@ pub fn create_test_entity_dict<'a, T: Entity + serde::Deserialize<'a>>() -> Pars
 /// Panics if the resulting entity is invalid and unable to be serialized.
 #[must_use]
 pub fn typed_entity_to_parsed_entity<T: Entity + serde::Serialize>(entity: T) -> ParsedEntity {
-    let mapper = InstanceMapper::new();
-    match mapper.serialize_entity(entity) {
-        Ok(n) => n,
-        Err(e) => panic!("Failed to serialize {}/{}: {:?}", T::type_ref().app, T::type_ref().type_, e)
-    }
+	let mapper = InstanceMapper::new();
+	match mapper.serialize_entity(entity) {
+		Ok(n) => n,
+		Err(e) => panic!(
+			"Failed to serialize {}/{}: {:?}",
+			T::type_ref().app,
+			T::type_ref().type_,
+			e
+		),
+	}
 }
 
-fn create_test_entity_dict_with_provider(provider: &TypeModelProvider, app: &str, type_: &str) -> ParsedEntity {
-    let Some(model) = provider.get_type_model(app, type_) else {
-        panic!("Failed to create test entity {app}/{type_}: not in model")
-    };
-    let mut object = ParsedEntity::new();
+fn create_test_entity_dict_with_provider(
+	provider: &TypeModelProvider,
+	app: &str,
+	type_: &str,
+) -> ParsedEntity {
+	let Some(model) = provider.get_type_model(app, type_) else {
+		panic!("Failed to create test entity {app}/{type_}: not in model")
+	};
+	let mut object = ParsedEntity::new();
 
-    for (&name, value) in &model.values {
-        let element_value = match value.cardinality {
-            Cardinality::ZeroOrOne => ElementValue::Null,
-            Cardinality::Any => ElementValue::Array(Vec::new()),
-            Cardinality::One => {
-                match value.value_type {
+	for (&name, value) in &model.values {
+		let element_value = match value.cardinality {
+			Cardinality::ZeroOrOne => ElementValue::Null,
+			Cardinality::Any => ElementValue::Array(Vec::new()),
+			Cardinality::One => {
+				match value.value_type {
                     ValueType::String => ElementValue::String(Default::default()),
                     ValueType::Number => ElementValue::Number(Default::default()),
                     ValueType::Bytes => ElementValue::Bytes(Default::default()),
@@ -166,34 +182,50 @@ fn create_test_entity_dict_with_provider(provider: &TypeModelProvider, app: &str
                     }
                     ValueType::CompressedString => todo!("Failed to create test entity {app}/{type_}: Compressed strings ({name}) are not yet supported!"),
                 }
-            }
-        };
+			},
+		};
 
-        object.insert(name.to_owned(), element_value);
-    }
+		object.insert(name.to_owned(), element_value);
+	}
 
-    for (&name, value) in &model.associations {
-        let association_value = match value.cardinality {
-            Cardinality::ZeroOrOne => ElementValue::Null,
-            Cardinality::Any => ElementValue::Array(Vec::new()),
-            Cardinality::One => {
-                match value.association_type {
-                    AssociationType::ElementAssociation => ElementValue::IdGeneratedId(GeneratedId::test_random()),
-                    AssociationType::ListAssociation => ElementValue::IdGeneratedId(GeneratedId::test_random()),
-                    AssociationType::ListElementAssociation => ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random())),
-                    AssociationType::Aggregation => ElementValue::Dict(create_test_entity_dict_with_provider(provider, value.dependency.unwrap_or(app), value.ref_type)),
-                    AssociationType::BlobElementAssociation => ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random())),
-                }
-            }
-        };
-        object.insert(name.to_owned(), association_value);
-    }
+	for (&name, value) in &model.associations {
+		let association_value =
+			match value.cardinality {
+				Cardinality::ZeroOrOne => ElementValue::Null,
+				Cardinality::Any => ElementValue::Array(Vec::new()),
+				Cardinality::One => match value.association_type {
+					AssociationType::ElementAssociation => {
+						ElementValue::IdGeneratedId(GeneratedId::test_random())
+					},
+					AssociationType::ListAssociation => {
+						ElementValue::IdGeneratedId(GeneratedId::test_random())
+					},
+					AssociationType::ListElementAssociation => ElementValue::IdTupleId(
+						IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
+					),
+					AssociationType::Aggregation => {
+						ElementValue::Dict(create_test_entity_dict_with_provider(
+							provider,
+							value.dependency.unwrap_or(app),
+							value.ref_type,
+						))
+					},
+					AssociationType::BlobElementAssociation => ElementValue::IdTupleId(
+						IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
+					),
+				},
+			};
+		object.insert(name.to_owned(), association_value);
+	}
 
-    if model.is_encrypted() {
-        object.insert("_finalIvs".to_owned(), ElementValue::Dict(Default::default()));
-    }
+	if model.is_encrypted() {
+		object.insert(
+			"_finalIvs".to_owned(),
+			ElementValue::Dict(Default::default()),
+		);
+	}
 
-    object
+	object
 }
 
 #[macro_export]
