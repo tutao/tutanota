@@ -32,8 +32,20 @@ import {
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
-import { GroupKeyRotationType, GroupType } from "../../common/TutanotaConstants.js"
-import { assertNotNull, defer, DeferredObject, downcast, getFirstOrThrow, groupBy, isEmpty, isSameTypeRef, lazyAsync, promiseMap } from "@tutao/tutanota-utils"
+import { assertEnumValue, GroupKeyRotationType, GroupType } from "../../common/TutanotaConstants.js"
+import {
+	assertNotNull,
+	defer,
+	DeferredObject,
+	downcast,
+	getFirstOrThrow,
+	groupBy,
+	isEmpty,
+	isNotNull,
+	isSameTypeRef,
+	lazyAsync,
+	promiseMap,
+} from "@tutao/tutanota-utils"
 import { elementIdPart, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import {
@@ -184,11 +196,18 @@ export class KeyRotationFacade {
 		if (userGroupRoot.keyRotations != null) {
 			const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
 			const keyRotationsByType = groupBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
-			let adminOrUserGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Admin)
+			let adminOrUserGroupKeyRotationArray: Array<KeyRotation> = [
+				keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount),
+				keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount),
+				keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount),
+			]
+				.flat()
+				.filter(isNotNull)
 			let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
+			const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
 			this.pendingKeyRotations = {
 				pwKey: this.pendingKeyRotations.pwKey,
-				adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotationArray ? adminOrUserGroupKeyRotationArray[0] : null,
+				adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
 				teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
 				userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
 			}
@@ -204,10 +223,13 @@ export class KeyRotationFacade {
 		// first admin, then user and then user area
 		try {
 			if (this.pendingKeyRotations.adminOrUserGroupKeyRotation && this.pendingKeyRotations.pwKey) {
-				switch (this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType) {
-					// Currently we only support updating user area groups, so we ignore these,
-					// but we leave the instances in place in case another client supports them.
-					case GroupKeyRotationType.Admin:
+				const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
+				switch (groupKeyRotationType) {
+					case GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount:
+						console.log("Rotating the admin group with multiple members is not yet implemented")
+						break
+					case GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount:
+					case GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount:
 						await this.rotateAdminGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
 						break
 					case GroupKeyRotationType.User:
@@ -272,7 +294,7 @@ export class KeyRotationFacade {
 	}> {
 		//group key rotation is skipped if
 		// * user is not an admin user
-		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.Admin)
+		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount)
 		if (adminGroupMembership == null) {
 			// group key rotations are currently only scheduled for single user customers, so this user must be an admin
 			console.log("Only admin user can rotate the group")
@@ -308,7 +330,7 @@ export class KeyRotationFacade {
 	private async rotateCustomerOrTeamGroupKeys(user: User) {
 		//group key rotation is skipped if
 		// * user is not an admin user
-		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.Admin)
+		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount)
 		if (adminGroupMembership == null) {
 			console.log("Only admin user can rotate the group")
 			return
