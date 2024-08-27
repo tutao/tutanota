@@ -70,7 +70,7 @@ pipeline {
 					}
 					steps {
 						script {
-							buildWebapp("test")
+							buildWebapp("test", "calendar")
 							generateXCodeProjects()
 							runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
 							if (params.RELEASE) {
@@ -86,7 +86,7 @@ pipeline {
 					}
 					steps {
 						script {
-							buildWebapp("prod")
+							buildWebapp("prod", "calendar")
 							generateXCodeProjects()
 							runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
 							stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
@@ -132,17 +132,18 @@ void stubClientDirectory() {
 		sh "pwd"
 		sh "echo $PATH"
     	sh "mkdir build"
+    	sh "mkdir build-calendar-app"
 	}
 }
 
-void buildWebapp(String stage) {
+void buildWebapp(String stage, String app) {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
     	sh "npm ci"
     	sh 'npm run build-packages'
-    	sh "node --max-old-space-size=8192 webapp ${stage}"
-    	sh "node buildSrc/prepareMobileBuild.js dist"
+    	sh "node --max-old-space-size=8192 webapp ${stage} --app ${app}"
+    	sh "node buildSrc/prepareMobileBuild.js dist ${app}"
 	}
 }
 
@@ -157,6 +158,7 @@ void generateXCodeProject(String projectPath, String spec) {
 
 // Runs xcodegen on all of our project specs
 void generateXCodeProjects() {
+    generateXCodeProject("app-ios", "mail-project")
 	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
 }

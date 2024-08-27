@@ -1,14 +1,14 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { addValue, migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
+import { addValue, deleteInstancesOfType, migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
 import {
+	ContactTypeRef,
 	createMail,
 	createMailBox,
-	createMailFolder,
-	createUserSettingsGroupRoot,
 	MailBoxTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
+	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { GENERATED_MIN_ID } from "../../../common/utils/EntityUtils.js"
@@ -27,6 +27,6 @@ export const tutanota74: OfflineMigration = {
 		await migrateAllListElements(MailTypeRef, storage, [createMail]) // initialize sets
 
 		// we need to re-initialize the UserSettingsGroupRoot to add a default value for defaultAlarmsList on GroupSettings
-		await migrateAllElements(UserSettingsGroupRootTypeRef, storage, [createUserSettingsGroupRoot])
+		await deleteInstancesOfType(storage, UserSettingsGroupRootTypeRef)
 	},
 }

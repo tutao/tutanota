@@ -108,8 +108,9 @@ dependencies {
 	ksp("androidx.room:room-compiler:$room_version")
 
 	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		val includes: Map<String, Any> = mapOf("include" to arrayOf("*.aar"), "dir" to "../libs")
-		implementation(fileTree(includes))
+		// We are not allowed to depend on an aar lib from an library, but, we can
+		// use compileOnly IF we still include the library in our applications
+		compileOnly(files("../libs/android-database-sqlcipher-4.5.0.aar"))
 	} else {
 		implementation("net.zetetic:android-database-sqlcipher:4.5.0")
 	}
