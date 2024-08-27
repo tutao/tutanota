@@ -52,6 +52,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							color: newColor,
 							name: newName,
 							defaultAlarmsList: [],
+							sourceUrl: null,
 						})
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}

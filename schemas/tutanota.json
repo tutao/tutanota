@@ -490,6 +490,16 @@
 					"info": "AddAssociation Mail/sets/LIST_ELEMENT_ASSOCIATION/1465."
 				}
 			]
+		},
+		{
+			"version": 75,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "GroupSettings",
+					"info": "AddValue GroupSettings/sourceUrl/1468."
+				}
+			]
 		}
 	]
 }

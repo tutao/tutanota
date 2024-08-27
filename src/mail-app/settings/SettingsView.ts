@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import { assertMainOrNode, isApp, isDesktop, isIOSApp } from "../../common/api/common/Env"
 import { ColumnType, ViewColumn } from "../../common/gui/base/ViewColumn"
@@ -822,6 +822,7 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 					color: "",
 					name: newName,
 					defaultAlarmsList: [],
+					sourceUrl: null,
 				})
 				logins.getUserController().userSettingsGroupRoot.groupSettings.push(newSettings)
 			}

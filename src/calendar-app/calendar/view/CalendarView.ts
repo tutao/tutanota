@@ -803,6 +803,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						color: properties.color,
 						name: shared && properties.name !== groupInfo.name ? properties.name : null,
 						defaultAlarmsList: [],
+						sourceUrl: null,
 					})
 					userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 				}

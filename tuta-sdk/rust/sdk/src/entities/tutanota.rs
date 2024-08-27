@@ -1160,6 +1160,7 @@ pub struct GroupSettings {
     pub _id: CustomId,
     pub color: String,
     pub name: Option<String>,
+    pub sourceUrl: Option<String>,
     pub defaultAlarmsList: Vec<DefaultAlarmInfo>,
     pub group: GeneratedId,
 }

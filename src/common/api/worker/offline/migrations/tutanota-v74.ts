@@ -1,16 +1,7 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { addValue, migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
-import {
-	createMail,
-	createMailBox,
-	createMailFolder,
-	createUserSettingsGroupRoot,
-	MailBoxTypeRef,
-	MailFolderTypeRef,
-	MailTypeRef,
-	UserSettingsGroupRootTypeRef,
-} from "../../../entities/tutanota/TypeRefs.js"
+import { addValue, deleteInstancesOfType, migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
+import { createMail, createMailBox, MailBoxTypeRef, MailFolderTypeRef, MailTypeRef, UserSettingsGroupRootTypeRef } from "../../../entities/tutanota/TypeRefs.js"
 import { GENERATED_MIN_ID } from "../../../common/utils/EntityUtils.js"
 
 export const tutanota74: OfflineMigration = {
@@ -26,7 +17,7 @@ export const tutanota74: OfflineMigration = {
 		await migrateAllElements(MailBoxTypeRef, storage, [createMailBox]) // initialize mailbags
 		await migrateAllListElements(MailTypeRef, storage, [createMail]) // initialize sets
 
-		// we need to re-initialize the UserSettingsGroupRoot to add a default value for defaultAlarmsList on GroupSettings
-		await migrateAllElements(UserSettingsGroupRootTypeRef, storage, [createUserSettingsGroupRoot])
+		// we need to delete the UserSettingsGroupRoot to download an updated instance
+		await deleteInstancesOfType(storage, UserSettingsGroupRootTypeRef)
 	},
 }

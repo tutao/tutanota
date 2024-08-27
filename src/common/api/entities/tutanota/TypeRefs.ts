@@ -942,6 +942,7 @@ export type GroupSettings = {
 	_id: Id;
 	color: string;
 	name: null | string;
+	sourceUrl: null | string;
 
 	defaultAlarmsList: DefaultAlarmInfo[];
 	group: Id;
