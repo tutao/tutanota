@@ -1759,9 +1759,9 @@ export default {
 		"calendarImportSelection_label": "Wählen Sie einen Kalender aus, in den Sie Ihre Ereignisse importieren möchten.",
 		"icsInSharingFiles_msg": "Eine oder mehrere Kalenderdateien wurden erkannt. Möchten Sie sie importieren oder anhängen?",
 		"invalidCalendarFile_msg": "Eine oder mehrere Dateien sind keine gültigen Kalenderdateien.",
-		"light_blue": "Hell Blau",
-		"dark_blue": "Dunkel Blau",
-		"light_red": "Hell Rot",
-		"dark_red": "Dunkel Rot"
+		"light_blue_label": "Hell Blau",
+		"dark_blue_label": "Dunkel Blau",
+		"light_red_label": "Hell Rot",
+		"dark_red_label": "Dunkel Rot"
 	}
 }
