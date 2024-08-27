@@ -76,11 +76,11 @@ export const themeOptions = (isCalendarApp: boolean) =>
 			value: "dark",
 		},
 		{
-			name: isCalendarApp ? "light_red" : "light_blue",
+			name: isCalendarApp ? "light_red_label" : "light_blue_label",
 			value: "light_secondary",
 		},
 		{
-			name: isCalendarApp ? "dark_red" : "dark_blue",
+			name: isCalendarApp ? "dark_red_label" : "dark_blue_label",
 			value: "dark_secondary",
 		},
 	] as const
