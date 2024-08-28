@@ -298,8 +298,8 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	 */
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
 		let range = await this.getRange(typeRef, listId)
-		const typeModel = await resolveTypeReference(typeRef)
 		if (range == null) return range
+		const typeModel = await resolveTypeReference(typeRef)
 		return {
 			lower: customIdToBase64Url(typeModel, range.lower),
 			upper: customIdToBase64Url(typeModel, range.upper),
