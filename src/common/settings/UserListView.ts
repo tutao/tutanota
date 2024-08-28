@@ -11,7 +11,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 
 import { compareGroupInfos } from "../api/common/utils/GroupUtils.js"
-import { elementIdPart, GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart } from "../api/common/utils/EntityUtils.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -217,10 +217,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	private makeListModel(): ListModel<GroupInfo> {
 		const listModel = new ListModel<GroupInfo>({
 			sortCompare: compareGroupInfos,
-			fetch: async (startId) => {
-				if (startId !== GENERATED_MAX_ID) {
-					throw new Error("fetch user group infos called for specific start id")
-				}
+			fetch: async (_lastFetchedEntity) => {
 				await this.loadAdmins()
 				const listId = await this.listId.getAsync()
 				const allUserGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)

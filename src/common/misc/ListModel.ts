@@ -1,4 +1,4 @@
-import { elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../gui/base/List.js"
 
 import { OperationType } from "../api/common/TutanotaConstants.js"
@@ -29,14 +29,7 @@ export type ListModelConfig<ListElementType> = {
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
-	fetch(startId: Id, count: number): Promise<ListFetchResult<ListElementType>>
-
-	/**
-	 * some lists load elements via an index indirection,
-	 * so they use a different list to load than is actually displayed.
-	 * in fact, the displayed entities might not even be stored in the same list
-	 */
-	getLoadIdForElement?: (element: ListElementType | null | undefined) => Id
+	fetch(lastFetchedEntity: ListElementType | null | undefined, count: number): Promise<ListFetchResult<ListElementType>>
 
 	/**
 	 * Returns null if the given element could not be loaded
@@ -58,14 +51,7 @@ type PrivateListState<ElementType> = Omit<ListState<ElementType>, "items" | "act
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
 export class ListModel<ElementType extends ListElement> {
-	private readonly config: Required<ListModelConfig<ElementType>>
-
-	constructor(config: ListModelConfig<ElementType>) {
-		if (config.getLoadIdForElement == null) {
-			config.getLoadIdForElement = (element: ElementType) => (element != null ? getElementId(element) : GENERATED_MAX_ID)
-		}
-		this.config = config as Required<ListModelConfig<ElementType>>
-	}
+	constructor(private readonly config: ListModelConfig<ElementType>) {}
 
 	private loadState: "created" | "initialized" = "created"
 	private loading: Promise<unknown> = Promise.resolve()
@@ -163,10 +149,9 @@ export class ListModel<ElementType extends ListElement> {
 	private async doLoad() {
 		this.updateLoadingStatus(ListLoadingState.Loading)
 		this.loading = Promise.resolve().then(async () => {
-			const lastItem = last(this.rawState.unfilteredItems)
+			const lastFetchedItem = last(this.rawState.unfilteredItems)
 			try {
-				const idToLoadFrom = this.config.getLoadIdForElement(lastItem)
-				const { items: newItems, complete } = await this.config.fetch(idToLoadFrom, PageSize)
+				const { items: newItems, complete } = await this.config.fetch(lastFetchedItem, PageSize)
 				// if the loading was cancelled in the meantime, don't insert anything so that it's not confusing
 				if (this.state.loadingStatus === ListLoadingState.ConnectionLost) {
 					return
@@ -204,10 +189,6 @@ export class ListModel<ElementType extends ListElement> {
 		const newSelectedItems = new Set(this.applyFilter([...this.state.selectedItems]))
 
 		this.updateState({ filteredItems: newFilteredItems, selectedItems: newSelectedItems })
-	}
-
-	isFiltered(): boolean {
-		return this.filter != null
 	}
 
 	async entityEventReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
@@ -251,7 +232,7 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	private updateLoadedEntity(entity: ElementType) {
-		// We cannot use binary search here because the sort order of items can change based on the entity update and we need to find the position of the
+		// We cannot use binary search here because the sort order of items can change based on the entity update, and we need to find the position of the
 		// old entity by id in order to remove it.
 
 		// Since every element id is unique and there's no scenario where the same item appears twice but in different lists, we can safely sort just
@@ -591,7 +572,7 @@ export class ListModel<ElementType extends ListElement> {
 
 	stopLoading() {
 		if (this.state.loadingStatus === ListLoadingState.Loading) {
-			// We can't really cancel ongoing requests but we can prevent more requests from happening
+			// We can't really cancel ongoing requests, but we can prevent more requests from happening
 			this.updateState({ loadingStatus: ListLoadingState.ConnectionLost })
 		}
 	}

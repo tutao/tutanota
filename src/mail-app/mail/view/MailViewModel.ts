@@ -1,13 +1,13 @@
-import { ListModel, ListModelConfig } from "../../../common/misc/ListModel.js"
+import { ListModel } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailModel } from "../../../common/mailFunctionality/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { Mail, MailFolder, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
-	customIdToUint8array,
 	elementIdPart,
 	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
 	listIdPart,
@@ -15,7 +15,6 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	assertNotNull,
-	compare,
 	count,
 	debounce,
 	groupByAndMap,
@@ -51,11 +50,23 @@ export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
 }
 
-/** sort mail set mails in descending order according to their receivedDate, not their element id */
+/** sort mail set mails in descending order (**reversed**: newest to oldest) according to their receivedDate, not their elementId */
 function sortCompareMailSetMails(firstMail: Mail, secondMail: Mail): number {
-	const firstMailEntryId = constructMailSetEntryId(firstMail.receivedDate, getElementId(firstMail))
-	const secondMailEntryId = constructMailSetEntryId(secondMail.receivedDate, getElementId(secondMail))
-	return compare(customIdToUint8array(secondMailEntryId), customIdToUint8array(firstMailEntryId))
+	const firstMailReceivedTimestamp = firstMail.receivedDate.getTime()
+	const secondMailReceivedTimestamp = secondMail.receivedDate.getTime()
+	if (firstMailReceivedTimestamp > secondMailReceivedTimestamp) {
+		return -1
+	} else if (secondMailReceivedTimestamp < firstMailReceivedTimestamp) {
+		return 1
+	} else {
+		if (firstBiggerThanSecond(getElementId(firstMail), getElementId(secondMail))) {
+			return -1
+		} else if (firstBiggerThanSecond(getElementId(secondMail), getElementId(firstMail))) {
+			return 1
+		} else {
+			return 0
+		}
+	}
 }
 
 /** ViewModel for the overall mail view. */
@@ -63,7 +74,7 @@ export class MailViewModel {
 	private _folder: MailFolder | null = null
 	/** id of the mail we are trying to load based on the URL */
 	private targetMailId: Id | null = null
-	/** needed to prevent parallel target loads*/
+	/** needed to prevent parallel target loads */
 	private loadingToTargetId: Id | null = null
 	private conversationViewModel: ConversationViewModel | null = null
 	private _filterType: MailFilterType | null = null
@@ -72,7 +83,7 @@ export class MailViewModel {
 	 * We remember the last URL used for each folder so if we switch between folders we can keep the selected mail.
 	 * There's a similar (but different) hacky mechanism where we store last URL but per each top-level view: navButtonRoutes. This one is per folder.
 	 */
-	private mailFolderToSelectedMail: ReadonlyMap<MailFolder, Id> = new Map()
+	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
 	private listStreamSubscription: Stream<unknown> | null = null
 	private conversationPref: boolean = false
 
@@ -117,7 +128,7 @@ export class MailViewModel {
 		}
 
 		// important to set it early enough because setting listId will trigger URL update.
-		// if we don't set this one before setListId, url update will cause this function to be called again but without target mail and we will lose the
+		// if we don't set this one before setListId, url update will cause this function to be called again but without target mail, and we will lose the
 		// target URL
 		this.targetMailId = typeof mailId === "string" ? mailId : null
 
@@ -135,9 +146,9 @@ export class MailViewModel {
 
 		await this.setListId(folderToUse)
 
-		// if there is a target id and we are not loading for this id already then start loading towards that id
+		// if there is a target id, and we are not loading for this id already then start loading towards that id
 		if (this.targetMailId && this.targetMailId != this.loadingToTargetId) {
-			this.mailFolderToSelectedMail = mapWith(this.mailFolderToSelectedMail, folderToUse, this.targetMailId)
+			this.mailFolderElementIdToSelectedMailId = mapWith(this.mailFolderElementIdToSelectedMailId, getElementId(folderToUse), this.targetMailId)
 			try {
 				this.loadingToTargetId = this.targetMailId
 				await this.loadAndSelectMail(folderToUse, this.targetMailId)
@@ -198,8 +209,8 @@ export class MailViewModel {
 		return this._folder ? this.listModelForFolder(getElementId(this._folder)) : null
 	}
 
-	getMailFolderToSelectedMail(): ReadonlyMap<MailFolder, Id> {
-		return this.mailFolderToSelectedMail
+	getMailFolderToSelectedMail(): ReadonlyMap<Id, Id> {
+		return this.mailFolderElementIdToSelectedMailId
 	}
 
 	getFolder(): MailFolder | null {
@@ -224,14 +235,19 @@ export class MailViewModel {
 		return this.conversationViewModel
 	}
 
-	private listModelForFolder = memoized((folderId: Id) => {
-		const customGetLoadIdForElement: ListModelConfig<Mail>["getLoadIdForElement"] = (mail) =>
-			mail == null ? CUSTOM_MAX_ID : constructMailSetEntryId(mail.receivedDate, getElementId(mail))
-
+	private listModelForFolder = memoized((_folderId: Id) => {
 		return new ListModel<Mail>({
-			getLoadIdForElement: this._folder?.isMailSet ? customGetLoadIdForElement : undefined,
-			fetch: async (startId, count) => {
+			fetch: async (lastFetchedMail, count) => {
 				const folder = assertNotNull(this._folder)
+
+				// in case the folder is a new MailSet folder we need to load via the MailSetEntry index indirection
+				let startId: Id
+				if (folder.isMailSet) {
+					startId = lastFetchedMail == null ? CUSTOM_MAX_ID : constructMailSetEntryId(lastFetchedMail.receivedDate, getElementId(lastFetchedMail))
+				} else {
+					startId = lastFetchedMail == null ? GENERATED_MAX_ID : getElementId(lastFetchedMail)
+				}
+
 				const { complete, items } = await this.loadMailRange(folder, startId, count)
 				if (complete) {
 					this.fixCounterIfNeeded(folder, [])
@@ -239,7 +255,6 @@ export class MailViewModel {
 				return { complete, items }
 			},
 			loadSingle: async (listId: Id, elementId: Id): Promise<Mail | null> => {
-				// await this.entityClient.load(MailSetEntryTypeRef, )
 				return this.entityClient.load(MailTypeRef, [listId, elementId])
 			},
 			sortCompare: (firstMail, secondMail): number =>
@@ -284,7 +299,11 @@ export class MailViewModel {
 		if (!newState.inMultiselect && newState.selectedItems.size === 1) {
 			const mail = this.listModel!.getSelectedAsArray()[0]
 			if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, mail._id)) {
-				this.mailFolderToSelectedMail = mapWith(this.mailFolderToSelectedMail, assertNotNull(this.getFolder()), getElementId(mail))
+				this.mailFolderElementIdToSelectedMailId = mapWith(
+					this.mailFolderElementIdToSelectedMailId,
+					getElementId(assertNotNull(this.getFolder())),
+					getElementId(mail),
+				)
 
 				this.createConversationViewModel({
 					mail,
@@ -295,7 +314,7 @@ export class MailViewModel {
 		} else {
 			this.conversationViewModel?.dispose()
 			this.conversationViewModel = null
-			this.mailFolderToSelectedMail = mapWithout(this.mailFolderToSelectedMail, assertNotNull(this.getFolder()))
+			this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
 		}
 		this.updateUrl()
 		this.updateUi()
@@ -304,7 +323,7 @@ export class MailViewModel {
 	private updateUrl() {
 		const folder = this._folder
 		const folderId = folder ? getElementId(folder) : null
-		const mailId = this.targetMailId ?? (folder ? this.getMailFolderToSelectedMail().get(folder) : null)
+		const mailId = this.targetMailId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
 		if (mailId != null) {
 			this.router.routeTo("/mail/:folderId/:mailId", { folderId, mailId })
 		} else {
@@ -370,7 +389,6 @@ export class MailViewModel {
 	}
 
 	private async loadMailSetMailRange(folder: MailFolder, startId: string, count: number): Promise<ListFetchResult<Mail>> {
-		console.log("range request for ", folder.entries, startId, count)
 		try {
 			const loadMailSetEntries = () => this.entityClient.loadRange(MailSetEntryTypeRef, folder.entries, startId, count, true)
 			const loadMails = (listId: Id, mailIds: Array<Id>) => this.entityClient.loadMultiple(MailTypeRef, listId, mailIds)
@@ -379,7 +397,7 @@ export class MailViewModel {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
 			// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received
 			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule
-			// applies, the email is moved out of the inbox and we don't return it here.
+			// applies, the email is moved out of the inbox, and we don't return it here.
 			if (mailboxDetail) {
 				const mailsToKeepInInbox = await promiseFilter(mails, async (mail) => {
 					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
@@ -391,7 +409,7 @@ export class MailViewModel {
 			}
 		} catch (e) {
 			// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
-			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old or we move emails
+			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
 			// around). Because of that cache will try to load additional items from the server in order to return `count` items. If it fails to load them,
 			// it will not return anything and instead will throw an error.
 			// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
@@ -436,7 +454,7 @@ export class MailViewModel {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
 			// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received
 			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule
-			// applies, the email is moved out of the inbox and we don't return it here.
+			// applies, the email is moved out of the inbox, and we don't return it here.
 			if (mailboxDetail) {
 				const mailsToKeepInInbox = await promiseFilter(items, async (mail) => {
 					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
@@ -448,7 +466,7 @@ export class MailViewModel {
 			}
 		} catch (e) {
 			// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
-			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old or we move emails
+			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
 			// around). Because of that cache will try to load additional items from the server in order to return `count` items. If it fails to load them,
 			// it will not return anything and instead will throw an error.
 			// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
@@ -467,7 +485,7 @@ export class MailViewModel {
 	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {
 		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
 		const folder = assertSystemFolderOfType(mailboxDetail.folders, folderType)
-		await this.showMail(folder, this.mailFolderToSelectedMail.get(folder))
+		await this.showMail(folder, this.mailFolderElementIdToSelectedMailId.get(getElementId(folder)))
 	}
 
 	async getMailboxDetails(): Promise<MailboxDetail> {
