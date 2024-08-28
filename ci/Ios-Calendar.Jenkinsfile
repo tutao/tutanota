@@ -89,7 +89,13 @@ pipeline {
 							buildWebapp("prod", "calendar")
 							generateXCodeProjects()
 							runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
+
+							if (params.RELEASE) {
+								util.runFastlane("de.tutao.calendar", "calendar_appstore_prod submit:false")
+							}
+
 							stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
+							stash includes: "app-ios/releases/calendar-${VERSION}-appstore.ipa", name: 'ipa-production'
 						}
 					}
 				}
