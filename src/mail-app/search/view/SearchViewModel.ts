@@ -685,7 +685,9 @@ export class SearchViewModel {
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 		return new ListModel<SearchResultListEntry>({
-			fetch: async (startId: Id, count: number) => {
+			fetch: async (lastFetchedEntity: SearchResultListEntry, count: number) => {
+				const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
+
 				const lastResult = this._searchResult
 				if (lastResult !== this._searchResult) {
 					console.warn("got a fetch request for outdated results object, ignoring")

@@ -15,7 +15,6 @@ import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } fr
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { size } from "../../../common/gui/size.js"
-import { GENERATED_MAX_ID } from "../../../common/api/common/utils/EntityUtils.js"
 import { ListModel } from "../../../common/misc/ListModel.js"
 import { compareGroupInfos } from "../../../common/api/common/utils/GroupUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
@@ -160,15 +159,12 @@ export class GroupListView implements UpdatableSettingsViewer {
 	private makeListModel(): ListModel<GroupInfo> {
 		const listModel = new ListModel<GroupInfo>({
 			sortCompare: compareGroupInfos,
-			fetch: async (startId) => {
-				if (startId === GENERATED_MAX_ID) {
-					const listId = await this.listId.getAsync()
-					const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
+			fetch: async (_lastFetchedEntity, _count) => {
+				// load all entries at once to apply custom sort order
+				const listId = await this.listId.getAsync()
+				const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
 
-					return { items: allGroupInfos, complete: true }
-				} else {
-					throw new Error("fetch user group infos called for specific start id")
-				}
+				return { items: allGroupInfos, complete: true }
 			},
 			loadSingle: async (_listId: Id, elementId: Id) => {
 				const listId = await this.listId.getAsync()

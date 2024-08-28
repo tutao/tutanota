@@ -5,7 +5,7 @@ import { lang } from "../../common/misc/LanguageViewModel"
 
 import { size } from "../../common/gui/size"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { GENERATED_MAX_ID, isSameId, listIdPart } from "../../common/api/common/utils/EntityUtils"
+import { isSameId, listIdPart } from "../../common/api/common/utils/EntityUtils"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { ShareCapability } from "../../common/api/common/TutanotaConstants"
 import type { LoginController } from "../../common/api/main/LoginController"
@@ -83,19 +83,14 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	private makeListModel() {
 		const listModel = new ListModel<KnowledgeBaseEntry>({
 			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
-				var titleA = a.title.toUpperCase()
-				var titleB = b.title.toUpperCase()
+				const titleA = a.title.toUpperCase()
+				const titleB = b.title.toUpperCase()
 				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
 			},
-			fetch: async (startId, count) => {
-				// fetch works like in ContactListView, because we have a custom sort order there too
-				if (startId === GENERATED_MAX_ID) {
-					// load all entries at once to apply custom sort order
-					const allEntries = await this.entityClient.loadAll(KnowledgeBaseEntryTypeRef, this.getListId())
-					return { items: allEntries, complete: true }
-				} else {
-					throw new Error("fetch knowledgeBase entry called for specific start id")
-				}
+			fetch: async (_lastFetchedEntity, _count) => {
+				// load all entries at once to apply custom sort order
+				const allEntries = await this.entityClient.loadAll(KnowledgeBaseEntryTypeRef, this.getListId())
+				return { items: allEntries, complete: true }
 			},
 			loadSingle: (_listId: Id, elementId: Id) => {
 				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])

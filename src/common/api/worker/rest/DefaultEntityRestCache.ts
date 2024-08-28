@@ -378,10 +378,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		try {
 			const range = await this.storage.getRangeForList(typeRef, listId)
-			if (getTypeId(typeRef) == "tutanota/MailSetEntry") {
-				console.log(getTypeId(typeRef), listId, start, count, reverse)
-				console.log("range", range)
-			}
 			if (range == null) {
 				await this.populateNewListWithRange(typeRef, listId, start, count, reverse)
 			} else if (isStartIdWithinRange(range, start, typeModel)) {

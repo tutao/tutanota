@@ -593,7 +593,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailFoldersView, {
 			mailboxDetail,
 			expandedFolders: this.expandedState,
-			mailFolderToSelectedMail: this.mailViewModel.getMailFolderToSelectedMail(),
+			mailFolderElementIdToSelectedMailId: this.mailViewModel.getMailFolderToSelectedMail(),
 			onFolderClick: () => {
 				if (!inEditMode) {
 					this.viewSlider.focus(this.listColumn)

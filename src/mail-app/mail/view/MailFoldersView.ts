@@ -22,7 +22,7 @@ import { isSpamOrTrashFolder } from "../../../common/api/common/CommonMailUtils.
 
 export interface MailFolderViewAttrs {
 	mailboxDetail: MailboxDetail
-	mailFolderToSelectedMail: ReadonlyMap<MailFolder, Id>
+	mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onFolderClick: (folder: MailFolder) => unknown
 	onFolderDrop: (mailId: string, folder: MailFolder) => unknown
 	expandedFolders: ReadonlySet<Id>
@@ -93,12 +93,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					if (attrs.inEditMode) {
 						return m.route.get()
 					} else {
-						const mailId = attrs.mailFolderToSelectedMail.get(system.folder)
-						const folderId = getElementId(system.folder)
+						const folderElementId = getElementId(system.folder)
+						const mailId = attrs.mailFolderElementIdToSelectedMailId.get(folderElementId)
 						if (mailId) {
-							return `${MAIL_PREFIX}/${folderId}/${mailId}`
+							return `${MAIL_PREFIX}/${folderElementId}/${mailId}`
 						} else {
-							return `${MAIL_PREFIX}/${folderId}`
+							return `${MAIL_PREFIX}/${folderElementId}`
 						}
 					}
 				},

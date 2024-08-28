@@ -4,7 +4,7 @@ import { showTemplateEditor } from "./TemplateEditor"
 import type { EmailTemplate } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { EmailTemplateTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { GENERATED_MAX_ID, isSameId } from "../../common/api/common/utils/EntityUtils"
+import { isSameId } from "../../common/api/common/utils/EntityUtils"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { ShareCapability } from "../../common/api/common/TutanotaConstants"
@@ -86,15 +86,10 @@ export class TemplateListView implements UpdatableSettingsViewer {
 				const titleB = b.title.toUpperCase()
 				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
 			},
-			fetch: async (startId, count) => {
-				// fetch works like in ContactListView and KnowledgeBaseListView, because we have a custom sort order there too
-				if (startId === GENERATED_MAX_ID) {
-					// load all entries at once to apply custom sort order
-					const allEntries = await this.entityClient.loadAll(EmailTemplateTypeRef, this.templateListId())
-					return { items: allEntries, complete: true }
-				} else {
-					throw new Error("fetch template entry called for specific start id")
-				}
+			fetch: async (_lastFetchedEntity, _count) => {
+				// load all entries at once to apply custom sort order
+				const allEntries = await this.entityClient.loadAll(EmailTemplateTypeRef, this.templateListId())
+				return { items: allEntries, complete: true }
 			},
 			loadSingle: (_listId: Id, elementId: Id) => {
 				return this.entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
