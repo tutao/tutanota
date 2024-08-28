@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Declare the stubbed sync adapter to fix #6568-->
+<sync-adapter
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:contentAuthority="com.android.contacts"
+		android:accountType="@string/package_name"
+		android:userVisible="false"
+		android:supportsUploading="false"
+		android:allowParallelSyncs="false"
+		android:isAlwaysSyncable="true"
+		/>

@@ -63,6 +63,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
 	override suspend fun deleteContacts(username: String, contactId: String?) {
 		checkContactPermissions()
+		checkSyncPermission()
 
 		retrieveRawContacts(username, contactId).use { cursor ->
 			cursor?.forEachRow {
@@ -138,6 +139,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
 	override suspend fun saveContacts(username: String, contacts: List<StructuredContact>) {
 		checkContactPermissions()
+		checkSyncPermission()
 		val matchResult = matchStoredContacts(username, contacts, false)
 		for (contact in matchResult.newServerContacts) {
 			createContact(username, contact)
@@ -230,6 +232,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
 	override suspend fun syncContacts(username: String, contacts: List<StructuredContact>): ContactSyncResult {
 		checkContactPermissions()
+		checkSyncPermission()
 
 		val matchResult = matchStoredContacts(username, contacts, true)
 		for (contact in matchResult.newServerContacts) {
@@ -247,6 +250,10 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	private suspend fun checkContactPermissions() {
 		activity.getPermission(Manifest.permission.READ_CONTACTS)
 		activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+	}
+
+	private suspend fun checkSyncPermission() {
+		activity.getPermission(Manifest.permission.WRITE_SYNC_SETTINGS)
 	}
 
 	private fun deleteRawContact(rawId: Long): Int {
@@ -274,6 +281,10 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 
 	private fun createSystemAccount(username: String) {
 		val userAccount = Account(username, TUTA_ACCOUNT_TYPE)
+
+		// Disable all usage of the stub sync adapter by the OS
+		ContentResolver.setSyncAutomatically(userAccount, ContactsContract.AUTHORITY, false)
+
 		val isAccountAdded = AccountManager.get(activity).addAccountExplicitly(userAccount, null, null)
 		if (!isAccountAdded) {
 			Log.w(TAG, "Failed to create new account?")
