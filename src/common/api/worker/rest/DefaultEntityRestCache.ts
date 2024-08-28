@@ -4,6 +4,7 @@ import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
 import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
+	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
@@ -56,6 +57,7 @@ const IGNORED_TYPES = [
 	KeyRotationTypeRef,
 	UserGroupRootTypeRef,
 	UserGroupKeyDistributionTypeRef,
+	AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
 ] as const
 
 export interface EntityRestCache extends EntityRestInterface {
