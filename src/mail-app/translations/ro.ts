@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-08-08T12:35:48Z",
+	"updated_at": "2024-08-15T15:49:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1195,6 +1195,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "GDPR Acord de prelucrare a datelor",
 		"pricing.gdpr_label": "Conform GDPR",
 		"pricing.gdpr_tooltip": "Toate datele sunt stocate în conformitate cu reglementările europene stricte privind protecția datelor, în conformitate cu GDPR.",
+		"pricing.getStarted_label": "Începe",
 		"pricing.includesTaxes_msg": "Taxe incluse.",
 		"pricing.login_title": "Autentificare pe situl propriu",
 		"pricing.login_tooltip": "Pune autentificarea Tuta pe situl tău web pentru angajații tăi și persoanele din exterior.",
