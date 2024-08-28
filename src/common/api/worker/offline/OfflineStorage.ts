@@ -278,6 +278,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const type = getTypeId(typeRef)
+		const typeModel = await resolveTypeReference(typeRef)
 		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
 			throw new Error(`no range exists for ${type} and list ${listId}`)
@@ -289,7 +290,7 @@ AND (elementId = ${range.lower}
 OR ${firstIdBigger("elementId", range.lower)})
 AND NOT(${firstIdBigger("elementId", range.upper)})`
 		const rows = await this.sqlCipherFacade.all(query, params)
-		return rows.map((row) => row.elementId.value as string)
+		return rows.map((row) => customIdToBase64Url(typeModel, row.elementId.value as string))
 	}
 
 	/** don't use this internally in this class, use OfflineStorage::getRange instead. OfflineStorage is

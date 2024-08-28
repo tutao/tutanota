@@ -565,8 +565,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const typeModel = await resolveTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		if (
-			(!reverse && (isCustomId ? upper == CUSTOM_MAX_ID : upper === GENERATED_MAX_ID)) ||
-			(reverse && (isCustomId ? lower == CUSTOM_MIN_ID : lower === GENERATED_MIN_ID))
+			(!reverse && (isCustomId ? upper === CUSTOM_MAX_ID : upper === GENERATED_MAX_ID)) ||
+			(reverse && (isCustomId ? lower === CUSTOM_MIN_ID : lower === GENERATED_MIN_ID))
 		) {
 			// we have already loaded the complete range in the desired direction, so we do not have to load from server
 			elementsToRead = 0
