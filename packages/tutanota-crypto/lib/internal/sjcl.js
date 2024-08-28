@@ -754,7 +754,7 @@ sjcl.codec.base64 = {
 			ta = 0,
 			bl = sjcl.bitArray.bitLength(arr)
 		if (_url) {
-			c = c.substr(0, 62) + "-_"
+			c = c.substring(0, 62) + "-_"
 		}
 		for (i = 0; out.length * 6 < bl; ) {
 			out += c.charAt((ta ^ (arr[i] >>> bits)) >>> 26)
@@ -783,7 +783,7 @@ sjcl.codec.base64 = {
 			ta = 0,
 			x
 		if (_url) {
-			c = c.substr(0, 62) + "-_"
+			c = c.substring(0, 62) + "-_"
 		}
 		for (i = 0; i < str.length; i++) {
 			x = c.indexOf(str.charAt(i))

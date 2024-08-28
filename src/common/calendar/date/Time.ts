@@ -56,8 +56,8 @@ export class Time {
 					hours = parseInt(digits, 10)
 					minutes = 0
 				} else {
-					hours = parseInt(digits.substr(0, digits.length - 2), 10)
-					minutes = parseInt(digits.substr(-2, 2), 10)
+					hours = parseInt(digits.substring(0, digits.length - 2), 10)
+					minutes = parseInt(digits.slice(-2), 10)
 				}
 			} else {
 				return null

@@ -43,7 +43,7 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
 
 					// remove characters from the end
 					while (textAreaDom.clientHeight < textAreaDom.scrollHeight) {
-						textAreaDom.value = textAreaDom.value.substr(0, textAreaDom.value.length - 1)
+						textAreaDom.value = textAreaDom.value.substring(0, textAreaDom.value.length - 1)
 					}
 
 					a.onMessageChanged(textAreaDom.value)
