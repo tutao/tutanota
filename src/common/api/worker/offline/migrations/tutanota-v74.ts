@@ -1,15 +1,7 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
 import { addValue, deleteInstancesOfType, migrateAllElements, migrateAllListElements } from "../StandardMigrations.js"
-import {
-	CalendarEventTypeRef,
-	createMail,
-	createMailBox,
-	MailBoxTypeRef,
-	MailFolderTypeRef,
-	MailTypeRef,
-	UserSettingsGroupRootTypeRef,
-} from "../../../entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, createMail, createMailBox, MailBoxTypeRef, MailFolderTypeRef, MailTypeRef } from "../../../entities/tutanota/TypeRefs.js"
 import { GENERATED_MIN_ID } from "../../../common/utils/EntityUtils.js"
 
 export const tutanota74: OfflineMigration = {
@@ -29,8 +21,5 @@ export const tutanota74: OfflineMigration = {
 		// all entities with customIds, that are stored in the offline database (e.g. CalendarEvent, MailSetEntry),
 		// are from now on stored in the offline database using a **base64Ext** encoded id string
 		await deleteInstancesOfType(storage, CalendarEventTypeRef)
-
-		// we need to delete the UserSettingsGroupRoot to download an updated instance
-		await deleteInstancesOfType(storage, UserSettingsGroupRootTypeRef)
 	},
 }
