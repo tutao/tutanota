@@ -15,16 +15,16 @@ include:
   - path: "./common.yml"
 targets:
   calendar:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "application"
     sources:
       - path: "calendar"
-        excludes: 
+        excludes:
           [
             "calendar-web",
             "Sources/sdktest.swift",
           ]
-        compilerFlags: 
+        compilerFlags:
           [
             "-ITutanotaSharedFramework/Crypto/phc-winner-argon2/include",
           ]
@@ -47,7 +47,7 @@ targets:
           ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
         GCC_PREPROCESSOR_DEFINITIONS:
-          ["SQLITE_HAS_CODEC=1", "$(inherited)"]
+          [ "SQLITE_HAS_CODEC=1", "$(inherited)" ]
         OTHER_CFLAGS[arch=*]:
           [
             "-DSQLITE_HAS_CODEC",
@@ -67,9 +67,9 @@ targets:
         Release Development:
           PRODUCT_NAME: "Tuta CD"
         Release Staging:
-          PRODUCT_NAME: "Tuta Test"
+          PRODUCT_NAME: "Tuta Calendar Test"
           PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.calendar.test"
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.calendar.test 1716556941"
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.calendar.test 1724842804"
         Release Production:
           PRODUCT_NAME: "Tuta Calendar"
       groups:
@@ -96,13 +96,13 @@ targets:
         embed: false
       - target: argon2
   tutanotaTests:
-    templates: ["formatAndLint"]
+    templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
     sources:
       - path: "tutanotaTests"
-        excludes: ["CompatibilityTest.m"]
+        excludes: [ "CompatibilityTest.m" ]
       - path: "tutanotaTests"
-        includes: ["CompatibilityTest.m"]
+        includes: [ "CompatibilityTest.m" ]
     settings:
       ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
       CODE_SIGN_STYLE: "Automatic"
@@ -164,37 +164,37 @@ schemes:
   calendar debug:
     build:
       targets:
-        calendar: ["analyze", "test", "run", "profile"]
-        tutanotaTests: ["test"]
+        calendar: [ "analyze", "test", "run", "profile" ]
+        tutanotaTests: [ "test" ]
     run:
       config: "Debug Development"
       storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Development"
-      targets: ["tutanotaTests"]
+      targets: [ "tutanotaTests" ]
     archive:
       config: "Release Development"
   calendar staging:
     build:
       targets:
         calendar: "all"
-        tutanotaTests: ["test"]
+        tutanotaTests: [ "test" ]
     run:
       config: "Debug Staging"
     test:
       config: "Debug Staging"
-      targets: ["tutanotaTests"]
+      targets: [ "tutanotaTests" ]
     archive:
       config: "Release Staging"
   calendar prod:
     build:
       targets:
         calendar: "all"
-        tutanotaTests: ["test"]
+        tutanotaTests: [ "test" ]
     run:
       config: "Debug Production"
     test:
       config: "Debug Production"
-      targets: ["tutanotaTests"]
+      targets: [ "tutanotaTests" ]
     archive:
       config: "Release Production"
