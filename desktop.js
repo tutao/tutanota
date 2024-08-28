@@ -85,7 +85,7 @@ async function doBuild(opts) {
 
 		await buildDesktopClient(version, opts)
 
-		const now = new Date(Date.now()).toTimeString().substr(0, 5)
+		const now = new Date(Date.now()).toTimeString().substring(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
 		process.exit(0)
 	} catch (e) {
