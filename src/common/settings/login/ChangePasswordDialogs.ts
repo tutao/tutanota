@@ -6,7 +6,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import m from "mithril"
 import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
-import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, Base64, ofClass } from "@tutao/tutanota-utils"
 import { asKdfType, DEFAULT_KDF_TYPE } from "../../api/common/TutanotaConstants.js"
 
 /**
@@ -36,12 +36,18 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	})
 }
 
-async function storeNewPassword(currentUser: User, encryptedPassword: string | null) {
+async function storeNewPassword(
+	currentUser: User,
+	newPasswordData: {
+		newEncryptedPassphrase: Base64
+		newEncryptedPassphraseKey: Uint8Array
+	} | null,
+) {
 	const credentialsProvider = locator.credentialsProvider
 	const storedCredentials = await credentialsProvider.getCredentialsInfoByUserId(currentUser._id)
 	if (storedCredentials != null) {
-		const password = assertNotNull(encryptedPassword, "encrypted password not provided")
-		await credentialsProvider.replacePassword(storedCredentials, password)
+		assertNonNull(newPasswordData, "encrypted password data is not provided")
+		await credentialsProvider.replacePassword(storedCredentials, newPasswordData.newEncryptedPassphrase, newPasswordData.newEncryptedPassphraseKey)
 	}
 }
 
@@ -71,11 +77,11 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 			}
 
 			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(currentPasswordKeyData, newPasswordKeyData))
-				.then(async (encryptedPassword) => {
+				.then((newPasswordData) => {
 					Dialog.message("pwChangeValid_msg")
 					dialog.close()
 					// do not wait for it or catch the errors, we do not want to confuse the user with the password change if anything goes wrong
-					storeNewPassword(currentUser, encryptedPassword)
+					storeNewPassword(currentUser, newPasswordData)
 				})
 				.catch(
 					ofClass(NotAuthenticatedError, (e) => {
