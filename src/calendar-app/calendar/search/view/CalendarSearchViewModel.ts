@@ -13,6 +13,7 @@ import {
 	downcast,
 	getEndOfDay,
 	getStartOfDay,
+	insertIntoSortedArray,
 	isSameTypeRef,
 	isToday,
 	LazyLoaded,
@@ -26,7 +27,7 @@ import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { getStartOfTheWeekOffsetForUser } from "../../../../common/calendar/date/CalendarUtils.js"
+import { eventComparator, getStartOfTheWeekOffsetForUser, isClientOnlyCalendar } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -39,6 +40,7 @@ import { ProgrammingError } from "../../../../common/api/common/error/Programmin
 import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { SearchResultListEntry } from "../../../../mail-app/search/view/SearchListView.js"
+import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -81,6 +83,7 @@ export class CalendarSearchViewModel {
 		private readonly eventController: EventController,
 		private readonly calendarFacade: CalendarFacade,
 		private readonly progressTracker: ProgressTracker,
+		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly updateUi: () => unknown,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""

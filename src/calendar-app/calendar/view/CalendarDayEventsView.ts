@@ -7,6 +7,7 @@ import {
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
 	hasAlarmsForTheUser,
+	isClientOnlyCalendar,
 } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -28,6 +29,7 @@ import { styles } from "../../../common/gui/styles"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
@@ -112,7 +114,6 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(ev, columnIndex, columns)
 		const eventTitle = getDisplayEventTitle(ev.summary)
-
 		return m(
 			".abs.darker-hover",
 			{
@@ -142,6 +143,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
 				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging && !attrs.disabled,
+				isClientOnly: isClientOnlyCalendar(listIdPart(ev._id)),
 			}),
 		)
 	}

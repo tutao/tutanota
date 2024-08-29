@@ -57,7 +57,7 @@ import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { CLIENT_ONLY_CALENDARS, Const, DEFAULT_CLIENT_ONLY_CALENDAR_COLORS, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
@@ -110,6 +110,7 @@ import { locator } from "../common/api/main/CommonLocator.js"
 import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
+import { generateRandomColor } from "./calendar/gui/CalendarGuiUtils.js"
 
 assertMainOrNode()
 
@@ -209,6 +210,7 @@ class CalendarLocator {
 		const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
+		const calendarEventsRepository = await this.calendarEventsRepository()
 		return () => {
 			return new CalendarSearchViewModel(
 				searchRouter,
@@ -218,6 +220,7 @@ class CalendarLocator {
 				this.eventController,
 				this.calendarFacade,
 				this.progressTracker,
+				calendarEventsRepository,
 				redraw,
 			)
 		}
@@ -227,6 +230,7 @@ class CalendarLocator {
 		const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
+		const calendarEventsRepository = await this.calendarEventsRepository()
 		return () => {
 			return new CalendarSearchViewModel(
 				searchRouter,
@@ -236,6 +240,7 @@ class CalendarLocator {
 				this.eventController,
 				this.calendarFacade,
 				this.progressTracker,
+				calendarEventsRepository,
 				redraw,
 			)
 		}
@@ -279,6 +284,7 @@ class CalendarLocator {
 			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
 			this.mailboxModel,
+			this.contactModel,
 		)
 	})
 
@@ -847,6 +853,7 @@ class CalendarLocator {
 				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 			},
 			() => this.handleExternalSync(),
+			this.setUpClientOnlyCalendars,
 		)
 	})
 
@@ -881,6 +888,16 @@ class CalendarLocator {
 				})
 			})
 			calendarModel.scheduleExternalCalendarSync()
+		}
+	}
+
+	setUpClientOnlyCalendars() {
+		let configs = deviceConfig.getClientOnlyCalendars()
+
+		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
+			const calendarId = `${this.logins.getUserController().userId}#${id}`
+			const config = configs.get(calendarId)
+			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name, color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
 		}
 	}
 
