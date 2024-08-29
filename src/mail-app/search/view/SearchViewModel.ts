@@ -65,6 +65,7 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
+import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -134,6 +135,7 @@ export class SearchViewModel {
 		private readonly calendarFacade: CalendarFacade,
 		private readonly progressTracker: ProgressTracker,
 		private readonly conversationViewModelFactory: ConversationViewModelFactory | null,
+		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 	) {
