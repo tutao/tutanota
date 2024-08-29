@@ -187,7 +187,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				} else {
 					showProgressDialog(
 						"pleaseWait_msg",
-						this.user.getAsync().then((user) => locator.userManagementFacade.changeAdminFlag(user, value)),
+						this.user
+							.getAsync()
+							.then((user) => locator.userManagementFacade.changeAdminFlag(user, value))
+							.catch(
+								ofClass(PreconditionFailedError, (e) => {
+									if (e.data && e.data === "usergroup.pending-key-rotation") {
+										Dialog.message("makeAdminPendingUserGroupKeyRotationError_msg")
+									} else {
+										throw e
+									}
+								}),
+							),
 					)
 				}
 			},
