@@ -1759,6 +1759,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden."
 	}
 }
