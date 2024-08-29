@@ -1800,6 +1800,8 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
+		"birthdayEvent_title": `{name} Geburtstag`,
+		"birthdayEventAge_title": "({age} Jahre alt)",
 		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden."
 	}
 }

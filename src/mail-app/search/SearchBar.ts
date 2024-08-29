@@ -27,7 +27,7 @@ import { LayerType } from "../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { PageSize } from "../../common/gui/base/ListUtils.js"
-import { generateCalendarInstancesInRange } from "../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, isClientOnlyCalendar } from "../../common/calendar/date/CalendarUtils.js"
 import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
 
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
@@ -499,7 +499,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		const entries = await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, result.results)
+		const filteredEvents = result.results.filter(([calendarId, eventId]) => !isClientOnlyCalendar(calendarId))
+		const entries = await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, filteredEvents)
 		// If there was no new search while we've been downloading the result
 		if (!mailLocator.search.isNewSearch(result.query, result.restriction)) {
 			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)

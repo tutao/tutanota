@@ -1796,6 +1796,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"birthdayEvent_title": `{name}'s birthday`,
+		"birthdayEventAge_title": `({age} years old)`,
 		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again."
 	}
 }
