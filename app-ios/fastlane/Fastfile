@@ -49,39 +49,6 @@ platform :ios do
 		end
 	end
 
-	desc "Push a new Calendar prod release to AppStore"
-	lane :calendar_appstore_prod do |options|
-		match(
-			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
-			type: "appstore",
-			verbose: true,
-			readonly: true,
-			generate_apple_certs: false,
-			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-		)
-
-		clear_derived_data
-
-		build_app(
-			scheme: "calendar prod",
-			output_directory: "releases",
-			output_name: "calendar-" + get_version_number(target: "calendar"),
-			include_symbols: true,
-			verbose: true
-		)
-		if options[:submit]
-			upload_to_app_store(
-				skip_screenshots: true,
-				submit_for_review: false,
-				precheck_include_in_app_purchases: false,
-				# must use force as long as we don't automatically create html previews
-				force: true,
-				api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-			)
-		end
-	end
-
 	desc "Build a new prod release for ad-hoc"
 	lane :adhoc_prod do |options|
 		match(
@@ -108,31 +75,6 @@ platform :ios do
 		)
 	end
 
-	desc "Build a new Calendar prod release for ad-hoc"
-	lane :calendar_adhoc_prod do |options|
-		match(
-			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
-			type: "adhoc",
-			verbose: true,
-			readonly: true,
-			generate_apple_certs: false,
-			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-		)
-
-		clear_derived_data
-
-		ipa_name = "calendar-" + get_version_number(target: "calendar") + "-adhoc"
-		build_app(
-			scheme: "calendar prod",
-			output_directory: "releases",
-			output_name: ipa_name,
-			export_options: {
-				method: "ad-hoc"
-			},
-			verbose: true
-		)
-	end
 
 	desc "Push a new staging release to TestFlight"
 	lane :testflight_staging do
@@ -162,34 +104,6 @@ platform :ios do
 		)
 	end
 
-	desc "Push a new staging calendar release to TestFlight"
-	lane :calendar_testflight_staging do
-		match(
-			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
-			type: "appstore",
-			verbose: true,
-			readonly: true,
-			generate_apple_certs: false,
-			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-		)
-
-		clear_derived_data
-
-		build_app(
-			scheme: "calendar staging",
-			output_directory: "releases",
-			output_name: "calendar-" + get_version_number(target: "calendar") + "-test",
-			verbose: true
-		)
-
-		upload_to_testflight(
-			app_identifier: "de.tutao.calendar.test",
-			skip_submission: true,
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-		)
-	end
-
 	desc "Build a new staging release for ad-hoc"
 	lane :adhoc_staging do
 		match(
@@ -208,31 +122,6 @@ platform :ios do
 			scheme: "tuta staging",
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-adhoc-test",
-			export_options: {
-				method: "ad-hoc"
-			},
-			verbose: true
-		)
-	end
-
-	desc "Build a new staging Calendar release for ad-hoc"
-	lane :calendar_adhoc_staging do
-		match(
-			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
-			type: "adhoc",
-			verbose: true,
-			readonly: true,
-			generate_apple_certs: false,
-			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-		)
-
-		clear_derived_data
-
-		build_app(
-			scheme: "calendar staging",
-			output_directory: "releases",
-			output_name: "calendar-" + get_version_number(target: "calendar") + "-adhoc-test",
 			export_options: {
 				method: "ad-hoc"
 			},
@@ -269,16 +158,6 @@ platform :ios do
 		)
  	end
 
-	desc "Run iOS test cases for Calendar app (Github actions version)"
-	lane :test_calendar_github do
-		run_tests(
-				scheme: "calendar debug",
-		)
-		run_tests(
-				scheme: "TutanotaSharedFramework",
-		)
-	end
-
 	desc "Run iOS test cases (Github actions version)"
 	lane :test_github do
 		run_tests(
@@ -292,7 +171,7 @@ platform :ios do
  	desc "Renew prod adhoc cert"
  	lane :renew_adhoc_cert_prod do
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension", "de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
 			type: "adhoc",
 			verbose: true,
 			readonly: false,
@@ -306,7 +185,7 @@ platform :ios do
 	desc "Renew prod appstore cert"
 	lane :renew_appstore_cert_prod do
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension", "de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
 			type: "appstore",
 			verbose: true,
 			readonly: false,
@@ -320,7 +199,7 @@ platform :ios do
 	desc "Renew staging adhoc cert"
 	lane :renew_adhoc_cert_staging do
 	   match(
-		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension", "de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
 		   type: "adhoc",
 		   verbose: true,
 		   readonly: false,
@@ -334,7 +213,7 @@ platform :ios do
    desc "Renew staging appstore cert"
    lane :renew_appstore_cert_staging do
 	   match(
-		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension", "de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
 		   type: "appstore",
 		   verbose: true,
 		   readonly: false,
@@ -344,4 +223,188 @@ platform :ios do
 		   platform: "ios"
 	   )
    end
+
+   desc "Run iOS test cases for Calendar app (Github actions version)"
+   lane :test_calendar_github do
+   		run_tests(
+   				scheme: "calendar debug",
+   		)
+   		run_tests(
+   				scheme: "TutanotaSharedFramework",
+   		)
+   end
+
+   desc "Build a new staging Calendar release for ad-hoc"
+   lane :calendar_adhoc_staging do
+   		match(
+   			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+   			type: "adhoc",
+   			verbose: true,
+   			readonly: true,
+   			generate_apple_certs: false,
+   			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+   		)
+
+   		clear_derived_data
+
+   		build_app(
+   			scheme: "calendar staging",
+   			output_directory: "releases",
+   			output_name: "calendar-" + get_version_number(target: "calendar") + "-adhoc-test",
+   			export_options: {
+   				method: "ad-hoc"
+   			},
+   			verbose: true
+   		)
+   end
+
+   desc "Build and push a new staging calendar release to TestFlight"
+   lane :calendar_testflight_staging do
+   		match(
+   			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+   			type: "appstore",
+   			verbose: true,
+   			readonly: true,
+   			generate_apple_certs: false,
+   			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+   		)
+
+   		clear_derived_data
+
+   		build_app(
+   			scheme: "calendar staging",
+   			output_directory: "releases",
+   			output_name: "calendar-" + get_version_number(target: "calendar") + "-test",
+   			verbose: true
+   		)
+
+   		upload_to_testflight(
+   			app_identifier: "de.tutao.calendar.test",
+   			skip_submission: true,
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+   		)
+   end
+
+   desc "Build a new Calendar prod release for ad-hoc"
+   lane :calendar_adhoc_prod do |options|
+   		match(
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			type: "adhoc",
+   			verbose: true,
+   			readonly: true,
+   			generate_apple_certs: false,
+   			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+   		)
+
+   		clear_derived_data
+
+   		ipa_name = "calendar-" + get_version_number(target: "calendar") + "-adhoc"
+   		build_app(
+   			scheme: "calendar prod",
+   			output_directory: "releases",
+   			output_name: ipa_name,
+   			export_options: {
+   				method: "ad-hoc"
+   			},
+   			verbose: true
+   		)
+   end
+
+   desc "Build a new Calendar prod release with AppStore configuration"
+   lane :build_calendar_prod do |options|
+   		match(
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			type: "appstore",
+   			verbose: true,
+   			readonly: true,
+   			generate_apple_certs: false,
+   			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+   		)
+
+   		clear_derived_data
+
+   		build_app(
+   			scheme: "calendar prod",
+   			output_directory: "releases",
+   			output_name: "calendar-" + get_version_number(target: "calendar"),
+   			include_symbols: true,
+   			verbose: true
+   		)
+   end
+
+   desc "Publish a calendar artifact to AppStore"
+   lane :publish_calendar_prod do |options|
+		sh 'echo "Uploading calendar artifact ' + options[:file] + '"'
+
+   		upload_to_app_store(
+   			ipa: options[:file],
+   			skip_screenshots: true,
+   			submit_for_review: false,
+   			precheck_include_in_app_purchases: false,
+   			# must use force as long as we don't automatically create html previews
+   			force: true,
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+   			app_identifier: "de.tutao.calendar"
+   		)
+   end
+
+   desc "Renew calendar prod adhoc cert"
+   lane :renew_calendar_adhoc_cert_prod do
+   		match(
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			type: "adhoc",
+   			verbose: true,
+   			readonly: false,
+   			generate_apple_certs: true,
+   			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+   			platform: "ios"
+   		)
+   end
+
+   desc "Renew calendar prod appstore cert"
+   lane :renew_calendar_appstore_cert_prod do
+   		match(
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			type: "appstore",
+   			verbose: true,
+   			readonly: false,
+   			generate_apple_certs: true,
+   			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+   			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+   			platform: "ios"
+   		)
+   end
+
+   desc "Renew calendar staging adhoc cert"
+   lane :renew_calendar_adhoc_cert_staging do
+	   match(
+		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+		   type: "adhoc",
+		   verbose: true,
+		   readonly: false,
+		   generate_apple_certs: true,
+		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+		   platform: "ios"
+	   )
+   end
+
+  desc "Renew calendar staging appstore cert"
+  lane :renew_calendar_appstore_cert_staging do
+	   match(
+		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+		   type: "appstore",
+		   verbose: true,
+		   readonly: false,
+		   generate_apple_certs: true,
+		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+		   platform: "ios"
+	   )
+  end
 end
