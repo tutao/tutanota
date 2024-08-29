@@ -897,7 +897,13 @@ export class LoginFacade {
 	 * Change password and/or KDF type for the current user. This will cause all other sessions to be closed.
 	 * @return New password encrypted with accessKey if this is a persistent session or {@code null}  if it's an ephemeral one.
 	 */
-	async changePassword(currentPasswordKeyData: PassphraseKeyData, newPasswordKeyDataTemplate: Omit<PassphraseKeyData, "salt">): Promise<Base64 | null> {
+	async changePassword(
+		currentPasswordKeyData: PassphraseKeyData,
+		newPasswordKeyDataTemplate: Omit<PassphraseKeyData, "salt">,
+	): Promise<{
+		newEncryptedPassphrase: Base64
+		newEncryptedPassphraseKey: Uint8Array
+	} | null> {
 		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPasswordKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
@@ -924,7 +930,9 @@ export class LoginFacade {
 		const sessionData = await this.loadSessionData(accessToken)
 		if (sessionData.accessKey != null) {
 			// if we have an accessKey, this means we are storing the encrypted password locally, in which case we need to store the new one
-			return uint8ArrayToBase64(encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
+			const newEncryptedPassphrase = uint8ArrayToBase64(encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
+			const newEncryptedPassphraseKey = encryptKey(sessionData.accessKey, newUserPassphraseKey)
+			return { newEncryptedPassphrase, newEncryptedPassphraseKey }
 		} else {
 			return null
 		}

@@ -28,13 +28,13 @@ export class CredentialsProvider {
 	/**
 	 * Change the encrypted password for the stored credentials.
 	 */
-	async replacePassword(credentials: CredentialsInfo, encryptedPassword: string): Promise<void> {
+	async replacePassword(credentials: CredentialsInfo, encryptedPassword: string, encryptedPassphraseKey: Uint8Array): Promise<void> {
 		const encryptedCredentials = await this.getCredentialsByUserId(credentials.userId)
 		if (encryptedCredentials == null) {
 			throw new Error(`Trying to replace password for credentials but credentials are not persisted: ${credentials.userId}`)
 		}
 		// Encrypted password is encrypted with the session key and is the same for encrypted and decrypted credentials, no additional logic is needed.
-		const newEncryptedCredentials: PersistedCredentials = { ...encryptedCredentials, encryptedPassword }
+		const newEncryptedCredentials: PersistedCredentials = { ...encryptedCredentials, encryptedPassword, encryptedPassphraseKey }
 		await this.credentialsFacade.storeEncrypted(newEncryptedCredentials)
 	}
 

@@ -251,12 +251,13 @@ o.spec("CredentialsProvider", function () {
 			encryptedPassphraseKey: null,
 		}
 		const newEncryptedPassword = "uhagre2"
+		const newEncryptedPassphraseKey = new Uint8Array([0x0, 0x0e, 0x9])
 		o.beforeEach(function () {
 			when(nativeCredentialFacadeMock.loadAll()).thenResolve([persistentCredentials])
 		})
 
 		o("replace only", async function () {
-			await credentialsProvider.replacePassword(credentials, newEncryptedPassword)
+			await credentialsProvider.replacePassword(credentials, newEncryptedPassword, newEncryptedPassphraseKey)
 
 			verify(
 				nativeCredentialFacadeMock.storeEncrypted({
@@ -264,7 +265,7 @@ o.spec("CredentialsProvider", function () {
 					accessToken: stringToUtf8Uint8Array("accessToken"),
 					databaseKey: new Uint8Array([1, 2, 3]),
 					encryptedPassword: newEncryptedPassword,
-					encryptedPassphraseKey: null,
+					encryptedPassphraseKey: newEncryptedPassphraseKey,
 				}),
 			)
 		})
