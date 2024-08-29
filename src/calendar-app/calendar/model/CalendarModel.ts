@@ -71,18 +71,19 @@ import { ObservableLazyLoaded } from "../../../common/api/common/utils/Observabl
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { AlarmInterval, assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import {
+	AlarmInterval,
+	assignEventId,
+	CalendarEventValidity,
+	checkEventValidity,
+	getTimeZone,
+	hasSourceUrl,
+} from "../../../common/calendar/date/CalendarUtils.js"
 import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import {
-	EventImportRejectionReason,
-	hasSourceUrl,
-	parseCalendarStringData,
-	sortOutParsedEvents,
-	SyncStatus,
-} from "../../../common/calendar/import/ImportExportUtils.js"
+import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"

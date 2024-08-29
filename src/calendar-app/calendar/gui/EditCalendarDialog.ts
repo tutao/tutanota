@@ -6,10 +6,16 @@ import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
 import { deepEqual, isNotNull, lazyStringValue } from "@tutao/tutanota-utils"
-import { AlarmInterval, CalendarType } from "../../../common/calendar/date/CalendarUtils.js"
+import {
+	AlarmInterval,
+	CalendarType,
+	isClientOnlyCalendarType,
+	isExternalCalendarType,
+	isNormalCalendarType,
+} from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
-import { checkURLString, isExternalCalendarType, isIcal } from "../../../common/calendar/import/ImportExportUtils.js"
+import { checkURLString, isIcal } from "../../../common/calendar/import/ImportExportUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import type { CalendarModel } from "../model/CalendarModel.js"
 import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
@@ -86,7 +92,7 @@ function createEditCalendarComponent(
 				colorStream(target.value)
 			},
 		}),
-		!shared && !isExternalCalendarType(calendarType)
+		!shared && isNormalCalendarType(calendarType)
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {

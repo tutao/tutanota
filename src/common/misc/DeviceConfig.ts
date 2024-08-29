@@ -12,6 +12,7 @@ import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
 import { SyncStatus } from "../calendar/import/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+import { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -23,6 +24,8 @@ export enum ListAutoSelectBehavior {
 }
 
 export type LastExternalCalendarSyncEntry = { lastSuccessfulSync: number | undefined | null; lastSyncStatus: SyncStatus }
+
+export type ClientOnlyCalendarsInfo = Pick<GroupSettings, "name" | "color">
 
 /**
  * Definition of the config object that will be saved to local storage
@@ -60,6 +63,7 @@ interface ConfigObject {
 	// True if the credentials have been migrated to native
 	isCredentialsMigratedToNative: boolean
 	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
+	clientOnlyCalendars: Map<Id, ClientOnlyCalendarsInfo>
 }
 
 /**
@@ -120,6 +124,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
+			clientOnlyCalendars: loadedConfig.clientOnlyCalendars ? new Map(typedEntries(loadedConfig.clientOnlyCalendars)) : new Map(),
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -256,6 +261,8 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 					JSON.stringify(this.config, (key, value) => {
 						if (key === "_credentials") {
 							return Object.fromEntries(this.config._credentials.entries())
+						} else if (key === "clientOnlyCalendars") {
+							return Object.fromEntries(this.config.clientOnlyCalendars.entries())
 						} else {
 							return value
 						}
@@ -405,6 +412,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	setMailAutoSelectBehavior(action: ListAutoSelectBehavior) {
 		this.config.mailAutoSelectBehavior = action
+		this.writeToStorage()
+	}
+
+	getClientOnlyCalendars() {
+		return this.config.clientOnlyCalendars
+	}
+
+	updateClientOnlyCalendars(calendarId: Id, clientOnlyCalendarConfig: ClientOnlyCalendarsInfo): void {
+		this.config.clientOnlyCalendars.set(calendarId, clientOnlyCalendarConfig)
 		this.writeToStorage()
 	}
 }

@@ -2,7 +2,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
-import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange } from "./CalendarUtils.js"
+import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange, isBirthdayEvent } from "./CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
@@ -13,6 +13,7 @@ import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -20,6 +21,12 @@ const TAG = "[CalendarEventRepository]"
 
 /** Map from timestamp of beginnings of days to events that occur on those days. */
 export type DaysToEvents = ReadonlyMap<number, ReadonlyArray<CalendarEvent>>
+
+/** Object holding the year of birth if available and the corresponding event */
+export type BirthdayEvent = {
+	baseYear: number | null
+	event: CalendarEvent
+}
 
 /**
  * Loads and keeps calendar events up to date.
@@ -31,6 +38,8 @@ export class CalendarEventsRepository {
 	private readonly loadedMonths = new Set<number>()
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
+
+	private clientOnlyEvents: Map<number, BirthdayEvent[]> = new Map()
 
 	constructor(
 		private readonly calendarModel: CalendarModel,
@@ -68,7 +77,19 @@ export class CalendarEventsRepository {
 
 					try {
 						const calendarInfos = await this.calendarModel.getCalendarInfos()
-						this.replaceEvents(await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone))
+						const eventsMap = await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone)
+						this.replaceEvents(eventsMap)
+
+						const clientOnlyEventsThisMonth = this.clientOnlyEvents.get(dayInMonth.getMonth())
+						const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
+						if (birthdaysOfThisMonth) {
+							for (const calendarEvent of birthdaysOfThisMonth) {
+								const age = this.calculateContactsAge(calendarEvent.baseYear, dayInMonth.getFullYear())
+								const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
+
+								this.addDaysForRecurringEvent({ ...calendarEvent.event, summary: `${calendarEvent.event.summary} ${ageString}` }, month)
+							}
+						}
 					} catch (e) {
 						this.loadedMonths.delete(month.start)
 						throw e
@@ -181,5 +202,20 @@ export class CalendarEventsRepository {
 				}
 			}
 		}
+	}
+
+	private calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
+		if (!birthYear) {
+			return null
+		}
+
+		return currentYear - birthYear
+	}
+
+	public async pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
+		let clientOnlyEventsOfThisMonth = this.clientOnlyEvents.get(month)
+		if (!clientOnlyEventsOfThisMonth) clientOnlyEventsOfThisMonth = []
+		clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
+		this.clientOnlyEvents.set(month, clientOnlyEventsOfThisMonth)
 	}
 }

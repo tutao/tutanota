@@ -15,7 +15,16 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
-import { EndType, EventTextTimeOption, getWeekStart, RepeatPeriod, TimeFormat, WeekStart } from "../../api/common/TutanotaConstants"
+import {
+	CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
+	CLIENT_ONLY_CALENDARS,
+	EndType,
+	EventTextTimeOption,
+	getWeekStart,
+	RepeatPeriod,
+	TimeFormat,
+	WeekStart,
+} from "../../api/common/TutanotaConstants"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone } from "luxon"
 import {
 	CalendarEvent,
@@ -23,10 +32,11 @@ import {
 	CalendarGroupRoot,
 	CalendarRepeatRule,
 	createCalendarRepeatRule,
+	GroupSettings,
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import { createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapper, GroupInfo, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
@@ -62,6 +72,10 @@ export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: Calen
 
 export function generateUid(groupId: Id, timestamp: number): string {
 	return `${groupId}${timestamp}@tuta.com`
+}
+
+export function isBirthdayEvent(uid?: string | null) {
+	return uid?.includes(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID) ?? false
 }
 
 /** get the timestamps of the start date and end date of the month the given date is in. */
@@ -356,7 +370,7 @@ export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
 
-function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
+export function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
 	return l.startTime.getTime() - r.startTime.getTime()
 }
 
@@ -987,4 +1001,32 @@ export function parseAlarmInterval(serialized: string): AlarmInterval {
 export enum CalendarType {
 	NORMAL,
 	URL, // External calendar
+	CLIENT_ONLY,
+}
+
+export function isClientOnlyCalendar(calendarId: Id) {
+	const clientOnlyId = calendarId.match(/#(.*)/)?.[1]!
+	return CLIENT_ONLY_CALENDARS.has(clientOnlyId)
+}
+
+export function isClientOnlyCalendarType(calendarType: CalendarType) {
+	return calendarType === CalendarType.CLIENT_ONLY
+}
+
+export function isNormalCalendarType(calendarType: CalendarType) {
+	return calendarType === CalendarType.NORMAL
+}
+
+export function isExternalCalendarType(calendarType: CalendarType) {
+	return calendarType === CalendarType.URL
+}
+
+export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
+	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
+}
+
+export function getCalendarType(groupSettings: GroupSettings | null, groupInfo: GroupInfo): CalendarType {
+	if (hasSourceUrl(groupSettings)) return CalendarType.URL
+	if (isClientOnlyCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
+	return CalendarType.NORMAL
 }

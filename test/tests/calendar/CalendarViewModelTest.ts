@@ -27,6 +27,7 @@ import { CalendarEventsRepository, DaysToEvents } from "../../../src/common/cale
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { addDaysForEventInstance, getMonthRange } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -62,14 +63,16 @@ o.spec("CalendarViewModel", function () {
 			},
 		})
 		const calendarModel: CalendarModel = object()
+		const contactModel: ContactModel = object()
 		const eventMapStream: Stream<DaysToEvents> = stream(new Map())
 		const calendarInfosStream: Stream<ReadonlyMap<Id, CalendarInfo>> = stream(new Map())
 		const eventsRepository: CalendarEventsRepository = object()
 		when(eventsRepository.getEventsForMonths()).thenReturn(eventMapStream)
 		when(calendarModel.getCalendarInfosStream()).thenReturn(calendarInfosStream)
 		const userController = makeUserController()
+		const isNewPaidPlan = async () => true
 		const loginController: LoginController = downcast({
-			getUserController: () => userController,
+			getUserController: () => ({ ...userController, isNewPaidPlan }),
 			isInternalUserLoggedIn: () => true,
 		})
 		const mailboxModel: MailboxModel = object()
@@ -87,6 +90,7 @@ o.spec("CalendarViewModel", function () {
 			calendarInvitations,
 			zone,
 			mailboxModel,
+			contactModel,
 		)
 		viewModel.allowDrag = () => true
 		return { viewModel, calendarModel, eventsRepository }
