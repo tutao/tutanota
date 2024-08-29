@@ -12,8 +12,8 @@ pipeline {
 		booleanParam(
 			name: 'RELEASE',
 			defaultValue: false,
-			description: "Build testing and production version, and upload them to nexus/testflight. " +
-				"The production version will need to be sent to appstore using the publish job"
+			description: "Upload staging/prod to Nexus and send staging version to testflight. " +
+				"The production version must be sent to appstore using the publish job"
 		)
 		booleanParam(
 			name: 'PROD',
@@ -70,11 +70,14 @@ pipeline {
 					}
 					steps {
 						script {
-							buildWebapp("test", "calendar")
+							def util = load "ci/jenkins-lib/util.groovy"
+
+							buildWebapp("test")
 							generateXCodeProjects()
-							runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
+
+							util.runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
 							if (params.RELEASE) {
-								runFastlane("de.tutao.calendar.test", "calendar_testflight_staging")
+								util.runFastlane("de.tutao.calendar.test", "calendar_testflight_staging")
 							}
 							stash includes: "app-ios/releases/calendar-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 						}
@@ -86,16 +89,18 @@ pipeline {
 					}
 					steps {
 						script {
-							buildWebapp("prod", "calendar")
+							def util = load "ci/jenkins-lib/util.groovy"
+
+							buildWebapp("prod")
 							generateXCodeProjects()
-							runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
+							util.runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
 
 							if (params.RELEASE) {
-								util.runFastlane("de.tutao.calendar", "calendar_appstore_prod submit:false")
+								util.runFastlane("de.tutao.calendar", "build_calendar_prod")
+								stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
+							} else {
+								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
 							}
-
-							stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
-							stash includes: "app-ios/releases/calendar-${VERSION}-appstore.ipa", name: 'ipa-production'
 						}
 					}
 				}
@@ -124,7 +129,11 @@ pipeline {
 					if (params.PROD) {
 						unstash 'ipa-production'
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
-							publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa")
+							if (params.RELEASE) {
+								publishToNexus("calendar-ios", "calendar-${VERSION}.ipa")
+							} else {
+								publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa")
+							}
 						}
 					}
 				}
@@ -142,14 +151,14 @@ void stubClientDirectory() {
 	}
 }
 
-void buildWebapp(String stage, String app) {
+void buildWebapp(String stage) {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
     	sh "npm ci"
     	sh 'npm run build-packages'
-    	sh "node --max-old-space-size=8192 webapp ${stage} --app ${app}"
-    	sh "node buildSrc/prepareMobileBuild.js dist ${app}"
+    	sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"
+    	sh "node buildSrc/prepareMobileBuild.js dist calendar"
 	}
 }
 
@@ -167,43 +176,6 @@ void generateXCodeProjects() {
     generateXCodeProject("app-ios", "mail-project")
 	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
-}
-
-void runFastlane(String app_identifier, String  lane) {
-	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
-	script {
-		def appfile = './app-ios/fastlane/Appfile'
-
-		sh "echo \"app_identifier('${app_identifier}')\" > ${appfile}"
-
-		withCredentials([string(credentialsId: 'apple-id', variable: 'apple_id')]) {
-			sh "echo \"apple_id('${apple_id}')\" >> ${appfile}"
-		}
-		withCredentials([string(credentialsId: 'itc-team-id', variable: 'itc_team_id')]) {
-			sh "echo \"itc_team_id('${itc_team_id}')\" >> ${appfile}"
-		}
-		withCredentials([string(credentialsId: 'team-id', variable: 'team_id')]) {
-			sh "echo \"team_id('${team_id}')\" >> ${appfile}"
-		}
-	}
-
-	withCredentials([
-			file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
-			string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
-			string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
-			sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
-			string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
-	]) {
-		dir('app-ios') {
-			sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
-
-			script {
-				// Set git ssh command to avoid ssh prompting to confirm an unknown host
-				// (since we don't have console access we can't confirm and it gets stuck)
-				sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
-			}
-		}
-	}
 }
 
 void publishToNexus(String artifactId, String ipaFileName) {

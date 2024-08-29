@@ -1,9 +1,11 @@
-def releaseNotes // global var to store releaseNotes after confirmation at stage "Prepare Release Notes"
+import groovy.transform.Field
+@Field def releaseNotes
 
 pipeline {
 	environment {
 		PATH="${env.NODE_PATH}:${env.PATH}"
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+		IOS_RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
 	}
 
     parameters {
@@ -29,7 +31,9 @@ pipeline {
 		 )
     }
 
-    agent any
+    agent {
+		label 'linux'
+	}
 
     stages {
     	stage("Checking params") {
@@ -60,11 +64,55 @@ pipeline {
 
 					// Assigns the dict returned by reviewReleaseNotes with the notes for each platform to the global var releaseNotes
 					releaseNotes = reviewReleaseNotes(android, ios, env.VERSION)
-					echo("${releaseNotes}")
+
+					if (params.appleAppStore) {
+						env.IOS_RELEASE_NOTES = releaseNotes.ios
+						echo releaseNotes.ios
+					}
+
+					if (params.googlePlayStore) {
+						env.ANDROID_RELEASE_NOTES = releaseNotes.android
+						echo releaseNotes.android
+					}
 				}
 			} // steps
 		} // stage Prepare Release Notes
-		stage("Publishing Artifacts") {
+		stage('Tag and publish release page') {
+			parallel {
+				stage("Github Android Release Notes") {
+					environment {
+						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
+						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${env.VERSION}.apk"
+					}
+					when {
+						expression {
+							params.googlePlayStore && releaseNotes.android.trim()
+						}
+					}
+					steps {
+						script {
+							writeReleaseNotes("android", "Android", "${env.VERSION}", "${env.WORKSPACE}/${env.FILE_PATH}")
+						} // script
+					} // steps
+				}// Stage Github Android Release Notes
+				stage("Github iOS Release Notes") {
+					environment {
+						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
+					}
+					when {
+						expression {
+							params.appleAppStore && releaseNotes.ios.trim()
+						}
+					}
+					steps {
+						script {
+							writeReleaseNotes("ios", "iOS", "${env.VERSION}", "")
+						} // script
+					} // steps
+				}// Stage Github iOS Release Notes
+			} // parallel release notes
+		} // stage Tag and publish release page
+		stage("Publishing Artifacts to Stores") {
 			parallel {
 				stage("Android App") {
 					environment {
@@ -113,68 +161,58 @@ pipeline {
 				stage("iOS App") {
 					environment {
 						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
-						FILE_PATH = "build-calendar-app/app-ios/calendar-tutao-${VERSION}-release.ipa"
+						FILE_PATH = "app-ios/releases/calendar-tutao-${VERSION}.ipa"
 						GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-ios-release-${VERSION}"
 					}
-					when {
-						expression {
-							params.appleAppStore
+					stages {
+						stage("Download artifact") {
+							when {
+								expression {
+									params.appleAppStore || params.appleTestflight
+								}
+							}
+							steps {
+								script {
+									def util = load "ci/jenkins-lib/util.groovy"
+									util.downloadFromNexus(groupId: "app",
+														   artifactId: "calendar-ios",
+														   version: "${env.VERSION}",
+														   outFile: "${env.WORKSPACE}/${env.FILE_PATH}",
+														   fileExtension: "ipa")
+
+									if (!fileExists("${env.FILE_PATH}")) {
+										currentBuild.result = 'ABORTED'
+										error("Unable to find file ${env.FILE_PATH}")
+									}
+									echo "File ${env.FILE_PATH} found!"
+									stash includes: "${env.FILE_PATH}", name: 'ipa'
+								}
+							}
+					 	}
+						stage("Publish to AppStore") {
+							when {
+								expression {
+									params.appleAppStore
+								}
+							}
+							agent {
+								label 'mac-intel'
+							}
+
+							steps {
+								script {
+									def util = load "ci/jenkins-lib/util.groovy"
+									dir("${env.WORKSPACE}") {
+										unstash 'ipa'
+									}
+									util.runFastlane("de.tutao.calendar", "publish_calendar_prod file:${env.WORKSPACE}/${env.FILE_PATH}")
+								}
+							}
 						}
 					}
-					steps {
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
-							util.downloadFromNexus(groupId: "app",
-												   artifactId: "ios",
-												   version: "${env.VERSION}",
-												   outFile: "${env.WORKSPACE}/${env.FILE_PATH}",
-												   fileExtension: "ipa")
-							if (!fileExists("${env.FILE_PATH}")) {
-								currentBuild.result = 'ABORTED'
-								error("Unable to find file ${env.FILE_PATH}")
-							}
-							echo "File ${env.FILE_PATH} found!"
-							util.runFastlane("de.tutao.calendar", "appstore_prod submit:true")
-						} // script
-					} // steps
 				} // stage iOS App
 			} // parallel apps
 		} // stage Publishing Artifacts
-		stage('Tag and publish release page') {
-			parallel {
-				stage("Github Android Release Notes") {
-					environment {
-						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
-						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${env.VERSION}.apk"
-					}
-					when {
-						expression {
-							params.googlePlayStore && releaseNotes.android.trim()
-						}
-					}
-					steps {
-						script {
-							writeReleaseNotesDraft("android", "Android", "${env.VERSION}", "${env.WORKSPACE}/${env.FILE_PATH}")
-						} // script
-					} // steps
-				}// Stage Github Android Release Notes
-				stage("Github iOS Release Notes") {
-					environment {
-						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
-					}
-					when {
-						expression {
-							params.appleAppStore && releaseNotes.ios.trim()
-						}
-					}
-					steps {
-						script {
-							writeReleaseNotesDraft("ios", "iOS", "${env.VERSION}")
-						} // script
-					} // steps
-				}// Stage Github iOS Release Notes
-			} // parallel release notes
-		} // stage Tag and publish release page
     } // stages
 } // pipeline
 
@@ -206,16 +244,28 @@ def reviewReleaseNotes(android, ios, version) {
 platform must be one of the strings "ios", "android"
 filePath can be null
 */
-def writeReleaseNotesDraft(String platform, String displayName, String version, String filePath) {
-	sh "npm ci"
-	writeFile file: "notes.txt", text: releaseNotes[platform]
-	catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: "Failed to create github release page for ${platform}") {
-		withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-			sh """node buildSrc/createReleaseDraft.js --name '${version} (${displayName})' \
-													  --tag 'tuta-calendar-${platform}-release-${version}' \
-													  ${filePath ? "--uploadFile ${filePath}" : "" } \
-													  --notes notes.txt"""
+def writeReleaseNotes(String platform, String displayName, String version, String filePath) {
+	script {
+		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: "Failed to create github release page for ${platform}") {
+			sh "npm ci"
+			writeFile file: "notes.txt", text: platform == "ios" ? releaseNotes.ios : releaseNotes.android
+			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+				def releaseDraftCommand = """node buildSrc/createReleaseDraft.js --name '${version} (${displayName})' \
+																					  --tag 'tuta-calendar-${platform}-release-${version}' \
+																					  --notes notes.txt"""
+				// We don't upload iOS artifacts to GitHub
+				if (filePath != "" && platform == "android") {
+					releaseDraftCommand = "${releaseDraftCommand} --uploadFile ${filePath}"
+				} else if (platform == "ios") {
+					releaseDraftCommand = "${releaseDraftCommand} --toFile ${IOS_RELEASE_NOTES_PATH}"
+				}
+
+				sh releaseDraftCommand
+			}
+
+			sh "rm notes.txt"
 		}
 	}
-	sh "rm notes.txt"
+
+	sh "echo Created release notes for ${platform}"
 }
