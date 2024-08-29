@@ -5,7 +5,7 @@ import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
 import { TextField, TextFieldAttrs } from "../../../../common/gui/base/TextField.js"
-import { defaultCalendarColor, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../../common/gui/base/DropDownSelector.js"
@@ -18,10 +18,8 @@ import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
 import { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
-
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
-
-import { createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval, renderCalendarColor } from "../CalendarGuiUtils.js"
+import { renderCalendarColor } from "../CalendarGuiUtils.js"
 import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
 
 export type CalendarEventEditViewAttrs = {

@@ -1,8 +1,8 @@
-import { CalendarEvent, CalendarGroupRoot, GroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
 import type { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { assignEventId, CalendarEventValidity, CalendarType, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
+import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { ParsedCalendarData, ParsedEvent } from "./CalendarImporter.js"
-import { getFromMap, groupBy, insertIntoSortedArray, isNotNull } from "@tutao/tutanota-utils"
+import { getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
@@ -119,14 +119,6 @@ export function sortOutParsedEvents(
 	}
 
 	return { rejectedEvents, eventsForCreation }
-}
-
-export function isExternalCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.URL
-}
-
-export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
-	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
 /** importer internals exported for testing */

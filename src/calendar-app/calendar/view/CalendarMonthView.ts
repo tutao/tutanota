@@ -1,8 +1,9 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
-import { CalendarDay, CalendarMonth } from "../../../common/calendar/date/CalendarUtils"
 import {
+	CalendarDay,
+	CalendarMonth,
 	getAllDayDateForTimezone,
 	getDiffIn24hIntervals,
 	getEventEnd,
@@ -12,7 +13,7 @@ import {
 	getTimeZone,
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
-import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
@@ -174,7 +175,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			oldVnode.attrs.eventsForDays !== newVnode.attrs.eventsForDays ||
 			oldVnode.attrs.selectedDate !== newVnode.attrs.selectedDate ||
 			oldVnode.attrs.amPmFormat !== newVnode.attrs.amPmFormat ||
-			oldVnode.attrs.groupColors !== newVnode.attrs.groupColors ||
+			!deepEqual(oldVnode.attrs.groupColors, newVnode.attrs.groupColors) ||
 			oldVnode.attrs.hiddenCalendars !== newVnode.attrs.hiddenCalendars ||
 			dom.offsetWidth !== this.lastWidth ||
 			dom.offsetHeight !== this.lastHeight

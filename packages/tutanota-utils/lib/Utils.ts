@@ -375,6 +375,19 @@ export function deepEqual(a: any, b: any): boolean {
 
 		if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
 
+		// for (let .. in ..) doesn't work with maps
+		if (a instanceof Map && b instanceof Map) {
+			for (const key of a.keys()) {
+				if (!b.has(key) || !deepEqual(a.get(key), b.get(key))) return false
+			}
+
+			for (const key of b.keys()) {
+				if (!a.has(key)) return false
+			}
+
+			return true
+		}
+
 		if (a instanceof Object && b instanceof Object && !aIsArgs && !bIsArgs) {
 			for (let i in a) {
 				if (!(i in b) || !deepEqual(a[i], b[i])) return false

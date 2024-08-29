@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { hasAlarmsForTheUser } from "../../../common/calendar/date/CalendarUtils"
+import { hasAlarmsForTheUser, isBirthdayEvent, isClientOnlyCalendar } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { EventTextTimeOption } from "../../../common/api/common/TutanotaConstants"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 
 type ContinuingCalendarEventBubbleAttrs = {
 	event: CalendarEvent
@@ -51,6 +51,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 					fadeIn: attrs.fadeIn,
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,
+					isClientOnly: isClientOnlyCalendar(listIdPart(attrs.event._id)),
 				}),
 			),
 			attrs.endsAfter
