@@ -5,14 +5,8 @@ import Stream from "mithril/stream"
 import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
-import { deepEqual, isNotNull, lazyStringValue } from "@tutao/tutanota-utils"
-import {
-	AlarmInterval,
-	CalendarType,
-	isClientOnlyCalendarType,
-	isExternalCalendarType,
-	isNormalCalendarType,
-} from "../../../common/calendar/date/CalendarUtils.js"
+import { deepEqual, isNotNull } from "@tutao/tutanota-utils"
+import { AlarmInterval, CalendarType, isExternalCalendarType, isNormalCalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
 import { checkURLString, isIcal } from "../../../common/calendar/import/ImportExportUtils.js"

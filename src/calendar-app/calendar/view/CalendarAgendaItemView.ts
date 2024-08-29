@@ -6,7 +6,6 @@ import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 import { px } from "../../../common/gui/size.js"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 

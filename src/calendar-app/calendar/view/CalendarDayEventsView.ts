@@ -28,7 +28,6 @@ import type { GroupColors } from "./CalendarView"
 import { styles } from "../../../common/gui/styles"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 
 export type Attrs = {
