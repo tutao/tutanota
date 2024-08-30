@@ -131,7 +131,10 @@ pub struct TypeModel {
 	#[serde(rename = "type")]
 	pub element_type: ElementType,
 	pub versioned: bool,
+	#[cfg(not(test))]
 	encrypted: bool,
+	#[cfg(test)]
+	pub encrypted: bool,
 	pub root_id: &'static str,
 	pub values: HashMap<&'static str, ModelValue>,
 	pub associations: HashMap<&'static str, ModelAssociation>,

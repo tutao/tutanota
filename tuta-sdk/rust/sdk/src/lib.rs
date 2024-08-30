@@ -75,6 +75,8 @@ mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
 mod util;
+mod groups;
+pub mod folder_system;
 
 pub static CLIENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -307,7 +309,7 @@ impl LoggedInSdk {
 	/// Generates a new interface to operate on mail entities
 	#[must_use]
 	pub fn mail_facade(&self) -> MailFacade {
-		MailFacade::new(self.crypto_entity_client.clone())
+		MailFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
 	}
 }
 

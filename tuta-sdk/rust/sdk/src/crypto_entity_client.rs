@@ -1,12 +1,15 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
+use crate::element_value::ParsedEntity;
 use crate::entities::entity_facade::EntityFacade;
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
+use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
-use crate::ApiCallError;
+use crate::metamodel::TypeModel;
+use crate::{ApiCallError, ListLoadDirection};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -40,43 +43,13 @@ impl CryptoEntityClient {
 	) -> Result<T, ApiCallError> {
 		let type_ref = T::type_ref();
 		let type_model = self.entity_client.get_type_model(&type_ref)?;
-		let mut parsed_entity = self.entity_client.load(&type_ref, id).await?;
+		let parsed_entity = self.entity_client.load(&type_ref, id).await?;
 
 		if type_model.marked_encrypted() {
-			let possible_session_key = self
-				.crypto_facade
-				.resolve_session_key(&mut parsed_entity, type_model)
-				.await
-				.map_err(|error| ApiCallError::InternalSdkError {
-					error_message: format!(
-						"Failed to resolve session key for entity '{}' with ID: {}; {}",
-						type_model.name, id, error
-					),
-				})?;
-			match possible_session_key {
-				Some(session_key) => {
-					let decrypted_entity = self.entity_facade.decrypt_and_map(
-						type_model,
-						parsed_entity,
-						session_key,
-					)?;
-					let typed_entity = self
-						.instance_mapper
-						.parse_entity::<T>(decrypted_entity)
-						.map_err(|e| ApiCallError::InternalSdkError {
-							error_message: format!(
-								"Failed to parse encrypted entity into proper types: {}",
-								e
-							),
-						})?;
-					Ok(typed_entity)
-				},
-				// `resolve_session_key()` only returns none if the entity is unencrypted, so
-				// no need to handle it
-				None => {
-					unreachable!()
-				},
-			}
+			let typed_entity = self
+				.process_encrypted_entity(type_model, parsed_entity)
+				.await?;
+			Ok(typed_entity)
 		} else {
 			let typed_entity = self
 				.instance_mapper
@@ -88,6 +61,86 @@ impl CryptoEntityClient {
 					),
 				})?;
 			Ok(typed_entity)
+		}
+	}
+
+	async fn process_encrypted_entity<T: Entity + Deserialize<'static>>(
+		&self,
+		type_model: &TypeModel,
+		mut parsed_entity: ParsedEntity,
+	) -> Result<T, ApiCallError> {
+		let possible_session_key = self
+			.crypto_facade
+			.resolve_session_key(&mut parsed_entity, type_model)
+			.await
+			.map_err(|error| {
+				let id = parsed_entity.get("_id");
+				ApiCallError::InternalSdkError {
+					error_message: format!(
+						"Failed to resolve session key for entity '{}' with ID: {:?}; {}",
+						type_model.name, id, error
+					),
+				}
+			})?;
+		match possible_session_key {
+			Some(session_key) => {
+				let decrypted_entity =
+					self.entity_facade
+						.decrypt_and_map(type_model, parsed_entity, session_key)?;
+				let typed_entity = self
+					.instance_mapper
+					.parse_entity::<T>(decrypted_entity)
+					.map_err(|e| ApiCallError::InternalSdkError {
+						error_message: format!(
+							"Failed to parse encrypted entity into proper types: {}",
+							e
+						),
+					})?;
+				Ok(typed_entity)
+			},
+			// `resolve_session_key()` only returns none if the entity is unencrypted, so
+			// no need to handle it
+			None => {
+				unreachable!()
+			},
+		}
+	}
+
+	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
+	pub async fn load_range<T: Entity + Deserialize<'static>>(
+		&self,
+		list_id: &GeneratedId,
+		start_id: &GeneratedId,
+		count: usize,
+		direction: ListLoadDirection,
+	) -> Result<Vec<T>, ApiCallError> {
+		let type_ref = T::type_ref();
+		let type_model = self.entity_client.get_type_model(&type_ref)?;
+		let parsed_entities = self
+			.entity_client
+			.load_range(&type_ref, list_id, start_id, count, direction)
+			.await?;
+
+		if type_model.marked_encrypted() {
+			// StreamExt::collect requires result to be Default. Fall back to plain loop.
+			let mut result_list = Vec::with_capacity(parsed_entities.len());
+			for entity in parsed_entities {
+				let typed_entity = self.process_encrypted_entity(type_model, entity).await?;
+				result_list.push(typed_entity);
+			}
+			Ok(result_list)
+		} else {
+			let result_list: Vec<T> = parsed_entities
+				.into_iter()
+				.map(|e| self.instance_mapper.parse_entity::<T>(e))
+				.collect::<Result<Vec<T>, _>>()
+				.map_err(|error| ApiCallError::InternalSdkError {
+					error_message: format!(
+						"Failed to parse unencrypted entity into proper types: {}",
+						error
+					),
+				})?;
+			Ok(result_list)
 		}
 	}
 }
