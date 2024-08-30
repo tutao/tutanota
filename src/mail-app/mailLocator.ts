@@ -117,6 +117,7 @@ import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
 import { locator } from "../common/api/main/CommonLocator.js"
+import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { assertSystemFolderOfType } from "./mail/model/MailUtils.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
@@ -1059,10 +1060,7 @@ class MailLocator {
 				mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 				mailLocator.nativeContactsSyncManager()?.syncContacts()
 			},
-			async () => {
-				const calendarModel = await locator.calendarModel()
-				calendarModel.handleSyncExternalCalendars()
-			},
+			() => this.handleExternalSync(),
 		)
 	})
 
@@ -1081,6 +1079,25 @@ class MailLocator {
 			)
 		}
 	}
+
+	async handleExternalSync() {
+		const calendarModel = await locator.calendarModel()
+
+		if (isApp() || isDesktop()) {
+			calendarModel.syncExternalCalendars().catch(async (e) => {
+				showSnackBar({
+					message: () => e.message,
+					button: {
+						label: "ok_action",
+						click: noOp,
+					},
+					waitingTime: 1000,
+				})
+			})
+			calendarModel.scheduleExternalCalendarSync()
+		}
+	}
+
 	readonly credentialFormatMigrator: () => Promise<CredentialFormatMigrator> = lazyMemoized(async () => {
 		const { CredentialFormatMigrator } = await import("../common/misc/credentials/CredentialFormatMigrator.js")
 		if (isDesktop()) {
