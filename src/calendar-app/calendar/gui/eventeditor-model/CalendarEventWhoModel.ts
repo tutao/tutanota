@@ -26,6 +26,7 @@ import { ProgrammingError } from "../../../../common/api/common/error/Programmin
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
+import { hasSourceUrl } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
@@ -173,7 +174,7 @@ export class CalendarEventWhoModel {
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
 		const { groupSettings } = this.userController.userSettingsGroupRoot
-		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !this.isExternalCalendar(groupSettings, cal.groupInfo.group))
+		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !this.isExternalCalendar(groupSettings, cal.group._id))
 
 		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {
 			return [this.selectedCalendar]
@@ -199,7 +200,7 @@ export class CalendarEventWhoModel {
 
 	private isExternalCalendar(groupSettings: GroupSettings[], groupId: Id) {
 		const existingGroupSettings = groupSettings.find((gc) => gc.group === groupId)
-		return existingGroupSettings?.sourceUrl != null
+		return hasSourceUrl(existingGroupSettings)
 	}
 
 	private async resolveAndCacheAddress(a: PartialRecipient): Promise<void> {

@@ -756,11 +756,6 @@ export function getEventType(
 		return EventType.EXTERNAL
 	}
 
-	const gpSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === existingEvent._ownerGroup)
-	if (gpSettings?.sourceUrl) {
-		return EventType.SHARED_RO
-	}
-
 	const existingOrganizer = existingEvent.organizer
 	const isOrganizer = existingOrganizer != null && ownMailAddresses.some((a) => cleanMailAddress(a) === existingOrganizer.address)
 
@@ -776,8 +771,7 @@ export function getEventType(
 	}
 
 	const calendarInfoForEvent = calendars.get(existingEvent._ownerGroup) ?? null
-
-	if (calendarInfoForEvent == null) {
+	if (calendarInfoForEvent == null || calendarInfoForEvent.isExternal) {
 		// event has an ownergroup, but it's not in one of our calendars. this might actually be an error.
 		return EventType.SHARED_RO
 	}

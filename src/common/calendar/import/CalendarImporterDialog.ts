@@ -18,7 +18,7 @@ import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
 
-import { EventImportRejectionReason, EventWrapper, isExternalCalendar, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { EventImportRejectionReason, EventWrapper, isExternalCalendarType, sortOutParsedEvents } from "./ImportExportUtils.js"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import
@@ -53,7 +53,7 @@ export async function handleCalendarImport(
 	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg", total))) return
 
 	if (eventsForCreation.length > 0) {
-		if (isExternalCalendar(calendarType)) await importEvents(eventsForCreation)
+		if (isExternalCalendarType(calendarType)) await importEvents(eventsForCreation)
 		else
 			showEventsImportDialog(
 				eventsForCreation.map((ev) => ev.event),

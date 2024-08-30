@@ -1,6 +1,6 @@
 import { $Promisable, assertNotNull, clone, debounce, findAndRemove, getStartOfDay, groupByAndMapUniquely } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { getWeekStart, GroupType, OperationType, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { EXTERNAL_CALENDAR_SYNC_INTERVAL, getWeekStart, GroupType, OperationType, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
@@ -496,13 +496,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.setScrollPosition(this.scrollPosition + by)
 	}
 
-	syncExternal(groupSettings: GroupSettings | null) {
+	forceSyncExternal(groupSettings: GroupSettings | null, longErrorMessage: boolean = false) {
 		if (!groupSettings) {
 			return
 		}
 
-		this.deviceConfig.removeLastSync(groupSettings.group)
-		this.calendarModel.syncExternalCalendars([groupSettings])
+		return this.calendarModel.syncExternalCalendars([groupSettings], EXTERNAL_CALENDAR_SYNC_INTERVAL, longErrorMessage, true)
+	}
+
+	public getCalendarModel() {
+		return this.calendarModel
 	}
 }
 
