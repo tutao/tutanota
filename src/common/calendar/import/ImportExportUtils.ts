@@ -1,11 +1,13 @@
-import { CalendarEvent, CalendarGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarGroupRoot, GroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import type { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, CalendarType, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { ParsedCalendarData, ParsedEvent } from "./CalendarImporter.js"
-import { getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
+import { getFromMap, groupBy, insertIntoSortedArray, isNotNull } from "@tutao/tutanota-utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
+import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
+import { assertValidURL } from "@tutao/tutanota-utils/dist/Utils.js"
 
 export enum EventImportRejectionReason {
 	Pre1970,
@@ -119,12 +121,42 @@ export function sortOutParsedEvents(
 	return { rejectedEvents, eventsForCreation }
 }
 
-export function isExternalCalendar(calendarType: CalendarType) {
+export function isExternalCalendarType(calendarType: CalendarType) {
 	return calendarType === CalendarType.URL
+}
+
+export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
+	return isNotNull(groupSettings?.sourceUrl)
 }
 
 /** importer internals exported for testing */
 export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree, zone)
+}
+
+export function isIcal(iCalStr: string): boolean {
+	return iCalStr.trimStart().split(/\r?\n/, 1)[0] === "BEGIN:VCALENDAR"
+}
+
+export function getExternalCalendarName(iCalStr: string): string {
+	let calName = iCalStr.match(/X-WR-CALNAME:(.*)\r?\n/)
+	const name = calName ? calName[1] : iCalStr.match(/PRODID:-\/\/(.*)\/\//)?.[1]!
+	return name ?? lang.get("noTitle_label")
+}
+
+export const enum SyncStatus {
+	Failed = "Failed",
+	Success = "Success",
+}
+
+export function checkURLString(url: string): TranslationKey | URL {
+	const assertResult = assertValidURL(url)
+	if (!assertResult) return "invalidURL_msg"
+	if (!hasValidProtocol(assertResult, ["http:", "https:"])) return "invalidURLProtocol_msg"
+	return assertResult
+}
+
+export function hasValidProtocol(url: URL, validProtocols: string[]) {
+	return validProtocols.includes(url.protocol)
 }

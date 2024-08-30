@@ -191,22 +191,26 @@ export const propertySequenceParser: Parser<[string, [string, Array<[string, str
 	anyStringUnescapeParser,
 )
 
-export function parseProperty(data: string): Property {
-	const sequence = propertySequenceParser(new StringIterator(data))
-	const name = sequence[0]
-	const params: Record<string, string> = {}
+export function parseProperty(data: string): Property | null {
+	try {
+		const sequence = propertySequenceParser(new StringIterator(data))
+		const name = sequence[0]
+		const params: Record<string, string> = {}
 
-	if (sequence[1]) {
-		for (const [name, _eq, value] of sequence[1][1]) {
-			params[name] = value
+		if (sequence[1]) {
+			for (const [name, _eq, value] of sequence[1][1]) {
+				params[name] = value
+			}
 		}
-	}
 
-	const value = sequence[3]
-	return {
-		name,
-		params,
-		value,
+		const value = sequence[3]
+		return {
+			name,
+			params,
+			value,
+		}
+	} catch (e) {
+		return null // Returning null to avoid raising parser errors so we can ignore the current broken data/property
 	}
 }
 
@@ -239,6 +243,12 @@ function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
 
 	while (!iteration.done && iteration.value) {
 		const property = parseProperty(iteration.value)
+
+		if (!property) {
+			// Ignoring broken properties, if there is any mandatory properties missing the function getContents will raise an error later
+			iteration = iterator.next()
+			continue
+		}
 
 		if (property.name === "END" && property.value === tag) {
 			return {
