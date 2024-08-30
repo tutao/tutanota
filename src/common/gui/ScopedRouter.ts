@@ -49,5 +49,6 @@ export class ScopedRouter<Scope extends string> implements Router {
 }
 
 export function routeMatchesPrefix(prefixWithoutLeadingSlash: string, route: string): boolean {
-	return route.split("/")[1] === prefixWithoutLeadingSlash
+	const { path } = m.parsePathname(route)
+	return path.split("/")[1] === prefixWithoutLeadingSlash
 }
