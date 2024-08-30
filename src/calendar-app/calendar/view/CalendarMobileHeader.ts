@@ -21,11 +21,13 @@ import { NavButton } from "../../../common/gui/base/NavButton.js"
 import { SEARCH_PREFIX } from "../../../common/misc/RouteChange.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { Icons } from "../../../common/gui/base/icons/Icons.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
 	viewSlider: ViewSlider
 	navConfiguration: CalendarNavConfiguration
+	onCreateEvent: () => unknown
 	onToday: () => unknown
 	onViewTypeSelected: (viewType: CalendarViewType) => unknown
 	onTap?: ClickHandler
@@ -67,7 +69,13 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					click: attrs.onToday,
 				}),
 				this.renderViewSelector(attrs),
-				this.renderSearchNavigationButton(),
+				client.isCalendarApp()
+					? this.renderSearchNavigationButton()
+					: m(IconButton, {
+							icon: Icons.Add,
+							title: "newEvent_action",
+							click: attrs.onCreateEvent,
+					  }),
 			],
 			injections: m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
 		})
@@ -89,7 +97,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 	}
 
 	private renderSearchNavigationButton() {
-		if (locator.logins.isInternalUserLoggedIn() && client.isCalendarApp()) {
+		if (locator.logins.isInternalUserLoggedIn()) {
 			const route = m.route.get().startsWith(SEARCH_PREFIX) ? m.route.get() : "/search/calendar"
 			return m(NavButton, {
 				label: "search_label",
