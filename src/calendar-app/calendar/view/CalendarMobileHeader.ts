@@ -19,12 +19,14 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
 	viewSlider: ViewSlider
 	navConfiguration: CalendarNavConfiguration
+	onCreateEvent: () => unknown
 	onToday: () => unknown
 	onViewTypeSelected: (viewType: CalendarViewType) => unknown
 	onTap?: ClickHandler
@@ -66,7 +68,13 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					click: attrs.onToday,
 				}),
 				this.renderViewSelector(attrs),
-				this.renderSearchNavigationButton(),
+				client.isCalendarApp()
+					? this.renderSearchNavigationButton()
+					: m(IconButton, {
+							icon: Icons.Add,
+							title: "newEvent_action",
+							click: attrs.onCreateEvent,
+					  }),
 			],
 			injections: m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
 		})
@@ -88,7 +96,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 	}
 
 	private renderSearchNavigationButton() {
-		if (locator.logins.isInternalUserLoggedIn() && client.isCalendarApp()) {
+		if (locator.logins.isInternalUserLoggedIn()) {
 			return m(
 				".icon-button",
 				m(NavButton, {
