@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-08-27T10:39:26Z",
+	"updated_at": "2024-08-29T16:04:57Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -107,7 +107,7 @@ export default {
 		"appearanceSettings_label": "Appearance",
 		"appInfoAndroidImageAlt_alt": "Android app on Google Play",
 		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
-		"appInfoIosImageAlt_alt": "iOS app on Apple store",
+		"appInfoIosImageAlt_alt": "iOS app on App Store",
 		"apply_action": "Apply",
 		"appStoreNotAvailable_msg": "App Store subscriptions are not available at the moment.",
 		"appStoreRenewProblemBody_msg": "Hello,\n      \nYour subscription was due to renew on {expirationDate}.\n       \nUnfortunately, we were unable to receive any payment from the App Store for your subscription, which may be due to a billing failure. Please check that your payment settings on the App Store are correct.\n\nIf we do not receive any payment, your account will be disabled on {finalExpirationDate} for nonpayment. Alternatively, you may choose to cancel your subscription or switch to another payment method.\n   \nStay secure,\nYour Tuta Team",
