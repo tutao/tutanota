@@ -581,9 +581,8 @@ class MainActivity : FragmentActivity() {
 					attemptForeground = true,
 			)
 			startService(serviceIntent)
-		} catch (e: IllegalStateException) {
-			// We can run into this if the app is in the background for some reason
-			Log.w(TAG, e)
+		} catch (e: Exception) {
+			Log.w(TAG, "Could not start push notification service", e)
 		}
 		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 		jobScheduler.schedule(
