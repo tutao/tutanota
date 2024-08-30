@@ -9,6 +9,9 @@ import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
 import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
 import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
+import { SyncStatus } from "../calendar/import/ImportExportUtils.js"
+import Stream from "mithril/stream"
+import stream from "mithril/stream"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -18,6 +21,8 @@ export enum ListAutoSelectBehavior {
 	OLDER,
 	NEWER,
 }
+
+export type LastExternalCalendarSyncEntry = { lastSuccessfulSync: number | undefined | null; lastSyncStatus: SyncStatus }
 
 /**
  * Definition of the config object that will be saved to local storage
@@ -54,7 +59,7 @@ interface ConfigObject {
 	isSetupComplete: boolean
 	// True if the credentials have been migrated to native
 	isCredentialsMigratedToNative: boolean
-	lastExternalCalendarSync: Record<Id, number>
+	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
 }
 
 /**
@@ -65,6 +70,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	public static LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
+	private lastSyncStream: Stream<Map<Id, LastExternalCalendarSyncEntry>> = stream(new Map())
 
 	constructor(private readonly _version: number, private readonly localStorage: Storage | null) {
 		this.init()
@@ -115,6 +121,8 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 		}
+
+		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
 		// We do not save the config if there was no config. The config is stored when some value changes.
@@ -205,19 +213,25 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 		this.writeToStorage()
 	}
 
-	getLastExternalCalendarSync(): Map<Id, number> {
-		return new Map(Object.entries(this.config.lastExternalCalendarSync)) ?? new Map()
+	getLastExternalCalendarSync(): Map<Id, LastExternalCalendarSyncEntry> {
+		return this.lastSyncStream()
 	}
 
-	setLastExternalCalendarSync(value: Map<Id, number>): void {
+	setLastExternalCalendarSync(value: Map<Id, LastExternalCalendarSyncEntry>): void {
 		this.config.lastExternalCalendarSync = Object.fromEntries(value)
 		this.writeToStorage()
+		this.lastSyncStream(value)
 	}
 
-	updateLastSync(groupId: Id) {
-		console.info(`Update last sync for group: ${groupId} at ${new Date()}`)
+	updateLastSync(groupId: Id, lastSyncStatus: SyncStatus = SyncStatus.Success) {
 		const lastExternalCalendarSync = this.getLastExternalCalendarSync()
-		this.setLastExternalCalendarSync(lastExternalCalendarSync.set(groupId, Date.now()))
+		const lastSuccessfulSync = lastSyncStatus === SyncStatus.Success ? Date.now() : lastExternalCalendarSync.get(groupId)?.lastSuccessfulSync
+		lastExternalCalendarSync.set(groupId, { lastSuccessfulSync, lastSyncStatus })
+		this.setLastExternalCalendarSync(lastExternalCalendarSync)
+	}
+
+	getLastSyncStream() {
+		return this.lastSyncStream
 	}
 
 	removeLastSync(groupId: Id) {

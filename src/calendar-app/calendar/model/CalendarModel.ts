@@ -42,7 +42,7 @@ import {
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import { ParsedCalendarData } from "../../../common/calendar/import/CalendarImporter.js"
+import type { ParsedCalendarData, ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -76,8 +76,15 @@ import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/Gr
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents } from "../../../common/calendar/import/ImportExportUtils.js"
+import {
+	EventImportRejectionReason,
+	hasSourceUrl,
+	parseCalendarStringData,
+	sortOutParsedEvents,
+	SyncStatus,
+} from "../../../common/calendar/import/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -86,6 +93,7 @@ export type CalendarInfo = {
 	group: Group
 	shared: boolean
 	userIsOwner: boolean
+	isExternal: boolean
 }
 
 export function assertEventValidity(event: CalendarEvent) {
@@ -217,16 +225,18 @@ export class CalendarModel {
 		}
 
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
+		const groupSettings = userController.userSettingsGroupRoot.groupSettings
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
 			const groupMembers = await loadGroupMembers(group, this.entityClient)
 			const shared = groupMembers.length > 1
-
+			const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
 			calendarInfos.set(groupRoot._id, {
 				groupRoot,
 				groupInfo,
 				group: group,
 				shared,
 				userIsOwner: !shared || isSharedGroupOwner(group, userController.userId),
+				isExternal,
 			})
 		}
 
@@ -244,16 +254,18 @@ export class CalendarModel {
 		return calendarStr ?? ""
 	}
 
-	public async handleSyncExternalCalendars() {
-		if (isApp() || isDesktop()) {
-			this.syncExternalCalendars()
-			setInterval(() => {
-				this.syncExternalCalendars()
-			}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
-		}
+	public scheduleExternalCalendarSync() {
+		setInterval(() => {
+			this.syncExternalCalendars().catch((e) => console.error(e.message))
+		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
 	}
 
-	public async syncExternalCalendars(groupSettings: GroupSettings[] | null = null, syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL) {
+	public async syncExternalCalendars(
+		groupSettings: GroupSettings[] | null = null,
+		syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL,
+		longErrorMessage: boolean = false,
+		forceSync: boolean = false,
+	) {
 		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn()) {
 			return
 		}
@@ -273,16 +285,20 @@ export class CalendarModel {
 			existingGroupSettings = gSettings
 		}
 
-		for (const { sourceUrl, group } of existingGroupSettings) {
+		const skippedCalendars: Map<Id, { calendarName: string; error: Error }> = new Map()
+		for (const { sourceUrl, group, name } of existingGroupSettings) {
 			if (!sourceUrl) {
 				continue
 			}
 
-			const lastSync = this.deviceConfig.getLastExternalCalendarSync().get(group)
+			const lastSyncEntry = this.deviceConfig.getLastExternalCalendarSync().get(group)
 			const offset = 1000 // Add an offset to account for cpu speed when storing or generating timestamps
-			if (lastSync && Date.now() + offset - lastSync < syncInterval) {
-				continue
-			}
+			const shouldSkipSync =
+				!forceSync &&
+				lastSyncEntry?.lastSyncStatus === SyncStatus.Success &&
+				lastSyncEntry.lastSuccessfulSync &&
+				Date.now() + offset - lastSyncEntry.lastSuccessfulSync < syncInterval
+			if (shouldSkipSync) continue
 
 			const currentCalendarGroupRoot = calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, group)) ?? null
 			if (!currentCalendarGroupRoot) {
@@ -290,8 +306,19 @@ export class CalendarModel {
 				continue
 			}
 
-			const externalCalendar = await this.fetchExternalCalendar(sourceUrl)
-			const parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
+			let parsedExternalEvents: ParsedEvent[] = []
+			try {
+				const externalCalendar = await this.fetchExternalCalendar(sourceUrl)
+				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
+			} catch (error) {
+				let calendarName = name
+				if (!calendarName) {
+					const calendars = await this.getCalendarInfos()
+					calendarName = calendars.get(group)?.groupInfo.name!
+				}
+				skippedCalendars.set(group, { calendarName, error })
+				continue
+			}
 
 			const existingEventList = await loadAllEvents(currentCalendarGroupRoot)
 
@@ -361,6 +388,15 @@ export class CalendarModel {
 			console.log(TAG, `${operationsLog.deleted.length} events removed`)
 
 			this.deviceConfig.updateLastSync(group)
+		}
+
+		if (skippedCalendars.size) {
+			let errorMessage = lang.get("iCalSync_error") + (longErrorMessage ? "\n\n" : "")
+			for (const [group, details] of skippedCalendars.entries()) {
+				if (longErrorMessage) errorMessage += `${details.calendarName} - ${details.error.message}\n`
+				this.deviceConfig.updateLastSync(group, SyncStatus.Failed)
+			}
+			throw new Error(errorMessage)
 		}
 	}
 
