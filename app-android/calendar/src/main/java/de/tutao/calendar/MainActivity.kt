@@ -198,7 +198,7 @@ class MainActivity : FragmentActivity() {
 		webView.settings.apply {
 			javaScriptEnabled = true
 			domStorageEnabled = true
-			javaScriptCanOpenWindowsAutomatically = false
+			javaScriptCanOpenWindowsAutomatically = false	
 			allowFileAccess = false
 			allowContentAccess = false
 			cacheMode = WebSettings.LOAD_NO_CACHE

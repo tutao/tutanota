@@ -107,6 +107,7 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { locator } from "../common/api/main/CommonLocator.js"
+import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import m from "mithril"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
@@ -849,10 +850,7 @@ class CalendarLocator {
 			() => {
 				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 			},
-			async () => {
-				const calendarModel = await locator.calendarModel()
-				calendarModel.handleSyncExternalCalendars()
-			},
+			() => this.handleExternalSync(),
 		)
 	})
 
@@ -869,6 +867,24 @@ class CalendarLocator {
 				deviceConfig,
 				false,
 			)
+		}
+	}
+
+	async handleExternalSync() {
+		const calendarModel = await locator.calendarModel()
+
+		if (isApp() || isDesktop()) {
+			calendarModel.syncExternalCalendars().catch(async (e) => {
+				showSnackBar({
+					message: () => e.message,
+					button: {
+						label: "ok_action",
+						click: noOp,
+					},
+					waitingTime: 1000,
+				})
+			})
+			calendarModel.scheduleExternalCalendarSync()
 		}
 	}
 

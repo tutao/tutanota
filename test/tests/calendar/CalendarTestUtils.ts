@@ -130,6 +130,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				user: "ownerId",
 				type: GroupType.Calendar,
 			}),
+			isExternal: false,
 		},
 	],
 	[
@@ -145,6 +146,23 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				user: "ownerId",
 				type: GroupType.Calendar,
 			}),
+			isExternal: false,
+		},
+	],
+	[
+		"ownExternalCalendar",
+		{
+			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
+			shared: false,
+			userIsOwner: true,
+			longEvents: new LazyLoaded(() => Promise.resolve([])),
+			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
+			group: createTestEntity(GroupTypeRef, {
+				_id: "ownExternalCalendar",
+				user: "ownerId",
+				type: GroupType.Calendar,
+			}),
+			isExternal: true,
 		},
 	],
 	[
@@ -160,6 +178,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				user: "otherId",
 				type: GroupType.Calendar,
 			}),
+			isExternal: false,
 		},
 	],
 ])
@@ -257,7 +276,7 @@ export function makeMailboxDetail(): MailboxDetail {
 	}
 }
 
-export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarInfo {
+export function makeCalendarInfo(type: "own" | "shared" | "external", id: string): CalendarInfo {
 	return {
 		groupRoot: downcast({
 			longEvents: "longEventsList",
@@ -271,10 +290,11 @@ export function makeCalendarInfo(type: "own" | "shared", id: string): CalendarIn
 		}),
 		shared: type === "shared",
 		userIsOwner: type === "own",
+		isExternal: type === "external",
 	}
 }
 
-export function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Map<string, CalendarInfo> {
+export function makeCalendars(type: "own" | "shared" | "external", id: string = calendarGroupId): Map<string, CalendarInfo> {
 	const calendarInfo = makeCalendarInfo(type, id)
 	return new Map([[id, calendarInfo]])
 }
