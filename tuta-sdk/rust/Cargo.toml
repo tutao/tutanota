@@ -2,4 +2,8 @@
 
 resolver = "2"
 
-members = ["sdk", "uniffi-bindgen"]
+members = [
+    "sdk",
+    "uniffi-bindgen",
+    "demo",
+]

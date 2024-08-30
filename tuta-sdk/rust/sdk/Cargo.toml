@@ -30,6 +30,7 @@ futures = "0.3.30"
 log = "0.4.22"
 simple_logger = "5.0.0"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
+num_enum = "0.7.3"
 
 # only used for the native rest client
 hyper = { version = "1.4.1", features = ["client"], optional = true }

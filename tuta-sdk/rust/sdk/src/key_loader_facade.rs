@@ -27,6 +27,8 @@ impl KeyLoaderFacade {
 		}
 	}
 
+	/// Load the symmetric group key for the groupId with the provided requestedVersion.
+	/// `currentGroupKey` needs to be set if the user is not a member of the group (e.g. an admin)
 	pub async fn load_sym_group_key(
 		&self,
 		group_id: &GeneratedId,
@@ -37,6 +39,7 @@ impl KeyLoaderFacade {
 			Some(n) => {
 				let group_key_version = n.version;
 				if group_key_version < version {
+					// we might not have the membership for this group. so the caller needs to handle it by refreshing the cache
 					return Err(KeyLoadError { reason: format!("Provided current group key is too old (${group_key_version}) to load the requested version ${version} for group ${group_id}") });
 				}
 				n
@@ -47,6 +50,7 @@ impl KeyLoaderFacade {
 		if group_key.version == version {
 			Ok(group_key.object)
 		} else {
+			// TODO: refresh if group_key.version < version
 			let group: Group = self.entity_client.load(&group_id.to_owned()).await?;
 			let FormerGroupKey {
 				symmetric_group_key,
@@ -61,6 +65,7 @@ impl KeyLoaderFacade {
 	async fn find_former_group_key(
 		&self,
 		group: &Group,
+		// TODO: why do we take it by ref if we are cloning it anyway
 		current_group_key: &VersionedAesKey,
 		target_key_version: i64,
 	) -> Result<FormerGroupKey, KeyLoadError> {
@@ -163,10 +168,16 @@ impl KeyLoaderFacade {
 		Ok(key)
 	}
 
+	/// `group_id` MUST NOT be the user group id
 	async fn load_and_decrypt_current_sym_group_key(
 		&self,
 		group_id: &GeneratedId,
 	) -> Result<VersionedAesKey, KeyLoadError> {
+		assert_ne!(
+			&self.user_facade.get_user_group_id(),
+			group_id,
+			"Must not add the user group to the regular group key cache"
+		);
 		let group_membership = self.user_facade.get_membership(group_id)?;
 		let required_user_group_key = self
 			.load_sym_user_group_key(group_membership.symKeyVersion)
@@ -184,6 +195,7 @@ impl KeyLoaderFacade {
 		&self,
 		user_group_key_version: i64,
 	) -> Result<GenericAesKey, KeyLoadError> {
+		// TODO: check for the version and refresh cache if needed
 		self.load_sym_group_key(
 			&self.user_facade.get_user_group_id(),
 			user_group_key_version,
