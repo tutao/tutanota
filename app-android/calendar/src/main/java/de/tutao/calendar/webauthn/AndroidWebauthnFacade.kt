@@ -56,7 +56,7 @@ class AndroidWebauthnFacade(
 			.appendQueryParameter("action", action)
 			.appendQueryParameter(
 				"cbUrl",
-				"intent://webauthn/#Intent;scheme=tutanota;package=${BuildConfig.APPLICATION_ID};S.result={result};end"
+				"intent://webauthn/#Intent;scheme=tutacalendar;package=${BuildConfig.APPLICATION_ID};S.result={result};end"
 			)
 			.appendQueryParameter("challenge", serializedChallenge)
 			.build()
