@@ -78,7 +78,6 @@ import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayo
 import { theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
-import { LazySearchBar } from "../../../common/misc/LazySearchBar.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
@@ -89,7 +88,6 @@ import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
 import { Icon } from "../../../common/gui/base/Icon.js"
 import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
-
 import { parseCalendarStringData } from "../../../common/calendar/import/ImportExportUtils.js"
 
 export type GroupColors = Map<Id, string>
@@ -99,6 +97,7 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
 	bottomNav?: () => Children
+	lazySearchBar: () => Children
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -984,10 +983,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			".main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
-					searchBar: () =>
-						m(LazySearchBar, {
-							placeholder: lang.get("searchCalendar_placeholder"),
-						}),
+					searchBar: attrs.lazySearchBar,
 					...attrs.header,
 				}),
 				bottomNav: attrs.bottomNav?.(),
