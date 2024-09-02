@@ -1,6 +1,4 @@
 import Combine
-import Foundation
-import TutanotaSharedFramework
 
 enum ListIdLockState {
 	case waitingForListIdUnlock
@@ -9,7 +7,7 @@ enum ListIdLockState {
 
 let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutanota.offline.OfflineDbClosedError"
 
-actor IosSqlCipherFacade: SqlCipherFacade {
+public actor IosSqlCipherFacade: SqlCipherFacade {
 	private var db: SqlCipherDb?
 
 	private var concurrentListIdLocks = ConcurrentListIdLocks()
@@ -17,32 +15,34 @@ actor IosSqlCipherFacade: SqlCipherFacade {
 	// because otherwise the stream will be canceled
 	private var cancellables: [AnyCancellable] = []
 
+	public init() {}
+
 	private func getDb() throws -> SqlCipherDb {
 		guard let db = self.db else { throw TUTErrorFactory.createError(withDomain: OFFLINE_DB_CLOSED_DOMAIN, message: "No db opened") }
 		return db
 	}
 
-	func run(_ query: String, _ params: [TaggedSqlValue]) async throws {
+	public func run(_ query: String, _ params: [TaggedSqlValue]) async throws {
 		let prepped = try self.getDb().prepare(query: query)
 		try! prepped.bindParams(params).run()
 		return
 	}
 
-	func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String: TaggedSqlValue]? {
+	public func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String: TaggedSqlValue]? {
 		let prepped = try self.getDb().prepare(query: query)
 		return try! prepped.bindParams(params).get()
 	}
 
-	func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String: TaggedSqlValue]] {
+	public func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String: TaggedSqlValue]] {
 		let prepped = try self.getDb().prepare(query: query)
 		return try! prepped.bindParams(params).all()
 	}
 
-	func openDb(_ userId: String, _ dbKey: DataWrapper) async throws { self.db = try SqlCipherDb(userId: userId, dbKey: dbKey.data) }
+	public func openDb(_ userId: String, _ dbKey: DataWrapper) async throws { self.db = try SqlCipherDb(userId: userId, dbKey: dbKey.data) }
 
-	func closeDb() async throws { self.db = nil }
+	public func closeDb() async throws { self.db = nil }
 
-	func deleteDb(_ userId: String) async throws {
+	public func deleteDb(_ userId: String) async throws {
 		self.db = nil
 
 		do { try FileUtils.deleteFile(path: makeDbPath(userId)) } catch {
@@ -59,14 +59,14 @@ actor IosSqlCipherFacade: SqlCipherFacade {
 		}
 	}
 
-	func vaccumDb() async throws { self.db?.vacuum() }
+	public func vaccumDb() async throws { self.db?.vacuum() }
 
 	/**
    * We want to lock the access to the "ranges" db when updating / reading the
    * offline available mail list ranges for each mail list (referenced using the listId).
    * @param listId the mail list that we want to lock
    */
-	func lockRangesDbAccess(_ listId: String) async throws {
+	public func lockRangesDbAccess(_ listId: String) async throws {
 		let listIdLock = await concurrentListIdLocks.get(listId)
 		if let listIdLock {
 			await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
@@ -83,7 +83,7 @@ actor IosSqlCipherFacade: SqlCipherFacade {
    * This is the counterpart to the function "lockRangesDbAccess(listId)".
    * @param listId the mail list that we want to unlock
    */
-	func unlockRangesDbAccess(_ listId: String) async throws {
+	public func unlockRangesDbAccess(_ listId: String) async throws {
 		let listIdLock = await self.concurrentListIdLocks.removeValue(forKey: listId)
 		listIdLock?.send(.listIdUnlocked)
 	}

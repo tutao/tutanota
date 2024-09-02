@@ -117,7 +117,6 @@ import UIKit
 		fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
 	) {
 		let apsDict = userInfo["aps"] as! [String: Any]
-		TUTSLog("Received notification \(userInfo)")
 
 		let contentAvailable = apsDict["content-available"]
 		if contentAvailable as? Int == 1 {
@@ -129,6 +128,23 @@ import UIKit
 				}
 			}
 		}
+	}
+
+	func userNotificationCenter(
+		_ center: UNUserNotificationCenter,
+		didReceive response: UNNotificationResponse,
+		withCompletionHandler completionHandler: @escaping () -> Void
+	) {
+		if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+			let notification = response.notification
+			let userInfo = notification.request.content.userInfo
+			guard let userId = userInfo["userId"] as? String else { return }
+			guard let mailIdArray = userInfo["mailId"] as? [String], mailIdArray.count == 2 else { return }
+			let mailId = (mailIdArray[0], mailIdArray[1])
+			let address = userInfo["firstRecipient"] as? String ?? ""
+			self.viewController.handleOpenNotification(userId: userId, address: address, mailId: mailId)
+		}
+		completionHandler()
 	}
 
 	func applicationDidEnterBackground(_ application: UIApplication) {
