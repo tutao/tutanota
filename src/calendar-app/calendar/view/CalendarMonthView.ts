@@ -41,6 +41,8 @@ import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { isIOSApp } from "../../../common/api/common/Env"
+import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -114,7 +116,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				marginBottom: px(size.hpad_large),
 			}
 		} else {
-			containerStyle = {}
+			containerStyle = {
+				paddingBottom: isIOSApp() && client.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+			}
 		}
 
 		return m(
@@ -122,7 +126,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			{
 				style: containerStyle,
 				class:
-					(!styles.isUsingBottomNavigation() ? "content-bg" : "") +
+					(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
 					(styles.isDesktopLayout() ? " mlr-l border-radius-big" : " mlr-safe-inset border-radius-top-left-big border-radius-top-right-big"),
 				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
 			},
