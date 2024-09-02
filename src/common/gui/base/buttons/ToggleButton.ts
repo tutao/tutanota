@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { AllIcons, Icon } from "../Icon.js"
+import { AllIcons, Icon, IconSize } from "../Icon.js"
 import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
 import { ButtonColor, getColors } from "../Button.js"
 import { ButtonSize } from "../ButtonSize.js"
@@ -24,7 +24,7 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
-				large: true,
+				size: IconSize.Medium,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},

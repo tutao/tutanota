@@ -11,11 +11,17 @@ assertMainOrNode()
 
 export type AllIcons = BootIcons | Icons
 
+export enum IconSize {
+	Normal,
+	Medium,
+	Large,
+}
+
 export type IconAttrs = {
 	icon: AllIcons
 	svgParameters?: Record<string, string>
 	class?: string
-	large?: boolean
+	size?: IconSize
 	style?: Record<string, any>
 	hoverText?: string | null
 	container?: "span" | "div" // defaults to "span"
@@ -113,9 +119,18 @@ export class Icon implements Component<IconAttrs> {
 
 	getClass(attrs: IconAttrs): string {
 		let cls = ""
-		if (attrs.large) {
-			cls += "icon-large "
+		switch (attrs.size) {
+			case IconSize.Medium:
+				cls += "icon-large "
+				break
+			case IconSize.Large:
+				cls += "icon-xl "
+				break
+			case IconSize.Normal:
+			default:
+				break
 		}
+
 		if (attrs.class) {
 			cls += attrs.class
 		}

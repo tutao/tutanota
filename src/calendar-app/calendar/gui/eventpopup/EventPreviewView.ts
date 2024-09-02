@@ -1,7 +1,7 @@
 import type { CalendarEvent, CalendarEventAttendee, CalendarRepeatRule, EncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee, createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { AllIcons, Icon } from "../../../../common/gui/base/Icon.js"
+import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
@@ -110,7 +110,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		return m(Icon, {
 			icon,
 			class: "pr",
-			large: true,
+			size: IconSize.Medium,
 			style: Object.assign(
 				{
 					fill: theme.content_button,

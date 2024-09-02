@@ -7,7 +7,7 @@ import { BootIcons } from "./icons/BootIcons.js"
 import { DefaultAnimationTime } from "../animation/Animations.js"
 import { Icons } from "./icons/Icons.js"
 import { TextFieldType } from "./TextField.js"
-import { Icon, IconAttrs } from "./Icon.js"
+import { Icon, IconAttrs, IconSize } from "./Icon.js"
 import { theme } from "../theme.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
@@ -59,7 +59,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				styles.isDesktopLayout()
 					? m(Icon, {
 							icon: BootIcons.Search,
-							large: true,
+							size: IconSize.Medium,
 							style: {
 								fill: theme.content_button,
 							},
@@ -84,7 +84,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							label: lang.get(attrs.busy ? "loading_msg" : "close_alt"),
 							icon: m(Icon, {
 								container: "div",
-								large: true,
+								size: IconSize.Medium,
 								icon: attrs.busy ? BootIcons.Progress : Icons.Close,
 								class: "center-h  " + (attrs.busy ? "icon-progress-search icon-progress" : ""),
 								style: {
