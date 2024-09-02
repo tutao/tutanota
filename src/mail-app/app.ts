@@ -38,6 +38,7 @@ import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 
 import { AppType } from "../common/misc/ClientConstants.js"
+import type { LazySearchBar } from "./LazySearchBar.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -318,11 +319,18 @@ import("./translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: () => Children }
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					calendarViewModel: CalendarViewModel
+					bottomNav: () => Children
+					lazySearchBar: () => Children
+				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("../calendar-app/calendar/view/CalendarView.js")
+						const { lazySearchBar } = await import("./LazySearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -331,14 +339,19 @@ import("./translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
 								bottomNav: () => m(BottomNav),
+								lazySearchBar: () =>
+									m(lazySearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									}),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
 						bottomNav,
+						lazySearchBar,
 					}),
 				},
 				mailLocator.logins,
