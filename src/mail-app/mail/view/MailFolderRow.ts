@@ -5,7 +5,7 @@ import { CounterBadge } from "../../../common/gui/base/CounterBadge"
 import { getNavButtonIconBackground, theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { AllIcons, Icon } from "../../../common/gui/base/Icon.js"
+import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { stateBgHover } from "../../../common/gui/builtinThemes.js"
 import { client } from "../../../common/misc/ClientDetector.js"
@@ -109,7 +109,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					},
 					m(Icon, {
 						icon,
-						large: true,
+						size: IconSize.Medium,
 						style: {
 							fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
 						},

@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { BaseButton } from "./BaseButton.js"
-import { AllIcons, Icon } from "../Icon.js"
+import { AllIcons, Icon, IconSize } from "../Icon.js"
 import { ClickHandler } from "../GuiUtils.js"
 import { AriaRole } from "../../AriaUtils.js"
 import { theme } from "../../theme.js"
@@ -38,7 +38,7 @@ export class RowButton implements Component<RowButtonAttrs> {
 							container: "div",
 							class: "mr-button",
 							style: { fill: color },
-							large: true,
+							size: IconSize.Medium,
 					  })
 					: attrs.icon === "none"
 					? m(".icon-large.mr-button")
