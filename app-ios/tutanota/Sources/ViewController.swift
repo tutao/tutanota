@@ -235,6 +235,20 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		}
 	}
 
+	func handleOpenNotification(userId: String, address: String, mailId: (String, String)) {
+		// Will be formatted as "<domain>/mail<requestedPath>" in TypeScript code
+		//
+		// requestedPath is /listId/elementId
+		let mailid = "\(mailId.0),\(mailId.1)"
+		let requestedPath = "?mail=\(mailid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"
+
+		Task(priority: .userInitiated) {
+			do { try await self.bridge.commonNativeFacade.openMailBox(userId, address, requestedPath) } catch {
+				TUTSLog("Failed to open mail: \(requestedPath) from notification: \(error)")
+			}
+		}
+	}
+
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
 }
 

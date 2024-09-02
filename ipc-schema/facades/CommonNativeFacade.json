@@ -27,6 +27,7 @@
 			"ret": "void"
 		},
 		"openMailBox": {
+			"doc": "Opens the mailbox of an address, optionally to an email specified by requestedPath",
 			"arg": [
 				{
 					"userId": "string"
