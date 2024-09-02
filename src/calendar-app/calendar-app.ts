@@ -219,11 +219,17 @@ import("../mail-app/translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel }
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					calendarViewModel: CalendarViewModel
+					lazySearchBar: () => Children
+				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("./calendar/view/CalendarView.js")
+						const { lazyCalendarSearchBar } = await import("./LazyCalendarSearchBar.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -231,13 +237,19 @@ import("../mail-app/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
+								lazySearchBar: () => {
+									return m(lazyCalendarSearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									})
+								},
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, lazySearchBar }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
+						lazySearchBar,
 					}),
 				},
 				calendarLocator.logins,

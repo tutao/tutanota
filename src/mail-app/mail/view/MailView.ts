@@ -48,7 +48,7 @@ import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionAct
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../common/gui/DesktopToolbars.js"
 import { MobileHeader } from "../../../common/gui/MobileHeader.js"
-import { LazySearchBar } from "../../../common/misc/LazySearchBar.js"
+import { LazySearchBar } from "../../LazySearchBar.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
