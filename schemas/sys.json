@@ -390,6 +390,56 @@
 					"info": "RenameAttribute WebsocketCounterValue: mailListId -> counterId."
 				}
 			]
+		},
+		{
+			"version": 110,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "PubEncKeyData",
+					"info": "RenameAttribute PubEncKeyData: pubEncBucketKey -> pubEncSymKey."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "PubEncKeyData",
+					"info": "RenameAttribute PubEncKeyData: mailAddress -> identifier."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PubEncKeyData",
+					"info": "AddValue PubEncKeyData/identifierType/2454."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "UserGroupKeyRotationData",
+					"info": "ChangeValueCardinality UserGroupKeyRotationData/adminGroupEncUserGroupKey/ZeroOrOne."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "UserGroupKeyRotationData",
+					"info": "AddAssociation UserGroupKeyRotationData/pubAdminGroupEncUserGroupKey/AGGREGATION/2455."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Group",
+					"info": "RemoveValue Group/pubAdminGroupEncGKey/2272."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Group",
+					"info": "AddAssociation Group/pubAdminGroupEncGKey/AGGREGATION/2460."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "GroupKey",
+					"info": "RemoveValue GroupKey/pubAdminGroupEncGKey/2264."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "GroupKey",
+					"info": "AddAssociation GroupKey/pubAdminGroupEncGKey/AGGREGATION/2461."
+				}
+			]
 		}
 	]
 }

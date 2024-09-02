@@ -22,6 +22,7 @@ import {
 	EncryptionAuthStatus,
 	GroupType,
 	PermissionType,
+	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
@@ -84,6 +85,7 @@ import {
 	isRsaPublicKey,
 	IV_BYTE_LENGTH,
 	KeyPairType,
+	PQPublicKeys,
 	random,
 	RsaPrivateKey,
 	sha256Hash,
@@ -103,6 +105,7 @@ import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -115,7 +118,7 @@ export function encryptString(sk: AesKey, value: string): Uint8Array {
 }
 
 export type PubEncSymKey = {
-	pubEncSymKey: Uint8Array
+	pubEncSymKeyBytes: Uint8Array
 	cryptoProtocolVersion: CryptoProtocolVersion
 	senderKeyVersion: NumberString | null
 	recipientKeyVersion: NumberString
@@ -736,25 +739,49 @@ export class CryptoFacade {
 	}
 
 	async encryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
-		let pubEncSymKey, cryptoProtocolVersion
+		let pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion
 		const recipientPublicKey = this.getRecipientPublicKey(recipientPublicKeys.object)
 		const algo = recipientPublicKey.keyPairType
 		let senderKeyVersion: NumberString | null
 		if (isPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
 			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
-			const ephemeralKeyPair = generateEccKeyPair()
-			pubEncSymKey = encodePQMessage(await this.pq.encapsulate(senderEccKeyPair, ephemeralKeyPair, recipientPublicKey, bitArrayToUint8Array(symKey)))
-			cryptoProtocolVersion = CryptoProtocolVersion.TUTA_CRYPT
-			senderKeyVersion = senderKeyPair.version.toString()
+			;({ pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion } = await this.pqEncryptPubSymKeyImpl(recipientPublicKey, symKey, {
+				object: senderEccKeyPair,
+				version: senderKeyPair.version,
+			}))
 		} else if (isRsaPublicKey(recipientPublicKey)) {
-			pubEncSymKey = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
+			pubEncSymKeyBytes = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
 			cryptoProtocolVersion = CryptoProtocolVersion.RSA
 			senderKeyVersion = null
 		} else {
 			throw new CryptoError("unknown public key type: " + algo)
 		}
-		return { pubEncSymKey, cryptoProtocolVersion, senderKeyVersion, recipientKeyVersion: String(recipientPublicKeys.version) }
+		return { pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion, recipientKeyVersion: String(recipientPublicKeys.version) }
+	}
+
+	/**
+	 *
+	 * @param symKey the key to be encrypted
+	 * @param recipientPublicKeys MUST be a pq key pair
+	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
+	 */
+	async pqEncryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
+		const recipientPublicKey = this.getRecipientPublicKey(recipientPublicKeys.object)
+		if (!isPqPublicKey(recipientPublicKey)) {
+			throw new ProgrammingError("the recipient does not have pq key pairs")
+		}
+		const { pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion } = await this.pqEncryptPubSymKeyImpl(recipientPublicKey, symKey, senderEccKeyPair)
+		return { pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion, recipientKeyVersion: String(recipientPublicKeys.version) }
+	}
+
+	private async pqEncryptPubSymKeyImpl(recipientPublicKey: PQPublicKeys, symKey: AesKey, senderEccKeyPair: Versioned<EccKeyPair>) {
+		const ephemeralKeyPair = generateEccKeyPair()
+		const pubEncSymKeyBytes = encodePQMessage(
+			await this.pq.encapsulate(senderEccKeyPair.object, ephemeralKeyPair, recipientPublicKey, bitArrayToUint8Array(symKey)),
+		)
+		const senderKeyVersion = senderEccKeyPair.version.toString()
+		return { pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT, senderKeyVersion }
 	}
 
 	/**
@@ -822,7 +849,8 @@ export class CryptoFacade {
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
 		const keyData = createPublicKeyGetIn({
-			mailAddress: recipientMailAddress,
+			identifier: recipientMailAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			version: null,
 		})
 		try {
@@ -864,7 +892,7 @@ export class CryptoFacade {
 		const pubEncBucketKey = await this.encryptPubSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,
-			pubEncBucketKey: pubEncBucketKey.pubEncSymKey,
+			pubEncBucketKey: pubEncBucketKey.pubEncSymKeyBytes,
 			recipientKeyVersion: pubEncBucketKey.recipientKeyVersion,
 			senderKeyVersion: pubEncBucketKey.senderKeyVersion,
 			protocolVersion: pubEncBucketKey.cryptoProtocolVersion,
@@ -910,7 +938,8 @@ export class CryptoFacade {
 
 	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
 		let keyData = createPublicKeyGetIn({
-			mailAddress: mailSenderAddress,
+			identifier: mailSenderAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			version: senderKeyVersion.toString(),
 		})
 		try {

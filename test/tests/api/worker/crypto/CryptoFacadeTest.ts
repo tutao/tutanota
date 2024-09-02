@@ -7,6 +7,7 @@ import {
 	EncryptionAuthStatus,
 	GroupType,
 	PermissionType,
+	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import {
 	BirthdayTypeRef,
@@ -619,7 +620,12 @@ o.spec("CryptoFacadeTest", function () {
 			encapsulation: pqEncapsulation,
 		}
 
-		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: recipientMailAddress, version: null }))).thenResolve(
+		when(
+			serviceExecutor.get(
+				PublicKeyService,
+				createPublicKeyGetIn({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress, version: null }),
+			),
+		).thenResolve(
 			createPublicKeyGetOut({
 				pubKeyVersion: "0",
 				pubEccKey: recipientKeyPair.pubEccKey,
@@ -627,7 +633,12 @@ o.spec("CryptoFacadeTest", function () {
 				pubRsaKey: null,
 			}),
 		)
-		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: senderMailAddress, version: "0" }))).thenResolve(
+		when(
+			serviceExecutor.get(
+				PublicKeyService,
+				createPublicKeyGetIn({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: senderMailAddress, version: "0" }),
+			),
+		).thenResolve(
 			createPublicKeyGetOut({
 				pubKeyVersion: "0",
 				pubEccKey: senderKeyPair.pubEccKey,
@@ -738,7 +749,12 @@ o.spec("CryptoFacadeTest", function () {
 			encapsulation: pqEncapsulation,
 		}
 
-		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: recipientMailAddress, version: null }))).thenResolve(
+		when(
+			serviceExecutor.get(
+				PublicKeyService,
+				createPublicKeyGetIn({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress, version: null }),
+			),
+		).thenResolve(
 			createPublicKeyGetOut({
 				pubRsaKey: null,
 				pubKeyVersion: "0",
@@ -746,7 +762,12 @@ o.spec("CryptoFacadeTest", function () {
 				pubKyberKey: recipientKeyPair.pubKyberKey,
 			}),
 		)
-		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: senderMailAddress, version: null }))).thenResolve(
+		when(
+			serviceExecutor.get(
+				PublicKeyService,
+				createPublicKeyGetIn({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: senderMailAddress, version: null }),
+			),
+		).thenResolve(
 			createPublicKeyGetOut({
 				pubKeyVersion: "0",
 				pubRsaKey: senderKeyPair.pubRsaKey,
@@ -845,7 +866,12 @@ o.spec("CryptoFacadeTest", function () {
 		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve({ version: 0, object: senderKeyPairs })
 		const notFoundRecipients = []
 
-		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: recipientMailAddress, version: null }))).thenResolve(
+		when(
+			serviceExecutor.get(
+				PublicKeyService,
+				createPublicKeyGetIn({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress, version: null }),
+			),
+		).thenResolve(
 			createPublicKeyGetOut({
 				pubKeyVersion: "0",
 				pubRsaKey: recipientKeyPair.pubRsaKey,
@@ -853,7 +879,12 @@ o.spec("CryptoFacadeTest", function () {
 				pubKyberKey: null,
 			}),
 		)
-		when(serviceExecutor.get(PublicKeyService, createPublicKeyGetIn({ mailAddress: senderMailAddress, version: null }))).thenResolve(
+		when(
+			serviceExecutor.get(
+				PublicKeyService,
+				createPublicKeyGetIn({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: senderMailAddress, version: null }),
+			),
+		).thenResolve(
 			createPublicKeyGetOut({
 				pubKeyVersion: "0",
 				pubEccKey: senderKeyPair.pubEccKey,
@@ -937,7 +968,8 @@ o.spec("CryptoFacadeTest", function () {
 		const pubKeyServiceCaptor = captor()
 		verify(serviceExecutor.get(PublicKeyService, pubKeyServiceCaptor.capture()))
 		const pubKeyAddress = pubKeyServiceCaptor.value as PublicKeyGetIn
-		o(pubKeyAddress.mailAddress).equals("system@tutanota.de")
+		o(pubKeyAddress.identifier).equals("system@tutanota.de")
+		o(pubKeyAddress.identifierType).equals(PublicKeyIdentifierType.MAIL_ADDRESS)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)

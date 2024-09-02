@@ -139,7 +139,7 @@ export class CustomerFacade {
 			},
 			version: Number(keyData.systemAdminPubKeyVersion),
 		}
-		const { pubEncSymKey, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(
+		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(
 			sessionKey,
 			systemAdminPubKeys,
 			this.userFacade.getUserGroupId(),
@@ -147,7 +147,7 @@ export class CustomerFacade {
 
 		const data = createBrandingDomainData({
 			domain: domainName,
-			systemAdminPubEncSessionKey: pubEncSymKey,
+			systemAdminPubEncSessionKey: pubEncSymKeyBytes,
 			systemAdminPubKeyVersion: String(systemAdminPubKeys.version),
 			systemAdminPublicProtocolVersion: cryptoProtocolVersion,
 			sessionEncPemPrivateKey: null,

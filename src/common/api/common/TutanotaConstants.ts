@@ -1205,3 +1205,8 @@ export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)
 export const EXTERNAL_CALENDAR_SYNC_INTERVAL = 60 * 30 * 1000 // 30 minutes
 
 export const DEFAULT_ERROR = "defaultError"
+
+export enum PublicKeyIdentifierType {
+	MAIL_ADDRESS = "0",
+	GROUP_ID = "1",
+}

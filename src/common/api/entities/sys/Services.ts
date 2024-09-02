@@ -82,6 +82,7 @@ import {UpdatePermissionKeyDataTypeRef} from "./TypeRefs.js"
 import {UpdateSessionKeysPostInTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceDataTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceReturnTypeRef} from "./TypeRefs.js"
+import {UserGroupKeyRotationPostInTypeRef} from "./TypeRefs.js"
 import {UserDataDeleteTypeRef} from "./TypeRefs.js"
 import {VersionDataTypeRef} from "./TypeRefs.js"
 import {VersionReturnTypeRef} from "./TypeRefs.js"
@@ -496,6 +497,15 @@ export const UpgradePriceService = Object.freeze({
 	name: "UpgradePriceService",
 	get: {data: UpgradePriceServiceDataTypeRef, return: UpgradePriceServiceReturnTypeRef},
 	post: null,
+	put: null,
+	delete: null,
+} as const)
+
+export const UserGroupKeyRotationService = Object.freeze({
+	app: "sys",
+	name: "UserGroupKeyRotationService",
+	get: null,
+	post: {data: UserGroupKeyRotationPostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

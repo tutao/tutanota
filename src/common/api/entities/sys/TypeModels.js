@@ -5233,15 +5233,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "pubAdminGroupEncGKey": {
-                "final": true,
-                "name": "pubAdminGroupEncGKey",
-                "id": 2272,
-                "since": 96,
-                "type": "Bytes",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
-            },
             "type": {
                 "final": true,
                 "name": "type",
@@ -5341,6 +5332,16 @@ export const typeModels = {
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
                 "refType": "GroupMember",
+                "dependency": null
+            },
+            "pubAdminGroupEncGKey": {
+                "final": true,
+                "name": "pubAdminGroupEncGKey",
+                "id": 2460,
+                "since": 110,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "PubEncKeyData",
                 "dependency": null
             },
             "storageCounter": {
@@ -5600,15 +5601,6 @@ export const typeModels = {
                 "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
-            },
-            "pubAdminGroupEncGKey": {
-                "final": false,
-                "name": "pubAdminGroupEncGKey",
-                "id": 2264,
-                "since": 96,
-                "type": "Bytes",
-                "cardinality": "ZeroOrOne",
-                "encrypted": false
             }
         },
         "associations": {
@@ -5620,6 +5612,16 @@ export const typeModels = {
                 "type": "AGGREGATION",
                 "cardinality": "ZeroOrOne",
                 "refType": "KeyPair",
+                "dependency": null
+            },
+            "pubAdminGroupEncGKey": {
+                "final": true,
+                "name": "pubAdminGroupEncGKey",
+                "id": 2461,
+                "since": 110,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "PubEncKeyData",
                 "dependency": null
             }
         },
@@ -9579,12 +9581,21 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "mailAddress": {
+            "identifier": {
                 "final": true,
-                "name": "mailAddress",
+                "name": "identifier",
                 "id": 2386,
                 "since": 102,
                 "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "identifierType": {
+                "final": true,
+                "name": "identifierType",
+                "id": 2454,
+                "since": 110,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },
@@ -9597,9 +9608,9 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "pubEncBucketKey": {
+            "pubEncSymKey": {
                 "final": true,
-                "name": "pubEncBucketKey",
+                "name": "pubEncSymKey",
                 "id": 2387,
                 "since": 102,
                 "type": "Bytes",
@@ -9647,12 +9658,21 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "mailAddress": {
+            "identifier": {
                 "final": false,
-                "name": "mailAddress",
+                "name": "identifier",
                 "id": 411,
                 "since": 1,
                 "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "identifierType": {
+                "final": false,
+                "name": "identifierType",
+                "id": 2453,
+                "since": 110,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },
@@ -13453,7 +13473,7 @@ export const typeModels = {
                 "id": 2359,
                 "since": 101,
                 "type": "Bytes",
-                "cardinality": "One",
+                "cardinality": "ZeroOrOne",
                 "encrypted": false
             },
             "adminGroupKeyVersion": {
@@ -13532,6 +13552,16 @@ export const typeModels = {
                 "refType": "KeyPair",
                 "dependency": null
             },
+            "pubAdminGroupEncUserGroupKey": {
+                "final": false,
+                "name": "pubAdminGroupEncUserGroupKey",
+                "id": 2455,
+                "since": 110,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "PubEncKeyData",
+                "dependency": null
+            },
             "recoverCodeData": {
                 "final": false,
                 "name": "recoverCodeData",
@@ -13540,6 +13570,40 @@ export const typeModels = {
                 "type": "AGGREGATION",
                 "cardinality": "ZeroOrOne",
                 "refType": "RecoverCodeData",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "110"
+    },
+    "UserGroupKeyRotationPostIn": {
+        "name": "UserGroupKeyRotationPostIn",
+        "since": 110,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2456,
+        "rootId": "A3N5cwAJmA",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2457,
+                "since": 110,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "userGroupKeyData": {
+                "final": false,
+                "name": "userGroupKeyData",
+                "id": 2458,
+                "since": 110,
+                "type": "AGGREGATION",
+                "cardinality": "One",
+                "refType": "UserGroupKeyRotationData",
                 "dependency": null
             }
         },

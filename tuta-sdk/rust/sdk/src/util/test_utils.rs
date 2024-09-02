@@ -2,15 +2,19 @@
 
 use rand::random;
 
+use crate::crypto::crypto_facade::CryptoProtocolVersion;
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::crypto::Aes256Key;
 use crate::custom_id::CustomId;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::entities::sys::{ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, TypeInfo};
+use crate::entities::sys::{
+	ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
+};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ValueType};
+use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 use crate::IdTuple;
 
@@ -58,7 +62,15 @@ pub fn generate_random_group(
 		adminGroupKeyVersion: None,
 		enabled: true,
 		external: false,
-		pubAdminGroupEncGKey: Some(vec![1, 2, 3]),
+		pubAdminGroupEncGKey: Some(PubEncKeyData {
+			_id: CustomId::test_random(),
+			identifier: "adminGroupId".to_string(),
+			identifierType: PublicKeyIdentifierType::GroupId as i64,
+			protocolVersion: CryptoProtocolVersion::Tutacrypt as i64,
+			pubEncSymKey: vec![1, 2, 3],
+			recipientKeyVersion: 0,
+			senderKeyVersion: Some(0),
+		}),
 		storageCounter: None,
 		user: None,
 	}
