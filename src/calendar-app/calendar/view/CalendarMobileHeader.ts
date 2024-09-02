@@ -18,9 +18,8 @@ import { isApp } from "../../../common/api/common/Env.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
-import { SEARCH_PREFIX } from "../../../common/misc/RouteChange.js"
-import { client } from "../../../common/misc/ClientDetector.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { client } from "../../../common/misc/ClientDetector.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -90,15 +89,17 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 
 	private renderSearchNavigationButton() {
 		if (locator.logins.isInternalUserLoggedIn() && client.isCalendarApp()) {
-			const route = m.route.get().startsWith(SEARCH_PREFIX) ? m.route.get() : "/search/calendar"
-			return m(NavButton, {
-				label: "search_label",
-				hideLabel: true,
-				icon: () => BootIcons.Search,
-				href: route,
-				centred: true,
-				fillSpaceAround: false,
-			})
+			return m(
+				".icon-button",
+				m(NavButton, {
+					label: "search_label",
+					hideLabel: true,
+					icon: () => BootIcons.Search,
+					href: "/search/calendar",
+					centred: true,
+					fillSpaceAround: false,
+				}),
+			)
 		}
 
 		return null
