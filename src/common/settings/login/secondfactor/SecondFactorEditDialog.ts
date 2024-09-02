@@ -10,7 +10,7 @@ import m, { Children } from "mithril"
 import { copyToClipboard } from "../../../misc/ClipboardUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
-import { Icon, progressIcon } from "../../../gui/base/Icon.js"
+import { Icon, IconSize, progressIcon } from "../../../gui/base/Icon.js"
 import { theme } from "../../../gui/theme.js"
 import type { User } from "../../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded } from "@tutao/tutanota-utils"
@@ -195,7 +195,7 @@ export class SecondFactorEditDialog {
 			case VerificationStatus.Success:
 				return m(Icon, {
 					icon: Icons.Checkmark,
-					large: true,
+					size: IconSize.Medium,
 					style: {
 						fill: theme.content_accent,
 					},
@@ -204,7 +204,7 @@ export class SecondFactorEditDialog {
 			case VerificationStatus.Failed:
 				return m(Icon, {
 					icon: Icons.Cancel,
-					large: true,
+					size: IconSize.Medium,
 					style: {
 						fill: theme.content_accent,
 					},

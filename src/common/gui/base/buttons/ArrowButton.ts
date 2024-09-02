@@ -5,7 +5,7 @@ import { ClickHandler } from "../GuiUtils.js"
 import { px } from "../../size.js"
 import { BaseButton } from "./BaseButton.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import { Icon } from "../Icon.js"
+import { Icon, IconSize } from "../Icon.js"
 import { theme } from "../../theme.js"
 
 export default function renderSwitchMonthArrowIcon(forward: boolean, size: number, onClick: ClickHandler): Children {
@@ -15,7 +15,7 @@ export default function renderSwitchMonthArrowIcon(forward: boolean, size: numbe
 			icon: forward ? Icons.ArrowForward : BootIcons.Back,
 			container: "div",
 			class: "center-h",
-			large: false,
+			size: IconSize.Normal,
 			style: {
 				fill: theme.content_fg,
 			},
