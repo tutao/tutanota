@@ -18,13 +18,12 @@ import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
-import { CalendarSearchListViewAttrs, SearchListView } from "./SearchListView.js"
+import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView.js"
 import { isSameId } from "../../../../common/api/common/utils/EntityUtils.js"
 import { keyManager, Shortcut } from "../../../../common/misc/KeyManager.js"
-import { EnterMultiselectIconButton } from "../../../../common/gui/EnterMultiselectIconButton.js"
 import { styles } from "../../../../common/gui/styles.js"
 import { BaseMobileHeader } from "../../../../common/gui/BaseMobileHeader.js"
-import { MobileHeader, MobileHeaderMenuButton } from "../../../../common/gui/MobileHeader.js"
+import { MobileHeader } from "../../../../common/gui/MobileHeader.js"
 import { searchBar } from "../CalendarSearchBar.js"
 import { ProgressBar } from "../../../../common/gui/base/ProgressBar.js"
 import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
@@ -56,12 +55,12 @@ import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
-import { assertMainOrNode, isApp } from "../../../../common/api/common/Env.js"
+import { assertMainOrNode } from "../../../../common/api/common/Env.js"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
-import { FloatingActionButton } from "../../../gui/FloatingActionButton.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
-import { ButtonColor } from "../../../../common/gui/base/Button.js"
+import { Dialog } from "../../../../common/gui/base/Dialog.js"
+import { ButtonType } from "../../../../common/gui/base/Button.js"
 
 assertMainOrNode()
 
@@ -140,7 +139,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						desktopToolbar: () => m(DesktopListToolbar, [m(".button-height")]),
 						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
 						columnLayout: this.getResultColumnLayout(),
-						floatingActionButton: this.renderFab.bind(this),
 					})
 				},
 			},
@@ -164,21 +162,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
 	}
 
-	private renderFab(): Children {
-		if (client.isCalendarApp()) {
-			return m(FloatingActionButton, {
-				icon: Icons.Add,
-				title: "newEvent_action",
-				colors: ButtonColor.Fab,
-				action: () => this.createNewEventDialog(),
-			})
-		}
-
-		return null
-	}
-
 	private getResultColumnLayout() {
-		return m(SearchListView, {
+		return m(CalendarSearchListView, {
 			listModel: this.searchViewModel.listModel,
 			onSingleSelection: (item) => {
 				this.viewSlider.focus(this.resultDetailsColumn)
@@ -218,12 +203,19 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 
 		return m(BaseMobileHeader, {
-			left: m(MobileHeaderMenuButton, { ...header, backAction: () => this.viewSlider.focusPreviousColumn() }),
+			left: m(NavButton, {
+				label: "back_action",
+				hideLabel: true,
+				icon: () => BootIcons.Back,
+				href: CALENDAR_PREFIX,
+				centred: true,
+				fillSpaceAround: false,
+			}),
 			right: rightActions,
 			center: m(
 				".flex-grow.flex.justify-center",
 				{
-					class: rightActions.length === 0 ? "mr" : "",
+					class: "mr",
 				},
 				m(searchBar, {
 					placeholder: this.searchBarPlaceholder(),
@@ -268,7 +260,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 					? null
 					: this.renderEventDetails(selectedEvent),
-			floatingActionButton: this.renderFab.bind(this),
 		})
 	}
 
@@ -360,13 +351,27 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		} else if (client.isCalendarApp()) {
 			return m.fragment({}, [
 				this.renderSearchResultActions(),
-				m(NavButton, {
-					label: "calendar_label",
-					hideLabel: true,
-					icon: () => BootIcons.Calendar,
-					href: CALENDAR_PREFIX,
-					centred: true,
-					fillSpaceAround: false,
+				m(IconButton, {
+					icon: Icons.Filter,
+					title: "filter_label",
+					click: () => {
+						const dialog = Dialog.editSmallDialog(
+							{
+								middle: () => lang.get("filter_label"),
+								right: [
+									{
+										label: "save_action",
+										click: () => {
+											dialog.close()
+										},
+										type: ButtonType.Primary,
+									},
+								],
+							},
+							() => m(".pt-m.pb-ml", this.renderCalendarFilterSection()),
+						)
+						dialog.show()
+					},
 				}),
 			])
 		}

@@ -1,5 +1,5 @@
 import { ListModel } from "../../../../common/misc/ListModel.js"
-import { SearchResultListEntry } from "./SearchListView.js"
+import { SearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, Mail, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"

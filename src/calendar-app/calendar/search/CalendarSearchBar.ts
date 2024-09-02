@@ -188,6 +188,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	}
 
 	oncreate() {
+		this.onFocus()
 		keyManager.registerShortcuts(this.shortcuts)
 		this.stateStream = this.state.map((state) => m.redraw())
 		this.lastQueryStream = calendarLocator.search.lastQueryString.map((value) => {
