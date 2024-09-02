@@ -424,7 +424,7 @@ export class EventBusClient {
 			)
 			.catch(
 				ofClass(OutOfSyncError, async (e) => {
-					// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
+					// we did not check for updates for too long, so some missed EntityEventBatches cannot be loaded any more
 					// purge cache if out of sync
 					await this.cache.purgeStorage()
 					// We want users to re-login. By the time we get here they probably already have loaded some entities which we cannot update

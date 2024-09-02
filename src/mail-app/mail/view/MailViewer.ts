@@ -328,7 +328,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.clearDomBody()
 			},
 			onsubmit: (event: Event) => {
-				// use the default confirm dialog here because the submit can not be done async
+				// use the default confirm dialog here because the submit cannot be done async
 				if (!confirm(lang.get("reallySubmitContent_msg"))) {
 					event.preventDefault()
 				}

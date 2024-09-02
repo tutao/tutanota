@@ -69,7 +69,7 @@ export class UserManagementFacade {
 				const keyData = await this._getAccountKeyData()
 				const userEncAccountGroupKey = encryptKeyWithVersionedKey(userGroupKey, keyData.accountGroupKey)
 
-				// we can not use addUserToGroup here because the admin is not admin of the account group
+				// we cannot use addUserToGroup here because the admin is not admin of the account group
 				const addAccountGroup = createMembershipAddData({
 					user: user._id,
 					group: keyData.accountGroup,

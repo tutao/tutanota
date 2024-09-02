@@ -149,7 +149,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
 		} else {
-			throw new ProgrammingError(`Value ${valueName} with cardinality ONE can not be null`)
+			throw new ProgrammingError(`Value ${valueName} with cardinality ONE cannot be null`)
 		}
 	} else if (valueType.encrypted) {
 		let bytes = value
@@ -177,7 +177,7 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
 		} else {
-			throw new ProgrammingError(`Value ${valueName} with cardinality ONE can not be null`)
+			throw new ProgrammingError(`Value ${valueName} with cardinality ONE cannot be null`)
 		}
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
 		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially

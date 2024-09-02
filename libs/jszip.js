@@ -2768,7 +2768,7 @@ var GenericWorker = require('./stream/GenericWorker');
  */
 
 // Table with utf8 lengths (calculated by first byte of sequence)
-// Note, that 5 & 6-byte values and some 4-byte values can not be represented in JS,
+// Note, that 5 & 6-byte values and some 4-byte values cannot be represented in JS,
 // because max possible codepoint is 0x10ffff
 var _utf8len = new Array(256);
 for (var i=0; i<256; i++) {
@@ -5515,7 +5515,7 @@ try { String.fromCharCode.apply(null, new Uint8Array(1)); } catch (__) { STR_APP
 
 
 // Table with utf8 lengths (calculated by first byte of sequence)
-// Note, that 5 & 6-byte values and some 4-byte values can not be represented in JS,
+// Note, that 5 & 6-byte values and some 4-byte values cannot be represented in JS,
 // because max possible codepoint is 0x10ffff
 var _utf8len = new utils.Buf8(256);
 for (var q = 0; q < 256; q++) {

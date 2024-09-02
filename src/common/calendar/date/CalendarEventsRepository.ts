@@ -110,7 +110,7 @@ export class CalendarEventsRepository {
 
 	private replaceEvents(newMap: DaysToEvents): void {
 		// We rely on typescript ReadonlyMap type because freezing
-		// this map throws "The object can not be cloned" on iOS
+		// this map throws "The object cannot be cloned" on iOS
 		// when the source of newMap is updateEventMap
 		this.daysToEvents(newMap)
 	}

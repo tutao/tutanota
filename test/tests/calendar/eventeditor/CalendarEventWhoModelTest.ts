@@ -176,7 +176,7 @@ o.spec("CalendarEventWhoModel", function () {
 			o(model.ownGuest?.status).equals(CalendarAttendeeStatus.DECLINED)
 			o(model.possibleOrganizers).deepEquals([neverNull(existingEvent.organizer)])
 		})
-		o("existing normal event in writable calendar can not modify guests", async function () {
+		o("existing normal event in writable calendar cannot modify guests", async function () {
 			const userController = makeUserController()
 			addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 			const existingEvent = createTestEntity(CalendarEventTypeRef, {

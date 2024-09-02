@@ -165,7 +165,7 @@ o.spec("InstanceMapper", function () {
 				let sk = aes256RandomKey()
 
 				const e = await assertThrows(ProgrammingError, () => decryptValue("test", createValueType(type, true, Cardinality.One), null, sk))
-				o(e.message).equals("Value test with cardinality ONE can not be null")
+				o(e.message).equals("Value test with cardinality ONE cannot be null")
 			}
 		}
 
@@ -306,7 +306,7 @@ o.spec("InstanceMapper", function () {
 				let sk = aes256RandomKey()
 
 				const e = await assertThrows(ProgrammingError, async () => encryptValue("test", createValueType(type, true, Cardinality.One), null, sk))
-				o(e.message).equals("Value test with cardinality ONE can not be null")
+				o(e.message).equals("Value test with cardinality ONE cannot be null")
 			}
 		}
 

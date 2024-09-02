@@ -557,7 +557,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	/**
-	 * show a dialog (resp. monologue) with no buttons that can not be closed, not even with ESC.
+	 * show a dialog (resp. monologue) with no buttons that cannot be closed, not even with ESC.
 	 */
 	static deadEnd(message: TranslationText) {
 		const dialog = Dialog.confirmMultiple(message, [])

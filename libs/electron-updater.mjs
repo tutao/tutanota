@@ -9023,7 +9023,7 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
           keyNode = state.result;
 
         } else if (detected) {
-          throwError(state, 'can not read an implicit mapping pair; a colon is missed');
+          throwError(state, 'cannot read an implicit mapping pair; a colon is missed');
 
         } else {
           state.tag = _tag;
@@ -9032,7 +9032,7 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
         }
 
       } else if (detected) {
-        throwError(state, 'can not read a block mapping entry; a multiline key may not be an implicit key');
+        throwError(state, 'cannot read a block mapping entry; a multiline key may not be an implicit key');
 
       } else {
         state.tag = _tag;

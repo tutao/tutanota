@@ -68,7 +68,7 @@ export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
 
 /**
- * an entity that only contains the actual user data and can not be used to refer to any existing entity.
+ * an entity that only contains the actual user data and cannot be used to refer to any existing entity.
  */
 export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	T,

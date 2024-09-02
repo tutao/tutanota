@@ -799,7 +799,7 @@ export class LoginFacade {
 	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: Aes128Key) {
 		if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
 			console.log("Auth verifier has changed")
-			// delete the obsolete session to make sure it can not be used any more
+			// delete the obsolete session to make sure it cannot be used any more
 			await this.deleteSession(accessToken).catch((e) => console.error("Could not delete session", e))
 			await this.resetSession()
 			throw new NotAuthenticatedError("Auth verifier has changed")
@@ -979,7 +979,7 @@ export class LoginFacade {
 			user: null,
 		})
 		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
-		// don't do a normal login, and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled,
+		// don't do a normal login, and therefore we would not get any user update events. we cannot use permanentLogin=false with initSession because caching would be enabled,
 		// and therefore we would not be able to read the updated user
 		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
 		// when logging in normally after resetting the password
