@@ -65,21 +65,22 @@ export function preludeEnvPlugin(env) {
 
 /** Do not embed translations in the source, compile them separately so that ouput is not as huge. */
 export function externalTranslationsPlugin() {
+	const nodePath = path
 	return {
 		name: "skip-translations",
 		setup(build) {
-			// We do a few tricks here
-			build.onResolve({ filter: /^\.\.\/translations\/.+$/, namespace: "file" }, ({ path }) => {
-				// We replace all the translation imports (they all start with .. but we could rewrite it more generally at the cost of complexity
-				// We should go from ../translations/en.js to ./translations/en.mjs
+			build.onResolve({ filter: /.*\/translations\/.+$/, namespace: "file" }, ({ path }) => {
+				// We replace all the translation imports.
+				// We should go from ../../translations/en.js to ./translations/en.mjs
 				// Out output structure is always flat (except for desktop which is it's own flat structure) so we know that we can find translations in the
 				// ./translations
 				// We marked them as external because we don't want esbuild to roll them up, it makes output *huge*
 				// We add .mjs suffix so that we can import it from Electron without issues (more on that below). This is not necessary for of web but doesn't
 				// hurt either.
-				const replacementPath = path.substring(1).replace(".js", ".mjs")
+				const parsedPath = nodePath.parse(path)
+				const newPath = `./translations/${parsedPath.name}.mjs`
 				return {
-					path: replacementPath,
+					path: newPath,
 					external: true,
 				}
 			})
