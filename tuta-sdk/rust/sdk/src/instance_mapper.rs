@@ -1050,8 +1050,8 @@ impl Serializer for MapKeySerializer {
 
 #[cfg(test)]
 mod tests {
-	use std::sync::Arc;
-
+	use super::*;
+	use crate::crypto::crypto_facade::CryptoProtocolVersion;
 	use crate::entities::sys::{Group, GroupInfo};
 	use crate::entities::tutanota::{
 		Mail, MailboxGroupRoot, OutOfOfficeNotification, OutOfOfficeNotificationRecipientList,
@@ -1059,11 +1059,11 @@ mod tests {
 	use crate::generated_id::GeneratedId;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
+	use crate::tutanota_constants::PublicKeyIdentifierType;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, generate_random_group};
 	use crate::TypeRef;
-
-	use super::*;
+	use std::sync::Arc;
 
 	#[test]
 	fn test_de_group() {
@@ -1221,7 +1221,30 @@ mod tests {
 		assert_eq!(&ElementValue::Number(0), result.get("_format").unwrap());
 		assert_eq!(
 			&ElementValue::Bytes(vec![1, 2, 3]),
-			result.get("pubAdminGroupEncGKey").unwrap()
+			result
+				.get("pubAdminGroupEncGKey")
+				.unwrap()
+				.assert_dict()
+				.get("pubEncSymKey")
+				.expect("has_pubEncSymKey")
+		);
+		assert_eq!(
+			&ElementValue::Number(PublicKeyIdentifierType::GroupId as i64),
+			result
+				.get("pubAdminGroupEncGKey")
+				.unwrap()
+				.assert_dict()
+				.get("identifierType")
+				.expect("has_identifierType")
+		);
+		assert_eq!(
+			&ElementValue::Number(CryptoProtocolVersion::Tutacrypt as i64),
+			result
+				.get("pubAdminGroupEncGKey")
+				.unwrap()
+				.assert_dict()
+				.get("protocolVersion")
+				.expect("has_protocolVersion")
 		)
 	}
 

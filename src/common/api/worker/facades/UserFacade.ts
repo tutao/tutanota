@@ -1,5 +1,5 @@
 import { GroupType } from "../../common/TutanotaConstants"
-import { AesKey, decryptKey, hkdf, KEY_LENGTH_BYTES_AES_256, keyToUint8Array, sha256Hash, uint8ArrayToKey, BitArray } from "@tutao/tutanota-crypto"
+import { AesKey, decryptKey, hkdf, KEY_LENGTH_BYTES_AES_256, keyToUint8Array, sha256Hash, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
@@ -73,7 +73,7 @@ export class UserFacade implements AuthDataProvider {
 		this.keyCache.setUserGroupKeyDistributionKey(userGroupKeyDistributionKey)
 	}
 
-	deriveUserGroupKeyDistributionKey(userGroupId: Id, userPassphraseKey: number[]): BitArray {
+	deriveUserGroupKeyDistributionKey(userGroupId: Id, userPassphraseKey: number[]): AesKey {
 		// we prepare a key to encrypt potential user group key rotations with
 		// when passwords are changed clients are logged-out of other sessions
 		// this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync

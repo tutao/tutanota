@@ -1207,3 +1207,8 @@ export enum AppType {
 	Mail = "1",
 	Calendar = "2",
 }
+
+export enum PublicKeyIdentifierType {
+	MAIL_ADDRESS = "0",
+	GROUP_ID = "1",
+}

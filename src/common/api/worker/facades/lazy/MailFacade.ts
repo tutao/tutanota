@@ -24,6 +24,7 @@ import {
 	MailReportType,
 	OperationType,
 	PhishingMarkerStatus,
+	PublicKeyIdentifierType,
 	ReportedMailFieldType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/TutanotaConstants.js"
@@ -810,7 +811,8 @@ export class MailFacade {
 			.get(
 				PublicKeyService,
 				createPublicKeyGetIn({
-					mailAddress,
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+					identifier: mailAddress,
 					version: null, // get the current version for encryption
 				}),
 			)

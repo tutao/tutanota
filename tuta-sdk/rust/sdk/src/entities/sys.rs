@@ -1516,8 +1516,6 @@ pub struct Group {
 	pub enabled: bool,
 	pub external: bool,
 	pub groupKeyVersion: i64,
-	#[serde(with = "serde_bytes")]
-	pub pubAdminGroupEncGKey: Option<Vec<u8>>,
 	#[serde(rename = "type")]
 	pub r#type: i64,
 	pub admin: Option<GeneratedId>,
@@ -1529,6 +1527,7 @@ pub struct Group {
 	pub groupInfo: IdTuple,
 	pub invitations: GeneratedId,
 	pub members: GeneratedId,
+	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
 	pub storageCounter: Option<GeneratedId>,
 	pub user: Option<GeneratedId>,
 }
@@ -1586,9 +1585,8 @@ pub struct GroupKey {
 	#[serde(with = "serde_bytes")]
 	pub ownerEncGKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
-	#[serde(with = "serde_bytes")]
-	pub pubAdminGroupEncGKey: Option<Vec<u8>>,
 	pub keyPair: Option<KeyPair>,
+	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
 }
 
 impl Entity for GroupKey {
@@ -2732,10 +2730,11 @@ impl Entity for PriceServiceReturn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct PubEncKeyData {
 	pub _id: CustomId,
-	pub mailAddress: String,
+	pub identifier: String,
+	pub identifierType: i64,
 	pub protocolVersion: i64,
 	#[serde(with = "serde_bytes")]
-	pub pubEncBucketKey: Vec<u8>,
+	pub pubEncSymKey: Vec<u8>,
 	pub recipientKeyVersion: i64,
 	pub senderKeyVersion: Option<i64>,
 }
@@ -2752,7 +2751,8 @@ impl Entity for PubEncKeyData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct PublicKeyGetIn {
 	pub _format: i64,
-	pub mailAddress: String,
+	pub identifier: String,
+	pub identifierType: i64,
 	pub version: Option<i64>,
 }
 
@@ -3900,7 +3900,7 @@ impl Entity for UserGroupKeyDistribution {
 pub struct UserGroupKeyRotationData {
 	pub _id: CustomId,
 	#[serde(with = "serde_bytes")]
-	pub adminGroupEncUserGroupKey: Vec<u8>,
+	pub adminGroupEncUserGroupKey: Option<Vec<u8>>,
 	pub adminGroupKeyVersion: i64,
 	#[serde(with = "serde_bytes")]
 	pub authVerifier: Vec<u8>,
@@ -3913,6 +3913,7 @@ pub struct UserGroupKeyRotationData {
 	pub userGroupKeyVersion: i64,
 	pub group: GeneratedId,
 	pub keyPair: KeyPair,
+	pub pubAdminGroupEncUserGroupKey: Option<PubEncKeyData>,
 	pub recoverCodeData: Option<RecoverCodeData>,
 }
 
@@ -3921,6 +3922,21 @@ impl Entity for UserGroupKeyRotationData {
 		TypeRef {
 			app: "sys",
 			type_: "UserGroupKeyRotationData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct UserGroupKeyRotationPostIn {
+	pub _format: i64,
+	pub userGroupKeyData: UserGroupKeyRotationData,
+}
+
+impl Entity for UserGroupKeyRotationPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "UserGroupKeyRotationPostIn",
 		}
 	}
 }

@@ -22,6 +22,7 @@ import {
 	EncryptionAuthStatus,
 	GroupType,
 	PermissionType,
+	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
@@ -822,7 +823,8 @@ export class CryptoFacade {
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
 		const keyData = createPublicKeyGetIn({
-			mailAddress: recipientMailAddress,
+			identifier: recipientMailAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			version: null,
 		})
 		try {
@@ -910,7 +912,8 @@ export class CryptoFacade {
 
 	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
 		let keyData = createPublicKeyGetIn({
-			mailAddress: mailSenderAddress,
+			identifier: mailSenderAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			version: senderKeyVersion.toString(),
 		})
 		try {
