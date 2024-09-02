@@ -80,7 +80,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
-			indexState: mailLocator.search.indexState(),
+			indexState: mailLocator.search?.indexState(),
 			entities: [] as Entries,
 			selected: null,
 		})

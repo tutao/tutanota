@@ -1,7 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import type { SearchBar, SearchBarAttrs } from "../../mail-app/search/SearchBar.js"
+import type { SearchBar, SearchBarAttrs } from "./search/SearchBar.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
-import { client } from "./ClientDetector.js"
 
 /**
  * Lazy wrapper around SearchBar which unfortunately resides in the search chunk right now and cannot be imported from some files.
@@ -10,8 +9,7 @@ import { client } from "./ClientDetector.js"
  */
 export class LazySearchBar implements ClassComponent<SearchBarAttrs> {
 	private static searchBar: LazyLoaded<SearchBar> = new LazyLoaded(async () => {
-		const searchbarPath = client.isCalendarApp() ? "../../calendar-app/search/CalendarSearchBar.js" : "../../mail-app/search/SearchBar.js"
-		const { searchBar } = await import(searchbarPath)
+		const { searchBar } = await import("./search/SearchBar.js")
 		m.redraw()
 		return searchBar
 	})
@@ -29,3 +27,5 @@ export class LazySearchBar implements ClassComponent<SearchBarAttrs> {
 		}
 	}
 }
+
+export const lazySearchBar = new LazySearchBar()
