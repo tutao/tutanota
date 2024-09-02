@@ -43,7 +43,13 @@ import type { KeyLoaderFacade } from "../../../../../src/common/api/worker/facad
 import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
-import { CryptoProtocolVersion, GroupKeyRotationType, GroupType, ShareCapability } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import {
+	CryptoProtocolVersion,
+	GroupKeyRotationType,
+	GroupType,
+	PublicKeyIdentifierType,
+	ShareCapability,
+} from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { AdminGroupKeyRotationService, GroupKeyRotationInfoService, GroupKeyRotationService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { CryptoFacade, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, findAllAndRemove, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
@@ -561,11 +567,12 @@ o.spec("KeyRotationFacadeTest", function () {
 					o(groupKeyUpdateData.sessionKeyEncGroupKey).deepEquals(MEMBER1_SESSION_KEY_ENC_NEW_USER_AREA_GROUP_KEY)
 					o(groupKeyUpdateData.bucketKeyEncSessionKey).deepEquals(MEMBER1_BUCKET_KEY_ENC_MEMBER1_SESSION_KEY)
 					const pubEncBucketKeyData = groupKeyUpdateData.pubEncBucketKeyData
-					o(pubEncBucketKeyData.pubEncBucketKey).deepEquals(pubEncBucketKeyMock)
+					o(pubEncBucketKeyData.pubEncSymKey).deepEquals(pubEncBucketKeyMock)
 					o(pubEncBucketKeyData.protocolVersion).deepEquals(protocolVersion)
 					o(pubEncBucketKeyData.senderKeyVersion).deepEquals(user.userGroup.groupKeyVersion)
 					o(pubEncBucketKeyData.recipientKeyVersion).deepEquals(recipientKeyVersion)
-					o(pubEncBucketKeyData.mailAddress).deepEquals(memberMailAddress)
+					o(pubEncBucketKeyData.identifier).deepEquals(memberMailAddress)
+					o(pubEncBucketKeyData.identifierType).deepEquals(PublicKeyIdentifierType.MAIL_ADDRESS)
 				})
 
 				o("Rotated group has deactivated members", async function () {

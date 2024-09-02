@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -1327,7 +1327,6 @@ export type Group = {
 	enabled: boolean;
 	external: boolean;
 	groupKeyVersion: NumberString;
-	pubAdminGroupEncGKey: null | Uint8Array;
 	type: NumberString;
 
 	admin:  null | Id;
@@ -1339,6 +1338,7 @@ export type Group = {
 	groupInfo: IdTuple;
 	invitations: Id;
 	members: Id;
+	pubAdminGroupEncGKey:  null | PubEncKeyData;
 	storageCounter:  null | Id;
 	user:  null | Id;
 }
@@ -1386,9 +1386,9 @@ export type GroupKey = {
 	adminGroupKeyVersion: null | NumberString;
 	ownerEncGKey: Uint8Array;
 	ownerKeyVersion: NumberString;
-	pubAdminGroupEncGKey: null | Uint8Array;
 
 	keyPair:  null | KeyPair;
+	pubAdminGroupEncGKey:  null | PubEncKeyData;
 }
 export const GroupKeyRotationDataTypeRef: TypeRef<GroupKeyRotationData> = new TypeRef("sys", "GroupKeyRotationData")
 
@@ -2361,9 +2361,10 @@ export type PubEncKeyData = {
 	_type: TypeRef<PubEncKeyData>;
 
 	_id: Id;
-	mailAddress: string;
+	identifier: string;
+	identifierType: NumberString;
 	protocolVersion: NumberString;
-	pubEncBucketKey: Uint8Array;
+	pubEncSymKey: Uint8Array;
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
 }
@@ -2377,7 +2378,8 @@ export type PublicKeyGetIn = {
 	_type: TypeRef<PublicKeyGetIn>;
 
 	_format: NumberString;
-	mailAddress: string;
+	identifier: string;
+	identifierType: NumberString;
 	version: null | NumberString;
 }
 export const PublicKeyGetOutTypeRef: TypeRef<PublicKeyGetOut> = new TypeRef("sys", "PublicKeyGetOut")
@@ -3329,7 +3331,7 @@ export type UserGroupKeyRotationData = {
 	_type: TypeRef<UserGroupKeyRotationData>;
 
 	_id: Id;
-	adminGroupEncUserGroupKey: Uint8Array;
+	adminGroupEncUserGroupKey: null | Uint8Array;
 	adminGroupKeyVersion: NumberString;
 	authVerifier: Uint8Array;
 	distributionKeyEncUserGroupKey: Uint8Array;
@@ -3339,7 +3341,21 @@ export type UserGroupKeyRotationData = {
 
 	group: Id;
 	keyPair: KeyPair;
+	pubAdminGroupEncUserGroupKey:  null | PubEncKeyData;
 	recoverCodeData:  null | RecoverCodeData;
+}
+export const UserGroupKeyRotationPostInTypeRef: TypeRef<UserGroupKeyRotationPostIn> = new TypeRef("sys", "UserGroupKeyRotationPostIn")
+
+export function createUserGroupKeyRotationPostIn(values: StrippedEntity<UserGroupKeyRotationPostIn>): UserGroupKeyRotationPostIn {
+	return Object.assign(create(typeModels.UserGroupKeyRotationPostIn, UserGroupKeyRotationPostInTypeRef), values)
+}
+
+export type UserGroupKeyRotationPostIn = {
+	_type: TypeRef<UserGroupKeyRotationPostIn>;
+
+	_format: NumberString;
+
+	userGroupKeyData: UserGroupKeyRotationData;
 }
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")
 

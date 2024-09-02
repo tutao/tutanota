@@ -57,6 +57,7 @@ mod metamodel;
 pub mod rest_client;
 mod rest_error;
 mod simple_crypto;
+mod tutanota_constants;
 mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
