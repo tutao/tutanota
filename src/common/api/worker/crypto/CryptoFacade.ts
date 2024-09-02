@@ -581,7 +581,9 @@ export class CryptoFacade {
 				if (!pqMessageSenderKey) {
 					encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
 				} else {
-					const mail = (await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail
+					const mail = this.isLiteralInstance(instance)
+						? ((await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail)
+						: (instance as Mail)
 					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
 					encryptionAuthStatus = await this.authenticateSender(senderMailAddress, pqMessageSenderKey, assertNotNull(pqMessageSenderKeyVersion))
 				}
