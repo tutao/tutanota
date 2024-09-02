@@ -85,7 +85,7 @@ import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
-import { Icon } from "../../../common/gui/base/Icon.js"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
 import { parseCalendarStringData } from "../../../common/calendar/import/ImportExportUtils.js"
@@ -802,7 +802,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				m(Icon, {
 					title: lastSyncStr,
 					icon: Icons.Link,
-					large: true,
+					size: IconSize.Medium,
 					style: {
 						fill: theme.content_button,
 					},

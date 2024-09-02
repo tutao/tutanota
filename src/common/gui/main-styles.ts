@@ -1156,6 +1156,9 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_bg,
 			"box-shadow": searchBarShadow,
 		},
+		".fab-shadow": {
+			"box-shadow": "0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3)",
+		},
 		".icon-progress-tiny": {
 			height: px(15),
 			width: px(15),
@@ -1264,6 +1267,12 @@ styles.registerStyle("main", () => {
 		".compact": {
 			width: `${size.button_height_compact}px !important`,
 			height: `${size.button_height_compact}px !important`,
+		},
+		".large": {
+			width: `${size.button_floating_size}px`,
+			height: `${size.button_floating_size}px`,
+			"max-width": `${size.button_floating_size}px`,
+			"max-height": `${size.button_floating_size}px`,
 		},
 		// state-bg is a simulation of a "state layer" from Material but without an additional layer
 		// We don't exactly follow transparency for it because we combine transparency with light grey color which works well on both light and dark themes
