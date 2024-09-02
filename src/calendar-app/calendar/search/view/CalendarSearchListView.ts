@@ -30,7 +30,7 @@ export interface CalendarSearchListViewAttrs {
 	cancelCallback: () => unknown | null
 }
 
-export class SearchListView implements Component<CalendarSearchListViewAttrs> {
+export class CalendarSearchListView implements Component<CalendarSearchListViewAttrs> {
 	private listModel: ListModel<SearchResultListEntry>
 
 	constructor({ attrs }: Vnode<CalendarSearchListViewAttrs>) {
@@ -45,8 +45,7 @@ export class SearchListView implements Component<CalendarSearchListViewAttrs> {
 		return attrs.listModel.isEmptyAndDone()
 			? m(ColumnEmptyMessageBox, {
 					icon,
-					message: () =>
-						lang.get("searchNoResults_msg") + "\n" + (attrs.isFreeAccount ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
+					message: () => lang.get("searchNoResults_msg"),
 					color: theme.list_message_bg,
 			  })
 			: m(List, {

@@ -9,7 +9,6 @@ import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../common/
 import type { Shortcut } from "../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { locator } from "../../common/api/main/CommonLocator"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { WhitelabelChild } from "../../common/api/entities/sys/TypeRefs.js"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../../common/api/common/TutanotaConstants"
@@ -201,6 +200,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	oncreate() {
+		this.onFocus()
 		keyManager.registerShortcuts(this.shortcuts)
 		this.indexStateStream = mailLocator.search.indexState.map((indexState) => {
 			// When we finished indexing, search again forcibly to not confuse anyone with old results
