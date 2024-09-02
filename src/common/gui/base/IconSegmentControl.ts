@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { AllIcons, Icon } from "./Icon.js"
+import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
 import { ButtonColor, getColors } from "./Button.js"
 import { px } from "../size.js"
@@ -50,7 +50,7 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 							icon: item.icon,
 							container: "div",
 							class: "center-h",
-							large: true,
+							size: IconSize.Medium,
 							style: {
 								fill: getColors(ButtonColor.Content).button,
 							},

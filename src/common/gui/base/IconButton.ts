@@ -1,8 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationText } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import type { AllIcons } from "./Icon"
-import { Icon } from "./Icon"
+import { AllIcons, Icon, IconSize } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { ButtonColor, getColors } from "./Button.js"
@@ -28,7 +27,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
-				large: true,
+				size: attrs.size === ButtonSize.Large ? IconSize.Large : IconSize.Medium,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},
@@ -43,6 +42,8 @@ export class IconButton implements Component<IconButtonAttrs> {
 		switch (size) {
 			case ButtonSize.Compact:
 				return "compact"
+			case ButtonSize.Large:
+				return "large"
 			case ButtonSize.Normal:
 			default:
 				return ""
