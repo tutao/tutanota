@@ -16,18 +16,19 @@ import {
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
-import { defer, noOp } from "@tutao/tutanota-utils"
+import { defer, noOp, TypeRef } from "@tutao/tutanota-utils"
 import { InstanceMapper } from "../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
-import { matchers, object, verify, when } from "testdouble"
-import { getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { Captor, matchers, object, verify, when } from "testdouble"
+import { create, getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
+import { TypeModel } from "../../../../src/common/api/common/EntityTypes.js"
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -218,6 +219,35 @@ o.spec("EventBusClientTest", function () {
 		verify(cacheMock.entityEventsReceived(matchers.anything()), { times: 1 })
 	})
 
+	o("received event batch is filtered for unknown types", async function () {
+		o.timeout(500)
+		ebc.connect(ConnectMode.Initial)
+		await socket.onopen?.(new Event("open"))
+
+		const messageData = createEntityMessageWithUnknownEntity(1)
+
+		const updateCaptor: Captor = matchers.captor()
+		// Is waiting for cache to process the first event.
+		// return value doesn't matter since out tested behaviour has already occurred when this is called.
+		when(cacheMock.entityEventsReceived(updateCaptor.capture())).thenReturn(Promise.resolve([]))
+
+		await socket.onmessage?.({
+			data: messageData,
+		} as MessageEvent<string>)
+
+		o(updateCaptor.values?.length).equals(1)
+		o(updateCaptor.value.events).deepEquals([
+			createTestEntity(EntityUpdateTypeRef, {
+				_id: "eventBatchId",
+				application: "tutanota",
+				type: "Mail",
+				instanceListId: "listId1",
+				instanceId: "id1",
+				operation: OperationType.UPDATE,
+			}),
+		])
+	})
+
 	o("missed entity events are processed in order", async function () {
 		const membershipGroupId = "membershipGroupId"
 		user.memberships = [
@@ -247,6 +277,49 @@ o.spec("EventBusClientTest", function () {
 		await ebc.loadMissedEntityEvents(eventQueue)
 
 		o(addedBatchIds).deepEquals([batchId4, batchId3, batchId2, batchId1])
+	})
+
+	o("missed entity events are filtered for unknown types", async function () {
+		const membershipGroupId = "membershipGroupId"
+		user.memberships = [
+			createTestEntity(GroupMembershipTypeRef, {
+				group: membershipGroupId,
+			}),
+		]
+		const now = Date.now()
+		const batchId = timestampToGeneratedId(now - 1)
+		const mailEntityUpdate = createTestEntity(EntityUpdateTypeRef, {
+			_id: "eventBatchId",
+			application: "tutanota",
+			type: "Mail",
+			instanceListId: "listId1",
+			instanceId: "id1",
+			operation: OperationType.UPDATE,
+		})
+		const unknownEntityUpdate = createTestEntity(EntityUpdateTypeRef, {
+			_id: "eventBatchId",
+			application: "sys",
+			type: "UnknownType",
+			instanceListId: "listId2",
+			instanceId: "id1",
+			operation: OperationType.UPDATE,
+		})
+		const batch = createTestEntity(EntityEventBatchTypeRef, {
+			_id: [membershipGroupId, batchId],
+			events: [mailEntityUpdate, unknownEntityUpdate],
+		})
+
+		restClient.addListInstances(batch)
+		const eventQueue = object<EventQueue>()
+		const addedBatches: Array<ReadonlyArray<EntityUpdate>> = []
+		when(eventQueue.add(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
+			(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>) => addedBatches.push(newEvents),
+		)
+
+		await ebc.loadMissedEntityEvents(eventQueue)
+
+		// batch unknownEntityUpdate is not added to the eventQueue as the type is unknown in the client
+		o(addedBatches).deepEquals([[mailEntityUpdate]])
 	})
 
 	o("on counter update it send message to the main thread", async function () {
@@ -296,6 +369,56 @@ o.spec("EventBusClientTest", function () {
 			verify(listenerMock.onWebsocketStateChanged(WsConnectionState.connected))
 		})
 	})
+
+	type UnknownType = {
+		_type: TypeRef<UnknownType>
+
+		_id: Id
+	}
+
+	function createUnknownEntity(): UnknownType {
+		const unknownTypeModel: TypeModel = {
+			id: Number.MAX_SAFE_INTEGER,
+			since: 1,
+			app: "sys",
+			version: "1",
+			name: "Unknown",
+			type: "LIST_ELEMENT_TYPE",
+			versioned: false,
+			encrypted: false,
+			rootId: "someId",
+			values: {},
+			associations: {},
+		}
+		const unknownTypeRef: TypeRef<UnknownType> = new TypeRef("sys", "Unknown")
+		return create(unknownTypeModel, unknownTypeRef)
+	}
+
+	function createEntityMessageWithUnknownEntity(eventBatchId: number): string {
+		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
+			eventBatchId: String(eventBatchId),
+			eventBatchOwner: "ownerId",
+			eventBatch: [
+				createTestEntity(EntityUpdateTypeRef, {
+					_id: "eventBatchId",
+					application: "tutanota",
+					type: "Mail",
+					instanceListId: "listId1",
+					instanceId: "id1",
+					operation: OperationType.UPDATE,
+				}),
+				createTestEntity(EntityUpdateTypeRef, {
+					_id: "eventBatchId",
+					application: "sys",
+					type: "UnknownType",
+					instanceListId: "listId2",
+					instanceId: "id1",
+					operation: OperationType.UPDATE,
+				}),
+			],
+		})
+		return "entityUpdate;" + JSON.stringify(event)
+	}
 
 	function createEntityMessage(eventBatchId: number): string {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {

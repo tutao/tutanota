@@ -20,7 +20,7 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval } from "@tutao/tutanota-utils"
+import { binarySearch, delay, getTypeId, identity, lastThrow, ofClass, promiseFilter, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
@@ -39,6 +39,7 @@ import { resolveTypeReference } from "../common/EntityFunctions.js"
 import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
+import { typeRefToPath } from "./rest/EntityRestClient.js"
 
 assertWorkerOrNode()
 
@@ -281,12 +282,13 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const data: WebsocketEntityData = await this.instanceMapper.decryptAndMapToInstance(
+				const { eventBatchId, eventBatchOwner, eventBatch }: WebsocketEntityData = await this.instanceMapper.decryptAndMapToInstance(
 					await resolveTypeReference(WebsocketEntityDataTypeRef),
 					JSON.parse(value),
 					null,
 				)
-				this.entityUpdateMessageQueue.add(data.eventBatchId, data.eventBatchOwner, data.eventBatch)
+				const filteredEntityUpdates = await this.removeUnknownTypes(eventBatch)
+				this.entityUpdateMessageQueue.add(eventBatchId, eventBatchOwner, filteredEntityUpdates)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
@@ -321,6 +323,23 @@ export class EventBusClient {
 				console.log("ws message with unknown type", type)
 				break
 		}
+	}
+
+	/**
+	 * Filters out specific types from @param entityUpdates that the client does not actually know about
+	 * (that are not in tutanotaTypes), and which should therefore not be processed.
+	 */
+	private async removeUnknownTypes(eventBatch: EntityUpdate[]): Promise<EntityUpdate[]> {
+		return promiseFilter(eventBatch, async (entityUpdate) => {
+			const typeRef = new TypeRef(entityUpdate.application, entityUpdate.type)
+			try {
+				await resolveTypeReference(typeRef)
+				return true
+			} catch (_error) {
+				console.warn("ignoring entityEventUpdate for unknown type with typeId", getTypeId(typeRef))
+				return false
+			}
+		})
 	}
 
 	private onClose(event: CloseEvent) {
@@ -509,7 +528,8 @@ export class EventBusClient {
 
 		const timeSortedEventBatches = eventBatches.sort((a, b) => compareOldestFirst(getElementId(a), getElementId(b)))
 		for (const batch of timeSortedEventBatches) {
-			this.addBatch(getElementId(batch), getListId(batch), batch.events, eventQueue)
+			const filteredEntityUpdates = await this.removeUnknownTypes(batch.events)
+			this.addBatch(getElementId(batch), getListId(batch), filteredEntityUpdates, eventQueue)
 		}
 
 		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
