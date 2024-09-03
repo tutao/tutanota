@@ -153,13 +153,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 
 	@RequiresApi(Build.VERSION_CODES.O)
 	fun createNotificationChannels() {
-		val mailNotificationChannel = NotificationChannel(
-			EMAIL_NOTIFICATION_CHANNEL_ID,
-			context.getString(R.string.pushNewMail_msg),
-			NotificationManager.IMPORTANCE_DEFAULT
-		).default()
-
-		notificationManager.createNotificationChannel(mailNotificationChannel)
 		val serviceNotificationChannel = NotificationChannel(
 			PERSISTENT_NOTIFICATION_CHANNEL_ID, context.getString(R.string.notificationSync_msg),
 			NotificationManager.IMPORTANCE_LOW
