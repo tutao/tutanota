@@ -24,8 +24,8 @@ use crate::{ApiCallError, IdTuple};
 /// Error that may occur during login and session creation
 #[derive(Error, Debug, uniffi::Error, Clone, PartialEq)]
 pub enum LoginError {
-	#[error("InvalidSessionId: {error_message}")]
-	InvalidSessionId { error_message: String },
+	#[error("InvalidAccessToken: {error_message}")]
+	InvalidAccessToken { error_message: String },
 	#[error("InvalidPassphrase: {error_message}")]
 	InvalidPassphrase { error_message: String },
 	#[error("InvalidKey: {error_message}")]
@@ -85,7 +85,7 @@ impl LoginFacade {
 		credentials: &Credentials,
 	) -> Result<UserFacade, LoginError> {
 		let session_id = parse_session_id(credentials.access_token.as_str()).map_err(|e| {
-			LoginError::InvalidSessionId {
+			LoginError::InvalidAccessToken {
 				error_message: format!("Could not decode session id: {}", e),
 			}
 		})?;
