@@ -329,14 +329,12 @@ impl EntityFacadeImpl {
 			None => type_model.app,
 		};
 
-		let Some(aggregate_type_model) = self
-			.type_model_provider
-			.get_type_model(dependency, association_model.ref_type)
-		else {
-			panic!("Undefined type_model {}", association_model.ref_type)
-		};
-
 		if let AssociationType::Aggregation = association_model.association_type {
+			let aggregate_type_model = self
+				.type_model_provider
+				.get_type_model(dependency, association_model.ref_type)
+				.unwrap_or_else(|| panic!("Undefined type_model {}", association_model.ref_type));
+
 			match (association_data, association_model.cardinality.borrow()) {
 				(ElementValue::Null, Cardinality::ZeroOrOne) => Ok((ElementValue::Null, errors)),
 				(ElementValue::Null, Cardinality::One) => Err(ApiCallError::InternalSdkError {
