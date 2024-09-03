@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import { program } from "commander"
-import glob from "glob"
+import { glob } from "glob"
 import { fileURLToPath } from "node:url"
 import "zx/globals"
 
