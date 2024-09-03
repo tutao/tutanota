@@ -15,7 +15,7 @@
 		<item name="android:statusBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
 		<item name="android:windowSplashScreenAnimatedIcon">
-			@drawable/ic_logo_light
+			@drawable/ic_logo_foreground
 		</item>
 	</style>
 
