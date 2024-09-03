@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-08-29T16:18:15Z",
+	"updated_at": "2024-09-01T00:41:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -111,7 +111,7 @@ export default {
 		"appearanceSettings_label": "Apparence",
 		"appInfoAndroidImageAlt_alt": "Application Android sur Google Play",
 		"appInfoFDroidImageAlt_alt": "Application Android sur F-Droid",
-		"appInfoIosImageAlt_alt": "Application iOS sur l'App Store",
+		"appInfoIosImageAlt_alt": "Application iOS chez le magasin Apple",
 		"apply_action": "Appliquer",
 		"appStoreNotAvailable_msg": "Les abonnements à l'App Store ne sont pas disponibles pour le moment.",
 		"appStoreRenewProblemBody_msg": "Bonjour,\n    \nVotre abonnement devait être renouvelé le {expirationDate}.\n     \nMalheureusement, nous n'avons pas pu recevoir de paiement de l'App Store pour votre abonnement, ce qui peut être dû à une erreur de facturation. Veuillez vérifier que vos paramètres de paiement sur l'App Store sont corrects.\n\nSi nous ne recevons pas de paiement, votre compte sera désactivé le {finalExpirationDate} pour défaut de paiement. Vous pouvez également choisir d'annuler votre abonnement ou de passer à une autre méthode de paiement.\n \nRestez en sécurité,\nVotre équipe Tuta",

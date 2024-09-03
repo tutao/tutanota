@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-08-29T16:04:52Z",
+	"updated_at": "2024-08-30T19:41:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -113,7 +113,7 @@ export default {
 		"appearanceSettings_label": "Внешний вид",
 		"appInfoAndroidImageAlt_alt": "Приложение под «Android» в «Google Play»",
 		"appInfoFDroidImageAlt_alt": "Приложение под «Android» в «F-Droid»",
-		"appInfoIosImageAlt_alt": "Приложение под «iOS» в магазине «Apple»",
+		"appInfoIosImageAlt_alt": "Приложение для iOS в App Store",
 		"apply_action": "Применить",
 		"appStoreNotAvailable_msg": "Подписки в App Store в настоящее время недоступны.",
 		"appStoreRenewProblemBody_msg": "Здравствуйте,\n      \nВаша подписка должна была быть продлена {expirationDate}.\n       \nК сожалению, мы не смогли получить платеж из App Store за вашу подписку, что может быть связано со сбоем в платежной системе. Пожалуйста, проверьте правильность настроек оплаты в App Store.\n\nЕсли мы не получим оплату, ваша учетная запись будет отключена {finalExpirationDate} за неуплату. В качестве альтернативы вы можете отменить подписку или перейти на другой способ оплаты.\n   \nОставайтесь в безопасности,\nВаша Команда Tuta",

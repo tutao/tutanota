@@ -2,8 +2,8 @@
     <string name="reminder_label">リマインダー</string>
     <string name="pushNewMail_msg">新しいメールが届いています。</string>
     <string name="notificationSync_msg">通知を同期</string>
-    <string name="scheduleAlarmError_msg">アラームを設定できませんでした。 アプリケーションを更新してください。</string>
-    <string name="wantToSendReport_msg">予期しないことが起こりました。 エラーレポートを送信しますか？このエラーを解決するためのメッセージを追加することができます。</string>
-    <string name="downloadCompleted_msg">ダウンロード完了</string>
+    <string name="scheduleAlarmError_msg">アラームを設定できませんでした。アプリケーションを更新してください。</string>
+    <string name="wantToSendReport_msg">予期しないエラーが発生しました。エラーレポートを送信しますか？　エラーレポートにメッセージを追加していただければ、問題解決に役立たせていただきます。</string>
+    <string name="downloadCompleted_msg">ダウンロードが完了しました</string>
     <string name="unlockCredentials_action">ログイン情報のロックを解除</string>
 </resources>
