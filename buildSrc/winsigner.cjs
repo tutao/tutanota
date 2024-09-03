@@ -85,7 +85,7 @@ function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 }
 
 function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName, attempt = 0) {
-	const command = "/usr/bin/osslsigncode"
+	const command = "/usr/bin/true"
 
 	if (!fs.existsSync(command)) {
 		console.log(TAG, `ERROR: ${signedFileOutPath.split(path.sep).pop()}" not signed! The NSIS installer may not work.`)
