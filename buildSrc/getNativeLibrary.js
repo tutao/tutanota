@@ -17,7 +17,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 		.option("-e, --environment <environment>", "which node environment to target", "electron")
 		.option("-r, --root-dir <rootDir>", "path to the root of the project", ".")
 		.option("-f, --force-rebuild", "force a rebuild (don't use the cache)")
-		.option("-e, --use-existing", "Use the existing built version (e.g. when using prebuild)")
 		.option(
 			"-c, --copy-target <copyTarget>",
 			"Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module",
