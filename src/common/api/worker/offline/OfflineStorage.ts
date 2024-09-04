@@ -417,16 +417,19 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+	async getRawListElementsOfType(typeRef: TypeRef<ListElementEntity>): Promise<Array<ListElementEntity>> {
 		const { query, params } = sql`SELECT entity from list_entities WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
-		return await this.deserializeList(
-			typeRef,
-			items.map((row) => row.entity.value as Uint8Array),
-		)
+		return items.map((item) => this.decodeCborEntity(item.entity.value as Uint8Array) as Record<string, unknown> & ListElementEntity)
 	}
 
-	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+	async getRawElementsOfType(typeRef: TypeRef<ElementEntity>): Promise<Array<ElementEntity>> {
+		const { query, params } = sql`SELECT entity from element_entities WHERE type = ${getTypeId(typeRef)}`
+		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
+		return items.map((item) => this.decodeCborEntity(item.entity.value as Uint8Array) as Record<string, unknown> & ElementEntity)
+	}
+
+	private async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity from element_entities WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
 		return await this.deserializeList(
@@ -769,10 +772,14 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	 * Convert the type from CBOR representation to the runtime type
 	 */
 	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T> {
-		const deserialized = cborg.decode(loaded, { tags: customTypeDecoders })
+		const deserialized = this.decodeCborEntity(loaded)
 
 		const typeModel = await resolveTypeReference(typeRef)
 		return (await this.fixupTypeRefs(typeModel, deserialized)) as T
+	}
+
+	private decodeCborEntity(loaded: Uint8Array): Record<string, unknown> {
+		return cborg.decode(loaded, { tags: customTypeDecoders })
 	}
 
 	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {
@@ -806,7 +813,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 
 	private async deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Promise<Array<T>> {
 		// manually reimplementing promiseMap to make sure we don't hit the scheduler since there's nothing actually async happening
-		const result = []
+		const result: Array<T> = []
 		for (const entity of loaded) {
 			result.push(await this.deserialize(typeRef, entity))
 		}

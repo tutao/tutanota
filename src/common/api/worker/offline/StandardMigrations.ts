@@ -5,25 +5,29 @@ import { ElementEntity, ListElementEntity, SomeEntity } from "../../common/Entit
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 export async function migrateAllListElements<T extends ListElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
-	let entities = await storage.getListElementsOfType(typeRef)
+	let entities = await storage.getRawListElementsOfType(typeRef)
 
 	for (const migration of migrations) {
+		// @ts-ignore need better types for migrations
 		entities = entities.map(migration)
 	}
 
 	for (const entity of entities) {
+		entity._type = typeRef as TypeRef<typeof entity>
 		await storage.put(entity)
 	}
 }
 
 export async function migrateAllElements<T extends ElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
-	let entities = await storage.getElementsOfType(typeRef)
+	let entities = await storage.getRawElementsOfType(typeRef)
 
 	for (const migration of migrations) {
+		// @ts-ignore need better types for migrations
 		entities = entities.map(migration)
 	}
 
 	for (const entity of entities) {
+		entity._type = typeRef as TypeRef<typeof entity>
 		await storage.put(entity)
 	}
 }
