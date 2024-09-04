@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")

@@ -58,7 +58,9 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
+	decryptKeyPair,
 	getKeyLengthBytes,
+	isPqKeyPairs,
 	KEY_LENGTH_BYTES_AES_256,
 	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
@@ -83,6 +85,7 @@ import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -815,7 +818,7 @@ export class KeyRotationFacade {
 			currentUserGroupKey,
 		)
 
-		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(user, newUserGroupKeys.symGroupKey.object)
+		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(user, newUserGroupKeys)
 
 		const userGroupKeyData = createUserGroupKeyRotationData({
 			userGroupKeyVersion: String(newUserGroupKeys.symGroupKey.version),
@@ -823,7 +826,7 @@ export class KeyRotationFacade {
 			passphraseEncUserGroupKey: membershipSymEncNewGroupKey.key,
 			group: userGroupId,
 			distributionKeyEncUserGroupKey: distributionKeyEncNewUserGroupKey,
-			keyPair: this.assembleTutaCryptKeyPair(newUserGroupKeys),
+			keyPair: assertNotNull(newUserGroupKeys.encryptedKeyPair),
 			authVerifier,
 			adminGroupKeyVersion: pubAdminGroupEncUserGroupKey.recipientKeyVersion,
 			pubAdminGroupEncUserGroupKey,
@@ -834,19 +837,7 @@ export class KeyRotationFacade {
 		await this.serviceExecutor.post(UserGroupKeyRotationService, createUserGroupKeyRotationPostIn({ userGroupKeyData }))
 	}
 
-	private assembleTutaCryptKeyPair(newUserGroupKeys: GeneratedGroupKeys): KeyPair {
-		const encryptedKeyPair = assertNotNull(newUserGroupKeys.encryptedKeyPair)
-		return createKeyPair({
-			pubEccKey: encryptedKeyPair.pubEccKey,
-			symEncPrivEccKey: encryptedKeyPair.symEncPrivEccKey,
-			pubKyberKey: encryptedKeyPair.pubKyberKey,
-			symEncPrivKyberKey: encryptedKeyPair.symEncPrivKyberKey,
-			pubRsaKey: null,
-			symEncPrivRsaKey: null,
-		})
-	}
-
-	private async encryptUserGroupKeyForAdmin(user: User, newUserGroupKey: AesKey): Promise<PubEncKeyData> {
+	private async encryptUserGroupKeyForAdmin(user: User, newUserGroupKeys: GeneratedGroupKeys): Promise<PubEncKeyData> {
 		// get admin group id
 		const customerId = assertNotNull(user.customer)
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
@@ -859,6 +850,7 @@ export class KeyRotationFacade {
 			version: null,
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, publicKeyGetIn)
+		// we will throw later if we did not get pq public keys back
 		const adminPubKeys: Versioned<PublicKeys> = {
 			version: Number(publicKeyGetOut.pubKeyVersion),
 			object: {
@@ -868,12 +860,20 @@ export class KeyRotationFacade {
 			},
 		}
 
-		const enc = await this.cryptoFacade.encryptPubSymKey(newUserGroupKey, adminPubKeys, user.userGroup.group)
+		// we want to authenticate with new sender key pair. so we just decrypt it again
+		const asymmetricKeyPair = decryptKeyPair(newUserGroupKeys.symGroupKey.object, assertNotNull(newUserGroupKeys.encryptedKeyPair))
+		if (!isPqKeyPairs(asymmetricKeyPair)) {
+			throw new ProgrammingError("new user group key pairs must be pq key pairs")
+		}
+		const enc = await this.cryptoFacade.pqEncryptPubSymKey(newUserGroupKeys.symGroupKey.object, adminPubKeys, {
+			version: newUserGroupKeys.symGroupKey.version,
+			object: asymmetricKeyPair.eccKeyPair,
+		})
 
 		return createPubEncKeyData({
 			identifier: adminGroupId,
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
-			pubEncSymKey: enc.pubEncSymKey,
+			pubEncSymKey: enc.pubEncSymKeyBytes,
 			protocolVersion: enc.cryptoProtocolVersion,
 			senderKeyVersion: enc.senderKeyVersion,
 			recipientKeyVersion: enc.recipientKeyVersion,
