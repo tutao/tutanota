@@ -4,7 +4,7 @@ import { ConnectionError, ServiceUnavailableError } from "../common/error/RestEr
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
-import { MailSetEntryTypeRef, MailTypeRef } from "../entities/tutanota/TypeRefs.js"
+import { MailTypeRef } from "../entities/tutanota/TypeRefs.js"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../common/utils/EntityUpdateUtils.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
@@ -25,8 +25,8 @@ export const enum EntityModificationType {
 type QueueAction = (nextElement: QueuedBatch) => Promise<void>
 const MOVABLE_EVENT_TYPE_REFS = [
 	// moved in MoveMailService
-	MailTypeRef, // moved in SwitchAccountTypeService
-	MailSetEntryTypeRef,
+	MailTypeRef,
+	// moved in SwitchAccountTypeService
 	CustomerInfoTypeRef,
 ]
 
