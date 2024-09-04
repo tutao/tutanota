@@ -256,7 +256,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				throw new Error("must be a persistent type")
 		}
 		const result = await this.sqlCipherFacade.get(formattedQuery.query, formattedQuery.params)
-		return result?.entity ? this.deserialize(typeRef, result.entity.value as Uint8Array) : null
+		return result?.entity ? await this.deserialize(typeRef, result.entity.value as Uint8Array) : null
 	}
 
 	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
@@ -270,7 +270,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			elementIds,
 			(c) => sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId IN ${paramList(c)}`,
 		)
-		return this.deserializeList(
+		return await this.deserializeList(
 			typeRef,
 			serializedList.map((r) => r.entity.value as Uint8Array),
 		)
@@ -332,7 +332,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		}
 		const { query, params } = formattedQuery
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.sqlCipherFacade.all(query, params)
-		return this.deserializeList(
+		return await this.deserializeList(
 			typeRef,
 			serializedList.map((r) => r.entity.value as Uint8Array),
 		)
@@ -420,7 +420,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity from list_entities WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
-		return this.deserializeList(
+		return await this.deserializeList(
 			typeRef,
 			items.map((row) => row.entity.value as Uint8Array),
 		)
@@ -429,7 +429,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity from element_entities WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
-		return this.deserializeList(
+		return await this.deserializeList(
 			typeRef,
 			items.map((row) => row.entity.value as Uint8Array),
 		)
@@ -438,7 +438,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
-		return this.deserializeList(
+		return await this.deserializeList(
 			typeRef,
 			items.map((row) => row.entity.value as Uint8Array),
 		)
@@ -804,8 +804,13 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		return deserialized
 	}
 
-	private deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Promise<Array<T>> {
-		return Promise.all(loaded.map((entity) => this.deserialize(typeRef, entity)))
+	private async deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Promise<Array<T>> {
+		// manually reimplementing promiseMap to make sure we don't hit the scheduler since there's nothing actually async happening
+		const result = []
+		for (const entity of loaded) {
+			result.push(await this.deserialize(typeRef, entity))
+		}
+		return result
 	}
 
 	/**
