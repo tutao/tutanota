@@ -4,7 +4,7 @@ import { typedKeys, TypeRef } from "@tutao/tutanota-utils"
 import { ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
-export async function migrateAllListElements<T extends ListElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
+export async function migrateAllListElements<T extends ListElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration>) {
 	let entities = await storage.getRawListElementsOfType(typeRef)
 
 	for (const migration of migrations) {
@@ -18,7 +18,7 @@ export async function migrateAllListElements<T extends ListElementEntity>(typeRe
 	}
 }
 
-export async function migrateAllElements<T extends ElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
+export async function migrateAllElements<T extends ElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration>) {
 	let entities = await storage.getRawElementsOfType(typeRef)
 
 	for (const migration of migrations) {
@@ -32,46 +32,46 @@ export async function migrateAllElements<T extends ElementEntity>(typeRef: TypeR
 	}
 }
 
-export type Migration<T extends SomeEntity> = (entity: any) => T
+export type Migration = (entity: any) => SomeEntity
 
-export function renameAttribute<T extends SomeEntity>(oldName: string, newName: keyof T): Migration<T> {
+export function renameAttribute(oldName: string, newName: string): Migration {
 	return function (entity) {
-		entity[newName] = entity[oldName as keyof T]
-		delete entity[oldName as keyof T]
+		entity[newName] = entity[oldName]
+		delete entity[oldName]
 		return entity
 	}
 }
 
-export function addOwnerKeyVersion<T extends SomeEntity>(): Migration<T> {
+export function addOwnerKeyVersion(): Migration {
 	return function (entity) {
 		entity["_ownerKeyVersion"] = entity["_ownerEncSessionKey"] == null ? null : "0"
 		return entity
 	}
 }
 
-export function removeValue<T extends SomeEntity>(valueName: string): Migration<T> {
+export function removeValue(valueName: string): Migration {
 	return function (entity) {
-		delete entity[valueName as keyof T]
+		delete entity[valueName]
 		return entity
 	}
 }
 
-export function addValue<T extends SomeEntity>(valueName: keyof T, value: any): Migration<T> {
+export function addValue(valueName: string, value: any): Migration {
 	return function (entity) {
 		entity[valueName] = value
 		return entity
 	}
 }
 
-export function booleanToNumberValue<T extends SomeEntity>(attribute: string): Migration<T> {
+export function booleanToNumberValue(attribute: string): Migration {
 	return function (entity) {
 		// same default value mapping as in the tutadb migration
-		entity[attribute] = (entity[attribute] ? "1" : "0") as unknown as T[keyof T]
+		entity[attribute] = entity[attribute] ? "1" : "0"
 		return entity
 	}
 }
 
-export function changeCardinalityFromAnyToZeroOrOne<T extends SomeEntity>(attribute: keyof T): Migration<T> {
+export function changeCardinalityFromAnyToZeroOrOne(attribute: string): Migration {
 	return function (entity) {
 		const value = entity[attribute]
 		if (!Array.isArray(value)) {

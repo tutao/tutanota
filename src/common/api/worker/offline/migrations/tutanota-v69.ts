@@ -70,7 +70,7 @@ export const tutanota69: OfflineMigration = {
 	},
 }
 
-function addVersionsToBucketKey<T extends SomeEntity>(): Migration<T> {
+function addVersionsToBucketKey(): Migration {
 	return function (entity) {
 		const bucketKey = entity["bucketKey"]
 		if (bucketKey != null) {

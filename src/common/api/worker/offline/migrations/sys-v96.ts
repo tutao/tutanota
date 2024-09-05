@@ -28,7 +28,7 @@ import {
 	removeValue,
 	renameAttribute,
 } from "../StandardMigrations.js"
-import { ElementEntity, ListElementEntity, SomeEntity } from "../../../common/EntityTypes.js"
+import { ElementEntity, ListElementEntity } from "../../../common/EntityTypes.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 
 export const sys96: OfflineMigration = {
@@ -76,7 +76,7 @@ export const sys96: OfflineMigration = {
 	},
 }
 
-function addVersionsToGroupMemberships<T extends SomeEntity>(): Migration<T> {
+function addVersionsToGroupMemberships(): Migration {
 	return function (entity) {
 		const userGroupMembership = entity["userGroup"]
 		userGroupMembership["groupKeyVersion"] = "0"
@@ -89,14 +89,14 @@ function addVersionsToGroupMemberships<T extends SomeEntity>(): Migration<T> {
 	}
 }
 
-function addAdminGroupKeyVersion<T extends SomeEntity>(): Migration<T> {
+function addAdminGroupKeyVersion(): Migration {
 	return function (entity) {
 		entity["adminGroupKeyVersion"] = entity["adminGroupEncGKey"] == null ? null : "0"
 		return entity
 	}
 }
 
-function removeKeyPairVersion<T extends SomeEntity>(): Migration<T> {
+function removeKeyPairVersion(): Migration {
 	return function (entity) {
 		const currentKeys = entity["currentKeys"]
 		if (currentKeys) {
