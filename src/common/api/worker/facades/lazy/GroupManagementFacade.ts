@@ -1,4 +1,4 @@
-import { CounterType, GroupType } from "../../../common/TutanotaConstants.js"
+import { asCryptoProtoocolVersion, CounterType, GroupType } from "../../../common/TutanotaConstants.js"
 import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
@@ -13,8 +13,6 @@ import { createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRe
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { aes256RandomKey, AesKey, decryptKey, encryptEccKey, encryptKyberKey, kyberPublicKeyToBytes, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
 import { MembershipService } from "../../../entities/sys/Services.js"
@@ -23,6 +21,9 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
+import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
+import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -35,6 +36,8 @@ export class GroupManagementFacade {
 		private readonly pqFacade: PQFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cacheManagementFacade: CacheManagementFacade,
+		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -47,10 +50,10 @@ export class GroupManagementFacade {
 
 		let adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 		let customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Customer))
-		let mailGroupKey = freshVersioned(aes256RandomKey())
+		let mailGroupKey = freshVersioned(this.cryptoWrapper.aes256RandomKey())
 
-		let mailGroupInfoSessionKey = aes256RandomKey()
-		let mailboxSessionKey = aes256RandomKey()
+		let mailGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
+		let mailboxSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const keyPair = await this.pqFacade.generateKeyPairs()
 		const mailGroupData = this.generateInternalGroupData(
 			keyPair,
@@ -93,10 +96,10 @@ export class GroupManagementFacade {
 		const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
 		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(customerGroupId)
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
-		const groupKey = freshVersioned(aes256RandomKey())
+		const groupKey = freshVersioned(this.cryptoWrapper.aes256RandomKey())
 
-		const groupRootSessionKey = aes256RandomKey()
-		const groupInfoSessionKey = aes256RandomKey()
+		const groupRootSessionKey = this.cryptoWrapper.aes256RandomKey()
+		const groupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 
 		const userEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
 		const adminEncGroupKey = adminGroupKey ? encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
@@ -121,7 +124,7 @@ export class GroupManagementFacade {
 		const postData = createUserAreaGroupPostData({
 			groupData,
 		})
-		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, { sessionKey: this.cryptoWrapper.aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
 		const user = await this.cacheManagementFacade.reloadUser()
 
@@ -134,7 +137,7 @@ export class GroupManagementFacade {
 			groupData,
 		})
 
-		const postGroupData = await this.serviceExecutor.post(TemplateGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+		const postGroupData = await this.serviceExecutor.post(TemplateGroupService, serviceData, { sessionKey: this.cryptoWrapper.aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 
 		await this.cacheManagementFacade.reloadUser()
 
@@ -146,7 +149,7 @@ export class GroupManagementFacade {
 		const serviceData = createUserAreaGroupPostData({
 			groupData,
 		})
-		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData, { sessionKey: aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData, { sessionKey: this.cryptoWrapper.aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
 		await this.cacheManagementFacade.reloadUser()
 
@@ -179,9 +182,9 @@ export class GroupManagementFacade {
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.eccKeyPair.publicKey,
-			groupEncPrivEccKey: encryptEccKey(groupKey, keyPair.eccKeyPair.privateKey),
-			pubKyberKey: kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
-			groupEncPrivKyberKey: encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
+			groupEncPrivEccKey: this.cryptoWrapper.encryptEccKey(groupKey, keyPair.eccKeyPair.privateKey),
+			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
+			groupEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
 			adminGroup: adminGroupId,
 			adminEncGroupKey: adminEncGroupKey.key,
 			ownerEncGroupInfoSessionKey: ownerEncGroupInfoSessionKey.key,
@@ -245,7 +248,7 @@ export class GroupManagementFacade {
 		const requiredUserGroupKeyVersion = membership.symKeyVersion
 		const requiredUserGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group, Number(requiredUserGroupKeyVersion))
 
-		const key = decryptKey(requiredUserGroupKey, membership.symEncGKey)
+		const key = this.cryptoWrapper.decryptKey(requiredUserGroupKey, membership.symEncGKey)
 		const version = Number(membership.groupKeyVersion)
 
 		return { object: key, version }
@@ -262,6 +265,13 @@ export class GroupManagementFacade {
 	}
 
 	/**
+	 * @returns true if the group currently has an adminEncGKey. This may be an asymmetrically encrypted one.
+	 */
+	hasAdminEncGKey(group: Group) {
+		return (group.adminGroupEncGKey != null && group.adminGroupEncGKey.length !== 0) || group.pubAdminGroupEncGKey != null
+	}
+
+	/**
 	 * Get a group key for certain group types.
 	 *
 	 * Some groups (e.g. user groups or shared mailboxes) have adminGroupEncGKey set on creation. For those groups we can fairly easily get a group key without
@@ -270,10 +280,11 @@ export class GroupManagementFacade {
 	async getCurrentGroupKeyViaAdminEncGKey(groupId: Id): Promise<VersionedKey> {
 		if (this.userFacade.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
+			// or I am an admin and I am a member of the target group (eg: shared mailboxes)
 			return this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 		} else {
 			const group = await this.entityClient.load(GroupTypeRef, groupId)
-			if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
+			if (!this.hasAdminEncGKey(group)) {
 				throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 			}
 			if (!(group.admin && this.userFacade.hasGroup(group.admin))) {
@@ -281,10 +292,30 @@ export class GroupManagementFacade {
 			}
 
 			// e.g. I am a member of the group that administrates group G and want to add a new member to G
-			const version = Number(group.adminGroupKeyVersion ?? 0)
-			const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), version)
-			const decryptedKey = decryptKey(requiredAdminGroupKey, assertNotNull(group.adminGroupEncGKey))
-			return { object: decryptedKey, version: Number(group.groupKeyVersion) }
+			const requiredAdminKeyVersion = Number(group.adminGroupKeyVersion ?? 0)
+			if (group.adminGroupEncGKey != null) {
+				return await this.decryptViaSymmetricAdminGKey(group, requiredAdminKeyVersion)
+			} else {
+				return await this.decryptViaAsymmetricAdminGKey(group, requiredAdminKeyVersion)
+			}
 		}
+	}
+
+	private async decryptViaSymmetricAdminGKey(group: Group, requiredAdminKeyVersion: number): Promise<VersionedKey> {
+		const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), requiredAdminKeyVersion)
+		const decryptedKey = this.cryptoWrapper.decryptKey(requiredAdminGroupKey, assertNotNull(group.adminGroupEncGKey))
+		return { object: decryptedKey, version: Number(group.groupKeyVersion) }
+	}
+
+	private async decryptViaAsymmetricAdminGKey(group: Group, requiredAdminKeyVersion: number): Promise<VersionedKey> {
+		const requiredAdminGroupKeyPair = await this.keyLoaderFacade.loadKeypair(assertNotNull(group.admin), requiredAdminKeyVersion)
+		const pubEncKeyData = assertNotNull(group.pubAdminGroupEncGKey)
+		const decryptedKey = await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
+			requiredAdminGroupKeyPair,
+			asCryptoProtoocolVersion(pubEncKeyData.protocolVersion),
+			pubEncKeyData.pubEncSymKey,
+		)
+		// TODO authentication
+		return { object: decryptedKey.decryptedAesKey, version: Number(group.groupKeyVersion) }
 	}
 }

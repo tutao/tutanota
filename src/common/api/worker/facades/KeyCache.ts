@@ -1,6 +1,6 @@
-import { VersionedKey } from "../crypto/CryptoFacade.js"
 import { getFromMap, neverNull } from "@tutao/tutanota-utils"
 import { User } from "../../entities/sys/TypeRefs.js"
+import { VersionedKey } from "../crypto/CryptoWrapper.js"
 import { Aes256Key } from "@tutao/tutanota-crypto"
 
 /**

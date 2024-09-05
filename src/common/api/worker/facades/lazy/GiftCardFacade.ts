@@ -16,11 +16,12 @@ import { aes256RandomKey, base64ToKey, bitArrayToUint8Array, sha256Hash } from "
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GiftCardRedeemService, GiftCardService } from "../../../entities/sys/Services.js"
 import { elementIdPart, GENERATED_MAX_ID } from "../../../common/utils/EntityUtils.js"
-import { CryptoFacade, encryptKeyWithVersionedKey } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { CustomerFacade } from "./CustomerFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { encryptKeyWithVersionedKey } from "../../crypto/CryptoWrapper.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24

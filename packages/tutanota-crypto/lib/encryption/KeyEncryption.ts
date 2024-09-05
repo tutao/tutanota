@@ -9,13 +9,33 @@ import { EccPrivateKey } from "./Ecc.js"
 import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "./PQKeyPairs.js"
 
-export type EncryptedKeyPairs = {
-	pubEccKey: null | Uint8Array
-	pubKyberKey: null | Uint8Array
-	pubRsaKey: null | Uint8Array
-	symEncPrivEccKey: null | Uint8Array
-	symEncPrivKyberKey: null | Uint8Array
-	symEncPrivRsaKey: null | Uint8Array
+export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaEccKeyPairs
+
+export type EncryptedPqKeyPairs = {
+	pubEccKey: Uint8Array
+	pubKyberKey: Uint8Array
+	pubRsaKey: null
+	symEncPrivEccKey: Uint8Array
+	symEncPrivKyberKey: Uint8Array
+	symEncPrivRsaKey: null
+}
+
+export type EncryptedRsaKeyPairs = {
+	pubEccKey: null
+	pubKyberKey: null
+	pubRsaKey: Uint8Array
+	symEncPrivEccKey: null
+	symEncPrivKyberKey: null
+	symEncPrivRsaKey: Uint8Array
+}
+
+export type EncryptedRsaEccKeyPairs = {
+	pubEccKey: Uint8Array
+	pubKyberKey: null
+	pubRsaKey: Uint8Array
+	symEncPrivEccKey: Uint8Array
+	symEncPrivKyberKey: null
+	symEncPrivRsaKey: Uint8Array
 }
 
 export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
@@ -65,6 +85,10 @@ export function decryptRsaKey(encryptionKey: AesKey, encryptedPrivateKey: Uint8A
 	return hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, encryptedPrivateKey, true)))
 }
 
+export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs
+export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaKeyPairs): RsaKeyPair
+export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaEccKeyPairs): RsaEccKeyPair
+export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair
 export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair {
 	if (keyPair.symEncPrivRsaKey) {
 		return decryptRsaOrRsaEccKeyPair(encryptionKey, keyPair)

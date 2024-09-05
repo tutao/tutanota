@@ -18,7 +18,8 @@ import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { DbFacade, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+
+import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade

@@ -38,6 +38,8 @@ import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/Recov
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { ExposedEventBus, MainInterface, WorkerRandomizer } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 
 assertWorkerOrNode()
 
@@ -63,6 +65,8 @@ export interface WorkerInterface {
 	readonly recoverCodeFacade: RecoverCodeFacade
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
+	readonly cryptoWrapper: CryptoWrapper
+	readonly asymmetricCryptoFacade: AsymmetricCryptoFacade
 	readonly cryptoFacade: CryptoFacade
 	readonly cacheStorage: ExposedCacheStorage
 	readonly sqlCipherFacade: SqlCipherFacade
@@ -207,6 +211,14 @@ export class WorkerImpl implements NativeInterface {
 
 			async serviceExecutor() {
 				return locator.serviceExecutor
+			},
+
+			async cryptoWrapper() {
+				return locator.cryptoWrapper
+			},
+
+			async asymmetricCryptoFacade() {
+				return locator.asymmetricCrypto
 			},
 
 			async cryptoFacade() {

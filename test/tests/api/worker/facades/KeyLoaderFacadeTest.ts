@@ -31,11 +31,11 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { matchers, object, reset, verify, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, freshVersioned } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache

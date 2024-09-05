@@ -79,12 +79,13 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { cryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper, CryptoWrapperImpl } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
+import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 
 assertWorkerOrNode()
 
@@ -92,6 +93,8 @@ export type WorkerLocatorType = {
 	// network & encryption
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
+	cryptoWrapper: CryptoWrapper
+	asymmetricCrypto: AsymmetricCryptoFacade
 	crypto: CryptoFacade
 	instanceMapper: InstanceMapper
 	cacheStorage: CacheStorage
@@ -237,17 +240,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
+	locator.cryptoWrapper = new CryptoWrapperImpl()
+
+	locator.asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, locator.cryptoWrapper, locator.serviceExecutor)
+
 	locator.crypto = new CryptoFacade(
 		locator.user,
 		locator.cachingEntityClient,
 		locator.restClient,
-		locator.rsa,
 		locator.serviceExecutor,
 		locator.instanceMapper,
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
-		locator.pqFacade,
 		cache,
 		locator.keyLoader,
+		locator.asymmetricCrypto,
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
@@ -272,6 +278,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.pqFacade,
 			locator.keyLoader,
 			await locator.cacheManagement(),
+			locator.asymmetricCrypto,
+			locator.cryptoWrapper,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -279,12 +287,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyLoader,
 		locator.pqFacade,
 		locator.serviceExecutor,
-		cryptoWrapper,
+		locator.cryptoWrapper,
 		locator.recoverCode,
 		locator.user,
 		locator.crypto,
 		locator.share,
 		locator.groupManagement,
+		locator.asymmetricCrypto,
 	)
 
 	const loginListener: LoginListener = {
@@ -379,6 +388,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.pqFacade,
 			locator.keyLoader,
 			await locator.recoverCode(),
+			locator.asymmetricCrypto,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

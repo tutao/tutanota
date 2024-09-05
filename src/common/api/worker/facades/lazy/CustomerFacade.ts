@@ -33,7 +33,7 @@ import {
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import type { Hex, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import { CryptoFacade, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	BrandingDomainService,
 	CreateCustomerServerProperties,
@@ -68,6 +68,8 @@ import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
+import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 
 assertWorkerOrNode()
 
@@ -87,6 +89,7 @@ export class CustomerFacade {
 		private readonly pqFacade: PQFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly recoverCodeFacade: RecoverCodeFacade,
+		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -139,7 +142,7 @@ export class CustomerFacade {
 			},
 			version: Number(keyData.systemAdminPubKeyVersion),
 		}
-		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.cryptoFacade.encryptPubSymKey(
+		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.encryptPubSymKey(
 			sessionKey,
 			systemAdminPubKeys,
 			this.userFacade.getUserGroupId(),
