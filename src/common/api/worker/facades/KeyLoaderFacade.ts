@@ -1,5 +1,5 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair } from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
 import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
@@ -197,6 +197,7 @@ export class KeyLoaderFacade {
 		if (keyPair == null) {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
-		return decryptKeyPair(groupKey, keyPair)
+		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
+		return decryptKeyPair(groupKey, keyPair as EncryptedKeyPairs)
 	}
 }
