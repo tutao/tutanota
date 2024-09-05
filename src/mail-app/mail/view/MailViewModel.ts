@@ -35,7 +35,7 @@ import { MailSetKind, OperationType } from "../../../common/api/common/TutanotaC
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import { NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import Stream from "mithril/stream"
@@ -233,10 +233,12 @@ export class MailViewModel {
 
 		let mail: Mail | null
 		try {
-			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { cacheMode: CacheMode.Bypass }).catch(ofClass(NotFoundError, () => null))
+			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { cacheMode: CacheMode.Bypass })
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
+			} else if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+				mail = null
 			} else {
 				throw e
 			}
