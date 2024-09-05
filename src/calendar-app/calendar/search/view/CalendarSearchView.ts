@@ -360,7 +360,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 								middle: () => lang.get("filter_label"),
 								right: [
 									{
-										label: "save_action",
+										label: "ok_action",
 										click: () => {
 											dialog.close()
 										},
