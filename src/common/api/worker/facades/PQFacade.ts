@@ -22,6 +22,11 @@ import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
 import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
 
+export type DecapsulatedSymKey = {
+	senderIdentityPubKey: EccPublicKey
+	decryptedSymKey: Uint8Array
+}
+
 export class PQFacade {
 	constructor(private readonly kyberFacade: KyberFacade) {}
 
@@ -33,7 +38,7 @@ export class PQFacade {
 		}
 	}
 
-	public async encapsulateEncoded(
+	public async encapsulateAndEncode(
 		senderIdentityKeyPair: EccKeyPair,
 		ephemeralKeyPair: EccKeyPair,
 		recipientPublicKeys: PQPublicKeys,
@@ -43,7 +48,10 @@ export class PQFacade {
 		return encodePQMessage(encapsulated)
 	}
 
-	public async encapsulate(
+	/**
+	 * @VisibleForTesting
+	 */
+	async encapsulate(
 		senderIdentityKeyPair: EccKeyPair,
 		ephemeralKeyPair: EccKeyPair,
 		recipientPublicKeys: PQPublicKeys,
@@ -74,12 +82,15 @@ export class PQFacade {
 		}
 	}
 
-	public async decapsulateEncoded(encodedPQMessage: Uint8Array, recipientKeys: PQKeyPairs): Promise<Uint8Array> {
+	public async decapsulateEncoded(encodedPQMessage: Uint8Array, recipientKeys: PQKeyPairs): Promise<DecapsulatedSymKey> {
 		const decoded = decodePQMessage(encodedPQMessage)
-		return this.decapsulate(decoded, recipientKeys)
+		return { decryptedSymKey: await this.decapsulate(decoded, recipientKeys), senderIdentityPubKey: decoded.senderIdentityPubKey }
 	}
 
-	public async decapsulate(message: PQMessage, recipientKeys: PQKeyPairs): Promise<Uint8Array> {
+	/**
+	 * @VisibleForTesting
+	 */
+	async decapsulate(message: PQMessage, recipientKeys: PQKeyPairs): Promise<Uint8Array> {
 		const kyberCipherText = message.encapsulation.kyberCipherText
 		const eccSharedSecret = eccDecapsulate(message.senderIdentityPubKey, message.ephemeralPubKey, recipientKeys.eccKeyPair.privateKey)
 		const kyberSharedSecret = await this.kyberFacade.decapsulate(recipientKeys.kyberKeyPair.privateKey, kyberCipherText)

@@ -84,7 +84,7 @@ import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/er
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
-import { encodePQMessage, PQBucketKeyEncapsulation, PQMessage } from "../../../../../src/common/api/worker/facades/PQMessage.js"
+import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/common/api/worker/facades/PQMessage.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
@@ -347,8 +347,12 @@ o.spec("CryptoFacadeTest", function () {
 			_permissions: "p_id",
 			group: null,
 		})
-		const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, generateEccKeyPair(), pqKeyPairsToPublicKeys(pqKeyPairs), bitArrayToUint8Array(bk))
-		const pubEncBucketKey = encodePQMessage(pqMessage)
+		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
+			senderIdentityKeyPair,
+			generateEccKeyPair(),
+			pqKeyPairsToPublicKeys(pqKeyPairs),
+			bitArrayToUint8Array(bk),
+		)
 		const bucketPermission = createBucketPermission({
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_format: "",
@@ -416,13 +420,12 @@ o.spec("CryptoFacadeTest", function () {
 			_permissions: "p_id",
 			group: null,
 		})
-		const pqMessage = await pqFacade.encapsulate(
+		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
 			generateEccKeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
 			bitArrayToUint8Array(bk),
 		)
-		const pubEncBucketKey = encodePQMessage(pqMessage)
 		const bucketPermission = createBucketPermission({
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_format: "",
@@ -473,13 +476,12 @@ o.spec("CryptoFacadeTest", function () {
 
 		const mail = createMailLiteral(null, sk, subject, confidential, senderName, recipientTestUser.name, recipientTestUser.mailGroup._id)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
-		const pqMessage = await pqFacade.encapsulate(
+		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
 			generateEccKeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
 			bitArrayToUint8Array(bk),
 		)
-		const pubEncBucketKey = encodePQMessage(pqMessage)
 
 		Object.assign(mail, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
@@ -614,11 +616,11 @@ o.spec("CryptoFacadeTest", function () {
 			kekEncBucketKey: new Uint8Array([2]),
 		}
 
-		const pqMessage: PQMessage = {
+		const encodedPqMessage: Uint8Array = encodePQMessage({
 			senderIdentityPubKey: senderKeyPair.pubEccKey!,
 			ephemeralPubKey: senderKeyPair.pubEccKey!,
 			encapsulation: pqEncapsulation,
-		}
+		})
 
 		when(
 			serviceExecutor.get(
@@ -646,9 +648,9 @@ o.spec("CryptoFacadeTest", function () {
 				pubRsaKey: null,
 			}),
 		)
-		when(pqFacadeMock.encapsulate(senderKeyPairs.eccKeyPair, anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk))).thenResolve(
-			pqMessage,
-		)
+		when(
+			pqFacadeMock.encapsulateAndEncode(senderKeyPairs.eccKeyPair, anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk)),
+		).thenResolve(encodedPqMessage)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
 
@@ -661,7 +663,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
 		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
-		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodePQMessage(pqMessage))
+		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodedPqMessage)
 		verify(serviceExecutor.put(PublicKeyService, anything()), { times: 0 })
 	})
 
@@ -743,11 +745,11 @@ o.spec("CryptoFacadeTest", function () {
 		}
 
 		const dummyEccPubKey = generateEccKeyPair().publicKey
-		const pqMessage: PQMessage = {
+		const encodedPqMessage: Uint8Array = encodePQMessage({
 			senderIdentityPubKey: dummyEccPubKey,
 			ephemeralPubKey: dummyEccPubKey,
 			encapsulation: pqEncapsulation,
-		}
+		})
 
 		when(
 			serviceExecutor.get(
@@ -775,7 +777,9 @@ o.spec("CryptoFacadeTest", function () {
 				pubKyberKey: null,
 			}),
 		)
-		when(pqFacadeMock.encapsulate(anything(), anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk))).thenResolve(pqMessage)
+		when(pqFacadeMock.encapsulateAndEncode(anything(), anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk))).thenResolve(
+			encodedPqMessage,
+		)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
 		when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: senderGroupKey, version: 0 })
@@ -789,11 +793,13 @@ o.spec("CryptoFacadeTest", function () {
 
 		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
 		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
-		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodePQMessage(pqMessage))
+		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodedPqMessage)
 		const pubKeyPutIn = captor()
 		verify(serviceExecutor.put(PublicKeyService, pubKeyPutIn.capture()), { times: 1 })
 		const eccKeyPair = captor()
-		verify(pqFacadeMock.encapsulate(eccKeyPair.capture(), anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk)), { times: 1 })
+		verify(pqFacadeMock.encapsulateAndEncode(eccKeyPair.capture(), anything(), pqKeyPairsToPublicKeys(recipientKeyPairs), bitArrayToUint8Array(bk)), {
+			times: 1,
+		})
 		o(pubKeyPutIn.value.pubEccKey).deepEquals(eccKeyPair.value.publicKey)
 		o(aesDecrypt(senderGroupKey, pubKeyPutIn.value.symEncPrivEccKey)).deepEquals(eccKeyPair.value.privateKey)
 	})
@@ -1661,8 +1667,12 @@ o.spec("CryptoFacadeTest", function () {
 		// @ts-ignore
 		mailLiteral._ownerEncSessionKey = null
 
-		const pqMessage = await pqFacade.encapsulate(senderIdentityKeyPair, generateEccKeyPair(), pqKeyPairsToPublicKeys(pqKeyPairs), bitArrayToUint8Array(bk))
-		const pubEncBucketKey = encodePQMessage(pqMessage)
+		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
+			senderIdentityKeyPair,
+			generateEccKeyPair(),
+			pqKeyPairsToPublicKeys(pqKeyPairs),
+			bitArrayToUint8Array(bk),
+		)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 		const { MailTypeModel, bucketKey } = await prepareBucketKeyInstance(
 			bucketEncMailSessionKey,

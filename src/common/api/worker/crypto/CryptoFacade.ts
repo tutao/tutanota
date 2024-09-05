@@ -101,7 +101,6 @@ import { elementIdPart, getElementId, getListId } from "../../common/utils/Entit
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { PQFacade } from "../facades/PQFacade.js"
-import { decodePQMessage, encodePQMessage } from "../facades/PQMessage.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
@@ -658,13 +657,16 @@ export class CryptoFacade {
 		pqMessageSenderIdentityPubKey: EccPublicKey | null
 	}> {
 		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(keyPairGroupId, recipientKeyVersion)
+		return await this.decryptSymKeyWithKeyPair(keyPair, pubEncBucketKey)
+	}
+
+	async decryptSymKeyWithKeyPair(keyPair: AsymmetricKeyPair, pubEncBucketKey: Uint8Array) {
 		const algo = keyPair.keyPairType
 		if (isPqKeyPairs(keyPair)) {
-			const pqMessage = decodePQMessage(pubEncBucketKey)
-			const decryptedBucketKey = await this.pq.decapsulate(pqMessage, keyPair)
+			const decryptedBucketKey = await this.pq.decapsulateEncoded(pubEncBucketKey, keyPair)
 			return {
-				decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey),
-				pqMessageSenderIdentityPubKey: pqMessage.senderIdentityPubKey,
+				decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey.decryptedSymKey),
+				pqMessageSenderIdentityPubKey: decryptedBucketKey.senderIdentityPubKey,
 			}
 		} else if (isRsaOrRsaEccKeyPair(keyPair)) {
 			const privateKey: RsaPrivateKey = keyPair.privateKey
@@ -777,8 +779,11 @@ export class CryptoFacade {
 
 	private async pqEncryptPubSymKeyImpl(recipientPublicKey: PQPublicKeys, symKey: AesKey, senderEccKeyPair: Versioned<EccKeyPair>) {
 		const ephemeralKeyPair = generateEccKeyPair()
-		const pubEncSymKeyBytes = encodePQMessage(
-			await this.pq.encapsulate(senderEccKeyPair.object, ephemeralKeyPair, recipientPublicKey, bitArrayToUint8Array(symKey)),
+		const pubEncSymKeyBytes = await this.pq.encapsulateAndEncode(
+			senderEccKeyPair.object,
+			ephemeralKeyPair,
+			recipientPublicKey,
+			bitArrayToUint8Array(symKey),
 		)
 		const senderKeyVersion = senderEccKeyPair.version.toString()
 		return { pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT, senderKeyVersion }
@@ -808,7 +813,7 @@ export class CryptoFacade {
 				if (!isPqKeyPairs(keyPair)) {
 					throw new CryptoError("wrong key type. expected tuta-crypt. got " + keyPair.keyPairType)
 				}
-				decryptedBytes = await this.pq.decapsulateEncoded(pubEncSessionKey, keyPair)
+				decryptedBytes = (await this.pq.decapsulateEncoded(pubEncSessionKey, keyPair)).decryptedSymKey
 				break
 			}
 			default:
