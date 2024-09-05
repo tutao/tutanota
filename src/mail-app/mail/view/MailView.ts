@@ -661,12 +661,18 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					}),
 				)
 				this.viewSlider.focus(this.mailColumn)
+			} else {
+				this.showMail(args)
 			}
 		} else {
-			this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
-			if (styles.isSingleColumnLayout() && !args.mailId && this.viewSlider.focusedColumn === this.mailColumn) {
-				this.viewSlider.focus(this.listColumn)
-			}
+			this.showMail(args)
+		}
+	}
+
+	private showMail(args: Record<string, any>) {
+		this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
+		if (styles.isSingleColumnLayout() && !args.mailId && this.viewSlider.focusedColumn === this.mailColumn) {
+			this.viewSlider.focus(this.listColumn)
 		}
 	}
 
