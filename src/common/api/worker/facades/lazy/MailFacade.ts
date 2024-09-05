@@ -1,5 +1,4 @@
-import type { CryptoFacade, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString } from "../../crypto/CryptoFacade.js"
+import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	DraftService,
 	ExternalUserService,
@@ -134,6 +133,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>

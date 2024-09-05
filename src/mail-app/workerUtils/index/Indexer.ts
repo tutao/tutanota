@@ -60,11 +60,11 @@ import {
 	aes256EncryptSearchIndexEntry,
 	aes256RandomKey,
 	AesKey,
+	BitArray,
 	decryptKey,
 	IV_BYTE_LENGTH,
 	random,
 	unauthenticatedAesDecrypt,
-	BitArray,
 } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../../../common/api/worker/facades/LoginFacade.js"
@@ -81,9 +81,9 @@ import {
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 
 export type InitParams = {
 	user: User

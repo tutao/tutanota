@@ -1,5 +1,5 @@
 import { addParamsToUrl, isSuspensionResponse, RestClient } from "../../rest/RestClient.js"
-import { CryptoFacade, encryptBytes } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { clear, concat, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
@@ -22,6 +22,7 @@ import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.
 import { BlobAccessTokenFacade, BlobReferencingInstance } from "../BlobAccessTokenFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { SomeEntity } from "../../../common/EntityTypes.js"
+import { encryptBytes } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`

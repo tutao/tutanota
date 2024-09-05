@@ -16,7 +16,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper"
-import { CryptoFacade, encryptString } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/common/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { ChangeKdfService, SaltService, SessionService } from "../../../../../src/common/api/entities/sys/Services"
@@ -35,6 +35,7 @@ import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Arg
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
+import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 
 const { anything, argThat } = matchers
 

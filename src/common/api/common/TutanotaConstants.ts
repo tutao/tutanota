@@ -1190,6 +1190,13 @@ export enum CryptoProtocolVersion {
 	TUTA_CRYPT = "2", // hybrid PQ protocol (Kyber + x25519)
 }
 
+export function asCryptoProtoocolVersion(maybe: NumberString): CryptoProtocolVersion {
+	if (Object.values(CryptoProtocolVersion).includes(maybe as CryptoProtocolVersion)) {
+		return maybe as CryptoProtocolVersion
+	}
+	throw new Error("bad protocol version")
+}
+
 export enum GroupKeyRotationType {
 	User = "0",
 	AdminGroupKeyRotationSingleUserAccount = "1", // scheduled for accounts that only have one user (incl. deactivated users)

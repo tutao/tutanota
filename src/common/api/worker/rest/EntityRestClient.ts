@@ -1,5 +1,5 @@
 import type { RestClient } from "./RestClient"
-import type { CryptoFacade, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoFacade"
+import type { CryptoFacade } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
@@ -28,6 +28,7 @@ import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
+import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 

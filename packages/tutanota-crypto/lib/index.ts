@@ -46,6 +46,9 @@ export {
 export { KeyLength, EntropySource } from "./misc/Constants.js"
 export {
 	EncryptedKeyPairs,
+	EncryptedPqKeyPairs,
+	EncryptedRsaKeyPairs,
+	EncryptedRsaEccKeyPairs,
 	encryptKey,
 	decryptKey,
 	encryptRsaKey,

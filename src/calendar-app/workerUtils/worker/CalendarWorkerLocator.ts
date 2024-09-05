@@ -65,13 +65,14 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { cryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
+import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { CryptoWrapperImpl } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
@@ -209,17 +210,19 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
+	const cryptoWrapper = new CryptoWrapperImpl()
+
+	const asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, cryptoWrapper, locator.serviceExecutor)
 	locator.crypto = new CryptoFacade(
 		locator.user,
 		locator.cachingEntityClient,
 		locator.restClient,
-		locator.rsa,
 		locator.serviceExecutor,
 		locator.instanceMapper,
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
-		locator.pqFacade,
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
+		asymmetricCrypto,
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
@@ -244,6 +247,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.pqFacade,
 			locator.keyLoader,
 			await locator.cacheManagement(),
+			asymmetricCrypto,
+			cryptoWrapper,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -257,6 +262,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.crypto,
 		locator.share,
 		locator.groupManagement,
+		asymmetricCrypto,
 	)
 
 	const loginListener: LoginListener = {
@@ -338,6 +344,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.pqFacade,
 			locator.keyLoader,
 			await locator.recoverCode(),
+			asymmetricCrypto,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
