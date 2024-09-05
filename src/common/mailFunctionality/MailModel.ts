@@ -24,7 +24,7 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { InboxRuleHandler } from "../../mail-app/mail/model/InboxRuleHandler.js"
-import { assertNotNull, first, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	FeatureType,
 	MailReportType,
@@ -382,32 +382,40 @@ export class MailModel {
 			) {
 				if (this.inboxRuleHandler && this.connectivityModel) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
-					const mail = await this.entityClient.load(MailTypeRef, mailId)
-					const folder = this.getMailFolderForMail(mail)
+					try {
+						const mail = await this.entityClient.load(MailTypeRef, mailId)
+						const folder = this.getMailFolderForMail(mail)
 
-					if (folder && folder.folderType === MailSetKind.INBOX) {
-						// If we don't find another delete operation on this email in the batch, then it should be a create operation,
-						// otherwise it's a move
-						await this.getMailboxDetailsForMail(mail)
-							.then((mailboxDetail) => {
-								// We only apply rules on server if we are the leader in case of incoming messages
-								return (
-									mailboxDetail &&
-									this.inboxRuleHandler?.findAndApplyMatchingRule(
-										mailboxDetail,
-										mail,
-										this.connectivityModel ? this.connectivityModel.isLeader() : false,
+						if (folder && folder.folderType === MailSetKind.INBOX) {
+							// If we don't find another delete operation on this email in the batch, then it should be a create operation,
+							// otherwise it's a move
+							await this.getMailboxDetailsForMail(mail)
+								.then((mailboxDetail) => {
+									// We only apply rules on server if we are the leader in case of incoming messages
+									return (
+										mailboxDetail &&
+										this.inboxRuleHandler?.findAndApplyMatchingRule(
+											mailboxDetail,
+											mail,
+											this.connectivityModel ? this.connectivityModel.isLeader() : false,
+										)
 									)
-								)
-							})
-							.then((newFolderAndMail) => {
-								if (newFolderAndMail) {
-									this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
-								} else {
-									this._showNotification(folder, mail)
-								}
-							})
-							.catch(noOp)
+								})
+								.then((newFolderAndMail) => {
+									if (newFolderAndMail) {
+										this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
+									} else {
+										this._showNotification(folder, mail)
+									}
+								})
+								.catch(noOp)
+						}
+					} catch (e) {
+						if (e instanceof NotFoundError) {
+							console.log(`Could not find updated mail ${JSON.stringify(mailId)}`)
+						} else {
+							throw e
+						}
 					}
 				}
 			}
