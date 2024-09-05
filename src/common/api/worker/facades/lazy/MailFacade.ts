@@ -825,11 +825,18 @@ export class MailFacade {
 				isSameTypeRefByAttr(MailTypeRef, update.application, update.type) &&
 				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
 			) {
-				return this.entityClient.load(MailTypeRef, this.deferredDraftId).then((mail) => {
-					const deferredPromiseWrapper = assertNotNull(this.deferredDraftUpdate, "deferredDraftUpdate went away?")
-					this.deferredDraftUpdate = null
-					deferredPromiseWrapper.resolve(mail)
-				})
+				return this.entityClient
+					.load(MailTypeRef, this.deferredDraftId)
+					.then((mail) => {
+						const deferredPromiseWrapper = assertNotNull(this.deferredDraftUpdate, "deferredDraftUpdate went away?")
+						this.deferredDraftUpdate = null
+						deferredPromiseWrapper.resolve(mail)
+					})
+					.catch(
+						ofClass(NotFoundError, () => {
+							console.log(`Could not find updated mail ${JSON.stringify([update.instanceListId, update.instanceId])}`)
+						}),
+					)
 			}
 		}).then(noOp)
 	}

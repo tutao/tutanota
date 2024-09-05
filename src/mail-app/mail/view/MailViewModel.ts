@@ -351,7 +351,12 @@ export class MailViewModel {
 				return { complete, items }
 			},
 			loadSingle: async (listId: Id, elementId: Id): Promise<Mail | null> => {
-				return this.entityClient.load(MailTypeRef, [listId, elementId])
+				return this.entityClient.load(MailTypeRef, [listId, elementId]).catch(
+					ofClass(NotFoundError, () => {
+						console.log(`Could not find updated mail ${JSON.stringify([listId, elementId])}`)
+						return null
+					}),
+				)
 			},
 			sortCompare: (firstMail, secondMail): number =>
 				assertNotNull(this._folder).isMailSet ? sortCompareMailSetMails(firstMail, secondMail) : sortCompareByReverseId(firstMail, secondMail),
@@ -494,9 +499,17 @@ export class MailViewModel {
 			// We download the email (it should already be downloaded by MailModel for inbox rules) and check if it's still in
 			// our folder.
 			// If it is, we dispatch the update event for the mail.
-			const mail = await this.entityClient.load(MailTypeRef, [mailEvent.instanceListId, mailEvent.instanceId])
-			if (mail.sets.some((id) => isSameId(elementIdPart(id), getElementId(folder)))) {
-				await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, mailEvent.operation)
+			try {
+				const mail = await this.entityClient.load(MailTypeRef, [mailEvent.instanceListId, mailEvent.instanceId])
+				if (mail.sets.some((id) => isSameId(elementIdPart(id), getElementId(folder)))) {
+					await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, mailEvent.operation)
+				}
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+					console.log(`Could not find updated mail ${JSON.stringify([mailEvent.instanceListId, mailEvent.instanceId])}`)
+				} else {
+					throw e
+				}
 			}
 		}
 	}

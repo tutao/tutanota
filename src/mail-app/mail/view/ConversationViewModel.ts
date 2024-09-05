@@ -2,7 +2,7 @@ import { ConversationEntry, ConversationEntryTypeRef, Mail, MailTypeRef } from "
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { elementIdPart, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { assertNotNull, findLastIndex, groupBy, makeSingleUse } from "@tutao/tutanota-utils"
+import { assertNotNull, findLastIndex, groupBy, makeSingleUse, ofClass } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
@@ -129,7 +129,12 @@ export class ConversationViewModel {
 			mail =
 				// ideally checking the `mail` ref should be enough but we sometimes get an update with UNKNOWN and non-existing email but still with the ref
 				conversationEntry.conversationType !== ConversationType.UNKNOWN && conversationEntry.mail
-					? await this.entityClient.load(MailTypeRef, conversationEntry.mail)
+					? await this.entityClient.load(MailTypeRef, conversationEntry.mail).catch(
+							ofClass(NotFoundError, () => {
+								console.log(`Could not find updated mail ${JSON.stringify(conversationEntry.mail)}`)
+								return null
+							}),
+					  )
 					: null
 		} catch (e) {
 			if (e instanceof NotFoundError) {

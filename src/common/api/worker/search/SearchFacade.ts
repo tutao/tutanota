@@ -12,6 +12,7 @@ import {
 	isNotNull,
 	isSameTypeRef,
 	neverNull,
+	ofClass,
 	promiseMap,
 	promiseMapCompat,
 	PromiseMapFn,
@@ -663,9 +664,17 @@ export class SearchFacade {
 					// With the new mailSet architecture (static mail lists) we need to load every mail
 					// in order to check in which mailSet (folder) a mail is included in.
 					const mails = await Promise.all(
-						intermediateResults.map((intermediateResultId) => this._entityClient.load(MailTypeRef, intermediateResultId)),
+						intermediateResults.map((intermediateResultId) =>
+							this._entityClient.load(MailTypeRef, intermediateResultId).catch(
+								ofClass(NotFoundError, () => {
+									console.log(`Could not find updated mail ${JSON.stringify(intermediateResultId)}`)
+									return null
+								}),
+							),
+						),
 					)
 					return mails
+						.filter(isNotNull)
 						.filter((mail) => {
 							let folderIds: Array<Id>
 							if (isNotEmpty(mail.sets)) {
