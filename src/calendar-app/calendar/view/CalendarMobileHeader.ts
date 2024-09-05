@@ -20,6 +20,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { client } from "../../../common/misc/ClientDetector.js"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -67,7 +68,13 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					click: attrs.onToday,
 				}),
 				this.renderViewSelector(attrs),
-				this.renderSearchNavigationButton(),
+				client.isCalendarApp()
+					? this.renderSearchNavigationButton()
+					: m(IconButton, {
+							icon: Icons.Add,
+							title: "newEvent_action",
+							click: attrs.onCreateEvent,
+					  }),
 			],
 			injections: m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
 		})
