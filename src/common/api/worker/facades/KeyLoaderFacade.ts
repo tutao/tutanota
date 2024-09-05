@@ -5,11 +5,11 @@ import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
-import { VersionedKey } from "../crypto/CryptoFacade.js"
 import { KeyCache } from "./KeyCache.js"
 import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { VersionedKey } from "../crypto/CryptoWrapper.js"
 
 /**
  * Load symmetric and asymmetric keys and decrypt them.

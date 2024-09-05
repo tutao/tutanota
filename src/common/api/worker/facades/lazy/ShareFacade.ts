@@ -1,5 +1,4 @@
-import type { CryptoFacade, VersionedKey } from "../../crypto/CryptoFacade.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString } from "../../crypto/CryptoFacade.js"
+import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import type { GroupInfo, ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef } from "../../../entities/sys/TypeRefs.js"
 import type { ShareCapability } from "../../../common/TutanotaConstants.js"
@@ -20,6 +19,7 @@ import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 

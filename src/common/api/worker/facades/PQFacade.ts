@@ -24,7 +24,7 @@ import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
 
 export type DecapsulatedSymKey = {
 	senderIdentityPubKey: EccPublicKey
-	decryptedSymKey: Uint8Array
+	decryptedSymKeyBytes: Uint8Array
 }
 
 export class PQFacade {
@@ -84,7 +84,7 @@ export class PQFacade {
 
 	public async decapsulateEncoded(encodedPQMessage: Uint8Array, recipientKeys: PQKeyPairs): Promise<DecapsulatedSymKey> {
 		const decoded = decodePQMessage(encodedPQMessage)
-		return { decryptedSymKey: await this.decapsulate(decoded, recipientKeys), senderIdentityPubKey: decoded.senderIdentityPubKey }
+		return { decryptedSymKeyBytes: await this.decapsulate(decoded, recipientKeys), senderIdentityPubKey: decoded.senderIdentityPubKey }
 	}
 
 	/**

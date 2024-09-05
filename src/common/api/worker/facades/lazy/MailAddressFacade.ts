@@ -28,7 +28,8 @@ import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/Group
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
-import { VersionedKey } from "../../crypto/CryptoFacade.js"
+
+import { VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 

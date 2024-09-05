@@ -81,7 +81,7 @@ import {
 	TotpVerifier,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
-import { CryptoFacade, encryptString } from "../crypto/CryptoFacade"
+import { CryptoFacade } from "../crypto/CryptoFacade"
 import { InstanceMapper } from "../crypto/InstanceMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
@@ -97,6 +97,7 @@ import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
 import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
+import { encryptString } from "../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 

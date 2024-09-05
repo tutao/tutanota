@@ -68,9 +68,9 @@ import {
 	SearchTermSuggestionsOS,
 } from "./IndexTables.js"
 import { MailFacade } from "../facades/lazy/MailFacade.js"
-import { encryptKeyWithVersionedKey, VersionedKey } from "../crypto/CryptoFacade.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../facades/lazy/ConfigurationDatabase.js"
+import { encryptKeyWithVersionedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 
 export type InitParams = {
 	user: User

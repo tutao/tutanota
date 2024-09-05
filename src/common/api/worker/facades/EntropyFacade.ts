@@ -1,12 +1,12 @@
 import { authenticatedAesDecrypt, EntropySource, random, Randomizer } from "@tutao/tutanota-crypto"
 import { UserFacade } from "./UserFacade.js"
 import { createEntropyData, TutanotaProperties } from "../../entities/tutanota/TypeRefs.js"
-import { encryptBytes } from "../crypto/CryptoFacade.js"
 import { EntropyService } from "../../entities/tutanota/Services.js"
 import { lazy, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
+import { encryptBytes } from "../crypto/CryptoWrapper.js"
 
 export interface EntropyDataChunk {
 	source: EntropySource

@@ -313,7 +313,7 @@ o.spec("crypto compatibility", function () {
 			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
 
 			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
-			o(decapsulation.decryptedSymKey).deepEquals(bucketKey)
+			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
 			o(decapsulation.senderIdentityPubKey).deepEquals(eccKeyPair.publicKey)
 		}
 	})
@@ -352,7 +352,7 @@ o.spec("crypto compatibility", function () {
 			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
 
 			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
-			o(decapsulation.decryptedSymKey).deepEquals(bucketKey)
+			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
 			o(decapsulation.senderIdentityPubKey).deepEquals(eccKeyPair.publicKey)
 		}
 	})

@@ -11,11 +11,10 @@ import {
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
-	uint8ArrayToHex,
-	Versioned,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
+	asCryptoProtoocolVersion,
 	assertEnumValue,
 	BucketPermissionType,
 	CryptoProtocolVersion,
@@ -32,7 +31,6 @@ import {
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
 	createPublicKeyGetIn,
-	createPublicKeyPutIn,
 	createUpdatePermissionKeyData,
 	GroupInfoTypeRef,
 	GroupTypeRef,
@@ -61,38 +59,8 @@ import type { Entity, Instance, SomeEntity, TypeModel } from "../../common/Entit
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
-import {
-	Aes256Key,
-	aes256RandomKey,
-	aesEncrypt,
-	AesKey,
-	AsymmetricKeyPair,
-	AsymmetricPublicKey,
-	bitArrayToUint8Array,
-	bytesToKyberPublicKey,
-	decryptKey,
-	EccKeyPair,
-	EccPublicKey,
-	ENABLE_MAC,
-	encryptEccKey,
-	encryptKey,
-	generateEccKeyPair,
-	hexToRsaPublicKey,
-	isPqKeyPairs,
-	isPqPublicKey,
-	isRsaEccKeyPair,
-	isRsaOrRsaEccKeyPair,
-	isRsaPublicKey,
-	IV_BYTE_LENGTH,
-	KeyPairType,
-	PQPublicKeys,
-	random,
-	RsaPrivateKey,
-	sha256Hash,
-	uint8ArrayToBitArray,
-} from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, aesEncrypt, AesKey, bitArrayToUint8Array, decryptKey, EccPublicKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
-import type { RsaImplementation } from "./RsaImplementation"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { PublicKeyService, UpdatePermissionKeyService } from "../../entities/sys/Services"
@@ -100,58 +68,25 @@ import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
-import { PQFacade } from "../facades/PQFacade.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
+import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "./AsymmetricCryptoFacade.js"
 
 assertWorkerOrNode()
-
-export function encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
-	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
-}
-
-export function encryptString(sk: AesKey, value: string): Uint8Array {
-	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
-}
 
 export type PubEncSymKey = {
 	pubEncSymKeyBytes: Uint8Array
 	cryptoProtocolVersion: CryptoProtocolVersion
-	senderKeyVersion: NumberString | null
-	recipientKeyVersion: NumberString
+	senderKeyVersion: number | null
+	recipientKeyVersion: number
 }
 
 export type PublicKeys = {
 	pubRsaKey: null | Uint8Array
 	pubEccKey: null | Uint8Array
 	pubKyberKey: null | Uint8Array
-}
-
-/**
- * An AesKey (usually a group key) and its version.
- */
-export type VersionedKey = Versioned<AesKey>
-
-/**
- * A key that is encrypted with a given version of some other key.
- */
-export type VersionedEncryptedKey = {
-	encryptingKeyVersion: number // the version of the encryption key NOT the encrypted key
-	key: Uint8Array // encrypted key
-}
-
-/**
- * Encrypts the key with the encryptingKey and return the encrypted key and the version of the encryptingKey.
- * @param encryptingKey the encrypting key.
- * @param key the key to be encrypted.
- */
-export function encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
-	return {
-		encryptingKeyVersion: encryptingKey.version,
-		key: encryptKey(encryptingKey.object, key),
-	}
 }
 
 // Unmapped encrypted owner group instance
@@ -171,13 +106,12 @@ export class CryptoFacade {
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly restClient: RestClient,
-		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
-		private readonly pq: PQFacade,
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 	) {}
 
 	async applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
@@ -317,18 +251,19 @@ export class CryptoFacade {
 
 	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
-		let decBucketKey: AesKey
+		let decryptedBucketKey: AesKey
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: EccPublicKey | null = null
 		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
-			const { decryptedBucketKey, pqMessageSenderIdentityPubKey } = await this.decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
+			const { decryptedAesKey, senderIdentityPubKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
 				bucketKey.keyGroup,
-				bucketKey.pubEncBucketKey,
 				Number(bucketKey.recipientKeyVersion),
+				asCryptoProtoocolVersion(bucketKey.protocolVersion),
+				bucketKey.pubEncBucketKey,
 			)
-			decBucketKey = decryptedBucketKey
-			pqMessageSenderKey = pqMessageSenderIdentityPubKey
+			decryptedBucketKey = decryptedAesKey
+			pqMessageSenderKey = senderIdentityPubKey
 		} else if (bucketKey.groupEncBucketKey) {
 			// received as secure external recipient or reply from secure external sender
 			let keyGroup
@@ -342,14 +277,14 @@ export class CryptoFacade {
 				keyGroup = neverNull(instance._ownerGroup)
 			}
 
-			decBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
+			decryptedBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
 			unencryptedSenderAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
 		}
 		const resolvedSessionKeys = await this.collectAllInstanceSessionKeysAndAuthenticate(
 			bucketKey,
-			decBucketKey,
+			decryptedBucketKey,
 			instanceElementId,
 			instance,
 			typeModel,
@@ -648,38 +583,6 @@ export class CryptoFacade {
 		return decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
 	}
 
-	private async decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
-		keyPairGroupId: Id,
-		pubEncBucketKey: Uint8Array,
-		recipientKeyVersion: number,
-	): Promise<{
-		decryptedBucketKey: AesKey
-		pqMessageSenderIdentityPubKey: EccPublicKey | null
-	}> {
-		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(keyPairGroupId, recipientKeyVersion)
-		return await this.decryptSymKeyWithKeyPair(keyPair, pubEncBucketKey)
-	}
-
-	async decryptSymKeyWithKeyPair(keyPair: AsymmetricKeyPair, pubEncBucketKey: Uint8Array) {
-		const algo = keyPair.keyPairType
-		if (isPqKeyPairs(keyPair)) {
-			const decryptedBucketKey = await this.pq.decapsulateEncoded(pubEncBucketKey, keyPair)
-			return {
-				decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey.decryptedSymKey),
-				pqMessageSenderIdentityPubKey: decryptedBucketKey.senderIdentityPubKey,
-			}
-		} else if (isRsaOrRsaEccKeyPair(keyPair)) {
-			const privateKey: RsaPrivateKey = keyPair.privateKey
-			const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncBucketKey)
-			return {
-				decryptedBucketKey: uint8ArrayToBitArray(decryptedBucketKey),
-				pqMessageSenderIdentityPubKey: null,
-			}
-		} else {
-			throw new CryptoError("unknown key pair type: " + algo)
-		}
-	}
-
 	private async decryptWithPublicBucket(
 		bucketPermission: BucketPermission,
 		instance: Record<string, any>,
@@ -699,13 +602,14 @@ export class CryptoFacade {
 			)
 		}
 
-		const { decryptedBucketKey } = await this.decryptBucketKeyWithKeyPairOfGroupAndPrepareAuthentication(
+		const { decryptedAesKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
 			bucketPermission.group,
-			pubEncBucketKey,
 			Number(bucketPermission.pubKeyVersion ?? 0),
+			asCryptoProtoocolVersion(bucketPermission.protocolVersion),
+			pubEncBucketKey,
 		)
 
-		const sk = decryptKey(decryptedBucketKey, bucketEncSessionKey)
+		const sk = decryptKey(decryptedAesKey, bucketEncSessionKey)
 
 		if (bucketPermission._ownerGroup) {
 			// is not defined for some old AccountingInfos
@@ -731,95 +635,15 @@ export class CryptoFacade {
 			// we assume the server uses the current key pair of the recipient
 			const keypair = await this.keyLoaderFacade.loadCurrentKeyPair(instance._ownerGroup)
 			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
-			return this.unauthenticatedDecryptPubEncSessionKey(
-				base64ToUint8Array(instance._ownerPublicEncSessionKey),
-				assertEnumValue(CryptoProtocolVersion, instance._publicCryptoProtocolVersion),
-				keypair.object,
-			)
+			return (
+				await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
+					keypair.object,
+					assertEnumValue(CryptoProtocolVersion, instance._publicCryptoProtocolVersion),
+					base64ToUint8Array(instance._ownerPublicEncSessionKey),
+				)
+			).decryptedAesKey
 		}
 		return null
-	}
-
-	async encryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
-		let pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion
-		const recipientPublicKey = this.getRecipientPublicKey(recipientPublicKeys.object)
-		const algo = recipientPublicKey.keyPairType
-		let senderKeyVersion: NumberString | null
-		if (isPqPublicKey(recipientPublicKey)) {
-			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
-			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
-			;({ pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion } = await this.pqEncryptPubSymKeyImpl(recipientPublicKey, symKey, {
-				object: senderEccKeyPair,
-				version: senderKeyPair.version,
-			}))
-		} else if (isRsaPublicKey(recipientPublicKey)) {
-			pubEncSymKeyBytes = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
-			cryptoProtocolVersion = CryptoProtocolVersion.RSA
-			senderKeyVersion = null
-		} else {
-			throw new CryptoError("unknown public key type: " + algo)
-		}
-		return { pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion, recipientKeyVersion: String(recipientPublicKeys.version) }
-	}
-
-	/**
-	 *
-	 * @param symKey the key to be encrypted
-	 * @param recipientPublicKeys MUST be a pq key pair
-	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
-	 */
-	async pqEncryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
-		const recipientPublicKey = this.getRecipientPublicKey(recipientPublicKeys.object)
-		if (!isPqPublicKey(recipientPublicKey)) {
-			throw new ProgrammingError("the recipient does not have pq key pairs")
-		}
-		const { pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion } = await this.pqEncryptPubSymKeyImpl(recipientPublicKey, symKey, senderEccKeyPair)
-		return { pubEncSymKeyBytes, cryptoProtocolVersion, senderKeyVersion, recipientKeyVersion: String(recipientPublicKeys.version) }
-	}
-
-	private async pqEncryptPubSymKeyImpl(recipientPublicKey: PQPublicKeys, symKey: AesKey, senderEccKeyPair: Versioned<EccKeyPair>) {
-		const ephemeralKeyPair = generateEccKeyPair()
-		const pubEncSymKeyBytes = await this.pq.encapsulateAndEncode(
-			senderEccKeyPair.object,
-			ephemeralKeyPair,
-			recipientPublicKey,
-			bitArrayToUint8Array(symKey),
-		)
-		const senderKeyVersion = senderEccKeyPair.version.toString()
-		return { pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT, senderKeyVersion }
-	}
-
-	/**
-	 * Decrypts the pubEncSymKey with the keyPair.
-	 * @param pubEncSessionKey the asymmetrically encrypted session key
-	 * @param cryptoProtocolVersion asymmetric protocol to decrypt pubEncSessionKey (RSA or TutaCrypt)
-	 * @param keyPair the current keyPair
-	 */
-	async unauthenticatedDecryptPubEncSessionKey(
-		pubEncSessionKey: Uint8Array,
-		cryptoProtocolVersion: CryptoProtocolVersion,
-		keyPair: AsymmetricKeyPair,
-	): Promise<Aes256Key> {
-		let decryptedBytes: Uint8Array
-		switch (cryptoProtocolVersion) {
-			case CryptoProtocolVersion.RSA: {
-				if (!isRsaOrRsaEccKeyPair(keyPair)) {
-					throw new CryptoError("wrong key type. expecte rsa. got " + keyPair.keyPairType)
-				}
-				decryptedBytes = await this.rsa.decrypt(keyPair.privateKey, pubEncSessionKey)
-				break
-			}
-			case CryptoProtocolVersion.TUTA_CRYPT: {
-				if (!isPqKeyPairs(keyPair)) {
-					throw new CryptoError("wrong key type. expected tuta-crypt. got " + keyPair.keyPairType)
-				}
-				decryptedBytes = (await this.pq.decapsulateEncoded(pubEncSessionKey, keyPair)).decryptedSymKey
-				break
-			}
-			default:
-				throw new CryptoError("invalid cryptoProtocolVersion: " + cryptoProtocolVersion)
-		}
-		return uint8ArrayToBitArray(decryptedBytes)
 	}
 
 	/**
@@ -886,20 +710,13 @@ export class CryptoFacade {
 	}
 
 	private async createPubEncInternalRecipientKeyData(bucketKey: AesKey, recipientMailAddress: string, publicKeyGetOut: PublicKeyGetOut, senderGroupId: Id) {
-		const recipientPublicKeys: Versioned<PublicKeys> = {
-			object: {
-				pubRsaKey: publicKeyGetOut.pubRsaKey,
-				pubKyberKey: publicKeyGetOut.pubKyberKey,
-				pubEccKey: publicKeyGetOut.pubEccKey,
-			},
-			version: Number(publicKeyGetOut.pubKeyVersion),
-		}
-		const pubEncBucketKey = await this.encryptPubSymKey(bucketKey, recipientPublicKeys, senderGroupId)
+		const recipientPublicKeys = convertToVersionedPublicKeys(publicKeyGetOut)
+		const pubEncBucketKey = await this.asymmetricCryptoFacade.encryptPubSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,
 			pubEncBucketKey: pubEncBucketKey.pubEncSymKeyBytes,
-			recipientKeyVersion: pubEncBucketKey.recipientKeyVersion,
-			senderKeyVersion: pubEncBucketKey.senderKeyVersion,
+			recipientKeyVersion: pubEncBucketKey.recipientKeyVersion.toString(),
+			senderKeyVersion: pubEncBucketKey.senderKeyVersion != null ? pubEncBucketKey.senderKeyVersion.toString() : null,
 			protocolVersion: pubEncBucketKey.cryptoProtocolVersion,
 		})
 	}
@@ -913,32 +730,6 @@ export class CryptoFacade {
 			keyGroup,
 			symKeyVersion: String(externalMailGroupKey.version),
 		})
-	}
-
-	/**
-	 * Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,
-	 * or creates a new one and writes it to the respective Group.
-	 * @param senderKeyPair
-	 * @param keyGroupId Id for the Group that Public Key Service might write a new IdentityKeyPair for.
-	 * 						This is necessary as a User might send an E-Mail from a shared mailbox,
-	 * 						for which the KeyPair should be created.
-	 */
-	async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<EccKeyPair> {
-		const algo = senderKeyPair.keyPairType
-		if (isPqKeyPairs(senderKeyPair)) {
-			return senderKeyPair.eccKeyPair
-		} else if (isRsaEccKeyPair(senderKeyPair)) {
-			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
-		} else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
-			const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
-			const newIdentityKeyPair = generateEccKeyPair()
-			const symEncPrivEccKey = encryptEccKey(symGroupKey.object, newIdentityKeyPair.privateKey)
-			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
-			await this.serviceExecutor.put(PublicKeyService, data)
-			return newIdentityKeyPair
-		} else {
-			throw new CryptoError("unknow key pair type: " + algo)
-		}
 	}
 
 	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
@@ -1052,19 +843,6 @@ export class CryptoFacade {
 		} else {
 			const idTuple = instance._id as IdTuple
 			return elementIdPart(idTuple)
-		}
-	}
-
-	private getRecipientPublicKey(publicKeys: PublicKeys): AsymmetricPublicKey {
-		if (publicKeys.pubRsaKey) {
-			// we ignore ecc keys as this is only used for the recipient keys
-			return hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
-		} else if (publicKeys.pubKyberKey && publicKeys.pubEccKey) {
-			var eccPublicKey = publicKeys.pubEccKey
-			var kyberPublicKey = bytesToKyberPublicKey(publicKeys.pubKyberKey)
-			return { keyPairType: KeyPairType.TUTA_CRYPT, eccPublicKey, kyberPublicKey }
-		} else {
-			throw new Error("Inconsistent Keypair")
 		}
 	}
 }

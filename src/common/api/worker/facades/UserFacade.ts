@@ -4,9 +4,9 @@ import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
-import { VersionedKey } from "../crypto/CryptoFacade.js"
 import { isSameId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
+import { VersionedKey } from "../crypto/CryptoWrapper.js"
 
 export interface AuthDataProvider {
 	/**

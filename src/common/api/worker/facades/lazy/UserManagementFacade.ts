@@ -1,6 +1,5 @@
 import { AccountType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
 import { createMembershipAddData, createResetPasswordPostIn, createUserDataDelete, GroupTypeRef, User } from "../../../entities/sys/TypeRefs.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoFacade.js"
 import { getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
@@ -8,7 +7,7 @@ import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { aes256RandomKey, AesKey, createAuthVerifier, decryptKey, encryptKey, generateRandomSalt, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey, createAuthVerifier, encryptKey, generateRandomSalt, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { MembershipService, ResetPasswordService, SystemKeysService, UserService } from "../../../entities/sys/Services.js"
@@ -19,6 +18,7 @@ import { PQFacade } from "../PQFacade.js"
 import { freshVersioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade, RecoverData } from "./RecoverCodeFacade.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
@@ -56,11 +56,8 @@ export class UserManagementFacade {
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-
 		const userGroup = await this.entityClient.load(GroupTypeRef, user.userGroup.group)
-		const requiredAdminKeyVersion = Number(userGroup.adminGroupKeyVersion ?? 0)
-		const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(adminGroupId, requiredAdminKeyVersion)
-		const userGroupKey = { object: decryptKey(requiredAdminGroupKey, neverNull(userGroup.adminGroupEncGKey)), version: Number(userGroup.groupKeyVersion) }
+		const userGroupKey = await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(userGroup._id)
 
 		if (admin) {
 			await this.groupManagement.addUserToGroup(user, adminGroupId)

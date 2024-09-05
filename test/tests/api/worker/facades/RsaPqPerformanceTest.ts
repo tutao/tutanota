@@ -52,7 +52,7 @@ o.spec("RsaPqPerformanceTest", function () {
 
 			let decryptedBucketKey
 			for (let i = 0; i < iterations; i++) {
-				decryptedBucketKey = (await pqFacade.decapsulateEncoded(pubEncBucketKey, recipientKeys)).decryptedSymKey
+				decryptedBucketKey = (await pqFacade.decapsulateEncoded(pubEncBucketKey, recipientKeys)).decryptedSymKeyBytes
 			}
 			end = window.performance.now()
 			console.log(formatNumber((end - start) / iterations) + "ms per pq decryption")

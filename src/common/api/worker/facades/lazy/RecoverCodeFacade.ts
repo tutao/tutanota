@@ -1,6 +1,5 @@
 import { asKdfType } from "../../../common/TutanotaConstants.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "../../../entities/sys/TypeRefs.js"
-import { VersionedKey } from "../../crypto/CryptoFacade.js"
 import { assertNotNull, type Hex, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { LoginFacade } from "../LoginFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
@@ -17,6 +16,7 @@ import {
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
