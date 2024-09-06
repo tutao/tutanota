@@ -265,6 +265,7 @@ export class CalendarFacade {
 	async updateCalendarEvent(event: CalendarEvent, newAlarms: ReadonlyArray<AlarmInfoTemplate>, existingEvent: CalendarEvent): Promise<void> {
 		event._id = existingEvent._id
 		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
+		event._ownerKeyVersion = existingEvent._ownerKeyVersion
 		event._permissions = existingEvent._permissions
 		if (existingEvent.uid == null) throw new Error("no uid set on the existing event")
 		event.uid = existingEvent.uid
