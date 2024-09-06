@@ -12,6 +12,7 @@ import {
 	aesEncrypt,
 	AesKey,
 	base64ToKey,
+	BitArray,
 	decryptKey,
 	random,
 	uint8ArrayToKey,

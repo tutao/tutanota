@@ -43,7 +43,16 @@ import { InvalidDatabaseStateError } from "../../common/error/InvalidDatabaseSta
 import { LocalTimeDateProvider } from "../DateProvider"
 import { EntityClient } from "../../common/EntityClient"
 import { deleteObjectStores } from "../utils/DbUtils"
-import { aes256EncryptSearchIndexEntry, aes256RandomKey, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import {
+	aes256EncryptSearchIndexEntry,
+	aes256RandomKey,
+	AesKey,
+	decryptKey,
+	IV_BYTE_LENGTH,
+	random,
+	unauthenticatedAesDecrypt,
+	BitArray,
+} from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../gui/InfoMessageHandler.js"

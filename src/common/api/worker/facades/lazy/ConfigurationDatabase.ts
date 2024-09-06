@@ -2,7 +2,17 @@ import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, isSameTypeRefByAttr, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule, OperationType } from "../../../common/TutanotaConstants.js"
-import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import {
+	Aes128Key,
+	Aes256Key,
+	aes256RandomKey,
+	aesEncrypt,
+	AesKey,
+	decryptKey,
+	IV_BYTE_LENGTH,
+	random,
+	unauthenticatedAesDecrypt,
+} from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"

@@ -33,7 +33,7 @@ import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/common/api/worker/search/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
-import { aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 

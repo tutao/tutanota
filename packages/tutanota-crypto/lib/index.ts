@@ -75,6 +75,7 @@ export { sha512Hash } from "./hashes/Sha512.js"
 export { TotpVerifier } from "./misc/TotpVerifier.js"
 export { TotpSecret } from "./misc/TotpVerifier.js"
 export {
+	BitArray,
 	createAuthVerifier,
 	fixedIv,
 	keyToBase64,

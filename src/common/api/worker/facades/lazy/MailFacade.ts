@@ -106,6 +106,7 @@ import { htmlToText } from "../../search/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import {
+	Aes128Key,
 	aes256RandomKey,
 	AesKey,
 	bitArrayToUint8Array,

@@ -9,6 +9,7 @@ import { DesktopCredentialsStorage } from "../db/DesktopCredentialsStorage.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { assertDesktopEncryptionMode, assertSupportedEncryptionMode, DesktopCredentialsMode, SUPPORTED_MODES } from "./CredentialCommons.js"
 import { KeychainEncryption } from "./KeychainEncryption.js"
+import { BitArray } from "@tutao/tutanota-crypto"
 
 /**
  * Native storage will transparently encrypt and decrypt database key and access token during load and store calls.

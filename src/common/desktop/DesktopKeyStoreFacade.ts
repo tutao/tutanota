@@ -2,7 +2,7 @@ import type { SecretStorage } from "./sse/SecretStorage"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { log } from "./DesktopLog"
 import { getFromMap } from "@tutao/tutanota-utils"
-import { base64ToKey, keyToBase64 } from "@tutao/tutanota-crypto"
+import { Aes256Key, base64ToKey, keyToBase64 } from "@tutao/tutanota-crypto"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
 import { CancelledError } from "../api/common/error/CancelledError"
 

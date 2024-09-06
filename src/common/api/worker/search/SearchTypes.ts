@@ -4,6 +4,7 @@ import type { TypeInfo } from "./IndexUtils"
 import type { Base64, lazy } from "@tutao/tutanota-utils"
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { ModelAssociation, ModelValue } from "../../common/EntityTypes"
+import { Aes256Key } from "@tutao/tutanota-crypto"
 // db types
 
 /**

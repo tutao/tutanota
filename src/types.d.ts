@@ -19,15 +19,6 @@ declare type NativeRequestType = "ipc" | "facade"
 /** Requests from native to web */
 declare type JsRequestType = "ipc"
 
-// see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
-// type that is used by sjcl for any encryption/decryption operation
-// TODO these should be exported by tutanota-crypto
-declare type BitArray = number[]
-declare type Aes128Key = BitArray
-declare type Aes256Key = BitArray
-declare type SignedBytes = number[]
-declare type Base32 = string
-
 declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 
