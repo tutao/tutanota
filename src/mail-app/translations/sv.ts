@@ -1092,7 +1092,7 @@ export default {
 		"payPaypalConfirmAgainError_msg": "Betalningstransaktionen misslyckades. Uppdatera och bekräfta dina betalningsuppgifter.",
 		"pending_label": "Väntande",
 		"periodOfTime_label": "Tidsperiod",
-		"permanentAliasWarning_msg": "Det här är en Tuta domän e-postadress som til skillnad från anpassade domän e-postadresser endast kan inaktiveras, inte raderas. Den kommer permanent att räknas mot din e-postadress gräns.",
+		"permanentAliasWarning_msg": "Det här är en Tuta domän e-postadress som till skillnad från anpassade domän e-postadresser endast kan inaktiveras, inte raderas. Den kommer permanent att räknas mot din e-postadress gräns.",
 		"permissions_label": "Behörighet",
 		"phishingMessageBody_msg": "Detta mejlet liknar andra mejl som rapporterats för nätfiske.",
 		"phishingReport_msg": "Innehållet i meddelandet kommer att överföras till servern i okrypterad form så att vi kan förbättra nätfiske- och spamskydd. Vill du rapportera det här mejlet?",
