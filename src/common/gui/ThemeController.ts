@@ -6,11 +6,12 @@ import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
 import type { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
-import { themes } from "./builtinThemes"
+import { logoDefaultGrey, themes } from "./builtinThemes"
 import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
-import { getLogoSvg } from "./base/Logo"
+import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
+import { AppType } from "../misc/ClientConstants.js"
 
 assertMainOrNodeBoot()
 
@@ -24,7 +25,12 @@ export class ThemeController {
 	readonly observableThemeId: Stream<ThemeId>
 	readonly initialized: Promise<any>
 
-	constructor(themeSingleton: {}, private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
+	constructor(
+		themeSingleton: {},
+		private readonly themeFacade: ThemeFacade,
+		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>,
+		private readonly app: AppType,
+	) {
 		// this will be overwritten quickly
 		this._themeId = defaultThemeId
 		this._themePreference = "auto:light|dark"
@@ -237,8 +243,11 @@ export class ThemeController {
 			// This is a whitelabel theme where logo has not been overwritten.
 			// Generate a logo with muted colors. We do not want to color our logo in
 			// some random color.
-			const coloredTutanotaLogo = getLogoSvg(themeWithoutLogo.navigation_menu_icon, themeWithoutLogo.navigation_menu_icon)
-			return { ...themeWithoutLogo, ...{ logo: coloredTutanotaLogo } }
+			const grayedLogo =
+				this.app === AppType.Calendar
+					? getCalendarLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
+					: getMailLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
+			return { ...themeWithoutLogo, ...{ logo: grayedLogo } }
 		}
 	}
 

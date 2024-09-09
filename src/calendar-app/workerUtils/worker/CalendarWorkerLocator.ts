@@ -69,7 +69,7 @@ import { cryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.j
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
-import { CalendarOfflineCleaner } from "../../offline/CalendarOfflineCleaner.js"
+import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 
