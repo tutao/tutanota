@@ -67,6 +67,7 @@ class AlarmNotificationsManagerTest {
 		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
 			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(true)
 	}
 
 	@Test
@@ -137,6 +138,17 @@ class AlarmNotificationsManagerTest {
 		// s - event start, n - now. s+2 is before n+2 so it will occur but s+3 is already too far
 		Mockito.verify(systemAlarmFacade, Mockito.times(2))
 			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
+	}
+
+	@Test
+	fun testNotScheduleAlarmForMailAppWithReceiveCalendarNotificationsFalse() {
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(false)
+		val identifier = "newAlarm"
+		val startDate = Date()
+		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null)
+		manager.scheduleNewAlarms(listOf(alarmNotifications))
+		Mockito.verify(systemAlarmFacade, Mockito.never())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
 	}
 
 	private fun createEncryptedAlarmNotification(

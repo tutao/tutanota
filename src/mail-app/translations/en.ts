@@ -1315,6 +1315,7 @@ export default {
 		"reallySubmitContent_msg": "Do you really want to send the entered data to an external site?",
 		"receiveCalendarNotifications_label": "Receive calendar event notifications",
 		"received_action": "Inbox",
+		"receiveCalendarNotifications_label": "Receive calendar event notifications",
 		"receivingMailboxAlreadyUsed_msg": "The selected receiving mailbox is already used for a different contact form.",
 		"receivingMailbox_label": "Receiving mailbox",
 		"recipients_label": "Recipients",

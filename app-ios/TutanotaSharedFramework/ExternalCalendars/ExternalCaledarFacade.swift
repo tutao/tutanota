@@ -19,7 +19,7 @@ public class ExternalCalendarFacadeImpl: ExternalCalendarFacade {
 		guard let sourceUrl = URL(string: url) else { throw FetchExternalError.URLError("Error while creating the URL") }
 
 		let (data, _) = try await URLSession.shared.data(from: sourceUrl)
-		let str = String(decoding: data, as: UTF8.self)
+		let str = String(data: data, encoding: .utf8) ?? ""
 
 		return str
 	}

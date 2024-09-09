@@ -1289,6 +1289,7 @@ export type TranslationKeyType =
 	| "reallySubmitContent_msg"
 	| "receiveCalendarNotifications_label"
 	| "received_action"
+	| "receiveCalendarNotifications_label"
 	| "receivingMailboxAlreadyUsed_msg"
 	| "receivingMailbox_label"
 	| "recipients_label"

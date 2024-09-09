@@ -58,6 +58,14 @@ class AndroidNativePushFacade(
 		return this.sseStorage.getExtendedNotificationConfig(userId)
 	}
 
+	override suspend fun setReceiveCalendarNotificationConfig(pushIdentifier: String, value: Boolean) {
+		TODO("Calendar App should NOT deal with this config")
+	}
+
+	override suspend fun getReceiveCalendarNotificationConfig(pushIdentifier: String): Boolean {
+		return true
+	}
+
 	override suspend fun removeUser(userId: String) {
 		this.sseStorage.removeUser(userId)
 	}

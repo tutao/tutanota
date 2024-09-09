@@ -1309,6 +1309,7 @@ export default {
 		"reallySubmitContent_msg": "Möchtest du die eingegebenen Daten wirklich an eine externe Seite senden?",
 		"receiveCalendarNotifications_label": "Kalender-Terminerinnerungen anzeigen",
 		"received_action": "Posteingang",
+		"receiveCalendarNotifications_label": "Benachrichtigungen über Kalenderereignisse erhalten",
 		"receivingMailboxAlreadyUsed_msg": "Die empfangende Mailbox wird bereits für ein anderes Kontaktformular verwendet.",
 		"receivingMailbox_label": "Empfangende Mailbox",
 		"recipients_label": "Empfangsadressen",

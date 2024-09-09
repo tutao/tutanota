@@ -280,17 +280,31 @@ import("./translations/en.js")
 				},
 				mailLocator.logins,
 			),
-			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
+			settings: makeViewResolver<
+				SettingsViewAttrs,
+				SettingsView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { SettingsView } = await import("./settings/SettingsView.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: SettingsView,
-							cache: { drawerAttrsFactory, header: await mailLocator.appHeaderAttrs() },
+							cache: {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+							},
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, logins: mailLocator.logins }),
+					prepareAttrs: (cache) => ({
+						drawerAttrs: cache.drawerAttrsFactory(),
+						header: cache.header,
+						logins: mailLocator.logins,
+					}),
 				},
 				mailLocator.logins,
 			),
