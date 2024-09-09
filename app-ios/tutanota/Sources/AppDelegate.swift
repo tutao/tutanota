@@ -157,8 +157,8 @@ import UIKit
 		do { try FileUtils.deleteSharedStorage() } catch { TUTSLog("failed to delete shared storage on shutdown: \(error)") }
 	}
 
-	// everything is handled on the server. nothing to do here (should run infinitely in the background)o
-	private func spawnTransactionFinisher() -> Task<Void, Error> {
+	// everything is handled on the server. nothing to do here (should run infinitely in the background)
+	private func spawnTransactionFinisher() {
 		Task.detached {
 			for await result in Transaction.updates {
 				let transaction = IosMobilePaymentsFacade.checkVerified(result)

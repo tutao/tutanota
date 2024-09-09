@@ -212,12 +212,12 @@ private func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedIt
 }
 
 private func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
-	guard let vcardText = coding as? Data else {
+	guard let vcardData = coding as? Data, let vcardString = String(data: vcardData, encoding: .utf8) else {
 		TUTSLog("could not convert vcard to data: \(String(describing: coding))")
 		return nil
 	}
 
-	return .contact(ident: ident, content: String(decoding: vcardText, as: UTF8.self))
+	return .contact(ident: ident, content: vcardString)
 }
 
 public func getAppGroupName() -> String {
