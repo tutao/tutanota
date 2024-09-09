@@ -502,6 +502,14 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		}
 	}
 
+	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
+		await this.lockRangesDbAccess(listId)
+		await this.deleteRange(typeRef, listId)
+		const { query, params } = sql`DELETE FROM list_entities WHERE listId = ${listId}`
+		await this.sqlCipherFacade.run(query, params)
+		await this.unlockRangesDbAccess(listId)
+	}
+
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
 		let encodedValue
 		try {

@@ -5,7 +5,6 @@ import {
 	EntityRestClientSetupOptions,
 	EntityRestInterface,
 	OwnerEncSessionKeyProvider,
-	OwnerKeyProvider,
 } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
@@ -28,7 +27,14 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventUidIndexTypeRef,
+	Mail,
+	MailDetailsBlobTypeRef,
+	MailFolderTypeRef,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "../../entities/tutanota/TypeRefs.js"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
@@ -203,6 +209,9 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>
+
+	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
+	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>
 
 	/**
 	 * We want to lock the access to the "ranges" db when updating / reading the
@@ -629,17 +638,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
 		const updatesArray = batch.events
 		for (const update of updatesArray) {
+			const typeRef = new TypeRef(update.application, update.type)
+
 			// monitor application is ignored
 			if (update.application === "monitor") continue
 			// mails are ignored because move operations are handled as a special event (and no post multiple is possible)
-			if (
-				update.operation === OperationType.CREATE &&
-				getUpdateInstanceId(update).instanceListId != null &&
-				!isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
-			) {
+			if (update.operation === OperationType.CREATE && getUpdateInstanceId(update).instanceListId != null && !isSameTypeRef(typeRef, MailTypeRef)) {
 				createUpdatesForLETs.push(update)
 			} else {
 				regularUpdates.push(update)
+				await this.checkForMailSetMigration(typeRef, update)
 			}
 		}
 
@@ -858,6 +866,24 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 		return ret
+	}
+
+	/**
+	 * to avoid excessive entity updates and inconsistent offline storages, we don't send entity updates for each mail set migrated mail.
+	 * instead we detect the mail set migration for each folder and drop its whole list from offline.
+	 */
+	private async checkForMailSetMigration(typeRef: TypeRef<unknown>, update: EntityUpdate): Promise<void> {
+		if (update.operation !== OperationType.UPDATE || !isSameTypeRef(typeRef, MailFolderTypeRef)) return
+		// load the old version of the folder now to check if it was migrated to mail set
+		const oldFolder = await this.storage.get(MailFolderTypeRef, update.instanceListId, update.instanceId)
+		// if it already is a mail set, we're done.
+		// we also delete the mails in the case where we don't have the folder itself in the cache.
+		// because we cache after loading the folder, we won't do it again on the next update event.
+		if (oldFolder != null && oldFolder.isMailSet) return
+		const updatedFolder = await this.entityRestClient.load(MailFolderTypeRef, [update.instanceListId, update.instanceId])
+		if (!updatedFolder.isMailSet) return
+		await this.storage.deleteWholeList(MailTypeRef, updatedFolder.mails)
+		await this.storage.put(updatedFolder)
 	}
 }
 

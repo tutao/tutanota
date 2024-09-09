@@ -378,6 +378,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 		this.lastBatchIdPerGroup.delete(owner)
 	}
 
+	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
+		this.lists.get(typeRef.type)?.delete(listId)
+	}
+
 	private deleteAllOwnedByFromCache(cacheForType: Map<Id, ListCache | BlobElementCache>, owner: string) {
 		// If we find at least one element in the list that is owned by our target owner, we delete the entire list.
 		// This is OK in most cases because the vast majority of lists are single owner.

@@ -203,6 +203,33 @@ o.spec("OfflineStorageDb", function () {
 					o(rangeAfter).equals(null)
 				})
 
+				o("deleteWholeList", async function () {
+					const listOne = "listId1"
+					const listTwo = "listId2"
+					await storage.init({ userId: "user", databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					const listOneMailOne = createTestEntity(MailTypeRef, { _id: [listOne, "id1"] })
+					const listOneMailTwo = createTestEntity(MailTypeRef, { _id: [listOne, "id2"] })
+					const listTwoMail = createTestEntity(MailTypeRef, { _id: [listTwo, "id3"] })
+					await storage.put(listOneMailOne)
+					await storage.put(listOneMailTwo)
+					await storage.put(listTwoMail)
+					await storage.setNewRangeForList(MailTypeRef, listOne, "id1", "id2")
+					await storage.setNewRangeForList(MailTypeRef, listTwo, "id3", "id3")
+
+					await storage.deleteWholeList(MailTypeRef, listOne)
+
+					const mailsInListOne = await storage.getWholeList(MailTypeRef, listOne)
+					const mailsInListTwo = await storage.getWholeList(MailTypeRef, listTwo)
+					const rangeListOne = await storage.getRangeForList(MailTypeRef, listOne)
+					const rangeListTwo = await storage.getRangeForList(MailTypeRef, listTwo)
+
+					o(mailsInListOne).deepEquals([])
+					o(mailsInListTwo).deepEquals([listTwoMail])
+					o(rangeListOne).equals(null)
+					o(rangeListTwo).deepEquals({ lower: "id3", upper: "id3" })
+				})
+
 				o("provideMultiple", async function () {
 					const listId = "listId1"
 					const elementId1 = "id1"

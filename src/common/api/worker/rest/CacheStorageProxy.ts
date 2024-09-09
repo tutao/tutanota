@@ -181,6 +181,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.deleteAllOwnedBy(owner)
 	}
 
+	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
+		return this.inner.deleteWholeList(typeRef, listId)
+	}
+
 	clearExcludedData(): Promise<void> {
 		return this.inner.clearExcludedData()
 	}

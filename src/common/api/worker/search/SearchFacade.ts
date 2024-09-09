@@ -8,6 +8,7 @@ import {
 	downcast,
 	getDayShifted,
 	getStartOfDay,
+	isEmpty,
 	isNotEmpty,
 	isNotNull,
 	isSameTypeRef,
@@ -655,7 +656,7 @@ export class SearchFacade {
 			.then(async (intermediateResults) => {
 				// apply folder restrictions to intermediateResults
 
-				if (!(searchResult.restriction.folderIds.length > 0)) {
+				if (isEmpty(searchResult.restriction.folderIds)) {
 					// no folder restrictions (ALL)
 					return intermediateResults
 				} else {
