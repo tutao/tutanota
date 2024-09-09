@@ -6,7 +6,7 @@ var asString: (thing: unknown) => string
 if (typeof process !== "undefined") {
 	const { inspect } = await import("node:util")
 	asString = function (thing) {
-		return inspect(thing)
+		return inspect(thing, { depth: 5 })
 	}
 } else {
 	asString = function (thing) {
