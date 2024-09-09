@@ -6,13 +6,12 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import type { BookingItemFeatureType } from "../api/common/TutanotaConstants"
-import { Keys } from "../api/common/TutanotaConstants"
 import { asPaymentInterval, formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, PaymentInterval } from "./PriceUtils"
 import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
-import { isKeyPressed } from "../misc/KeyManager.js"
+import { InfoIcon } from "../gui/base/InfoIcon.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -243,67 +242,6 @@ export async function updateBuyOptionBoxPriceInformation(
 		const price = getPriceFromPriceData(futurePrice, featureType)
 		attrs.price = formatMonthlyPrice(price, paymentInterval)
 		attrs.helpLabel = paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
-		m.redraw()
-	}
-}
-
-export interface InfoIconAttrs {
-	text: Children
-}
-
-export class InfoIcon implements Component<InfoIconAttrs> {
-	expanded: boolean = false
-
-	view({ attrs }: Vnode<InfoIconAttrs>) {
-		return m(
-			"div.flex.justify-center.no-grow-no-shrink.overflow-visible",
-			{
-				"aria-pressed": String(this.expanded),
-				role: "button",
-				style: {
-					"margin-top": px(1),
-				},
-				// we can't really do the state with pure CSS on mobile
-				onclick: () => this.expand(),
-				onkeydown: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.key, Keys.ESC)) {
-						this.listener(e)
-					}
-				},
-				onfocusin: () => this.expand(),
-				onfocusout: (e: Event) => this.listener(e),
-			},
-			m(
-				".info-badge.tooltip",
-				{
-					expanded: String(this.expanded),
-					tabindex: 0,
-				},
-				"i",
-				m(
-					"span.tooltiptext.break-word",
-					{
-						role: "tooltip",
-						style: {
-							width: px(120),
-							marginLeft: px(-120),
-						},
-					},
-					attrs.text,
-				),
-			),
-		)
-	}
-
-	private expand(): void {
-		this.expanded = true
-		document.addEventListener("click", this.listener, { capture: true })
-	}
-
-	private readonly listener = (e: Event) => {
-		this.expanded = false
-		document.removeEventListener("click", this.listener, { capture: true })
-		e.stopPropagation()
 		m.redraw()
 	}
 }

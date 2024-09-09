@@ -22,7 +22,7 @@ import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
-import { showUserImportDialog, UserViewer } from "../../common/settings/UserViewer.js"
+import { showUserImportDialog } from "../../common/settings/UserViewer.js"
 import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
@@ -31,7 +31,7 @@ import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
 import { size } from "../../common/gui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
 import { getEtId } from "../../common/api/common/utils/EntityUtils"
-import { KnowledgeBaseListView, KnowledgeBaseSettingsDetailsViewer } from "./KnowledgeBaseListView"
+import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../../common/sharing/view/GroupSharingDialog"
 import { createMoreActionButtonAttrs, getConfirmation } from "../../common/gui/base/GuiUtils"
@@ -55,8 +55,6 @@ import { LoginController } from "../../common/api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../../common/gui/BackgroundColumnLayout.js"
 import { styles } from "../../common/gui/styles.js"
 import { MobileHeader } from "../../common/gui/MobileHeader.js"
-import { GroupDetailsView } from "../../common/settings/groups/GroupDetailsView.js"
-import { TemplateDetailsViewer } from "./TemplateDetailsViewer.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
@@ -67,6 +65,8 @@ import { TextField } from "../../common/gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
+import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
 
 assertMainOrNode()
 
@@ -84,6 +84,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private _selectedFolder: SettingsFolder<unknown>
 	private _currentViewer: UpdatableSettingsViewer | null = null
 	private showBusinessSettings: stream<boolean> = stream(false)
+	private showAffiliateSettings: boolean = false
 	private readonly _targetFolder: string
 	private readonly _targetRoute: string
 	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
@@ -333,6 +334,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	private async populateAdminFolders() {
 		await this.updateShowBusinessSettings()
+		await this.updateShowAffiliateSettings()
 		const currentPlanType = await this.logins.getUserController().getPlanType()
 		const isLegacyPlan = LegacyPlans.includes(currentPlanType)
 
@@ -425,12 +427,34 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						undefined,
 					).setIsVisibleHandler(() => !this.showBusinessSettings()),
 				)
+
+				this._adminFolders.push(
+					new SettingsFolder(
+						"affiliateSettings_label",
+						() => BootIcons.Share,
+						"affiliate",
+						() =>
+							new AffiliateSettingsViewer(
+								() => this.viewSlider.focusedColumn === this._settingsDetailsColumn,
+								() => {
+									if (this.viewSlider.focusedColumn !== this._settingsDetailsColumn) {
+										this.replaceDetailsViewer(new AffiliateKpisViewer())
+										this.focusSettingsDetailsColumn()
+									} else {
+										this.replaceDetailsViewer(null)
+										this.viewSlider.focus(this._settingsColumn)
+									}
+								},
+							),
+						undefined,
+					).setIsVisibleHandler(() => this.showAffiliateSettings),
+				)
 			}
 		}
 		m.redraw()
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
+	private replaceDetailsViewer(viewer: UpdatableSettingsDetailsViewer | null): UpdatableSettingsDetailsViewer | null {
 		return (this.detailsViewer = viewer)
 	}
 
@@ -623,7 +647,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	focusSettingsDetailsColumn() {
-		this.viewSlider.focus(this._settingsDetailsColumn)
+		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
 	private async updateShowBusinessSettings() {
@@ -791,6 +815,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		} else {
 			return []
 		}
+	}
+
+	private async updateShowAffiliateSettings() {
+		const customer = await this.logins.getUserController().loadCustomer()
+		this.showAffiliateSettings = isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner)
 	}
 }
 

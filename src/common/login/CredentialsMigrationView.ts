@@ -97,15 +97,13 @@ export class CredentialsMigrationView extends BaseTopLevelView implements TopLev
 		} else {
 			return [
 				lang.get("transferCredentials_msg"),
-				m(
-					".mt.mb",
-					m(Table, {
-						columnHeading: ["knownCredentials_label"],
-						showActionButtonColumn: false,
-						columnWidths: [ColumnWidth.Largest],
-						lines: savedCredentials.map((c) => ({ cells: [c.login] })),
-					} satisfies TableAttrs),
-				),
+				m(Table, {
+					columnHeading: ["knownCredentials_label"],
+					showActionButtonColumn: false,
+					columnWidths: [ColumnWidth.Largest],
+					lines: savedCredentials.map((c) => ({ cells: [c.login] })),
+					class: " mt mb",
+				} satisfies TableAttrs),
 				m(LoginButton, {
 					label: "apply_action",
 					onclick: () => this.viewModel.executeMigration(),

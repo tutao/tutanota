@@ -1,8 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { progressIcon } from "./Icon"
-import type { lazy } from "@tutao/tutanota-utils"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { Icons } from "./icons/Icons"
@@ -11,6 +9,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
 import { px, size } from "../size.js"
+import { InfoIcon } from "./InfoIcon.js"
 
 assertMainOrNode()
 
@@ -19,6 +18,11 @@ export const enum ColumnWidth {
 	Small = ".column-width-small",
 	// all Largest columns equally share the rest of the available width
 	Largest = ".column-width-largest",
+}
+
+export type TableHeading = {
+	text: TranslationText
+	helpText?: TranslationText
 }
 
 /**
@@ -30,13 +34,14 @@ export const enum ColumnWidth {
  * @param lines the lines of the table
  */
 export type TableAttrs = {
-	columnHeading?: Array<lazy<string> | TranslationKey>
+	columnHeading?: Array<TableHeading | TranslationText>
 	columnWidths: ReadonlyArray<ColumnWidth>
 	columnAlignments?: Array<boolean>
 	verticalColumnHeadings?: boolean
 	showActionButtonColumn: boolean
 	addButtonAttrs?: IconButtonAttrs | null
 	lines: ReadonlyArray<TableLineAttrs> | null
+	class?: string
 }
 export type CellTextData = {
 	main: string
@@ -59,15 +64,24 @@ export class Table implements Component<TableAttrs> {
 		const loading = !a.lines
 		const alignments = a.columnAlignments || []
 		const lineAttrs = a.lines
-			? a.lines.map((lineAttrs) => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false))
+			? a.lines.map((lineAttrs) => this.createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false))
 			: []
-		return m("", [
+
+		return m("", { class: a.class }, [
 			m(`table.table${a.columnHeading ? ".table-header-border" : ""}`, [
 				(a.columnHeading
 					? [
-							this._createLine(
+							this.createLine(
 								{
-									cells: a.columnHeading.map((textIdOrFunction) => lang.getMaybeLazy(textIdOrFunction)),
+									cells: () =>
+										a.columnHeading!.map((header) => {
+											const text = this.isTableHeading(header) ? header.text : header
+											const info = this.isTableHeading(header) && header.helpText ? [lang.getMaybeLazy(header.helpText)] : undefined
+											return {
+												main: lang.getMaybeLazy(text),
+												info: info,
+											} satisfies CellTextData
+										}),
 									actionButtonAttrs: loading ? null : a.addButtonAttrs,
 								},
 								a.showActionButtonColumn,
@@ -75,6 +89,7 @@ export class Table implements Component<TableAttrs> {
 								true,
 								alignments,
 								a.verticalColumnHeadings ?? false,
+								true,
 							),
 					  ]
 					: []
@@ -85,46 +100,49 @@ export class Table implements Component<TableAttrs> {
 		])
 	}
 
-	_createLine(
+	private isTableHeading(textIdOrFunction: TableHeading | TranslationText): textIdOrFunction is TableHeading {
+		return (textIdOrFunction as TableHeading).text !== undefined
+	}
+
+	private createLine(
 		lineAttrs: TableLineAttrs,
 		showActionButtonColumn: boolean,
 		columnWidths: ReadonlyArray<ColumnWidth>,
 		bold: boolean,
 		columnAlignments: Array<boolean>,
 		verticalText: boolean,
+		useHelpButton: boolean = false,
 	): Children {
 		let cells
 
 		if (typeof lineAttrs.cells == "function") {
 			cells = lineAttrs.cells().map((cellTextData, index) =>
-				m("td", [
+				m(
+					"td",
 					m(
-						".text-ellipsis.pr.pt-s" +
-							columnWidths[index] +
-							(bold ? ".b" : "") +
-							(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
-							(columnAlignments[index] ? ".right" : ""),
-						{
-							title: cellTextData.main,
-							// show the text as tooltip, so ellipsed lines can be shown
-							onclick: (event: MouseEvent) => {
-								const dom = downcast(event.target)
-								cellTextData.click ? cellTextData.click(event, dom) : null
+						"",
+						{ class: useHelpButton ? "flex items-center height-100p full-width" : "" },
+						m(
+							".text-ellipsis.pr.pt-s" +
+								columnWidths[index] +
+								(bold ? ".b" : "") +
+								(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
+								(columnAlignments[index] ? ".right" : ""),
+							{
+								title: cellTextData.main,
+								// show the text as tooltip, so ellipsed lines can be shown
+								onclick: cellTextData.click
+									? (event: MouseEvent) => {
+											const dom = downcast(event.target)
+											cellTextData.click!(event, dom)
+									  }
+									: undefined,
 							},
-						},
-						verticalText ? m("span.vertical-text", cellTextData.main) : cellTextData.main,
+							verticalText ? m("span.vertical-text", cellTextData.main) : cellTextData.main,
+						),
+						Table.renderHelpText(cellTextData, useHelpButton),
 					),
-					m(
-						".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""),
-						{
-							onclick: (event: MouseEvent) => {
-								const dom = downcast(event.target)
-								cellTextData.click ? cellTextData.click(event, dom) : null
-							},
-						},
-						cellTextData.info ? cellTextData.info.map((line) => m("", line)) : null,
-					),
-				]),
+				),
 			)
 		} else {
 			cells = lineAttrs.cells.map((text, index) =>
@@ -153,6 +171,30 @@ export class Table implements Component<TableAttrs> {
 		}
 
 		return m("tr.selectable", cells)
+	}
+
+	private static renderHelpText(cellTextData: CellTextData, useHelpButton: boolean): Children {
+		const info = cellTextData.info
+		if (info == null) {
+			return undefined
+		}
+
+		if (useHelpButton) {
+			return m(InfoIcon, { text: info.join("\n") })
+		} else {
+			return m(
+				".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""),
+				{
+					onclick: cellTextData.click
+						? (event: MouseEvent) => {
+								const dom = downcast(event.target)
+								cellTextData.click!(event, dom)
+						  }
+						: undefined,
+				},
+				info.map((line) => m("", line)),
+			)
+		}
 	}
 }
 

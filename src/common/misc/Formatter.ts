@@ -11,6 +11,13 @@ export function formatMonthWithYear(date: Date): string {
 	return lang.formats.monthWithYear.format(date)
 }
 
+/**
+ * Returns the given date formatted in mm/yy
+ */
+export function formatShortMonthYear2Digit(date: Date): string {
+	return lang.formats.shortMonthYear2Digit.format(date)
+}
+
 export function formatMonthWithFullYear(date: Date): string {
 	return lang.formats.monthWithFullYear.format(date)
 }

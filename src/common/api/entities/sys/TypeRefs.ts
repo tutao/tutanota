@@ -64,6 +64,39 @@ export type AdministratedGroupsRef = {
 
 	items: Id;
 }
+export const AffiliatePartnerKpiMonthSummaryTypeRef: TypeRef<AffiliatePartnerKpiMonthSummary> = new TypeRef("sys", "AffiliatePartnerKpiMonthSummary")
+
+export function createAffiliatePartnerKpiMonthSummary(values: StrippedEntity<AffiliatePartnerKpiMonthSummary>): AffiliatePartnerKpiMonthSummary {
+	return Object.assign(create(typeModels.AffiliatePartnerKpiMonthSummary, AffiliatePartnerKpiMonthSummaryTypeRef), values)
+}
+
+export type AffiliatePartnerKpiMonthSummary = {
+	_type: TypeRef<AffiliatePartnerKpiMonthSummary>;
+
+	_id: Id;
+	commission: NumberString;
+	monthTimestamp: NumberString;
+	newFree: NumberString;
+	newPaid: NumberString;
+	totalFree: NumberString;
+	totalPaid: NumberString;
+}
+export const AffiliatePartnerKpiServiceGetOutTypeRef: TypeRef<AffiliatePartnerKpiServiceGetOut> = new TypeRef("sys", "AffiliatePartnerKpiServiceGetOut")
+
+export function createAffiliatePartnerKpiServiceGetOut(values: StrippedEntity<AffiliatePartnerKpiServiceGetOut>): AffiliatePartnerKpiServiceGetOut {
+	return Object.assign(create(typeModels.AffiliatePartnerKpiServiceGetOut, AffiliatePartnerKpiServiceGetOutTypeRef), values)
+}
+
+export type AffiliatePartnerKpiServiceGetOut = {
+	_type: TypeRef<AffiliatePartnerKpiServiceGetOut>;
+
+	_format: NumberString;
+	accumulatedCommission: NumberString;
+	creditedCommission: NumberString;
+	promotionId: string;
+
+	kpis: AffiliatePartnerKpiMonthSummary[];
+}
 export const AlarmInfoTypeRef: TypeRef<AlarmInfo> = new TypeRef("sys", "AlarmInfo")
 
 export function createAlarmInfo(values: StrippedEntity<AlarmInfo>): AlarmInfo {

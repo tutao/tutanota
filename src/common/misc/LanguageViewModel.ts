@@ -207,6 +207,7 @@ export class LanguageViewModel {
 		monthWithYear: Intl.DateTimeFormat
 		monthWithFullYear: Intl.DateTimeFormat
 		yearNumeric: Intl.DateTimeFormat
+		shortMonthYear2Digit: Intl.DateTimeFormat
 	}
 
 	constructor() {
@@ -413,6 +414,10 @@ export class LanguageViewModel {
 			}),
 			yearNumeric: new Intl.DateTimeFormat(tag, {
 				year: "numeric",
+			}),
+			shortMonthYear2Digit: new Intl.DateTimeFormat(tag, {
+				month: "2-digit",
+				year: "2-digit",
 			}),
 		}
 	}

@@ -1,4 +1,5 @@
 import {AdminGroupKeyRotationPostInTypeRef} from "./TypeRefs.js"
+import {AffiliatePartnerKpiServiceGetOutTypeRef} from "./TypeRefs.js"
 import {AlarmServicePostTypeRef} from "./TypeRefs.js"
 import {AutoLoginDataGetTypeRef} from "./TypeRefs.js"
 import {AutoLoginDataReturnTypeRef} from "./TypeRefs.js"
@@ -90,6 +91,15 @@ export const AdminGroupKeyRotationService = Object.freeze({
 	name: "AdminGroupKeyRotationService",
 	get: null,
 	post: {data: AdminGroupKeyRotationPostInTypeRef, return: null},
+	put: null,
+	delete: null,
+} as const)
+
+export const AffiliatePartnerKpiService = Object.freeze({
+	app: "sys",
+	name: "AffiliatePartnerKpiService",
+	get: {data: null, return: AffiliatePartnerKpiServiceGetOutTypeRef},
+	post: null,
 	put: null,
 	delete: null,
 } as const)

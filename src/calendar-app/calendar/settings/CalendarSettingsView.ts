@@ -287,7 +287,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		m.redraw()
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
+	private replaceDetailsViewer(viewer: UpdatableSettingsDetailsViewer | null): UpdatableSettingsDetailsViewer | null {
 		return (this.detailsViewer = viewer)
 	}
 

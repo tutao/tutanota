@@ -234,6 +234,11 @@ class MailLocator {
 		)
 	})
 
+	readonly affiliateViewModel = lazyMemoized(async () => {
+		const { AffiliateViewModel } = await import("../common/settings/AffiliateViewModel.js")
+		return new AffiliateViewModel()
+	})
+
 	inboxRuleHanlder(): InboxRuleHandler {
 		return new InboxRuleHandler(this.mailFacade, this.logins)
 	}

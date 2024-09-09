@@ -72,6 +72,44 @@ impl Entity for AdministratedGroupsRef {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct AffiliatePartnerKpiMonthSummary {
+	pub _id: CustomId,
+	pub commission: i64,
+	pub monthTimestamp: i64,
+	pub newFree: i64,
+	pub newPaid: i64,
+	pub totalFree: i64,
+	pub totalPaid: i64,
+}
+
+impl Entity for AffiliatePartnerKpiMonthSummary {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AffiliatePartnerKpiMonthSummary",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct AffiliatePartnerKpiServiceGetOut {
+	pub _format: i64,
+	pub accumulatedCommission: i64,
+	pub creditedCommission: i64,
+	pub promotionId: String,
+	pub kpis: Vec<AffiliatePartnerKpiMonthSummary>,
+}
+
+impl Entity for AffiliatePartnerKpiServiceGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AffiliatePartnerKpiServiceGetOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct AlarmInfo {
 	pub _id: CustomId,
 	pub alarmIdentifier: String,

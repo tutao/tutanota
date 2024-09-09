@@ -302,7 +302,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		m.redraw()
 	}
 
-	private replaceDetailsViewer(viewer: UserViewer | GroupDetailsView | TemplateDetailsViewer | KnowledgeBaseSettingsDetailsViewer | null) {
+	private replaceDetailsViewer(viewer: UpdatableSettingsDetailsViewer | null): UpdatableSettingsDetailsViewer | null {
 		return (this.detailsViewer = viewer)
 	}
 

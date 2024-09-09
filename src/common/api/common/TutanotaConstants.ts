@@ -498,7 +498,7 @@ export enum FeatureType {
 
 	/** This is required for non admin users because they are not allowed to access the bookings. */
 	BusinessFeatureEnabled = "11",
-	PremiumLegacy = "12",
+	AffiliatePartner = "12",
 	KnowledgeBase = "13",
 	Newsletter = "14",
 	Blobs = "15", // enables blob attachments for mails
