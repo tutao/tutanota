@@ -3,7 +3,7 @@ import { createPushIdentifier, PushIdentifierTypeRef } from "../../api/entities/
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { PushServiceType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
-import { isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env"
+import { isAndroidApp, isApp, isDesktop, isIOSApp } from "../../api/common/Env"
 import { LoginController } from "../../api/main/LoginController"
 import { client } from "../../misc/ClientDetector"
 import { DeviceConfig } from "../../misc/DeviceConfig"
@@ -50,7 +50,13 @@ export class NativePushServiceApp {
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
 				await this.storePushIdentifierLocally(pushIdentifier) // Also sets the extended notification mode to SENDER_AND_SUBJECT if the user is new
 
-				await this.scheduleAlarmsIfNeeded(pushIdentifier)
+				const userId = this.logins.getUserController().userId
+				if (!(await locator.pushService.allowReceiveCalendarNotifications())) {
+					await this.nativePushFacade.invalidateAlarmsForUser(userId)
+				} else {
+					await this.scheduleAlarmsIfNeeded(pushIdentifier)
+				}
+
 				await this.initPushNotifications()
 			} catch (e) {
 				if (e instanceof DeviceStorageUnavailableError) {
@@ -72,7 +78,12 @@ export class NativePushServiceApp {
 				}
 
 				await this.storePushIdentifierLocally(pushIdentifier)
-				await this.scheduleAlarmsIfNeeded(pushIdentifier)
+				const userId = this.logins.getUserController().userId
+				if (!(await locator.pushService.allowReceiveCalendarNotifications())) {
+					await this.nativePushFacade.invalidateAlarmsForUser(userId)
+				} else {
+					await this.scheduleAlarmsIfNeeded(pushIdentifier)
+				}
 			} else {
 				console.log("Push notifications were rejected by user")
 			}
@@ -169,5 +180,17 @@ export class NativePushServiceApp {
 			// tell native to delete all alarms for the user
 			this.deviceConfig.setScheduledAlarmsModelVersion(userId, effectiveModelVersion())
 		}
+	}
+
+	async setReceiveCalendarNotificationConfig(value: boolean) {
+		await this.nativePushFacade.setReceiveCalendarNotificationConfig(this.getLoadedPushIdentifier()!, value)
+	}
+
+	async getReceiveCalendarNotificationConfig() {
+		return await this.nativePushFacade.getReceiveCalendarNotificationConfig(this.getLoadedPushIdentifier()!)
+	}
+
+	async allowReceiveCalendarNotifications() {
+		return !isApp() || (await this.getReceiveCalendarNotificationConfig())
 	}
 }

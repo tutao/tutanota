@@ -109,6 +109,16 @@ class SseStorage(
 			?: DEFAULT_EXTENDED_NOTIFCATION_MODE
 	}
 
+	fun setReceiveCalendarNotificationConfig(pushIdentifier: String, value: Boolean) {
+		db.keyValueDao().putString("$RECEIVE_CALENDAR_NOTIFICATION_CONFIG:$pushIdentifier", value.toString())
+	}
+
+	fun getReceiveCalendarNotificationConfig(pushIdentifier: String): Boolean {
+		return db.keyValueDao().getString("$RECEIVE_CALENDAR_NOTIFICATION_CONFIG:$pushIdentifier")
+			?.let { it == "true" }
+			?: true
+	}
+
 	fun getUsers(): List<User> = db.userInfoDao().users()
 
 	companion object {
@@ -118,6 +128,7 @@ class SseStorage(
 		private const val SSE_ORIGIN = "sseOrigin"
 		private const val EXTENDED_NOTIFICATION_MODE = "extendedNotificationMode"
 		private const val CONNECT_TIMEOUT_SEC = "connectTimeoutSec"
+		private const val RECEIVE_CALENDAR_NOTIFICATION_CONFIG = "receiveCalendarNotificationConfig"
 
 		// This default is overwritten by another default in `storePushIdentifierSessionKey()`
 		private val DEFAULT_EXTENDED_NOTIFCATION_MODE = ExtendedNotificationMode.NO_SENDER_OR_SUBJECT

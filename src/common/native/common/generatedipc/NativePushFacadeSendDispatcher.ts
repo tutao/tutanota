@@ -34,4 +34,10 @@ export class NativePushFacadeSendDispatcher implements NativePushFacade {
 	async getExtendedNotificationConfig(...args: Parameters<NativePushFacade["getExtendedNotificationConfig"]>) {
 		return this.transport.invokeNative("ipc", ["NativePushFacade", "getExtendedNotificationConfig", ...args])
 	}
+	async setReceiveCalendarNotificationConfig(...args: Parameters<NativePushFacade["setReceiveCalendarNotificationConfig"]>) {
+		return this.transport.invokeNative("ipc", ["NativePushFacade", "setReceiveCalendarNotificationConfig", ...args])
+	}
+	async getReceiveCalendarNotificationConfig(...args: Parameters<NativePushFacade["getReceiveCalendarNotificationConfig"]>) {
+		return this.transport.invokeNative("ipc", ["NativePushFacade", "getReceiveCalendarNotificationConfig", ...args])
+	}
 }

@@ -46,4 +46,14 @@ interface NativePushFacade {
 	suspend fun getExtendedNotificationConfig(
 		userId: String,
 	): ExtendedNotificationMode
+	/**
+	 * Set user preference for receiving calendar notifications in the mail app using pushIdentifier since it represents the device of a user.
+	 */
+	suspend fun setReceiveCalendarNotificationConfig(
+		pushIdentifier: String,
+		value: Boolean,
+	): Unit
+	suspend fun getReceiveCalendarNotificationConfig(
+		pushIdentifier: String,
+	): Boolean
 }

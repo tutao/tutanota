@@ -6,6 +6,7 @@ private let ALARMS_KEY = "repeatingAlarmNotification"
 private let LAST_PROCESSED_NOTIFICAION_ID_KEY = "lastProcessedNotificationId"
 private let LAST_MISSED_NOTIFICATION_CHECK_TIME = "lastMissedNotificationCheckTime"
 private let EXTENDED_NOTIFICATION_MODE = "extendedNotificationMode"
+private let RECEIVE_CALENDAR_NOTIFICATION_CONFIG = "receiveCalendarNotificationConfig"
 
 public class NotificationStorage {
 	private let userPreferencesProvider: UserPreferencesProvider
@@ -96,6 +97,15 @@ public class NotificationStorage {
 		// This default gets overwritten later when we store the pushIdentifier
 		self.userPreferencesProvider.getObject(forKey: "\(EXTENDED_NOTIFICATION_MODE):\(userId)")
 			.map { mode in ExtendedNotificationMode(rawValue: mode as! String)! } ?? .sender_and_subject
+	}
+
+	public func setReceiveCalendarNotificationConfig(_ pushIdentifier: String, _ value: Bool) {
+		self.userPreferencesProvider.setValue(value, forKey: "\(RECEIVE_CALENDAR_NOTIFICATION_CONFIG):\(pushIdentifier)")
+	}
+
+	public func getReceiveCalendarNotificationConfig(_ pushIdentifier: String) -> Bool {
+		self.userPreferencesProvider.getObject(forKey: "\(RECEIVE_CALENDAR_NOTIFICATION_CONFIG):\(pushIdentifier)")
+			.map { enabled in enabled as! Bool == true} ?? true
 	}
 
 	private func put(sseInfo: SSEInfo?) {

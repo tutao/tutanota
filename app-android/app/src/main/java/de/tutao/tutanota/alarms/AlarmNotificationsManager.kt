@@ -113,6 +113,20 @@ class AlarmNotificationsManager(
 	private fun schedule(alarmNotification: AlarmNotification) {
 		try {
 			val identifier = alarmNotification.alarmInfo.alarmIdentifier
+
+			val pushIdentifier = this.sseStorage.getPushIdentifier()
+			val canReceiveCalendarNotifications =
+				this.sseStorage.getReceiveCalendarNotificationConfig(pushIdentifier ?: "")
+
+			// We don't need to check from which device type the identifier comes from, only Mobile Mail App is allowed to set this sharedPreference
+			if (!canReceiveCalendarNotifications) {
+				Log.d(
+					TAG,
+					"Skipping alarm scheduling - alarmIdentifier: $identifier"
+				)
+				return
+			}
+
 			if (alarmNotification.repeatRule == null) {
 				val alarmTime = AlarmModel.calculateAlarmTime(
 					alarmNotification.eventStart,
