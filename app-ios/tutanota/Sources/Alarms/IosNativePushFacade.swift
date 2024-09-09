@@ -2,6 +2,12 @@ import Foundation
 import TutanotaSharedFramework
 
 class IosNativePushFacade: NativePushFacade {
+	func setReceiveCalendarNotificationConfig(_ pushIdentifier: String, _ value: Bool) {
+		self.notificationStorage.setReceiveCalendarNotificationConfig(pushIdentifier, value)
+	}
+	func getReceiveCalendarNotificationConfig(_ pushIdentifier: String) async throws -> Bool {
+		self.notificationStorage.getReceiveCalendarNotificationConfig(pushIdentifier)
+	}
 	private let appDelegate: AppDelegate
 	private let alarmManager: AlarmManager
 	private let notificationStorage: NotificationStorage

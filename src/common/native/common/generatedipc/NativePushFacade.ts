@@ -2,6 +2,7 @@
 
 import { EncryptedAlarmNotification } from "./EncryptedAlarmNotification.js"
 import { ExtendedNotificationMode } from "./ExtendedNotificationMode.js"
+
 /**
  * Push notifications and alarms operations
  */
@@ -35,4 +36,11 @@ export interface NativePushFacade {
 	setExtendedNotificationConfig(userId: string, mode: ExtendedNotificationMode): Promise<void>
 
 	getExtendedNotificationConfig(userId: string): Promise<ExtendedNotificationMode>
+
+	/**
+	 * Set user preference for receiving calendar notifications in the mail app using pushIdentifier since it represents the device of a user.
+	 */
+	setReceiveCalendarNotificationConfig(pushIdentifier: string, value: boolean): Promise<void>
+
+	getReceiveCalendarNotificationConfig(pushIdentifier: string): Promise<boolean>
 }

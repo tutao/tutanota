@@ -85,6 +85,26 @@
 				}
 			],
 			"ret": "ExtendedNotificationMode"
+		},
+		"setReceiveCalendarNotificationConfig": {
+			"arg": [
+				{
+					"pushIdentifier": "string"
+				},
+				{
+					"value": "boolean"
+				}
+			],
+			"ret": "void",
+			"doc": "Set user preference for receiving calendar notifications in the mail app using pushIdentifier since it represents the device of a user."
+		},
+		"getReceiveCalendarNotificationConfig": {
+			"arg": [
+				{
+					"pushIdentifier": "string"
+				}
+			],
+			"ret": "boolean"
 		}
 	}
 }

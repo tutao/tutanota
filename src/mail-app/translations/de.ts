@@ -1315,6 +1315,7 @@ export default {
 		"readResponse_action": "Antwort lesen",
 		"reallySubmitContent_msg": "Möchtest du die eingegebenen Daten wirklich an eine externe Seite senden?",
 		"received_action": "Posteingang",
+		"receiveCalendarNotifications_label": "Benachrichtigungen über Kalenderereignisse erhalten",
 		"receivingMailboxAlreadyUsed_msg": "Die empfangende Mailbox wird bereits für ein anderes Kontaktformular verwendet.",
 		"receivingMailbox_label": "Empfangende Mailbox",
 		"recipients_label": "Empfangsadressen",

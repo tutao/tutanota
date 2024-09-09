@@ -83,6 +83,22 @@ class NativePushFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"setReceiveCalendarNotificationConfig" -> {
+				val pushIdentifier: String = json.decodeFromString(arg[0])
+				val value: Boolean = json.decodeFromString(arg[1])
+				val result: Unit = this.facade.setReceiveCalendarNotificationConfig(
+					pushIdentifier,
+					value,
+				)
+				return json.encodeToString(result)
+			}
+			"getReceiveCalendarNotificationConfig" -> {
+				val pushIdentifier: String = json.decodeFromString(arg[0])
+				val result: Boolean = this.facade.getReceiveCalendarNotificationConfig(
+					pushIdentifier,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for NativePushFacade: $method")
 		}
 	}
