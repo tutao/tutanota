@@ -1,7 +1,7 @@
 /**
  * @file color/theme definitions for default themes.
  */
-import { getLogoSvg } from "./base/Logo"
+import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import type { Theme, ThemeId } from "./theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import { client } from "../misc/ClientDetector.js"
@@ -21,9 +21,12 @@ const grey = "#868686"
 const grey_darker_0 = "#707070"
 const grey_darker_1 = "#303030"
 const red = "#850122"
+const secondary_red = "#FF2222"
 const dunkel = "#410002"
 const blue = "#013E85"
+const secondary_blue = "#4282FF"
 const light_blue = "#4C89FF"
+const lighter_blue = "#A1C1FF"
 
 /**
  *      dark theme background
@@ -44,7 +47,9 @@ const dark_lighter_0 = "#232323"
 const dark = "#222222"
 const dark_darker_0 = "#111111"
 const light_red = "#ff5353"
+const lighter_red = "#FF6C6C"
 const logo_text_bright_grey = "#c5c7c7"
+const black = "#000000"
 
 // These are constants that have been chosen because they work across themes
 // This is even lighter than hover, for special cases like inactive search bar background
@@ -52,13 +57,18 @@ export const stateBgLike = "rgba(139,139,139,0.18)"
 export const stateBgHover = "rgba(139,139,139,0.22)"
 export const stateBgFocus = "rgba(139,139,139,0.29)"
 export const stateBgActive = "rgba(139,139,139,0.38)"
+export const logoDefaultGrey = logo_text_bright_grey
+export const tutaRed = red
+export const tutaDunkel = dunkel
 
 type Themes = Record<ThemeId, Theme>
 
 export const themes = (): Themes => {
 	const lightRed = Object.freeze({
 		themeId: !client.isCalendarApp() ? "light" : "light_secondary",
-		logo: getLogoSvg(red, dunkel),
+		logo: !client.isCalendarApp()
+			? getMailLogoSvg(red, secondary_red, black)
+			: getCalendarLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,
@@ -92,7 +102,9 @@ export const themes = (): Themes => {
 	})
 	const darkRed = Object.freeze({
 		themeId: !client.isCalendarApp() ? "dark" : "dark_secondary",
-		logo: getLogoSvg(logo_text_bright_grey, logo_text_bright_grey),
+		logo: !client.isCalendarApp()
+			? getMailLogoSvg(lighter_red, secondary_red, light_white)
+			: getCalendarLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey),
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
 		content_fg: light_lighter_1,
@@ -129,7 +141,9 @@ export const themes = (): Themes => {
 	const lightBlue = Object.freeze({
 		themeId: client.isCalendarApp() ? "light" : "light_secondary",
 		// blue is not really our brand color, treat blue like whitelabel color
-		logo: getLogoSvg(grey, grey),
+		logo: !client.isCalendarApp()
+			? getMailLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey)
+			: getCalendarLogoSvg(blue, secondary_blue, black),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,
@@ -163,7 +177,9 @@ export const themes = (): Themes => {
 	})
 	const darkBlue = Object.freeze({
 		themeId: client.isCalendarApp() ? "dark" : "dark_secondary",
-		logo: getLogoSvg(logo_text_bright_grey, logo_text_bright_grey),
+		logo: !client.isCalendarApp()
+			? getMailLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey)
+			: getCalendarLogoSvg(lighter_blue, secondary_blue, light_white),
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
 		content_fg: light_lighter_1,
