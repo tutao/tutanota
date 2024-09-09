@@ -2,9 +2,7 @@ import { OperationType } from "../common/TutanotaConstants.js"
 import { assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
-import { CustomerInfoTypeRef } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
-import { MailTypeRef } from "../entities/tutanota/TypeRefs.js"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType } from "../common/utils/EntityUpdateUtils.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
@@ -18,47 +16,27 @@ export type QueuedBatch = {
 export const enum EntityModificationType {
 	CREATE = "CREATE",
 	UPDATE = "UPDATE",
-	MOVE = "MOVE",
 	DELETE = "DELETE",
 }
 
 type QueueAction = (nextElement: QueuedBatch) => Promise<void>
-const MOVABLE_EVENT_TYPE_REFS = [
-	// moved in MoveMailService
-	MailTypeRef,
-	// moved in SwitchAccountTypeService
-	CustomerInfoTypeRef,
-]
-
-/**
- * Whether the entity of the event supports MOVE operation. MOVE is supposed to be immutable, so we cannot apply it to all instances.
- */
-function isMovableEventType(event: EntityUpdate): boolean {
-	return MOVABLE_EVENT_TYPE_REFS.some((typeRef) => isSameTypeRefByAttr(typeRef, event.application, event.type))
-}
 
 /**
  * Checks which modification is applied in the given batch for the entity id.
  * @param batch entity updates of the batch.
- * @param entityId
  */
-export function batchMod(batch: ReadonlyArray<EntityUpdate>, entityId: Id): EntityModificationType {
-	const batchAsUpdateData = batch as readonly EntityUpdateData[]
+function batchMod(batch: ReadonlyArray<EntityUpdate>, event: EntityUpdate): EntityModificationType {
 	for (const event of batch) {
-		if (isSameId(event.instanceId, entityId)) {
+		if (event.instanceId === event.instanceId && event.instanceListId === event.instanceListId) {
 			switch (event.operation) {
 				case OperationType.CREATE:
-					return isMovableEventType(event) && containsEventOfType(batchAsUpdateData, OperationType.DELETE, entityId)
-						? EntityModificationType.MOVE
-						: EntityModificationType.CREATE
+					return EntityModificationType.CREATE
 
 				case OperationType.UPDATE:
 					return EntityModificationType.UPDATE
 
 				case OperationType.DELETE:
-					return isMovableEventType(event) && containsEventOfType(batchAsUpdateData, OperationType.CREATE, entityId)
-						? EntityModificationType.MOVE
-						: EntityModificationType.DELETE
+					return EntityModificationType.DELETE
 
 				default:
 					throw new ProgrammingError(`Unknown operation: ${event.operation}`)
@@ -66,13 +44,27 @@ export function batchMod(batch: ReadonlyArray<EntityUpdate>, entityId: Id): Enti
 		}
 	}
 
-	throw new ProgrammingError(`Batch does not have events for ${entityId}`)
+	throw new ProgrammingError(`Batch does not have events for ${lastOperationKey(event)}`)
+}
+
+// A key for _lastOperationForEntity.
+// At runtime just an element id or listId/elementId.
+// Adding brand for type safety.
+type LastOperationKey = string & { __brand: "lastOpeKey" }
+
+function lastOperationKey(update: EntityUpdate): LastOperationKey {
+	if (update.instanceListId) {
+		return `${update.instanceListId}/${update.instanceId}` as LastOperationKey
+	} else {
+		return update.instanceId as LastOperationKey
+	}
 }
 
 export class EventQueue {
 	/** Batches to process. Oldest first. */
 	readonly _eventQueue: Array<QueuedBatch>
-	readonly _lastOperationForEntity: Map<Id, QueuedBatch>
+	// the last processed operation for a given entity id
+	readonly _lastOperationForEntity: Map<LastOperationKey, QueuedBatch>
 	readonly _queueAction: QueueAction
 	readonly _optimizationEnabled: boolean
 	_processingBatch: QueuedBatch | null
@@ -80,6 +72,7 @@ export class EventQueue {
 	private progressMonitor: ProgressMonitorDelegate | null
 
 	/**
+	 * @param optimizationEnabled whether the queue should try to optimize events and remove unnecessary ones with the knowledge of newer ones
 	 * @param queueAction which is executed for each batch. Must *never* throw.
 	 */
 	constructor(optimizationEnabled: boolean, queueAction: QueueAction) {
@@ -123,7 +116,7 @@ export class EventQueue {
 			this._eventQueue.push(newBatch)
 
 			for (const update of newBatch.events) {
-				this._lastOperationForEntity.set(update.instanceId, newBatch)
+				this._lastOperationForEntity.set(lastOperationKey(update), newBatch)
 			}
 		} else {
 			// the batch will be ignored because all entity updates have been optimized.
@@ -138,8 +131,8 @@ export class EventQueue {
 	_optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): void {
 		for (const newEvent of newEvents) {
 			const elementId = newEvent.instanceId
-
-			const lastBatchForEntity = this._lastOperationForEntity.get(elementId)
+			const lastOpKey = lastOperationKey(newEvent)
+			const lastBatchForEntity = this._lastOperationForEntity.get(lastOpKey)
 
 			if (
 				lastBatchForEntity == null ||
@@ -150,8 +143,8 @@ export class EventQueue {
 				// If current operation is already being processed, don't modify it, we cannot merge anymore and should just append.
 				newBatch.events.push(newEvent)
 			} else {
-				const newEntityModification = batchMod(newEvents, elementId)
-				const lastEntityModification = batchMod(lastBatchForEntity.events, elementId)
+				const newEntityModification = batchMod(newEvents, newEvent)
+				const lastEntityModification = batchMod(lastBatchForEntity.events, newEvent)
 
 				if (newEntityModification === EntityModificationType.UPDATE) {
 					switch (lastEntityModification) {
@@ -161,53 +154,9 @@ export class EventQueue {
 							// Skip update because the previous update was not processed yet and we will download the updated version already
 							break
 
-						case EntityModificationType.MOVE:
-							// Leave both, as we expect MOVE to not mutate the entity
-							// We will execute this twice for DELETE and CREATE but it's fine, we need both
-							newBatch.events.push(newEvent)
-							break
-
 						case EntityModificationType.DELETE:
 							throw new ProgrammingError("UPDATE not allowed after DELETE")
 					}
-				} else if (newEntityModification === EntityModificationType.MOVE) {
-					if (newEvent.operation === OperationType.DELETE) {
-						// We only want to process the CREAT event of the move operation
-						continue
-					}
-
-					switch (lastEntityModification) {
-						case EntityModificationType.CREATE:
-							// Replace old create with new create of the move event
-							this._replace(lastBatchForEntity, newEvent)
-
-							// ignore DELETE of move operation
-							break
-
-						case EntityModificationType.UPDATE:
-							// The instance is not at the original location anymore so we cannot leave update in because we won't be able to download
-							// it but we also cannot say that it just moved so we need to actually delete and create it again
-							const deleteEvent = assertNotNull(getEventOfType(newEvents, OperationType.DELETE, newEvent.instanceId))
-
-							// Replace update with delete the old location
-							this._replace(lastBatchForEntity, deleteEvent)
-
-							newBatch.events.push(newEvent)
-							break
-
-						case EntityModificationType.MOVE:
-							// Replace move with a move from original location to the final destination
-							const oldDelete = assertNotNull(getEventOfType(lastBatchForEntity.events, OperationType.DELETE, newEvent.instanceId))
-
-							this._replace(lastBatchForEntity, newEvent)
-
-							// replace removes all events so we need to add the old delete again
-							lastBatchForEntity.events.unshift(oldDelete)
-							break
-
-						case EntityModificationType.DELETE:
-							throw new ProgrammingError("MOVE not allowed after DELETE")
-					} // skip delete in favor of create so that we don't run the same conditions twice
 				} else if (newEntityModification === EntityModificationType.DELETE) {
 					// find first move or delete (at different list) operation
 					const firstMoveIndex = this._eventQueue.findIndex(
@@ -224,7 +173,7 @@ export class EventQueue {
 
 						// We removed empty batches from the list but the one in the map will still stay
 						// so we need to manually clean it up.
-						this._lastOperationForEntity.set(elementId, this._eventQueue[firstMoveIndex])
+						this._lastOperationForEntity.set(lastOpKey, this._eventQueue[firstMoveIndex])
 					} else {
 						// add delete event
 						newBatch.events.push(newEvent) // _lastOperationForEntity will be set after the batch is prepared as it's non-empty
@@ -297,14 +246,16 @@ export class EventQueue {
 
 					// When we are done with the batch, we don't want to merge with it anymore
 					for (const event of next.events) {
-						if (this._lastOperationForEntity.get(event.instanceId) === next) {
-							this._lastOperationForEntity.delete(event.instanceId)
+						const concatenatedId = lastOperationKey(event)
+						if (this._lastOperationForEntity.get(concatenatedId) === next) {
+							this._lastOperationForEntity.delete(concatenatedId)
 						}
 					}
 
 					this._processNext()
 				})
 				.catch((e) => {
+					console.log("EventQueue", this._optimizationEnabled, "error", next, e)
 					// processing continues if the event bus receives a new event
 					this._processingBatch = null
 
