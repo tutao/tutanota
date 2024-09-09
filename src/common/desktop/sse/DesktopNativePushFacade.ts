@@ -14,6 +14,14 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		private readonly sseStorage: SseStorage,
 	) {}
 
+	setReceiveCalendarNotificationConfig(userId: string, value: boolean): Promise<void> {
+		throw new Error("Desktop App should NOT deal with this config")
+	}
+
+	getReceiveCalendarNotificationConfig(userId: string): Promise<boolean> {
+		return Promise.resolve(true)
+	}
+
 	getExtendedNotificationConfig(userId: string): Promise<ExtendedNotificationMode> {
 		return this.sseStorage.getExtendedNotificationConfig(userId)
 	}

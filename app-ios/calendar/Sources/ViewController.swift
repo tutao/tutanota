@@ -190,7 +190,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		webView.load(URLRequest(url: url))
 	}
 
-	private func dictToJson(dictionary: [String: String]) -> String { try! String(decoding: JSONEncoder().encode(dictionary), as: UTF8.self) }
+	private func dictToJson(dictionary: [String: String]) -> String { try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8) ?? "" }
 
 	private func appUrl() -> URL {
 		// this var is stored in Info.plist and possibly manipulated by the build schemes:

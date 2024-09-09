@@ -19,6 +19,8 @@ import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../com
 import { AppType } from "../../common/misc/ClientConstants.js"
 import { NotFoundError } from "../../common/api/common/error/RestError.js"
 import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
+import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
+import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -26,6 +28,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private readonly expanded: Stream<boolean>
 	private readonly user: User
 	private identifiers: PushIdentifier[]
+	private hasNotificationPermission: boolean = true
+	private receiveCalendarNotifications: boolean = true
 
 	constructor() {
 		this.expanded = stream<boolean>(false)
@@ -38,6 +42,19 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 				m.redraw()
 			})
+
+			if (isApp()) {
+				locator.systemPermissionHandler.hasPermission(PermissionType.Notification).then((hasPermission) => {
+					const shouldRedraw = this.hasNotificationPermission !== hasPermission
+					this.hasNotificationPermission = hasPermission
+					if (shouldRedraw) m.redraw()
+				})
+				locator.pushService.getReceiveCalendarNotificationConfig().then((canReceiveCalendarNotifications) => {
+					const shouldRedraw = this.receiveCalendarNotifications !== canReceiveCalendarNotifications
+					this.receiveCalendarNotifications = canReceiveCalendarNotifications
+					if (shouldRedraw) m.redraw()
+				})
+			}
 		}
 
 		this.loadPushIdentifiers()
@@ -86,12 +103,45 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 							onChange: (value: ExtendedNotificationMode) => {
 								locator.pushService.setExtendedNotificationMode(value)
 								this.extendedNotificationMode = value
+								// We can assume "true" because onChange is only triggered if permission was granted
+								this.hasNotificationPermission = true
 							},
 					  })
 					: null,
+				isApp() ? this.renderCalendarNotificationsDropdown() : null,
 				m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs),
 			]),
 		])
+	}
+
+	private renderCalendarNotificationsDropdown(): Children {
+		return m(DropDownSelector, {
+			label: "receiveCalendarNotifications_label",
+			items: [
+				{
+					name: lang.get("activated_label"),
+					value: true,
+				},
+				{
+					name: lang.get("deactivated_label"),
+					value: false,
+				},
+			],
+			selectedValue: this.receiveCalendarNotifications,
+			selectionChangedHandler: async (value) => {
+				if (this.receiveCalendarNotifications !== value) {
+					locator.pushService.setReceiveCalendarNotificationConfig(value)
+					this.receiveCalendarNotifications = value
+					if (value) {
+						await locator.pushService.reRegister()
+					} else {
+						await locator.pushService.invalidateAlarmsForUser(this.user._id)
+					}
+				}
+			},
+			disabled: !this.hasNotificationPermission,
+			selectedValueDisplay: !this.hasNotificationPermission ? lang.get("deactivated_label") : undefined,
+		} satisfies DropDownSelectorAttrs<boolean>)
 	}
 
 	private async showAddEmailNotificationDialog() {
