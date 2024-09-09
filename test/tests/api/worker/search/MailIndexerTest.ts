@@ -853,7 +853,7 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	t.put(GroupDataOS, groupId, groupData)
 	let core: IndexerCore = downcast({
 		printStatus: () => {},
-		queue: mock(new EventQueue(true, () => Promise.resolve()), (mock) => {
+		queue: mock(new EventQueue("mailindexer-queue", true, () => Promise.resolve()), (mock) => {
 			mock.pause = spy(mock.pause.bind(mock))
 			mock.resume = spy(mock.resume.bind(mock))
 		}),

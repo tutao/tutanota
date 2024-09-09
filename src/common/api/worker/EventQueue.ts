@@ -1,5 +1,5 @@
 import { OperationType } from "../common/TutanotaConstants.js"
-import { assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove } from "@tutao/tutanota-utils"
+import { findAllAndRemove, isSameTypeRefByAttr, last, remove } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
@@ -25,10 +25,15 @@ type QueueAction = (nextElement: QueuedBatch) => Promise<void>
  * Checks which modification is applied in the given batch for the entity id.
  * @param batch entity updates of the batch.
  */
-function batchMod(batch: ReadonlyArray<EntityUpdate>, event: EntityUpdate): EntityModificationType {
-	for (const event of batch) {
-		if (event.instanceId === event.instanceId && event.instanceListId === event.instanceListId) {
-			switch (event.operation) {
+function batchMod(batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate): EntityModificationType {
+	for (const batchEvent of batch) {
+		if (
+			entityUpdate.instanceId === batchEvent.instanceId &&
+			entityUpdate.instanceListId === batchEvent.instanceListId &&
+			entityUpdate.application === batchEvent.application &&
+			entityUpdate.type === batchEvent.type
+		) {
+			switch (entityUpdate.operation) {
 				case OperationType.CREATE:
 					return EntityModificationType.CREATE
 
@@ -39,12 +44,12 @@ function batchMod(batch: ReadonlyArray<EntityUpdate>, event: EntityUpdate): Enti
 					return EntityModificationType.DELETE
 
 				default:
-					throw new ProgrammingError(`Unknown operation: ${event.operation}`)
+					throw new ProgrammingError(`Unknown operation: ${entityUpdate.operation}`)
 			}
 		}
 	}
 
-	throw new ProgrammingError(`Batch does not have events for ${lastOperationKey(event)}`)
+	throw new ProgrammingError(`Batch does not have events for ${lastOperationKey(entityUpdate)}`)
 }
 
 // A key for _lastOperationForEntity.
@@ -72,10 +77,11 @@ export class EventQueue {
 	private progressMonitor: ProgressMonitorDelegate | null
 
 	/**
+	 * @param tag identifier to make for better log messages
 	 * @param optimizationEnabled whether the queue should try to optimize events and remove unnecessary ones with the knowledge of newer ones
 	 * @param queueAction which is executed for each batch. Must *never* throw.
 	 */
-	constructor(optimizationEnabled: boolean, queueAction: QueueAction) {
+	constructor(private readonly tag: string, optimizationEnabled: boolean, queueAction: QueueAction) {
 		this._eventQueue = []
 		this._lastOperationForEntity = new Map()
 		this._queueAction = queueAction
@@ -118,9 +124,6 @@ export class EventQueue {
 			for (const update of newBatch.events) {
 				this._lastOperationForEntity.set(lastOperationKey(update), newBatch)
 			}
-		} else {
-			// the batch will be ignored because all entity updates have been optimized.
-			this.progressMonitor?.workDone(1)
 		}
 
 		// ensures that events are processed when not paused
@@ -133,7 +136,6 @@ export class EventQueue {
 			const elementId = newEvent.instanceId
 			const lastOpKey = lastOperationKey(newEvent)
 			const lastBatchForEntity = this._lastOperationForEntity.get(lastOpKey)
-
 			if (
 				lastBatchForEntity == null ||
 				(this._processingBatch != null && this._processingBatch === lastBatchForEntity) ||
@@ -155,7 +157,9 @@ export class EventQueue {
 							break
 
 						case EntityModificationType.DELETE:
-							throw new ProgrammingError("UPDATE not allowed after DELETE")
+							throw new ProgrammingError(
+								`UPDATE not allowed after DELETE. Last batch: ${lastBatchForEntity.batchId}, new batch: ${batchId}, ${newEvent.type} ${lastOpKey}`,
+							)
 					}
 				} else if (newEntityModification === EntityModificationType.DELETE) {
 					// find first move or delete (at different list) operation
@@ -251,7 +255,7 @@ export class EventQueue {
 					this._processNext()
 				})
 				.catch((e) => {
-					console.log("EventQueue", this._optimizationEnabled, "error", next, e)
+					console.log("EventQueue", this.tag, this._optimizationEnabled, "error", next, e)
 					// processing continues if the event bus receives a new event
 					this._processingBatch = null
 

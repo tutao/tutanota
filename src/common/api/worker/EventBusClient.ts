@@ -152,8 +152,8 @@ export class EventBusClient {
 		this.socket = null
 		this.reconnectTimer = null
 		this.connectTimer = null
-		this.eventQueue = new EventQueue(true, (modification) => this.eventQueueCallback(modification))
-		this.entityUpdateMessageQueue = new EventQueue(false, (batch) => this.entityUpdateMessageQueueCallback(batch))
+		this.eventQueue = new EventQueue("ws_opt", true, (modification) => this.eventQueueCallback(modification))
+		this.entityUpdateMessageQueue = new EventQueue("ws_msg", false, (batch) => this.entityUpdateMessageQueueCallback(batch))
 		this.reset()
 	}
 

@@ -31,7 +31,7 @@ o.spec("EventQueueTest", function () {
 			}
 			return Promise.resolve()
 		})
-		queue = new EventQueue(true, processElement)
+		queue = new EventQueue("test!", true, processElement)
 	})
 
 	o("pause and resume", async function () {
@@ -88,7 +88,7 @@ o.spec("EventQueueTest", function () {
 			}
 			return Promise.resolve()
 		})
-		let queue = new EventQueue(true, (nextElement: QueuedBatch) => {
+		let queue = new EventQueue("test 2!", true, (nextElement: QueuedBatch) => {
 			if (nextElement.batchId === "2") {
 				return Promise.reject(new ConnectionError("no connection"))
 			} else {

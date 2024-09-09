@@ -148,7 +148,7 @@ export class Indexer {
 			initialized: deferred.promise,
 		}
 		// correctly initialized during init()
-		this._core = new IndexerCore(this.db, new EventQueue(true, (batch) => this._processEntityEvents(batch)), browserData)
+		this._core = new IndexerCore(this.db, new EventQueue("indexer_core", true, (batch) => this._processEntityEvents(batch)), browserData)
 		this._entityRestClient = entityRestClient
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
@@ -156,7 +156,7 @@ export class Indexer {
 		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider, mailFacade)
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
-		this._realtimeEventQueue = new EventQueue(false, (nextElement: QueuedBatch) => {
+		this._realtimeEventQueue = new EventQueue("indexer_realtime", false, (nextElement: QueuedBatch) => {
 			// During initial loading we remember the last batch we loaded
 			// so if we get updates from EventBusClient here for things that are already loaded we discard them
 			const loadedIdForGroup = this._initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
@@ -593,6 +593,7 @@ export class Indexer {
 
 		// Add latest batches per group so that we can filter out overlapping realtime updates later
 		this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
+		console.log("Indexer", "_initiallyLoadedBatchIdsPerGroup", this._initiallyLoadedBatchIdsPerGroup)
 
 		this._realtimeEventQueue.resume()
 
@@ -646,6 +647,7 @@ export class Indexer {
 	}
 
 	_processEntityEvents(batch: QueuedBatch): Promise<any> {
+		console.log("Indexer", "_processEntityEvents", batch)
 		const { events, groupId, batchId } = batch
 		return this.db.initialized
 			.then(async () => {
