@@ -1,6 +1,7 @@
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import { isColorLight } from "./base/Color"
-import { themes } from "./builtinThemes"
+import { logoDefaultGrey, tutaDunkel, tutaRed } from "./builtinThemes"
+import { getTutaLogoSvg } from "./base/Logo.js"
 
 assertMainOrNodeBoot()
 
@@ -105,11 +106,11 @@ export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
 
-export function getLightOrDarkTutanotaLogo(): string {
+export function getLightOrDarkTutaLogo(): string {
 	// Use tuta logo with our brand colors
 	if (isColorLight(theme.content_bg)) {
-		return themes().light.logo
+		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
-		return themes().dark.logo
+		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)
 	}
 }
