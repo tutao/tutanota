@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { getLightOrDarkTutanotaLogo } from "../gui/theme.js"
+import { getLightOrDarkTutaLogo } from "../gui/theme.js"
 import { showUserError } from "../misc/ErrorHandlerImpl.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { InfoLink, lang } from "../misc/LanguageViewModel.js"
@@ -28,9 +28,9 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 						margin: px(size.vpad_xl),
 					},
 				},
-				m.trust(getLightOrDarkTutanotaLogo()),
+				m.trust(getLightOrDarkTutaLogo()),
 			),
-			m(".flex.justify-center.mt-l.flex-wrap", [
+			m(".flex.justify-center.flex-wrap", [
 				m(ExternalLink, { href: InfoLink.HomePage, text: "Website", isCompanySite: true, specialType: "me", class: "mlr mt" }),
 				m(ExternalLink, {
 					href: "https://github.com/tutao/tutanota/releases",
