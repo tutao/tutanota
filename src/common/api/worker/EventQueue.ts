@@ -200,20 +200,16 @@ export class EventQueue {
 	}
 
 	removeEventsForInstance(elementId: Id, startIndex: number = 0): void {
-		// this will remove batches with an empty event list
-		findAllAndRemove(
-			this._eventQueue,
-			(batchInThePast) => {
-				if (this._processingBatch === batchInThePast) {
-					return false
-				}
+		// We keep empty batches because we expect certain number of batches to be processed and it's easier to just keep them.
+		for (let i = startIndex; i < this._eventQueue.length; i++) {
+			const batchInThePast = this._eventQueue[i]
+			if (this._processingBatch === batchInThePast) {
+				continue
+			}
 
-				// this will remove all events for the element id from the batch
-				findAllAndRemove(batchInThePast.events, (event) => isSameId(event.instanceId, elementId))
-				return batchInThePast.events.length === 0
-			},
-			startIndex,
-		)
+			// this will remove all events for the element id from the batch
+			findAllAndRemove(batchInThePast.events, (event) => isSameId(event.instanceId, elementId))
+		}
 	}
 
 	start() {

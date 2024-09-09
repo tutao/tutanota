@@ -119,7 +119,10 @@ o.spec("EventQueueTest", function () {
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u2")
 
-			o(processElement.invocations).deepEquals([[{ events: [expectedDelete], batchId: "batch-id-2", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([
+				[{ events: [], batchId: "batch-id-1", groupId: "group-id" }],
+				[{ events: [expectedDelete], batchId: "batch-id-2", groupId: "group-id" }],
+			])
 		})
 
 		o("create + update == create", async function () {
@@ -133,10 +136,13 @@ o.spec("EventQueueTest", function () {
 
 			const expectedCreate = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u1")
 
-			o(processElement.invocations).deepEquals([[{ events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([
+				[{ events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id" }],
+				// new update got optimized away on the spot
+			])
 		})
 
-		o("create + create", async function () {
+		o("create + create == create + create", async function () {
 			const createEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
 			const createEvent2 = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u2")
 
@@ -167,7 +173,11 @@ o.spec("EventQueueTest", function () {
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u")
 
-			o(processElement.invocations).deepEquals([[{ events: [expectedDelete], batchId: "batch-id-3", groupId: "group-id" }]])
+			o(processElement.invocations).deepEquals([
+				[{ events: [], batchId: "batch-id-1", groupId: "group-id" }],
+				// update event was optimized away
+				[{ events: [expectedDelete], batchId: "batch-id-3", groupId: "group-id" }],
+			])
 		})
 
 		o("delete + create == delete + create", async function () {
@@ -209,6 +219,8 @@ o.spec("EventQueueTest", function () {
 			o(processElement.invocations).deepEquals([
 				[{ events: [expectedDelete], batchId: "batch-id-1", groupId: "group-id" }],
 				[{ events: [nonEmptyEventInBetween], batchId: "batch-id-1.1", groupId: "group-id" }],
+				[{ events: [], batchId: "batch-id-2", groupId: "group-id" }],
+				// delete event was optimized away
 				[{ events: [expectedCreate], batchId: "batch-id-4", groupId: "group-id" }],
 			])
 		})

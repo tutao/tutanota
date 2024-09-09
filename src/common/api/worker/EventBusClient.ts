@@ -520,17 +520,23 @@ export class EventBusClient {
 			eventBatches = eventBatches.concat(eventBatchForGroup)
 		}
 
-		// We only have the correct amount of total work after loading all entity event batches.
-		// The progress for processed batches is tracked inside the event queue.
-		const progressMonitor = new ProgressMonitorDelegate(this.progressTracker, eventBatches.length + 1)
-		await progressMonitor.workDone(1) // show progress right away
-		eventQueue.setProgressMonitor(progressMonitor)
-
 		const timeSortedEventBatches = eventBatches.sort((a, b) => compareOldestFirst(getElementId(a), getElementId(b)))
+		// Count all batches that will actually be processed so that the progress is correct
+		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
 			const filteredEntityUpdates = await this.removeUnknownTypes(batch.events)
-			this.addBatch(getElementId(batch), getListId(batch), filteredEntityUpdates, eventQueue)
+			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), filteredEntityUpdates, eventQueue)
+			if (batchWasAddedToQueue) {
+				totalExpectedBatches++
+			}
 		}
+
+		// We only have the correct amount of total work after adding all entity event batches.
+		// The progress for processed batches is tracked inside the event queue.
+		const progressMonitor = new ProgressMonitorDelegate(this.progressTracker, totalExpectedBatches + 1)
+		console.log("ws", `progress monitor expects ${totalExpectedBatches} events`)
+		await progressMonitor.workDone(1) // show progress right away
+		eventQueue.setProgressMonitor(progressMonitor)
 
 		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
 		// It is possible that we will record the time before the batch will be processed but the risk is low.
@@ -625,7 +631,7 @@ export class EventBusClient {
 		}
 	}
 
-	private addBatch(batchId: Id, groupId: Id, events: ReadonlyArray<EntityUpdate>, eventQueue: EventQueue) {
+	private addBatch(batchId: Id, groupId: Id, events: ReadonlyArray<EntityUpdate>, eventQueue: EventQueue): boolean {
 		const lastForGroup = this.lastEntityEventIds.get(groupId) || []
 		// find the position for inserting into last entity events (negative value is considered as not present in the array)
 		const index = binarySearch(lastForGroup, batchId, compareOldestFirst)
@@ -648,6 +654,7 @@ export class EventBusClient {
 		if (wasAdded) {
 			this.lastAddedBatchForGroup.set(groupId, batchId)
 		}
+		return wasAdded
 	}
 
 	private async processEventBatch(batch: QueuedBatch): Promise<void> {
@@ -670,6 +677,7 @@ export class EventBusClient {
 				this.serviceUnavailableRetry = retryPromise
 				return retryPromise
 			} else {
+				console.log("EVENT", "error", e)
 				throw e
 			}
 		}
