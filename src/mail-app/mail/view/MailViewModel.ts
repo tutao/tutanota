@@ -24,6 +24,7 @@ import {
 	mapWith,
 	mapWithout,
 	memoized,
+	memoizedWithHiddenArgument,
 	ofClass,
 	promiseFilter,
 } from "@tutao/tutanota-utils"
@@ -107,6 +108,12 @@ export class MailViewModel {
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
 	) {}
+
+	/** Map from element id of MailSetEntry to an entry itself. Needed to react to entity updates. Reset on folder change. */
+	private mailSetEntries: () => Map<Id, MailSetEntry> = memoizedWithHiddenArgument(
+		() => this._folder?._id?.[1],
+		() => new Map(),
+	)
 
 	get filterType(): MailFilterType | null {
 		return this._filterType
@@ -335,10 +342,12 @@ export class MailViewModel {
 	}
 
 	private listModelForFolder = memoized((_folderId: Id) => {
+		// Capture state to avoid race conditions.
+		// We need to populate mail set entries cache when loading mails so that we can react to updates later.
+		const mailSetEntries = this.mailSetEntries()
+		const folder = assertNotNull(this._folder)
 		return new ListModel<Mail>({
 			fetch: async (lastFetchedMail, count) => {
-				const folder = assertNotNull(this._folder)
-
 				// in case the folder is a new MailSet folder we need to load via the MailSetEntry index indirection
 				let startId: Id
 				if (folder.isMailSet) {
@@ -347,13 +356,15 @@ export class MailViewModel {
 					startId = lastFetchedMail == null ? GENERATED_MAX_ID : getElementId(lastFetchedMail)
 				}
 
-				const { complete, items } = await this.loadMailRange(folder, startId, count)
+				const { complete, items } = await this.loadMailRange(folder, startId, count, mailSetEntries)
+
 				if (complete) {
 					this.fixCounterIfNeeded(folder, [])
 				}
 				return { complete, items }
 			},
 			loadSingle: async (listId: Id, elementId: Id): Promise<Mail | null> => {
+				// we already populate `mailSetEntries` in entity update handler so it's not necessary here
 				return this.entityClient.load(MailTypeRef, [listId, elementId]).catch(
 					ofClass(NotFoundError, () => {
 						console.log(`Could not find updated mail ${JSON.stringify([listId, elementId])}`)
@@ -361,8 +372,7 @@ export class MailViewModel {
 					}),
 				)
 			},
-			sortCompare: (firstMail, secondMail): number =>
-				assertNotNull(this._folder).isMailSet ? sortCompareMailSetMails(firstMail, secondMail) : sortCompareByReverseId(firstMail, secondMail),
+			sortCompare: folder.isMailSet ? sortCompareMailSetMails : sortCompareByReverseId,
 			autoSelectBehavior: () => this.conversationPrefProvider.getMailAutoSelectBehavior(),
 		})
 	})
@@ -469,8 +479,10 @@ export class MailViewModel {
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+		// capturing the state so that if we switch folders we won't run into race conditions
 		const folder = this._folder
 		const listModel = this.listModel
+		const mailSetEntries = this.mailSetEntries()
 
 		if (!folder || !listModel) {
 			return
@@ -479,78 +491,69 @@ export class MailViewModel {
 			return this.entityEventsReceivedForLegacy(updates)
 		}
 
-		let mailEvent: EntityUpdateData | null = null
-		let oldEntryEvent: EntityUpdateData | null = null
-		let newEntryEvent: EntityUpdateData | null = null
-		for (const event of updates) {
-			if (isUpdateForTypeRef(MailTypeRef, event)) {
-				mailEvent = event
-			} else if (isUpdateForTypeRef(MailSetEntryTypeRef, event)) {
-				if (event.operation == OperationType.DELETE) {
-					oldEntryEvent = event
-				} else {
-					newEntryEvent = event
+		for (const update of updates) {
+			if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(folder.entries, update.instanceListId)) {
+				if (update.operation === OperationType.DELETE) {
+					const mailId = mailSetEntries.get(update.instanceId)?.mail
+					if (mailId) {
+						// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
+						if (this.stickyMailId && isSameId(mailId, this.stickyMailId)) {
+							this.stickyMailId = null
+						}
+						mailSetEntries.delete(update.instanceId)
+						await listModel.entityEventReceived(listIdPart(mailId), elementIdPart(mailId), OperationType.DELETE)
+					}
+				} else if (update.operation === OperationType.CREATE) {
+					const setEntry = await this.entityClient.load(MailSetEntryTypeRef, [update.instanceListId, update.instanceId])
+					mailSetEntries.set(update.instanceId, setEntry)
+					await listModel.entityEventReceived(listIdPart(setEntry.mail), elementIdPart(setEntry.mail), OperationType.CREATE)
 				}
-			}
-		}
-
-		// Mail list only contains Mail's but the contents of the list depend on the MailSetEntry's. When MailSetEntry gets
-		// created or deleted we need to dispatch a CREATE or DELETE event as if it happened for the Mail entity.
-		if (mailEvent && newEntryEvent && isSameId(folder.entries, newEntryEvent.instanceListId)) {
-			await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, OperationType.CREATE)
-		} else if (mailEvent && oldEntryEvent && isSameId(folder.entries, oldEntryEvent.instanceListId)) {
-			// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
-			if (this.stickyMailId && mailEvent.instanceId === elementIdPart(this.stickyMailId)) {
-				this.stickyMailId = null
-			}
-			await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, OperationType.DELETE)
-		} else if (mailEvent && !oldEntryEvent && !newEntryEvent) {
-			// In case it is just a mail update then we need to update not the structure of the list but just one entry in it.
-			// We download the email (it should already be downloaded by MailModel for inbox rules) and check if it's still in
-			// our folder.
-			// If it is, we dispatch the update event for the mail.
-			try {
-				const mail = await this.entityClient.load(MailTypeRef, [mailEvent.instanceListId, mailEvent.instanceId])
-				if (mail.sets.some((id) => isSameId(elementIdPart(id), getElementId(folder)))) {
-					await listModel.entityEventReceived(mailEvent.instanceListId, mailEvent.instanceId, mailEvent.operation)
-				}
-			} catch (e) {
-				if (e instanceof NotFoundError) {
-					console.log(`Could not find updated mail ${JSON.stringify([mailEvent.instanceListId, mailEvent.instanceId])}`)
-				} else {
-					throw e
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && OperationType.UPDATE) {
+				const mailWasInThisFolder = listModel.state.items.some((item) => isSameId(item._id, [update.instanceListId, update.instanceId]))
+				if (mailWasInThisFolder) {
+					await listModel.entityEventReceived(update.instanceListId, update.instanceId, OperationType.UPDATE)
 				}
 			}
 		}
 	}
 
-	private async loadMailRange(folder: MailFolder, start: Id, count: number): Promise<ListFetchResult<Mail>> {
+	private async loadMailRange(folder: MailFolder, start: Id, count: number, mailSetEntriesToPopulate: Map<Id, MailSetEntry>): Promise<ListFetchResult<Mail>> {
 		if (folder.isMailSet) {
-			return await this.loadMailSetMailRange(folder, start, count)
+			return await this.loadMailSetMailRange(folder, start, count, mailSetEntriesToPopulate)
 		} else {
 			return await this.loadLegacyMailRange(folder, start, count)
 		}
 	}
 
-	private async loadMailSetMailRange(folder: MailFolder, startId: string, count: number): Promise<ListFetchResult<Mail>> {
+	private async loadMailSetMailRange(
+		folder: MailFolder,
+		startId: string,
+		count: number,
+		mailSetEntriesToPopulate: Map<Id, MailSetEntry>,
+	): Promise<ListFetchResult<Mail>> {
 		try {
 			const loadMailSetEntries = () => this.entityClient.loadRange(MailSetEntryTypeRef, folder.entries, startId, count, true)
 			const loadMails = (listId: Id, mailIds: Array<Id>) => this.entityClient.loadMultiple(MailTypeRef, listId, mailIds)
 
-			const mails = await this.acquireMails(loadMailSetEntries, loadMails)
+			const { mails, mailIdToSetEntry } = await this.acquireMails(loadMailSetEntries, loadMails)
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
 			// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received
 			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule
 			// applies, the email is moved out of the inbox, and we don't return it here.
+			let filteredMails: Mail[]
 			if (mailboxDetail) {
-				const mailsToKeepInInbox = await promiseFilter(mails, async (mail) => {
+				filteredMails = await promiseFilter(mails, async (mail) => {
 					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
 					return !wasMatched
 				})
-				return { items: mailsToKeepInInbox, complete: mails.length < count }
 			} else {
-				return { items: mails, complete: mails.length < count }
+				filteredMails = mails
 			}
+			for (const mail of filteredMails) {
+				const entry = assertNotNull(mailIdToSetEntry.get(getElementId(mail)))
+				mailSetEntriesToPopulate.set(getElementId(entry), entry)
+			}
+			return { items: filteredMails, complete: filteredMails.length < count }
 		} catch (e) {
 			// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
 			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
@@ -562,9 +565,12 @@ export class MailViewModel {
 			if (isOfflineError(e)) {
 				const loadMailSetEntries = () => this.cacheStorage.provideFromRange(MailSetEntryTypeRef, folder.entries, startId, count, true)
 				const loadMails = (listId: Id, mailIds: Array<Id>) => this.cacheStorage.provideMultiple(MailTypeRef, listId, mailIds)
-				const items = await this.acquireMails(loadMailSetEntries, loadMails)
-				if (items.length === 0) throw e
-				return { items, complete: false }
+				const { mails, mailIdToSetEntry } = await this.acquireMails(loadMailSetEntries, loadMails)
+				for (const mailSetEntry of mailIdToSetEntry.values()) {
+					mailSetEntriesToPopulate.set(getElementId(mailSetEntry), mailSetEntry)
+				}
+				if (mails.length === 0) throw e
+				return { items: mails, complete: false }
 			} else {
 				throw e
 			}
@@ -577,7 +583,7 @@ export class MailViewModel {
 	private async acquireMails(
 		loadMailSetEntries: () => Promise<MailSetEntry[]>,
 		loadMails: (listId: Id, mailIds: Array<Id>) => Promise<Mail[]>,
-	): Promise<Array<Mail>> {
+	): Promise<{ mails: Array<Mail>; mailIdToSetEntry: Map<Id, MailSetEntry> }> {
 		const mailSetEntries = await loadMailSetEntries()
 		const mailListIdToMailIds = groupByAndMap(
 			mailSetEntries,
@@ -588,7 +594,11 @@ export class MailViewModel {
 		for (const [listId, mailIds] of mailListIdToMailIds) {
 			mails.push(...(await loadMails(listId, mailIds)))
 		}
-		return mails
+		const mailToSetEntries = new Map<Id, MailSetEntry>()
+		for (const mailSetEntry of mailSetEntries) {
+			mailToSetEntries.set(elementIdPart(mailSetEntry.mail), mailSetEntry)
+		}
+		return { mails, mailIdToSetEntry: mailToSetEntries }
 	}
 
 	private async loadLegacyMailRange(folder: MailFolder, start: string, count: number): Promise<ListFetchResult<Mail>> {
