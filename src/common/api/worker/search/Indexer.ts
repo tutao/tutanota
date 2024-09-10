@@ -593,7 +593,6 @@ export class Indexer {
 
 		// Add latest batches per group so that we can filter out overlapping realtime updates later
 		this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
-		console.log("Indexer", "_initiallyLoadedBatchIdsPerGroup", this._initiallyLoadedBatchIdsPerGroup)
 
 		this._realtimeEventQueue.resume()
 
@@ -647,7 +646,6 @@ export class Indexer {
 	}
 
 	_processEntityEvents(batch: QueuedBatch): Promise<any> {
-		console.log("Indexer", "_processEntityEvents", batch)
 		const { events, groupId, batchId } = batch
 		return this.db.initialized
 			.then(async () => {

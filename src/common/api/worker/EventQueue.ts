@@ -1,10 +1,8 @@
 import { OperationType } from "../common/TutanotaConstants.js"
-import { findAllAndRemove, isSameTypeRefByAttr, last, remove } from "@tutao/tutanota-utils"
+import { findAllAndRemove } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
-import { isSameId } from "../common/utils/EntityUtils.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType } from "../common/utils/EntityUpdateUtils.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 
 export type QueuedBatch = {
@@ -24,8 +22,9 @@ type QueueAction = (nextElement: QueuedBatch) => Promise<void>
 /**
  * Checks which modification is applied in the given batch for the entity id.
  * @param batch entity updates of the batch.
+ * @private visibleForTests
  */
-function batchMod(batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate): EntityModificationType {
+export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate): EntityModificationType {
 	for (const batchEvent of batch) {
 		if (
 			entityUpdate.instanceId === batchEvent.instanceId &&
@@ -33,7 +32,7 @@ function batchMod(batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate
 			entityUpdate.application === batchEvent.application &&
 			entityUpdate.type === batchEvent.type
 		) {
-			switch (entityUpdate.operation) {
+			switch (batchEvent.operation) {
 				case OperationType.CREATE:
 					return EntityModificationType.CREATE
 
@@ -44,12 +43,14 @@ function batchMod(batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate
 					return EntityModificationType.DELETE
 
 				default:
-					throw new ProgrammingError(`Unknown operation: ${entityUpdate.operation}`)
+					throw new ProgrammingError(`Unknown operation: ${batchEvent.operation}`)
 			}
 		}
 	}
 
-	throw new ProgrammingError(`Batch does not have events for ${lastOperationKey(entityUpdate)}`)
+	throw new ProgrammingError(
+		`Batch does not have events for ${entityUpdate.application}/${entityUpdate.type} ${lastOperationKey(entityUpdate)}, batchId: ${batchId}`,
+	)
 }
 
 // A key for _lastOperationForEntity.
@@ -133,7 +134,6 @@ export class EventQueue {
 
 	_optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): void {
 		for (const newEvent of newEvents) {
-			const elementId = newEvent.instanceId
 			const lastOpKey = lastOperationKey(newEvent)
 			const lastBatchForEntity = this._lastOperationForEntity.get(lastOpKey)
 			if (
@@ -145,8 +145,8 @@ export class EventQueue {
 				// If current operation is already being processed, don't modify it, we cannot merge anymore and should just append.
 				newBatch.events.push(newEvent)
 			} else {
-				const newEntityModification = batchMod(newEvents, newEvent)
-				const lastEntityModification = batchMod(lastBatchForEntity.events, newEvent)
+				const newEntityModification = batchMod(batchId, newEvents, newEvent)
+				const lastEntityModification = batchMod(lastBatchForEntity.batchId, lastBatchForEntity.events, newEvent)
 
 				if (newEntityModification === EntityModificationType.UPDATE) {
 					switch (lastEntityModification) {
@@ -162,29 +162,14 @@ export class EventQueue {
 							)
 					}
 				} else if (newEntityModification === EntityModificationType.DELETE) {
-					// find first move or delete (at different list) operation
-					const firstMoveIndex = this._eventQueue.findIndex(
-						(queuedBatch) =>
-							this._processingBatch !== queuedBatch &&
-							containsEventOfType(queuedBatch.events as readonly EntityUpdateData[], OperationType.DELETE, elementId),
-					)
-
-					if (firstMoveIndex !== -1) {
-						// delete CREATE of first move and keep the DELETE event
-						const firstMoveBatch = this._eventQueue[firstMoveIndex]
-						const createEvent = getEventOfType(firstMoveBatch.events, OperationType.CREATE, elementId)
-						createEvent && remove(firstMoveBatch.events, createEvent)
-
-						// We removed empty batches from the list but the one in the map will still stay
-						// so we need to manually clean it up.
-						this._lastOperationForEntity.set(lastOpKey, this._eventQueue[firstMoveIndex])
-					} else {
-						// add delete event
-						newBatch.events.push(newEvent) // _lastOperationForEntity will be set after the batch is prepared as it's non-empty
-					}
-
-					// delete all other events
-					this.removeEventsForInstance(elementId, firstMoveIndex + 1)
+					// delete all other events because they don't matter if the entity is already gone
+					this.removeEventsForInstance(lastOpKey)
+					// set last operation early to make sure that it's not some empty batch that is the last operation, otherwise batchMod will fail.
+					// this shouldn't happen (because delete + create for the same entity in the same batch is not really a thing) and is a bit hacky,
+					// but it works?
+					this._lastOperationForEntity.set(lastOpKey, newBatch)
+					// add delete event
+					newBatch.events.push(newEvent)
 				} else if (newEntityModification === EntityModificationType.CREATE) {
 					if (lastEntityModification === EntityModificationType.DELETE || lastEntityModification === EntityModificationType.CREATE) {
 						// It is likely custom id instance which got re-created
@@ -203,7 +188,7 @@ export class EventQueue {
 		}
 	}
 
-	removeEventsForInstance(elementId: Id, startIndex: number = 0): void {
+	private removeEventsForInstance(operationKey: LastOperationKey, startIndex: number = 0): void {
 		// We keep empty batches because we expect certain number of batches to be processed and it's easier to just keep them.
 		for (let i = startIndex; i < this._eventQueue.length; i++) {
 			const batchInThePast = this._eventQueue[i]
@@ -212,7 +197,8 @@ export class EventQueue {
 			}
 
 			// this will remove all events for the element id from the batch
-			findAllAndRemove(batchInThePast.events, (event) => isSameId(event.instanceId, elementId))
+			// we keep delete events because they don't hurt generally and we also want things to be timely deleted
+			findAllAndRemove(batchInThePast.events, (event) => event.operation !== OperationType.DELETE && lastOperationKey(event) === operationKey)
 		}
 	}
 

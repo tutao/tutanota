@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
-import type { QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
+import { batchMod, EntityModificationType, EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
@@ -215,12 +214,13 @@ o.spec("EventQueueTest", function () {
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent1.instanceListId, createEvent1.instanceId, "u1")
 			const expectedCreate = createUpdate(OperationType.CREATE, createEvent1.instanceListId, createEvent1.instanceId, "u4")
+			const expectedDelete2 = createUpdate(OperationType.DELETE, createEvent1.instanceListId, createEvent1.instanceId, "u3")
 
 			o(processElement.invocations).deepEquals([
 				[{ events: [expectedDelete], batchId: "batch-id-1", groupId: "group-id" }],
 				[{ events: [nonEmptyEventInBetween], batchId: "batch-id-1.1", groupId: "group-id" }],
 				[{ events: [], batchId: "batch-id-2", groupId: "group-id" }],
-				// delete event was optimized away
+				[{ events: [expectedDelete2], batchId: "batch-id-3", groupId: "group-id" }],
 				[{ events: [expectedCreate], batchId: "batch-id-4", groupId: "group-id" }],
 			])
 		})
@@ -280,6 +280,28 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
+		o(
+			"[delete (list 1) + create (list 2)] + delete (list 2) + create (list 2) = [delete (list 1) + create (list 2)] + delete (list 2) + create (list 2)",
+			async function () {
+				const deleteEvent1 = createUpdate(OperationType.DELETE, "l1", "1", "u0")
+				const createEvent1 = createUpdate(OperationType.CREATE, "l2", "1", "u1")
+				const deleteEvent2 = createUpdate(OperationType.DELETE, "l2", "1", "u2")
+				const createEvent2 = createUpdate(OperationType.CREATE, "l2", "1", "u3")
+
+				queue.add("batch-id-1", "group-id-1", [deleteEvent1, createEvent1])
+				queue.add("batch-id-2", "group-id-1", [deleteEvent2])
+				queue.add("batch-id-3", "group-id-1", [createEvent2])
+				queue.resume()
+				await lastProcess.promise
+
+				o(processElement.invocations).deepEquals([
+					[{ events: [deleteEvent1], batchId: "batch-id-1", groupId: "group-id-1" }],
+					[{ events: [deleteEvent2], batchId: "batch-id-2", groupId: "group-id-1" }],
+					[{ events: [createEvent2], batchId: "batch-id-3", groupId: "group-id-1" }],
+				])
+			},
+		)
+
 		function createUpdate(type: OperationType, listId: Id, instanceId: Id, eventId?: Id): EntityUpdate {
 			let update = createTestEntity(EntityUpdateTypeRef)
 			update.operation = type
@@ -292,5 +314,151 @@ o.spec("EventQueueTest", function () {
 			}
 			return update
 		}
+	})
+
+	o.spec("batchMod", function () {
+		const batchId = "batchId"
+		const instanceListId = "instanceListId"
+		const instanceId = "instanceId"
+		o("one entity with the same id and type", async () => {
+			o(
+				batchMod(
+					batchId,
+					[
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.CREATE,
+							instanceId,
+							instanceListId,
+						}),
+					],
+					createTestEntity(EntityUpdateTypeRef, {
+						application: "tutanota",
+						type: "mail",
+						operation: OperationType.CREATE,
+						instanceId,
+						instanceListId,
+					}),
+				),
+			).equals(EntityModificationType.CREATE)
+		})
+
+		o("there is another op with the same type but different element id", async () => {
+			o(
+				batchMod(
+					batchId,
+					[
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.DELETE,
+							instanceId: "instanceId2",
+							instanceListId,
+						}),
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.CREATE,
+							instanceId,
+							instanceListId,
+						}),
+					],
+					createTestEntity(EntityUpdateTypeRef, {
+						application: "tutanota",
+						type: "mail",
+						operation: OperationType.CREATE,
+						instanceId,
+						instanceListId,
+					}),
+				),
+			).equals(EntityModificationType.CREATE)
+		})
+
+		o("there is another op with the same type but different list id", async () => {
+			o(
+				batchMod(
+					batchId,
+					[
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.DELETE,
+							instanceId,
+							instanceListId: "instanceListId2",
+						}),
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.CREATE,
+							instanceId,
+							instanceListId,
+						}),
+					],
+					createTestEntity(EntityUpdateTypeRef, {
+						application: "tutanota",
+						type: "mail",
+						operation: OperationType.CREATE,
+						instanceId,
+						instanceListId,
+					}),
+				),
+			).equals(EntityModificationType.CREATE)
+		})
+
+		o("there is another op with the id but different type", async () => {
+			o(
+				batchMod(
+					batchId,
+					[
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "contact",
+							operation: OperationType.DELETE,
+							instanceId,
+							instanceListId,
+						}),
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.CREATE,
+							instanceId,
+							instanceListId,
+						}),
+					],
+					createTestEntity(EntityUpdateTypeRef, {
+						application: "tutanota",
+						type: "mail",
+						operation: OperationType.CREATE,
+						instanceId,
+						instanceListId,
+					}),
+				),
+			).equals(EntityModificationType.CREATE)
+		})
+
+		o("modification is based on operation of batch, not the argument", async () => {
+			o(
+				batchMod(
+					batchId,
+					[
+						createTestEntity(EntityUpdateTypeRef, {
+							application: "tutanota",
+							type: "mail",
+							operation: OperationType.CREATE,
+							instanceId,
+							instanceListId,
+						}),
+					],
+					createTestEntity(EntityUpdateTypeRef, {
+						application: "tutanota",
+						type: "mail",
+						operation: OperationType.DELETE,
+						instanceId,
+						instanceListId,
+					}),
+				),
+			).equals(EntityModificationType.CREATE)
+		})
 	})
 })
