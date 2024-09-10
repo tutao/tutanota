@@ -68,13 +68,11 @@ function lastOperationKey(update: EntityUpdate): LastOperationKey {
 
 export class EventQueue {
 	/** Batches to process. Oldest first. */
-	readonly _eventQueue: Array<QueuedBatch>
+	private readonly eventQueue: Array<QueuedBatch>
 	// the last processed operation for a given entity id
-	readonly _lastOperationForEntity: Map<LastOperationKey, QueuedBatch>
-	readonly _queueAction: QueueAction
-	readonly _optimizationEnabled: boolean
-	_processingBatch: QueuedBatch | null
-	_paused: boolean
+	private readonly lastOperationForEntity: Map<LastOperationKey, QueuedBatch>
+	private processingBatch: QueuedBatch | null
+	private paused: boolean
 	private progressMonitor: ProgressMonitorDelegate | null
 
 	/**
@@ -82,13 +80,11 @@ export class EventQueue {
 	 * @param optimizationEnabled whether the queue should try to optimize events and remove unnecessary ones with the knowledge of newer ones
 	 * @param queueAction which is executed for each batch. Must *never* throw.
 	 */
-	constructor(private readonly tag: string, optimizationEnabled: boolean, queueAction: QueueAction) {
-		this._eventQueue = []
-		this._lastOperationForEntity = new Map()
-		this._queueAction = queueAction
-		this._optimizationEnabled = optimizationEnabled
-		this._processingBatch = null
-		this._paused = false
+	constructor(private readonly tag: string, private readonly optimizationEnabled: boolean, private readonly queueAction: QueueAction) {
+		this.eventQueue = []
+		this.lastOperationForEntity = new Map()
+		this.processingBatch = null
+		this.paused = false
 		this.progressMonitor = null
 	}
 
@@ -113,17 +109,17 @@ export class EventQueue {
 			batchId,
 		}
 
-		if (!this._optimizationEnabled) {
+		if (!this.optimizationEnabled) {
 			newBatch.events.push(...newEvents)
 		} else {
-			this._optimizingAddEvents(newBatch, batchId, groupId, newEvents)
+			this.optimizingAddEvents(newBatch, batchId, groupId, newEvents)
 		}
 
 		if (newBatch.events.length !== 0) {
-			this._eventQueue.push(newBatch)
+			this.eventQueue.push(newBatch)
 
 			for (const update of newBatch.events) {
-				this._lastOperationForEntity.set(lastOperationKey(update), newBatch)
+				this.lastOperationForEntity.set(lastOperationKey(update), newBatch)
 			}
 		}
 
@@ -132,13 +128,13 @@ export class EventQueue {
 		return newBatch.events.length > 0
 	}
 
-	_optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): void {
+	private optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): void {
 		for (const newEvent of newEvents) {
 			const lastOpKey = lastOperationKey(newEvent)
-			const lastBatchForEntity = this._lastOperationForEntity.get(lastOpKey)
+			const lastBatchForEntity = this.lastOperationForEntity.get(lastOpKey)
 			if (
 				lastBatchForEntity == null ||
-				(this._processingBatch != null && this._processingBatch === lastBatchForEntity) ||
+				(this.processingBatch != null && this.processingBatch === lastBatchForEntity) ||
 				groupId !== lastBatchForEntity.groupId
 			) {
 				// If there's no current operation, there's nothing to merge, just add
@@ -167,7 +163,7 @@ export class EventQueue {
 					// set last operation early to make sure that it's not some empty batch that is the last operation, otherwise batchMod will fail.
 					// this shouldn't happen (because delete + create for the same entity in the same batch is not really a thing) and is a bit hacky,
 					// but it works?
-					this._lastOperationForEntity.set(lastOpKey, newBatch)
+					this.lastOperationForEntity.set(lastOpKey, newBatch)
 					// add delete event
 					newBatch.events.push(newEvent)
 				} else if (newEntityModification === EntityModificationType.CREATE) {
@@ -190,9 +186,9 @@ export class EventQueue {
 
 	private removeEventsForInstance(operationKey: LastOperationKey, startIndex: number = 0): void {
 		// We keep empty batches because we expect certain number of batches to be processed and it's easier to just keep them.
-		for (let i = startIndex; i < this._eventQueue.length; i++) {
-			const batchInThePast = this._eventQueue[i]
-			if (this._processingBatch === batchInThePast) {
+		for (let i = startIndex; i < this.eventQueue.length; i++) {
+			const batchInThePast = this.eventQueue[i]
+			if (this.processingBatch === batchInThePast) {
 				continue
 			}
 
@@ -203,47 +199,47 @@ export class EventQueue {
 	}
 
 	start() {
-		if (this._processingBatch) {
+		if (this.processingBatch) {
 			return
 		}
 
-		this._processNext()
+		this.processNext()
 	}
 
 	queueSize(): number {
-		return this._eventQueue.length
+		return this.eventQueue.length
 	}
 
-	_processNext() {
-		if (this._paused) {
+	private processNext() {
+		if (this.paused) {
 			return
 		}
 
-		const next = this._eventQueue[0]
+		const next = this.eventQueue[0]
 
 		if (next) {
-			this._processingBatch = next
+			this.processingBatch = next
 
-			this._queueAction(next)
+			this.queueAction(next)
 				.then(() => {
-					this._eventQueue.shift()
+					this.eventQueue.shift()
 					this.progressMonitor?.workDone(1)
-					this._processingBatch = null
+					this.processingBatch = null
 
 					// When we are done with the batch, we don't want to merge with it anymore
 					for (const event of next.events) {
 						const concatenatedId = lastOperationKey(event)
-						if (this._lastOperationForEntity.get(concatenatedId) === next) {
-							this._lastOperationForEntity.delete(concatenatedId)
+						if (this.lastOperationForEntity.get(concatenatedId) === next) {
+							this.lastOperationForEntity.delete(concatenatedId)
 						}
 					}
 
-					this._processNext()
+					this.processNext()
 				})
 				.catch((e) => {
-					console.log("EventQueue", this.tag, this._optimizationEnabled, "error", next, e)
+					console.log("EventQueue", this.tag, this.optimizationEnabled, "error", next, e)
 					// processing continues if the event bus receives a new event
-					this._processingBatch = null
+					this.processingBatch = null
 
 					if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
 						console.error("Uncaught EventQueue error!", e, next)
@@ -253,26 +249,26 @@ export class EventQueue {
 	}
 
 	clear() {
-		this._eventQueue.splice(0)
+		this.eventQueue.splice(0)
 
-		this._processingBatch = null
+		this.processingBatch = null
 
-		for (const k of this._lastOperationForEntity.keys()) {
-			this._lastOperationForEntity.delete(k)
+		for (const k of this.lastOperationForEntity.keys()) {
+			this.lastOperationForEntity.delete(k)
 		}
 	}
 
 	pause() {
-		this._paused = true
+		this.paused = true
 	}
 
 	resume() {
-		this._paused = false
+		this.paused = false
 		this.start()
 	}
 
-	_replace(batch: QueuedBatch, newMod: EntityUpdate) {
-		batch.events = batch.events.filter((e) => e.instanceId !== newMod.instanceId)
-		batch.events.push(newMod)
+	/** @private visibleForTesting */
+	get __processingBatch(): QueuedBatch | null {
+		return this.processingBatch
 	}
 }

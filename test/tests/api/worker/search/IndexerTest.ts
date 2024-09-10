@@ -1113,10 +1113,10 @@ o.spec("IndexerTest", () => {
 				user,
 			}
 
-			const _processNext = mock._core.queue._processNext.bind(mock._core.queue)
+			const _processNext = mock._core.queue.processNext.bind(mock._core.queue)
 
-			mock._core.queue._processNext = spy(() => {
-				if (mock._core.queue._eventQueue.length === 0) {
+			mock._core.queue.processNext = spy(() => {
+				if (mock._core.queue.eventQueue.length === 0) {
 					doneDeferred.resolve(null)
 				}
 

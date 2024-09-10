@@ -24,7 +24,7 @@ o.spec("EventQueueTest", function () {
 	o.beforeEach(function () {
 		lastProcess = defer()
 		processElement = spy(() => {
-			if (queue._eventQueue.length === 1) {
+			if (queue.queueSize() === 1) {
 				// the last element is removed right after processing it
 				lastProcess.resolve()
 			}
@@ -44,11 +44,11 @@ o.spec("EventQueueTest", function () {
 		queue.addBatches([batchWithOnlyDelete])
 
 		await delay(5)
-		o(queue._eventQueue.length).equals(1)
+		o(queue.queueSize()).equals(1)
 
 		queue.resume()
 		await lastProcess.promise
-		o(queue._eventQueue.length).equals(0)
+		o(queue.queueSize()).equals(0)
 	})
 
 	o("start after pause", async function () {
@@ -63,7 +63,7 @@ o.spec("EventQueueTest", function () {
 
 		await delay(5)
 		queue.start()
-		o(queue._eventQueue.length).equals(1)
+		o(queue.queueSize()).equals(1)
 	})
 
 	o("handle ConnectionError", async function () {
@@ -81,7 +81,7 @@ o.spec("EventQueueTest", function () {
 
 		lastProcess = defer()
 		processElement = spy(() => {
-			if (queue._eventQueue.length === 1) {
+			if (queue.queueSize() === 1) {
 				// the last element is removed right after processing it
 				lastProcess.resolve()
 			}
@@ -98,8 +98,8 @@ o.spec("EventQueueTest", function () {
 
 		queue.start()
 		await delay(5)
-		o(queue._eventQueue.length).equals(2)
-		o(queue._processingBatch).equals(null)
+		o(queue.queueSize()).equals(2)
+		o(queue.__processingBatch).equals(null)
 	})
 
 	o.spec("collapsing events", function () {
