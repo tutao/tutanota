@@ -778,6 +778,7 @@ class CalendarLocator {
 			timeZone,
 			!isBrowser() ? this.externalCalendarFacade : null,
 			deviceConfig,
+			!isBrowser() ? this.pushService : null,
 		)
 	})
 
