@@ -9,7 +9,7 @@ import { lang } from "../../common/misc/LanguageViewModel.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { isApp, isDesktop } from "../../common/api/common/Env.js"
+import { isApp, isBrowser, isDesktop } from "../../common/api/common/Env.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { PushServiceType } from "../../common/api/common/TutanotaConstants.js"
 import { mailLocator } from "../mailLocator.js"
@@ -43,9 +43,17 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.loadPushIdentifiers()
 	}
 
-	private disableIdentifier(identifier: PushIdentifier) {
+	private togglePushIdentifier(identifier: PushIdentifier) {
 		identifier.disabled = !identifier.disabled
-		locator.entityClient.update(identifier).then(m.redraw)
+		locator.entityClient.update(identifier).then(() => m.redraw)
+
+		if (!isBrowser() && identifier.identifier === this.currentIdentifier) {
+			if (identifier.disabled) {
+				locator.pushService.invalidateAlarmsForUser(this.user._id)
+			} else {
+				locator.pushService.reRegister()
+			}
+		}
 	}
 
 	view(): Children {
@@ -72,7 +80,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 						locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
 					},
 					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
-					disableClicked: () => this.disableIdentifier(identifier),
+					disableClicked: () => this.togglePushIdentifier(identifier),
 				})
 			})
 			.sort((l, r) => +r.attrs.current - +l.attrs.current)
@@ -123,7 +131,12 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private getCurrentIdentifier(): string | null {
-		return isApp() || isDesktop() ? locator.pushService.getLoadedPushIdentifier() : null
+		if (isApp() || isDesktop()) {
+			const identifier = mailLocator.pushService.getLoadedPushIdentifier()?.identifier
+			return identifier ? identifier : null
+		}
+
+		return null
 	}
 
 	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {

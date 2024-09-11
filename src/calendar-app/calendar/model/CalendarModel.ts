@@ -85,6 +85,7 @@ import {
 } from "../../../common/calendar/import/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -148,6 +149,7 @@ export class CalendarModel {
 		private readonly zone: string,
 		private readonly externalCalendarFacade: ExternalCalendarFacade | null,
 		private readonly deviceConfig: DeviceConfig,
+		private readonly pushService: NativePushServiceApp | null,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
@@ -852,6 +854,12 @@ export class CalendarModel {
 
 	async scheduleAlarmsLocally(): Promise<void> {
 		if (!this.localAlarmsEnabled()) return
+
+		const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
+		if (pushIdentifier && pushIdentifier.disabled) {
+			return console.log("Push identifier disabled. Skipping alarm schedule")
+		}
+
 		const eventsWithInfos = await this.calendarFacade.loadAlarmEvents()
 		const scheduler: AlarmScheduler = await this.alarmScheduler()
 		for (let { event, userAlarmInfos } of eventsWithInfos) {
@@ -967,6 +975,13 @@ export class CalendarModel {
 						break
 					}
 				}
+			}
+		}
+
+		if (!isApp()) {
+			const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
+			if (pushIdentifier && pushIdentifier.disabled) {
+				return console.log("Push identifier disabled. Skipping alarm schedule")
 			}
 		}
 

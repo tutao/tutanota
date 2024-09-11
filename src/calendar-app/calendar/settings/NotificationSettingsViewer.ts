@@ -83,7 +83,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private getCurrentIdentifier(): string | null {
-		return isApp() || isDesktop() ? calendarLocator.pushService.getLoadedPushIdentifier() : null
+		const identifier = calendarLocator.pushService.getLoadedPushIdentifier()?.identifier
+		return (isApp() || isDesktop()) && identifier ? identifier : null
 	}
 
 	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {
