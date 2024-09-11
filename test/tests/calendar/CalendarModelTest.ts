@@ -796,5 +796,11 @@ function init({
 		"Europe/Berlin",
 		externalCalendarFacade,
 		deviceConfig,
+		downcast({
+			getLoadedPushIdentifier: () => ({
+				identifier: "",
+				disabled: false,
+			}),
+		}),
 	)
 }

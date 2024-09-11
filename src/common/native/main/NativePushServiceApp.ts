@@ -28,8 +28,13 @@ function effectiveModelVersion(): number {
 	return isDesktop() ? modelInfo.version : MOBILE_SYS_MODEL_VERSION
 }
 
+interface CurrentPushIdentifier {
+	identifier: string
+	disabled: boolean
+}
+
 export class NativePushServiceApp {
-	private _currentIdentifier: string | null = null
+	private _currentIdentifier: CurrentPushIdentifier | null = null
 
 	constructor(
 		private readonly nativePushFacade: NativePushFacade,
@@ -46,8 +51,9 @@ export class NativePushServiceApp {
 		if (isAndroidApp() || isDesktop()) {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())
-				this._currentIdentifier = identifier
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
+				this._currentIdentifier = { identifier, disabled: pushIdentifier.disabled }
+
 				await this.storePushIdentifierLocally(pushIdentifier) // Also sets the extended notification mode to SENDER_AND_SUBJECT if the user is new
 
 				const userId = this.logins.getUserController().userId
@@ -69,8 +75,9 @@ export class NativePushServiceApp {
 			const identifier = await this.loadPushIdentifierFromNative()
 
 			if (identifier) {
-				this._currentIdentifier = identifier
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.IOS))
+
+				this._currentIdentifier = { identifier, disabled: pushIdentifier.disabled }
 
 				if (pushIdentifier.language !== lang.code) {
 					pushIdentifier.language = lang.code
@@ -151,7 +158,7 @@ export class NativePushServiceApp {
 		await this.nativePushFacade.closePushNotifications(addresses)
 	}
 
-	getLoadedPushIdentifier(): string | null {
+	getLoadedPushIdentifier(): CurrentPushIdentifier | null {
 		return this._currentIdentifier
 	}
 
@@ -168,6 +175,10 @@ export class NativePushServiceApp {
 	}
 
 	private async scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
+		if (this._currentIdentifier?.disabled) {
+			return
+		}
+
 		const userId = this.logins.getUserController().user._id
 
 		// The native part might have alarms stored for the older model version and they might miss some new fields.
@@ -183,13 +194,13 @@ export class NativePushServiceApp {
 	}
 
 	async setReceiveCalendarNotificationConfig(value: boolean) {
-		await this.nativePushFacade.setReceiveCalendarNotificationConfig(this.getLoadedPushIdentifier()!, value)
+		await this.nativePushFacade.setReceiveCalendarNotificationConfig(this.getLoadedPushIdentifier()!.identifier, value)
 	}
 
 	async getReceiveCalendarNotificationConfig() {
 		const pushIdentifier = this.getLoadedPushIdentifier()
 		if (!pushIdentifier) return true
-		return await this.nativePushFacade.getReceiveCalendarNotificationConfig(pushIdentifier)
+		return await this.nativePushFacade.getReceiveCalendarNotificationConfig(pushIdentifier.identifier)
 	}
 
 	async allowReceiveCalendarNotifications() {
