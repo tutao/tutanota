@@ -9,9 +9,8 @@ import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs
 import { assertNotNull, incrementMonth, LazyLoaded, lazyMemoized, memoized, TypeRef } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
-import { FolderColumnView } from "../../../../common/gui/FolderColumnView.js"
 import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
-import { NavButton, NavButtonColor } from "../../../../common/gui/base/NavButton.js"
+import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
@@ -73,7 +72,6 @@ export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<CalendarSearchViewAttrs> {
 	private readonly resultListColumn: ViewColumn
 	private readonly resultDetailsColumn: ViewColumn
-	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: CalendarSearchViewModel
 
@@ -89,47 +87,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
-
-		this.folderColumn = new ViewColumn(
-			{
-				view: () => {
-					const restriction = this.searchViewModel.getRestriction()
-					return m(FolderColumnView, {
-						drawer: vnode.attrs.drawerAttrs,
-						button: this.getMainButton(restriction.type),
-						content: [
-							m(
-								SidebarSection,
-								{
-									name: "search_label",
-								},
-								[
-									m(
-										".folder-row.flex-start.mlr-button",
-										m(NavButton, {
-											label: "calendar_label",
-											icon: () => BootIcons.Calendar,
-											href: "#",
-											isSelectedPrefix: "/search/calendar",
-											colors: NavButtonColor.Nav,
-											persistentBackground: true,
-										}),
-									),
-								],
-							),
-							this.renderFilterSection(),
-						],
-						ariaLabel: "search_label",
-					})
-				},
-			},
-			ColumnType.Foreground,
-			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
-				headerCenter: () => lang.get("search_label"),
-			},
-		)
 
 		this.resultListColumn = new ViewColumn(
 			{
@@ -159,7 +116,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				maxWidth: size.third_col_max_width,
 			},
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
+		this.viewSlider = new ViewSlider([this.resultListColumn, this.resultDetailsColumn], false)
 	}
 
 	private getResultColumnLayout() {
