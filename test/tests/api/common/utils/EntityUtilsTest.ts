@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import {
 	constructMailSetEntryId,
 	create,
+	deconstructMailSetEntryId,
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
 	removeTechnicalFields,
@@ -32,14 +33,24 @@ o.spec("EntityUtils", function () {
 		o(generatedIdToTimestamp("IwQvgF------")).equals(1370563200000)
 	})
 
-	o("test constructcustomId for mailSetEntry", function () {
-		const mailId: Id = "-----------0"
+	o.spec("MailSetEntry id", function () {
+		o("constructMailSetEntryId", function () {
+			const mailId: Id = "-----------0"
 
-		const expected = "V7ifKQAAAAAAAAAAAQ"
-		const receiveDate = new Date("2017-10-03 13:46:13 UTC")
+			const expected = "V7ifKQAAAAAAAAAAAQ"
+			const receiveDate = new Date("2017-10-03 13:46:13 UTC")
 
-		const calculatedId = constructMailSetEntryId(receiveDate, mailId)
-		o(expected).equals(calculatedId)
+			const calculatedId = constructMailSetEntryId(receiveDate, mailId)
+			o(expected).equals(calculatedId)
+		})
+
+		o("deconstructMailSetEntryId", function () {
+			const setEntryId = "V7ifKQAAAAAAAAAAAQ"
+			const { receiveDate, mailId } = deconstructMailSetEntryId(setEntryId)
+			const diff = Math.abs(receiveDate.getTime() - new Date("2017-10-03 13:46:12:864Z").getTime())
+			o(diff < 10).equals(true)(`Expected a date near ${new Date("2017-10-03 13:46:12:864Z")}, got: ${receiveDate}`)
+			o(mailId).equals("-----------0")
+		})
 	})
 
 	o("create new entity without error object ", function () {

@@ -478,6 +478,19 @@ export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 	return uint8arrayToCustomId(new Uint8Array(buffer.buffer))
 }
 
+export function deconstructMailSetEntryId(id: Id): { receiveDate: Date; mailId: Id } {
+	const buffer = customIdToUint8array(id)
+	const timestampBytes = buffer.slice(0, 4)
+	const generatedIdBytes = buffer.slice(4)
+
+	const timestamp1024 = (timestampBytes[0] << 24) | (timestampBytes[1] << 16) | (timestampBytes[2] << 8) | timestampBytes[3]
+	const timestamp = timestamp1024 * 1024
+
+	const mailId = base64ToBase64Ext(uint8ArrayToBase64(generatedIdBytes))
+
+	return { receiveDate: new Date(timestamp), mailId }
+}
+
 export const LEGACY_TO_RECIPIENTS_ID = 112
 export const LEGACY_CC_RECIPIENTS_ID = 113
 export const LEGACY_BCC_RECIPIENTS_ID = 114
