@@ -553,7 +553,16 @@ export class MailViewModel {
 				const entry = assertNotNull(mailIdToSetEntry.get(getElementId(mail)))
 				mailSetEntriesToPopulate.set(getElementId(entry), entry)
 			}
-			return { items: filteredMails, complete: filteredMails.length < count }
+			// It should be enough to check whether we got back fewer emails than we requested, but it is possible that some of them got moved by inbox rules
+			// while we've been loading them and they were removed from the cache so in the end the cache will give back fewer emails than we requested.
+			//
+			// A more reliable solution would be to figure out if the list is loaded completely in the cache (it already does this but does not propagate
+			// this information).
+			const complete = mails.length === 0
+			if (complete) {
+				console.log("MailVM", "loaded folder completely", folder._id, "mails", mails.length, "count", count)
+			}
+			return { items: filteredMails, complete: complete }
 		} catch (e) {
 			// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
 			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
