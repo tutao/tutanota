@@ -203,6 +203,39 @@ const keyRotationsListId = "keyRotationsListId"
 const invitationsListId = "invitationsListId"
 const groupKeyUpdatesListId = "groupKeyUpdatesListId"
 
+function prepareRecoverData(recoverData: RecoverData, recoverCodeFacade: RecoverCodeFacade) {
+	recoverData = {
+		hexCode: "hexCode",
+		recoverCodeEncUserGroupKey: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key,
+		userKeyVersion: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion,
+		userEncRecoverCode: RECOVER_CODE_ENC_NEW_USER_GROUP_KEY.key,
+		recoveryCodeVerifier: RECOVER_CODE_VERIFIER,
+	}
+	when(recoverCodeFacade.getRawRecoverCode(PW_KEY)).thenResolve(RECOVER_CODE)
+	when(recoverCodeFacade.encryptRecoveryCode(RECOVER_CODE, NEW_USER_GROUP_KEY)).thenReturn(recoverData)
+}
+
+function verifyRecoverCodeData(userGroupKeyData: UserGroupKeyRotationData) {
+	const recoverCodeData: RecoverCodeData = assertNotNull(userGroupKeyData.recoverCodeData)
+	o(recoverCodeData.recoveryCodeVerifier).deepEquals(RECOVER_CODE_VERIFIER)
+	o(recoverCodeData.userKeyVersion).equals(String(NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion))
+	o(recoverCodeData.userEncRecoveryCode).deepEquals(RECOVER_CODE_ENC_NEW_USER_GROUP_KEY.key)
+	o(recoverCodeData.recoveryCodeEncUserGroupKey).deepEquals(NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key)
+}
+
+function prepareUserKeyRotation(keyRotationFacade: KeyRotationFacade, userGroup: Group) {
+	keyRotationFacade.setPendingKeyRotations({
+		pwKey: PW_KEY,
+		adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+			_id: [keyRotationsListId, userGroupId],
+			targetKeyVersion: String(Number(userGroup.groupKeyVersion) + 1),
+			groupKeyRotationType: GroupKeyRotationType.User,
+		}),
+		teamOrCustomerGroupKeyRotations: [],
+		userAreaGroupsKeyRotations: [],
+	})
+}
+
 o.spec("KeyRotationFacadeTest", function () {
 	let entityClientMock: EntityClient
 	let keyRotationFacade: KeyRotationFacade
@@ -699,17 +732,9 @@ o.spec("KeyRotationFacadeTest", function () {
 				adminGroup.adminGroupKeyVersion = String(CURRENT_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY.encryptingKeyVersion)
 				adminGroup.type = GroupType.Admin
 				adminGroup.currentKeys = object()
-				recoverData = {
-					hexCode: "hexCode",
-					recoverCodeEncUserGroupKey: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key,
-					userKeyVersion: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion,
-					userEncRecoverCode: RECOVER_CODE_ENC_NEW_USER_GROUP_KEY.key,
-					recoveryCodeVerifier: RECOVER_CODE_VERIFIER,
-				}
+				prepareRecoverData(recoverData, recoverCodeFacade)
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(groupManagementFacade.hasAdminEncGKey(adminGroup)).thenReturn(true)
-				when(recoverCodeFacade.getRawRecoverCode(PW_KEY)).thenResolve(RECOVER_CODE)
-				when(recoverCodeFacade.encryptRecoveryCode(RECOVER_CODE, NEW_USER_GROUP_KEY)).thenReturn(recoverData)
 				when(userFacade.deriveUserGroupKeyDistributionKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
@@ -743,12 +768,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							const adminGroupKeyData: GroupKeyRotationData = arg.adminGroupKeyData
-
-							const recoverCodeData: RecoverCodeData = assertNotNull(userGroupKeyData.recoverCodeData)
-							o(recoverCodeData.recoveryCodeVerifier).deepEquals(RECOVER_CODE_VERIFIER)
-							o(recoverCodeData.userKeyVersion).equals(String(NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion))
-							o(recoverCodeData.userEncRecoveryCode).deepEquals(RECOVER_CODE_ENC_NEW_USER_GROUP_KEY.key)
-							o(recoverCodeData.recoveryCodeEncUserGroupKey).deepEquals(NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key)
+							verifyRecoverCodeData(userGroupKeyData)
 
 							o(userGroupKeyData.adminGroupKeyVersion).deepEquals(String(NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY.encryptingKeyVersion))
 							verifyUserGroupKeyDataExceptAdminKey(userGroupKeyData, generatedKeyPairs)
@@ -812,6 +832,7 @@ o.spec("KeyRotationFacadeTest", function () {
 		o.spec("User group key rotation", function () {
 			let userGroup: Group
 			let generatedKeyPairs: Map<AesKey, MockedKeyPairs>
+			let recoverData: RecoverData
 
 			o.beforeEach(function () {
 				userGroup = makeGroupWithMembership(userGroupId, user).group
@@ -820,6 +841,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				userGroup.adminGroupKeyVersion = String(CURRENT_ADMIN_GROUP_ENC_CURRENT_USER_GROUP_KEY.encryptingKeyVersion)
 				userGroup.type = GroupType.User
 				userGroup.currentKeys = object()
+				prepareRecoverData(recoverData, recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(userFacade.deriveUserGroupKeyDistributionKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
@@ -863,16 +885,7 @@ o.spec("KeyRotationFacadeTest", function () {
 			})
 
 			o("Successful rotation", async function () {
-				keyRotationFacade.setPendingKeyRotations({
-					pwKey: PW_KEY,
-					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
-						_id: [keyRotationsListId, userGroupId],
-						targetKeyVersion: String(Number(userGroup.groupKeyVersion) + 1),
-						groupKeyRotationType: GroupKeyRotationType.User,
-					}),
-					teamOrCustomerGroupKeyRotations: [],
-					userAreaGroupsKeyRotations: [],
-				})
+				prepareUserKeyRotation(keyRotationFacade, userGroup)
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
@@ -881,7 +894,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						UserGroupKeyRotationService,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
-							o(userGroupKeyData.recoverCodeData).equals(null)
+							verifyRecoverCodeData(userGroupKeyData)
 
 							o(userGroupKeyData.adminGroupEncUserGroupKey).equals(null)
 							o(userGroupKeyData.adminGroupKeyVersion).deepEquals(String(NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY.encryptingKeyVersion))
@@ -898,6 +911,28 @@ o.spec("KeyRotationFacadeTest", function () {
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
+			})
+
+			o("Successful rotation - no recover code", async function () {
+				prepareUserKeyRotation(keyRotationFacade, userGroup)
+
+				assertNotNull(user.auth).recoverCode = null
+
+				await keyRotationFacade.processPendingKeyRotation(user)
+
+				verify(
+					serviceExecutorMock.post(
+						UserGroupKeyRotationService,
+						matchers.argThat((arg) => {
+							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
+							o(userGroupKeyData.recoverCodeData).equals(null)
+							o(userGroupKeyData.userGroupKeyVersion).deepEquals(String(NEW_USER_GROUP_KEY.version))
+							return true
+						}),
+					),
+				)
+				verify(recoverCodeFacade.getRawRecoverCode(matchers.anything()), { times: 0 })
+				verify(recoverCodeFacade.encryptRecoveryCode(anything(), anything()), { times: 0 })
 			})
 		})
 
