@@ -77,7 +77,7 @@ import { CryptoFacade, PublicKeys } from "../crypto/CryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
-import { RecoverCodeFacade, RecoverData } from "./lazy/RecoverCodeFacade.js"
+import { RecoverCodeFacade } from "./lazy/RecoverCodeFacade.js"
 import { UserFacade } from "./UserFacade.js"
 import { GroupInvitationPostData, type InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { ShareFacade } from "./lazy/ShareFacade.js"
@@ -120,7 +120,7 @@ type EncryptedUserGroupKeys = {
 	newUserGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
 	passphraseKeyEncNewUserGroupKey: VersionedEncryptedKey
 	keyPair: KeyPair
-	recoverCodeWrapper: RecoverData | null
+	recoverCodeData: RecoverCodeData | null
 	newAdminGroupKeyEncNewUserGroupKey: VersionedEncryptedKey
 	distributionKeyEncNewUserGroupKey: Uint8Array
 	authVerifier: Uint8Array
@@ -406,19 +406,9 @@ export class KeyRotationFacade {
 				}),
 			],
 		})
-		const recoverCodeWrapper = encryptedUserKeys.recoverCodeWrapper
-		let recoverCodeData: RecoverCodeData | null = null
-		if (recoverCodeWrapper != null) {
-			recoverCodeData = createRecoverCodeData({
-				recoveryCodeVerifier: recoverCodeWrapper.recoveryCodeVerifier,
-				userEncRecoveryCode: recoverCodeWrapper.userEncRecoverCode,
-				userKeyVersion: String(recoverCodeWrapper.userKeyVersion),
-				recoveryCodeEncUserGroupKey: recoverCodeWrapper.recoverCodeEncUserGroupKey,
-			})
-		}
 
 		const userGroupKeyData = createUserGroupKeyRotationData({
-			recoverCodeData,
+			recoverCodeData: encryptedUserKeys.recoverCodeData,
 			distributionKeyEncUserGroupKey: encryptedUserKeys.distributionKeyEncNewUserGroupKey,
 			authVerifier: encryptedUserKeys.authVerifier,
 			group: userGroup._id,
@@ -557,23 +547,33 @@ export class KeyRotationFacade {
 		)
 
 		const encryptedUserKeys = await this.encryptGroupKeys(userGroup, currentUserGroupKey, newUserGroupKeys, newAdminGroupKeys.symGroupKey)
-
-		let recoverCodeWrapper: RecoverData | null = null
-		if (user.auth?.recoverCode != null) {
-			const recoverCodeFacade = await this.recoverCodeFacade()
-			const recoverCode = await recoverCodeFacade.getRawRecoverCode(passphraseKey)
-			recoverCodeWrapper = recoverCodeFacade.encryptRecoveryCode(recoverCode, newUserGroupKeys.symGroupKey)
-		}
+		const recoverCodeData = await this.reencryptRecoverCodeIfExists(user, passphraseKey, newUserGroupKeys)
 
 		return {
 			newUserGroupKeyEncCurrentGroupKey: encryptedUserKeys.newGroupKeyEncCurrentGroupKey,
 			newAdminGroupKeyEncNewUserGroupKey: assertNotNull(encryptedUserKeys.adminGroupKeyEncNewGroupKey),
 			keyPair: assertNotNull(makeKeyPair(encryptedUserKeys.keyPair)),
 			passphraseKeyEncNewUserGroupKey: membershipSymEncNewGroupKey,
-			recoverCodeWrapper,
+			recoverCodeData,
 			distributionKeyEncNewUserGroupKey,
 			authVerifier,
 		}
+	}
+
+	private async reencryptRecoverCodeIfExists(user: User, passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys): Promise<RecoverCodeData | null> {
+		let recoverCodeData: RecoverCodeData | null = null
+		if (user.auth?.recoverCode != null) {
+			const recoverCodeFacade = await this.recoverCodeFacade()
+			const recoverCode = await recoverCodeFacade.getRawRecoverCode(passphraseKey)
+			const recoverData = recoverCodeFacade.encryptRecoveryCode(recoverCode, newUserGroupKeys.symGroupKey)
+			recoverCodeData = createRecoverCodeData({
+				recoveryCodeVerifier: recoverData.recoveryCodeVerifier,
+				userEncRecoveryCode: recoverData.userEncRecoverCode,
+				userKeyVersion: String(recoverData.userKeyVersion),
+				recoveryCodeEncUserGroupKey: recoverData.recoverCodeEncUserGroupKey,
+			})
+		}
+		return recoverCodeData
 	}
 
 	private encryptUserGroupKeyForUser(passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys, userGroup: Group, currentGroupKey: VersionedKey) {
@@ -818,6 +818,7 @@ export class KeyRotationFacade {
 			userGroup,
 			currentUserGroupKey,
 		)
+		const recoverCodeData = await this.reencryptRecoverCodeIfExists(user, pwKey, newUserGroupKeys)
 
 		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(user, newUserGroupKeys, assertNotNull(userGroup.admin))
 
@@ -832,7 +833,7 @@ export class KeyRotationFacade {
 			adminGroupKeyVersion: pubAdminGroupEncUserGroupKey.recipientKeyVersion,
 			pubAdminGroupEncUserGroupKey,
 			adminGroupEncUserGroupKey: null,
-			recoverCodeData: null,
+			recoverCodeData: recoverCodeData,
 		})
 
 		await this.serviceExecutor.post(UserGroupKeyRotationService, createUserGroupKeyRotationPostIn({ userGroupKeyData }))
