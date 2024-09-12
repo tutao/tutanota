@@ -1,6 +1,6 @@
-import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import { TypeRef } from "@tutao/tutanota-utils"
-import { typeModels } from "./TypeModels.js"
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import {TypeRef} from "@tutao/tutanota-utils"
+import {typeModels} from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -37,6 +37,21 @@ export type AccountingInfo = {
 	appStoreSubscription:  null | IdTuple;
 	invoiceInfo:  null | Id;
 }
+export const AdminGroupKeyAuthenticationDataTypeRef: TypeRef<AdminGroupKeyAuthenticationData> = new TypeRef("sys", "AdminGroupKeyAuthenticationData")
+
+export function createAdminGroupKeyAuthenticationData(values: StrippedEntity<AdminGroupKeyAuthenticationData>): AdminGroupKeyAuthenticationData {
+	return Object.assign(create(typeModels.AdminGroupKeyAuthenticationData, AdminGroupKeyAuthenticationDataTypeRef), values)
+}
+
+export type AdminGroupKeyAuthenticationData = {
+	_type: TypeRef<AdminGroupKeyAuthenticationData>;
+
+	_id: Id;
+	authKeyEncAdminRotationHash: Uint8Array;
+	version: NumberString;
+
+	userGroup: Id;
+}
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
 
 export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
@@ -48,6 +63,7 @@ export type AdminGroupKeyRotationPostIn = {
 
 	_format: NumberString;
 
+	adminGroupKeyAuthenticationDataList: AdminGroupKeyAuthenticationData[];
 	adminGroupKeyData: GroupKeyRotationData;
 	userGroupKeyData: UserGroupKeyRotationData;
 }
@@ -1742,6 +1758,8 @@ export type KeyRotation = {
 	_permissions: Id;
 	groupKeyRotationType: NumberString;
 	targetKeyVersion: NumberString;
+
+	adminGroupKeyAuthenticationData:  null | AdminGroupKeyAuthenticationData;
 }
 export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", "KeyRotationsRef")
 

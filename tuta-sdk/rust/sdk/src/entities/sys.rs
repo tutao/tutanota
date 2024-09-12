@@ -41,8 +41,27 @@ impl Entity for AccountingInfo {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+pub struct AdminGroupKeyAuthenticationData {
+	pub _id: CustomId,
+	#[serde(with = "serde_bytes")]
+	pub authKeyEncAdminRotationHash: Vec<u8>,
+	pub version: i64,
+	pub userGroup: GeneratedId,
+}
+
+impl Entity for AdminGroupKeyAuthenticationData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyAuthenticationData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
+	pub adminGroupKeyAuthenticationDataList: Vec<AdminGroupKeyAuthenticationData>,
 	pub adminGroupKeyData: GroupKeyRotationData,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
@@ -2058,6 +2077,7 @@ pub struct KeyRotation {
 	pub _permissions: GeneratedId,
 	pub groupKeyRotationType: i64,
 	pub targetKeyVersion: i64,
+	pub adminGroupKeyAuthenticationData: Option<AdminGroupKeyAuthenticationData>,
 }
 
 impl Entity for KeyRotation {

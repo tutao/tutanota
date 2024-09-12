@@ -221,6 +221,58 @@ export const typeModels = {
         "app": "sys",
         "version": "110"
     },
+    "AdminGroupKeyAuthenticationData": {
+        "name": "AdminGroupKeyAuthenticationData",
+        "since": 110,
+        "type": "AGGREGATED_TYPE",
+        "id": 2462,
+        "rootId": "A3N5cwAJng",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2463,
+                "since": 110,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "authKeyEncAdminRotationHash": {
+                "final": false,
+                "name": "authKeyEncAdminRotationHash",
+                "id": 2466,
+                "since": 110,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "version": {
+                "final": false,
+                "name": "version",
+                "id": 2465,
+                "since": 110,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "userGroup": {
+                "final": false,
+                "name": "userGroup",
+                "id": 2464,
+                "since": 110,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Group",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "110"
+    },
     "AdminGroupKeyRotationPostIn": {
         "name": "AdminGroupKeyRotationPostIn",
         "since": 101,
@@ -241,6 +293,16 @@ export const typeModels = {
             }
         },
         "associations": {
+            "adminGroupKeyAuthenticationDataList": {
+                "final": false,
+                "name": "adminGroupKeyAuthenticationDataList",
+                "id": 2468,
+                "since": 110,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "AdminGroupKeyAuthenticationData",
+                "dependency": null
+            },
             "adminGroupKeyData": {
                 "final": false,
                 "name": "adminGroupKeyData",
@@ -7278,7 +7340,18 @@ export const typeModels = {
                 "encrypted": false
             }
         },
-        "associations": {},
+        "associations": {
+            "adminGroupKeyAuthenticationData": {
+                "final": false,
+                "name": "adminGroupKeyAuthenticationData",
+                "id": 2467,
+                "since": 110,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "AdminGroupKeyAuthenticationData",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "110"
     },

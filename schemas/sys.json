@@ -438,6 +438,11 @@
 					"name": "AddAssociation",
 					"sourceType": "GroupKey",
 					"info": "AddAssociation GroupKey/pubAdminGroupEncGKey/AGGREGATION/2461."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminGroupKeyAuthenticationData/AGGREGATION/2467."
 				}
 			]
 		}

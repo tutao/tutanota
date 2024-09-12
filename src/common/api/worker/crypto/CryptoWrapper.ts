@@ -19,7 +19,11 @@ import {
 	encryptKey,
 	encryptKyberKey,
 	generateEccKeyPair,
+	hkdf,
+	HkdfKeyDerivationDomains,
 	IV_BYTE_LENGTH,
+	KEY_LENGTH_BYTES_AES_256,
+	keyToUint8Array,
 	KyberPrivateKey,
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
@@ -27,6 +31,8 @@ import {
 	random,
 	type RsaEccKeyPair,
 	type RsaKeyPair,
+	sha256Hash,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 
@@ -105,6 +111,23 @@ export class CryptoWrapper {
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair {
 		return decryptKeyPair(encryptionKey, keyPair)
 	}
+
+	sha256Hash(data: Uint8Array): Uint8Array {
+		return sha256Hash(data)
+	}
+
+	deriveKeyWithHkdf({ key, salt, context }: { key: AesKey; salt: string; context: HkdfKeyDerivationDomains }) {
+		return deriveKey({
+			salt,
+			key,
+			info: context,
+			length: KEY_LENGTH_BYTES_AES_256,
+		})
+	}
+}
+
+function deriveKey({ salt, key, info, length }: { salt: string; key: number[]; info: string; length: number }) {
+	return uint8ArrayToKey(hkdf(sha256Hash(stringToUtf8Uint8Array(salt)), keyToUint8Array(key), stringToUtf8Uint8Array(info), length))
 }
 
 export function encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
