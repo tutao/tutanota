@@ -12,6 +12,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { getMailHeaders } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { throttle } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -45,9 +46,9 @@ async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 	} //We are done and unlock for future requests
 }
 
-// We throttle the moveMail requests to a rate of 50ms
+// We throttle the moveMail requests to a rate of 200ms
 // Each target folder requires one request
-const applyMatchingRules = debounce(DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS, (mailFacade: MailFacade) => {
+const applyMatchingRules = throttle(DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS, (mailFacade: MailFacade) => {
 	if (applyingRules) return
 	// We lock to avoid concurrent requests
 	applyingRules = true
