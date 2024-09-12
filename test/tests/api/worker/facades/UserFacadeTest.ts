@@ -12,7 +12,7 @@ o.spec("UserFacadeTest", function () {
 
 	o.beforeEach(function () {
 		keyCache = object()
-		facade = new UserFacade(keyCache)
+		facade = new UserFacade(keyCache, object())
 	})
 
 	o("a fresh UserFacade doesn't think it's logged or partially logged in", function () {

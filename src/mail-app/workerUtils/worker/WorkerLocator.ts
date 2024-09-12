@@ -157,7 +157,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator._worker = worker
 	locator._browserData = browserData
 	locator.keyCache = new KeyCache()
-	locator.user = new UserFacade(locator.keyCache)
+	locator.cryptoWrapper = new CryptoWrapper()
+	locator.user = new UserFacade(locator.keyCache, locator.cryptoWrapper)
 	locator.workerFacade = new WorkerFacade()
 	const dateProvider = new NoZoneDateProvider()
 
@@ -239,8 +240,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
-
-	locator.cryptoWrapper = new CryptoWrapper()
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, locator.cryptoWrapper, locator.serviceExecutor)
 

@@ -392,7 +392,7 @@
 			]
 		},
 		{
-			"version": 110,
+			"version": 111,
 			"changes": [
 				{
 					"name": "RenameAttribute",
@@ -407,7 +407,7 @@
 				{
 					"name": "AddValue",
 					"sourceType": "PubEncKeyData",
-					"info": "AddValue PubEncKeyData/identifierType/2454."
+					"info": "AddValue PubEncKeyData/identifierType/2469."
 				},
 				{
 					"name": "ChangeValueCardinality",
@@ -417,7 +417,7 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "UserGroupKeyRotationData",
-					"info": "AddAssociation UserGroupKeyRotationData/pubAdminGroupEncUserGroupKey/AGGREGATION/2455."
+					"info": "AddAssociation UserGroupKeyRotationData/pubAdminGroupEncUserGroupKey/AGGREGATION/2470."
 				},
 				{
 					"name": "RemoveValue",
@@ -427,7 +427,7 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "Group",
-					"info": "AddAssociation Group/pubAdminGroupEncGKey/AGGREGATION/2460."
+					"info": "AddAssociation Group/pubAdminGroupEncGKey/AGGREGATION/2475."
 				},
 				{
 					"name": "RemoveValue",
@@ -437,7 +437,12 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "GroupKey",
-					"info": "AddAssociation GroupKey/pubAdminGroupEncGKey/AGGREGATION/2461."
+					"info": "AddAssociation GroupKey/pubAdminGroupEncGKey/AGGREGATION/2476."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminGroupKeyAuthenticationData/AGGREGATION/2482."
 				}
 			]
 		}

@@ -138,7 +138,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator._worker = worker
 	locator._browserData = browserData
 	locator.keyCache = new KeyCache()
-	locator.user = new UserFacade(locator.keyCache)
+	const cryptoWrapper = new CryptoWrapper()
+	locator.user = new UserFacade(locator.keyCache, cryptoWrapper)
 	locator.workerFacade = new WorkerFacade()
 	const dateProvider = new NoZoneDateProvider()
 
@@ -209,8 +210,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
-
-	const cryptoWrapper = new CryptoWrapper()
 
 	const asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, cryptoWrapper, locator.serviceExecutor)
 	locator.crypto = new CryptoFacade(
