@@ -72,34 +72,34 @@ pipeline {
 
 		stage('Build desktop clients') {
 			parallel {
-				stage('Windows') {
-					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}"
-					}
-					agent {
-						label 'win-cross-compile'
-					}
-					steps {
-						initBuildArea()
-
-						// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
-						// so they will be picked up by our rollup plugin
-						unstash 'native_modules'
-
-						// add DEBUG for electron-builder because it tends to not let us know about things failing
-						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-							sh '''
-							export HSM_USER_PIN=${PW};
-							export WIN_CSC_FILE="/opt/etc/codesign.crt";
-							DEBUG=electron-builder node desktop --existing --platform win '''
-						}
-
-						dir('artifacts') {
-							stash includes: 'desktop-test/*', name:'win_installer_test'
-							stash includes: 'desktop/*', name:'win_installer'
-						}
-					}
-                }
+// 				stage('Windows') {
+// 					environment {
+// 						PATH = "${env.NODE_PATH}:${env.PATH}"
+// 					}
+// 					agent {
+// 						label 'win-cross-compile'
+// 					}
+// 					steps {
+// 						initBuildArea()
+//
+// 						// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
+// 						// so they will be picked up by our rollup plugin
+// 						unstash 'native_modules'
+//
+// 						// add DEBUG for electron-builder because it tends to not let us know about things failing
+// 						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+// 							sh '''
+// 							export HSM_USER_PIN=${PW};
+// 							export WIN_CSC_FILE="/opt/etc/codesign.crt";
+// 							DEBUG=electron-builder node desktop --existing --platform win '''
+// 						}
+//
+// 						dir('artifacts') {
+// 							stash includes: 'desktop-test/*', name:'win_installer_test'
+// 							stash includes: 'desktop/*', name:'win_installer'
+// 						}
+// 					}
+//                 }
 
                 stage('Mac') {
 					environment {
@@ -205,16 +205,17 @@ pipeline {
 
 				script { // create release draft
 					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
-					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
+// 					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
 					def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
 
 					writeFile file: "notes.txt", text: params.releaseNotes
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for desktop') {
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+						// 																   --uploadFile '${WORKSPACE}/${desktopWin}' \
 							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
 																   --tag 'tutanota-desktop-release-${VERSION}' \
 																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
-																   --uploadFile '${WORKSPACE}/${desktopWin}' \
+
 																   --uploadFile '${WORKSPACE}/${desktopMac}' \
 																   --notes notes.txt"""
 						} // withCredentials
@@ -232,13 +233,13 @@ pipeline {
 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
 							fileExtension: 'AppImage'
 					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-win-test",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-win.exe",
-							fileExtension: 'exe'
-					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-win-test",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-win.exe",
+// 							fileExtension: 'exe'
+// 					)
 					util.publishToNexus(
 							groupId: "app",
 							artifactId: "desktop-mac-test",
@@ -253,13 +254,13 @@ pipeline {
 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
 							fileExtension: 'AppImage'
 					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-win",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-win.exe",
-							fileExtension: 'exe'
-					)
+// 					util.publishToNexus(
+// 							groupId: "app",
+// 							artifactId: "desktop-win",
+// 							version: "${VERSION}",
+// 							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-win.exe",
+// 							fileExtension: 'exe'
+// 					)
 					util.publishToNexus(
 							groupId: "app",
 							artifactId: "desktop-mac",
