@@ -1,0 +1,130 @@
+{
+	"_format": "0",
+	"_id": "O6eXENj----4",
+	"_ownerGroup": "O6eXEOa--3-4",
+	"_permissions": "O6eXEOb--7-4",
+	"accountType": "1",
+	"enabled": "1",
+	"kdfVersion": "1",
+	"requirePasswordUpdate": "0",
+	"salt": "IqruvXwkktNa8bnP0Mya8Q==",
+	"verifier": "RTGJEJWxzYVKziFqWSqGrrTN149cAgyqC3a9R3U7A6U=",
+	"alarmInfoList": {
+		"_id": "Z9rMhQ",
+		"alarms": "O6eXEOb--Z-4"
+	},
+	"auth": {
+		"_id": "ayQh-g",
+		"recoverCode": "O6eXEOc----4",
+		"secondFactors": "O6eXEOb--V-4",
+		"sessions": "O6eXEOb--R-4"
+	},
+	"authenticatedDevices": [],
+	"customer": "O6eXENl--3-4",
+	"externalAuthInfo": null,
+	"failedLogins": "O6eXEOb--F-4",
+	"memberships": [
+		{
+			"_id": "tJEr_w",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "3",
+			"symEncGKey": "AcdpKmIMxEiJFYD8KIMOOqzIuvbdb5nRVabFJq2niPvGqz1IhgUpSm7lOPnpKgN3K6jt9usA2IWtuCRUN6jIjWtIwW1Q4UDu7cffRKmV5p4v",
+			"symKeyVersion": "0",
+			"group": "O6eXENl--c-4",
+			"groupInfo": ["O6eXENl--F-4", "O6eXEO_--B-4"],
+			"groupMember": ["O6eXEOZ--N-4", "O6eXEOc-07-4"]
+		},
+		{
+			"_id": "HWfjIw",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "7",
+			"symEncGKey": "ARpC1oZ5VupDB+HH3Woi6N+5MrBbk+XbCZtxgA5c4rXPU4o9lEvkdGrd81Om6dcK+eGAS66NwWe9x7KKmHXHjwKtIj/tsQ3RDNqBFtGwZgb4",
+			"symKeyVersion": "0",
+			"group": "O6eXEOe--c-4",
+			"groupInfo": ["O6eXENl--g-4", "O6eXEOe-03-4"],
+			"groupMember": ["O6eXEOe--o-4", "O6eXEOe-0R-4"]
+		},
+		{
+			"_id": "Z4GcMA",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "6",
+			"symEncGKey": "AXQ1gHZdIBqtYbcHiAiDR6FyAyaU3VNtJKKT2iSeGPP3t7QZq3/s2rMePwxcTgaI3TV06FFfB94dHnaqEm49+AFJzQsHh9rxRZ5f1c6LAzeU",
+			"symKeyVersion": "0",
+			"group": "O6eXEOf----4",
+			"groupInfo": ["O6eXENl--g-4", "O6eXEOf--R-4"],
+			"groupMember": ["O6eXEOf--B-4", "O6eXEOf--o-4"]
+		},
+		{
+			"_id": "8-wCsQ",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "5",
+			"symEncGKey": "AU4CEtHUHgsdTHWs1x9XmvSSfINcm+5zek6TxSQ4oPyXm44ohUytyv21NpOu6Qw0VgTsHROIfSbv2cIv9wDz5RLQPymcE/5Qqd/5jy6Rz272",
+			"symKeyVersion": "0",
+			"group": "O6eXEOf--w-4",
+			"groupInfo": ["O6eXENl--g-4", "O6eXEOg--7-4"],
+			"groupMember": ["O6eXEOf-07-4", "O6eXEOg--V-4"]
+		},
+		{
+			"_id": "ZlM7zA",
+			"admin": "1",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "1",
+			"symEncGKey": "AYTFplxD/7rhvXGrv/hAL3S3URCwg1kZJMZtYQagV7/zX0E82MKe1CptdZkdHo9QjfYkcZrXIfypHuQ50i3XBB9M4aneAeyZLCPdgc2WBYnE",
+			"symKeyVersion": "0",
+			"group": "O6eXENl--Z-4",
+			"groupInfo": ["O6eXENl--B-4", "O6eXEO_--w-4"],
+			"groupMember": ["O6eXEO_--g-4", "O6eXEOq--V-4"]
+		},
+		{
+			"_id": "-02Fxg",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "2",
+			"symEncGKey": "",
+			"symKeyVersion": "0",
+			"group": "JDpWrvt----0",
+			"groupInfo": ["JDpWrvH--N-0", "JDpWrvt--F-0"],
+			"groupMember": ["JDpWrvt--B-0", "O6eXEP6----4"]
+		},
+		{
+			"_id": "BXUtcA",
+			"admin": "0",
+			"capability": null,
+			"groupKeyVersion": "0",
+			"groupType": "9",
+			"symEncGKey": "ATXbaaRZm4+EAdtXM3VFM4iZGDuIexNfj3tbxU63tDLbsY9m1X3cMQZqjYINAH7I/aVQCZGr0alORVTy3eD/wkkGom5zUEWOgkiDNKA3hg3h",
+			"symKeyVersion": "0",
+			"group": "O6eXJ4R----4",
+			"groupInfo": ["O6eXENl--g-4", "O6eXJ4R--R-4"],
+			"groupMember": ["O6eXJ4R--B-4", "O6eXJ4S--F-4"]
+		}
+	],
+	"pushIdentifierList": {
+		"_id": "5V_w-Q",
+		"list": "O6eXEOb--N-4"
+	},
+	"secondFactorAuthentications": "O6eXEOb--J-4",
+	"successfulLogins": "O6eXEOb--B-4",
+	"userGroup": {
+		"_id": "HfxLvA",
+		"admin": "0",
+		"capability": null,
+		"groupKeyVersion": "0",
+		"groupType": "0",
+		"symEncGKey": "AVbY4VBYHQXriXmOkVfafs3HNQ8AU/K2E/T9MYW0O7fp2qryjQahskKNBTTe6VzHyPuG0beZZAkjFisL3LZ/88tYhcCMbv6ArTxQzTlWtGPu",
+		"symKeyVersion": "0",
+		"group": "O6eXEOa--3-4",
+		"groupInfo": ["O6eXENl--J-4", "O6eXEOa--V-4"],
+		"groupMember": ["O6eXEOa--F-4", "O6eXEOc--7-4"]
+	}
+}

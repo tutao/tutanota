@@ -14,6 +14,7 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
+use crate::util::resolve_default_value;
 use crate::{IdTuple, TypeRef};
 
 impl From<&TypeModel> for TypeRef {
@@ -68,7 +69,17 @@ impl JsonSerializer {
 			let mapped_value = match (&value_type.cardinality, value) {
 				(Cardinality::ZeroOrOne, JsonElement::Null) => ElementValue::Null,
 				(Cardinality::One, JsonElement::String(v)) if v.is_empty() => {
-					ElementValue::String(String::new())
+					// Empty string signifies default value for a field. This is primarily the
+					// case for encrypted fields. This includes manually encrypted fields in some
+					// cases.
+					// When the value is encrypted we need to pass on the information about the
+					// default value, so we keep it as an empty string (see entity_facade.rs).
+					// Otherwise, we resolve the field to its default value.
+					if value_type.encrypted {
+						ElementValue::String(String::new())
+					} else {
+						resolve_default_value(&value_type.value_type)
+					}
 				},
 				(Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
 					if value_type.encrypted =>
@@ -555,6 +566,8 @@ impl JsonSerializer {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::entities::sys::User;
+	use crate::entities::Entity;
 	use crate::type_model_provider::init_type_model_provider;
 
 	#[test]
@@ -593,5 +606,29 @@ mod tests {
 			))]),
 			parsed.get("attachments").expect("has attachments")
 		)
+	}
+
+	#[test]
+	fn test_parse_user_with_empty_group_key() {
+		let type_model_provider = Arc::new(init_type_model_provider());
+		let mapper = JsonSerializer {
+			type_model_provider,
+		};
+		let user_json = include_str!("../test_data/user_response_empty_group_key.json");
+		let raw_entity = serde_json::from_str::<RawEntity>(user_json).unwrap();
+		let type_ref = User::type_ref();
+		let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
+		let ship = parsed
+			.get("memberships")
+			.unwrap()
+			.assert_array()
+			.iter()
+			.find(|m| m.assert_dict().get("groupType").unwrap().assert_number() == 2)
+			.unwrap()
+			.assert_dict();
+		assert_eq!(
+			ship.get("symEncGKey").unwrap().assert_bytes(),
+			Vec::<u8>::new()
+		);
 	}
 }

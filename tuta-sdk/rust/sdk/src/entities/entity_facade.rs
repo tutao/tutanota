@@ -1,13 +1,11 @@
 #![allow(unused)] // TODO: Remove this when implementing the crypto entity client
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::fmt::format;
 use std::sync::Arc;
-use std::time::SystemTime;
 
 use crate::crypto::crypto_facade::ResolvedSessionKey;
 use crate::crypto::key::GenericAesKey;
-use crate::crypto::{PlaintextAndIv, IV_BYTE_SIZE};
+use crate::crypto::PlaintextAndIv;
 use crate::date::DateTime;
 use crate::element_value::ElementValue::Bool;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -16,7 +14,7 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ModelAssociation, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::util::array_cast_slice;
+use crate::util::{array_cast_slice, resolve_default_value};
 use crate::ApiCallError;
 
 /// Provides high level functions to handle encryption/decryption of entities
@@ -228,7 +226,7 @@ impl EntityFacade {
 				// If the value is default-encrypted (empty string) then return default value and
 				// empty IV. When re-encrypting we should put the empty value back to not increase
 				// used storage.
-				let value = self.resolve_default_value(&model_value.value_type);
+				let value = resolve_default_value(&model_value.value_type);
 				Ok(MappedValue {
 					value,
 					iv: Some(Vec::new()),
@@ -271,7 +269,7 @@ impl EntityFacade {
 						})
 					},
 					Err(err) => Ok(MappedValue {
-						value: self.resolve_default_value(&model_value.value_type),
+						value: resolve_default_value(&model_value.value_type),
 						iv: None,
 						error: Some(format!("Failed to decrypt {key}. {err}")),
 					}),
@@ -285,18 +283,6 @@ impl EntityFacade {
 			_ => Err(ApiCallError::internal(format!(
 				"Invalid value/cardinality combination for key `{key}`"
 			))),
-		}
-	}
-
-	fn resolve_default_value(&self, value_type: &ValueType) -> ElementValue {
-		match value_type {
-			ValueType::String => ElementValue::String(String::new()),
-			ValueType::Number => ElementValue::Number(0),
-			ValueType::Bytes => ElementValue::Bytes(Vec::new()),
-			ValueType::Date => ElementValue::Date(DateTime::new(SystemTime::UNIX_EPOCH)),
-			ValueType::Boolean => Bool(false),
-			ValueType::CompressedString => ElementValue::String(String::new()),
-			v => unreachable!("Invalid type {v:?}"),
 		}
 	}
 
@@ -354,24 +340,22 @@ impl EntityFacade {
 #[cfg(test)]
 mod tests {
 	use std::sync::Arc;
-	use std::time::SystemTime;
 
-	use crate::crypto::{Aes256Key, Iv, IV_BYTE_SIZE};
 	use rand::random;
 
+	use crate::collection;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
 	use crate::crypto::key::GenericAesKey;
+	use crate::crypto::{Aes256Key, Iv};
 	use crate::date::DateTime;
-	use crate::element_value::{ElementValue, ParsedEntity};
+	use crate::element_value::ParsedEntity;
 	use crate::entities::entity_facade::EntityFacade;
 	use crate::entities::tutanota::Mail;
 	use crate::entities::Entity;
-	use crate::generated_id::GeneratedId;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::{JsonElement, RawEntity};
 	use crate::json_serializer::JsonSerializer;
 	use crate::type_model_provider::init_type_model_provider;
-	use crate::{collection, IdTuple, TypeRef};
 
 	#[test]
 	fn test_decrypt_mail() {

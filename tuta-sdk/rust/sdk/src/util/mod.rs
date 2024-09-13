@@ -1,5 +1,9 @@
+use crate::date::DateTime;
+use crate::element_value::ElementValue;
+use crate::metamodel::ValueType;
 use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
+use std::time::SystemTime;
 
 #[cfg(test)]
 pub mod entity_test_utils;
@@ -192,6 +196,18 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(
 			type_name,
 			actual_size: ARR_SIZE,
 		})
+	}
+}
+
+pub(crate) fn resolve_default_value(value_type: &ValueType) -> ElementValue {
+	match value_type {
+		ValueType::String => ElementValue::String(String::new()),
+		ValueType::Number => ElementValue::Number(0),
+		ValueType::Bytes => ElementValue::Bytes(Vec::new()),
+		ValueType::Date => ElementValue::Date(DateTime::new(SystemTime::UNIX_EPOCH)),
+		ValueType::Boolean => ElementValue::Bool(false),
+		ValueType::CompressedString => ElementValue::String(String::new()),
+		v => unreachable!("Invalid type {v:?}"),
 	}
 }
 

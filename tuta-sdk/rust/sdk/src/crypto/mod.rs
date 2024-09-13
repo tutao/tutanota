@@ -7,6 +7,7 @@ pub use aes::Aes128Key;
 #[cfg(test)]
 pub use aes::Iv;
 pub use aes::PlaintextAndIv;
+#[allow(unused_imports)]
 pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 pub use argon2_id::generate_key_from_passphrase;
 pub use hkdf::hkdf;
