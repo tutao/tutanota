@@ -68,7 +68,7 @@ pipeline {
          		VERSION = sh(returnStdout: true, script: "node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
          	}
             when {
-            	expression { params.RELEASE }
+            	expression { return params.RELEASE }
             }
             agent {
                 label 'linux'
@@ -92,7 +92,7 @@ pipeline {
 
         stage('Publish npm modules') {
 			when {
-				expression { params.RELEASE }
+				expression { return params.RELEASE }
 			}
 			agent {
 				label 'linux'

@@ -72,7 +72,7 @@ pipeline {
 			stages {
 				stage('Staging') {
 					when {
-						expression { params.STAGING }
+						expression { return params.STAGING }
 					}
 					steps {
 						script {
@@ -88,7 +88,7 @@ pipeline {
 				}
 				stage('Production') {
 					when {
-						expression { params.PROD }
+						expression { return params.PROD }
 					}
 					steps {
 						script {
@@ -111,7 +111,7 @@ pipeline {
 				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
-				expression { params.RELEASE }
+				expression { return params.RELEASE }
 			}
 			agent {
 				label 'linux'
@@ -140,7 +140,7 @@ pipeline {
 				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
-				expression { params.RELEASE }
+				expression { return params.RELEASE }
 			}
 			agent {
 				label 'linux'

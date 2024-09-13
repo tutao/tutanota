@@ -77,7 +77,7 @@ pipeline {
 				} // stage testing
 				stage('Production') {
 					when {
-						expression { params.RELEASE }
+						expression { return params.RELEASE }
 					}
 					environment {
 						APK_SIGN_ALIAS = "tutao.de"
@@ -108,7 +108,7 @@ pipeline {
 
 		stage('Publish') {
 			when {
-				expression { params.RELEASE }
+				expression { return params.RELEASE }
 			}
 			stages {
 				stage('Testing') {
@@ -185,7 +185,7 @@ pipeline {
 		}
 		stage('Tag and publish release page') {
 			when {
-				expression { params.RELEASE }
+				expression { return params.RELEASE }
 			}
 			steps {
 				// Needed to upload it

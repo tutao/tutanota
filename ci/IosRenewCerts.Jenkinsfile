@@ -34,7 +34,7 @@ pipeline {
 				label 'mac'
 			}
 			when {
-				expression { params.prod }
+				expression{ return params.prod }
 			}
 			environment {
 				LC_ALL = "en_US.UTF-8"
@@ -91,7 +91,7 @@ pipeline {
 				label 'mac'
 			}
 			when {
-				expression { params.staging }
+				expression { return params.staging }
 			}
 			environment {
 				LC_ALL = "en_US.UTF-8"
