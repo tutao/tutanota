@@ -72,7 +72,7 @@ import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { CryptoWrapperImpl } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
@@ -210,7 +210,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
-	const cryptoWrapper = new CryptoWrapperImpl()
+	const cryptoWrapper = new CryptoWrapper()
 
 	const asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, cryptoWrapper, locator.serviceExecutor)
 	locator.crypto = new CryptoFacade(

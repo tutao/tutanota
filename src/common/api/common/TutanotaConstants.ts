@@ -1217,3 +1217,10 @@ export enum PublicKeyIdentifierType {
 	MAIL_ADDRESS = "0",
 	GROUP_ID = "1",
 }
+
+export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierType {
+	if (Object.values(PublicKeyIdentifierType).includes(maybe as PublicKeyIdentifierType)) {
+		return maybe as PublicKeyIdentifierType
+	}
+	throw new Error("bad key identifier type")
+}

@@ -872,7 +872,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					),
 				).thenResolve(publicKeyGetOut)
 				when(
-					asymmetricCryptoFacade.pqEncryptPubSymKey(NEW_USER_GROUP_KEY.object, adminPubKeys, {
+					asymmetricCryptoFacade.tutaCryptEncryptSymKey(NEW_USER_GROUP_KEY.object, adminPubKeys, {
 						version: NEW_USER_GROUP_KEY.version,
 						object: newUserPqKeyPair.eccKeyPair,
 					}),

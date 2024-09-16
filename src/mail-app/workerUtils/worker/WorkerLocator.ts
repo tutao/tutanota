@@ -79,7 +79,7 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { CryptoWrapper, CryptoWrapperImpl } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
@@ -240,7 +240,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
-	locator.cryptoWrapper = new CryptoWrapperImpl()
+	locator.cryptoWrapper = new CryptoWrapper()
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, locator.cryptoWrapper, locator.serviceExecutor)
 
