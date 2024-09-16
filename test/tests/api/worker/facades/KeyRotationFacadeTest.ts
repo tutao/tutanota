@@ -409,7 +409,7 @@ o.spec("KeyRotationFacadeTest", function () {
 	})
 
 	o.spec("processPendingKeyRotation", function () {
-		o.spec("When a key rotation for a user area group exists, the key rotation is executed successfully", function () {
+		o.spec("User area group key rotation", function () {
 			o("Rotated group does not have a key pair", async function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
@@ -431,8 +431,8 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(update.keyPair).equals(null)
 				o(update.group).equals(groupId)
 				o(update.groupKeyVersion).equals("1")
-				o(update.adminGroupEncGroupKey).deepEquals(adminEncNewGroupKey.key)
-				o(update.adminGroupKeyVersion).equals("0")
+				o(update.adminGroupEncGroupKey).deepEquals(null)
+				o(update.adminGroupKeyVersion).equals(null)
 				o(update.groupEncPreviousGroupKey).deepEquals(newGroupKeyEncPreviousGroupKey.key)
 				o(update.groupMembershipUpdateData.length).equals(1)
 				o(update.groupMembershipUpdateData[0].userId).equals(userId)
@@ -504,8 +504,8 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(update.keyPair).deepEquals(sentKeyPairs)
 				o(update.group).equals(groupId)
 				o(update.groupKeyVersion).equals("1")
-				o(update.adminGroupEncGroupKey).deepEquals(adminEncNewGroupKey.key)
-				o(update.adminGroupKeyVersion).equals("0")
+				o(update.adminGroupEncGroupKey).deepEquals(null)
+				o(update.adminGroupKeyVersion).equals(null)
 				o(update.groupEncPreviousGroupKey).deepEquals(newGroupKeyEncPreviousGroupKey.key)
 				o(update.groupMembershipUpdateData.length).equals(1)
 				o(update.groupMembershipUpdateData[0].userId).equals(userId)
@@ -762,6 +762,39 @@ o.spec("KeyRotationFacadeTest", function () {
 				const secondUpdate = sentData.groupKeyUpdates[1]
 				o(secondUpdate.group).equals(secondGroupId)
 				o(secondUpdate.groupKeyVersion).equals("1")
+			})
+
+			o("Rotate group user area group of non admin", async function () {
+				keyRotationFacade.setPendingKeyRotations({
+					pwKey: null,
+					adminOrUserGroupKeyRotation: null,
+					teamOrCustomerGroupKeyRotations: [],
+					userAreaGroupsKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
+				})
+
+				// remove admin group membership
+				findAllAndRemove(user.memberships, (m) => m.groupType === GroupType.Admin)
+
+				const { userEncNewGroupKey, newGroupKeyEncPreviousGroupKey, adminEncNewGroupKey } = prepareKeyMocks(cryptoWrapperMock)
+
+				await keyRotationFacade.processPendingKeyRotation(user)
+
+				const captor = matchers.captor()
+				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture()))
+				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
+				const sentData: GroupKeyRotationPostIn = captor.value
+				o(sentData.groupKeyUpdates.length).equals(1)
+				const update = sentData.groupKeyUpdates[0]
+				o(update.keyPair).equals(null)
+				o(update.group).equals(groupId)
+				o(update.groupKeyVersion).equals("1")
+				o(update.adminGroupEncGroupKey).deepEquals(null)
+				o(update.adminGroupKeyVersion).equals(null)
+				o(update.groupEncPreviousGroupKey).deepEquals(newGroupKeyEncPreviousGroupKey.key)
+				o(update.groupMembershipUpdateData.length).equals(1)
+				o(update.groupMembershipUpdateData[0].userId).equals(userId)
+				o(update.groupMembershipUpdateData[0].userEncGroupKey).deepEquals(userEncNewGroupKey.key)
+				o(update.groupMembershipUpdateData[0].userKeyVersion).equals("0")
 			})
 		})
 
@@ -1129,23 +1162,7 @@ o.spec("KeyRotationFacadeTest", function () {
 		})
 
 		o.spec("Ignore currently unsupported cases", function () {
-			o("If the user is not an admin, the user area group key rotations are ignored", async function () {
-				keyRotationFacade.setPendingKeyRotations({
-					pwKey: null,
-					adminOrUserGroupKeyRotation: null,
-					teamOrCustomerGroupKeyRotations: [],
-					userAreaGroupsKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
-				})
-
-				// remove admin group membership
-				findAllAndRemove(user.memberships, (m) => m.groupType === GroupType.Admin)
-
-				await keyRotationFacade.processPendingKeyRotation(user)
-
-				verify(serviceExecutorMock.post(anything(), anything()), { times: 0 })
-			})
-
-			o("If the admin group key is not quantum-safe yet, the user area group key rotations are ignored", async function () {
+			o("If the user group key is not quantum-safe yet, the user area group key rotations are ignored", async function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
 					adminOrUserGroupKeyRotation: null,
@@ -1155,12 +1172,12 @@ o.spec("KeyRotationFacadeTest", function () {
 
 				prepareKeyMocks(cryptoWrapperMock)
 				// make admin group key at 128-bit key
-				const insecureAdminGroupKey: VersionedKey = {
+				const insecureUserGroupKey: VersionedKey = {
 					object: [666],
 					version: 0,
 				}
-				insecureAdminGroupKey.object.length = 4
-				when(keyLoaderFacadeMock.getCurrentSymGroupKey(adminGroupId)).thenResolve(insecureAdminGroupKey)
+				insecureUserGroupKey.object.length = 4
+				when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(insecureUserGroupKey)
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
