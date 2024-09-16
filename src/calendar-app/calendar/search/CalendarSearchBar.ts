@@ -9,7 +9,7 @@ import type { Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/TutanotaConstants"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import { styles } from "../../../common/gui/styles"
 import { client } from "../../../common/misc/ClientDetector"
 import { debounce, downcast, memoized, mod, TypeRef } from "@tutao/tutanota-utils"
@@ -188,7 +188,10 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	}
 
 	oncreate() {
-		this.onFocus()
+		if (isApp()) {
+			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
+			this.onFocus()
+		}
 		keyManager.registerShortcuts(this.shortcuts)
 		this.stateStream = this.state.map((state) => m.redraw())
 		this.lastQueryStream = calendarLocator.search.lastQueryString.map((value) => {
