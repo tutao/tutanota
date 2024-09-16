@@ -115,7 +115,7 @@ function decryptRsaOrRsaEccKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyP
 	}
 }
 
-export function decryptPQKeyPair(encryptionKey: Aes256Key, keyPair: EncryptedKeyPairs): PQKeyPairs {
+function decryptPQKeyPair(encryptionKey: Aes256Key, keyPair: EncryptedKeyPairs): PQKeyPairs {
 	const eccPublicKey = assertNotNull(keyPair.pubEccKey, "expected pub ecc key for PQ keypair")
 	const eccPrivateKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey, "expected priv ecc key for PQ keypair"))
 	const kyberPublicKey = bytesToKyberPublicKey(assertNotNull(keyPair.pubKyberKey, "expected pub kyber key for PQ keypair"))

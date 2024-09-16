@@ -142,7 +142,7 @@ export class CustomerFacade {
 			},
 			version: Number(keyData.systemAdminPubKeyVersion),
 		}
-		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.encryptPubSymKey(
+		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.asymEncryptSymKey(
 			sessionKey,
 			systemAdminPubKeys,
 			this.userFacade.getUserGroupId(),
