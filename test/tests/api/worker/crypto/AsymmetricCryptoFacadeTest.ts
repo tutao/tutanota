@@ -225,7 +225,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o("should raise a CryptoError when the key pair type is unknown", async function () {
 			await assertThrows(CryptoError, async function () {
-				await asymmetricCryptoFacade.encryptPubSymKey(symKey, object(), senderGroupId)
+				await asymmetricCryptoFacade.asymEncryptSymKey(symKey, object(), senderGroupId)
 			})
 		})
 
@@ -254,7 +254,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				),
 			).thenResolve(pubEncSymKeyBytes)
 
-			const pubEncSymKey = await asymmetricCryptoFacade.encryptPubSymKey(symKey, recipientPublicKeys, senderGroupId)
+			const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
 
 			o(pubEncSymKey).deepEquals({
 				pubEncSymKeyBytes,
@@ -299,7 +299,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				const encryptedEccSenderPrivateKey = object<Uint8Array>()
 				when(cryptoWrapper.encryptEccKey(senderUserGroupKey, newIdentityEccPair.privateKey)).thenReturn(encryptedEccSenderPrivateKey)
 
-				const pubEncSymKey = await asymmetricCryptoFacade.encryptPubSymKey(symKey, recipientPublicKeys, senderGroupId)
+				const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
 
 				o(pubEncSymKey).deepEquals({
 					pubEncSymKeyBytes,
@@ -339,7 +339,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				),
 			).thenResolve(pubEncSymKeyBytes)
 
-			const pubEncSymKey = await asymmetricCryptoFacade.encryptPubSymKey(symKey, recipientPublicKeys, senderGroupId)
+			const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
 
 			o(pubEncSymKey).deepEquals({
 				pubEncSymKeyBytes,
@@ -351,7 +351,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o("raise a ProgrammingError when passing an RSA public key", async function () {
 			await assertThrows(ProgrammingError, async function () {
-				await asymmetricCryptoFacade.pqEncryptPubSymKey(
+				await asymmetricCryptoFacade.tutaCryptEncryptSymKey(
 					object(),
 					{
 						object: {

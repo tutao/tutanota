@@ -40,7 +40,7 @@ assertWorkerOrNode()
 
 export type DecapsulatedAesKey = {
 	decryptedAesKey: AesKey
-	senderIdentityPubKey: EccPublicKey | null // null for rsa only
+	senderIdentityPubKey: EccPublicKey | null // for authentication: null for rsa only
 }
 
 export type PublicKeyIdentifier = {
@@ -62,10 +62,10 @@ export class AsymmetricCryptoFacade {
 	) {}
 
 	/**
-	 * Verifies whether the key the public key service returns is the same as the one used for encryption.
+	 * Verifies whether the key that the public key service returns is the same as the one used for encryption.
 	 * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
 	 *
-	 * @param identifier the identifier to load the public key for verification that it matches the one used in the protocol run.
+	 * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
 	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
@@ -84,7 +84,7 @@ export class AsymmetricCryptoFacade {
 	/**
 	 * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
 	 * If the protocol does not support authentication this method will only decrypt.
-	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
+	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion and must be of the required recipientKeyVersion.
 	 * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
 	 * @throws CryptoError in case the authentication fails.
 	 */
@@ -124,9 +124,9 @@ export class AsymmetricCryptoFacade {
 					throw new CryptoError("wrong key type. expecte rsa. got " + recipientKeyPair.keyPairType)
 				}
 				const privateKey: RsaPrivateKey = recipientKeyPair.privateKey
-				const decryptedBucketKey = await this.rsa.decrypt(privateKey, pubEncSymKey)
+				const decryptedSymKey = await this.rsa.decrypt(privateKey, pubEncSymKey)
 				return {
-					decryptedAesKey: uint8ArrayToBitArray(decryptedBucketKey),
+					decryptedAesKey: uint8ArrayToBitArray(decryptedSymKey),
 					senderIdentityPubKey: null,
 				}
 			}
@@ -134,10 +134,10 @@ export class AsymmetricCryptoFacade {
 				if (!isPqKeyPairs(recipientKeyPair)) {
 					throw new CryptoError("wrong key type. expected tuta-crypt. got " + recipientKeyPair.keyPairType)
 				}
-				const decryptedSymKey = await this.pqFacade.decapsulateEncoded(pubEncSymKey, recipientKeyPair)
+				const { decryptedSymKeyBytes, senderIdentityPubKey } = await this.pqFacade.decapsulateEncoded(pubEncSymKey, recipientKeyPair)
 				return {
-					decryptedAesKey: uint8ArrayToBitArray(decryptedSymKey.decryptedSymKeyBytes),
-					senderIdentityPubKey: decryptedSymKey.senderIdentityPubKey,
+					decryptedAesKey: uint8ArrayToBitArray(decryptedSymKeyBytes),
+					senderIdentityPubKey,
 				}
 			}
 			default:
@@ -158,14 +158,20 @@ export class AsymmetricCryptoFacade {
 		return await this.decryptSymKeyWithKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
 	}
 
-	async encryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
+	/**
+	 * Encrypts the symKey asymmetrically with the provided public keys.
+	 * @param symKey the symmetric key  to be encrypted
+	 * @param recipientPublicKeys the public key(s) of the recipient in the current version
+	 * @param senderGroupId the group id of the sender. will only be used in case we also need the sender's key pair, e.g. with TutaCrypt.
+	 */
+	async asymEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
 		const recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
 		const keyPairType = recipientPublicKey.keyPairType
 
 		if (isPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
 			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
-			return this.pqEncryptPubSymKeyImpl({ object: recipientPublicKey, version: recipientPublicKeys.version }, symKey, {
+			return this.tutaCryptEncryptSymKeyImpl({ object: recipientPublicKey, version: recipientPublicKeys.version }, symKey, {
 				object: senderEccKeyPair,
 				version: senderKeyPair.version,
 			})
@@ -182,17 +188,18 @@ export class AsymmetricCryptoFacade {
 	}
 
 	/**
-	 *
+	 * Encrypts the symKey asymmetrically with the provided public keys using the TutaCrypt protocol.
 	 * @param symKey the key to be encrypted
 	 * @param recipientPublicKeys MUST be a pq key pair
 	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
+	 * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
 	 */
-	async pqEncryptPubSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
+	async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
 		const recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
 		if (!isPqPublicKey(recipientPublicKey)) {
 			throw new ProgrammingError("the recipient does not have pq key pairs")
 		}
-		return this.pqEncryptPubSymKeyImpl(
+		return this.tutaCryptEncryptSymKeyImpl(
 			{
 				object: recipientPublicKey,
 				version: recipientPublicKeys.version,
@@ -202,7 +209,7 @@ export class AsymmetricCryptoFacade {
 		)
 	}
 
-	private async pqEncryptPubSymKeyImpl(
+	private async tutaCryptEncryptSymKeyImpl(
 		recipientPublicKey: Versioned<PQPublicKeys>,
 		symKey: AesKey,
 		senderEccKeyPair: Versioned<EccKeyPair>,

@@ -715,7 +715,7 @@ o.spec("CryptoFacadeTest", function () {
 		)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
-		when(asymmetricCryptoFacade.encryptPubSymKey(bk, convertToVersionedPublicKeys(recipientPublicKeyGetOut), senderUserGroup._id)).thenResolve({
+		when(asymmetricCryptoFacade.asymEncryptSymKey(bk, convertToVersionedPublicKeys(recipientPublicKeyGetOut), senderUserGroup._id)).thenResolve({
 			recipientKeyVersion: Number(recipientPublicKeyGetOut.pubKeyVersion),
 			senderKeyVersion: Number(senderUserGroup.groupKeyVersion),
 			pubEncSymKeyBytes: encodedPqMessage,
@@ -831,7 +831,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
 		const pubEncBucketKey = object<Uint8Array>()
-		when(asymmetricCryptoFacade.encryptPubSymKey(bk, convertToVersionedPublicKeys(recipientPublicKeyGetOut), senderUserGroup._id)).thenResolve({
+		when(asymmetricCryptoFacade.asymEncryptSymKey(bk, convertToVersionedPublicKeys(recipientPublicKeyGetOut), senderUserGroup._id)).thenResolve({
 			recipientKeyVersion: Number(recipientPublicKeyGetOut.pubKeyVersion),
 			senderKeyVersion: Number(senderUserGroup.groupKeyVersion),
 			pubEncSymKeyBytes: pubEncBucketKey,

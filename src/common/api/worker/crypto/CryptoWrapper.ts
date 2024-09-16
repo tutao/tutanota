@@ -43,48 +43,9 @@ export type VersionedEncryptedKey = {
 }
 
 /**
- * This interface is useful to bundle all the crypto primitives and make the code testable without using the real crypto implementations.
+ * This class is useful to bundle all the crypto primitives and make the code testable without using the real crypto implementations.
  */
-export interface CryptoWrapper {
-	aes256RandomKey(): Aes256Key
-
-	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array
-
-	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
-
-	encryptKey(encryptingKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array
-
-	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey
-
-	encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey
-
-	generateEccKeyPair(): EccKeyPair
-
-	encryptEccKey(encryptionKey: AesKey, privateKey: EccPrivateKey): Uint8Array
-
-	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array
-
-	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array
-
-	bytesToKyberPublicKey(encodedPublicKey: Uint8Array): KyberPublicKey
-
-	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array
-
-	encryptString(sk: AesKey, value: string): Uint8Array
-
-	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs
-
-	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaKeyPairs): RsaKeyPair
-
-	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaEccKeyPairs): RsaEccKeyPair
-
-	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair
-}
-
-/**
- *
- */
-export class CryptoWrapperImpl implements CryptoWrapper {
+export class CryptoWrapper {
 	aes256RandomKey(): Aes256Key {
 		return aes256RandomKey()
 	}

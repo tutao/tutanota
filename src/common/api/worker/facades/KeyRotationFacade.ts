@@ -84,7 +84,7 @@ import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
-import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "../crypto/AsymmetricCryptoFacade.js"
 
 assertWorkerOrNode()
 
@@ -848,19 +848,12 @@ export class KeyRotationFacade {
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, publicKeyGetIn)
 		// we will throw later if we did not get pq public keys back
-		const adminPubKeys: Versioned<PublicKeys> = {
-			version: Number(publicKeyGetOut.pubKeyVersion),
-			object: {
-				pubEccKey: publicKeyGetOut.pubEccKey,
-				pubKyberKey: publicKeyGetOut.pubKyberKey,
-				pubRsaKey: null,
-			},
-		}
+		const adminPubKeys = convertToVersionedPublicKeys(publicKeyGetOut)
 
 		// we want to authenticate with new sender key pair. so we just decrypt it again
 		const pqKeyPair: PQKeyPairs = this.cryptoWrapper.decryptKeyPair(newUserGroupKeys.symGroupKey.object, assertNotNull(newUserGroupKeys.encryptedKeyPair))
 
-		const pubEncSymKey = await this.asymmetricCryptoFacade.pqEncryptPubSymKey(newUserGroupKeys.symGroupKey.object, adminPubKeys, {
+		const pubEncSymKey = await this.asymmetricCryptoFacade.tutaCryptEncryptSymKey(newUserGroupKeys.symGroupKey.object, adminPubKeys, {
 			version: newUserGroupKeys.symGroupKey.version,
 			object: pqKeyPair.eccKeyPair,
 		})

@@ -567,7 +567,7 @@ export class CryptoFacade {
 		if (bucketPermission.type === BucketPermissionType.External) {
 			return this.decryptWithExternalBucket(bucketPermission, pubOrExtPermission, instance)
 		} else {
-			return this.decryptWithPublicBucket(bucketPermission, instance, pubOrExtPermission, typeModel)
+			return this.decryptWithPublicBucketWithoutAuthentication(bucketPermission, instance, pubOrExtPermission, typeModel)
 		}
 	}
 
@@ -600,7 +600,7 @@ export class CryptoFacade {
 		return decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
 	}
 
-	private async decryptWithPublicBucket(
+	private async decryptWithPublicBucketWithoutAuthentication(
 		bucketPermission: BucketPermission,
 		instance: Record<string, any>,
 		pubOrExtPermission: Permission,
@@ -728,7 +728,7 @@ export class CryptoFacade {
 
 	private async createPubEncInternalRecipientKeyData(bucketKey: AesKey, recipientMailAddress: string, publicKeyGetOut: PublicKeyGetOut, senderGroupId: Id) {
 		const recipientPublicKeys = convertToVersionedPublicKeys(publicKeyGetOut)
-		const pubEncBucketKey = await this.asymmetricCryptoFacade.encryptPubSymKey(bucketKey, recipientPublicKeys, senderGroupId)
+		const pubEncBucketKey = await this.asymmetricCryptoFacade.asymEncryptSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,
 			pubEncBucketKey: pubEncBucketKey.pubEncSymKeyBytes,
