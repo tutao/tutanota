@@ -203,20 +203,20 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 
 		return m(BaseMobileHeader, {
-			left: m(NavButton, {
-				label: "back_action",
-				hideLabel: true,
-				icon: () => BootIcons.Back,
-				href: CALENDAR_PREFIX,
-				centred: true,
-				fillSpaceAround: false,
-			}),
+			left: m(
+				".icon-button",
+				m(NavButton, {
+					label: "back_action",
+					hideLabel: true,
+					icon: () => BootIcons.Back,
+					href: CALENDAR_PREFIX,
+					centred: true,
+					fillSpaceAround: false,
+				}),
+			),
 			right: rightActions,
 			center: m(
 				".flex-grow.flex.justify-center",
-				{
-					class: "mr",
-				},
 				m(searchBar, {
 					placeholder: this.searchBarPlaceholder(),
 					returnListener: () => this.resultListColumn.focus(),
