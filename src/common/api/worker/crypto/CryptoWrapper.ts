@@ -18,6 +18,7 @@ import {
 	EncryptedRsaKeyPairs,
 	encryptKey,
 	encryptKyberKey,
+	generateEccKeyPair,
 	IV_BYTE_LENGTH,
 	KyberPrivateKey,
 	KyberPublicKey,
@@ -28,7 +29,6 @@ import {
 	type RsaKeyPair,
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
-import { generateEccKeyPair } from "../../../../../packages/tutanota-crypto/build/lib/index.js"
 
 /**
  * An AesKey (usually a group key) and its version.
