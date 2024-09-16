@@ -1,5 +1,4 @@
 import {
-	arrayEquals,
 	assertNotNull,
 	base64ToUint8Array,
 	downcast,
@@ -522,10 +521,28 @@ export class CryptoFacade {
 						? ((await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail)
 						: (instance as Mail)
 					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
-					encryptionAuthStatus = await this.authenticateSender(senderMailAddress, pqMessageSenderKey, assertNotNull(pqMessageSenderKeyVersion))
+					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(senderMailAddress, pqMessageSenderKey, pqMessageSenderKeyVersion)
 				}
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
+		}
+	}
+
+	private async tryAuthenticateSenderOfMainInstance(senderMailAddress: string, pqMessageSenderKey: Uint8Array, pqMessageSenderKeyVersion: number | null) {
+		try {
+			return await this.asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier: senderMailAddress,
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				},
+				pqMessageSenderKey,
+				assertNotNull(pqMessageSenderKeyVersion),
+			)
+		} catch (e) {
+			// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
+			// in those cases we will just show a warning banner but still want to display the mail
+			console.error("Could not authenticate sender", e)
+			return EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		}
 	}
 
@@ -730,23 +747,6 @@ export class CryptoFacade {
 			keyGroup,
 			symKeyVersion: String(externalMailGroupKey.version),
 		})
-	}
-
-	async authenticateSender(mailSenderAddress: string, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
-		let keyData = createPublicKeyGetIn({
-			identifier: mailSenderAddress,
-			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			version: senderKeyVersion.toString(),
-		})
-		try {
-			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-			return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
-				? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-				: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-		} catch (e) {
-			console.error("Could not authenticate sender", e)
-			return EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-		}
 	}
 
 	/**

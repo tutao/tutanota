@@ -15,7 +15,7 @@ import { Group, GroupTypeRef, PubEncKeyDataTypeRef } from "../../../../../src/co
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { CryptoProtocolVersion } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { CryptoProtocolVersion, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 
 o.spec("GroupManagementFacadeTest", function () {
 	let userFacade: UserFacade
@@ -71,6 +71,10 @@ o.spec("GroupManagementFacadeTest", function () {
 		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
 			pubEncSymKey: pubAdminGroupEncSymKey,
 			protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+			identifier: groupId,
+			identifierType: PublicKeyIdentifierType.GROUP_ID,
+			recipientKeyVersion: adminGroupKeyVersion.toString(),
+			senderKeyVersion: groupKeyVersion.toString(),
 		})
 
 		o.beforeEach(function () {
@@ -88,7 +92,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			when(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminGroupKeyVersion)).thenResolve(adminGroupKeyBytes)
 			when(cryptoWrapper.decryptKey(adminGroupKeyBytes, adminGroupEncGKey)).thenReturn(groupKeyBytes)
 			when(keyLoaderFacade.loadKeypair(adminGroupId, adminGroupKeyVersion)).thenResolve(adminGroupKeyPair)
-			when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(adminGroupKeyPair, CryptoProtocolVersion.TUTA_CRYPT, pubAdminGroupEncSymKey)).thenResolve({
+			when(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminGroupKeyPair, pubAdminGroupEncGKey)).thenResolve({
 				decryptedAesKey: groupKeyBytes,
 				senderIdentityPubKey: pubUserGroupEccKey,
 			})
@@ -102,7 +106,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			o(groupKey.version).equals(groupKeyVersion)
 			o(groupKey.object).deepEquals(groupKeyBytes)
 			verify(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminGroupKeyVersion))
-			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
 		o("asymmetric decryption", async function () {
@@ -113,7 +117,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			o(groupKey.version).equals(groupKeyVersion)
 			o(groupKey.object).deepEquals(groupKeyBytes)
 			verify(keyLoaderFacade.loadKeypair(adminGroupId, adminGroupKeyVersion))
-			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(adminGroupKeyPair, CryptoProtocolVersion.TUTA_CRYPT, pubAdminGroupEncSymKey), { times: 1 })
+			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminGroupKeyPair, pubAdminGroupEncGKey), { times: 1 })
 		})
 
 		o("decrypt with the group membership key if the admin happens to be a member of the target group", async function () {

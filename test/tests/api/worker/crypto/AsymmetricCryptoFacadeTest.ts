@@ -4,18 +4,35 @@ import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/R
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoProtocolVersion } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
-import { AesKey, bitArrayToUint8Array, EccKeyPair, KeyPairType, KyberPublicKey, PQKeyPairs, RsaKeyPair, rsaPublicKeyToHex } from "@tutao/tutanota-crypto"
+import {
+	AesKey,
+	bitArrayToUint8Array,
+	EccKeyPair,
+	KeyPairType,
+	KyberPublicKey,
+	PQKeyPairs,
+	RsaKeyPair,
+	rsaPublicKeyToHex,
+	uint8ArrayToBitArray,
+} from "@tutao/tutanota-crypto"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { hexToUint8Array, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeys } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
-import { PublicKeyPutIn } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	createPublicKeyGetIn,
+	PubEncKeyData,
+	PubEncKeyDataTypeRef,
+	PublicKeyGetIn,
+	PublicKeyPutIn,
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation
@@ -33,6 +50,103 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		cryptoWrapper = object()
 		serviceExecutor = object()
 		asymmetricCryptoFacade = new AsymmetricCryptoFacade(rsa, pqFacade, keyLoaderFacade, cryptoWrapper, serviceExecutor)
+	})
+
+	o.spec("authenticateSender", function () {
+		let identifier: string
+		let identifierType: PublicKeyIdentifierType
+		let senderIdentityPubKey: Uint8Array
+		let senderKeyVersion: number
+		let keyData: PublicKeyGetIn
+
+		o.beforeEach(() => {
+			identifier = object<string>()
+			identifierType = object<PublicKeyIdentifierType>()
+			senderIdentityPubKey = new Uint8Array([1, 2, 3])
+			senderKeyVersion = 0
+			keyData = createPublicKeyGetIn({
+				identifier,
+				identifierType,
+				version: senderKeyVersion.toString(),
+			})
+		})
+
+		o("should return TUTACRYPT_AUTHENTICATION_SUCCEEDED if the key matches", async function () {
+			when(serviceExecutor.get(PublicKeyService, keyData)).thenResolve({ pubEccKey: senderIdentityPubKey })
+
+			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
+
+			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
+		})
+
+		o("should return TUTACRYPT_AUTHENTICATION_FAILED if sender does not have an ecc identity key in the requested version", async function () {
+			when(serviceExecutor.get(PublicKeyService, keyData)).thenResolve({ pubEccKey: null, pubRsaKey: new Uint8Array([4, 5, 6]), pubKyberKey: null })
+
+			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
+
+			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
+		})
+
+		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
+			when(serviceExecutor.get(PublicKeyService, keyData)).thenResolve({ pubEccKey: new Uint8Array([4, 5, 6]) })
+
+			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
+
+			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
+		})
+	})
+
+	o.spec("decryptSymKeyWithKeyPairAndAuthenticate", function () {
+		o("should throw CryptoError if authentication fails", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const symKey = new Uint8Array([1, 2, 3, 4])
+			const keyPair = object<PQKeyPairs>()
+			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+
+			const senderKeyVersion = "1"
+			const identifier = object<string>()
+			const identifierType = PublicKeyIdentifierType.MAIL_ADDRESS
+			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
+				pubEncSymKey,
+				protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+				senderKeyVersion,
+				identifier,
+				identifierType,
+			})
+			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
+				decryptedSymKeyBytes: symKey,
+				senderIdentityPubKey: object(),
+			})
+			when(
+				serviceExecutor.get(
+					PublicKeyService,
+					createPublicKeyGetIn({
+						version: senderKeyVersion,
+						identifierType,
+						identifier,
+					}),
+				),
+			).thenResolve({ pubEccKey: new Uint8Array([4, 5, 6]) })
+
+			await assertThrows(CryptoError, () => asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData))
+		})
+
+		o("should not try authentication when protocol is not TutaCrypt", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
+				pubEncSymKey,
+				protocolVersion: CryptoProtocolVersion.RSA,
+				senderKeyVersion: null,
+			})
+
+			const symKey = new Uint8Array([1, 2, 3, 4])
+			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(symKey)
+
+			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData)
+
+			verify(serviceExecutor.get(PublicKeyService, matchers.anything()), { times: 0 })
+			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: uint8ArrayToBitArray(symKey) })
+		})
 	})
 
 	o.spec("decryptSymKeyWithKeyPair", function () {

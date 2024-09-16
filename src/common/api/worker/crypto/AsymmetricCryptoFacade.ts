@@ -20,12 +20,18 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
-import { uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import {
+	asCryptoProtoocolVersion,
+	asPublicKeyIdentifier,
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	PublicKeyIdentifierType,
+} from "../../common/TutanotaConstants.js"
+import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PubEncSymKey, PublicKeys } from "./CryptoFacade.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { createPublicKeyPutIn, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
+import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
@@ -35,6 +41,11 @@ assertWorkerOrNode()
 export type DecapsulatedAesKey = {
 	decryptedAesKey: AesKey
 	senderIdentityPubKey: EccPublicKey | null // null for rsa only
+}
+
+export type PublicKeyIdentifier = {
+	identifier: string
+	identifierType: PublicKeyIdentifierType
 }
 
 /**
@@ -49,6 +60,52 @@ export class AsymmetricCryptoFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {}
+
+	/**
+	 * Verifies whether the key the public key service returns is the same as the one used for encryption.
+	 * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
+	 *
+	 * @param identifier the identifier to load the public key for verification that it matches the one used in the protocol run.
+	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
+	 * @param senderKeyVersion the version of the senderIdentityPubKey.
+	 */
+	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
+		const keyData = createPublicKeyGetIn({
+			identifier: identifier.identifier,
+			identifierType: identifier.identifierType,
+			version: senderKeyVersion.toString(),
+		})
+		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+		return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
+			? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+			: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+	}
+
+	/**
+	 * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
+	 * If the protocol does not support authentication this method will only decrypt.
+	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
+	 * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
+	 * @throws CryptoError in case the authentication fails.
+	 */
+	async decryptSymKeyWithKeyPairAndAuthenticate(recipientKeyPair: AsymmetricKeyPair, pubEncKeyData: PubEncKeyData): Promise<DecapsulatedAesKey> {
+		const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
+		const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
+		if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
+			const encryptionAuthStatus = await this.authenticateSender(
+				{
+					identifier: pubEncKeyData.identifier,
+					identifierType: asPublicKeyIdentifier(pubEncKeyData.identifierType),
+				},
+				assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
+				Number(assertNotNull(pubEncKeyData.senderKeyVersion)),
+			)
+			if (encryptionAuthStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
+				throw new CryptoError("the provided public key could not be authenticated")
+			}
+		}
+		return decapsulatedAesKey
+	}
 
 	/**
 	 * Decrypts the pubEncSymKey with the recipientKeyPair.
