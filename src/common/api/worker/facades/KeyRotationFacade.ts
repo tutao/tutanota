@@ -314,20 +314,10 @@ export class KeyRotationFacade {
 		groupKeyRotationData: GroupKeyRotationData[]
 		preparedReInvites: GroupInvitationPostData[]
 	}> {
-		//group key rotation is skipped if
-		// * user is not an admin user
-		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount)
-		if (adminGroupMembership == null) {
-			// group key rotations are currently only scheduled for single user customers, so this user must be an admin
-			console.log("Only admin user can rotate the group")
-			return { groupKeyRotationData: [], preparedReInvites: [] }
-		}
-
-		// * the encrypting keys are 128-bit keys. (user group key, admin group key)
+		// * the encrypting keys are 128-bit keys. (user group key)
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
-		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
-		if (hasNonQuantumSafeKeys(currentUserGroupKey.object, currentAdminGroupKey.object)) {
-			// admin group key rotation should be scheduled first on the server, so this should not happen
+		if (hasNonQuantumSafeKeys(currentUserGroupKey.object)) {
+			// user or admin group key rotation should be scheduled first on the server, so this should not happen
 			console.log("Keys cannot be rotated as the encrypting keys are not pq secure")
 			return { groupKeyRotationData: [], preparedReInvites: [] }
 		}
@@ -335,12 +325,7 @@ export class KeyRotationFacade {
 		const groupKeyUpdates = new Array<GroupKeyRotationData>()
 		let preparedReInvites: GroupInvitationPostData[] = []
 		for (const keyRotation of this.pendingKeyRotations.userAreaGroupsKeyRotations) {
-			const { groupKeyRotationData, preparedReInvitations } = await this.prepareKeyRotationForAreaGroup(
-				keyRotation,
-				currentUserGroupKey,
-				currentAdminGroupKey,
-				user,
-			)
+			const { groupKeyRotationData, preparedReInvitations } = await this.prepareKeyRotationForAreaGroup(keyRotation, currentUserGroupKey, user)
 			groupKeyUpdates.push(groupKeyRotationData)
 			preparedReInvites = preparedReInvites.concat(preparedReInvitations)
 		}
@@ -494,7 +479,6 @@ export class KeyRotationFacade {
 	private async prepareKeyRotationForAreaGroup(
 		keyRotation: KeyRotation,
 		currentUserGroupKey: VersionedKey,
-		currentAdminGroupKey: VersionedKey,
 		user: User,
 	): Promise<PreparedUserAreaGroupKeyRotation> {
 		const targetGroupId = this.getTargetGroupId(keyRotation)
@@ -503,21 +487,19 @@ export class KeyRotationFacade {
 		const currentGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroupId)
 
 		const newGroupKeys = await this.generateGroupKeys(targetGroup)
-		const encryptedGroupKeys = await this.encryptGroupKeys(targetGroup, currentGroupKey, newGroupKeys, currentAdminGroupKey)
+		const groupEncPreviousGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(newGroupKeys.symGroupKey, currentGroupKey.object)
 		const membershipSymEncNewGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(currentUserGroupKey, newGroupKeys.symGroupKey.object)
 		const preparedReInvitations = await this.handlePendingInvitations(targetGroup, newGroupKeys.symGroupKey)
 
 		const groupKeyUpdatesForMembers = await this.createGroupKeyUpdatesForMembers(targetGroup, newGroupKeys.symGroupKey)
 
 		const groupKeyRotationData = createGroupKeyRotationData({
-			adminGroupEncGroupKey: encryptedGroupKeys.adminGroupKeyEncNewGroupKey ? encryptedGroupKeys.adminGroupKeyEncNewGroupKey.key : null,
-			adminGroupKeyVersion: encryptedGroupKeys.adminGroupKeyEncNewGroupKey
-				? String(encryptedGroupKeys.adminGroupKeyEncNewGroupKey.encryptingKeyVersion)
-				: null,
+			adminGroupEncGroupKey: null, // for user area groups we do not have an adminGroupEncGroupKey so we set it always to null.
+			adminGroupKeyVersion: null,
 			group: targetGroupId,
 			groupKeyVersion: String(newGroupKeys.symGroupKey.version),
-			groupEncPreviousGroupKey: encryptedGroupKeys.newGroupKeyEncCurrentGroupKey.key,
-			keyPair: makeKeyPair(encryptedGroupKeys.keyPair),
+			groupEncPreviousGroupKey: groupEncPreviousGroupKey.key,
+			keyPair: makeKeyPair(newGroupKeys.encryptedKeyPair),
 			groupKeyUpdatesForMembers,
 			groupMembershipUpdateData: [
 				createGroupMembershipUpdateData({
@@ -927,7 +909,7 @@ export class KeyRotationFacade {
 		)
 		const recoverCodeData = await this.reencryptRecoverCodeIfExists(user, pwKey, newUserGroupKeys)
 
-		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(newUserGroupKeys, adminPublicKeyGetOut, adminGroupId)
+		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(newUserGroupKeys, adminPublicKeyGetOut, userGroupId)
 
 		const userGroupKeyData = createUserGroupKeyRotationData({
 			userGroupKeyVersion: String(newUserGroupKeys.symGroupKey.version),
@@ -949,7 +931,7 @@ export class KeyRotationFacade {
 	private async encryptUserGroupKeyForAdmin(
 		newUserGroupKeys: GeneratedGroupKeys,
 		publicKeyGetOut: PublicKeyGetOut,
-		adminGroupId: Id,
+		senderUserGroupId: Id,
 	): Promise<PubEncKeyData> {
 		const adminPubKeys: Versioned<PublicKeys> = {
 			version: Number(publicKeyGetOut.pubKeyVersion),
@@ -969,7 +951,7 @@ export class KeyRotationFacade {
 		})
 
 		return createPubEncKeyData({
-			identifier: adminGroupId,
+			identifier: senderUserGroupId,
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
 			pubEncSymKey: pubEncSymKey.pubEncSymKeyBytes,
 			protocolVersion: pubEncSymKey.cryptoProtocolVersion,
