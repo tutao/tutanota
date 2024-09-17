@@ -30,11 +30,7 @@ export const GENERATED_MAX_ID = "zzzzzzzzzzzz"
  *
  * current mailSetEntry maximum date is: 2019-05-15 -ish ( see MailFolderHelper.java: makeMailSetEntryCustomId )
  */
-export const DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP = new Date("2109-05-16 15:00 UTC").getTime()
-
-/**
- *
- */
+export const DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP = new Date("2109-05-16T15:00Z").getTime()
 
 /**
  * The minimum ID for elements with generated id stored on the server
