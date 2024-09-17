@@ -10,6 +10,7 @@ import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { isApp } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
+import { client } from "../misc/ClientDetector.js"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -28,7 +29,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 						margin: px(size.vpad_xl),
 					},
 				},
-				m.trust(getLightOrDarkTutaLogo()),
+				m.trust(getLightOrDarkTutaLogo(client.isCalendarApp())),
 			),
 			m(".flex.justify-center.flex-wrap", [
 				m(ExternalLink, { href: InfoLink.HomePage, text: "Website", isCompanySite: true, specialType: "me", class: "mlr mt" }),
