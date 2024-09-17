@@ -1,5 +1,6 @@
 package de.tutao.calendar.push
 
+import android.util.Log
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.ipc.DataWrapper
@@ -59,7 +60,7 @@ class AndroidNativePushFacade(
 	}
 
 	override suspend fun setReceiveCalendarNotificationConfig(pushIdentifier: String, value: Boolean) {
-		TODO("Calendar App should NOT deal with this config")
+		Log.w(TAG, "Calendar App should NOT deal with this config")
 	}
 
 	override suspend fun getReceiveCalendarNotificationConfig(pushIdentifier: String): Boolean {
@@ -68,5 +69,9 @@ class AndroidNativePushFacade(
 
 	override suspend fun removeUser(userId: String) {
 		this.sseStorage.removeUser(userId)
+	}
+
+	companion object {
+		const val TAG = "NativePushFacade"
 	}
 }
