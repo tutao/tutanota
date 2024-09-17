@@ -24,10 +24,7 @@ targets:
             "calendar-web",
             "Sources/sdktest.swift",
           ]
-        compilerFlags:
-          [
-            "-ITutanotaSharedFramework/Crypto/phc-winner-argon2/include",
-          ]
+        compilerFlags: [ ]
       # XCode will not resolve symbolic links when adding a folder reference, so we will just use a relative path
       - path: "../build-calendar-app"
         name: "build-calendar-app"
@@ -41,10 +38,7 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/Frameworks"
         INFOPLIST_FILE: "calendar/Info.plist"
         SWIFT_OBJC_BRIDGING_HEADER: "calendar/Sources/calendar-Bridging-Header.h"
-        HEADER_SEARCH_PATHS:
-          [
-            "TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
-          ]
+        HEADER_SEARCH_PATHS: [ ]
         CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
         GCC_PREPROCESSOR_DEFINITIONS:
           [ "SQLITE_HAS_CODEC=1", "$(inherited)" ]
@@ -81,8 +75,6 @@ targets:
       - package: DictionaryCoding
       - sdk: Foundation.framework
         embed: false
-      - framework: libcrypto.xcframework
-        embed: false
       - sdk: Security.framework
         embed: false
       - target: TutanotaNotificationExtension
@@ -94,7 +86,6 @@ targets:
         embed: false
       - framework: StoreKit.framework
         embed: false
-      - target: argon2
   tutanotaTests:
     templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
@@ -111,10 +102,7 @@ targets:
       INFOPLIST_FILE: "tutanotaTests/Info.plist"
       PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanotaTests"
       PRODUCT_NAME: "$(TARGET_NAME)"
-      HEADER_SEARCH_PATHS:
-        [
-          "TutanotaSharedFramework/Crypto/phc-winner-argon2/include",
-        ]
+      HEADER_SEARCH_PATHS: [ ]
       TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"

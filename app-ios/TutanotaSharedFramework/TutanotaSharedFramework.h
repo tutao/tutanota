@@ -7,7 +7,6 @@
 #import <TutanotaSharedFramework/TUTLog.h>
 #import <TutanotaSharedFramework/TUTEncodingConverter.h>
 #import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
-#import <TutanotaSharedFramework/argon2.h>
 #include <TutanotaSharedFramework/Swiftier.h>
 #include <TutanotaSharedFramework/TUTIcons.h>
 #include <TutanotaSharedFramework/WebviewHacks.h>

@@ -36,28 +36,27 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.identifiers = []
 		this.user = locator.logins.getUserController().user
 
-		if (isApp() || isDesktop()) {
-			locator.pushService.getExtendedNotificationMode().then((e) => {
-				this.extendedNotificationMode = e
+		this.loadPushIdentifiers()
 
-				m.redraw()
-			})
+		if (isApp() || isDesktop()) {
+			const promises: Promise<any>[] = [locator.pushService.getExtendedNotificationMode()]
 
 			if (isApp()) {
-				locator.systemPermissionHandler.hasPermission(PermissionType.Notification).then((hasPermission) => {
-					const shouldRedraw = this.hasNotificationPermission !== hasPermission
-					this.hasNotificationPermission = hasPermission
-					if (shouldRedraw) m.redraw()
-				})
-				locator.pushService.getReceiveCalendarNotificationConfig().then((canReceiveCalendarNotifications) => {
-					const shouldRedraw = this.receiveCalendarNotifications !== canReceiveCalendarNotifications
-					this.receiveCalendarNotifications = canReceiveCalendarNotifications
-					if (shouldRedraw) m.redraw()
-				})
+				promises.push(
+					locator.systemPermissionHandler.hasPermission(PermissionType.Notification),
+					locator.pushService.getReceiveCalendarNotificationConfig(),
+				)
 			}
+			Promise.all(promises).then(([extendedNotificationMode, hasPermission, canReceiveCalendarNotifications]) => {
+				this.extendedNotificationMode = extendedNotificationMode
+				if (isApp()) {
+					if (this.hasNotificationPermission !== hasPermission) this.hasNotificationPermission = hasPermission
+					if (this.receiveCalendarNotifications !== canReceiveCalendarNotifications)
+						this.receiveCalendarNotifications = canReceiveCalendarNotifications
+				}
+				m.redraw()
+			})
 		}
-
-		this.loadPushIdentifiers()
 	}
 
 	private disableIdentifier(identifier: PushIdentifier) {
