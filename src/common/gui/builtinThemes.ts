@@ -1,9 +1,9 @@
 /**
  * @file color/theme definitions for default themes.
  */
-import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
+import { getCalendarLogoSvg, getMailLogoSvg, getTutaLogoSvg } from "./base/Logo"
 import type { Theme, ThemeId } from "./theme"
-import { assertMainOrNodeBoot } from "../api/common/Env"
+import { assertMainOrNodeBoot, isApp } from "../api/common/Env"
 import { client } from "../misc/ClientDetector.js"
 
 assertMainOrNodeBoot()
@@ -63,12 +63,26 @@ export const tutaDunkel = dunkel
 
 type Themes = Record<ThemeId, Theme>
 
+const getLogo = (isDark: boolean, isDefault: boolean) => {
+	const isDarkOrDefault = isDark || !isDefault
+	if (!isApp()) {
+		return isDarkOrDefault ? getTutaLogoSvg(logo_text_bright_grey, logo_text_bright_grey) : getTutaLogoSvg(red, dunkel)
+	}
+
+	if (client.isCalendarApp()) {
+		return isDarkOrDefault
+			? getCalendarLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey)
+			: getCalendarLogoSvg(blue, secondary_blue, black)
+	}
+
+	return isDarkOrDefault ? getMailLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey) : getMailLogoSvg(red, secondary_red, black)
+}
+
 export const themes = (): Themes => {
+	const isCalendarApp = client.isCalendarApp()
 	const lightRed = Object.freeze({
-		themeId: !client.isCalendarApp() ? "light" : "light_secondary",
-		logo: !client.isCalendarApp()
-			? getMailLogoSvg(red, secondary_red, black)
-			: getCalendarLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey),
+		themeId: !isCalendarApp ? "light" : "light_secondary",
+		logo: getLogo(false, !isCalendarApp),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,
@@ -101,10 +115,8 @@ export const themes = (): Themes => {
 		navigation_menu_icon: grey,
 	})
 	const darkRed = Object.freeze({
-		themeId: !client.isCalendarApp() ? "dark" : "dark_secondary",
-		logo: !client.isCalendarApp()
-			? getMailLogoSvg(lighter_red, secondary_red, light_white)
-			: getCalendarLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey),
+		themeId: !isCalendarApp ? "dark" : "dark_secondary",
+		logo: getLogo(true, !isCalendarApp),
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
 		content_fg: light_lighter_1,
@@ -139,11 +151,9 @@ export const themes = (): Themes => {
 		navigation_menu_icon: light_grey,
 	})
 	const lightBlue = Object.freeze({
-		themeId: client.isCalendarApp() ? "light" : "light_secondary",
+		themeId: isCalendarApp ? "light" : "light_secondary",
 		// blue is not really our brand color, treat blue like whitelabel color
-		logo: !client.isCalendarApp()
-			? getMailLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey)
-			: getCalendarLogoSvg(blue, secondary_blue, black),
+		logo: getLogo(false, isCalendarApp),
 		button_bubble_bg: grey_lighter_3,
 		button_bubble_fg: grey_darker_1,
 		content_fg: grey_darker_1,
@@ -176,10 +186,8 @@ export const themes = (): Themes => {
 		navigation_menu_icon: grey,
 	})
 	const darkBlue = Object.freeze({
-		themeId: client.isCalendarApp() ? "dark" : "dark_secondary",
-		logo: !client.isCalendarApp()
-			? getMailLogoSvg(logo_text_bright_grey, logo_text_bright_grey, logo_text_bright_grey)
-			: getCalendarLogoSvg(lighter_blue, secondary_blue, light_white),
+		themeId: isCalendarApp ? "dark" : "dark_secondary",
+		logo: getLogo(true, isCalendarApp),
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
 		content_fg: light_lighter_1,
@@ -215,9 +223,9 @@ export const themes = (): Themes => {
 	})
 
 	return {
-		light: client.isCalendarApp() ? lightBlue : lightRed,
-		dark: client.isCalendarApp() ? darkBlue : darkRed,
-		light_secondary: client.isCalendarApp() ? lightRed : lightBlue,
-		dark_secondary: client.isCalendarApp() ? darkRed : darkBlue,
+		light: isCalendarApp ? lightBlue : lightRed,
+		dark: isCalendarApp ? darkBlue : darkRed,
+		light_secondary: isCalendarApp ? lightRed : lightBlue,
+		dark_secondary: isCalendarApp ? darkRed : darkBlue,
 	}
 }

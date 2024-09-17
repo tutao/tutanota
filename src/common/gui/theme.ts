@@ -106,9 +106,10 @@ export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
 
-export function getLightOrDarkTutaLogo(): string {
+export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 	// Use tuta logo with our brand colors
-	if (isColorLight(theme.content_bg)) {
+	const isCalendarTheme = (theme.themeId === "light" && isCalendarApp) || (theme.themeId === "light_secondary" && !isCalendarApp)
+	if (isColorLight(theme.content_bg) && !isCalendarTheme) {
 		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
 		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)
