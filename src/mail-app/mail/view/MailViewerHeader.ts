@@ -139,6 +139,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									style: {
 										fill: theme.content_button,
 									},
+									hoverText: lang.get("confidential_label"),
 							  })
 							: null,
 
@@ -199,6 +200,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 										style: {
 											fill: theme.content_button,
 										},
+										hoverText: lang.get("draft_label"),
 									}),
 							  )
 							: null,
