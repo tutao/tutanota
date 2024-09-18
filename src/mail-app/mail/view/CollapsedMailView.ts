@@ -8,6 +8,7 @@ import { responsiveCardHPadding } from "../../../common/gui/cards.js"
 import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { getConfidentialIcon, getFolderIconByType, getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 export interface CollapsedMailViewAttrs {
 	viewModel: MailViewerViewModel
@@ -38,11 +39,11 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			},
 			[
 				viewModel.isUnread() ? this.renderUnreadDot() : null,
-				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit)) : null,
+				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit, lang.get("draft_label"))) : null,
 				this.renderSender(viewModel),
 				m(".flex.ml-between-s.items-center", [
-					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment) : null,
-					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail)) : null,
+					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment, lang.get("attachment_label")) : null,
+					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail), lang.get("confidential_label")) : null,
 					this.renderIcon(getFolderIconByType(folderInfo.folderType), folderInfo.name),
 					m(".small.font-weight-600", dateTime),
 				]),
