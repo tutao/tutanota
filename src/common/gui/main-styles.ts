@@ -2565,5 +2565,8 @@ styles.registerStyle("main", () => {
 		".posr-ml": {
 			right: px(size.vpad_ml),
 		},
+		".mb-small-line-height": {
+			"margin-bottom": px(size.line_height * size.font_size_small),
+		},
 	}
 })

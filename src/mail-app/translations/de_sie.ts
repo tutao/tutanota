@@ -161,6 +161,7 @@ export default {
 		"calendarInvitationProgress_msg": "Einladung wird versendet.",
 		"calendarInvitations_label": "Kalender-Einladungen",
 		"calendarSubscriptions_label": "Abonnements",
+		"newCalendarSubscriptionsDialog_title": "Neues Abonnement",
 		"calendarShared_label": "Gemeinsam",
 		"calendarName_label": "Kalender-Name",
 		"calendarParticipants_label": "Teilnehmer*innen des Kalenders \"{name}\"",

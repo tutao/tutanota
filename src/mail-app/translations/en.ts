@@ -157,6 +157,7 @@ export default {
 		"calendarInvitationProgress_msg": "Sending invitation.",
 		"calendarInvitations_label": "Calendar invitations",
 		"calendarSubscriptions_label": "Subscriptions",
+		"newCalendarSubscriptionsDialog_title": "New Subscription",
 		"calendarShared_label": "Shared",
 		"calendarName_label": "Calendar name",
 		"calendarParticipants_label": "Participants of calendar \"{name}\"",

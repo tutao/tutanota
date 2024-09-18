@@ -15,7 +15,17 @@ import {
 	GroupSettings,
 	UserSettingsGroupRoot,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TabIndex, TimeFormat, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import {
+	defaultCalendarColor,
+	GroupType,
+	Keys,
+	NewPaidPlans,
+	reverse,
+	ShareCapability,
+	TabIndex,
+	TimeFormat,
+	WeekStart,
+} from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	CalendarType,
@@ -40,7 +50,7 @@ import { px, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/import/CalendarImporterDialog.js"
-import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
+import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../../common/sharing/GroupUtils"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
@@ -88,7 +98,7 @@ import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
-import { getExternalCalendarName, hasSourceUrl, isIcal, parseCalendarStringData, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
+import { getExternalCalendarName, hasSourceUrl, parseCalendarStringData, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
 import type { ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 
@@ -188,7 +198,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
 									}),
-									expandable: true,
 									hideIfEmpty: true,
 								},
 								this.renderCalendars([RenderType.Private]),
@@ -197,7 +206,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: () => "calendarShared_label",
-									expandable: true,
 									hideIfEmpty: true,
 								},
 								this.renderCalendars([RenderType.Shared]),
@@ -206,7 +214,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: () => "calendarSubscriptions_label",
-									expandable: true,
 									hideIfEmpty: true,
 								},
 								this.renderCalendars([RenderType.External]),
@@ -675,13 +682,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private onPressedAddCalendar(calendarType: CalendarType) {
-		import("../../../common/misc/SubscriptionDialogs")
-			.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPaidSubscription())
-			.then((ok) => {
-				if (ok) {
-					this.showCreateCalendarDialog(calendarType)
-				}
+		const userController = locator.logins.getUserController()
+		if (userController.isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+			return
+		}
+		if (calendarType === CalendarType.URL)
+			userController.isNewPaidPlan().then((isNewPaidPlan) => {
+				if (isNewPaidPlan) this.showCreateCalendarDialog(calendarType)
+				else showPlanUpgradeRequiredDialog(NewPaidPlans)
 			})
+		else this.showCreateCalendarDialog(calendarType)
 	}
 
 	private showCreateCalendarDialog(calendarType: CalendarType) {
@@ -722,11 +733,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			case CalendarType.URL:
 				showCreateEditCalendarDialog({
 					calendarType,
-					titleTextId: "add_action",
+					titleTextId: "newCalendarSubscriptionsDialog_title",
 					shared: false,
 					okAction: createExternalCalendar,
 					okTextId: "subscribe_action",
-					warningMessage: () => m(".smaller.content-fg.mt-l.pt-m.pb-m.plr-m.border.border-radius", lang.get("externalCalendarInfo_msg")),
+					warningMessage: () => m(".smaller.content-fg", lang.get("externalCalendarInfo_msg")),
 					calendarModel: this.viewModel.getCalendarModel(),
 				})
 				break
