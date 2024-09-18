@@ -5,13 +5,15 @@ import Stream from "mithril/stream"
 import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
-import { deepEqual } from "@tutao/tutanota-utils"
+import { deepEqual, isNotNull, lazyStringValue } from "@tutao/tutanota-utils"
 import { AlarmInterval, CalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
 import { checkURLString, isExternalCalendarType, isIcal } from "../../../common/calendar/import/ImportExportUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import type { CalendarModel } from "../model/CalendarModel.js"
+import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
+import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 
 export type CalendarProperties = {
 	name: string
@@ -38,7 +40,12 @@ export async function handleUrlSubscription(calendarModel: CalendarModel, url: s
 }
 
 function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stream<string>) {
+	const errorMessage = errorMessageStream().trim()
+	let helperMessage = ""
+	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics"
+	else if (isNotNull(errorMessage) && errorMessage !== DEFAULT_ERROR) helperMessage = errorMessage
 	return m(TextField, {
+		class: `pt pb ${helperMessage.length ? "" : "mb-small-line-height"}`,
 		value: urlStream(),
 		oninput: (url: string, inputElement: HTMLInputElement) => {
 			const assertionResult = checkURLString(url)
@@ -51,11 +58,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 		},
 		label: "url_label",
 		type: TextFieldType.Url,
-		helpLabel: () =>
-			m(
-				"small.block.content-fg",
-				urlStream().trim() === "" ? "E.g: https://tuta.com/ics/example.ics" : errorMessageStream().trim() ?? errorMessageStream(),
-			),
+		helpLabel: () => m("small.block.content-fg", helperMessage),
 	})
 }
 
@@ -128,7 +131,7 @@ export function showCreateEditCalendarDialog({
 	const nameStream = stream(name)
 	const colorStream = stream("#" + color)
 	const urlStream = stream(sourceUrl ?? "")
-	const errorMessageStream = stream("")
+	const errorMessageStream = stream(DEFAULT_ERROR)
 
 	const externalCalendarValidator = async () => {
 		const assertionResult = checkURLString(urlStream())
@@ -144,35 +147,65 @@ export function showCreateEditCalendarDialog({
 		return null
 	}
 
-	Dialog.showActionDialog({
-		title: () => lang.get(titleTextId),
-		allowOkWithReturn: true,
+	const doAction = async (dialog: Dialog) => {
+		okAction(
+			dialog,
+			{
+				name: nameStream(),
+				color: colorStream().substring(1),
+				alarms,
+				sourceUrl: urlStream().trim(),
+			},
+			calendarModel,
+		)
+	}
+
+	const externalCalendarDialogProps = {
+		title: "",
 		child: {
 			view: () =>
 				m(".flex.col", [
+					m(".mt.mb.h6.b", lang.get(titleTextId)),
 					warningMessage ? warningMessage() : null,
-					isNewCalendar && isExternalCalendarType(calendarType)
-						? sourceUrlInputField(urlStream, errorMessageStream)
-						: createEditCalendarComponent(nameStream, colorStream, shared, calendarType, alarms, urlStream, errorMessageStream),
+					sourceUrlInputField(urlStream, errorMessageStream),
+					m(LoginButton, {
+						label: okTextId,
+						onclick: () => {
+							externalCalendarValidator()
+								.then((validatorResult) => {
+									if (validatorResult) {
+										Dialog.message(validatorResult as TranslationKey)
+										return
+									}
+									doAction(dialog)
+								})
+								.catch((e) => Dialog.message(() => e.message))
+						},
+						class: errorMessageStream().trim() !== "" ? "mt-s no-hover button-bg" : "mt-s",
+						disabled: errorMessageStream().trim() !== "",
+					}),
 				]),
 		},
-		okActionTextId: okTextId,
-		okAction: async (dialog: Dialog) => {
-			okAction(
-				dialog,
-				{
-					name: nameStream(),
-					color: colorStream().substring(1),
-					alarms,
-					sourceUrl: urlStream().trim(),
-				},
-				calendarModel,
-			)
-		},
-		validator: async (): Promise<TranslationKey | null> => {
-			if (isExternalCalendarType(calendarType)) return externalCalendarValidator()
+		okAction: null,
+	}
 
-			return null
-		},
-	})
+	const dialog = Dialog.createActionDialog(
+		Object.assign(
+			{
+				allowOkWithReturn: true,
+				okActionTextId: okTextId,
+				title: lang.get(titleTextId),
+				child: {
+					view: () =>
+						m(".flex.col", [
+							warningMessage ? warningMessage() : null,
+							createEditCalendarComponent(nameStream, colorStream, shared, calendarType, alarms, urlStream, errorMessageStream),
+						]),
+				},
+				okAction: doAction,
+			},
+			isNewCalendar && isExternalCalendarType(calendarType) ? externalCalendarDialogProps : {},
+		),
+	)
+	dialog.show()
 }
