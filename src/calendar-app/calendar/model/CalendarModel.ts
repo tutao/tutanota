@@ -229,13 +229,14 @@ export class CalendarModel {
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
 			const groupMembers = await loadGroupMembers(group, this.entityClient)
 			const shared = groupMembers.length > 1
+			const userIsOwner = !shared || isSharedGroupOwner(group, userController.userId)
 			const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
 			calendarInfos.set(groupRoot._id, {
 				groupRoot,
 				groupInfo,
 				group: group,
 				shared,
-				userIsOwner: !shared || isSharedGroupOwner(group, userController.userId),
+				userIsOwner,
 				isExternal,
 			})
 		}

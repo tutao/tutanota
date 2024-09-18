@@ -126,7 +126,7 @@ export function isExternalCalendarType(calendarType: CalendarType) {
 }
 
 export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
-	return isNotNull(groupSettings?.sourceUrl)
+	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
 /** importer internals exported for testing */
