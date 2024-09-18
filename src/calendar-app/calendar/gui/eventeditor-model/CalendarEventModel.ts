@@ -70,11 +70,12 @@ import {
 	AlarmInterval,
 	areRepeatRulesEqual,
 	DefaultDateProvider,
+	findFirstPrivateCalendar,
 	getTimeZone,
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
+import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
@@ -610,7 +611,9 @@ type EventIdentityFieldNames = "uid" | "sequence" | "recurrenceId"
 function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?: Partial<CalendarEvent> | null): CalendarInfo {
 	const ownerGroup: string | null = event?._ownerGroup ?? null
 	if (ownerGroup == null || !calendars.has(ownerGroup)) {
-		return getFirstOrThrow(Array.from(calendars.values()))
+		const calendar = findFirstPrivateCalendar(calendars)
+		if (!calendar) throw new Error("Can't find a private calendar")
+		return calendar
 	} else {
 		return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
 	}
