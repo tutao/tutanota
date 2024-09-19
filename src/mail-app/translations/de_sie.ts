@@ -1773,5 +1773,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
+		"subscriptionSettings_label": "Abonnementeinstellungen"
 	}
 }

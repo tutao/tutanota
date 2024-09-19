@@ -64,7 +64,6 @@ import { ButtonType } from "../../../../common/gui/base/Button.js"
 assertMainOrNode()
 
 export interface CalendarSearchViewAttrs extends TopLevelAttrs {
-	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	makeViewModel: () => CalendarSearchViewModel
 }

@@ -40,7 +40,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {
 					"padding-left": getSafeAreaInsetLeft(),
-					"border-top-right-radius": styles.isDesktopLayout() ? px(size.border_radius_big) : "",
+					"border-top-right-radius": styles.isDesktopLayout() ? px(size.border_radius_larger) : "",
 				},
 			},
 			[

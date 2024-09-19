@@ -15,6 +15,7 @@ export enum IconSize {
 	Normal,
 	Medium,
 	Large,
+	XL,
 }
 
 export type IconAttrs = {
@@ -124,6 +125,9 @@ export class Icon implements Component<IconAttrs> {
 				cls += "icon-large "
 				break
 			case IconSize.Large:
+				cls += "icon-medium-large "
+				break
+			case IconSize.XL:
 				cls += "icon-xl "
 				break
 			case IconSize.Normal:
