@@ -1776,3 +1776,4 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "calendarDefaultReminder_label"
+	| "subscriptionSettings_label"

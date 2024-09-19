@@ -4,6 +4,7 @@ assertMainOrNodeBoot()
 export const size = {
 	icon_size_xl: 32,
 	icon_size_large: 24,
+	icon_size_medium_large: 20,
 	icon_size_medium: 16,
 	icon_size_small: 12,
 	icon_message_box: 80,
@@ -16,6 +17,7 @@ export const size = {
 	hpad_nav_button: 9,
 	// 6 + 9 = 15px
 	vpad_xs: 3,
+	vpad_xsm: 4,
 	vpad: 16,
 	vpad_small: 8,
 	vpad_ml: 25,
@@ -25,7 +27,8 @@ export const size = {
 	text_bubble_tpad: 20,
 	border_radius_small: 3,
 	border_radius: 6,
-	border_radius_big: 9,
+	border_radius_medium: 8,
+	border_radius_larger: 9,
 	border_selection: 4,
 	font_size_base: 16,
 	font_size_smaller: 14,
@@ -77,6 +80,10 @@ export const size = {
 	second_col_max_width: 350,
 	third_col_min_width: 600,
 	third_col_max_width: 2400,
+
+	// Using the breakpoint set by bootstrap to cover small tablets as well
+	// https://getbootstrap.com/docs/5.0/layout/breakpoints/
+	tablet_min_size: 576,
 
 	get desktop_layout_width(): number {
 		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
