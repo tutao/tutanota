@@ -1796,5 +1796,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"subscriptionSettings_label": "Subscription Settings"
 	}
 }
