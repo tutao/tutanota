@@ -27,6 +27,7 @@ export function setupNavShortcuts() {
 		{
 			key: Keys.S,
 			enabled: () => locator.logins.isInternalUserLoggedIn(),
+			// FIXME: change this function? if calendarapp do calendar things, else set route
 			exec: () => m.route.set(SETTINGS_PREFIX),
 			help: "settingsView_action",
 		},

@@ -18,6 +18,8 @@ import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import { styles } from "../styles.js"
 import { IconButton } from "../base/IconButton.js"
+import { showSettingsDialog } from "../../../calendar-app/calendar/settings/SettingsPopup.js"
+import { locator } from "../../api/main/CommonLocator.js"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -120,7 +122,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(IconButton, {
 							icon: BootIcons.Settings,
 							title: "settings_label",
-							click: () => m.route.set(SETTINGS_PREFIX),
+							click: () => (styles.isTablet() ? showSettingsDialog(locator.logins) : m.route.set(SETTINGS_PREFIX)),
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,

@@ -5,8 +5,8 @@ import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, o
 import { ease } from "../animation/Easing"
 import type { TranslationKey, TranslationText } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import type { KeyPress, Shortcut } from "../../misc/KeyManager"
-import { focusNext, focusPrevious, isKeyPressed, keyManager } from "../../misc/KeyManager"
+import type { Shortcut } from "../../misc/KeyManager"
+import { focusNext, focusPrevious, keyManager } from "../../misc/KeyManager"
 import { getElevatedBackground } from "../theme"
 import { px, size } from "../size"
 import { HabReminderImage } from "./icons/Icons"
@@ -15,21 +15,18 @@ import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { DialogHeaderBar } from "./DialogHeaderBar"
-import { Autocomplete, TextField, TextFieldAttrs, TextFieldType } from "./TextField.js"
+import { TextField, TextFieldType } from "./TextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { AriaWindow } from "../AriaUtils"
 import { styles } from "../styles"
-import type { lazy, MaybeLazy, Thunk } from "@tutao/tutanota-utils"
-import { $Promisable, assertNotNull, getAsLazy, identity, mapLazily, noOp } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, MaybeLazy, noOp, Thunk } from "@tutao/tutanota-utils"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "../../api/common/Env"
-import { Icon } from "./Icon"
-import { BootIcons } from "./icons/BootIcons"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
-import { PasswordField } from "../../misc/passwords/PasswordField.js"
+import stream from "mithril/stream"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -57,6 +54,13 @@ export type ActionDialogProps = {
 	cancelAction?: ((arg0: Dialog) => unknown) | null
 	cancelActionTextId?: TranslationKey
 	type?: DialogType
+}
+
+export type SettingsDialogProps = {
+	title: stream<TranslationKey>
+	child: Component | lazy<Children>
+	navigationAction: (arg0: Dialog) => unknown
+	navigationTextId: stream<TranslationKey>
 }
 
 export interface TextInputDialogParams {
@@ -773,6 +777,47 @@ export class Dialog implements ModalComponent {
 				help: "ok_action",
 			})
 		}
+
+		return dialog
+	}
+
+	static createSettingsDialog(props: SettingsDialogProps): Dialog {
+		let dialog: Dialog
+		const { title, child, allowCancel, allowOkWithReturn, navigationTextId, navigationAction, type } = Object.assign(
+			{},
+			{
+				allowCancel: true,
+				allowOkWithReturn: true,
+				cancelActionTextId: "",
+				type: DialogType.EditSmall,
+			},
+			props,
+		)
+
+		dialog = new Dialog(type, {
+			view: () => [
+				m(".dialog-header.header-grid.dialog-header-line-height.pr-m.pl-vpad-m", [
+					m(
+						".ml-negative-s",
+						m(Button, {
+							label: () => lang.get(navigationTextId()),
+							click: () => navigationAction(dialog),
+							type: ButtonType.Secondary,
+						}),
+					),
+					m("#dialog-title.overflow-hidden.flex.justify-center.items-center.b", [m(".text-ellipsis", lang.get(title()))]),
+				]),
+				m(".dialog-max-height.pb.text-break.scroll", "function" === typeof child ? child() : m(child)),
+			],
+		})
+
+		dialog.addShortcut({
+			key: Keys.ESC,
+			shift: false,
+			exec: () => dialog.close(),
+			help: "cancel_action",
+			enabled: getAsLazy(allowCancel),
+		})
 
 		return dialog
 	}

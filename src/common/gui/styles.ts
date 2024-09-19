@@ -65,6 +65,19 @@ class Styles {
 		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 
+	isLandscape(): boolean {
+		return this.bodyWidth > this.bodyHeight
+	}
+
+	isTablet(): boolean {
+		//FIXME well, you know
+		return true
+		if (this.isLandscape()) {
+			return client.isMobileDevice() && this.bodyHeight >= size.tablet_min_size
+		}
+		return client.isMobileDevice() && this.bodyWidth >= size.tablet_min_size
+	}
+
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
 		if (!this.initialized && this.styles.has(id)) {
 			throw new Error("duplicate style definition: " + id)

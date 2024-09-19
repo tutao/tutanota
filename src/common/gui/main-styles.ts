@@ -1879,6 +1879,10 @@ styles.registerStyle("main", () => {
 			width: "100%",
 			padding: px(10),
 		},
+		".header-grid": {
+			display: "grid",
+			"grid-template-columns": "1fr 2fr 1fr",
+		},
 		".plans-grid": {
 			display: "grid",
 			"grid-template-columns": "1fr",

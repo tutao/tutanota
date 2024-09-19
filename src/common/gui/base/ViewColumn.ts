@@ -6,8 +6,19 @@ import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 
+// FIXME: update docs
+/**
+ * explaining this enum like a person
+ *
+ * @enum
+ *
+ * @property Background "A column used to display main information"
+ * @property Foreground "A drawer menu column on mobile, a sidebar on large desktop screens"
+ */
 export const enum ColumnType {
+	/** Background "A column used to display main information" */
 	Background = 1,
+	/** Foreground "A drawer menu column on mobile, a sidebar on large desktop screens" */
 	Foreground = 0,
 }
 
