@@ -27,6 +27,7 @@ export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	primaryAction: () => Children
 	title?: string
 	backAction: () => unknown
+	useBackButton?: boolean
 }
 
 /**
@@ -40,12 +41,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 	view({ attrs }: Vnode<MobileHeaderAttrs>): Children {
 		const firstVisibleColumn = attrs.columnType === "first" || styles.isSingleColumnLayout()
 		return m(BaseMobileHeader, {
-			left:
-				attrs.columnType === "first"
-					? m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: attrs.backAction })
-					: styles.isSingleColumnLayout()
-					? m(MobileHeaderBackButton, { backAction: attrs.backAction })
-					: null,
+			left: this.renderLeftAction(attrs),
 			center: firstVisibleColumn
 				? m(MobileHeaderTitle, {
 						title: attrs.title,
@@ -59,6 +55,16 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 			],
 			injections: firstVisibleColumn ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 		})
+	}
+
+	private renderLeftAction(attrs: MobileHeaderAttrs) {
+		if (attrs.columnType === "first" && !attrs.useBackButton) {
+			return m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: attrs.backAction })
+		} else if (styles.isSingleColumnLayout() || attrs.useBackButton) {
+			return m(MobileHeaderBackButton, { backAction: attrs.backAction })
+		}
+
+		return null
 	}
 }
 

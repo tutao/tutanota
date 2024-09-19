@@ -711,7 +711,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	_aboutThisSoftwareLink(): Children {
 		const label = lang.get("about_label")
-		const versionLabel = `Tutanota v${env.versionNumber}`
+		const versionLabel = `Tuta v${env.versionNumber}`
 		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m(
 				"button.text-center.small.no-text-decoration",

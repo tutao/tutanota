@@ -1094,10 +1094,10 @@ styles.registerStyle("main", () => {
 			"border-top-right-radius": px(size.border_radius),
 		},
 		".border-radius-top-left-big": {
-			"border-top-left-radius": px(size.border_radius_big),
+			"border-top-left-radius": px(size.border_radius_larger),
 		},
 		".border-radius-top-right-big": {
-			"border-top-right-radius": px(size.border_radius_big),
+			"border-top-right-radius": px(size.border_radius_larger),
 		},
 		".border-radius-bottom": {
 			"border-bottom-left-radius": px(size.border_radius),
@@ -1107,7 +1107,25 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.border_radius_small),
 		},
 		".border-radius-big": {
-			"border-radius": px(size.border_radius_big),
+			"border-radius": px(size.border_radius_larger),
+		},
+		".border-radius-m": {
+			"border-radius": px(size.border_radius_medium),
+		},
+		".settings-item": {
+			border: 0,
+			cursor: "pointer",
+			overflow: "hidden",
+			"white-space": "nowrap",
+			margin: 0,
+			"flex-shrink": 0,
+			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
+			"padding-bottom": px(size.icon_size_small),
+			"padding-top": px(size.icon_size_small),
+			"border-bottom": `1px solid ${theme.button_bubble_bg} !important`,
+		},
+		".settings-item:last-child": {
+			"border-bottom": "none !important",
 		},
 		".editor-border": {
 			border: `2px solid ${theme.content_border}`,
@@ -1178,6 +1196,14 @@ styles.registerStyle("main", () => {
 		".icon-large": {
 			height: px(size.icon_size_large),
 			width: px(size.icon_size_large),
+		},
+		".icon-medium-large": {
+			height: px(size.icon_size_medium_large),
+			width: px(size.icon_size_medium_large),
+		},
+		".icon-medium-large > svg": {
+			height: px(size.icon_size_medium_large),
+			width: px(size.icon_size_medium_large),
 		},
 		".icon-large > svg": {
 			height: px(size.icon_size_large),

@@ -22,3 +22,8 @@ export interface SettingsViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	logins: LoginController
 }
+
+export interface CalendarSettingsViewAttrs extends TopLevelAttrs {
+	header: AppHeaderAttrs
+	logins: LoginController
+}

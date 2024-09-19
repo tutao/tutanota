@@ -27,7 +27,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
-				size: attrs.size === ButtonSize.Large ? IconSize.Large : IconSize.Medium,
+				size: attrs.size === ButtonSize.Large ? IconSize.XL : IconSize.Medium,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},
