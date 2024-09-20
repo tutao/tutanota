@@ -99,13 +99,13 @@ async function buildWebPart({ stage, host, version, domainConfigs, app }) {
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
-
+	const builtWorkerFile = isCalendarBuild ? "calendar-worker.js" : "mail-worker.js"
 	await runStep("Web: Assets", async () => {
 		await prepareAssets(stage, host, version, domainConfigs, buildDir)
 		await fs.promises.writeFile(
 			`${buildDir}/worker-bootstrap.js`,
 			`importScripts("./polyfill.js")
-importScripts("./worker.js")
+importScripts("./${builtWorkerFile}")
 `,
 		)
 	})
