@@ -20,6 +20,7 @@ import { styles } from "../styles.js"
 import { IconButton } from "../base/IconButton.js"
 import { showSettingsDialog } from "../../../calendar-app/calendar/settings/SettingsPopup.js"
 import { locator } from "../../api/main/CommonLocator.js"
+import { client } from "../../misc/ClientDetector.js"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -122,7 +123,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(IconButton, {
 							icon: BootIcons.Settings,
 							title: "settings_label",
-							click: () => (styles.isTablet() ? showSettingsDialog(locator.logins) : m.route.set(SETTINGS_PREFIX)),
+							click: () => (client.isCalendarApp() && styles.isTablet() ? showSettingsDialog(locator.logins) : m.route.set(SETTINGS_PREFIX)),
 							colors: ButtonColor.DrawerNav,
 					  })
 					: null,

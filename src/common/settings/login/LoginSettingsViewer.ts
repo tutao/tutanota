@@ -34,6 +34,7 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
+
 assertMainOrNode()
 
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
@@ -148,39 +149,37 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		// Might be not there when we are logging out
 		if (locator.logins.isUserLoggedIn()) {
 			const user = locator.logins.getUserController()
-			return m("", [
-				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
-					m(".h4.mt-l", lang.get("loginCredentials_label")),
-					m(TextField, mailAddressAttrs),
-					m(TextField, passwordAttrs),
-					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
-					this.renderAppLockField(),
-					m(this._secondFactorsForm),
-					m(".h4.mt-l", lang.get("activeSessions_label")),
-					this._renderActiveSessions(),
-					m(".small", lang.get("sessionsInfo_msg")),
-					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get("closedSessions_label")),
-						m(ExpanderButton, {
-							label: "show_action",
-							expanded: this._closedSessionsExpanded(),
-							onExpandedChange: this._closedSessionsExpanded,
-							showWarning: false,
-						}),
-					]),
-					m(
-						ExpanderPanel,
-						{
-							expanded: this._closedSessionsExpanded(),
-						},
-						this._renderClosedSessions(),
-					),
-					m(".small", lang.get("sessionsWillBeDeleted_msg")),
-					m(".small", lang.get("sessionsInfo_msg")),
-					this._usageTestModel.isCustomerOptedOut()
-						? null
-						: m("", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
+			return m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
+				m(".h4.mt-l", lang.get("loginCredentials_label")),
+				m(TextField, mailAddressAttrs),
+				m(TextField, passwordAttrs),
+				user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
+				this.renderAppLockField(),
+				m(this._secondFactorsForm),
+				m(".h4.mt-l", lang.get("activeSessions_label")),
+				this._renderActiveSessions(),
+				m(".small", lang.get("sessionsInfo_msg")),
+				m(".flex-space-between.items-center.mt-l.mb-s", [
+					m(".h4", lang.get("closedSessions_label")),
+					m(ExpanderButton, {
+						label: "show_action",
+						expanded: this._closedSessionsExpanded(),
+						onExpandedChange: this._closedSessionsExpanded,
+						showWarning: false,
+					}),
 				]),
+				m(
+					ExpanderPanel,
+					{
+						expanded: this._closedSessionsExpanded(),
+					},
+					this._renderClosedSessions(),
+				),
+				m(".small", lang.get("sessionsWillBeDeleted_msg")),
+				m(".small", lang.get("sessionsInfo_msg")),
+				this._usageTestModel.isCustomerOptedOut()
+					? null
+					: m("", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
 			])
 		} else {
 			return null

@@ -144,7 +144,7 @@ class SettingsPopup implements Component<SettingsPopupAttrs> {
 	}
 
 	view(vnode: Vnode<SettingsPopupAttrs>) {
-		return this.getCurrentView(vnode.attrs.logins)
+		return m("#settings-popup", this.getCurrentView(vnode.attrs.logins))
 	}
 
 	private getCurrentView(logins: LoginController) {
@@ -229,7 +229,7 @@ class SettingsPopup implements Component<SettingsPopupAttrs> {
 			href: folder.url,
 			colors: NavButtonColor.Nav,
 			click: () => {
-				this.currentView = m(folder.viewerCreator())
+				this.currentView = m(".settings-popup-content", m(folder.viewerCreator()))
 				m.redraw()
 			},
 			persistentBackground: true,

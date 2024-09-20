@@ -1112,6 +1112,9 @@ styles.registerStyle("main", () => {
 		".border-radius-m": {
 			"border-radius": px(size.border_radius_medium),
 		},
+		".settings-popup-content > .fill-absolute": {
+			position: "relative",
+		},
 		".settings-item": {
 			border: 0,
 			cursor: "pointer",

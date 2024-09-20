@@ -30,7 +30,7 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 					  })
 					: null,
 				onclick: attrs.click,
-				class: `flex justify-start full-width gap-vpad pl-vpad-m pr-m items-center`,
+				class: `flex justify-start full-width gap-vpad pl-vpad-m pr-m items-center ${!attrs.href ? attrs.class : ""}`,
 			},
 			m(Icon, {
 				icon: Icons.ArrowForward,
