@@ -92,6 +92,9 @@ jobs:
       - name: build web app
         run: |
           node webapp --disable-minify
+      - name: build calendar web app
+        run: |
+          node webapp --disable-minify --app calendar
       - name: check for FIXMEs
         run: |
           if grep "FIXME\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
