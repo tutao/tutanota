@@ -779,8 +779,15 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	/**
 	 * Convert the type from CBOR representation to the runtime type
 	 */
-	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T> {
-		const deserialized = this.decodeCborEntity(loaded)
+	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T | null> {
+		let deserialized
+		try {
+			deserialized = this.decodeCborEntity(loaded)
+		} catch (e) {
+			console.log(e)
+			console.log(`Error with CBOR decode. Trying to decode (of type: ${typeof loaded}): ${loaded}`)
+			return null
+		}
 
 		const typeModel = await resolveTypeReference(typeRef)
 		return (await this.fixupTypeRefs(typeModel, deserialized)) as T
@@ -823,7 +830,10 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		// manually reimplementing promiseMap to make sure we don't hit the scheduler since there's nothing actually async happening
 		const result: Array<T> = []
 		for (const entity of loaded) {
-			result.push(await this.deserialize(typeRef, entity))
+			const deserialized = await this.deserialize(typeRef, entity)
+			if (deserialized != null) {
+				result.push(deserialized)
+			}
 		}
 		return result
 	}
