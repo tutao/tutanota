@@ -211,7 +211,6 @@ export default {
 		"calendarSubscriptions_label": "Abonnements",
 		"calendarView_action": "Zur Kalendar-Ansicht wechseln",
 		"calendar_label": "Kalender",
-		"calendarDefaultReminder_label": "Standarderinnerung vor dem Ereignis",
 		"callNumber_alt": "Diese Telefonnummer anrufen",
 		"cameraUsageDescription_msg": "Die Kamera wird verwendet, um Videos aufzunehmen und diese als Anhang zu versenden.",
 		"cancelContactForm_label": "Abbestellung von Kontaktformular",
@@ -1309,7 +1308,6 @@ export default {
 		"reallySubmitContent_msg": "Möchten Sie die eingegebenen Daten wirklich an eine externe Seite senden?",
 		"receiveCalendarNotifications_label": "Kalender-Terminerinnerungen anzeigen",
 		"received_action": "Posteingang",
-		"receiveCalendarNotifications_label": "Benachrichtigungen über Kalenderereignisse erhalten",
 		"receivingMailboxAlreadyUsed_msg": "Die empfangende Mailbox wird bereits für ein anderes Kontaktformular verwendet.",
 		"receivingMailbox_label": "Empfangende Mailbox",
 		"recipients_label": "Empfangsadressen",
@@ -1797,7 +1795,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"subscriptionSettings_label": "Abonnementeinstellungen"
+		"you_label": "Sie"
 	}
 }
