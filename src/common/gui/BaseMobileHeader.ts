@@ -23,7 +23,13 @@ export const BaseMobileHeader = pureComponent(({ left, center, right, injections
 		[
 			left ?? null,
 			// normally min-width: is 0 but inside flex it's auto and we need to teach it how to shrink
-			m(".flex-grow.flex.items-center.min-width-0", center ?? null),
+			m(
+				".flex-grow.flex.items-center.min-width-0",
+				{
+					class: !left ? "ml-hpad_small" : "",
+				},
+				center ?? null,
+			),
 			right ?? null,
 			injections ?? null,
 		],

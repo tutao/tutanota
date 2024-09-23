@@ -15,7 +15,7 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
-import { size } from "../../../common/gui/size.js"
+import { px, size } from "../../../common/gui/size.js"
 import { lang, TranslationText } from "../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
@@ -43,7 +43,6 @@ assertMainOrNode()
 export class CalendarSettingsView extends BaseTopLevelView implements TopLevelView<CalendarSettingsViewAttrs> {
 	viewSlider: ViewSlider
 	private readonly settingsFoldersColumn: ViewColumn
-	private readonly settingsDetailsColumn: ViewColumn
 	private readonly userFolders: SettingsFolder<unknown>[]
 	private readonly adminFolders: SettingsFolder<unknown>[]
 	private readonly subscriptionFolders: SettingsFolder<unknown>[]
@@ -93,8 +92,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.settingsFoldersColumn = this.renderSettingsMainColumn(vnode)
 		this.settingsColumn = this.renderSettingsColumn(vnode)
-		this.settingsDetailsColumn = this.renderDetailsColumn(vnode)
-		this.viewSlider = new ViewSlider([this.settingsFoldersColumn, this.settingsColumn, this.settingsDetailsColumn], false)
+		this.viewSlider = new ViewSlider([this.settingsFoldersColumn, this.settingsColumn], false)
 
 		this.customDomains = new LazyLoaded(async () => {
 			const domainInfos = await getAvailableDomains(this.logins, true)
@@ -107,35 +105,22 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.targetRoute = m.route.get()
 	}
 
-	private renderDetailsColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
-		return new ViewColumn(
-			{
-				view: () =>
-					m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
-						columnLayout: m(".mlr-safe-inset.fill-absolute.content-bg", this.detailsViewer ? this.detailsViewer.renderView() : m("")),
-						mobileHeader: () =>
-							m(MobileHeader, {
-								...vnode.attrs.header,
-								backAction: () => this.viewSlider.focusPreviousColumn(),
-								columnType: "other",
-								title: lang.getMaybeLazy(this.selectedFolder.name),
-								actions: [],
-								primaryAction: () => null,
-							}),
-						desktopToolbar: () => null,
-					}),
-			},
-			ColumnType.Background,
-			{
-				minWidth: 500,
-				maxWidth: 2400,
-				headerCenter: () => lang.get("settings_label"),
-			},
-		)
-	}
-
 	private renderSettingsColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
+		const mobileHeader = styles.isSingleColumnLayout()
+			? m(MobileHeader, {
+					...vnode.attrs.header,
+					backAction: () => {
+						this._setUrl(SETTINGS_PREFIX)
+						this.viewSlider.focusPreviousColumn()
+					},
+					columnType: "first",
+					title: lang.getMaybeLazy(this.selectedFolder.name),
+					actions: [],
+					useBackButton: true,
+					primaryAction: () => null,
+			  })
+			: null
+
 		return new ViewColumn(
 			{
 				// the CSS improves the situation on devices with notches (no control elements
@@ -143,33 +128,25 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.navigation_bg,
+						classes: styles.isSingleColumnLayout() ? "pr-m pl-vpad-m" : "pr-m pl-vpad-s",
 						columnLayout: m(
-							".mlr-safe-inset.fill-absolute.content-bg",
+							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-m.border-radius-top-right-m",
 							{
 								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
+								style: {
+									"margin-top": px(size.navbar_height_mobile + 8),
+								},
 							},
 							m(this._getCurrentViewer()!),
 						),
-						mobileHeader: () =>
-							m(MobileHeader, {
-								...vnode.attrs.header,
-								backAction: () => {
-									this._setUrl(SETTINGS_PREFIX)
-									this.viewSlider.focusPreviousColumn()
-								},
-								columnType: "first",
-								title: lang.getMaybeLazy(this.selectedFolder.name),
-								actions: [],
-								useBackButton: true,
-								primaryAction: () => null,
-							}),
+						mobileHeader: () => mobileHeader,
 						desktopToolbar: () => null,
 					}),
 			},
 			ColumnType.Background,
 			{
-				minWidth: 400,
-				maxWidth: 600,
+				minWidth: size.second_col_min_width,
+				maxWidth: size.third_col_max_width,
 				headerCenter: () => lang.getMaybeLazy(this.selectedFolder.name),
 			},
 		)
@@ -338,25 +315,31 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			return null
 		}
 
-		return m(".flex.col.pr-m.pl-vpad-m.pt-s.pb-s", [
-			m("span.uppercase.pb-s", lang.getMaybeLazy(title)),
-			m(
-				".flex.col.border-radius-m.list-bg",
-				folders
-					.filter((folder) => folder.isVisible())
-					.map((folder) => {
-						const buttonAttrs = this._createSettingsFolderNavButton(folder)
+		return m(
+			".flex.col.pl-vpad-m.pt-s.pb-s",
+			{
+				class: styles.isSingleColumnLayout() ? "pr-m" : "pr-vpad-s",
+			},
+			[
+				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.getMaybeLazy(title)),
+				m(
+					".flex.col.border-radius-m.list-bg",
+					folders
+						.filter((folder) => folder.isVisible())
+						.map((folder) => {
+							const buttonAttrs = this._createSettingsFolderNavButton(folder)
 
-						return m(SettingsNavButton, {
-							label: buttonAttrs.label,
-							click: buttonAttrs.click ?? (() => null),
-							icon: buttonAttrs.icon,
-							href: lazyStringValue(buttonAttrs.href),
-							class: "settings-item",
-						} satisfies SettingsNavButtonAttrs)
-					}),
-			),
-		])
+							return m(SettingsNavButton, {
+								label: buttonAttrs.label,
+								click: buttonAttrs.click ?? (() => null),
+								icon: buttonAttrs.icon,
+								href: lazyStringValue(buttonAttrs.href),
+								class: "settings-item",
+							} satisfies SettingsNavButtonAttrs)
+						}),
+				),
+			],
+		)
 	}
 
 	_getCurrentViewer(): UpdatableSettingsViewer | null {
@@ -502,9 +485,6 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	handleBackButton() {
 		if (m.route.get().endsWith(SETTINGS_PREFIX)) {
 			m.route.set(CALENDAR_PREFIX)
-		} else if (this.viewSlider.focusedColumn === this.settingsDetailsColumn) {
-			m.route.set(this.selectedFolder.url)
-			this.viewSlider.focus(this.settingsColumn)
 		} else {
 			m.route.set(SETTINGS_PREFIX)
 			this.viewSlider.focus(this.settingsFoldersColumn)

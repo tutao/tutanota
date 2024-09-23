@@ -1,9 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "./styles.js"
-import { client } from "../misc/ClientDetector.js"
-import { IconButton } from "./base/IconButton.js"
-import { Icons } from "./base/icons/Icons.js"
-import { isApp } from "../api/common/Env.js"
 
 export interface BackgroundColumnLayoutAttrs {
 	mobileHeader: () => Children
@@ -11,6 +7,7 @@ export interface BackgroundColumnLayoutAttrs {
 	columnLayout: Children
 	backgroundColor?: string
 	floatingActionButton?: () => Children
+	classes?: string
 }
 
 /**
@@ -25,6 +22,7 @@ export class BackgroundColumnLayout implements Component<BackgroundColumnLayoutA
 				style: {
 					backgroundColor: attrs.backgroundColor,
 				},
+				class: attrs.classes ?? "",
 			},
 			[
 				styles.isUsingBottomNavigation() ? attrs.mobileHeader() : attrs.desktopToolbar(),
