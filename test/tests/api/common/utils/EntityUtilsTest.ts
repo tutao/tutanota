@@ -38,7 +38,7 @@ o.spec("EntityUtils", function () {
 			const mailId: Id = "-----------0"
 
 			const expected = "V7ifKQAAAAAAAAAAAQ"
-			const receiveDate = new Date("2017-10-03 13:46:13 UTC")
+			const receiveDate = new Date("2017-10-03T13:46:13Z")
 
 			const calculatedId = constructMailSetEntryId(receiveDate, mailId)
 			o(expected).equals(calculatedId)
@@ -47,8 +47,8 @@ o.spec("EntityUtils", function () {
 		o("deconstructMailSetEntryId", function () {
 			const setEntryId = "V7ifKQAAAAAAAAAAAQ"
 			const { receiveDate, mailId } = deconstructMailSetEntryId(setEntryId)
-			const diff = Math.abs(receiveDate.getTime() - new Date("2017-10-03 13:46:12:864Z").getTime())
-			o(diff < 10).equals(true)(`Expected a date near ${new Date("2017-10-03 13:46:12:864Z")}, got: ${receiveDate}`)
+			const diff = Math.abs(receiveDate.getTime() - new Date("2017-10-03T13:46:12.864Z").getTime())
+			o(diff < 10).equals(true)(`Expected a date near ${new Date("2017-10-03T13:46:12.864Z")}, got: ${receiveDate} with diff ${diff}`)
 			o(mailId).equals("-----------0")
 		})
 	})
