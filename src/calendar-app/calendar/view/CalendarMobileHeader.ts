@@ -91,7 +91,10 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					})
 				},
 			})
+		} else if (styles.isUsingBottomNavigation() && styles.isDesktopLayout()) {
+			return null
 		}
+
 		return m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: () => attrs.viewSlider.focusPreviousColumn() })
 	}
 

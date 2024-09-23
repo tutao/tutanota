@@ -451,6 +451,9 @@ styles.registerStyle("main", () => {
 		".pl-vpad-m": {
 			"padding-left": px(size.vpad),
 		},
+		".pl-vpad-s": {
+			"padding-left": px(size.vpad_small),
+		},
 		".pl-vpad-l": {
 			"padding-left": px(size.vpad_large),
 		},
@@ -459,6 +462,9 @@ styles.registerStyle("main", () => {
 		},
 		".pr-s": {
 			"padding-right": px(size.hpad_small),
+		},
+		".pr-vpad-s": {
+			"padding-right": px(size.vpad_small),
 		},
 		".pr-m": {
 			"padding-right": px(size.vpad),
@@ -1111,6 +1117,12 @@ styles.registerStyle("main", () => {
 		},
 		".border-radius-m": {
 			"border-radius": px(size.border_radius_medium),
+		},
+		".border-radius-top-left-m": {
+			"border-top-left-radius": px(size.border_radius_medium),
+		},
+		".border-radius-top-right-m": {
+			"border-top-right-radius": px(size.border_radius_medium),
 		},
 		".settings-item": {
 			border: 0,
