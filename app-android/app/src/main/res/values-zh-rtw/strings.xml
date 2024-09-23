@@ -3,7 +3,7 @@
     <string name="pushNewMail_msg">收到新電郵。</string>
     <string name="notificationSync_msg">同步通知</string>
     <string name="scheduleAlarmError_msg">無法設定提醒。請更新應用程式。</string>
-    <string name="wantToSendReport_msg">程式無預警出錯。您想發送錯誤報告嗎？您可以附加訊息來幫助我們修正此錯誤。</string>
+    <string name="wantToSendReport_msg">發生未預期的問題。您想發送錯誤報告嗎？您可以附加訊息來幫助我們修正此錯誤。</string>
     <string name="downloadCompleted_msg">下載完成</string>
     <string name="unlockCredentials_action">解鎖登入資料</string>
 </resources>
