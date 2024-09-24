@@ -37,6 +37,7 @@ import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
 import { SettingsNavButton, SettingsNavButtonAttrs } from "../../gui/SettingsNavButton.js"
+import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils.js"
 
 assertMainOrNode()
 
@@ -105,22 +106,11 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.targetRoute = m.route.get()
 	}
 
-	private renderSettingsColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
-		const mobileHeader = styles.isSingleColumnLayout()
-			? m(MobileHeader, {
-					...vnode.attrs.header,
-					backAction: () => {
-						this._setUrl(SETTINGS_PREFIX)
-						this.viewSlider.focusPreviousColumn()
-					},
-					columnType: "first",
-					title: lang.getMaybeLazy(this.selectedFolder.name),
-					actions: [],
-					useBackButton: true,
-					primaryAction: () => null,
-			  })
-			: null
+	private isTabletView() {
+		return (styles.isSingleColumnLayout() && this.viewSlider && this.viewSlider.allColumnsVisible()) || !styles.isSingleColumnLayout()
+	}
 
+	private renderSettingsColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
 		return new ViewColumn(
 			{
 				// the CSS improves the situation on devices with notches (no control elements
@@ -128,18 +118,34 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.navigation_bg,
-						classes: styles.isSingleColumnLayout() ? "pr-m pl-vpad-m" : "pr-m pl-vpad-s",
+						classes: this.isTabletView() ? "pr-m pl-vpad-s" : "",
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-m.border-radius-top-right-m",
 							{
-								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
-								style: {
-									"margin-top": px(size.navbar_height_mobile + 8),
-								},
+								class: this.isTabletView() ? "border-radius-top-left-big" : "",
+								style: this.isTabletView()
+									? {
+											"margin-top": px(size.navbar_height_mobile + size.vpad_small),
+									  }
+									: {},
 							},
 							m(this._getCurrentViewer()!),
 						),
-						mobileHeader: () => mobileHeader,
+						mobileHeader: () =>
+							!this.isTabletView()
+								? m(MobileHeader, {
+										...vnode.attrs.header,
+										backAction: () => {
+											this._setUrl(SETTINGS_PREFIX)
+											this.viewSlider.focusPreviousColumn()
+										},
+										columnType: "first",
+										title: lang.getMaybeLazy(this.selectedFolder.name),
+										actions: [],
+										useBackButton: true,
+										primaryAction: () => null,
+								  })
+								: null,
 						desktopToolbar: () => null,
 					}),
 			},
@@ -437,49 +443,58 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	_aboutThisSoftwareLink(): Children {
 		const label = lang.get("about_label")
 		const versionLabel = `Tuta v${env.versionNumber}`
-		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
-			m(
-				"button.text-center.small.no-text-decoration",
-				{
-					style: {
-						backgroundColor: "transparent",
-					},
-					href: "#",
-					"aria-label": label,
-					"aria-description": versionLabel,
-					"aria-haspopup": "dialog",
-					onclick: () => {
-						setTimeout(() => {
-							const dialog = Dialog.showActionDialog({
-								title: () => lang.get("about_label"),
-								child: () =>
-									m(AboutDialog, {
-										onShowSetupWizard: () => {
-											dialog.close()
-											calendarLocator.showSetupWizard()
-										},
-									}),
-								allowOkWithReturn: true,
-								okAction: (dialog: Dialog) => dialog.close(),
-								allowCancel: false,
-							})
-						}, 200)
-					},
+		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
+		return m(
+			".pb.pt-l.flex-no-shrink.flex.col.justify-end",
+			{
+				style: {
+					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.vpad),
 				},
-				[
-					m("", versionLabel),
-					m(
-						".b",
-						{
-							style: {
-								color: theme.navigation_button_selected,
-							},
+			},
+			[
+				m(
+					"button.text-center.small.no-text-decoration",
+					{
+						style: {
+							backgroundColor: "transparent",
 						},
-						label,
-					),
-				],
-			),
-		])
+						href: "#",
+						"aria-label": label,
+						"aria-description": versionLabel,
+						"aria-haspopup": "dialog",
+						onclick: () => {
+							setTimeout(() => {
+								const dialog = Dialog.showActionDialog({
+									title: () => lang.get("about_label"),
+									child: () =>
+										m(AboutDialog, {
+											onShowSetupWizard: () => {
+												dialog.close()
+												calendarLocator.showSetupWizard()
+											},
+										}),
+									allowOkWithReturn: true,
+									okAction: (dialog: Dialog) => dialog.close(),
+									allowCancel: false,
+								})
+							}, 200)
+						},
+					},
+					[
+						m("", versionLabel),
+						m(
+							".b",
+							{
+								style: {
+									color: theme.navigation_button_selected,
+								},
+							},
+							label,
+						),
+					],
+				),
+			],
+		)
 	}
 
 	handleBackButton() {
