@@ -47,7 +47,6 @@ async function run({ platform }) {
 		await bumpAndroidVersion("app-android/calendar/build.gradle.kts")
 		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/app/build.gradle")
 		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
-		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/tutashared/build.gradle.kts")
 	}
 
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)

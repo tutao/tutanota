@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-usagetests",
-	"version": "246.240924.1",
+	"version": "246.240924.2",
 	"license": "GLP-3.0",
 	"description": "",
 	"main": "./dist/index.js",
@@ -26,6 +26,6 @@
 	"devDependencies": {
 		"@types/node-forge": "1.0.0",
 		"typescript": "5.3.3",
-		"@tutao/otest": "246.240924.1"
+		"@tutao/otest": "246.240924.2"
 	}
 }
