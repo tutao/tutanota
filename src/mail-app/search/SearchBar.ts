@@ -200,7 +200,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	oncreate() {
-		this.onFocus()
+		if (isApp()) {
+			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
+			this.onFocus()
+		}
 		keyManager.registerShortcuts(this.shortcuts)
 		this.indexStateStream = mailLocator.search.indexState.map((indexState) => {
 			// When we finished indexing, search again forcibly to not confuse anyone with old results
