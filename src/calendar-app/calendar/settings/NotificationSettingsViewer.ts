@@ -3,7 +3,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { isApp, isDesktop } from "../../../common/api/common/Env.js"
+import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
@@ -13,6 +13,7 @@ import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { AppType } from "../../../common/misc/ClientConstants.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -27,9 +28,17 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.loadPushIdentifiers()
 	}
 
-	private disableIdentifier(identifier: PushIdentifier) {
+	private togglePushIdentifier(identifier: PushIdentifier) {
 		identifier.disabled = !identifier.disabled
-		calendarLocator.entityClient.update(identifier).then(m.redraw)
+		locator.entityClient.update(identifier).then(() => m.redraw)
+
+		if (!isBrowser() && identifier.identifier === this.currentIdentifier) {
+			if (identifier.disabled) {
+				locator.pushService.invalidateAlarmsForUser(this.user._id)
+			} else {
+				locator.pushService.reRegister()
+			}
+		}
 	}
 
 	view(): Children {
@@ -46,7 +55,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 						calendarLocator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
 					},
 					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
-					disableClicked: () => this.disableIdentifier(identifier),
+					disableClicked: () => this.togglePushIdentifier(identifier),
 				})
 			})
 			.sort((l, r) => +r.attrs.current - +l.attrs.current)
