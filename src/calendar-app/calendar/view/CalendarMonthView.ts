@@ -107,50 +107,62 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 
-		let containerStyle
+		const isDesktopLayout = styles.isDesktopLayout()
 
-		if (styles.isDesktopLayout()) {
+		let containerStyle
+		let weekdayDaysClasses = ""
+		if (isDesktopLayout) {
 			containerStyle = {
-				marginLeft: "5px",
 				overflow: "hidden",
 				marginBottom: px(size.hpad_large),
 			}
+			weekdayDaysClasses = "content-bg border-radius-top-left-big border-radius-top-right-big"
 		} else {
 			containerStyle = {
 				paddingBottom: isIOSApp() && client.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
 			}
+			weekdayDaysClasses = "nav-bg"
 		}
 
 		return m(
 			".fill-absolute.flex.col",
 			{
-				style: containerStyle,
-				class:
-					(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
-					(styles.isDesktopLayout() ? " mlr-l border-radius-big" : " mlr-safe-inset border-radius-top-left-big border-radius-top-right-big"),
+				class: isDesktopLayout ? " mlr-l border-radius-big" : "mlr-safe-inset",
+				style: isDesktopLayout ? { marginLeft: px(5) } : null,
 				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
 			},
 			[
 				m(
-					".flex.mb-s.pt-s",
+					".flex.pt-s.pb-m",
+					{
+						class: weekdayDaysClasses,
+					},
 					thisMonth.weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
 				),
-
-				m(PageView, {
-					previousPage: {
-						key: getFirstDayOfMonth(lastMonthDate).getTime(),
-						nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
+				m(
+					".flex.col.rel.flex-grow.overflow-hidden",
+					{
+						class:
+							(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
+							(!isDesktopLayout ? " border-radius-top-left-big border-radius-top-right-big" : ""),
+						style: containerStyle,
 					},
-					currentPage: {
-						key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
-						nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
-					},
-					nextPage: {
-						key: getFirstDayOfMonth(nextMonthDate).getTime(),
-						nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
-					},
-					onChangePage: (next) => attrs.onChangeMonth(next),
-				}),
+					m(PageView, {
+						previousPage: {
+							key: getFirstDayOfMonth(lastMonthDate).getTime(),
+							nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
+						},
+						currentPage: {
+							key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
+							nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
+						},
+						nextPage: {
+							key: getFirstDayOfMonth(nextMonthDate).getTime(),
+							nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
+						},
+						onChangePage: (next) => attrs.onChangeMonth(next),
+					}),
+				),
 			],
 		)
 	}
