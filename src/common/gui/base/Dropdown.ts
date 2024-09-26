@@ -135,7 +135,7 @@ export class Dropdown implements ModalComponent {
 		const inputField = () => {
 			return this.isFilterable
 				? m(
-						"input.input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
+						"input.input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height",
 						{
 							placeholder: lang.get("typeToFilter_label"),
 							oncreate: (vnode) => {
@@ -149,9 +149,7 @@ export class Dropdown implements ModalComponent {
 								paddingLeft: px(size.hpad_large * 2),
 								paddingRight: px(size.hpad_small),
 								width: px(this.width - size.hpad_large),
-								top: 0,
 								height: px(size.button_height),
-								left: 0,
 							},
 						},
 						this.filterString,
@@ -162,8 +160,9 @@ export class Dropdown implements ModalComponent {
 		const contents = () => {
 			const showingIcons = this.children.some((c) => "icon" in c && typeof c.icon !== "undefined")
 			return m(
-				".dropdown-content.scroll.abs",
+				".dropdown-content.scroll",
 				{
+					class: this.isFilterable ? "abs" : "",
 					role: AriaRole.Menu,
 					tabindex: TabIndex.Programmatic,
 					oncreate: (vnode) => {
@@ -198,9 +197,6 @@ export class Dropdown implements ModalComponent {
 						ev.redraw = this.domContents != null && target.scrollTop < 0 && target.scrollTop + this.domContents.offsetHeight > target.scrollHeight
 					},
 					style: {
-						// Fixed width for the content of this dropdown is needed to avoid that the elements in the dropdown move during
-						// animation.
-						width: px(this.width),
 						top: px(this.getFilterHeight()),
 						bottom: 0,
 					},
@@ -217,7 +213,7 @@ export class Dropdown implements ModalComponent {
 
 		this.view = (): Children => {
 			return m(
-				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow",
+				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow.fit-content",
 				{
 					oncreate: (vnode) => {
 						this.domDropdown = vnode.dom as HTMLElement
@@ -488,7 +484,12 @@ export function attachDropdown({
 	return Object.assign({}, mainButtonAttrs, {
 		click: (e: MouseEvent, dom: HTMLElement) => {
 			if (showDropdown()) {
-				const dropDownFn = createAsyncDropdown({ lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width, onClose })
+				const dropDownFn = createAsyncDropdown({
+					lazyButtons: () => Promise.resolve(childAttrs()),
+					overrideOrigin,
+					width,
+					onClose,
+				})
 				dropDownFn(e, dom)
 				e.stopPropagation()
 			}
@@ -542,42 +543,48 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 		maxHeight = Math.min(contentHeight, upperSpace)
 	}
 
-	let width = contentWidth
+	transformOrigin += leftSpace < rightSpace ? " left" : " right"
+	const dropdownMaxWidth = window.innerWidth - DROPDOWN_MARGIN * 2
+	const dropdownWidth = Math.max(contentWidth, domDropdown.getBoundingClientRect().width)
+	let width = dropdownWidth
+	let leftStyle: number | null = null
+	let rightStyle: number | null = null
 
-	if (leftSpace < rightSpace) {
+	if (width >= dropdownMaxWidth) {
+		// If the dropdown is wider than the viewport, it takes the entire width (- margins) and text is cut off
+		domDropdown.classList.remove("fit-content")
+		leftStyle = DROPDOWN_MARGIN
+		width = dropdownMaxWidth
+	} else if (leftSpace < rightSpace) {
 		// element is in the left part of the screen, dropdown should extend to the right from the element
-		transformOrigin += " left"
 		const availableSpaceForDropdown = window.innerWidth - leftEdgeOfElement
 		let leftEdgeOfDropdown = leftEdgeOfElement
 
-		if (availableSpaceForDropdown < contentWidth) {
-			// If the dropdown does not fit, we shift it by the required amount. If it still does not fit, we reduce the width.
-			const shiftForDropdown = contentWidth - availableSpaceForDropdown + DROPDOWN_MARGIN
+		if (availableSpaceForDropdown < dropdownWidth) {
+			// If the dropdown does not fit, we shift it by the required amount
+			const shiftForDropdown = leftEdgeOfDropdown + dropdownWidth - window.innerWidth + DROPDOWN_MARGIN
 			leftEdgeOfDropdown = leftEdgeOfElement - shiftForDropdown
-			width = Math.min(width, window.innerWidth - DROPDOWN_MARGIN * 2)
 		}
 
-		domDropdown.style.left = px(Math.max(DROPDOWN_MARGIN, leftEdgeOfDropdown))
-		domDropdown.style.right = ""
+		leftStyle = Math.max(DROPDOWN_MARGIN, leftEdgeOfDropdown)
 	} else {
 		// element is in the right part of the screen, dropdown should extend to the left from the element
-		transformOrigin += " right"
 		const availableSpaceForDropdown = origin.right
 		let rightEdgeOfDropdown = rightEdgeOfElement
 
-		if (availableSpaceForDropdown < contentWidth) {
+		if (availableSpaceForDropdown < dropdownWidth) {
 			// If the dropdown does not fit, we shift it by the required amount. If it still does not fit, we reduce the width.
-			const shiftForDropdown = contentWidth - availableSpaceForDropdown + DROPDOWN_MARGIN
+			const shiftForDropdown = dropdownWidth - rightEdgeOfDropdown + DROPDOWN_MARGIN
 			rightEdgeOfDropdown = rightEdgeOfElement + shiftForDropdown
-			width = Math.min(width, window.innerWidth - DROPDOWN_MARGIN * 2)
 		}
 
-		domDropdown.style.left = ""
 		// position right is defined from the right edge of the screen
 		// and not like the viewport origin which starts at top/left
-		domDropdown.style.right = px(Math.max(DROPDOWN_MARGIN, window.innerWidth - rightEdgeOfDropdown))
+		rightStyle = Math.min(DROPDOWN_MARGIN, rightEdgeOfDropdown)
 	}
 
+	domDropdown.style.left = leftStyle != null ? px(leftStyle) : ""
+	domDropdown.style.right = rightStyle != null ? px(rightStyle) : ""
 	domDropdown.style.width = px(width)
 	domDropdown.style.height = px(maxHeight)
 	domDropdown.style.transformOrigin = transformOrigin
