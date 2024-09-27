@@ -10,10 +10,8 @@ import {
 } from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
-import { WorkerImpl } from "./WorkerImpl.js"
 import { isAdminClient, isTest } from "../common/Env.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
-import type { Indexer } from "./search/Indexer.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { AccountType, OperationType } from "../common/TutanotaConstants.js"
@@ -23,20 +21,21 @@ import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
+import type { QueuedBatch } from "./EventQueue.js"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
 	constructor(
-		private readonly worker: WorkerImpl,
 		private readonly connectivityListener: WebsocketConnectivityListener,
 		private readonly mailFacade: lazyAsync<MailFacade>,
-		private readonly indexer: lazyAsync<Indexer>,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
 		private readonly configurationDatabase: lazyAsync<ConfigurationDatabase>,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
+		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly appSpecificBatchHandling: (queuedBatch: QueuedBatch[]) => void,
 	) {}
 
 	onWebsocketStateChanged(state: WsConnectionState) {
@@ -53,9 +52,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 			const queuedBatch = { groupId, batchId, events }
 			const configurationDatabase = await this.configurationDatabase()
 			await configurationDatabase.onEntityEventsReceived(queuedBatch)
-			const indexer = await this.indexer()
-			indexer.addBatchesToQueue([queuedBatch])
-			indexer.startProcessing()
+			this.appSpecificBatchHandling([queuedBatch])
 		}
 	}
 
@@ -67,7 +64,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	}
 
 	onError(tutanotaError: Error) {
-		this.worker.sendError(tutanotaError)
+		this.sendError(tutanotaError)
 	}
 
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus) {

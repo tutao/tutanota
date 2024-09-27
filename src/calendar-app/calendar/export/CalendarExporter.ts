@@ -9,8 +9,8 @@ import { createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../../common/api/common/DataFile"
 import type { DateWrapper, RepeatRule, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { DateTime } from "luxon"
-import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController"
 import { getLetId } from "../../../common/api/common/utils/EntityUtils"
+import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController.js"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
 export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {

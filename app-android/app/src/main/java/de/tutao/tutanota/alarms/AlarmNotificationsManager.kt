@@ -2,9 +2,19 @@ package de.tutao.tutanota.alarms
 
 import android.util.Log
 import de.tutao.tutanota.*
-import de.tutao.tutanota.ipc.EncryptedAlarmNotification
 import de.tutao.tutanota.push.LocalNotificationsFacade
-import de.tutao.tutanota.push.SseStorage
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.OperationType
+import de.tutao.tutashared.alarms.AlarmInterval
+import de.tutao.tutashared.alarms.AlarmModel
+import de.tutao.tutashared.alarms.AlarmNotification
+import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.decrypt
+import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.base64ToBytes
+import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
 import java.util.*
@@ -103,6 +113,20 @@ class AlarmNotificationsManager(
 	private fun schedule(alarmNotification: AlarmNotification) {
 		try {
 			val identifier = alarmNotification.alarmInfo.alarmIdentifier
+
+			val pushIdentifier = this.sseStorage.getPushIdentifier()
+			val canReceiveCalendarNotifications =
+				this.sseStorage.getReceiveCalendarNotificationConfig(pushIdentifier ?: "")
+
+			// We don't need to check from which device type the identifier comes from, only Mobile Mail App is allowed to set this ReceiveCalendarNotificationConfig
+			if (!canReceiveCalendarNotifications) {
+				Log.d(
+					TAG,
+					"Skipping alarm scheduling - alarmIdentifier: $identifier"
+				)
+				return
+			}
+
 			if (alarmNotification.repeatRule == null) {
 				val alarmTime = AlarmModel.calculateAlarmTime(
 					alarmNotification.eventStart,
@@ -114,6 +138,7 @@ class AlarmNotificationsManager(
 					occurrenceIsTooFar(alarmTime) -> {
 						Log.d(TAG, "Alarm $identifier is too far in the future, skipping")
 					}
+
 					alarmTime.after(now) -> {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
 							alarmTime,
@@ -124,6 +149,7 @@ class AlarmNotificationsManager(
 							alarmNotification.user
 						)
 					}
+
 					else -> {
 						Log.d(TAG, "Alarm $identifier is before $now, skipping")
 					}
@@ -159,7 +185,7 @@ class AlarmNotificationsManager(
 		alarmNotification: EncryptedAlarmNotification,
 		pushKeyResolver: PushKeyResolver,
 	) {
-	
+
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
 		val savedAlarmNotification = sseStorage.readAlarmNotifications().find {
 			it.alarmInfo.identifier == alarmNotification.alarmInfo.identifier

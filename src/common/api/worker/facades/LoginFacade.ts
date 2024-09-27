@@ -54,7 +54,6 @@ import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
-import type { WorkerImpl } from "../WorkerImpl"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
 import { EntityClient } from "../../common/EntityClient"
@@ -179,7 +178,6 @@ export class LoginFacade {
 	asyncLoginState: AsyncLoginState = { state: "idle" }
 
 	constructor(
-		readonly worker: WorkerImpl,
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
 		private readonly loginListener: LoginListener,
@@ -199,6 +197,7 @@ export class LoginFacade {
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly argon2idFacade: Argon2idFacade,
 		private readonly noncachingEntityClient: EntityClient,
+		private readonly sendError: (error: Error) => Promise<void>,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -417,7 +416,6 @@ export class LoginFacade {
 			throw new Error("user already logged in")
 		}
 
-		console.log("login external worker")
 		const userPassphraseKey = await this.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
@@ -629,7 +627,7 @@ export class LoginFacade {
 				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
 				this.asyncLoginState = { state: "failed", credentials, cacheInfo }
-				if (!(e instanceof ConnectionError)) await this.worker.sendError(e)
+				if (!(e instanceof ConnectionError)) await this.sendError(e)
 				await this.loginListener.onLoginFailure(LoginFailReason.Error)
 			}
 		}

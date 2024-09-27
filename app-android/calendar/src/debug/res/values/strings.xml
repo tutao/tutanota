@@ -1,0 +1,10 @@
+<resources>
+	<string name="app_name">Tuta Calendar-D</string>
+	<string name="reminder_label">Reminder</string>
+	<string name="pushNewMail_msg">New email received.</string>
+	<string name="notificationSync_msg">Synchronizing notifications</string>
+	<string name="scheduleAlarmError_msg">Could not set up an alarm. Please update the application.</string>
+	<string name="wantToSendReport_msg">Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.</string>
+	<string name="downloadCompleted_msg">Download completed</string>
+	<string name="unlockCredentials_action">Unlock credentials</string>
+</resources>

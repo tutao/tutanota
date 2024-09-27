@@ -3,23 +3,27 @@ package de.tutao.calendar.push
 import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.AndroidNativeCryptoFacade
-import de.tutao.calendar.LifecycleJobService
-import de.tutao.calendar.NetworkUtils
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
-import de.tutao.calendar.atLeastOreo
-import de.tutao.calendar.atLeastTiramisu
-import de.tutao.calendar.createAndroidKeyStoreFacade
-import de.tutao.calendar.credentials.CredentialsEncryptionFactory
-import de.tutao.calendar.data.AppDatabase
-import de.tutao.calendar.data.SseInfo
-import de.tutao.calendar.ipc.NativeCredentialsFacade
 import de.tutao.calendar.push.SseClient.SseListener
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.LifecycleJobService
+import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.atLeastQuinceTart
+import de.tutao.tutashared.atLeastTiramisu
+import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.offline.AndroidSqlCipherFacade
+import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -71,11 +75,11 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onCreate() {
 		super.onCreate()
+
 		Log.d(TAG, "onCreate")
 		state = State.CREATED
 
 		finishJobThread.start()
-
 
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
 		val crypto = AndroidNativeCryptoFacade(this)
@@ -84,54 +88,55 @@ class PushNotificationService : LifecycleJobService() {
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage,
-				crypto,
-				SystemAlarmFacade(this),
-				localNotificationsFacade
+			sseStorage,
+			crypto,
+			SystemAlarmFacade(this),
+			localNotificationsFacade
 		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(
-				crypto,
+			crypto,
+			sseStorage,
+			NetworkObserver(this, this),
+			NotificationSseListener(
+				localNotificationsFacade,
 				sseStorage,
-				NetworkObserver(this, this),
-				NotificationSseListener(
-						localNotificationsFacade,
-						sseStorage,
-						nativeCredentialsFacade,
-						alarmNotificationsManager,
-						NetworkUtils.defaultClient
-				),
+				nativeCredentialsFacade,
+				alarmNotificationsManager,
 				NetworkUtils.defaultClient
+			),
+			NetworkUtils.defaultClient
 		)
-		sseStorage.observeUsers().observeForever { userInfos ->
-			Log.d(TAG, "sse storage updated " + userInfos.size)
-			// Closing the connection sends RST packets over network and it triggers StrictMode
-			// violations so we dispatch it to another thread.
-			lifecycleScope.launch(Dispatchers.IO) {
-				val userIds = userInfos.mapTo(HashSet()) { it.userId }
+		lifecycleScope.launch {
+			sseStorage.observeUsers().collect { userInfos ->
+				Log.d(TAG, "sse storage updated " + userInfos.size)
+				// Closing the connection sends RST packets over network and it triggers StrictMode
+				// violations so we dispatch it to another thread.
+					withContext(Dispatchers.IO) {
+					val userIds = userInfos.mapTo(HashSet()) { it.userId }
 
-				if (userIds.isEmpty()) {
-					sseClient.stopConnection()
-					removeForegroundNotification()
-					finishJobIfNeeded()
-				} else {
-					sseClient.restartConnectionIfNeeded(
-							SseInfo(
+						if (userIds.isEmpty()) {
+							sseClient.stopConnection()
+							removeForegroundNotification()
+							finishJobIfNeeded()
+						} else {
+							sseClient.restartConnectionIfNeeded(
+								SseInfo(
 									sseStorage.getPushIdentifier()!!,
 									userIds,
 									sseStorage.getSseOrigin()!!
+								)
 							)
-					)
+						}
+					}
 				}
 			}
-		}
 
-		if (atLeastOreo()) {
 			localNotificationsFacade.createNotificationChannels()
 		}
-	}
 
 
+	@Suppress("DEPRECATION")
 	private fun removeForegroundNotification() {
 		Log.d(TAG, "removeForegroundNotification")
 		if (atLeastTiramisu()) {
@@ -158,10 +163,14 @@ class PushNotificationService : LifecycleJobService() {
 		// We don't even want to try `startForeground` if we are launched from a context where it isn't allowed so we
 		// pass it as a parameter.
 		// see https://developer.android.com/guide/components/foreground-services#background-start-restrictions
-		if (atLeastOreo() && this.state == State.STARTED && attemptForeground) {
+		if (atLeastQuinceTart() && this.state == State.STARTED && attemptForeground) {
 			Log.d(TAG, "Starting foreground")
 			try {
-				startForeground(1, localNotificationsFacade.makeConnectionNotification())
+				startForeground(
+					1,
+					localNotificationsFacade.makeConnectionNotification(),
+					ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+				)
 			} catch (e: IllegalStateException) {
 				// probably ForegroundServiceStartNotAllowedException
 				Log.w(TAG, "Could not start the service in foreground", e)
@@ -221,22 +230,23 @@ class PushNotificationService : LifecycleJobService() {
 	}
 
 	private inner class NotificationSseListener(
-			notificationsFacade: LocalNotificationsFacade,
-			sseStorage: SseStorage,
-			nativeCredentialsFacade: NativeCredentialsFacade,
-			alarmNotificationsManager: AlarmNotificationsManager,
-			defaultClient: OkHttpClient
+		notificationsFacade: LocalNotificationsFacade,
+		sseStorage: SseStorage,
+		nativeCredentialsFacade: NativeCredentialsFacade,
+		alarmNotificationsManager: AlarmNotificationsManager,
+		defaultClient: OkHttpClient
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
-				TutanotaNotificationsHandler(
-						notificationsFacade,
-						sseStorage,
-						nativeCredentialsFacade,
-						alarmNotificationsManager,
-						defaultClient,
-						lifecycleScope
-				)
+			TutanotaNotificationsHandler(
+				notificationsFacade,
+				sseStorage,
+				nativeCredentialsFacade,
+				alarmNotificationsManager,
+				defaultClient,
+				lifecycleScope,
+				{ AndroidSqlCipherFacade(this@PushNotificationService) }
+			)
 
 		override fun onStartingConnection(): Boolean {
 			Log.d(TAG, "onStartingConnection")

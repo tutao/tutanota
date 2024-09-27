@@ -12,7 +12,7 @@ import {
 	MailTypeRef,
 } from "../../src/common/api/entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
-import { initLocator, locator } from "../../src/common/api/worker/WorkerLocator.js"
+import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
 import { SessionType } from "../../src/common/api/common/SessionType.js"
 

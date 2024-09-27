@@ -11,14 +11,22 @@ assertMainOrNode()
 
 export type AllIcons = BootIcons | Icons
 
+export enum IconSize {
+	Normal,
+	Medium,
+	Large,
+	XL,
+}
+
 export type IconAttrs = {
 	icon: AllIcons
 	svgParameters?: Record<string, string>
 	class?: string
-	large?: boolean
+	size?: IconSize
 	style?: Record<string, any>
 	hoverText?: string | null
 	container?: "span" | "div" // defaults to "span"
+	title?: string // if you want to use native tooltip
 }
 
 export type lazyIcon = lazy<AllIcons>
@@ -45,6 +53,7 @@ export class Icon implements Component<IconAttrs> {
 		return m(
 			containerClasses,
 			{
+				title: vnode.attrs.title ?? "",
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
 				style: this.getStyle(vnode.attrs.style ?? null),
@@ -111,9 +120,21 @@ export class Icon implements Component<IconAttrs> {
 
 	getClass(attrs: IconAttrs): string {
 		let cls = ""
-		if (attrs.large) {
-			cls += "icon-large "
+		switch (attrs.size) {
+			case IconSize.Medium:
+				cls += "icon-large "
+				break
+			case IconSize.Large:
+				cls += "icon-medium-large "
+				break
+			case IconSize.XL:
+				cls += "icon-xl "
+				break
+			case IconSize.Normal:
+			default:
+				break
 		}
+
 		if (attrs.class) {
 			cls += attrs.class
 		}

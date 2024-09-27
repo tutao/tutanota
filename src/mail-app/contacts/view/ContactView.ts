@@ -59,7 +59,7 @@ import { ContactViewerActions } from "./ContactViewerActions.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { exportAsVCard, importAsVCard } from "./ImportAsVCard.js"
 import { MobileHeader } from "../../../common/gui/MobileHeader.js"
-import { LazySearchBar } from "../../../common/misc/LazySearchBar.js"
+import { LazySearchBar } from "../../LazySearchBar.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../common/gui/base/List.js"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton.js"
@@ -930,7 +930,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 }
 
 export function writeMail(to: PartialRecipient, subject: string = ""): Promise<unknown> {
-	return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+	return locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
 		return newMailEditorFromTemplate(
 			mailboxDetails,
 			{

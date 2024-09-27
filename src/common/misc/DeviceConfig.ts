@@ -7,8 +7,11 @@ import { assertMainOrNodeBoot, isApp } from "../api/common/Env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
-import { CalendarViewType } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
+import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
+import { SyncStatus } from "../calendar/import/ImportExportUtils.js"
+import Stream from "mithril/stream"
+import stream from "mithril/stream"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -18,6 +21,8 @@ export enum ListAutoSelectBehavior {
 	OLDER,
 	NEWER,
 }
+
+export type LastExternalCalendarSyncEntry = { lastSuccessfulSync: number | undefined | null; lastSyncStatus: SyncStatus }
 
 /**
  * Definition of the config object that will be saved to local storage
@@ -54,6 +59,7 @@ interface ConfigObject {
 	isSetupComplete: boolean
 	// True if the credentials have been migrated to native
 	isCredentialsMigratedToNative: boolean
+	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
 }
 
 /**
@@ -64,6 +70,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	public static LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
+	private lastSyncStream: Stream<Map<Id, LastExternalCalendarSyncEntry>> = stream(new Map())
 
 	constructor(private readonly _version: number, private readonly localStorage: Storage | null) {
 		this.init()
@@ -112,7 +119,10 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
+			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 		}
+
+		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
 		// We do not save the config if there was no config. The config is stored when some value changes.
@@ -201,6 +211,32 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	setIsCredentialsMigratedToNative(value: boolean): void {
 		this.config.isCredentialsMigratedToNative = value
 		this.writeToStorage()
+	}
+
+	getLastExternalCalendarSync(): Map<Id, LastExternalCalendarSyncEntry> {
+		return this.lastSyncStream()
+	}
+
+	setLastExternalCalendarSync(value: Map<Id, LastExternalCalendarSyncEntry>): void {
+		this.config.lastExternalCalendarSync = Object.fromEntries(value)
+		this.writeToStorage()
+		this.lastSyncStream(value)
+	}
+
+	updateLastSync(groupId: Id, lastSyncStatus: SyncStatus = SyncStatus.Success) {
+		const lastExternalCalendarSync = this.getLastExternalCalendarSync()
+		const lastSuccessfulSync = lastSyncStatus === SyncStatus.Success ? Date.now() : lastExternalCalendarSync.get(groupId)?.lastSuccessfulSync
+		lastExternalCalendarSync.set(groupId, { lastSuccessfulSync, lastSyncStatus })
+		this.setLastExternalCalendarSync(lastExternalCalendarSync)
+	}
+
+	getLastSyncStream() {
+		return this.lastSyncStream
+	}
+
+	removeLastSync(groupId: Id) {
+		const lastExternalCalendarSync = this.getLastExternalCalendarSync()
+		if (lastExternalCalendarSync.delete(groupId)) this.setLastExternalCalendarSync(lastExternalCalendarSync)
 	}
 
 	getLanguage(): LanguageCode | null {

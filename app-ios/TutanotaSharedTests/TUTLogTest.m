@@ -1,6 +1,6 @@
 #import <XCTest/XCTest.h>
 #import "../TutanotaSharedFramework/Utils/TUTLog.h"
-#import "../tutanota/Sources/Utils/Swiftier.h"
+#import "../TutanotaSharedFramework/Utils/Swiftier.h"
 
 @interface TUTLogTest : XCTestCase
 

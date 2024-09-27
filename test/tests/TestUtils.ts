@@ -1,6 +1,6 @@
 import type { BrowserData } from "../../src/common/misc/ClientConstants.js"
 import type { Db } from "../../src/common/api/worker/search/SearchTypes.js"
-import { IndexerCore } from "../../src/common/api/worker/search/IndexerCore.js"
+import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { EventQueue } from "../../src/common/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
 import { assertNotNull, deepEqual, defer, Thunk, TypeRef } from "@tutao/tutanota-utils"

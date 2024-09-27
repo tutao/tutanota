@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../LanguageViewModel"
 import { lang } from "../LanguageViewModel"
-import { Icon, progressIcon } from "../../gui/base/Icon"
+import { Icon, IconSize, progressIcon } from "../../gui/base/Icon"
 import { Icons, SecondFactorImage } from "../../gui/base/icons/Icons"
 import { theme } from "../../gui/theme"
 import type { Thunk } from "@tutao/tutanota-utils"
@@ -103,7 +103,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 								".mr-s",
 								m(Icon, {
 									icon: Icons.Cancel,
-									large: true,
+									size: IconSize.Medium,
 									style: {
 										fill: theme.content_accent,
 									},

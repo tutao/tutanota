@@ -6,6 +6,8 @@ export interface BackgroundColumnLayoutAttrs {
 	desktopToolbar: () => Children
 	columnLayout: Children
 	backgroundColor?: string
+	floatingActionButton?: () => Children
+	classes?: string
 }
 
 /**
@@ -20,8 +22,13 @@ export class BackgroundColumnLayout implements Component<BackgroundColumnLayoutA
 				style: {
 					backgroundColor: attrs.backgroundColor,
 				},
+				class: attrs.classes ?? "",
 			},
-			[styles.isUsingBottomNavigation() ? attrs.mobileHeader() : attrs.desktopToolbar(), m(".flex-grow.rel", attrs.columnLayout)],
+			[
+				styles.isUsingBottomNavigation() ? attrs.mobileHeader() : attrs.desktopToolbar(),
+				m(".flex-grow.rel", attrs.columnLayout),
+				attrs.floatingActionButton?.(),
+			],
 		)
 	}
 }

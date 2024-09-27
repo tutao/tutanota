@@ -2,7 +2,8 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { createDropdown } from "../../../common/gui/base/Dropdown.js"
 import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton.js"
-import { MailFilterType } from "../../../common/mailFunctionality/SharedMailUtils.js"
+
+import { MailFilterType } from "./MailViewerUtils.js"
 
 export interface MailFilterButtonAttrs {
 	filter: MailFilterType | null

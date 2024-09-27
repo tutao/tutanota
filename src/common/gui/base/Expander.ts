@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import { Icon } from "./Icon"
+import { Icon, IconSize } from "./Icon"
 import { Icons } from "./icons/Icons"
 import { BootIcons } from "./icons/BootIcons"
 import { theme } from "../theme"
@@ -70,7 +70,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 					m(Icon, {
 						icon: BootIcons.Expand,
 						class: "flex-center items-center",
-						large: a.isBig,
+						size: a.isBig ? IconSize.Medium : IconSize.Normal,
 						style: {
 							fill: a.color ? a.color : theme.content_button,
 							"margin-right": px(-4),

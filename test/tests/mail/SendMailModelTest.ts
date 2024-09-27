@@ -11,6 +11,7 @@ import {
 	ConversationEntryTypeRef,
 	createContact,
 	CustomerAccountCreateDataTypeRef,
+	Mail,
 	MailAddressTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxPropertiesTypeRef,
@@ -42,13 +43,13 @@ import { func, instance, matchers, object, replace, when } from "testdouble"
 import { RecipientsModel, ResolveMode } from "../../../src/common/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { NoZoneDateProvider } from "../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
-import { MailboxDetail, MailModel } from "../../../src/common/mailFunctionality/MailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
+import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
 
 const { anything, argThat } = matchers
 
@@ -95,7 +96,7 @@ o.spec("SendMailModel", function () {
 		lang.init(en)
 	})
 
-	let mailModel: MailModel, entity: EntityClient, mailFacade: MailFacade, recipientsModel: RecipientsModel
+	let mailboxModel: MailboxModel, entity: EntityClient, mailFacade: MailFacade, recipientsModel: RecipientsModel
 
 	let model: SendMailModel
 
@@ -109,7 +110,7 @@ o.spec("SendMailModel", function () {
 		).thenDo(() => ({ contacts: testIdGenerator.newId() }))
 		when(entity.load(anything(), anything(), anything())).thenDo((typeRef, id, params) => ({ _type: typeRef, _id: id }))
 
-		mailModel = instance(MailModel)
+		mailboxModel = instance(MailboxModel)
 
 		const contactModel = object<ContactModel>()
 		when(contactModel.getContactListId()).thenResolve("contactListId")
@@ -180,13 +181,16 @@ o.spec("SendMailModel", function () {
 			mailFacade,
 			entity,
 			loginController,
-			mailModel,
+			mailboxModel,
 			contactModel,
 			eventController,
 			mailboxDetails,
 			recipientsModel,
 			new NoZoneDateProvider(),
 			mailboxProperties,
+			async (mail: Mail) => {
+				return false
+			},
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)

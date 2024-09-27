@@ -1,0 +1,188 @@
+#  XCodeGen configuration file
+name: calendar # Also known as tutanooota (while testing xcodegen)
+options:
+  useBaseInternationalization: true
+  schemePathPrefix: "../" # Recommended for workspace based projects by XCodeGen devs
+settings:
+  base:
+    PRODUCT_NAME: "calendar"
+    DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
+    ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
+    bundleIdPrefix: "de.tutao.calendar"
+# Include MUST come after settings because it depends on bundleIdPrefix
+include:
+  - path: "../xcodegen_common.yml"
+  - path: "./common.yml"
+targets:
+  calendar:
+    templates: [ "formatAndLint" ]
+    type: "application"
+    sources:
+      - path: "calendar"
+        excludes:
+          [
+            "calendar-web",
+            "Sources/sdktest.swift",
+          ]
+        compilerFlags: [ ]
+      # XCode will not resolve symbolic links when adding a folder reference, so we will just use a relative path
+      - path: "../build-calendar-app"
+        name: "build-calendar-app"
+        type: "folder"
+        buildPhase: "resources"
+      - path: "Plans.storekit"
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: "calendar"
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
+        LD_RUNPATH_SEARCH_PATHS: "@executable_path/Frameworks"
+        INFOPLIST_FILE: "calendar/Info.plist"
+        SWIFT_OBJC_BRIDGING_HEADER: "calendar/Sources/calendar-Bridging-Header.h"
+        HEADER_SEARCH_PATHS: [ ]
+        CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
+        GCC_PREPROCESSOR_DEFINITIONS:
+          [ "SQLITE_HAS_CODEC=1", "$(inherited)" ]
+        OTHER_CFLAGS[arch=*]:
+          [
+            "-DSQLITE_HAS_CODEC",
+            "-DSQLITE_TEMP_STORE=3",
+            "-DSQLCIPHER_CRYPTO_CC",
+            "-DNDEBUG",
+          ]
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      configs:
+        Debug Development:
+          PRODUCT_NAME: "Tuta CD"
+        Debug Staging:
+          PRODUCT_NAME: "Tuta C Test"
+        Debug Production:
+          PRODUCT_NAME: "Tuta Calendar"
+        Release Development:
+          PRODUCT_NAME: "Tuta CD"
+        Release Staging:
+          PRODUCT_NAME: "Tuta Calendar Test"
+          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.calendar.test"
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.calendar.test 1724842804"
+        Release Production:
+          PRODUCT_NAME: "Tuta Calendar"
+      groups:
+        - "codeSigning"
+    dependencies:
+      - package: Atomics
+      - sdk: CryptoTokenKit.framework
+        embed: false
+      - package: DictionaryCoding
+      - sdk: Foundation.framework
+        embed: false
+      - sdk: Security.framework
+        embed: false
+      - target: TutanotaNotificationExtension
+        codeSign: false
+      - target: TutanotaSharedFramework
+      - target: TutanotaShareExtension
+        codeSign: false
+      - framework: tutasdk.framework
+        embed: false
+      - framework: StoreKit.framework
+        embed: false
+  tutanotaTests:
+    templates: [ "formatAndLint" ]
+    type: "bundle.unit-test"
+    sources:
+      - path: "tutanotaTests"
+        excludes: [ "CompatibilityTest.m" ]
+      - path: "tutanotaTests"
+        includes: [ "CompatibilityTest.m" ]
+    settings:
+      ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
+      CODE_SIGN_STYLE: "Automatic"
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"
+      BUNDLE_LOADER: "$(TEST_HOST)"
+      INFOPLIST_FILE: "tutanotaTests/Info.plist"
+      PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanotaTests"
+      PRODUCT_NAME: "$(TARGET_NAME)"
+      HEADER_SEARCH_PATHS: [ ]
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
+      SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
+      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      CLANG_CXX_LANGUAGE_STANDARD: "gnu++14"
+    dependencies:
+      - target: "calendar"
+      - target: "TutanotaSharedFramework"
+  TutanotaSharedTests:
+    type: "bundle.unit-test"
+    platform: "iOS"
+    sources:
+      - path: "TutanotaSharedTests"
+      - path: "MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift"
+        optional: true # The file will be generated in the "Generate Mockingbird Mocks" stage
+    settings:
+      GCC_NO_COMMON_BLOCKS: "YES"
+      CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
+      ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
+      IPHONEOS_DEPLOYMENT_TARGET: "15.5"
+      LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
+      SWIFT_EMIT_LOC_STRINGS: "YES"
+      GENERATE_INFOPLIST_FILE: "YES"
+      PRODUCT_NAME: "$(TARGET_NAME)"
+      CODE_SIGN_STYLE: "Automatic"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
+      CURRENT_PROJECT_VERSION: "1"
+      MARKETING_VERSION: "1.0"
+    dependencies:
+      - target: "calendar"
+      - target: "TutanotaSharedFramework"
+        embed: false
+      - package: "Mockingbird"
+      - framework: tutasdk.framework
+        embed: false
+    preBuildScripts:
+      - path: "buildScripts/generate-mockingbird.sh"
+        name: "Generate Mockingbird Mocks"
+        shell: "/bin/sh"
+        showEnvVars: true
+        basedOnDependencyAnalysis: false
+        outputFiles:
+          [
+            "$(SRCROOT)/MockingbirdMocks/TutanotaSharedTests-TutanotaSharedFrameworkMocks.generated.swift",
+          ]
+schemes:
+  calendar debug:
+    build:
+      targets:
+        calendar: [ "analyze", "test", "run", "profile" ]
+        tutanotaTests: [ "test" ]
+    run:
+      config: "Debug Development"
+      storeKitConfiguration: "Plans.storekit"
+    test:
+      config: "Debug Development"
+      targets: [ "tutanotaTests" ]
+    archive:
+      config: "Release Development"
+  calendar staging:
+    build:
+      targets:
+        calendar: "all"
+        tutanotaTests: [ "test" ]
+    run:
+      config: "Debug Staging"
+    test:
+      config: "Debug Staging"
+      targets: [ "tutanotaTests" ]
+    archive:
+      config: "Release Staging"
+  calendar prod:
+    build:
+      targets:
+        calendar: "all"
+        tutanotaTests: [ "test" ]
+    run:
+      config: "Debug Production"
+    test:
+      config: "Debug Production"
+      targets: [ "tutanotaTests" ]
+    archive:
+      config: "Release Production"

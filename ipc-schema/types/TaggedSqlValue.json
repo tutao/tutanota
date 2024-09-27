@@ -3,6 +3,6 @@
 	"type": "typeref",
 	"location": {
 		"typescript": "../src/common/api/worker/offline/SqlValue.js",
-		"kotlin": "de.tutao.tutanota.offline.TaggedSqlValue"
+		"kotlin": "de.tutao.tutashared.offline.TaggedSqlValue"
 	}
 }

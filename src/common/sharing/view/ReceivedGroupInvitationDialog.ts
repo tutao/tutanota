@@ -1,23 +1,25 @@
 import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs.js"
 import m, { Children } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel.js"
 import { TextField } from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { downcast } from "@tutao/tutanota-utils"
-import { Dialog } from "../../gui/base/Dialog"
-import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId } from "../../api/common/utils/EntityUtils"
-import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils"
-import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils"
-import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
-import type { GroupSharingTexts } from "../GroupGuiUtils"
-import { getTextsForGroupType } from "../GroupGuiUtils"
-import { GroupType } from "../../api/common/TutanotaConstants"
-import { ColorPicker } from "../../gui/base/ColorPicker"
-import { locator } from "../../api/main/CommonLocator"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { createDefaultAlarmInfo, ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
+import { isSameId } from "../../api/common/utils/EntityUtils.js"
+import { sendAcceptNotificationEmail, sendRejectNotificationEmail } from "../GroupSharingUtils.js"
+import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTemplateGroup } from "../GroupUtils.js"
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
+import type { GroupSharingTexts } from "../GroupGuiUtils.js"
+import { getTextsForGroupType } from "../GroupGuiUtils.js"
+import { GroupType } from "../../api/common/TutanotaConstants.js"
+import { ColorPicker } from "../../gui/base/ColorPicker.js"
+import { locator } from "../../api/main/CommonLocator.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
+import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -28,6 +30,8 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const colorStream = stream("#" + color)
 	const isDefaultGroupName = invitation.sharedGroupName === getDefaultGroupName(downcast(invitation.groupType))
 	const nameStream = stream(isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation) : invitation.sharedGroupName)
+	const alarmsStream: stream<AlarmInterval[]> = stream([])
+
 	const isMember = locator.logins
 		.getUserController()
 		.getCalendarMemberships()
@@ -51,7 +55,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							group: invitation.sharedGroup,
 							color: newColor,
 							name: newName,
-							defaultAlarmsList: [],
+							defaultAlarmsList: alarmsStream().map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) })),
 							sourceUrl: null,
 						})
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
@@ -90,7 +94,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							label: "permissions_label",
 							isReadOnly: true,
 						}),
-						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream) : null,
+						groupType === GroupType.Calendar ? renderCalendarGroupInvitationFields(invitation, colorStream, alarmsStream) : null,
 					]),
 					isMember
 						? null
@@ -118,7 +122,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
  * @param invitation
  */
 async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<boolean> {
-	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs")
+	const SubscriptionDialogUtils = await import("../../misc/SubscriptionDialogs.js")
 	const allowed = await SubscriptionDialogUtils.checkPaidSubscription()
 	if (!allowed) {
 		return false
@@ -133,7 +137,12 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	}
 }
 
-function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation, selectedColourValue: Stream<string>): Children {
+function renderCalendarGroupInvitationFields(
+	invitation: ReceivedGroupInvitation,
+	selectedColourValue: Stream<string>,
+	alarmsStream: Stream<AlarmInterval[]>,
+): Children {
+	let alarms = alarmsStream()
 	return [
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPicker, {

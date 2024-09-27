@@ -1,4 +1,4 @@
-import type { MailboxDetail } from "../../mailFunctionality/MailModel.js"
+import type { MailboxDetail } from "../../mailFunctionality/MailboxModel.js"
 import type { LoginController } from "../../api/main/LoginController"
 import { assertMainOrNode } from "../../api/common/Env"
 import { PartialRecipient } from "../../api/common/recipients/Recipient"

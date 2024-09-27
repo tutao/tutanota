@@ -13,7 +13,6 @@ import {
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { AccountType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
-
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
@@ -21,6 +20,7 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -50,15 +50,15 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		cacheManagementFacade = object()
 		eventBusEventCoordinator = new EventBusEventCoordinator(
 			object(),
-			object(),
 			lazyMailFacade,
-			object(),
 			userFacade,
 			entityClient,
 			eventController,
 			object(),
 			keyRotationFacadeMock,
 			async () => cacheManagementFacade,
+			async (error: Error) => {},
+			(queuedBatch: QueuedBatch[]) => {},
 		)
 	})
 

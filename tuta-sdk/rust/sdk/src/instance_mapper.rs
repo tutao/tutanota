@@ -4,7 +4,7 @@ use std::fmt::Display;
 use serde::de::{
 	DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, Unexpected, VariantAccess, Visitor,
 };
-use serde::ser::{Impossible, SerializeMap, SerializeSeq, SerializeStruct};
+use serde::ser::{Error, Impossible, SerializeMap, SerializeSeq, SerializeStruct};
 use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
@@ -653,23 +653,29 @@ impl Serializer for ElementValueSerializer {
 		T: ?Sized + Serialize,
 	{
 		match name {
-			"GeneratedId" => {
+			crate::generated_id::GENERATED_ID_STRUCT_NAME => {
 				let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
-					unreachable!();
+					unreachable!("should've serialized GeneratedId as a string");
 				};
 				Ok(ElementValue::IdGeneratedId(GeneratedId(id_string)))
 			},
-			"CustomId" => {
+			crate::custom_id::CUSTOM_ID_STRUCT_NAME => {
 				let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
-					unreachable!();
+					unreachable!("should've serialized CustomId as a string");
 				};
 				Ok(ElementValue::IdCustomId(CustomId(id_string)))
 			},
-			"Date" => {
+			crate::date::DATETIME_STRUCT_NAME => {
 				let Ok(ElementValue::Number(timestamp)) = value.serialize(self) else {
-					unreachable!();
+					unreachable!("should've serialized DateTime as a number");
 				};
-				Ok(ElementValue::Date(DateTime::from_millis(timestamp as u64)))
+				// converting signed to unsigned can have strange results if negative
+				let Ok(timestamp) = u64::try_from(timestamp) else {
+					return Err(Self::Error::custom(format_args!(
+						"timestamp {timestamp} was negative"
+					)));
+				};
+				Ok(ElementValue::Date(DateTime::from_millis(timestamp)))
 			},
 			other => unsupported(other),
 		}

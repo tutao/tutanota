@@ -5,6 +5,7 @@ import {
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
+	GroupSettings,
 	Mail,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
@@ -25,6 +26,7 @@ import { ProgrammingError } from "../../../../common/api/common/error/Programmin
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
+import { hasSourceUrl } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
@@ -124,9 +126,14 @@ export class CalendarEventWhoModel {
 	}
 
 	set selectedCalendar(v: CalendarInfo) {
-		if (v.shared && this._attendees.size > 0) {
+		/**
+		 * when changing the calendar of an event, if the user is the organiser
+		 * they can link any of their owned calendars(private or shared) to said event
+		 * even if the event has guests
+		 **/
+		if (!v.userIsOwner && v.shared && this._attendees.size > 0) {
 			throw new ProgrammingError("tried to select shared calendar while there are guests.")
-		} else if (v.shared && this.isNew && this._organizer != null) {
+		} else if (!v.userIsOwner && v.shared && this.isNew && this._organizer != null) {
 			// for new events, it's possible to have an organizer but no attendees if you only add yourself.
 			this._organizer = null
 		}
@@ -154,7 +161,11 @@ export class CalendarEventWhoModel {
 	 *                                         unable to send updates.
 	 */
 	get canModifyGuests(): boolean {
-		return !(this.selectedCalendar?.shared || this.eventType === EventType.INVITE || this.operation === CalendarOperation.EditThis)
+		/**
+		 * if the user is the event's organiser and the owner of its linked calendar, the user can modify the guests freely
+		 **/
+		const userIsOwner = this.eventType === EventType.OWN && this.selectedCalendar.userIsOwner
+		return userIsOwner || !(this.selectedCalendar?.shared || this.eventType === EventType.INVITE || this.operation === CalendarOperation.EditThis)
 	}
 
 	/**
@@ -162,13 +173,21 @@ export class CalendarEventWhoModel {
 	 * Prevent moving the event to another calendar if you only have read permission or if the event has attendees.
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
-		const calendarArray = Array.from(this.calendars.values())
+		const { groupSettings } = this.userController.userSettingsGroupRoot
+		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !this.isExternalCalendar(groupSettings, cal.group._id))
 
 		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {
 			return [this.selectedCalendar]
 		} else if (this.isNew && this._attendees.size > 0) {
 			// if we added guests, we cannot select a shared calendar to create the event.
-			return calendarArray.filter((calendarInfo) => !calendarInfo.shared)
+			/**
+			 * when changing the calendar of an event, if the user is the organiser
+			 * they can link any of their owned calendars(private or shared) to said event
+			 * even if the event has guests
+			 **/
+			return calendarArray.filter((calendarInfo) => calendarInfo.userIsOwner || !calendarInfo.shared)
+		} else if (this._attendees.size > 0 && this.eventType === EventType.OWN) {
+			return calendarArray.filter((calendarInfo) => calendarInfo.userIsOwner)
 		} else if (this._attendees.size > 0 || this.eventType === EventType.INVITE) {
 			// We don't allow inviting in a shared calendar.
 			// If we have attendees, we cannot select a shared calendar.
@@ -177,6 +196,11 @@ export class CalendarEventWhoModel {
 		} else {
 			return calendarArray.filter((calendarInfo) => hasCapabilityOnGroup(this.userController.user, calendarInfo.group, ShareCapability.Write))
 		}
+	}
+
+	private isExternalCalendar(groupSettings: GroupSettings[], groupId: Id) {
+		const existingGroupSettings = groupSettings.find((gc) => gc.group === groupId)
+		return hasSourceUrl(existingGroupSettings)
 	}
 
 	private async resolveAndCacheAddress(a: PartialRecipient): Promise<void> {

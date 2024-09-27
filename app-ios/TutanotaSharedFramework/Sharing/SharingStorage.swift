@@ -3,6 +3,7 @@ import RegexBuilder
 import UIKit
 
 public let TUTANOTA_SHARE_SCHEME = "tutashare"
+public let CALENDAR_SHARE_SCHEME = "tutacalshare"
 
 /// this gets shared to the main app and contains all the info
 /// to create a new mail & the cleanup
@@ -151,7 +152,6 @@ public func writeSharingInfo(info: SharingInfo, infoLocation: String) throws {
 public func readSharingInfo(infoLocation: String) -> SharingInfo? {
 	guard let defaults = try? getSharedDefaults() else { return nil }
 	defer { defaults.removeObject(forKey: infoLocation) }
-
 	guard let data: Data = defaults.value(forKey: infoLocation) as! Data? else {
 		TUTSLog("there are no sharingInfos to be found at \(infoLocation)")
 		return nil

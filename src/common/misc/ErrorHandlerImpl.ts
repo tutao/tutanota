@@ -26,14 +26,12 @@ import { showSnackBar } from "../gui/base/SnackBar"
 import { Credentials, credentialsToUnencrypted } from "./credentials/Credentials"
 import { showErrorDialogNotLoggedIn, showErrorNotification } from "./ErrorReporter"
 import { CancelledError } from "../api/common/error/CancelledError"
-import { getLoginErrorMessage } from "./LoginUtils"
 
 import { SessionType } from "../api/common/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
-import { SearchModel } from "../../mail-app/search/model/SearchModel.js"
 
 assertMainOrNode()
 
@@ -124,7 +122,8 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
 		console.log("Indexing not supported", e)
-		if (search instanceof SearchModel) {
+		if ("indexingSupported" in search) {
+			// search can be in two flavours: "SearchModel" and "CalendarSearchModel. Only "SearchModel" has indexing
 			search.indexingSupported = false
 		}
 	} else if (e instanceof QuotaExceededError) {

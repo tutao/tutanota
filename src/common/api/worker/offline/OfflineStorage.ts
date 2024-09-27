@@ -1,16 +1,5 @@
 import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import {
-	constructMailSetEntryId,
-	CUSTOM_MIN_ID,
-	DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP,
-	elementIdPart,
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
-	getElementId,
-	listIdPart,
-	timestampToGeneratedId,
-} from "../../common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -21,9 +10,7 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64UrlToBase64,
-	DAY_IN_MILLIS,
 	getTypeId,
-	groupByAndMap,
 	groupByAndMapUniquely,
 	mapNullable,
 	splitInChunks,
@@ -31,31 +18,18 @@ import {
 } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
-import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
-import {
-	CalendarEventTypeRef,
-	FileTypeRef,
-	MailBoxTypeRef,
-	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
-	MailFolderTypeRef,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
-import { UserTypeRef } from "../../entities/sys/TypeRefs.js"
+import { CalendarEventTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../rest/CustomCacheHandler.js"
 import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
-import { FolderSystem } from "../../common/mail/FolderSystem.js"
 import { AssociationType, Cardinality, Type as TypeId, ValueType } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { isDraft, isSpamOrTrashFolder } from "../../common/CommonMailUtils.js"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -136,6 +110,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher,
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
+		private readonly cleaner: OfflineStorageCleaner,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
@@ -429,7 +404,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		return items.map((item) => this.decodeCborEntity(item.entity.value as Uint8Array) as Record<string, unknown> & ElementEntity)
 	}
 
-	private async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity from element_entities WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
 		return await this.deserializeList(
@@ -535,50 +510,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	 * @param userId id of the current user. default, last stored userId
 	 */
 	async clearExcludedData(timeRangeDays: number | null = this.timeRangeDays, userId: Id = this.getUserId()): Promise<void> {
-		const user = await this.get(UserTypeRef, null, userId)
-
-		// Free users always have default time range regardless of what is stored
-		const isFreeUser = user?.accountType === AccountType.FREE
-		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
-		const now = this.dateProvider.now()
-		const daysSinceDayAfterEpoch = now / DAY_IN_MILLIS - 1
-		const timeRangeMillisSafe = Math.min(daysSinceDayAfterEpoch, timeRange) * DAY_IN_MILLIS
-		// from May 15th 2109 onward, exceeding daysSinceDayAfterEpoch in the time range setting will
-		// lead to an overflow in our 42 bit timestamp in the id.
-		const cutoffTimestamp = now - timeRangeMillisSafe
-
-		const mailBoxes = await this.getElementsOfType(MailBoxTypeRef)
-		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
-		for (const mailBox of mailBoxes) {
-			const isMailsetMigrated = mailBox.currentMailBag != null
-			const folders = await this.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
-			if (isMailsetMigrated) {
-				// deleting mailsetentries first to make sure that once we start deleting mail
-				// we don't have any entries that reference that mail
-				const folderSystem = new FolderSystem(folders)
-				for (const mailSet of folders) {
-					if (isSpamOrTrashFolder(folderSystem, mailSet)) {
-						await this.deleteMailSetEntries(mailSet.entries, DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP)
-					} else {
-						await this.deleteMailSetEntries(mailSet.entries, cutoffTimestamp)
-					}
-				}
-
-				const mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
-				for (const mailListId of mailListIds) {
-					await this.deleteMailListLegacy(mailListId, cutoffId)
-				}
-			} else {
-				const folderSystem = new FolderSystem(folders)
-				for (const folder of folders) {
-					if (isSpamOrTrashFolder(folderSystem, folder)) {
-						await this.deleteMailListLegacy(folder.mails, GENERATED_MAX_ID)
-					} else {
-						await this.deleteMailListLegacy(folder.mails, cutoffId)
-					}
-				}
-			}
-		}
+		await this.cleaner.cleanOfflineDb(this, timeRangeDays, userId, this.dateProvider.now())
 	}
 
 	private async createTables() {
@@ -587,107 +519,15 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		}
 	}
 
-	private async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
+	async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
 		const type = getTypeId(typeRef)
-
 		const { query, params } = sql`SELECT upper, lower FROM ranges WHERE type = ${type} AND listId = ${listId}`
 		const row = (await this.sqlCipherFacade.get(query, params)) ?? null
 
 		return mapNullable(row, untagSqlObject) as Range | null
 	}
 
-	/**
-	 * This method deletes mails from {@param listId} what are older than {@param cutoffId} as well as associated data.
-	 *
-	 * it's considered legacy because once we start importing mail into mail bags, maintaining mail list ranges doesn't make
-	 * sense anymore - mail order in a list is arbitrary at that point.
-	 *
-	 * For each mail we delete the mail, its body, headers, all references mail set entries and all referenced attachments.
-	 *
-	 * When we delete the Files, we also delete the whole range for the user's File list. We need to delete the whole
-	 * range because we only have one file list per mailbox, so if we delete something from the middle of it, the range
-	 * will no longer be valid. (this is future proofing, because as of now there is not going to be a Range set for the
-	 * File list anyway, since we currently do not do range requests for Files.
-	 *
-	 * 	We do not delete ConversationEntries because:
-	 * 	1. They are in the same list for the whole conversation so we can't adjust the range
-	 * 	2. We might need them in the future for showing the whole thread
-	 */
-	private async deleteMailListLegacy(listId: Id, cutoffId: Id): Promise<void> {
-		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
-		await this.lockRangesDbAccess(listId)
-		try {
-			// This must be done before deleting mails to know what the new range has to be
-			await this.updateRangeForListAndDeleteObsoleteData(MailTypeRef, listId, cutoffId)
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await this.unlockRangesDbAccess(listId)
-		}
-
-		const mailsToDelete: IdTuple[] = []
-		const attachmentsToDelete: IdTuple[] = []
-		const mailDetailsBlobToDelete: IdTuple[] = []
-		const mailDetailsDraftToDelete: IdTuple[] = []
-
-		const mails = await this.getWholeList(MailTypeRef, listId)
-		for (let mail of mails) {
-			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
-				mailsToDelete.push(mail._id)
-				for (const id of mail.attachments) {
-					attachmentsToDelete.push(id)
-				}
-
-				if (isDraft(mail)) {
-					const mailDetailsId = assertNotNull(mail.mailDetailsDraft)
-					mailDetailsDraftToDelete.push(mailDetailsId)
-				} else {
-					// mailDetailsBlob
-					const mailDetailsId = assertNotNull(mail.mailDetails)
-					mailDetailsBlobToDelete.push(mailDetailsId)
-				}
-			}
-		}
-		for (let [listId, elementIds] of groupByAndMap(mailDetailsBlobToDelete, listIdPart, elementIdPart).entries()) {
-			await this.deleteIn(MailDetailsBlobTypeRef, listId, elementIds)
-		}
-		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
-			await this.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
-		}
-		for (let [listId, elementIds] of groupByAndMap(attachmentsToDelete, listIdPart, elementIdPart).entries()) {
-			await this.deleteIn(FileTypeRef, listId, elementIds)
-			await this.deleteRange(FileTypeRef, listId)
-		}
-
-		await this.deleteIn(MailTypeRef, listId, mailsToDelete.map(elementIdPart))
-	}
-
-	/**
-	 * delete all mail set entries of a mail set that reference some mail with a receivedDate older than
-	 * cutoffTimestamp. this doesn't clean up mails or their associated data because we could be breaking the
-	 * offline list range invariant by deleting data from the middle of a mail range. cleaning up mails is done
-	 * the legacy way currently even for mailset users.
-	 */
-	private async deleteMailSetEntries(entriesListId: Id, cutoffTimestamp: number) {
-		const cutoffId = constructMailSetEntryId(new Date(cutoffTimestamp), GENERATED_MAX_ID)
-		await this.lockRangesDbAccess(entriesListId)
-		try {
-			await this.updateRangeForListAndDeleteObsoleteData(MailSetEntryTypeRef, entriesListId, cutoffId)
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await this.unlockRangesDbAccess(entriesListId)
-		}
-
-		const mailSetEntriesToDelete: IdTuple[] = []
-		const mailSetEntries = await this.getWholeList(MailSetEntryTypeRef, entriesListId)
-		for (let mailSetEntry of mailSetEntries) {
-			if (firstBiggerThanSecond(cutoffId, getElementId(mailSetEntry))) {
-				mailSetEntriesToDelete.push(mailSetEntry._id)
-			}
-		}
-		await this.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
-	}
-
-	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
+	async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
 		if (elementIds.length === 0) return
 		const typeModel = await resolveTypeReference(typeRef)
 		switch (typeModel.type) {
@@ -731,7 +571,7 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		await this.sqlCipherFacade.unlockRangesDbAccess(listId)
 	}
 
-	private async updateRangeForListAndDeleteObsoleteData<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
+	async updateRangeForListAndDeleteObsoleteData<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await resolveTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		const convertedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
@@ -779,8 +619,15 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 	/**
 	 * Convert the type from CBOR representation to the runtime type
 	 */
-	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T> {
-		const deserialized = this.decodeCborEntity(loaded)
+	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T | null> {
+		let deserialized
+		try {
+			deserialized = this.decodeCborEntity(loaded)
+		} catch (e) {
+			console.log(e)
+			console.log(`Error with CBOR decode. Trying to decode (of type: ${typeof loaded}): ${loaded}`)
+			return null
+		}
 
 		const typeModel = await resolveTypeReference(typeRef)
 		return (await this.fixupTypeRefs(typeModel, deserialized)) as T
@@ -823,7 +670,10 @@ AND NOT(${firstIdBigger("elementId", range.upper)})`
 		// manually reimplementing promiseMap to make sure we don't hit the scheduler since there's nothing actually async happening
 		const result: Array<T> = []
 		for (const entity of loaded) {
-			result.push(await this.deserialize(typeRef, entity))
+			const deserialized = await this.deserialize(typeRef, entity)
+			if (deserialized != null) {
+				result.push(deserialized)
+			}
 		}
 		return result
 	}
@@ -907,4 +757,8 @@ export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
 		return base64ToBase64Url(base64ExtToBase64(elementId))
 	}
 	return elementId
+}
+
+export interface OfflineStorageCleaner {
+	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void>
 }

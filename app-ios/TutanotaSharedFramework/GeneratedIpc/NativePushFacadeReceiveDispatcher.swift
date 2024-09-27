@@ -70,6 +70,20 @@ public class NativePushFacadeReceiveDispatcher {
 				userId
 			)
 			return toJson(result)
+		case "setReceiveCalendarNotificationConfig":
+			let pushIdentifier = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let value = try! JSONDecoder().decode(Bool.self, from: arg[1].data(using: .utf8)!)
+			try await self.facade.setReceiveCalendarNotificationConfig(
+				pushIdentifier,
+				value
+			)
+			return "null"
+		case "getReceiveCalendarNotificationConfig":
+			let pushIdentifier = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.getReceiveCalendarNotificationConfig(
+				pushIdentifier
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}

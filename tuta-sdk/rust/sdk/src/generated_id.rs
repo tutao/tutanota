@@ -3,6 +3,7 @@ use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Debug, Display, Formatter};
 
+pub const GENERATED_ID_STRUCT_NAME: &str = "GeneratedId";
 pub const GENERATED_ID_BYTES_LENGTH: usize = 9;
 
 /// A fixed nine byte length generated ID of an entity/instance
@@ -53,7 +54,7 @@ impl Serialize for GeneratedId {
 	where
 		S: Serializer,
 	{
-		serializer.serialize_newtype_struct("GeneratedId", &self.0)
+		serializer.serialize_newtype_struct(GENERATED_ID_STRUCT_NAME, &self.0)
 	}
 }
 

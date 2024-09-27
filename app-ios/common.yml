@@ -1,0 +1,168 @@
+settingGroups:
+  codeSigning:
+    base:
+      CODE_SIGN_IDENTITY: "$(inherited)"
+      CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME)$(CONFIGURATION).entitlements"
+    configs:
+      Debug Production:
+        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+      Release Development:
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc ${bundleIdPrefix}.$(PRODUCT_NAME)"
+      Release Staging:
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
+      Release Production:
+        CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
+  extension:
+    base:
+      SKIP_INSTALL: "YES"
+      INFOPLIST_KEY_CFBundleDisplayName: "$(TARGET_NAME)"
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
+      SWIFT_EMIT_LOC_STRINGS: "YES"
+      GENERATE_INFOPLIST_FILE: "YES"
+      CURRENT_PROJECT_VERSION: "1"
+      MARKETING_VERSION: "1.0"
+targets:
+  TutanotaShareExtension:
+    templates: [ "formatAndLint" ]
+    type: "app-extension"
+    sources: "TutanotaShareExtension"
+    settings:
+      base:
+        PRODUCT_NAME: "TutanotaShareExtension"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaShareExtension"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Github might be running on slightly lower iOS version
+        INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
+        HEADER_SEARCH_PATHS: '"${PROJECT_DIR}/tutanota/include"/**'
+        MARKETING_VERSION: "3.104.5"
+        CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      groups:
+        - "codeSigning"
+        - "extension"
+    dependencies:
+      - target: "TutanotaSharedFramework"
+      - framework: tutasdk.framework
+        embed: false
+  TutanotaSharedFramework:
+    type: "framework"
+    platform: "iOS"
+    sources:
+      - path: "TutanotaSharedFramework"
+        headerVisibility: "public"
+        # Exclude TUTBigNum.h so we change it's visiblity to 'project' in another source
+        excludes: [ "Crypto/TUTBigNum.h", "*.md", "Sql/sqlite3.c" ]
+      - path: "TutanotaSharedFramework/Crypto"
+        includes: [ "TUTBigNum.h" ]
+        headerVisibility: "project"
+      - path: "TutanotaSharedFramework/Sql"
+        # Don't show warnings for vendored code
+        includes: [ "sqlite3.c" ]
+        compilerFlags: "-w"
+    settings:
+      PRODUCT_NAME: "TutanotaSharedFramework"
+      PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaSharedFramework"
+      INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
+      GCC_PREPROCESSOR_DEFINITIONS: [ "SQLITE_HAS_CODEC=1", "$(inherited)" ]
+      OTHER_CFLAGS:
+        [
+          "-DSQLITE_HAS_CODEC",
+          "-DSQLITE_TEMP_STORE=3",
+          "-DNDEBUG",
+          "-DSQLCIPHER_CRYPTO_CC",
+        ]
+      APPLICATION_EXTENSION_API_ONLY: "YES"
+      ENABLE_USER_SCRIPT_SANDBOXING: "YES"
+      SKIP_INSTALL: "YES"
+      DYLIB_COMPATIBILITY_VERSION: "1"
+      DYLIB_CURRENT_VERSION: "1"
+      DYLIB_INSTALL_NAME_BASE: "@rpath"
+      LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"
+      LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
+      SWIFT_EMIT_LOC_STRINGS: "YES"
+      DEFINES_MODULE: "YES"
+      GENERATE_INFOPLIST_FILE: "YES"
+      CODE_SIGN_STYLE: "Manual"
+      CODE_SIGN_IDENTITY: "$(inherited)"
+      PROVISIONING_PROFILE_SPECIFIER: ""
+      CURRENT_PROJECT_VERSION: "1"
+      MARKETING_VERSION: "1.0"
+      VERSIONING_SYSTEM: "apple-generic"
+      GCC_NO_COMMON_BLOCKS: "YES"
+      CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
+      ENABLE_MODULE_VERIFIER: "YES"
+      MODULE_VERIFIER_SUPPORTED_LANGUAGES: "objective-c objective-c++"
+      MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS: "$(GCC_C_LANGUAGE_STANDARD) $(CLANG_CXX_LANGUAGE_STANDARD)"
+      SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
+    dependencies:
+      - package: DictionaryCoding
+        product: "DictionaryCoding"
+      - framework: tutasdk.framework
+        embed: false
+  TutanotaNotificationExtension:
+    type: "app-extension"
+    platform: "iOS"
+    sources:
+      - path: "TutanotaNotificationExtension"
+    settings:
+      base:
+        PRODUCT_NAME: "$(TARGET_NAME)"
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        GCC_NO_COMMON_BLOCKS: "YES"
+        CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
+        ENABLE_USER_SCRIPT_SANDBOXING: "YES"
+        LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
+        INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
+        GENERATE_INFOPLIST_FILE: "NO"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
+      groups:
+        - "codeSigning"
+        - "extension"
+    dependencies:
+      - target: "TutanotaSharedFramework"
+      - framework: tutasdk.framework
+        embed: false
+targetTemplates:
+  formatAndLint:
+    type: "application"
+    platform: "iOS"
+    supportedDestinations: [ "iOS" ]
+    preBuildScripts:
+      - path: "buildScripts/format.sh"
+        name: "Check formating with swift-format"
+        shell: "/bin/sh"
+        showEnvVars: true
+        basedOnDependencyAnalysis: false
+    postCompileScripts:
+      - path: "buildScripts/lint-xcode.sh"
+        name: "Lint with SwiftLint"
+        shell: "/bin/sh"
+        showEnvVars: true
+        basedOnDependencyAnalysis: false
+schemes:
+  TutanotaShareExtension:
+    build:
+      targets:
+        TutanotaShareExtension: "all"
+  TutanotaSharedFramework:
+    build:
+      targets:
+        TutanotaSharedFramework: "all"
+        TutanotaSharedTests: [ "test" ]
+    test:
+      targets: [ "TutanotaSharedTests" ]
+packages:
+  DictionaryCoding:
+    url: https://github.com/elegantchaos/DictionaryCoding.git
+    version: 1.0.9
+  Mockingbird:
+    url: https://github.com/birdrides/mockingbird.git
+    version: 0.20.0
+  Atomics:
+    url: https://github.com/apple/swift-atomics.git
+    version: 1.0.2

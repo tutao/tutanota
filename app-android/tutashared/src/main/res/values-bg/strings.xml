@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">Напомняне</string>
+    <string name="pushNewMail_msg">Получено е нов имейл.</string>
+    <string name="notificationSync_msg">Синхронизиране на известия</string>
+    <string name="scheduleAlarmError_msg">Не можеше да се създаде аларма. Моля актуализирайте приложението.</string>
+    <string name="wantToSendReport_msg">Неочаквана грешка. Ще ни изпратите ли отчет? Може да добавите съобщение за да помогнете да отстраним грешката.</string>
+    <string name="downloadCompleted_msg">Изтеглянето е завършено</string>
+    <string name="unlockCredentials_action">Отключване на данни за идентификация</string>
+</resources>

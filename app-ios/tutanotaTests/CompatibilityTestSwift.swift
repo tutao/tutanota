@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import tutanota
+@testable import TutanotaSharedFramework
 
 // used for testing Swift code
 class CompatibilityTestSwift: XCTestCase {

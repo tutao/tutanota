@@ -14,7 +14,7 @@ import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
-import { isTutanotaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
+import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 
@@ -177,7 +177,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			this.onBusyStateChanged(false, onBusyStateChanged)
 
 			return
-		} else if (!isMailAddress(cleanMailAddress, true) || (isTutanotaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
+		} else if (!isMailAddress(cleanMailAddress, true) || (isTutaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
 			this.onValidationFinished(
 				cleanMailAddress,
 				{

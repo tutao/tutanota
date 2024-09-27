@@ -27,6 +27,7 @@ import { getIfLargeScroll } from "../../../common/gui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { MainCreateButton } from "../../../common/gui/MainCreateButton.js"
+import { client } from "../../../common/misc/ClientDetector.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -186,16 +187,18 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				icon: BootIcons.Calendar,
 				message: "noEntries_msg",
 				color: theme.list_message_bg,
-				bottomContent: m(MainCreateButton, {
-					label: "newEvent_action",
-					click: (e: MouseEvent) => {
-						let newDate = new Date(attrs.selectedDate)
-						attrs.onNewEvent(setNextHalfHour(newDate))
+				bottomContent: !client.isCalendarApp()
+					? m(MainCreateButton, {
+							label: "newEvent_action",
+							click: (e: MouseEvent) => {
+								let newDate = new Date(attrs.selectedDate)
+								attrs.onNewEvent(setNextHalfHour(newDate))
 
-						e.preventDefault()
-					},
-					class: "mt-s",
-				}),
+								e.preventDefault()
+							},
+							class: "mt-s",
+					  })
+					: null,
 			})
 		} else {
 			return m(

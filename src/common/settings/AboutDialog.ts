@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { getLightOrDarkTutanotaLogo } from "../gui/theme.js"
+import { getLightOrDarkTutaLogo } from "../gui/theme.js"
 import { showUserError } from "../misc/ErrorHandlerImpl.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { InfoLink, lang } from "../misc/LanguageViewModel.js"
@@ -10,6 +10,7 @@ import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { isApp } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
+import { client } from "../misc/ClientDetector.js"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -28,9 +29,9 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 						margin: px(size.vpad_xl),
 					},
 				},
-				m.trust(getLightOrDarkTutanotaLogo()),
+				m.trust(getLightOrDarkTutaLogo(client.isCalendarApp())),
 			),
-			m(".flex.justify-center.mt-l.flex-wrap", [
+			m(".flex.justify-center.flex-wrap", [
 				m(ExternalLink, { href: InfoLink.HomePage, text: "Website", isCompanySite: true, specialType: "me", class: "mlr mt" }),
 				m(ExternalLink, {
 					href: "https://github.com/tutao/tutanota/releases",
@@ -73,7 +74,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 	async _sendDeviceLogs(): Promise<void> {
 		const timestamp = new Date()
 		const attachments = await getLogAttachments(timestamp)
-		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
 		let { message, type, client } = clientInfoString(timestamp, true)
 		message = message
 			.split("\n")

@@ -45,21 +45,27 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
-import de.tutao.tutanota.data.AppDatabase
-import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
-import de.tutao.tutanota.ipc.CommonNativeFacade
-import de.tutao.tutanota.ipc.CommonNativeFacadeSendDispatcher
-import de.tutao.tutanota.ipc.MobileFacade
-import de.tutao.tutanota.ipc.MobileFacadeSendDispatcher
-import de.tutao.tutanota.ipc.SqlCipherFacade
-import de.tutao.tutanota.offline.AndroidSqlCipherFacade
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
-import de.tutao.tutanota.push.SseStorage
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
+import de.tutao.tutashared.AndroidCalendarFacade
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CancelledError
+import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
+import de.tutao.tutashared.ipc.CommonNativeFacade
+import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
+import de.tutao.tutashared.ipc.MobileFacade
+import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
+import de.tutao.tutashared.ipc.SqlCipherFacade
+import de.tutao.tutashared.offline.AndroidSqlCipherFacade
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toPx
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -123,21 +129,22 @@ class MainActivity : FragmentActivity() {
 		)
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
-				AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
+			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
+		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
 
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage,
-				cryptoFacade,
-				SystemAlarmFacade(this),
-				localNotificationsFacade
+			sseStorage,
+			cryptoFacade,
+			SystemAlarmFacade(this),
+			localNotificationsFacade
 		)
 		val nativePushFacade = AndroidNativePushFacade(
-				this,
-				sseStorage,
-				alarmNotificationsManager,
-				localNotificationsFacade,
+			this,
+			sseStorage,
+			alarmNotificationsManager,
+			localNotificationsFacade,
 		)
 
 		val ipcJson = Json { ignoreUnknownKeys = true }
@@ -150,23 +157,23 @@ class MainActivity : FragmentActivity() {
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
 		val globalDispatcher = AndroidGlobalDispatcher(
-				ipcJson,
-				commonSystemFacade,
-				fileFacade,
-				AndroidMobileContactsFacade(this),
-				AndroidMobileSystemFacade(fileFacade, this, db),
-				CredentialsEncryptionFactory.create(this, cryptoFacade, db),
-				cryptoFacade,
-				nativePushFacade,
-				sqlCipherFacade,
-				themeFacade,
-				webauthnFacade,
+			ipcJson,
+			commonSystemFacade,
+			calendarFacade, fileFacade,
+			AndroidMobileContactsFacade(this),
+			AndroidMobileSystemFacade(fileFacade, this, db),
+			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
+			cryptoFacade,
+			nativePushFacade,
+			sqlCipherFacade,
+			themeFacade,
+			webauthnFacade,
 		)
 		remoteBridge = RemoteBridge(
-				ipcJson,
-				this,
-				globalDispatcher,
-				commonSystemFacade,
+			ipcJson,
+			this,
+			globalDispatcher,
+			commonSystemFacade,
 		)
 
 		themeFacade.applyCurrentTheme()
@@ -197,9 +204,9 @@ class MainActivity : FragmentActivity() {
 			cacheMode = WebSettings.LOAD_NO_CACHE
 			// needed for external content in mail
 			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-				// Safe browsing is not needed because we are loading our own resources only.
-				// Also we don't want to report every URL that we load to Google.
-				// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
+			// Safe browsing is not needed because we are loading our own resources only.
+			// Also we don't want to report every URL that we load to Google.
+			// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
 			safeBrowsingEnabled = false
 		}
 
@@ -221,7 +228,7 @@ class MainActivity : FragmentActivity() {
 					startActivity(intent)
 				} catch (e: ActivityNotFoundException) {
 					Toast.makeText(this@MainActivity, "Could not open link: $url", Toast.LENGTH_SHORT)
-							.show()
+						.show()
 				}
 				return true
 			}
@@ -231,16 +238,16 @@ class MainActivity : FragmentActivity() {
 				return if (request.method == "OPTIONS") {
 					Log.v(TAG, "replacing OPTIONS response to $url")
 					WebResourceResponse(
-							"text/html",
-							"UTF-8",
-							200,
-							"OK",
-							mutableMapOf(
-									"Access-Control-Allow-Origin" to "*",
-									"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
-									"Access-Control-Allow-Headers" to "*"
-							),
-							null
+						"text/html",
+						"UTF-8",
+						200,
+						"OK",
+						mutableMapOf(
+							"Access-Control-Allow-Origin" to "*",
+							"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
+							"Access-Control-Allow-Headers" to "*"
+						),
+						null
 					)
 				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
 					Log.v(TAG, "replacing asset GET response to ${url.path}")
@@ -251,22 +258,22 @@ class MainActivity : FragmentActivity() {
 						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
 						val mimeType = getMimeTypeForUrl(url.toString())
 						WebResourceResponse(
-								mimeType,
-								null,
-								200,
-								"OK",
-								null,
-								assets.open(assetPath)
+							mimeType,
+							null,
+							200,
+							"OK",
+							null,
+							assets.open(assetPath)
 						)
 					} catch (e: IOException) {
 						Log.w(TAG, "Resource not found ${url.path}")
 						WebResourceResponse(
-								null,
-								null,
-								404,
-								"Not Found",
-								null,
-								null
+							null,
+							null,
+							404,
+							"Not Found",
+							null,
+							null
 						)
 					}
 				} else {
@@ -334,7 +341,7 @@ class MainActivity : FragmentActivity() {
 	/** @return "result" extra value */
 	suspend fun startWebauthn(uri: Uri): String {
 		val customIntent = CustomTabsIntent.Builder()
-				.build()
+			.build()
 		val intent = customIntent.intent.apply {
 			data = uri
 			// close custom tabs activity as soon as user navigates away from it, otherwise it will linger as a separate
@@ -433,34 +440,34 @@ class MainActivity : FragmentActivity() {
 	}
 
 	private fun handleIntent(intent: Intent) = lifecycleScope.launch {
-			// When we redirect to the app from outside, for example after doing payment verification,
-			// we don't want to do any kind of intent handling
-			val data = intent.data
+		// When we redirect to the app from outside, for example after doing payment verification,
+		// we don't want to do any kind of intent handling
+		val data = intent.data
 
-			if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
-				handleWebauthn(intent, data)
-			}
+		if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
+			handleWebauthn(intent, data)
+		}
 
-			if (data != null && data.toString().startsWith("tutanota://")) {
-				return@launch
-			}
+		if (data != null && data.toString().startsWith("tutanota://")) {
+			return@launch
+		}
 
-			if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
-				when (intent.action) {
-					Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
-						intent
-					)
+		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
+			when (intent.action) {
+				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
+					intent
+				)
 
-					OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
-					OPEN_CALENDAR_ACTION -> openCalendar(intent)
-					Intent.ACTION_VIEW -> {
-						when (intent.scheme) {
-							"mailto" -> share(intent)
-							"file" -> view(intent)
-							"content" -> view(intent)
-						}
+				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
+				OPEN_CALENDAR_ACTION -> openCalendar(intent)
+				Intent.ACTION_VIEW -> {
+					when (intent.scheme) {
+						"mailto" -> share(intent)
+						"file" -> view(intent)
+						"content" -> view(intent)
 					}
 				}
+			}
 		}
 	}
 
@@ -488,8 +495,8 @@ class MainActivity : FragmentActivity() {
 		withContext(Dispatchers.Main) {
 			@SuppressLint("BatteryLife")
 			val intent = Intent(
-					Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-					Uri.parse("package:$packageName")
+				Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+				Uri.parse("package:$packageName")
 			)
 			startActivityForResult(intent)
 		}
@@ -554,14 +561,14 @@ class MainActivity : FragmentActivity() {
 	}
 
 	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
-			suspendCoroutine { continuation ->
-				val requestCode = getNextRequestCode()
-				activityRequests[requestCode] = continuation
-				// we need requestCode to identify the request which is not possible with new API
-				if (intent != null) {
-					super.startActivityForResult(intent, requestCode)
-				}
+		suspendCoroutine { continuation ->
+			val requestCode = getNextRequestCode()
+			activityRequests[requestCode] = continuation
+			// we need requestCode to identify the request which is not possible with new API
+			if (intent != null) {
+				super.startActivityForResult(intent, requestCode)
 			}
+		}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
@@ -576,9 +583,9 @@ class MainActivity : FragmentActivity() {
 	fun setupPushNotifications() {
 		try {
 			val serviceIntent = PushNotificationService.startIntent(
-					this,
-					"MainActivity#setupPushNotifications",
-					attemptForeground = true,
+				this,
+				"MainActivity#setupPushNotifications",
+				attemptForeground = true,
 			)
 			startService(serviceIntent)
 		} catch (e: Exception) {
@@ -586,10 +593,10 @@ class MainActivity : FragmentActivity() {
 		}
 		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 		jobScheduler.schedule(
-				JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
-						.setPeriodic(TimeUnit.MINUTES.toMillis(15))
-						.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-						.setPersisted(true).build()
+			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
+				.setPeriodic(TimeUnit.MINUTES.toMillis(15))
+				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+				.setPersisted(true).build()
 		)
 	}
 
@@ -644,11 +651,11 @@ class MainActivity : FragmentActivity() {
 		}
 		try {
 			commonNativeFacade.createMailEditor(
-					files,
-					text ?: "",
-					addresses,
-					subject ?: "",
-					mailToUrlString
+				files,
+				text ?: "",
+				addresses,
+				subject ?: "",
+				mailToUrlString
 			)
 		} catch (e: RemoteExecutionException) {
 			val name = e.message?.let { message ->
@@ -763,7 +770,7 @@ class MainActivity : FragmentActivity() {
 			menu.setHeaderTitle(link)
 			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener {
 				(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
-						.setPrimaryClip(ClipData.newPlainText(link, link))
+					.setPrimaryClip(ClipData.newPlainText(link, link))
 				true
 			}
 			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener {

@@ -8,20 +8,24 @@ import { Dialog } from "../../gui/base/Dialog.js"
 import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { MailModel } from "../../mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { NativeFileApp } from "../common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
+import { AppType } from "../../misc/ClientConstants.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
 		private readonly logins: LoginController,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly usageTestController: UsageTestController,
 		private readonly fileApp: lazyAsync<NativeFileApp>,
 		private readonly pushService: lazyAsync<NativePushServiceApp>,
 		private readonly fileImportHandler: (filesUris: ReadonlyArray<string>) => unknown,
+		readonly openMailBox: (userId: string, address: string, requestedPath: string | null) => Promise<void>,
+		readonly openCalendar: (userId: string) => Promise<void>,
+		private readonly appType: AppType,
 	) {}
 
 	/**
@@ -44,7 +48,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const { newMailEditorFromTemplate, newMailtoUrlMailEditor } = await import("../../../mail-app/mail/editor/MailEditor.js")
 		const signatureModule = await import("../../../mail-app/mail/signature/Signature")
 		await this.logins.waitForPartialLogin()
-		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
+		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 		let editor
 
 		try {
@@ -57,10 +61,27 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				const fileApp = await this.fileApp()
 				const files = await fileApp.getFilesMetaData(filesUris)
 				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
+				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CALENDAR)
+
+				if (this.appType === AppType.Calendar) {
+					if (!allFilesAreICS) {
+						return Dialog.message("invalidCalendarFile_msg")
+					}
+
+					return this.handleFileImport(filesUris)
+				}
 
 				let willImport = false
 				if (allFilesAreVCards) {
 					willImport = await Dialog.choice("vcardInSharingFiles_msg", [
+						{
+							text: "import_action",
+							value: true,
+						},
+						{ text: "attachFiles_action", value: false },
+					])
+				} else if (allFilesAreICS) {
+					willImport = await Dialog.choice("icsInSharingFiles_msg", [
 						{
 							text: "import_action",
 							value: true,
@@ -109,16 +130,6 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	async invalidateAlarms(): Promise<void> {
 		const pushService = await this.pushService()
 		await pushService.reRegister()
-	}
-
-	async openCalendar(userId: string): Promise<void> {
-		const { openCalendar } = await import("./OpenMailboxHandler.js")
-		return openCalendar(userId)
-	}
-
-	async openMailBox(userId: string, address: string, requestedPath: string | null): Promise<void> {
-		const { openMailbox } = await import("./OpenMailboxHandler.js")
-		return openMailbox(userId, address, requestedPath)
 	}
 
 	async showAlertDialog(translationKey: string): Promise<void> {
@@ -185,6 +196,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * @param filesUris List of files URI to be parsed
 	 */
 	async handleFileImport(filesUris: ReadonlyArray<string>): Promise<void> {
+		// Since we might be handling calendar files, we must wait for full login
+		await this.logins.waitForFullLogin()
 		await this.fileImportHandler(filesUris)
 	}
 }

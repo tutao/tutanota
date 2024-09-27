@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "./Dialog"
 import type { ButtonAttrs } from "./Button.js"
 import { ButtonType } from "./Button.js"
 import { Icons } from "./icons/Icons"
-import { Icon } from "./Icon"
+import { Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
@@ -337,7 +337,7 @@ export class WizardPagingButton {
 			isPreviousPage
 				? m(Icon, {
 						icon: Icons.Checkmark,
-						large: true,
+						size: IconSize.Medium,
 						style: {
 							fill: theme.content_bg,
 						},

@@ -451,6 +451,9 @@ styles.registerStyle("main", () => {
 		".pl-vpad-m": {
 			"padding-left": px(size.vpad),
 		},
+		".pl-vpad-s": {
+			"padding-left": px(size.vpad_small),
+		},
 		".pl-vpad-l": {
 			"padding-left": px(size.vpad_large),
 		},
@@ -459,6 +462,9 @@ styles.registerStyle("main", () => {
 		},
 		".pr-s": {
 			"padding-right": px(size.hpad_small),
+		},
+		".pr-vpad-s": {
+			"padding-right": px(size.vpad_small),
 		},
 		".pr-m": {
 			"padding-right": px(size.vpad),
@@ -1094,10 +1100,10 @@ styles.registerStyle("main", () => {
 			"border-top-right-radius": px(size.border_radius),
 		},
 		".border-radius-top-left-big": {
-			"border-top-left-radius": px(size.border_radius_big),
+			"border-top-left-radius": px(size.border_radius_larger),
 		},
 		".border-radius-top-right-big": {
-			"border-top-right-radius": px(size.border_radius_big),
+			"border-top-right-radius": px(size.border_radius_larger),
 		},
 		".border-radius-bottom": {
 			"border-bottom-left-radius": px(size.border_radius),
@@ -1107,7 +1113,31 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.border_radius_small),
 		},
 		".border-radius-big": {
-			"border-radius": px(size.border_radius_big),
+			"border-radius": px(size.border_radius_larger),
+		},
+		".border-radius-m": {
+			"border-radius": px(size.border_radius_medium),
+		},
+		".border-radius-top-left-m": {
+			"border-top-left-radius": px(size.border_radius_medium),
+		},
+		".border-radius-top-right-m": {
+			"border-top-right-radius": px(size.border_radius_medium),
+		},
+		".settings-item": {
+			border: 0,
+			cursor: "pointer",
+			overflow: "hidden",
+			"white-space": "nowrap",
+			margin: 0,
+			"flex-shrink": 0,
+			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
+			"padding-bottom": px(size.icon_size_small),
+			"padding-top": px(size.icon_size_small),
+			"border-bottom": `1px solid ${theme.button_bubble_bg} !important`,
+		},
+		".settings-item:last-child": {
+			"border-bottom": "none !important",
 		},
 		".editor-border": {
 			border: `2px solid ${theme.content_border}`,
@@ -1156,6 +1186,9 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_bg,
 			"box-shadow": searchBarShadow,
 		},
+		".fab-shadow": {
+			"box-shadow": "0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3)",
+		},
 		".icon-progress-tiny": {
 			height: px(15),
 			width: px(15),
@@ -1175,6 +1208,14 @@ styles.registerStyle("main", () => {
 		".icon-large": {
 			height: px(size.icon_size_large),
 			width: px(size.icon_size_large),
+		},
+		".icon-medium-large": {
+			height: px(size.icon_size_medium_large),
+			width: px(size.icon_size_medium_large),
+		},
+		".icon-medium-large > svg": {
+			height: px(size.icon_size_medium_large),
+			width: px(size.icon_size_medium_large),
 		},
 		".icon-large > svg": {
 			height: px(size.icon_size_large),
@@ -1264,6 +1305,12 @@ styles.registerStyle("main", () => {
 		".compact": {
 			width: `${size.button_height_compact}px !important`,
 			height: `${size.button_height_compact}px !important`,
+		},
+		".large": {
+			width: `${size.button_floating_size}px`,
+			height: `${size.button_floating_size}px`,
+			"max-width": `${size.button_floating_size}px`,
+			"max-height": `${size.button_floating_size}px`,
 		},
 		// state-bg is a simulation of a "state layer" from Material but without an additional layer
 		// We don't exactly follow transparency for it because we combine transparency with light grey color which works well on both light and dark themes
@@ -2545,6 +2592,19 @@ styles.registerStyle("main", () => {
 		},
 		".overflow-auto": {
 			overflow: "auto",
+		},
+		".float-action-button": {
+			position: "fixed",
+			"border-radius": "25%",
+		},
+		".posb-ml": {
+			bottom: px(size.vpad_ml),
+		},
+		".posr-ml": {
+			right: px(size.vpad_ml),
+		},
+		".mb-small-line-height": {
+			"margin-bottom": px(size.line_height * size.font_size_small),
 		},
 	}
 })

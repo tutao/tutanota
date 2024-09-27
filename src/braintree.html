@@ -10,10 +10,11 @@
 			let params = parseQueryString(location.hash.substring(1))
 			document.getElementById("message").textContent = decodeURIComponent(`${params.message}`)
 
-			confirm3ds2(decodeURIComponent(params.clientToken), decodeURIComponent(params.nonce), decodeURIComponent(params.bin), decodeURIComponent(params.price), decodeURIComponent(params.clientType))
+			const schema = params.app === "mail" ? "tutanota" : "tutacalendar"
+			confirm3ds2(decodeURIComponent(params.clientToken), decodeURIComponent(params.nonce), decodeURIComponent(params.bin), decodeURIComponent(params.price), decodeURIComponent(params.clientType), schema)
 		});
 
-		function confirm3ds2(clientToken, nonce, bin, price, clientType) {
+		function confirm3ds2(clientToken, nonce, bin, price, clientType, schema) {
 			// see https://braintree.github.io/braintree-web/current/ThreeDSecure.html#verifyCard
 			braintree.threeDSecure.create({
 				authorization: clientToken,
@@ -42,14 +43,14 @@
 					document.getElementById("message").textContent = "Your payment details were successfully linked to your Tuta Mail account!"
 					document.getElementById("message2").textContent = "You may close this tab and return to the app."
 					// ClientType.App
-					if (clientType === "2") window.location.href = "tutanota://app";
+					if (clientType === "2") window.location.href = `${schema}://app`;
 					else window.close();
 				})
 			}).catch(e => {
 				document.getElementById("message").textContent = "Sorry, the verification of your payment details was unsuccessful."
 				document.getElementById("message2").textContent = "You may return to the app to see what went wrong."
 				// ClientType.App
-				if (clientType === "2") window.location.href = "tutanota://app";
+				if (clientType === "2") window.location.href = `${schema}://app`;
 				else window.close();
 			})
 		}
@@ -1768,8 +1769,13 @@
 	<div style="padding-top: 50px">
 		<svg id="tuta_x5F_rgb" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#410002;}
-	.st1{fill:#850122;}
+	.st0 {
+		fill: #410002;
+	}
+
+	.st1 {
+		fill: #850122;
+	}
 </style>
 			<g>
 	<g>
@@ -1789,7 +1795,8 @@
 		C7.6,0,7.5,0.6,7.9,1"/>
 				<path class="st1" d="M5.4,99.2C5.3,99.6,5.5,100,6,100h71.1c0.7,0,1-0.3,1.2-0.9l21.5-69.4c0.2-0.7-0.1-0.9-0.7-0.9H27.8
 		c-0.6,0-0.8,0.2-1,0.7L5.4,99.2z"/>
-				<path class="st1" d="M0,79.2c0,0.8,1,0.8,1.2,0l16.3-53.1c0.2-0.6,0.2-1-0.3-1.5L1,8.5C0.6,8.1,0,8.3,0,8.8V79.2z"/>
+				<path class="st1"
+					  d="M0,79.2c0,0.8,1,0.8,1.2,0l16.3-53.1c0.2-0.6,0.2-1-0.3-1.5L1,8.5C0.6,8.1,0,8.3,0,8.8V79.2z"/>
 </g>
 </svg>
 	</div>

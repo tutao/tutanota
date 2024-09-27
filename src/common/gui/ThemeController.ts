@@ -6,11 +6,12 @@ import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
 import type { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
-import { themes } from "./builtinThemes"
+import { logoDefaultGrey, themes } from "./builtinThemes"
 import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
-import { getLogoSvg } from "./base/Logo"
+import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
+import { AppType } from "../misc/ClientConstants.js"
 
 assertMainOrNodeBoot()
 
@@ -24,7 +25,12 @@ export class ThemeController {
 	readonly observableThemeId: Stream<ThemeId>
 	readonly initialized: Promise<any>
 
-	constructor(themeSingleton: {}, private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
+	constructor(
+		themeSingleton: {},
+		private readonly themeFacade: ThemeFacade,
+		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>,
+		private readonly app: AppType,
+	) {
 		// this will be overwritten quickly
 		this._themeId = defaultThemeId
 		this._themePreference = "auto:light|dark"
@@ -71,9 +77,19 @@ export class ThemeController {
 
 	private async updateSavedBuiltinThemes() {
 		// In case we change built-in themes we want to save new copy on the device.
-		for (const theme of typedValues(themes)) {
+		for (const theme of typedValues(themes())) {
 			await this.updateSavedThemeDefinition(theme)
 		}
+
+		// Remove blue theme because we don't have it anymore
+		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
+		findAndRemove(oldThemes, (t) => t.themeId === "blue")
+		await this.themeFacade.setThemes(oldThemes)
+
+		// Check if the blue theme was selected and fallback for auto
+		const themePreference = await this.themeFacade.getThemePreference()
+		if (!themePreference || themePreference !== "blue") return
+		await this.setThemePreference("auto:light|dark", true)
 	}
 
 	async reloadTheme() {
@@ -91,9 +107,9 @@ export class ThemeController {
 	}
 
 	private async getTheme(themeId: ThemeId): Promise<Theme> {
-		if (themes[themeId]) {
+		if (themes()[themeId]) {
 			// Make a defensive copy so that original theme definition is not modified.
-			return Object.assign({}, themes[themeId])
+			return Object.assign({}, themes()[themeId])
 		} else {
 			const loadedThemes = (await this.themeFacade.getThemes()) as ReadonlyArray<Theme>
 			const customTheme = loadedThemes.find((t) => t.themeId === themeId)
@@ -202,12 +218,12 @@ export class ThemeController {
 	}
 
 	getDefaultTheme(): Theme {
-		return Object.assign({}, themes[defaultThemeId])
+		return Object.assign({}, themes()[defaultThemeId])
 	}
 
 	getBaseTheme(baseId: BaseThemeId): Theme {
 		// Make a defensive copy so that original theme definition is not modified.
-		return Object.assign({}, themes[baseId])
+		return Object.assign({}, themes()[baseId])
 	}
 
 	shouldAllowChangingTheme(): boolean {
@@ -227,14 +243,17 @@ export class ThemeController {
 			// This is a whitelabel theme where logo has not been overwritten.
 			// Generate a logo with muted colors. We do not want to color our logo in
 			// some random color.
-			const coloredTutanotaLogo = getLogoSvg(themeWithoutLogo.navigation_menu_icon, themeWithoutLogo.navigation_menu_icon)
-			return { ...themeWithoutLogo, ...{ logo: coloredTutanotaLogo } }
+			const grayedLogo =
+				this.app === AppType.Calendar
+					? getCalendarLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
+					: getMailLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
+			return { ...themeWithoutLogo, ...{ logo: grayedLogo } }
 		}
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
 		return mapAndFilterNull(await this.themeFacade.getThemes(), (theme) => {
-			return !(theme.themeId in themes) ? theme.themeId : null
+			return !(theme.themeId in themes()) ? theme.themeId : null
 		})
 	}
 }

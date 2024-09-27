@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { client } from "../../../src/common/misc/ClientDetector.js"
 import { Mode } from "../../../src/common/api/common/Env.js"
-import { BrowserType, DeviceType } from "../../../src/common/misc/ClientConstants.js"
+import { AppType, BrowserType, DeviceType } from "../../../src/common/misc/ClientConstants.js"
 
 o.spec("ClientDetector test", function () {
 	o("ClientDetector detect chrome windows", () => {
@@ -278,5 +278,65 @@ o.spec("ClientDetector test", function () {
 		o(client.device).equals(DeviceType.IPAD)
 		// @ts-ignore
 		window.TouchEvent = undefined
+	})
+})
+
+o.spec("ClientDetector AppType test", function () {
+	o.beforeEach(function () {
+		env.mode = Mode.App
+	})
+	o("ClientDetector detect calendar app on Android", () => {
+		client.init(
+			"Mozilla/5.0 (Linux Android 4.1.1 HTC Desire X Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36",
+			"Linux",
+			AppType.Calendar,
+		)
+		o(client.device).equals(DeviceType.ANDROID)
+		o(client.isMobileDevice()).equals(true)
+		o(client.getIdentifier()).equals("Android Calendar App")
+	})
+
+	o("ClientDetector detect calendar app on iPhone", () => {
+		client.init(
+			"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
+			"Linux",
+			AppType.Calendar,
+		)
+		o(client.device).equals(DeviceType.IPHONE)
+		o(client.isMobileDevice()).equals(true)
+		o(client.getIdentifier()).equals("iPhone Calendar App")
+	})
+
+	o("ClientDetector detect mail app on Android", () => {
+		client.init(
+			"Mozilla/5.0 (Linux Android 4.1.1 HTC Desire X Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36",
+			"Linux",
+			AppType.Mail,
+		)
+		o(client.device).equals(DeviceType.ANDROID)
+		o(client.isMobileDevice()).equals(true)
+		o(client.getIdentifier()).equals("Android Mail App")
+	})
+
+	o("ClientDetector detect mail app on iPhone", () => {
+		client.init(
+			"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
+			"Linux",
+			AppType.Mail,
+		)
+		o(client.device).equals(DeviceType.IPHONE)
+		o(client.isMobileDevice()).equals(true)
+		o(client.getIdentifier()).equals("iPhone Mail App")
+	})
+
+	o("ClientDetector throws on wrong configuration", () => {
+		client.init(
+			"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
+			"Linux",
+			AppType.Integrated,
+		)
+		o(client.device).equals(DeviceType.IPHONE)
+		o(client.isMobileDevice()).equals(true)
+		o(() => client.getIdentifier()).throws("AppType.Integrated is not allowed for mobile apps")
 	})
 })

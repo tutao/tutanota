@@ -1,12 +1,17 @@
 package de.tutao.tutanota
 
-import de.tutao.tutanota.alarms.*
-import de.tutao.tutanota.alarms.AlarmModel.getAllDayDateUTC
-import de.tutao.tutanota.alarms.AlarmModel.iterateAlarmOccurrences
 import de.tutao.tutanota.push.isSameDay
+import de.tutao.tutashared.alarms.AlarmInterval
+import de.tutao.tutashared.alarms.AlarmIntervalUnit
+import de.tutao.tutashared.alarms.AlarmModel.getAllDayDateUTC
+import de.tutao.tutashared.alarms.AlarmModel.iterateAlarmOccurrences
+import de.tutao.tutashared.alarms.EndType
+import de.tutao.tutashared.alarms.RepeatPeriod
 import org.junit.Assert
 import org.junit.Test
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 
 class AlarmModelTest {
 	private val timeZone = TimeZone.getTimeZone("Europe/Berlin")

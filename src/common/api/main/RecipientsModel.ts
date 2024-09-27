@@ -7,7 +7,7 @@ import { PartialRecipient, Recipient, RecipientType } from "../common/recipients
 import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
-import { createNewContact, isTutanotaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
+import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -102,7 +102,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		private readonly entityClient: EntityClient,
 		resolveMode: ResolveMode,
 	) {
-		if (isTutanotaMailAddress(arg.address) || arg.type === RecipientType.INTERNAL) {
+		if (isTutaMailAddress(arg.address) || arg.type === RecipientType.INTERNAL) {
 			this.initialType = RecipientType.INTERNAL
 			this._address = cleanMailAddress(arg.address)
 		} else if (arg.type) {

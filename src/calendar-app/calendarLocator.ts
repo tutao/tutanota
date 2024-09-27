@@ -1,12 +1,12 @@
 import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
-import { MailboxDetail, MailModel } from "../common/mailFunctionality/MailModel.js"
+import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { FileController, guiDownload } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, guiDownload } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -20,8 +20,6 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { Indexer } from "../common/api/worker/search/Indexer.js"
-import { SearchFacade } from "../common/api/worker/search/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { BlobFacade } from "../common/api/worker/facades/lazy/BlobFacade.js"
@@ -42,7 +40,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../common/native/common/ge
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
-import { WorkerRandomizer } from "../common/api/worker/WorkerImpl.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
@@ -60,7 +57,7 @@ import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { AppType, Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
@@ -106,13 +103,21 @@ import { theme } from "../common/gui/theme.js"
 import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
+import { AppType } from "../common/misc/ClientConstants.js"
+import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { locator } from "../common/api/main/CommonLocator.js"
+import { showSnackBar } from "../common/gui/base/SnackBar.js"
+import m from "mithril"
+import { DbError } from "../common/api/common/error/DbError.js"
+import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 
 assertMainOrNode()
 
 class CalendarLocator {
 	eventController!: EventController
 	search!: CalendarSearchModel
-	mailModel!: MailModel
+	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
 	progressTracker!: ProgressTracker
@@ -132,8 +137,6 @@ class CalendarLocator {
 	mailFacade!: MailFacade
 	shareFacade!: ShareFacade
 	counterFacade!: CounterFacade
-	indexerFacade!: Indexer
-	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	blobFacade!: BlobFacade
@@ -211,7 +214,6 @@ class CalendarLocator {
 			return new CalendarSearchViewModel(
 				searchRouter,
 				this.search,
-				this.searchFacade,
 				this.logins,
 				this.entityClient,
 				this.eventController,
@@ -230,7 +232,6 @@ class CalendarLocator {
 			return new CalendarSearchViewModel(
 				searchRouter,
 				this.search,
-				this.searchFacade,
 				this.logins,
 				this.entityClient,
 				this.eventController,
@@ -265,8 +266,8 @@ class CalendarLocator {
 		return new CalendarViewModel(
 			this.logins,
 			async (mode: CalendarOperation, event: CalendarEvent) => {
-				const mailboxDetail = await this.mailModel.getUserMailboxDetails()
-				const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
+				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
+				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 				return await this.calendarEventModel(mode, event, mailboxDetail, mailboxProperties, null)
 			},
 			(...args) => this.calendarEventPreviewModel(...args),
@@ -278,7 +279,7 @@ class CalendarLocator {
 			deviceConfig,
 			await this.receivedGroupInvitationsModel(GroupType.Calendar),
 			timeZone,
-			this.mailModel,
+			this.mailboxModel,
 		)
 	})
 
@@ -299,13 +300,16 @@ class CalendarLocator {
 				this.mailFacade,
 				this.entityClient,
 				this.logins,
-				this.mailModel,
+				this.mailboxModel,
 				this.contactModel,
 				this.eventController,
 				mailboxDetails,
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
+				async (mail: Mail) => {
+					return false
+				},
 			)
 	}
 
@@ -369,6 +373,10 @@ class CalendarLocator {
 		return this.getNativeInterface("themeFacade")
 	}
 
+	get externalCalendarFacade(): ExternalCalendarFacade {
+		return this.getNativeInterface("externalCalendarFacade")
+	}
+
 	get systemFacade(): MobileSystemFacade {
 		return this.getNativeInterface("mobileSystemFacade")
 	}
@@ -416,12 +424,12 @@ class CalendarLocator {
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
-		const { OwnMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/OwnMailAddressNameChanger.js")
-		return new OwnMailAddressNameChanger(this.mailModel, this.entityClient)
+		const { OwnMailAddressNameChanger } = await import("../common/settings/mailaddress/OwnMailAddressNameChanger.js")
+		return new OwnMailAddressNameChanger(this.mailboxModel, this.entityClient)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
-		const { AnotherUserMailAddressNameChanger } = await import("../mail-app/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
+		const { AnotherUserMailAddressNameChanger } = await import("../common/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
 	}
 
@@ -441,7 +449,10 @@ class CalendarLocator {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../common/login/CredentialRemovalHandler.js")
 		return isBrowser()
 			? new NoopCredentialRemovalHandler()
-			: new AppsCredentialRemovalHandler(this.indexerFacade, this.pushService, this.configFacade, null)
+			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async () => {
+					// nothing needs to be specifically done for the calendar app right now.
+					noOp()
+			  })
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -514,8 +525,6 @@ class CalendarLocator {
 			mailFacade,
 			shareFacade,
 			counterFacade,
-			indexerFacade,
-			searchFacade,
 			bookingFacade,
 			mailAddressFacade,
 			blobFacade,
@@ -541,8 +550,6 @@ class CalendarLocator {
 		this.mailFacade = mailFacade
 		this.shareFacade = shareFacade
 		this.counterFacade = counterFacade
-		this.indexerFacade = indexerFacade
-		this.searchFacade = searchFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.blobFacade = blobFacade
@@ -563,7 +570,7 @@ class CalendarLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
-		this.mailModel = new MailModel(notifications, this.eventController, this.mailFacade, this.entityClient, this.logins, null, null)
+		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
 			// calendar does not have index, so nothing needs to be handled here
@@ -599,18 +606,27 @@ class CalendarLocator {
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailModel, CALENDAR_PREFIX)
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,
-					this.mailModel,
+					this.mailboxModel,
 					this.usageTestController,
 					async () => this.fileApp,
 					async () => this.pushService,
-					async (filesUris: ReadonlyArray<string>) => noOp(),
+					this.handleFileImport.bind(this),
+					async (userId: string, address: string, requestedPath: string | null) => noOp(),
+					async (userId: string) => {
+						if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {
+							m.route.set("/calendar/agenda")
+						} else {
+							m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)
+						}
+					},
+					AppType.Calendar,
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -686,7 +702,9 @@ class CalendarLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
-		this.contactModel = new ContactModel(this.searchFacade, this.entityClient, this.logins, this.eventController)
+		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, () => {
+			throw new DbError("Calendar cannot search for contacts through db")
+		})
 		this.appStorePaymentPicker = new AppStorePaymentPicker()
 
 		// THEME
@@ -715,11 +733,30 @@ class CalendarLocator {
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 			: () => import("../common/misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer)
 
-		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer)
+		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar)
 
 		// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => calendarLocator.themeController.reloadTheme())
+		}
+	}
+
+	private async handleFileImport(filesUris: ReadonlyArray<string>) {
+		const files = await this.fileApp.getFilesMetaData(filesUris)
+		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
+		if (areAllICSFiles) {
+			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/import/CalendarImporter.js")
+
+			let parsedEvents: ParsedEvent[] = []
+			for (const fileRef of files) {
+				const dataFile = await this.fileApp.readDataFile(fileRef.location)
+				if (dataFile == null) continue
+
+				const data = parseCalendarFile(dataFile)
+				parsedEvents.push(...data.contents)
+			}
+
+			await importCalendarFile(await this.calendarModel(), this.logins.getUserController(), parsedEvents)
 		}
 	}
 
@@ -735,17 +772,20 @@ class CalendarLocator {
 			this.logins,
 			this.progressTracker,
 			this.entityClient,
-			this.mailModel,
+			this.mailboxModel,
 			this.calendarFacade,
 			this.fileController,
 			timeZone,
+			!isBrowser() ? this.externalCalendarFacade : null,
+			deviceConfig,
+			!isBrowser() ? this.pushService : null,
 		)
 	})
 
 	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler> = lazyMemoized(async () => {
 		const { CalendarInviteHandler } = await import("./calendar/view/CalendarInvites.js")
 		const { calendarNotificationSender } = await import("./calendar/view/CalendarNotificationSender.js")
-		return new CalendarInviteHandler(this.mailModel, await this.calendarModel(), this.logins, calendarNotificationSender, (...arg) =>
+		return new CalendarInviteHandler(this.mailboxModel, await this.calendarModel(), this.logins, calendarNotificationSender, (...arg) =>
 			this.sendMailModel(...arg),
 		)
 	})
@@ -767,15 +807,15 @@ class CalendarLocator {
 		const { getEventType } = await import("./calendar/gui/CalendarGuiUtils.js")
 		const { CalendarEventPreviewViewModel } = await import("./calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
 
-		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
+		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 
-		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 
 		const userController = this.logins.getUserController()
 		const customer = await userController.loadCustomer()
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
-		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController.user)
+		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController)
 		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
 		const lazyIndexEntry = async () => (selectedEvent.uid != null ? this.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
 		const popupModel = new CalendarEventPreviewViewModel(
@@ -808,6 +848,10 @@ class CalendarLocator {
 			this.customerFacade,
 			this.themeController,
 			() => this.showSetupWizard(),
+			() => {
+				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+			},
+			() => this.handleExternalSync(),
 		)
 	})
 
@@ -824,6 +868,24 @@ class CalendarLocator {
 				deviceConfig,
 				false,
 			)
+		}
+	}
+
+	async handleExternalSync() {
+		const calendarModel = await locator.calendarModel()
+
+		if (isApp() || isDesktop()) {
+			calendarModel.syncExternalCalendars().catch(async (e) => {
+				showSnackBar({
+					message: () => e.message,
+					button: {
+						label: "ok_action",
+						click: noOp,
+					},
+					waitingTime: 1000,
+				})
+			})
+			calendarModel.scheduleExternalCalendarSync()
 		}
 	}
 

@@ -7,6 +7,9 @@
 #import <TutanotaSharedFramework/TUTLog.h>
 #import <TutanotaSharedFramework/TUTEncodingConverter.h>
 #import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
+#include <TutanotaSharedFramework/Swiftier.h>
+#include <TutanotaSharedFramework/TUTIcons.h>
+#include <TutanotaSharedFramework/WebviewHacks.h>
 
 //! Project version number for TutanotaSharedFramework.
 FOUNDATION_EXPORT double TutanotaSharedFrameworkVersionNumber;

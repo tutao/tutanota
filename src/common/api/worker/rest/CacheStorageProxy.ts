@@ -3,7 +3,6 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
-import { WorkerImpl } from "../WorkerImpl"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -46,7 +45,7 @@ type SomeStorage = OfflineStorage | EphemeralCacheStorage
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 
-	constructor(private readonly worker: WorkerImpl, private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>) {}
+	constructor(private readonly sendError: (error: Error) => Promise<void>, private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>) {}
 
 	private get inner(): CacheStorage {
 		if (this._inner == null) {
@@ -88,7 +87,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 			} catch (e) {
 				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
 				console.error("Error while initializing offline cache storage", e)
-				this.worker.sendError(e)
+				this.sendError(e)
 			}
 		}
 		// both "else" case and fallback for unavailable storage and error cases

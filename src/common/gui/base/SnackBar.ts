@@ -9,6 +9,7 @@ import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
+import { debounce, delay } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 export const SNACKBAR_SHOW_TIME = 6000
@@ -48,21 +49,32 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  * @param message The message to be shown. It must be short enough to ensure it is always shown in 2 lines of text at max in any language.
  * @param snackBarButton will close the snackbar if it is clicked (onClose() will be called)
  * @param onClose called when the snackbar is closed (either by timeout or button click)
+ * @param waitingTime number of milliseconds to wait before showing the snackbar
  */
-export function showSnackBar(args: { message: TranslationText; button: SnackBarButtonAttrs; onClose?: () => void }) {
-	const button = makeButtonAttrsForSnackBar(args.button)
-	notificationQueue.push({
-		message: args.message,
-		button: button,
-		onClose: args.onClose ?? null,
-	})
+export async function showSnackBar(args: { message: TranslationText; button: SnackBarButtonAttrs; onClose?: () => void; waitingTime?: number }) {
+	const { message, button, onClose, waitingTime } = args
+	const triggerSnackbar = () => {
+		const buttonAttrs = makeButtonAttrsForSnackBar(button)
+		notificationQueue.push({
+			message: message,
+			button: buttonAttrs,
+			onClose: onClose ?? null,
+		})
 
-	if (notificationQueue.length > 1) {
-		//Next notification will be shown when closing current notification
-		return
+		if (notificationQueue.length > 1) {
+			//Next notification will be shown when closing current notification
+			return
+		}
+
+		showNextNotification()
 	}
 
-	showNextNotification()
+	if (waitingTime) {
+		debounce(waitingTime, triggerSnackbar)()
+		return
+	} else {
+		triggerSnackbar()
+	}
 }
 
 function getSnackBarPosition() {

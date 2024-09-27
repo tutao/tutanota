@@ -43,4 +43,14 @@ public protocol NativePushFacade {
 	func getExtendedNotificationConfig(
 		_ userId: String
 	) async throws -> ExtendedNotificationMode
+	/**
+	 * Set user preference for receiving calendar notifications in the mail app using pushIdentifier since it represents the device of a user.
+	 */
+	func setReceiveCalendarNotificationConfig(
+		_ pushIdentifier: String,
+		_ value: Bool
+	) async throws -> Void
+	func getReceiveCalendarNotificationConfig(
+		_ pushIdentifier: String
+	) async throws -> Bool
 }

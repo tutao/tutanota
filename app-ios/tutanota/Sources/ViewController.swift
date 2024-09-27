@@ -18,7 +18,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	private var isDarkTheme = false
 
 	init(
-		crypto: IosNativeCryptoFacade,
+		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
 		themeManager: ThemeManager,
 		keychainManager: KeychainManager,
 		notificationStorage: NotificationStorage,
@@ -73,7 +73,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			webAuthnFacade: IosWebauthnFacade(viewController: self),
 			sqlCipherFacade: self.sqlCipherFacade,
 			contactsSynchronization: contactsSynchronization,
-			userPreferencesProvider: userPreferencesProvider
+			userPreferencesProvider: userPreferencesProvider,
+			externalCalendarFacade: ExternalCalendarFacadeImpl()
 		)
 
 	}

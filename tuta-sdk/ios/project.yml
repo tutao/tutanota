@@ -1,13 +1,15 @@
 #  XCodeGen configuration file
 name: tutasdk
-include:
-    - path: "../../xcodegen_common.yml"
 options:
   schemePathPrefix: "../" # Recommended for workspace based projects by XCodeGen devs
 settings:
   base:
     GCC_C_LANGUAGE_STANDARD: "gnu17"
     CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
+    bundleIdPrefix: "de.tutao.tutanota"
+# Include MUST come after settings because it depends on bundleIdPrefix
+include:
+    - path: "../../xcodegen_common.yml"
 targets:
   tutasdk:
     type: "framework.static"

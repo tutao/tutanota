@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">සිහිකැඳවුම</string>
+    <string name="pushNewMail_msg">නව තැපෑලක් ලැබුණි.</string>
+    <string name="notificationSync_msg">දැනුම්දීම් සමමුහූර්ත වෙමින්</string>
+    <string name="scheduleAlarmError_msg">අනතුරු ඇඟවීමක් පිහිටුවීමට නොහැකි විය. යෙදුම යාවත්කාල කරන්න.</string>
+    <string name="wantToSendReport_msg">අනපේක්‍ෂිත යමක් වැරදියට සිදු විණි. දෝෂ වාර්තාවක් යැවීමට ඇවැසිද? මෙම දෝෂය සඳහා උදව් කිරීමට පණිවිඩයක් එකතු කළ හැකිය.</string>
+    <string name="downloadCompleted_msg">බාගැනීම සම්පූර්ණයි</string>
+    <string name="unlockCredentials_action">අක්තපත්‍ර අගුළුහරින්න</string>
+</resources>

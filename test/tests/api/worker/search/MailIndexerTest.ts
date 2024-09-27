@@ -9,10 +9,10 @@ import {
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { IndexerCore } from "../../../../../src/common/api/worker/search/IndexerCore.js"
+import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
 import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/common/api/worker/search/MailIndexer.js"
+import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
 import {
 	BodyTypeRef,
 	EncryptedMailAddressTypeRef,

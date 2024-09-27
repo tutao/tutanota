@@ -1,11 +1,13 @@
 package de.tutao.tutanota.push
 
+import android.util.Log
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.ipc.DataWrapper
-import de.tutao.tutanota.ipc.EncryptedAlarmNotification
-import de.tutao.tutanota.ipc.ExtendedNotificationMode
-import de.tutao.tutanota.ipc.NativePushFacade
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.EncryptedAlarmNotification
+import de.tutao.tutashared.ipc.ExtendedNotificationMode
+import de.tutao.tutashared.ipc.NativePushFacade
+import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -55,6 +57,16 @@ class AndroidNativePushFacade(
 
 	override suspend fun getExtendedNotificationConfig(userId: String): ExtendedNotificationMode {
 		return this.sseStorage.getExtendedNotificationConfig(userId)
+	}
+
+	override suspend fun setReceiveCalendarNotificationConfig(pushIdentifier: String, value: Boolean) {
+		Log.d("AndroidNativePushFacade", "Set calendarNotificationConfig for $pushIdentifier as $value")
+		this.sseStorage.setReceiveCalendarNotificationConfig(pushIdentifier, value)
+	}
+
+	override suspend fun getReceiveCalendarNotificationConfig(pushIdentifier: String): Boolean {
+		if (pushIdentifier.isEmpty()) return false
+		return this.sseStorage.getReceiveCalendarNotificationConfig(pushIdentifier)
 	}
 
 	override suspend fun removeUser(userId: String) {

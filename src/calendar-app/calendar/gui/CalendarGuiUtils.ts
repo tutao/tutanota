@@ -64,19 +64,19 @@ import {
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
-import { CalendarEventTimes, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
 import { isColorLight, isValidColorCode } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
-import { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
 import { EventsOnDays } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
+import { UserController } from "../../../common/api/main/UserController.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -134,13 +134,6 @@ export function calendarWeek(date: Date, weekStart: WeekStart) {
 	return lang.get("weekNumber_label", {
 		"{week}": String(getWeekNumber(date)),
 	})
-}
-
-export enum CalendarViewType {
-	DAY = "day",
-	WEEK = "week",
-	MONTH = "month",
-	AGENDA = "agenda",
 }
 
 export function calendarNavConfiguration(
@@ -749,14 +742,16 @@ export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroup
  * @param existingEvent the event in question.
  * @param calendars a list of calendars that this user has access to.
  * @param ownMailAddresses the list of mail addresses this user might be using.
- * @param user the user accessing the event.
+ * @param userController
  */
 export function getEventType(
 	existingEvent: Partial<CalendarEvent>,
 	calendars: ReadonlyMap<Id, CalendarInfo>,
 	ownMailAddresses: ReadonlyArray<string>,
-	user: User,
+	userController: UserController,
 ): EventType {
+	const { user, userSettingsGroupRoot } = userController
+
 	if (user.accountType === AccountType.EXTERNAL) {
 		return EventType.EXTERNAL
 	}
@@ -776,10 +771,17 @@ export function getEventType(
 	}
 
 	const calendarInfoForEvent = calendars.get(existingEvent._ownerGroup) ?? null
-
-	if (calendarInfoForEvent == null) {
+	if (calendarInfoForEvent == null || calendarInfoForEvent.isExternal) {
 		// event has an ownergroup, but it's not in one of our calendars. this might actually be an error.
 		return EventType.SHARED_RO
+	}
+
+	/**
+	 * if the event has a _ownerGroup, it means there is a calendar set to it
+	 * so, if the user is the owner of said calendar they are free to manage the event however they want
+	 **/
+	if ((isOrganizer || existingOrganizer === null) && calendarInfoForEvent.userIsOwner) {
+		return EventType.OWN
 	}
 
 	if (calendarInfoForEvent.shared) {
@@ -857,4 +859,21 @@ async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?
 
 export function getDisplayEventTitle(title: string): string {
 	return title ?? title !== "" ? title : lang.get("noTitle_label")
+}
+
+export type ColorString = string
+
+export function generateRandomColor(withHashtag: boolean = false): ColorString {
+	return (withHashtag ? "#" : "") + Math.random().toString(16).slice(-6)
+}
+
+export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
+	const color = selectedCalendar ? groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor : null
+	return m(".mt-xs", {
+		style: {
+			width: "100px",
+			height: "10px",
+			background: color ? "#" + color : "transparent",
+		},
+	})
 }

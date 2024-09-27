@@ -16,7 +16,7 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { MailAddressAvailability } from "../../common/api/entities/sys/TypeRefs.js"
 import { SearchDropDown } from "../../common/gui/SearchDropDown.js"
-import { isTutanotaMailAddress } from "../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutaMailAddress } from "../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 
@@ -274,7 +274,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 			this.onBusyStateChanged(false, onBusyStateChanged)
 
 			return { valid: false }
-		} else if (!isMailAddress(cleanMailAddress, true) || (isTutanotaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
+		} else if (!isMailAddress(cleanMailAddress, true) || (isTutaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
 			this.onValidationFinished(
 				cleanMailAddress,
 				{

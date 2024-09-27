@@ -23,7 +23,7 @@ import { GiftCardService } from "../../api/entities/sys/Services"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { px } from "../../gui/size"
-import { Icon } from "../../gui/base/Icon"
+import { Icon, IconSize } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 
@@ -131,7 +131,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 							Array(Math.pow(2, index)).fill(
 								m(Icon, {
 									icon: Icons.Gift,
-									large: true,
+									size: IconSize.Medium,
 								}),
 							),
 						),

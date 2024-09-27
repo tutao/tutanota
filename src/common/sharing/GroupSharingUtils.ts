@@ -8,7 +8,7 @@ import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient
 import { getDefaultSender, getEnabledMailAddressesWithUser, getMailAddressDisplayText, getSenderNameForUser } from "../mailFunctionality/SharedMailUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
-	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+	locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
 		const senderMailAddress = getDefaultSender(locator.logins, mailboxDetails)
 		const userName = getSenderNameForUser(mailboxDetails, locator.logins.getUserController())
 		// Sending notifications as bcc so that invited people don't see each other
@@ -88,7 +88,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: string, body: s
 			allowRelativeLinks: false,
 			usePlaceholderForInlineImages: false,
 		}).html
-		locator.mailModel.getUserMailboxDetails().then(async (mailboxDetails) => {
+		locator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
 			const sender = getEnabledMailAddressesWithUser(mailboxDetails, locator.logins.getUserController().userGroupInfo).includes(senderMailAddress)
 				? senderMailAddress
 				: getDefaultSender(locator.logins, mailboxDetails)
@@ -96,7 +96,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: string, body: s
 			const confirm = () => Promise.resolve(true)
 
 			const wait = showProgressDialog
-			const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+			const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 			const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
 			await model.initWithTemplate(recipients, subject, sanitizedBody, [], true, sender)
 			await model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg")

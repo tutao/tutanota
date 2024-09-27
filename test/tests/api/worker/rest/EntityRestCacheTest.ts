@@ -46,7 +46,7 @@ import {
 	MailDetailsTypeRef,
 	MailTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/tutanota-test-utils"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
@@ -86,7 +86,8 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbRefCounter)
 	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
-	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
+	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
+	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock, offlineStorageCleanerMock)
 	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
 	return offlineStorage
 }

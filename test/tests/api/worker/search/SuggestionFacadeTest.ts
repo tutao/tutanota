@@ -3,7 +3,7 @@
  */
 import o from "@tutao/otest"
 import { ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { SuggestionFacade } from "../../../../../src/common/api/worker/search/SuggestionFacade.js"
+import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"

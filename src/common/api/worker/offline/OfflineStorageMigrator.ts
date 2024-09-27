@@ -65,6 +65,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys105,
 	sys106,
 	tutanota74,
+	tutanota75,
 	sys107,
 	tutanota75,
 ]

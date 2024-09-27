@@ -13,16 +13,17 @@ import { Icon } from "../../common/gui/base/Icon"
 import { client } from "../../common/misc/ClientDetector"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../common/gui/theme"
-import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
+import { getMailFolderIcon, isTutanotaTeamMail } from "../mail/view/MailGuiUtils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { IndexingErrorReason } from "../../common/api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
 import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { getSenderOrRecipientHeading } from "../../common/mailFunctionality/SharedMailUtils.js"
-import { isTutanotaTeamMail } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
+
+import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
+import { mailLocator } from "../mailLocator.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -107,7 +108,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								},
 								m(Button, {
 									label: "cancel_action",
-									click: () => locator.indexerFacade.cancelMailIndexing(),
+									click: () => mailLocator.indexerFacade.cancelMailIndexing(),
 									//icon: () => Icons.Cancel
 									type: ButtonType.Secondary,
 								}),
@@ -148,7 +149,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 						},
 						m(Button, {
 							label: "retry_action",
-							click: () => locator.indexerFacade.extendMailIndex(failedIndexingUpTo),
+							click: () => mailLocator.indexerFacade.extendMailIndex(failedIndexingUpTo),
 							type: ButtonType.Secondary,
 						}),
 					),

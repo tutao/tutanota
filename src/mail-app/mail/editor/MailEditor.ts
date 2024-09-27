@@ -5,7 +5,7 @@ import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import type { MailboxDetail } from "../../../common/mailFunctionality/MailModel.js"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
@@ -1156,7 +1156,7 @@ export async function newMailEditorFromTemplate(
 	senderMailAddress?: string,
 	initialChangedState?: boolean,
 ): Promise<Dialog> {
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return locator
 		.sendMailModel(mailboxDetails, mailboxProperties)
 		.then((model) => model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState))
@@ -1261,7 +1261,7 @@ export async function writeGiftCardMail(link: string, svg: SVGElement, mailboxDe
 async function getMailboxDetailsAndProperties(
 	mailboxDetails: MailboxDetail | null | undefined,
 ): Promise<{ mailboxDetails: MailboxDetail; mailboxProperties: MailboxProperties }> {
-	mailboxDetails = mailboxDetails ?? (await locator.mailModel.getUserMailboxDetails())
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	mailboxDetails = mailboxDetails ?? (await locator.mailboxModel.getUserMailboxDetails())
+	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return { mailboxDetails, mailboxProperties }
 }

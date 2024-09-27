@@ -9,7 +9,7 @@ import type { Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
 import { FULL_INDEXED_TIMESTAMP, Keys } from "../../../common/api/common/TutanotaConstants"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import { styles } from "../../../common/gui/styles"
 import { client } from "../../../common/misc/ClientDetector"
 import { debounce, downcast, memoized, mod, TypeRef } from "@tutao/tutanota-utils"
@@ -188,6 +188,10 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	}
 
 	oncreate() {
+		if (isApp()) {
+			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
+			this.onFocus()
+		}
 		keyManager.registerShortcuts(this.shortcuts)
 		this.stateStream = this.state.map((state) => m.redraw())
 		this.lastQueryStream = calendarLocator.search.lastQueryString.map((value) => {
@@ -395,17 +399,8 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		}
 
 		if (this.isQuickSearch()) {
-			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				calendarLocator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (calendarLocator.search.isNewSearch(query, moreResults.restriction)) {
-						return
-					} else {
-						this.loadAndDisplayResult(query, moreResults, limit)
-					}
-				})
-			} else {
-				this.showResultsInOverlay(safeResult)
-			}
+			// Calendar does not have a quick search bar, so this has been taken out
+			// but this is left in case this changes in the future
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
 			searchRouter.routeTo(query, safeResult.restriction)

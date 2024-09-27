@@ -74,7 +74,7 @@ import WebKit
 
 	private func openMainAppWithOpenUrl(_ infoLocation: String) {
 		var components = URLComponents()
-		components.scheme = TUTANOTA_SHARE_SCHEME
+		components.scheme = self.selectAppSchema()
 		components.host = infoLocation
 		self.extensionContext?
 			.completeRequest(returningItems: nil) { (_: Bool) in
@@ -84,6 +84,13 @@ import WebKit
 				}
 				_ = self.openURL(url)
 			}
+	}
+
+	private func selectAppSchema() -> String {
+		let bundleId = Bundle.main.bundleIdentifier
+		if let isCalendarApp = bundleId?.contains("calendar") { return CALENDAR_SHARE_SCHEME }
+
+		return TUTANOTA_SHARE_SCHEME
 	}
 
 	@objc func openURL(_ url: URL) -> Bool {

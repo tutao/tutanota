@@ -7,7 +7,7 @@ import {
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { Indexer } from "../../../../../src/common/api/worker/search/Indexer.js"
+import { Indexer } from "../../../../../src/mail-app/workerUtils/index/Indexer.js"
 import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
 import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { OutOfSyncError } from "../../../../../src/common/api/common/error/OutOfSyncError.js"
@@ -25,11 +25,11 @@ import { func, instance, matchers, object, replace, reset, verify, when } from "
 import { CacheInfo } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { ContactIndexer } from "../../../../../src/common/api/worker/search/ContactIndexer.js"
+import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { MailIndexer } from "../../../../../src/common/api/worker/search/MailIndexer.js"
+import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()

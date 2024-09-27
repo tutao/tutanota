@@ -4,13 +4,13 @@ import { lang } from "../../common/misc/LanguageViewModel"
 import { EmailSignatureType, FeatureType } from "../../common/api/common/TutanotaConstants"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
 import type { TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { insertInlineImageB64ClickHandler } from "../mail/view/MailViewerUtils"
 import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
+import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases

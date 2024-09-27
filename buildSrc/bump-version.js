@@ -43,8 +43,10 @@ async function run({ platform }) {
 	}
 
 	if (platform === "all" || platform === "android") {
-		await bumpAndroidVersion(currentVersion, newVersionString, "app-android/app/build.gradle")
-		await bumpAndroidVersion(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersion("app-android/app/build.gradle")
+		await bumpAndroidVersion("app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/app/build.gradle")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
 	}
 
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
@@ -54,8 +56,10 @@ async function run({ platform }) {
  * @param newVersionString {string}
  */
 async function bumpIosVersion(newVersionString) {
+	const calendarInfoPlistName = "app-ios/calendar/Info.plist"
 	const infoPlistName = "app-ios/tutanota/Info.plist"
 	await replaceCfBundleVersion(infoPlistName, newVersionString)
+	await replaceCfBundleVersion(calendarInfoPlistName, newVersionString)
 	await replaceCfBundleVersion("app-ios/TutanotaNotificationExtension/Info.plist", newVersionString)
 }
 
@@ -82,12 +86,10 @@ async function replaceCfBundleVersion(filePath, newVersionString) {
 }
 
 /**
- * @param currentVersion {number[]}
- * @param newVersionString {string}
  * @param buildGradlePath {string}
  * @return {Promise<void>}
  */
-async function bumpAndroidVersion(currentVersion, newVersionString, buildGradlePath) {
+async function bumpAndroidVersion(buildGradlePath) {
 	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
 
 	const kotlinRegex = /versionCode = (\d+)/
@@ -98,19 +100,32 @@ async function bumpAndroidVersion(currentVersion, newVersionString, buildGradleP
 	if (oldVersionCodeMatch == null) {
 		throw new Error(`Android: Could not find versionCode in ${buildGradlePath}! Is it corrupted?`)
 	}
+
 	const oldVersionCodeString = oldVersionCodeMatch[1]
 	const oldVersionCode = parseInt(oldVersionCodeString, 10)
 	if (Number.isNaN(oldVersionCode)) {
 		throw new Error(`Android: Detected version code as ${oldVersionCodeMatch[1]} but it is not a number! Is it corrupted`)
 	}
+
 	const newVersionCode = oldVersionCode + 1
 	const newVersionCodeString = String(newVersionCode)
 
 	const versionCodeToWrite = `versionCode ${buildGradlePath.endsWith("kts") ? "= " : ""}${newVersionCodeString}`
-	const newBuildGradleString = buildGradleString
-		.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
-		.replace(new RegExp(versionRegex), versionCodeToWrite)
+	const newBuildGradleString = buildGradleString.replace(new RegExp(versionRegex), versionCodeToWrite)
 	console.log(`Bumped Android versionCode: ${oldVersionCodeString} -> ${newVersionCodeString}`)
+	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
+}
+
+/**
+ * @param currentVersion {number[]}
+ * @param newVersionString {string}
+ * @param buildGradlePath {string}
+ * @return {Promise<void>}
+ */
+async function bumpAndroidVersionName(currentVersion, newVersionString, buildGradlePath) {
+	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
+	const newBuildGradleString = buildGradleString.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
+	console.log(`Bumped Android versionName: ${currentVersion.join("\\.")} -> ${newVersionString}`)
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
 }
 

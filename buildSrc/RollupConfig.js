@@ -174,7 +174,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/calendar-app/calendar/export") ||
 		isIn("src/common/misc/DateParser") ||
 		isIn("src/calendar-app/calendar/model") ||
-		isIn("src/calendar-app/calendar/gui")
+		isIn("src/calendar-app/calendar/gui") ||
+		isIn("src/common/calendar/import")
 	) {
 		// this contains code that is important to the calendar view but might be used by other parts of the app on the main thread
 		// like time-based input components and formatting code.
@@ -228,7 +229,12 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm"
 	} else if (moduleId.includes("wasm-fallback")) {
 		return "wasm-fallback"
-	} else if (isIn("src/common/native/worker")) {
+	} else if (
+		isIn("src/common/native/worker") ||
+		isIn("src/mail-app/workerUtils/worker") ||
+		isIn("src/calendar-app/worker") ||
+		isIn("src/mail-app/workerUtils/offline")
+	) {
 		return "worker"
 	} else if (isIn("src/common/native/common")) {
 		return "native-common"
@@ -279,7 +285,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (isIn("src/common/api/worker/facades/lazy")) {
 		// things that are not used for login and are generally accessed occasionally
 		return "worker-lazy"
-	} else if (isIn("src/common/api/worker/search")) {
+	} else if (isIn("src/common/api/worker/search") || isIn("src/mail-app/workerUtils/index")) {
 		// things related to indexer or search
 		return "worker-search"
 	} else if (isIn("src/common/api/worker/Urlifier") || isIn("libs/linkify") || isIn("libs/linkify-html")) {

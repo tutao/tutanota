@@ -2,7 +2,6 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, tokenize } from "@tutao/tutanota-utils"
-import type { SearchFacade } from "../../../../common/api/worker/search/SearchFacade"
 import { assertMainOrNode } from "../../../../common/api/common/Env"
 import { listIdPart } from "../../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../../common/api/common/utils/ProgressMonitor.js"
@@ -22,24 +21,24 @@ export class CalendarSearchModel {
 	// we store this as a reference to the currently running search. if we don't, we only have the last result's query info
 	// to compare against incoming new queries
 	lastQueryString: Stream<string | null>
-	private _lastQuery: SearchQuery | null
-	_lastSearchPromise: Promise<SearchResult | void>
+	private lastQuery: SearchQuery | null
+	private lastSearchPromise: Promise<SearchResult | void>
 	cancelSignal: Stream<boolean>
 
 	constructor(private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
 		this.result = stream()
 		this.lastQueryString = stream<string | null>("")
-		this._lastQuery = null
-		this._lastSearchPromise = Promise.resolve()
+		this.lastQuery = null
+		this.lastSearchPromise = Promise.resolve()
 		this.cancelSignal = stream(false)
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
-		if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
-			return this._lastSearchPromise
+		if (this.lastQuery && searchQueryEquals(searchQuery, this.lastQuery)) {
+			return this.lastSearchPromise
 		}
 
-		this._lastQuery = searchQuery
+		this.lastQuery = searchQuery
 		const { query, restriction, minSuggestionCount, maxResults } = searchQuery
 		this.lastQueryString(query)
 		let result = this.result()
@@ -63,7 +62,7 @@ export class CalendarSearchModel {
 				moreResultsEntries: [],
 			}
 			this.result(result)
-			this._lastSearchPromise = Promise.resolve(result)
+			this.lastSearchPromise = Promise.resolve(result)
 		} else {
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
@@ -94,8 +93,8 @@ export class CalendarSearchModel {
 
 			if (this.cancelSignal()) {
 				this.result(calendarResult)
-				this._lastSearchPromise = Promise.resolve(calendarResult)
-				return this._lastSearchPromise
+				this.lastSearchPromise = Promise.resolve(calendarResult)
+				return this.lastSearchPromise
 			}
 
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, this.cancelSignal)
@@ -113,8 +112,8 @@ export class CalendarSearchModel {
 
 			if (this.cancelSignal()) {
 				this.result(calendarResult)
-				this._lastSearchPromise = Promise.resolve(calendarResult)
-				return this._lastSearchPromise
+				this.lastSearchPromise = Promise.resolve(calendarResult)
+				return this.lastSearchPromise
 			}
 
 			if (tokens.length > 0) {
@@ -163,23 +162,23 @@ export class CalendarSearchModel {
 
 						if (this.cancelSignal()) {
 							this.result(calendarResult)
-							this._lastSearchPromise = Promise.resolve(calendarResult)
-							return this._lastSearchPromise
+							this.lastSearchPromise = Promise.resolve(calendarResult)
+							return this.lastSearchPromise
 						}
 					}
 				}
 			}
 
 			this.result(calendarResult)
-			this._lastSearchPromise = Promise.resolve(calendarResult)
+			this.lastSearchPromise = Promise.resolve(calendarResult)
 		}
 
-		return this._lastSearchPromise
+		return this.lastSearchPromise
 	}
 
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {
 		let isNew = false
-		let lastQuery = this._lastQuery
+		let lastQuery = this.lastQuery
 		if (lastQuery == null) {
 			isNew = true
 		} else if (lastQuery.query !== query) {

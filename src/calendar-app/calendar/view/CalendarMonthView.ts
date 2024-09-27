@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
-import type { CalendarDay, CalendarMonth } from "../../../common/calendar/date/CalendarUtils"
+import { CalendarDay, CalendarMonth } from "../../../common/calendar/date/CalendarUtils"
 import {
 	getAllDayDateForTimezone,
 	getDiffIn24hIntervals,
@@ -15,7 +15,7 @@ import {
 import { incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
-import { isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
@@ -26,7 +26,6 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import {
 	CALENDAR_EVENT_HEIGHT,
-	CalendarViewType,
 	changePeriodOnWheel,
 	EventLayoutMode,
 	getCalendarMonth,
@@ -42,6 +41,8 @@ import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { isIOSApp } from "../../../common/api/common/Env"
+import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -106,48 +107,62 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
 
-		let containerStyle
+		const isDesktopLayout = styles.isDesktopLayout()
 
-		if (styles.isDesktopLayout()) {
+		let containerStyle
+		let weekdayDaysClasses = ""
+		if (isDesktopLayout) {
 			containerStyle = {
-				marginLeft: "5px",
 				overflow: "hidden",
 				marginBottom: px(size.hpad_large),
 			}
+			weekdayDaysClasses = "content-bg border-radius-top-left-big border-radius-top-right-big"
 		} else {
-			containerStyle = {}
+			containerStyle = {
+				paddingBottom: isIOSApp() && client.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+			}
+			weekdayDaysClasses = "nav-bg"
 		}
 
 		return m(
 			".fill-absolute.flex.col",
 			{
-				style: containerStyle,
-				class:
-					(!styles.isUsingBottomNavigation() ? "content-bg" : "") +
-					(styles.isDesktopLayout() ? " mlr-l border-radius-big" : " mlr-safe-inset border-radius-top-left-big border-radius-top-right-big"),
+				class: isDesktopLayout ? " mlr-l border-radius-big" : "mlr-safe-inset",
+				style: isDesktopLayout ? { marginLeft: px(5) } : null,
 				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
 			},
 			[
 				m(
-					".flex.mb-s.pt-s",
+					".flex.pt-s.pb-m",
+					{
+						class: weekdayDaysClasses,
+					},
 					thisMonth.weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
 				),
-
-				m(PageView, {
-					previousPage: {
-						key: getFirstDayOfMonth(lastMonthDate).getTime(),
-						nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
+				m(
+					".flex.col.rel.flex-grow.overflow-hidden",
+					{
+						class:
+							(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
+							(!isDesktopLayout ? " border-radius-top-left-big border-radius-top-right-big" : ""),
+						style: containerStyle,
 					},
-					currentPage: {
-						key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
-						nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
-					},
-					nextPage: {
-						key: getFirstDayOfMonth(nextMonthDate).getTime(),
-						nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
-					},
-					onChangePage: (next) => attrs.onChangeMonth(next),
-				}),
+					m(PageView, {
+						previousPage: {
+							key: getFirstDayOfMonth(lastMonthDate).getTime(),
+							nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
+						},
+						currentPage: {
+							key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
+							nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
+						},
+						nextPage: {
+							key: getFirstDayOfMonth(nextMonthDate).getTime(),
+							nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
+						},
+						onChangePage: (next) => attrs.onChangeMonth(next),
+					}),
+				),
 			],
 		)
 	}

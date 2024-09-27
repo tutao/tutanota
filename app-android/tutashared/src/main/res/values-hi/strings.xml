@@ -1,0 +1,9 @@
+<resources>
+    <string name="reminder_label">स्मरण-पत्र</string>
+    <string name="pushNewMail_msg">नया संदेश प्राप्त हुआ ! </string>
+    <string name="notificationSync_msg">सूचनाओं को सिंक्रनाइज़ करना</string>
+    <string name="scheduleAlarmError_msg">अलार्म सेट नहीं कर सका। कृपया एप्लिकेशन को अपडेट करें।</string>
+    <string name="wantToSendReport_msg">कुछ अनपेक्षित त्रुटि (समस्या) प्राप्त हुई  है।  रिपोर्ट भेजना चाहेंगे ? साथ-साथ आप इस समस्या से  सम्बन्धित जानकारी भी भेज सकते हैं।</string>
+    <string name="downloadCompleted_msg">डाउनलोड पूरा</string>
+    <string name="unlockCredentials_action">क्रेडेंशियल अनलॉक करें</string>
+</resources>

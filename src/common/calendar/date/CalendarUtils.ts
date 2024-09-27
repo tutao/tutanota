@@ -4,7 +4,6 @@ import {
 	downcast,
 	filterInt,
 	findAllAndRemove,
-	findAndRemove,
 	getFirstOrThrow,
 	getFromMap,
 	getStartOfDay,
@@ -27,11 +26,10 @@ import {
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import type { RepeatRule } from "../../api/entities/sys/TypeRefs.js"
-import { createDateWrapper, DateWrapper, User } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
-import type { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
+import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { DateProvider } from "../../api/common/DateProvider"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
@@ -799,13 +797,10 @@ export function incrementSequence(sequence: string): string {
 	return String(current + 1)
 }
 
-export function findPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
+export function findFirstPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarInfo>): CalendarInfo | null {
 	for (const calendar of calendarInfo.values()) {
-		if (!calendar.shared) {
-			return calendar
-		}
+		if (calendar.userIsOwner && !calendar.isExternal) return calendar
 	}
-
 	return null
 }
 
@@ -938,13 +933,6 @@ export type AlarmInterval = Readonly<{
 	value: number
 }>
 
-/**
- * Converts runtime representation of an alarm into a db one.
- */
-export function serializeAlarmInterval(interval: AlarmInterval): string {
-	return `${interval.value}${interval.unit}`
-}
-
 export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInterval): DurationLikeObject {
 	switch (alarmInterval.unit) {
 		case AlarmIntervalUnit.MINUTE:
@@ -994,4 +982,9 @@ export function parseAlarmInterval(serialized: string): AlarmInterval {
 	} else {
 		throw new ParserError(`Invalid alarm interval: ${serialized}`)
 	}
+}
+
+export enum CalendarType {
+	NORMAL,
+	URL, // External calendar
 }

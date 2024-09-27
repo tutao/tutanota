@@ -12,7 +12,6 @@ import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { UpdateHelpLabelAttrs } from "./DesktopUpdateHelpLabel"
 import { DesktopUpdateHelpLabel } from "./DesktopUpdateHelpLabel"
-import type { MailExportMode } from "../mail/export/Exporter"
 import { DesktopConfigKey } from "../../common/desktop/config/ConfigKeys"
 import { getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog } from "../../common/gui/dialogs/SpellcheckLanguageDialog"
 import { ifAllowedTutaLinks } from "../../common/gui/base/GuiUtils"
@@ -22,6 +21,7 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { MoreInfoLink } from "../../common/misc/news/MoreInfoLink.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { MailExportMode } from "../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()
 

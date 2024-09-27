@@ -1,6 +1,6 @@
 import { $Promisable, assertNotNull, clone, debounce, findAndRemove, getStartOfDay, groupByAndMapUniquely } from "@tutao/tutanota-utils"
-import { CalendarEvent, CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { getWeekStart, GroupType, OperationType, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { CalendarEvent, CalendarEventTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { EXTERNAL_CALENDAR_SYNC_INTERVAL, getWeekStart, GroupType, OperationType, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
@@ -24,7 +24,7 @@ import { Time } from "../../../common/calendar/date/Time.js"
 import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 export type EventsOnDays = {
@@ -91,7 +91,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly deviceConfig: DeviceConfig,
 		private readonly calendarInvitationsModel: ReceivedGroupInvitationsModel<GroupType.Calendar>,
 		private readonly timeZone: string,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 	) {
 		this._transientEvents = []
 
@@ -197,10 +197,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private canFullyEditEvent(event: CalendarEvent): boolean {
 		const userController = this.logins.getUserController()
 		const userMailGroup = userController.getUserMailGroupMembership().group
-		const mailboxDetailsArray = this.mailModel.mailboxDetails()
+		const mailboxDetailsArray = this.mailboxModel.mailboxDetails()
 		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
-		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController.user)
+		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController)
 		return eventType === EventType.OWN || eventType === EventType.SHARED_RW
 	}
 
@@ -494,6 +494,18 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	scroll(by: number): void {
 		this.setScrollPosition(this.scrollPosition + by)
+	}
+
+	forceSyncExternal(groupSettings: GroupSettings | null, longErrorMessage: boolean = false) {
+		if (!groupSettings) {
+			return
+		}
+
+		return this.calendarModel.syncExternalCalendars([groupSettings], EXTERNAL_CALENDAR_SYNC_INTERVAL, longErrorMessage, true)
+	}
+
+	public getCalendarModel() {
+		return this.calendarModel
 	}
 }
 

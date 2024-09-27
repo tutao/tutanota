@@ -14,6 +14,7 @@ import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { isDesktop } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
+import { client } from "../misc/ClientDetector.js"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
@@ -137,7 +138,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemePreference> = {
 			label: "switchColorTheme_action",
-			items: [...themeOptions.map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
+			items: [...themeOptions(client.isCalendarApp()).map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
 			selectedValue: locator.themeController.themePreference,
 			selectionChangedHandler: (value) => locator.themeController.setThemePreference(value),
 			dropdownWidth: 300,

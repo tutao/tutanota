@@ -37,6 +37,9 @@ import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageA
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 
+import { AppType } from "../common/misc/ClientConstants.js"
+import type { LazySearchBar } from "./LazySearchBar.js"
+
 assertMainOrNodeBoot()
 bootFinished()
 
@@ -55,7 +58,7 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform)
+client.init(navigator.userAgent, navigator.platform, AppType.Mail)
 
 if (!client.isSupported()) {
 	throw new Error("Unsupported")
@@ -94,7 +97,9 @@ import("./translations/en.js")
 		const { BottomNav } = await import("./gui/BottomNav.js")
 
 		// this needs to stay after client.init
-		windowFacade.init(mailLocator.logins, mailLocator.indexerFacade, mailLocator.connectivityModel)
+		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel, (visible) => {
+			mailLocator.indexerFacade?.onVisibilityChanged(!document.hidden)
+		})
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
@@ -123,6 +128,8 @@ import("./translations/en.js")
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						mailLocator.nativeContactsSyncManager()?.syncContacts()
 					}
+					await mailLocator.mailboxModel.init()
+					await mailLocator.mailModel.init()
 				},
 				async onFullLoginSuccess() {},
 			}
@@ -273,17 +280,31 @@ import("./translations/en.js")
 				},
 				mailLocator.logins,
 			),
-			settings: makeViewResolver<SettingsViewAttrs, SettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
+			settings: makeViewResolver<
+				SettingsViewAttrs,
+				SettingsView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { SettingsView } = await import("./settings/SettingsView.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: SettingsView,
-							cache: { drawerAttrsFactory, header: await mailLocator.appHeaderAttrs() },
+							cache: {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+							},
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, logins: mailLocator.logins }),
+					prepareAttrs: (cache) => ({
+						drawerAttrs: cache.drawerAttrsFactory(),
+						header: cache.header,
+						logins: mailLocator.logins,
+					}),
 				},
 				mailLocator.logins,
 			),
@@ -316,11 +337,18 @@ import("./translations/en.js")
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: () => Children }
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					calendarViewModel: CalendarViewModel
+					bottomNav: () => Children
+					lazySearchBar: () => Children
+				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("../calendar-app/calendar/view/CalendarView.js")
+						const { lazySearchBar } = await import("./LazySearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -329,14 +357,19 @@ import("./translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
 								bottomNav: () => m(BottomNav),
+								lazySearchBar: () =>
+									m(lazySearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									}),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
 						bottomNav,
+						lazySearchBar,
 					}),
 				},
 				mailLocator.logins,

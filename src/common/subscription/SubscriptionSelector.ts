@@ -30,6 +30,7 @@ import {
 import { px } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
+import { client } from "../misc/ClientDetector"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -211,7 +212,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 
 		let price: string
-		if (isIOSApp()) {
+		if (isIOSApp() && !client.isCalendarApp()) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				switch (interval) {

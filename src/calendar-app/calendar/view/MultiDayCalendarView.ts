@@ -28,18 +28,10 @@ import { getIfLargeScroll, getPosAndBoundsFromMouseEvent } from "../../../common
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { styles } from "../../../common/gui/styles"
-import {
-	CALENDAR_EVENT_HEIGHT,
-	CalendarViewType,
-	daysHaveEvents,
-	EventLayoutMode,
-	getEventColor,
-	layOutEvents,
-	TEMPORARY_EVENT_OPACITY,
-} from "../gui/CalendarGuiUtils.js"
+import { CALENDAR_EVENT_HEIGHT, daysHaveEvents, EventLayoutMode, getEventColor, layOutEvents, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
-import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/date/Time.js"

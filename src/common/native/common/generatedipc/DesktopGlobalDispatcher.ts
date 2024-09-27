@@ -6,6 +6,8 @@ import { DesktopSystemFacade } from "./DesktopSystemFacade.js"
 import { DesktopSystemFacadeReceiveDispatcher } from "./DesktopSystemFacadeReceiveDispatcher.js"
 import { ExportFacade } from "./ExportFacade.js"
 import { ExportFacadeReceiveDispatcher } from "./ExportFacadeReceiveDispatcher.js"
+import { ExternalCalendarFacade } from "./ExternalCalendarFacade.js"
+import { ExternalCalendarFacadeReceiveDispatcher } from "./ExternalCalendarFacadeReceiveDispatcher.js"
 import { FileFacade } from "./FileFacade.js"
 import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
@@ -31,6 +33,7 @@ export class DesktopGlobalDispatcher {
 	private readonly commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private readonly desktopSystemFacade: DesktopSystemFacadeReceiveDispatcher
 	private readonly exportFacade: ExportFacadeReceiveDispatcher
+	private readonly externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private readonly fileFacade: FileFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
@@ -45,6 +48,7 @@ export class DesktopGlobalDispatcher {
 		commonSystemFacade: CommonSystemFacade,
 		desktopSystemFacade: DesktopSystemFacade,
 		exportFacade: ExportFacade,
+		externalCalendarFacade: ExternalCalendarFacade,
 		fileFacade: FileFacade,
 		interWindowEventFacade: InterWindowEventFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
@@ -59,6 +63,7 @@ export class DesktopGlobalDispatcher {
 		this.commonSystemFacade = new CommonSystemFacadeReceiveDispatcher(commonSystemFacade)
 		this.desktopSystemFacade = new DesktopSystemFacadeReceiveDispatcher(desktopSystemFacade)
 		this.exportFacade = new ExportFacadeReceiveDispatcher(exportFacade)
+		this.externalCalendarFacade = new ExternalCalendarFacadeReceiveDispatcher(externalCalendarFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
@@ -79,6 +84,8 @@ export class DesktopGlobalDispatcher {
 				return this.desktopSystemFacade.dispatch(methodName, args)
 			case "ExportFacade":
 				return this.exportFacade.dispatch(methodName, args)
+			case "ExternalCalendarFacade":
+				return this.externalCalendarFacade.dispatch(methodName, args)
 			case "FileFacade":
 				return this.fileFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":

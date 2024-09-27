@@ -1,15 +1,29 @@
-import type { $Promisable, DeferredObject, Require } from "@tutao/tutanota-utils"
-import { assertNotNull, clone, defer, downcast, filterInt, getFromMap, isSameDay, symmetricDifference } from "@tutao/tutanota-utils"
-import { CalendarMethod, FeatureType, GroupType, OperationType } from "../../../common/api/common/TutanotaConstants"
-
+import {
+	$Promisable,
+	assertNotNull,
+	clone,
+	deepEqual,
+	defer,
+	DeferredObject,
+	downcast,
+	filterInt,
+	getFromMap,
+	isSameDay,
+	Require,
+	symmetricDifference,
+} from "@tutao/tutanota-utils"
+import { CalendarMethod, EXTERNAL_CALENDAR_SYNC_INTERVAL, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
 import { EventController } from "../../../common/api/main/EventController"
-import type { Group, GroupInfo, User, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
+	Group,
+	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMembership,
 	GroupTypeRef,
+	User,
+	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
@@ -19,19 +33,22 @@ import {
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	createDefaultAlarmInfo,
 	createGroupSettings,
 	FileTypeRef,
+	GroupSettings,
+	UserSettingsGroupRootTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import type { ParsedCalendarData } from "../export/CalendarImporter"
+import type { ParsedCalendarData, ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { NoopProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import type { MailModel } from "../../../common/mailFunctionality/MailModel.js"
+import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../../common/api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
@@ -46,7 +63,7 @@ import {
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
@@ -54,6 +71,21 @@ import { ObservableLazyLoaded } from "../../../common/api/common/utils/Observabl
 import { UserController } from "../../../common/api/main/UserController.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { AlarmInterval, assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
+import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
+import { locator } from "../../../common/api/main/CommonLocator.js"
+import {
+	EventImportRejectionReason,
+	hasSourceUrl,
+	parseCalendarStringData,
+	sortOutParsedEvents,
+	SyncStatus,
+} from "../../../common/calendar/import/ImportExportUtils.js"
+import { UserError } from "../../../common/api/main/UserError.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -61,6 +93,22 @@ export type CalendarInfo = {
 	groupInfo: GroupInfo
 	group: Group
 	shared: boolean
+	userIsOwner: boolean
+	isExternal: boolean
+}
+
+export function assertEventValidity(event: CalendarEvent) {
+	switch (checkEventValidity(event)) {
+		case CalendarEventValidity.InvalidContainsInvalidDate:
+			throw new UserError("invalidDate_msg")
+		case CalendarEventValidity.InvalidEndBeforeStart:
+			throw new UserError("startAfterEnd_label")
+		case CalendarEventValidity.InvalidPre1970:
+			// shouldn't happen while the check in setStartDate is still there, resetting the date each time
+			throw new UserError("pre1970Start_msg")
+		case CalendarEventValidity.Valid:
+		// event is valid, nothing to do
+	}
 }
 
 export class CalendarModel {
@@ -95,10 +143,13 @@ export class CalendarModel {
 		private readonly logins: LoginController,
 		private readonly progressTracker: ProgressTracker,
 		private readonly entityClient: EntityClient,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly calendarFacade: CalendarFacade,
 		private readonly fileController: FileController,
 		private readonly zone: string,
+		private readonly externalCalendarFacade: ExternalCalendarFacade | null,
+		private readonly deviceConfig: DeviceConfig,
+		private readonly pushService: NativePushServiceApp | null,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
@@ -153,12 +204,11 @@ export class CalendarModel {
 
 	/** Load map from group/groupRoot ID to the calendar info */
 	private async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
-		const user = this.logins.getUserController().user
+		const userController = this.logins.getUserController()
 
-		const calendarMemberships = user.memberships.filter((m) => m.groupType === GroupType.Calendar)
 		const notFoundMemberships: GroupMembership[] = []
 		const groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]> = []
-		for (const membership of calendarMemberships) {
+		for (const membership of userController.getCalendarMemberships()) {
 			try {
 				const result = await Promise.all([
 					this.entityClient.load(CalendarGroupRootTypeRef, membership.group),
@@ -177,55 +227,232 @@ export class CalendarModel {
 		}
 
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
+		const groupSettings = userController.userSettingsGroupRoot.groupSettings
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
+			const groupMembers = await loadGroupMembers(group, this.entityClient)
+			const shared = groupMembers.length > 1
+			const userIsOwner = !shared || isSharedGroupOwner(group, userController.userId)
+			const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
 			calendarInfos.set(groupRoot._id, {
 				groupRoot,
 				groupInfo,
 				group: group,
-				shared: !isSameId(group.user, user._id),
+				shared,
+				userIsOwner,
+				isExternal,
 			})
 		}
 
 		// cleanup inconsistent memberships
-		for (const mship of notFoundMemberships) {
+		for (const membership of notFoundMemberships) {
 			// noinspection ES6MissingAwait
-			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: user._id, group: mship.group }))
+			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: userController.userId, group: membership.group }))
 		}
 		return calendarInfos
 	}
 
+	public async fetchExternalCalendar(url: string): Promise<string> {
+		if (!this.externalCalendarFacade) throw new Error(`externalCalendarFacade is ${typeof this.externalCalendarFacade} at CalendarModel`)
+		const calendarStr = await this.externalCalendarFacade?.fetchExternalCalendar(url)
+		return calendarStr ?? ""
+	}
+
+	public scheduleExternalCalendarSync() {
+		setInterval(() => {
+			this.syncExternalCalendars().catch((e) => console.error(e.message))
+		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
+	}
+
+	public async syncExternalCalendars(
+		groupSettings: GroupSettings[] | null = null,
+		syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL,
+		longErrorMessage: boolean = false,
+		forceSync: boolean = false,
+	) {
+		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn()) {
+			return
+		}
+
+		let existingGroupSettings = groupSettings
+		const userController = this.logins.getUserController()
+
+		const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
+		let calendarGroupRootsList: CalendarGroupRoot[] = []
+		for (const membership of userController.getCalendarMemberships()) {
+			groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
+		}
+		calendarGroupRootsList = await Promise.all(groupRootsPromises)
+
+		if (!existingGroupSettings) {
+			const { groupSettings: gSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
+			existingGroupSettings = gSettings
+		}
+
+		const skippedCalendars: Map<Id, { calendarName: string; error: Error }> = new Map()
+		for (const { sourceUrl, group, name } of existingGroupSettings) {
+			if (!sourceUrl) {
+				continue
+			}
+
+			const lastSyncEntry = this.deviceConfig.getLastExternalCalendarSync().get(group)
+			const offset = 1000 // Add an offset to account for cpu speed when storing or generating timestamps
+			const shouldSkipSync =
+				!forceSync &&
+				lastSyncEntry?.lastSyncStatus === SyncStatus.Success &&
+				lastSyncEntry.lastSuccessfulSync &&
+				Date.now() + offset - lastSyncEntry.lastSuccessfulSync < syncInterval
+			if (shouldSkipSync) continue
+
+			const currentCalendarGroupRoot = calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, group)) ?? null
+			if (!currentCalendarGroupRoot) {
+				console.error(`Trying to sync a calendar the user isn't subscribed to anymore: ${group}`)
+				continue
+			}
+
+			let parsedExternalEvents: ParsedEvent[] = []
+			try {
+				const externalCalendar = await this.fetchExternalCalendar(sourceUrl)
+				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
+			} catch (error) {
+				let calendarName = name
+				if (!calendarName) {
+					const calendars = await this.getCalendarInfos()
+					calendarName = calendars.get(group)?.groupInfo.name!
+				}
+				skippedCalendars.set(group, { calendarName, error })
+				continue
+			}
+
+			const existingEventList = await loadAllEvents(currentCalendarGroupRoot)
+
+			const operationsLog: {
+				skipped: CalendarEvent[]
+				updated: CalendarEvent[]
+				created: CalendarEvent[]
+				deleted: CalendarEvent[]
+			} = {
+				skipped: [],
+				updated: [],
+				created: [],
+				deleted: [],
+			}
+			/**
+			 * Sync strategy
+			 * - Replace duplicates
+			 * - Add new
+			 * - Remove rest
+			 */
+			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
+			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+
+			// Replacing duplicates with changes
+			for (const duplicatedEvent of duplicates) {
+				const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
+				if (!existingEvent) {
+					console.warn("Found a duplicate without an existing event!")
+					continue
+				}
+				if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
+					operationsLog.skipped.push(duplicatedEvent)
+					continue
+				}
+				await this.updateEventWithExternal(existingEvent, duplicatedEvent)
+				operationsLog.updated.push(duplicatedEvent)
+			}
+			console.log(TAG, `${operationsLog.skipped.length} events skipped (duplication without changes)`)
+			console.log(TAG, `${operationsLog.updated.length} events updated (duplication with changes)`)
+
+			// Add new event
+			for (const { event } of eventsForCreation) {
+				assignEventId(event, getTimeZone(), currentCalendarGroupRoot)
+				// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+				event._ownerEncSessionKey = null
+
+				if (event.repeatRule != null) {
+					event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+				}
+				// Reset permissions because server will assign them
+				downcast(event)._permissions = null
+				event._ownerGroup = currentCalendarGroupRoot._id
+				assertEventValidity(event)
+				operationsLog.created.push(event)
+			}
+			this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
+			console.log(TAG, `${operationsLog.created.length} events created`)
+
+			// Remove rest
+			const eventsToRemove = existingEventList.filter(
+				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
+			)
+			for (const event of eventsToRemove) {
+				this.deleteEvent(event)
+				operationsLog.deleted.push(event)
+			}
+			console.log(TAG, `${operationsLog.deleted.length} events removed`)
+
+			this.deviceConfig.updateLastSync(group)
+		}
+
+		if (skippedCalendars.size) {
+			let errorMessage = lang.get("iCalSync_error") + (longErrorMessage ? "\n\n" : "")
+			for (const [group, details] of skippedCalendars.entries()) {
+				if (longErrorMessage) errorMessage += `${details.calendarName} - ${details.error.message}\n`
+				this.deviceConfig.updateLastSync(group, SyncStatus.Failed)
+			}
+			throw new Error(errorMessage)
+		}
+	}
+
+	private eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
+		return (
+			a.startTime.valueOf() === b.startTime.valueOf() &&
+			a.endTime.valueOf() === b.endTime.valueOf() &&
+			deepEqual({ ...a.attendees }, { ...b.attendees }) &&
+			a.summary === b.summary &&
+			a.sequence === b.sequence &&
+			a.location === b.location &&
+			a.description === b.description &&
+			deepEqual(a.organizer, b.organizer) &&
+			deepEqual(a.repeatRule, b.repeatRule) &&
+			a.recurrenceId?.valueOf() === b.recurrenceId?.valueOf()
+		)
+	}
+
 	private async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
-		const { findPrivateCalendar } = await import("../../../common/calendar/date/CalendarUtils.js")
+		const { findFirstPrivateCalendar } = await import("../../../common/calendar/date/CalendarUtils.js")
 		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
-		if (!this.logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfos)) {
+		if (!this.logins.isInternalUserLoggedIn() || findFirstPrivateCalendar(calendarInfos)) {
 			return calendarInfos
 		} else {
-			await this.createCalendar("", null)
+			await this.createCalendar("", null, [], null)
 			return await this.loadCalendarInfos(progressMonitor)
 		}
 	}
 
-	async createCalendar(name: string, color: string | null): Promise<void> {
+	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[], sourceUrl: string | null): Promise<Group> {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
 		// this should be removed once we handle missed events during startup
 		const { user, group } = await this.calendarFacade.addCalendar(name)
 		this.logins.getUserController().user = user
 
+		const serializedAlarms = alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
 		if (color != null) {
 			const { userSettingsGroupRoot } = this.logins.getUserController()
-
 			const newGroupSettings = createGroupSettings({
 				group: group._id,
 				color: color,
 				name: null,
-				defaultAlarmsList: [],
-				sourceUrl: null,
+				defaultAlarmsList: serializedAlarms,
+				sourceUrl,
 			})
+
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			await this.entityClient.update(userSettingsGroupRoot)
 		}
+
+		return group
 	}
 
 	private async doCreate(
@@ -266,7 +493,7 @@ export class CalendarModel {
 	}
 
 	private async loadAndProcessCalendarUpdates(): Promise<void> {
-		const { mailboxGroupRoot } = await this.mailModel.getUserMailboxDetails()
+		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
 		const { calendarEventUpdates } = mailboxGroupRoot
 		if (calendarEventUpdates == null) return
 
@@ -292,7 +519,7 @@ export class CalendarModel {
 			if (calendars.size > 0) {
 				return calendars
 			} else {
-				await this.createCalendar("", null)
+				await this.createCalendar("", null, [], null)
 				return this.calendarInfos.reload()
 			}
 		})
@@ -304,7 +531,7 @@ export class CalendarModel {
 			// was already resolved and the entity updated.
 			const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
-			const { parseCalendarFile } = await import("../export/CalendarImporter")
+			const { parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
 			return await parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {
@@ -628,6 +855,12 @@ export class CalendarModel {
 
 	async scheduleAlarmsLocally(): Promise<void> {
 		if (!this.localAlarmsEnabled()) return
+
+		const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
+		if (pushIdentifier && pushIdentifier.disabled) {
+			return console.log("Push identifier disabled. Skipping alarm schedule")
+		}
+
 		const eventsWithInfos = await this.calendarFacade.loadAlarmEvents()
 		const scheduler: AlarmScheduler = await this.alarmScheduler()
 		for (let { event, userAlarmInfos } of eventsWithInfos) {
@@ -655,6 +888,7 @@ export class CalendarModel {
 
 	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
 		await this.calendarFacade.deleteCalendar(calendar.groupRoot._id)
+		this.deviceConfig.removeLastSync(calendar.group._id)
 	}
 
 	async getEventsByUid(uid: string): Promise<CalendarEventUidIndexEntry | null> {
@@ -742,6 +976,13 @@ export class CalendarModel {
 						break
 					}
 				}
+			}
+		}
+
+		if (!isApp()) {
+			const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
+			if (pushIdentifier && pushIdentifier.disabled) {
+				return console.log("Push identifier disabled. Skipping alarm schedule")
 			}
 		}
 
@@ -859,4 +1100,11 @@ export function formatNotificationForDisplay(eventTime: Date, summary: string): 
 	const body = `${dateString} ${summary}`
 
 	return { body, title: body }
+}
+
+async function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
+	return Promise.all([
+		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
+		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents),
+	]).then((results) => results.flat())
 }

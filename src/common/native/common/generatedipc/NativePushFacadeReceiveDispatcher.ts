@@ -6,6 +6,7 @@ import { NativePushFacade } from "./NativePushFacade.js"
 
 export class NativePushFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativePushFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "getPushIdentifier": {
@@ -46,6 +47,15 @@ export class NativePushFacadeReceiveDispatcher {
 			case "getExtendedNotificationConfig": {
 				const userId: string = arg[0]
 				return this.facade.getExtendedNotificationConfig(userId)
+			}
+			case "setReceiveCalendarNotificationConfig": {
+				const pushIdentifier: string = arg[0]
+				const value: boolean = arg[1]
+				return this.facade.setReceiveCalendarNotificationConfig(pushIdentifier, value)
+			}
+			case "getReceiveCalendarNotificationConfig": {
+				const pushIdentifier: string = arg[0]
+				return this.facade.getReceiveCalendarNotificationConfig(pushIdentifier)
 			}
 		}
 	}

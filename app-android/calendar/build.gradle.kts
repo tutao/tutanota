@@ -15,8 +15,8 @@ android {
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
 		targetSdk = 34
-		versionCode = 29
-		versionName = "246.240918.0"
+		versionCode = 34
+		versionName = "246.240925.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -31,9 +31,9 @@ android {
 		create("release") {
 			// Provide non-empty placeholders because otherwise configuration will braek even in debug.
 			storeFile = file(System.getenv("APK_SIGN_STORE") ?: "EMPTY")
-			storePassword = System.getenv("APK_SIGN_STORE_PASS" ?: "EMPTY")
-			keyAlias = System.getenv("APK_SIGN_ALIAS" ?: "EMPTY")
-			keyPassword = System.getenv("APK_SIGN_KEY_PASS" ?: "EMPTY")
+			storePassword = System.getenv("APK_SIGN_STORE_PASS") ?: "EMPTY"
+			keyAlias = System.getenv("APK_SIGN_ALIAS") ?: "EMPTY"
+			keyPassword = System.getenv("APK_SIGN_KEY_PASS") ?: "EMPTY"
 
 			enableV1Signing = true
 			enableV2Signing = true
@@ -59,9 +59,9 @@ android {
 			isJniDebuggable = true
 		}
 		release {
+			manifestPlaceholders += mapOf()
 			isMinifyEnabled = true
 			resValue("string", "package_name", "de.tutao.calendar")
-			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
 			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
 
 		}
@@ -99,7 +99,7 @@ android {
 		)
 		// keep in sync with src/native/main/NativePushServiceApp.ts
 		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"99\"")
-		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"71\"")
+		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"73\"")
 		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
 	}
 
@@ -136,6 +136,7 @@ dependencies {
 	val coroutines_version = "1.8.0"
 
 	implementation("de.tutao:tutasdk")
+	implementation(project(":tutashared"))
 
 	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
 	//noinspection GradleDependency
@@ -147,14 +148,6 @@ dependencies {
 	implementation("androidx.biometric:biometric:1.1.0")
 	implementation("androidx.core:core-splashscreen:1.0.1")
 	implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		val includes: Map<String, Any> = mapOf("include" to arrayOf("*.aar"), "dir" to "../libs")
-		implementation(fileTree(includes))
-	} else {
-		implementation("net.zetetic:android-database-sqlcipher:4.5.0")
-	}
-	implementation("androidx.sqlite:sqlite:2.0.1")
 
 	implementation("androidx.room:room-runtime:$room_version")
 	// For Kotlin use kapt instead of annotationProcessor

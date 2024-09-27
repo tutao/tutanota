@@ -7,6 +7,7 @@ import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { Theme } from "../../../src/common/gui/theme.js"
+import { AppType } from "../../../src/common/misc/ClientConstants.js"
 
 o.spec("ThemeController", function () {
 	let themeManager: ThemeController
@@ -27,7 +28,7 @@ o.spec("ThemeController", function () {
 			inlineImageCids: [],
 			links: [],
 		})
-		themeManager = new ThemeController(theme, themeFacadeMock, () => Promise.resolve(htmlSanitizerMock))
+		themeManager = new ThemeController(theme, themeFacadeMock, () => Promise.resolve(htmlSanitizerMock), AppType.Integrated)
 		await themeManager.initialized
 	})
 
@@ -43,7 +44,7 @@ o.spec("ThemeController", function () {
 
 		const captor = matchers.captor()
 		verify(themeFacadeMock.setThemes(captor.capture()))
-		const savedTheme = captor.values![0][3]
+		const savedTheme = captor.values![0][4]
 		o(savedTheme.themeId).equals("HelloFancyId")
 		o(savedTheme.content_bg).equals("#fffeee")
 		o(savedTheme.logo).equals("sanitized")

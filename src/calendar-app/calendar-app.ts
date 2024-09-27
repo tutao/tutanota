@@ -24,10 +24,11 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
-import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { CalendarSettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
+import { AppType } from "../common/misc/ClientConstants.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -47,7 +48,7 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform)
+client.init(navigator.userAgent, navigator.platform, AppType.Calendar)
 
 if (!client.isSupported()) {
 	throw new Error("Unsupported")
@@ -82,7 +83,7 @@ import("../mail-app/translations/en.js")
 		setupNavShortcuts()
 
 		// this needs to stay after client.init
-		windowFacade.init(calendarLocator.logins, calendarLocator.indexerFacade, calendarLocator.connectivityModel)
+		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel, null)
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
 		}
@@ -130,7 +131,6 @@ import("../mail-app/translations/en.js")
 		}
 
 		styles.init(calendarLocator.themeController)
-		const { CalendarBottomNav } = await import("./gui/CalendarBottomNav.js")
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -176,17 +176,16 @@ import("../mail-app/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			settings: makeViewResolver<SettingsViewAttrs, CalendarSettingsView, { drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs }>(
+			settings: makeViewResolver<CalendarSettingsViewAttrs, CalendarSettingsView, { header: AppHeaderAttrs }>(
 				{
 					prepareRoute: async () => {
 						const { CalendarSettingsView } = await import("./calendar/settings/CalendarSettingsView.js")
-						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarSettingsView,
-							cache: { drawerAttrsFactory, header: await calendarLocator.appHeaderAttrs() },
+							cache: { header: await calendarLocator.appHeaderAttrs() },
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, logins: calendarLocator.logins }),
+					prepareAttrs: (cache) => ({ header: cache.header, logins: calendarLocator.logins }),
 				},
 				calendarLocator.logins,
 			),
@@ -194,7 +193,6 @@ import("../mail-app/translations/en.js")
 				CalendarSearchViewAttrs,
 				CalendarSearchView,
 				{
-					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					searchViewModelFactory: () => CalendarSearchViewModel
 				}
@@ -202,28 +200,32 @@ import("../mail-app/translations/en.js")
 				{
 					prepareRoute: async () => {
 						const { CalendarSearchView } = await import("./calendar/search/view/CalendarSearchView.js")
-						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarSearchView,
 							cache: {
-								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								searchViewModelFactory: await calendarLocator.searchViewModelFactory(),
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({ drawerAttrs: cache.drawerAttrsFactory(), header: cache.header, makeViewModel: cache.searchViewModelFactory }),
+					prepareAttrs: (cache) => ({ header: cache.header, makeViewModel: cache.searchViewModelFactory }),
 				},
 				calendarLocator.logins,
 			),
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
-				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; calendarViewModel: CalendarViewModel; bottomNav: () => Children }
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					calendarViewModel: CalendarViewModel
+					lazySearchBar: () => Children
+				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("./calendar/view/CalendarView.js")
+						const { lazyCalendarSearchBar } = await import("./LazyCalendarSearchBar.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -231,15 +233,19 @@ import("../mail-app/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
-								bottomNav: () => m(CalendarBottomNav),
+								lazySearchBar: () => {
+									return m(lazyCalendarSearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									})
+								},
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, lazySearchBar }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
-						bottomNav,
+						lazySearchBar,
 					}),
 				},
 				calendarLocator.logins,

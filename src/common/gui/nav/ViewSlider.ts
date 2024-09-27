@@ -11,6 +11,7 @@ import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../../RootView.js"
 import { assertMainOrNode } from "../../api/common/Env.js"
+import { client } from "../../misc/ClientDetector.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -28,7 +29,7 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
 
 interface ViewSliderAttrs {
 	header: Children
-	bottomNav: Children
+	bottomNav?: Children
 }
 
 /**
@@ -72,7 +73,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 	private getSideColDom: () => HTMLElement | null = () => this.viewColumns[0].domColumn
 
-	constructor(private readonly viewColumns: ViewColumn[]) {
+	constructor(private readonly viewColumns: ViewColumn[], private readonly enableDrawer: boolean = true) {
 		// the first background column is the main column
 		this.mainColumn = assertNotNull(
 			viewColumns.find((column) => column.columnType === ColumnType.Background),
@@ -98,7 +99,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				".fill-absolute.flex.col",
 				{
 					oncreate: (vnode) => {
-						this.attachTouchHandler(vnode.dom as HTMLElement)
+						if (this.enableDrawer) this.attachTouchHandler(vnode.dom as HTMLElement)
 					},
 					onremove: () => {
 						if (this.viewColumns[0].columnType === ColumnType.Foreground && this.viewColumns[0].isInForeground) {
@@ -128,9 +129,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 							}),
 						),
 					),
-					styles.isUsingBottomNavigation() ? attrs.bottomNav : null,
+					styles.isUsingBottomNavigation() && !client.isCalendarApp() ? attrs.bottomNav : null,
 					this.getColumnsForOverlay().map((c) => m(c, {})),
-					this.createModalBackground(),
+					this.enableDrawer ? this.createModalBackground() : null,
 				],
 			)
 		}

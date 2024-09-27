@@ -7,12 +7,10 @@ import { CloseEventBusOption, MailSetKind, SECOND_MS } from "../../api/common/Tu
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { MailModel } from "../../mailFunctionality/MailModel.js"
+import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
-
-import { assertSystemFolderOfType } from "../../mailFunctionality/SharedMailUtils.js"
-import { getElementId } from "../../api/common/utils/EntityUtils.js"
+import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()
 
@@ -27,8 +25,9 @@ export class WebMobileFacade implements MobileFacade {
 
 	constructor(
 		private readonly connectivityModel: WebsocketConnectivityModel,
-		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
 		private readonly baseViewPrefix: string,
+		private readonly mailBackNewRoute?: (currentRoute: string) => Promise<string | null>,
 	) {}
 
 	public getIsAppVisible(): stream<boolean> {
@@ -65,6 +64,15 @@ export class WebMobileFacade implements MobileFacade {
 				viewSlider.focusPreviousColumn()
 				return true
 			} else if (currentRoute.startsWith(CALENDAR_PREFIX)) {
+				if (history.state?.origin === CalendarViewType.MONTH) {
+					const date = history.state.dateString ?? new Date().toISOString().substring(0, 10)
+					m.route.set("/calendar/:view/:date", {
+						view: CalendarViewType.MONTH,
+						date,
+					})
+					return true
+				}
+
 				if (this.baseViewPrefix === CALENDAR_PREFIX) {
 					// we are at the main view and want to exit the app
 					return false
@@ -73,32 +81,17 @@ export class WebMobileFacade implements MobileFacade {
 					return true
 				}
 			} else if (currentRoute.startsWith(CONTACTS_PREFIX) || currentRoute.startsWith(SETTINGS_PREFIX) || currentRoute.startsWith(SEARCH_PREFIX)) {
-				// go back to mail from other paths
+				// go back to mail or calendar from other paths
 				m.route.set(this.baseViewPrefix)
 				return true
 			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
-				// If the first background column is focused in mail view (showing a folder), move to inbox.
-				// If in inbox already, quit
-				if (m.route.get().startsWith(MAIL_PREFIX)) {
-					const parts = m.route
-						.get()
-						.split("/")
-						.filter((part) => part !== "")
-
-					if (parts.length > 1) {
-						const selectedMailFolderId = parts[1]
-						const [mailboxDetail] = await this.mailModel.getMailboxDetails()
-						const inboxMailFolderId = getElementId(assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.INBOX))
-
-						if (inboxMailFolderId !== selectedMailFolderId) {
-							m.route.set(MAIL_PREFIX + "/" + inboxMailFolderId)
-							return true
-						} else {
-							return false
-						}
+				if (currentRoute.startsWith(MAIL_PREFIX) && this.mailBackNewRoute) {
+					const newRoute = await this.mailBackNewRoute(currentRoute)
+					if (newRoute) {
+						m.route.set(newRoute)
+						return true
 					}
 				}
-
 				return false
 			} else {
 				return false

@@ -36,6 +36,7 @@ export type NavButtonAttrs = {
 	onfocus?: () => unknown
 	onblur?: () => unknown
 	onkeydown?: (event: KeyboardEvent) => unknown
+	fillSpaceAround?: boolean
 }
 
 export class NavButton implements Component<NavButtonAttrs> {
@@ -85,11 +86,12 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 	_getNavButtonClass(a: NavButtonAttrs): string {
 		return (
-			"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
+			"a.nav-button.noselect.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
 			(a.vertical ? ".col" : "") +
 			(!a.centred ? ".flex-start" : ".flex-center") +
 			(a.disableHoverBackground ? "" : ".state-bg") +
-			(a.disabled ? ".no-hover" : "")
+			(a.disabled ? ".no-hover" : "") +
+			(a.fillSpaceAround ?? true ? ".flex-no-shrink" : "")
 		)
 	}
 

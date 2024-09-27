@@ -16,6 +16,7 @@ import { noOp, promiseMap } from "@tutao/tutanota-utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { mailLocator } from "../../mailLocator.js"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -107,7 +108,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				const draft = model.draft
 
 				if (draft) {
-					await promptAndDeleteMails(model.mailModel, [draft], noOp)
+					await promptAndDeleteMails(mailLocator.mailModel, [draft], noOp)
 				}
 			}
 		})

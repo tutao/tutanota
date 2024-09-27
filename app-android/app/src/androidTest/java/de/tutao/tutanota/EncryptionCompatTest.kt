@@ -1,13 +1,20 @@
 package de.tutao.tutanota
 
 import android.content.Context
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
-import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.AES256_KEY_LENGTH_BYTES
-import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.bytesToKey
-import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.testdata.TestData
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.AES256_KEY_LENGTH_BYTES
+import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.bytesToKey
+import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.TempDir
+import de.tutao.tutashared.base64ToBytes
+import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.toBase64
+import de.tutao.tutashared.toHexString
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.Assert.*
@@ -46,10 +53,22 @@ class CompatibilityTest {
 		for (td in testData.aes128Tests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
-			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), false)
+			crypto.aesEncrypt(
+				key,
+				ByteArrayInputStream(td.plainTextBase64.base64ToBytes()),
+				encryptedBytes,
+				td.ivBase64.base64ToBytes(),
+				false
+			)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
-			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong(), true)
+			crypto.aesDecrypt(
+				key,
+				ByteArrayInputStream(encryptedBytes.toByteArray()),
+				decryptedBytes,
+				encryptedBytes.size().toLong(),
+				true
+			)
 			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
 
 			// encrypt 128 key
@@ -73,22 +92,48 @@ class CompatibilityTest {
 		for (td in testData.aes256Tests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
-			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), true)
+			crypto.aesEncrypt(
+				key,
+				ByteArrayInputStream(td.plainTextBase64.base64ToBytes()),
+				encryptedBytes,
+				td.ivBase64.base64ToBytes(),
+				true
+			)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
-			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong(), true)
+			crypto.aesDecrypt(
+				key,
+				ByteArrayInputStream(encryptedBytes.toByteArray()),
+				decryptedBytes,
+				encryptedBytes.size().toLong(),
+				true
+			)
 			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
 
 			// encrypt 128 key
 			val encryptedKey128 = ByteArrayOutputStream()
-			crypto.aesEncrypt(key, ByteArrayInputStream(hexToBytes(td.keyToEncrypt128)), encryptedKey128, td.ivBase64.base64ToBytes(), true, false)
+			crypto.aesEncrypt(
+				key,
+				ByteArrayInputStream(hexToBytes(td.keyToEncrypt128)),
+				encryptedKey128,
+				td.ivBase64.base64ToBytes(),
+				true,
+				false
+			)
 			assertEquals(td.encryptedKey128, encryptedKey128.toByteArray().toBase64())
 			val decryptedKey128 = crypto.decryptKey(bytesToKey(key), td.encryptedKey128.base64ToBytes())
 			assertEquals(td.keyToEncrypt128, decryptedKey128.toHexString())
 
 			// encrypt 256 key
 			val encryptedKey256 = ByteArrayOutputStream()
-			crypto.aesEncrypt(key, ByteArrayInputStream(hexToBytes(td.keyToEncrypt256)), encryptedKey256, td.ivBase64.base64ToBytes(), true, false)
+			crypto.aesEncrypt(
+				key,
+				ByteArrayInputStream(hexToBytes(td.keyToEncrypt256)),
+				encryptedKey256,
+				td.ivBase64.base64ToBytes(),
+				true,
+				false
+			)
 			assertEquals(td.encryptedKey256, encryptedKey256.toByteArray().toBase64())
 			val decryptedKey256 = crypto.decryptKey(bytesToKey(key), td.encryptedKey256.base64ToBytes())
 			assertEquals(td.keyToEncrypt256, decryptedKey256.toHexString())
@@ -100,9 +145,21 @@ class CompatibilityTest {
 	@Test
 	@Throws(CryptoError::class, IOException::class)
 	fun aes256EnforcesMac() {
-		crypto.aesEncrypt(ByteArray(AES256_KEY_LENGTH_BYTES), ByteArrayInputStream(ByteArray(16)), ByteArrayOutputStream(), ByteArray(16), true)
+		crypto.aesEncrypt(
+			ByteArray(AES256_KEY_LENGTH_BYTES),
+			ByteArrayInputStream(ByteArray(16)),
+			ByteArrayOutputStream(),
+			ByteArray(16),
+			true
+		)
 		try {
-			crypto.aesEncrypt(ByteArray(AES256_KEY_LENGTH_BYTES), ByteArrayInputStream(ByteArray(16)), ByteArrayOutputStream(), ByteArray(16), false)
+			crypto.aesEncrypt(
+				ByteArray(AES256_KEY_LENGTH_BYTES),
+				ByteArrayInputStream(ByteArray(16)),
+				ByteArrayOutputStream(),
+				ByteArray(16),
+				false
+			)
 			fail()
 		} catch (e: IllegalArgumentException) {
 			assertEquals("must use mac with AES-256", e.message)
@@ -116,10 +173,22 @@ class CompatibilityTest {
 		for (td in testData.aes128MacTests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
-			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), true)
+			crypto.aesEncrypt(
+				key,
+				ByteArrayInputStream(td.plainTextBase64.base64ToBytes()),
+				encryptedBytes,
+				td.ivBase64.base64ToBytes(),
+				true
+			)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
-			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong(), true)
+			crypto.aesDecrypt(
+				key,
+				ByteArrayInputStream(encryptedBytes.toByteArray()),
+				decryptedBytes,
+				encryptedBytes.size().toLong(),
+				true
+			)
 			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
 		}
 	}
@@ -139,12 +208,17 @@ class CompatibilityTest {
 	fun rsa() = runBlocking {
 		for (testData in testData.rsaEncryptionTests) {
 			val publicKeyJSON = hexToPublicKey(testData.publicKey)
-			val encryptedResult: ByteArray = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.input).wrap(), hexToBytes(testData.seed).wrap()).data
+			val encryptedResult: ByteArray = crypto.rsaEncrypt(
+				publicKeyJSON,
+				hexToBytes(testData.input).wrap(),
+				hexToBytes(testData.seed).wrap()
+			).data
 			val hexResult = bytesToHex(encryptedResult)
 			assertEquals(testData.result, hexResult)
 			val plainText = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), encryptedResult.wrap()).data
 			assertEquals(testData.input, bytesToHex(plainText))
-			val plainTextFromTestData = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), hexToBytes(testData.result).wrap()).data
+			val plainTextFromTestData =
+				crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), hexToBytes(testData.result).wrap()).data
 			assertEquals(testData.input, bytesToHex(plainTextFromTestData))
 		}
 	}
@@ -221,24 +295,24 @@ class CompatibilityTest {
 		private fun arrayToRsaPrivateKey(keyArray: Array<BigInteger>): RsaPrivateKey {
 			val keyParts = keyArray.map { it.toByteArray().toBase64() }
 			return RsaPrivateKey(
-					version = 0,
-					modulus = keyParts[0],
-					privateExponent = keyParts[1],
-					primeP = keyParts[2],
-					primeQ = keyParts[3],
-					primeExponentP = keyParts[4],
-					primeExponentQ = keyParts[5],
-					crtCoefficient = keyParts[6],
-					keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,
+				version = 0,
+				modulus = keyParts[0],
+				privateExponent = keyParts[1],
+				primeP = keyParts[2],
+				primeQ = keyParts[3],
+				primeExponentP = keyParts[4],
+				primeExponentQ = keyParts[5],
+				crtCoefficient = keyParts[6],
+				keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,
 			)
 		}
 
 		private fun arrayToRsaPublicKey(keyArray: Array<BigInteger>): RsaPublicKey {
 			return RsaPublicKey(
-					version = 0,
-					modulus = keyArray[0].toByteArray().toBase64(),
-					keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,
-					publicExponent = AndroidNativeCryptoFacade.RSA_PUBLIC_EXPONENT,
+				version = 0,
+				modulus = keyArray[0].toByteArray().toBase64(),
+				keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,
+				publicExponent = AndroidNativeCryptoFacade.RSA_PUBLIC_EXPONENT,
 			)
 		}
 
@@ -250,7 +324,9 @@ class CompatibilityTest {
 			return data
 		}
 
-		private val hexArray = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
+		private val hexArray =
+			charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
+
 		private fun bytesToHex(bytes: ByteArray): String {
 			val hexChars = CharArray(bytes.size * 2)
 			var v: Int
@@ -279,7 +355,8 @@ class CompatibilityTest {
 					val readBytes = `in`.read(byteArray)
 					if (readBytes != byteArrayLength) {
 						throw RuntimeException(
-								"cannot read encoded byte array at pos:" + pos + " expected bytes:" + byteArrayLength + " read bytes:" + readBytes + " read byte arrays:" + byteArrays.size)
+							"cannot read encoded byte array at pos:" + pos + " expected bytes:" + byteArrayLength + " read bytes:" + readBytes + " read byte arrays:" + byteArrays.size
+						)
 					}
 					byteArrays.add(byteArray.copyOf(byteArrayLength))
 					pos += byteArrayLength

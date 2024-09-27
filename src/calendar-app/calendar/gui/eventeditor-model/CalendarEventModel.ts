@@ -65,20 +65,19 @@ import {
 	MailboxProperties,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { User } from "../../../../common/api/entities/sys/TypeRefs.js"
-import { MailboxDetail } from "../../../../common/mailFunctionality/MailModel.js"
+import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
 	AlarmInterval,
 	areRepeatRulesEqual,
-	CalendarEventValidity,
-	checkEventValidity,
 	DefaultDateProvider,
+	findFirstPrivateCalendar,
 	getTimeZone,
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, getFirstOrThrow, identity, lazy, Require } from "@tutao/tutanota-utils"
+import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/tutanota-utils"
 import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
+import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
@@ -204,7 +203,7 @@ export async function makeCalendarEventModel(
 		initialValues,
 		calendars,
 		ownMailAddresses.map(({ address }) => address),
-		user,
+		logins.getUserController(),
 	)
 
 	const makeEditModels = (initializationEvent: CalendarEvent) => ({
@@ -457,20 +456,6 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
 	) // we ignore the names
 }
 
-export function assertEventValidity(event: CalendarEvent) {
-	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
-			throw new UserError("invalidDate_msg")
-		case CalendarEventValidity.InvalidEndBeforeStart:
-			throw new UserError("startAfterEnd_label")
-		case CalendarEventValidity.InvalidPre1970:
-			// shouldn't happen while the check in setStartDate is still there, resetting the date each time
-			throw new UserError("pre1970Start_msg")
-		case CalendarEventValidity.Valid:
-		// event is valid, nothing to do
-	}
-}
-
 /**
  * construct a usable calendar event from the result of one or more edit operations.
  * returns the new alarms separately so they can be set up
@@ -626,7 +611,9 @@ type EventIdentityFieldNames = "uid" | "sequence" | "recurrenceId"
 function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?: Partial<CalendarEvent> | null): CalendarInfo {
 	const ownerGroup: string | null = event?._ownerGroup ?? null
 	if (ownerGroup == null || !calendars.has(ownerGroup)) {
-		return getFirstOrThrow(Array.from(calendars.values()))
+		const calendar = findFirstPrivateCalendar(calendars)
+		if (!calendar) throw new Error("Can't find a private calendar")
+		return calendar
 	} else {
 		return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
 	}

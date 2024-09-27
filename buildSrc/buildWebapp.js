@@ -33,6 +33,8 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
 	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
+	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
+	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
 
 	console.log("Building app", app)
 
@@ -76,7 +78,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: [entryFile, "src/common/api/worker/worker.ts"],
+		input: [entryFile, workerFile],
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
@@ -145,7 +147,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await fs.promises.writeFile(
 		`${buildDir}/worker-bootstrap.js`,
 		`importScripts("./polyfill.js")
-const importPromise = System.import("./worker.js")
+const importPromise = System.import("./${builtWorkerFile}")
 self.onmessage = function (msg) {
 	importPromise.then(function () {
 		self.onmessage(msg)

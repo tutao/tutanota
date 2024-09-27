@@ -1,5 +1,4 @@
 import { promiseMap } from "@tutao/tutanota-utils"
-import type { MailBundle } from "../../../mail-app/mail/export/Bundler"
 import { FileReference } from "../../api/common/utils/FileUtils"
 import { DataFile } from "../../api/common/DataFile"
 import { HttpMethod } from "../../api/common/EntityFunctions"
@@ -7,6 +6,7 @@ import { FileFacade } from "./generatedipc/FileFacade.js"
 import { ExportFacade } from "./generatedipc/ExportFacade.js"
 import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse"
 import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse"
+import { MailBundle } from "../../mailFunctionality/SharedMailUtils.js"
 
 export type FileUri = string
 

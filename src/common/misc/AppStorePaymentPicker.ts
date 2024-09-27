@@ -2,6 +2,7 @@ import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import { PaymentMethodType } from "../api/common/TutanotaConstants.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator.js"
+import { client } from "./ClientDetector.js"
 
 export class AppStorePaymentPicker {
 	private appStorePaymentUsageTest: lazy<UsageTest> = () => {
@@ -9,6 +10,11 @@ export class AppStorePaymentPicker {
 	}
 
 	async shouldEnableAppStorePayment(currentPaymentMethod: PaymentMethodType | null): Promise<boolean> {
+		// AppStore payments are disabled for the first Tuta Calendar release
+		if (client.isCalendarApp()) {
+			return false
+		}
+
 		// Prevent users with AppStorePayment from losing the ability to modify their plan
 		if (currentPaymentMethod === PaymentMethodType.AppStore) {
 			return true

@@ -3,6 +3,8 @@ use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Debug, Display, Formatter};
 
+pub const CUSTOM_ID_STRUCT_NAME: &str = "CustomId";
+
 /// An ID that uses arbitrary data encoded in base64
 #[derive(Clone, Default, PartialEq, PartialOrd)]
 #[repr(transparent)]
@@ -51,7 +53,7 @@ impl Serialize for CustomId {
 	where
 		S: Serializer,
 	{
-		serializer.serialize_newtype_struct("CustomId", &self.0)
+		serializer.serialize_newtype_struct(CUSTOM_ID_STRUCT_NAME, &self.0)
 	}
 }
 

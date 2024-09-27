@@ -2,7 +2,7 @@ import m from "mithril"
 import type { TranslationKey } from "../../common/misc/LanguageViewModel"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { isDomainOrTopLevelDomain, isMailAddress } from "../../common/misc/FormatValidator"
-import { getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../common/api/common/TutanotaConstants"
+import { getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTA_MAIL_ADDRESS_DOMAINS } from "../../common/api/common/TutanotaConstants"
 import { contains, neverNull, objectEntries } from "@tutao/tutanota-utils"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { EmailSenderListElement } from "../../common/api/entities/sys/TypeRefs.js"
@@ -140,7 +140,7 @@ function validate(
 function isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
 	if (type !== SpamRuleType.WHITELIST) {
 		if (isDomainOrTopLevelDomain(value)) {
-			return value === "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
+			return value === "tutao.de" || contains(TUTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
 		} else if (isMailAddress(value, false)) {
 			let domain = value.split("@")[1]
 			return domain === "tutao.de" || contains(customDomains, domain)

@@ -15,7 +15,6 @@ import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../.
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
-import { WorkerImpl } from "../../../../../src/common/api/worker/WorkerImpl"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper"
 import { CryptoFacade, encryptString } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/common/api/worker/rest/CacheStorageProxy"
@@ -83,7 +82,6 @@ async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, user
 
 o.spec("LoginFacadeTest", function () {
 	let facade: LoginFacade
-	let workerMock: WorkerImpl
 	let serviceExecutor: IServiceExecutor
 	let restClientMock: RestClient
 	let entityClientMock: EntityClient
@@ -103,7 +101,6 @@ o.spec("LoginFacadeTest", function () {
 	const login = "born.slippy@tuta.io"
 
 	o.beforeEach(function () {
-		workerMock = instance(WorkerImpl)
 		serviceExecutor = object()
 		when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
 			createTestEntity(SaltReturnTypeRef, { salt: SALT, kdfVersion: DEFAULT_KDF_TYPE }),
@@ -143,7 +140,6 @@ o.spec("LoginFacadeTest", function () {
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)
 
 		facade = new LoginFacade(
-			workerMock,
 			restClientMock,
 			entityClientMock,
 			loginListener,
@@ -158,6 +154,7 @@ o.spec("LoginFacadeTest", function () {
 			databaseKeyFactoryMock,
 			argon2idFacade,
 			entityClientMock,
+			async (error: Error) => {},
 		)
 
 		eventBusClientMock = instance(EventBusClient)

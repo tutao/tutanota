@@ -14,7 +14,7 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../common/gui/styles.js"
-import { KindaCalendarRow } from "../../../calendar-app/calendar/view/CalendarRow.js"
+import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 
 assertMainOrNode()
@@ -49,8 +49,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		return attrs.listModel.isEmptyAndDone()
 			? m(ColumnEmptyMessageBox, {
 					icon,
-					message: () =>
-						lang.get("searchNoResults_msg") + "\n" + (attrs.isFreeAccount ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label")),
+					message: () => lang.get("searchNoResults_msg"),
 					color: theme.list_message_bg,
 			  })
 			: m(List, {

@@ -1,20 +1,24 @@
 package de.tutao.tutanota
 
-import de.tutao.tutanota.alarms.AlarmInterval
-import de.tutao.tutanota.alarms.AlarmIntervalUnit
-import de.tutao.tutanota.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutanota.alarms.AlarmNotificationEntity
-import de.tutao.tutanota.alarms.AlarmNotificationEntity.NotificationSessionKey
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.EncryptedAlarmInfo
-import de.tutao.tutanota.alarms.EncryptedAlarmNotification
-import de.tutao.tutanota.alarms.EncryptedRepeatRule
-import de.tutao.tutanota.alarms.EndType
-import de.tutao.tutanota.alarms.RepeatPeriod
 import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.alarms.toEntity
 import de.tutao.tutanota.push.LocalNotificationsFacade
-import de.tutao.tutanota.push.SseStorage
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.OperationType
+import de.tutao.tutashared.alarms.AlarmInterval
+import de.tutao.tutashared.alarms.AlarmIntervalUnit
+import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
+import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmInfo
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.EncryptedRepeatRule
+import de.tutao.tutashared.alarms.EndType
+import de.tutao.tutashared.alarms.RepeatPeriod
+import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toBase64
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,6 +67,7 @@ class AlarmNotificationsManagerTest {
 		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
 			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(true)
 	}
 
 	@Test
@@ -135,6 +140,17 @@ class AlarmNotificationsManagerTest {
 			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
 	}
 
+	@Test
+	fun testNotScheduleAlarmForMailAppWithReceiveCalendarNotificationsFalse() {
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(false)
+		val identifier = "newAlarm"
+		val startDate = Date()
+		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null)
+		manager.scheduleNewAlarms(listOf(alarmNotifications))
+		Mockito.verify(systemAlarmFacade, Mockito.never())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
+	}
+
 	private fun createEncryptedAlarmNotification(
 		userId: String,
 		alarmIdentifier: String,
@@ -148,7 +164,7 @@ class AlarmNotificationsManagerTest {
 		} catch (cryptoError: CryptoError) {
 			throw RuntimeException(cryptoError)
 		}
-		val notificationSessionKey = NotificationSessionKey(
+		val notificationSessionKey = AlarmNotificationEntity.NotificationSessionKey(
 			IdTuple("listId", pushIdentifierElementId),
 			encSessionKey.toBase64()
 		)
