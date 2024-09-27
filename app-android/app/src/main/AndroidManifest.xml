@@ -202,6 +202,14 @@
 			</intent-filter>
 		</receiver>
 
+		<receiver
+				android:name=".push.MailNotificationActionReceiver"
+				android:exported="false">
+			<intent-filter>
+				<action android:name="de.tutao.tutanota.MAIL_ACTION_RECEIVER"/>
+			</intent-filter>
+		</receiver>
+
 		<meta-data
 				android:name="android.webkit.WebView.MetricsOptOut"
 				android:value="true"/>
