@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">En uventet feil oppstod. Vil du sende en feilmelding? Du kan legge ved en melding for å hjelpe oss løse denne feilen.</string>
     <string name="downloadCompleted_msg">Nedlastingen er fullført</string>
     <string name="unlockCredentials_action">Lås opp opplysninger</string>
+    <string name="delete_action">Slett</string>
+    <string name="markRead_action">Marker som lest</string>
 </resources>

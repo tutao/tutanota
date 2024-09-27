@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Десило се нешто неочекивано. Да ли желите да пошаљете извештај о грешци? Можете додати текст грешке како би нам помогли да је поправимо.</string>
     <string name="downloadCompleted_msg">Преузимање је завршено</string>
     <string name="unlockCredentials_action">Откључај акредитиве</string>
+    <string name="delete_action">Обриши</string>
+    <string name="markRead_action">Означи прочитано</string>
 </resources>

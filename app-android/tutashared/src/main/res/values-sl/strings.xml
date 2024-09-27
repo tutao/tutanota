@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Nekaj nepričakovanega se je zgodilo. Ali želite poslati poročilo? Lahko dodate sporočila, da nam pomagate popraviti to napako.</string>
     <string name="downloadCompleted_msg">Prenos končan</string>
     <string name="unlockCredentials_action">Odkleni poverilnice</string>
+    <string name="delete_action">Izbriši</string>
+    <string name="markRead_action">Označi prebrano</string>
 </resources>

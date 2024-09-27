@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">لقد حدث شيء خطأ وغير متوقع. هل تريد إرسال تقرير عن الخطأ؟ يمكنك إضافة رسالة لمساعدتنا في إصلاح هذا الخطأ.</string>
     <string name="downloadCompleted_msg">اكتملت عملية التنزيل</string>
     <string name="unlockCredentials_action">إلغاء بيانات الاعتماد</string>
+    <string name="delete_action">حذف</string>
+    <string name="markRead_action">علِم كمقروء</string>
 </resources>

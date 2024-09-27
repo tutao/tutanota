@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "hatırlatıcı";
 TutaoScheduleAlarmError = "Alarm kurulamadı. Lütfen uygulamayı güncelleyin.";
 TutaoUnlockCredentialsAction = "Kimlik bilgilerini çöz";
 TutaoPushNewMail = "Yeni e-posta alındı.";
+TutaoDeleteAction = "Sil";
+TutaoMarkReadAction = "Okunmuş olarak işaretle";

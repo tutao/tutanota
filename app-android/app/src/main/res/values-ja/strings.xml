@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">予期しないエラーが発生しました。エラーレポートを送信しますか？　エラーレポートにメッセージを追加していただければ、問題解決に役立たせていただきます。</string>
     <string name="downloadCompleted_msg">ダウンロードが完了しました</string>
     <string name="unlockCredentials_action">ログイン情報のロックを解除</string>
+    <string name="delete_action">削除</string>
+    <string name="markRead_action">既読にする</string>
 </resources>
