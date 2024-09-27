@@ -1,3 +1,6 @@
+import com.android.build.gradle.internal.tasks.FinalizeBundleTask
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
+
 plugins {
 	id("com.android.application")
 	id("org.jetbrains.kotlin.android")
@@ -83,11 +86,27 @@ android {
 		val variant = this
 		variant.outputs.configureEach {
 			val flavor = variant.productFlavors[0].name
-			// The cast is needed because outputFileName isn't directly accessible in .kts files
-			// And the outputFile.renameTo function runs at the beginning of the build process
-			// which will make the build script try to move a file that doesn't exist (yet)
-			(this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-				"calendar-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
+
+			val bundleName = "calendar-$flavor-${variant.buildType.name}-${variant.versionName}.aab"
+
+			val taskName = StringBuilder("sign").run {
+				//Add a task to rename the output file
+				productFlavors.forEach {
+					append(it.name.capitalizeAsciiOnly())
+				}
+
+				append(buildType.name.capitalizeAsciiOnly())
+				append("Bundle")
+
+				toString()
+			}
+
+			// Register the task to run at the end of the build
+			tasks.named(taskName, FinalizeBundleTask::class.java) {
+				val file = finalBundleFile.asFile.get()
+				val finalFile = File(file.parentFile, bundleName)
+				finalBundleFile.set(finalFile)
+			}
 		}
 	}
 

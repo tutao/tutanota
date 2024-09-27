@@ -50,6 +50,46 @@ await program
 	})
 	.parseAsync(process.argv)
 
+async function buildCalendarBundle({ buildType }) {
+	const { version } = JSON.parse(await $`cat package.json`.quiet())
+
+	const bundleName = `calendar-tutao-${buildType}-${version}.aab`
+	const bundlePath = `app-android/calendar/build/outputs/bundle/tutao${buildType.charAt(0).toUpperCase() + buildType.slice(1)}/${bundleName}`
+	const outPath = `./build-calendar-app/app-android/${bundleName}`
+
+	cd("./app-android")
+
+	await $`./gradlew :calendar:bundleTutao${buildType}`
+
+	cd("..")
+
+	await $`mkdir -p build-calendar-app/app-android`
+	await $`mv ${bundlePath} ${outPath}`
+
+	log(`Build complete. The AAB is located at: ${outPath}`)
+
+	return outPath
+}
+
+async function buildMailApk({ buildType }) {
+	const { version } = JSON.parse(await $`cat package.json`.quiet())
+	const apkName = `tutanota-app-tutao-${buildType}-${version}.apk`
+	const apkPath = `app-android/app/build/outputs/apk/tutao/${buildType}/${apkName}`
+
+	const outPath = `./build/app-android/${apkName}`
+
+	cd("./app-android")
+	await $`./gradlew :app:assembleTutao${buildType}`
+
+	cd("..")
+	await $`mkdir -p build/app-android`
+	await $`mv ${apkPath} ${outPath}`
+
+	log(`Build complete. The APK is located at: ${outPath}`)
+
+	return outPath
+}
+
 async function buildAndroid({ stage, host, buildType, existing, webClient, app }) {
 	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 	if (!existing) {
@@ -87,18 +127,9 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 		// Ignoring the error if the folder is not there
 	}
 
-	const appTarget = app === "mail" ? "app" : "calendar"
-	const { version } = JSON.parse(await $`cat package.json`.quiet())
-	const apkName = `${app === "mail" ? "tutanota-app" : "calendar"}-tutao-${buildType}-${version}.apk`
-	const apkPath = `app-android/${appTarget}/build/outputs/apk/tutao/${buildType}/${apkName}`
-	const outPath = `./${buildDir}/app-android/${apkName}`
-	cd("./app-android")
-	await $`./gradlew :${appTarget}:assembleTutao${buildType}`
-	cd("..")
-	await $`mkdir -p ${buildDir}/app-android`
-	await $`mv ${apkPath} ${outPath}`
-
-	log(`Build complete. The APK is located at: ${outPath}`)
-
-	return outPath
+	if (app === "mail") {
+		return await buildMailApk({ buildType })
+	} else {
+		return await buildCalendarBundle({ buildType })
+	}
 }
