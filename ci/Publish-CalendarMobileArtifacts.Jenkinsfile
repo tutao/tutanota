@@ -12,7 +12,7 @@ pipeline {
         booleanParam(
             name: 'googlePlayStore',
             defaultValue: true,
-            description: "Uploads android artifacts (apk) to Google PlayStore as a Draft on the public track."
+            description: "Uploads android artifacts (aab) to Google PlayStore as a Draft on the public track."
         )
         booleanParam(
             name: 'appleAppStore',
@@ -82,7 +82,7 @@ pipeline {
 				stage("Github Android Release Notes") {
 					environment {
 						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
-						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${env.VERSION}.apk"
+						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${env.VERSION}.aab"
 					}
 					when {
 						expression {
@@ -117,7 +117,7 @@ pipeline {
 				stage("Android App") {
 					environment {
 						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
-						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.apk"
+						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.aab"
 						GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-android-release-${VERSION}"
 					}
 					when {
@@ -132,7 +132,7 @@ pipeline {
 													artifactId: "calendar-android",
 													version: "${env.VERSION}",
 													outFile: "${env.WORKSPACE}/${env.FILE_PATH}",
-													fileExtension: 'apk')
+													fileExtension: 'aab')
 							if (!fileExists("${env.FILE_PATH}")) {
 								currentBuild.result = 'ABORTED'
 								error("Unable to find file ${env.FILE_PATH}")
