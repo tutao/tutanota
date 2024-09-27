@@ -64,7 +64,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b releaseTest test -a calendar'
 						}
-						stash includes: "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk", name: 'apk-testing'
+						stash includes: "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab", name: 'aab-testing'
 					}
 				} // stage testing
 				stage('Production') {
@@ -92,7 +92,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b release prod -a calendar'
 						}
-						stash includes: "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.apk", name: 'apk-production'
+						stash includes: "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.aab", name: 'aab-production'
 					}
 				} // stage production
 			}
@@ -107,14 +107,14 @@ pipeline {
 					steps {
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							unstash 'apk-testing'
+							unstash 'aab-testing'
 
 							util.publishToNexus(
 									groupId: "app",
 									artifactId: "calendar-android-test",
 									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk",
-									fileExtension: 'apk'
+									assetFilePath: "${WORKSPACE}/build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab",
+									fileExtension: 'aab'
 							)
 						}
 					}
@@ -122,10 +122,10 @@ pipeline {
 				stage('Production') {
 					steps {
 						sh 'npm ci'
-						unstash 'apk-production'
+						unstash 'aab-production'
 
 						script {
-							def filePath = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.apk"
+							def filePath = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.aab"
 							def util = load "ci/jenkins-lib/util.groovy"
 
 							util.publishToNexus(
@@ -133,7 +133,7 @@ pipeline {
 									artifactId: "calendar-android",
 									version: "${VERSION}",
 									assetFilePath: "${WORKSPACE}/${filePath}",
-									fileExtension: 'apk'
+									fileExtension: 'aab'
 							)
 						}
 					}
