@@ -104,14 +104,14 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
 
 			const senderKeyVersion = "1"
-			const identifier = object<string>()
-			const identifierType = PublicKeyIdentifierType.MAIL_ADDRESS
+			const recipientIdentifier = object<string>()
+			const recipientIdentifierType = PublicKeyIdentifierType.MAIL_ADDRESS
 			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
 				pubEncSymKey,
 				protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 				senderKeyVersion,
-				identifier,
-				identifierType,
+				recipientIdentifier,
+				recipientIdentifierType,
 			})
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
 				decryptedSymKeyBytes: symKey,
@@ -122,8 +122,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					PublicKeyService,
 					createPublicKeyGetIn({
 						version: senderKeyVersion,
-						identifierType,
-						identifier,
+						identifierType: recipientIdentifierType,
+						identifier: recipientIdentifier,
 					}),
 				),
 			).thenResolve({ pubEccKey: new Uint8Array([4, 5, 6]) })

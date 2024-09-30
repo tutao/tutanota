@@ -402,12 +402,12 @@
 				{
 					"name": "RenameAttribute",
 					"sourceType": "PubEncKeyData",
-					"info": "RenameAttribute PubEncKeyData: mailAddress -> identifier."
+					"info": "RenameAttribute PubEncKeyData: mailAddress -> recipientIdentifier."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "PubEncKeyData",
-					"info": "AddValue PubEncKeyData/identifierType/2469."
+					"info": "AddValue PubEncKeyData/recipientIdentifierType/2469."
 				},
 				{
 					"name": "ChangeValueCardinality",

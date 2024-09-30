@@ -2788,11 +2788,11 @@ impl Entity for PriceServiceReturn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct PubEncKeyData {
 	pub _id: CustomId,
-	pub identifier: String,
-	pub identifierType: i64,
 	pub protocolVersion: i64,
 	#[serde(with = "serde_bytes")]
 	pub pubEncSymKey: Vec<u8>,
+	pub recipientIdentifier: String,
+	pub recipientIdentifierType: i64,
 	pub recipientKeyVersion: i64,
 	pub senderKeyVersion: Option<i64>,
 }

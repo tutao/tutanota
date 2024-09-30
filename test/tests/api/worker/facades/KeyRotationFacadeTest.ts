@@ -659,8 +659,8 @@ o.spec("KeyRotationFacadeTest", function () {
 					o(pubEncBucketKeyData.protocolVersion).deepEquals(protocolVersion)
 					o(pubEncBucketKeyData.senderKeyVersion).deepEquals(user.userGroup.groupKeyVersion)
 					o(pubEncBucketKeyData.recipientKeyVersion).deepEquals(recipientKeyVersion)
-					o(pubEncBucketKeyData.identifier).deepEquals(memberMailAddress)
-					o(pubEncBucketKeyData.identifierType).deepEquals(PublicKeyIdentifierType.MAIL_ADDRESS)
+					o(pubEncBucketKeyData.recipientIdentifier).deepEquals(memberMailAddress)
+					o(pubEncBucketKeyData.recipientIdentifierType).deepEquals(PublicKeyIdentifierType.MAIL_ADDRESS)
 				})
 
 				o("Rotated group has deactivated members", async function () {

@@ -702,8 +702,8 @@ export class KeyRotationFacade {
 				if (recipientKeyData != null && isSameTypeRef(recipientKeyData._type, InternalRecipientKeyDataTypeRef)) {
 					const keyData = recipientKeyData as InternalRecipientKeyData
 					const pubEncKeyData = createPubEncKeyData({
-						identifier: keyData.mailAddress,
-						identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+						recipientIdentifier: keyData.mailAddress,
+						recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 						pubEncSymKey: keyData.pubEncBucketKey,
 						recipientKeyVersion: keyData.recipientKeyVersion,
 						senderKeyVersion: keyData.senderKeyVersion,
@@ -951,8 +951,8 @@ export class KeyRotationFacade {
 		})
 
 		return createPubEncKeyData({
-			identifier: senderUserGroupId,
-			identifierType: PublicKeyIdentifierType.GROUP_ID,
+			recipientIdentifier: senderUserGroupId,
+			recipientIdentifierType: PublicKeyIdentifierType.GROUP_ID,
 			pubEncSymKey: pubEncSymKey.pubEncSymKeyBytes,
 			protocolVersion: pubEncSymKey.cryptoProtocolVersion,
 			senderKeyVersion: pubEncSymKey.senderKeyVersion != null ? pubEncSymKey.senderKeyVersion.toString() : null,
