@@ -87,6 +87,12 @@ android {
 		variant.outputs.configureEach {
 			val flavor = variant.productFlavors[0].name
 
+			// The cast is needed because outputFileName isn't directly accessible in .kts files
+			// And the outputFile.renameTo function runs at the beginning of the build process
+			// which will make the build script try to move a file that doesn't exist (yet)
+			(this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+				"calendar-$flavor-${variant.buildType.name}-${variant.versionName}.apk"
+
 			val bundleName = "calendar-$flavor-${variant.buildType.name}-${variant.versionName}.aab"
 
 			val taskName = StringBuilder("sign").run {
