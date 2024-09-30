@@ -104,6 +104,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
 
 			const senderKeyVersion = "1"
+			const senderIdentifier = object<string>()
+			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
 			const recipientIdentifier = object<string>()
 			const recipientIdentifierType = PublicKeyIdentifierType.MAIL_ADDRESS
 			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
@@ -122,13 +124,18 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					PublicKeyService,
 					createPublicKeyGetIn({
 						version: senderKeyVersion,
-						identifierType: recipientIdentifierType,
-						identifier: recipientIdentifier,
+						identifierType: senderIdentifierType,
+						identifier: senderIdentifier,
 					}),
 				),
 			).thenResolve({ pubEccKey: new Uint8Array([4, 5, 6]) })
 
-			await assertThrows(CryptoError, () => asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData))
+			await assertThrows(CryptoError, () =>
+				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData, {
+					identifier: senderIdentifier,
+					identifierType: senderIdentifierType,
+				}),
+			)
 		})
 
 		o("should not try authentication when protocol is not TutaCrypt", async function () {
@@ -139,10 +146,16 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderKeyVersion: null,
 			})
 
+			const senderIdentifier = object<string>()
+			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
+
 			const symKey = new Uint8Array([1, 2, 3, 4])
 			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(symKey)
 
-			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData)
+			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData, {
+				identifier: senderIdentifier,
+				identifierType: senderIdentifierType,
+			})
 
 			verify(serviceExecutor.get(PublicKeyService, matchers.anything()), { times: 0 })
 			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: uint8ArrayToBitArray(symKey) })

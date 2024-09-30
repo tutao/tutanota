@@ -1,4 +1,4 @@
-import { CounterType, GroupType } from "../../../common/TutanotaConstants.js"
+import { CounterType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
 import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
@@ -310,7 +310,10 @@ export class GroupManagementFacade {
 	private async decryptViaAsymmetricAdminGKey(group: Group, requiredAdminKeyVersion: number): Promise<VersionedKey> {
 		const requiredAdminGroupKeyPair = await this.keyLoaderFacade.loadKeypair(assertNotNull(group.admin), requiredAdminKeyVersion)
 		const pubEncKeyData = assertNotNull(group.pubAdminGroupEncGKey)
-		const decryptedKey = await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(requiredAdminGroupKeyPair, pubEncKeyData)
+		const decryptedKey = await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(requiredAdminGroupKeyPair, pubEncKeyData, {
+			identifier: group._id,
+			identifierType: PublicKeyIdentifierType.GROUP_ID,
+		})
 		return { object: decryptedKey.decryptedAesKey, version: Number(group.groupKeyVersion) }
 	}
 }

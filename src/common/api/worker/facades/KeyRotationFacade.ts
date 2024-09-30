@@ -909,7 +909,7 @@ export class KeyRotationFacade {
 		)
 		const recoverCodeData = await this.reencryptRecoverCodeIfExists(user, pwKey, newUserGroupKeys)
 
-		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(newUserGroupKeys, adminPublicKeyGetOut, userGroupId)
+		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdmin(newUserGroupKeys, adminPublicKeyGetOut, adminGroupId)
 
 		const userGroupKeyData = createUserGroupKeyRotationData({
 			userGroupKeyVersion: String(newUserGroupKeys.symGroupKey.version),
@@ -931,7 +931,7 @@ export class KeyRotationFacade {
 	private async encryptUserGroupKeyForAdmin(
 		newUserGroupKeys: GeneratedGroupKeys,
 		publicKeyGetOut: PublicKeyGetOut,
-		senderUserGroupId: Id,
+		adminGroupId: Id,
 	): Promise<PubEncKeyData> {
 		const adminPubKeys: Versioned<PublicKeys> = {
 			version: Number(publicKeyGetOut.pubKeyVersion),
@@ -951,7 +951,7 @@ export class KeyRotationFacade {
 		})
 
 		return createPubEncKeyData({
-			recipientIdentifier: senderUserGroupId,
+			recipientIdentifier: adminGroupId,
 			recipientIdentifierType: PublicKeyIdentifierType.GROUP_ID,
 			pubEncSymKey: pubEncSymKey.pubEncSymKeyBytes,
 			protocolVersion: pubEncSymKey.cryptoProtocolVersion,

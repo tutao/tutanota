@@ -92,7 +92,12 @@ o.spec("GroupManagementFacadeTest", function () {
 			when(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminGroupKeyVersion)).thenResolve(adminGroupKeyBytes)
 			when(cryptoWrapper.decryptKey(adminGroupKeyBytes, adminGroupEncGKey)).thenReturn(groupKeyBytes)
 			when(keyLoaderFacade.loadKeypair(adminGroupId, adminGroupKeyVersion)).thenResolve(adminGroupKeyPair)
-			when(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminGroupKeyPair, pubAdminGroupEncGKey)).thenResolve({
+			when(
+				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminGroupKeyPair, pubAdminGroupEncGKey, {
+					identifier: groupId,
+					identifierType: PublicKeyIdentifierType.GROUP_ID,
+				}),
+			).thenResolve({
 				decryptedAesKey: groupKeyBytes,
 				senderIdentityPubKey: pubUserGroupEccKey,
 			})
@@ -106,7 +111,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			o(groupKey.version).equals(groupKeyVersion)
 			o(groupKey.object).deepEquals(groupKeyBytes)
 			verify(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminGroupKeyVersion))
-			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
 		o("asymmetric decryption", async function () {
@@ -117,7 +122,13 @@ o.spec("GroupManagementFacadeTest", function () {
 			o(groupKey.version).equals(groupKeyVersion)
 			o(groupKey.object).deepEquals(groupKeyBytes)
 			verify(keyLoaderFacade.loadKeypair(adminGroupId, adminGroupKeyVersion))
-			verify(asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminGroupKeyPair, pubAdminGroupEncGKey), { times: 1 })
+			verify(
+				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminGroupKeyPair, pubAdminGroupEncGKey, {
+					identifier: groupId,
+					identifierType: PublicKeyIdentifierType.GROUP_ID,
+				}),
+				{ times: 1 },
+			)
 		})
 
 		o("decrypt with the group membership key if the admin happens to be a member of the target group", async function () {

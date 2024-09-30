@@ -86,17 +86,19 @@ export class AsymmetricCryptoFacade {
 	 * If the protocol does not support authentication this method will only decrypt.
 	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion and must be of the required recipientKeyVersion.
 	 * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
+	 * @param senderIdentifier the identifier for the sender's key group
 	 * @throws CryptoError in case the authentication fails.
 	 */
-	async decryptSymKeyWithKeyPairAndAuthenticate(recipientKeyPair: AsymmetricKeyPair, pubEncKeyData: PubEncKeyData): Promise<DecapsulatedAesKey> {
+	async decryptSymKeyWithKeyPairAndAuthenticate(
+		recipientKeyPair: AsymmetricKeyPair,
+		pubEncKeyData: PubEncKeyData,
+		senderIdentifier: PublicKeyIdentifier,
+	): Promise<DecapsulatedAesKey> {
 		const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
 		const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
 		if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
 			const encryptionAuthStatus = await this.authenticateSender(
-				{
-					identifier: pubEncKeyData.recipientIdentifier,
-					identifierType: asPublicKeyIdentifier(pubEncKeyData.recipientIdentifierType),
-				},
+				senderIdentifier,
 				assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
 				Number(assertNotNull(pubEncKeyData.senderKeyVersion)),
 			)
