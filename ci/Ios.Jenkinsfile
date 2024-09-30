@@ -52,6 +52,7 @@ pipeline {
 				script {
 					stubClientDirectory()
 					generateXCodeProjects()
+					generateCalendarProject()
 					dir('app-ios') {
 						sh 'fastlane test'
 					}
@@ -173,6 +174,7 @@ void stubClientDirectory() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
+		sh "mkdir build-calendar-app"
     	sh "mkdir build"
 	}
 }
@@ -200,8 +202,11 @@ void generateXCodeProject(String projectPath, String spec) {
 // Runs xcodegen on all of our project specs
 void generateXCodeProjects() {
 	generateXCodeProject("app-ios", "mail-project")
-	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
+}
+
+void generateCalendarProject() {
+	generateXCodeProject("app-ios", "calendar-project")
 }
 
 
