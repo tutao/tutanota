@@ -66,7 +66,7 @@ pub fn generate_random_group(
 			_id: CustomId::test_random(),
 			recipientIdentifier: "adminGroupId".to_string(),
 			recipientIdentifierType: PublicKeyIdentifierType::GroupId as i64,
-			protocolVersion: CryptoProtocolVersion::Tutacrypt as i64,
+			protocolVersion: CryptoProtocolVersion::TutaCrypt as i64,
 			pubEncSymKey: vec![1, 2, 3],
 			recipientKeyVersion: 0,
 			senderKeyVersion: Some(0),

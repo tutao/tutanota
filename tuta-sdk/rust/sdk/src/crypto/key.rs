@@ -3,15 +3,20 @@ use super::rsa::*;
 use super::tuta_crypt::*;
 use crate::util::ArrayCastingError;
 use crate::ApiCallError;
+use std::fmt::{Debug, Formatter};
 use zeroize::Zeroizing;
 
 #[derive(Clone, PartialEq)]
-#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 #[allow(clippy::large_enum_variant)]
 pub enum AsymmetricKeyPair {
 	RSAKeyPair(RSAKeyPair),
 	RSAEccKeyPair(RSAEccKeyPair),
 	PQKeyPairs(PQKeyPairs),
+}
+
+pub enum AsymmetricPublicKey {
+	RsaPublicKey(RSAPublicKey),
+	PqPublicKeys(TutaCryptPublicKeys),
 }
 
 impl From<RSAKeyPair> for AsymmetricKeyPair {
@@ -29,6 +34,16 @@ impl From<RSAEccKeyPair> for AsymmetricKeyPair {
 impl From<PQKeyPairs> for AsymmetricKeyPair {
 	fn from(value: PQKeyPairs) -> Self {
 		Self::PQKeyPairs(value)
+	}
+}
+
+impl Debug for AsymmetricKeyPair {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			AsymmetricKeyPair::RSAKeyPair(_) => f.debug_struct("RSAKeyPair").finish(),
+			AsymmetricKeyPair::RSAEccKeyPair(_) => f.debug_struct("RSAEccKeyPair").finish(),
+			AsymmetricKeyPair::PQKeyPairs(_) => f.debug_struct("PQKeyPairs").finish(),
+		}
 	}
 }
 
