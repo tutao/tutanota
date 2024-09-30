@@ -27,6 +27,7 @@ pub(crate) mod rsa;
 
 mod tuta_crypt;
 
+pub mod asymmetric_crypto_facade;
 #[cfg(test)]
 pub mod compatibility_test_utils;
 pub mod crypto_facade;

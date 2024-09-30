@@ -30,8 +30,8 @@ impl MailFacade {
 	) -> Self {
 		MailFacade {
 			crypto_entity_client,
-			service_executor,
 			user_facade,
+			service_executor,
 		}
 	}
 }

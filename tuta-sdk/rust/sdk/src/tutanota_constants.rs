@@ -1,7 +1,10 @@
 /*
 The type of the identifier to look up the public key for a group.
  */
+use num_enum::TryFromPrimitive;
+
 #[allow(dead_code)]
+#[derive(Debug, Clone)]
 #[repr(i64)]
 pub enum PublicKeyIdentifierType {
 	MailAddress = 0, // the default to retrieve public keys. identify the group by mail address.
@@ -28,3 +31,38 @@ impl ArchiveDataType {
 	}
 }
 pub const MAX_BLOB_SIZE_BYTES: usize = 1024 * 1024 * 10;
+
+/// Denotes if an entity was authenticated successfully.
+///
+/// Not all decryption methods use authentication.
+#[derive(Debug, PartialEq, Eq)]
+pub enum EncryptionAuthStatus {
+	/// The entity was decrypted with RSA which does not use authentication.
+	RSANoAuthentication = 0,
+
+	/// The entity was decrypted with Tutacrypt (PQ) and successfully authenticated.
+	TutacryptAuthenticationSucceeded = 1,
+
+	/// The entity was decrypted with Tutacrypt (PQ), but authentication failed.
+	TutacryptAuthenticationFailed = 2,
+
+	/// The entity was decrypted symmetrically (i.e. secure external) which does not use authentication.
+	AESNoAuthentication = 3,
+
+	/// The entity was sent by the user and doesn't need authenticated.
+	TutacryptSender = 4,
+}
+
+/// Used for identifying the protocol version used for encrypting a session key.
+#[derive(Debug, Clone, TryFromPrimitive, PartialEq, Eq)]
+#[repr(i64)]
+pub enum CryptoProtocolVersion {
+	/// Legacy asymmetric encryption (RSA-2048)
+	Rsa = 0,
+
+	/// Secure external
+	SymmetricEncryption = 1,
+
+	/// PQ encryption (Kyber+X25519)
+	TutaCrypt = 2,
+}

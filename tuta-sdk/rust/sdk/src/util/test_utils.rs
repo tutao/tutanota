@@ -2,7 +2,6 @@
 
 use rand::random;
 
-use crate::crypto::crypto_facade::CryptoProtocolVersion;
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::crypto::Aes256Key;
 use crate::custom_id::CustomId;
@@ -15,6 +14,7 @@ use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::ElementType::Aggregated;
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ValueType};
+use crate::tutanota_constants::CryptoProtocolVersion;
 use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 use crate::{IdTupleCustom, IdTupleGenerated};
@@ -67,7 +67,7 @@ pub fn generate_random_group(
 			_id: Some(CustomId::test_random()),
 			recipientIdentifier: "adminGroupId".to_string(),
 			recipientIdentifierType: PublicKeyIdentifierType::GroupId as i64,
-			protocolVersion: CryptoProtocolVersion::Tutacrypt as i64,
+			protocolVersion: CryptoProtocolVersion::TutaCrypt as i64,
 			pubEncSymKey: vec![1, 2, 3],
 			recipientKeyVersion: 0,
 			senderKeyVersion: Some(0),

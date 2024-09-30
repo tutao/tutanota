@@ -13,6 +13,8 @@ use thiserror::Error;
 #[cfg_attr(test, mockall_double::double)]
 use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
 use crate::blobs::blob_facade::BlobFacade;
+#[cfg_attr(test, mockall_double::double)]
+use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
@@ -197,14 +199,30 @@ impl Sdk {
 			user_facade.clone(),
 			typed_entity_client.clone(),
 		));
-		let crypto_facade = Arc::new(CryptoFacade::new(
-			key_loader.clone(),
-			self.instance_mapper.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		));
 		let entity_facade = Arc::new(EntityFacadeImpl::new(
 			self.type_model_provider.clone(),
 			RandomizerFacade::from_core(rand_core::OsRng),
+		));
+		let service_executor: Arc<ServiceExecutor> = Arc::new(ServiceExecutor::new(
+			auth_headers_provider.clone(),
+			None,
+			entity_facade.clone(),
+			self.instance_mapper.clone(),
+			self.json_serializer.clone(),
+			self.rest_client.clone(),
+			self.type_model_provider.clone(),
+			self.base_url.clone(),
+		));
+		let asymmetric_crypto_facade = Arc::new(AsymmetricCryptoFacade::new(
+			key_loader.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+			service_executor,
+		));
+		let crypto_facade: Arc<CryptoFacade> = Arc::new(CryptoFacade::new(
+			key_loader.clone(),
+			self.instance_mapper.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+			asymmetric_crypto_facade.clone(),
 		));
 		let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
 			entity_client.clone(),

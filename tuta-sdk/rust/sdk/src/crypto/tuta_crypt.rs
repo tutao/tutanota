@@ -13,6 +13,18 @@ use crate::join_slices;
 use crate::util::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 
+#[cfg_attr(test, derive(Debug))]
+pub struct DecapsulatedSymKey {
+	pub sender_identity_pub_key: EccPublicKey,
+	pub decrypted_sym_key_bytes: Aes256Key,
+}
+
+#[cfg_attr(test, derive(Debug))]
+pub struct TutaCryptPublicKeys {
+	pub ecc_public_key: EccPublicKey,
+	pub kyber_public_key: KyberPublicKey,
+}
+
 /// An encapsulated post quantum message using the Tuta Crypt protocol.
 #[derive(ZeroizeOnDrop)]
 pub struct PQMessage {
@@ -58,7 +70,7 @@ impl PQMessage {
 	}
 
 	/// Decapsulate the PQ message with the given keys.
-	pub fn decapsulate(&self, recipient_keys: &PQKeyPairs) -> Result<Aes256Key, PQError> {
+	pub fn decapsulate(&self, recipient_keys: &PQKeyPairs) -> Result<DecapsulatedSymKey, PQError> {
 		let PQKeyPairs {
 			ecc_keys,
 			kyber_keys,
@@ -85,17 +97,20 @@ impl PQMessage {
 		);
 
 		let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?.data;
-		Ok(Aes256Key::try_from(bucket_key)?)
+		Ok(DecapsulatedSymKey {
+			decrypted_sym_key_bytes: Aes256Key::try_from(bucket_key)?,
+			sender_identity_pub_key: self.sender_identity_public_key.clone(),
+		})
 	}
 
 	/// Construct a `PQMessage` containing an AES key from the given keys.
 	pub fn encapsulate(
 		sender_ecc_keypair: &EccKeyPair,
-		ephemeral_ecc_keypair: &EccKeyPair,
+		ephemeral_ecc_keypair: &EccKeyPair, //TODO this is error prone and dangerous, we should generate the key pair inside
 		recipient_ecc_key: &EccPublicKey,
 		recipient_kyber_key: &KyberPublicKey,
 		bucket_key: &Aes256Key,
-		iv: Iv,
+		iv: Iv, //TODO this is error prone and dangerous, we should generate the iv inside the aes implementation
 	) -> Result<Self, PQError> {
 		let ecc_shared_secret = ecc_encapsulate(
 			&sender_ecc_keypair.private_key,
@@ -242,8 +257,15 @@ mod tests {
 		for i in tests.pqcrypt_encryption_tests {
 			let pq_message = PQMessage::deserialize(&i.pq_message).unwrap();
 			let recipient_keys = get_recipient_keys(&i);
-			let key = pq_message.decapsulate(&recipient_keys).unwrap();
-			assert_eq!(i.bucket_key, key.as_bytes());
+			let decapsulated_sym_key = pq_message.decapsulate(&recipient_keys).unwrap();
+			assert_eq!(
+				i.bucket_key,
+				decapsulated_sym_key.decrypted_sym_key_bytes.as_bytes()
+			);
+			assert_eq!(
+				i.public_x25519_key,
+				decapsulated_sym_key.sender_identity_pub_key.as_bytes()
+			);
 		}
 	}
 
@@ -284,13 +306,25 @@ mod tests {
 			// assert_eq!(i.pq_message, encapsulation.serialize());
 
 			let decapsulation = encapsulation.decapsulate(&recipient_keys).unwrap();
-			assert_eq!(bucket_key.as_bytes(), decapsulation.as_bytes());
+			assert_eq!(
+				bucket_key.as_bytes(),
+				decapsulation.decrypted_sym_key_bytes.as_bytes()
+			);
+			assert_eq!(
+				sender_ecc_keypair.public_key,
+				decapsulation.sender_identity_pub_key
+			);
 
 			// Should be able to serialize/deserialize and still decapsulate it.
 			let reloaded = PQMessage::deserialize(&encapsulation.serialize()).unwrap();
+			let decapsulated_sym_key = reloaded.decapsulate(&recipient_keys).unwrap();
 			assert_eq!(
 				bucket_key.as_bytes(),
-				reloaded.decapsulate(&recipient_keys).unwrap().as_bytes()
+				decapsulated_sym_key.decrypted_sym_key_bytes.as_bytes()
+			);
+			assert_eq!(
+				sender_ecc_keypair.public_key,
+				decapsulated_sym_key.sender_identity_pub_key
 			);
 		}
 	}

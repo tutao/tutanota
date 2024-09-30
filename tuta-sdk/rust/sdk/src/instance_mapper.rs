@@ -1109,7 +1109,6 @@ impl Serializer for MapKeySerializer {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::crypto_facade::CryptoProtocolVersion;
 	use crate::entities::generated::sys::{Group, GroupInfo};
 	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
@@ -1118,6 +1117,7 @@ mod tests {
 	use crate::generated_id::GeneratedId;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
+	use crate::tutanota_constants::CryptoProtocolVersion;
 	use crate::tutanota_constants::PublicKeyIdentifierType;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, generate_random_group};
@@ -1330,7 +1330,7 @@ mod tests {
 				.expect("has_recipientIdentifierType")
 		);
 		assert_eq!(
-			&ElementValue::Number(CryptoProtocolVersion::Tutacrypt as i64),
+			&ElementValue::Number(CryptoProtocolVersion::TutaCrypt as i64),
 			result
 				.get("pubAdminGroupEncGKey")
 				.unwrap()
