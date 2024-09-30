@@ -71,6 +71,27 @@ async function buildCalendarBundle({ buildType }) {
 	return outPath
 }
 
+async function buildCalendarApk({ buildType }) {
+	const { version } = JSON.parse(await $`cat package.json`.quiet())
+
+	const bundleName = `calendar-tutao-${buildType}-${version}.apk`
+	const bundlePath = `app-android/calendar/build/outputs/apk/tutao/${buildType}/${bundleName}`
+	const outPath = `./build-calendar-app/app-android/${bundleName}`
+
+	cd("./app-android")
+
+	await $`./gradlew :calendar:assembleTutao${buildType}`
+
+	cd("..")
+
+	await $`mkdir -p build-calendar-app/app-android`
+	await $`mv ${bundlePath} ${outPath}`
+
+	log(`Build complete. The APK is located at: ${outPath}`)
+
+	return outPath
+}
+
 async function buildMailApk({ buildType }) {
 	const { version } = JSON.parse(await $`cat package.json`.quiet())
 	const apkName = `tutanota-app-tutao-${buildType}-${version}.apk`
@@ -130,6 +151,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 	if (app === "mail") {
 		return await buildMailApk({ buildType })
 	} else {
-		return await buildCalendarBundle({ buildType })
+		await buildCalendarBundle({ buildType })
+		return await buildCalendarApk({ buildType })
 	}
 }

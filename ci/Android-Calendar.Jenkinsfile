@@ -65,7 +65,8 @@ pipeline {
 							sh 'node android.js -b releaseTest test -a calendar'
 						}
 						stash includes: "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab", name: 'aab-testing'
-					}
+						stash includes: "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk", name: 'apk-testing'
+                    }
 				} // stage testing
 				stage('Production') {
 					when {
@@ -93,6 +94,7 @@ pipeline {
 							sh 'node android.js -b release prod -a calendar'
 						}
 						stash includes: "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.aab", name: 'aab-production'
+						stash includes: "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.apk", name: 'apk-production'
 					}
 				} // stage production
 			}
@@ -116,6 +118,15 @@ pipeline {
 									assetFilePath: "${WORKSPACE}/build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab",
 									fileExtension: 'aab'
 							)
+							unstash 'apk-testing'
+
+							util.publishToNexus(
+									groupId: "app",
+									artifactId: "calendar-android-test-apk",
+									version: "${VERSION}",
+									assetFilePath: "${WORKSPACE}/build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk",
+									fileExtension: 'apk'
+							)
 						}
 					}
 				} // stage testing
@@ -123,17 +134,26 @@ pipeline {
 					steps {
 						sh 'npm ci'
 						unstash 'aab-production'
+						unstash 'apk-production'
 
 						script {
-							def filePath = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.aab"
+							def filePath = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}"
 							def util = load "ci/jenkins-lib/util.groovy"
 
 							util.publishToNexus(
 									groupId: "app",
 									artifactId: "calendar-android",
 									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/${filePath}",
+									assetFilePath: "${WORKSPACE}/${filePath}.aab",
 									fileExtension: 'aab'
+							)
+
+							util.publishToNexus(
+									groupId: "app",
+									artifactId: "calendar-android-apk",
+									version: "${VERSION}",
+									assetFilePath: "${WORKSPACE}/${filePath}.apk",
+									fileExtension: 'apk'
 							)
 						}
 					}
