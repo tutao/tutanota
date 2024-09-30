@@ -173,6 +173,7 @@ void stubClientDirectory() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
+		sh "mkdir build-calendar-app"
     	sh "mkdir build"
 	}
 }
