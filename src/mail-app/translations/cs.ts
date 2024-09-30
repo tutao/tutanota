@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-09-23T06:59:55Z",
+	"updated_at": "2024-09-24T08:22:56Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -43,6 +43,7 @@ export default {
 		"actor_label": "Účastník",
 		"addAccount_action": "Přidat účet",
 		"addAliasUserDisabled_msg": "E-mailová adresa nemohla být přidána k uživateli popřípadě ke skupině, protože tento uživatel je momentálně deaktivovaný.",
+		"addCalendarFromURL_action": "Z adresy URL",
 		"addCalendar_action": "Přidat kalendář",
 		"addContactList_action": "Přidat skupinu kontaktů",
 		"addCustomDomainAddAdresses_msg": "Doména byla přiřazena k vašemu účtu. Nyní můžete vytvořit novou e-mailovou adresu.",
@@ -172,6 +173,7 @@ export default {
 		"by_label": "od",
 		"calendarAlarmsTooBigError_msg": "Nové upozornění nebylo možné nastavit. Je to způsobeno příliš velkým množstvím zařízení s povolenými upozorněními. Přejděte prosím do části Nastavení -> Upozornění a odstraňte stará zařízení ze seznamu.",
 		"calendarCustomName_label": "Váš vlastní název kalendáře: {customName}",
+		"calendarDefaultReminder_label": "Výchozí připomenutí před událostí",
 		"calendarImportSelection_label": "Vyberte kalendář, do kterého chcete importovat události",
 		"calendarInvitationProgress_msg": "Pozvánka se odesílá.",
 		"calendarInvitations_label": "Pozvánky kalendáře",
@@ -280,6 +282,7 @@ export default {
 		"concealPassword_action": "Skrýt heslo",
 		"confidentialStatus_msg": "Tato zpráva bude odeslána koncově šifrovaná.",
 		"confidential_action": "Důvěrné",
+		"confidential_label": "Důvěrné",
 		"configureCustomDomainAfterSignup_msg": "Vlastní domény s neomezeným počtem e-mailových adres lze nastavit po vytvoření účtu:",
 		"confirmCountry_msg": "Pro výpočet daně z přidané hodnoty musíte potvrdit svou zemi: {1}.",
 		"confirmCustomDomainDeletion_msg": "Opravdu chcete odstranit vaší vlastní e-mailovou doménu \"{domain}\"?",
