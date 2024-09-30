@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-09-23T10:02:18Z",
+	"updated_at": "2024-09-25T07:26:49Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -516,7 +516,7 @@ export default {
 		"dynamicLoginDecryptingMails_msg": "E-Mails entschlüsseln …",
 		"dynamicLoginOrganizingCalendarEvents_msg": "Kalendereinträge sortieren …",
 		"dynamicLoginPreparingRocketLaunch_msg": "Raketenstart vorbereiten …",
-		"dynamicLoginRestockingTutaFridge_msg": "Tuta Kühlschrank auffüllen …",
+		"dynamicLoginRestockingTutaFridge_msg": "Tuta-Kühlschrank auffüllen …",
 		"dynamicLoginSortingContacts_msg": "Kontakte sortieren …",
 		"dynamicLoginSwitchingOnPrivacy_msg": "Privatsphäre aktivieren …",
 		"dynamicLoginUpdatingOfflineDatabase_msg": "Offline-Datenbank aktualisieren …",

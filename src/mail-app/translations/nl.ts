@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-09-20T15:54:39Z",
+	"updated_at": "2024-09-25T19:31:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -88,6 +88,8 @@ export default {
 		"adminSubscription_action": "Abonnement",
 		"adminUserList_action": "Gebruikersbeheer",
 		"advanced_label": "Geavanceerd",
+		"affiliateSettingsCommission_label": "Commissie",
+		"affiliateSettingsNewFree_label": "Nieuw gratis",
 		"ageConfirmation_msg": "Ik ben tenminste 16 jaar oud.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Gehele dag",
