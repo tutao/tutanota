@@ -35,3 +35,4 @@ pub mod crypto_facade;
 pub mod key;
 pub mod key_encryption;
 pub mod randomizer_facade;
+pub mod asymmetric_crypto_facade;
