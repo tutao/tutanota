@@ -580,7 +580,7 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 
 		// position right is defined from the right edge of the screen
 		// and not like the viewport origin which starts at top/left
-		rightStyle = Math.min(DROPDOWN_MARGIN, rightEdgeOfDropdown)
+		rightStyle = Math.max(DROPDOWN_MARGIN, window.innerWidth - rightEdgeOfDropdown)
 	}
 
 	domDropdown.style.left = leftStyle != null ? px(leftStyle) : ""
