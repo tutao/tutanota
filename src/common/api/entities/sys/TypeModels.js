@@ -9654,24 +9654,6 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
-            "identifier": {
-                "final": true,
-                "name": "identifier",
-                "id": 2386,
-                "since": 102,
-                "type": "String",
-                "cardinality": "One",
-                "encrypted": false
-            },
-            "identifierType": {
-                "final": true,
-                "name": "identifierType",
-                "id": 2469,
-                "since": 111,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            },
             "protocolVersion": {
                 "final": true,
                 "name": "protocolVersion",
@@ -9687,6 +9669,24 @@ export const typeModels = {
                 "id": 2387,
                 "since": 102,
                 "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "recipientIdentifier": {
+                "final": true,
+                "name": "recipientIdentifier",
+                "id": 2386,
+                "since": 102,
+                "type": "String",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "recipientIdentifierType": {
+                "final": true,
+                "name": "recipientIdentifierType",
+                "id": 2469,
+                "since": 111,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },

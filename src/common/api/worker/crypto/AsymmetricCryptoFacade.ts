@@ -94,8 +94,8 @@ export class AsymmetricCryptoFacade {
 		if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
 			const encryptionAuthStatus = await this.authenticateSender(
 				{
-					identifier: pubEncKeyData.identifier,
-					identifierType: asPublicKeyIdentifier(pubEncKeyData.identifierType),
+					identifier: pubEncKeyData.recipientIdentifier,
+					identifierType: asPublicKeyIdentifier(pubEncKeyData.recipientIdentifierType),
 				},
 				assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
 				Number(assertNotNull(pubEncKeyData.senderKeyVersion)),

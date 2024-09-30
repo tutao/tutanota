@@ -2367,10 +2367,10 @@ export type PubEncKeyData = {
 	_type: TypeRef<PubEncKeyData>;
 
 	_id: Id;
-	identifier: string;
-	identifierType: NumberString;
 	protocolVersion: NumberString;
 	pubEncSymKey: Uint8Array;
+	recipientIdentifier: string;
+	recipientIdentifierType: NumberString;
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
 }

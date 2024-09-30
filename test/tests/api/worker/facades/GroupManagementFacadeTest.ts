@@ -71,8 +71,8 @@ o.spec("GroupManagementFacadeTest", function () {
 		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
 			pubEncSymKey: pubAdminGroupEncSymKey,
 			protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
-			identifier: groupId,
-			identifierType: PublicKeyIdentifierType.GROUP_ID,
+			recipientIdentifier: groupId,
+			recipientIdentifierType: PublicKeyIdentifierType.GROUP_ID,
 			recipientKeyVersion: adminGroupKeyVersion.toString(),
 			senderKeyVersion: groupKeyVersion.toString(),
 		})
