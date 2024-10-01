@@ -11,13 +11,18 @@ pipeline {
     parameters {
         booleanParam(
             name: 'googlePlayStore',
-            defaultValue: true,
+            defaultValue: false,
             description: "Uploads android artifacts (aab) to Google PlayStore as a Draft on the public track."
         )
         booleanParam(
             name: 'appleAppStore',
             defaultValue: false,
             description: "Uploads iOS artifacts to Apple App Store as a Draft on the public track."
+        )
+        booleanParam(
+        	name: 'github',
+        	defaultValue: false,
+        	description: "Uploads android artifact (apk) to GitHub and publish release notes."
         )
 		string(
 			name: 'appVersion',
@@ -39,7 +44,7 @@ pipeline {
     	stage("Checking params") {
 			steps {
 				script{
-					if(!params.googlePlayStore && !params.appleAppStore) {
+					if(!params.googlePlayStore && !params.appleAppStore && !params.github) {
 						currentBuild.result = 'ABORTED'
 						error('No artifacts were selected.')
 					}
@@ -53,65 +58,84 @@ pipeline {
 			}
 			when {
 				expression {
-					params.generateReleaseNotes && (params.googlePlayStore || params.appleAppStore)
+					params.generateReleaseNotes && (params.googlePlayStore || params.appleAppStore || params.github)
 				}
 			}
 			steps {
 				sh "npm ci"
 				script { // create release notes
-					def android = params.googlePlayStore ? pregenerateReleaseNotes("android", env.VERSION) : null
-					def ios = params.appleAppStore ? pregenerateReleaseNotes("ios", env.VERSION) : null
+					def android = params.googlePlayStore || params.github ? pregenerateReleaseNotes("android", env.VERSION) : null
+					def ios = params.appleAppStore || params.github ? pregenerateReleaseNotes("ios", env.VERSION) : null
 
 					// Assigns the dict returned by reviewReleaseNotes with the notes for each platform to the global var releaseNotes
 					releaseNotes = reviewReleaseNotes(android, ios, env.VERSION)
 
-					if (params.appleAppStore) {
+					if (params.appleAppStore || params.github) {
 						env.IOS_RELEASE_NOTES = releaseNotes.ios
 						echo releaseNotes.ios
 					}
 
-					if (params.googlePlayStore) {
+					if (params.googlePlayStore || params.github) {
 						env.ANDROID_RELEASE_NOTES = releaseNotes.android
 						echo releaseNotes.android
 					}
 				}
 			} // steps
 		} // stage Prepare Release Notes
-		stage('Tag and publish release page') {
-			parallel {
-				stage("Github Android Release Notes") {
+		stage("GitHub Release") {
+			stages {
+				stage("GitHub Android Tag") {
 					environment {
 						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
-						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${env.VERSION}.aab"
+						FILE_PATH = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.apk"
+						GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-android-release-${VERSION}"
 					}
 					when {
 						expression {
-							params.googlePlayStore && releaseNotes.android.trim()
+							params.github && releaseNotes.android.trim()
 						}
 					}
 					steps {
 						script {
-							writeReleaseNotes("android", "Android", "${env.VERSION}", "${env.WORKSPACE}/${env.FILE_PATH}")
+							def util = load "ci/jenkins-lib/util.groovy"
+							util.downloadFromNexus(	groupId: "app",
+													artifactId: "calendar-android-apk",
+													version: "${env.VERSION}",
+													outFile: "${env.WORKSPACE}/${env.FILE_PATH}",
+													fileExtension: 'apk')
+
+							if (!fileExists("${env.FILE_PATH}")) {
+								currentBuild.result = 'ABORTED'
+								error("Unable to find file ${env.FILE_PATH}")
+							}
+							echo "File ${env.FILE_PATH} found!"
+
+							catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to upload android app to GitHub') {
+								writeReleaseNotes("android", "Android", "${env.VERSION}", "${env.WORKSPACE}/${env.FILE_PATH}")
+							}
 						} // script
 					} // steps
-				}// Stage Github Android Release Notes
-				stage("Github iOS Release Notes") {
+				} // stage Android App
+				stage("GitHub iOS Tag") {
 					environment {
 						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
+						GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-ios-release-${VERSION}"
 					}
 					when {
 						expression {
-							params.appleAppStore && releaseNotes.ios.trim()
+							params.github && releaseNotes.ios
 						}
 					}
 					steps {
 						script {
-							writeReleaseNotes("ios", "iOS", "${env.VERSION}", "")
+							catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to upload android app to GitHub') {
+								writeReleaseNotes("ios", "iOS", "${env.VERSION}", "")
+							}
 						} // script
 					} // steps
-				}// Stage Github iOS Release Notes
-			} // parallel release notes
-		} // stage Tag and publish release page
+				} // stage Android App
+			}
+		}
 		stage("Publishing Artifacts to Stores") {
 			parallel {
 				stage("Android App") {
@@ -250,14 +274,15 @@ def writeReleaseNotes(String platform, String displayName, String version, Strin
 			sh "npm ci"
 			writeFile file: "notes.txt", text: platform == "ios" ? releaseNotes.ios : releaseNotes.android
 			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-				def releaseDraftCommand = """node buildSrc/createReleaseDraft.js --name '${version} (${displayName})' \
+				def releaseDraftCommand = """node buildSrc/createReleaseDraft.js --name '[Calendar] ${version} (${displayName})' \
 																					  --tag 'tuta-calendar-${platform}-release-${version}' \
 																					  --notes notes.txt"""
 				// We don't upload iOS artifacts to GitHub
 				if (filePath != "" && platform == "android") {
 					releaseDraftCommand = "${releaseDraftCommand} --uploadFile ${filePath}"
 				} else if (platform == "ios") {
-					releaseDraftCommand = "${releaseDraftCommand} --toFile ${IOS_RELEASE_NOTES_PATH}"
+					// Generate release notes to fastlane
+					sh "${releaseDraftCommand} --toFile ${IOS_RELEASE_NOTES_PATH}"
 				}
 
 				sh releaseDraftCommand
