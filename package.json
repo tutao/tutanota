@@ -61,7 +61,7 @@
 		"squire-rte": "2.2.7",
 		"systemjs": "6.15.1",
 		"undici": "6.19.2",
-		"winreg": "1.2.5"
+		"winreg": "1.2.4"
 	},
 	"optionalDependencies": {
 		"dmg-license": "^1.0.11"
