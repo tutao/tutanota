@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-09-30T10:53:45Z",
+	"updated_at": "2024-10-01T06:19:23Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -995,7 +995,7 @@ export default {
 		"noContactFound_msg": "Aucun contact avec cette adresse mail n'a été trouvé",
 		"noContacts_msg": "Il n'y a aucun contact dans cette liste.",
 		"noContact_msg": "Aucun contact sélectionné",
-		"noEntries_msg": "<Aucunes entrées.>",
+		"noEntries_msg": "<Aucune \n entrée.>",
 		"noEntryFound_label": "Aucune entrée trouvée",
 		"noEventSelect_msg": "Aucun rendez-vous sélectionné",
 		"noInputWasMade_msg": "Le champ à saisir est vide !",
