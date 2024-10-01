@@ -10,6 +10,8 @@ import { getEtId } from "../api/common/utils/EntityUtils"
 import { CloseEventBusOption } from "../api/common/TutanotaConstants.js"
 import { SurveyData } from "../api/entities/sys/TypeRefs.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
+import { isIOSApp } from "../api/common/Env.js"
+import { client } from "../misc/ClientDetector"
 
 export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	let takeover = ""
@@ -21,13 +23,15 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					m(TextField, {
-						label: "targetAddress_label",
-						value: takeover,
-						type: TextFieldType.Email,
-						oninput: (value) => (takeover = value),
-						helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
-					}),
+					!(isIOSApp() && client.isCalendarApp())
+						? m(TextField, {
+								label: "targetAddress_label",
+								value: takeover,
+								type: TextFieldType.Email,
+								oninput: (value) => (takeover = value),
+								helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
+						  })
+						: null,
 					m(PasswordField, {
 						value: password,
 						autocompleteAs: Autocomplete.currentPassword,
