@@ -1240,8 +1240,8 @@ mod tests {
 				.get("pubAdminGroupEncGKey")
 				.unwrap()
 				.assert_dict()
-				.get("identifierType")
-				.expect("has_identifierType")
+				.get("recipientIdentifierType")
+				.expect("has_recipientIdentifierType")
 		);
 		assert_eq!(
 			&ElementValue::Number(CryptoProtocolVersion::Tutacrypt as i64),

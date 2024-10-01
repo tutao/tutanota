@@ -64,8 +64,8 @@ pub fn generate_random_group(
 		external: false,
 		pubAdminGroupEncGKey: Some(PubEncKeyData {
 			_id: CustomId::test_random(),
-			identifier: "adminGroupId".to_string(),
-			identifierType: PublicKeyIdentifierType::GroupId as i64,
+			recipientIdentifier: "adminGroupId".to_string(),
+			recipientIdentifierType: PublicKeyIdentifierType::GroupId as i64,
 			protocolVersion: CryptoProtocolVersion::Tutacrypt as i64,
 			pubEncSymKey: vec![1, 2, 3],
 			recipientKeyVersion: 0,
