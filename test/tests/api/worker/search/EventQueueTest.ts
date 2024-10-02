@@ -1,11 +1,10 @@
 import o from "@tutao/otest"
 import { batchMod, EntityModificationType, EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityUpdate, EntityUpdateTypeRef, GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
-import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { createTestEntity } from "../../../TestUtils.js"
 
@@ -301,6 +300,19 @@ o.spec("EventQueueTest", function () {
 				])
 			},
 		)
+
+		o("optimization does not fail when there are new events with the same id but a different type", function () {
+			const batchId = "batch-id-1"
+			const groupId = "group-id-1"
+			const instanceId = "instance-id-1"
+			const eventId = "event-id-1"
+			const updateEvent1 = createUpdate(OperationType.UPDATE, "", instanceId, eventId)
+			const updateEvent2 = createUpdate(OperationType.UPDATE, "", instanceId, eventId)
+			updateEvent1.type = GroupTypeRef.type
+			updateEvent2.type = MailboxGroupRootTypeRef.type
+			queue.add(batchId, groupId, [updateEvent1])
+			queue.add(batchId, groupId, [updateEvent2])
+		})
 
 		function createUpdate(type: OperationType, listId: Id, instanceId: Id, eventId?: Id): EntityUpdate {
 			let update = createTestEntity(EntityUpdateTypeRef)
