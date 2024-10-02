@@ -59,10 +59,11 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 type LastOperationKey = string & { __brand: "lastOpeKey" }
 
 function lastOperationKey(update: EntityUpdate): LastOperationKey {
+	const typeIdentifier = `${update.application}/${update.type}`
 	if (update.instanceListId) {
-		return `${update.instanceListId}/${update.instanceId}` as LastOperationKey
+		return `${typeIdentifier}/${update.instanceListId}/${update.instanceId}` as LastOperationKey
 	} else {
-		return update.instanceId as LastOperationKey
+		return `${typeIdentifier}/${update.instanceId}` as LastOperationKey
 	}
 }
 
