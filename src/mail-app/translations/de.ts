@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-09-25T07:26:49Z",
+	"updated_at": "2024-10-02T12:36:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -552,6 +552,7 @@ export default {
 		"email_label": "E-Mail",
 		"emptyShortcut_msg": "Der Shortcut ist leer",
 		"emptyTitle_msg": "Der Titel ist leer.",
+		"enableAnyway_action": "Trotzdem aktivieren",
 		"enableSearchMailbox_msg": "Die Suche in deiner Mailbox benötigt Speicher auf deinem Gerät und kann zusätzlichen Datenverkehr verursachen.",
 		"endOfCurrentSubscriptionPeriod": "Zum Ende des Abrechnungszeitraums",
 		"endsWith_label": "endet auf",
@@ -592,6 +593,7 @@ export default {
 		"exportVCard_action": "VCard exportieren",
 		"export_action": "Exportieren",
 		"externalCalendarInfo_msg": "Um einen externen oder öffentlichen Kalender zu abonnieren, gib einfach dessen URL ein. Wir werden dann sicherstellen, dass er synchronisiert wird. Der Kalender ist schreibgeschützt, aber du kannst jederzeit eine Sychronisation starten.",
+		"externalContactSyncDetectedWarning_msg": "Die Kontaktsynchronisierung ist bereits für iCloud oder eine andere Kontakt-App auf deinem Gerät aktiviert. Bitte deaktiviere alle anderen Apps, die aktuell Kontakte synchronisieren, um Probleme bei der Synchronisierung von Tuta-Kontakten zu vermeiden.",
 		"externalFormattingInfo_msg": "Konfiguriere, ob alle Nachrichten in plain text konvertiert oder mit Formatierungen (HTML) versendet werden.",
 		"externalFormatting_label": "Formatierung",
 		"externalNotificationMailBody1_msg": "Guten Tag,",
@@ -696,6 +698,8 @@ export default {
 		"iCalSync_error": "Fehler beim Synchronisieren. Ein oder mehr Kalender sind ungültig.",
 		"icsInSharingFiles_msg": "Eine oder mehrere Kalenderdateien wurden erkannt. Möchtest du sie importieren oder anhängen?",
 		"importCalendar_label": "Kalender wird importiert",
+		"importContactRemoveDuplicatesConfirm_msg": "Bei der Synchronisierung wurde(n) {count} doppelte(r) Kontakt(e) auf deinem Gerät gefunden. Soll(en) diese(r) Kontakt(e) von deinem Gerät gelöscht werden? Bitte beachte, dass dies nicht mehr rückgängig gemacht werden kann.",
+		"importContactRemoveImportedContactsConfirm_msg": "Möchtest du die importierten Kontakte von deinem Gerät löschen? Bitte beachte, dass dies nicht mehr rückgängig gemacht werden kann.",
 		"importContactsError_msg": "{amount} von {total} Kontakten konnten nicht importiert werden.",
 		"importContacts_label": "Kontakte importieren",
 		"importContacts_msg": "Importiere Kontakte aus deinem Telefonbuch, um sie auf allen deinen Geräten verfügbar zu machen.",
@@ -1554,7 +1558,7 @@ export default {
 		"subscriptionCancelledMessage_msg": "Dein Abonnement wurde storniert. Bitte informiere den Support, wenn Du das Abonnement wieder aktivieren möchtest.",
 		"subscriptionChangePeriod_msg": "Dein Abonnenment wird nach Ablauf des aktuellen Abrechnungszeitraums  ({1}) angepasst.",
 		"subscriptionChange_msg": "Dein Abonnenment wird nach Ablauf des aktuellen Abrechnungszeitraums angepasst.",
-		"subscriptionSettings_label": "Abonnement Einstellungen",
+		"subscriptionSettings_label": "Abonnement-Einstellungen",
 		"subscription_label": "Abonnement",
 		"supportMenu_label": "Support",
 		"surveyAccountProblems_label": "Probleme mit meinem Account",
@@ -1795,11 +1799,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-
-    "importContactRemoveDuplicatesConfirm_msg": "(TRANSLATE ME) Found {count} duplicate contact(s) on your device while syncing. Do you want to delete them from your device? Please note that this cannot be undone.",
-    "importContactRemoveImportedContactsConfirm_msg": "(TRANSLATE ME) Do you want to delete the imported contacts from your device? Please note that this cannot be undone.",
-    "externalContactSyncDetectedWarning_msg": "(TRANSLATE ME) Contact synchronization is enabled for iCloud or another contact app on your device. Please disable any other apps that synchronize contacts to avoid issues with syncing Tuta contacts.",
-    "enableAnyway_action": "Trotzdem aktivieren"
+		"you_label": "Du"
 	}
 }
