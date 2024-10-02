@@ -192,7 +192,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "gui-base"
 	} else if (isIn("src/common/native/main/wizard")) {
 		return "setup-wizard"
-	} else if (isIn("src/common/native/main") || moduleId.includes("SearchInPageOverlay")) {
+	} else if (isIn("src/common/native/main") || isIn("src/main-app/native/main") || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
 	} else if (
 		isIn("src/mail-app/mail/editor") ||
