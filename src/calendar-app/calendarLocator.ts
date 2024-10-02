@@ -108,7 +108,6 @@ import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { locator } from "../common/api/main/CommonLocator.js"
 import { showSnackBar } from "../common/gui/base/SnackBar.js"
-import m from "mithril"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 
@@ -606,6 +605,8 @@ class CalendarLocator {
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
+			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
+			const openCalendarHandler = new OpenCalendarHandler(this.logins)
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -618,14 +619,8 @@ class CalendarLocator {
 					async () => this.fileApp,
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
-					async (userId: string, address: string, requestedPath: string | null) => noOp(),
-					async (userId: string) => {
-						if (locator.logins.isUserLoggedIn() && locator.logins.getUserController().user._id === userId) {
-							m.route.set("/calendar/agenda")
-						} else {
-							m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)
-						}
-					},
+					async (_userId: string, _address: string, _requestedPath: string | null) => {},
+					(userId) => openCalendarHandler.openCalendar(userId),
 					AppType.Calendar,
 				),
 				cryptoFacade,

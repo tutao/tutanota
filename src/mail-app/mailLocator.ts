@@ -125,7 +125,6 @@ import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
 import { isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import m from "mithril"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 
@@ -746,7 +745,11 @@ class MailLocator {
 			const { WebCommonNativeFacade } = await import("../common/native/main/WebCommonNativeFacade.js")
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
 			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
+			const { OpenMailboxHandler } = await import("./native/main/OpenMailboxHandler.js")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
+			const openMailboxHandler = new OpenMailboxHandler(this.logins, this.mailModel, this.mailboxModel)
+			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
+			const openCalendarHandler = new OpenCalendarHandler(this.logins)
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, MAIL_PREFIX, async (currentRoute: string) => {
 				// If the first background column is focused in mail view (showing a folder), move to inbox.
@@ -778,33 +781,8 @@ class MailLocator {
 					async () => this.fileApp,
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
-					async (userId: string, mailAddress: string, requestedPath: string | null) => {
-						if (mailLocator.logins.isUserLoggedIn() && mailLocator.logins.getUserController().user._id === userId) {
-							if (!requestedPath) {
-								const [mailboxDetail] = await mailLocator.mailboxModel.getMailboxDetails()
-								const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
-								const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)
-								m.route.set("/mail/" + inbox.mails)
-							} else {
-								m.route.set("/mail" + requestedPath)
-							}
-						} else {
-							if (!requestedPath) {
-								m.route.set(`/login?noAutoLogin=false&userId=${userId}&loginWith=${mailAddress}`)
-							} else {
-								m.route.set(
-									`/login?noAutoLogin=false&userId=${userId}&loginWith=${mailAddress}&requestedPath=${encodeURIComponent(requestedPath)}`,
-								)
-							}
-						}
-					},
-					async (userId: string) => {
-						if (mailLocator.logins.isUserLoggedIn() && mailLocator.logins.getUserController().user._id === userId) {
-							m.route.set("/calendar/agenda")
-						} else {
-							m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)
-						}
-					},
+					(userId, address, requestedPath) => openMailboxHandler.openMailbox(userId, address, requestedPath),
+					(userId) => openCalendarHandler.openCalendar(userId),
 					AppType.Integrated,
 				),
 				cryptoFacade,
