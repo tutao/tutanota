@@ -13,26 +13,6 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		return try self.queryContactSuggestions(query: query, upTo: 10)
 	}
 
-	func saveContacts(_ username: String, _ contacts: [StructuredContact]) async throws {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
-	}
-
-	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws -> ContactSyncResult {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
-	}
-
-	func getContactBooks() async throws -> [ContactBook] {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact import isn't available on Tuta Calendar")
-	}
-
-	func getContactsInContactBook(_ containerId: String, _ username: String) async throws -> [StructuredContact] {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact import isn't Not available on Tuta Calendar")
-	}
-
-	func deleteContacts(_ username: String, _ contactId: String?) async throws {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
-	}
-
 	private func enumerateContactsInContactStore(
 		_ contactStore: CNContactStore,
 		with fetchRequest: CNContactFetchRequest,
@@ -66,5 +46,41 @@ class IosMobileContactsFacade: MobileContactsFacade {
 			}
 		}
 		return result
+	}
+
+	func saveContacts(_ username: String, _ contacts: [StructuredContact]) async throws {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
+	}
+
+	func syncContacts(_ username: String, _ contacts: [StructuredContact]) async throws -> ContactSyncResult {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
+	}
+
+	func getContactBooks() async throws -> [ContactBook] {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact import isn't available on Tuta Calendar")
+	}
+
+	func getContactsInContactBook(_ containerId: String, _ username: String) async throws -> [StructuredContact] {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact import isn't Not available on Tuta Calendar")
+	}
+
+	func deleteContacts(_ username: String, _ contactId: String?) async throws {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
+	}
+
+	func isLocalStorageAvailable() async throws -> Bool {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
+	}
+
+	func findLocalMatches(_ contacts: [TutanotaSharedFramework.StructuredContact]) async throws -> [String] {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
+	}
+
+	func deleteLocalContacts(_ contacts: [String]) async throws {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
+	}
+
+	func matchStoredContacts(_ username: String, _ contactId: String?) async throws {
+		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
 	}
 }

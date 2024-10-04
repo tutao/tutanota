@@ -120,12 +120,14 @@ class IosMobileContactsFacade: MobileContactsFacade {
 	}
 
 	func isLocalStorageAvailable() async throws -> Bool { contactFacade.isLocalStorageAvailable() }
+
 	func findLocalMatches(_ contacts: [StructuredContact]) async throws -> [String] {
 		TUTSLog("MobileContactsFacade: searching for duplicates of \(contacts.count) contacts")
 		if contacts.isEmpty { return [] }
 		try await acquireContactsPermission()
 		return try self.contactFacade.findDuplicateLocalContacts(contacts)
 	}
+
 	func deleteLocalContacts(_ contacts: [String]) async throws {
 		TUTSLog("MobileContactFacade: deleting \(contacts.count) contacts...")
 		if contacts.isEmpty { return }
