@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-09-28T11:55:04Z",
+	"updated_at": "2024-10-02T17:24:40Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -554,6 +554,7 @@ export default {
 		"email_label": "Wiadomość e-mail",
 		"emptyShortcut_msg": "Podaj skrót do szablonu",
 		"emptyTitle_msg": "Brakuje tytułu.",
+		"enableAnyway_action": "Włącz mimo wszystko",
 		"enableSearchMailbox_msg": "Włączenie przeszukiwania skrzynki odbiorczej zużywa zasoby pamięci twojego urządzenia i może powodować dodatkowy transfer danych.",
 		"endOfCurrentSubscriptionPeriod": "Koniec bieżącego okresu płatności",
 		"endsWith_label": "kończy się na",
@@ -594,6 +595,7 @@ export default {
 		"exportVCard_action": "Eksportuj vCard",
 		"export_action": "Eksportuj",
 		"externalCalendarInfo_msg": "Aby zasubskrybować kalendarz zewnętrzny lub publiczny, wystarczy podać jego adres URL, a my zadbamy o jego synchronizację. Ten kalendarz jest tylko do odczytu, ale w każdej chwili można uruchomić operację synchronizacji.",
+		"externalContactSyncDetectedWarning_msg": "Synchronizacja kontaktów jest włączona dla iCloud lub innej aplikacji do kontaktów na twoim urządzeniu. Wyłącz wszystkie inne aplikacje synchronizujące kontakty, aby uniknąć problemów z synchronizacją kontaktów Tuta.",
 		"externalFormattingInfo_msg": "Zdecyduj, czy wszystkie wiadomości mają być wysyłane wraz z formatowaniem (HTML), czy jako zwykły tekst.",
 		"externalFormatting_label": "Formatowanie",
 		"externalNotificationMailBody1_msg": "Cześć,",
@@ -698,6 +700,8 @@ export default {
 		"iCalSync_error": "Błąd podczas synchronizacji, jeden lub więcej kalendarzy było nieprawidłowych.",
 		"icsInSharingFiles_msg": "Wykryto jeden lub więcej plików kalendarza. Czy chcesz je zaimportować lub dołączyć?",
 		"importCalendar_label": "Importowanie kalendarza",
+		"importContactRemoveDuplicatesConfirm_msg": "Podczas synchronizacji znaleziono {count} zduplikowanych kontaktów na urządzeniu. Czy chcesz usunąć je z urządzenia? Tej operacji nie będzie można cofnąć.",
+		"importContactRemoveImportedContactsConfirm_msg": "Czy chcesz usunąć zaimportowane kontakty z urządzenia? Tej operacji nie będzie można cofnąć.",
 		"importContactsError_msg": "{amount} z {total} kontaktów nie można zaimportować.",
 		"importContacts_label": "Importuj kontakty",
 		"importContacts_msg": "Importuj kontakty z książki telefonicznej, aby udostępniać je na wszystkich urządzeniach.",

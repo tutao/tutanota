@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-10-01T06:19:23Z",
+	"updated_at": "2024-10-03T13:57:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -552,6 +552,7 @@ export default {
 		"email_label": "Courriel",
 		"emptyShortcut_msg": "Veuillez fournir un raccourci pour le modèle",
 		"emptyTitle_msg": "Le titre est manquant.",
+		"enableAnyway_action": "Activer de toute manière",
 		"enableSearchMailbox_msg": "Activer la recherche pour votre adresse e-mail consomme de la mémoire sur votre appareil et pourrait consommer plus de datas.",
 		"endOfCurrentSubscriptionPeriod": "Fin de l'intervalle de paiement en cours",
 		"endsWith_label": "Fini par",
@@ -592,6 +593,7 @@ export default {
 		"exportVCard_action": "Exporter une vCard",
 		"export_action": "Exporter",
 		"externalCalendarInfo_msg": "Pour s'abonner à un calendrier externe ou public, il suffit de saisir son URL et nous veillerons à ce qu'il soit synchronisé. Ce calendrier est en lecture seule, mais vous pouvez déclencher une opération de synchronisation à tout moment.",
+		"externalContactSyncDetectedWarning_msg": "La synchronisation des contacts est activée pour iCloud ou une autre application de contact sur votre appareil. Veuillez désactiver toute autre application qui synchronise les contacts pour éviter les problèmes de synchronisation des contacts de Tuta.",
 		"externalFormattingInfo_msg": "Décider si tous les messages doivent être envoyés avec la mise en forme (HTML) ou convertis en texte brut.",
 		"externalFormatting_label": "Mise en forme",
 		"externalNotificationMailBody1_msg": "Bonjour,",
@@ -696,6 +698,8 @@ export default {
 		"iCalSync_error": "Erreur lors de la synchronisation, un ou plusieurs calendriers n'étaient pas valides.",
 		"icsInSharingFiles_msg": "Un ou plusieurs fichiers de calendrier ont été détectés. Souhaitez-vous les importer ou les joindre ?",
 		"importCalendar_label": "Import du calendrier",
+		"importContactRemoveDuplicatesConfirm_msg": "J'ai trouvé {count} contact(s) en double sur votre appareil lors de la synchronisation. Souhaitez-vous les supprimer de votre appareil ? Veuillez noter qu'il n'est pas possible d'annuler cette opération.",
+		"importContactRemoveImportedContactsConfirm_msg": "Souhaitez-vous supprimer les contacts importés de votre appareil ? Veuillez noter qu'il n'est pas possible d'annuler cette opération.",
 		"importContactsError_msg": "{amount} contact(s) sur {total} ne pouvant pas être importé(s)",
 		"importContacts_label": "Importer des contacts",
 		"importContacts_msg": "Importez des contacts de votre répertoire téléphonique pour les rendre disponibles sur tous vos appareils.",
