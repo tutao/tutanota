@@ -1,0 +1,1 @@
+Quantum-safe encrypted planner to schedule & manage your events & sync calendars
