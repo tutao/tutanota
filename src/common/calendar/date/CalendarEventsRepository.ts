@@ -2,9 +2,17 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
-import { addDaysForRecurringEvent, CalendarTimeRange, getEventEnd, getEventStart, getMonthRange, isBirthdayEvent } from "./CalendarUtils.js"
+import {
+	addDaysForRecurringEvent,
+	CalendarTimeRange,
+	getEventEnd,
+	getEventStart,
+	getMonthRange,
+	isBirthdayEvent,
+	isClientOnlyCalendar,
+} from "./CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
-import { getListId, isSameId } from "../../api/common/utils/EntityUtils.js"
+import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
@@ -141,7 +149,7 @@ export class CalendarEventsRepository {
 	}
 
 	private addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange): void {
-		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+		if (!isClientOnlyCalendar(listIdPart(event._id)) && -DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
 			console.log("repeating event is too far into the past", event)
 			return
 		}
