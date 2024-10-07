@@ -217,6 +217,7 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 					resolve([])
 				})
 		})
+		newFileInput.addEventListener("cancel", () => resolve([]))
 	})
 	// the file input must be put into the dom, otherwise it does not work in IE
 	body.appendChild(newFileInput)
