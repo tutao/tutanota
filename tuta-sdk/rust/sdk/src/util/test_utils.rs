@@ -8,7 +8,7 @@ use crate::crypto::Aes256Key;
 use crate::custom_id::CustomId;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::sys::{
-	ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
+    ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
 };
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
@@ -66,7 +66,7 @@ pub fn generate_random_group(
 			_id: CustomId::test_random(),
 			recipientIdentifier: "adminGroupId".to_string(),
 			recipientIdentifierType: PublicKeyIdentifierType::GroupId as i64,
-			protocolVersion: CryptoProtocolVersion::Tutacrypt as i64,
+			protocolVersion: CryptoProtocolVersion::TutaCrypt as i64,
 			pubEncSymKey: vec![1, 2, 3],
 			recipientKeyVersion: 0,
 			senderKeyVersion: Some(0),

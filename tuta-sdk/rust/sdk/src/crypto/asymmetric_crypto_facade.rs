@@ -1,7 +1,60 @@
-use std::sync::Arc;
-
+use crate::crypto::crypto_facade::CryptoProtocolVersion;
+use crate::crypto::ecc::EccPublicKey;
+use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
+use crate::crypto::tuta_crypt::{PQError, PQMessage};
 #[mockall_double::double]
 use crate::key_loader_facade::KeyLoaderFacade;
+use crate::tutanota_constants::PublicKeyIdentifierType;
+use crate::util::ArrayCastingError;
+use std::sync::Arc;
+use zeroize::Zeroizing;
+
+pub struct DecapsulatedAesKey {
+    pub decrypted_aes_key: GenericAesKey,
+    pub sender_identity_pub_key: Option<EccPublicKey>, // for authentication: None for rsa only
+}
+
+pub struct PublicKeyIdentifier {
+    pub identifier: String,
+    pub identifier_type: PublicKeyIdentifierType,
+}
+
+#[derive(thiserror::Error, Debug)]
+#[error("AsymmetricCryptoError: {reason}")]
+pub struct AsymmetricCryptoError {
+    pub reason: String,
+}
+
+/// Used to map various errors to `AsymmetricCryptoError`
+trait AsymmetricCryptoErrorSubtype: ToString {}
+
+impl<T: AsymmetricCryptoErrorSubtype> From<T> for AsymmetricCryptoError {
+    fn from(value: T) -> Self {
+        Self {
+            reason: value.to_string(),
+        }
+    }
+}
+
+#[derive(thiserror::Error, Debug)]
+#[error("Unexpected key type: {reason}")]
+pub struct KeyTypeError {
+    pub reason: String,
+}
+
+#[derive(thiserror::Error, Debug)]
+#[error("Unexpected crypto protocol version: {reason}")]
+pub struct CryptoProtocolVersionError {
+    pub reason: String,
+}
+
+impl AsymmetricCryptoErrorSubtype for KeyTypeError {}
+impl AsymmetricCryptoErrorSubtype for CryptoProtocolVersionError {}
+impl AsymmetricCryptoErrorSubtype for RSAEncryptionError {}
+impl AsymmetricCryptoErrorSubtype for PQError {}
+impl AsymmetricCryptoErrorSubtype for ArrayCastingError {}
+
 
 #[derive(uniffi::Object)]
 pub struct AsymmetricCryptoFacade {
@@ -12,101 +65,60 @@ pub struct AsymmetricCryptoFacade {
 impl AsymmetricCryptoFacade {
     pub fn new(
         key_loader_facade: Arc<KeyLoaderFacade>,
-        // TODO
-        // private readonly cryptoWrapper: CryptoWrapper,
-        // private readonly serviceExecutor: IServiceExecutor,
     ) -> Self {
         Self {
             key_loader_facade,
         }
     }
 
-    // TODO all the changes in typescript. some of which can only be implemented with the serviceExecutor
-    // /**
-    //  * Verifies whether the key that the public key service returns is the same as the one used for encryption.
-    //  * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
-    //  *
-    //  * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
-    //  * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
-    //  * @param senderKeyVersion the version of the senderIdentityPubKey.
-    //  */
-    // async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
-    // const keyData = createPublicKeyGetIn({
-    // identifier: identifier.identifier,
-    // identifierType: identifier.identifierType,
-    // version: senderKeyVersion.toString(),
-    // })
-    // const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-    // return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
-    // ? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-    // : EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-    // }
-    //
-    // /**
-    //  * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
-    //  * If the protocol does not support authentication this method will only decrypt.
-    //  * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion and must be of the required recipientKeyVersion.
-    //  * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
-    //  * @param senderIdentifier the identifier for the sender's key group
-    //  * @throws CryptoError in case the authentication fails.
-    //  */
-    // async decryptSymKeyWithKeyPairAndAuthenticate(
-    // recipientKeyPair: AsymmetricKeyPair,
-    // pubEncKeyData: PubEncKeyData,
-    // senderIdentifier: PublicKeyIdentifier,
-    // ): Promise<DecapsulatedAesKey> {
-    // const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
-    // const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
-    // if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
-    // const encryptionAuthStatus = await this.authenticateSender(
-    // senderIdentifier,
-    // assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
-    // Number(assertNotNull(pubEncKeyData.senderKeyVersion)),
-    // )
-    // if (encryptionAuthStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
-    // throw new CryptoError("the provided public key could not be authenticated")
-    // }
-    // }
-    // return decapsulatedAesKey
-    // }
-    //
-    // /**
-    //  * Decrypts the pubEncSymKey with the recipientKeyPair.
-    //  * @param pubEncSymKey the asymmetrically encrypted session key
-    //  * @param cryptoProtocolVersion asymmetric protocol to decrypt pubEncSymKey (RSA or TutaCrypt)
-    //  * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
-    //  */
-    // async decryptSymKeyWithKeyPair(
-    // recipientKeyPair: AsymmetricKeyPair,
-    // cryptoProtocolVersion: CryptoProtocolVersion,
-    // pubEncSymKey: Uint8Array,
-    // ): Promise<DecapsulatedAesKey> {
-    // switch (cryptoProtocolVersion) {
-    // case CryptoProtocolVersion.RSA: {
-    // if (!isRsaOrRsaEccKeyPair(recipientKeyPair)) {
-    // throw new CryptoError("wrong key type. expecte rsa. got " + recipientKeyPair.keyPairType)
-    // }
-    // const privateKey: RsaPrivateKey = recipientKeyPair.privateKey
-    // const decryptedSymKey = await this.rsa.decrypt(privateKey, pubEncSymKey)
-    // return {
-    // decryptedAesKey: uint8ArrayToBitArray(decryptedSymKey),
-    // senderIdentityPubKey: null,
-    // }
-    // }
-    // case CryptoProtocolVersion.TUTA_CRYPT: {
-    // if (!isPqKeyPairs(recipientKeyPair)) {
-    // throw new CryptoError("wrong key type. expected tuta-crypt. got " + recipientKeyPair.keyPairType)
-    // }
-    // const { decryptedSymKeyBytes, senderIdentityPubKey } = await this.pqFacade.decapsulateEncoded(pubEncSymKey, recipientKeyPair)
-    // return {
-    // decryptedAesKey: uint8ArrayToBitArray(decryptedSymKeyBytes),
-    // senderIdentityPubKey,
-    // }
-    // }
-    // default:
-    // throw new CryptoError("invalid cryptoProtocolVersion: " + cryptoProtocolVersion)
-    // }
-    // }
+
+    /**
+     * Decrypts the pubEncSymKey with the recipientKeyPair.
+     * @param pubEncSymKey the asymmetrically encrypted session key
+     * @param cryptoProtocolVersion asymmetric protocol to decrypt pubEncSymKey (RSA or TutaCrypt)
+     * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
+     */
+    pub async fn decrypt_sym_key_with_key_pair(
+        recipient_key_pair: AsymmetricKeyPair,
+        crypto_protocol_version: CryptoProtocolVersion,
+        pub_enc_sym_key: &Vec<u8>,
+    ) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
+        match crypto_protocol_version {
+            CryptoProtocolVersion::Rsa => {
+                match recipient_key_pair {
+                    AsymmetricKeyPair::RSAEccKeyPair(RSAEccKeyPair {
+                                                         rsa_key_pair: k, ..
+                                                     })
+                    | AsymmetricKeyPair::RSAKeyPair(k) => {
+                        let sym_key_bytes =
+                            Zeroizing::new(k.private_key.decrypt(pub_enc_sym_key)?);
+                        let decrypted_aes_key =
+                            GenericAesKey::from_bytes(sym_key_bytes.as_slice())?;
+                        Ok(DecapsulatedAesKey {
+                            decrypted_aes_key,
+                            sender_identity_pub_key: None,
+                        })
+                    }
+                    _ => { Err(AsymmetricCryptoError { reason: format!("wrong key type. expected rsa. got {:?}", recipient_key_pair) }) }
+                }
+            }
+            CryptoProtocolVersion::TutaCrypt => {
+                match recipient_key_pair {
+                    AsymmetricKeyPair::PQKeyPairs(k) => {
+                        let decapsulated_sym_key = PQMessage::deserialize(pub_enc_sym_key)?
+                            .decapsulate(&k)?;
+                        Ok(DecapsulatedAesKey {
+                            decrypted_aes_key: decapsulated_sym_key.decrypted_sym_key_bytes.into(),
+                            sender_identity_pub_key: Some(decapsulated_sym_key.sender_identity_pub_key),
+                        })
+                    }
+                    _ => { Err(AsymmetricCryptoError { reason: format!("wrong key type. expected TutaCrypt. got {:?}", recipient_key_pair) }) }
+                }
+            }
+            _ => Err(AsymmetricCryptoError { reason: format!("invalid cryptoProtocolVersion: {:?}", crypto_protocol_version) })
+        }
+    }
+
     //
     // /**
     //  * Loads the recipient key pair in the required version and decrypts the pubEncSymKey with it.
@@ -205,6 +217,33 @@ impl AsymmetricCryptoFacade {
     // }
     // }
     //
+
+    // FIXME: the following functions depend on service invocations and are still missing from our implementation
+
+    // /**
+    // * Verifies whether the key that the public key service returns is the same as the one used for encryption.
+    // * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
+    // *
+    // * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
+    // * @param sender_identity_pub_key the sender_identity_pub_key that was used to encrypt/authenticate the data.
+    // * @param senderKeyVersion the version of the sender_identity_pub_key.
+    // */
+    // async authenticateSender(identifier: PublicKeyIdentifier, sender_identity_pub_key: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus>
+
+    // /**
+    //  * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
+    //  * If the protocol does not support authentication this method will only decrypt.
+    //  * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion and must be of the required recipientKeyVersion.
+    //  * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
+    //  * @param senderIdentifier the identifier for the sender's key group
+    //  * @throws CryptoError in case the authentication fails.
+    //  */
+    // async decryptSymKeyWithKeyPairAndAuthenticate(
+    // recipientKeyPair: AsymmetricKeyPair,
+    // pubEncKeyData: PubEncKeyData,
+    // senderIdentifier: PublicKeyIdentifier,
+    // )
+
     // /**
     //  * Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,
     //  * or creates a new one and writes it to the respective Group.
@@ -213,24 +252,7 @@ impl AsymmetricCryptoFacade {
     //  * 						This is necessary as a User might send an E-Mail from a shared mailbox,
     //  * 						for which the KeyPair should be created.
     //  */
-    // private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<EccKeyPair> {
-    // const algo = senderKeyPair.keyPairType
-    // if (isPqKeyPairs(senderKeyPair)) {
-    // return senderKeyPair.eccKeyPair
-    // } else if (isRsaEccKeyPair(senderKeyPair)) {
-    // return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
-    // } else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
-    // // there is no ecc key pair yet, so we have to genrate and upload one
-    // const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
-    // const newIdentityKeyPair = this.cryptoWrapper.generateEccKeyPair()
-    // const symEncPrivEccKey = this.cryptoWrapper.encryptEccKey(symGroupKey.object, newIdentityKeyPair.privateKey)
-    // const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
-    // await this.serviceExecutor.put(PublicKeyService, data)
-    // return newIdentityKeyPair
-    // } else {
-    // throw new CryptoError("unknow key pair type: " + algo)
-    // }
-    // }
+    // private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<EccKeyPair>
 }
 
 
