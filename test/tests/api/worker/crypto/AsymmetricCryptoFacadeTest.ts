@@ -1,5 +1,5 @@
 import o from "../../../../../packages/otest/dist/otest.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, PublicKeys } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -22,7 +22,6 @@ import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/Ke
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { hexToUint8Array, Versioned } from "@tutao/tutanota-utils"
-import { PublicKeys } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import {
 	createPublicKeyGetIn,

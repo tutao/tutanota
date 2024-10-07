@@ -20,15 +20,8 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import {
-	asCryptoProtoocolVersion,
-	asPublicKeyIdentifier,
-	CryptoProtocolVersion,
-	EncryptionAuthStatus,
-	PublicKeyIdentifierType,
-} from "../../common/TutanotaConstants.js"
+import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { PubEncSymKey, PublicKeys } from "./CryptoFacade.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
@@ -46,6 +39,18 @@ export type DecapsulatedAesKey = {
 export type PublicKeyIdentifier = {
 	identifier: string
 	identifierType: PublicKeyIdentifierType
+}
+
+export type PubEncSymKey = {
+	pubEncSymKeyBytes: Uint8Array
+	cryptoProtocolVersion: CryptoProtocolVersion
+	senderKeyVersion: number | null
+	recipientKeyVersion: number
+}
+export type PublicKeys = {
+	pubRsaKey: null | Uint8Array
+	pubEccKey: null | Uint8Array
+	pubKyberKey: null | Uint8Array
 }
 
 /**
@@ -123,7 +128,7 @@ export class AsymmetricCryptoFacade {
 		switch (cryptoProtocolVersion) {
 			case CryptoProtocolVersion.RSA: {
 				if (!isRsaOrRsaEccKeyPair(recipientKeyPair)) {
-					throw new CryptoError("wrong key type. expecte rsa. got " + recipientKeyPair.keyPairType)
+					throw new CryptoError("wrong key type. expected rsa. got " + recipientKeyPair.keyPairType)
 				}
 				const privateKey: RsaPrivateKey = recipientKeyPair.privateKey
 				const decryptedSymKey = await this.rsa.decrypt(privateKey, pubEncSymKey)
@@ -134,7 +139,7 @@ export class AsymmetricCryptoFacade {
 			}
 			case CryptoProtocolVersion.TUTA_CRYPT: {
 				if (!isPqKeyPairs(recipientKeyPair)) {
-					throw new CryptoError("wrong key type. expected tuta-crypt. got " + recipientKeyPair.keyPairType)
+					throw new CryptoError("wrong key type. expected TutaCrypt. got " + recipientKeyPair.keyPairType)
 				}
 				const { decryptedSymKeyBytes, senderIdentityPubKey } = await this.pqFacade.decapsulateEncoded(pubEncSymKey, recipientKeyPair)
 				return {
@@ -267,7 +272,7 @@ export class AsymmetricCryptoFacade {
 			await this.serviceExecutor.put(PublicKeyService, data)
 			return newIdentityKeyPair
 		} else {
-			throw new CryptoError("unknow key pair type: " + algo)
+			throw new CryptoError("unknown key pair type: " + algo)
 		}
 	}
 }
