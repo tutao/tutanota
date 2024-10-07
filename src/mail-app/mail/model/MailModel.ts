@@ -253,7 +253,7 @@ export class MailModel {
 			for (const [listId, mailsInList] of mailsPerList) {
 				if (sourceMailFolder) {
 					if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
-						await this._finallyDeleteMails(mailsInList)
+						await this.finallyDeleteMails(mailsInList)
 					} else {
 						await this._moveMails(mailsInList, trashFolder)
 					}
@@ -261,20 +261,6 @@ export class MailModel {
 					console.log("Delete mail: no mail folder for list id", folder)
 				}
 			}
-		}
-	}
-
-	/**
-	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder and the folder must allow final delete operation.
-	 */
-	async _finallyDeleteMails(mails: Mail[]): Promise<void> {
-		if (!mails.length) return Promise.resolve()
-		const mailFolder = neverNull(this.getMailFolderForMail(mails[0]))
-		const mailIds = mails.map((m) => m._id)
-		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
-
-		for (const mailChunk of mailChunks) {
-			await this.mailFacade.deleteMails(mailChunk, mailFolder._id)
 		}
 	}
 
