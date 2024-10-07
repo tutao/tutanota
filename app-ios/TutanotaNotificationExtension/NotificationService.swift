@@ -143,6 +143,7 @@ class NotificationService: UNNotificationServiceExtension {
 
 		content.subtitle = firstRecipient ?? userId
 		content.threadIdentifier = "\(mail.firstRecipient?.address ?? userId):\(content.title)"
+		content.categoryIdentifier = MAIL_ACTIONS_CATEGORY
 	}
 
 	override func serviceExtensionTimeWillExpire() {
