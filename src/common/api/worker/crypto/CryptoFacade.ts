@@ -75,19 +75,6 @@ import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "./Asymmetr
 
 assertWorkerOrNode()
 
-export type PubEncSymKey = {
-	pubEncSymKeyBytes: Uint8Array
-	cryptoProtocolVersion: CryptoProtocolVersion
-	senderKeyVersion: number | null
-	recipientKeyVersion: number
-}
-
-export type PublicKeys = {
-	pubRsaKey: null | Uint8Array
-	pubEccKey: null | Uint8Array
-	pubKyberKey: null | Uint8Array
-}
-
 // Unmapped encrypted owner group instance
 type UnmappedOwnerGroupInstance = {
 	_ownerEncSessionKey: string
