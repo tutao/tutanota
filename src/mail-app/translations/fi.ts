@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-09-24T13:45:57Z",
+	"updated_at": "2024-10-07T09:56:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -548,6 +548,7 @@ export default {
 		"email_label": "Sähköposti",
 		"emptyShortcut_msg": "Määritä viestipohjalle oikopolku",
 		"emptyTitle_msg": "Otsikko puuttuu.",
+		"enableAnyway_action": "Käytä silti",
 		"enableSearchMailbox_msg": "Hakutoiminto käyttää laitteen muistia ja saattaa lisätä maksullista verkkoliikennettä.",
 		"endOfCurrentSubscriptionPeriod": "Tämänhetkisen maksuvälin päättymispäivä",
 		"endsWith_label": "päättyy",
@@ -588,6 +589,7 @@ export default {
 		"exportVCard_action": "Vie tietoja vCard-muodossa",
 		"export_action": "Vie talteen",
 		"externalCalendarInfo_msg": "Jos haluat tilata ulkoisen tai julkisen kalenterin, syötä sen osoite ja varmistamme, että se pysyy ajan tasalla. Tähän kalenteriin ei voi kirjoittaa, mutta voit synkronoida sen koska vain.",
+		"externalContactSyncDetectedWarning_msg": "Yhteystietojen synkronointi on käytössä iCloudille tai jollekin muulle yhteystietosovellukselle tällä laitteella. Poistathan sen käytöstä, jotta Tutan yhteystietojen synkronoinnin kanssa ei ilmene ongelmia.",
 		"externalFormattingInfo_msg": "Valitse lähetetäänkö viestit muotoiltuna (HTML) vai tavallisena tekstinä.",
 		"externalFormatting_label": "Muotoilu",
 		"externalNotificationMailBody1_msg": "Hei,",
@@ -692,6 +694,8 @@ export default {
 		"iCalSync_error": "Synkronointivirhe. Ainakin yksi kalentereista on virheellinen.",
 		"icsInSharingFiles_msg": "Tiedosto(ja) tunnistettiin kalenteritiedostoiksi. Haluatko tuoda ne vai liittää ne?",
 		"importCalendar_label": "Tuodaan kalenteria",
+		"importContactRemoveDuplicatesConfirm_msg": "Synkronoinnin aikaan laitteeltasi löytyi {count} yhteystietojen kaksoiskappaletta. Haluatko poistaa ne laitteeltasi? Huomaathan, että tätä ei voi perua.",
+		"importContactRemoveImportedContactsConfirm_msg": "Haluatko poistaa tuodut yhteystiedot laitteeltasi? Huomaathan, että tätä ei voi perua.",
 		"importContactsError_msg": "{amount}/{total} yhteystiedon tuonti epäonnistui.",
 		"importContacts_label": "Tuo yhteystietoja",
 		"importContacts_msg": "Tuo yhteystietoja laitteesi osoitekirjasta Tutaan päästäksesi niihin eri laitteilta.",
