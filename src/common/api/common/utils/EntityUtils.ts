@@ -434,7 +434,7 @@ export function getStrippedClone<E extends SomeEntity>(entity: StrippedEntity<E>
  * remove fields that do not contain user defined data but are related to finding/accessing the entity on the server
  */
 function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
-	const keysToDelete = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_permissions"]
+	const keysToDelete = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_permissions"]
 
 	function _removeIdentityFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {

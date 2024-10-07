@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
+import { arrayEquals } from "../lib/index.js"
 
 o.spec("utils", function () {
 	o("deep clone an instance", function () {
@@ -9,7 +10,9 @@ o.spec("utils", function () {
 		address.address = "donald@duck.de"
 		address.customTypeName = ""
 		let c1: any = {}
-		c1._ownerEncSessionKey = new Uint8Array([3, 2])
+		const ownerEncSessionKey = new Uint8Array([3, 2])
+		c1._ownerKeyVersion = "2"
+		c1._ownerEncSessionKey = ownerEncSessionKey
 		c1._id = ["dummyListId", "dummyId"]
 		c1.firstName = "Donald"
 		c1.lastName = "Duck"
@@ -22,6 +25,8 @@ o.spec("utils", function () {
 		o(Object.is(c1._ownerEncSessionKey, c2._ownerEncSessionKey)).equals(false)("Uint8Arrays must be cloned")
 		o(c1._ownerEncSessionKey instanceof Uint8Array).equals(true)
 		o(c2._ownerEncSessionKey instanceof Uint8Array).equals(true)
+		o(c2._ownerKeyVersion).equals(c1._ownerKeyVersion)
+		o(arrayEquals(ownerEncSessionKey, c2._ownerEncSessionKey)).equals(true)
 		o(Object.is(c1.mailAddresses[0], c2.mailAddresses[0])).equals(false)("objects must be cloned")
 	})
 	o("getChangedProps", function () {
