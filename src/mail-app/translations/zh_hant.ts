@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-09-23T16:02:42Z",
+	"updated_at": "2024-10-02T15:50:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -547,6 +547,7 @@ export default {
 		"email_label": "電郵",
 		"emptyShortcut_msg": "請提供範本的快捷鍵",
 		"emptyTitle_msg": "欠缺標題。",
+		"enableAnyway_action": "仍然啟用",
 		"enableSearchMailbox_msg": "啟用您的郵箱的搜尋功能會消耗您的裝置的記憶體，及可能消耗額外的網絡流量。",
 		"endOfCurrentSubscriptionPeriod": "目前付款週期結束",
 		"endsWith_label": "結束",
@@ -587,6 +588,7 @@ export default {
 		"exportVCard_action": "匯出vCard",
 		"export_action": "匯出",
 		"externalCalendarInfo_msg": "如要訂閱外部或公開日曆，只需輸入其網址，我們就會確保同步。此日曆僅限讀取，但您可以隨時啟動同步程序。",
+		"externalContactSyncDetectedWarning_msg": "您裝置上的iCloud或其他聯絡人應用程式已啟用聯絡人同步功能。請停用任何其他同步聯絡人的應用程式，以避免同步Tuta聯絡人時發生問題。",
 		"externalFormattingInfo_msg": "設定所有訊息是否在發送時包含格式（HTML）或轉換成純文字。",
 		"externalFormatting_label": "格式",
 		"externalNotificationMailBody1_msg": "您好，",
@@ -691,6 +693,8 @@ export default {
 		"iCalSync_error": "同步時出現錯誤，一個或多個日曆不正確。",
 		"icsInSharingFiles_msg": "偵測到一個或多個日曆檔案。您要匯入或附加它們嗎？",
 		"importCalendar_label": "匯入日曆中",
+		"importContactRemoveDuplicatesConfirm_msg": "同步時在您的裝置上找到{count}位重複聯絡人。您想從您的裝置中刪除它們嗎？請注意，刪除後無法復原。",
+		"importContactRemoveImportedContactsConfirm_msg": "您想從您的裝置中刪除已匯入的聯絡人嗎？請注意，刪除後無法復原。",
 		"importContactsError_msg": "{total}個聯絡人中有{amount}個無法匯入。",
 		"importContacts_label": "匯入聯絡人",
 		"importContacts_msg": "從您的電話簿中匯入聯絡人，以便在您的所有裝置上都可用。",

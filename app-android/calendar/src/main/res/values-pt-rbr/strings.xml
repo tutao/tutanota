@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Algo deu errado. Você gostaria de enviar um relatório de erro? Você pode adicionar uma mensagem para nos ajudar a solucionar esse erro.</string>
     <string name="downloadCompleted_msg">Download completado.</string>
     <string name="unlockCredentials_action">Desbloquear credenciais.</string>
+    <string name="delete_action">Excluir</string>
+    <string name="markRead_action">Marcar como lido</string>
 </resources>

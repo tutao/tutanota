@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Rappel";
 TutaoScheduleAlarmError = "Impossible de définir une alarme. Veuillez mettre à jour l'application.";
 TutaoUnlockCredentialsAction = "Déverrouillage des données ";
 TutaoPushNewMail = "Nouveau message reçu.";
+TutaoDeleteAction = "Supprimer";
+TutaoMarkReadAction = "Marquer comme lu";

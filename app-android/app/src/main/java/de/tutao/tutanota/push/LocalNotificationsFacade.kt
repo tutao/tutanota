@@ -19,7 +19,6 @@ import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.ColorInt
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -41,7 +40,8 @@ import java.util.TimeZone
 import kotlin.math.abs
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
-private const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
+const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
+const val NOTIFICATION_ACTION_EXTRA = "notification_action"
 private val VIBRATION_PATTERN = longArrayOf(100, 200, 100, 200)
 private const val NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email"
 private const val SUMMARY_NOTIFICATION_ID = 45
@@ -93,6 +93,21 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			val notificationMode = sseStorage.getExtendedNotificationConfig(notificationInfo.userId)
 			val notificationId = 1 + SecureRandom().nextInt(Int.MAX_VALUE - 1)
 
+			val intentTrashMailAction: Intent =
+				MailNotificationActionReceiver.makeTrashIntent(context, notificationId, notificationInfo)
+			val pendingDeleteAction: PendingIntent =
+				PendingIntent.getBroadcast(
+					context,
+					notificationId + 1,
+					intentTrashMailAction,
+					PendingIntent.FLAG_IMMUTABLE
+				)
+
+			val intentReadAction: Intent =
+				MailNotificationActionReceiver.makeReadIntent(context, notificationId, notificationInfo)
+			val pendingReadAction: PendingIntent =
+				PendingIntent.getBroadcast(context, notificationId + 2, intentReadAction, PendingIntent.FLAG_IMMUTABLE)
+
 			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
 			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
 				.setLights(redColor, 1000, 1000)
@@ -138,6 +153,8 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				.setExtras(Bundle().apply {
 					putString(EMAIL_ADDRESS_EXTRA, notificationInfo.mailAddress)
 				})
+				.addAction(R.drawable.ic_sync, context.getString(R.string.delete_action), pendingDeleteAction)
+				.addAction(R.drawable.ic_sync, context.getString(R.string.markRead_action), pendingReadAction)
 
 			notificationManager.notify(notificationId, notificationBuilder.build())
 			sendSummaryNotification(notificationInfo)

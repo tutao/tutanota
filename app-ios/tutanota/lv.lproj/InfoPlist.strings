@@ -10,3 +10,5 @@ TutaoChangePermissionMsg = "Lai piešķirtu piekļuvi, jums ir jāizmaina šīs 
 TutaoCancelAction = "Atcelt";
 TutaoSettingsAction = "Iestatījumi";
 TutaoPushNewMail = "Ienācies jauns e-pasts";
+TutaoDeleteAction = "Dzēst";
+TutaoMarkReadAction = "Atzīmēt kā izlasītu";

@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Algo inesperado salió mal. ¿Deseas enviar un informe de errores? Puedes añadir un mensaje que nos ayude a corregir este error.</string>
     <string name="downloadCompleted_msg">Descarga completada</string>
     <string name="unlockCredentials_action">Desbloquear credenciales</string>
+    <string name="delete_action">Borrar</string>
+    <string name="markRead_action">Marcar como leído</string>
 </resources>

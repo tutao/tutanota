@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Tuta</string>
+    <string name="app_name" translatable="false">{TUTA_APP_PLACEHOLDER}</string>
     <string name="reminder_label">Reminder</string>
     <string name="pushNewMail_msg">New email received.</string>
     <string name="notificationSync_msg">Synchronizing notifications</string>
@@ -7,4 +7,6 @@
     <string name="wantToSendReport_msg">Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.</string>
     <string name="downloadCompleted_msg">Download completed</string>
     <string name="unlockCredentials_action">Unlock credentials</string>
+    <string name="delete_action">Delete</string>
+    <string name="markRead_action">Mark read</string>
 </resources>

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-09-23T10:14:47Z",
+	"updated_at": "2024-10-05T09:42:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -552,6 +552,7 @@ export default {
 		"email_label": "Correo",
 		"emptyShortcut_msg": "Proporciona un acceso directo para la plantilla",
 		"emptyTitle_msg": "Falta el título.",
+		"enableAnyway_action": "Activar de todos modos",
 		"enableSearchMailbox_msg": "Habilitar la búsqueda en el buzón ocupa memoria de tu dispositivo y podría representar tráfico adicional.",
 		"endOfCurrentSubscriptionPeriod": "Fin del intervalo de pago actual",
 		"endsWith_label": "acaba por",
@@ -592,6 +593,7 @@ export default {
 		"exportVCard_action": "Exportar vCard",
 		"export_action": "Exportar",
 		"externalCalendarInfo_msg": "Para suscribirse a un calendario externo o público, basta con introducir su URL y nosotros nos encargaremos de sincronizarlo. Este calendario es de sólo lectura, pero puedes activar una operación de sincronización en cualquier momento.",
+		"externalContactSyncDetectedWarning_msg": "La sincronización de contactos está activada para iCloud u otra aplicación de contactos en tu dispositivo. Desactiva cualquier otra aplicación que sincronice contactos para evitar problemas con la sincronización de los contactos de Tuta.",
 		"externalFormattingInfo_msg": "Configura si todos los mensajes deben ser enviados incluyendo formatos (HTML) o ser convertidos a texto plano.",
 		"externalFormatting_label": "Formateando",
 		"externalNotificationMailBody1_msg": "Hola,",
@@ -696,6 +698,8 @@ export default {
 		"iCalSync_error": "Error durante la sincronización, uno o más calendarios no eran válidos.",
 		"icsInSharingFiles_msg": "Se han detectado uno o varios archivos de calendario. ¿Desea importarlos o adjuntarlos?",
 		"importCalendar_label": "Importando calendario",
+		"importContactRemoveDuplicatesConfirm_msg": "Se han encontrado {count} contactos duplicados en tu dispositivo durante la sincronización. ¿Quieres eliminarlos de tu dispositivo? Ten en cuenta que esto no se puede deshacer.",
+		"importContactRemoveImportedContactsConfirm_msg": "¿Quieres eliminar los contactos importados de tu dispositivo? Ten en cuenta que esto no se puede deshacer.",
 		"importContactsError_msg": "{amount} de {total} contactos no se pudieron importar.",
 		"importContacts_label": "Importar contactos",
 		"importContacts_msg": "Importar contactos desde la agenda de tu teléfono para tenerlos disponibles en todos tus dispositivos.",

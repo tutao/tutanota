@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Nešto je pošlo naopako. Želite li poslati izvještaj o grešci? Možete dodati poruku da nam pomognete riješiti problem.</string>
     <string name="downloadCompleted_msg">Preuzimanje završeno</string>
     <string name="unlockCredentials_action">Otključavanje vjerodajnica</string>
+    <string name="delete_action">Izbriši</string>
+    <string name="markRead_action">Označi pročitanim</string>
 </resources>

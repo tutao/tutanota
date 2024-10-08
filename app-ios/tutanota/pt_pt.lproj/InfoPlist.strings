@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Lembrete";
 TutaoScheduleAlarmError = "Não foi possível configurar o alarme. Por favor atualize a aplicação.";
 TutaoUnlockCredentialsAction = "Desbloquear credenciais";
 TutaoPushNewMail = "Novo email recebido.";
+TutaoDeleteAction = "Apagar";
+TutaoMarkReadAction = "Marcar como lida";

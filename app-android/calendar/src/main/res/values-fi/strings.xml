@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Jotakin odottamatonta meni pieleen. Haluatko lähettää virheilmoituksen?  Voit liittää ilmoitukseen myös oman viestisi auttaaksesi meitä korjaamaan virheen.</string>
     <string name="downloadCompleted_msg">Lataus valmis</string>
     <string name="unlockCredentials_action">Avaa tunnistetiedot</string>
+    <string name="delete_action">Poista</string>
+    <string name="markRead_action">Merkitse luetuksi</string>
 </resources>

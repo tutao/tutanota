@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Er is onverwachts iets verkeerd gegaan. Wilt u een foutrapport verzenden? U kunt een bericht toevoegen om ons te helpen de fout te repareren.</string>
     <string name="downloadCompleted_msg">Download voltooid</string>
     <string name="unlockCredentials_action">Gegevens deblokkeren</string>
+    <string name="delete_action">Verwijderen</string>
+    <string name="markRead_action">Gelezen</string>
 </resources>

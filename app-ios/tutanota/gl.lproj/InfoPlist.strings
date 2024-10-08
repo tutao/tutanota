@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Recordatorio";
 TutaoScheduleAlarmError = "Non se estableceu a alarma. Por favor actualiza a aplicación.";
 TutaoUnlockCredentialsAction = "Desbloquear credenciais";
 TutaoPushNewMail = "Novo correo recibido.";
+TutaoDeleteAction = "Eliminar";
+TutaoMarkReadAction = "Marcar como lido";

@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">發生未預期的問題。您想發送錯誤報告嗎？您可以附加訊息來幫助我們修正此錯誤。</string>
     <string name="downloadCompleted_msg">下載完成</string>
     <string name="unlockCredentials_action">解鎖登入資料</string>
+    <string name="delete_action">刪除</string>
+    <string name="markRead_action">標記為已讀</string>
 </resources>

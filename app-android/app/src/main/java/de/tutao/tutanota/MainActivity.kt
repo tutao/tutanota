@@ -714,10 +714,10 @@ class MainActivity : FragmentActivity() {
 		val addresses = ArrayList<String>(1)
 		addresses.add(address)
 		startService(
-				notificationDismissedIntent(
-						this, addresses,
-						"MainActivity#openMailbox"
-				)
+			notificationDismissedIntent(
+				this, addresses,
+				"MainActivity#openMailbox"
+			)
 		)
 
 		val requestedPath = intent.getStringExtra(OPEN_USER_MAILBOX_MAILID_KEY)?.let {

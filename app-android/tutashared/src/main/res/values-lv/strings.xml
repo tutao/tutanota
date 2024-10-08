@@ -3,4 +3,6 @@
     <string name="notificationSync_msg">Notiek paziņojumu sinhronizēšana</string>
     <string name="wantToSendReport_msg">Kaut kas negaidīti nogāja greizi. Vai vēlaties nosūtīt ķibeles ziņojumu? Varat pievienot arī aprakstu, lai palīdzētu mums novērst šo kļūdu.</string>
     <string name="downloadCompleted_msg">Lejuplāde pabeigta</string>
+    <string name="delete_action">Dzēst</string>
+    <string name="markRead_action">Atzīmēt kā izlasītu</string>
 </resources>

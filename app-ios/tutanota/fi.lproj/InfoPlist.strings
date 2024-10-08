@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Muistutus";
 TutaoScheduleAlarmError = "Hälytystä ei voitu asettaa. Päivitä sovellus.";
 TutaoUnlockCredentialsAction = "Avaa tunnistetiedot";
 TutaoPushNewMail = "Olet saanut uuden sähköpostin.";
+TutaoDeleteAction = "Poista";
+TutaoMarkReadAction = "Merkitse luetuksi";

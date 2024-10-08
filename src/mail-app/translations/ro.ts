@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-09-26T16:03:13Z",
+	"updated_at": "2024-10-04T15:08:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -553,6 +553,7 @@ export default {
 		"email_label": "E-mail",
 		"emptyShortcut_msg": "Stabilește o comandă rapidă pentru model",
 		"emptyTitle_msg": "Titlul lipsește.",
+		"enableAnyway_action": "Activează oricum",
 		"enableSearchMailbox_msg": "Activarea căutării pentru cutia poștală consumă din memoria aparatului și ar putea consuma trafic suplimentar.",
 		"endOfCurrentSubscriptionPeriod": "Sfârșitul intervalului actual de plată",
 		"endsWith_label": "se termină cu",
@@ -593,6 +594,7 @@ export default {
 		"exportVCard_action": "Exportă vCard",
 		"export_action": "Exportă",
 		"externalCalendarInfo_msg": "Pentru a te abona la un calendar extern sau public, trebuie doar să introduci URL-ul acestuia și ne vom asigura că va fi sincronizat. Acest calendar este numai pentru citire, dar îl poți sincroniza în orice moment.",
+		"externalContactSyncDetectedWarning_msg": "Sincronizarea contactelor este activată pentru iCloud sau o altă aplicație de contacte. Trebuie dezactivată orice altă aplicație care sincronizează contactele pentru a evita probleme cu sincronizarea contactelor Tuta.",
 		"externalFormattingInfo_msg": "Stabilește dacă toate mesajele trebuie trimise cu formatare (HTML) sau convertite în text simplu.",
 		"externalFormatting_label": "Formatare",
 		"externalNotificationMailBody1_msg": "Bună,",
@@ -697,6 +699,8 @@ export default {
 		"iCalSync_error": "Eroare în timpul sincronizării, unul sau mai multe calendare nu erau valabile.",
 		"icsInSharingFiles_msg": "Au fost detectate unul sau mai multe fișiere calendar. Vrei să le imporți sau să le atașezi?",
 		"importCalendar_label": "Importare calendar",
+		"importContactRemoveDuplicatesConfirm_msg": "În timpul sincronizării, în aparatul tău s-au găsit {count} contact(e) duplicat(e). Vrei să le ștergi din aparatul tău? Acest lucru nu poate fi anulat.",
+		"importContactRemoveImportedContactsConfirm_msg": "Vrei să ștergi contactele importate din aparatul tău? Acest lucru nu poate fi anulat.",
 		"importContactsError_msg": "{amount} din {total} contacte nu au putut fi importate.",
 		"importContacts_label": "Importă contacte",
 		"importContacts_msg": "Importă contacte din agenda telefonului pentru a le face disponibile în toate aparatele tale.",

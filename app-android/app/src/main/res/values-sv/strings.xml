@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Något oväntat gick fel. Vill du skicka en felrapport? Du kan lägga till ett meddelande som hjälper oss att åtgärda felet.</string>
     <string name="downloadCompleted_msg">Nedladdningen slutförd</string>
     <string name="unlockCredentials_action">Lås upp inloggningsuppgifter</string>
+    <string name="delete_action">Radera</string>
+    <string name="markRead_action">Markera som läst</string>
 </resources>

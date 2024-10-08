@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Coś poszło nie tak. Chcesz wysłać raport o błędzie? Możesz dodać wiadomość, która pomoże nam naprawić ten błąd.</string>
     <string name="downloadCompleted_msg">Pobieranie zakończone</string>
     <string name="unlockCredentials_action">Odblokuj poświadczenia</string>
+    <string name="delete_action">Usuń</string>
+    <string name="markRead_action">Oznacz jako "przeczytane"</string>
 </resources>

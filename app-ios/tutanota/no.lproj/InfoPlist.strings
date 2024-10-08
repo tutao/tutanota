@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Påminnelse";
 TutaoScheduleAlarmError = "Kunne ikke stille inn en alarm. Oppdater applikasjonen.";
 TutaoUnlockCredentialsAction = "Lås opp opplysninger";
 TutaoPushNewMail = "Ny e-post mottatt.";
+TutaoDeleteAction = "Slett";
+TutaoMarkReadAction = "Marker som lest";

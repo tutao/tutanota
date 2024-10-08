@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Có lỗi bất ngờ xảy ra. Bạn có muốn gửi một bản báo lỗi không? Bạn có thể thêm lời nhắn để giúp chúng tôi sửa lỗi.</string>
     <string name="downloadCompleted_msg">Tải về xong</string>
     <string name="unlockCredentials_action">Mở khoá thông tin đăng nhập</string>
+    <string name="delete_action">Xoá</string>
+    <string name="markRead_action">Đánh dấu đã đọc</string>
 </resources>

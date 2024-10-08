@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">예상치 못한 문제가 발생했습니다. 오류 보고서를 보내시겠습니까? 이 오류를 해결하는 데 도움이 되는 메시지를 추가할 수 있습니다.</string>
     <string name="downloadCompleted_msg">다운로드가 완료되었습니다</string>
     <string name="unlockCredentials_action">자격 증명 잠금 해제</string>
+    <string name="delete_action">지우기</string>
+    <string name="markRead_action">읽음으로 표시</string>
 </resources>

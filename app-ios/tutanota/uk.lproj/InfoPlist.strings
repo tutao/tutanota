@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Нагадування";
 TutaoScheduleAlarmError = "Не вдалося налаштувати будильник. Оновіть програму.";
 TutaoUnlockCredentialsAction = "Розблокувати облікові дані";
 TutaoPushNewMail = "Отримано новий лист.";
+TutaoDeleteAction = "Видалити";
+TutaoMarkReadAction = "Позначити як прочитане";

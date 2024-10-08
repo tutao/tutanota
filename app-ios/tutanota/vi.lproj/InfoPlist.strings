@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Nhắc nhở";
 TutaoScheduleAlarmError = "Không thể cài đặt báo hiệu. Vui lòng cập nhật ứng dụng.";
 TutaoUnlockCredentialsAction = "Mở khoá thông tin đăng nhập";
 TutaoPushNewMail = "Đã nhận được thư mới.";
+TutaoDeleteAction = "Xoá";
+TutaoMarkReadAction = "Đánh dấu đã đọc";

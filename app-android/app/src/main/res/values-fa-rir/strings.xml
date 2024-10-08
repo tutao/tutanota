@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">اشکال غیر منتظره رخ داده است. آیا شما می خواهید ریزگان اشکال ارسال کنید؟ برای کمک به حل این اشکال شما می توانید یک پیام اضافه کنید.</string>
     <string name="downloadCompleted_msg">دریافت اطلاعات کامل شد</string>
     <string name="unlockCredentials_action">باز کردن قفل داده‌های هویتی</string>
+    <string name="delete_action">حذف</string>
+    <string name="markRead_action">علامت‌گذاری به عنوان خوانده شده</string>
 </resources>

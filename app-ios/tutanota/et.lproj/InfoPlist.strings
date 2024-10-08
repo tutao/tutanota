@@ -7,3 +7,5 @@ TutaoCancelAction = "Tühista";
 TutaoSettingsAction = "Seaded";
 TutaoCalendarAlarmTitle = "Meeldetuletus";
 TutaoPushNewMail = "Uus e-kiri saabunud.";
+TutaoDeleteAction = "Kustuta";
+TutaoMarkReadAction = "Märgi loetuks";

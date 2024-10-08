@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Připomenutí";
 TutaoScheduleAlarmError = "Nepodařilo se nastavit alarm. Aktualizujte prosím aplikaci.";
 TutaoUnlockCredentialsAction = "Odemknout přístupové údaje";
 TutaoPushNewMail = "Nový e-mail";
+TutaoDeleteAction = "Odstranit";
+TutaoMarkReadAction = "Označit jako přečtené";
