@@ -5,8 +5,8 @@ import { theme } from "../theme"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
-import { keyHandler, useKeyHandler } from "../../misc/KeyManager"
-import { TabIndex } from "../../api/common/TutanotaConstants"
+import { isKeyPressed, keyHandler, useKeyHandler } from "../../misc/KeyManager"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
 
@@ -261,7 +261,14 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							a.onfocus && a.onfocus(this._domWrapper, this.domInput)
 						},
 						onblur: (e: FocusEvent) => this.blur(e, a),
-						onkeydown: (e: KeyboardEvent) => useKeyHandler(e, a.keyHandler),
+						onkeydown: (e: KeyboardEvent) => {
+							const handled = useKeyHandler(e, a.keyHandler)
+							if (!isKeyPressed(e.key, Keys.F1, Keys.TAB)) {
+								// When we are in a text field we don't want keys propagated up to act as hotkeys
+								e.stopPropagation()
+							}
+							return handled
+						},
 						onupdate: () => {
 							// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 							if (this.domInput.value !== a.value) {
