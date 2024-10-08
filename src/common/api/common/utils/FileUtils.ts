@@ -37,7 +37,7 @@ export function getFileExtension(fileName: string): string {
  */
 export function getFileBaseName(fileName: string): string {
 	const extension = getFileExtension(fileName)
-	return fileName.substr(0, extension ? fileName.lastIndexOf(extension) : fileName.length)
+	return fileName.substring(0, extension ? fileName.lastIndexOf(extension) : fileName.length)
 }
 
 export function unreserveFileName(fileName: string): string {
