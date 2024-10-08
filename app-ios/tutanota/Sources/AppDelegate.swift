@@ -80,6 +80,8 @@ import UIKit
 		#endif
 		TUTSLog("Start Tutanota with launch options: \(String(describing: launchOptions))")
 		try! migrateToSharedstorage()
+		self.registerNotificationCategories()
+
 		self.start()
 		return true
 	}
@@ -135,14 +137,16 @@ import UIKit
 		didReceive response: UNNotificationResponse,
 		withCompletionHandler completionHandler: @escaping () -> Void
 	) {
-		if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-			let notification = response.notification
-			let userInfo = notification.request.content.userInfo
-			guard let userId = userInfo["userId"] as? String else { return }
-			guard let mailIdArray = userInfo["mailId"] as? [String], mailIdArray.count == 2 else { return }
-			let mailId = (mailIdArray[0], mailIdArray[1])
+		let userInfo = response.notification.request.content.userInfo
+		guard let mailId = userInfo["mailId"] as? [String], mailId.count == 2, let userId = userInfo["userId"] as? String else { return }
+		switch response.actionIdentifier {
+		case MAIL_READ_ACTION: TUTSLog("this should mark mail as read! mailId: \(mailId), userId: \(userId)")
+		case MAIL_TRASH_ACTION: TUTSLog("this should trash the mail! mailId: \(mailId), userId: \(userId)")
+		case UNNotificationDefaultActionIdentifier:
+			let mailIdTuple = (mailId[0], mailId[1])
 			let address = userInfo["firstRecipient"] as? String ?? ""
-			self.viewController.handleOpenNotification(userId: userId, address: address, mailId: mailId)
+			self.viewController.handleOpenNotification(userId: userId, address: address, mailId: mailIdTuple)
+		default: TUTSLog("Invalid Notification Action")
 		}
 		completionHandler()
 	}
@@ -155,6 +159,19 @@ import UIKit
 	func applicationWillTerminate(_ application: UIApplication) {
 		self.viewController.onApplicationWillTerminate()
 		do { try FileUtils.deleteSharedStorage() } catch { TUTSLog("failed to delete shared storage on shutdown: \(error)") }
+	}
+
+	private func registerNotificationCategories() {
+		let readAction = UNNotificationAction(identifier: MAIL_READ_ACTION, title: translate("TutaoMarkReadAction", default: "Mark Read"), options: [])
+		let trashAction = UNNotificationAction(identifier: MAIL_TRASH_ACTION, title: translate("TutaoDeleteAction", default: "Delete"), options: [.destructive])
+		let mailActionsCategory = UNNotificationCategory(
+			identifier: MAIL_ACTIONS_CATEGORY,
+			actions: [readAction, trashAction],
+			intentIdentifiers: [],
+			options: .customDismissAction
+		)
+
+		UNUserNotificationCenter.current().setNotificationCategories([mailActionsCategory])
 	}
 
 	// everything is handled on the server. nothing to do here (should run infinitely in the background)
