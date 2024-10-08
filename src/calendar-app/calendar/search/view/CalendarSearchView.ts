@@ -1,19 +1,18 @@
 import { TopLevelAttrs, TopLevelView } from "../../../../TopLevelView.js"
-import { DrawerMenuAttrs } from "../../../../common/gui/nav/DrawerMenu.js"
 import { AppHeaderAttrs, Header } from "../../../../common/gui/Header.js"
 import { CalendarSearchViewModel } from "./CalendarSearchViewModel.js"
 import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, incrementMonth, LazyLoaded, lazyMemoized, memoized, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, incrementMonth, isSameDay, LazyLoaded, lazyMemoized, memoized, noOp, TypeRef } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { px, size } from "../../../../common/gui/size.js"
-import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey, type TranslationText } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
@@ -60,6 +59,7 @@ import { client } from "../../../../common/misc/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { ButtonType } from "../../../../common/gui/base/Button.js"
+import { DatePicker, DatePickerAttrs } from "../../gui/pickers/DatePicker.js"
 
 assertMainOrNode()
 
@@ -73,6 +73,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly resultDetailsColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: CalendarSearchViewModel
+	private readonly startOfTheWeekOffset: number
+	private datePickerWarning: TranslationText | null = null
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -86,6 +88,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
+		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 
 		this.resultListColumn = new ViewColumn(
 			{
@@ -288,7 +291,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderCalendarFilterSection(): Children {
-		return [this.renderCalendarTimeRangeField(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
+		// end date is the month three months from now
+		let endDate = incrementMonth(new Date(), 3)
+		endDate.setDate(0)
+		return [this.renderDateRangeSelection(endDate), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
 			m(".folder-row.plr-button.content-fg", row),
 		)
 	}
@@ -326,6 +332,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 							},
 							() => m(".pt-m.pb-ml", this.renderCalendarFilterSection()),
 						)
+						dialog.setFocusOnLoadFunction(noOp)
 						dialog.show()
 					},
 				}),
@@ -333,48 +340,71 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 	}
 
-	private renderCalendarTimeRangeField(): Children {
-		const startDate = new Date()
-		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatDate(this.searchViewModel.startDate)
-		const endDate = incrementMonth(startDate, 2)
-		const end = this.searchViewModel.endDate == null ? formatDate(endDate) : formatDate(this.searchViewModel.endDate)
-		const timeDisplayValue = start + " - " + end
-		return m(TextField, {
-			label: "periodOfTime_label",
-			value: timeDisplayValue,
-			isReadOnly: true,
-			class: "plr-button",
-			injectionsRight: () =>
-				m(IconButton, {
-					title: "selectPeriodOfTime_label",
-					click: async () => {
-						if (this.searchViewModel.canSelectTimePeriod()) {
-							const period = await showDateRangeSelectionDialog(
-								this.searchViewModel.getStartOfTheWeekOffset(),
-								this.searchViewModel.startDate ?? startDate,
-								this.searchViewModel.endDate ?? endDate,
-								(startDate, endDate) => {
-									if (startDate == null || endDate == null) return null
-									if (endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
-										return lang.get("longSearchRange_msg")
-									} else if (startDate.getTime() > endDate.getTime()) {
-										return lang.get("startAfterEnd_label")
-									}
-									return null
-								},
-							)
-							this.searchViewModel.startDate = period.start
-							this.searchViewModel.endDate = period.end
+	private validateDates(startDate: Date | null, endDate: Date | null): boolean {
+		if (startDate == null || endDate == null) {
+			this.datePickerWarning = null
+			return false
+		}
+		if (endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+			this.datePickerWarning = "longSearchRange_msg"
+			return true
+		} else if (startDate.getTime() > endDate.getTime()) {
+			this.datePickerWarning = "startAfterEnd_label"
+			return false
+		}
+		return true
+	}
 
+	private renderDatePicker(searchViewModelDate: Date | null, start: boolean): Children {
+		let nullSelectionText: TranslationText | undefined = undefined
+
+		if (start) {
+			if (this.datePickerWarning) {
+				nullSelectionText = this.datePickerWarning
+			} else if (this.searchViewModel.startDate == null) {
+				nullSelectionText = "unlimited_label"
+			}
+		}
+
+		return m(DatePicker, {
+			date: searchViewModelDate ?? undefined,
+			onDateSelected: async (date) => {
+				if (this.searchViewModel.canSelectTimePeriod()) {
+					this.datePickerWarning = null
+					// double check that a new day is being picked
+					if (!searchViewModelDate || !isSameDay(date, searchViewModelDate)) {
+						if (start) {
+							this.searchViewModel.startDate = date
+						} else {
+							this.searchViewModel.endDate = date
+						}
+						if (this.validateDates(this.searchViewModel.startDate, this.searchViewModel.endDate)) {
 							this.searchViewModel.searchAgain()
 						} else {
-							await showNotAvailableForFreeDialog()
+							m.redraw()
 						}
-					},
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
-				}),
-		})
+					}
+				} else {
+					await showNotAvailableForFreeDialog()
+				}
+			},
+			startOfTheWeekOffset: this.startOfTheWeekOffset,
+			label: start ? "dateFrom_label" : "dateTo_label",
+			nullSelectionText,
+			rightAlignDropdown: true,
+		} satisfies DatePickerAttrs)
+	}
+
+	private renderDateRangeSelection(endDate: Date): Children {
+		if (!this.searchViewModel.endDate) {
+			this.searchViewModel.endDate = endDate
+		}
+
+		return m(
+			".flex.col",
+			m(".pr-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.startDate, true)),
+			m(".pl-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.endDate, false)),
+		)
 	}
 
 	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => [
@@ -397,22 +427,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 		// redraw because init() is async
 		m.redraw()
-	}
-
-	private getMainButton(typeRef: TypeRef<unknown>): {
-		label: TranslationKey
-		click: ClickHandler
-	} | null {
-		if (styles.isUsingBottomNavigation()) {
-			return null
-		}
-
-		return {
-			click: () => {
-				this.createNewEventDialog()
-			},
-			label: "newEvent_action",
-		}
 	}
 
 	private async createNewEventDialog(): Promise<void> {

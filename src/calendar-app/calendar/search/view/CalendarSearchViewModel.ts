@@ -47,8 +47,6 @@ export enum PaidFunctionResult {
 	PaidSubscriptionNeeded,
 }
 
-export type ConfirmCallback = () => Promise<boolean>
-
 export class CalendarSearchViewModel {
 	listModel: ListModel<CalendarSearchResultListEntry>
 
@@ -107,10 +105,6 @@ export class CalendarSearchViewModel {
 
 		this.eventController.addEntityListener(this.entityEventsListener)
 	})
-
-	getRestriction(): SearchRestriction {
-		return this.router.getRestriction()
-	}
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {

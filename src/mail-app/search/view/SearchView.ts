@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
+import type { TranslationKey, TranslationText } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -11,14 +11,13 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { px, size } from "../../../common/gui/size"
-import { getFreeSearchStartDate, SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
+import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	assertNotNull,
 	getFirstOrThrow,
 	incrementMonth,
-	isSameDay,
 	isSameTypeRef,
 	LazyLoaded,
 	lazyMemoized,
@@ -27,7 +26,6 @@ import {
 	ofClass,
 	TypeRef,
 } from "@tutao/tutanota-utils"
-import { formatDate, formatDateWithMonth, formatDateWithTimeIfNotEven } from "../../../common/misc/Formatter"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
@@ -36,12 +34,10 @@ import { styles } from "../../../common/gui/styles"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { TextField } from "../../../common/gui/base/TextField.js"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import type { ClickHandler } from "../../../common/gui/base/GuiUtils"
 import { DropDownSelector, DropDownSelectorAttrs, SelectorItem } from "../../../common/gui/base/DropDownSelector.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
@@ -81,7 +77,6 @@ import { MultiselectMode } from "../../../common/gui/base/List.js"
 import { PaidFunctionResult, SearchViewModel } from "./SearchViewModel.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog.js"
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
@@ -100,10 +95,10 @@ import { CalendarOperation } from "../../../calendar-app/calendar/gui/eventedito
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { showNewCalendarEventEditDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
-import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
+import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
 
 assertMainOrNode()
 
@@ -119,6 +114,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: SearchViewModel
+	private readonly startOfTheWeekOffset: number
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -132,6 +128,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	constructor(vnode: Vnode<SearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
+		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 
 		this.folderColumn = new ViewColumn(
 			{
@@ -288,7 +285,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	oncreate(): void {
-		this.searchViewModel.init()
+		this.searchViewModel.init(() => this.confirmMailSearch())
 
 		keyManager.registerShortcuts(this.shortcuts())
 	}
@@ -670,18 +667,16 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const availableMailFolders = this.getAvailableMailFolders()
 		const availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({ name: lang.get(f.textId), value: f.field }))
 		return [
-			this.renderMailTimeRangeField(),
+			this.renderDateRangeSelection(),
 			m("div.mlr-button", [
 				m(DropDownSelector, {
 					label: "field_label",
 					items: availableMailFields,
 					selectedValue: this.searchViewModel.selectedMailField,
-					selectionChangedHandler: async (newValue: string | null) => {
-						const result = await this.searchViewModel.setSelectedField(newValue)
+					selectionChangedHandler: (newValue: string | null) => {
+						const result = this.searchViewModel.selectMailField(newValue)
 						if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
 							showNotAvailableForFreeDialog()
-						} else {
-							this.searchAgain()
 						}
 					},
 					dropdownWidth: 250,
@@ -695,8 +690,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								const result = this.searchViewModel.selectMailFolder(newValue ? [newValue] : [])
 								if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
 									showNotAvailableForFreeDialog()
-								} else {
-									this.searchAgain()
 								}
 							},
 							dropdownWidth: 250,
@@ -707,7 +700,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderCalendarFilterSection(): Children {
-		return [this.renderCalendarTimeRangeField(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
+		// end date is the month three months from now
+		let endDate = incrementMonth(new Date(), 3)
+		endDate.setDate(0)
+		return [this.renderDateRangeSelection(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
 			m(".folder-row.plr-button.content-fg", row),
 		)
 	}
@@ -750,128 +746,52 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private renderMailTimeRangeField(): Children {
-		let end: string
-		let start: string
-
-		if (locator.logins.getUserController().isFreeAccount()) {
-			end = lang.get("today_label")
-			start = formatDateWithMonth(getFreeSearchStartDate())
-		} else {
-			if (this.searchViewModel.endDate) {
-				end = formatDateWithTimeIfNotEven(this.searchViewModel.endDate)
-			} else {
-				end = lang.get("today_label")
-			}
-
-			if (this.searchViewModel.startDate) {
-				start = formatDateWithTimeIfNotEven(this.searchViewModel.startDate)
-			} else {
-				let currentIndexDate = this.searchViewModel.getCurrentMailIndexDate()
-
-				if (currentIndexDate) {
-					if (isSameDay(currentIndexDate, new Date())) {
-						start = lang.get("today_label")
-					} else {
-						start = formatDateWithTimeIfNotEven(currentIndexDate)
-					}
-				} else {
-					start = lang.get("unlimited_label")
-				}
-			}
-		}
-
-		const timeDisplayValue = start + " - " + end
-		return m(TextField, {
-			label: "periodOfTime_label",
-			value: timeDisplayValue,
-			isReadOnly: true,
-			class: "plr-button",
-			injectionsRight: () =>
-				m(IconButton, {
-					title: "selectPeriodOfTime_label",
-					click: () => this.handleTimeSelectionClick(),
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
-				}),
-		})
-	}
-
-	private async handleTimeSelectionClick(): Promise<void> {
-		if (this.searchViewModel.canSelectTimePeriod()) {
-			const period = await showDateRangeSelectionDialog(
-				this.searchViewModel.getStartOfTheWeekOffset(),
-				this.searchViewModel.startDate ?? this.searchViewModel.getCurrentMailIndexDate() ?? new Date(),
-				this.searchViewModel.endDate ?? new Date(),
-				(startDate, endDate) => {
-					if (endDate != null && endDate.getTime() > Date.now()) {
-						return lang.get("includesFuture_msg")
-					} else if ((startDate?.getTime() ?? -Infinity) > (endDate?.getTime() ?? Infinity)) {
-						return lang.get("startAfterEnd_label")
-					}
-					return null
-				},
-			)
-			const result = await this.searchViewModel.selectTimePeriod(period)
-			if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
-				await showNotAvailableForFreeDialog()
-			} else {
-				this.searchAgain()
-			}
-		} else {
-			await showNotAvailableForFreeDialog()
-		}
-	}
-
-	private renderCalendarTimeRangeField(): Children {
-		const startDate = new Date()
-		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatDate(this.searchViewModel.startDate)
-		const endDate = incrementMonth(startDate, 2)
-		const end = this.searchViewModel.endDate == null ? formatDate(endDate) : formatDate(this.searchViewModel.endDate)
-		const timeDisplayValue = start + " - " + end
-		return m(TextField, {
-			label: "periodOfTime_label",
-			value: timeDisplayValue,
-			isReadOnly: true,
-			class: "plr-button",
-			injectionsRight: () =>
-				m(IconButton, {
-					title: "selectPeriodOfTime_label",
-					click: async () => {
-						if (this.searchViewModel.canSelectTimePeriod()) {
-							const period = await showDateRangeSelectionDialog(
-								this.searchViewModel.getStartOfTheWeekOffset(),
-								this.searchViewModel.startDate ?? startDate,
-								this.searchViewModel.endDate ?? endDate,
-								(startDate, endDate) => {
-									if (startDate == null || endDate == null) return null
-									if (endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
-										return lang.get("longSearchRange_msg")
-									} else if (startDate.getTime() > endDate.getTime()) {
-										return lang.get("startAfterEnd_label")
-									}
-									return null
-								},
-							)
-							this.searchViewModel.startDate = period.start
-							this.searchViewModel.endDate = period.end
-
-							this.searchViewModel.searchAgain(async () => true)
-						} else {
-							await showNotAvailableForFreeDialog()
+	private renderDateRangeSelection(): Children {
+		const renderedHelpText: TranslationText | undefined =
+			this.searchViewModel.warning === "startafterend"
+				? "startAfterEnd_label"
+				: this.searchViewModel.warning === "long"
+				? "longSearchRange_msg"
+				: this.searchViewModel.startDate == null
+				? "unlimited_label"
+				: undefined
+		return m(
+			".flex.col",
+			m(
+				".pr-s.flex-grow.flex-space-between.flex-column",
+				m(DatePicker, {
+					date: this.searchViewModel.startDate ?? undefined,
+					onDateSelected: (date) => this.onStartDateSelected(date),
+					startOfTheWeekOffset: this.startOfTheWeekOffset,
+					label: "dateFrom_label",
+					nullSelectionText: renderedHelpText,
+					rightAlignDropdown: true,
+				} satisfies DatePickerAttrs),
+			),
+			m(
+				".pl-s.flex-grow.flex-space-between.flex-column",
+				m(DatePicker, {
+					date: this.searchViewModel.endDate,
+					onDateSelected: (date) => {
+						if (this.searchViewModel.selectEndDate(date) != PaidFunctionResult.Success) {
+							showNotAvailableForFreeDialog()
 						}
 					},
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
-				}),
-		})
+					startOfTheWeekOffset: this.startOfTheWeekOffset,
+					label: "dateTo_label",
+					rightAlignDropdown: true,
+				} satisfies DatePickerAttrs),
+			),
+		)
 	}
 
-	private searchAgain() {
-		this.searchViewModel.searchAgain(() => this.confirmSearch())
+	private async onStartDateSelected(date: Date) {
+		if ((await this.searchViewModel.selectStartDate(date)) != PaidFunctionResult.Success) {
+			showNotAvailableForFreeDialog()
+		}
 	}
 
-	private confirmSearch() {
+	private confirmMailSearch() {
 		return Dialog.confirm("continueSearchMailbox_msg", "search_label")
 	}
 
@@ -934,7 +854,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
 		// afterwords
-		await this.searchViewModel.init()
+		await this.searchViewModel.init(() => this.confirmMailSearch())
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
 			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
@@ -1050,7 +970,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private deleteSelected(): void {
+	// return value: false means it has been handled
+	private deleteSelected(): boolean {
 		if (this.searchViewModel.listModel.state.selectedItems.size > 0) {
 			if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 				const selected = this.searchViewModel.getSelectedMails()
@@ -1064,6 +985,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						mailLocator.mailModel.deleteMails(selected)
 					}
 				})
+				return false
 			} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
 				Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 					const selected = this.searchViewModel.getSelectedContacts()
@@ -1082,12 +1004,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						}
 					}
 				})
+				return false
 			}
 		}
+		return true
 	}
 
 	private renderFilterButton(): Children {
-		return m(MailFilterButton, { filter: this.searchViewModel.mailFilter, setFilter: (filter) => this.searchViewModel.setMailFilter(filter) })
+		return m(MailFilterButton, {
+			filter: this.searchViewModel.mailFilter,
+			setFilter: (filter) => this.searchViewModel.setMailFilter(filter),
+		})
 	}
 
 	private renderCalendarFilter(): Children {
@@ -1113,10 +1040,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					items: [{ name: lang.get("all_label"), value: null }, ...items],
 					selectedValue,
 					selectionChangedHandler: (value: CalendarInfo | null) => {
-						// re-search with new list ids
 						// value can be null if default option has been selected
-						this.searchViewModel.selectedCalendar = value ? [value.groupRoot.longEvents, value.groupRoot.shortEvents] : null
-						this.searchViewModel.searchAgain(async () => true)
+						this.searchViewModel.selectCalendar(value)
 					},
 				} satisfies DropDownSelectorAttrs<CalendarInfo | null>),
 			)
@@ -1132,8 +1057,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				label: () => lang.get("includeRepeatingEvents_action"),
 				checked: this.searchViewModel.includeRepeatingEvents,
 				onChecked: (value: boolean) => {
-					this.searchViewModel.includeRepeatingEvents = value
-					this.searchViewModel.searchAgain(async () => true)
+					this.searchViewModel.selectIncludeRepeatingEvents(value)
 				},
 			} satisfies CheckboxAttrs),
 		)

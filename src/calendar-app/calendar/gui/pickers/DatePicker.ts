@@ -6,7 +6,7 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { px } from "../../../../common/gui/size.js"
 import { theme } from "../../../../common/gui/theme.js"
 
-import { getStartOfDay, isSameDayOfDate } from "@tutao/tutanota-utils"
+import { getStartOfDay, isSameDayOfDate, memoized } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { TextField } from "../../../../common/gui/base/TextField.js"
@@ -19,7 +19,7 @@ import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.
 import { AriaPopupType } from "../../../../common/gui/AriaUtils.js"
 
 export interface DatePickerAttrs {
-	date: Date
+	date?: Date
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
 	label: TranslationText
@@ -62,7 +62,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
 		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programmatically
 		if (!this.textFieldHasFocus) {
-			this.inputText = formatDate(date)
+			this.inputText = date ? formatDate(date) : ""
 		}
 
 		return m(".rel", [
@@ -90,7 +90,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
 				disabled,
 				hasPopup: AriaPopupType.Dialog,
-				oninput: (text) => this.handleInput(text, onDateSelected),
+				oninput: (text) => {
+					// we want to hold on to the text for when we actually want to process it
+					this.inputText = text
+				},
 				onfocus: (_, input) => {
 					if (!disabled) {
 						this.showingDropdown = true
@@ -110,6 +113,8 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						if (!disabled && !key.shift && !key.ctrl && !key.meta) {
 							this.showingDropdown = true
 						}
+					} else if (isKeyPressed(key.key, Keys.RETURN)) {
+						this.handleInput(this.inputText, onDateSelected)
 					}
 					return this.handleEscapePress(key)
 				},
@@ -117,7 +122,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		)
 	}
 
-	private handleEscapePress(key: KeyPress) {
+	private handleEscapePress(key: KeyPress): boolean {
 		if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
 			this.domInput?.focus()
 			this.showingDropdown = false
@@ -126,31 +131,37 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		return true
 	}
 
-	private renderHelpLabel(date: Date | null, nullSelectionText: TranslationText | null): Children {
+	private renderHelpLabel(date: Date | null | undefined, nullSelectionText: TranslationText | null): Children {
 		if (this.showingDropdown) {
 			return null
 		} else if (date != null) {
-			return formatDateWithWeekdayAndYear(date)
+			return [m("", formatDateWithWeekdayAndYear(date)), nullSelectionText ? m("", lang.getMaybeLazy(nullSelectionText)) : null]
 		} else {
 			return lang.getMaybeLazy(nullSelectionText ?? "emptyString_msg")
 		}
 	}
 
 	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown, label }: DatePickerAttrs): Children {
+		// We would like to show the date being typed in the dropdown
+		const dropdownDate = this.parseDate(this.inputText) ?? date ?? new Date()
 		return m(
 			".fixed.content-bg.z3.menu-shadow.plr.pb-s",
 			{
 				"aria-modal": "true",
 				"aria-label": lang.getMaybeLazy(label),
 				style: {
-					width: "280px",
+					width: "240px",
 					right: rightAlignDropdown ? "0" : null,
 				},
 				oncreate: (vnode) => {
 					const listener = (e: MouseEvent) => {
-						if (!vnode.dom.contains(e.target as HTMLElement)) {
-							this.showingDropdown = false
-							m.redraw()
+						if (!vnode.dom.contains(e.target as HTMLElement) && !this.domInput?.contains(e.target as HTMLElement)) {
+							// We are subscribed to two events so this listener *will* be invoked twice, but we only need to do the work once.
+							if (this.showingDropdown) {
+								this.showingDropdown = false
+								this.handleInput(this.inputText, onDateSelected)
+								m.redraw()
+							}
 						}
 					}
 
@@ -158,7 +169,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					document.addEventListener("click", listener, true)
 					document.addEventListener("focus", listener, true)
 				},
-				onremove: (vnode) => {
+				onremove: () => {
 					if (this.documentInteractionListener) {
 						document.removeEventListener("click", this.documentInteractionListener, true)
 						document.removeEventListener("focus", this.documentInteractionListener, true)
@@ -166,14 +177,29 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 			},
 			m(VisualDatePicker, {
-				selectedDate: date,
+				selectedDate: dropdownDate,
 				onDateSelected: (newDate, dayClick) => {
+					// We differentiate between different selections as we sometimes* want to keep the dropdown open but still want to select the date
+					// * with keyboard-based navigation space selects the date but keeps it open while return key will work like click
 					this.handleSelectedDate(newDate, onDateSelected)
-
 					if (dayClick) {
-						// Do not close the dropdown when changing the month
-						this.domInput?.focus()
-						this.showingDropdown = false
+						// We want to retain the focus on the input for accessibility, but we still want to close the dropdown.
+						if (this.domInput) {
+							// Focus the dom input but then override the showingDropdown right after focus.
+							// It should be invoked after the normal listener since the listeners are appended to the end.
+
+							// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
+							// So make sure to add the listener first.
+							this.domInput.addEventListener(
+								"focus",
+								() => {
+									this.showingDropdown = false
+									m.redraw()
+								},
+								{ once: true },
+							)
+							this.domInput.focus()
+						}
 					}
 				},
 				keyHandler: (key: KeyPress) => this.handleEscapePress(key),
@@ -209,15 +235,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 	private handleInput(text: string, onDateSelected: DatePickerAttrs["onDateSelected"]) {
 		this.inputText = text
-		const trimmedValue = text.trim()
-
-		if (trimmedValue !== "") {
-			try {
-				const parsedDate = parseDate(trimmedValue, (referenceDate) => formatDate(referenceDate))
-				onDateSelected(parsedDate)
-			} catch (e) {
-				// Parsing failed so the user is probably typing
-			}
+		const parsedDate = this.parseDate(text)
+		if (parsedDate) {
+			onDateSelected(parsedDate)
 		}
 	}
 
@@ -225,6 +245,19 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		this.inputText = formatDate(date)
 		onDateSelected(date)
 	}
+
+	private parseDate = memoized((text: string): Date | null => {
+		const trimmedValue = text.trim()
+
+		if (trimmedValue !== "") {
+			try {
+				return parseDate(trimmedValue, (referenceDate) => formatDate(referenceDate))
+			} catch (e) {
+				// Parsing failed so the user is probably typing
+			}
+		}
+		return null
+	})
 }
 
 type VisualDatePickerAttrs = {

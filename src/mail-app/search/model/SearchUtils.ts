@@ -283,13 +283,13 @@ export function getRestriction(route: string): SearchRestriction {
 		}
 
 		category = SearchCategoryTypes.calendar
-		if (start == null) {
+		if (start == null || locator.logins.getUserController().isFreeAccount()) {
 			const now = new Date()
 			now.setDate(1)
 			start = getStartOfDay(now).getTime()
 		}
 
-		if (end == null) {
+		if (end == null || locator.logins.getUserController().isFreeAccount()) {
 			const endDate = incrementMonth(new Date(start), 3)
 			endDate.setDate(0)
 			end = getEndOfDay(endDate).getTime()
