@@ -55,7 +55,10 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		return []
 	}
 	const folderStructures = foldersModel.folders()
-	const folderSystem = folderStructures[mailboxDetails.mailbox.folders._id]
+	const folderSystem = folderStructures.get(mailboxDetails.mailbox.folders._id)
+	if (folderSystem == null) {
+		return []
+	}
 	return folderSystem.getIndentedList().filter((f: IndentedFolder) => {
 		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
 			const folderId = firstMail.sets[0]

@@ -791,7 +791,7 @@ class MailLocator {
 				if (parts.length > 1) {
 					const selectedMailListId = parts[1]
 					const [mailboxDetail] = await this.mailboxModel.getMailboxDetails()
-					const folders = this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+					const folders = await this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 					const inboxMailListId = assertSystemFolderOfType(folders, MailSetKind.INBOX).mails
 
 					if (inboxMailListId !== selectedMailListId) {

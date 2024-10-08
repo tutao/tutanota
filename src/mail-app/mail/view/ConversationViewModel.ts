@@ -263,7 +263,7 @@ export class ConversationViewModel {
 		if (mailFolder == null || mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
 			return
 		}
-		const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 		return isOfTypeOrSubfolderOf(folders, mailFolder, MailSetKind.TRASH)
 	}
 

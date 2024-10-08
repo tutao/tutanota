@@ -714,7 +714,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		for (const mailbox of mailboxes) {
 			const folderStructures = mailLocator.mailModel.folders()
 			const mailboxIndex = mailboxes.indexOf(mailbox)
-			const mailFolders = folderStructures[assertNotNull(mailbox.mailbox.folders)._id].getIndentedList()
+			const mailFolders = folderStructures.get(assertNotNull(mailbox.mailbox.folders)._id)?.getIndentedList() ?? []
 			for (const folderInfo of mailFolders) {
 				if (folderInfo.folder.folderType !== MailSetKind.SPAM) {
 					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`

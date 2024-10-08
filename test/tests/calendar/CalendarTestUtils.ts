@@ -268,18 +268,6 @@ export function makeUserController(
 	})
 }
 
-export function makeMailboxDetail(): MailboxDetail {
-	return {
-		mailbox: createTestEntity(MailBoxTypeRef),
-		folders: new FolderSystem([]),
-		mailGroupInfo: createTestEntity(GroupInfoTypeRef),
-		mailGroup: createTestEntity(GroupTypeRef, {
-			user: ownerId,
-		}),
-		mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
-	}
-}
-
 export function makeCalendarInfo(type: "own" | "shared" | "external", id: string): CalendarInfo {
 	return {
 		groupRoot: downcast({
@@ -296,11 +284,6 @@ export function makeCalendarInfo(type: "own" | "shared" | "external", id: string
 		userIsOwner: type === "own",
 		isExternal: type === "external",
 	}
-}
-
-export function makeCalendars(type: "own" | "shared" | "external", id: string = calendarGroupId): Map<string, CalendarInfo> {
-	const calendarInfo = makeCalendarInfo(type, id)
-	return new Map([[id, calendarInfo]])
 }
 
 function id(element: string): IdTuple {
