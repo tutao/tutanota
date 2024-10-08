@@ -28,9 +28,9 @@ class IosFileFacade: FileFacade {
 
 	func open(_ location: String, _ mimeType: String) async throws { await self.viewer.openFile(path: location) }
 
-	func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?) async throws -> [String] {
+	func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?, _ isFileOnly: Bool? = false) async throws -> [String] {
 		let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
-		let files = try await self.chooser.open(withAnchorRect: anchor)
+		let files = try await self.chooser.open(withAnchorRect: anchor, isFileOnly: isFileOnly!)
 		var returnfiles = [String]()
 		for file in files {
 			let fileUrl = URL(fileURLWithPath: file)
