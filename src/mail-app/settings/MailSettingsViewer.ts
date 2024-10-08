@@ -9,7 +9,7 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { Const, FeatureType, InboxRuleType, OperationType, ReportMovedMailsType } from "../../common/api/common/TutanotaConstants"
-import { assertNotNull, capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../common/gui/base/Dialog"
@@ -444,11 +444,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties): void {
-		mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
+		mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
 			this._inboxRulesTableLines(
-				props.inboxRules.map((rule, index) => {
+				await promiseMap(props.inboxRules, async (rule, index) => {
 					return {
-						cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(mailboxDetails, rule.targetFolder)],
+						cells: [getInboxRuleTypeName(rule.type), rule.value, await this.getTextForTarget(mailboxDetails, rule.targetFolder)],
 						actionButtonAttrs: createRowActions(
 							{
 								getArray: () => props.inboxRules,
@@ -479,8 +479,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	_getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): string {
-		const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+	private async getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): Promise<string> {
+		const folders = await mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 		let folder = folders.getFolderById(elementIdPart(targetFolderId))
 
 		if (folder) {

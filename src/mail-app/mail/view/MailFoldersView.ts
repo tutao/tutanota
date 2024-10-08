@@ -46,23 +46,24 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	view({ attrs }: Vnode<MailFolderViewAttrs>): Children {
 		const { mailboxDetail, mailModel } = attrs
 		const groupCounters = mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
-		const folders = mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+		const folders = mailModel.getFolderSystemByGroupId(mailboxDetail.mailGroup._id)
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
-		const customSystems = folders.customSubtrees
-		const systemSystems = folders.systemSubtrees
+		const customSystems = folders?.customSubtrees ?? []
+		const systemSystems = folders?.systemSubtrees ?? []
 		const children: Children = []
 		const selectedFolder = folders
-			.getIndentedList()
+			?.getIndentedList()
 			.map((f) => f.folder)
 			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + getElementId(f)))
-		const path = selectedFolder ? folders.getPathToFolder(selectedFolder._id) : []
+		const path = folders && selectedFolder ? folders.getPathToFolder(selectedFolder._id) : []
 		const isInternalUser = locator.logins.isInternalUserLoggedIn()
-		const systemChildren = this.renderFolderTree(systemSystems, groupCounters, folders, attrs, path, isInternalUser)
+		const systemChildren = folders && this.renderFolderTree(systemSystems, groupCounters, folders, attrs, path, isInternalUser)
 		if (systemChildren) {
 			children.push(...systemChildren.children)
 		}
 		if (isInternalUser) {
+			const customChildren = folders ? this.renderFolderTree(customSystems, groupCounters, folders, attrs, path, isInternalUser).children : []
 			children.push(
 				m(
 					SidebarSection,
@@ -71,7 +72,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						button: attrs.inEditMode ? this.renderCreateFolderAddButton(null, attrs) : this.renderEditFoldersButton(attrs),
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
 					},
-					this.renderFolderTree(customSystems, groupCounters, folders, attrs, path, isInternalUser).children,
+					customChildren,
 				),
 			)
 			children.push(this.renderAddFolderButtonRow(attrs))

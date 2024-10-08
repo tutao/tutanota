@@ -25,7 +25,7 @@ import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedFolder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
-	const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailBoxDetail.mailbox.folders)._id)
+	const folders = await mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailBoxDetail.mailbox.folders)._id)
 	let folderNameValue = editedFolder?.name ?? ""
 	let targetFolders: SelectorItemList<MailFolder | null> = folders
 		.getIndentedList(editedFolder)

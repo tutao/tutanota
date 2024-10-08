@@ -17,7 +17,7 @@ export class OpenMailboxHandler {
 		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {
 			if (!requestedPath) {
 				const [mailboxDetail] = await this.mailboxModel.getMailboxDetails()
-				const folders = this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+				const folders = await this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 				const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)
 				m.route.set("/mail/" + getElementId(inbox))
 			} else {

@@ -154,7 +154,6 @@ o.spec("SendMailModel", function () {
 
 		const mailboxDetails: MailboxDetail = {
 			mailbox: createTestEntity(MailBoxTypeRef),
-			folders: new FolderSystem([]),
 			mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "mailgroup@addre.ss",
 			}),

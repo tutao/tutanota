@@ -196,11 +196,11 @@ export class MailViewerViewModel {
 		const folder = this.mailModel.getMailFolderForMail(this.mail)
 
 		if (folder) {
-			this.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+			this.mailModel.getMailboxDetailsForMail(this.mail).then(async (mailboxDetails) => {
 				if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
 					return
 				}
-				const folders = this.mailModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+				const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
 				const name = getPathToFolderString(folders, folder)
 				this.folderMailboxText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
@@ -508,7 +508,7 @@ export class MailViewerViewModel {
 			if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
 				return
 			}
-			const folders = this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
 			// do not report moved mails again
 			await moveMails({

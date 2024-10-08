@@ -49,7 +49,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 		mailboxDetails = {
 			mailbox: createTestEntity(MailBoxTypeRef),
-			folders: new FolderSystem([]),
 			mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "mailgroup@addre.ss",
 			}),

@@ -559,11 +559,10 @@ export class SearchViewModel {
 		const selectedMailFolder = this.selectedMailFolder
 		if (
 			selectedMailFolder[0] &&
-			mailboxes.every((mailbox) => folderStructures[assertNotNull(mailbox.mailbox.folders)._id].getFolderById(selectedMailFolder[0]) == null)
+			mailboxes.every((mailbox) => folderStructures.get(assertNotNull(mailbox.mailbox.folders)._id)?.getFolderById(selectedMailFolder[0]) == null)
 		) {
-			this.selectedMailFolder = [
-				getElementId(assertNotNull(folderStructures[assertNotNull(mailboxes[0].mailbox.folders)._id].getSystemFolderByType(MailSetKind.INBOX))),
-			]
+			const folderSystem = assertNotNull(folderStructures.get(assertNotNull(mailboxes[0].mailbox.folders)._id))
+			this.selectedMailFolder = [getElementId(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX)))]
 		}
 	}
 
