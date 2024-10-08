@@ -21,9 +21,11 @@ public class FileFacadeReceiveDispatcher {
 		case "openFileChooser":
 			let boundingRect = try! JSONDecoder().decode(IpcClientRect.self, from: arg[0].data(using: .utf8)!)
 			let filter = try! JSONDecoder().decode([String]?.self, from: arg[1].data(using: .utf8)!)
+			let isFileOnly = try! JSONDecoder().decode(Bool?.self, from: arg[2].data(using: .utf8)!)
 			let result = try await self.facade.openFileChooser(
 				boundingRect,
-				filter
+				filter,
+				isFileOnly
 			)
 			return toJson(result)
 		case "openFolderChooser":
