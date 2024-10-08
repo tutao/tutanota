@@ -54,7 +54,7 @@ export function keyboardEventToKeyPress(event: KeyboardEvent): KeyPress {
  */
 export type keyHandler = (key: KeyPress) => boolean
 
-export function useKeyHandler(e: KeyboardEvent, onKey: keyHandler | undefined) {
+export function useKeyHandler(e: KeyboardEvent, onKey: keyHandler | undefined): boolean {
 	// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 	const key = keyboardEventToKeyPress(e)
 	return onKey != null ? onKey(key) : true

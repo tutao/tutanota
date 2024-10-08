@@ -19,13 +19,14 @@ import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.
 import { AriaPopupType } from "../../../../common/gui/AriaUtils.js"
 
 export interface DatePickerAttrs {
-	date: Date
+	date?: Date
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
 	label: TranslationText
 	nullSelectionText?: TranslationText
 	disabled?: boolean
 	rightAlignDropdown?: boolean
+	selectDateOnBlur?: boolean
 }
 
 /**
@@ -62,7 +63,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
 		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programmatically
 		if (!this.textFieldHasFocus) {
-			this.inputText = formatDate(date)
+			this.inputText = date ? formatDate(date) : ""
 		}
 
 		return m(".rel", [
@@ -74,7 +75,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		])
 	}
 
-	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled }: DatePickerAttrs): Children {
+	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled, selectDateOnBlur }: DatePickerAttrs): Children {
 		return m(
 			"",
 			{
@@ -90,7 +91,15 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
 				disabled,
 				hasPopup: AriaPopupType.Dialog,
-				oninput: (text) => this.handleInput(text, onDateSelected),
+				oninput: (text) => {
+					// The default behaviour of onDateSelected is to be called on input, so if selectDateOnBlur is not there, we want to do it now
+					if (selectDateOnBlur == null || selectDateOnBlur === false) {
+						this.handleInput(text, onDateSelected)
+					} else {
+						// we want to hold on to the text for when we actually want to process it
+						this.inputText = text
+					}
+				},
 				onfocus: (_, input) => {
 					if (!disabled) {
 						this.showingDropdown = true
@@ -103,6 +112,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					}
 				},
 				onblur: () => {
+					if (selectDateOnBlur) {
+						this.handleInput(this.inputText, onDateSelected)
+					}
 					this.textFieldHasFocus = false
 				},
 				keyHandler: (key) => {
@@ -110,6 +122,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						if (!disabled && !key.shift && !key.ctrl && !key.meta) {
 							this.showingDropdown = true
 						}
+					} else if (selectDateOnBlur && isKeyPressed(key.key, Keys.RETURN)) {
+						// only do this if selectDateOnBlur because otherwise the text has already been handled
+						this.handleInput(this.inputText, onDateSelected)
 					}
 					return this.handleEscapePress(key)
 				},
@@ -117,7 +132,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		)
 	}
 
-	private handleEscapePress(key: KeyPress) {
+	private handleEscapePress(key: KeyPress): boolean {
 		if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
 			this.domInput?.focus()
 			this.showingDropdown = false
@@ -126,11 +141,16 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		return true
 	}
 
-	private renderHelpLabel(date: Date | null, nullSelectionText: TranslationText | null): Children {
+	private renderHelpLabel(date: Date | null | undefined, nullSelectionText: TranslationText | null): Children {
 		if (this.showingDropdown) {
 			return null
 		} else if (date != null) {
-			return formatDateWithWeekdayAndYear(date)
+			let returnChildren = []
+			returnChildren.push(m("", formatDateWithWeekdayAndYear(date)))
+			if (nullSelectionText) {
+				returnChildren.push(m("", lang.getMaybeLazy(nullSelectionText)))
+			}
+			return returnChildren
 		} else {
 			return lang.getMaybeLazy(nullSelectionText ?? "emptyString_msg")
 		}
@@ -143,7 +163,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				"aria-modal": "true",
 				"aria-label": lang.getMaybeLazy(label),
 				style: {
-					width: "280px",
+					width: "240px",
 					right: rightAlignDropdown ? "0" : null,
 				},
 				oncreate: (vnode) => {
@@ -166,7 +186,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 			},
 			m(VisualDatePicker, {
-				selectedDate: date,
+				selectedDate: date ?? new Date(),
 				onDateSelected: (newDate, dayClick) => {
 					this.handleSelectedDate(newDate, onDateSelected)
 

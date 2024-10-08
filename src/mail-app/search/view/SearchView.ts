@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
+import type { TranslationKey, TranslationText } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -78,7 +78,7 @@ import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../common/gui/base/List.js"
-import { PaidFunctionResult, SearchViewModel } from "./SearchViewModel.js"
+import { ConfirmCallback, PaidFunctionResult, SearchViewModel } from "./SearchViewModel.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog.js"
@@ -104,6 +104,7 @@ import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
+import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
 
 assertMainOrNode()
 
@@ -119,6 +120,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: SearchViewModel
+	private readonly startOfTheWeekOffset: number
+	private datePickerWarning: TranslationText | null = null
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -132,6 +135,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	constructor(vnode: Vnode<SearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
+		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 
 		this.folderColumn = new ViewColumn(
 			{
@@ -670,14 +674,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const availableMailFolders = this.getAvailableMailFolders()
 		const availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({ name: lang.get(f.textId), value: f.field }))
 		return [
-			this.renderMailTimeRangeField(),
+			this.renderDateRangeSelection(() => this.confirmSearch(), new Date()),
 			m("div.mlr-button", [
 				m(DropDownSelector, {
 					label: "field_label",
 					items: availableMailFields,
 					selectedValue: this.searchViewModel.selectedMailField,
 					selectionChangedHandler: async (newValue: string | null) => {
-						const result = await this.searchViewModel.setSelectedField(newValue)
+						const result = this.searchViewModel.setSelectedField(newValue)
 						if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
 							showNotAvailableForFreeDialog()
 						} else {
@@ -707,7 +711,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderCalendarFilterSection(): Children {
-		return [this.renderCalendarTimeRangeField(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
+		// end date is the month three months from now
+		let endDate = incrementMonth(new Date(), 3)
+		endDate.setDate(0)
+		return [this.renderDateRangeSelection(async () => true, endDate), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
 			m(".folder-row.plr-button.content-fg", row),
 		)
 	}
@@ -821,6 +828,75 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		} else {
 			await showNotAvailableForFreeDialog()
 		}
+	}
+
+	private validateDates(startDate: Date | null, endDate: Date | null): boolean {
+		if (startDate == null || endDate == null) {
+			this.datePickerWarning = null
+			return false
+		}
+		if (endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+			this.datePickerWarning = "longSearchRange_msg"
+			return true
+		} else if (startDate.getTime() > endDate.getTime()) {
+			this.datePickerWarning = "startAfterEnd_label"
+			return false
+		}
+		return true
+	}
+
+	private renderDatePicker(searchViewModelDate: Date | null, start: boolean, confirmCallback: ConfirmCallback): Children {
+		let nullSelectionText: TranslationText | undefined = undefined
+
+		if (start) {
+			if (this.datePickerWarning) {
+				nullSelectionText = this.datePickerWarning
+			} else if (this.searchViewModel.startDate == null) {
+				nullSelectionText = "unlimited_label"
+			}
+		}
+
+		return m(DatePicker, {
+			date: searchViewModelDate ?? undefined,
+			onDateSelected: async (date) => {
+				if (this.searchViewModel.canSelectTimePeriod()) {
+					this.datePickerWarning = null
+					// double check that a new day is being picked
+					if (!searchViewModelDate || !isSameDay(date, searchViewModelDate)) {
+						if (start) {
+							this.searchViewModel.startDate = date
+						} else {
+							this.searchViewModel.endDate = date
+						}
+						if (this.validateDates(this.searchViewModel.startDate, this.searchViewModel.endDate)) {
+							this.searchViewModel.searchAgain(confirmCallback)
+						} else {
+							m.redraw()
+						}
+					}
+				} else {
+					await showNotAvailableForFreeDialog()
+				}
+			},
+			startOfTheWeekOffset: this.startOfTheWeekOffset,
+			label: start ? "dateFrom_label" : "dateTo_label",
+			nullSelectionText,
+			selectDateOnBlur: true,
+			rightAlignDropdown: true,
+		} satisfies DatePickerAttrs)
+	}
+
+	private renderDateRangeSelection(confirmCallback: ConfirmCallback, endDate: Date): Children {
+		// start date can be null (for unlimited search, but end date must have a value
+		if (!this.searchViewModel.endDate) {
+			this.searchViewModel.endDate = endDate
+		}
+
+		return m(
+			".flex.col",
+			m(".pr-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.startDate, true, confirmCallback)),
+			m(".pl-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.endDate, false, confirmCallback)),
+		)
 	}
 
 	private renderCalendarTimeRangeField(): Children {
@@ -1050,7 +1126,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private deleteSelected(): void {
+	// return value: false means it has been handled
+	private deleteSelected(): boolean {
 		if (this.searchViewModel.listModel.state.selectedItems.size > 0) {
 			if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 				const selected = this.searchViewModel.getSelectedMails()
@@ -1064,6 +1141,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						mailLocator.mailModel.deleteMails(selected)
 					}
 				})
+				return false
 			} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
 				Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 					const selected = this.searchViewModel.getSelectedContacts()
@@ -1082,12 +1160,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						}
 					}
 				})
+				return false
 			}
 		}
+		return true
 	}
 
 	private renderFilterButton(): Children {
-		return m(MailFilterButton, { filter: this.searchViewModel.mailFilter, setFilter: (filter) => this.searchViewModel.setMailFilter(filter) })
+		return m(MailFilterButton, {
+			filter: this.searchViewModel.mailFilter,
+			setFilter: (filter) => this.searchViewModel.setMailFilter(filter),
+		})
 	}
 
 	private renderCalendarFilter(): Children {

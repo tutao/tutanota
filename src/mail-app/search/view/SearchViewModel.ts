@@ -103,7 +103,7 @@ export class SearchViewModel {
 
 	conversationViewModel: ConversationViewModel | null = null
 	startDate: Date | null = null // null = current mail index date. this allows us to start the search (and the url) without end date set
-	endDate: Date | null = null // null = today
+	endDate: Date | null = null // null = today (mail), end of 2 months in the future (calendar)
 	selectedMailFolder: Array<Id> = []
 	// Isn't an IdTuple because it is two list ids
 	selectedCalendar: readonly [Id, Id] | null = null
@@ -292,11 +292,16 @@ export class SearchViewModel {
 				this.latestCalendarRestriction = restriction
 
 				if (args.id != null) {
-					const { start, id } = decodeCalendarSearchKey(args.id)
-					this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
-						entry = entry as CalendarEvent
-						return id === getElementId(entry) && start === entry.startTime.getTime()
-					})
+					try {
+						const { start, id } = decodeCalendarSearchKey(args.id)
+						this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
+							entry = entry as CalendarEvent
+							return id === getElementId(entry) && start === entry.startTime.getTime()
+						})
+					} catch {
+						console.log("error")
+						// sometimes when switching search types, an id for the old type sneaks through and causes an error that can be ignored
+					}
 				}
 			}
 		}
@@ -391,7 +396,6 @@ export class SearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		} else {
 			if (end && isToday(end)) {
-				console.log("setting end to null")
 				this.endDate = null
 			} else {
 				this.endDate = end
@@ -400,7 +404,6 @@ export class SearchViewModel {
 			let current = this.getCurrentMailIndexDate()
 
 			if (start && current && isSameDay(current, start)) {
-				console.log("setting start to null")
 				this.startDate = null
 			} else {
 				this.startDate = start
@@ -661,6 +664,7 @@ export class SearchViewModel {
 						const isSameElementId = isSameId(elementIdPart(this.conversationViewModel?.primaryMail._id), elementIdPart(mail._id))
 						const isSameListId = isSameId(listIdPart(this.conversationViewModel?.primaryMail._id), listIdPart(mail._id))
 						if (!isSameElementId || !isSameListId) {
+							this.updateSearchUrl()
 							this.updateDisplayedConversation(mail)
 						}
 					}
@@ -673,7 +677,6 @@ export class SearchViewModel {
 		} else {
 			this.conversationViewModel = null
 		}
-		this.updateSearchUrl()
 		this.updateUi()
 	}
 
