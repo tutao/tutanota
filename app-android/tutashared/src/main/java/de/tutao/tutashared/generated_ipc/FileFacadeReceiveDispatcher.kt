@@ -26,9 +26,11 @@ class FileFacadeReceiveDispatcher(
 			"openFileChooser" -> {
 				val boundingRect: IpcClientRect = json.decodeFromString(arg[0])
 				val filter: List<String>? = json.decodeFromString(arg[1])
+				val isFileOnly: Boolean? = json.decodeFromString(arg[2])
 				val result: List<String> = this.facade.openFileChooser(
 					boundingRect,
 					filter,
+					isFileOnly,
 				)
 				return json.encodeToString(result)
 			}

@@ -19,7 +19,8 @@ public protocol FileFacade {
 	 */
 	func openFileChooser(
 		_ boundingRect: IpcClientRect,
-		_ filter: [String]?
+		_ filter: [String]?,
+		_ isFileOnly: Bool?
 	) async throws -> [String]
 	/**
 	 * Opens OS file picker for selecting a folder. Only on desktop.

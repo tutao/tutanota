@@ -16,7 +16,7 @@ export interface FileFacade {
 	/**
 	 * Opens OS file picker. Returns the list of URIs for the selected files. add a list of extensions (without dot) to filter the options.
 	 */
-	openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null): Promise<ReadonlyArray<string>>
+	openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null, isFileOnly: boolean | null): Promise<ReadonlyArray<string>>
 
 	/**
 	 * Opens OS file picker for selecting a folder. Only on desktop.

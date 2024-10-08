@@ -25,6 +25,9 @@
 				},
 				{
 					"filter": "List<string>?"
+				},
+				{
+					"isFileOnly": "boolean?"
 				}
 			],
 			"ret": "List<string>"
