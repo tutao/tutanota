@@ -131,7 +131,6 @@ o.spec("CalendarEventModelTest", function () {
 			when(recipientsModel.resolve(matchers.anything(), ResolveMode.Eager)).thenDo(() => resolvables[tryCount++])
 			const mailboxDetail: MailboxDetail = {
 				mailbox: createTestEntity(MailBoxTypeRef),
-				folders: new FolderSystem([]),
 				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 				mailGroup: createTestEntity(GroupTypeRef, {
 					user: ownerId,

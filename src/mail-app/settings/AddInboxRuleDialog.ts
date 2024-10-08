@@ -31,11 +31,11 @@ assertMainOrNode()
 
 export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & { _id?: InboxRule["_id"]; targetFolder?: InboxRule["targetFolder"] }
 
-export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
+export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog()
 	} else if (mailBoxDetail && mailBoxDetail.mailbox.folders) {
-		const folders = mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.folders._id)
+		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.folders._id)
 		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedFolder) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),

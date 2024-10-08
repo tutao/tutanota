@@ -28,7 +28,6 @@ import { FolderSystem } from "../api/common/mail/FolderSystem.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
-	folders: FolderSystem
 	mailGroupInfo: GroupInfo
 	mailGroup: Group
 	mailboxGroupRoot: MailboxGroupRoot
@@ -87,10 +86,8 @@ export class MailboxModel {
 			this.entityClient.load(GroupTypeRef, membership.group),
 		])
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
-		const folders = await this.loadFolders(neverNull(mailbox.folders).folders)
 		return {
 			mailbox,
-			folders: new FolderSystem(folders),
 			mailGroupInfo,
 			mailGroup,
 			mailboxGroupRoot,
