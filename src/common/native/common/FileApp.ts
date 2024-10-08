@@ -26,7 +26,7 @@ export class NativeFileApp {
 	 * @param boundingRect The file chooser is opened next to the rectangle.
 	 * @param filter an optional list of allowed file extensions
 	 */
-	async openFileChooser(boundingRect: DOMRect, filter?: ReadonlyArray<string>): Promise<Array<FileReference>> {
+	async openFileChooser(boundingRect: DOMRect, filter?: ReadonlyArray<string>, isFileOnly: boolean = false): Promise<Array<FileReference>> {
 		/* The file chooser opens next to a location specified by srcRect on larger devices (iPad).
 		 * The rectangle must be specifed using values for x, y, height and width.
 		 */
@@ -36,7 +36,7 @@ export class NativeFileApp {
 			width: Math.round(boundingRect.width),
 			height: Math.round(boundingRect.height),
 		}
-		const files = await this.fileFacade.openFileChooser(srcRect, filter ?? null)
+		const files = await this.fileFacade.openFileChooser(srcRect, filter ?? null, isFileOnly)
 		return promiseMap(files, this.uriToFileRef.bind(this))
 	}
 

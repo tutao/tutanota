@@ -23,6 +23,7 @@ interface FileFacade {
 	suspend fun openFileChooser(
 		boundingRect: IpcClientRect,
 		filter: List<String>?,
+		isFileOnly: Boolean?,
 	): List<String>
 	/**
 	 * Opens OS file picker for selecting a folder. Only on desktop.

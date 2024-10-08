@@ -69,7 +69,7 @@ export async function handleCalendarImport(
 async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	try {
 		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions) : await showFileChooser(true, allowedExtensions)
+		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(true, allowedExtensions)
 		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
 		return contents.flat()
 	} catch (e) {
@@ -77,7 +77,7 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 			console.log("Failed to parse file", e)
 			Dialog.message(() =>
 				lang.get("importReadFileError_msg", {
-					"{filename}": e.filename,
+					"{filename}": e.filename ?? "",
 				}),
 			)
 			return []
