@@ -26,14 +26,6 @@ pipeline {
 	}
 
     stages {
-		stage('Check Github') {
-			steps {
-				script {
-					def util = load "ci/jenkins-lib/util.groovy"
-					util.checkGithub()
-				}
-			}
-		}
 		stage('Build dependencies') {
 			parallel {
 				stage('Build webapp') {
