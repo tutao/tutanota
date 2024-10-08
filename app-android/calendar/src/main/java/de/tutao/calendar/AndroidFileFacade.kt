@@ -75,7 +75,11 @@ class AndroidFileFacade(
 		return outputFile.toUri().toString()
 	}
 
-	override suspend fun openFileChooser(boundingRect: IpcClientRect, filter: List<String>?): List<String> {
+	override suspend fun openFileChooser(
+		boundingRect: IpcClientRect,
+		filter: List<String>?,
+		isFileOnly: Boolean?
+	): List<String> {
 		val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
 			type = "*/*"
 			addCategory(Intent.CATEGORY_OPENABLE)
@@ -387,7 +391,7 @@ class AndroidFileFacade(
 			while (chunk * maxChunkSizeBytes <= fileSize) {
 				val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
 				val chunkedInputStream = BoundedInputStream.builder()
-				  .setInputStream(inputStream)
+					.setInputStream(inputStream)
 					.setMaxCount(maxChunkSizeBytes.toLong())
 					.get()
 				val tmpFile = File(tempDir.decrypt, tmpFilename)

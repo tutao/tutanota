@@ -217,6 +217,7 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 					resolve([])
 				})
 		})
+		newFileInput.addEventListener("cancel", () => resolve([]))
 	})
 	// the file input must be put into the dom, otherwise it does not work in IE
 	body.appendChild(newFileInput)
@@ -329,12 +330,12 @@ export async function guiDownload(downloadPromise: Promise<void>, progress?: str
 	}
 }
 
-export async function showNativeFilePicker(fileTypes?: Array<string>): Promise<ReadonlyArray<DataFile>> {
+export async function showNativeFilePicker(fileTypes?: Array<string>, isFileOnly: boolean = false): Promise<ReadonlyArray<DataFile>> {
 	if (isApp()) {
 		const rect = { width: 0, height: 0, left: 0, top: 0 } as DOMRect
 		try {
 			const fileApp = locator.fileApp
-			const fileList = await fileApp.openFileChooser(rect, fileTypes)
+			const fileList = await fileApp.openFileChooser(rect, fileTypes, isFileOnly)
 			const readFiles: DataFile[] = []
 			for (const file of fileList) {
 				const data = await fileApp.readDataFile(file.location)
