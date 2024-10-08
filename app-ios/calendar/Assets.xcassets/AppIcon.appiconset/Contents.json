@@ -7,9 +7,27 @@
       "size" : "1024x1024"
     },
     {
-      "filename" : "1024 1.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "1024 dark.png",
       "idiom" : "universal",
-      "platform" : "watchos",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "tinted"
+        }
+      ],
+      "filename" : "1024 tinted.png",
+      "idiom" : "universal",
+      "platform" : "ios",
       "size" : "1024x1024"
     }
   ],
