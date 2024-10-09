@@ -53,7 +53,7 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -109,7 +109,7 @@ import { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/Cale
 import { CalendarInviteHandler } from "../calendar-app/calendar/view/CalendarInvites.js"
 import { AlarmScheduler } from "../common/calendar/date/AlarmScheduler.js"
 import { SchedulerImpl } from "../common/api/common/utils/Scheduler.js"
-import { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
+import type { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/CustomerUtils.js"
 import { NativeContactsSyncManager } from "./contacts/model/NativeContactsSyncManager.js"
 import { PostLoginActions } from "../common/login/PostLoginActions.js"
@@ -136,6 +136,7 @@ import { ExternalCalendarFacade } from "../common/native/common/generatedipc/Ext
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
+import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 assertMainOrNode()
 
@@ -350,6 +351,7 @@ class MailLocator {
 				return await this.calendarEventModel(mode, event, mailboxDetail, mailboxProperties, null)
 			},
 			(...args) => this.calendarEventPreviewModel(...args),
+			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
 			await this.calendarEventsRepository(),
 			this.entityClient,
@@ -1050,6 +1052,11 @@ class MailLocator {
 		await popupModel.sanitizeDescription()
 
 		return popupModel
+	}
+
+	async calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel> {
+		const { CalendarContactPreviewViewModel } = await import("../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js")
+		return new CalendarContactPreviewViewModel(event, contact, canEdit)
 	}
 
 	readonly nativeContactsSyncManager: () => NativeContactsSyncManager = lazyMemoized(() => {

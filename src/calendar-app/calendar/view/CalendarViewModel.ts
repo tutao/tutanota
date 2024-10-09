@@ -1,5 +1,16 @@
-import { $Promisable, assertNotNull, clone, debounce, deepEqual, downcast, findAndRemove, getStartOfDay, groupByAndMapUniquely } from "@tutao/tutanota-utils"
-import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import {
+	$Promisable,
+	assertNotNull,
+	clone,
+	debounce,
+	deepEqual,
+	downcast,
+	findAndRemove,
+	getStartOfDay,
+	groupByAndMapUniquely,
+	last,
+} from "@tutao/tutanota-utils"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	CLIENT_ONLY_CALENDARS,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
@@ -9,13 +20,19 @@ import {
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
-import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { getDiffIn60mIntervals, getMonthRange, isEventBetweenDays } from "../../../common/calendar/date/CalendarUtils"
+import {
+	extractContactIdFromEvent,
+	getDiffIn60mIntervals,
+	getMonthRange,
+	isClientOnlyCalendar,
+	isEventBetweenDays,
+} from "../../../common/calendar/date/CalendarUtils"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { askIfShouldSendCalendarUpdatesToAttendees, getClientOnlyColors, getEventType, getGroupColors, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
@@ -36,6 +53,7 @@ import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionali
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import type { GroupColors } from "./CalendarView.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -55,10 +73,13 @@ export type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (arg0: CalendarEvent, arg1: MouseOrPointerEvent) => unknown
 export type CalendarEventBubbleKeyDownHandler = (arg0: CalendarEvent, arg1: KeyboardEvent) => unknown
 export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>
+
 export type CalendarEventPreviewModelFactory = (
 	selectedEvent: CalendarEvent,
 	calendars: ReadonlyMap<string, CalendarInfo>,
 ) => Promise<CalendarEventPreviewViewModel>
+export type CalendarContactPreviewModelFactory = (event: CalendarEvent, contact: Contact, canEdit: boolean) => Promise<CalendarContactPreviewViewModel>
+export type CalendarPreviewModels = CalendarEventPreviewViewModel | CalendarContactPreviewViewModel
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
@@ -70,7 +91,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 *
 	 * We keep track of event separately to avoid races with selecting multiple events shortly one after another.
 	 */
-	private previewedEvent: { event: CalendarEvent; model: CalendarEventPreviewViewModel | null } | null = null
+	private previewedEvent: { event: CalendarEvent; model: CalendarPreviewModels | null } | null = null
 
 	private _hiddenCalendars: Set<Id>
 	/** Events that have been dropped but still need to be rendered as temporary while waiting for entity updates. */
@@ -97,6 +118,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
+		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
@@ -468,7 +490,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return await editModel.apply()
 	}
 
-	get eventPreviewModel(): CalendarEventPreviewViewModel | null {
+	get eventPreviewModel(): CalendarPreviewModels | null {
 		return this.previewedEvent?.model ?? null
 	}
 
@@ -492,7 +514,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		} else {
 			const previewedEvent = (this.previewedEvent = { event, model: null })
 			const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
-			const previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos)
+			let previewModel: CalendarPreviewModels
+			if (isClientOnlyCalendar(listIdPart(event._id))) {
+				const idParts = event._id[1].split("#")!
+				const contactId = extractContactIdFromEvent(last(idParts))!
+				const contactIdParts = contactId.split("/")
+				const contact = await this.contactModel.loadContactFromId([contactIdParts[0], contactIdParts[1]])
+				previewModel = await this.createCalendarContactPreviewModel(event, contact, true)
+			} else {
+				previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos)
+			}
 			// check that we didn't start previewing another event or changed the date in the meantime
 			if (this.previewedEvent === previewedEvent) {
 				this.previewedEvent.model = previewModel

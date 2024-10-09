@@ -1797,9 +1797,11 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"birthdayEvent_title": `{name}'s birthday`,
-		"birthdayEventAge_title": `({age} years old)`,
+		"birthdayEventAge_title": `{age} years old`,
 		"birthdayCalendar_label": "Birthdays",
 		"contactNotFound_msg": "Contact not found",
-		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again."
+		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again.",
+		"sendMail_label": "Send an email",
+		"callNumber_label": "Call number"
 	}
 }
