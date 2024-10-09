@@ -74,18 +74,22 @@ async function buildCalendarBundle({ buildType }) {
 async function buildCalendarApk({ buildType }) {
 	const { version } = JSON.parse(await $`cat package.json`.quiet())
 
-	const bundleName = `calendar-tutao-${buildType}-${version}.apk`
+	const bundleName = `calendar-tutao-${buildType}-${version}`
 	const bundlePath = `app-android/calendar/build/outputs/apk/tutao/${buildType}/${bundleName}`
 	const outPath = `./build-calendar-app/app-android/${bundleName}`
 
 	cd("./app-android")
+
+	await $`if [ -f .${outPath}.aab ]; then mkdir ../temp; mv .${outPath}.aab ../temp/${bundleName}.aab; fi`
 
 	await $`./gradlew :calendar:assembleTutao${buildType}`
 
 	cd("..")
 
 	await $`mkdir -p build-calendar-app/app-android`
-	await $`mv ${bundlePath} ${outPath}`
+	await $`mv ${bundlePath}.apk ${outPath}.apk`
+
+	await $`if [ -f ./temp/${bundleName}.aab ]; then mv ./temp/${bundleName}.aab ${outPath}.aab; rm -d ./temp; fi`
 
 	log(`Build complete. The APK is located at: ${outPath}`)
 
