@@ -22,7 +22,6 @@ import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { PubEncSymKey, PublicKeys } from "./CryptoFacade.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
@@ -40,6 +39,18 @@ export type DecapsulatedAesKey = {
 export type PublicKeyIdentifier = {
 	identifier: string
 	identifierType: PublicKeyIdentifierType
+}
+
+export type PubEncSymKey = {
+	pubEncSymKeyBytes: Uint8Array
+	cryptoProtocolVersion: CryptoProtocolVersion
+	senderKeyVersion: number | null
+	recipientKeyVersion: number
+}
+export type PublicKeys = {
+	pubRsaKey: null | Uint8Array
+	pubEccKey: null | Uint8Array
+	pubKyberKey: null | Uint8Array
 }
 
 /**
