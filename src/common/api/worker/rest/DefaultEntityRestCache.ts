@@ -882,7 +882,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (oldFolder != null && oldFolder.isMailSet) return
 		const updatedFolder = await this.entityRestClient.load(MailFolderTypeRef, [update.instanceListId, update.instanceId])
 		if (!updatedFolder.isMailSet) return
+		let mailsInOffline = await this.storage.getIdsInRange(MailTypeRef, updatedFolder.mails)
 		await this.storage.deleteWholeList(MailTypeRef, updatedFolder.mails)
+
+		await this.storage.lockRangesDbAccess(updatedFolder.mails)
+		console.log("Loading mails: ", mailsInOffline)
+		await this.entityRestClient.loadMultiple(MailTypeRef, updatedFolder.mails, mailsInOffline)
+		await this.storage.unlockRangesDbAccess(updatedFolder.mails)
+
 		await this.storage.put(updatedFolder)
 	}
 }

@@ -154,6 +154,7 @@ pub struct HelloEncInput {
 pub struct HelloEncOutput {
 	pub answer: String,
 	pub timestamp: DateTime,
+	#[allow(non_snake_case)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
