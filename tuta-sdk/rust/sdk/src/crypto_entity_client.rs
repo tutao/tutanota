@@ -13,7 +13,7 @@ use std::sync::Arc;
 // A high level interface to manipulate encrypted entities/instances via the REST API
 pub struct CryptoEntityClient {
 	entity_client: Arc<EntityClient>,
-	entity_facade: Arc<EntityFacade>,
+	entity_facade: Arc<dyn EntityFacade>,
 	crypto_facade: Arc<CryptoFacade>,
 	instance_mapper: Arc<InstanceMapper>,
 }
@@ -22,7 +22,7 @@ pub struct CryptoEntityClient {
 impl CryptoEntityClient {
 	pub fn new(
 		entity_client: Arc<EntityClient>,
-		entity_facade: Arc<EntityFacade>,
+		entity_facade: Arc<dyn EntityFacade>,
 		crypto_facade: Arc<CryptoFacade>,
 		instance_mapper: Arc<InstanceMapper>,
 	) -> Self {
@@ -98,7 +98,7 @@ mod tests {
 	use crate::crypto::{Aes256Key, Iv};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
-	use crate::entities::entity_facade::EntityFacade;
+	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::tutanota::Mail;
 	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
@@ -166,7 +166,7 @@ mod tests {
 		let type_model_provider = Arc::new(init_type_model_provider());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
-		let entity_facade = EntityFacade::new(Arc::clone(&type_model_provider));
+		let entity_facade = EntityFacadeImpl::new(Arc::clone(&type_model_provider));
 
 		let crypto_entity_client = CryptoEntityClient::new(
 			Arc::new(mock_entity_client),
