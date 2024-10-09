@@ -88,7 +88,10 @@ import WebKit
 
 	private func selectAppSchema() -> String {
 		let bundleId = Bundle.main.bundleIdentifier
-		if let isCalendarApp = bundleId?.contains("calendar") { return CALENDAR_SHARE_SCHEME }
+
+		// Fallback to Tuta Mail
+		if bundleId == nil { return TUTANOTA_SHARE_SCHEME }
+		if bundleId!.contains("calendar") { return CALENDAR_SHARE_SCHEME }
 
 		return TUTANOTA_SHARE_SCHEME
 	}
