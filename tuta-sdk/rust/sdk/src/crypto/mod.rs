@@ -29,10 +29,10 @@ pub(crate) mod rsa;
 
 mod tuta_crypt;
 
+pub mod asymmetric_crypto_facade;
 #[cfg(test)]
 mod compatibility_test_utils;
 pub mod crypto_facade;
 pub mod key;
 pub mod key_encryption;
 pub mod randomizer_facade;
-pub mod asymmetric_crypto_facade;
