@@ -14,6 +14,11 @@ pub enum AsymmetricKeyPair {
 	PQKeyPairs(PQKeyPairs),
 }
 
+pub enum AsymmetricPublicKey {
+	RsaPublicKey(RSAPublicKey),
+	PqPublicKeys(TutaCryptPublicKeys),
+}
+
 impl From<RSAKeyPair> for AsymmetricKeyPair {
 	fn from(value: RSAKeyPair) -> Self {
 		Self::RSAKeyPair(value)

@@ -205,13 +205,18 @@ impl KeyLoaderFacade {
 	pub async fn load_key_pair(
 		&self,
 		key_pair_group_id: &GeneratedId,
-		group_key_version: i64,
+		requested_version: i64,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let group: Group = self.entity_client.load(key_pair_group_id).await?;
-		let group_key = self.get_current_sym_group_key(&group._id).await?;
+		let current_group_key = self.get_current_sym_group_key(&group._id).await?;
 
-		if group_key.version == group_key_version {
-			return self.get_and_decrypt_key_pair(&group, &group_key.object);
+		// if (requested_version > current_group_key.version) {
+		// 	group = (await (await this.cacheManagementFacade()).refreshKeyCache(keyPairGroupId)).group
+		// 	currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
+		// }
+
+		if current_group_key.version == requested_version {
+			return self.get_and_decrypt_key_pair(&group, &current_group_key.object);
 		}
 		let FormerGroupKey {
 			symmetric_group_key,
@@ -220,14 +225,15 @@ impl KeyLoaderFacade {
 			},
 			..
 		} = self
-			.find_former_group_key(&group, &group_key, group_key_version)
+			.find_former_group_key(&group, &current_group_key, requested_version)
 			.await?;
 		if let Some(key) = key_pair {
 			decrypt_key_pair(&symmetric_group_key, &key)
 		} else {
-			Err(KeyLoadError { reason: format!("key pair not found for group {key_pair_group_id} and version {group_key_version}") })
+			Err(KeyLoadError { reason: format!("key pair not found for group {key_pair_group_id} and version {requested_version}") })
 		}
 	}
+
 	fn get_and_decrypt_key_pair(
 		&self,
 		group: &Group,

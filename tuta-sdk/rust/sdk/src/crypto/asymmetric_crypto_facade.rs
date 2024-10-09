@@ -1,13 +1,17 @@
+use crate::crypto::aes::Iv;
 use crate::crypto::crypto_facade::CryptoProtocolVersion;
-use crate::crypto::ecc::EccPublicKey;
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
-use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
-use crate::crypto::tuta_crypt::{PQError, PQMessage};
-use crate::generated_id::GeneratedId;
+use crate::crypto::ecc::{EccKeyPair, EccPublicKey};
+use crate::crypto::key::{AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError};
+use crate::crypto::kyber::{KyberKeyError, KyberPublicKey};
+use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
+use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
+use crate::crypto::Aes256Key;
 #[mockall_double::double]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::util::ArrayCastingError;
+use crate::util::Versioned;
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -21,6 +25,19 @@ pub struct PublicKeyIdentifier {
 	pub identifier_type: PublicKeyIdentifierType,
 }
 
+pub struct PubEncSymKey {
+	pub_enc_sym_key_bytes: Vec<u8>,
+	crypto_protocol_version: CryptoProtocolVersion,
+	sender_key_version: Option<i64>,
+	recipient_key_version: i64,
+}
+
+pub struct PublicKeys {
+	pub_rsa_key: Option<Vec<u8>>,
+	pub_ecc_key: Option<Vec<u8>>,
+	pub_kyber_key: Option<Vec<u8>>,
+}
+
 #[derive(thiserror::Error, Debug)]
 #[error("AsymmetricCryptoError")]
 pub enum AsymmetricCryptoError {
@@ -30,6 +47,9 @@ pub enum AsymmetricCryptoError {
 	PqCrypto(PQError),
 	ArrayCasting(ArrayCastingError),
 	KeyLoading(KeyLoadError),
+	KeyParsing(String),
+	RsaKey(RSAKeyError),
+	KyberKey(KyberKeyError),
 }
 impl From<RSAEncryptionError> for AsymmetricCryptoError {
 	fn from(err: RSAEncryptionError) -> Self {
@@ -51,23 +71,40 @@ impl From<KeyLoadError> for AsymmetricCryptoError {
 		AsymmetricCryptoError::KeyLoading(err)
 	}
 }
+impl From<RSAKeyError> for AsymmetricCryptoError {
+	fn from(err: RSAKeyError) -> Self {
+		AsymmetricCryptoError::RsaKey(err)
+	}
+}
+impl From<KyberKeyError> for AsymmetricCryptoError {
+	fn from(err: KyberKeyError) -> Self {
+		AsymmetricCryptoError::KyberKey(err)
+	}
+}
 
 #[derive(uniffi::Object)]
 pub struct AsymmetricCryptoFacade {
 	key_loader_facade: Arc<KeyLoaderFacade>,
+	randomizer_facade: RandomizerFacade,
 }
 
 #[cfg_attr(test, mockall::automock)]
 impl AsymmetricCryptoFacade {
-	pub fn new(key_loader_facade: Arc<KeyLoaderFacade>) -> Self {
-		Self { key_loader_facade }
+	pub fn new(
+		key_loader_facade: Arc<KeyLoaderFacade>,
+		randomizer_facade: RandomizerFacade,
+	) -> Self {
+		Self {
+			key_loader_facade,
+			randomizer_facade,
+		}
 	}
 
 	/**
 	 * Decrypts the pub_enc_sym_key with the recipientKeyPair.
 	 * @param pub_enc_sym_key the asymmetrically encrypted session key
-	 * @param cryptoProtocolVersion asymmetric protocol to decrypt pub_enc_sym_key (RSA or TutaCrypt)
-	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
+	 * @param crypto_protocol_version asymmetric protocol to decrypt pub_enc_sym_key (RSA or TutaCrypt)
+	 * @param recipient_key_pair the recipientKeyPair. Must match the crypto_protocol_version.
 	 */
 	pub fn decrypt_sym_key_with_key_pair(
 		recipient_key_pair: AsymmetricKeyPair,
@@ -106,26 +143,26 @@ impl AsymmetricCryptoFacade {
 		}
 	}
 
-	/**
-	 * Loads the recipient key pair in the required version and decrypts the pub_enc_sym_key with it.
-	 */
-	async fn load_key_pair_and_decrypt_sym_key(
-		&self,
-		recipient_key_pair_group_id: &GeneratedId,
-		recipient_key_version: i64,
-		crypto_protocol_version: CryptoProtocolVersion,
-		pub_enc_sym_key: &Vec<u8>,
-	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
-		let key_pair = self
-			.key_loader_facade
-			.load_key_pair(recipient_key_pair_group_id, recipient_key_version)
-			.await?;
-		AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
-			key_pair,
-			crypto_protocol_version,
-			pub_enc_sym_key,
-		)
-	}
+	// /**
+	//  * Loads the recipient_key_pair in the required version and decrypts the pub_enc_sym_key with it.
+	//  */
+	// async fn load_key_pair_and_decrypt_sym_key(
+	// 	&self,
+	// 	recipient_key_pair_group_id: &GeneratedId,
+	// 	recipient_key_version: i64,
+	// 	crypto_protocol_version: CryptoProtocolVersion,
+	// 	pub_enc_sym_key: &Vec<u8>,
+	// ) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
+	// 	let key_pair = self
+	// 		.key_loader_facade
+	// 		.load_key_pair(recipient_key_pair_group_id, recipient_key_version)
+	// 		.await?;
+	// 	AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
+	// 		key_pair,
+	// 		crypto_protocol_version,
+	// 		pub_enc_sym_key,
+	// 	)
+	// }
 
 	// /**
 	//  * Encrypts the symKey asymmetrically with the provided public keys.
@@ -133,29 +170,48 @@ impl AsymmetricCryptoFacade {
 	//  * @param recipientPublicKeys the public key(s) of the recipient in the current version
 	//  * @param senderGroupId the group id of the sender. will only be used in case we also need the sender's key pair, e.g. with TutaCrypt.
 	//  */
-	// async asymEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
-	// const recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
-	// const keyPairType = recipientPublicKey.keyPairType
+	// pub async fn asym_encrypt_sym_key(
+	// 	&self,
+	// 	sym_key: GenericAesKey,
+	// 	versioned_recipient_public_keys: Versioned<PublicKeys>,
+	// 	sender_group_id: &GeneratedId,
+	// ) -> Result<PubEncSymKey, AsymmetricCryptoError> {
+	// 	let recipient_public_key = AsymmetricCryptoFacade::extract_recipient_public_key(
+	// 		versioned_recipient_public_keys.object,
+	// 	)?;
 	//
-	// if (isPqPublicKey(recipientPublicKey)) {
-	// const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
-	// const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
-	// return this.tutaCryptEncryptSymKeyImpl({ object: recipientPublicKey, version: recipientPublicKeys.version }, symKey, {
-	// object: senderEccKeyPair,
-	// version: senderKeyPair.version,
-	// })
-	// } else if (isRsaPublicKey(recipientPublicKey)) {
-	// const pubEncSymKeyBytes = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
-	// return {
-	// pubEncSymKeyBytes,
-	// cryptoProtocolVersion: CryptoProtocolVersion.RSA,
-	// senderKeyVersion: null,
-	// recipientKeyVersion: recipientPublicKeys.version,
+	// 	match recipient_public_key {
+	// 		AsymmetricPublicKey::RsaPublicKey(rsaPubKey) => {
+	// 			let pub_enc_sym_key_bytes =
+	// 				RSAPublicKey::encrypt(&rsaPubKey, &self.randomizer_facade, sym_key.as_bytes())?;
+	// 			Ok(PubEncSymKey {
+	// 				pub_enc_sym_key_bytes,
+	// 				crypto_protocol_version: CryptoProtocolVersion::Rsa,
+	// 				sender_key_version: None,
+	// 				recipient_key_version: versioned_recipient_public_keys.version,
+	// 			})
+	// 		},
+	// 		AsymmetricPublicKey::PqPublicKeys(pqPubKeys) => {
+	// 			let sender_key_pair = self
+	// 				.key_loader_facade
+	// 				.load_key_pair(sender_group_id) // TODO implement load_current_key_pair
+	// 				.await?;
+	// 			let sender_ecc_key_pair = EccKeyPair::generate(&self.randomizer_facade); // TODO self.getOrMakeSenderIdentityKeyPair(sender_key_pair.object, sender_group_id).await;
+	// 			Ok(self.tuta_crypt_encrypt_sym_key_impl(
+	// 				Versioned {
+	// 					object: pqPubKeys,
+	// 					version: versioned_recipient_public_keys.version,
+	// 				},
+	// 				sym_key.into(),
+	// 				Versioned {
+	// 					object: sender_ecc_key_pair,
+	// 					version: sender_key_pair.version,
+	// 				},
+	// 			)?)
+	// 		},
+	// 	}
 	// }
-	// }
-	// throw new CryptoError("unknown public key type: " + keyPairType)
-	// }
-	//
+
 	// /**
 	//  * Encrypts the symKey asymmetrically with the provided public keys using the TutaCrypt protocol.
 	//  * @param symKey the key to be encrypted
@@ -163,8 +219,8 @@ impl AsymmetricCryptoFacade {
 	//  * @param senderEccKeyPair the sender's key pair (needed for authentication)
 	//  * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
 	//  */
-	// async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
-	// const recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
+	// pub async fn tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
+	// let recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
 	// if (!isPqPublicKey(recipientPublicKey)) {
 	// throw new ProgrammingError("the recipient does not have pq key pairs")
 	// }
@@ -177,40 +233,57 @@ impl AsymmetricCryptoFacade {
 	// senderEccKeyPair,
 	// )
 	// }
-	//
-	// private async tutaCryptEncryptSymKeyImpl(
-	// recipientPublicKey: Versioned<PQPublicKeys>,
-	// symKey: AesKey,
-	// senderEccKeyPair: Versioned<EccKeyPair>,
-	// ): Promise<PubEncSymKey> {
-	// const ephemeralKeyPair = this.cryptoWrapper.generateEccKeyPair()
-	// const pubEncSymKeyBytes = await this.pqFacade.encapsulateAndEncode(
-	// senderEccKeyPair.object,
-	// ephemeralKeyPair,
-	// recipientPublicKey.object,
-	// bitArrayToUint8Array(symKey),
-	// )
-	// const senderKeyVersion = senderEccKeyPair.version
-	// return { pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT, senderKeyVersion, recipientKeyVersion: recipientPublicKey.version }
-	// }
-	//
-	// private extractRecipientPublicKey(publicKeys: PublicKeys): AsymmetricPublicKey {
-	// if (publicKeys.pubRsaKey) {
-	// // we ignore ecc keys as this is only used for the recipient keys
-	// return hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
-	// } else if (publicKeys.pubKyberKey && publicKeys.pubEccKey) {
-	// const eccPublicKey = publicKeys.pubEccKey
-	// const kyberPublicKey = this.cryptoWrapper.bytesToKyberPublicKey(publicKeys.pubKyberKey)
-	// return {
-	// keyPairType: KeyPairType.TUTA_CRYPT,
-	// eccPublicKey,
-	// kyberPublicKey,
-	// }
-	// } else {
-	// throw new Error("Inconsistent Keypair")
-	// }
-	// }
-	//
+
+	fn tuta_crypt_encrypt_sym_key_impl(
+		&self,
+		recipient_public_key: Versioned<TutaCryptPublicKeys>,
+		sym_key: Aes256Key, // TODO make generic aes key
+		sender_ecc_key_pair: Versioned<EccKeyPair>,
+	) -> Result<PubEncSymKey, AsymmetricCryptoError> {
+		let ephemeral_key_pair = EccKeyPair::generate(&self.randomizer_facade);
+		let encapsulation_iv = Iv::generate(&self.randomizer_facade); // TODO do not pass iv but always generate it in encapsulate. mock randomizer for tests
+		let pub_enc_sym_key_bytes = PQMessage::encapsulate(
+			&sender_ecc_key_pair.object,
+			&ephemeral_key_pair,
+			&recipient_public_key.object.ecc_public_key,
+			&recipient_public_key.object.kyber_public_key,
+			&sym_key,
+			encapsulation_iv,
+		)?
+		.serialize();
+		Ok(PubEncSymKey {
+			pub_enc_sym_key_bytes,
+			crypto_protocol_version: CryptoProtocolVersion::TutaCrypt,
+			sender_key_version: Some(sender_ecc_key_pair.version),
+			recipient_key_version: recipient_public_key.version,
+		})
+	}
+
+	fn extract_recipient_public_key(
+		public_keys: PublicKeys,
+	) -> Result<AsymmetricPublicKey, AsymmetricCryptoError> {
+		if Option::is_some(&public_keys.pub_rsa_key) {
+			// we ignore ecc keys as this is only used for the recipient keys
+			Ok(AsymmetricPublicKey::RsaPublicKey(
+				RSAPublicKey::deserialize(public_keys.pub_rsa_key.unwrap().as_slice())?,
+			))
+		} else if Option::is_some(&public_keys.pub_ecc_key)
+			&& Option::is_some(&public_keys.pub_kyber_key)
+		{
+			let kyber_public_key =
+				KyberPublicKey::deserialize(public_keys.pub_kyber_key.unwrap().as_slice())?;
+			let ecc_public_key =
+				EccPublicKey::from_bytes(public_keys.pub_ecc_key.unwrap().as_slice())?;
+			return Ok(AsymmetricPublicKey::PqPublicKeys(TutaCryptPublicKeys {
+				ecc_public_key,
+				kyber_public_key,
+			}));
+		} else {
+			Err(AsymmetricCryptoError::KeyParsing(
+				"Got an unparseable public key".to_string(),
+			))
+		}
+	}
 
 	// FIXME: the following functions depend on service invocations and are still missing from our implementation
 
@@ -220,14 +293,14 @@ impl AsymmetricCryptoFacade {
 	// *
 	// * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
 	// * @param sender_identity_pub_key the sender_identity_pub_key that was used to encrypt/authenticate the data.
-	// * @param senderKeyVersion the version of the sender_identity_pub_key.
+	// * @param sender_key_version the version of the sender_identity_pub_key.
 	// */
-	// async authenticateSender(identifier: PublicKeyIdentifier, sender_identity_pub_key: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus>
+	// async authenticateSender(identifier: PublicKeyIdentifier, sender_identity_pub_key: uint8array, sender_key_version: number): Promise<EncryptionAuthStatus>
 
 	// /**
 	//  * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
 	//  * If the protocol does not support authentication this method will only decrypt.
-	//  * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion and must be of the required recipientKeyVersion.
+	//  * @param recipientKeyPair the recipientKeyPair. Must match the crypto_protocol_version and must be of the required recipient_key_version.
 	//  * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
 	//  * @param senderIdentifier the identifier for the sender's key group
 	//  * @throws CryptoError in case the authentication fails.

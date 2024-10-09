@@ -19,6 +19,12 @@ pub struct DecapsulatedSymKey {
 	pub decrypted_sym_key_bytes: Aes256Key,
 }
 
+#[cfg_attr(test, derive(Debug))]
+pub struct TutaCryptPublicKeys {
+	pub ecc_public_key: EccPublicKey,
+	pub kyber_public_key: KyberPublicKey,
+}
+
 /// An encapsulated post quantum message using the Tuta Crypt protocol.
 #[derive(ZeroizeOnDrop)]
 pub struct PQMessage {
