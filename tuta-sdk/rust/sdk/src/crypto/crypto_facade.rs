@@ -1,22 +1,23 @@
-use std::sync::Arc;
-
-use zeroize::Zeroizing;
-
 use crate::crypto::aes::Iv;
 use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
+use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::sys::BucketKey;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
 use crate::util::ArrayCastingError;
 use crate::IdTuple;
+use base64::prelude::BASE64_URL_SAFE_NO_PAD;
+use base64::Engine;
+use std::sync::Arc;
+use zeroize::Zeroizing;
 
 /// The name of the field that contains the session key encrypted
 /// by the owner group's key in an entity
@@ -32,13 +33,14 @@ const BUCKET_KEY_FIELD: &str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
-	key_loader_facade: Arc<KeyLoaderFacade>,
+	key_loader_facade: Option<Arc<KeyLoaderFacade>>,
 	instance_mapper: Arc<InstanceMapper>,
 	randomizer_facade: RandomizerFacade,
 }
 
 /// Session key that encrypts an entity and the same key encrypted with the owner group.
 /// owner_enc_session_key is stored on entities to avoid public key encryption on subsequent loads.
+#[derive(Clone)]
 pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
@@ -46,8 +48,9 @@ pub struct ResolvedSessionKey {
 
 #[cfg_attr(test, mockall::automock)]
 impl CryptoFacade {
+	#[must_use]
 	pub fn new(
-		key_loader_facade: Arc<KeyLoaderFacade>,
+		key_loader_facade: Option<Arc<KeyLoaderFacade>>,
 		instance_mapper: Arc<InstanceMapper>,
 		randomizer_facade: RandomizerFacade,
 	) -> Self {
@@ -99,6 +102,10 @@ impl CryptoFacade {
 
 		let group_key: GenericAesKey = self
 			.key_loader_facade
+			.as_ref()
+			.ok_or(KeyLoadError {
+				reason: "not logged in yet".to_string(),
+			})?
 			.load_sym_group_key(owner_group, owner_key_version, None)
 			.await?;
 
@@ -168,6 +175,10 @@ impl CryptoFacade {
 		// TODO: authenticate
 		let versioned_key = self
 			.key_loader_facade
+			.as_ref()
+			.ok_or(KeyLoadError {
+				reason: "not logged in yet".to_string(),
+			})?
 			.get_current_sym_group_key(owner_group)
 			.await?;
 
@@ -198,6 +209,10 @@ impl CryptoFacade {
 		{
 			let keypair = self
 				.key_loader_facade
+				.as_ref()
+				.ok_or(KeyLoadError {
+					reason: "not logged in yet".to_string(),
+				})?
 				.load_key_pair(key_group, bucket_key.recipientKeyVersion)
 				.await?;
 			match keypair {
@@ -310,14 +325,14 @@ impl<'a> EntityOwnerKeyData<'a> {
 		entity: &'a ParsedEntity,
 	) -> Result<EntityOwnerKeyData<'a>, SessionKeyResolutionError> {
 		macro_rules! get_nullable_field {
-            ($entity:expr, $field:expr, $type:tt) => {
-                match $entity.get($field) {
-                    Some(ElementValue::$type(q)) => Ok(Some(q)),
-                    None | Some(ElementValue::Null) => Ok(None), // none = not present on type, null = present on type but null
-                    Some(actual) => Err(SessionKeyResolutionError { reason: format!("field `{}` is not the expected type, got {} instead", $field, actual.type_variant_name()) })
-                }
-            };
-        }
+			($entity:expr, $field:expr, $type:tt) => {
+				match $entity.get($field) {
+					Some(ElementValue::$type(q)) => Ok(Some(q)),
+					None | Some(ElementValue::Null) => Ok(None), // none = not present on type, null = present on type but null
+					Some(actual) => Err(SessionKeyResolutionError { reason: format!("field `{}` is not the expected type, got {} instead", $field, actual.type_variant_name()) }),
+				}
+			};
+		}
 
 		let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_FIELD, Bytes)?;
 		let owner_key_version =
@@ -332,7 +347,7 @@ impl<'a> EntityOwnerKeyData<'a> {
 	}
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone)]
 #[error("Session key resolution failure: {reason}")]
 pub struct SessionKeyResolutionError {
 	reason: String,
@@ -356,6 +371,12 @@ impl SessionKeyResolutionErrorSubtype for ArrayCastingError {}
 impl SessionKeyResolutionErrorSubtype for PQError {}
 
 impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
+
+#[must_use]
+pub fn create_auth_verifier(user_passphrase_key: Aes256Key) -> String {
+	let sha_user_passphrase = crate::crypto::sha::sha256(user_passphrase_key.as_bytes());
+	BASE64_URL_SAFE_NO_PAD.encode(sha_user_passphrase)
+}
 
 // FIXME: check for returned owner_enc_session_key
 #[cfg(test)]
@@ -602,7 +623,7 @@ mod test {
 			.once();
 
 		CryptoFacade {
-			key_loader_facade: Arc::new(key_loader),
+			key_loader_facade: Some(Arc::new(key_loader)),
 			instance_mapper: Arc::new(InstanceMapper::new()),
 			randomizer_facade,
 		}

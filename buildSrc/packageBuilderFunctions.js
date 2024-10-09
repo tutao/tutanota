@@ -12,7 +12,7 @@ export async function buildRuntimePackages() {
 	// tsconfig is rather JSON5, if it becomes a problem switch to JSON5 parser here
 	const tsconfig = JSON.parse(await fs.readFile("tsconfig.json", { encoding: "utf-8" }))
 	const packagePaths = tsconfig.references.map((ref) => ref.path)
-	await $`npx tsc -b ${packagePaths}`
+	await Promise.all(packagePaths.map((dir) => $`cd ${dir} && npm run build`))
 }
 
 /**
@@ -20,5 +20,5 @@ export async function buildRuntimePackages() {
  */
 export async function buildPackages(pathPrefix = ".") {
 	const packages = await glob(`${pathPrefix}/packages/*`, { deep: 1, onlyDirectories: true })
-	await $`npx tsc -b ${packages}`
+	await Promise.all(packages.map((dir) => $`cd ${dir} && npm run build`))
 }

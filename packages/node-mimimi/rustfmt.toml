@@ -1,0 +1,16 @@
+edition = "2024"
+
+tab_spaces = 4
+hard_tabs = true
+newline_style = "Unix"
+max_width = 100
+match_block_trailing_comma = true
+use_field_init_shorthand = true
+
+# TODO: Very nice-to-have, but currently nightly only
+#normalize_comments = true
+#normalize_doc_attributes = true
+#group_imports = "StdExternalCrate"
+#reorder_impl_items = true
+#combine_control_expr = false
+#condense_wildcard_suffixes = true

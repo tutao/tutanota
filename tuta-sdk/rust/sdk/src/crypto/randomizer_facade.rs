@@ -27,6 +27,7 @@ impl RandomizerFacade {
 	}
 
 	/// Generate a random array of a given size.
+	#[must_use]
 	pub fn generate_random_array<const S: usize>(&self) -> [u8; S] {
 		let mut output = [0u8; S];
 		self.fill_slice(&mut output);
@@ -65,6 +66,7 @@ pub mod test_util {
 	use super::*;
 
 	/// Used for internal testing using OsRng.
+	#[must_use]
 	pub fn make_thread_rng_facade() -> RandomizerFacade {
 		RandomizerFacade::from_core(rand::rngs::OsRng {})
 	}

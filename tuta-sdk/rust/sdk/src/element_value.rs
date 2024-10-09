@@ -74,6 +74,13 @@ impl ElementValue {
 		}
 	}
 
+	pub fn assert_dict_mut_ref(&mut self) -> &mut HashMap<String, ElementValue> {
+		match self {
+			ElementValue::Dict(value) => value,
+			_ => panic!("Invalid type"),
+		}
+	}
+
 	pub fn assert_str(&self) -> &str {
 		match self {
 			ElementValue::String(value) => value,
@@ -90,6 +97,13 @@ impl ElementValue {
 	pub fn assert_tuple_id(&self) -> &IdTuple {
 		match self {
 			ElementValue::IdTupleId(value) => value,
+			_ => panic!("Invalid type"),
+		}
+	}
+
+	pub fn assert_custom_id(&self) -> &CustomId {
+		match self {
+			ElementValue::IdCustomId(value) => value,
 			_ => panic!("Invalid type"),
 		}
 	}
@@ -122,5 +136,71 @@ impl ElementValue {
 			Self::Dict(_) => "Dict",
 			Self::Array(_) => "Array",
 		}
+	}
+}
+
+impl From<()> for ElementValue {
+	fn from(_: ()) -> Self {
+		Self::Null
+	}
+}
+
+impl From<String> for ElementValue {
+	fn from(value: String) -> Self {
+		Self::String(value)
+	}
+}
+
+impl From<i64> for ElementValue {
+	fn from(value: i64) -> Self {
+		Self::Number(value)
+	}
+}
+
+impl From<Vec<u8>> for ElementValue {
+	fn from(value: Vec<u8>) -> Self {
+		Self::Bytes(value)
+	}
+}
+
+impl From<DateTime> for ElementValue {
+	fn from(value: DateTime) -> Self {
+		Self::Date(value)
+	}
+}
+
+impl From<bool> for ElementValue {
+	fn from(value: bool) -> Self {
+		Self::Bool(value)
+	}
+}
+
+impl From<GeneratedId> for ElementValue {
+	fn from(value: GeneratedId) -> Self {
+		Self::IdGeneratedId(value)
+	}
+}
+
+impl From<CustomId> for ElementValue {
+	fn from(value: CustomId) -> Self {
+		Self::IdCustomId(value)
+	}
+}
+
+impl From<IdTuple> for ElementValue {
+	fn from(value: IdTuple) -> Self {
+		Self::IdTupleId(value)
+	}
+}
+
+impl From<HashMap<String, ElementValue>> for ElementValue {
+	fn from(value: HashMap<String, ElementValue>) -> Self {
+		Self::Dict(value)
+	}
+}
+
+impl From<Vec<ElementValue>> for ElementValue {
+	fn from(value: Vec<ElementValue>) -> Self {
+		Self::Array(value)
 	}
 }

@@ -2,7 +2,7 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestAssignment {
 	pub _id: CustomId,
 	pub name: String,
@@ -11,7 +11,6 @@ pub struct UsageTestAssignment {
 	pub variant: Option<i64>,
 	pub stages: Vec<UsageTestStage>,
 }
-
 impl Entity for UsageTestAssignment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -21,12 +20,11 @@ impl Entity for UsageTestAssignment {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestAssignmentIn {
 	pub _format: i64,
 	pub testDeviceId: Option<GeneratedId>,
 }
-
 impl Entity for UsageTestAssignmentIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -36,13 +34,12 @@ impl Entity for UsageTestAssignmentIn {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestAssignmentOut {
 	pub _format: i64,
 	pub testDeviceId: GeneratedId,
 	pub assignments: Vec<UsageTestAssignment>,
 }
-
 impl Entity for UsageTestAssignmentOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -52,7 +49,7 @@ impl Entity for UsageTestAssignmentOut {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestMetricConfig {
 	pub _id: CustomId,
 	pub name: String,
@@ -60,7 +57,6 @@ pub struct UsageTestMetricConfig {
 	pub r#type: i64,
 	pub configValues: Vec<UsageTestMetricConfigValue>,
 }
-
 impl Entity for UsageTestMetricConfig {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -70,13 +66,12 @@ impl Entity for UsageTestMetricConfig {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestMetricConfigValue {
 	pub _id: CustomId,
 	pub key: String,
 	pub value: String,
 }
-
 impl Entity for UsageTestMetricConfigValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -86,13 +81,12 @@ impl Entity for UsageTestMetricConfigValue {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestMetricData {
 	pub _id: CustomId,
 	pub name: String,
 	pub value: String,
 }
-
 impl Entity for UsageTestMetricData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -102,7 +96,7 @@ impl Entity for UsageTestMetricData {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestParticipationIn {
 	pub _format: i64,
 	pub stage: i64,
@@ -110,7 +104,6 @@ pub struct UsageTestParticipationIn {
 	pub testId: GeneratedId,
 	pub metrics: Vec<UsageTestMetricData>,
 }
-
 impl Entity for UsageTestParticipationIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -120,7 +113,7 @@ impl Entity for UsageTestParticipationIn {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsageTestStage {
 	pub _id: CustomId,
 	pub maxPings: i64,
@@ -128,7 +121,6 @@ pub struct UsageTestStage {
 	pub name: String,
 	pub metrics: Vec<UsageTestMetricConfig>,
 }
-
 impl Entity for UsageTestStage {
 	fn type_ref() -> TypeRef {
 		TypeRef {

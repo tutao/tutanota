@@ -295,6 +295,7 @@ o.spec("InstanceMapper", function () {
 			o(encryptValue("_id", vt, null, null)).equals(null)
 			o(encryptValue("_permissions", vt, null, null)).equals(null)
 		})
+
 		o("throw error on ONE null values (enc String)", makeTestForErrorOnNull(ValueType.String))
 		o("throw error on ONE null values (enc Date)", makeTestForErrorOnNull(ValueType.Date))
 		o("throw error on ONE null values (enc Bytes)", makeTestForErrorOnNull(ValueType.Bytes))
