@@ -21,40 +21,29 @@ pub struct PublicKeyIdentifier {
 }
 
 #[derive(thiserror::Error, Debug)]
-#[error("AsymmetricCryptoError: {reason}")]
-pub struct AsymmetricCryptoError {
-    pub reason: String,
+#[error("AsymmetricCryptoError")]
+pub enum AsymmetricCryptoError {
+    ProtocolError(CryptoProtocolVersion),
+    KeyTypeError(AsymmetricKeyPair),
+    RsaError(RSAEncryptionError),
+    PqError(PQError),
+    ArrayCastingError(ArrayCastingError),
 }
-
-/// Used to map various errors to `AsymmetricCryptoError`
-trait AsymmetricCryptoErrorSubtype: ToString {}
-
-impl<T: AsymmetricCryptoErrorSubtype> From<T> for AsymmetricCryptoError {
-    fn from(value: T) -> Self {
-        Self {
-            reason: value.to_string(),
-        }
+impl From<RSAEncryptionError> for AsymmetricCryptoError {
+    fn from(err: RSAEncryptionError) -> Self {
+        AsymmetricCryptoError::RsaError(err)
     }
 }
-
-#[derive(thiserror::Error, Debug)]
-#[error("Unexpected key type: {reason}")]
-pub struct KeyTypeError {
-    pub reason: String,
+impl From<PQError> for AsymmetricCryptoError {
+    fn from(err: PQError) -> Self {
+        AsymmetricCryptoError::PqError(err)
+    }
 }
-
-#[derive(thiserror::Error, Debug)]
-#[error("Unexpected crypto protocol version: {reason}")]
-pub struct CryptoProtocolVersionError {
-    pub reason: String,
+impl From<ArrayCastingError> for AsymmetricCryptoError {
+    fn from(err: ArrayCastingError) -> Self {
+        AsymmetricCryptoError::ArrayCastingError(err)
+    }
 }
-
-impl AsymmetricCryptoErrorSubtype for KeyTypeError {}
-impl AsymmetricCryptoErrorSubtype for CryptoProtocolVersionError {}
-impl AsymmetricCryptoErrorSubtype for RSAEncryptionError {}
-impl AsymmetricCryptoErrorSubtype for PQError {}
-impl AsymmetricCryptoErrorSubtype for ArrayCastingError {}
-
 
 #[derive(uniffi::Object)]
 pub struct AsymmetricCryptoFacade {
@@ -99,7 +88,7 @@ impl AsymmetricCryptoFacade {
                             sender_identity_pub_key: None,
                         })
                     }
-                    _ => { Err(AsymmetricCryptoError { reason: format!("wrong key type. expected rsa. got {:?}", recipient_key_pair) }) }
+                    _ => { Err(AsymmetricCryptoError::KeyTypeError(recipient_key_pair)) }
                 }
             }
             CryptoProtocolVersion::TutaCrypt => {
@@ -112,10 +101,10 @@ impl AsymmetricCryptoFacade {
                             sender_identity_pub_key: Some(decapsulated_sym_key.sender_identity_pub_key),
                         })
                     }
-                    _ => { Err(AsymmetricCryptoError { reason: format!("wrong key type. expected TutaCrypt. got {:?}", recipient_key_pair) }) }
+                    _ => { Err(AsymmetricCryptoError::KeyTypeError(recipient_key_pair)) }
                 }
             }
-            _ => Err(AsymmetricCryptoError { reason: format!("invalid cryptoProtocolVersion: {:?}", crypto_protocol_version) })
+            _ => Err(AsymmetricCryptoError::ProtocolError(crypto_protocol_version))
         }
     }
 
