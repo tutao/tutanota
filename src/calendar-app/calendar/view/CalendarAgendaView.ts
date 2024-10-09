@@ -1,10 +1,10 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { incrementDate, isSameDay } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
+import { CalendarEvent, Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels } from "./CalendarViewModel"
 import { styles } from "../../../common/gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
@@ -28,6 +28,9 @@ import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { MainCreateButton } from "../../../common/gui/MainCreateButton.js"
 import { client } from "../../../common/misc/ClientDetector.js"
+import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
+import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -47,11 +50,13 @@ export type CalendarAgendaViewAttrs = {
 	onShowDate: (date: Date) => unknown
 	/**  when the selected date was changed  */
 	onDateSelected: (date: Date) => unknown
-	eventPreviewModel: CalendarEventPreviewViewModel | null
+	eventPreviewModel: CalendarPreviewModels | null
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
 	onNewEvent: (date: Date | null) => unknown
+	onEditContact: (contact: Contact) => unknown
+	onWriteMail: (recipient: PartialRecipient) => unknown
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
@@ -261,11 +266,39 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 								color: theme.list_message_bg,
 							}),
 					  )
-					: m(EventDetailsView, {
-							eventPreviewModel: attrs.eventPreviewModel,
-					  }),
+					: this.renderEventPreview(attrs),
 			),
 		])
+	}
+
+	private getBirthdayEventModel(eventPreviewModel: CalendarPreviewModels | null): CalendarContactPreviewViewModel | null {
+		if (isBirthdayEvent((eventPreviewModel as CalendarContactPreviewViewModel).event?.uid)) {
+			return eventPreviewModel as CalendarContactPreviewViewModel
+		}
+		return null
+	}
+
+	private renderEventPreview(attrs: CalendarAgendaViewAttrs) {
+		const { eventPreviewModel, onEditContact, onWriteMail } = attrs
+		const model = this.getBirthdayEventModel(eventPreviewModel)
+
+		if (model) {
+			return m(
+				".flex.col",
+				m(ContactCardViewer, {
+					contact: model.contact,
+					editAction: onEditContact,
+					onWriteMail: onWriteMail,
+					extendedActions: true,
+					style: {
+						margin: "0",
+					},
+				}),
+			)
+		}
+		return m(EventDetailsView, {
+			eventPreviewModel: eventPreviewModel as CalendarEventPreviewViewModel,
+		})
 	}
 
 	// Updates the view model's copy of the view dom and scrolls to the current `scrollPosition`
@@ -302,7 +335,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
 					event: event,
 					color: getEventColor(event, colors),
-					selected: event === modelPromise?.calendarEvent,
+					selected: event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
 					click: (domEvent) => click(event, domEvent),
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement

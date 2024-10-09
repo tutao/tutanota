@@ -107,7 +107,7 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
+import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 
 assertMainOrNode()
 
@@ -501,7 +501,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								color: theme.content_message_bg,
 								backgroundColor: theme.navigation_bg,
 						  })
-						: this.handleEventPreview(selectedEvent),
+						: this.renderEventPreview(selectedEvent),
 			})
 		} else {
 			return m(
@@ -531,7 +531,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 
 		const idParts = selectedEvent._id[1].split("#")
-		const contactId = this.extractContactIdFromEvent(last(idParts))
+		const contactId = extractContactIdFromEvent(last(idParts))
 		if (!contactId) {
 			return
 		}
@@ -539,11 +539,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.getContactPreviewData(contactId).reload().then(m.redraw)
 	}
 
-	private handleEventPreview(event: CalendarEvent) {
+	private renderEventPreview(event: CalendarEvent) {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
-			const contactId = this.extractContactIdFromEvent(last(idParts))
+			const contactId = extractContactIdFromEvent(last(idParts))
 			if (contactId != null && this.getContactPreviewData(contactId).isLoaded()) {
 				return this.renderContactPreview(this.getContactPreviewData(contactId).getSync()!)
 			}
@@ -554,14 +554,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 
 		return null
-	}
-
-	private extractContactIdFromEvent(id: string | null | undefined): string | null {
-		if (id == null) {
-			return null
-		}
-
-		return decodeBase64("utf-8", id)
 	}
 
 	private renderContactPreview(contact: Contact) {

@@ -55,12 +55,12 @@ import { NativeFileApp } from "../../native/common/FileApp.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { MobileContactsFacade } from "../../native/common/generatedipc/MobileContactsFacade.js"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-import { CalendarEvent, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
+import { CalendarEvent, Contact, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
+import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
 import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
@@ -68,6 +68,7 @@ import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
+import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -151,6 +152,8 @@ export interface CommonLocator {
 	): Promise<CalendarEventModel | null>
 
 	calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel>
+
+	calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel>
 
 	// native
 	native: NativeInterfaceMain

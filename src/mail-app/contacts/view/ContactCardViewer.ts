@@ -11,6 +11,7 @@ export interface ContactCardAttrs {
 	editAction?: (contact: Contact) => unknown
 	deleteAction?: (contacts: Contact[]) => unknown
 	extendedActions?: boolean
+	style?: Record<string, any>
 }
 
 /** Wraps contact viewer in a nice card. */
@@ -24,6 +25,7 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 					class: responsiveCardHMargin(),
 					style: {
 						backgroundColor: theme.content_bg,
+						...attrs.style,
 					},
 				},
 				m(ContactViewer, {

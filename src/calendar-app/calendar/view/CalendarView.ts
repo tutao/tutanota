@@ -6,10 +6,11 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import type { Key, Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { downcast, getStartOfDay, isSameDayOfDate, noOp, ofClass } from "@tutao/tutanota-utils"
+import { decodeBase64, downcast, getStartOfDay, isSameDayOfDate, last, noOp, ofClass } from "@tutao/tutanota-utils"
 import {
 	CalendarEvent,
 	CalendarGroupRootTypeRef,
+	ContactTypeRef,
 	createDefaultAlarmInfo,
 	createGroupSettings,
 	GroupSettings,
@@ -37,6 +38,7 @@ import {
 	getTimeZone,
 	getWeekNumber,
 	hasSourceUrl,
+	isBirthdayEvent,
 	isClientOnlyCalendar,
 	parseAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -62,7 +64,7 @@ import { SidebarSection } from "../../../common/gui/SidebarSection"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
-import { CalendarEventBubbleKeyDownHandler, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
+import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -98,6 +100,10 @@ import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
 import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
 import type { ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
+import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
+import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -378,6 +384,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									onNewEvent: (date) => this.createNewEventDialog(date),
+									onEditContact: (contact) => {
+										new ContactEditor(locator.entityClient, contact).show()
+									},
+									onWriteMail: async (recipient) => {
+										const { writeMail } = await import("../../../mail-app/contacts/view/ContactView.js")
+										writeMail(recipient)
+									},
 								} satisfies CalendarAgendaViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 							})
@@ -1189,10 +1202,29 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private async showCalendarEventPopup(selectedEvent: CalendarEvent, eventBubbleRect: PosRect, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
-		const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
-		const [popupModel, htmlSanitizer] = await Promise.all([locator.calendarEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
+		let getPreviewModel: Promise<CalendarPreviewModels>
+		let popupComponent: CalendarEventPopup | ContactEventPopup
 
-		new CalendarEventPopup(popupModel, eventBubbleRect, htmlSanitizer).show()
+		if (isBirthdayEvent(selectedEvent.uid)) {
+			const base64ContactId = last(elementIdPart(selectedEvent._id).split("#"))
+			if (!base64ContactId) {
+				throw new Error(`Trying to open a birthday ${selectedEvent._id} without a contact id`)
+			}
+			const contactId = decodeBase64("utf8", base64ContactId).split("/")
+			const contact = await locator.entityClient.load(ContactTypeRef, [contactId[0], contactId[1]])
+			if (!contact) {
+				throw new NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
+			}
+			const popupModel = await locator.calendarContactPreviewModel(selectedEvent, contact!, true)
+			popupComponent = new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)
+		} else {
+			const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
+			getPreviewModel = locator.calendarEventPreviewModel(selectedEvent, calendars)
+			const [popupModel, htmlSanitizer] = await Promise.all([getPreviewModel, htmlSanitizerPromise])
+			popupComponent = new CalendarEventPopup(popupModel as CalendarEventPreviewViewModel, eventBubbleRect, htmlSanitizer)
+		}
+
+		popupComponent.show()
 	}
 
 	private async showCalendarEventPopupAtEvent(selectedEvent: CalendarEvent, target: HTMLElement, htmlSanitizerPromise: Promise<HtmlSanitizer>) {

@@ -4,6 +4,7 @@ import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/mode
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import {
 	addDaysForRecurringEvent,
+	calculateContactsAge,
 	CalendarTimeRange,
 	createRepeatRuleWithValues,
 	extractYearFromBirthday,
@@ -36,7 +37,7 @@ const TAG = "[CalendarEventRepository]"
 export type DaysToEvents = ReadonlyMap<number, ReadonlyArray<CalendarEvent>>
 
 /** Object holding the year of birth if available and the corresponding event */
-export type BirthdayEvent = {
+export type BirthdayEventRegistry = {
 	baseYear: number | null
 	event: CalendarEvent
 }
@@ -52,7 +53,7 @@ export class CalendarEventsRepository {
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
 
-	private clientOnlyEvents: Map<number, BirthdayEvent[]> = new Map()
+	private clientOnlyEvents: Map<number, BirthdayEventRegistry[]> = new Map()
 
 	constructor(
 		private readonly calendarModel: CalendarModel,
@@ -80,7 +81,7 @@ export class CalendarEventsRepository {
 		return this.daysToEvents
 	}
 
-	getBirthdayEvents(): Map<number, BirthdayEvent[]> {
+	getBirthdayEvents(): Map<number, BirthdayEventRegistry[]> {
 		return this.clientOnlyEvents
 	}
 
@@ -217,14 +218,6 @@ export class CalendarEventsRepository {
 		}
 	}
 
-	private calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
-		if (!birthYear) {
-			return null
-		}
-
-		return currentYear - birthYear
-	}
-
 	public pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
 		let clientOnlyEventsOfThisMonth = this.clientOnlyEvents.get(month) ?? []
 		clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
@@ -313,8 +306,8 @@ export class CalendarEventsRepository {
 		const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
 		if (birthdaysOfThisMonth) {
 			for (const calendarEvent of birthdaysOfThisMonth) {
-				const age = this.calculateContactsAge(calendarEvent.baseYear, selectedDate.getFullYear())
-				const ageString = age ? this.calendarModel.getAgeString(age) : ""
+				const age = calculateContactsAge(calendarEvent.baseYear, selectedDate.getFullYear())
+				const ageString = age ? `(${this.calendarModel.getAgeString(age)})` : ""
 
 				if (removeEventOccurrences) {
 					this.removeDaysForEvent(calendarEvent.event._id)

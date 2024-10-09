@@ -1,6 +1,7 @@
 import {
 	assert,
 	clone,
+	decodeBase64,
 	downcast,
 	filterInt,
 	findAllAndRemove,
@@ -45,7 +46,7 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { BirthdayEvent } from "./CalendarEventsRepository.js"
+import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -1050,7 +1051,7 @@ export function extractYearFromBirthday(birthday: string | null): number | null 
 	return Number.parseInt(dateParts[0])
 }
 
-export async function retrieveClientOnlyEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEvent[]>) {
+export async function retrieveClientOnlyEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEventRegistry[]>) {
 	if (!(await logins.getUserController().isNewPaidPlan())) {
 		return []
 	}
@@ -1065,4 +1066,20 @@ export async function retrieveClientOnlyEventsForUser(logins: LoginController, e
 	}
 
 	return retrievedEvents
+}
+
+export function calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
+	if (!birthYear) {
+		return null
+	}
+
+	return currentYear - birthYear
+}
+
+export function extractContactIdFromEvent(id: string | null | undefined): string | null {
+	if (id == null) {
+		return null
+	}
+
+	return decodeBase64("utf-8", id)
 }

@@ -15,6 +15,7 @@ import { DropDownSelector } from "./DropDownSelector.js"
 import { IconButtonAttrs } from "./IconButton.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
+import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -232,4 +233,12 @@ export function getIfLargeScroll(oldPosition: number | null, newPosition: number
 	if (oldPosition === null || newPosition === null) return false
 	const difference = Math.abs(oldPosition - newPosition)
 	return difference > 10
+}
+
+export function getContactTitle(contact: Contact) {
+	const title = contact.title ? `${contact.title} ` : ""
+	const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "
+	const fullName = `${contact.firstName}${middleName}${contact.lastName} `
+	const suffix = contact.nameSuffix ?? ""
+	return (title + fullName + suffix).trim()
 }

@@ -5,7 +5,7 @@ import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
 import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, decodeBase64, incrementMonth, last, LazyLoaded, lazyMemoized, memoized, stringToBase64, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, incrementMonth, last, LazyLoaded, lazyMemoized, memoized, stringToBase64, TypeRef } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
@@ -60,10 +60,11 @@ import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { ButtonType } from "../../../../common/gui/base/Button.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
-import { isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
+import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
 import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer.js"
 import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel.js"
 import { PartialRecipient } from "../../../../common/api/common/recipients/Recipient.js"
+import { simulateMailToClick } from "../../gui/eventpopup/ContactPreviewView.js"
 
 assertMainOrNode()
 
@@ -231,15 +232,15 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					  })
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 					? null
-					: this.handleEventPreview(selectedEvent),
+					: this.renderEventPreview(selectedEvent),
 		})
 	}
 
-	private handleEventPreview(event: CalendarEvent) {
+	private renderEventPreview(event: CalendarEvent) {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
-			const contactId = this.extractContactIdFromEvent(last(idParts))
+			const contactId = extractContactIdFromEvent(last(idParts))
 			if (contactId != null && this.getContactPreviewData(contactId).isLoaded()) {
 				return this.renderContactPreview(this.getContactPreviewData(contactId).getSync()!)
 			}
@@ -252,14 +253,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return null
 	}
 
-	private extractContactIdFromEvent(id: string | null | undefined): string | null {
-		if (id == null) {
-			return null
-		}
-
-		return decodeBase64("utf-8", id)
-	}
-
 	private renderContactPreview(contact: Contact) {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
@@ -269,17 +262,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					const query = `contactId=${stringToBase64(contact._id.join("/"))}`
 					calendarLocator.systemFacade.openMailApp(stringToBase64(query))
 				},
-				onWriteMail: this.onWriteMail,
+				onWriteMail: (to: PartialRecipient) => simulateMailToClick(to.address),
 				extendedActions: true,
 			}),
 		)
-	}
-
-	private onWriteMail(to: PartialRecipient) {
-		const anchor = document.createElement("a")
-		anchor.href = `mailto:${to.address}`
-		anchor.target = "_blank"
-		anchor.click()
 	}
 
 	private renderEventDetails(selectedEvent: CalendarEvent) {
@@ -469,28 +455,12 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 
 		const idParts = selectedEvent._id[1].split("#")
-		const contactId = this.extractContactIdFromEvent(last(idParts))
+		const contactId = extractContactIdFromEvent(last(idParts))
 		if (!contactId) {
 			return
 		}
 
 		this.getContactPreviewData(contactId).reload().then(m.redraw)
-	}
-
-	private getMainButton(typeRef: TypeRef<unknown>): {
-		label: TranslationKey
-		click: ClickHandler
-	} | null {
-		if (styles.isUsingBottomNavigation()) {
-			return null
-		}
-
-		return {
-			click: () => {
-				this.createNewEventDialog()
-			},
-			label: "newEvent_action",
-		}
 	}
 
 	private async createNewEventDialog(): Promise<void> {

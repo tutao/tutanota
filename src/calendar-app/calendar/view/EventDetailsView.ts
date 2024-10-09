@@ -8,6 +8,7 @@ import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { styles } from "../../../common/gui/styles.js"
+import { CalendarPreviewModels } from "./CalendarViewModel.js"
 
 export interface EventDetailsViewAttrs {
 	eventPreviewModel: CalendarEventPreviewViewModel
@@ -18,7 +19,6 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 
 	view({ attrs }: Vnode<EventDetailsViewAttrs>) {
 		this.model = attrs.eventPreviewModel
-
 		return m(".content-bg.border-radius-big.pl-l.pb-s.flex.pr", [
 			m(
 				".flex-grow",

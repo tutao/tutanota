@@ -5,6 +5,7 @@ import { px, size } from "../../size.js"
 import { BaseButton } from "./BaseButton.js"
 import { theme } from "../../theme.js"
 import { ClickHandler } from "../GuiUtils.js"
+import { Icon } from "../Icon.js"
 
 export type BannerButtonAttrs = {
 	borderColor: string
@@ -13,6 +14,7 @@ export type BannerButtonAttrs = {
 	disabled?: boolean
 	click: ClickHandler
 	text: TranslationKey | lazy<string>
+	icon?: Children
 }
 
 export class BannerButton implements Component<BannerButtonAttrs> {
@@ -30,6 +32,7 @@ export class BannerButton implements Component<BannerButtonAttrs> {
 			},
 			disabled: attrs.disabled,
 			onclick: attrs.click,
+			icon: attrs.icon,
 		})
 	}
 }
