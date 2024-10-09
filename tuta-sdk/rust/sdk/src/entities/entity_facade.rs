@@ -19,7 +19,7 @@ use crate::ApiCallError;
 
 /// Provides high level functions to handle encryption/decryption of entities
 #[derive(uniffi::Object)]
-pub struct EntityFacade {
+pub struct EntityFacadeImpl {
 	type_model_provider: Arc<TypeModelProvider>,
 }
 
@@ -34,25 +34,20 @@ struct MappedValue {
 }
 
 #[cfg_attr(test, mockall::automock)]
-impl EntityFacade {
-	pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
-		EntityFacade {
-			type_model_provider,
-		}
-	}
-	pub fn decrypt_and_map(
+pub trait EntityFacade: Send + Sync {
+	fn decrypt_and_map(
 		&self,
 		type_model: &TypeModel,
-		mut entity: ParsedEntity,
+		entity: ParsedEntity,
 		resolved_session_key: ResolvedSessionKey,
-	) -> Result<ParsedEntity, ApiCallError> {
-		let mut mapped_decrypted =
-			self.decrypt_and_map_inner(type_model, entity, &resolved_session_key.session_key)?;
-		mapped_decrypted.insert(
-			"_ownerEncSessionKey".to_owned(),
-			ElementValue::Bytes(resolved_session_key.owner_enc_session_key.clone()),
-		);
-		Ok(mapped_decrypted)
+	) -> Result<ParsedEntity, ApiCallError>;
+}
+
+impl EntityFacadeImpl {
+	pub fn new(type_model_provider: Arc<TypeModelProvider>) -> Self {
+		EntityFacadeImpl {
+			type_model_provider,
+		}
 	}
 
 	fn decrypt_and_map_inner(
@@ -128,7 +123,7 @@ impl EntityFacade {
 			panic!("Undefined type_model {}", association_model.ref_type)
 		};
 
-		return if let AssociationType::Aggregation = association_model.association_type {
+		if let AssociationType::Aggregation = association_model.association_type {
 			match (association_data, association_model.cardinality.borrow()) {
 				(ElementValue::Null, Cardinality::ZeroOrOne) => Ok((ElementValue::Null, errors)),
 				(ElementValue::Null, Cardinality::One) => Err(ApiCallError::InternalSdkError {
@@ -181,13 +176,11 @@ impl EntityFacade {
 							self.extract_errors(association_name, &mut errors, &mut dec_aggregate);
 							Ok((ElementValue::Dict(dec_aggregate), errors))
 						},
-						Err(_) => {
-							return Err(ApiCallError::InternalSdkError {
-								error_message: format!(
-									"Failed to decrypt association {association_name}"
-								),
-							});
-						},
+						Err(_) => Err(ApiCallError::InternalSdkError {
+							error_message: format!(
+								"Failed to decrypt association {association_name}"
+							),
+						}),
 					}
 				},
 				_ => Err(ApiCallError::InternalSdkError {
@@ -196,9 +189,8 @@ impl EntityFacade {
 			}
 		} else {
 			Ok((association_data, errors))
-		};
+		}
 	}
-
 	fn extract_errors(
 		&self,
 		association_name: &str,
@@ -211,7 +203,6 @@ impl EntityFacade {
 			}
 		}
 	}
-
 	fn map_value(
 		&self,
 		value: ElementValue,
@@ -285,13 +276,12 @@ impl EntityFacade {
 			))),
 		}
 	}
-
 	fn parse_decrypted_value(
 		&self,
 		value_type: ValueType,
 		bytes: Vec<u8>,
 	) -> Result<ElementValue, ApiCallError> {
-		return match value_type {
+		match value_type {
 			ValueType::String => {
 				let string = String::from_utf8(bytes)
 					.map_err(|e| ApiCallError::internal_with_err(e, "Invalid string"))?;
@@ -333,7 +323,24 @@ impl EntityFacade {
 			},
 			ValueType::CompressedString => unimplemented!("compressed string"),
 			v => unreachable!("Can't parse {v:?} into ElementValue"),
-		};
+		}
+	}
+}
+
+impl EntityFacade for EntityFacadeImpl {
+	fn decrypt_and_map(
+		&self,
+		type_model: &TypeModel,
+		mut entity: ParsedEntity,
+		resolved_session_key: ResolvedSessionKey,
+	) -> Result<ParsedEntity, ApiCallError> {
+		let mut mapped_decrypted =
+			self.decrypt_and_map_inner(type_model, entity, &resolved_session_key.session_key)?;
+		mapped_decrypted.insert(
+			"_ownerEncSessionKey".to_owned(),
+			ElementValue::Bytes(resolved_session_key.owner_enc_session_key.clone()),
+		);
+		Ok(mapped_decrypted)
 	}
 }
 
@@ -349,7 +356,7 @@ mod tests {
 	use crate::crypto::{Aes256Key, Iv};
 	use crate::date::DateTime;
 	use crate::element_value::ParsedEntity;
-	use crate::entities::entity_facade::EntityFacade;
+	use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
 	use crate::entities::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
@@ -378,7 +385,7 @@ mod tests {
 			.parse(&Mail::type_ref(), raw_entity)
 			.unwrap();
 
-		let entity_facade = EntityFacade::new(Arc::clone(&type_model_provider));
+		let entity_facade = EntityFacadeImpl::new(Arc::clone(&type_model_provider));
 		let type_ref = Mail::type_ref();
 		let type_model = type_model_provider
 			.get_type_model(type_ref.app, type_ref.type_)

@@ -16,7 +16,7 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 #[mockall_double::double]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ElementValue;
-use crate::entities::entity_facade::EntityFacade;
+use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::entities::tutanota::Mail;
 #[mockall_double::double]
 use crate::entity_client::EntityClient;
@@ -182,7 +182,7 @@ impl Sdk {
 			self.instance_mapper.clone(),
 			randomizer,
 		));
-		let entity_facade = Arc::new(EntityFacade::new(self.type_model_provider.clone()));
+		let entity_facade = Arc::new(EntityFacadeImpl::new(self.type_model_provider.clone()));
 		let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
 			entity_client.clone(),
 			entity_facade,
