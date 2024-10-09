@@ -1,3 +1,5 @@
+#![macro_use]
+
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
@@ -8,41 +10,48 @@ use minicbor::{Encode, Encoder};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use rest_client::{RestClient, RestClientError};
-
-#[mockall_double::double]
+use crate::crypto::crypto_facade::create_auth_verifier;
+#[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
+use crate::crypto::key::GenericAesKey;
 use crate::crypto::randomizer_facade::RandomizerFacade;
-#[mockall_double::double]
+use crate::crypto::{aes::Iv, Aes256Key};
+#[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
+use crate::entities::sys::{CreateSessionData, SaltData};
 use crate::entities::tutanota::Mail;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
-use crate::login::{Credentials, LoginError, LoginFacade};
+use crate::login::login_facade::{derive_user_passphrase_key, KdfType};
+use crate::login::{CredentialType, Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
+use crate::services::service_executor::ServiceExecutor;
+use crate::services::sys::{SaltService, SessionService};
+use crate::services::ExtraServiceParams;
 use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelProvider, TypeName};
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
+use rest_client::{RestClient, RestClientError};
 
-mod crypto;
+pub mod crypto;
 mod crypto_entity_client;
-mod custom_id;
+pub mod custom_id;
 pub mod date;
 mod element_value;
-mod entities;
+pub mod entities;
 mod entity_client;
 pub mod generated_id;
 mod instance_mapper;
@@ -54,14 +63,20 @@ mod logging;
 pub mod login;
 mod mail_facade;
 mod metamodel;
+
+#[cfg(feature = "net")]
+pub mod net;
 pub mod rest_client;
 mod rest_error;
+pub mod services;
 mod simple_crypto;
-mod tutanota_constants;
+pub mod tutanota_constants;
 mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
 mod util;
+
+pub static CLIENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 uniffi::setup_scaffolding!();
 
@@ -93,12 +108,12 @@ impl Display for TypeRef {
 
 pub struct HeadersProvider {
 	client_version: String,
-	// In the future we might need to make this one optional to support "not authenticated" state
-	access_token: String,
+	access_token: Option<String>,
 }
 
 impl HeadersProvider {
-	fn new(client_version: String, access_token: String) -> Self {
+	#[must_use]
+	pub fn new(client_version: String, access_token: Option<String>) -> Self {
 		Self {
 			client_version,
 			access_token,
@@ -106,11 +121,16 @@ impl HeadersProvider {
 	}
 
 	fn provide_headers(&self, model_version: u32) -> HashMap<String, String> {
-		HashMap::from([
-			("accessToken".to_string(), self.access_token.clone()),
+		let mut headers = HashMap::from([
 			("cv".to_owned(), self.client_version.clone()),
 			("v".to_owned(), model_version.to_string()),
-		])
+		]);
+
+		if let Some(access_token) = &self.access_token {
+			headers.insert("accessToken".to_owned(), access_token.to_string());
+		}
+
+		headers
 	}
 }
 
@@ -146,12 +166,11 @@ impl Sdk {
 			client_version,
 		}
 	}
-
 	/// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
 	pub async fn login(&self, credentials: Credentials) -> Result<Arc<LoggedInSdk>, LoginError> {
 		let auth_headers_provider = Arc::new(HeadersProvider::new(
 			self.client_version.clone(),
-			credentials.access_token.clone(),
+			Some(credentials.access_token.clone()),
 		));
 		let entity_client = Arc::new(EntityClient::new(
 			self.rest_client.clone(),
@@ -165,7 +184,6 @@ impl Sdk {
 			self.instance_mapper.clone(),
 		));
 
-		// Try to resume session
 		let login_facade =
 			LoginFacade::new(entity_client.clone(), typed_entity_client.clone(), |user| {
 				UserFacade::new(Arc::new(KeyCache::new()), user)
@@ -178,7 +196,7 @@ impl Sdk {
 		));
 		let randomizer = RandomizerFacade::from_core(rand_core::OsRng);
 		let crypto_facade = Arc::new(CryptoFacade::new(
-			key_loader.clone(),
+			Some(key_loader.clone()),
 			self.instance_mapper.clone(),
 			randomizer,
 		));
@@ -196,6 +214,77 @@ impl Sdk {
 			typed_entity_client,
 			crypto_entity_client,
 		}))
+	}
+
+	// not ready yet for production use, only does temporary login for free users without offline.
+	pub async fn create_session(
+		&self,
+		mail_address: &str,
+		passphrase: &str,
+	) -> Result<Arc<LoggedInSdk>, LoginError> {
+		let headers_provider = Arc::new(HeadersProvider::new(self.client_version.clone(), None));
+
+		let crypto_facade = Arc::new(CryptoFacade::new(
+			None,
+			self.instance_mapper.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		));
+		let entity_facade = Arc::new(EntityFacadeImpl::new(self.type_model_provider.clone()));
+
+		let service_executor = ServiceExecutor::new(
+			headers_provider.clone(),
+			crypto_facade,
+			entity_facade,
+			self.instance_mapper.clone(),
+			self.json_serializer.clone(),
+			self.rest_client.clone(),
+			self.type_model_provider.clone(),
+			self.base_url.to_string(),
+		);
+		let salt_get_input: SaltData = SaltData {
+			_format: 0,
+			mailAddress: mail_address.to_string(),
+		};
+		let salt_return = service_executor
+			.get::<SaltService>(salt_get_input, ExtraServiceParams::default())
+			.await?;
+
+		let Ok(salt) = salt_return.salt.try_into() else {
+			return Err(LoginError::InvalidKey {
+				error_message: "salt has wrong length".to_string(),
+			});
+		};
+
+		let randomizer = RandomizerFacade::from_core(rand_core::OsRng);
+		let access_key = Aes256Key::generate(&randomizer);
+		let user_passphrase_key = derive_user_passphrase_key(KdfType::Argon2id, passphrase, salt);
+		let auth_verifier = create_auth_verifier(user_passphrase_key.clone());
+		let session_data: CreateSessionData = CreateSessionData {
+			_format: 0,
+			accessKey: Some(access_key.as_bytes().to_vec()),
+			authToken: None,
+			authVerifier: Some(auth_verifier),
+			clientIdentifier: "Linux Desktop".to_string(),
+			mailAddress: Some(mail_address.to_string()),
+			recoverCodeVerifier: None,
+			user: None,
+		};
+		let encrypted_passphrase_key = GenericAesKey::Aes256(access_key).encrypt_key(
+			&GenericAesKey::Aes256(user_passphrase_key),
+			Iv::generate(&randomizer),
+		);
+		let session_data_response = service_executor
+			.post::<SessionService>(session_data, ExtraServiceParams::default())
+			.await?;
+
+		self.login(Credentials {
+			login: mail_address.to_string(),
+			user_id: session_data_response.user.clone(),
+			access_token: session_data_response.accessToken.clone(),
+			encrypted_passphrase_key,
+			credential_type: CredentialType::Internal,
+		})
+		.await
 	}
 }
 
@@ -225,7 +314,7 @@ pub enum ListLoadDirection {
 }
 
 /// A set of keys used to identify an element within a List Element Type
-#[derive(uniffi::Record, Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(uniffi::Record, Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct IdTuple {
 	pub list_id: GeneratedId,
 	pub element_id: GeneratedId,
@@ -250,7 +339,7 @@ impl Display for IdTuple {
 }
 
 /// Contains an error from the SDK to be handled by the consuming code over the FFI
-#[derive(Error, Debug, uniffi::Error)]
+#[derive(Error, Debug, uniffi::Error, Eq, PartialEq, Clone)]
 pub enum ApiCallError {
 	#[error("Rest client error, source: {source}")]
 	RestClient {
@@ -267,12 +356,13 @@ pub enum ApiCallError {
 }
 
 impl ApiCallError {
-	fn internal(message: String) -> ApiCallError {
+	#[must_use]
+	pub fn internal(message: String) -> ApiCallError {
 		ApiCallError::InternalSdkError {
 			error_message: message,
 		}
 	}
-	fn internal_with_err<E: Error>(error: E, message: &str) -> ApiCallError {
+	pub fn internal_with_err<E: Error>(error: E, message: &str) -> ApiCallError {
 		ApiCallError::InternalSdkError {
 			error_message: format!("{}: {}", error, message),
 		}
@@ -351,9 +441,9 @@ impl<C> Encode<C> for ElementValue {
 }
 #[cfg(test)]
 mod tests {
+	use crate::entities::tutanota::Mail;
+	use crate::serialize_mail;
 	use crate::util::test_utils::create_test_entity;
-
-	use super::*;
 
 	#[test]
 	fn test_serialize_mail_does_not_panic() {

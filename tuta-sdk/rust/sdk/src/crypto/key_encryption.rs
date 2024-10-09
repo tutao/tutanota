@@ -115,7 +115,7 @@ mod tests {
 	use crate::crypto::ecc::EccKeyPair;
 	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
-	use crate::crypto::{Aes256Key, Iv, PQKeyPairs};
+	use crate::crypto::{aes::Iv, Aes256Key, PQKeyPairs};
 	use crate::entities::sys::KeyPair;
 	use crate::util::test_utils::generate_random_string;
 

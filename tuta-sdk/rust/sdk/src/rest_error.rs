@@ -8,7 +8,7 @@ use thiserror::Error;
 pub struct ParseFailureError;
 
 /// The failed preconditions of a REST request to attempt downgrading an account
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum UnsubscribeFailureReason {
 	#[error("TooManyEnabledUsers")]
 	TooManyEnabledUsers,
@@ -67,7 +67,7 @@ impl FromStr for UnsubscribeFailureReason {
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum BookingFailureReason {
 	#[error("TooManyDomains")]
 	TooManyDomains,
@@ -101,7 +101,7 @@ impl FromStr for BookingFailureReason {
 }
 
 /// The failed preconditions of a REST request to attempt setting a whitelabel domain
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum DomainFailureReason {
 	// Renamed from FAILURE_CONTACT_FORM_ACTIVE
 	#[error("ContactFormActive")]
@@ -134,7 +134,7 @@ impl FromStr for DomainFailureReason {
 
 /// The failed preconditions of a REST request to attempt setting a custom domain
 /// for an email address
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum CustomDomainFailureReason {
 	#[error("LimitReached")]
 	LimitReached,
@@ -156,7 +156,7 @@ impl FromStr for CustomDomainFailureReason {
 }
 
 /// The failed preconditions of unsuccessful template group operations
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum TemplateGroupFailureReason {
 	#[error("BusinessFeatureRequired")]
 	BusinessFeatureRequired,
@@ -178,7 +178,7 @@ impl FromStr for TemplateGroupFailureReason {
 }
 
 /// The failed preconditions of unsuccessful usage test operations
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum UsageTestFailureReason {
 	#[error("InvalidState")]
 	InvalidState,
@@ -209,7 +209,7 @@ impl FromStr for UsageTestFailureReason {
 }
 
 /// The possible failed preconditions when unsuccessfully performing an operation on the backend
-#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum PreconditionFailedReason {
 	#[error("UnsubscribeFailure")]
 	UnsubscribeFailure(#[from] UnsubscribeFailureReason),
@@ -262,7 +262,7 @@ impl FromStr for PreconditionFailedReason {
 }
 
 /// The possible error responses from the server
-#[derive(Error, Debug, uniffi::Error, Eq, PartialEq)]
+#[derive(Error, Debug, uniffi::Error, Eq, PartialEq, Clone)]
 pub enum HttpError {
 	#[error("Connection lost")]
 	ConnectionError,
