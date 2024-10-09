@@ -98,6 +98,9 @@ import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
 import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
 import type { ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
+import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
+import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -1189,10 +1192,19 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private async showCalendarEventPopup(selectedEvent: CalendarEvent, eventBubbleRect: PosRect, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
-		const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
-		const [popupModel, htmlSanitizer] = await Promise.all([locator.calendarEventPreviewModel(selectedEvent, calendars), htmlSanitizerPromise])
+		console.log("popup")
+		// FIXME get the contact
+		const clientOnlyCalendar = isClientOnlyCalendar(listIdPart(selectedEvent._id))
+		const calendars = !clientOnlyCalendar ? await this.viewModel.getCalendarInfosCreateIfNeeded() : new Map()
+		const getPreviewModel = clientOnlyCalendar
+			? locator.calendarContactPreviewModel(selectedEvent, downcast({}), true)
+			: locator.calendarEventPreviewModel(selectedEvent, calendars)
+		const [popupModel, htmlSanitizer] = await Promise.all([getPreviewModel, htmlSanitizerPromise])
 
-		new CalendarEventPopup(popupModel, eventBubbleRect, htmlSanitizer).show()
+		const Popup = clientOnlyCalendar
+			? new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)
+			: new CalendarEventPopup(popupModel as CalendarEventPreviewViewModel, eventBubbleRect, htmlSanitizer)
+		Popup.show()
 	}
 
 	private async showCalendarEventPopupAtEvent(selectedEvent: CalendarEvent, target: HTMLElement, htmlSanitizerPromise: Promise<HtmlSanitizer>) {

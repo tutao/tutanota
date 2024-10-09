@@ -53,7 +53,7 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -136,6 +136,7 @@ import { ExternalCalendarFacade } from "../common/native/common/generatedipc/Ext
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { generateRandomColor } from "../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 assertMainOrNode()
 
@@ -349,6 +350,7 @@ class MailLocator {
 				return await this.calendarEventModel(mode, event, mailboxDetail, mailboxProperties, null)
 			},
 			(...args) => this.calendarEventPreviewModel(...args),
+			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
 			await this.calendarEventsRepository(),
 			this.entityClient,
@@ -1037,6 +1039,11 @@ class MailLocator {
 		await popupModel.sanitizeDescription()
 
 		return popupModel
+	}
+
+	async calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel> {
+		const popupContactPreviewModel = new CalendarContactPreviewViewModel(event, contact, canEdit)
+		return popupContactPreviewModel
 	}
 
 	readonly nativeContactsSyncManager: () => NativeContactsSyncManager = lazyMemoized(() => {

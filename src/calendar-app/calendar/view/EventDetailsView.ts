@@ -8,17 +8,19 @@ import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { styles } from "../../../common/gui/styles.js"
+import { CalendarPreviewModels } from "./CalendarViewModel.js"
 
 export interface EventDetailsViewAttrs {
-	eventPreviewModel: CalendarEventPreviewViewModel
+	eventPreviewModel: CalendarPreviewModels
 }
 
 export class EventDetailsView implements Component<EventDetailsViewAttrs> {
+	//FIXME Use  CalendarPreviewModels
 	private model: CalendarEventPreviewViewModel | null = null
 
 	view({ attrs }: Vnode<EventDetailsViewAttrs>) {
-		this.model = attrs.eventPreviewModel
-
+		// FIXME Show contact, remove cast?
+		this.model = attrs.eventPreviewModel as CalendarEventPreviewViewModel
 		return m(".content-bg.border-radius-big.pl-l.pb-s.flex.pr", [
 			m(
 				".flex-grow",
@@ -76,6 +78,7 @@ export async function handleSendUpdatesClick(previewModel: CalendarEventPreviewV
 	if (confirmed) await previewModel?.sendUpdates()
 }
 
+//FIXME Use  CalendarPreviewModels
 export function handleEventEditButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement) {
 	if (previewModel?.isRepeatingForEditing) {
 		createAsyncDropdown({

@@ -4,7 +4,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels } from "./CalendarViewModel"
 import { styles } from "../../../common/gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
@@ -28,6 +28,7 @@ import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { MainCreateButton } from "../../../common/gui/MainCreateButton.js"
 import { client } from "../../../common/misc/ClientDetector.js"
+import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -47,7 +48,7 @@ export type CalendarAgendaViewAttrs = {
 	onShowDate: (date: Date) => unknown
 	/**  when the selected date was changed  */
 	onDateSelected: (date: Date) => unknown
-	eventPreviewModel: CalendarEventPreviewViewModel | null
+	eventPreviewModel: CalendarPreviewModels | null
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
@@ -302,7 +303,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
 					event: event,
 					color: getEventColor(event, colors),
-					selected: event === modelPromise?.calendarEvent,
+					// FIXME Show contact?
+					selected: event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
 					click: (domEvent) => click(event, domEvent),
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement

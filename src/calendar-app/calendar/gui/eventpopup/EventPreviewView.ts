@@ -210,7 +210,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
  * @param text
  * @returns {*}
  */
-function getLocationUrl(text: string): URL {
+export function getLocationUrl(text: string): URL {
 	const osmHref = `https://www.openstreetmap.org/search?query=${text}`
 	let url
 
