@@ -14,7 +14,6 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::util::resolve_default_value;
 use crate::{IdTuple, TypeRef};
 
 impl From<&TypeModel> for TypeRef {
@@ -78,7 +77,7 @@ impl JsonSerializer {
 					if value_type.encrypted {
 						ElementValue::String(String::new())
 					} else {
-						resolve_default_value(&value_type.value_type)
+						value_type.value_type.get_default()
 					}
 				},
 				(Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
@@ -269,14 +268,11 @@ impl JsonSerializer {
 				let serialized_value =
 					self.serialize_value(type_model, &value_name, value_type, value)?;
 				mapped.insert(value_name, serialized_value);
-			} else if let ElementValue::Null = value {
-				mapped.insert(value_name, JsonElement::Null);
-				continue;
-			} else if let (ElementValue::String(v), true) = (value, value_type.encrypted) {
-				mapped.insert(value_name, JsonElement::String(v));
-				continue;
 			} else {
-				panic!("Unknown entity elements!! {}", value_name)
+				mapped.insert(
+					value_name.to_string(),
+					self.serialize_value(type_model, value_name.as_str(), value_type, value)?,
+				);
 			}
 		}
 
@@ -429,12 +425,18 @@ impl JsonSerializer {
 				) => Ok(JsonElement::String(v)),
 				(
 					ValueType::GeneratedId | ValueType::CustomId,
+					ElementValue::IdCustomId(v),
+					ElementType::Element | ElementType::Aggregated,
+				) => Ok(JsonElement::String(v.to_string())),
+				(
+					ValueType::GeneratedId | ValueType::CustomId,
 					ElementValue::IdTupleId(arr),
 					ElementType::ListElement,
 				) => Ok(JsonElement::Array(vec![
 					JsonElement::String(arr.list_id.into()),
 					JsonElement::String(arr.element_id.into()),
 				])),
+
 				_ => invalid_value(),
 			};
 		}

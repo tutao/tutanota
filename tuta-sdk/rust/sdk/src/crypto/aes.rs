@@ -52,12 +52,14 @@ macro_rules! aes_key {
 
 		impl $name {
 			/// Generate an AES key.
+			#[must_use]
 			pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
 				let key: [u8; $size] = randomizer_facade.generate_random_array();
 				Self(key)
 			}
 
 			/// Get the key represented as bytes.
+			#[must_use]
 			pub fn as_bytes(&self) -> &[u8; $size] {
 				&self.0
 			}
@@ -142,7 +144,6 @@ trait AesKey: Clone {
 /// An initialisation vector for AES encryption
 pub struct Iv([u8; IV_BYTE_SIZE]);
 
-#[cfg(test)]
 impl Clone for Iv {
 	/// Clone the initialization vector
 	///
@@ -155,6 +156,7 @@ impl Clone for Iv {
 
 impl Iv {
 	/// Generate an initialisation vector.
+	#[must_use]
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
 		Self(randomizer_facade.generate_random_array())
 	}
@@ -165,6 +167,11 @@ impl Iv {
 
 	fn from_slice(slice: &[u8]) -> Option<Self> {
 		Self::from_bytes(slice).ok()
+	}
+
+	#[must_use]
+	pub fn get_inner(&self) -> &[u8; IV_BYTE_SIZE] {
+		&self.0
 	}
 }
 

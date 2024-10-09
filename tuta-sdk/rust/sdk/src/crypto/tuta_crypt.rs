@@ -175,6 +175,7 @@ pub struct PQKeyPairs {
 
 impl PQKeyPairs {
 	/// Generate a keypair with the given random number generator.
+	#[must_use]
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
 		let ecc_keys = EccKeyPair::generate(randomizer_facade);
 		let kyber_keys = KyberKeyPair::generate();

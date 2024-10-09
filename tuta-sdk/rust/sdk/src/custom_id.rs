@@ -6,22 +6,25 @@ use std::fmt::{Debug, Display, Formatter};
 pub const CUSTOM_ID_STRUCT_NAME: &str = "CustomId";
 
 /// An ID that uses arbitrary data encoded in base64
-#[derive(Clone, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Default, Eq, PartialEq, PartialOrd)]
 #[repr(transparent)]
 pub struct CustomId(pub String);
 
 impl CustomId {
+	#[must_use]
 	pub fn as_str(&self) -> &str {
 		&self.0
 	}
 
 	/// Create a CustomId from an arbitrary (unencoded) string
+	#[must_use]
 	pub fn from_custom_string(custom_string: &str) -> Self {
 		Self(base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(custom_string))
 	}
 
 	/// Generates and returns a random `CustomId`
 	#[cfg(test)]
+	#[must_use]
 	pub fn test_random() -> Self {
 		use crate::util::test_utils::generate_random_string;
 		Self(generate_random_string::<9>())
