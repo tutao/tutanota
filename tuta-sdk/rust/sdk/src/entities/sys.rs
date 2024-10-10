@@ -26,7 +26,7 @@ pub struct AccountingInfo {
 	pub paymentProviderCustomerId: Option<String>,
 	pub paypalBillingAgreement: Option<String>,
 	pub secondCountryInfo: i64,
-	pub appStoreSubscription: Option<IdTuple>,
+	pub appStoreSubscription: Option<IdTupleGenerated>,
 	pub invoiceInfo: Option<GeneratedId>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -223,7 +223,7 @@ impl Entity for ArchiveType {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AuditLogEntry {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -234,8 +234,8 @@ pub struct AuditLogEntry {
 	pub actorMailAddress: String,
 	pub date: DateTime,
 	pub modifiedEntity: String,
-	pub groupInfo: Option<IdTuple>,
-	pub modifiedGroupInfo: Option<IdTuple>,
+	pub groupInfo: Option<IdTupleGenerated>,
+	pub modifiedGroupInfo: Option<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -398,7 +398,7 @@ impl Entity for BlobReferenceTokenWrapper {
 pub struct Booking {
 	pub _area: i64,
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _owner: GeneratedId,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
@@ -597,7 +597,7 @@ impl Entity for BucketKey {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BucketPermission {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	#[serde(with = "serde_bytes")]
@@ -750,7 +750,7 @@ impl Entity for Chat {
 pub struct CloseSessionServicePost {
 	pub _format: i64,
 	pub accessToken: String,
-	pub sessionId: IdTuple,
+	pub sessionId: IdTupleCustom,
 }
 impl Entity for CloseSessionServicePost {
 	fn type_ref() -> TypeRef {
@@ -935,9 +935,9 @@ pub struct Customer {
 	pub auditLog: Option<AuditLogRef>,
 	pub customerGroup: GeneratedId,
 	pub customerGroups: GeneratedId,
-	pub customerInfo: IdTuple,
+	pub customerInfo: IdTupleGenerated,
 	pub customizations: Vec<Feature>,
-	pub orderProcessingAgreement: Option<IdTuple>,
+	pub orderProcessingAgreement: Option<IdTupleGenerated>,
 	pub properties: Option<GeneratedId>,
 	pub referralCode: Option<GeneratedId>,
 	pub rejectedSenders: Option<RejectedSendersRef>,
@@ -977,7 +977,7 @@ impl Entity for CustomerAccountTerminationPostIn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountTerminationPostOut {
 	pub _format: i64,
-	pub terminationRequest: IdTuple,
+	pub terminationRequest: IdTupleGenerated,
 }
 impl Entity for CustomerAccountTerminationPostOut {
 	fn type_ref() -> TypeRef {
@@ -992,7 +992,7 @@ impl Entity for CustomerAccountTerminationPostOut {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountTerminationRequest {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub terminationDate: DateTime,
@@ -1012,7 +1012,7 @@ impl Entity for CustomerAccountTerminationRequest {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerInfo {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub activationTime: Option<DateTime>,
@@ -1042,7 +1042,7 @@ pub struct CustomerInfo {
 	pub referredBy: Option<GeneratedId>,
 	pub supportInfo: Option<GeneratedId>,
 	pub takeoverCustomer: Option<GeneratedId>,
-	pub terminationRequest: Option<IdTuple>,
+	pub terminationRequest: Option<IdTupleGenerated>,
 }
 impl Entity for CustomerInfo {
 	fn type_ref() -> TypeRef {
@@ -1123,7 +1123,7 @@ impl Entity for DateWrapper {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DebitServicePutData {
 	pub _format: i64,
-	pub invoice: Option<IdTuple>,
+	pub invoice: Option<IdTupleGenerated>,
 }
 impl Entity for DebitServicePutData {
 	fn type_ref() -> TypeRef {
@@ -1245,7 +1245,7 @@ impl Entity for EmailSenderListElement {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EntityEventBatch {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub events: Vec<EntityUpdate>,
@@ -1318,7 +1318,7 @@ impl Entity for ExternalPropertiesReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ExternalUserReference {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub user: GeneratedId,
@@ -1385,7 +1385,7 @@ impl Entity for GeneratedIdWrapper {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCard {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1435,7 +1435,7 @@ impl Entity for GiftCardCreateData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardCreateReturn {
 	pub _format: i64,
-	pub giftCard: IdTuple,
+	pub giftCard: IdTupleGenerated,
 }
 impl Entity for GiftCardCreateReturn {
 	fn type_ref() -> TypeRef {
@@ -1450,7 +1450,7 @@ impl Entity for GiftCardCreateReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardDeleteData {
 	pub _format: i64,
-	pub giftCard: IdTuple,
+	pub giftCard: IdTupleGenerated,
 }
 impl Entity for GiftCardDeleteData {
 	fn type_ref() -> TypeRef {
@@ -1517,7 +1517,7 @@ pub struct GiftCardRedeemGetReturn {
 	pub _format: i64,
 	pub message: String,
 	pub value: i64,
-	pub giftCard: IdTuple,
+	pub giftCard: IdTupleGenerated,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -1566,7 +1566,7 @@ pub struct Group {
 	pub currentKeys: Option<KeyPair>,
 	pub customer: Option<GeneratedId>,
 	pub formerGroupKeys: Option<GroupKeysRef>,
-	pub groupInfo: IdTuple,
+	pub groupInfo: IdTupleGenerated,
 	pub invitations: GeneratedId,
 	pub members: GeneratedId,
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
@@ -1586,7 +1586,7 @@ impl Entity for Group {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupInfo {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _listEncSessionKey: Option<Vec<u8>>,
 	#[serde(with = "serde_bytes")]
@@ -1618,7 +1618,7 @@ impl Entity for GroupInfo {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupKey {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	#[serde(with = "serde_bytes")]
@@ -1668,7 +1668,7 @@ impl Entity for GroupKeyRotationData {
 pub struct GroupKeyRotationInfoGetOut {
 	pub _format: i64,
 	pub userOrAdminGroupKeyRotationScheduled: bool,
-	pub groupKeyUpdates: Vec<IdTuple>,
+	pub groupKeyUpdates: Vec<IdTupleGenerated>,
 }
 impl Entity for GroupKeyRotationInfoGetOut {
 	fn type_ref() -> TypeRef {
@@ -1698,7 +1698,7 @@ impl Entity for GroupKeyRotationPostIn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupKeyUpdate {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1774,13 +1774,13 @@ impl Entity for GroupKeysRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupMember {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub capability: Option<i64>,
 	pub group: GeneratedId,
 	pub user: GeneratedId,
-	pub userGroupInfo: IdTuple,
+	pub userGroupInfo: IdTupleGenerated,
 }
 impl Entity for GroupMember {
 	fn type_ref() -> TypeRef {
@@ -1803,8 +1803,8 @@ pub struct GroupMembership {
 	pub symEncGKey: Vec<u8>,
 	pub symKeyVersion: i64,
 	pub group: GeneratedId,
-	pub groupInfo: IdTuple,
-	pub groupMember: IdTuple,
+	pub groupInfo: IdTupleGenerated,
+	pub groupMember: IdTupleGenerated,
 }
 impl Entity for GroupMembership {
 	fn type_ref() -> TypeRef {
@@ -1934,7 +1934,7 @@ pub struct Invoice {
 	pub vat: i64,
 	pub vatIdNumber: Option<String>,
 	pub vatRate: i64,
-	pub bookings: Vec<IdTuple>,
+	pub bookings: Vec<IdTupleGenerated>,
 	pub customer: GeneratedId,
 	pub items: Vec<InvoiceItem>,
 	pub _errors: Option<Errors>,
@@ -2095,7 +2095,7 @@ impl Entity for KeyPair {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct KeyRotation {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub groupKeyRotationType: i64,
@@ -2145,7 +2145,7 @@ impl Entity for LocationServiceGetReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Login {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub time: DateTime,
@@ -2423,7 +2423,7 @@ pub struct NotificationSessionKey {
 	pub _id: CustomId,
 	#[serde(with = "serde_bytes")]
 	pub pushIdentifierSessionEncSessionKey: Vec<u8>,
-	pub pushIdentifier: IdTuple,
+	pub pushIdentifier: IdTupleGenerated,
 }
 impl Entity for NotificationSessionKey {
 	fn type_ref() -> TypeRef {
@@ -2438,7 +2438,7 @@ impl Entity for NotificationSessionKey {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OrderProcessingAgreement {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -2448,7 +2448,7 @@ pub struct OrderProcessingAgreement {
 	pub signatureDate: DateTime,
 	pub version: String,
 	pub customer: GeneratedId,
-	pub signerUserGroupInfo: IdTuple,
+	pub signerUserGroupInfo: IdTupleGenerated,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -2465,7 +2465,7 @@ impl Entity for OrderProcessingAgreement {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OtpChallenge {
 	pub _id: CustomId,
-	pub secondFactors: Vec<IdTuple>,
+	pub secondFactors: Vec<IdTupleGenerated>,
 }
 impl Entity for OtpChallenge {
 	fn type_ref() -> TypeRef {
@@ -2584,7 +2584,7 @@ impl Entity for PaymentErrorInfo {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Permission {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -2852,7 +2852,7 @@ impl Entity for PublicKeyPutIn {
 pub struct PushIdentifier {
 	pub _area: i64,
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _owner: GeneratedId,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
@@ -2898,7 +2898,7 @@ impl Entity for PushIdentifierList {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReceivedGroupInvitation {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -2913,7 +2913,7 @@ pub struct ReceivedGroupInvitation {
 	pub sharedGroupKey: Vec<u8>,
 	pub sharedGroupKeyVersion: i64,
 	pub sharedGroupName: String,
-	pub sentInvitation: IdTuple,
+	pub sentInvitation: IdTupleGenerated,
 	pub sharedGroup: GeneratedId,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -3104,7 +3104,7 @@ impl Entity for RegistrationServiceData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RejectedSender {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub reason: String,
@@ -3202,7 +3202,7 @@ impl Entity for ResetPasswordPostIn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RootInstance {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub reference: GeneratedId,
@@ -3252,7 +3252,7 @@ impl Entity for SaltReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactor {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub name: String,
@@ -3293,7 +3293,7 @@ pub struct SecondFactorAuthData {
 	pub otpCode: Option<i64>,
 	#[serde(rename = "type")]
 	pub r#type: Option<i64>,
-	pub session: Option<IdTuple>,
+	pub session: Option<IdTupleCustom>,
 	pub u2f: Option<U2fResponseData>,
 	pub webauthn: Option<WebauthnResponseData>,
 }
@@ -3310,7 +3310,7 @@ impl Entity for SecondFactorAuthData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactorAuthDeleteData {
 	pub _format: i64,
-	pub session: IdTuple,
+	pub session: IdTupleCustom,
 }
 impl Entity for SecondFactorAuthDeleteData {
 	fn type_ref() -> TypeRef {
@@ -3355,7 +3355,7 @@ impl Entity for SecondFactorAuthGetReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactorAuthentication {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub code: String,
@@ -3409,12 +3409,12 @@ impl Entity for SendRegistrationCodeReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SentGroupInvitation {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub capability: i64,
 	pub inviteeMailAddress: String,
-	pub receivedInvitation: Option<IdTuple>,
+	pub receivedInvitation: Option<IdTupleGenerated>,
 	pub sharedGroup: GeneratedId,
 }
 impl Entity for SentGroupInvitation {
@@ -3430,7 +3430,7 @@ impl Entity for SentGroupInvitation {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Session {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -3646,7 +3646,7 @@ pub struct U2fKey {
 	pub appId: String,
 	#[serde(with = "serde_bytes")]
 	pub keyHandle: Vec<u8>,
-	pub secondFactor: IdTuple,
+	pub secondFactor: IdTupleGenerated,
 }
 impl Entity for U2fKey {
 	fn type_ref() -> TypeRef {
@@ -3702,8 +3702,8 @@ pub struct UpdatePermissionKeyData {
 	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
-	pub bucketPermission: IdTuple,
-	pub permission: IdTuple,
+	pub bucketPermission: IdTupleGenerated,
+	pub permission: IdTupleGenerated,
 }
 impl Entity for UpdatePermissionKeyData {
 	fn type_ref() -> TypeRef {
@@ -3815,7 +3815,7 @@ impl Entity for User {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAlarmInfo {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -4052,7 +4052,7 @@ pub struct Version {
 	pub timestamp: DateTime,
 	pub version: GeneratedId,
 	pub author: GeneratedId,
-	pub authorGroupInfo: IdTuple,
+	pub authorGroupInfo: IdTupleGenerated,
 }
 impl Entity for Version {
 	fn type_ref() -> TypeRef {
@@ -4085,7 +4085,7 @@ impl Entity for VersionData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct VersionInfo {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub app: String,
@@ -4097,7 +4097,7 @@ pub struct VersionInfo {
 	#[serde(with = "serde_bytes")]
 	pub versionData: Option<Vec<u8>>,
 	pub author: GeneratedId,
-	pub authorGroupInfo: IdTuple,
+	pub authorGroupInfo: IdTupleGenerated,
 }
 impl Entity for VersionInfo {
 	fn type_ref() -> TypeRef {
@@ -4213,7 +4213,7 @@ impl Entity for WebsocketLeaderStatus {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WhitelabelChild {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -4282,7 +4282,7 @@ impl Entity for WhitelabelConfig {
 pub struct WhitelabelParent {
 	pub _id: CustomId,
 	pub customer: GeneratedId,
-	pub whitelabelChildInParent: IdTuple,
+	pub whitelabelChildInParent: IdTupleGenerated,
 }
 impl Entity for WhitelabelParent {
 	fn type_ref() -> TypeRef {

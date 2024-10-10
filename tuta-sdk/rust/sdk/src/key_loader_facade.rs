@@ -1,5 +1,6 @@
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::key_encryption::decrypt_key_pair;
+use crate::custom_id::CustomId;
 use crate::entities::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
 #[cfg_attr(test, mockall_double::double)]
@@ -8,7 +9,6 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 use crate::util::Versioned;
 use crate::ListLoadDirection;
-use base64::Engine;
 use futures::future::BoxFuture;
 use std::cmp::Ordering;
 use std::sync::Arc;
@@ -71,9 +71,7 @@ impl KeyLoaderFacade {
 	) -> Result<FormerGroupKey, KeyLoadError> {
 		let list_id = group.formerGroupKeys.clone().unwrap().list;
 
-		let start_id = GeneratedId(
-			base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(current_group_key.version.to_string()),
-		);
+		let start_id = CustomId::from_custom_string(&current_group_key.version.to_string());
 		let amount_of_keys_including_target =
 			(current_group_key.version - target_key_version) as usize;
 
@@ -133,7 +131,7 @@ impl KeyLoaderFacade {
 		})
 	}
 
-	fn decode_group_key_version(&self, element_id: &GeneratedId) -> Result<i64, KeyLoadError> {
+	fn decode_group_key_version(&self, element_id: &CustomId) -> Result<i64, KeyLoadError> {
 		element_id.as_str().parse().map_err(|_| KeyLoadError {
 			reason: format!("Failed to decode group key version: {}", element_id),
 		})
@@ -274,7 +272,7 @@ mod tests {
 	use crate::user_facade::MockUserFacade;
 	use crate::util::get_vec_reversed;
 	use crate::util::test_utils::{generate_random_group, random_aes256_key};
-	use crate::IdTuple;
+	use crate::{IdTupleCustom, IdTupleGenerated};
 	use mockall::predicate;
 	use std::array::from_fn;
 
@@ -367,9 +365,9 @@ mod tests {
 				0,
 				GroupKey {
 					_format: 0,
-					_id: IdTuple {
+					_id: IdTupleCustom {
 						list_id: GeneratedId("list".to_owned()),
-						element_id: GeneratedId(i.to_string()),
+						element_id: CustomId(i.to_string()),
 					},
 					_ownerGroup: None,
 					_permissions: Default::default(),
@@ -421,12 +419,11 @@ mod tests {
 
 				let returned_keys = get_vec_reversed(former_keys[i..].to_vec());
 				typed_entity_client_mock
-					.expect_load_range::<GroupKey>()
+					.expect_load_range::<GroupKey, CustomId>()
 					.with(
 						predicate::eq(group.formerGroupKeys.unwrap().list),
-						predicate::eq(GeneratedId(
-							base64::prelude::BASE64_URL_SAFE_NO_PAD
-								.encode(current_group_key.version.to_string()),
+						predicate::eq(CustomId::from_custom_string(
+							&current_group_key.version.to_string(),
 						)),
 						predicate::eq(FORMER_KEYS - i),
 						predicate::eq(ListLoadDirection::DESC),
@@ -486,11 +483,11 @@ mod tests {
 						symEncGKey: sym_enc_g_key.clone(),
 						symKeyVersion: user_group_key.version,
 						group: user_group_id.clone(),
-						groupInfo: IdTuple {
+						groupInfo: IdTupleGenerated {
 							list_id: Default::default(),
 							element_id: Default::default(),
 						},
-						groupMember: IdTuple {
+						groupMember: IdTupleGenerated {
 							list_id: Default::default(),
 							element_id: Default::default(),
 						},

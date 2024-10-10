@@ -1,6 +1,6 @@
 package de.tutao.calendar.push
 
-import de.tutao.tutasdk.IdTuple
+import de.tutao.tutasdk.IdTupleGenerated
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,8 +17,8 @@ data class IdTupleWrapper(
 )
 
 // The name is to avoid confusion between `tutasdk.IdTuple` and `tutanota.IdTuple`
-fun IdTupleWrapper.toSdkIdTuple(): IdTuple {
-	return IdTuple(
+fun IdTupleWrapper.toSdkIdTupleGenerated(): IdTupleGenerated {
+	return IdTupleGenerated(
 			this.listId,
 			this.listElementId
 	)

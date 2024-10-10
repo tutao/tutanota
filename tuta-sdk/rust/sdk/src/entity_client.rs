@@ -9,10 +9,14 @@ use crate::metamodel::{ElementType, TypeModel};
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, HeadersProvider, IdTuple, ListLoadDirection, TypeRef};
+use crate::{ApiCallError, HeadersProvider, ListLoadDirection, TypeRef};
 
 /// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
+
+/// Denotes a basic ID type such as GeneratedId or CustomID that can be serialised into a string and used to access resources
+pub trait BaseIdType: Display + IdType + 'static {}
+pub trait IdTupleType: Display + IdType + 'static {}
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
 pub struct EntityClient {
@@ -78,7 +82,7 @@ impl EntityClient {
 	pub async fn load_all(
 		&self,
 		_type_ref: &TypeRef,
-		_list_id: &IdTuple,
+		_list_id: &GeneratedId,
 		_start: Option<String>,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
 		todo!("entity client load_all")
@@ -87,11 +91,11 @@ impl EntityClient {
 	/// Fetches and returns a specified number (`count`) of entities/instances
 	/// in a list element type starting at the index `start_id`
 	#[allow(clippy::unused_async)]
-	pub async fn load_range(
+	pub async fn load_range<Id: BaseIdType>(
 		&self,
 		type_ref: &TypeRef,
 		list_id: &GeneratedId,
-		start_id: &GeneratedId,
+		start_id: &Id,
 		count: usize,
 		direction: ListLoadDirection,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
@@ -130,7 +134,7 @@ impl EntityClient {
 	pub async fn setup_list_element(
 		&self,
 		_type_ref: &TypeRef,
-		_list_id: &IdTuple,
+		_list_id: &GeneratedId,
 		_entity: RawEntity,
 	) -> Vec<String> {
 		todo!("entity client setup_list_element")
@@ -144,7 +148,8 @@ impl EntityClient {
 		model_version: u32,
 	) -> Result<(), ApiCallError> {
 		let id = match &entity.get("_id").unwrap() {
-			ElementValue::IdTupleId(ref id_tuple) => id_tuple.to_string(),
+			ElementValue::IdTupleGeneratedElementId(ref id_tuple) => id_tuple.to_string(),
+			ElementValue::IdTupleCustomElementId(ref id_tuple) => id_tuple.to_string(),
 			_ => panic!("id is not string or array"),
 		};
 		let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
@@ -179,10 +184,10 @@ impl EntityClient {
 
 	/// Deletes an existing entity/instance of a list element type on the backend
 	#[allow(clippy::unused_async)]
-	pub async fn erase_list_element(
+	pub async fn erase_list_element<Id: IdTupleType>(
 		&self,
 		_type_ref: &TypeRef,
-		_id: IdTuple,
+		_id: Id,
 	) -> Result<(), ApiCallError> {
 		todo!("entity client erase_list_element")
 	}
@@ -236,14 +241,14 @@ mockall::mock! {
 		pub async fn load_all(
 			&self,
 			type_ref: &TypeRef,
-			list_id: &IdTuple,
+			list_id: &GeneratedId,
 			start: Option<String>,
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
-		pub async fn load_range(
+		pub async fn load_range<Id: BaseIdType>(
 			&self,
 			type_ref: &TypeRef,
 			list_id: &GeneratedId,
-			start_id: &GeneratedId,
+			start_id: &Id,
 			count: usize,
 			list_load_direction: ListLoadDirection,
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
@@ -251,13 +256,13 @@ mockall::mock! {
 		pub async fn setup_list_element(
 			&self,
 			type_ref: &TypeRef,
-			list_id: &IdTuple,
+			list_id: &GeneratedId,
 			entity: RawEntity,
 		) -> Vec<String>;
 		pub async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity, model_version: u32)
 						-> Result<(), ApiCallError>;
 		pub async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError>;
-		pub async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError>;
+		pub async fn erase_list_element<Id: IdTupleType>(&self, type_ref: &TypeRef, id: Id) -> Result<(), ApiCallError>;
 	}
 }
 
@@ -269,17 +274,17 @@ mod tests {
 	use crate::entities::Entity;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
 	use crate::rest_client::{MockRestClient, RestResponse};
-	use crate::{collection, str_map};
+	use crate::{collection, str_map, IdTupleGenerated};
 	use mockall::predicate::{always, eq};
 	use serde::{Deserialize, Serialize};
 
 	#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
-	struct TestListEntity {
-		_id: IdTuple,
+	struct TestListGeneratedElementIdEntity {
+		_id: IdTupleGenerated,
 		field: String,
 	}
 
-	impl Entity for TestListEntity {
+	impl Entity for TestListGeneratedElementIdEntity {
 		fn type_ref() -> TypeRef {
 			TypeRef {
 				app: "test",
@@ -289,18 +294,21 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn test_load_range() {
+	async fn test_load_range_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: HashMap<String, ElementValue> = collection! {
-			"_id" => ElementValue::IdTupleId(IdTuple::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
+			"_id" => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
 		let url = "http://test.com/rest/test/TestListEntity/list_id?start=zzzzzzzzzzzz&count=100&reverse=true";
 		let json_folder = JsonSerializer::new(type_model_provider.clone())
-			.serialize(&TestListEntity::type_ref(), entity_map.clone())
+			.serialize(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				entity_map.clone(),
+			)
 			.unwrap();
 		rest_client
 			.expect_request_binary()
@@ -324,7 +332,7 @@ mod tests {
 
 		let result_entity = entity_client
 			.load_range(
-				&TestListEntity::type_ref(),
+				&TestListGeneratedElementIdEntity::type_ref(),
 				&list_id,
 				&GeneratedId::max_id(),
 				100,
@@ -336,18 +344,21 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn test_load_range_asc() {
+	async fn test_load_range_asc_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: HashMap<String, ElementValue> = collection! {
-			"_id" => ElementValue::IdTupleId(IdTuple::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
+			"_id" => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
 		let url = "http://test.com/rest/test/TestListEntity/list_id?start=------------&count=100&reverse=false";
 		let json_folder = JsonSerializer::new(type_model_provider.clone())
-			.serialize(&TestListEntity::type_ref(), entity_map.clone())
+			.serialize(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				entity_map.clone(),
+			)
 			.unwrap();
 		rest_client
 			.expect_request_binary()
@@ -371,7 +382,7 @@ mod tests {
 
 		let result_entity = entity_client
 			.load_range(
-				&TestListEntity::type_ref(),
+				&TestListGeneratedElementIdEntity::type_ref(),
 				&list_id,
 				&GeneratedId::min_id(),
 				100,

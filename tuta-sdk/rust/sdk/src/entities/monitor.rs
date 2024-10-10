@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ApprovalMail {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub date: Option<DateTime>,
