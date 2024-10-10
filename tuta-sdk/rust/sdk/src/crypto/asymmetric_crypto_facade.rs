@@ -43,43 +43,13 @@ pub struct PublicKeys {
 pub enum AsymmetricCryptoError {
 	InvalidCryptoProtocolVersion(CryptoProtocolVersion),
 	UnexpectedKeyType(AsymmetricKeyPair),
-	RsaCrypto(RSAEncryptionError),
-	PqCrypto(PQError),
-	ArrayCasting(ArrayCastingError),
-	KeyLoading(KeyLoadError),
+	RsaCrypto(#[from] RSAEncryptionError),
+	PqCrypto(#[from] PQError),
+	ArrayCasting(#[from] ArrayCastingError),
+	KeyLoading(#[from] KeyLoadError),
 	KeyParsing(String),
-	RsaKey(RSAKeyError),
-	KyberKey(KyberKeyError),
-}
-impl From<RSAEncryptionError> for AsymmetricCryptoError {
-	fn from(err: RSAEncryptionError) -> Self {
-		AsymmetricCryptoError::RsaCrypto(err)
-	}
-}
-impl From<PQError> for AsymmetricCryptoError {
-	fn from(err: PQError) -> Self {
-		AsymmetricCryptoError::PqCrypto(err)
-	}
-}
-impl From<ArrayCastingError> for AsymmetricCryptoError {
-	fn from(err: ArrayCastingError) -> Self {
-		AsymmetricCryptoError::ArrayCasting(err)
-	}
-}
-impl From<KeyLoadError> for AsymmetricCryptoError {
-	fn from(err: KeyLoadError) -> Self {
-		AsymmetricCryptoError::KeyLoading(err)
-	}
-}
-impl From<RSAKeyError> for AsymmetricCryptoError {
-	fn from(err: RSAKeyError) -> Self {
-		AsymmetricCryptoError::RsaKey(err)
-	}
-}
-impl From<KyberKeyError> for AsymmetricCryptoError {
-	fn from(err: KyberKeyError) -> Self {
-		AsymmetricCryptoError::KyberKey(err)
-	}
+	RsaKey(#[from] RSAKeyError),
+	KyberKey(#[from] KyberKeyError),
 }
 
 #[derive(uniffi::Object)]

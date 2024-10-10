@@ -258,43 +258,43 @@ impl KeyLoaderFacade {
 	// return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, current_group_key.object), version: Number(group.groupKeyVersion) }
 	// }
 
-	async fn load_key_pair_impl(
-		&self,
-		group: Group,
-		requested_version: i64,
-		current_group_key: VersionedAesKey,
-	) -> Result<AsymmetricKeyPair, KeyLoadError> {
-		let key_pair_group_id = group._id;
-		let key_pair: Option<KeyPair>;
-		let sym_group_key: GenericAesKey;
-		if requested_version > current_group_key.version {
-			return Err(KeyLoadError{reason: format!("Not possible to get newer key version than is cached for group {key_pair_group_id}")});
-		} else if requested_version == current_group_key.version {
-			sym_group_key = current_group_key.object;
-			if group.groupKeyVersion == current_group_key.version {
-				key_pair = group.currentKeys
-			} else {
-				let former_keys_list = group.formerGroupKeys.unwrap().list;
-				// we load by the version and thus can be sure that we are able to decrypt this key
-				let former_group_key: GroupKey = self
-					.entity_client
-					.load(IdTuple::new(
-						former_keys_list,
-						CustomId::from_custom_string(&current_group_key.version.to_string()),
-					))
-					.await?;
-				key_pair = former_group_key.keyPair
-			}
-			// }else {
-			// // load a former key pair: groupKeyVersion < groupKey.version
-			// let { symmetricGroupKey, groupKeyInstance } = self.find_former_group_key(group, current_group_key, requestedVersion).await?
-			// key_pair = groupKeyInstance.keyPair
-			// sym_group_key = symmetricGroupKey
-		}
-		Ok(self.validate_and_decrypt_key_pair(key_pair, key_pair_group_id, sym_group_key)?)
-	}
+	// async fn load_key_pair_impl(
+	// 	&self,
+	// 	group: Group,
+	// 	requested_version: i64,
+	// 	current_group_key: VersionedAesKey,
+	// ) -> Result<AsymmetricKeyPair, KeyLoadError> {
+	// 	let key_pair_group_id = group._id;
+	// 	let key_pair: Option<KeyPair>;
+	// 	let sym_group_key: GenericAesKey;
+	// 	if requested_version > current_group_key.version {
+	// 		return Err(KeyLoadError{reason: format!("Not possible to get newer key version than is cached for group {key_pair_group_id}")});
+	// 	} else if requested_version == current_group_key.version {
+	// 		sym_group_key = current_group_key.object;
+	// 		if group.groupKeyVersion == current_group_key.version {
+	// 			key_pair = group.currentKeys
+	// 			// } else {
+	// 			// 	let former_keys_list = group.formerGroupKeys.unwrap().list;
+	// 			// 	// we load by the version and thus can be sure that we are able to decrypt this key
+	// 			// 	let former_group_key: GroupKey = self
+	// 			// 		.entity_client
+	// 			// 		.load(IdTuple::new(
+	// 			// 			former_keys_list,
+	// 			// 			CustomId::from_custom_string(&current_group_key.version.to_string()),
+	// 			// 		))
+	// 			// 		.await?;
+	// 			// 	key_pair = former_group_key.keyPair
+	// 		}
+	// 		// }else {
+	// 		// // load a former key pair: groupKeyVersion < groupKey.version
+	// 		// let { symmetricGroupKey, groupKeyInstance } = self.find_former_group_key(group, current_group_key, requestedVersion).await?
+	// 		// key_pair = groupKeyInstance.keyPair
+	// 		// sym_group_key = symmetricGroupKey
+	// 	}
+	// 	Ok(KeyLoaderFacade::validate_and_decrypt_key_pair(key_pair, &key_pair_group_id, sym_group_key)?)
+	// }
 
-	fn validate_and_decrypt_key_pair(
+	pub fn validate_and_decrypt_key_pair(
 		key_pair: Option<KeyPair>,
 		group_id: &GeneratedId,
 		group_key: GenericAesKey,
