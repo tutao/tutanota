@@ -11,6 +11,7 @@ const ARGON2ID_KEY_LENGTH: usize = 32;
 /// `pass` The passphrase to use for key generation as utf8 string.
 /// `salt` 16 bytes of random data
 /// returns resolved with the key
+#[must_use]
 pub fn generate_key_from_passphrase(password: &str, salt: [u8; 16]) -> Aes256Key {
 	let params = Params::new(
 		ARGON2ID_MEMORY_IN_KIB,
