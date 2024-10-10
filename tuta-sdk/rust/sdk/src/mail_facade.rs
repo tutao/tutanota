@@ -3,7 +3,8 @@ use std::sync::Arc;
 use crate::{ApiCallError, IdTuple, ListLoadDirection};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
-use crate::entities::tutanota::{Mail, MailBox, MailboxGroupRoot, MailFolder};
+use crate::entities::sys::GroupMembership;
+use crate::entities::tutanota::{Mail, MailBox, MailFolder, MailboxGroupRoot};
 use crate::folder_system::FolderSystem;
 use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
@@ -18,7 +19,10 @@ pub struct MailFacade {
 }
 
 impl MailFacade {
-	pub fn new(crypto_entity_client: Arc<CryptoEntityClient>, user_facade: Arc<UserFacade>) -> Self {
+	pub fn new(
+		crypto_entity_client: Arc<CryptoEntityClient>,
+		user_facade: Arc<UserFacade>,
+	) -> Self {
 		MailFacade {
 			crypto_entity_client,
 			user_facade,
@@ -32,8 +36,8 @@ impl MailFacade {
 		let mail_group_ship = user
 			.memberships
 			.iter()
-			.find(|m| m.groupType == Some(GroupType::Mail.raw_value() as i64))
-			.unwrap();
+			.find(|m| m.group_type() == GroupType::Mail)
+			.ok_or_else(|| ApiCallError::internal("User does not have mail group".to_owned()))?;
 		let group_root: MailboxGroupRoot = self
 			.crypto_entity_client
 			.load(&mail_group_ship.group)
@@ -42,17 +46,39 @@ impl MailFacade {
 		Ok(mailbox)
 	}
 
-	pub async fn load_folders_for_mailbox(&self, mailbox: &MailBox) -> Result<FolderSystem, ApiCallError> {
+	pub async fn load_folders_for_mailbox(
+		&self,
+		mailbox: &MailBox,
+	) -> Result<FolderSystem, ApiCallError> {
 		let folders_list = &mailbox.folders.as_ref().unwrap().folders;
-		let folders: Vec<MailFolder> = self.crypto_entity_client.load_range(folders_list, &GeneratedId::min_id(), 100, ListLoadDirection::ASC).await?;
+		let folders: Vec<MailFolder> = self
+			.crypto_entity_client
+			.load_range(
+				folders_list,
+				&GeneratedId::min_id(),
+				100,
+				ListLoadDirection::ASC,
+			)
+			.await?;
 		Ok(FolderSystem::new(folders))
 	}
 
-	pub async fn load_mails_in_folder(&self, folder: &MailFolder) -> Result<Vec<Mail>, ApiCallError> {
+	pub async fn load_mails_in_folder(
+		&self,
+		folder: &MailFolder,
+	) -> Result<Vec<Mail>, ApiCallError> {
 		// TODO: real arguments
 		// TODO: this is a placeholder impl that doesn't work with mail sets
 		let mail_list_id = &folder.mails;
-		let mails = self.crypto_entity_client.load_range(mail_list_id, &GeneratedId::max_id(), 20, ListLoadDirection::DESC).await?;
+		let mails = self
+			.crypto_entity_client
+			.load_range(
+				mail_list_id,
+				&GeneratedId::max_id(),
+				20,
+				ListLoadDirection::DESC,
+			)
+			.await?;
 		Ok(mails)
 	}
 }
