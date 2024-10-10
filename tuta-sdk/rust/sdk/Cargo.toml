@@ -31,6 +31,7 @@ mockall_double = "0.3.1"
 log = "0.4.22"
 simple_logger = "5.0.0"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
+num_enum = "0.7.3"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_log = "0.1.3"

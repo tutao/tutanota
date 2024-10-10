@@ -272,8 +272,8 @@ impl JsonSerializer {
 			} else if let ElementValue::Null = value {
 				mapped.insert(value_name, JsonElement::Null);
 				continue;
-			} else if let (ElementValue::String(v), true) = (value, value_type.encrypted) {
-				mapped.insert(value_name, JsonElement::String(v));
+			} else if let (ElementValue::Bytes(v), true) = (value, value_type.encrypted) {
+				mapped.insert(value_name, JsonElement::String(BASE64_STANDARD.encode(v)));
 				continue;
 			} else {
 				panic!("Unknown entity elements!! {}", value_name)
