@@ -13,7 +13,7 @@ use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
-use crate::IdTupleGenerated;
+use crate::{IdTupleCustom, IdTupleGenerated};
 
 /// Converter between untyped representations of API Entities and generated structures
 pub struct InstanceMapper {}
@@ -333,13 +333,13 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
 	where
 		V: Visitor<'de>,
 	{
-		if name == "IdTuple" {
-			struct IdTupleMapAccess<I: Iterator<Item = (&'static str, GeneratedId)>> {
+		if name == "IdTupleGenerated" {
+			struct IdTupleGeneratedMapAccess<I: Iterator<Item = (&'static str, GeneratedId)>> {
 				iter: I,
 				value: Option<GeneratedId>,
 			}
 
-			impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I>
+			impl<'a, I> MapAccess<'a> for IdTupleGeneratedMapAccess<I>
 			where
 				I: Iterator<Item = (&'static str, GeneratedId)>,
 			{
@@ -373,7 +373,7 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
 				element_id,
 			}) = self.value
 			{
-				visitor.visit_map(IdTupleMapAccess {
+				visitor.visit_map(IdTupleGeneratedMapAccess {
 					iter: [("list_id", list_id), ("element_id", element_id)].into_iter(),
 					value: None,
 				})
@@ -539,9 +539,13 @@ enum ElementValueStructSerializer {
 	Struct {
 		map: HashMap<String, ElementValue>,
 	},
-	IdTuple {
+	IdTupleGenerated {
 		list_id: Option<GeneratedId>,
 		element_id: Option<GeneratedId>,
+	},
+	IdTupleCustom {
+		list_id: Option<GeneratedId>,
+		element_id: Option<CustomId>,
 	},
 }
 
@@ -736,8 +740,13 @@ impl Serializer for ElementValueSerializer {
 		name: &'static str,
 		len: usize,
 	) -> Result<Self::SerializeStruct, Self::Error> {
-		if name == "IdTuple" {
-			Ok(ElementValueStructSerializer::IdTuple {
+		if name == "IdTupleGenerated" {
+			Ok(ElementValueStructSerializer::IdTupleGenerated {
+				list_id: None,
+				element_id: None,
+			})
+		} else if name == "IdTupleCustom" {
+			Ok(ElementValueStructSerializer::IdTupleCustom {
 				list_id: None,
 				element_id: None,
 			})
@@ -796,7 +805,7 @@ impl SerializeStruct for ElementValueStructSerializer {
 				}
 				map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
 			},
-			Self::IdTuple {
+			Self::IdTupleGenerated {
 				list_id,
 				element_id,
 			} => match key {
@@ -818,6 +827,28 @@ impl SerializeStruct for ElementValueStructSerializer {
 				},
 				_ => unreachable!("unexpected key {key} for IdTuple", key = key),
 			},
+			Self::IdTupleCustom {
+				list_id,
+				element_id,
+			} => match key {
+				"list_id" => {
+					*list_id = Some(
+						value
+							.serialize(ElementValueSerializer)?
+							.assert_generated_id()
+							.to_owned(),
+					)
+				},
+				"element_id" => {
+					*element_id = Some(
+						value
+							.serialize(ElementValueSerializer)?
+							.assert_custom_id()
+							.to_owned(),
+					)
+				},
+				_ => unreachable!("unexpected key {key} for IdTuple", key = key),
+			},
 		};
 		Ok(())
 	}
@@ -825,10 +856,17 @@ impl SerializeStruct for ElementValueStructSerializer {
 	fn end(self) -> Result<Self::Ok, Self::Error> {
 		match self {
 			Self::Struct { map } => Ok(ElementValue::Dict(map)),
-			Self::IdTuple {
+			Self::IdTupleGenerated {
 				list_id,
 				element_id,
 			} => Ok(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
+				list_id: list_id.unwrap(),
+				element_id: element_id.unwrap(),
+			})),
+			Self::IdTupleCustom {
+				list_id,
+				element_id,
+			} => Ok(ElementValue::IdTupleCustomElementId(IdTupleCustom {
 				list_id: list_id.unwrap(),
 				element_id: element_id.unwrap(),
 			})),

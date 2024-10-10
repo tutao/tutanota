@@ -88,6 +88,12 @@ impl ElementValue {
 			_ => panic!("Invalid type"),
 		}
 	}
+	pub fn assert_custom_id(&self) -> &CustomId {
+		match self {
+			ElementValue::IdCustomId(value) => value,
+			_ => panic!("Invalid type"),
+		}
+	}
 	pub fn assert_tuple_id_generated(&self) -> &IdTupleGenerated {
 		match self {
 			ElementValue::IdTupleGeneratedElementId(value) => value,
