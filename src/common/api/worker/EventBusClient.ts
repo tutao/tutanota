@@ -39,7 +39,6 @@ import { resolveTypeReference } from "../common/EntityFunctions.js"
 import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
-import { typeRefToPath } from "./rest/EntityRestClient.js"
 
 assertWorkerOrNode()
 
