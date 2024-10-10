@@ -406,7 +406,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		if (selectedFolder) {
 			const mailDetails = await this.mailViewModel.getMailboxDetails()
 			if (mailDetails.mailbox.folders) {
-				const folders = mailLocator.mailModel.getMailboxFoldersForId(mailDetails.mailbox.folders._id)
+				const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailDetails.mailbox.folders._id)
 				return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.ARCHIVE) || selectedFolder.folderType === MailSetKind.TRASH
 			}
 		}

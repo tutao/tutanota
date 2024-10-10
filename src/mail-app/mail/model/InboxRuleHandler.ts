@@ -103,7 +103,7 @@ export class InboxRuleHandler {
 		if (
 			mail._errors ||
 			!mail.unread ||
-			!isInboxFolder(mailboxDetail, mail) ||
+			!(await isInboxFolder(mailboxDetail, mail)) ||
 			!this.logins.getUserController().isPremiumAccount() ||
 			mailboxDetail.mailbox.folders == null
 		) {
@@ -112,9 +112,9 @@ export class InboxRuleHandler {
 
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
-			const folders = mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			let inboxFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.INBOX))
-			let targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
+			let targetFolder = await folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
 				if (applyRulesOnServer) {
@@ -232,8 +232,8 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 	return mailAddress != null
 }
 
-export function isInboxFolder(mailboxDetail: MailboxDetail, mail: Mail): boolean {
-	const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+export async function isInboxFolder(mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
+	const folders = await mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 	const mailFolder = folders.getFolderByMail(mail)
 	return mailFolder?.folderType === MailSetKind.INBOX
 }

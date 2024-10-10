@@ -106,7 +106,7 @@ export async function moveMails({ mailboxModel, mailModel, mails, targetMailFold
 	if (details == null || details.mailbox.folders == null) {
 		return false
 	}
-	const system = mailModel.getMailboxFoldersForId(details.mailbox.folders._id)
+	const system = await mailModel.getMailboxFoldersForId(details.mailbox.folders._id)
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(async () => {

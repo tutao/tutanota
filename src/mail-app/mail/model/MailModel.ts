@@ -40,7 +40,10 @@ import { isSpamOrTrashFolder } from "./MailChecks.js"
 
 export class MailModel {
 	readonly mailboxCounters: Stream<MailboxCounters> = stream({})
-	readonly folders: Stream<Record<Id, FolderSystem>> = stream()
+	/**
+	 * map from mailbox folders list to folder system
+	 */
+	readonly folders: Stream<Map<Id, FolderSystem>> = stream()
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -60,25 +63,43 @@ export class MailModel {
 		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)
 		})
+
+		this.mailboxModel.mailboxDetails.map(() => {
+			// this can cause little race between loading the folders but it should be fine
+			this.loadFolders().then((newFolders) => this.folders(newFolders))
+		})
 	})
 
 	async init(): Promise<void> {
 		this.initListeners()
-
-		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
-
-		let tempFolders: Record<Id, FolderSystem> = {}
-
-		for (let detail of mailboxDetails) {
-			if (detail.mailbox.folders) {
-				const detailFolders = await this.mailboxModel.loadFolders(neverNull(detail.mailbox.folders).folders)
-				tempFolders[detail.mailbox.folders._id] = new FolderSystem(detailFolders)
-			}
-		}
+		const tempFolders = await this.loadFolders()
 
 		this.folders(tempFolders)
 	}
 
+	private async loadFolders(): Promise<Map<Id, FolderSystem>> {
+		const mailboxDetails = await this.mailboxModel.getMailboxDetails()
+
+		const tempFolders = new Map<Id, FolderSystem>()
+
+		for (let detail of mailboxDetails) {
+			if (detail.mailbox.folders) {
+				const detailFolders = await this.mailboxModel.loadFolders(neverNull(detail.mailbox.folders).folders)
+				tempFolders.set(detail.mailbox.folders._id, new FolderSystem(detailFolders))
+			}
+		}
+		return tempFolders
+	}
+
+	private async getFolders(): Promise<Map<Id, FolderSystem>> {
+		if (this.folders().size === 0) {
+			return await this.loadFolders()
+		} else {
+			return this.folders()
+		}
+	}
+
+	// visibleForTesting
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
@@ -132,8 +153,7 @@ export class MailModel {
 	}
 
 	async getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail | null> {
-		const mailboxDetails = await this.mailboxModel.getMailboxDetails()
-		const detail = mailboxDetails.find((md) => md.folders.getFolderByMail(mail)) ?? null
+		const detail = await this.mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(mail._ownerGroup))
 		if (detail == null) {
 			console.warn("Mailbox detail for mail does not exist", mail)
 		}
@@ -141,43 +161,51 @@ export class MailModel {
 	}
 
 	async getMailboxDetailsForMailFolder(mailFolder: MailFolder): Promise<MailboxDetail | null> {
-		const mailboxDetails = await this.mailboxModel.getMailboxDetails()
-		const detail = mailboxDetails.find((md) => md.folders.getFolderById(getElementId(mailFolder))) ?? null
+		const detail = await this.mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(mailFolder._ownerGroup))
 		if (detail == null) {
 			console.warn("Mailbox detail for mail folder does not exist", mailFolder)
 		}
 		return detail
 	}
 
-	getMailboxFoldersForMail(mail: Mail): Promise<FolderSystem | null> {
-		return this.getMailboxDetailsForMail(mail).then((md) => {
-			if (md && md.mailbox.folders) {
-				const folderStructures = this.folders()
-				return folderStructures[md.mailbox.folders._id] ?? null
-			}
+	async getMailboxFoldersForMail(mail: Mail): Promise<FolderSystem | null> {
+		const mailboxDetail = await this.getMailboxDetailsForMail(mail)
+		if (mailboxDetail && mailboxDetail.mailbox.folders) {
+			const folders = await this.getFolders()
+			return folders.get(mailboxDetail.mailbox.folders._id) ?? null
+		} else {
 			return null
-		})
+		}
 	}
 
-	getMailboxFoldersForId(foldersId: Id): FolderSystem {
-		const folderStructures = this.folders()
-		return folderStructures[foldersId]
+	async getMailboxFoldersForId(foldersId: Id): Promise<FolderSystem> {
+		const folderStructures = await this.loadFolders()
+		const folderSystem = folderStructures.get(foldersId)
+		if (folderSystem == null) {
+			throw new ProgrammingError(`no folder system for folder id ${foldersId}`)
+		}
+		return folderSystem
 	}
 
 	getMailFolderForMail(mail: Mail): MailFolder | null {
-		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
+		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
+		if (folderSystem == null) return null
 
-		let foundFolder: MailFolder | null = null
-		for (let detail of mailboxDetails) {
-			if (isNotEmpty(mail.sets)) {
-				foundFolder = detail.folders.getFolderById(elementIdPart(mail.sets[0]))
-			} else {
-				foundFolder = detail.folders.getFolderByMail(mail)
-			}
-
-			if (foundFolder != null) return foundFolder
+		if (isNotEmpty(mail.sets)) {
+			return folderSystem.getFolderById(elementIdPart(mail.sets[0]))
+		} else {
+			return folderSystem.getFolderByMail(mail)
 		}
-		return null
+	}
+
+	getFolderSystemByGroupId(groupId: Id): FolderSystem | null {
+		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
+		const detail = mailboxDetails.find((md) => groupId === md.mailGroup._id)
+		if (detail == null || detail.mailbox.folders == null) {
+			return null
+		}
+		const folders = this.folders() ?? new Map()
+		return folders.get(detail.mailbox.folders._id) ?? null
 	}
 
 	/**
@@ -240,7 +268,7 @@ export class MailModel {
 			return isNotEmpty(mail.sets) ? elementIdPart(mail.sets[0]) : getListId(mail)
 		})
 
-		const folders = await this.getMailboxFolders(mails[0])
+		const folders = await this.getMailboxFoldersForMail(mails[0])
 		if (folders == null) {
 			return
 		}
@@ -287,9 +315,11 @@ export class MailModel {
 			return
 		}
 
-		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
+		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(folder._ownerGroup))
+		if (folderSystem == null) return
+		const deletedFolder = await this.removeAllEmpty(folderSystem, folder)
 		if (!deletedFolder) {
-			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.SPAM)._id)
+			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(folderSystem, MailSetKind.SPAM)._id)
 		}
 	}
 
@@ -380,9 +410,12 @@ export class MailModel {
 		if (mailboxDetail == null) {
 			return
 		}
-		let deletedFolder = await this.removeAllEmpty(mailboxDetail, folder)
+		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(folder._ownerGroup))
+		if (folderSystem == null) return
+
+		const deletedFolder = await this.removeAllEmpty(folderSystem, folder)
 		if (!deletedFolder) {
-			const trash = assertSystemFolderOfType(mailboxDetail.folders, MailSetKind.TRASH)
+			const trash = assertSystemFolderOfType(folderSystem, MailSetKind.TRASH)
 			return this.mailFacade.updateMailFolderParent(folder, trash._id)
 		}
 	}
@@ -390,9 +423,9 @@ export class MailModel {
 	/**
 	 * This is called when moving a folder to SPAM or TRASH, which do not allow empty folders (since only folders that contain mail are allowed)
 	 */
-	private async removeAllEmpty(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<boolean> {
+	private async removeAllEmpty(folderSystem: FolderSystem, folder: MailFolder): Promise<boolean> {
 		// sort descendants deepest first so that we can clean them up before checking their ancestors
-		const descendants = mailboxDetail.folders.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
+		const descendants = folderSystem.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
 
 		// we completely delete empty folders
 		let someNonEmpty = false
@@ -401,7 +434,7 @@ export class MailModel {
 		for (const descendant of descendants) {
 			if (
 				(await this.isEmptyFolder(descendant.folder)) &&
-				mailboxDetail.folders.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
+				folderSystem.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
 			) {
 				deleted.add(getElementId(descendant.folder))
 				await this.finallyDeleteCustomMailFolder(descendant.folder)
@@ -411,7 +444,7 @@ export class MailModel {
 		}
 		if (
 			(await this.isEmptyFolder(folder)) &&
-			mailboxDetail.folders.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
+			folderSystem.getCustomFoldersOfParent(folder._id).every((f) => deleted.has(getElementId(f))) &&
 			!someNonEmpty
 		) {
 			await this.finallyDeleteCustomMailFolder(folder)
@@ -465,9 +498,5 @@ export class MailModel {
 		mailboxProperties.reportMovedMails = reportMovedMails
 		await this.entityClient.update(mailboxProperties)
 		return mailboxProperties
-	}
-
-	async getMailboxFolders(mail: Mail): Promise<FolderSystem | null> {
-		return this.getMailboxDetailsForMail(mail).then((md) => md && md.folders)
 	}
 }

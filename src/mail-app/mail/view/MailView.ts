@@ -723,7 +723,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (mailboxDetail.mailbox.folders == null) {
 			return
 		}
-		const folders = mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 
 		if (isSpamOrTrashFolder(folders, folder)) {
 			const confirmed = await Dialog.confirm(() =>
