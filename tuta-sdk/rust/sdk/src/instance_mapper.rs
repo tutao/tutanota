@@ -563,38 +563,36 @@ impl Serializer for ElementValueSerializer {
 		Ok(ElementValue::Bool(v))
 	}
 
-	fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.into()))
+	fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
+		unsupported("i8")
 	}
 
-	fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.into()))
+	fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
+		unsupported("i16")
 	}
 
-	fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.into()))
+	fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
+		unsupported("i32")
 	}
 
 	fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
 		Ok(ElementValue::Number(v))
 	}
 
-	fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.into()))
+	fn serialize_u8(self, _: u8) -> Result<Self::Ok, Self::Error> {
+		unsupported("u8")
 	}
 
-	fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.into()))
+	fn serialize_u16(self, _: u16) -> Result<Self::Ok, Self::Error> {
+		unsupported("u16")
 	}
 
 	fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.into()))
+		Ok(ElementValue::Number(v as i64))
 	}
 
 	fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
-		Ok(ElementValue::Number(v.try_into().map_err(|_| {
-			SerError(format!("Cannot convert u64 value: `{v}` to Number(i64)"))
-		})?))
+		Ok(ElementValue::Number(v as i64))
 	}
 
 	fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
