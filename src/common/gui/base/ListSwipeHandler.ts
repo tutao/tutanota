@@ -16,7 +16,7 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 			domSwipeSpacerLeft: () => HTMLElement
 			domSwipeSpacerRight: () => HTMLElement
 			width: () => number
-			getRowForPosition: (clientCoordiantes: Coordinate2D) => ListRow<ElementType, VH> | null
+			getRowForPosition: (clientCoordinates: Coordinate2D) => ListRow<ElementType, VH> | null
 			onSwipeLeft: (entity: ElementType) => Promise<ListSwipeDecision>
 			onSwipeRight: (entity: ElementType) => Promise<ListSwipeDecision>
 		},
@@ -152,13 +152,13 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 		return this.config.width()
 	}
 
-	private getVirtualElement(): ListRow<ElementType, VH> {
+	private getVirtualElement(): ListRow<ElementType, VH> | null {
 		if (!this.virtualElement) {
 			// touch coordinates are based on clientX so they are relative to the viewport and we need to adjust them by the position of the list
 			this.virtualElement = this.config.getRowForPosition(this.startPos)
 		}
 
-		return assertNotNull(this.virtualElement)
+		return this.virtualElement
 	}
 
 	reset(delta: { x: number; y: number }): Promise<unknown> {
