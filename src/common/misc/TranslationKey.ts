@@ -1783,3 +1783,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "birthdayEvent_title"
 	| "birthdayEventAge_title"
+	| "birthdayCalendar_label"

@@ -747,6 +747,24 @@ export const getClientOnlyColors = (userId: Id, clientOnlyCalendarsInfo: Map<Id,
 	return colors
 }
 
+export const getClientOnlyCalendars = (userId: Id, clientOnlyCalendarInfo: Map<Id, ClientOnlyCalendarsInfo>) => {
+	const userCalendars: (ClientOnlyCalendarsInfo & { id: string; name: string })[] = []
+
+	for (const [id, key] of CLIENT_ONLY_CALENDARS) {
+		const calendarId = `${userId}#${id}`
+		const calendar = clientOnlyCalendarInfo.get(calendarId)
+		if (calendar) {
+			userCalendars.push({
+				...calendar,
+				id: calendarId,
+				name: calendar.name ? calendar.name : lang.get(key),
+			})
+		}
+	}
+
+	return userCalendars
+}
+
 /**
  *  find out how we ended up with this event, which determines the capabilities we have with it.
  *  for shared events in calendar where we have read-write access, we can still only view events that have

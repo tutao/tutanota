@@ -4,7 +4,13 @@ import { SearchRestriction, SearchResult } from "../../../common/api/worker/sear
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
-import { FULL_INDEXED_TIMESTAMP, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import {
+	CLIENT_ONLY_CALENDARS,
+	FULL_INDEXED_TIMESTAMP,
+	MailSetKind,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+} from "../../../common/api/common/TutanotaConstants.js"
 import {
 	assertIsEntity,
 	assertIsEntity2,
@@ -61,11 +67,16 @@ import m from "mithril"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
-import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import { ClientOnlyCalendarsInfo, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import {
+	generateCalendarInstancesInRange,
+	getStartOfTheWeekOffsetForUser,
+	retrieveClientOnlyEventsForUser,
+} from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -107,7 +118,7 @@ export class SearchViewModel {
 	endDate: Date | null = null // null = today
 	selectedMailFolder: Array<Id> = []
 	// Isn't an IdTuple because it is two list ids
-	selectedCalendar: readonly [Id, Id] | null = null
+	selectedCalendar: readonly [Id, Id] | string | null = null
 	mailboxes: MailboxDetail[] = []
 	selectedMailField: string | null = null
 	private mailboxSubscription: Stream<void> | null = null
@@ -120,6 +131,11 @@ export class SearchViewModel {
 		m.redraw()
 		return calendarInfos
 	})
+
+	private readonly userHasNewPaidPlan: LazyLoaded<boolean> = new LazyLoaded<boolean>(async () => {
+		return await this.logins.getUserController().isNewPaidPlan()
+	})
+
 	currentQuery: string = ""
 
 	constructor(
@@ -138,6 +154,7 @@ export class SearchViewModel {
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
+		private readonly localCalendars: Map<Id, ClientOnlyCalendarsInfo>,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this.listModel = this.createList()
@@ -145,6 +162,10 @@ export class SearchViewModel {
 
 	getLazyCalendarInfos() {
 		return this.lazyCalendarInfos
+	}
+
+	getUserHasNewPaidPlan() {
+		return this.userHasNewPaidPlan
 	}
 
 	readonly init = lazyMemoized(() => {
@@ -288,9 +309,26 @@ export class SearchViewModel {
 			} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
 				this.startDate = restriction.start ? new Date(restriction.start) : null
 				this.endDate = restriction.end ? new Date(restriction.end) : null
-				this.selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
+
+				// Check if user is trying to search in a client only calendar while using a free account
+				const selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
+				if (!selectedCalendar || Array.isArray(selectedCalendar)) {
+					this.selectedCalendar = selectedCalendar
+				} else if (CLIENT_ONLY_CALENDARS.has(selectedCalendar.toString())) {
+					this.getUserHasNewPaidPlan()
+						.getAsync()
+						.then((isNewPaidPlan) => {
+							if (!isNewPaidPlan) {
+								return (this.selectedCalendar = null)
+							}
+
+							this.selectedCalendar = selectedCalendar
+						})
+				}
+
 				this.includeRepeatingEvents = restriction.eventSeries ?? true
 				this.lazyCalendarInfos.load()
+				this.userHasNewPaidPlan.load()
 				this.latestCalendarRestriction = restriction
 
 				if (args.id != null) {
@@ -304,8 +342,9 @@ export class SearchViewModel {
 		}
 	}
 
-	private extractCalendarListIds(listIds: string[]): readonly [string, string] | null {
-		if (listIds.length < 2) return null
+	private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {
+		if (listIds.length < 1) return null
+		else if (listIds.length === 1) return listIds[0]
 
 		return [listIds[0], listIds[1]]
 	}
@@ -517,13 +556,23 @@ export class SearchViewModel {
 					this.startDate ? getStartOfDay(this.startDate).getTime() : null,
 					this.endDate ? getEndOfDay(this.endDate).getTime() : null,
 					null,
-					this.selectedCalendar == null ? [] : [...this.selectedCalendar],
+					this.getFolderIds(),
 					this.includeRepeatingEvents,
 				),
 			)
 		} else if (isSameTypeRef(this.searchedType, ContactTypeRef)) {
 			this.routeContact((selectedElement?.entry as Contact) ?? null, createRestriction(this.getCategory(), null, null, null, [], null))
 		}
+	}
+
+	private getFolderIds() {
+		if (typeof this.selectedCalendar === "string") {
+			return [this.selectedCalendar]
+		} else if (this.selectedCalendar != null) {
+			return [...this.selectedCalendar]
+		}
+
+		return []
 	}
 
 	private routeCalendar(element: CalendarEvent | null, restriction: SearchRestriction) {
@@ -808,7 +857,10 @@ export class SearchViewModel {
 				if (start == null || end == null) {
 					throw new ProgrammingError("invalid search time range for calendar")
 				}
-				items = await this.calendarFacade.reifyCalendarSearchResult(start, end, updatedResult.results)
+				items = [
+					...(await this.calendarFacade.reifyCalendarSearchResult(start, end, updatedResult.results)),
+					...(await this.getClientOnlyEventsSeries(start, end, updatedResult.results)),
+				]
 			} finally {
 				this.updateUi()
 			}
@@ -818,6 +870,11 @@ export class SearchViewModel {
 		}
 
 		return { items: items, newSearchResult: updatedResult }
+	}
+
+	private async getClientOnlyEventsSeries(start: number, end: number, events: IdTuple[]) {
+		const eventList = await retrieveClientOnlyEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
+		return generateCalendarInstancesInRange(eventList, { start, end })
 	}
 
 	/**
@@ -857,6 +914,10 @@ export class SearchViewModel {
 
 	sendStopLoadingSignal() {
 		this.search.sendCancelSignal()
+	}
+
+	getLocalCalendars() {
+		return getClientOnlyCalendars(this.logins.getUserController().userId, this.localCalendars)
 	}
 
 	dispose() {

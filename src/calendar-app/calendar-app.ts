@@ -29,6 +29,7 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/v
 import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { AppType } from "../common/misc/ClientConstants.js"
+import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -195,6 +196,7 @@ import("../mail-app/translations/en.js")
 				{
 					header: AppHeaderAttrs
 					searchViewModelFactory: () => CalendarSearchViewModel
+					contactModel: ContactModel
 				}
 			>(
 				{
@@ -205,10 +207,11 @@ import("../mail-app/translations/en.js")
 							cache: {
 								header: await calendarLocator.appHeaderAttrs(),
 								searchViewModelFactory: await calendarLocator.searchViewModelFactory(),
+								contactModel: calendarLocator.contactModel,
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({ header: cache.header, makeViewModel: cache.searchViewModelFactory }),
+					prepareAttrs: (cache) => ({ header: cache.header, makeViewModel: cache.searchViewModelFactory, contactModel: cache.contactModel }),
 				},
 				calendarLocator.logins,
 			),

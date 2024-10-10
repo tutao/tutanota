@@ -9,6 +9,7 @@ import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
+import { TranslationKey } from "../../misc/LanguageViewModel.js"
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 
@@ -1205,5 +1206,5 @@ export const EXTERNAL_CALENDAR_SYNC_INTERVAL = 60 * 30 * 1000 // 30 minutes
 export const DEFAULT_ERROR = "defaultError"
 
 export const CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID = "clientOnly_birthdays"
-export const CLIENT_ONLY_CALENDARS: Map<Id, string> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "Birthdays"]])
+export const CLIENT_ONLY_CALENDARS: Map<Id, TranslationKey> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "birthdayCalendar_label"]])
 export const DEFAULT_CLIENT_ONLY_CALENDAR_COLORS: Map<Id, string> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "FF9933"]])

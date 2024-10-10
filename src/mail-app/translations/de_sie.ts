@@ -1801,6 +1801,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"birthdayEvent_title": `{name} Geburtstag`,
-		"birthdayEventAge_title": "({age} Jahre alt)"
+		"birthdayEventAge_title": "({age} Jahre alt)",
+		"birthdayCalendar_label": "Geburtstage"
 	}
 }

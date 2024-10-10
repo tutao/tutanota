@@ -11,7 +11,6 @@ import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { CommonSearchModel } from "../../../common/search/CommonSearchModel.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -186,6 +185,55 @@ export class SearchModel {
 							this.result(calendarResult)
 							this.lastSearchPromise = Promise.resolve(calendarResult)
 							return this.lastSearchPromise
+						}
+					}
+				}
+
+				const startDate = new Date(restriction.start)
+				const endDate = new Date(restriction.end)
+
+				const hasNewPaidPlan = await calendarModel.canLoadBirthdaysCalendar()
+				if (hasNewPaidPlan) {
+					await calendarModel.loadContactsBirthdays()
+					const birthdayEvents = calendarModel.getBirthdayEvents()
+
+					for (const [month, events] of birthdayEvents) {
+						eventLoop: for (const event of events) {
+							if (!(month >= startDate.getMonth() && month <= endDate.getMonth())) {
+								continue
+							}
+
+							const key = idToKey(event.event._id)
+
+							if (alreadyAdded.has(key)) {
+								// we only need the first event in the series, the view will load & then generate
+								// the series for the searched time range.
+								continue
+							}
+
+							if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event.event._id))) {
+								// check that the event is in the searched calendar.
+								continue
+							}
+
+							if (restriction.eventSeries === false && event.event.repeatRule != null) {
+								// applied "repeating" search filter
+								continue
+							}
+
+							for (const token of tokens) {
+								if (event.event.summary.toLowerCase().includes(token)) {
+									alreadyAdded.add(key)
+									calendarResult.results.push(event.event._id)
+									continue eventLoop
+								}
+							}
+
+							if (this.cancelSignal()) {
+								this.result(calendarResult)
+								this.lastSearchPromise = Promise.resolve(calendarResult)
+								return this.lastSearchPromise
+							}
 						}
 					}
 				}

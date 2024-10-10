@@ -1797,6 +1797,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"birthdayEvent_title": `{name}'s birthday`,
-		"birthdayEventAge_title": `({age} years old)`
+		"birthdayEventAge_title": `({age} years old)`,
+		"birthdayCalendar_label": "Birthdays"
 	}
 }
