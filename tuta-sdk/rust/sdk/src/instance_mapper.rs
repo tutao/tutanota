@@ -13,7 +13,7 @@ use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
-use crate::IdTuple;
+use crate::IdTupleGenerated;
 
 /// Converter between untyped representations of API Entities and generated structures
 pub struct InstanceMapper {}
@@ -368,7 +368,7 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
 					}
 				}
 			}
-			return if let ElementValue::IdTupleId(IdTuple {
+			return if let ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
 				list_id,
 				element_id,
 			}) = self.value
@@ -828,7 +828,7 @@ impl SerializeStruct for ElementValueStructSerializer {
 			Self::IdTuple {
 				list_id,
 				element_id,
-			} => Ok(ElementValue::IdTupleId(IdTuple {
+			} => Ok(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
 				list_id: list_id.unwrap(),
 				element_id: element_id.unwrap(),
 			})),
@@ -880,9 +880,10 @@ impl ElementValue {
 			ElementValue::Bool(v) => Unexpected::Bool(*v),
 			ElementValue::IdGeneratedId(_) => Unexpected::Other("GeneratedId"),
 			ElementValue::IdCustomId(_) => Unexpected::Other("CustomId"),
-			ElementValue::IdTupleId(_) => Unexpected::Other("IdTuple"),
+			ElementValue::IdTupleGeneratedElementId(_) => Unexpected::Other("IdTupleGenerated"),
 			ElementValue::Dict(_) => Unexpected::Map,
 			ElementValue::Array(_) => Unexpected::Seq,
+			ElementValue::IdTupleCustomElementId(_) => Unexpected::Other("IdTupleCustom"),
 		}
 	}
 }
@@ -1258,7 +1259,7 @@ mod tests {
 	fn test_ser_group_info() {
 		let group_info = GroupInfo {
 			_format: 0,
-			_id: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
+			_id: IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
 			_ownerEncSessionKey: None,
 			_listEncSessionKey: None,
 			_ownerGroup: None,

@@ -19,7 +19,7 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 use crate::util::{array_cast_slice, BASE64_EXT};
 use crate::ApiCallError::InternalSdkError;
-use crate::{ApiCallError, IdTuple};
+use crate::{ApiCallError, IdTupleGenerated};
 
 /// Error that may occur during login and session creation
 #[derive(Error, Debug, uniffi::Error)]
@@ -167,7 +167,7 @@ impl LoginFacade {
 }
 
 /// Generate session id tuple from access token
-fn parse_session_id(access_token: &str) -> Result<IdTuple, DecodeError> {
+fn parse_session_id(access_token: &str) -> Result<IdTupleGenerated, DecodeError> {
 	let bytes = BASE64_URL_SAFE_NO_PAD.decode(access_token)?;
 	if bytes.len() < GENERATED_ID_BYTES_LENGTH {
 		return Err(DecodeError::InvalidLength(bytes.len()));
@@ -175,7 +175,7 @@ fn parse_session_id(access_token: &str) -> Result<IdTuple, DecodeError> {
 	let (list_id_bytes, element_id_bytes) = bytes.split_at(GENERATED_ID_BYTES_LENGTH);
 	let list_id = GeneratedId(BASE64_EXT.encode(list_id_bytes));
 	let element_id = GeneratedId(BASE64_URL_SAFE_NO_PAD.encode(sha256(element_id_bytes)));
-	Ok(IdTuple {
+	Ok(IdTupleGenerated {
 		list_id,
 		element_id,
 	})
@@ -211,7 +211,7 @@ mod tests {
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
-	use crate::IdTuple;
+	use crate::IdTupleGenerated;
 
 	#[tokio::test]
 	async fn test_resume_session() {
@@ -226,7 +226,7 @@ mod tests {
 		let session = make_session(&user_id, &access_key);
 		let parsed_session = typed_entity_to_parsed_entity(session.clone());
 
-		let session_id = IdTuple {
+		let session_id = IdTupleGenerated {
 			list_id: GeneratedId("O0yKEOU-1B-0".to_owned()),
 			element_id: GeneratedId("jlv3AEmnv8rvtZe38u2dk-U1kzxpkMXWNusNz-NhnMI".to_owned()),
 		};
@@ -236,7 +236,7 @@ mod tests {
 		{
 			let parsed_session = parsed_session.clone();
 			mock_entity_client
-				.expect_load::<IdTuple>()
+				.expect_load::<IdTupleGenerated>()
 				.with(eq(Session::type_ref()), eq(session_id.clone()))
 				.returning(move |_, _| Ok(parsed_session.clone()));
 		}
@@ -302,13 +302,13 @@ mod tests {
 				group: GeneratedId("groupId".to_string()),
 				symEncGKey: GenericAesKey::Aes256(passphrase_key)
 					.encrypt_key(&user_group_key.into(), Iv::generate(randomizer)),
-				groupInfo: IdTuple {
+				groupInfo: IdTupleGenerated {
 					list_id: GeneratedId("groupInfoListId".to_string()),
 					element_id: GeneratedId("groupInfoElId".to_string()),
 				},
 				groupType: None,
 				symKeyVersion: 0,
-				groupMember: IdTuple {
+				groupMember: IdTupleGenerated {
 					list_id: Default::default(),
 					element_id: Default::default(),
 				},

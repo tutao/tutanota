@@ -1,5 +1,6 @@
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::key_encryption::decrypt_key_pair;
+use crate::custom_id::CustomId;
 use crate::entities::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
 #[mockall_double::double]
@@ -128,7 +129,7 @@ impl KeyLoaderFacade {
 		})
 	}
 
-	fn decode_group_key_version(&self, element_id: &GeneratedId) -> Result<i64, KeyLoadError> {
+	fn decode_group_key_version(&self, element_id: &CustomId) -> Result<i64, KeyLoadError> {
 		element_id.as_str().parse().map_err(|_| KeyLoadError {
 			reason: format!("Failed to decode group key version: {}", element_id),
 		})
@@ -262,7 +263,7 @@ mod tests {
 	use crate::user_facade::MockUserFacade;
 	use crate::util::get_vec_reversed;
 	use crate::util::test_utils::{generate_random_group, random_aes256_key};
-	use crate::IdTuple;
+	use crate::{IdTupleCustom, IdTupleGenerated};
 	use mockall::predicate;
 	use std::array::from_fn;
 
@@ -355,9 +356,9 @@ mod tests {
 				0,
 				GroupKey {
 					_format: 0,
-					_id: IdTuple {
+					_id: IdTupleCustom {
 						list_id: GeneratedId("list".to_owned()),
-						element_id: GeneratedId(i.to_string()),
+						element_id: CustomId(i.to_string()),
 					},
 					_ownerGroup: None,
 					_permissions: Default::default(),
@@ -474,11 +475,11 @@ mod tests {
 						symEncGKey: sym_enc_g_key.clone(),
 						symKeyVersion: user_group_key.version,
 						group: user_group_id.clone(),
-						groupInfo: IdTuple {
+						groupInfo: IdTupleGenerated {
 							list_id: Default::default(),
 							element_id: Default::default(),
 						},
-						groupMember: IdTuple {
+						groupMember: IdTupleGenerated {
 							list_id: Default::default(),
 							element_id: Default::default(),
 						},

@@ -4,7 +4,7 @@ use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
-use crate::{ApiCallError, IdTuple, ListLoadDirection};
+use crate::{ApiCallError, IdTupleGenerated, ListLoadDirection};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -58,7 +58,7 @@ impl TypedEntityClient {
 	#[allow(clippy::unused_async)]
 	async fn load_all<T: Entity + Deserialize<'static>>(
 		&self,
-		_list_id: &IdTuple,
+		_list_id: &IdTupleGenerated,
 		_start: Option<String>,
 	) -> Result<Vec<T>, ApiCallError> {
 		todo!("typed entity client load_all")
@@ -90,7 +90,7 @@ mockall::mock! {
 		 ) -> Result<T, ApiCallError>;
 		async fn load_all<T: Entity + Deserialize<'static>>(
 			&self,
-			list_id: &IdTuple,
+			list_id: &IdTupleGenerated,
 			start: Option<String>,
 		) -> Result<Vec<T>, ApiCallError>;
 		pub async fn load_range<T: Entity + Deserialize<'static>>(

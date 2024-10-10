@@ -1,7 +1,7 @@
 #[mockall_double::double]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::entities::tutanota::Mail;
-use crate::{ApiCallError, IdTuple};
+use crate::{ApiCallError, IdTupleGenerated};
 use std::sync::Arc;
 
 /// Provides high level functions to manipulate mail entities via the REST API
@@ -23,10 +23,10 @@ impl MailFacade {
 	/// Gets an email (an entity/instance of `Mail`) from the backend
 	pub async fn load_email_by_id_encrypted(
 		&self,
-		id_tuple: &IdTuple,
+		id_tuple: &IdTupleGenerated,
 	) -> Result<Mail, ApiCallError> {
 		self.crypto_entity_client
-			.load::<Mail, IdTuple>(id_tuple)
+			.load::<Mail, IdTupleGenerated>(id_tuple)
 			.await
 	}
 }

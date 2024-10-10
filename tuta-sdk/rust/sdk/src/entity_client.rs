@@ -9,7 +9,7 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, HeadersProvider, IdTuple, ListLoadDirection, TypeRef};
+use crate::{ApiCallError, HeadersProvider, IdTupleGenerated, ListLoadDirection, TypeRef};
 
 /// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
@@ -104,7 +104,7 @@ impl EntityClient {
 	pub async fn load_all(
 		&self,
 		_type_ref: &TypeRef,
-		_list_id: &IdTuple,
+		_list_id: &IdTupleGenerated,
 		_start: Option<String>,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
 		todo!("entity client load_all")
@@ -135,7 +135,7 @@ impl EntityClient {
 	pub async fn setup_list_element(
 		&self,
 		_type_ref: &TypeRef,
-		_list_id: &IdTuple,
+		_list_id: &IdTupleGenerated,
 		_entity: RawEntity,
 	) -> Vec<String> {
 		todo!("entity client setup_list_element")
@@ -149,7 +149,7 @@ impl EntityClient {
 		model_version: u32,
 	) -> Result<(), ApiCallError> {
 		let id = match &entity.get("_id").unwrap() {
-			ElementValue::IdTupleId(ref id_tuple) => id_tuple.to_string(),
+			ElementValue::IdTupleGeneratedElementId(ref id_tuple) => id_tuple.to_string(),
 			_ => panic!("id is not string or array"),
 		};
 		let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
@@ -184,7 +184,7 @@ impl EntityClient {
 	pub async fn erase_list_element(
 		&self,
 		_type_ref: &TypeRef,
-		_id: IdTuple,
+		_id: IdTupleGenerated,
 	) -> Result<(), ApiCallError> {
 		todo!("entity client erase_list_element")
 	}
@@ -209,7 +209,7 @@ mockall::mock! {
 		async fn load_all(
 			&self,
 			type_ref: &TypeRef,
-			list_id: &IdTuple,
+			list_id: &IdTupleGenerated,
 			start: Option<String>,
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
 		async fn load_range(
@@ -224,12 +224,12 @@ mockall::mock! {
 		async fn setup_list_element(
 			&self,
 			type_ref: &TypeRef,
-			list_id: &IdTuple,
+			list_id: &IdTupleGenerated,
 			entity: RawEntity,
 		) -> Vec<String>;
 		async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity, model_version: u32)
 						-> Result<(), ApiCallError>;
 		async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError>;
-		async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError>;
+		async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTupleGenerated) -> Result<(), ApiCallError>;
 	}
 }

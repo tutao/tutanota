@@ -65,7 +65,7 @@ pub enum AssociationType {
 	#[serde(rename = "BLOB_ELEMENT_ASSOCIATION")]
 	BlobElementAssociation,
 	#[serde(rename = "LIST_ELEMENT_ASSOCIATION_CUSTOM")]
-    	ListElementAssociationCustom,
+	ListElementAssociationCustom,
 }
 
 /// Description of the value (value field of Element)
