@@ -248,6 +248,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await locator.cacheManagement(),
 			asymmetricCrypto,
 			cryptoWrapper,
+			nonCachingEntityClient,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(

@@ -48,7 +48,7 @@ import { ServiceExecutor } from "../../../common/api/worker/rest/ServiceExecutor
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
+import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
 import { modelInfos } from "../../../common/api/common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
@@ -279,6 +279,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.cacheManagement(),
 			locator.asymmetricCrypto,
 			locator.cryptoWrapper,
+			nonCachingEntityClient,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(

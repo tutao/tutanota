@@ -39,7 +39,6 @@ import { resolveTypeReference } from "../common/EntityFunctions.js"
 import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
-import { typeRefToPath } from "./rest/EntityRestClient.js"
 
 assertWorkerOrNode()
 
@@ -519,6 +518,8 @@ export class EventBusClient {
 			const eventBatchForGroup = await this.loadEntityEventsForGroup(groupId)
 			eventBatches = eventBatches.concat(eventBatchForGroup)
 		}
+
+		await delay(10000)
 
 		const timeSortedEventBatches = eventBatches.sort((a, b) => compareOldestFirst(getElementId(a), getElementId(b)))
 		// Count all batches that will actually be processed so that the progress is correct
