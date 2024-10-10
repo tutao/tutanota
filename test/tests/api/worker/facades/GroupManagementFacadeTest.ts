@@ -88,7 +88,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			})
 			when(userFacade.hasGroup(groupId)).thenReturn(false)
 			when(userFacade.hasGroup(adminGroupId)).thenReturn(true)
-			when(entityClient.load(GroupTypeRef, groupId)).thenResolve(group)
+			when(cacheManagementFacade.reloadGroup(groupId)).thenResolve(group)
 			when(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminGroupKeyVersion)).thenResolve(adminGroupKeyBytes)
 			when(cryptoWrapper.decryptKey(adminGroupKeyBytes, adminGroupEncGKey)).thenReturn(groupKeyBytes)
 			when(keyLoaderFacade.loadKeypair(adminGroupId, adminGroupKeyVersion)).thenResolve(adminGroupKeyPair)
@@ -101,6 +101,14 @@ o.spec("GroupManagementFacadeTest", function () {
 				decryptedAesKey: groupKeyBytes,
 				senderIdentityPubKey: pubUserGroupEccKey,
 			})
+		})
+
+		o("gets a non-cached group instance", async function () {
+			group.adminGroupEncGKey = adminGroupEncGKey
+
+			await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
+
+			verify(cacheManagementFacade.reloadGroup(groupId))
 		})
 
 		o("symmetric decryption", async function () {
