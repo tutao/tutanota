@@ -9,10 +9,14 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, HeadersProvider, IdTuple, ListLoadDirection, TypeRef};
+use crate::{ApiCallError, HeadersProvider, ListLoadDirection, TypeRef};
 
 /// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
+
+/// Denotes a basic ID type such as GeneratedId or CustomID that can be serialised into a string and used to access resources
+pub trait BaseIdType: Display + IdType + 'static {}
+pub trait IdTupleType: Display + IdType + 'static {}
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
 pub struct EntityClient {
@@ -104,7 +108,7 @@ impl EntityClient {
 	pub async fn load_all(
 		&self,
 		_type_ref: &TypeRef,
-		_list_id: &IdTuple,
+		_list_id: &GeneratedId,
 		_start: Option<String>,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
 		todo!("entity client load_all")
@@ -113,11 +117,11 @@ impl EntityClient {
 	/// Fetches and returns a specified number (`count`) of entities/instances
 	/// in a list element type starting at the index `start_id`
 	#[allow(clippy::unused_async)]
-	pub async fn load_range(
+	pub async fn load_range<Id: BaseIdType>(
 		&self,
 		_type_ref: &TypeRef,
 		_list_id: &GeneratedId,
-		_start_id: &GeneratedId,
+		_start_id: &Id,
 		_count: usize,
 		_list_load_direction: ListLoadDirection,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
@@ -135,7 +139,7 @@ impl EntityClient {
 	pub async fn setup_list_element(
 		&self,
 		_type_ref: &TypeRef,
-		_list_id: &IdTuple,
+		_list_id: &GeneratedId,
 		_entity: RawEntity,
 	) -> Vec<String> {
 		todo!("entity client setup_list_element")
@@ -149,7 +153,8 @@ impl EntityClient {
 		model_version: u32,
 	) -> Result<(), ApiCallError> {
 		let id = match &entity.get("_id").unwrap() {
-			ElementValue::IdTupleId(ref id_tuple) => id_tuple.to_string(),
+			ElementValue::IdTupleGeneratedElementId(ref id_tuple) => id_tuple.to_string(),
+			ElementValue::IdTupleCustomElementId(ref id_tuple) => id_tuple.to_string(),
 			_ => panic!("id is not string or array"),
 		};
 		let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
@@ -181,10 +186,10 @@ impl EntityClient {
 
 	/// Deletes an existing entity/instance of a list element type on the backend
 	#[allow(clippy::unused_async)]
-	pub async fn erase_list_element(
+	pub async fn erase_list_element<Id: IdTupleType>(
 		&self,
 		_type_ref: &TypeRef,
-		_id: IdTuple,
+		_id: Id,
 	) -> Result<(), ApiCallError> {
 		todo!("entity client erase_list_element")
 	}
@@ -209,14 +214,14 @@ mockall::mock! {
 		async fn load_all(
 			&self,
 			type_ref: &TypeRef,
-			list_id: &IdTuple,
+			list_id: &GeneratedId,
 			start: Option<String>,
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
-		async fn load_range(
+		async fn load_range<Id: BaseIdType>(
 			&self,
 			type_ref: &TypeRef,
 			list_id: &GeneratedId,
-			start_id: &GeneratedId,
+			start_id: &Id,
 			count: usize,
 			list_load_direction: ListLoadDirection,
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
@@ -224,12 +229,12 @@ mockall::mock! {
 		async fn setup_list_element(
 			&self,
 			type_ref: &TypeRef,
-			list_id: &IdTuple,
+			list_id: &GeneratedId,
 			entity: RawEntity,
 		) -> Vec<String>;
 		async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity, model_version: u32)
 						-> Result<(), ApiCallError>;
 		async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError>;
-		async fn erase_list_element(&self, type_ref: &TypeRef, id: IdTuple) -> Result<(), ApiCallError>;
+		async fn erase_list_element<Id: IdTupleType>(&self, type_ref: &TypeRef, id: Id) -> Result<(), ApiCallError>;
 	}
 }
