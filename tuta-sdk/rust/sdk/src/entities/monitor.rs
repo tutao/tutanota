@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct ApprovalMail {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub date: Option<DateTime>,

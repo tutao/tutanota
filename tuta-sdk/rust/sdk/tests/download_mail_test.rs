@@ -6,7 +6,7 @@ use base64::Engine;
 use tutasdk::generated_id::GeneratedId;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::rest_client::{HttpMethod, RestClient};
-use tutasdk::{IdTuple, Sdk};
+use tutasdk::{IdTupleGenerated, Sdk};
 
 use crate::test_rest_client::TestRestClient;
 
@@ -34,7 +34,7 @@ async fn test_download_mail() {
 	let logged_in_sdk = sdk.login(credentials).await.unwrap();
 	let mail_facade = logged_in_sdk.mail_facade();
 	let mail = mail_facade
-		.load_email_by_id_encrypted(&IdTuple {
+		.load_email_by_id_encrypted(&IdTupleGenerated {
 			list_id: GeneratedId("O1qC705-17-0".to_string()),
 			element_id: GeneratedId("O1qC7an--3-0".to_string()),
 		})

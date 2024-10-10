@@ -16,7 +16,7 @@ use crate::instance_mapper::InstanceMapper;
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
 use crate::util::ArrayCastingError;
-use crate::IdTuple;
+use crate::IdTupleGenerated;
 
 /// The name of the field that contains the session key encrypted
 /// by the owner group's key in an entity
@@ -248,7 +248,9 @@ fn parse_id_field(
 ) -> Result<&GeneratedId, SessionKeyResolutionError> {
 	match id_field {
 		Some(ElementValue::IdGeneratedId(id)) => Ok(id),
-		Some(ElementValue::IdTupleId(IdTuple { element_id, .. })) => Ok(element_id),
+		Some(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated { element_id, .. })) => {
+			Ok(element_id)
+		},
 		None => Err(SessionKeyResolutionError {
 			reason: "no id present on instance".to_string(),
 		}),
@@ -380,7 +382,7 @@ mod test {
 	use crate::metamodel::TypeModel;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
-	use crate::IdTuple;
+	use crate::IdTupleGenerated;
 
 	#[tokio::test]
 	async fn test_pq_bucket_key_resolves() {
@@ -522,7 +524,7 @@ mod test {
 		);
 
 		let mail = Mail {
-			_id: IdTuple {
+			_id: IdTupleGenerated {
 				list_id: constants.instance_list.clone(),
 				element_id: constants.instance_id.clone(),
 			},
