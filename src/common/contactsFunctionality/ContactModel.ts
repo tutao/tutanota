@@ -140,6 +140,14 @@ export class ContactModel {
 		return contactLists.filter((contactList) => contactList.name.toLowerCase().includes(query))
 	}
 
+	async loadContactFromId(contactId: IdTuple) {
+		if (!this.loginController.isFullyLoggedIn()) {
+			throw new LoginIncompleteError("cannot search for contact lists as online login is not completed")
+		}
+
+		return await this.entityClient.load(ContactTypeRef, contactId)
+	}
+
 	async getContactGroupId(): Promise<Id> {
 		return getFirstOrThrow(this.loginController.getUserController().getContactGroupMemberships()).group
 	}

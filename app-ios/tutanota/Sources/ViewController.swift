@@ -5,6 +5,8 @@ import UIKit
 import UserNotifications
 import WebKit
 
+public let OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
+
 /// Main screen of the app.
 class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
 	private let themeManager: ThemeManager
@@ -224,6 +226,11 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		return readSharingInfo(infoLocation: infoLocation)
 	}
 
+	private func getInteropInfo(url: URL) async -> String? {
+		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+		return components.queryItems?.first(where: { $0.name == OPEN_CONTACT_EDITOR_CONTACT_ID })?.value
+	}
+
 	func handleShare(_ url: URL) async throws {
 		guard let info = await getSharingInfo(url: url) else {
 			TUTSLog("unable to get sharingInfo from url: \(url)")
@@ -234,6 +241,15 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			TUTSLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
+	}
+
+	func handleInterop(_ url: URL) async throws {
+		guard let info = await getInteropInfo(url: url) else {
+			TUTSLog("unable to get sharingInfo from url: \(url)")
+			return
+		}
+
+		do { try await self.bridge.commonNativeFacade.openContactEditor(info) } catch { TUTSLog("failed to open mail editor to share: \(error)") }
 	}
 
 	func handleOpenNotification(userId: String, address: String, mailId: (String, String)) {

@@ -1,12 +1,11 @@
 import { TopLevelAttrs, TopLevelView } from "../../../../TopLevelView.js"
-import { DrawerMenuAttrs } from "../../../../common/gui/nav/DrawerMenu.js"
 import { AppHeaderAttrs, Header } from "../../../../common/gui/Header.js"
 import { CalendarSearchViewModel } from "./CalendarSearchViewModel.js"
 import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
-import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, incrementMonth, LazyLoaded, lazyMemoized, memoized, TypeRef } from "@tutao/tutanota-utils"
+import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { assertNotNull, decodeBase64, incrementMonth, last, LazyLoaded, lazyMemoized, memoized, TypeRef } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
@@ -60,12 +59,18 @@ import { client } from "../../../../common/misc/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { ButtonType } from "../../../../common/gui/base/Button.js"
+import { locator } from "../../../../common/api/main/CommonLocator.js"
+import { isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
+import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer.js"
+import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel.js"
+import { PartialRecipient } from "../../../../common/api/common/recipients/Recipient.js"
 
 assertMainOrNode()
 
 export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => CalendarSearchViewModel
+	contactModel: ContactModel
 }
 
 export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<CalendarSearchViewAttrs> {
@@ -73,6 +78,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly resultDetailsColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: CalendarSearchViewModel
+	private readonly contactModel: ContactModel
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -83,9 +89,19 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}).load(),
 	)
 
+	private getContactPreviewData = memoized((id: string) =>
+		new LazyLoaded(async () => {
+			const idParts = id.split("/")
+			const contact = await this.contactModel.loadContactFromId([idParts[0], idParts[1]])
+			m.redraw()
+			return contact
+		}).load(),
+	)
+
 	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
+		this.contactModel = vnode.attrs.contactModel
 
 		this.resultListColumn = new ViewColumn(
 			{
@@ -215,8 +231,52 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					  })
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 					? null
-					: this.renderEventDetails(selectedEvent),
+					: this.handleEventPreview(selectedEvent),
 		})
+	}
+
+	private handleEventPreview(event: CalendarEvent) {
+		if (isBirthdayEvent(event.uid)) {
+			const idParts = event._id[1].split("#")
+
+			const contactId = this.extractContactIdFromEvent(last(idParts))
+			if (contactId != null && this.getContactPreviewData(contactId).isLoaded()) {
+				return this.renderContactPreview(this.getContactPreviewData(contactId).getSync()!)
+			}
+
+			return null
+		} else if (this.getSanitizedPreviewData(event).isLoaded()) {
+			return this.renderEventDetails(event)
+		}
+
+		return null
+	}
+
+	private extractContactIdFromEvent(id: string | null | undefined): string | null {
+		if (id == null) {
+			return null
+		}
+
+		return decodeBase64("utf-8", id)
+	}
+
+	private renderContactPreview(contact: Contact) {
+		return m(
+			".fill-absolute.flex.col.overflow-y-scroll",
+			m(ContactCardViewer, {
+				contact: contact,
+				editAction: (contact) => null, //FIXME Redirect to mail app
+				onWriteMail: this.onWriteMail,
+				extendedActions: true,
+			}),
+		)
+	}
+
+	private onWriteMail(to: PartialRecipient) {
+		const anchor = document.createElement("a")
+		anchor.href = `mailto:${to.address}`
+		anchor.target = "_blank"
+		anchor.click()
 	}
 
 	private renderEventDetails(selectedEvent: CalendarEvent) {
@@ -394,9 +454,24 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		// afterwords
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
-
+		this.invalidateBirthdayPreview()
 		// redraw because init() is async
 		m.redraw()
+	}
+
+	private invalidateBirthdayPreview() {
+		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
+		if (!selectedEvent || !isBirthdayEvent(selectedEvent.uid)) {
+			return
+		}
+
+		const idParts = selectedEvent._id[1].split("#")
+		const contactId = this.extractContactIdFromEvent(last(idParts))
+		if (!contactId) {
+			return
+		}
+
+		this.getContactPreviewData(contactId).reload().then(m.redraw)
 	}
 
 	private getMainButton(typeRef: TypeRef<unknown>): {
@@ -442,20 +517,39 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderCalendarFilter(): Children {
-		if (this.searchViewModel.getLazyCalendarInfos().isLoaded()) {
+		if (this.searchViewModel.getLazyCalendarInfos().isLoaded() && this.searchViewModel.getUserHasNewPaidPlan().isLoaded()) {
 			const calendarInfos = this.searchViewModel.getLazyCalendarInfos().getSync() ?? []
 
 			// Load user's calendar list
-			const items = Array.from(calendarInfos.values()).map((ci) => ({
-				name: getSharedGroupName(ci.groupInfo, calendarLocator.logins.getUserController(), true),
+			const items: { name: string; value: CalendarInfo | string }[] = Array.from(calendarInfos.values()).map((ci) => ({
+				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
 				value: ci,
 			}))
 
+			if (this.searchViewModel.getUserHasNewPaidPlan().getSync()) {
+				const localCalendars = this.searchViewModel.getLocalCalendars().map((cal) => ({
+					name: cal.name,
+					value: cal.id,
+				}))
+
+				items.push(...localCalendars)
+			}
+
 			// Find the selected value after loading the available calendars
 			const selectedValue =
-				items.find((calendar) =>
-					isSameId([calendar.value.groupRoot.longEvents, calendar.value.groupRoot.shortEvents], this.searchViewModel.selectedCalendar),
-				)?.value ?? null
+				items.find((calendar) => {
+					if (!calendar.value) {
+						return
+					}
+
+					if (typeof calendar.value === "string") {
+						return calendar.value === this.searchViewModel.selectedCalendar
+					}
+
+					// It isn't a string, so it can be only a Calendar Info
+					const calendarValue = calendar.value
+					return isSameId([calendarValue.groupRoot.longEvents, calendarValue.groupRoot.shortEvents], this.searchViewModel.selectedCalendar)
+				})?.value ?? null
 
 			return m(
 				".mlr-button",
@@ -463,13 +557,20 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					label: "calendar_label",
 					items: [{ name: lang.get("all_label"), value: null }, ...items],
 					selectedValue,
-					selectionChangedHandler: (value: CalendarInfo | null) => {
+					selectionChangedHandler: (value: CalendarInfo | string | null) => {
 						// re-search with new list ids
 						// value can be null if default option has been selected
-						this.searchViewModel.selectedCalendar = value ? [value.groupRoot.longEvents, value.groupRoot.shortEvents] : null
+						if (typeof value === "string") {
+							this.searchViewModel.selectedCalendar = value
+						} else if (value) {
+							this.searchViewModel.selectedCalendar = [value.groupRoot.longEvents, value.groupRoot.shortEvents]
+						} else {
+							this.searchViewModel.selectedCalendar = null
+						}
+
 						this.searchViewModel.searchAgain()
 					},
-				} satisfies DropDownSelectorAttrs<CalendarInfo | null>),
+				} satisfies DropDownSelectorAttrs<CalendarInfo | string | null>),
 			)
 		} else {
 			return null

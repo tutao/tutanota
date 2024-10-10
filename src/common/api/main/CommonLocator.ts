@@ -67,6 +67,7 @@ import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePay
 import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
+import { DeviceConfig } from "../../misc/DeviceConfig.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -162,6 +163,7 @@ export interface CommonLocator {
 	nativeCredentialsFacade: NativeCredentialsFacade
 	mobilePaymentsFacade: MobilePaymentsFacade
 	appStorePaymentPicker: AppStorePaymentPicker
+	deviceConfig: DeviceConfig
 }
 
 export let locator: CommonLocator = new Proxy<CommonLocator>({} as unknown as CommonLocator, {

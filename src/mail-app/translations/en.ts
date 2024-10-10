@@ -1798,6 +1798,7 @@ export default {
 		"you_label": "You",
 		"birthdayEvent_title": `{name}'s birthday`,
 		"birthdayEventAge_title": `({age} years old)`,
+		"birthdayCalendar_label": "Birthdays",
 		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again."
 	}
 }

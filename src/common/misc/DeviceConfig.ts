@@ -12,7 +12,7 @@ import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
 import { SyncStatus } from "../calendar/import/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
+import type { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"

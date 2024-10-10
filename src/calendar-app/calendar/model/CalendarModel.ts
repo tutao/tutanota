@@ -1051,6 +1051,16 @@ export class CalendarModel {
 	getFileIdToSkippedCalendarEventUpdates(): Map<Id, CalendarEventUpdate> {
 		return this.fileIdToSkippedCalendarEventUpdates
 	}
+
+	getBirthdayEventTitle(contactName: string) {
+		return lang.get("birthdayEvent_title", {
+			"{name}": contactName,
+		})
+	}
+
+	getAgeString(age: number) {
+		return lang.get("birthdayEventAge_title", { "{age}": age })
+	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events

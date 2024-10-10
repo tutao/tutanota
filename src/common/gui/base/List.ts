@@ -517,12 +517,16 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			style: {
 				bottom: 0,
 				height: px(size.list_row_height),
-				// display: "none",
+				display: this.shouldDisplayStatusRow() ? "none" : null,
 			},
 			oncreate: (vnode) => {
 				this.loadingIndicatorChildDom = vnode.dom as HTMLElement
 			},
 		})
+	}
+
+	private shouldDisplayStatusRow() {
+		return this.state?.loadingStatus === ListLoadingState.Done || this.state?.loadingStatus === ListLoadingState.Idle
 	}
 
 	private renderSwipeItems(attrs: ListAttrs<T, VH>): Children {

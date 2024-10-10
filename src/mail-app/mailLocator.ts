@@ -57,7 +57,7 @@ import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from ".
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
-import { deviceConfig } from "../common/misc/DeviceConfig.js"
+import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
@@ -135,7 +135,7 @@ import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
-import { generateRandomColor } from "../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { lang } from "../common/misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -287,6 +287,7 @@ class MailLocator {
 				calendarEventsRepository,
 				redraw,
 				deviceConfig.getMailAutoSelectBehavior(),
+				deviceConfig.getClientOnlyCalendars(),
 			)
 		}
 	}
@@ -366,7 +367,15 @@ class MailLocator {
 		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
-		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
+		return new CalendarEventsRepository(
+			await this.calendarModel(),
+			this.calendarFacade,
+			timeZone,
+			this.entityClient,
+			this.eventController,
+			this.contactModel,
+			this.logins,
+		)
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
@@ -493,6 +502,10 @@ class MailLocator {
 	async externalLoginViewModelFactory(): Promise<() => ExternalLoginViewModel> {
 		const { ExternalLoginViewModel } = await import("./mail/view/ExternalLoginView.js")
 		return () => new ExternalLoginViewModel(this.credentialsProvider)
+	}
+
+	get deviceConfig(): DeviceConfig {
+		return deviceConfig
 	}
 
 	get native(): NativeInterfaceMain {
@@ -1062,7 +1075,7 @@ class MailLocator {
 				mailLocator.nativeContactsSyncManager()?.syncContacts()
 			},
 			() => this.handleExternalSync(),
-			this.setUpClientOnlyCalendars,
+			() => this.setUpClientOnlyCalendars(),
 		)
 	})
 
@@ -1106,7 +1119,7 @@ class MailLocator {
 		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
 			const calendarId = `${this.logins.getUserController().userId}#${id}`
 			const config = configs.get(calendarId)
-			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name, color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
+			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name: lang.get(name), color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
 		}
 	}
 

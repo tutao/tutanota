@@ -44,6 +44,8 @@ import { DateProvider } from "../../api/common/DateProvider"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
+import { LoginController } from "../../api/main/LoginController.js"
+import { BirthdayEvent } from "./CalendarEventsRepository.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -1029,4 +1031,38 @@ export function getCalendarType(groupSettings: GroupSettings | null, groupInfo: 
 	if (hasSourceUrl(groupSettings)) return CalendarType.URL
 	if (isClientOnlyCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
 	return CalendarType.NORMAL
+}
+
+export function extractYearFromBirthday(birthday: string | null): number | null {
+	if (!birthday) {
+		return null
+	}
+
+	const dateParts = birthday.split("-")
+	const partsLength = dateParts.length
+
+	// A valid ISO date should contain 3 parts:
+	// YYYY-mm-dd => [yyyy, mm, dd]
+	if (partsLength !== 3) {
+		return null
+	}
+
+	return Number.parseInt(dateParts[0])
+}
+
+export async function retrieveClientOnlyEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEvent[]>) {
+	if (!(await logins.getUserController().isNewPaidPlan())) {
+		return []
+	}
+
+	const clientOnlyEvents = events.filter(([calendarId, _]) => isClientOnlyCalendar(calendarId)).flatMap((event) => event.join("/"))
+	const retrievedEvents: CalendarEvent[] = []
+
+	for (const event of Array.from(localEvents.values()).flat()) {
+		if (clientOnlyEvents.includes(event.event._id.join("/"))) {
+			retrievedEvents.push(event.event)
+		}
+	}
+
+	return retrievedEvents
 }

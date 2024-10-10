@@ -80,4 +80,17 @@ class IosMobileSystemFacade: MobileSystemFacade {
 			if !isPermissionGranted { throw TutanotaSharedFramework.PermissionError(message: "Notification Permission was not granted.") }
 		}
 	}
+
+	func openMailApp(_ query: String) async throws {
+		guard let decodedQuery = String(data: Data(base64Encoded: query)!, encoding: .utf8) else {
+			throw TutanotaSharedFramework.TutanotaError(message: "Failed to decode query string during interop")
+		}
+		let url = "tutamail://interop?\(decodedQuery)"
+
+		if let url = URL(string: url), await UIApplication.shared.canOpenURL(url) {
+			DispatchQueue.main.async { UIApplication.shared.open(url) }
+		} else {
+			DispatchQueue.main.async { UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id922429609")!) }
+		}
+	}
 }

@@ -7,6 +7,7 @@ import { listIdPart } from "../../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository.js"
+import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -97,6 +98,11 @@ export class CalendarSearchModel {
 				return this.lastSearchPromise
 			}
 
+			const hasNewPaidPlan = await calendarModel.canLoadBirthdaysCalendar()
+			if (hasNewPaidPlan) {
+				await calendarModel.loadContactsBirthdays()
+			}
+
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, monitor, this.cancelSignal)
 			monitor.completed()
 
@@ -116,6 +122,26 @@ export class CalendarSearchModel {
 				return this.lastSearchPromise
 			}
 
+			const followCommonRestrictions = (key: string, event: CalendarEvent) => {
+				if (alreadyAdded.has(key)) {
+					// we only need the first event in the series, the view will load & then generate
+					// the series for the searched time range.
+					return false
+				}
+
+				if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event._id))) {
+					// check that the event is in the searched calendar.
+					return false
+				}
+
+				if (restriction.eventSeries === false && event.repeatRule != null) {
+					// applied "repeating" search filter
+					return false
+				}
+
+				return true
+			}
+
 			if (tokens.length > 0) {
 				// we're iterating by event first to only have to sanitize the description once.
 				// that's a smaller savings than one might think because for the vast majority of
@@ -125,20 +151,10 @@ export class CalendarSearchModel {
 						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
 							continue
 						}
+
 						const key = idToKey(event._id)
-						if (alreadyAdded.has(key)) {
-							// we only need the first event in the series, the view will load & then generate
-							// the series for the searched time range.
-							continue
-						}
 
-						if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event._id))) {
-							// check that the event is in the searched calendar.
-							continue
-						}
-
-						if (restriction.eventSeries === false && event.repeatRule != null) {
-							// applied "repeating" search filter
+						if (!followCommonRestrictions(key, event)) {
 							continue
 						}
 
@@ -149,6 +165,7 @@ export class CalendarSearchModel {
 								continue eventLoop
 							}
 						}
+
 						// checking the summary was cheap, now we store the sanitized description to check it against
 						// all tokens.
 						const descriptionToSearch = event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
@@ -156,6 +173,42 @@ export class CalendarSearchModel {
 							if (descriptionToSearch.includes(token)) {
 								alreadyAdded.add(key)
 								calendarResult.results.push(event._id)
+								continue eventLoop
+							}
+						}
+
+						if (this.cancelSignal()) {
+							this.result(calendarResult)
+							this.lastSearchPromise = Promise.resolve(calendarResult)
+							return this.lastSearchPromise
+						}
+					}
+				}
+
+				const startDate = new Date(restriction.start)
+				const endDate = new Date(restriction.end)
+
+				if (hasNewPaidPlan) {
+					const birthdayEvents = Array.from(calendarModel.getBirthdayEvents().values()).flat()
+
+					eventLoop: for (const eventRegistry of birthdayEvents) {
+						// Birthdays should still appear on search even if the date itself doesn't comply to the whole restriction
+						// we only care about months
+						const month = eventRegistry.event.startTime.getMonth()
+						if (!(month >= startDate.getMonth() && month <= endDate.getMonth())) {
+							continue
+						}
+
+						const key = idToKey(eventRegistry.event._id)
+
+						if (!followCommonRestrictions(key, eventRegistry.event)) {
+							continue
+						}
+
+						for (const token of tokens) {
+							if (eventRegistry.event.summary.toLowerCase().includes(token)) {
+								alreadyAdded.add(key)
+								calendarResult.results.push(eventRegistry.event._id)
 								continue eventLoop
 							}
 						}

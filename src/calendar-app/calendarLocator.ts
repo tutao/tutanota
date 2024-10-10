@@ -53,7 +53,7 @@ import { CalendarEvent, CalendarEventAttendee, Mail, MailboxProperties } from ".
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
-import { deviceConfig } from "../common/misc/DeviceConfig.js"
+import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
@@ -110,7 +110,7 @@ import { locator } from "../common/api/main/CommonLocator.js"
 import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
-import { generateRandomColor } from "./calendar/gui/CalendarGuiUtils.js"
+import { lang } from "../common/misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -222,6 +222,7 @@ class CalendarLocator {
 				this.progressTracker,
 				calendarEventsRepository,
 				redraw,
+				deviceConfig.getClientOnlyCalendars(),
 			)
 		}
 	}
@@ -242,6 +243,7 @@ class CalendarLocator {
 				this.progressTracker,
 				calendarEventsRepository,
 				redraw,
+				deviceConfig.getClientOnlyCalendars(),
 			)
 		}
 	}
@@ -292,7 +294,15 @@ class CalendarLocator {
 		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
-		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController)
+		return new CalendarEventsRepository(
+			await this.calendarModel(),
+			this.calendarFacade,
+			timeZone,
+			this.entityClient,
+			this.eventController,
+			this.contactModel,
+			this.logins,
+		)
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
@@ -356,6 +366,10 @@ class CalendarLocator {
 			? (query: string) => this.mobileContactsFacade.findSuggestions(query).catch(ofClass(PermissionError, () => []))
 			: null
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
+	}
+
+	get deviceConfig(): DeviceConfig {
+		return deviceConfig
 	}
 
 	get native(): NativeInterfaceMain {
@@ -853,7 +867,7 @@ class CalendarLocator {
 				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 			},
 			() => this.handleExternalSync(),
-			this.setUpClientOnlyCalendars,
+			() => this.setUpClientOnlyCalendars(),
 		)
 	})
 
@@ -897,7 +911,11 @@ class CalendarLocator {
 		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
 			const calendarId = `${this.logins.getUserController().userId}#${id}`
 			const config = configs.get(calendarId)
-			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name, color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
+			if (!config)
+				deviceConfig.updateClientOnlyCalendars(calendarId, {
+					name: lang.get(name),
+					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
+				})
 		}
 	}
 

@@ -38,6 +38,7 @@ import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 
 import { AppType } from "../common/misc/ClientConstants.js"
+import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -341,6 +342,7 @@ import("./translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					searchViewModelFactory: () => SearchViewModel
+					contactModel: ContactModel
 				}
 			>(
 				{
@@ -353,6 +355,7 @@ import("./translations/en.js")
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
 								searchViewModelFactory: await mailLocator.searchViewModelFactory(),
+								contactModel: mailLocator.contactModel,
 							},
 						}
 					},
@@ -360,6 +363,7 @@ import("./translations/en.js")
 						drawerAttrs: cache.drawerAttrsFactory(),
 						header: cache.header,
 						makeViewModel: cache.searchViewModelFactory,
+						contactModel: cache.contactModel,
 					}),
 				},
 				mailLocator.logins,

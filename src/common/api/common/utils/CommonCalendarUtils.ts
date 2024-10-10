@@ -62,6 +62,17 @@ export function generateEventElementId(timestamp: number): string {
 }
 
 /**
+ * USE THIS ONLY WITH LOCAL EVENTS
+ * generate an element id for a local calendar event
+ * @param timestamp the start time of the event or the creation time of the alarm
+ * @param identifier identifier to differentiate between events occurring at same time
+ */
+export function generateLocalEventElementId(timestamp: number, identifier: string): string {
+	// We don't have to shift the days because the event never leaves the client
+	return stringToCustomId(`${timestamp}${identifier}`)
+}
+
+/**
  * https://262.ecma-international.org/5.1/#sec-15.9.1.1
  * * ECMAScript Number values can represent all integers from –9,007,199,254,740,992 to 9,007,199,254,740,992
  * * The actual range of times supported by ECMAScript Date objects is slightly smaller: a range of +-8,640,000,000,000,000 milliseconds

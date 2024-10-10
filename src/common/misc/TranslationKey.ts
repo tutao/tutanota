@@ -1784,3 +1784,4 @@ export type TranslationKeyType =
 	| "makeAdminPendingUserGroupKeyRotationError_msg"
 	| "birthdayEvent_title"
 	| "birthdayEventAge_title"
+	| "birthdayCalendar_label"

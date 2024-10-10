@@ -10,12 +10,13 @@ export interface ContactCardAttrs {
 	onWriteMail: (to: PartialRecipient) => unknown
 	editAction?: (contact: Contact) => unknown
 	deleteAction?: (contacts: Contact[]) => unknown
+	extendedActions?: boolean
 }
 
 /** Wraps contact viewer in a nice card. */
 export class ContactCardViewer implements Component<ContactCardAttrs> {
 	view({ attrs }: Vnode<ContactCardAttrs>): Children {
-		const { contact, onWriteMail, editAction, deleteAction } = attrs
+		const { contact, onWriteMail, editAction, deleteAction, extendedActions } = attrs
 		return [
 			m(
 				".border-radius-big.rel",
@@ -30,6 +31,7 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 					onWriteMail,
 					editAction,
 					deleteAction,
+					extendedActions,
 				}),
 			),
 			m(".mt-l"),

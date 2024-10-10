@@ -76,4 +76,6 @@ class IosMobileSystemFacade: MobileSystemFacade {
 			if !isPermissionGranted { throw PermissionError(message: "Notification Permission was not granted.") }
 		}
 	}
+
+	func openMailApp(_ query: String) async throws { TUTSLog("Tried to open Mail App from Mail App") }
 }

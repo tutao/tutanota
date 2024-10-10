@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import {
@@ -33,6 +33,7 @@ import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
+import type { AllIcons } from "../../../common/gui/base/Icon.js"
 
 assertMainOrNode()
 
@@ -41,6 +42,7 @@ export interface ContactViewerAttrs {
 	onWriteMail: (to: PartialRecipient) => unknown
 	editAction?: (contact: Contact) => unknown
 	deleteAction?: (contacts: Contact[]) => unknown
+	extendedActions?: boolean
 }
 
 /**
@@ -93,42 +95,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 						m("", this.renderJobInformation(contact)),
 						this.hasBirthday(contact) ? m("", this.formattedBirthday(contact)) : null,
 					]),
-					contact && (attrs.editAction || attrs.deleteAction)
-						? m(
-								".flex-end",
-								m(
-									IconButton,
-									attachDropdown({
-										mainButtonAttrs: {
-											title: "more_label",
-											icon: Icons.More,
-										},
-										childAttrs: () => {
-											return [
-												attrs.editAction
-													? {
-															label: "edit_action",
-															icon: Icons.Edit,
-															click: () => {
-																assertNotNull(attrs.editAction, "Edit action in Contact Viewer has disappeared")(contact)
-															},
-													  }
-													: null,
-												attrs.deleteAction
-													? {
-															label: "delete_action",
-															icon: Icons.Trash,
-															click: () => {
-																assertNotNull(attrs.deleteAction, "Delete action in Contact Viewer has disappeared")([contact])
-															},
-													  }
-													: null,
-											]
-										},
-									}),
-								),
-						  )
-						: null,
+					this.renderActions(contact, attrs),
 				),
 				m("hr.hr.mt.mb"),
 			]),
@@ -138,6 +105,88 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			this.renderWebsitesAndInstantMessengers(contact),
 			this.renderComment(contact),
 		])
+	}
+
+	private renderExtendedActions(contact: Contact, attrs: ContactViewerAttrs) {
+		return m.fragment({}, [this.renderEditButton(contact, attrs), this.renderDeleteButton(contact, attrs)])
+	}
+
+	private renderEditButton(contact: Contact, attrs: ContactViewerAttrs) {
+		if (!attrs.editAction) {
+			return null
+		}
+
+		return m(IconButton, {
+			title: "edit_action",
+			icon: Icons.Edit,
+			click: () => assertNotNull(attrs.editAction, "Invalid Edit action in Contact Viewer")(contact),
+		})
+	}
+
+	private renderDeleteButton(contact: Contact, attrs: ContactViewerAttrs) {
+		if (!attrs.deleteAction) {
+			return null
+		}
+
+		return m(IconButton, {
+			title: "delete_action",
+			icon: Icons.Trash,
+			click: () => assertNotNull(attrs.deleteAction, "Invalid Delete action in Contact Viewer")([contact]),
+		})
+	}
+
+	private renderActionsDropdown(contact: Contact, attrs: ContactViewerAttrs) {
+		const actions: { label: TranslationKey; icon: AllIcons; click: () => void }[] = []
+
+		if (attrs.editAction) {
+			actions.push({
+				label: "edit_action",
+				icon: Icons.Edit,
+				click: () => {
+					assertNotNull(attrs.editAction, "Edit action in Contact Viewer has disappeared")(contact)
+				},
+			})
+		}
+
+		if (attrs.deleteAction) {
+			actions.push({
+				label: "delete_action",
+				icon: Icons.Trash,
+				click: () => {
+					assertNotNull(attrs.deleteAction, "Delete action in Contact Viewer has disappeared")([contact])
+				},
+			})
+		}
+
+		if (actions.length === 0) {
+			return null
+		}
+
+		return m(
+			".flex-end",
+			m(
+				IconButton,
+				attachDropdown({
+					mainButtonAttrs: {
+						title: "more_label",
+						icon: Icons.More,
+					},
+					childAttrs: () => actions,
+				}),
+			),
+		)
+	}
+
+	private renderActions(contact: Contact, attrs: ContactViewerAttrs) {
+		if (!contact || !(attrs.editAction || attrs.deleteAction)) {
+			return null
+		}
+
+		if (attrs.extendedActions) {
+			return this.renderExtendedActions(contact, attrs)
+		}
+
+		return this.renderActionsDropdown(contact, attrs)
 	}
 
 	private renderJobInformation(contact: Contact): Children {

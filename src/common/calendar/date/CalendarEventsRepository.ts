@@ -5,23 +5,28 @@ import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
+	createRepeatRuleWithValues,
+	extractYearFromBirthday,
+	generateUid,
 	getEventEnd,
 	getEventStart,
 	getMonthRange,
 	isBirthdayEvent,
 	isClientOnlyCalendar,
 } from "./CalendarUtils.js"
-import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { findAllAndRemove } from "@tutao/tutanota-utils"
-import { OperationType } from "../../api/common/TutanotaConstants.js"
+import { findAllAndRemove, incrementDate, isNotNull, stringToBase64 } from "@tutao/tutanota-utils"
+import { CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, OperationType, RepeatPeriod } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { generateLocalEventElementId, getAllDayDateUTC } from "../../api/common/utils/CommonCalendarUtils.js"
+import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
+import { LoginController } from "../../api/main/LoginController.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -55,6 +60,8 @@ export class CalendarEventsRepository {
 		private readonly zone: string,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
+		private readonly contactModel: ContactModel,
+		private readonly logins: LoginController,
 	) {
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
 
@@ -73,33 +80,31 @@ export class CalendarEventsRepository {
 		return this.daysToEvents
 	}
 
+	getBirthdayEvents(): Map<number, BirthdayEvent[]> {
+		return this.clientOnlyEvents
+	}
+
+	async canLoadBirthdaysCalendar(): Promise<boolean> {
+		return await this.logins.getUserController().isNewPaidPlan()
+	}
+
 	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, canceled: Stream<boolean>): Promise<void> {
 		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
 			for (const dayInMonth of daysInMonths) {
 				if (canceled()) return
 
-				const month = getMonthRange(dayInMonth, this.zone)
+				const monthRange = getMonthRange(dayInMonth, this.zone)
 
-				if (!this.loadedMonths.has(month.start)) {
-					this.loadedMonths.add(month.start)
+				if (!this.loadedMonths.has(monthRange.start)) {
+					this.loadedMonths.add(monthRange.start)
 
 					try {
 						const calendarInfos = await this.calendarModel.getCalendarInfos()
-						const eventsMap = await this.calendarFacade.updateEventMap(month, calendarInfos, this.daysToEvents(), this.zone)
+						const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
 						this.replaceEvents(eventsMap)
-
-						const clientOnlyEventsThisMonth = this.clientOnlyEvents.get(dayInMonth.getMonth())
-						const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
-						if (birthdaysOfThisMonth) {
-							for (const calendarEvent of birthdaysOfThisMonth) {
-								const age = this.calculateContactsAge(calendarEvent.baseYear, dayInMonth.getFullYear())
-								const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
-
-								this.addDaysForRecurringEvent({ ...calendarEvent.event, summary: `${calendarEvent.event.summary} ${ageString}` }, month)
-							}
-						}
+						this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 					} catch (e) {
-						this.loadedMonths.delete(month.start)
+						this.loadedMonths.delete(monthRange.start)
 						throw e
 					}
 				}
@@ -220,10 +225,102 @@ export class CalendarEventsRepository {
 		return currentYear - birthYear
 	}
 
-	public async pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
-		let clientOnlyEventsOfThisMonth = this.clientOnlyEvents.get(month)
-		if (!clientOnlyEventsOfThisMonth) clientOnlyEventsOfThisMonth = []
+	public pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
+		let clientOnlyEventsOfThisMonth = this.clientOnlyEvents.get(month) ?? []
 		clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
 		this.clientOnlyEvents.set(month, clientOnlyEventsOfThisMonth)
+	}
+
+	private createClientOnlyBirthdayEvent(contact: Contact, userId: Id) {
+		const encodedContactId = stringToBase64(contact._id.join("/"))
+		const calendarId = `${userId}#${CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID}`
+		const uid = generateUid(calendarId, Date.now())
+
+		const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)
+
+		// Set the year because we can have birthdays without year
+		if (contact.birthdayIso?.startsWith("--")) {
+			contact.birthdayIso = contact.birthdayIso.replace("-", "1970")
+		}
+
+		const birthday = new Date(contact.birthdayIso!)
+
+		// Set up start and end date base on UTC.
+		// Also increments a copy of startDate by one day and set it as endDate
+		const startDate = getAllDayDateUTC(new Date(birthday))
+		const endDate = getAllDayDateUTC(incrementDate(new Date(startDate), 1))
+
+		const newEvent = createCalendarEvent({
+			sequence: "0",
+			recurrenceId: null,
+			hashedUid: null,
+			summary: eventTitle,
+			startTime: startDate,
+			endTime: endDate,
+			location: "",
+			description: "", // The only visible part of the event will be the title
+			alarmInfos: [],
+			organizer: null,
+			attendees: [],
+			invitedConfidentially: null,
+			repeatRule: createRepeatRuleWithValues(RepeatPeriod.ANNUALLY, 1),
+			uid,
+		})
+
+		newEvent._id = [calendarId, `${generateLocalEventElementId(newEvent.startTime.getTime(), contact._id.join("/"))}#${encodedContactId}`]
+		newEvent._ownerGroup = calendarId
+		return newEvent
+	}
+
+	async loadContactsBirthdays(forceReload: boolean = false) {
+		// Do not reload birthdays
+		if (this.clientOnlyEvents.size > 0 && !forceReload) {
+			return
+		}
+
+		// Always work with an empty map of birthdays
+		this.clientOnlyEvents.clear()
+
+		const listId = await this.contactModel.getContactListId()
+		if (listId == null) return []
+
+		const dateRegex = /\d{2}-\d{2}$/
+
+		const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
+		const filteredContacts = contacts
+			.filter((contact) => isNotNull(contact.birthdayIso))
+			.sort((a, b) => {
+				const dateA = a.birthdayIso?.match(dateRegex)
+				const dateB = b.birthdayIso?.match(dateRegex)
+				return new Date(dateA![0]).getTime() - new Date(dateB![0]).getTime()
+			})
+
+		for (const contact of filteredContacts) {
+			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
+			this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+		}
+
+		return filteredContacts
+	}
+
+	refreshBirthdayCalendar(date: Date) {
+		const month = getMonthRange(date, this.zone)
+		this.addBirthdaysEventsIfNeeded(date, month, true)
+	}
+
+	addBirthdaysEventsIfNeeded(selectedDate: Date, monthRangeForRecurrence: CalendarTimeRange, removeEventOccurrences = false) {
+		const clientOnlyEventsThisMonth = this.clientOnlyEvents.get(selectedDate.getMonth())
+		const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
+		if (birthdaysOfThisMonth) {
+			for (const calendarEvent of birthdaysOfThisMonth) {
+				const age = this.calculateContactsAge(calendarEvent.baseYear, selectedDate.getFullYear())
+				const ageString = age ? this.calendarModel.getAgeString(age) : ""
+
+				if (removeEventOccurrences) {
+					this.removeDaysForEvent(calendarEvent.event._id)
+				}
+				this.addDaysForRecurringEvent({ ...calendarEvent.event, summary: `${calendarEvent.event.summary} ${ageString}` }, monthRangeForRecurrence)
+			}
+		}
 	}
 }
