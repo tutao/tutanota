@@ -260,7 +260,7 @@ class TutanotaNotificationsHandler(
 			credentialType = CredentialType.INTERNAL
 		)
 
-		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient(), BuildConfig.VERSION_NAME).login(credentials)
+		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient()).login(credentials)
 
 		val mailId = notificationInfo.mailId?.toSdkIdTuple()
 			?: throw IllegalArgumentException("Missing mailId for notification ${sseInfo.pushIdentifier}")

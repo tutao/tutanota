@@ -63,7 +63,6 @@ class NotificationService: UNNotificationServiceExtension {
 		-> tutasdk.Mail?
 	{
 		guard let origin = notificationStorage.sseInfo?.sseOrigin else { return nil }
-		let clientVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
 		guard let encryptedPassphraseKey = credentials.encryptedPassphraseKey else { return nil }
 		let credentials = tutasdk.Credentials(
 			login: credentials.credentialInfo.login,
@@ -72,7 +71,7 @@ class NotificationService: UNNotificationServiceExtension {
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = try await Sdk(baseUrl: origin, restClient: SdkRestClient(), clientVersion: clientVersion).login(credentials: credentials)
+		let sdk = try await Sdk(baseUrl: origin, restClient: SdkRestClient()).login(credentials: credentials)
 		return try await sdk.mailFacade().loadEmailByIdEncrypted(idTuple: tutasdk.IdTuple(listId: mailId[0], elementId: mailId[1]))
 	}
 	private func getSenderOfMail(_ mail: tutasdk.Mail) -> String {

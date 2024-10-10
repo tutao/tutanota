@@ -63,6 +63,8 @@ mod typed_entity_client;
 mod user_facade;
 mod util;
 
+pub static CLIENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 uniffi::setup_scaffolding!();
 
 /// A type for an instance/entity from the backend
@@ -92,23 +94,19 @@ impl Display for TypeRef {
 }
 
 pub struct HeadersProvider {
-	client_version: String,
 	// In the future we might need to make this one optional to support "not authenticated" state
 	access_token: String,
 }
 
 impl HeadersProvider {
-	fn new(client_version: String, access_token: String) -> Self {
-		Self {
-			client_version,
-			access_token,
-		}
+	fn new(access_token: String) -> Self {
+		Self { access_token }
 	}
 
 	fn provide_headers(&self, model_version: u32) -> HashMap<String, String> {
 		HashMap::from([
 			("accessToken".to_string(), self.access_token.clone()),
-			("cv".to_owned(), self.client_version.clone()),
+			("cv".to_owned(), CLIENT_VERSION.to_string()),
 			("v".to_owned(), model_version.to_string()),
 		])
 	}
@@ -122,13 +120,12 @@ pub struct Sdk {
 	instance_mapper: Arc<InstanceMapper>,
 	rest_client: Arc<dyn RestClient>,
 	base_url: String,
-	client_version: String,
 }
 
 #[uniffi::export]
 impl Sdk {
 	#[uniffi::constructor]
-	pub fn new(base_url: String, rest_client: Arc<dyn RestClient>, client_version: String) -> Sdk {
+	pub fn new(base_url: String, rest_client: Arc<dyn RestClient>) -> Sdk {
 		logging::init_logger();
 		log::debug!("Initializing SDK...");
 
@@ -143,16 +140,13 @@ impl Sdk {
 			instance_mapper,
 			rest_client,
 			base_url,
-			client_version,
 		}
 	}
 
 	/// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
 	pub async fn login(&self, credentials: Credentials) -> Result<Arc<LoggedInSdk>, LoginError> {
-		let auth_headers_provider = Arc::new(HeadersProvider::new(
-			self.client_version.clone(),
-			credentials.access_token.clone(),
-		));
+		let auth_headers_provider =
+			Arc::new(HeadersProvider::new(credentials.access_token.clone()));
 		let entity_client = Arc::new(EntityClient::new(
 			self.rest_client.clone(),
 			self.json_serializer.clone(),
