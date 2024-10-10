@@ -17,7 +17,6 @@ use crate::metamodel::{AssociationType, Cardinality, ElementType, ValueType};
 use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 use crate::IdTuple;
-use crate::metamodel::ValueType::String;
 
 /// Generates a URL-safe random string of length `Size`.
 #[must_use]
