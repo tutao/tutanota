@@ -37,7 +37,7 @@ impl Entity for BlobAccessTokenPostOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct BlobArchiveRef {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub archive: GeneratedId,
