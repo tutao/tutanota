@@ -846,6 +846,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderDatePicker(searchViewModelDate: Date | null, start: boolean, confirmCallback: ConfirmCallback): Children {
+		// FIXME: don't have this in a function, split this out
 		let nullSelectionText: TranslationText | undefined = undefined
 
 		if (start) {
@@ -894,11 +895,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 		return m(
 			".flex.col",
-			m(".pr-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.startDate, true, confirmCallback)),
+			m(
+				".pr-s.flex-grow.flex-space-between.flex-column",
+				this.renderDatePicker(this.searchViewModel.startDate ?? this.searchViewModel.getCurrentMailIndexDate(), true, confirmCallback),
+			),
 			m(".pl-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.endDate, false, confirmCallback)),
 		)
 	}
 
+	//FIXME: not used anymore, take out (keeping around for reference until this is done)
 	private renderCalendarTimeRangeField(): Children {
 		const startDate = new Date()
 		const start = this.searchViewModel.startDate == null ? lang.get("today_label") : formatDate(this.searchViewModel.startDate)
