@@ -54,6 +54,8 @@ import {
 import {
 	AccountType,
 	CalendarAttendeeStatus,
+	CLIENT_ONLY_CALENDARS,
+	DEFAULT_CLIENT_ONLY_CALENDAR_COLORS,
 	defaultCalendarColor,
 	EndType,
 	EventTextTimeOption,
@@ -77,6 +79,7 @@ import { EventsOnDays } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
+import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -734,6 +737,15 @@ export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroup
 		return acc
 	}, new Map())
 })
+
+export const getClientOnlyColors = (userId: Id, clientOnlyCalendarsInfo: Map<Id, ClientOnlyCalendarsInfo>) => {
+	const colors: Map<Id, string> = new Map()
+	for (const [id, _] of CLIENT_ONLY_CALENDARS) {
+		const calendarId = `${userId}#${id}`
+		colors.set(calendarId, clientOnlyCalendarsInfo.get(calendarId)?.color ?? DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!)
+	}
+	return colors
+}
 
 /**
  *  find out how we ended up with this event, which determines the capabilities we have with it.

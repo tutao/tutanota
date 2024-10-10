@@ -13,12 +13,12 @@ import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
+import { CalendarType, getTimeZone, isExternalCalendarType } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
 
-import { EventImportRejectionReason, EventWrapper, isExternalCalendarType, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { EventImportRejectionReason, EventWrapper, sortOutParsedEvents } from "./ImportExportUtils.js"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import

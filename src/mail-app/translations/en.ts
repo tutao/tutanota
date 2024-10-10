@@ -1795,6 +1795,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"birthdayEvent_title": `{name}'s birthday`,
+		"birthdayEventAge_title": `({age} years old)`
 	}
 }

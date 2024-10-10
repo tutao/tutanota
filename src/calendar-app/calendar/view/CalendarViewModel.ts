@@ -1,23 +1,52 @@
-import { $Promisable, assertNotNull, clone, debounce, findAndRemove, getStartOfDay, groupByAndMapUniquely } from "@tutao/tutanota-utils"
-import { CalendarEvent, CalendarEventTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { EXTERNAL_CALENDAR_SYNC_INTERVAL, getWeekStart, GroupType, OperationType, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import {
+	$Promisable,
+	assertNotNull,
+	clone,
+	debounce,
+	deepEqual,
+	downcast,
+	findAndRemove,
+	getStartOfDay,
+	groupByAndMapUniquely,
+	incrementDate,
+	isNotNull,
+	LazyLoaded,
+} from "@tutao/tutanota-utils"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import {
+	CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
+	CLIENT_ONLY_CALENDARS,
+	EXTERNAL_CALENDAR_SYNC_INTERVAL,
+	getWeekStart,
+	GroupType,
+	OperationType,
+	RepeatPeriod,
+	WeekStart,
+} from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
-import type { ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
+import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { getDiffIn60mIntervals, getMonthRange, isEventBetweenDays } from "../../../common/calendar/date/CalendarUtils"
-import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { askIfShouldSendCalendarUpdatesToAttendees, getEventType, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
+import { createRepeatRuleWithValues, generateUid, getDiffIn60mIntervals, getMonthRange, isEventBetweenDays } from "../../../common/calendar/date/CalendarUtils"
+import { generateEventElementId, getAllDayDateUTC, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import {
+	assignEventIdentity,
+	CalendarEventModel,
+	CalendarOperation,
+	EventSaveResult,
+	EventType,
+	getNonOrganizerAttendees,
+} from "../gui/eventeditor-model/CalendarEventModel.js"
+import { askIfShouldSendCalendarUpdatesToAttendees, getClientOnlyColors, getEventType, getGroupColors, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
-import { DeviceConfig } from "../../../common/misc/DeviceConfig"
+import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -26,6 +55,9 @@ import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPr
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
+import type { GroupColors } from "./CalendarView.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -79,6 +111,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// The size of the list in the view
 	private viewSize: number | null = null
 
+	private _isNewPaidPlan: boolean = false
+	private localCalendars: Map<Id, CalendarInfo> = new Map<Id, CalendarInfo>()
+	private _calendarColors: GroupColors = new Map()
+
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
@@ -92,6 +128,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly calendarInvitationsModel: ReceivedGroupInvitationsModel<GroupType.Calendar>,
 		private readonly timeZone: string,
 		private readonly mailboxModel: MailboxModel,
+		private readonly contactModel: ContactModel,
 	) {
 		this._transientEvents = []
 
@@ -124,7 +161,22 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		calendarInvitationsModel.init()
 
-		this.eventsRepository.getEventsForMonths().map(() => this.doRedraw())
+		const lazyLoadedContactsWithBirthday = new LazyLoaded(this.loadContactsBirthdays.bind(this))
+		lazyLoadedContactsWithBirthday.getAsync()
+
+		this.eventsRepository.getEventsForMonths().map(() => {
+			this.doRedraw()
+		})
+
+		this.loadCalendarColors()
+
+		logins
+			.getUserController()
+			.isNewPaidPlan()
+			.then((isNewPaidPlan) => {
+				this._isNewPaidPlan = isNewPaidPlan
+				this.prepareClientCalendars()
+			})
 	}
 
 	isDaySelectorExpanded(): boolean {
@@ -133,6 +185,43 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	setDaySelectorExpanded(expanded: boolean) {
 		this.deviceConfig.setCalendarDaySelectorExpanded(expanded)
+	}
+
+	loadCalendarColors() {
+		const clientOnlyColors = getClientOnlyColors(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars())
+		const groupColors = getGroupColors(this.logins.getUserController().userSettingsGroupRoot)
+		for (let [calendarId, color] of clientOnlyColors.entries()) {
+			groupColors.set(calendarId, color)
+		}
+
+		if (!deepEqual(this._calendarColors, groupColors)) {
+			this._calendarColors = new Map(groupColors)
+		}
+	}
+
+	/**
+	 * Load client only calendars or generate them if missing
+	 */
+	private prepareClientCalendars() {
+		for (const [clientOnlyCalendarBaseId, name] of CLIENT_ONLY_CALENDARS) {
+			const calendarID = `${this.logins.getUserController().userId}#${clientOnlyCalendarBaseId}`
+			const clientOnlyCalendarConfig = deviceConfig.getClientOnlyCalendars().get(calendarID)
+
+			this.localCalendars.set(
+				calendarID,
+				downcast({
+					groupRoot: { _id: calendarID },
+					groupInfo: clientOnlyCalendarConfig ? { name: clientOnlyCalendarConfig.name, group: calendarID } : { name, group: calendarID },
+					group: { _id: calendarID },
+					shared: false,
+					userIsOwner: true,
+				}),
+			)
+
+			if (!this.isNewPaidPlan && !this.hiddenCalendars.has(calendarID)) {
+				this._hiddenCalendars.add(calendarID)
+			}
+		}
 	}
 
 	/**
@@ -163,6 +252,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	get calendarInvitations(): Stream<Array<ReceivedGroupInvitation>> {
 		return this.calendarInvitationsModel.invitations
+	}
+
+	get calendarColors(): GroupColors {
+		return this._calendarColors
+	}
+
+	get clientOnlyCalendars(): ReadonlyMap<Id, CalendarInfo> {
+		return this.localCalendars
 	}
 
 	get calendarInfos(): ReadonlyMap<Id, CalendarInfo> {
@@ -448,6 +545,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this._removeTransientEvent(transientEvent)
 					this.doRedraw()
 				}
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+				this.logins
+					.getUserController()
+					.isNewPaidPlan()
+					.then((isNewPaidPlan) => (this._isNewPaidPlan = isNewPaidPlan))
 			}
 		}
 	}
@@ -506,6 +608,93 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	public getCalendarModel() {
 		return this.calendarModel
+	}
+
+	handleClientOnlyUpdate(groupInfo: GroupInfo, newGroupSettings: GroupSettings) {
+		this.deviceConfig.updateClientOnlyCalendars(groupInfo.group, newGroupSettings)
+	}
+
+	async loadContactsBirthdays() {
+		const listId = await this.contactModel.getContactListId()
+		if (listId == null) return []
+		return await this.entityClient
+			.loadAll(ContactTypeRef, listId)
+			.then((allContacts) => allContacts.filter((contact) => isNotNull(contact.birthdayIso)))
+			.then((result) => {
+				const regex = /\d{2}-\d{2}$/
+				result.sort((a, b) => {
+					const dateA = a.birthdayIso?.match(regex)
+					const dateB = b.birthdayIso?.match(regex)
+					return new Date(dateA![0]).getTime() - new Date(dateB![0]).getTime()
+				})
+				const contactsWithBirthday = result
+
+				const currentYear = new Date().getFullYear()
+				for (const contact of result) {
+					const newEvent = this.createClientOnlyEvent(contact, currentYear)
+					this.eventsRepository.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, this.extractYearFromBirthday(contact.birthdayIso))
+				}
+				return contactsWithBirthday
+			})
+	}
+
+	private extractYearFromBirthday(birthday: string | null): number | null {
+		if (!birthday) {
+			return null
+		}
+
+		const dateParts = birthday.split("-")
+		const partsLength = dateParts.length
+
+		// A valid ISO date should contain 3 parts:
+		// YYYY-mm-dd => [yyyy, mm, dd]
+		if (partsLength !== 3) {
+			return null
+		}
+
+		return Number.parseInt(dateParts[0])
+	}
+
+	private createClientOnlyEvent(contact: Contact, currentYear: number) {
+		const calendarId = `${this.logins.getUserController().userId}#${CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID}`
+		const uid = generateUid(calendarId, Date.now())
+
+		const eventTitle = lang.get("birthdayEvent_title", {
+			"{name}": contact.firstName,
+		})
+
+		// Set the year because we can have birthdays without year
+		const originalYear = this.extractYearFromBirthday(contact.birthdayIso) ?? new Date(0).getFullYear()
+		const birthday = new Date(contact.birthdayIso!).setFullYear(originalYear)
+
+		// Set up start and end date base on UTC.
+		// Also increments a copy of startDate by one day and set it as endDate
+		const startDate = getAllDayDateUTC(new Date(birthday))
+		const endDate = getAllDayDateUTC(incrementDate(new Date(startDate), 1))
+
+		const newEvent = assignEventIdentity(
+			{
+				summary: eventTitle,
+				startTime: startDate,
+				endTime: endDate,
+				location: "",
+				description: "", // The only visible part of the event will be the title
+				alarmInfos: [],
+				organizer: null,
+				attendees: [],
+				invitedConfidentially: null,
+				repeatRule: createRepeatRuleWithValues(RepeatPeriod.ANNUALLY, 1),
+			},
+			{ uid },
+		)
+
+		newEvent._id = [calendarId, generateEventElementId(newEvent.startTime.getTime())]
+		newEvent._ownerGroup = calendarId
+		return newEvent
+	}
+
+	get isNewPaidPlan(): Readonly<boolean> {
+		return this._isNewPaidPlan
 	}
 }
 

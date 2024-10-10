@@ -16,8 +16,8 @@ import {
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
-import { CalendarEvent, UserSettingsGroupRoot } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
 	ContactAddressTypeRef,
@@ -27,6 +27,7 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	TutanotaPropertiesTypeRef,
+	UserSettingsGroupRoot,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
@@ -236,6 +237,7 @@ export function makeUserController(
 		}),
 		userSettingsGroupRoot: {
 			timeFormat: TimeFormat.TWENTY_FOUR_HOURS,
+			groupSettings: [],
 			...userSettingsGroupRoot,
 		},
 		isInternalUser: () => true,
