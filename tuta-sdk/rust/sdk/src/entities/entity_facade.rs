@@ -203,7 +203,8 @@ impl EntityFacadeImpl {
 				},
 				AssociationType::ElementAssociation
 				| AssociationType::ListAssociation
-				| AssociationType::ListElementAssociation
+				| AssociationType::ListElementAssociationCustom
+				| AssociationType::ListElementAssociationGenerated
 				| AssociationType::BlobElementAssociation => instance
 					.get(&association_name.to_string())
 					.cloned()
@@ -1111,7 +1112,6 @@ mod tests {
 		{
 			let original_mail = raw_mail;
 			let encrypted_mail = encrypted_mail.unwrap();
-			let instance_mapper = InstanceMapper::new();
 
 			let mut decrypted_mail = entity_facade
 				.decrypt_and_map(
@@ -1254,7 +1254,6 @@ mod tests {
 	This is however not intended. We skip the implementation because we did not need it for service call?"]
 	fn empty_final_iv_and_default_value_should_be_preserved() {
 		let type_model_provider = Arc::new(init_type_model_provider());
-		let json_serializer = JsonSerializer::new(type_model_provider.clone());
 		let entity_facade = EntityFacadeImpl::new(
 			Arc::clone(&type_model_provider),
 			RandomizerFacade::from_core(rand_core::OsRng),

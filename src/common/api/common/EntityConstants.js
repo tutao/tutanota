@@ -17,9 +17,10 @@ export const Cardinality = Object.freeze({
 export const AssociationType = Object.freeze({
 	ElementAssociation: "ELEMENT_ASSOCIATION",
 	ListAssociation: "LIST_ASSOCIATION",
-	ListElementAssociation: "LIST_ELEMENT_ASSOCIATION",
+	ListElementAssociationGenerated: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 	Aggregation: "AGGREGATION",
 	BlobElementAssociation: "BLOB_ELEMENT_ASSOCIATION",
+	ListElementAssociationCustom: "LIST_ELEMENT_ASSOCIATION_CUSTOM",
 })
 
 export const ValueType = Object.freeze({

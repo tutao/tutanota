@@ -18,13 +18,14 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::custom_id::CustomId;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::entities::sys::{CreateSessionData, SaltData};
 use crate::entities::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::entity_client::IdType;
+use crate::entity_client::{IdTupleType, IdType};
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
@@ -327,12 +328,19 @@ pub enum ListLoadDirection {
 
 /// A set of keys used to identify an element within a List Element Type
 #[derive(uniffi::Record, Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct IdTuple {
+pub struct IdTupleGenerated {
 	pub list_id: GeneratedId,
 	pub element_id: GeneratedId,
 }
 
-impl IdTuple {
+/// A set of keys used to identify an element within a List Element Type
+#[derive(uniffi::Record, Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
+pub struct IdTupleCustom {
+	pub list_id: GeneratedId,
+	pub element_id: CustomId,
+}
+
+impl IdTupleGenerated {
 	#[must_use]
 	pub fn new(list_id: GeneratedId, element_id: GeneratedId) -> Self {
 		Self {
@@ -342,9 +350,27 @@ impl IdTuple {
 	}
 }
 
-impl IdType for IdTuple {}
+impl IdTupleCustom {
+	#[must_use]
+	pub fn new(list_id: GeneratedId, element_id: CustomId) -> Self {
+		Self {
+			list_id,
+			element_id,
+		}
+	}
+}
+impl IdType for IdTupleGenerated {}
+impl IdTupleType for IdTupleGenerated {}
+impl IdType for IdTupleCustom {}
+impl IdTupleType for IdTupleCustom {}
 
-impl Display for IdTuple {
+impl Display for IdTupleGenerated {
+	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+		write!(f, "{}/{}", self.list_id, self.element_id)
+	}
+}
+
+impl Display for IdTupleCustom {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		write!(f, "{}/{}", self.list_id, self.element_id)
 	}
@@ -424,7 +450,11 @@ impl<C> Encode<C> for ElementValue {
 			ElementValue::Bool(b) => e.bool(*b)?,
 			ElementValue::IdGeneratedId(s) => e.str(s.as_str())?,
 			ElementValue::IdCustomId(s) => e.str(s.as_str())?,
-			ElementValue::IdTupleId(id) => e
+			ElementValue::IdTupleGeneratedElementId(id) => e
+				.array(2)?
+				.str(id.list_id.as_str())?
+				.str(id.element_id.as_str())?,
+			ElementValue::IdTupleCustomElementId(id) => e
 				.array(2)?
 				.str(id.list_id.as_str())?
 				.str(id.element_id.as_str())?,

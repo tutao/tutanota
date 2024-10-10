@@ -10,7 +10,7 @@ pub struct AttachmentKeyData {
 	pub bucketEncFileSessionKey: Option<Vec<u8>>,
 	#[serde(with = "serde_bytes")]
 	pub fileSessionKey: Option<Vec<u8>>,
-	pub file: IdTuple,
+	pub file: IdTupleGenerated,
 }
 impl Entity for AttachmentKeyData {
 	fn type_ref() -> TypeRef {
@@ -74,7 +74,7 @@ impl Entity for CalendarDeleteData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEvent {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -91,7 +91,7 @@ pub struct CalendarEvent {
 	pub startTime: DateTime,
 	pub summary: String,
 	pub uid: Option<String>,
-	pub alarmInfos: Vec<IdTuple>,
+	pub alarmInfos: Vec<IdTupleGenerated>,
 	pub attendees: Vec<CalendarEventAttendee>,
 	pub organizer: Option<EncryptedMailAddress>,
 	pub repeatRule: Option<CalendarRepeatRule>,
@@ -143,11 +143,11 @@ impl Entity for CalendarEventIndexRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventUidIndex {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
-	pub alteredInstances: Vec<IdTuple>,
-	pub progenitor: Option<IdTuple>,
+	pub alteredInstances: Vec<IdTupleCustom>,
+	pub progenitor: Option<IdTupleCustom>,
 }
 impl Entity for CalendarEventUidIndex {
 	fn type_ref() -> TypeRef {
@@ -162,14 +162,14 @@ impl Entity for CalendarEventUidIndex {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventUpdate {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: GeneratedId,
 	pub sender: String,
-	pub file: IdTuple,
+	pub file: IdTupleGenerated,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -247,7 +247,7 @@ impl Entity for CalendarRepeatRule {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Contact {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -275,7 +275,7 @@ pub struct Contact {
 	pub messengerHandles: Vec<ContactMessengerHandle>,
 	pub oldBirthdayAggregate: Option<Birthday>,
 	pub phoneNumbers: Vec<ContactPhoneNumber>,
-	pub photo: Option<IdTuple>,
+	pub photo: Option<IdTupleGenerated>,
 	pub pronouns: Vec<ContactPronouns>,
 	pub relationships: Vec<ContactRelationship>,
 	pub socialIds: Vec<ContactSocialId>,
@@ -358,7 +358,7 @@ impl Entity for ContactList {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactListEntry {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -535,13 +535,13 @@ impl Entity for ContactWebsite {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ConversationEntry {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub conversationType: i64,
 	pub messageId: String,
-	pub mail: Option<IdTuple>,
-	pub previous: Option<IdTuple>,
+	pub mail: Option<IdTupleGenerated>,
+	pub previous: Option<IdTupleGenerated>,
 }
 impl Entity for ConversationEntry {
 	fn type_ref() -> TypeRef {
@@ -598,7 +598,7 @@ pub struct CreateMailFolderData {
 	pub ownerEncSessionKey: Vec<u8>,
 	pub ownerGroup: Option<GeneratedId>,
 	pub ownerKeyVersion: i64,
-	pub parentFolder: Option<IdTuple>,
+	pub parentFolder: Option<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -615,7 +615,7 @@ impl Entity for CreateMailFolderData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateMailFolderReturn {
 	pub _format: i64,
-	pub newFolder: IdTuple,
+	pub newFolder: IdTupleGenerated,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -719,8 +719,8 @@ impl Entity for DeleteGroupData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DeleteMailData {
 	pub _format: i64,
-	pub folder: Option<IdTuple>,
-	pub mails: Vec<IdTuple>,
+	pub folder: Option<IdTupleGenerated>,
+	pub mails: Vec<IdTupleGenerated>,
 }
 impl Entity for DeleteMailData {
 	fn type_ref() -> TypeRef {
@@ -735,7 +735,7 @@ impl Entity for DeleteMailData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DeleteMailFolderData {
 	pub _format: i64,
-	pub folders: Vec<IdTuple>,
+	pub folders: Vec<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -755,7 +755,7 @@ pub struct DraftAttachment {
 	#[serde(with = "serde_bytes")]
 	pub ownerEncFileSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
-	pub existingFile: Option<IdTuple>,
+	pub existingFile: Option<IdTupleGenerated>,
 	pub newFile: Option<NewDraftAttachment>,
 }
 impl Entity for DraftAttachment {
@@ -793,7 +793,7 @@ impl Entity for DraftCreateData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftCreateReturn {
 	pub _format: i64,
-	pub draft: IdTuple,
+	pub draft: IdTupleGenerated,
 }
 impl Entity for DraftCreateReturn {
 	fn type_ref() -> TypeRef {
@@ -818,7 +818,7 @@ pub struct DraftData {
 	pub addedAttachments: Vec<DraftAttachment>,
 	pub bccRecipients: Vec<DraftRecipient>,
 	pub ccRecipients: Vec<DraftRecipient>,
-	pub removedAttachments: Vec<IdTuple>,
+	pub removedAttachments: Vec<IdTupleGenerated>,
 	pub replyTos: Vec<EncryptedMailAddress>,
 	pub toRecipients: Vec<DraftRecipient>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -853,7 +853,7 @@ impl Entity for DraftRecipient {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftUpdateData {
 	pub _format: i64,
-	pub draft: IdTuple,
+	pub draft: IdTupleGenerated,
 	pub draftData: DraftData,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -871,7 +871,7 @@ impl Entity for DraftUpdateData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftUpdateReturn {
 	pub _format: i64,
-	pub attachments: Vec<IdTuple>,
+	pub attachments: Vec<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -888,7 +888,7 @@ impl Entity for DraftUpdateReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EmailTemplate {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1017,7 +1017,7 @@ impl Entity for ExternalUserData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TutanotaFile {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1028,7 +1028,7 @@ pub struct TutanotaFile {
 	pub name: String,
 	pub size: i64,
 	pub blobs: Vec<sys::Blob>,
-	pub parent: Option<IdTuple>,
+	pub parent: Option<IdTupleGenerated>,
 	pub subFiles: Option<Subfiles>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -1069,7 +1069,7 @@ impl Entity for FileSystem {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupInvitationDeleteData {
 	pub _format: i64,
-	pub receivedInvitation: IdTuple,
+	pub receivedInvitation: IdTupleGenerated,
 }
 impl Entity for GroupInvitationDeleteData {
 	fn type_ref() -> TypeRef {
@@ -1123,7 +1123,7 @@ pub struct GroupInvitationPutData {
 	#[serde(with = "serde_bytes")]
 	pub userGroupEncGroupKey: Vec<u8>,
 	pub userGroupKeyVersion: i64,
-	pub receivedInvitation: IdTuple,
+	pub receivedInvitation: IdTupleGenerated,
 }
 impl Entity for GroupInvitationPutData {
 	fn type_ref() -> TypeRef {
@@ -1233,7 +1233,7 @@ pub struct InboxRule {
 	#[serde(rename = "type")]
 	pub r#type: String,
 	pub value: String,
-	pub targetFolder: IdTuple,
+	pub targetFolder: IdTupleGenerated,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 impl Entity for InboxRule {
@@ -1302,7 +1302,7 @@ impl Entity for InternalRecipientKeyData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct KnowledgeBaseEntry {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1345,7 +1345,7 @@ pub struct ListUnsubscribeData {
 	pub _format: i64,
 	pub headers: String,
 	pub recipient: String,
-	pub mail: IdTuple,
+	pub mail: IdTupleGenerated,
 }
 impl Entity for ListUnsubscribeData {
 	fn type_ref() -> TypeRef {
@@ -1360,7 +1360,7 @@ impl Entity for ListUnsubscribeData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Mail {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1380,14 +1380,14 @@ pub struct Mail {
 	pub state: i64,
 	pub subject: String,
 	pub unread: bool,
-	pub attachments: Vec<IdTuple>,
+	pub attachments: Vec<IdTupleGenerated>,
 	pub bucketKey: Option<sys::BucketKey>,
-	pub conversationEntry: IdTuple,
+	pub conversationEntry: IdTupleGenerated,
 	pub firstRecipient: Option<MailAddress>,
-	pub mailDetails: Option<IdTuple>,
-	pub mailDetailsDraft: Option<IdTuple>,
+	pub mailDetails: Option<IdTupleGenerated>,
+	pub mailDetailsDraft: Option<IdTupleGenerated>,
 	pub sender: MailAddress,
-	pub sets: Vec<IdTuple>,
+	pub sets: Vec<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -1406,7 +1406,7 @@ pub struct MailAddress {
 	pub _id: CustomId,
 	pub address: String,
 	pub name: String,
-	pub contact: Option<IdTuple>,
+	pub contact: Option<IdTupleGenerated>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 impl Entity for MailAddress {
@@ -1504,7 +1504,7 @@ impl Entity for MailDetails {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsBlob {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1527,7 +1527,7 @@ impl Entity for MailDetailsBlob {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsDraft {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1565,7 +1565,7 @@ impl Entity for MailDetailsDraftsRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailFolder {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1577,7 +1577,7 @@ pub struct MailFolder {
 	pub name: String,
 	pub entries: GeneratedId,
 	pub mails: GeneratedId,
-	pub parentFolder: Option<IdTuple>,
+	pub parentFolder: Option<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -1609,10 +1609,10 @@ impl Entity for MailFolderRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailSetEntry {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleCustom,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
-	pub mail: IdTuple,
+	pub mail: IdTupleGenerated,
 }
 impl Entity for MailSetEntry {
 	fn type_ref() -> TypeRef {
@@ -1692,9 +1692,9 @@ impl Entity for MailboxServerProperties {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MoveMailData {
 	pub _format: i64,
-	pub mails: Vec<IdTuple>,
-	pub sourceFolder: Option<IdTuple>,
-	pub targetFolder: IdTuple,
+	pub mails: Vec<IdTupleGenerated>,
+	pub sourceFolder: Option<IdTupleGenerated>,
+	pub targetFolder: IdTupleGenerated,
 }
 impl Entity for MoveMailData {
 	fn type_ref() -> TypeRef {
@@ -1912,11 +1912,11 @@ impl Entity for Recipients {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RemoteImapSyncInfo {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub seen: bool,
-	pub message: IdTuple,
+	pub message: IdTupleGenerated,
 }
 impl Entity for RemoteImapSyncInfo {
 	fn type_ref() -> TypeRef {
@@ -1934,7 +1934,7 @@ pub struct ReportMailPostData {
 	#[serde(with = "serde_bytes")]
 	pub mailSessionKey: Vec<u8>,
 	pub reportType: i64,
-	pub mailId: IdTuple,
+	pub mailId: IdTupleGenerated,
 }
 impl Entity for ReportMailPostData {
 	fn type_ref() -> TypeRef {
@@ -2005,7 +2005,7 @@ pub struct SendDraftData {
 	pub sessionEncEncryptionAuthStatus: Option<Vec<u8>>,
 	pub attachmentKeyData: Vec<AttachmentKeyData>,
 	pub internalRecipientKeyData: Vec<InternalRecipientKeyData>,
-	pub mail: IdTuple,
+	pub mail: IdTupleGenerated,
 	pub secureExternalRecipientKeyData: Vec<SecureExternalRecipientKeyData>,
 	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
 }
@@ -2025,7 +2025,7 @@ pub struct SendDraftReturn {
 	pub messageId: String,
 	pub sentDate: DateTime,
 	pub notifications: Vec<NotificationMail>,
-	pub sentMail: IdTuple,
+	pub sentMail: IdTupleGenerated,
 }
 impl Entity for SendDraftReturn {
 	fn type_ref() -> TypeRef {
@@ -2070,7 +2070,7 @@ impl Entity for SharedGroupData {
 pub struct SimpleMoveMailPostIn {
 	pub _format: i64,
 	pub destinationSetType: i64,
-	pub mails: Vec<IdTuple>,
+	pub mails: Vec<IdTupleGenerated>,
 }
 impl Entity for SimpleMoveMailPostIn {
 	fn type_ref() -> TypeRef {
@@ -2208,7 +2208,7 @@ pub struct TutanotaProperties {
 	pub userKeyVersion: Option<i64>,
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	pub inboxRules: Vec<InboxRule>,
-	pub lastPushedMail: Option<IdTuple>,
+	pub lastPushedMail: Option<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -2226,7 +2226,7 @@ impl Entity for TutanotaProperties {
 pub struct UnreadMailStatePostIn {
 	pub _format: i64,
 	pub unread: bool,
-	pub mails: Vec<IdTuple>,
+	pub mails: Vec<IdTupleGenerated>,
 }
 impl Entity for UnreadMailStatePostIn {
 	fn type_ref() -> TypeRef {
@@ -2241,8 +2241,8 @@ impl Entity for UnreadMailStatePostIn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UpdateMailFolderData {
 	pub _format: i64,
-	pub folder: IdTuple,
-	pub newParent: Option<IdTuple>,
+	pub folder: IdTupleGenerated,
+	pub newParent: Option<IdTupleGenerated>,
 }
 impl Entity for UpdateMailFolderData {
 	fn type_ref() -> TypeRef {

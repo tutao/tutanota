@@ -202,7 +202,7 @@ export const typeModels = {
                 "name": "appStoreSubscription",
                 "id": 2424,
                 "since": 103,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "AppStoreSubscription",
                 "dependency": null
@@ -388,7 +388,7 @@ export const typeModels = {
                 "name": "groupInfo",
                 "id": 1301,
                 "since": 27,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -966,7 +966,7 @@ export const typeModels = {
                 "name": "groupInfo",
                 "id": 1113,
                 "since": 22,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -976,7 +976,7 @@ export const typeModels = {
                 "name": "modifiedGroupInfo",
                 "id": 1307,
                 "since": 27,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -2537,7 +2537,7 @@ export const typeModels = {
                 "name": "sessionId",
                 "id": 1598,
                 "since": 50,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
                 "cardinality": "One",
                 "refType": "Session",
                 "dependency": null
@@ -3160,7 +3160,7 @@ export const typeModels = {
                 "name": "customerInfo",
                 "id": 160,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "CustomerInfo",
                 "dependency": null
@@ -3180,7 +3180,7 @@ export const typeModels = {
                 "name": "orderProcessingAgreement",
                 "id": 1348,
                 "since": 31,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "OrderProcessingAgreement",
                 "dependency": null
@@ -3347,7 +3347,7 @@ export const typeModels = {
                 "name": "terminationRequest",
                 "id": 2020,
                 "since": 79,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "CustomerAccountTerminationRequest",
                 "dependency": null
@@ -3739,7 +3739,7 @@ export const typeModels = {
                 "name": "terminationRequest",
                 "id": 2014,
                 "since": 79,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "CustomerAccountTerminationRequest",
                 "dependency": null
@@ -4029,7 +4029,7 @@ export const typeModels = {
                 "name": "invoice",
                 "id": 1043,
                 "since": 18,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "LegacyInvoice",
                 "dependency": null
@@ -4976,7 +4976,7 @@ export const typeModels = {
                 "name": "giftCard",
                 "id": 1815,
                 "since": 65,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GiftCard",
                 "dependency": null
@@ -5010,7 +5010,7 @@ export const typeModels = {
                 "name": "giftCard",
                 "id": 1812,
                 "since": 65,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GiftCard",
                 "dependency": null
@@ -5198,7 +5198,7 @@ export const typeModels = {
                 "name": "giftCard",
                 "id": 1823,
                 "since": 65,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GiftCard",
                 "dependency": null
@@ -5407,7 +5407,7 @@ export const typeModels = {
                 "name": "groupInfo",
                 "id": 227,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -5860,7 +5860,7 @@ export const typeModels = {
                 "name": "groupKeyUpdates",
                 "id": 2407,
                 "since": 102,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "Any",
                 "refType": "GroupKeyUpdate",
                 "dependency": null
@@ -6210,7 +6210,7 @@ export const typeModels = {
                 "name": "userGroupInfo",
                 "id": 221,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -6308,7 +6308,7 @@ export const typeModels = {
                 "name": "groupInfo",
                 "id": 30,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -6318,7 +6318,7 @@ export const typeModels = {
                 "name": "groupMember",
                 "id": 230,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupMember",
                 "dependency": null
@@ -6828,7 +6828,7 @@ export const typeModels = {
                 "name": "bookings",
                 "id": 1672,
                 "since": 52,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "Any",
                 "refType": "Booking",
                 "dependency": null
@@ -8549,7 +8549,7 @@ export const typeModels = {
                 "name": "pushIdentifier",
                 "id": 1555,
                 "since": 48,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "PushIdentifier",
                 "dependency": null
@@ -8665,7 +8665,7 @@ export const typeModels = {
                 "name": "signerUserGroupInfo",
                 "id": 1336,
                 "since": 31,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -8699,7 +8699,7 @@ export const typeModels = {
                 "name": "secondFactors",
                 "id": 1246,
                 "since": 24,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "Any",
                 "refType": "SecondFactor",
                 "dependency": null
@@ -10339,7 +10339,7 @@ export const typeModels = {
                 "name": "sentInvitation",
                 "id": 1616,
                 "since": 52,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "SentGroupInvitation",
                 "dependency": null
@@ -11458,7 +11458,7 @@ export const typeModels = {
                 "name": "session",
                 "id": 1232,
                 "since": 23,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
                 "cardinality": "ZeroOrOne",
                 "refType": "Session",
                 "dependency": null
@@ -11512,7 +11512,7 @@ export const typeModels = {
                 "name": "session",
                 "id": 1757,
                 "since": 62,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
                 "cardinality": "One",
                 "refType": "Session",
                 "dependency": null
@@ -11832,7 +11832,7 @@ export const typeModels = {
                 "name": "receivedInvitation",
                 "id": 1617,
                 "since": 52,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "ZeroOrOne",
                 "refType": "ReceivedGroupInvitation",
                 "dependency": null
@@ -12601,7 +12601,7 @@ export const typeModels = {
                 "name": "secondFactor",
                 "id": 1182,
                 "since": 23,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "SecondFactor",
                 "dependency": null
@@ -12771,7 +12771,7 @@ export const typeModels = {
                 "name": "bucketPermission",
                 "id": 451,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "BucketPermission",
                 "dependency": null
@@ -12781,7 +12781,7 @@ export const typeModels = {
                 "name": "permission",
                 "id": 450,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "Permission",
                 "dependency": null
@@ -14102,7 +14102,7 @@ export const typeModels = {
                 "name": "authorGroupInfo",
                 "id": 486,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -14286,7 +14286,7 @@ export const typeModels = {
                 "name": "authorGroupInfo",
                 "id": 249,
                 "since": 1,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "GroupInfo",
                 "dependency": null
@@ -14875,7 +14875,7 @@ export const typeModels = {
                 "name": "whitelabelChildInParent",
                 "id": 1275,
                 "since": 26,
-                "type": "LIST_ELEMENT_ASSOCIATION",
+                "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
                 "refType": "WhitelabelChild",
                 "dependency": null

@@ -1,3 +1,4 @@
+use crate::entity_client::{BaseIdType, IdType};
 use base64::Engine;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -48,6 +49,9 @@ impl Debug for CustomId {
 		write!(f, "Custom ID: \"{self}\"")
 	}
 }
+
+impl IdType for CustomId {}
+impl BaseIdType for CustomId {}
 
 uniffi::custom_newtype!(CustomId, String);
 

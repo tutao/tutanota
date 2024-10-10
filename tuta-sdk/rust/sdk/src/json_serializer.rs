@@ -14,7 +14,7 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::{IdTuple, TypeRef};
+use crate::{IdTupleCustom, IdTupleGenerated, TypeRef};
 
 impl From<&TypeModel> for TypeRef {
 	fn from(value: &TypeModel) -> Self {
@@ -150,11 +150,11 @@ impl JsonSerializer {
 					);
 				},
 				(
-					AssociationType::ListElementAssociation,
+					AssociationType::ListElementAssociationGenerated,
 					Cardinality::One | Cardinality::ZeroOrOne,
 					JsonElement::Array(vec),
 				) => {
-					let id_tuple = match Self::parse_id_tuple(vec) {
+					let id_tuple = match Self::parse_id_tuple_generated(vec) {
 						None => {
 							return Err(InvalidValue {
 								type_ref: association_type_ref,
@@ -163,14 +163,46 @@ impl JsonSerializer {
 						},
 						Some(id_tuple) => id_tuple,
 					};
-					mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
+					mapped.insert(
+						association_name,
+						ElementValue::IdTupleGeneratedElementId(id_tuple),
+					);
 				},
 				(
-					AssociationType::ListElementAssociation,
+					AssociationType::ListElementAssociationCustom,
+					Cardinality::One | Cardinality::ZeroOrOne,
+					JsonElement::Array(vec),
+				) => {
+					let id_tuple = match Self::parse_id_tuple_custom(vec) {
+						None => {
+							return Err(InvalidValue {
+								type_ref: association_type_ref,
+								field: association_name,
+							});
+						},
+						Some(id_tuple) => id_tuple,
+					};
+					mapped.insert(
+						association_name,
+						ElementValue::IdTupleCustomElementId(id_tuple),
+					);
+				},
+				(
+					AssociationType::ListElementAssociationGenerated,
 					Cardinality::Any,
 					JsonElement::Array(vec),
 				) => {
-					let ids = self.parse_id_tuple_list(type_ref, &association_name, vec)?;
+					let ids =
+						self.parse_id_tuple_list_generated(type_ref, &association_name, vec)?;
+
+					mapped.insert(association_name, ElementValue::Array(ids));
+				},
+				(
+					AssociationType::ListElementAssociationCustom,
+					Cardinality::Any,
+					JsonElement::Array(vec),
+				) => {
+					let ids = self.parse_id_tuple_list_custom(type_ref, &association_name, vec)?;
 
 					mapped.insert(association_name, ElementValue::Array(ids));
 				},
@@ -179,7 +211,7 @@ impl JsonSerializer {
 					Cardinality::One | Cardinality::ZeroOrOne,
 					JsonElement::Array(vec),
 				) => {
-					let id_tuple = match Self::parse_id_tuple(vec) {
+					let id_tuple = match Self::parse_id_tuple_generated(vec) {
 						None => {
 							return Err(InvalidValue {
 								type_ref: association_type_ref,
@@ -188,7 +220,10 @@ impl JsonSerializer {
 						},
 						Some(id_tuple) => id_tuple,
 					};
-					mapped.insert(association_name, ElementValue::IdTupleId(id_tuple));
+					mapped.insert(
+						association_name,
+						ElementValue::IdTupleGeneratedElementId(id_tuple),
+					);
 				},
 				_ => {},
 			}
@@ -222,7 +257,7 @@ impl JsonSerializer {
 		Ok(parsed_aggregates)
 	}
 
-	fn parse_id_tuple_list(
+	fn parse_id_tuple_list_generated(
 		&self,
 		outer_type_ref: &TypeRef,
 		association_name: &str,
@@ -237,11 +272,36 @@ impl JsonSerializer {
 						type_ref: outer_type_ref.clone(),
 					});
 				};
-				let id_tuple = Self::parse_id_tuple(id_vec).ok_or_else(|| InvalidValue {
+				let id_tuple =
+					Self::parse_id_tuple_generated(id_vec).ok_or_else(|| InvalidValue {
+						field: association_name.to_owned(),
+						type_ref: outer_type_ref.clone(),
+					})?;
+				Ok(ElementValue::IdTupleGeneratedElementId(id_tuple))
+			})
+			.collect()
+	}
+
+	fn parse_id_tuple_list_custom(
+		&self,
+		outer_type_ref: &TypeRef,
+		association_name: &str,
+		elements: Vec<JsonElement>,
+	) -> Result<Vec<ElementValue>, InstanceMapperError> {
+		elements
+			.into_iter()
+			.map(|json_element| {
+				let JsonElement::Array(id_vec) = json_element else {
+					return Err(InvalidValue {
+						field: association_name.to_owned(),
+						type_ref: outer_type_ref.clone(),
+					});
+				};
+				let id_tuple = Self::parse_id_tuple_custom(id_vec).ok_or_else(|| InvalidValue {
 					field: association_name.to_owned(),
 					type_ref: outer_type_ref.clone(),
 				})?;
-				Ok(ElementValue::IdTupleId(id_tuple))
+				Ok(ElementValue::IdTupleCustomElementId(id_tuple))
 			})
 			.collect()
 	}
@@ -295,7 +355,9 @@ impl JsonSerializer {
 					mapped.insert(association_name, JsonElement::Dict(serialized));
 				},
 				(
-					AssociationType::Aggregation | AssociationType::ListElementAssociation,
+					AssociationType::Aggregation
+					| AssociationType::ListElementAssociationGenerated
+					| AssociationType::ListElementAssociationCustom,
 					Cardinality::Any,
 					ElementValue::Array(elements),
 				) => {
@@ -318,9 +380,22 @@ impl JsonSerializer {
 					mapped.insert(association_name, JsonElement::String(id.into()));
 				},
 				(
-					AssociationType::ListElementAssociation,
+					AssociationType::ListElementAssociationGenerated,
 					Cardinality::One,
-					ElementValue::IdTupleId(id_tuple),
+					ElementValue::IdTupleGeneratedElementId(id_tuple),
+				) => {
+					mapped.insert(
+						association_name,
+						JsonElement::Array(vec![
+							JsonElement::String(id_tuple.list_id.into()),
+							JsonElement::String(id_tuple.element_id.into()),
+						]),
+					);
+				},
+				(
+					AssociationType::ListElementAssociationCustom,
+					Cardinality::One,
+					ElementValue::IdTupleCustomElementId(id_tuple),
 				) => {
 					mapped.insert(
 						association_name,
@@ -363,7 +438,13 @@ impl JsonSerializer {
 				ElementValue::String(v) => {
 					serialized_elements.push(JsonElement::String(v));
 				},
-				ElementValue::IdTupleId(id_tuple) => {
+				ElementValue::IdTupleGeneratedElementId(id_tuple) => {
+					serialized_elements.push(JsonElement::Array(vec![
+						JsonElement::String(id_tuple.list_id.into()),
+						JsonElement::String(id_tuple.element_id.into()),
+					]))
+				},
+				ElementValue::IdTupleCustomElementId(id_tuple) => {
 					serialized_elements.push(JsonElement::Array(vec![
 						JsonElement::String(id_tuple.list_id.into()),
 						JsonElement::String(id_tuple.element_id.into()),
@@ -423,13 +504,26 @@ impl JsonSerializer {
 					ElementType::Element | ElementType::Aggregated,
 				) => Ok(JsonElement::String(v)),
 				(
-					ValueType::GeneratedId | ValueType::CustomId,
+					ValueType::GeneratedId,
+					ElementValue::IdGeneratedId(v),
+					ElementType::Element | ElementType::Aggregated,
+				) => Ok(JsonElement::String(v.to_string())),
+				(
+					ValueType::CustomId,
 					ElementValue::IdCustomId(v),
 					ElementType::Element | ElementType::Aggregated,
 				) => Ok(JsonElement::String(v.to_string())),
 				(
-					ValueType::GeneratedId | ValueType::CustomId,
-					ElementValue::IdTupleId(arr),
+					ValueType::GeneratedId,
+					ElementValue::IdTupleGeneratedElementId(arr),
+					ElementType::ListElement,
+				) => Ok(JsonElement::Array(vec![
+					JsonElement::String(arr.list_id.into()),
+					JsonElement::String(arr.element_id.into()),
+				])),
+				(
+					ValueType::CustomId,
+					ElementValue::IdTupleCustomElementId(arr),
 					ElementType::ListElement,
 				) => Ok(JsonElement::Array(vec![
 					JsonElement::String(arr.list_id.into()),
@@ -468,13 +562,31 @@ impl JsonSerializer {
 		}
 	}
 
-	/// Transforms a JSON array into an `IdTuple`
-	fn parse_id_tuple(vec: Vec<JsonElement>) -> Option<IdTuple> {
+	/// Transforms a JSON array into an `IdTupleGenerated`
+	fn parse_id_tuple_generated(vec: Vec<JsonElement>) -> Option<IdTupleGenerated> {
 		let mut it = vec.into_iter();
 		match (it.next(), it.next(), it.next()) {
 			(Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
 				// would like to consume the array here but oh well
-				Some(IdTuple::new(GeneratedId(list_id), GeneratedId(element_id)))
+				Some(IdTupleGenerated::new(
+					GeneratedId(list_id),
+					GeneratedId(element_id),
+				))
+			},
+			_ => None,
+		}
+	}
+
+	/// Transforms a JSON array into an `IdTupleCustom`
+	fn parse_id_tuple_custom(vec: Vec<JsonElement>) -> Option<IdTupleCustom> {
+		let mut it = vec.into_iter();
+		match (it.next(), it.next(), it.next()) {
+			(Some(JsonElement::String(list_id)), Some(JsonElement::String(element_id)), None) => {
+				// would like to consume the array here but oh well
+				Some(IdTupleCustom::new(
+					GeneratedId(list_id),
+					CustomId(element_id),
+				))
 			},
 			_ => None,
 		}
@@ -515,12 +627,20 @@ impl JsonSerializer {
 					ElementType::Element | ElementType::Aggregated,
 				) => Ok(ElementValue::String(v)),
 				(
-					ValueType::GeneratedId | ValueType::CustomId,
+					ValueType::GeneratedId,
 					JsonElement::Array(arr),
-					ElementType::ListElement,
-				) if arr.len() == 2 => match Self::parse_id_tuple(arr) {
+					ElementType::ListElement | ElementType::BlobElement,
+				) if arr.len() == 2 => match Self::parse_id_tuple_generated(arr) {
 					None => invalid_value(),
-					Some(id_tuple) => Ok(ElementValue::IdTupleId(id_tuple)),
+					Some(id_tuple) => Ok(ElementValue::IdTupleGeneratedElementId(id_tuple)),
+				},
+				(ValueType::CustomId, JsonElement::Array(arr), ElementType::ListElement)
+					if arr.len() == 2 =>
+				{
+					match Self::parse_id_tuple_custom(arr) {
+						None => invalid_value(),
+						Some(id_tuple) => Ok(ElementValue::IdTupleCustomElementId(id_tuple)),
+					}
 				},
 				_ => invalid_value(),
 			};
@@ -579,7 +699,6 @@ mod tests {
 	use crate::instance_mapper::InstanceMapper;
 	use crate::services::test_services::HelloEncOutput;
 	use crate::type_model_provider::{init_type_model_provider, AppName, TypeName};
-	use serde::Serialize;
 
 	#[test]
 	fn test_parse_mail() {
@@ -611,10 +730,12 @@ mod tests {
 		};
 		let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
 		assert_eq!(
-			&ElementValue::Array(vec![ElementValue::IdTupleId(IdTuple::new(
-				GeneratedId("O3lYN71--J-0".to_owned()),
-				GeneratedId("O3lYUQI----0".to_owned()),
-			))]),
+			&ElementValue::Array(vec![ElementValue::IdTupleGeneratedElementId(
+				IdTupleGenerated::new(
+					GeneratedId("O3lYN71--J-0".to_owned()),
+					GeneratedId("O3lYUQI----0".to_owned()),
+				)
+			)]),
 			parsed.get("attachments").expect("has attachments")
 		)
 	}

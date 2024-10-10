@@ -13,7 +13,7 @@ use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
-use crate::IdTuple;
+use crate::{IdTupleCustom, IdTupleGenerated};
 
 /// Converter between untyped representations of API Entities and generated structures
 pub struct InstanceMapper {}
@@ -332,52 +332,66 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
 	where
 		V: Visitor<'de>,
 	{
-		if name == "IdTuple" {
-			struct IdTupleMapAccess<I: Iterator<Item = (&'static str, GeneratedId)>> {
-				iter: I,
-				value: Option<GeneratedId>,
-			}
+		struct IdTupleMapAccess<I: Iterator<Item = (&'static str, String)>> {
+			iter: I,
+			value: Option<String>,
+		}
 
-			impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I>
+		impl<'a, I> MapAccess<'a> for IdTupleMapAccess<I>
+		where
+			I: Iterator<Item = (&'static str, String)>,
+		{
+			type Error = DeError;
+
+			fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
 			where
-				I: Iterator<Item = (&'static str, GeneratedId)>,
+				K: DeserializeSeed<'a>,
 			{
-				type Error = DeError;
-
-				fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
-				where
-					K: DeserializeSeed<'a>,
-				{
-					match self.iter.next() {
-						Some((key, value)) => {
-							self.value.replace(value);
-							seed.deserialize(key.into_deserializer()).map(Some)
-						},
-						None => Ok(None),
-					}
-				}
-
-				fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
-				where
-					V: DeserializeSeed<'a>,
-				{
-					match self.value.take() {
-						None => unreachable!(),
-						Some(v) => seed.deserialize(String::from(v).into_deserializer()),
-					}
+				match self.iter.next() {
+					Some((key, value)) => {
+						self.value.replace(value);
+						seed.deserialize(key.into_deserializer()).map(Some)
+					},
+					None => Ok(None),
 				}
 			}
-			return if let ElementValue::IdTupleId(IdTuple {
-				list_id,
-				element_id,
+
+			fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+			where
+				V: DeserializeSeed<'a>,
+			{
+				match self.value.take() {
+					None => unreachable!(),
+					Some(v) => seed.deserialize(v.into_deserializer()),
+				}
+			}
+		}
+		if name == "IdTupleGenerated" {
+			return if let ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
+				list_id: GeneratedId(list_id_str),
+				element_id: GeneratedId(element_id_str),
 			}) = self.value
 			{
 				visitor.visit_map(IdTupleMapAccess {
-					iter: [("list_id", list_id), ("element_id", element_id)].into_iter(),
+					iter: [("list_id", list_id_str), ("element_id", element_id_str)].into_iter(),
 					value: None,
 				})
 			} else {
-				Err(self.wrong_type_err("IdTuple"))
+				Err(self.wrong_type_err("IdTupleGenerated"))
+			};
+		}
+		if name == "IdTupleCustom" {
+			return if let ElementValue::IdTupleCustomElementId(IdTupleCustom {
+				list_id: GeneratedId(list_id_str),
+				element_id: CustomId(element_id_str),
+			}) = self.value
+			{
+				visitor.visit_map(IdTupleMapAccess {
+					iter: [("list_id", list_id_str), ("element_id", element_id_str)].into_iter(),
+					value: None,
+				})
+			} else {
+				Err(self.wrong_type_err("IdTupleCustom"))
 			};
 		}
 		if let ElementValue::Dict(dict) = self.value {
@@ -538,9 +552,13 @@ enum ElementValueStructSerializer {
 	Struct {
 		map: HashMap<String, ElementValue>,
 	},
-	IdTuple {
+	IdTupleGenerated {
 		list_id: Option<GeneratedId>,
 		element_id: Option<GeneratedId>,
+	},
+	IdTupleCustom {
+		list_id: Option<GeneratedId>,
+		element_id: Option<CustomId>,
 	},
 }
 
@@ -735,8 +753,13 @@ impl Serializer for ElementValueSerializer {
 		name: &'static str,
 		len: usize,
 	) -> Result<Self::SerializeStruct, Self::Error> {
-		if name == "IdTuple" {
-			Ok(ElementValueStructSerializer::IdTuple {
+		if name == "IdTupleGenerated" {
+			Ok(ElementValueStructSerializer::IdTupleGenerated {
+				list_id: None,
+				element_id: None,
+			})
+		} else if name == "IdTupleCustom" {
+			Ok(ElementValueStructSerializer::IdTupleCustom {
 				list_id: None,
 				element_id: None,
 			})
@@ -795,7 +818,7 @@ impl SerializeStruct for ElementValueStructSerializer {
 				}
 				map.insert(key.to_string(), value.serialize(ElementValueSerializer)?);
 			},
-			Self::IdTuple {
+			Self::IdTupleGenerated {
 				list_id,
 				element_id,
 			} => match key {
@@ -817,6 +840,28 @@ impl SerializeStruct for ElementValueStructSerializer {
 				},
 				_ => unreachable!("unexpected key {key} for IdTuple", key = key),
 			},
+			Self::IdTupleCustom {
+				list_id,
+				element_id,
+			} => match key {
+				"list_id" => {
+					*list_id = Some(
+						value
+							.serialize(ElementValueSerializer)?
+							.assert_generated_id()
+							.to_owned(),
+					)
+				},
+				"element_id" => {
+					*element_id = Some(
+						value
+							.serialize(ElementValueSerializer)?
+							.assert_custom_id()
+							.to_owned(),
+					)
+				},
+				_ => unreachable!("unexpected key {key} for IdTuple", key = key),
+			},
 		};
 		Ok(())
 	}
@@ -824,10 +869,17 @@ impl SerializeStruct for ElementValueStructSerializer {
 	fn end(self) -> Result<Self::Ok, Self::Error> {
 		match self {
 			Self::Struct { map } => Ok(ElementValue::Dict(map)),
-			Self::IdTuple {
+			Self::IdTupleGenerated {
 				list_id,
 				element_id,
-			} => Ok(ElementValue::IdTupleId(IdTuple {
+			} => Ok(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
+				list_id: list_id.unwrap(),
+				element_id: element_id.unwrap(),
+			})),
+			Self::IdTupleCustom {
+				list_id,
+				element_id,
+			} => Ok(ElementValue::IdTupleCustomElementId(IdTupleCustom {
 				list_id: list_id.unwrap(),
 				element_id: element_id.unwrap(),
 			})),
@@ -879,9 +931,10 @@ impl ElementValue {
 			ElementValue::Bool(v) => Unexpected::Bool(*v),
 			ElementValue::IdGeneratedId(_) => Unexpected::Other("GeneratedId"),
 			ElementValue::IdCustomId(_) => Unexpected::Other("CustomId"),
-			ElementValue::IdTupleId(_) => Unexpected::Other("IdTuple"),
+			ElementValue::IdTupleGeneratedElementId(_) => Unexpected::Other("IdTupleGenerated"),
 			ElementValue::Dict(_) => Unexpected::Map,
 			ElementValue::Array(_) => Unexpected::Seq,
+			ElementValue::IdTupleCustomElementId(_) => Unexpected::Other("IdTupleCustom"),
 		}
 	}
 }
@@ -1059,7 +1112,8 @@ mod tests {
 	use crate::crypto::crypto_facade::CryptoProtocolVersion;
 	use crate::entities::sys::{Group, GroupInfo};
 	use crate::entities::tutanota::{
-		Mail, MailboxGroupRoot, OutOfOfficeNotification, OutOfOfficeNotificationRecipientList,
+		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
+		OutOfOfficeNotificationRecipientList,
 	};
 	use crate::generated_id::GeneratedId;
 	use crate::json_element::RawEntity;
@@ -1078,7 +1132,37 @@ mod tests {
 		let group: Group = mapper.parse_entity(parsed_entity).unwrap();
 		assert_eq!(5_i64, group.r#type);
 		assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
+		assert_eq!(
+			IdTupleGenerated {
+				list_id: GeneratedId("LIopQQI--k-0".to_owned()),
+				element_id: GeneratedId("LIopQQN--c-0".to_owned())
+			},
+			group.groupInfo
+		);
 		assert_eq!("LIopQQI--k-0", group.groupInfo.list_id.as_str());
+	}
+
+	/// Test for IdTupleCustom as LET reference (not as id)
+	#[test]
+	fn test_de_calendar_event_uid_index() {
+		let json = include_str!("../test_data/calendar_event_uid_index_response.json");
+		let parsed_entity = get_parsed_entity::<CalendarEventUidIndex>(json);
+		let mapper = InstanceMapper::new();
+		let uid_index: CalendarEventUidIndex = mapper.parse_entity(parsed_entity).unwrap();
+		assert_eq!(
+			IdTupleCustom {
+				list_id: GeneratedId("O9AJe4k--w-0".to_string()),
+				element_id: CustomId("K-DUa41Th796YcV5RwMBtonQBn04PmCaSBSSfmeMUoE".to_string())
+			},
+			uid_index._id
+		);
+		assert_eq!(
+			Some(IdTupleCustom {
+				list_id: GeneratedId("O9AJe4l--3-0".to_string()),
+				element_id: CustomId("MTcyODI4NjMwNTMwMA".to_string())
+			}),
+			uid_index.progenitor
+		);
 	}
 
 	#[test]
@@ -1219,9 +1303,13 @@ mod tests {
 
 	#[test]
 	fn test_ser_group() {
-		let group_root = generate_random_group(None, None);
+		let group = generate_random_group(None, None);
 		let mapper = InstanceMapper::new();
-		let result = mapper.serialize_entity(group_root.clone()).unwrap();
+		let result = mapper.serialize_entity(group.clone()).unwrap();
+		assert_eq!(
+			&group.groupInfo,
+			result.get("groupInfo").unwrap().assert_tuple_id_generated()
+		);
 		assert_eq!(&ElementValue::Number(0), result.get("_format").unwrap());
 		assert_eq!(
 			&ElementValue::Bytes(vec![1, 2, 3]),
@@ -1253,10 +1341,39 @@ mod tests {
 	}
 
 	#[test]
+	fn test_ser_calendar_event_uid_index() {
+		let _id = IdTupleCustom::new(GeneratedId::test_random(), CustomId::test_random());
+		let progenitor = Some(IdTupleCustom::new(
+			GeneratedId::test_random(),
+			CustomId::test_random(),
+		));
+		let calendar_event_uid_index = CalendarEventUidIndex {
+			_format: 0,
+			_id: _id.clone(),
+			_ownerGroup: None,
+			_permissions: GeneratedId::test_random(),
+			alteredInstances: vec![],
+			progenitor: progenitor.clone(),
+		};
+		let mapper = InstanceMapper::new();
+		let parsed_entity = mapper.serialize_entity(calendar_event_uid_index).unwrap();
+
+		assert_eq!(
+			ElementValue::IdTupleCustomElementId(_id),
+			*parsed_entity.get("_id").unwrap()
+		);
+		assert_eq!(
+			ElementValue::IdTupleCustomElementId(progenitor.unwrap()),
+			*parsed_entity.get("progenitor").unwrap()
+		);
+	}
+
+	#[test]
 	fn test_ser_group_info() {
+		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
 		let group_info = GroupInfo {
 			_format: 0,
-			_id: IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()),
+			_id: _id.clone(),
 			_ownerEncSessionKey: None,
 			_listEncSessionKey: None,
 			_ownerGroup: None,
@@ -1277,18 +1394,46 @@ mod tests {
 		let parsed_entity = mapper.serialize_entity(group_info).unwrap();
 
 		assert_eq!(
+			ElementValue::IdTupleGeneratedElementId(_id),
+			*parsed_entity.get("_id").unwrap()
+		);
+		assert_eq!(
 			ElementValue::Date(DateTime::from_millis(1533116004052)),
 			*parsed_entity.get("created").unwrap()
 		);
 	}
 
 	#[test]
-	fn test_ser_mail() {
+	fn test_serde_mail() {
 		let mut mail = create_test_entity::<Mail>();
+		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
+		let mail_details_id =
+			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
+		let attachment_id =
+			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
+		mail._id = _id.clone();
+		mail.mailDetails = Some(mail_details_id.clone());
+		mail.attachments = vec![attachment_id.clone()];
 		mail.sender = create_test_entity();
 		let sender_name = "Sender name".to_owned();
 		mail.sender.name = sender_name.clone();
-		let serialized = InstanceMapper::new().serialize_entity(mail).unwrap();
+		let mapper = InstanceMapper::new();
+		let serialized = mapper.serialize_entity(mail).unwrap();
+		assert_eq!(
+			&_id,
+			serialized.get("_id").unwrap().assert_tuple_id_generated()
+		);
+		assert_eq!(
+			&mail_details_id,
+			serialized
+				.get("mailDetails")
+				.unwrap()
+				.assert_tuple_id_generated()
+		);
+		assert_eq!(
+			&attachment_id,
+			serialized.get("attachments").unwrap().assert_array()[0].assert_tuple_id_generated()
+		);
 		assert_eq!(
 			sender_name,
 			serialized
@@ -1298,7 +1443,29 @@ mod tests {
 				.get("name")
 				.unwrap()
 				.assert_str()
-		)
+		);
+
+		let deserialized: Mail = mapper.parse_entity(serialized).unwrap();
+
+		assert_eq!(_id, deserialized._id);
+		assert_eq!(mail_details_id, deserialized.mailDetails.unwrap());
+	}
+
+	#[test]
+	fn test_serde_mail_details_blob() {
+		let mut mail_details_blob = create_test_entity::<MailDetailsBlob>();
+		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
+		mail_details_blob._id = _id.clone();
+
+		let mapper = InstanceMapper::new();
+		let serialized = mapper.serialize_entity(mail_details_blob).unwrap();
+		assert_eq!(
+			&_id,
+			serialized.get("_id").unwrap().assert_tuple_id_generated()
+		);
+
+		let deserialized: MailDetailsBlob = mapper.parse_entity(serialized).unwrap();
+		assert_eq!(_id, deserialized._id);
 	}
 
 	fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {

@@ -161,7 +161,7 @@ mod tests {
 	use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::util::test_utils::leak;
-	use crate::{IdTuple, TypeRef};
+	use crate::{IdTupleGenerated, TypeRef};
 	use rand::random;
 	use std::sync::Arc;
 
@@ -187,8 +187,12 @@ mod tests {
 		// the callback to `returning` requires returned references to have a static lifetime
 		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
 
-		let raw_mail_id = encrypted_mail.get("_id").unwrap().assert_tuple_id();
-		let mail_id = IdTuple::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
+		let raw_mail_id = encrypted_mail
+			.get("_id")
+			.unwrap()
+			.assert_tuple_id_generated();
+		let mail_id =
+			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
 		let mail_type_ref = TypeRef {
 			app: "tutanota",
 			type_: "Mail",
@@ -204,7 +208,7 @@ mod tests {
 			.returning(|_| Ok(mail_type_model));
 		mock_entity_client
 			.expect_load()
-			.returning(move |_, _: &IdTuple| Ok(encrypted_mail.clone()));
+			.returning(move |_, _: &IdTupleGenerated| Ok(encrypted_mail.clone()));
 
 		// Set up the mock of the crypto facade
 		let mut mock_crypto_facade = MockCryptoFacade::default();

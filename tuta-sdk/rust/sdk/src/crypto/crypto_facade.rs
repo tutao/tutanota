@@ -13,7 +13,7 @@ use crate::instance_mapper::InstanceMapper;
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
 use crate::util::ArrayCastingError;
-use crate::IdTuple;
+use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use std::sync::Arc;
@@ -155,7 +155,7 @@ impl CryptoFacade {
 			let decrypted_session_key = decrypted_bucket_key
 				.decrypt_aes_key(instance_session_key.symEncSessionKey.as_slice())?;
 
-			let instance_id = parse_id_field(entity.get(ID_FIELD))?;
+			let instance_id = parse_generated_id_field(entity.get(ID_FIELD))?;
 
 			if &instance_session_key.instanceId == instance_id {
 				session_key_for_this_instance = Some(decrypted_session_key.clone());
@@ -246,12 +246,14 @@ impl CryptoFacade {
 }
 
 /// Resolves the id field of an entity into a generated id
-fn parse_id_field(
+fn parse_generated_id_field(
 	id_field: Option<&ElementValue>,
 ) -> Result<&GeneratedId, SessionKeyResolutionError> {
 	match id_field {
 		Some(ElementValue::IdGeneratedId(id)) => Ok(id),
-		Some(ElementValue::IdTupleId(IdTuple { element_id, .. })) => Ok(element_id),
+		Some(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated { element_id, .. })) => {
+			Ok(element_id)
+		},
 		None => Err(SessionKeyResolutionError {
 			reason: "no id present on instance".to_string(),
 		}),
@@ -389,7 +391,7 @@ mod test {
 	use crate::metamodel::TypeModel;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
-	use crate::IdTuple;
+	use crate::IdTupleGenerated;
 
 	#[tokio::test]
 	async fn test_pq_bucket_key_resolves() {
@@ -531,7 +533,7 @@ mod test {
 		);
 
 		let mail = Mail {
-			_id: IdTuple {
+			_id: IdTupleGenerated {
 				list_id: constants.instance_list.clone(),
 				element_id: constants.instance_id.clone(),
 			},

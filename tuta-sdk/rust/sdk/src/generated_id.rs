@@ -1,4 +1,4 @@
-use crate::entity_client::IdType;
+use crate::entity_client::{BaseIdType, IdType};
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::ToOwned;
@@ -59,6 +59,7 @@ impl Debug for GeneratedId {
 }
 
 impl IdType for GeneratedId {}
+impl BaseIdType for GeneratedId {}
 
 uniffi::custom_newtype!(GeneratedId, String);
 

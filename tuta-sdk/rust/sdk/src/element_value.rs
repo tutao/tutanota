@@ -1,7 +1,7 @@
 use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::generated_id::GeneratedId;
-use crate::IdTuple;
+use crate::{IdTupleCustom, IdTupleGenerated};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -17,9 +17,10 @@ pub enum ElementValue {
 	// Names are prefixed with 'Id' to avoid name collision in Kotlin
 	IdGeneratedId(GeneratedId),
 	IdCustomId(CustomId),
-	IdTupleId(IdTuple),
+	IdTupleGeneratedElementId(IdTupleGenerated),
 	Dict(HashMap<String, ElementValue>),
 	Array(Vec<ElementValue>),
+	IdTupleCustomElementId(IdTupleCustom),
 }
 
 pub type ParsedEntity = HashMap<String, ElementValue>;
@@ -94,9 +95,16 @@ impl ElementValue {
 			_ => panic!("Invalid type"),
 		}
 	}
-	pub fn assert_tuple_id(&self) -> &IdTuple {
+	pub fn assert_tuple_id_generated(&self) -> &IdTupleGenerated {
 		match self {
-			ElementValue::IdTupleId(value) => value,
+			ElementValue::IdTupleGeneratedElementId(value) => value,
+			_ => panic!("Invalid type"),
+		}
+	}
+
+	pub fn assert_tuple_id_custom(&self) -> &IdTupleCustom {
+		match self {
+			ElementValue::IdTupleCustomElementId(value) => value,
 			_ => panic!("Invalid type"),
 		}
 	}
@@ -132,9 +140,10 @@ impl ElementValue {
 			Self::Bool(_) => "Bool",
 			Self::IdGeneratedId(_) => "IdGeneratedId",
 			Self::IdCustomId(_) => "IdCustomId",
-			Self::IdTupleId(_) => "IdTupleId",
+			Self::IdTupleGeneratedElementId(_) => "IdTupleGeneratedElementId",
 			Self::Dict(_) => "Dict",
 			Self::Array(_) => "Array",
+			Self::IdTupleCustomElementId(_) => "IdTupleCustomElementId",
 		}
 	}
 }
@@ -187,9 +196,15 @@ impl From<CustomId> for ElementValue {
 	}
 }
 
-impl From<IdTuple> for ElementValue {
-	fn from(value: IdTuple) -> Self {
-		Self::IdTupleId(value)
+impl From<IdTupleGenerated> for ElementValue {
+	fn from(value: IdTupleGenerated) -> Self {
+		Self::IdTupleGeneratedElementId(value)
+	}
+}
+
+impl From<IdTupleCustom> for ElementValue {
+	fn from(value: IdTupleCustom) -> Self {
+		Self::IdTupleCustomElementId(value)
 	}
 }
 

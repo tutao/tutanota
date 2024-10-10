@@ -65,11 +65,11 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 	}
 
 	private suspend fun sendMailToTrash(sdk: LoggedInSdk, notificationInfo: NotificationInfo) {
-		sdk.mailFacade().trashMails(listOf(notificationInfo.mailId!!.toSdkIdTuple()))
+		sdk.mailFacade().trashMails(listOf(notificationInfo.mailId!!.toSdkIdTupleGenerated()))
 	}
 
 	private suspend fun markMailAsRead(sdk: LoggedInSdk, notificationInfo: NotificationInfo) {
-		sdk.mailFacade().setUnreadStatusForMails(listOf(notificationInfo.mailId!!.toSdkIdTuple()), false)
+		sdk.mailFacade().setUnreadStatusForMails(listOf(notificationInfo.mailId!!.toSdkIdTupleGenerated()), false)
 	}
 
 	private fun dismissNotification(notificationManager: NotificationManager, notificationIdToDismiss: Int) {

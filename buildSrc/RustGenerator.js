@@ -3,7 +3,7 @@
  * but is checked in here so that it's updated in lockstep with rust code that expects it.
  */
 
-import { AssociationType, Type } from "../src/common/api/common/EntityConstants.js"
+import { AssociationType, Type, ValueType } from "../src/common/api/common/EntityConstants.js"
 
 /**
  * @param p {object}
@@ -182,7 +182,11 @@ function rustValueType(valueName, type, value) {
 
 	let innerType
 	if (valueName === "_id" && (type.type === Type.ListElement || type.type === Type.BlobElement)) {
-		innerType = "IdTuple"
+		if (value.type === ValueType.CustomId) {
+			innerType = "IdTupleCustom"
+		} else {
+			innerType = "IdTupleGenerated"
+		}
 	} else {
 		innerType = ValueToRustTypes[value.type]
 	}
@@ -204,10 +208,10 @@ function rustAssociationType(association) {
 		} else {
 			return association.refType
 		}
-	} else if (association.type === AssociationType.ListElementAssociation) {
-		return "IdTuple"
-	} else if (association.type === AssociationType.BlobElementAssociation) {
-		return "IdTuple"
+	} else if (association.type === AssociationType.ListElementAssociationCustom) {
+		return "IdTupleCustom"
+	} else if (association.type === AssociationType.ListElementAssociationGenerated || association.type === AssociationType.BlobElementAssociation) {
+		return "IdTupleGenerated" // blob ids are also always generated
 	} else {
 		return "GeneratedId"
 	}

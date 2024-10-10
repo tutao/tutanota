@@ -6,7 +6,8 @@ use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
 use crate::generated_id::GeneratedId;
-pub use crate::IdTuple;
+pub use crate::IdTupleCustom;
+pub use crate::IdTupleGenerated;
 use crate::TypeRef;
 
 pub mod accounting;

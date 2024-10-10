@@ -80,6 +80,7 @@ android {
 		jvmTarget = "1.8"
 	}
 	sourceSets["main"].java.srcDirs(file("${layout.buildDirectory.asFile.get()}/generated-sources/tuta-sdk"))
+	ndkVersion = "26.1.10909125"
 }
 
 dependencies {

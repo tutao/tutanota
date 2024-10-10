@@ -337,7 +337,7 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "AccountingInfo",
-					"info": "AddAssociation AccountingInfo/appStoreSubscription/LIST_ELEMENT_ASSOCIATION/2424."
+					"info": "AddAssociation AccountingInfo/appStoreSubscription/LIST_ELEMENT_ASSOCIATION_GENERATED/2424."
 				}
 			]
 		},
