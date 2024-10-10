@@ -519,8 +519,6 @@ export class EventBusClient {
 			eventBatches = eventBatches.concat(eventBatchForGroup)
 		}
 
-		await delay(10000)
-
 		const timeSortedEventBatches = eventBatches.sort((a, b) => compareOldestFirst(getElementId(a), getElementId(b)))
 		// Count all batches that will actually be processed so that the progress is correct
 		let totalExpectedBatches = 0

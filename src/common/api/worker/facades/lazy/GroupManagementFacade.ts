@@ -38,7 +38,6 @@ export class GroupManagementFacade {
 		private readonly cacheManagementFacade: CacheManagementFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
-		private readonly nonCachingEntityClient: EntityClient,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -284,7 +283,7 @@ export class GroupManagementFacade {
 			// or I am an admin and I am a member of the target group (eg: shared mailboxes)
 			return this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 		} else {
-			const group = await this.nonCachingEntityClient.load(GroupTypeRef, groupId)
+			const group = await this.cacheManagementFacade.reloadGroup(groupId)
 			if (!this.hasAdminEncGKey(group)) {
 				throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 			}
