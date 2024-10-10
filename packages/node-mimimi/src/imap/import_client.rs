@@ -1,14 +1,21 @@
 use crate::imap::credentials::ImapCredentials;
 use std::collections::HashMap;
+use std::sync::Arc;
 use tuta_imap::client::types::mail::ImapMail;
 use tuta_imap::client::types::reexports::{Mailbox, StatusKind};
 use tuta_imap::client::TutanotaImapClient;
+use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;
+use tutasdk::crypto::key::VersionedAesKey;
+use tutasdk::crypto::randomizer_facade::RandomizerFacade;
+use tutasdk::crypto::Aes256Key;
 use tutasdk::custom_id::CustomId;
 use tutasdk::entities::tutanota::{DraftCreateData, DraftCreateReturn, DraftData};
+use tutasdk::generated_id::GeneratedId;
 use tutasdk::services::service_executor::ServiceExecutor;
 use tutasdk::services::tutanota::DraftService;
 use tutasdk::services::ExtraServiceParams;
+use tutasdk::LoggedInSdk;
 
 #[napi(object)]
 #[derive(Clone)]
@@ -39,9 +46,12 @@ pub struct ImapImport {
 	pub status: ImapImportStatus,
 	pub import_config: ImapImportConfig,
 
+	randomizer_facade: RandomizerFacade,
+
 	imap_client: TutanotaImapClient,
-	service_executor: ServiceExecutor,
-	session_key: GenericAesKey,
+	tuta_sdk: Arc<LoggedInSdk>,
+
+	mail_group_key: VersionedAesKey,
 }
 
 #[napi]
@@ -79,8 +89,8 @@ impl ImapImport {
 impl ImapImport {
 	pub fn new(
 		import_config: ImapImportConfig,
-		service_executor: ServiceExecutor,
-		session_key: GenericAesKey,
+		tuta_sdk: Arc<LoggedInSdk>,
+		mail_group_key: VersionedAesKey,
 	) -> Self {
 		let imap_client = TutanotaImapClient::start_new_session(
 			import_config.params.credentials.port.parse().unwrap(),
@@ -89,8 +99,9 @@ impl ImapImport {
 			status: ImapImportStatus::NotInitialized,
 			imap_client,
 			import_config,
-			service_executor,
-			session_key,
+			tuta_sdk,
+			mail_group_key,
+			randomizer_facade: RandomizerFacade::from_core(rand::rngs::OsRng {}),
 		}
 	}
 
@@ -164,11 +175,28 @@ impl ImapImport {
 		let create_draft_data = Self::make_tutanota_draft_input(fetched_mail);
 
 		// 7. call DraftService
+		// 7.1 construct a session key
+
+		let new_aes_256_key = Aes256Key::from_bytes(
+			self.randomizer_facade
+				.generate_random_array::<32>()
+				.as_slice(),
+		)
+		.unwrap();
+		let owner_enc_session_key = self.mail_group_key.encrypt_key(
+			&GenericAesKey::Aes256(new_aes_256_key),
+			Iv::generate(&self.randomizer_facade),
+		);
+		let session_key = GenericAesKey::from_bytes(owner_enc_session_key.object.as_slice())
+			.expect("Cannot create session key from ownerSessionKey");
+
+		// 7.2 make the service call
 		let service_params = ExtraServiceParams {
-			session_key: Some(self.session_key.clone()),
+			session_key: Some(session_key),
 			..Default::default()
 		};
 		let draft_return_data = self
+			.tuta_sdk
 			.service_executor
 			.post::<DraftService>(create_draft_data, service_params)
 			.await
@@ -188,14 +216,14 @@ impl ImapImport {
 			ownerKeyVersion: 0,
 			previousMessageId: None,
 			draftData: DraftData {
-				subject,                 // only fill the subject for now
-				_id: Default::default(), //CustomId::from_custom_string("aaaaaaaaa"),
+				subject,
+				_id: CustomId::from_custom_string("aaaa"),
 				bodyText: "this is a mail from imap".to_string(),
 				compressedBodyText: None,
 				confidential: false,
 				method: 0,
-				senderMailAddress: "send@tutao.de".to_string(),
-				senderName: "ImapImporter".to_string(),
+				senderMailAddress: "map-free@tutanota.de".to_string(),
+				senderName: "Tutanota Map".to_string(),
 				addedAttachments: vec![],
 				bccRecipients: vec![],
 				ccRecipients: vec![],
@@ -214,12 +242,8 @@ impl ImapImport {
 mod tests {
     use crate::imap::credentials::ImapCredentials;
     use std::sync::Arc;
-    use std::time::Duration;
     use tuta_imap::testing::GreenMailTestServer;
-    use tutasdk::crypto::key::GenericAesKey;
-    use tutasdk::entities::entity_facade::{EntityFacade as _, EntityFacadeImpl as EntityFacade};
     use tutasdk::net::native_rest_client::NativeRestClient;
-    use tutasdk::services::service_executor::ServiceExecutor;
     use tutasdk::{Sdk, CLIENT_VERSION};
 
     async fn init(sdk: Sdk) -> (super::ImapImport, GreenMailTestServer) {
@@ -227,23 +251,6 @@ mod tests {
 			.create_session("map-free@tutanota.de", "map")
 			.await
 			.unwrap();
-		let service_executor = ServiceExecutor::new(
-			logged_in_sdk
-				.get_entity_client()
-				.get_headers_provider()
-				.clone(),
-			logged_in_sdk
-				.get_crypto_entity_client()
-				.get_crypto_facade()
-				.clone(),
-			Arc::new(EntityFacade::new(sdk.get_type_model_provider().clone())),
-			sdk.get_instance_mapper().clone(),
-			sdk.get_json_serializer().clone(),
-			sdk.get_rest_client().clone(),
-			sdk.get_type_model_provider().clone(),
-			sdk.get_base_url().to_string(),
-		);
-
 		let greenmail = GreenMailTestServer::new();
 		let imap_import_config = super::ImapImportConfig {
 			params: super::ImapImportParams {
@@ -257,11 +264,15 @@ mod tests {
 				},
 			},
 		};
-		let importer = super::ImapImport::new(
-			imap_import_config,
-			service_executor,
-			GenericAesKey::from_bytes(&[12; 32]).unwrap(),
-		);
+		let mail_group_id = logged_in_sdk
+			.mail_facade()
+			.get_group_id_for_mail_address("map-free@tutanota.de")
+			.await
+			.unwrap();
+		eprintln!(">>>>> Mail Group Id: {mail_group_id:?}");
+
+		let mail_group_key = todo!();
+		let importer = super::ImapImport::new(imap_import_config, logged_in_sdk, mail_group_key);
 
 		(importer, greenmail)
 	}
@@ -280,11 +291,9 @@ mod tests {
 		let imap_mail = importer.get_mail_from_imap();
 
 		// 2. start local tutadb server?
+		{}
 
 		// 3. call ImapImp::upload_mail_to_server
 		let uploaded_draft_id = importer.upload_mail_to_tutanota(imap_mail).await;
-
-		// 4. verify the draft ( with return idTuple ) is present in tutanota
-		std::thread::sleep(Duration::from_secs(100000));
 	}
 }

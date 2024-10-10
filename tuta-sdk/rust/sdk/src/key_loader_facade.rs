@@ -1,4 +1,5 @@
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
+use crate::crypto::aes::Iv;
+use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError, VersionedAesKey};
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
@@ -6,7 +7,6 @@ use crate::generated_id::GeneratedId;
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::Versioned;
 use crate::ListLoadDirection;
 use base64::Engine;
 use futures::future::BoxFuture;
@@ -241,8 +241,6 @@ impl KeyLoaderFacade {
 		}
 	}
 }
-
-pub type VersionedAesKey = Versioned<GenericAesKey>;
 
 struct FormerGroupKey {
 	symmetric_group_key: GenericAesKey,

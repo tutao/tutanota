@@ -19,6 +19,7 @@ napi-derive = "2.16.12"
 tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net"] }
 tuta-imap = { path = "../tuta-imap" }
 async-trait = "0.1.83"
+rand = { version = "0.8.5" }
 
 [build-dependencies]
 napi-build = "2.1.3"

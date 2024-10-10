@@ -13,14 +13,14 @@ use thiserror::Error;
 use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
-use crate::crypto::key::GenericAesKey;
+use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
-use crate::entities::sys::{CreateSessionData, SaltData};
+use crate::entities::sys::{CreateSessionData, SaltData, User};
 use crate::entities::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -145,6 +145,27 @@ pub struct Sdk {
 	client_version: String,
 }
 
+impl Sdk {
+	pub fn get_instance_mapper(&self) -> &Arc<InstanceMapper> {
+		&self.instance_mapper
+	}
+
+	pub fn get_type_model_provider(&self) -> &Arc<TypeModelProvider> {
+		&self.type_model_provider
+	}
+
+	pub fn get_json_serializer(&self) -> &Arc<JsonSerializer> {
+		&self.json_serializer
+	}
+	pub fn get_rest_client(&self) -> &Arc<dyn RestClient> {
+		&self.rest_client
+	}
+
+	pub fn get_base_url(&self) -> &str {
+		&self.base_url
+	}
+}
+
 #[uniffi::export]
 impl Sdk {
 	#[uniffi::constructor]
@@ -176,7 +197,7 @@ impl Sdk {
 			self.rest_client.clone(),
 			self.json_serializer.clone(),
 			self.base_url.clone(),
-			auth_headers_provider,
+			auth_headers_provider.clone(),
 			self.type_model_provider.clone(),
 		));
 		let typed_entity_client: Arc<TypedEntityClient> = Arc::new(TypedEntityClient::new(
@@ -203,14 +224,26 @@ impl Sdk {
 		let entity_facade = Arc::new(EntityFacadeImpl::new(self.type_model_provider.clone()));
 		let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
 			entity_client.clone(),
-			entity_facade,
-			crypto_facade,
+			entity_facade.clone(),
+			crypto_facade.clone(),
 			self.instance_mapper.clone(),
+		));
+
+		let service_executor = Arc::new(ServiceExecutor::new(
+			auth_headers_provider.clone(),
+			crypto_facade.clone(),
+			entity_facade.clone(),
+			self.instance_mapper.clone(),
+			self.json_serializer.clone(),
+			self.rest_client.clone(),
+			self.type_model_provider.clone(),
+			self.base_url.clone(),
 		));
 
 		Ok(Arc::new(LoggedInSdk {
 			user_facade,
 			entity_client,
+			service_executor,
 			typed_entity_client,
 			crypto_entity_client,
 		}))
@@ -293,8 +326,20 @@ impl Sdk {
 pub struct LoggedInSdk {
 	user_facade: Arc<UserFacade>,
 	entity_client: Arc<EntityClient>,
-	typed_entity_client: Arc<TypedEntityClient>,
+	pub service_executor: Arc<ServiceExecutor>,
+	pub typed_entity_client: Arc<TypedEntityClient>,
 	crypto_entity_client: Arc<CryptoEntityClient>,
+}
+
+// getters
+impl LoggedInSdk {
+	pub fn get_entity_client(&self) -> &Arc<EntityClient> {
+		&self.entity_client
+	}
+
+	pub fn get_crypto_entity_client(&self) -> &Arc<CryptoEntityClient> {
+		&self.crypto_entity_client
+	}
 }
 
 #[uniffi::export]
@@ -302,7 +347,7 @@ impl LoggedInSdk {
 	/// Generates a new interface to operate on mail entities
 	#[must_use]
 	pub fn mail_facade(&self) -> MailFacade {
-		MailFacade::new(self.crypto_entity_client.clone())
+		MailFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
 	}
 }
 
