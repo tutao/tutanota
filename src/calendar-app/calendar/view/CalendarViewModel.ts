@@ -57,7 +57,7 @@ import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { Time } from "../../../common/calendar/date/Time.js"
-import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { BirthdayEventRegistry, CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -650,7 +650,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				const currentYear = new Date().getFullYear()
 				for (const contact of result) {
 					const newEvent = this.createClientOnlyEvent(contact, currentYear)
-					this.eventsRepository.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, this.extractYearFromBirthday(contact.birthdayIso))
+					this.eventsRepository.pushClientOnlyEvent(
+						newEvent.startTime.getMonth(),
+						newEvent,
+						this.extractYearFromBirthday(contact.birthdayIso),
+						contact,
+					)
 				}
 				return contactsWithBirthday
 			})
@@ -713,6 +718,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	get isNewPaidPlan(): Readonly<boolean> {
 		return this._isNewPaidPlan
+	}
+
+	getBirthdayEventRegistry(event: CalendarEvent): BirthdayEventRegistry | null {
+		return this.eventsRepository.getBirthdayEventRegistry(event)
 	}
 }
 

@@ -37,6 +37,7 @@ import {
 	getTimeZone,
 	getWeekNumber,
 	hasSourceUrl,
+	isBirthdayEvent,
 	isClientOnlyCalendar,
 	parseAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -62,7 +63,7 @@ import { SidebarSection } from "../../../common/gui/SidebarSection"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
-import { CalendarEventBubbleKeyDownHandler, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
+import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -1192,19 +1193,24 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private async showCalendarEventPopup(selectedEvent: CalendarEvent, eventBubbleRect: PosRect, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
-		console.log("popup")
-		// FIXME get the contact
-		const clientOnlyCalendar = isClientOnlyCalendar(listIdPart(selectedEvent._id))
-		const calendars = !clientOnlyCalendar ? await this.viewModel.getCalendarInfosCreateIfNeeded() : new Map()
-		const getPreviewModel = clientOnlyCalendar
-			? locator.calendarContactPreviewModel(selectedEvent, downcast({}), true)
-			: locator.calendarEventPreviewModel(selectedEvent, calendars)
-		const [popupModel, htmlSanitizer] = await Promise.all([getPreviewModel, htmlSanitizerPromise])
+		let getPreviewModel: Promise<CalendarPreviewModels>
+		let popupComponent: CalendarEventPopup | ContactEventPopup
 
-		const Popup = clientOnlyCalendar
-			? new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)
-			: new CalendarEventPopup(popupModel as CalendarEventPreviewViewModel, eventBubbleRect, htmlSanitizer)
-		Popup.show()
+		if (isBirthdayEvent(selectedEvent.uid)) {
+			const contact = this.viewModel.getBirthdayEventRegistry(selectedEvent)?.contact
+			if (!contact) {
+				throw new Error("Interaction with an event that doesn't have a contact!")
+			}
+			const popupModel = await locator.calendarContactPreviewModel(selectedEvent, contact!, true)
+			popupComponent = new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)
+		} else {
+			const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
+			getPreviewModel = locator.calendarEventPreviewModel(selectedEvent, calendars)
+			const [popupModel, htmlSanitizer] = await Promise.all([getPreviewModel, htmlSanitizerPromise])
+			popupComponent = new CalendarEventPopup(popupModel as CalendarEventPreviewViewModel, eventBubbleRect, htmlSanitizer)
+		}
+
+		popupComponent.show()
 	}
 
 	private async showCalendarEventPopupAtEvent(selectedEvent: CalendarEvent, target: HTMLElement, htmlSanitizerPromise: Promise<HtmlSanitizer>) {

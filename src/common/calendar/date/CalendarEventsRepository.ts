@@ -4,6 +4,7 @@ import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/mode
 import { IProgressMonitor } from "../../api/common/utils/ProgressMonitor.js"
 import {
 	addDaysForRecurringEvent,
+	calculateContactsAge,
 	CalendarTimeRange,
 	getEventEnd,
 	getEventStart,
@@ -11,7 +12,7 @@ import {
 	isBirthdayEvent,
 	isClientOnlyCalendar,
 } from "./CalendarUtils.js"
-import { CalendarEvent, CalendarEventTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
@@ -31,9 +32,10 @@ const TAG = "[CalendarEventRepository]"
 export type DaysToEvents = ReadonlyMap<number, ReadonlyArray<CalendarEvent>>
 
 /** Object holding the year of birth if available and the corresponding event */
-export type BirthdayEvent = {
+export type BirthdayEventRegistry = {
 	baseYear: number | null
 	event: CalendarEvent
+	contact: Contact
 }
 
 /**
@@ -47,7 +49,7 @@ export class CalendarEventsRepository {
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
 
-	private clientOnlyEvents: Map<number, BirthdayEvent[]> = new Map()
+	private clientOnlyEvents: Map<number, BirthdayEventRegistry[]> = new Map()
 
 	constructor(
 		private readonly calendarModel: CalendarModel,
@@ -92,8 +94,8 @@ export class CalendarEventsRepository {
 						const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
 						if (birthdaysOfThisMonth) {
 							for (const calendarEvent of birthdaysOfThisMonth) {
-								const age = this.calculateContactsAge(calendarEvent.baseYear, dayInMonth.getFullYear())
-								const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
+								const age = calculateContactsAge(calendarEvent.baseYear, dayInMonth.getFullYear())
+								const ageString = age ? `(${lang.get("birthdayEventAge_title", { "{age}": age })})` : ""
 
 								this.addDaysForRecurringEvent({ ...calendarEvent.event, summary: `${calendarEvent.event.summary} ${ageString}` }, month)
 							}
@@ -212,18 +214,15 @@ export class CalendarEventsRepository {
 		}
 	}
 
-	private calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
-		if (!birthYear) {
-			return null
-		}
-
-		return currentYear - birthYear
-	}
-
-	public async pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
+	public async pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null, contact: Contact) {
 		let clientOnlyEventsOfThisMonth = this.clientOnlyEvents.get(month)
 		if (!clientOnlyEventsOfThisMonth) clientOnlyEventsOfThisMonth = []
-		clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
+		clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent, contact })
 		this.clientOnlyEvents.set(month, clientOnlyEventsOfThisMonth)
+	}
+
+	getBirthdayEventRegistry(event: CalendarEvent): BirthdayEventRegistry | null {
+		const eventMonth: number = event.startTime.getMonth()
+		return this.clientOnlyEvents.get(eventMonth)?.find((registry) => isSameId(registry.event._id, event._id)) ?? null
 	}
 }

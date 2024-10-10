@@ -1030,3 +1030,11 @@ export function getCalendarType(groupSettings: GroupSettings | null, groupInfo: 
 	if (isClientOnlyCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
 	return CalendarType.NORMAL
 }
+
+export function calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
+	if (!birthYear) {
+		return null
+	}
+
+	return currentYear - birthYear
+}

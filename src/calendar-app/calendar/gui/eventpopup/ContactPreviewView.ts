@@ -4,15 +4,19 @@ import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
-import { memoized } from "@tutao/tutanota-utils"
-import { TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
+import { calculateContactsAge, getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
+import { memoized, noOp } from "@tutao/tutanota-utils"
+import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { BannerButton, BannerButtonAttrs } from "../../../../common/gui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../../common/gui/base/PureComponent.js"
 import { formatEventDuration, getDisplayEventTitle } from "../CalendarGuiUtils.js"
 import { getLocationUrl } from "./EventPreviewView.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
 import { ButtonColor, getColors } from "../../../../common/gui/base/Button.js"
+import { isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import { getContactTitle } from "../../../../common/gui/base/GuiUtils.js"
+import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
+import { createDropdown } from "../../../../common/gui/base/Dropdown.js"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent
@@ -28,18 +32,23 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 	}
 
 	/**	TO-DO
-	 * [ ] Show name
-	 * [ ] Show age
+	 * [x] Show name
+	 * [x] Show age
 	 * [ ] Show email
 	 * [ ] Show phone
 	 */
 	view(vnode: Vnode<ContactPreviewViewAttrs>): Children {
 		const { event, contact } = vnode.attrs
-		const eventTitle = getDisplayEventTitle(event.summary)
+		const eventTitle = getContactTitle(contact)
+
+		const birthYear = contact.birthdayIso && isoDateToBirthday(contact.birthdayIso).year
+		const age = birthYear && calculateContactsAge(new Date(birthYear).getFullYear(), event.startTime.getFullYear())
+		const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
 			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)]),
 			this.renderRow(Icons.Time, [formatEventDuration(event, getTimeZone(), false)]),
+			age ? this.renderRow(Icons.Gift, ageString) : null,
 			this.renderActions(contact),
 		])
 	}
@@ -70,75 +79,88 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 	}
 
 	private renderActions(contact: Contact): Children {
-		return m(".flex.pb-s", m(ActionButtons))
+		return m(".flex.pb-s", m(ActionButtons, contact))
 	}
 }
 
 const ActionButtons = pureComponent((contact: Contact) => {
 	// FIXME Handle actions correctly
-	const colors = {
-		borderColor: theme.content_button,
-		color: theme.content_fg,
+	interface ButtonColors {
+		borderColor: string
+		color: string
 	}
-	const highlightColors = {
+
+	const emailButtonColors = {
 		borderColor: theme.content_accent,
 		color: theme.content_accent,
 	}
+	const phoneButtonColors = {
+		borderColor: theme.content_button,
+		color: theme.content_button,
+	}
 
-	const makeActionButtonAttrs = (
-		onClick: () => unknown,
-		text: TranslationKey,
-		colors: {
-			borderColor: string
-			color: string
-		},
-		icon?: Children,
-	): BannerButtonAttrs =>
-		Object.assign(
-			{
-				text,
-				class: "width-min-content flex items-center",
-				click: onClick,
-				icon,
+	const makeActionButtonAttrs = (onClick: () => unknown, text: TranslationKey, colors: ButtonColors, icon?: Children): BannerButtonAttrs => ({
+		text,
+		class: "width-min-content flex items-center",
+		click: onClick,
+		icon,
+		...colors,
+	})
+
+	const renderIcon = (icon: AllIcons, fillColor: string) =>
+		m(Icon, {
+			icon,
+			class: "flex-center items-center",
+			style: {
+				fill: fillColor,
 			},
-			colors,
-		)
+		})
 
+	console.log(contact)
 	// FIXME Add translations
+
+	const singleEmailAdress = contact.mailAddresses.length === 1
+	const singlePhoneNumber = contact.phoneNumbers.length === 1
 	return m(".full-width.flex.items-center.flex-end.mt-s", [
-		m(
-			BannerButton,
-			makeActionButtonAttrs(
-				async () => {
-					console.log("Action")
-				},
-				"sendMail_alt",
-				highlightColors,
-				m(Icon, {
-					icon: Icons.PencilSquare,
-					class: "flex-center items-center",
-					style: {
-						fill: highlightColors.color,
-					},
-				}),
-			),
-		),
-		m(
-			BannerButton,
-			makeActionButtonAttrs(
-				async () => {
-					console.log("Action")
-				},
-				"callNumber_alt",
-				colors,
-				m(Icon, {
-					icon: Icons.Call,
-					class: "flex-center items-center",
-					style: {
-						fill: highlightColors.color,
-					},
-				}),
-			),
-		),
+		contact.mailAddresses.length
+			? m(
+					BannerButton,
+					makeActionButtonAttrs(
+						async () => {
+							console.log("Action")
+						},
+						"sendMail_alt",
+						emailButtonColors,
+						renderIcon(Icons.PencilSquare, emailButtonColors.color),
+					),
+			  )
+			: null,
+		contact.phoneNumbers.length
+			? m(
+					singlePhoneNumber ? `a[href="tel:${contact.phoneNumbers[0].number}"][target=_blank]` : "",
+					m(
+						BannerButton,
+						makeActionButtonAttrs(
+							singlePhoneNumber
+								? noOp
+								: async () =>
+										createDropdown({
+											lazyButtons: () =>
+												contact.phoneNumbers.map((contactPhone) => {
+													return {
+														label: () => contactPhone.number,
+														click: (event: MouseEvent, dom: HTMLElement) => {
+															console.log("Call me babe ;)")
+														},
+													}
+												}),
+										}),
+							"callNumber_alt",
+							phoneButtonColors,
+							renderIcon(Icons.Call, phoneButtonColors.color),
+						),
+					),
+			  )
+			: null,
 	])
 })
