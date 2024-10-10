@@ -26,11 +26,7 @@ async fn test_download_mail() {
 		encrypted_passphrase_key,
 		credential_type: CredentialType::Internal,
 	};
-	let sdk = Sdk::new(
-		"http://localhost:9000".to_string(),
-		rest_client,
-		"".to_owned(),
-	);
+	let sdk = Sdk::new("http://localhost:9000".to_string(), rest_client);
 	let logged_in_sdk = sdk.login(credentials).await.unwrap();
 	let mail_facade = logged_in_sdk.mail_facade();
 	let mail = mail_facade

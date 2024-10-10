@@ -25,6 +25,7 @@ await program
 async function run({ platform }) {
 	console.log(`bumping version for ${platform ?? "all"}`)
 	const { currentVersion, currentVersionString, newVersionString } = await calculateClientVersions()
+	await bumpSdkVersion(newVersionString)
 
 	if (platform === "all" || platform === "webdesktop") {
 		await bumpWorkspaces(newVersionString)
@@ -50,6 +51,28 @@ async function run({ platform }) {
 	}
 
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
+}
+
+async function bumpSdkVersion(newVersionString) {
+	await updateCargoFile(newVersionString, "tuta-sdk/rust/sdk/Cargo.toml")
+	await updateCargoFile(newVersionString, "tuta-sdk/rust/Cargo.lock")
+}
+
+async function updateCargoFile(newVersionString, fileName) {
+	const versionRegex = /name = "tuta-sdk"\nversion = ".*"/
+	const contents = await fs.promises.readFile(fileName, "utf8")
+	let found = 0
+	const newContents = contents.replace(versionRegex, (_, __, ___, ____) => {
+		found += 1
+		return `name = "tuta-sdk"\nversion = "${newVersionString}"`
+	})
+
+	if (found !== 1) {
+		console.warn(`${fileName} had an unexpected format and couldn't be updated. Is it corrupted?`)
+	} else {
+		console.log(`SDK: Updated ${fileName} to ${newVersionString}`)
+		await fs.promises.writeFile(fileName, newContents)
+	}
 }
 
 /**
