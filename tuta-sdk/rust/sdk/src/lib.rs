@@ -15,6 +15,7 @@ use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::randomizer_facade::RandomizerFacade;
 #[mockall_double::double]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::custom_id::CustomId;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::entities::tutanota::Mail;
@@ -229,6 +230,13 @@ pub enum ListLoadDirection {
 pub struct IdTuple {
 	pub list_id: GeneratedId,
 	pub element_id: GeneratedId,
+}
+
+/// A set of keys used to identify an element within a List Element Type
+#[derive(uniffi::Record, Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct IdTupleCustom {
+	pub list_id: GeneratedId,
+	pub element_id: CustomId,
 }
 
 impl IdTuple {

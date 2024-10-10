@@ -3,7 +3,7 @@ use std::sync::Arc;
 use zeroize::Zeroizing;
 
 use crate::crypto::aes::Iv;
-use crate::crypto::ecc::EccPublicKey;
+use crate::crypto::asymmetric_crypto_facade::DecapsulatedAesKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
@@ -139,9 +139,9 @@ impl CryptoFacade {
 			});
 		};
 
-		let ResolvedBucketKey {
-			decrypted_bucket_key,
-			sender_identity_key: _sender_identity_key, // TODO: Use when implementing authentication
+		let DecapsulatedAesKey {
+			decrypted_aes_key: decrypted_bucket_key,
+			sender_identity_pub_key: _sender_identity_key, // TODO: Use when implementing authentication
 		} = self
 			.decrypt_bucket_key(&bucket_key, owner_group, model)
 			.await?;
@@ -190,7 +190,7 @@ impl CryptoFacade {
 		bucket_key: &BucketKey,
 		owner_group: &GeneratedId,
 		model: &TypeModel,
-	) -> Result<ResolvedBucketKey, SessionKeyResolutionError> {
+	) -> Result<DecapsulatedAesKey, SessionKeyResolutionError> {
 		let mut auth_status = None;
 
 		let resolved_key = if let (Some(key_group), Some(pub_enc_bucket_key)) =
@@ -202,12 +202,11 @@ impl CryptoFacade {
 				.await?;
 			match keypair {
 				AsymmetricKeyPair::PQKeyPairs(k) => {
-					let decrypted_bucket_key = PQMessage::deserialize(pub_enc_bucket_key)?
-						.decapsulate(&k)?
-						.into();
-					ResolvedBucketKey {
-						decrypted_bucket_key,
-						sender_identity_key: Some(k.ecc_keys.public_key),
+					let decapsulated_sym_key =
+						PQMessage::deserialize(pub_enc_bucket_key)?.decapsulate(&k)?;
+					DecapsulatedAesKey {
+						decrypted_aes_key: decapsulated_sym_key.decrypted_sym_key_bytes.into(),
+						sender_identity_pub_key: Some(decapsulated_sym_key.sender_identity_pub_key), // TODO this is a bug -> should be the sender pub key NOT the recipient
 					}
 				},
 				AsymmetricKeyPair::RSAEccKeyPair(RSAEccKeyPair {
@@ -216,11 +215,10 @@ impl CryptoFacade {
 				| AsymmetricKeyPair::RSAKeyPair(k) => {
 					let bucket_key_bytes =
 						Zeroizing::new(k.private_key.decrypt(pub_enc_bucket_key)?);
-					let decrypted_bucket_key =
-						GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?;
-					ResolvedBucketKey {
-						decrypted_bucket_key,
-						sender_identity_key: None,
+					let decrypted_aes_key = GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?;
+					DecapsulatedAesKey {
+						decrypted_aes_key,
+						sender_identity_pub_key: None,
 					}
 				},
 			}
@@ -261,6 +259,20 @@ fn parse_id_field(
 	}
 }
 
+/// Used for identifying the protocol version used for encrypting a session key.
+#[derive(Debug)]
+#[repr(i64)]
+pub enum CryptoProtocolVersion {
+	/// Legacy asymmetric encryption (RSA-2048)
+	Rsa = 0,
+
+	/// Secure external
+	SymmetricEncryption = 1,
+
+	/// PQ encryption (Kyber+X25519)
+	TutaCrypt = 2,
+}
+
 /// Denotes if an entity was authenticated successfully.
 ///
 /// Not all decryption methods use authentication.
@@ -279,24 +291,6 @@ pub enum EncryptionAuthStatus {
 
 	/// The entity was sent by the user and doesn't need authenticated.
 	TutacryptSender = 4,
-}
-
-/// Used for identifying the protocol version used for encrypting a session key.
-#[repr(i64)]
-pub enum CryptoProtocolVersion {
-	/// Legacy asymmetric encryption (RSA-2048)
-	Rsa = 0,
-
-	/// Secure external
-	SymmetricEncryption = 1,
-
-	/// PQ encryption (Kyber+X25519)
-	Tutacrypt = 2,
-}
-
-struct ResolvedBucketKey {
-	decrypted_bucket_key: GenericAesKey,
-	sender_identity_key: Option<EccPublicKey>,
 }
 
 struct EntityOwnerKeyData<'a> {
@@ -410,7 +404,7 @@ mod test {
 		let mut raw_mail = make_raw_mail(
 			&constants,
 			encapsulation.serialize(),
-			CryptoProtocolVersion::Tutacrypt as i64,
+			CryptoProtocolVersion::TutaCrypt as i64,
 		);
 		let mail_type_model = get_mail_type_model();
 

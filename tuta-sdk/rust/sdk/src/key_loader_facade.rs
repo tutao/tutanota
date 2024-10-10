@@ -1,13 +1,14 @@
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::key_encryption::decrypt_key_pair;
-use crate::entities::sys::{Group, GroupKey};
+use crate::custom_id::CustomId;
+use crate::entities::sys::{Group, GroupKey, KeyPair};
 use crate::generated_id::GeneratedId;
 #[mockall_double::double]
 use crate::typed_entity_client::TypedEntityClient;
 #[mockall_double::double]
 use crate::user_facade::UserFacade;
 use crate::util::Versioned;
-use crate::ListLoadDirection;
+use crate::{IdTuple, ListLoadDirection};
 use base64::Engine;
 use futures::future::BoxFuture;
 use std::cmp::Ordering;
@@ -205,13 +206,12 @@ impl KeyLoaderFacade {
 	pub async fn load_key_pair(
 		&self,
 		key_pair_group_id: &GeneratedId,
-		group_key_version: i64,
+		requested_version: i64,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let group: Group = self.entity_client.load(key_pair_group_id).await?;
-		let group_key = self.get_current_sym_group_key(&group._id).await?;
-
-		if group_key.version == group_key_version {
-			return self.get_and_decrypt_key_pair(&group, &group_key.object);
+		let current_group_key = self.get_current_sym_group_key(&group._id).await?;
+		if current_group_key.version == requested_version {
+			return self.get_and_decrypt_key_pair(&group, &current_group_key.object);
 		}
 		let FormerGroupKey {
 			symmetric_group_key,
@@ -220,14 +220,102 @@ impl KeyLoaderFacade {
 			},
 			..
 		} = self
-			.find_former_group_key(&group, &group_key, group_key_version)
+			.find_former_group_key(&group, &current_group_key, requested_version)
 			.await?;
 		if let Some(key) = key_pair {
 			decrypt_key_pair(&symmetric_group_key, &key)
 		} else {
-			Err(KeyLoadError { reason: format!("key pair not found for group {key_pair_group_id} and version {group_key_version}") })
+			Err(KeyLoadError { reason: format!("key pair not found for group {key_pair_group_id} and version {requested_version}") })
 		}
 	}
+
+	// async loadKeypair(key_pair_group_id: Id, requestedVersion: number): Promise<AsymmetricKeyPair> {
+	// let group = await this.entityClient.load(GroupTypeRef, key_pair_group_id)
+	// let current_group_key = await this.getCurrentSymGroupKey(key_pair_group_id)
+	//
+	// if (requestedVersion > current_group_key.version) {
+	// group = (await (await this.cacheManagementFacade()).refreshKeyCache(key_pair_group_id)).group
+	// current_group_key = await this.getCurrentSymGroupKey(key_pair_group_id)
+	// }
+	// return await this.loadKeyPairImpl(group, requestedVersion, current_group_key)
+	// }
+	//
+	// async loadCurrentKeyPair(groupId: Id): Promise<Versioned<AsymmetricKeyPair>> {
+	// let group = await this.entityClient.load(GroupTypeRef, groupId)
+	//
+	// let current_group_key = await this.getCurrentSymGroupKey(groupId)
+	// if (Number(group.groupKeyVersion) !== current_group_key.version) {
+	// // There is a race condition after rotating the group key were the group entity in the cache is not in sync with current key version in the key cache.
+	// // group.groupKeyVersion might be newer than current_group_key.version.
+	// // We reload group and user and refresh entity and key cache to synchronize both caches.
+	// group = (await (await this.cacheManagementFacade()).refreshKeyCache(groupId)).group
+	// current_group_key = await this.getCurrentSymGroupKey(groupId)
+	// if (Number(group.groupKeyVersion) !== current_group_key.version) {
+	// // we still do not have the proper state to get the current key pair
+	// throw new Error(`inconsistent key version state in cache and key cache for group ${groupId}`)
+	// }
+	// }
+	// return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, current_group_key.object), version: Number(group.groupKeyVersion) }
+	// }
+
+	// async fn load_key_pair_impl(
+	// 	&self,
+	// 	group: Group,
+	// 	requested_version: i64,
+	// 	current_group_key: VersionedAesKey,
+	// ) -> Result<AsymmetricKeyPair, KeyLoadError> {
+	// 	let key_pair_group_id = &group._id;
+	// 	let mut key_pair: Option<KeyPair>;
+	// 	let sym_group_key: GenericAesKey;
+	// 	if requested_version > current_group_key.version {
+	// 		return Err(KeyLoadError{reason: format!("Not possible to get newer key version than is cached for group {key_pair_group_id}")});
+	// 	} else if requested_version == current_group_key.version {
+	// 		sym_group_key = current_group_key.object;
+	// 		if group.groupKeyVersion == current_group_key.version {
+	// 			key_pair = group.currentKeys
+	// 		} else {
+	// 			let former_keys_list = group.formerGroupKeys.unwrap().list;
+	// 			// we load by the version and thus can be sure that we are able to decrypt this key
+	// 			let former_group_key: GroupKey = self
+	// 				.entity_client
+	// 				.load(IdTuple::new(
+	// 					former_keys_list,
+	// 					CustomId::from_custom_string(&current_group_key.version.to_string()),
+	// 				))
+	// 				.await?;
+	// 			key_pair = former_group_key.keyPair
+	// 		}
+	// 	} else {
+	// 		// load a former key pair: groupKeyVersion < groupKey.version
+	// 		let FormerGroupKey {
+	// 			symmetric_group_key,
+	// 			group_key_instance,
+	// 		} = self
+	// 			.find_former_group_key(&group, &current_group_key, requested_version)
+	// 			.await?;
+	// 		sym_group_key = symmetric_group_key;
+	// 		key_pair = group_key_instance.keyPair;
+	// 	}
+	// 	Ok(KeyLoaderFacade::validate_and_decrypt_key_pair(
+	// 		key_pair,
+	// 		key_pair_group_id,
+	// 		sym_group_key,
+	// 	)?)
+	// }
+
+	pub fn validate_and_decrypt_key_pair(
+		key_pair: Option<KeyPair>,
+		group_id: &GeneratedId,
+		group_key: GenericAesKey,
+	) -> Result<AsymmetricKeyPair, KeyLoadError> {
+		match key_pair {
+			None => Err(KeyLoadError {
+				reason: format!("no key pair on group {group_id}"),
+			}),
+			Some(kp) => Ok(decrypt_key_pair(&group_key, &kp)?),
+		}
+	}
+
 	fn get_and_decrypt_key_pair(
 		&self,
 		group: &Group,
