@@ -79,7 +79,7 @@ impl EntityFacadeImpl {
 		false
 	}
 
-	fn encrypt_value(
+	fn encrypt_if_needed(
 		value_name: &str,
 		model_value: &ModelValue,
 		instance_value: &ElementValue,
@@ -187,9 +187,9 @@ impl EntityFacadeImpl {
 				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
 
 				encrypted_value =
-					Self::encrypt_value(key, model_value, instance_value, &sk, final_iv)?
+					Self::encrypt_if_needed(key, model_value, instance_value, &sk, final_iv)?
 			} else {
-				encrypted_value = Self::encrypt_value(
+				encrypted_value = Self::encrypt_if_needed(
 					key,
 					model_value,
 					instance_value,
@@ -210,64 +210,80 @@ impl EntityFacadeImpl {
 		}
 
 		for (association_name, association) in &type_model.associations {
-			if let AssociationType::Aggregation = association.association_type {
-				let dependency = association.dependency.unwrap_or(type_model.app);
-				let aggregated_type_model = self
-					.type_model_provider
-					.get_type_model(dependency, association.ref_type)
-					.unwrap_or_else(|| {
-						panic!(
-							"Cannot find type model for: {:?}",
-							(dependency, association.ref_type)
-						)
-					});
-				let aggregation = association;
-				let instance_association = instance.get(&association_name.to_string()).unwrap();
-				if aggregation.cardinality == Cardinality::ZeroOrOne
-					&& instance_association == &ElementValue::Null
-				{
-					encrypted.insert(association_name.to_string(), ElementValue::Null);
-				} else if instance_association == &ElementValue::Null {
-					panic!("Undefined attribute {}:{association_name}", type_model.name);
-				} else if aggregation.cardinality == Cardinality::Any {
-					let aggregates = instance_association.assert_array();
-					let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
-					for aggregate in &aggregates {
-						let parsed_entity = self.encrypt_and_map_to_literal_with_iv(
-							aggregated_type_model,
-							&aggregate.assert_dict(),
-							sk.clone(),
-						)?;
-						encrypted_aggregates.push(ElementValue::Dict(parsed_entity));
-					}
-
-					encrypted.insert(
-						association_name.to_string(),
-						ElementValue::Array(encrypted_aggregates),
-					);
-				} else {
-					let parsed_entity = self.encrypt_and_map_to_literal_with_iv(
-						aggregated_type_model,
-						&instance_association.assert_dict(),
-						sk.clone(),
-					)?;
-					let encrypted_aggregate = ElementValue::Dict(parsed_entity);
-					encrypted.insert(association_name.to_string(), encrypted_aggregate);
-				}
-			} else {
-				encrypted.insert(
-					association_name.to_string(),
-					instance.get(&association_name.to_string()).cloned().ok_or(
-						ApiCallError::internal(format!(
-							"could not find association {association_name} on type {}",
-							type_model.name
-						)),
-					)?,
-				);
-			}
+			let encrypted_association = match association.association_type {
+				AssociationType::Aggregation => self.encrypt_aggregate(
+					type_model,
+					association_name,
+					association,
+					instance,
+					sk.as_ref(),
+				)?,
+				AssociationType::ElementAssociation
+				| AssociationType::ListAssociation
+				| AssociationType::ListElementAssociation
+				| AssociationType::BlobElementAssociation => instance
+					.get(&association_name.to_string())
+					.cloned()
+					.ok_or(ApiCallError::internal(format!(
+						"could not find association {association_name} on type {}",
+						type_model.name
+					)))?,
+			};
+			encrypted.insert(association_name.to_string(), encrypted_association);
 		}
 
 		Ok(encrypted)
+	}
+
+	fn encrypt_aggregate(
+		&self,
+		type_model: &TypeModel,
+		association_name: &str,
+		association: &ModelAssociation,
+		instance: &ParsedEntity,
+		sk: Option<&GenericAesKey>,
+	) -> Result<ElementValue, ApiCallError> {
+		let dependency = association.dependency.unwrap_or(type_model.app);
+		let aggregated_type_model = self
+			.type_model_provider
+			.get_type_model(dependency, association.ref_type)
+			.unwrap_or_else(|| {
+				panic!(
+					"Cannot find type model for: {:?}",
+					(dependency, association.ref_type)
+				)
+			});
+		let instance_association = instance.get(&association_name.to_string()).unwrap();
+
+		match (&association.cardinality, instance_association) {
+			(Cardinality::ZeroOrOne, ElementValue::Null) => Ok(ElementValue::Null),
+			(_, ElementValue::Null) => {
+				panic!("Undefined attribute {}:{association_name}", type_model.name)
+			},
+			(Cardinality::Any, _) => {
+				let aggregates = instance_association.assert_array();
+				let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
+				for aggregate in &aggregates {
+					let parsed_entity = self.encrypt_and_map_to_literal_with_iv(
+						aggregated_type_model,
+						&aggregate.assert_dict(),
+						sk.cloned(),
+					)?;
+					encrypted_aggregates.push(ElementValue::Dict(parsed_entity));
+				}
+
+				Ok(ElementValue::Array(encrypted_aggregates))
+			},
+
+			(Cardinality::One | Cardinality::ZeroOrOne, _) => {
+				let parsed_entity = self.encrypt_and_map_to_literal_with_iv(
+					aggregated_type_model,
+					&instance_association.assert_dict(),
+					sk.cloned(),
+				)?;
+				Ok(ElementValue::Dict(parsed_entity))
+			},
+		}
 	}
 
 	fn decrypt_and_map_inner(
@@ -705,7 +721,7 @@ mod tests {
 		let value = ElementValue::String("this is a string value".to_string());
 
 		let encrypted_value =
-			EntityFacadeImpl::encrypt_value("test", &model_value, &value, &sk, iv.clone());
+			EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
 
 		let expected = sk
 			.unwrap()
@@ -725,7 +741,7 @@ mod tests {
 			let value = ElementValue::Bool(true);
 
 			let encrypted_value =
-				EntityFacadeImpl::encrypt_value("test", &model_value, &value, &sk, iv.clone());
+				EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
 
 			let expected = sk
 				.clone()
@@ -738,7 +754,7 @@ mod tests {
 		{
 			let value = ElementValue::Bool(false);
 			let encrypted_value =
-				EntityFacadeImpl::encrypt_value("test", &model_value, &value, &sk, iv.clone());
+				EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
 
 			let expected = sk
 				.clone()
@@ -757,7 +773,7 @@ mod tests {
 		let value = ElementValue::Date(DateTime::from_system_time(SystemTime::now()));
 
 		let encrypted_value =
-			EntityFacadeImpl::encrypt_value("test", &model_value, &value, &sk, iv.clone());
+			EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
 
 		let expected = sk
 			.unwrap()
@@ -776,7 +792,7 @@ mod tests {
 		let value = ElementValue::Bytes(randomizer_facade.generate_random_array::<5>().to_vec());
 
 		let encrypted_value =
-			EntityFacadeImpl::encrypt_value("test", &model_value, &value, &sk, iv.clone());
+			EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
 
 		let expected = sk
 			.unwrap()
@@ -803,7 +819,7 @@ mod tests {
 		for value_type in ALL_VALUE_TYPES {
 			assert_eq!(
 				ElementValue::Null,
-				EntityFacadeImpl::encrypt_value(
+				EntityFacadeImpl::encrypt_if_needed(
 					"test",
 					&create_model_value(value_type.clone(), true, Cardinality::ZeroOrOne),
 					&ElementValue::Null,
@@ -821,7 +837,7 @@ mod tests {
 
 		assert_eq!(
 			ElementValue::Null,
-			EntityFacadeImpl::encrypt_value(
+			EntityFacadeImpl::encrypt_if_needed(
 				"_id",
 				&create_model_value(ValueType::GeneratedId, true, Cardinality::One),
 				&ElementValue::Null,
@@ -833,7 +849,7 @@ mod tests {
 
 		assert_eq!(
 			ElementValue::Null,
-			EntityFacadeImpl::encrypt_value(
+			EntityFacadeImpl::encrypt_if_needed(
 				"_permissions",
 				&create_model_value(ValueType::CustomId, true, Cardinality::One),
 				&ElementValue::Null,
@@ -864,7 +880,7 @@ mod tests {
 				Err(ApiCallError::internal(
 					"Value test with cardinality ONE can not be null".to_string()
 				)),
-				EntityFacadeImpl::encrypt_value(
+				EntityFacadeImpl::encrypt_if_needed(
 					"test",
 					&create_model_value(value_type, true, Cardinality::One),
 					&ElementValue::Null,
@@ -880,7 +896,7 @@ mod tests {
 		let model_value = create_model_value(ValueType::Date, false, Cardinality::One);
 		let value = ElementValue::Date(DateTime::from_system_time(SystemTime::now()));
 
-		let mapped_value = EntityFacadeImpl::encrypt_value(
+		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
 			"test",
 			&model_value,
 			&value,
@@ -896,7 +912,7 @@ mod tests {
 		let model_value = create_model_value(ValueType::Bytes, false, Cardinality::One);
 		let value = ElementValue::Bytes(b"test".to_vec());
 
-		let mapped_value = EntityFacadeImpl::encrypt_value(
+		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
 			"test",
 			&model_value,
 			&value,
@@ -914,7 +930,7 @@ mod tests {
 		let true_value = ElementValue::Bool(true);
 		assert_eq!(
 			ElementValue::Bool(true),
-			EntityFacadeImpl::encrypt_value(
+			EntityFacadeImpl::encrypt_if_needed(
 				"test",
 				&model_value,
 				&true_value,
@@ -927,7 +943,7 @@ mod tests {
 		let false_value = ElementValue::Bool(false);
 		assert_eq!(
 			false_value,
-			EntityFacadeImpl::encrypt_value(
+			EntityFacadeImpl::encrypt_if_needed(
 				"test",
 				&model_value,
 				&false_value,
@@ -943,7 +959,7 @@ mod tests {
 		let model_value = create_model_value(ValueType::String, false, Cardinality::One);
 		let value = ElementValue::String("hello".to_string());
 
-		let mapped_value = EntityFacadeImpl::encrypt_value(
+		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
 			"test",
 			&model_value,
 			&value,
@@ -958,7 +974,7 @@ mod tests {
 		let model_value = create_model_value(ValueType::Number, false, Cardinality::One);
 		let value = ElementValue::Number(100);
 
-		let mapped_value = EntityFacadeImpl::encrypt_value(
+		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
 			"test",
 			&model_value,
 			&value,
@@ -973,7 +989,7 @@ mod tests {
 		let model_value = create_model_value(ValueType::CompressedString, false, Cardinality::One);
 		let value = ElementValue::String("tutanota".to_string());
 
-		let mapped_value = EntityFacadeImpl::encrypt_value(
+		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
 			"test",
 			&model_value,
 			&value,
