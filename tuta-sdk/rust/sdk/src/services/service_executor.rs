@@ -202,7 +202,7 @@ impl Executor for ServiceExecutor {
 			.expect("invalid type ref!");
 
 		if type_model.marked_encrypted() {
-			let possible_session_key = self
+			let session_key = self
 				.crypto_facade
 				.resolve_session_key(&mut parsed_entity, type_model)
 				.await
@@ -211,31 +211,24 @@ impl Executor for ServiceExecutor {
 						"Failed to resolve session key for service response '{}'; {}",
 						type_model.name, error
 					))
-				})?;
-			match possible_session_key {
-				Some(session_key) => {
-					let decrypted_entity = self.entity_facade.decrypt_and_map(
-						type_model,
-						parsed_entity,
-						session_key,
-					)?;
-					let typed_entity = self
-						.instance_mapper
-						.parse_entity::<OutputType>(decrypted_entity)
-						.map_err(|e| {
-							ApiCallError::internal_with_err(
-								e,
-								"Failed to parse encrypted entity into proper types",
-							)
-						})?;
-					Ok(typed_entity)
-				},
+				})?
 				// `resolve_session_key()` only returns none if the entity is unencrypted, so
 				// no need to handle it
-				None => {
-					unreachable!()
-				},
-			}
+				.expect("encrypted entity should resolve a session key");
+
+			let decrypted_entity =
+				self.entity_facade
+					.decrypt_and_map(type_model, parsed_entity, session_key)?;
+			let typed_entity = self
+				.instance_mapper
+				.parse_entity::<OutputType>(decrypted_entity)
+				.map_err(|e| {
+					ApiCallError::internal_with_err(
+						e,
+						"Failed to parse encrypted entity into proper types",
+					)
+				})?;
+			Ok(typed_entity)
 		} else {
 			let typed_entity = self
 				.instance_mapper
