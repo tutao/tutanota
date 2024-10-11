@@ -31,11 +31,6 @@ log = "0.4.22"
 simple_logger = "5.0.0"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
 
-
-# dependency required for using mocks
-mockall = { version = "0.13.0", optional = true }
-mockall_double = { version = "0.3.1", optional = true }
-
 # only used for the native rest client
 hyper = { version = "1.4.1", features = ["client"], optional = true }
 hyper-util = { version = "0.1.9", features = ["full"], optional = true }
@@ -59,7 +54,9 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb37
 net = ["dep:hyper", "dep:hyper-util", "dep:http-body-util", "dep:hyper-rustls", "dep:rustls"]
 
 [dev-dependencies]
-tuta-sdk = { path = ".", features = ["net", "mockall", "mockall_double"] }
+tuta-sdk = { path = ".", features = ["net"] }
+mockall = { version = "0.13.0" }
+mockall_double = { version = "0.3.1" }
 rand = { version = "0.8.5" }
 tokio = { version = "1.38.0", features = ["rt", "rt-multi-thread", "macros"] }
 
