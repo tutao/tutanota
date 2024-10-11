@@ -48,7 +48,7 @@ pub trait EntityFacade: Send + Sync {
 		&self,
 		type_model: &TypeModel,
 		instance: &ParsedEntity,
-		sk: Option<GenericAesKey>,
+		sk: &GenericAesKey,
 	) -> Result<ParsedEntity, ApiCallError>;
 }
 
@@ -79,38 +79,26 @@ impl EntityFacadeImpl {
 		false
 	}
 
-	fn encrypt_if_needed(
-		value_name: &str,
+	fn encrypt_value(
 		model_value: &ModelValue,
 		instance_value: &ElementValue,
-		session_key: &Option<GenericAesKey>,
+		session_key: &GenericAesKey,
 		iv: Iv,
 	) -> Result<ElementValue, ApiCallError> {
 		let value_type = &model_value.value_type;
 
-		if value_name == "_id" || value_name == "_permissions" {
+		if !model_value.encrypted
+			|| (<ElementValue as Encode<()>>::is_nil(instance_value)
+				&& model_value.cardinality == Cardinality::ZeroOrOne)
+		{
 			Ok(instance_value.clone())
-		} else if <ElementValue as Encode<()>>::is_nil(instance_value) {
-			if model_value.cardinality == Cardinality::ZeroOrOne {
-				Ok(ElementValue::Null)
-			} else {
-				Err(ApiCallError::internal(format!(
-					"Value {value_name} with cardinality ONE can not be null"
-				)))
-			}
-		} else if model_value.encrypted {
+		} else {
 			let bytes = Self::map_value_to_binary(value_type, instance_value)
 				.unwrap_or_else(|| panic!("invalid encrypted value {:?}", instance_value));
 			let encrypted_data = session_key
-				.as_ref()
-				.ok_or(ApiCallError::internal(
-					"session_key can't be null for encrypted value".to_string(),
-				))?
 				.encrypt_data(bytes.as_slice(), iv)
 				.expect("Cannot encrypt data");
 			Ok(ElementValue::Bytes(encrypted_data))
-		} else {
-			Ok(instance_value.clone())
 		}
 	}
 
@@ -150,16 +138,8 @@ impl EntityFacadeImpl {
 		&self,
 		type_model: &TypeModel,
 		instance: &ParsedEntity,
-		sk: Option<GenericAesKey>,
+		sk: &GenericAesKey,
 	) -> Result<ParsedEntity, ApiCallError> {
-		if type_model.marked_encrypted() && sk.is_none() {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!(
-					"Encrypting {}/{} requires a session key!",
-					type_model.app, type_model.name
-				),
-			});
-		}
 		let mut encrypted = ParsedEntity::new();
 
 		for (key, model_value) in &type_model.values {
@@ -186,11 +166,9 @@ impl EntityFacadeImpl {
 				)
 				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
 
-				encrypted_value =
-					Self::encrypt_if_needed(key, model_value, instance_value, &sk, final_iv)?
+				encrypted_value = Self::encrypt_value(model_value, instance_value, &sk, final_iv)?
 			} else {
-				encrypted_value = Self::encrypt_if_needed(
-					key,
+				encrypted_value = Self::encrypt_value(
 					model_value,
 					instance_value,
 					&sk,
@@ -216,7 +194,7 @@ impl EntityFacadeImpl {
 					association_name,
 					association,
 					instance,
-					sk.as_ref(),
+					&sk,
 				)?,
 				AssociationType::ElementAssociation
 				| AssociationType::ListAssociation
@@ -241,7 +219,7 @@ impl EntityFacadeImpl {
 		association_name: &str,
 		association: &ModelAssociation,
 		instance: &ParsedEntity,
-		sk: Option<&GenericAesKey>,
+		sk: &GenericAesKey,
 	) -> Result<ElementValue, ApiCallError> {
 		let dependency = association.dependency.unwrap_or(type_model.app);
 		let aggregated_type_model = self
@@ -267,7 +245,7 @@ impl EntityFacadeImpl {
 					let parsed_entity = self.encrypt_and_map_inner(
 						aggregated_type_model,
 						&aggregate.assert_dict(),
-						sk.cloned(),
+						sk,
 					)?;
 					encrypted_aggregates.push(ElementValue::Dict(parsed_entity));
 				}
@@ -279,7 +257,7 @@ impl EntityFacadeImpl {
 				let parsed_entity = self.encrypt_and_map_inner(
 					aggregated_type_model,
 					&instance_association.assert_dict(),
-					sk.cloned(),
+					sk,
 				)?;
 				Ok(ElementValue::Dict(parsed_entity))
 			},
@@ -583,7 +561,7 @@ impl EntityFacade for EntityFacadeImpl {
 		&self,
 		type_model: &TypeModel,
 		instance: &ParsedEntity,
-		sk: Option<GenericAesKey>,
+		sk: &GenericAesKey,
 	) -> Result<ParsedEntity, ApiCallError> {
 		self.encrypt_and_map_inner(type_model, instance, sk)
 	}
@@ -716,15 +694,14 @@ mod tests {
 	#[test]
 	fn encrypt_value_string() {
 		let model_value = create_model_value(ValueType::String, true, Cardinality::One);
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 		let value = ElementValue::String("this is a string value".to_string());
 
 		let encrypted_value =
-			EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
+			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 		let expected = sk
-			.unwrap()
 			.encrypt_data(value.assert_string().as_bytes(), iv)
 			.unwrap();
 
@@ -734,33 +711,25 @@ mod tests {
 	#[test]
 	fn encrypt_value_bool() {
 		let model_value = create_model_value(ValueType::Boolean, true, Cardinality::One);
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 
 		{
 			let value = ElementValue::Bool(true);
 
 			let encrypted_value =
-				EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
+				EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
-			let expected = sk
-				.clone()
-				.unwrap()
-				.encrypt_data("1".as_bytes(), iv.clone())
-				.unwrap();
+			let expected = sk.clone().encrypt_data("1".as_bytes(), iv.clone()).unwrap();
 			assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
 		}
 
 		{
 			let value = ElementValue::Bool(false);
 			let encrypted_value =
-				EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
+				EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
-			let expected = sk
-				.clone()
-				.unwrap()
-				.encrypt_data("0".as_bytes(), iv.clone())
-				.unwrap();
+			let expected = sk.clone().encrypt_data("0".as_bytes(), iv.clone()).unwrap();
 			assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
 		}
 	}
@@ -768,15 +737,14 @@ mod tests {
 	#[test]
 	fn encrypt_value_date() {
 		let model_value = create_model_value(ValueType::Date, true, Cardinality::One);
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 		let value = ElementValue::Date(DateTime::from_system_time(SystemTime::now()));
 
 		let encrypted_value =
-			EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
+			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 		let expected = sk
-			.unwrap()
 			.encrypt_data(value.assert_date().as_millis().to_string().as_bytes(), iv)
 			.unwrap();
 
@@ -786,16 +754,15 @@ mod tests {
 	#[test]
 	fn encrypt_value_bytes() {
 		let model_value = create_model_value(ValueType::Bytes, true, Cardinality::One);
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		let randomizer_facade = &RandomizerFacade::from_core(rand_core::OsRng);
 		let iv = Iv::generate(randomizer_facade);
 		let value = ElementValue::Bytes(randomizer_facade.generate_random_array::<5>().to_vec());
 
 		let encrypted_value =
-			EntityFacadeImpl::encrypt_if_needed("test", &model_value, &value, &sk, iv.clone());
+			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 		let expected = sk
-			.unwrap()
 			.encrypt_data(value.assert_bytes().as_slice(), iv)
 			.unwrap();
 
@@ -804,7 +771,7 @@ mod tests {
 
 	#[test]
 	fn encrypt_value_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 
 		const ALL_VALUE_TYPES: &[ValueType] = &[
 			ValueType::String,
@@ -819,8 +786,7 @@ mod tests {
 		for value_type in ALL_VALUE_TYPES {
 			assert_eq!(
 				ElementValue::Null,
-				EntityFacadeImpl::encrypt_if_needed(
-					"test",
+				EntityFacadeImpl::encrypt_value(
 					&create_model_value(value_type.clone(), true, Cardinality::ZeroOrOne),
 					&ElementValue::Null,
 					&sk,
@@ -832,171 +798,105 @@ mod tests {
 	}
 
 	#[test]
-	fn encrypt_value_accept_null_id_and_permission() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
-
+	#[should_panic = "invalid encrypted value Null"]
+	fn encrypt_bytes_do_not_accept_null() {
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		assert_eq!(
-			ElementValue::Null,
-			EntityFacadeImpl::encrypt_if_needed(
-				"_id",
-				&create_model_value(ValueType::GeneratedId, true, Cardinality::One),
+			Err(ApiCallError::internal(
+				"Value test with cardinality ONE can not be null".to_string()
+			)),
+			EntityFacadeImpl::encrypt_value(
+				&create_model_value(ValueType::Bytes, true, Cardinality::One),
 				&ElementValue::Null,
 				&sk,
 				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
 			)
-			.unwrap()
 		);
+	}
 
+	#[test]
+	#[should_panic = "invalid encrypted value Null"]
+	fn encrypt_number_do_not_accept_null() {
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		assert_eq!(
-			ElementValue::Null,
-			EntityFacadeImpl::encrypt_if_needed(
-				"_permissions",
-				&create_model_value(ValueType::CustomId, true, Cardinality::One),
+			Err(ApiCallError::internal(
+				"Value test with cardinality ONE can not be null".to_string()
+			)),
+			EntityFacadeImpl::encrypt_value(
+				&create_model_value(ValueType::Number, true, Cardinality::One),
 				&ElementValue::Null,
 				&sk,
 				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
 			)
-			.unwrap()
 		);
 	}
 
 	#[test]
-	fn encrypt_value_do_not_accept_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).ok();
-
-		let value_types = [
-			ValueType::Bytes,
-			ValueType::Boolean,
-			ValueType::CompressedString,
-			ValueType::String,
-			ValueType::Date,
-			ValueType::GeneratedId,
-			ValueType::Number,
-			ValueType::CustomId,
-		];
-
-		for value_type in value_types {
-			assert_eq!(
-				Err(ApiCallError::internal(
-					"Value test with cardinality ONE can not be null".to_string()
-				)),
-				EntityFacadeImpl::encrypt_if_needed(
-					"test",
-					&create_model_value(value_type, true, Cardinality::One),
-					&ElementValue::Null,
-					&sk,
-					Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-				)
-			);
-		}
-	}
-
-	#[test]
-	fn encrypt_value_convert_unencrypted_date_to_db_type() {
-		let model_value = create_model_value(ValueType::Date, false, Cardinality::One);
-		let value = ElementValue::Date(DateTime::from_system_time(SystemTime::now()));
-
-		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
-			"test",
-			&model_value,
-			&value,
-			&None,
-			Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-		);
-
-		assert_eq!(value, mapped_value.unwrap());
-	}
-
-	#[test]
-	fn encrypt_value_convert_unencrypted_bytes_to_db_type() {
-		let model_value = create_model_value(ValueType::Bytes, false, Cardinality::One);
-		let value = ElementValue::Bytes(b"test".to_vec());
-
-		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
-			"test",
-			&model_value,
-			&value,
-			&None,
-			Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-		);
-
-		assert_eq!(value, mapped_value.unwrap());
-	}
-
-	#[test]
-	fn encrypt_value_convert_unencrypted_boolean_to_db_type() {
-		let model_value = create_model_value(ValueType::Boolean, false, Cardinality::One);
-
-		let true_value = ElementValue::Bool(true);
+	#[should_panic = "invalid encrypted value Null"]
+	fn encrypt_string_do_not_accept_null() {
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		assert_eq!(
-			ElementValue::Bool(true),
-			EntityFacadeImpl::encrypt_if_needed(
-				"test",
-				&model_value,
-				&true_value,
-				&None,
+			Err(ApiCallError::internal(
+				"Value test with cardinality ONE can not be null".to_string()
+			)),
+			EntityFacadeImpl::encrypt_value(
+				&create_model_value(ValueType::String, true, Cardinality::One),
+				&ElementValue::Null,
+				&sk,
 				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
 			)
-			.unwrap()
 		);
+	}
 
-		let false_value = ElementValue::Bool(false);
+	#[test]
+	#[should_panic = "invalid encrypted value Null"]
+	fn encrypt_date_do_not_accept_null() {
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		assert_eq!(
-			false_value,
-			EntityFacadeImpl::encrypt_if_needed(
-				"test",
-				&model_value,
-				&false_value,
-				&None,
+			Err(ApiCallError::internal(
+				"Value test with cardinality ONE can not be null".to_string()
+			)),
+			EntityFacadeImpl::encrypt_value(
+				&create_model_value(ValueType::Date, true, Cardinality::One),
+				&ElementValue::Null,
+				&sk,
 				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
 			)
-			.unwrap()
 		);
 	}
 
 	#[test]
-	fn encrypt_value_convert_unencrypted_string_to_db_type() {
-		let model_value = create_model_value(ValueType::String, false, Cardinality::One);
-		let value = ElementValue::String("hello".to_string());
-
-		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
-			"test",
-			&model_value,
-			&value,
-			&None,
-			Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+	#[should_panic = "invalid encrypted value Null"]
+	fn encrypt_compressed_string_do_not_accept_null() {
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
+		assert_eq!(
+			Err(ApiCallError::internal(
+				"Value test with cardinality ONE can not be null".to_string()
+			)),
+			EntityFacadeImpl::encrypt_value(
+				&create_model_value(ValueType::CompressedString, true, Cardinality::One),
+				&ElementValue::Null,
+				&sk,
+				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+			)
 		);
-		assert_eq!(value, mapped_value.unwrap());
 	}
 
 	#[test]
-	fn encrypt_value_convert_unencrypted_number_to_db_type() {
-		let model_value = create_model_value(ValueType::Number, false, Cardinality::One);
-		let value = ElementValue::Number(100);
-
-		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
-			"test",
-			&model_value,
-			&value,
-			&None,
-			Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+	#[should_panic = "invalid encrypted value Null"]
+	fn encrypt_boolean_do_not_accept_null() {
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
+		assert_eq!(
+			Err(ApiCallError::internal(
+				"Value test with cardinality ONE can not be null".to_string()
+			)),
+			EntityFacadeImpl::encrypt_value(
+				&create_model_value(ValueType::Boolean, true, Cardinality::One),
+				&ElementValue::Null,
+				&sk,
+				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+			)
 		);
-		assert_eq!(value, mapped_value.unwrap());
-	}
-
-	#[test]
-	fn encrypt_value_convert_unencrypted_compressed_string_to_db_type() {
-		let model_value = create_model_value(ValueType::CompressedString, false, Cardinality::One);
-		let value = ElementValue::String("tutanota".to_string());
-
-		let mapped_value = EntityFacadeImpl::encrypt_if_needed(
-			"test",
-			&model_value,
-			&value,
-			&None,
-			Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-		);
-		assert_eq!(value, mapped_value.unwrap());
 	}
 
 	#[test]
@@ -1046,8 +946,7 @@ mod tests {
 				.unwrap();
 		}
 
-		let encrypted_mail =
-			entity_facade.encrypt_and_map_inner(type_model, &raw_mail, Some(sk.clone()));
+		let encrypted_mail = entity_facade.encrypt_and_map_inner(type_model, &raw_mail, &sk);
 
 		assert_eq!(Ok(expected_encrypted_mail), encrypted_mail);
 
@@ -1118,8 +1017,7 @@ mod tests {
 		};
 		let instance = json_serializer.parse(&type_ref, instance).unwrap();
 
-		let encrypted_instance =
-			entity_facade.encrypt_and_map(type_model, &instance, Some(sk.clone()));
+		let encrypted_instance = entity_facade.encrypt_and_map(type_model, &instance, &sk);
 
 		// unencrypted value should be kept as-is
 		assert_eq!(Ok(instance), encrypted_instance);
@@ -1142,7 +1040,7 @@ mod tests {
 		let new_iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
 		let original_iv = Iv::generate(&RandomizerFacade::from_core(rng.clone()));
 
-		// use two seperate iv
+		// use two separate iv
 		assert_ne!(original_iv.get_inner(), new_iv.get_inner());
 
 		let (_, mut unencrypted_mail) = generate_email_entity(
@@ -1168,7 +1066,7 @@ mod tests {
 		);
 
 		let encrypted_mail = entity_facade
-			.encrypt_and_map_inner(type_model, &unencrypted_mail, Some(sk.clone()))
+			.encrypt_and_map_inner(type_model, &unencrypted_mail, &sk)
 			.unwrap();
 
 		let encrypted_subject = encrypted_mail.get("subject").unwrap();
@@ -1222,7 +1120,7 @@ mod tests {
 		);
 
 		let encrypted_mail = entity_facade
-			.encrypt_and_map_inner(type_model, &unencrypted_mail, Some(sk.clone()))
+			.encrypt_and_map_inner(type_model, &unencrypted_mail, &sk)
 			.unwrap();
 
 		let encrypted_subject = encrypted_mail.get("subject").unwrap().assert_bytes();

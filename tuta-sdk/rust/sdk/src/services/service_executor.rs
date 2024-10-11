@@ -134,11 +134,24 @@ impl Executor for ServiceExecutor {
 					"type {:?} does not exist",
 					input_type_ref
 				)))?;
-			let encrypted_parsed_entity = self.entity_facade.encrypt_and_map(
-				type_model,
-				&parsed_entity,
-				extra_service_params.session_key,
-			)?;
+
+			let encrypted_parsed_entity = if type_model.is_encrypted() {
+				match extra_service_params.session_key {
+					Some(ref sk) => {
+						self.entity_facade
+							.encrypt_and_map(type_model, &parsed_entity, sk)?
+					},
+
+					None => Err(ApiCallError::InternalSdkError {
+						error_message: format!(
+							"Encrypting {}/{} requires a session key!",
+							type_model.app, type_model.name
+						),
+					})?,
+				}
+			} else {
+				parsed_entity
+			};
 
 			let raw_entity = self
 				.json_serializer
@@ -488,6 +501,7 @@ mod tests {
 				.unwrap();
 		}
 
+		entity_facade.expect_encrypt_and_map().never();
 		rest_client
 			.expect_request_binary()
 			.return_once(move |url, method, opts| {
@@ -519,13 +533,6 @@ mod tests {
 						br#"{"answer":"Response to some request","timestamp":"3000"}"#.to_vec(),
 					),
 				})
-			});
-
-		entity_facade
-			.expect_encrypt_and_map_to_literal()
-			.return_once(|_, entity, sk| {
-				assert_eq!(None, sk);
-				Ok(entity.clone())
 			});
 
 		executor
@@ -607,9 +614,9 @@ mod tests {
 
 		let session_key_clone = session_key.clone();
 		entity_facade
-			.expect_encrypt_and_map_to_literal()
+			.expect_encrypt_and_map()
 			.return_once(move |_, instance, sk| {
-				assert_eq!(Some(session_key_clone), sk);
+				assert_eq!(&session_key_clone, sk);
 				Ok(instance.clone())
 			});
 
