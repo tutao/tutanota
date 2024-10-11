@@ -70,4 +70,26 @@ pub mod test_util {
 	pub fn make_thread_rng_facade() -> RandomizerFacade {
 		RandomizerFacade::from_core(rand::rngs::OsRng {})
 	}
+
+	#[derive(Clone)]
+	pub struct DeterministicRng(pub u8);
+	impl RngCore for DeterministicRng {
+		fn next_u32(&mut self) -> u32 {
+			self.0.into()
+		}
+
+		fn next_u64(&mut self) -> u64 {
+			self.0.into()
+		}
+
+		fn fill_bytes(&mut self, dest: &mut [u8]) {
+			dest.fill(self.0)
+		}
+
+		fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+			self.fill_bytes(dest);
+			Ok(())
+		}
+	}
+	impl CryptoRng for DeterministicRng {}
 }
