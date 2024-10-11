@@ -6,7 +6,7 @@ pub struct FolderSystem {
 	folders: Vec<MailFolder>,
 }
 
-#[derive(PartialEq, TryFromPrimitive)]
+#[derive(Copy, Clone, PartialEq, TryFromPrimitive, Debug)]
 #[repr(u64)]
 pub enum MailSetKind {
 	Custom = 0,

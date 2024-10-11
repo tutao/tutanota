@@ -137,6 +137,52 @@ impl ServiceExecutor {
 	}
 }
 
+// Needed because ResolvingServiceExecutor relies on Deref and doesn't have ServiceExecutor
+// functions on its own.
+#[cfg(test)]
+mockall::mock! {
+	pub ResolvingServiceExecutor {
+		pub fn new(
+			auth_headers_provider: Arc<HeadersProvider>,
+			crypto_facade: Arc<CryptoFacade>,
+			entity_facade: Arc<dyn EntityFacade>,
+			instance_mapper: Arc<InstanceMapper>,
+			json_serializer: Arc<JsonSerializer>,
+			rest_client: Arc<dyn RestClient>,
+			type_model_provider: Arc<TypeModelProvider>,
+			base_url: String,
+		) -> Self;
+
+		pub async fn get<S>(
+			&self,
+			data: S::Input,
+			params: ExtraServiceParams,
+		) -> Result<S::Output, ApiCallError>
+		where S: GetService;
+
+		pub async fn post<S>(
+			&self,
+			data: S::Input,
+			params: ExtraServiceParams,
+		) -> Result<S::Output, ApiCallError>
+		where S: PostService;
+
+		pub async fn put<S>(
+			&self,
+			data: S::Input,
+			params: ExtraServiceParams,
+		) -> Result<S::Output, ApiCallError>
+		where S: PutService;
+
+		pub async fn delete<S>(
+			&self,
+			data: S::Input,
+			params: ExtraServiceParams,
+		) -> Result<S::Output, ApiCallError>
+		where S: DeleteService;
+	}
+}
+
 #[async_trait::async_trait]
 impl Executor for ServiceExecutor {
 	async fn do_request<S, I>(

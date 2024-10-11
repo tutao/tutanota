@@ -36,6 +36,7 @@ use crate::login::login_facade::{derive_user_passphrase_key, KdfType};
 use crate::login::{CredentialType, Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
+#[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::{ResolvingServiceExecutor, ServiceExecutor};
 use crate::services::sys::{SaltService, SessionService};
 use crate::services::ExtraServiceParams;
@@ -309,7 +310,11 @@ impl LoggedInSdk {
 	/// Generates a new interface to operate on mail entities
 	#[must_use]
 	pub fn mail_facade(&self) -> MailFacade {
-		MailFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
+		MailFacade::new(
+			self.crypto_entity_client.clone(),
+			self.user_facade.clone(),
+			self.service_executor.clone(),
+		)
 	}
 }
 

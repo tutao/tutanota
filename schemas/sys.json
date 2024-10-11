@@ -445,6 +445,16 @@
 					"info": "AddAssociation KeyRotation/adminGroupKeyAuthenticationData/AGGREGATION/2482."
 				}
 			]
+		},
+		{
+			"version": 112,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "CustomerServerProperties",
+					"info": "RemoveAssociation CustomerServerProperties/whitelistedDomains."
+				}
+			]
 		}
 	]
 }

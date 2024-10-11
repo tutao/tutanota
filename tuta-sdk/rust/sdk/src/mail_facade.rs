@@ -1,33 +1,50 @@
-use std::sync::Arc;
-
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
-use crate::entities::tutanota::{Mail, MailBox, MailFolder, MailboxGroupRoot};
-use crate::folder_system::FolderSystem;
+use crate::entities::tutanota::{
+	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
+};
+use crate::folder_system::{FolderSystem, MailSetKind};
 use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
+use crate::services::service_executor::ResolvingServiceExecutor;
+use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
+#[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
 use crate::{ApiCallError, IdTuple, ListLoadDirection};
+use std::sync::Arc;
 
 /// Provides high level functions to manipulate mail entities via the REST API
 #[derive(uniffi::Object)]
 pub struct MailFacade {
 	crypto_entity_client: Arc<CryptoEntityClient>,
 	user_facade: Arc<UserFacade>,
+	service_executor: Arc<ResolvingServiceExecutor>,
 }
 
 impl MailFacade {
 	pub fn new(
 		crypto_entity_client: Arc<CryptoEntityClient>,
 		user_facade: Arc<UserFacade>,
+		service_executor: Arc<ResolvingServiceExecutor>,
 	) -> Self {
 		MailFacade {
 			crypto_entity_client,
+			service_executor,
 			user_facade,
 		}
 	}
 }
+
+/// Maximum number of mails that can be moved or modified in a single request.
+///
+/// If higher, it needs to be sent in batches or else the request will return HTTP Bad Request.
+const MAX_MAIL_UPDATE_LIMIT: usize = 50;
+
+/// All allowed targets for the SimpleMoveMailService.
+///
+/// This should be kept up-to-date with the server if any more targets are desired.
+const ALLOWED_SIMPLE_MOVE_MAIL_TARGETS: &[MailSetKind] = &[MailSetKind::Trash];
 
 impl MailFacade {
 	pub async fn load_user_mailbox(&self) -> Result<MailBox, ApiCallError> {
@@ -80,6 +97,39 @@ impl MailFacade {
 			.await?;
 		Ok(mails)
 	}
+
+	/// Invoke the SimpleMoveMail service to move mail(s) to the first folder of a given folder
+	/// type in their respective mailboxes.
+	///
+	/// # Panics
+	///
+	/// Panics if `folder_type` is unsupported by the SimpleMoveMailService.
+	pub async fn simple_move_mail(
+		&self,
+		mut mails: Vec<IdTuple>,
+		folder_type: MailSetKind,
+	) -> Result<(), ApiCallError> {
+		assert!(
+			ALLOWED_SIMPLE_MOVE_MAIL_TARGETS.contains(&folder_type),
+			"{folder_type:?} is not supported by SimpleMoveMailService"
+		);
+
+		mails.dedup();
+		for mail in mails.chunks(MAX_MAIL_UPDATE_LIMIT) {
+			self.service_executor
+				.post::<SimpleMoveMailService>(
+					SimpleMoveMailPostIn {
+						_format: 0,
+						destinationSetType: folder_type as i64,
+						mails: mail.to_vec(),
+					},
+					Default::default(),
+				)
+				.await?;
+		}
+
+		Ok(())
+	}
 }
 
 #[uniffi::export]
@@ -92,5 +142,248 @@ impl MailFacade {
 		self.crypto_entity_client
 			.load::<Mail, IdTuple>(id_tuple)
 			.await
+	}
+
+	/// Mark mails as read/unread.
+	///
+	/// This is used to avoid having to get the Mail instance, edit it locally to change unread, and
+	/// then upload (PUT) it back on the server, as it directly invokes the UnreadMailStateService.
+	pub async fn set_unread_status_for_mails(
+		&self,
+		mut mails: Vec<IdTuple>,
+		unread: bool,
+	) -> Result<(), ApiCallError> {
+		mails.dedup();
+		for mail in mails.chunks(MAX_MAIL_UPDATE_LIMIT) {
+			self.service_executor
+				.post::<UnreadMailStateService>(
+					UnreadMailStatePostIn {
+						_format: 0,
+						unread,
+						mails: mail.to_vec(),
+					},
+					Default::default(),
+				)
+				.await?;
+		}
+		Ok(())
+	}
+
+	/// Move the given mails to the trash.
+	///
+	/// This is used to avoid having to load the user's mailbox, folders, etc., as it directly
+	/// invokes the SimpleMoveMailService. It can also be used to move multiple Mails across
+	/// different mailboxes that the user has access to, moving each Mail to their respective
+	/// Trash folders.
+	pub async fn trash_mails(&self, mails: Vec<IdTuple>) -> Result<(), ApiCallError> {
+		self.simple_move_mail(mails, MailSetKind::Trash).await
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::UnreadMailStatePostIn;
+	use crate::crypto_entity_client::MockCryptoEntityClient;
+	use crate::entities::tutanota::SimpleMoveMailPostIn;
+	use crate::folder_system::MailSetKind;
+	use crate::generated_id::GeneratedId;
+	use crate::mail_facade::MailFacade;
+	use crate::services::service_executor::MockResolvingServiceExecutor;
+	use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
+	use crate::user_facade::MockUserFacade;
+	use crate::IdTuple;
+	use mockall::predicate::{always, eq};
+	use std::sync::Arc;
+
+	#[tokio::test]
+	async fn mark_mail_split() {
+		async fn do_test(unread: bool) {
+			let mut executor = MockResolvingServiceExecutor::default();
+			let mails = generate_id_tuples(100);
+			let first_invocation = UnreadMailStatePostIn {
+				_format: 0,
+				unread,
+				mails: mails[..50].to_vec(),
+			};
+			let second_invocation = UnreadMailStatePostIn {
+				_format: 0,
+				unread,
+				mails: mails[50..].to_vec(),
+			};
+
+			executor
+				.expect_post::<UnreadMailStateService>()
+				.with(eq(first_invocation), always())
+				.returning(|_, _| Ok(()));
+
+			executor
+				.expect_post::<UnreadMailStateService>()
+				.with(eq(second_invocation), always())
+				.returning(|_, _| Ok(()));
+
+			let facade = MailFacade::new(
+				Arc::new(MockCryptoEntityClient::default()),
+				Arc::new(MockUserFacade::default()),
+				Arc::new(executor),
+			);
+			facade
+				.set_unread_status_for_mails(mails, unread)
+				.await
+				.unwrap();
+		}
+		do_test(true).await;
+		do_test(false).await;
+	}
+
+	#[tokio::test]
+	async fn mark_mail_deduped() {
+		async fn do_test(unread: bool) {
+			let mut executor = MockResolvingServiceExecutor::default();
+			let mails: Vec<IdTuple> = std::iter::repeat(IdTuple::new(
+				GeneratedId::test_random(),
+				GeneratedId::test_random(),
+			))
+			.take(100)
+			.collect();
+
+			let invocation = UnreadMailStatePostIn {
+				_format: 0,
+				unread,
+				mails: vec![mails[0].clone()],
+			};
+
+			executor
+				.expect_post::<UnreadMailStateService>()
+				.with(eq(invocation), always())
+				.returning(|_, _| Ok(()));
+
+			let facade = MailFacade::new(
+				Arc::new(MockCryptoEntityClient::default()),
+				Arc::new(MockUserFacade::default()),
+				Arc::new(executor),
+			);
+			facade
+				.set_unread_status_for_mails(mails, unread)
+				.await
+				.unwrap();
+		}
+		do_test(true).await;
+		do_test(false).await;
+	}
+
+	#[tokio::test]
+	async fn mark_mail_once() {
+		async fn do_test(unread: bool) {
+			let mut executor = MockResolvingServiceExecutor::default();
+			let mails = generate_id_tuples(1);
+			let invocation = UnreadMailStatePostIn {
+				_format: 0,
+				unread,
+				mails: mails.clone(),
+			};
+			executor
+				.expect_post::<UnreadMailStateService>()
+				.with(eq(invocation), always())
+				.returning(|_, _| Ok(()));
+			let facade = MailFacade::new(
+				Arc::new(MockCryptoEntityClient::default()),
+				Arc::new(MockUserFacade::default()),
+				Arc::new(executor),
+			);
+			facade
+				.set_unread_status_for_mails(mails, unread)
+				.await
+				.unwrap();
+		}
+		do_test(true).await;
+		do_test(false).await;
+	}
+
+	#[tokio::test]
+	async fn trash_mail_split() {
+		let mut executor = MockResolvingServiceExecutor::default();
+		let mails = generate_id_tuples(100);
+		let first_invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: mails[..50].to_vec(),
+			destinationSetType: MailSetKind::Trash as i64,
+		};
+		let second_invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: mails[50..].to_vec(),
+			destinationSetType: MailSetKind::Trash as i64,
+		};
+
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(first_invocation), always())
+			.returning(|_, _| Ok(()));
+
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(second_invocation), always())
+			.returning(|_, _| Ok(()));
+
+		let facade = MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+		);
+		facade.trash_mails(mails).await.unwrap();
+	}
+
+	#[tokio::test]
+	async fn trash_mail_dedupe() {
+		let mut executor = MockResolvingServiceExecutor::default();
+		let mails: Vec<IdTuple> = std::iter::repeat(IdTuple::new(
+			GeneratedId::test_random(),
+			GeneratedId::test_random(),
+		))
+		.take(100)
+		.collect();
+		let invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: vec![mails[0].clone()],
+			destinationSetType: MailSetKind::Trash as i64,
+		};
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(invocation), always())
+			.returning(|_, _| Ok(()));
+		let facade = MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+		);
+		facade.trash_mails(mails).await.unwrap();
+	}
+
+	#[tokio::test]
+	async fn trash_mail_one() {
+		let mut executor = MockResolvingServiceExecutor::default();
+		let mails = generate_id_tuples(1);
+		let invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: mails.clone(),
+			destinationSetType: MailSetKind::Trash as i64,
+		};
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(invocation), always())
+			.returning(|_, _| Ok(()));
+		let facade = MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+		);
+		facade.trash_mails(mails).await.unwrap();
+	}
+
+	fn generate_id_tuples(amt: usize) -> Vec<IdTuple> {
+		std::iter::repeat_with(|| {
+			IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random())
+		})
+		.take(amt)
+		.collect()
 	}
 }
