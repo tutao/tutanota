@@ -13,7 +13,8 @@ import { AssociationType, Type } from "../src/common/api/common/EntityConstants.
  */
 export function generateRustType({ type, modelName }) {
 	let typeName = mapTypeName(type.name, modelName)
-	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug, PartialEq)]
+	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ${typeName} {\n`
 	for (let [valueName, valueProperties] of Object.entries(type.values)) {
 		const rustType = rustValueType(valueName, type, valueProperties)
