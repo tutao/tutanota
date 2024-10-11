@@ -29,8 +29,10 @@ import {ReceiveInfoServiceDataTypeRef} from "./TypeRefs.js"
 import {ReportMailPostDataTypeRef} from "./TypeRefs.js"
 import {SendDraftDataTypeRef} from "./TypeRefs.js"
 import {SendDraftReturnTypeRef} from "./TypeRefs.js"
+import {SimpleMoveMailPostInTypeRef} from "./TypeRefs.js"
 import {TranslationGetInTypeRef} from "./TypeRefs.js"
 import {TranslationGetOutTypeRef} from "./TypeRefs.js"
+import {UnreadMailStatePostInTypeRef} from "./TypeRefs.js"
 import {UserAccountCreateDataTypeRef} from "./TypeRefs.js"
 
 export const CalendarService = Object.freeze({
@@ -186,6 +188,15 @@ export const SendDraftService = Object.freeze({
 	delete: null,
 } as const)
 
+export const SimpleMoveMailService = Object.freeze({
+	app: "tutanota",
+	name: "SimpleMoveMailService",
+	get: null,
+	post: {data: SimpleMoveMailPostInTypeRef, return: null},
+	put: null,
+	delete: null,
+} as const)
+
 export const TemplateGroupService = Object.freeze({
 	app: "tutanota",
 	name: "TemplateGroupService",
@@ -200,6 +211,15 @@ export const TranslationService = Object.freeze({
 	name: "TranslationService",
 	get: {data: TranslationGetInTypeRef, return: TranslationGetOutTypeRef},
 	post: null,
+	put: null,
+	delete: null,
+} as const)
+
+export const UnreadMailStateService = Object.freeze({
+	app: "tutanota",
+	name: "UnreadMailStateService",
+	get: null,
+	post: {data: UnreadMailStatePostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

@@ -1,5 +1,4 @@
 #![allow(unused_imports, dead_code, unused_variables)]
-use crate::entities::tutanota::CalendarDeleteData;
 use crate::entities::tutanota::CreateGroupPostReturn;
 use crate::entities::tutanota::CreateMailFolderData;
 use crate::entities::tutanota::CreateMailFolderReturn;
@@ -33,6 +32,7 @@ use crate::entities::tutanota::UpdateMailFolderData;
 use crate::entities::tutanota::UserAccountCreateData;
 use crate::entities::tutanota::UserAreaGroupDeleteData;
 use crate::entities::tutanota::UserAreaGroupPostData;
+use crate::entities::tutanota::{CalendarDeleteData, SimpleMoveMailPostIn, UnreadMailStatePostIn};
 use crate::entities::Entity;
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
@@ -234,3 +234,23 @@ crate::service_impl!(
 	75
 );
 crate::service_impl!(POST, UserAccountService, UserAccountCreateData, ());
+
+pub struct SimpleMoveMailService;
+
+crate::service_impl!(
+	declare,
+	SimpleMoveMailService,
+	"tutanota/simplemovemailservice",
+	76
+);
+crate::service_impl!(POST, SimpleMoveMailService, SimpleMoveMailPostIn, ());
+
+pub struct UnreadMailStateService;
+
+crate::service_impl!(
+	declare,
+	UnreadMailStateService,
+	"tutanota/unreadmailstateservice",
+	76
+);
+crate::service_impl!(POST, UnreadMailStateService, UnreadMailStatePostIn, ());
