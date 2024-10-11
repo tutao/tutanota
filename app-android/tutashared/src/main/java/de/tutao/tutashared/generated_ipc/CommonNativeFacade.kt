@@ -31,6 +31,9 @@ interface CommonNativeFacade {
 	suspend fun openCalendar(
 		userId: String,
 	): Unit
+	suspend fun openContactEditor(
+		contactId: String,
+	): Unit
 	suspend fun showAlertDialog(
 		translationKey: String,
 	): Unit

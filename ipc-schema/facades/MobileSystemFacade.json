@@ -54,16 +54,32 @@
 			"ret": "AppLockMethod"
 		},
 		"setAppLockMethod": {
-			"arg": [{ "method": "AppLockMethod" }],
+			"arg": [
+				{
+					"method": "AppLockMethod"
+				}
+			],
 			"ret": "void"
 		},
 		"enforceAppLock": {
-			"arg": [{ "method": "AppLockMethod" }],
+			"arg": [
+				{
+					"method": "AppLockMethod"
+				}
+			],
 			"ret": "void"
 		},
 		"getSupportedAppLockMethods": {
 			"arg": [],
 			"ret": "List<AppLockMethod>"
+		},
+		"openMailApp": {
+			"arg": [
+				{
+					"query": "string"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

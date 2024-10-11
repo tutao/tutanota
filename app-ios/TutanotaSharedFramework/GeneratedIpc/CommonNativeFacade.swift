@@ -28,6 +28,9 @@ public protocol CommonNativeFacade {
 	func openCalendar(
 		_ userId: String
 	) async throws -> Void
+	func openContactEditor(
+		_ contactId: String
+	) async throws -> Void
 	func showAlertDialog(
 		_ translationKey: String
 	) async throws -> Void

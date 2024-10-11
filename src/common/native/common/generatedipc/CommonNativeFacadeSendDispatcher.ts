@@ -16,6 +16,9 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async openCalendar(...args: Parameters<CommonNativeFacade["openCalendar"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "openCalendar", ...args])
 	}
+	async openContactEditor(...args: Parameters<CommonNativeFacade["openContactEditor"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "openContactEditor", ...args])
+	}
 	async showAlertDialog(...args: Parameters<CommonNativeFacade["showAlertDialog"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "showAlertDialog", ...args])
 	}

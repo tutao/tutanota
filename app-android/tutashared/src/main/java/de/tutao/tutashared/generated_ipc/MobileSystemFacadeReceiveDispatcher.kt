@@ -73,6 +73,13 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"openMailApp" -> {
+				val query: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.openMailApp(
+					query,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

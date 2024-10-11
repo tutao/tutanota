@@ -1785,3 +1785,4 @@ export type TranslationKeyType =
 	| "birthdayEvent_title"
 	| "birthdayEventAge_title"
 	| "birthdayCalendar_label"
+	| "contactNotFound_msg"

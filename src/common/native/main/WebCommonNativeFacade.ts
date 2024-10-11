@@ -1,6 +1,6 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
+import { decodeBase64, lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
 import m from "mithril"
@@ -14,6 +14,7 @@ import { NativeFileApp } from "../common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
+import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -27,6 +28,22 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		readonly openCalendar: (userId: string) => Promise<void>,
 		private readonly appType: AppType,
 	) {}
+
+	async openContactEditor(contactId: string): Promise<void> {
+		await this.logins.waitForFullLogin()
+		const { ContactEditor } = await import("../../../mail-app/contacts/ContactEditor.js")
+		const decodedContactId = decodeBase64("utf-8", contactId)
+		const idParts = decodedContactId.split("/")
+		try {
+			const contact = await locator.entityClient.load(ContactTypeRef, [idParts[0], idParts[1]])
+			const editor = new ContactEditor(locator.entityClient, contact)
+
+			return editor.show()
+		} catch (err) {
+			console.error(err)
+			return Dialog.message("contactNotFound_msg")
+		}
+	}
 
 	/**
 	 * create a mail editor as requested from the native side, ie because a

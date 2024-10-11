@@ -87,6 +87,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+
 const val SYSTEM_GESTURES_EXCLUSION_WIDTH_DP = 40
 const val SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP = 200 // max exclusion height allowed by the system is 200 dp
 
@@ -452,6 +453,10 @@ class MainActivity : FragmentActivity() {
 			return@launch
 		}
 
+		if (data != null && data.toString().startsWith("tutamail://") && data.host == "interop") {
+			openContactEditor(data)
+		}
+
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
 			when (intent.action) {
 				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
@@ -714,10 +719,10 @@ class MainActivity : FragmentActivity() {
 		val addresses = ArrayList<String>(1)
 		addresses.add(address)
 		startService(
-				notificationDismissedIntent(
-						this, addresses,
-						"MainActivity#openMailbox"
-				)
+			notificationDismissedIntent(
+				this, addresses,
+				"MainActivity#openMailbox"
+			)
 		)
 
 		val requestedPath = intent.getStringExtra(OPEN_USER_MAILBOX_MAILID_KEY)?.let {
@@ -732,6 +737,12 @@ class MainActivity : FragmentActivity() {
 	private suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		commonNativeFacade.openCalendar(userId)
+	}
+
+	private suspend fun openContactEditor(data: Uri?) {
+		val contactId = data?.getQueryParameter(OPEN_CONTACT_EDITOR_CONTACT_ID)
+			?: return commonNativeFacade.showAlertDialog("contactNotFound_msg")
+		commonNativeFacade.openContactEditor(contactId)
 	}
 
 	private fun onBackPressedCallback() {
@@ -790,6 +801,7 @@ class MainActivity : FragmentActivity() {
 		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
 		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
+		const val OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
 		const val OPEN_USER_MAILBOX_MAILID_KEY = "mailId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
 		private const val TAG = "MainActivity"

@@ -164,4 +164,8 @@ class AndroidMobileSystemFacade(
 			}
 		}
 	}
+
+	override suspend fun openMailApp(query: String) {
+		Log.e(TAG, "Trying to open Tuta Mail from Tuta Mail")
+	}
 }

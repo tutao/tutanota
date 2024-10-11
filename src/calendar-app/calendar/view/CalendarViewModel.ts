@@ -222,7 +222,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		previousMonthDate.setMonth(new Date(thisMonthStart).getMonth() - 1)
 		const nextMonthDate = new Date(thisMonthStart)
 		nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
+
 		try {
+			const hasNewPaidPlan = await this.eventsRepository.canLoadBirthdaysCalendar()
+			if (hasNewPaidPlan) {
+				await this.eventsRepository.loadContactsBirthdays()
+			}
 			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor)
 		} finally {
 			progressMonitor.completed()

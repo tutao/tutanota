@@ -480,7 +480,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (getCurrentSearchMode() === SearchCategoryTypes.calendar) {
 			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-			//FIXME
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.navigation_bg,
 				desktopToolbar: () => m(DesktopViewerToolbar, []),

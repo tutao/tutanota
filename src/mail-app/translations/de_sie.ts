@@ -1803,6 +1803,7 @@ export default {
 		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden.",
 		"birthdayEvent_title": `{name} Geburtstag`,
 		"birthdayEventAge_title": "({age} Jahre alt)",
-		"birthdayCalendar_label": "Geburtstage"
+		"birthdayCalendar_label": "Geburtstage",
+		"contactNotFound_msg": "Kontakt nicht gefunden"
 	}
 }

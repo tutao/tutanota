@@ -53,6 +53,16 @@ class CommonNativeFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun openContactEditor(
+		contactId: String,
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("openContactEditor")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(contactId))
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 	override suspend fun showAlertDialog(
 		translationKey: String,
 	): Unit

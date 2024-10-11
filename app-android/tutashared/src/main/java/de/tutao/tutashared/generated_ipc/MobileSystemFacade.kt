@@ -50,4 +50,7 @@ interface MobileSystemFacade {
 	): Unit
 	suspend fun getSupportedAppLockMethods(
 	): List<AppLockMethod>
+	suspend fun openMailApp(
+		query: String,
+	): Unit
 }

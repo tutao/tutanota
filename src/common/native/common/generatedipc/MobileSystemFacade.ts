@@ -38,4 +38,6 @@ export interface MobileSystemFacade {
 	enforceAppLock(method: AppLockMethod): Promise<void>
 
 	getSupportedAppLockMethods(): Promise<ReadonlyArray<AppLockMethod>>
+
+	openMailApp(query: string): Promise<void>
 }

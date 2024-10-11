@@ -16,6 +16,8 @@ export interface CommonNativeFacade {
 
 	openCalendar(userId: string): Promise<void>
 
+	openContactEditor(contactId: string): Promise<void>
+
 	showAlertDialog(translationKey: string): Promise<void>
 
 	/**

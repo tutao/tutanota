@@ -5,7 +5,7 @@ import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
 import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, decodeBase64, incrementMonth, last, LazyLoaded, lazyMemoized, memoized, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, decodeBase64, incrementMonth, last, LazyLoaded, lazyMemoized, memoized, stringToBase64, TypeRef } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
@@ -265,7 +265,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
 				contact: contact,
-				editAction: (contact) => null, //FIXME Redirect to mail app
+				editAction: (contact) => {
+					const query = `contactId=${stringToBase64(contact._id.join("/"))}`
+					calendarLocator.systemFacade.openMailApp(stringToBase64(query))
+				},
 				onWriteMail: this.onWriteMail,
 				extendedActions: true,
 			}),

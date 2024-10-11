@@ -52,6 +52,17 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	 public func openContactEditor(
+		_ contactId: String
+	) async throws -> Void
+		{
+		var args = [String]()
+		args.append(toJson(contactId))
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("openContactEditor")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 	 public func showAlertDialog(
 		_ translationKey: String
 	) async throws -> Void

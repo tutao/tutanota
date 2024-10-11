@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.util.Base64
 import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -23,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.nio.charset.Charset
 
 class AndroidMobileSystemFacade(
 	private val fileFacade: AndroidFileFacade,
@@ -164,6 +166,33 @@ class AndroidMobileSystemFacade(
 			) {
 				add(AppLockMethod.SYSTEM_PASS_OR_BIOMETRICS)
 			}
+		}
+	}
+
+	fun tryToLaunchStore() {
+		try {
+			startActivity(
+				activity,
+				Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=de.tutao.tutanota")),
+				null
+			)
+		} catch (e: Exception) {
+			Log.d(TAG, "Failed to launch store $e")
+		}
+	}
+
+	override suspend fun openMailApp(query: String) {
+		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
+
+		val intent = Intent()
+		intent.setAction(Intent.ACTION_EDIT)
+		intent.setData(Uri.parse("tutamail://interop?${decodedQuery}"))
+
+		try {
+			startActivity(activity, intent, null)
+		} catch (e: Exception) {
+			Log.d(TAG, e.toString())
+			tryToLaunchStore()
 		}
 	}
 }

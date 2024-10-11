@@ -49,6 +49,14 @@
 			],
 			"ret": "void"
 		},
+		"openContactEditor": {
+			"arg": [
+				{
+					"contactId": "string"
+				}
+			],
+			"ret": "void"
+		},
 		"showAlertDialog": {
 			"arg": [
 				{

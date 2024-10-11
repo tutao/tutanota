@@ -60,6 +60,12 @@ public class MobileSystemFacadeReceiveDispatcher {
 			let result = try await self.facade.getSupportedAppLockMethods(
 			)
 			return toJson(result)
+		case "openMailApp":
+			let query = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.openMailApp(
+				query
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

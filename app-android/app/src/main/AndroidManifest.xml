@@ -119,6 +119,15 @@
 
 				<action android:name="android.intent.action.VIEW"/>
 			</intent-filter>
+			<intent-filter>
+				<data
+						android:scheme="tutamail"
+						android:host="interop"/>
+				<action android:name="android.intent.action.EDIT"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>
+			</intent-filter>
 
 			<intent-filter>
 				<data

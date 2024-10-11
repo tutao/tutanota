@@ -24,6 +24,10 @@ export class CommonNativeFacadeReceiveDispatcher {
 				const userId: string = arg[0]
 				return this.facade.openCalendar(userId)
 			}
+			case "openContactEditor": {
+				const contactId: string = arg[0]
+				return this.facade.openContactEditor(contactId)
+			}
 			case "showAlertDialog": {
 				const translationKey: string = arg[0]
 				return this.facade.showAlertDialog(translationKey)

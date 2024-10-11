@@ -314,7 +314,7 @@ export class CalendarSearchViewModel {
 				this.loadingAllForSearchResult &&
 				isSameSearchRestriction(this._searchResult?.restriction, this.loadingAllForSearchResult.restriction) &&
 				!this.listModel.isLoadedCompletely()
-				) {
+			) {
 				await this.listModel.loadMore()
 				if (
 					this._searchResult.restriction &&
@@ -465,9 +465,9 @@ export class CalendarSearchViewModel {
 
 	getSelectedEvents(): CalendarEvent[] {
 		return this.listModel
-				   .getSelectedAsArray()
-				   .map((e) => e.entry)
-				   .filter(assertIsEntity2(CalendarEventTypeRef))
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<CalendarSearchResultListEntry>) {
@@ -509,13 +509,13 @@ export class CalendarSearchViewModel {
 				const id = lastResult.results.find((resultId) => elementIdPart(resultId) === elementId)
 				if (id) {
 					return this.entityClient
-							   .load(lastResult.restriction.type, id)
-							   .then((entity) => new CalendarSearchResultListEntry(entity))
-							   .catch(
-								   ofClass(NotFoundError, (_) => {
-									   return null
-								   }),
-							   )
+						.load(lastResult.restriction.type, id)
+						.then((entity) => new CalendarSearchResultListEntry(entity))
+						.catch(
+							ofClass(NotFoundError, (_) => {
+								return null
+							}),
+						)
 				} else {
 					return null
 				}

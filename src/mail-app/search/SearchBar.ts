@@ -509,7 +509,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		// If there was no new search while we've been downloading the result
 		if (!mailLocator.search.isNewSearch(result.query, result.restriction)) {
-			// FIXME
 			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
 
 			if (

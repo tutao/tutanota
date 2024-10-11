@@ -47,4 +47,7 @@ public protocol MobileSystemFacade {
 	) async throws -> Void
 	func getSupportedAppLockMethods(
 	) async throws -> [AppLockMethod]
+	func openMailApp(
+		_ query: String
+	) async throws -> Void
 }

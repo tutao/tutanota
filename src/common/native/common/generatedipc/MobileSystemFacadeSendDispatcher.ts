@@ -34,4 +34,7 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async getSupportedAppLockMethods(...args: Parameters<MobileSystemFacade["getSupportedAppLockMethods"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "getSupportedAppLockMethods", ...args])
 	}
+	async openMailApp(...args: Parameters<MobileSystemFacade["openMailApp"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "openMailApp", ...args])
+	}
 }
