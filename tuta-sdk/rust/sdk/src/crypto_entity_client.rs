@@ -18,12 +18,6 @@ pub struct CryptoEntityClient {
 	instance_mapper: Arc<InstanceMapper>,
 }
 
-impl CryptoEntityClient {
-	pub fn get_crypto_facade(&self) -> &Arc<CryptoFacade> {
-		&self.crypto_facade
-	}
-}
-
 #[cfg_attr(test, mockall::automock)]
 impl CryptoEntityClient {
 	pub fn new(
@@ -102,6 +96,7 @@ impl CryptoEntityClient {
 mod tests {
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::GenericAesKey;
+	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
@@ -173,7 +168,10 @@ mod tests {
 		let type_model_provider = Arc::new(init_type_model_provider());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
-		let entity_facade = EntityFacadeImpl::new(Arc::clone(&type_model_provider));
+		let entity_facade = EntityFacadeImpl::new(
+			Arc::clone(&type_model_provider),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 
 		let crypto_entity_client = CryptoEntityClient::new(
 			Arc::new(mock_entity_client),

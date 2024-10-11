@@ -566,6 +566,7 @@ impl JsonSerializer {
 mod tests {
 	use super::*;
 	use crate::crypto::key::GenericAesKey;
+	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::sys::User;
 	use crate::entities::Entity;
@@ -654,7 +655,10 @@ mod tests {
 		let parsed_unencrypted = instance_mapper
 			.serialize_entity(entity_to_serialize)
 			.unwrap();
-		let entity_facade = EntityFacadeImpl::new(type_provider.clone());
+		let entity_facade = EntityFacadeImpl::new(
+			type_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 		let type_model = type_provider
 			.get_type_model(
 				&HelloEncOutput::type_ref().app,

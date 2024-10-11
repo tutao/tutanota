@@ -187,13 +187,15 @@ impl Sdk {
 			user_facade.clone(),
 			typed_entity_client.clone(),
 		));
-		let randomizer = RandomizerFacade::from_core(rand_core::OsRng);
 		let crypto_facade = Arc::new(CryptoFacade::new(
 			Some(key_loader.clone()),
 			self.instance_mapper.clone(),
-			randomizer,
+			RandomizerFacade::from_core(rand_core::OsRng),
 		));
-		let entity_facade = Arc::new(EntityFacadeImpl::new(self.type_model_provider.clone()));
+		let entity_facade = Arc::new(EntityFacadeImpl::new(
+			self.type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		));
 		let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
 			entity_client.clone(),
 			entity_facade,
@@ -222,7 +224,10 @@ impl Sdk {
 			self.instance_mapper.clone(),
 			RandomizerFacade::from_core(rand_core::OsRng),
 		));
-		let entity_facade = Arc::new(EntityFacadeImpl::new(self.type_model_provider.clone()));
+		let entity_facade = Arc::new(EntityFacadeImpl::new(
+			self.type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		));
 
 		let service_executor = ServiceExecutor::new(
 			headers_provider.clone(),
