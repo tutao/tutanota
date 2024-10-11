@@ -14,6 +14,7 @@ import {
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
+	GroupKeyTypeRef,
 	KeyRotationTypeRef,
 	PermissionTypeRef,
 	RecoverCodeTypeRef,
@@ -72,6 +73,16 @@ const IGNORED_TYPES = [
 	UserGroupKeyDistributionTypeRef,
 	AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
 ] as const
+
+/**
+ * List of types containing a customId that we want to explicitly enable caching for.
+ * CustomId types are not cached by default because their id is using base64UrlEncoding while GeneratedUId types are using base64Ext encoding.
+ * base64Url encoding results in a different sort order of elements that we have on the server, this is problematic for caching LET and their ranges.
+ * When enabling caching for customId types we convert the id that we store in cache from base64Url to base64Ext so we have the same sort order. (see function
+ * OfflineStorage.ensureBase64Ext). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
+ * are other ways to cache customId types (see implementation of CustomCacheHandler)
+ */
+const CACHABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
 
 export interface EntityRestCache extends EntityRestInterface {
 	/**
@@ -705,7 +716,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					if (handledUpdate) {
 						otherEventUpdates.push(handledUpdate)
 					}
-					continue
+					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
 					if (
@@ -724,14 +735,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
 					}
 					otherEventUpdates.push(update)
-					continue
+					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.CREATE: {
 					const handledUpdate = await this.processCreateEvent(typeRef, update, updatesArray)
 					if (handledUpdate) {
 						otherEventUpdates.push(handledUpdate)
 					}
-					continue
+					break // do break instead of continue to avoid ide warnings
 				}
 				default:
 					throw new ProgrammingError("Unknown operation type: " + operation)
@@ -954,13 +965,20 @@ function isIgnoredType(typeRef: TypeRef<unknown>): boolean {
 }
 
 /**
+ * Checks if for the given type, that contains a customId,  caching is enabled.
+ */
+function isCachableCustomIdType(typeRef: TypeRef<unknown>): boolean {
+	return CACHABLE_CUSTOMID_TYPES.some((ref) => isSameTypeRef(typeRef, ref))
+}
+
+/**
  * customId types are normally not cached, but some are opted in.
  * Note:
  * isCachedType(ref) ---> !isIgnoredType(ref) but
  * isIgnoredType(ref) -/-> !isCachedType(ref)
  */
 function isCachedType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boolean {
-	return (!isIgnoredType(typeRef) && isGeneratedIdType(typeModel)) || isSameTypeRef(typeRef, MailSetEntryTypeRef)
+	return (!isIgnoredType(typeRef) && isGeneratedIdType(typeModel)) || isCachableCustomIdType(typeRef)
 }
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {

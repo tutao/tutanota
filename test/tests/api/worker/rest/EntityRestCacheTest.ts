@@ -21,6 +21,7 @@ import {
 	EntityUpdate,
 	EntityUpdateTypeRef,
 	ExternalUserReferenceTypeRef,
+	GroupKeyTypeRef,
 	GroupMembershipTypeRef,
 	GroupRootTypeRef,
 	InstanceSessionKeyTypeRef,
@@ -1286,6 +1287,30 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 			o(result2).deepEquals([ref])
 			o(loadRange.callCount).equals(2) // entities are always provided from server
+			unmockAttribute(mock)
+		})
+
+		o("custom id range caching", async function () {
+			let ref = clone(createTestEntity(GroupKeyTypeRef))
+			ref._id = ["listId1", stringToCustomId("1")]
+			const loadRange = spy(function (typeRef, listId, start, count, reverse) {
+				o(isSameTypeRef(typeRef, GroupKeyTypeRef)).equals(true)
+				o(listId).equals("listId1")
+				o(start).equals(CUSTOM_MIN_ID)
+				o(count).equals(1)
+				o(reverse).equals(false)
+				return Promise.resolve([ref])
+			})
+
+			const mock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+			const result1 = await cache.loadRange(GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+			o(loadRange.callCount).equals(1) // second call deliviers custom id items from cache.
+
+			o(result1).deepEquals([ref])
+			const result2 = await cache.loadRange(GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+
+			o(result2).deepEquals([ref])
+			o(loadRange.callCount).equals(1) // second call delivers custom id it	ems from cache.
 			unmockAttribute(mock)
 		})
 
