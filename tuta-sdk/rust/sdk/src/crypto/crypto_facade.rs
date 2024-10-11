@@ -33,7 +33,7 @@ const BUCKET_KEY_FIELD: &str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
-	key_loader_facade: Option<Arc<KeyLoaderFacade>>,
+	key_loader_facade: Arc<KeyLoaderFacade>,
 	instance_mapper: Arc<InstanceMapper>,
 	randomizer_facade: RandomizerFacade,
 }
@@ -50,7 +50,7 @@ pub struct ResolvedSessionKey {
 impl CryptoFacade {
 	#[must_use]
 	pub fn new(
-		key_loader_facade: Option<Arc<KeyLoaderFacade>>,
+		key_loader_facade: Arc<KeyLoaderFacade>,
 		instance_mapper: Arc<InstanceMapper>,
 		randomizer_facade: RandomizerFacade,
 	) -> Self {
@@ -102,10 +102,6 @@ impl CryptoFacade {
 
 		let group_key: GenericAesKey = self
 			.key_loader_facade
-			.as_ref()
-			.ok_or(KeyLoadError {
-				reason: "not logged in yet".to_string(),
-			})?
 			.load_sym_group_key(owner_group, owner_key_version, None)
 			.await?;
 
@@ -176,9 +172,6 @@ impl CryptoFacade {
 		let versioned_key = self
 			.key_loader_facade
 			.as_ref()
-			.ok_or(KeyLoadError {
-				reason: "not logged in yet".to_string(),
-			})?
 			.get_current_sym_group_key(owner_group)
 			.await?;
 
@@ -210,9 +203,6 @@ impl CryptoFacade {
 			let keypair = self
 				.key_loader_facade
 				.as_ref()
-				.ok_or(KeyLoadError {
-					reason: "not logged in yet".to_string(),
-				})?
 				.load_key_pair(key_group, bucket_key.recipientKeyVersion)
 				.await?;
 			match keypair {
@@ -623,7 +613,7 @@ mod test {
 			.once();
 
 		CryptoFacade {
-			key_loader_facade: Some(Arc::new(key_loader)),
+			key_loader_facade: Arc::new(key_loader),
 			instance_mapper: Arc::new(InstanceMapper::new()),
 			randomizer_facade,
 		}

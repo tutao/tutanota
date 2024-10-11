@@ -1,5 +1,6 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
+use crate::crypto::key::GenericAesKey;
 use crate::entities::entity_facade::EntityFacade;
 use crate::entities::Entity;
 use crate::entity_client::{AuthenticatedHeaders, HeadersProvider, UnAuthenticatedHeaders};
@@ -8,26 +9,22 @@ use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
 use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
-use crate::rest_error::HttpError;
-use crate::services::hidden::Executor;
-use crate::services::{
-	DeleteService, ExtraServiceParams, GetService, PostService, PutService, Service,
-};
+use crate::services::hidden::AuthenticatedExecutor;
+use crate::services::{ExtraServiceParams, Service};
 use crate::type_model_provider::TypeModelProvider;
 use crate::ApiCallError;
 use serde::Deserialize;
 use serde::Serialize;
 use std::sync::Arc;
+use crate::rest_error::HttpError;
+// /// Service executor with authenticated headers
+// pub type AuthenticatedServiceExecutor = ServiceExecutor<AuthenticatedHeaders>;
+//
+// /// Service executor with valid but unauthenticated headers
+// pub type UnAuthenticatedServiceExecutor = ServiceExecutor<UnAuthenticatedHeaders>;
 
-/// Service executor with authenticated headers
-pub type AuthenticatedServiceExecutor = ServiceExecutor<AuthenticatedHeaders>;
-
-/// Service executor with valid but unauthenticated headers
-pub type UnAuthenticatedServiceExecutor = ServiceExecutor<UnAuthenticatedHeaders>;
-
-pub struct ServiceExecutor<HeaderSrc: HeadersProvider> {
-	headers_provider: Arc<HeaderSrc>,
-	crypto_facade: Arc<CryptoFacade>,
+pub struct ServiceExecutorCommon {
+	headers_provider: Arc<dyn HeadersProvider>,
 	entity_facade: Arc<dyn EntityFacade>,
 	instance_mapper: Arc<InstanceMapper>,
 	json_serializer: Arc<JsonSerializer>,
@@ -35,81 +32,17 @@ pub struct ServiceExecutor<HeaderSrc: HeadersProvider> {
 	type_model_provider: Arc<TypeModelProvider>,
 	base_url: String,
 }
-impl<H: HeadersProvider> ServiceExecutor<H> {
-	pub fn new(
-		auth_headers_provider: Arc<H>,
-		crypto_facade: Arc<CryptoFacade>,
-		entity_facade: Arc<dyn EntityFacade>,
-		instance_mapper: Arc<InstanceMapper>,
-		json_serializer: Arc<JsonSerializer>,
-		rest_client: Arc<dyn RestClient>,
-		type_model_provider: Arc<TypeModelProvider>,
-		base_url: String,
-	) -> Self {
-		Self {
-			headers_provider: auth_headers_provider,
-			crypto_facade,
-			entity_facade,
-			instance_mapper,
-			json_serializer,
-			rest_client,
-			type_model_provider,
-			base_url,
-		}
-	}
 
-	pub async fn get<S>(
-		&self,
-		data: S::Input,
-		params: ExtraServiceParams,
-	) -> Result<S::Output, ApiCallError>
-	where
-		S: GetService,
-	{
-		S::GET(self, data, params).await
-	}
-
-	pub async fn post<S>(
-		&self,
-		data: S::Input,
-		params: ExtraServiceParams,
-	) -> Result<S::Output, ApiCallError>
-	where
-		S: PostService,
-	{
-		S::POST(self, data, params).await
-	}
-
-	pub async fn put<S>(
-		&self,
-		data: S::Input,
-		params: ExtraServiceParams,
-	) -> Result<S::Output, ApiCallError>
-	where
-		S: PutService,
-	{
-		S::PUT(self, data, params).await
-	}
-
-	pub async fn delete<S>(
-		&self,
-		data: S::Input,
-		params: ExtraServiceParams,
-	) -> Result<S::Output, ApiCallError>
-	where
-		S: DeleteService,
-	{
-		S::DELETE(self, data, params).await
-	}
-}
-
-#[async_trait::async_trait]
-impl<H: HeadersProvider> Executor for ServiceExecutor<H> {
+impl ServiceExecutorCommon {
 	async fn do_request<S, I>(
 		&self,
 		data: Option<I>,
 		method: HttpMethod,
 		extra_service_params: ExtraServiceParams,
+
+		// mapper that takes an un-encrypted parsed entity that is marked encrypted
+		// and returns the encrypted parsed entity
+		session_key_resolver: fn() -> &GenericAesKey,
 	) -> Result<Option<Vec<u8>>, ApiCallError>
 	where
 		S: Service,
@@ -143,19 +76,11 @@ impl<H: HeadersProvider> Executor for ServiceExecutor<H> {
 				)))?;
 
 			let encrypted_parsed_entity = if type_model.is_encrypted() {
-				match extra_service_params.session_key {
-					Some(ref sk) => {
-						self.entity_facade
-							.encrypt_and_map(type_model, &parsed_entity, sk)?
-					},
-
-					None => Err(ApiCallError::InternalSdkError {
-						error_message: format!(
-							"Encrypting {}/{} requires a session key!",
-							type_model.app, type_model.name
-						),
-					})?,
-				}
+				self.entity_facade.encrypt_and_map(
+					type_model,
+					&parsed_entity,
+					session_key_resolver(),
+				)?
 			} else {
 				parsed_entity
 			};
@@ -192,6 +117,9 @@ impl<H: HeadersProvider> Executor for ServiceExecutor<H> {
 	async fn handle_response<OutputType>(
 		&self,
 		body: Option<Vec<u8>>,
+		
+		// resolve to crypto facade
+		crypto_facade_res
 	) -> Result<OutputType, ApiCallError>
 	where
 		OutputType: Entity + Deserialize<'static>,
@@ -248,6 +176,66 @@ impl<H: HeadersProvider> Executor for ServiceExecutor<H> {
 				})?;
 			Ok(typed_entity)
 		}
+	}
+}
+
+pub struct AuthenticatedServiceExecutor {
+	headers_provider: Arc<AuthenticatedHeaders>,
+	crypto_facade: Arc<CryptoFacade>,
+	commons: ServiceExecutorCommon,
+}
+pub struct UnAuthenticatedServiceExecutor {
+	headers_provider: UnAuthenticatedHeaders,
+	commons: ServiceExecutorCommon,
+}
+
+impl AuthenticatedServiceExecutor {
+	pub fn new(
+		headers_provider: Arc<AuthenticatedHeaders>,
+		crypto_facade: Arc<CryptoFacade>,
+		entity_facade: Arc<dyn EntityFacade>,
+		instance_mapper: Arc<InstanceMapper>,
+		json_serializer: Arc<JsonSerializer>,
+		rest_client: Arc<dyn RestClient>,
+		type_model_provider: Arc<TypeModelProvider>,
+		base_url: String,
+	) -> Self {
+		Self {
+			headers_provider,
+			crypto_facade,
+			commons: ServiceExecutorCommon {
+				entity_facade,
+				instance_mapper,
+				json_serializer,
+				rest_client,
+				type_model_provider,
+				base_url,
+			},
+		}
+	}
+}
+
+#[async_trait::async_trait]
+impl AuthenticatedExecutor for AuthenticatedServiceExecutor {
+	async fn handle_response<O>(&self, body: Option<Vec<u8>>) -> Result<O, ApiCallError>
+	where
+		O: Entity + Deserialize<'static>,
+	{
+		todo!()
+	}
+
+	async fn do_request<S, I>(
+		&self,
+		data: Option<I>,
+		method: HttpMethod,
+		extra_service_params: ExtraServiceParams,
+		session_key: Arc<GenericAesKey>,
+	) -> Result<Option<Vec<u8>>, ApiCallError>
+	where
+		S: Service,
+		I: Entity + Serialize + Send,
+	{
+		todo!()
 	}
 }
 

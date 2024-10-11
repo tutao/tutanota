@@ -1,5 +1,4 @@
-use crate::crypto::key::GenericAesKey;
-use crate::services::hidden::Executor;
+use crate::services::hidden::{AuthenticatedExecutor, UnAuthenticatedExecutor};
 use crate::ApiCallError;
 use std::collections::HashMap;
 
@@ -25,52 +24,104 @@ pub trait Service {
 }
 
 #[async_trait::async_trait]
-pub trait GetService: Service {
+pub trait EncryptedGetService: Service {
 	type Input;
 	type Output;
 
 	#[allow(non_snake_case)]
 	async fn GET(
-		x: &impl Executor,
+		x: &impl AuthenticatedExecutor,
 		data: Self::Input,
 		params: ExtraServiceParams,
 	) -> Result<Self::Output, ApiCallError>;
 }
 
 #[async_trait::async_trait]
-pub trait PostService: Service {
+pub trait EncryptedPostService: Service {
 	type Input;
 	type Output;
 
 	#[allow(non_snake_case)]
 	async fn POST(
-		x: &impl Executor,
+		x: &impl AuthenticatedExecutor,
 		data: Self::Input,
 		params: ExtraServiceParams,
 	) -> Result<Self::Output, ApiCallError>;
 }
 
 #[async_trait::async_trait]
-pub trait PutService: Service {
+pub trait EncryptedPutService: Service {
 	type Input;
 	type Output;
 
 	#[allow(non_snake_case)]
 	async fn PUT(
-		x: &impl Executor,
+		x: &impl AuthenticatedExecutor,
 		data: Self::Input,
 		params: ExtraServiceParams,
 	) -> Result<Self::Output, ApiCallError>;
 }
 
 #[async_trait::async_trait]
-pub trait DeleteService: Service {
+pub trait EncryptedDeleteService: Service {
 	type Input;
 	type Output;
 
 	#[allow(non_snake_case)]
 	async fn DELETE(
-		x: &impl Executor,
+		x: &impl AuthenticatedExecutor,
+		data: Self::Input,
+		params: ExtraServiceParams,
+	) -> Result<Self::Output, ApiCallError>;
+}
+
+#[async_trait::async_trait]
+pub trait UnEncryptedGetService: Service {
+	type Input;
+	type Output;
+
+	#[allow(non_snake_case)]
+	async fn GET(
+		x: &impl UnAuthenticatedExecutor,
+		data: Self::Input,
+		params: ExtraServiceParams,
+	) -> Result<Self::Output, ApiCallError>;
+}
+
+#[async_trait::async_trait]
+pub trait UnEncryptedPostService: Service {
+	type Input;
+	type Output;
+
+	#[allow(non_snake_case)]
+	async fn POST(
+		x: &impl UnAuthenticatedExecutor,
+		data: Self::Input,
+		params: ExtraServiceParams,
+	) -> Result<Self::Output, ApiCallError>;
+}
+
+#[async_trait::async_trait]
+pub trait UnEncryptedPutService: Service {
+	type Input;
+	type Output;
+
+	#[allow(non_snake_case)]
+	async fn PUT(
+		x: &impl UnAuthenticatedExecutor,
+		data: Self::Input,
+		params: ExtraServiceParams,
+	) -> Result<Self::Output, ApiCallError>;
+}
+
+#[async_trait::async_trait]
+pub trait UnEncryptedDeleteService: Service {
+	type Input;
+	type Output;
+
+	#[allow(non_snake_case)]
+	async fn DELETE(
+		x: &impl UnAuthenticatedExecutor,
 		data: Self::Input,
 		params: ExtraServiceParams,
 	) -> Result<Self::Output, ApiCallError>;
@@ -84,7 +135,6 @@ pub enum SuspensionBehavior {
 #[derive(Default)]
 pub struct ExtraServiceParams {
 	pub query_params: Option<HashMap<String, String>>,
-	pub session_key: Option<GenericAesKey>,
 	pub extra_headers: Option<HashMap<String, String>>,
 	pub suspension_behavior: Option<SuspensionBehavior>,
 	/** override origin for the request */
@@ -92,11 +142,13 @@ pub struct ExtraServiceParams {
 }
 
 mod hidden {
+	use crate::crypto::key::GenericAesKey;
 	use crate::entities::Entity;
 	use crate::rest_client::HttpMethod;
 	use crate::services::{ExtraServiceParams, Service};
 	use crate::{ApiCallError, TypeRef};
 	use serde::{Deserialize, Serialize, Serializer};
+	use std::sync::Arc;
 
 	/// Type that allows us to call the executor even
 	/// if the service doesn't have an input or output.
@@ -127,7 +179,25 @@ mod hidden {
 	}
 
 	#[async_trait::async_trait]
-	pub trait Executor: Sync + Send {
+	pub trait AuthenticatedExecutor: Sync + Send {
+		async fn do_request<S, I>(
+			&self,
+			data: Option<I>,
+			method: HttpMethod,
+			extra_service_params: ExtraServiceParams,
+			session_key: Arc<GenericAesKey>,
+		) -> Result<Option<Vec<u8>>, ApiCallError>
+		where
+			S: Service,
+			I: Entity + Serialize + Send;
+
+		async fn handle_response<O>(&self, body: Option<Vec<u8>>) -> Result<O, ApiCallError>
+		where
+			O: Entity + Deserialize<'static>;
+	}
+
+	#[async_trait::async_trait]
+	pub trait UnAuthenticatedExecutor: Sync + Send {
 		async fn do_request<S, I>(
 			&self,
 			data: Option<I>,

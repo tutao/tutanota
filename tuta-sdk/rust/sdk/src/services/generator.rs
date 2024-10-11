@@ -54,22 +54,37 @@ macro_rules! service_impl {
             }
         };
 
-        (POST, $service_name: ty,  $input_type:tt, $output_type:tt) => {
-            $crate::service_impl!(@internal, $crate::services::PostService, POST, $service_name, $input_type, $output_type);
+        (ENCRYPTED_POST, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::EncryptedPostService, POST, $service_name, $input_type, $output_type);
         };
 
-        (PUT, $service_name: ty,  $input_type:tt, $output_type:tt) => {
-            $crate::service_impl!(@internal, $crate::services::PutService, PUT, $service_name, $input_type, $output_type);
+        (ENCRYPTED_PUT, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::EncryptedPutService, PUT, $service_name, $input_type, $output_type);
         };
 
-        (GET, $service_name: ty,  $input_type:tt, $output_type:tt) => {
-            $crate::service_impl!(@internal, $crate::services::GetService, GET, $service_name, $input_type, $output_type);
+        (ENCRYPTED_GET, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::EncryptedGetService, GET, $service_name, $input_type, $output_type);
         };
 
-        (DELETE, $service_name: ty,  $input_type:tt, $output_type:tt) => {
-            $crate::service_impl!(@internal, $crate::services::DeleteService, DELETE, $service_name, $input_type, $output_type);
+        (ENCRYPTED_DELETE, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::EncryptedDeleteService, DELETE, $service_name, $input_type, $output_type);
         };
 
+        (UNENCRYPTED_POST, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::UnEncryptedPostService, POST, $service_name, $input_type, $output_type);
+        };
+
+        (UNENCRYPTED_PUT, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::UnEncryptedPutService, PUT, $service_name, $input_type, $output_type);
+        };
+
+        (UNENCRYPTED_GET, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::UnEncryptedGetService, GET, $service_name, $input_type, $output_type);
+        };
+
+        (UNENCRYPTED_DELETE, $service_name: ty,  $input_type:tt, $output_type:tt) => {
+            $crate::service_impl!(@internal, $crate::services::UnEncryptedDeleteService, DELETE, $service_name, $input_type, $output_type);
+        };
 
         (@internal, $service_trait: path, $method_name: ident, $service_name: ty,  $input_type:tt, $output_type:tt) => {
             /// at this point, we have enough information to fill out the template for the trampoline
