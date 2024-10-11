@@ -134,7 +134,7 @@ impl Executor for ServiceExecutor {
 					"type {:?} does not exist",
 					input_type_ref
 				)))?;
-			let encrypted_parsed_entity = self.entity_facade.encrypt_and_map_to_literal(
+			let encrypted_parsed_entity = self.entity_facade.encrypt_and_map(
 				type_model,
 				&parsed_entity,
 				extra_service_params.session_key,

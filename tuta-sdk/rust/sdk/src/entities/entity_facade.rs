@@ -44,7 +44,7 @@ pub trait EntityFacade: Send + Sync {
 		resolved_session_key: ResolvedSessionKey,
 	) -> Result<ParsedEntity, ApiCallError>;
 
-	fn encrypt_and_map_to_literal(
+	fn encrypt_and_map(
 		&self,
 		type_model: &TypeModel,
 		instance: &ParsedEntity,
@@ -146,7 +146,7 @@ impl EntityFacadeImpl {
 		}
 	}
 
-	fn encrypt_and_map_to_literal_with_iv(
+	fn encrypt_and_map_inner(
 		&self,
 		type_model: &TypeModel,
 		instance: &ParsedEntity,
@@ -264,7 +264,7 @@ impl EntityFacadeImpl {
 				let aggregates = instance_association.assert_array();
 				let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
 				for aggregate in &aggregates {
-					let parsed_entity = self.encrypt_and_map_to_literal_with_iv(
+					let parsed_entity = self.encrypt_and_map_inner(
 						aggregated_type_model,
 						&aggregate.assert_dict(),
 						sk.cloned(),
@@ -276,7 +276,7 @@ impl EntityFacadeImpl {
 			},
 
 			(Cardinality::One | Cardinality::ZeroOrOne, _) => {
-				let parsed_entity = self.encrypt_and_map_to_literal_with_iv(
+				let parsed_entity = self.encrypt_and_map_inner(
 					aggregated_type_model,
 					&instance_association.assert_dict(),
 					sk.cloned(),
@@ -579,13 +579,13 @@ impl EntityFacade for EntityFacadeImpl {
 		Ok(mapped_decrypted)
 	}
 
-	fn encrypt_and_map_to_literal(
+	fn encrypt_and_map(
 		&self,
 		type_model: &TypeModel,
 		instance: &ParsedEntity,
 		sk: Option<GenericAesKey>,
 	) -> Result<ParsedEntity, ApiCallError> {
-		self.encrypt_and_map_to_literal_with_iv(type_model, instance, sk)
+		self.encrypt_and_map_inner(type_model, instance, sk)
 	}
 }
 
@@ -1046,11 +1046,8 @@ mod tests {
 				.unwrap();
 		}
 
-		let encrypted_mail = entity_facade.encrypt_and_map_to_literal_with_iv(
-			type_model,
-			&raw_mail,
-			Some(sk.clone()),
-		);
+		let encrypted_mail =
+			entity_facade.encrypt_and_map_inner(type_model, &raw_mail, Some(sk.clone()));
 
 		assert_eq!(Ok(expected_encrypted_mail), encrypted_mail);
 
@@ -1122,7 +1119,7 @@ mod tests {
 		let instance = json_serializer.parse(&type_ref, instance).unwrap();
 
 		let encrypted_instance =
-			entity_facade.encrypt_and_map_to_literal(type_model, &instance, Some(sk.clone()));
+			entity_facade.encrypt_and_map(type_model, &instance, Some(sk.clone()));
 
 		// unencrypted value should be kept as-is
 		assert_eq!(Ok(instance), encrypted_instance);
@@ -1171,7 +1168,7 @@ mod tests {
 		);
 
 		let encrypted_mail = entity_facade
-			.encrypt_and_map_to_literal_with_iv(type_model, &unencrypted_mail, Some(sk.clone()))
+			.encrypt_and_map_inner(type_model, &unencrypted_mail, Some(sk.clone()))
 			.unwrap();
 
 		let encrypted_subject = encrypted_mail.get("subject").unwrap();
@@ -1225,7 +1222,7 @@ mod tests {
 		);
 
 		let encrypted_mail = entity_facade
-			.encrypt_and_map_to_literal_with_iv(type_model, &unencrypted_mail, Some(sk.clone()))
+			.encrypt_and_map_inner(type_model, &unencrypted_mail, Some(sk.clone()))
 			.unwrap();
 
 		let encrypted_subject = encrypted_mail.get("subject").unwrap().assert_bytes();

@@ -667,7 +667,7 @@ mod tests {
 			.unwrap();
 		let session_key = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		let parsed_encrypted = entity_facade
-			.encrypt_and_map_to_literal(type_model, &parsed_unencrypted, Some(session_key))
+			.encrypt_and_map(type_model, &parsed_unencrypted, Some(session_key))
 			.unwrap();
 
 		let json_serializer = JsonSerializer::new(type_provider);
