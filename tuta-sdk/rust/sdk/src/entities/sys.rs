@@ -1091,7 +1091,6 @@ pub struct CustomerServerProperties {
 	pub whitelabelCode: String,
 	pub emailSenderList: Vec<EmailSenderListElement>,
 	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
-	pub whitelistedDomains: Option<DomainsRef>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -1218,21 +1217,6 @@ impl Entity for DomainMailAddressAvailabilityReturn {
 		TypeRef {
 			app: "sys",
 			type_: "DomainMailAddressAvailabilityReturn",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct DomainsRef {
-	pub _id: CustomId,
-	pub items: GeneratedId,
-}
-impl Entity for DomainsRef {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "DomainsRef",
 		}
 	}
 }

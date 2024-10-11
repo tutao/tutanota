@@ -1211,7 +1211,6 @@ mod tests {
 				list: GeneratedId::test_random(),
 			}),
 			serverProperties: GeneratedId::test_random(),
-			whitelistRequests: GeneratedId::test_random(),
 		};
 		let mapper = InstanceMapper::new();
 		let result = mapper.serialize_entity(group_root.clone()).unwrap();
