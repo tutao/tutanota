@@ -45,7 +45,7 @@ impl ValueType {
 			ValueType::Date => ElementValue::Date(DateTime::default()),
 			ValueType::Boolean => ElementValue::Bool(false),
 			ValueType::GeneratedId | ValueType::CustomId => {
-				panic!("{self:?} is not a valid value type")
+				panic!("Can not have default value: {self:?}")
 			},
 		}
 	}
