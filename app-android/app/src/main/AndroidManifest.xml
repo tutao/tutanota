@@ -181,6 +181,9 @@
 			<meta-data
 					android:name="android.content.SyncAdapter"
 					android:resource="@xml/syncadapter"/>
+			<meta-data
+					android:name="android.provider.CONTACTS_STRUCTURE"
+					android:resource="@xml/contacts"/>
 		</service>
 
 
