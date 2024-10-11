@@ -17,6 +17,8 @@ pub mod usage;
 #[cfg(test)]
 pub mod test_services;
 
+/// The service trait is split into the base trait for the REST endpoint and the protocol version
+/// plus four traits for the different methods, since each method has its own input and output types.
 pub trait Service {
 	const PATH: &'static str;
 	const VERSION: u32;
