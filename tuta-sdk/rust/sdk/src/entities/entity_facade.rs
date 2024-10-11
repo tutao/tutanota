@@ -143,9 +143,9 @@ impl EntityFacadeImpl {
 		let mut encrypted = ParsedEntity::new();
 
 		for (key, model_value) in &type_model.values {
-			let instance_value = instance
-				.get(&key.to_string())
-				.unwrap_or_else(|| panic!("Can not find key: {key} in instance: {instance:?}"));
+			let instance_value = instance.get(&key.to_string()).ok_or_else(|| {
+				ApiCallError::internal(format!("Can not find key: {key} in instance: {instance:?}"))
+			})?;
 
 			let encrypted_value: ElementValue;
 
@@ -221,19 +221,22 @@ impl EntityFacadeImpl {
 		let aggregated_type_model = self
 			.type_model_provider
 			.get_type_model(dependency, association.ref_type)
-			.unwrap_or_else(|| {
-				panic!(
-					"Cannot find type model for: {:?}",
+			.ok_or_else(|| {
+				ApiCallError::internal(format!(
+					"unknown type model: {:?}",
 					(dependency, association.ref_type)
-				)
-			});
+				))
+			})?;
 		let instance_association = instance.get(&association_name.to_string()).unwrap();
 
 		match (&association.cardinality, instance_association) {
 			(Cardinality::ZeroOrOne, ElementValue::Null) => Ok(ElementValue::Null),
-			(_, ElementValue::Null) => {
-				panic!("Undefined attribute {}:{association_name}", type_model.name)
-			},
+
+			(_, ElementValue::Null) => Err(ApiCallError::internal(format!(
+				"Undefined attribute {}:{association_name}",
+				type_model.name
+			))),
+
 			(Cardinality::Any, _) => {
 				let aggregates = instance_association.assert_array();
 				let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
