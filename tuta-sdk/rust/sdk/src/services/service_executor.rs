@@ -283,7 +283,7 @@ mod tests {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
 		};
-		let executor = maps_unencrypted_data_and_response(HttpMethod::POST).await;
+		let executor = maps_unencrypted_data_and_response(HttpMethod::POST);
 		let result = executor
 			.post::<HelloUnEncryptedService>(hello_input_data, ExtraServiceParams::default())
 			.await;
@@ -302,7 +302,7 @@ mod tests {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
 		};
-		let executor = maps_unencrypted_data_and_response(HttpMethod::PUT).await;
+		let executor = maps_unencrypted_data_and_response(HttpMethod::PUT);
 		let result = executor
 			.put::<HelloUnEncryptedService>(hello_input_data, ExtraServiceParams::default())
 			.await;
@@ -321,7 +321,7 @@ mod tests {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
 		};
-		let executor = maps_unencrypted_data_and_response(HttpMethod::GET).await;
+		let executor = maps_unencrypted_data_and_response(HttpMethod::GET);
 		let result = executor
 			.get::<HelloUnEncryptedService>(hello_input_data, ExtraServiceParams::default())
 			.await;
@@ -340,7 +340,7 @@ mod tests {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
 		};
-		let executor = maps_unencrypted_data_and_response(HttpMethod::DELETE).await;
+		let executor = maps_unencrypted_data_and_response(HttpMethod::DELETE);
 		let result = executor
 			.delete::<HelloUnEncryptedService>(hello_input_data, ExtraServiceParams::default())
 			.await;
@@ -358,11 +358,12 @@ mod tests {
 	pub async fn post_should_decrypt_map_encrypted_data_and_response() {
 		let session_key =
 			GenericAesKey::from_bytes(&rand::random::<[u8; AES_256_KEY_SIZE]>()).unwrap();
-		let executor =
-			maps_encrypted_data_and_response_data(HttpMethod::POST, session_key.clone()).await;
+		let executor = maps_encrypted_data_and_response_data(HttpMethod::POST, session_key.clone());
 
-		let mut params = ExtraServiceParams::default();
-		params.session_key = Some(session_key.clone());
+		let params = ExtraServiceParams {
+			session_key: Some(session_key.clone()),
+			..ExtraServiceParams::default()
+		};
 		let input_entity = HelloEncInput {
 			message: "my encrypted request".to_string(),
 		};
@@ -384,11 +385,12 @@ mod tests {
 	pub async fn put_should_decrypt_map_encrypted_data_and_response() {
 		let session_key =
 			GenericAesKey::from_bytes(&rand::random::<[u8; AES_256_KEY_SIZE]>()).unwrap();
-		let executor =
-			maps_encrypted_data_and_response_data(HttpMethod::PUT, session_key.clone()).await;
+		let executor = maps_encrypted_data_and_response_data(HttpMethod::PUT, session_key.clone());
 
-		let mut params = ExtraServiceParams::default();
-		params.session_key = Some(session_key.clone());
+		let params = ExtraServiceParams {
+			session_key: Some(session_key.clone()),
+			..ExtraServiceParams::default()
+		};
 		let input_entity = HelloEncInput {
 			message: "my encrypted request".to_string(),
 		};
@@ -410,11 +412,12 @@ mod tests {
 	pub async fn get_should_decrypt_map_encrypted_data_and_response() {
 		let session_key =
 			GenericAesKey::from_bytes(&rand::random::<[u8; AES_256_KEY_SIZE]>()).unwrap();
-		let executor =
-			maps_encrypted_data_and_response_data(HttpMethod::GET, session_key.clone()).await;
+		let executor = maps_encrypted_data_and_response_data(HttpMethod::GET, session_key.clone());
 
-		let mut params = ExtraServiceParams::default();
-		params.session_key = Some(session_key.clone());
+		let params = ExtraServiceParams {
+			session_key: Some(session_key.clone()),
+			..ExtraServiceParams::default()
+		};
 		let input_entity = HelloEncInput {
 			message: "my encrypted request".to_string(),
 		};
@@ -437,10 +440,12 @@ mod tests {
 		let session_key =
 			GenericAesKey::from_bytes(&rand::random::<[u8; AES_256_KEY_SIZE]>()).unwrap();
 		let executor =
-			maps_encrypted_data_and_response_data(HttpMethod::DELETE, session_key.clone()).await;
+			maps_encrypted_data_and_response_data(HttpMethod::DELETE, session_key.clone());
 
-		let mut params = ExtraServiceParams::default();
-		params.session_key = Some(session_key.clone());
+		let params = ExtraServiceParams {
+			session_key: Some(session_key.clone()),
+			..ExtraServiceParams::default()
+		};
 		let input_entity = HelloEncInput {
 			message: "my encrypted request".to_string(),
 		};
@@ -484,7 +489,7 @@ mod tests {
 		)
 	}
 
-	async fn maps_unencrypted_data_and_response(http_method: HttpMethod) -> ServiceExecutor {
+	fn maps_unencrypted_data_and_response(http_method: HttpMethod) -> ServiceExecutor {
 		let executor = setup();
 		let rest_client;
 		let entity_facade;
@@ -538,7 +543,7 @@ mod tests {
 		executor
 	}
 
-	pub async fn maps_encrypted_data_and_response_data(
+	pub fn maps_encrypted_data_and_response_data(
 		http_method: HttpMethod,
 		session_key: GenericAesKey,
 	) -> ServiceExecutor {

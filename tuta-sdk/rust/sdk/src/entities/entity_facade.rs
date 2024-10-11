@@ -166,12 +166,12 @@ impl EntityFacadeImpl {
 				)
 				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
 
-				encrypted_value = Self::encrypt_value(model_value, instance_value, &sk, final_iv)?
+				encrypted_value = Self::encrypt_value(model_value, instance_value, sk, final_iv)?
 			} else {
 				encrypted_value = Self::encrypt_value(
 					model_value,
 					instance_value,
-					&sk,
+					sk,
 					Iv::generate(&self.randomizer_facade),
 				)?
 			}
@@ -189,13 +189,9 @@ impl EntityFacadeImpl {
 
 		for (association_name, association) in &type_model.associations {
 			let encrypted_association = match association.association_type {
-				AssociationType::Aggregation => self.encrypt_aggregate(
-					type_model,
-					association_name,
-					association,
-					instance,
-					&sk,
-				)?,
+				AssociationType::Aggregation => {
+					self.encrypt_aggregate(type_model, association_name, association, instance, sk)?
+				},
 				AssociationType::ElementAssociation
 				| AssociationType::ListAssociation
 				| AssociationType::ListElementAssociation
@@ -929,9 +925,7 @@ mod tests {
 
 		// remove finalIvs for easy comparision
 		{
-			expected_encrypted_mail
-				.remove(&"_finalIvs".to_string())
-				.unwrap();
+			expected_encrypted_mail.remove("_finalIvs").unwrap();
 			expected_encrypted_mail
 				.get_mut("sender")
 				.unwrap()
@@ -973,7 +967,7 @@ mod tests {
 
 			assert_eq!(
 				Some(&ElementValue::Bytes(owner_enc_session_key.to_vec())),
-				decrypted_mail.get(&"_ownerEncSessionKey".to_string()),
+				decrypted_mail.get("_ownerEncSessionKey"),
 			);
 			decrypted_mail.insert("_ownerEncSessionKey".to_string(), ElementValue::Null);
 

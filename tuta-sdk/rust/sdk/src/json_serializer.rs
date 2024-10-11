@@ -642,7 +642,7 @@ mod tests {
 		use crate::entities::entity_facade::EntityFacade;
 
 		let mut type_provider: HashMap<AppName, HashMap<TypeName, TypeModel>> = HashMap::new();
-		let provider = crate::services::test_services::extend_model_resolver(&mut type_provider);
+		crate::services::test_services::extend_model_resolver(&mut type_provider);
 		let type_provider = Arc::new(TypeModelProvider::new(type_provider));
 
 		let entity_to_serialize = HelloEncOutput {
@@ -661,8 +661,8 @@ mod tests {
 		);
 		let type_model = type_provider
 			.get_type_model(
-				&HelloEncOutput::type_ref().app,
-				&HelloEncOutput::type_ref().type_,
+				HelloEncOutput::type_ref().app,
+				HelloEncOutput::type_ref().type_,
 			)
 			.unwrap();
 		let session_key = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();

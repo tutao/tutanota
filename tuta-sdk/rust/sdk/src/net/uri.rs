@@ -4,10 +4,6 @@ use crate::rest_client::RestClientError;
 pub struct Uri(hyper::Uri);
 
 impl Uri {
-	pub fn scheme(&self) -> &hyper::http::uri::Scheme {
-		self.0.scheme().unwrap()
-	}
-
 	pub fn authority(&self) -> String {
 		self.0.authority().unwrap().to_string()
 	}
