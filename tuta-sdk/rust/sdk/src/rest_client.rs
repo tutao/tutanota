@@ -31,6 +31,8 @@ pub enum RestClientError {
 	InvalidResponse,
 	#[error("failed tls setup")]
 	FailedTlsSetup,
+	#[error("Attempted to make anauthenticated call")]
+	UnAuthenticatedCall,
 }
 
 /// Provides a Rust SDK level interface for performing REST requests

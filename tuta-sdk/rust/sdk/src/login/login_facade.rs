@@ -9,8 +9,7 @@ use crate::crypto::{generate_key_from_passphrase, sha256, Aes256Key};
 use crate::element_value::ParsedEntity;
 use crate::entities::sys::{Session, User};
 use crate::entities::Entity;
-#[cfg_attr(test, mockall_double::double)]
-use crate::entity_client::EntityClient;
+use crate::entity_client::AuthEntityClient;
 use crate::generated_id::{GeneratedId, GENERATED_ID_BYTES_LENGTH};
 use crate::login::credentials::Credentials;
 #[cfg_attr(test, mockall_double::double)]
@@ -60,14 +59,14 @@ impl TryFrom<i64> for KdfType {
 /// Simple LoginFacade that take in an existing credential
 /// and returns a UserFacade after resuming the session.
 pub struct LoginFacade {
-	entity_client: Arc<EntityClient>,
+	entity_client: Arc<AuthEntityClient>,
 	typed_entity_client: Arc<TypedEntityClient>,
 	user_facade_factory: fn(user: User) -> UserFacade,
 }
 
 impl LoginFacade {
 	pub fn new(
-		entity_client: Arc<EntityClient>,
+		entity_client: Arc<AuthEntityClient>,
 		typed_entity_client: Arc<TypedEntityClient>,
 		user_facade_factory: fn(user: User) -> UserFacade,
 	) -> Self {

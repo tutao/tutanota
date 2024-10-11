@@ -2,6 +2,7 @@
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::entities::entity_facade::EntityFacade;
 use crate::entities::Entity;
+use crate::entity_client::{AuthenticatedHeaders, HeadersProvider, UnAuthenticatedHeaders};
 use crate::instance_mapper::InstanceMapper;
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
@@ -13,13 +14,19 @@ use crate::services::{
 	DeleteService, ExtraServiceParams, GetService, PostService, PutService, Service,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, HeadersProvider};
+use crate::ApiCallError;
 use serde::Deserialize;
 use serde::Serialize;
 use std::sync::Arc;
 
-pub struct ServiceExecutor {
-	auth_headers_provider: Arc<HeadersProvider>,
+/// Service executor with authenticated headers
+pub type AuthenticatedServiceExecutor = ServiceExecutor<AuthenticatedHeaders>;
+
+/// Service executor with valid but unauthenticated headers
+pub type UnAuthenticatedServiceExecutor = ServiceExecutor<UnAuthenticatedHeaders>;
+
+pub struct ServiceExecutor<HeaderSrc: HeadersProvider> {
+	headers_provider: Arc<HeaderSrc>,
 	crypto_facade: Arc<CryptoFacade>,
 	entity_facade: Arc<dyn EntityFacade>,
 	instance_mapper: Arc<InstanceMapper>,
@@ -28,9 +35,9 @@ pub struct ServiceExecutor {
 	type_model_provider: Arc<TypeModelProvider>,
 	base_url: String,
 }
-impl ServiceExecutor {
+impl<H: HeadersProvider> ServiceExecutor<H> {
 	pub fn new(
-		auth_headers_provider: Arc<HeadersProvider>,
+		auth_headers_provider: Arc<H>,
 		crypto_facade: Arc<CryptoFacade>,
 		entity_facade: Arc<dyn EntityFacade>,
 		instance_mapper: Arc<InstanceMapper>,
@@ -40,7 +47,7 @@ impl ServiceExecutor {
 		base_url: String,
 	) -> Self {
 		Self {
-			auth_headers_provider,
+			headers_provider: auth_headers_provider,
 			crypto_facade,
 			entity_facade,
 			instance_mapper,
@@ -97,7 +104,7 @@ impl ServiceExecutor {
 }
 
 #[async_trait::async_trait]
-impl Executor for ServiceExecutor {
+impl<H: HeadersProvider> Executor for ServiceExecutor<H> {
 	async fn do_request<S, I>(
 		&self,
 		data: Option<I>,
@@ -164,7 +171,7 @@ impl Executor for ServiceExecutor {
 			None
 		};
 
-		let mut headers = self.auth_headers_provider.provide_headers(model_version);
+		let mut headers = self.headers_provider.provide_headers(model_version);
 		if let Some(extra_headers) = extra_service_params.extra_headers {
 			headers.extend(extra_headers);
 		}
@@ -246,6 +253,7 @@ impl Executor for ServiceExecutor {
 
 #[cfg(test)]
 mod tests {
+	use super::*;
 	#[mockall_double::double]
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
@@ -254,18 +262,18 @@ mod tests {
 	use crate::date::DateTime;
 	use crate::element_value::ElementValue;
 	use crate::entities::entity_facade::MockEntityFacade;
+	use crate::entity_client::AuthenticatedHeaders;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
 	use crate::rest_client::{HttpMethod, MockRestClient, RestResponse};
-	use crate::services::service_executor::ServiceExecutor;
 	use crate::services::test_services::{
 		HelloEncInput, HelloEncOutput, HelloEncryptedService, HelloUnEncInput, HelloUnEncOutput,
 		HelloUnEncryptedService, APP_VERSION_STR,
 	};
 	use crate::services::{test_services, ExtraServiceParams};
 	use crate::type_model_provider::TypeModelProvider;
-	use crate::{HeadersProvider, CLIENT_VERSION};
+	use crate::CLIENT_VERSION;
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
 	use std::collections::HashMap;
@@ -456,7 +464,7 @@ mod tests {
 		);
 	}
 
-	fn setup() -> ServiceExecutor {
+	fn setup() -> AuthenticatedServiceExecutor {
 		let mut model_provider_map = HashMap::new();
 		test_services::extend_model_resolver(&mut model_provider_map);
 		let type_model_provider: Arc<TypeModelProvider> =
@@ -464,8 +472,7 @@ mod tests {
 
 		let crypto_facade = Arc::new(CryptoFacade::default());
 		let entity_facade = Arc::new(MockEntityFacade::default());
-		let auth_headers_provider =
-			Arc::new(HeadersProvider::new(Some("access_token".to_string())));
+		let auth_headers_provider = Arc::new(AuthenticatedHeaders::new("access_token".to_string()));
 		let instance_mapper = Arc::new(InstanceMapper::new());
 		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
 		let rest_client = Arc::new(MockRestClient::new());
@@ -482,7 +489,7 @@ mod tests {
 		)
 	}
 
-	fn maps_unencrypted_data_and_response(http_method: HttpMethod) -> ServiceExecutor {
+	fn maps_unencrypted_data_and_response(http_method: HttpMethod) -> AuthenticatedServiceExecutor {
 		let executor = setup();
 		let rest_client;
 		let entity_facade;
@@ -539,7 +546,7 @@ mod tests {
 	pub fn maps_encrypted_data_and_response_data(
 		http_method: HttpMethod,
 		session_key: GenericAesKey,
-	) -> ServiceExecutor {
+	) -> AuthenticatedServiceExecutor {
 		let executor = setup();
 		let crypto_facade;
 		let rest_client;

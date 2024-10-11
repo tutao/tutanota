@@ -1,6 +1,5 @@
 use crate::entities::Entity;
-#[cfg_attr(test, mockall_double::double)]
-use crate::entity_client::EntityClient;
+use crate::entity_client::AuthEntityClient;
 use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
@@ -9,7 +8,7 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 pub struct TypedEntityClient {
-	entity_client: Arc<EntityClient>,
+	entity_client: Arc<AuthEntityClient>,
 	instance_mapper: Arc<InstanceMapper>,
 }
 
@@ -17,7 +16,7 @@ pub struct TypedEntityClient {
 impl TypedEntityClient {
 	#[allow(unused)]
 	pub(crate) fn new(
-		entity_client: Arc<EntityClient>,
+		entity_client: Arc<AuthEntityClient>,
 		instance_mapper: Arc<InstanceMapper>,
 	) -> Self {
 		TypedEntityClient {
@@ -81,7 +80,7 @@ impl TypedEntityClient {
 mockall::mock! {
 	pub TypedEntityClient {
 		pub fn new(
-			entity_client: Arc<EntityClient>,
+			entity_client: Arc<AuthEntityClient>,
 			instance_mapper: Arc<InstanceMapper>,
 		) -> Self;
 		pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(

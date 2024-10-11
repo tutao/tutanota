@@ -1,6 +1,3 @@
-use std::fmt::Display;
-use std::sync::Arc;
-
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::generated_id::GeneratedId;
 use crate::json_element::RawEntity;
@@ -9,34 +6,88 @@ use crate::metamodel::TypeModel;
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, HeadersProvider, IdTuple, ListLoadDirection, TypeRef};
+use crate::{ApiCallError, IdTuple, ListLoadDirection, TypeRef};
+pub use headers_provider::{AuthenticatedHeaders, HeadersProvider, UnAuthenticatedHeaders};
+use std::fmt::Display;
+use std::sync::Arc;
+
+pub mod headers_provider {
+	use crate::CLIENT_VERSION;
+	use std::collections::HashMap;
+
+	/// Provide headers that can make a valid ( but un-authenticated ) service calls
+	/// for a service call to be valid, it only needs following headers:
+	/// cv: Client Version
+	/// v: Model Version
+	pub struct UnAuthenticatedHeaders;
+
+	/// Provide headers that can make an authenticated service calls.
+	/// Needs all headers from UnAuthenticatedHeaders plus:
+	/// accessToken: access_token string
+	pub struct AuthenticatedHeaders {
+		access_token: String,
+	}
+
+	impl AuthenticatedHeaders {
+		pub fn new(access_token: String) -> Self {
+			Self { access_token }
+		}
+	}
+
+	pub trait HeadersProvider: Send + Sync {
+		fn provide_headers(&self, model_version: u32) -> HashMap<String, String>;
+	}
+
+	impl HeadersProvider for AuthenticatedHeaders {
+		fn provide_headers(&self, model_version: u32) -> HashMap<String, String> {
+			let mut headers =
+				UnAuthenticatedHeaders::provide_headers(&UnAuthenticatedHeaders, model_version);
+			headers.insert("accessToken".to_string(), self.access_token.clone());
+			headers
+		}
+	}
+
+	impl HeadersProvider for UnAuthenticatedHeaders {
+		fn provide_headers(&self, model_version: u32) -> HashMap<String, String> {
+			[
+				("cv".to_string(), CLIENT_VERSION.to_string()),
+				("v".to_string(), model_version.to_string()),
+			]
+			.into_iter()
+			.collect()
+		}
+	}
+}
 
 /// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
-pub struct EntityClient {
+pub struct EntityClient<HeaderSrc: HeadersProvider> {
 	rest_client: Arc<dyn RestClient>,
 	base_url: String,
-	auth_headers_provider: Arc<HeadersProvider>,
+	headers_provider: Arc<HeaderSrc>,
 	json_serializer: Arc<JsonSerializer>,
 	type_model_provider: Arc<TypeModelProvider>,
 }
 
-impl EntityClient {
-	#[allow(dead_code)]
+#[cfg_attr(test, mockall_double::double)]
+pub type AuthEntityClient = EntityClient<AuthenticatedHeaders>;
+
+impl<HeaderSrc: HeadersProvider> EntityClient<HeaderSrc> {
+	#[must_use]
 	pub(crate) fn new(
 		rest_client: Arc<dyn RestClient>,
 		json_serializer: Arc<JsonSerializer>,
 		base_url: String,
-		auth_headers_provider: Arc<HeadersProvider>,
+		auth_headers_provider: Arc<HeaderSrc>,
 		type_model_provider: Arc<TypeModelProvider>,
 	) -> Self {
-		EntityClient {
+		Self {
 			rest_client,
 			json_serializer,
 			base_url,
-			auth_headers_provider,
+			headers_provider: auth_headers_provider,
 			type_model_provider,
 		}
 	}
@@ -63,7 +114,7 @@ impl EntityClient {
 		})?;
 		let options = RestClientOptions {
 			body: None,
-			headers: self.auth_headers_provider.provide_headers(model_version),
+			headers: self.headers_provider.provide_headers(model_version),
 		};
 		let response = self
 			.rest_client
@@ -156,7 +207,7 @@ impl EntityClient {
 		let body = serde_json::to_vec(&raw_entity).unwrap();
 		let options = RestClientOptions {
 			body: Some(body),
-			headers: self.auth_headers_provider.provide_headers(model_version),
+			headers: self.headers_provider.provide_headers(model_version),
 		};
 		// FIXME we should look at type model whether it is ET or LET
 		let url = format!(
@@ -192,12 +243,12 @@ impl EntityClient {
 
 #[cfg(test)]
 mockall::mock! {
-	pub EntityClient {
+	pub EntityClient<HeaderSrc: HeadersProvider + 'static> {
 		pub fn new(
 			rest_client: Arc<dyn RestClient>,
 			json_serializer: Arc<JsonSerializer>,
 			base_url: String,
-			auth_headers_provider: Arc<HeadersProvider>,
+			auth_headers_provider: Arc<HeaderSrc>,
 			type_model_provider: Arc<TypeModelProvider>,
 		) -> Self;
 		pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;

@@ -2,8 +2,7 @@
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::entities::entity_facade::EntityFacade;
 use crate::entities::Entity;
-#[cfg_attr(test, mockall_double::double)]
-use crate::entity_client::EntityClient;
+use crate::entity_client::AuthEntityClient;
 use crate::entity_client::IdType;
 use crate::instance_mapper::InstanceMapper;
 use crate::ApiCallError;
@@ -12,7 +11,7 @@ use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
 pub struct CryptoEntityClient {
-	entity_client: Arc<EntityClient>,
+	pub(crate) entity_client: Arc<AuthEntityClient>,
 	entity_facade: Arc<dyn EntityFacade>,
 	crypto_facade: Arc<CryptoFacade>,
 	instance_mapper: Arc<InstanceMapper>,
@@ -21,7 +20,7 @@ pub struct CryptoEntityClient {
 #[cfg_attr(test, mockall::automock)]
 impl CryptoEntityClient {
 	pub fn new(
-		entity_client: Arc<EntityClient>,
+		entity_client: Arc<AuthEntityClient>,
 		entity_facade: Arc<dyn EntityFacade>,
 		crypto_facade: Arc<CryptoFacade>,
 		instance_mapper: Arc<InstanceMapper>,

@@ -1,14 +1,8 @@
 #![macro_use]
 
-use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
-
-use minicbor::encode::Write;
-use minicbor::{Encode, Encoder};
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
@@ -22,8 +16,7 @@ use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::entities::sys::{CreateSessionData, SaltData};
 use crate::entities::tutanota::Mail;
-#[cfg_attr(test, mockall_double::double)]
-use crate::entity_client::EntityClient;
+use crate::entity_client::AuthEntityClient;
 use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
@@ -36,7 +29,7 @@ use crate::login::login_facade::{derive_user_passphrase_key, KdfType};
 use crate::login::{CredentialType, Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
-use crate::services::service_executor::ServiceExecutor;
+use crate::services::service_executor::{AuthenticatedServiceExecutor, UnAuthenticatedServiceExecutor};
 use crate::services::sys::{SaltService, SessionService};
 use crate::services::ExtraServiceParams;
 use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelProvider, TypeName};
@@ -44,7 +37,12 @@ use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelPro
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
+use entity_client::{AuthenticatedHeaders, UnAuthenticatedHeaders};
+use minicbor::encode::Write;
+use minicbor::{Encode, Encoder};
 use rest_client::{RestClient, RestClientError};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 pub mod crypto;
 mod crypto_entity_client;
@@ -106,31 +104,6 @@ impl Display for TypeRef {
 	}
 }
 
-pub struct HeadersProvider {
-	// In the future we might need to make this one optional to support "not authenticated" state
-	access_token: Option<String>,
-}
-
-impl HeadersProvider {
-	#[must_use]
-	fn new(access_token: Option<String>) -> Self {
-		Self { access_token }
-	}
-
-	fn provide_headers(&self, model_version: u32) -> HashMap<String, String> {
-		let mut headers = HashMap::from([
-			("cv".to_owned(), CLIENT_VERSION.to_string()),
-			("v".to_owned(), model_version.to_string()),
-		]);
-
-		if let Some(access_token) = &self.access_token {
-			headers.insert("accessToken".to_owned(), access_token.to_string());
-		}
-
-		headers
-	}
-}
-
 /// The external facing interface used by the consuming code via FFI
 #[derive(uniffi::Object)]
 pub struct Sdk {
@@ -164,8 +137,8 @@ impl Sdk {
 	/// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
 	pub async fn login(&self, credentials: Credentials) -> Result<Arc<LoggedInSdk>, LoginError> {
 		let auth_headers_provider =
-			Arc::new(HeadersProvider::new(Some(credentials.access_token.clone())));
-		let entity_client = Arc::new(EntityClient::new(
+			Arc::new(AuthenticatedHeaders::new(credentials.access_token.clone()));
+		let entity_client = Arc::new(AuthEntityClient::new(
 			self.rest_client.clone(),
 			self.json_serializer.clone(),
 			self.base_url.clone(),
@@ -205,7 +178,6 @@ impl Sdk {
 
 		Ok(Arc::new(LoggedInSdk {
 			user_facade,
-			entity_client,
 			typed_entity_client,
 			crypto_entity_client,
 		}))
@@ -217,7 +189,7 @@ impl Sdk {
 		mail_address: &str,
 		passphrase: &str,
 	) -> Result<Arc<LoggedInSdk>, LoginError> {
-		let headers_provider = Arc::new(HeadersProvider::new(None));
+		let headers_provider = Arc::new(UnAuthenticatedHeaders);
 
 		let crypto_facade = Arc::new(CryptoFacade::new(
 			None,
@@ -229,7 +201,7 @@ impl Sdk {
 			RandomizerFacade::from_core(rand_core::OsRng),
 		));
 
-		let service_executor = ServiceExecutor::new(
+		let service_executor = UnAuthenticatedServiceExecutor::new(
 			headers_provider.clone(),
 			crypto_facade,
 			entity_facade,
@@ -290,9 +262,9 @@ impl Sdk {
 #[derive(uniffi::Object)]
 pub struct LoggedInSdk {
 	user_facade: Arc<UserFacade>,
-	entity_client: Arc<EntityClient>,
 	typed_entity_client: Arc<TypedEntityClient>,
 	crypto_entity_client: Arc<CryptoEntityClient>,
+	service_executor: Arc<AuthenticatedServiceExecutor>,
 }
 
 #[uniffi::export]
