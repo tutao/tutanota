@@ -1,0 +1,5 @@
+<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:accountType="@string/package_name"
+			  android:contentAuthority="com.android.contacts"
+			  android:isAlwaysSyncable="true"
+			  android:supportsUploading="false" />

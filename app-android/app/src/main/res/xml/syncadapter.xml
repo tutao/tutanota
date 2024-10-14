@@ -4,7 +4,7 @@
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:contentAuthority="com.android.contacts"
 		android:accountType="@string/package_name"
-		android:userVisible="false"
+		android:userVisible="true"
 		android:supportsUploading="false"
 		android:allowParallelSyncs="false"
 		android:isAlwaysSyncable="true"

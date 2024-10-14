@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
-		xmlns:android="http://schemas.android.com/apk/res/android">
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:tools="http://schemas.android.com/tools">
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -22,6 +23,7 @@
 	<uses-permission
 			android:name="android.permission.SCHEDULE_EXACT_ALARM"
 			android:maxSdkVersion="32"/>
+	<uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
 
 	<!-- We have to enable cleartext (non-HTTPS) traffic because of the external email content
 	which might still be served or HTTP. The only alternative is to proxy all of it. -->
@@ -160,9 +162,10 @@
 				android:process=":pushprocess"/>
 
 
+
 		<service
 				android:name="de.tutao.tutashared.credentials.AccountManagerAuthenticatorService"
-				android:exported="false">
+				android:exported="true">
 			<intent-filter>
 				<action android:name="android.accounts.AccountAuthenticator"/>
 			</intent-filter>
@@ -171,13 +174,48 @@
 					android:resource="@xml/authenticator"/>
 		</service>
 
+
+		<!-- Contact Stuff -->
+		<service
+				android:name="de.tutao.tutashared.credentials.AccountManagerAuthenticatorService"
+				android:exported="true">   <!-- Since Android 11, this must be true so that Google Contacts shows the address book accounts -->
+			<intent-filter>
+				<action android:name="android.accounts.AccountAuthenticator"/>
+			</intent-filter>
+
+			<meta-data
+					android:name="android.accounts.AccountAuthenticator"
+					android:resource="@xml/authenticator_address_book"/>
+		</service>
+		<provider
+				android:authorities="com.android.contacts"
+				android:exported="false"
+				android:label="Address books"
+				android:name=".StubSyncContentProvider"
+				android:multiprocess="false"/>
 		<service
 				android:name=".StubSyncService"
-				android:exported="false"
-				android:process=":sync">
+				android:exported="true"
+				android:process=":sync"
+				tools:ignore="ExportedService">
 			<intent-filter>
 				<action android:name="android.content.SyncAdapter"/>
 			</intent-filter>
+
+			<meta-data
+					android:name="android.content.SyncAdapter"
+					android:resource="@xml/sync_address_book"/>
+		</service>
+
+		<service
+				android:name=".StubSyncService"
+				android:exported="true"
+				android:process=":sync"
+				tools:ignore="ExportedService">
+			<intent-filter>
+				<action android:name="android.content.SyncAdapter"/>
+			</intent-filter>
+
 			<meta-data
 					android:name="android.content.SyncAdapter"
 					android:resource="@xml/syncadapter"/>
@@ -186,6 +224,7 @@
 					android:resource="@xml/contacts"/>
 		</service>
 
+		<!-- End Of Contact Stuff-->
 
 		<receiver
 				android:name=".push.BootBroadcastReceiver"
