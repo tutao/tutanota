@@ -8,7 +8,7 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 * An up-to-date version of Git is installed
 * Node.js (check package.json `engines` field for the version)
 * Emscripten 3.1.59
-* WASM2JS (Included in Emscripten)
+* WASM2JS (included in binaryen)
 
 #### Build steps:
 
@@ -24,6 +24,16 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 10. Switch into the build directory: `cd build`
 11. Run the local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
 12. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
+
+> If you try building without initializing the submodules, you might end up with
+> the following error:
+>
+> ```
+> Build error: Error: Could not load wasm-loader:liboqs.wasm (imported by src/common/api/worker/facades/KyberFacade.ts): Command failed: make -f Makefile_liboqs build
+> liboqs/src/kem/kem.c:12:10: fatal error: 'oqs/oqs.h' file not found
+> ```
+>
+> Just delete the `libs/webassembly/include` directory and re-build.
 
 ## Building and running your own Tuta Mail Android app
 
