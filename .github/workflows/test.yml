@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - dev-*
-
+      - '*/dev'
 jobs:
   test:
     runs-on: ubuntu-latest
