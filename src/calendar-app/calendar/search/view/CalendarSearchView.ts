@@ -1,21 +1,11 @@
 import {TopLevelAttrs, TopLevelView} from "../../../../TopLevelView.js"
 import {AppHeaderAttrs, Header} from "../../../../common/gui/Header.js"
-import {CalendarSearchViewModel} from "./CalendarSearchViewModel.js"
+import {CalendarSearchViewModel, PaidFunctionResult} from "./CalendarSearchViewModel.js"
 import {BaseTopLevelView} from "../../../../common/gui/BaseTopLevelView.js"
 import {ColumnType, ViewColumn} from "../../../../common/gui/base/ViewColumn.js"
 import {ViewSlider} from "../../../../common/gui/nav/ViewSlider.js"
 import {CalendarEvent, Contact} from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import {
-    assertNotNull,
-    incrementMonth,
-    isSameDay,
-    last,
-    LazyLoaded,
-    lazyMemoized,
-    memoized,
-    noOp,
-    stringToBase64
-} from "@tutao/tutanota-utils"
+import {assertNotNull, last, LazyLoaded, lazyMemoized, memoized, noOp, stringToBase64} from "@tutao/tutanota-utils"
 import {CalendarEventPreviewViewModel} from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, {Children, Vnode} from "mithril"
 import {SidebarSection} from "../../../../common/gui/SidebarSection.js"
@@ -47,7 +37,6 @@ import {DropDownSelector, DropDownSelectorAttrs} from "../../../../common/gui/ba
 import {FeatureType, Keys} from "../../../../common/api/common/TutanotaConstants.js"
 import {IconButton} from "../../../../common/gui/base/IconButton.js"
 import {showNotAvailableForFreeDialog} from "../../../../common/misc/SubscriptionDialogs.js"
-import {YEAR_IN_MILLIS} from "@tutao/tutanota-utils/dist/DateUtils.js"
 import {listSelectionKeyboardShortcuts} from "../../../../common/gui/base/ListUtils.js"
 import {MultiselectMode} from "../../../../common/gui/base/List.js"
 import {showProgressDialog} from "../../../../common/gui/dialogs/ProgressDialog.js"
@@ -346,10 +335,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
     }
 
     private renderCalendarFilterSection(): Children {
-        // end date is the month three months from now
-        let endDate = incrementMonth(new Date(), 3)
-        endDate.setDate(0)
-        return [this.renderDateRangeSelection(endDate), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
+        return [this.renderDateRangeSelection(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
             m(".folder-row.plr-button.content-fg", row),
         )
     }
@@ -395,70 +381,46 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
         }
     }
 
-    private validateDates(startDate: Date | null, endDate: Date | null): boolean {
-        if (startDate == null || endDate == null) {
-            this.datePickerWarning = null
-            return false
-        }
-        if (endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
-            this.datePickerWarning = "longSearchRange_msg"
-            return true
-        } else if (startDate.getTime() > endDate.getTime()) {
-            this.datePickerWarning = "startAfterEnd_label"
-            return false
-        }
-        return true
-    }
-
-    private renderDatePicker(searchViewModelDate: Date | null, start: boolean): Children {
-        let nullSelectionText: TranslationText | undefined = undefined
-
-        if (start) {
-            if (this.datePickerWarning) {
-                nullSelectionText = this.datePickerWarning
-            } else if (this.searchViewModel.startDate == null) {
-                nullSelectionText = "unlimited_label"
-            }
-        }
-
-        return m(DatePicker, {
-            date: searchViewModelDate ?? undefined,
-            onDateSelected: async (date) => {
-                if (this.searchViewModel.canSelectTimePeriod()) {
-                    this.datePickerWarning = null
-                    // double check that a new day is being picked
-                    if (!searchViewModelDate || !isSameDay(date, searchViewModelDate)) {
-                        if (start) {
-                            this.searchViewModel.startDate = date
-                        } else {
-                            this.searchViewModel.endDate = date
-                        }
-                        if (this.validateDates(this.searchViewModel.startDate, this.searchViewModel.endDate)) {
-                            this.searchViewModel.searchAgain()
-                        } else {
-                            m.redraw()
-                        }
-                    }
-                } else {
-                    await showNotAvailableForFreeDialog()
-                }
-            },
-            startOfTheWeekOffset: this.startOfTheWeekOffset,
-            label: start ? "dateFrom_label" : "dateTo_label",
-            nullSelectionText,
-            rightAlignDropdown: true,
-        } satisfies DatePickerAttrs)
-    }
-
-    private renderDateRangeSelection(endDate: Date): Children {
-        if (!this.searchViewModel.endDate) {
-            this.searchViewModel.endDate = endDate
-        }
-
+    private renderDateRangeSelection(): Children {
+        const renderedHelpText: TranslationText | undefined =
+            this.searchViewModel.warning === "startafterend"
+                ? "startAfterEnd_label"
+                : this.searchViewModel.warning === "long"
+                    ? "longSearchRange_msg"
+                    : this.searchViewModel.startDate == null
+                        ? "unlimited_label"
+                        : undefined
         return m(
             ".flex.col",
-            m(".pr-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.startDate, true)),
-            m(".pl-s.flex-grow.flex-space-between.flex-column", this.renderDatePicker(this.searchViewModel.endDate, false)),
+            m(
+                ".pr-s.flex-grow.flex-space-between.flex-column",
+                m(DatePicker, {
+                    date: this.searchViewModel.startDate ?? undefined,
+                    onDateSelected: (date) => {
+                        if (this.searchViewModel.selectStartDate(date) != PaidFunctionResult.Success) {
+                            showNotAvailableForFreeDialog()
+                        }
+                    },
+                    startOfTheWeekOffset: this.startOfTheWeekOffset,
+                    label: "dateFrom_label",
+                    nullSelectionText: renderedHelpText,
+                    rightAlignDropdown: true,
+                } satisfies DatePickerAttrs),
+            ),
+            m(
+                ".pl-s.flex-grow.flex-space-between.flex-column",
+                m(DatePicker, {
+                    date: this.searchViewModel.endDate,
+                    onDateSelected: (date) => {
+                        if (this.searchViewModel.selectEndDate(date) != PaidFunctionResult.Success) {
+                            showNotAvailableForFreeDialog()
+                        }
+                    },
+                    startOfTheWeekOffset: this.startOfTheWeekOffset,
+                    label: "dateTo_label",
+                    rightAlignDropdown: true,
+                } satisfies DatePickerAttrs),
+            ),
         )
     }
 
@@ -570,17 +532,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
                     items: [{name: lang.get("all_label"), value: null}, ...items],
                     selectedValue,
                     selectionChangedHandler: (value: CalendarInfo | string | null) => {
-                        // re-search with new list ids
                         // value can be null if default option has been selected
-                        if (typeof value === "string") {
-                            this.searchViewModel.selectedCalendar = value
-                        } else if (value) {
-                            this.searchViewModel.selectedCalendar = [value.groupRoot.longEvents, value.groupRoot.shortEvents]
-                        } else {
-                            this.searchViewModel.selectedCalendar = null
-                        }
-
-                        this.searchViewModel.searchAgain()
+                        this.searchViewModel.selectCalendar(value)
                     },
                 } satisfies DropDownSelectorAttrs<CalendarInfo | string | null>),
             )
@@ -596,8 +549,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
                 label: () => lang.get("includeRepeatingEvents_action"),
                 checked: this.searchViewModel.includeRepeatingEvents,
                 onChecked: (value: boolean) => {
-                    this.searchViewModel.includeRepeatingEvents = value
-                    this.searchViewModel.searchAgain()
+                    this.searchViewModel.selectIncludeRepeatingEvents(value)
                 },
             } satisfies CheckboxAttrs),
         )

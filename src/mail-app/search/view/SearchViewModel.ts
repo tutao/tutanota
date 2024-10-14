@@ -31,19 +31,20 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {ListLoadingState, ListState} from "../../../common/gui/base/List.js"
 import {
-    assertNotNull,
-    deepEqual,
-    defer,
-    downcast,
-    getEndOfDay,
-    getStartOfDay,
-    incrementMonth,
-    isSameTypeRef,
-    LazyLoaded,
-    neverNull,
-    ofClass,
+	assertNotNull,
+	deepEqual,
+	defer,
+	downcast,
+	getEndOfDay,
+	getStartOfDay,
+	incrementMonth,
+	isSameDayOfDate,
+	isSameTypeRef,
+	LazyLoaded,
+	neverNull,
+	ofClass,
     stringToBase64,
-    TypeRef,
+	TypeRef,
 } from "@tutao/tutanota-utils"
 import {areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, SearchModel} from "../model/SearchModel.js"
 import {NotFoundError} from "../../../common/api/common/error/RestError.js"
@@ -409,8 +410,6 @@ export class SearchViewModel {
                 }
             }
         }
-        // FXIME do we need it?
-        this.validateDateRange()
     }
 
     private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {
@@ -498,32 +497,37 @@ export class SearchViewModel {
         return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
     }
 
-    async selectStartDate(startDate: Date | null): Promise<PaidFunctionResult> {
-        if (!this.canSelectTimePeriod()) {
-            return PaidFunctionResult.PaidSubscriptionNeeded
-        }
+	async selectStartDate(startDate: Date | null): Promise<PaidFunctionResult> {
+		if (isSameDayOfDate(this.startDate, startDate)) {
+			return PaidFunctionResult.Success
+		}
 
-        // If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
-        // Otherwise, keep the date as it was.
-        if (
-            startDate &&
-            this.getCategory() === SearchCategoryTypes.mail &&
-            startDate.getTime() < this.search.indexState().currentMailIndexTimestamp &&
-            startDate
-        ) {
-            const confirmed = (await this.extendIndexConfirmationCallback?.()) ?? true
-            if (confirmed) {
-                this._startDate = startDate
-                this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
-                    this.updateSearchUrl()
-                    this.updateUi()
-                })
-            } else {
-                return PaidFunctionResult.Success
-            }
-        } else {
-            this._startDate = startDate
-        }
+		if (!this.canSelectTimePeriod()) {
+			return PaidFunctionResult.PaidSubscriptionNeeded
+		}
+
+		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
+		// Otherwise, keep the date as it was.
+		if (
+			startDate &&
+			this.getCategory() === SearchCategoryTypes.mail &&
+			startDate.getTime() < this.search.indexState().currentMailIndexTimestamp &&
+			startDate
+		) {
+			const confirmed = (await this.extendIndexConfirmationCallback?.()) ?? true
+			if (confirmed) {
+				this._startDate = startDate
+				this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
+					this.updateSearchUrl()
+					this.updateUi()
+				})
+			} else {
+				// In this case it is not a success of payment, but we don't need to prompt for upgrade
+				return PaidFunctionResult.Success
+			}
+		} else {
+			this._startDate = startDate
+		}
 
         this.validateDateRange()
         this.searchAgain()
@@ -531,10 +535,14 @@ export class SearchViewModel {
         return PaidFunctionResult.Success
     }
 
-    selectEndDate(endDate: Date): PaidFunctionResult {
-        if (!this.canSelectTimePeriod()) {
-            return PaidFunctionResult.PaidSubscriptionNeeded
-        }
+	selectEndDate(endDate: Date): PaidFunctionResult {
+		if (isSameDayOfDate(this.endDate, endDate)) {
+			return PaidFunctionResult.Success
+		}
+
+		if (!this.canSelectTimePeriod()) {
+			return PaidFunctionResult.PaidSubscriptionNeeded
+		}
 
         this._endDate = endDate
 

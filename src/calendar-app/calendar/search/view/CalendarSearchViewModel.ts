@@ -26,6 +26,7 @@ import {
     getEndOfDay,
     getStartOfDay,
     incrementMonth,
+    isSameDayOfDate,
     isSameTypeRef,
     LazyLoaded,
     lazyMemoized,
@@ -70,8 +71,8 @@ import {ClientOnlyCalendarsInfo, ListAutoSelectBehavior} from "../../../../commo
 import {ProgrammingError} from "../../../../common/api/common/error/ProgrammingError.js"
 import {SearchRouter} from "../../../../common/search/view/SearchRouter.js"
 import {locator} from "../../../../common/api/main/CommonLocator.js"
-import {CalendarEventsRepository} from "../../../../common/calendar/date/CalendarEventsRepository.js"
-import {getClientOnlyCalendars} from "../../gui/CalendarGuiUtils.js"
+import {CalendarEventsRepository} from "../../../../common/calendar/date/CalendarEventsRepository";
+import {getClientOnlyCalendars} from "../../gui/CalendarGuiUtils";
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -396,7 +397,53 @@ export class CalendarSearchViewModel {
         return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
     }
 
-    searchAgain(): void {
+    selectCalendar(calendarInfo: CalendarInfo | string | null) {
+        if (typeof calendarInfo === "string" || calendarInfo == null) {
+            this._selectedCalendar = calendarInfo
+        } else {
+            this._selectedCalendar = [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
+        }
+        this.searchAgain()
+    }
+
+    selectStartDate(startDate: Date | null): PaidFunctionResult {
+        if (isSameDayOfDate(this.startDate, startDate)) {
+            return PaidFunctionResult.Success
+        }
+
+        if (!this.canSelectTimePeriod()) {
+            return PaidFunctionResult.PaidSubscriptionNeeded
+        }
+
+        this._startDate = startDate
+
+        this.searchAgain()
+
+        return PaidFunctionResult.Success
+    }
+
+    selectEndDate(endDate: Date): PaidFunctionResult {
+        if (isSameDayOfDate(this.endDate, endDate)) {
+            return PaidFunctionResult.Success
+        }
+
+        if (!this.canSelectTimePeriod()) {
+            return PaidFunctionResult.PaidSubscriptionNeeded
+        }
+
+        this._endDate = endDate
+
+        this.searchAgain()
+
+        return PaidFunctionResult.Success
+    }
+
+    selectIncludeRepeatingEvents(include: boolean) {
+        this._includeRepeatingEvents = include
+        this.searchAgain()
+    }
+
+    private searchAgain(): void {
         this.updateSearchUrl()
         this.updateUi()
     }
@@ -406,10 +453,10 @@ export class CalendarSearchViewModel {
         this.routeCalendar(
             (selectedElement?.entry as CalendarEvent) ?? null,
             createRestriction(
-                this.startDate ? getStartOfDay(this.startDate).getTime() : null,
-                this.endDate ? getEndOfDay(this.endDate).getTime() : null,
+                this._startDate ? getStartOfDay(this._startDate).getTime() : null,
+                this._endDate ? getEndOfDay(this._endDate).getTime() : null,
                 this.getFolderIds(),
-                this.includeRepeatingEvents,
+                this._includeRepeatingEvents,
             ),
         )
     }
