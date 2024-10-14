@@ -314,7 +314,6 @@ type ConstType = {
 	WEBAUTHN_RP_ID: string
 	U2f_APPID_SUFFIX: string
 	U2F_LEGACY_APPID: string
-	EXECUTE_KDF_MIGRATION: boolean
 }
 
 export const Const: ConstType = {
@@ -335,7 +334,6 @@ export const Const: ConstType = {
 	// we'll still get the contents
 	// because it will be redirected to tuta.com after new domain deploy.
 	U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
-	EXECUTE_KDF_MIGRATION: false,
 } as const
 
 export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
