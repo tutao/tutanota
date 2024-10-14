@@ -1,9 +1,9 @@
-use num_enum::TryFromPrimitive;
 use crate::entities::tutanota::MailFolder;
+use num_enum::TryFromPrimitive;
 
 pub struct FolderSystem {
 	// this structure should probably change rather soon
-	folders: Vec<MailFolder>
+	folders: Vec<MailFolder>,
 }
 
 #[derive(PartialEq, TryFromPrimitive)]
@@ -17,11 +17,12 @@ pub enum MailSetKind {
 	SPAM = 5,
 	DRAFT = 6,
 	ALL = 7,
+	UNKNOWN = 9999,
 }
 
 impl MailFolder {
 	fn mail_set_kind(&self) -> MailSetKind {
-		MailSetKind::try_from(self.folderType as u64).unwrap()
+		MailSetKind::try_from(self.folderType as u64).unwrap_or(MailSetKind::UNKNOWN)
 	}
 }
 
@@ -31,6 +32,8 @@ impl FolderSystem {
 	}
 
 	pub fn system_folder_by_type(&self, mail_set_kind: MailSetKind) -> Option<&MailFolder> {
-		self.folders.iter().find(|f| f.mail_set_kind() == mail_set_kind)
+		self.folders
+			.iter()
+			.find(|f| f.mail_set_kind() == mail_set_kind)
 	}
 }
