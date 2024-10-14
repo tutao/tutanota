@@ -102,6 +102,7 @@ export default {
 		"appInfoIosImageAlt_alt": "苹果商店上的 iOS 应用",
 		"apply_action": "应用",
 		"archive_action": "归档",
+		"archive_label": "归档",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "您无法将全局管理员权限赋予本地管理的用户。",
 		"attachFiles_action": "添加附件",
 		"attachmentAmount_label": "{amount} 个附件",
