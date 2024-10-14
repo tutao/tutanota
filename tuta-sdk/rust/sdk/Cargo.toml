@@ -1,13 +1,13 @@
 [package]
+edition = "2021"
 name = "tuta-sdk"
 version = "247.241007.0"
-edition = "2021"
 
 [dependencies]
 async-trait = "0.1.77"
 serde = { version = "1.0.201", features = ["derive"] }
 serde_json = "1.0.117"
-minicbor = { version = "0.24.2" , features = ["std", "alloc"]}
+minicbor = { version = "0.24.2", features = ["std", "alloc"] }
 thiserror = "1.0.60"
 base64 = "0.22.1"
 aes = { version = "0.8.4", features = ["zeroize"] }
@@ -32,6 +32,13 @@ log = "0.4.22"
 simple_logger = "5.0.0"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
 
+# only used for the native rest client
+hyper = { version = "1.4.1", features = ["client"], optional = true }
+hyper-util = { version = "0.1.9", features = ["full"], optional = true }
+http-body-util = { version = "0.1.2", optional = true }
+hyper-rustls = { version = "0.27.3", features = ["ring", "http2", "rustls-platform-verifier"], optional = true }
+rustls = { version = "*", optional = true }
+
 [target.'cfg(target_os = "android")'.dependencies]
 android_log = "0.1.3"
 
@@ -43,10 +50,16 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb37
     "build",
 ] }
 
+
+[features]
+net = ["dep:hyper", "dep:hyper-util", "dep:http-body-util", "dep:hyper-rustls", "dep:rustls"]
+
 [dev-dependencies]
-mockall = "0.12.1"
-rand = "0.8.5"
-tokio = { version = "1.38.0", features = ["rt", "macros"] }
+tuta-sdk = { path = ".", features = ["net"] }
+mockall = { version = "0.13.0" }
+mockall_double = { version = "0.3.1" }
+rand = { version = "0.8.5" }
+tokio = { version = "1.38.0", features = ["rt", "rt-multi-thread", "macros"] }
 
 [lib]
 crate-type = ["cdylib", "staticlib", "lib"]
