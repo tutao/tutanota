@@ -15,7 +15,7 @@ use tutasdk::generated_id::GeneratedId;
 use tutasdk::services::service_executor::ServiceExecutor;
 use tutasdk::services::tutanota::DraftService;
 use tutasdk::services::ExtraServiceParams;
-use tutasdk::LoggedInSdk;
+use tutasdk::{ApiCallError, LoggedInSdk};
 
 #[napi(object)]
 #[derive(Clone)]
@@ -27,6 +27,7 @@ pub struct ImapImportParams {
 /// current state of the imap import for this tuta account
 /// requires an initialized SDK!
 #[napi]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum ImapImportStatus {
 	NotInitialized,
 	Paused,
@@ -48,31 +49,29 @@ pub struct ImapImport {
 
 	randomizer_facade: RandomizerFacade,
 
+	// todo:
+	// keep map of user_mail_group_key? to avoid fetching ( or calculating ) it everytime
+	// map of user-email address
+	// ( there can be multiple mail group keys if user have multiple mailbox? ) to mail group key.
+	//
+	// if something is not in this map yet,
+	// `Self::get_user_mail_group_key()` will try to fetch it from sdk and insert here
+	// so to get the key, prefer to call that method instead
+	// user_mail_group_key: HashMap<String, VersionedAesKey>,
 	imap_client: TutanotaImapClient,
 	tuta_sdk: Arc<LoggedInSdk>,
-
-	mail_group_key: VersionedAesKey,
 }
 
 #[napi]
 impl ImapImport {
 	#[napi(factory)]
 	pub fn initialize(imap_import_config: ImapImportConfig) -> Self {
-		Self::new(imap_import_config, todo!(), todo!())
+		Self::new(imap_import_config, todo!())
 	}
 
 	#[napi]
-	pub async unsafe fn continue_import(&mut self) {
-		let imap_mail = self.get_mail_from_imap();
-		let draft_return_data = self.upload_mail_to_tutanota(imap_mail).await;
-
-		// 8. do something with DraftServiceReturnData
-		eprintln!("====================== yay! ===========================");
-		eprintln!("Successfully uploaded imap mail as draft. Data: {draft_return_data:?}");
-		eprintln!("========================================================");
-
-		// 9. everything is completed. update the status
-		self.status = ImapImportStatus::Finished
+	pub async unsafe fn continue_import_napi(&mut self) {
+		self.continue_import().await
 	}
 
 	#[napi]
@@ -87,11 +86,7 @@ impl ImapImport {
 }
 
 impl ImapImport {
-	pub fn new(
-		import_config: ImapImportConfig,
-		tuta_sdk: Arc<LoggedInSdk>,
-		mail_group_key: VersionedAesKey,
-	) -> Self {
+	pub fn new(import_config: ImapImportConfig, tuta_sdk: Arc<LoggedInSdk>) -> Self {
 		let imap_client = TutanotaImapClient::start_new_session(
 			import_config.params.credentials.port.parse().unwrap(),
 		);
@@ -100,9 +95,38 @@ impl ImapImport {
 			imap_client,
 			import_config,
 			tuta_sdk,
-			mail_group_key,
 			randomizer_facade: RandomizerFacade::from_core(rand::rngs::OsRng {}),
 		}
+	}
+
+	async fn get_mail_group_key(
+		&self,
+		mail_address: &str,
+	) -> Result<VersionedAesKey, ApiCallError> {
+		let sender_mail_group_id = self
+			.tuta_sdk
+			.mail_facade()
+			.get_group_id_for_mail_address(mail_address)
+			.await
+			.unwrap();
+		let mail_group_key = self
+			.tuta_sdk
+			.get_current_sym_group_key(&sender_mail_group_id)
+			.await?;
+		Ok(mail_group_key)
+	}
+
+	pub async fn continue_import(&mut self) {
+		let imap_mail = self.get_mail_from_imap();
+		let draft_return_data = self.upload_mail_to_tutanota(imap_mail).await;
+
+		// 8. do something with DraftServiceReturnData
+		eprintln!("====================== yay! ===========================");
+		eprintln!("Successfully uploaded imap mail as draft. Data: {draft_return_data:?}");
+		eprintln!("========================================================");
+
+		// 9. everything is completed. update the status
+		self.status = ImapImportStatus::Finished
 	}
 
 	fn get_mail_from_imap(&mut self) -> ImapMail {
@@ -172,27 +196,29 @@ impl ImapImport {
 
 	async fn upload_mail_to_tutanota(&mut self, fetched_mail: ImapMail) -> DraftCreateReturn {
 		// 6. convert the fetched mail to tutanota draft data
-		let create_draft_data = Self::make_tutanota_draft_input(fetched_mail);
+		let mut create_draft_data = Self::make_tutanota_draft_input(fetched_mail);
 
 		// 7. call DraftService
 		// 7.1 construct a session key
-
-		let new_aes_256_key = Aes256Key::from_bytes(
+		let new_aes_256_key = GenericAesKey::from_bytes(
 			self.randomizer_facade
-				.generate_random_array::<32>()
+				.generate_random_array::<{ tutasdk::crypto::aes::AES_256_KEY_SIZE }>()
 				.as_slice(),
 		)
 		.unwrap();
-		let owner_enc_session_key = self.mail_group_key.encrypt_key(
-			&GenericAesKey::Aes256(new_aes_256_key),
-			Iv::generate(&self.randomizer_facade),
-		);
-		let session_key = GenericAesKey::from_bytes(owner_enc_session_key.object.as_slice())
-			.expect("Cannot create session key from ownerSessionKey");
+
+		let mail_group_key = self
+			.get_mail_group_key("map-free@tutanota.de")
+			.await
+			.unwrap();
+		let owner_enc_session_key =
+			mail_group_key.encrypt_key(&new_aes_256_key, Iv::generate(&self.randomizer_facade));
+		create_draft_data.ownerEncSessionKey = owner_enc_session_key.object;
+		create_draft_data.ownerKeyVersion = owner_enc_session_key.version;
 
 		// 7.2 make the service call
 		let service_params = ExtraServiceParams {
-			session_key: Some(session_key),
+			session_key: Some(new_aes_256_key),
 			..Default::default()
 		};
 		let draft_return_data = self
@@ -240,20 +266,20 @@ impl ImapImport {
 
 #[cfg(test)]
 mod tests {
-    use crate::imap::credentials::ImapCredentials;
-    use std::sync::Arc;
-    use tuta_imap::testing::GreenMailTestServer;
-    use tutasdk::net::native_rest_client::NativeRestClient;
-    use tutasdk::{Sdk, CLIENT_VERSION};
+	use super::*;
+	use std::sync::Arc;
+	use tuta_imap::testing::GreenMailTestServer;
+	use tutasdk::net::native_rest_client::NativeRestClient;
+	use tutasdk::{Sdk, CLIENT_VERSION};
 
-    async fn init(sdk: Sdk) -> (super::ImapImport, GreenMailTestServer) {
+	async fn init(sdk: Sdk) -> (ImapImport, GreenMailTestServer) {
 		let logged_in_sdk = sdk
 			.create_session("map-free@tutanota.de", "map")
 			.await
 			.unwrap();
 		let greenmail = GreenMailTestServer::new();
-		let imap_import_config = super::ImapImportConfig {
-			params: super::ImapImportParams {
+		let imap_import_config = ImapImportConfig {
+			params: ImapImportParams {
 				root_import_mail_folder_name: "/".to_string(),
 				credentials: ImapCredentials {
 					host: "127.0.0.1".to_string(),
@@ -269,10 +295,8 @@ mod tests {
 			.get_group_id_for_mail_address("map-free@tutanota.de")
 			.await
 			.unwrap();
-		eprintln!(">>>>> Mail Group Id: {mail_group_id:?}");
 
-		let mail_group_key = todo!();
-		let importer = super::ImapImport::new(imap_import_config, logged_in_sdk, mail_group_key);
+		let importer = ImapImport::new(imap_import_config, logged_in_sdk);
 
 		(importer, greenmail)
 	}
@@ -286,14 +310,9 @@ mod tests {
 		);
 		let (mut importer, greenmail) = init(sdk).await;
 
-		// 1. construct ImapMail
 		greenmail.store_mail("sug@example.org", "Subject: Find me if you can");
-		let imap_mail = importer.get_mail_from_imap();
 
-		// 2. start local tutadb server?
-		{}
-
-		// 3. call ImapImp::upload_mail_to_server
-		let uploaded_draft_id = importer.upload_mail_to_tutanota(imap_mail).await;
+		importer.continue_import().await;
+		assert_eq!(ImapImportStatus::Finished, importer.status);
 	}
 }

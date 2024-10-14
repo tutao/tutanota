@@ -3,7 +3,7 @@ use crate::crypto::key::GenericAesKey;
 use crate::crypto::key::VersionedAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
-use crate::entities::sys::{Group, GroupMembership, User};
+use crate::entities::sys::{GroupMembership, User};
 use crate::generated_id::GeneratedId;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;

@@ -33,7 +33,7 @@ const BUCKET_KEY_FIELD: &str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
-	key_loader_facade: Option<Arc<KeyLoaderFacade>>,
+	pub(crate) key_loader_facade: Option<Arc<KeyLoaderFacade>>,
 	instance_mapper: Arc<InstanceMapper>,
 	randomizer_facade: RandomizerFacade,
 }

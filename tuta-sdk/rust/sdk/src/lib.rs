@@ -44,6 +44,7 @@ use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelPro
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
+use crate::ApiCallError::InternalSdkError;
 use rest_client::{RestClient, RestClientError};
 
 pub mod crypto;
@@ -340,6 +341,20 @@ impl LoggedInSdk {
 	pub fn get_crypto_entity_client(&self) -> &Arc<CryptoEntityClient> {
 		&self.crypto_entity_client
 	}
+
+	pub async fn get_current_sym_group_key(
+		&self,
+		user_group_id: &GeneratedId,
+	) -> Result<VersionedAesKey, ApiCallError> {
+		self.crypto_entity_client
+			.crypto_facade
+			.key_loader_facade
+			.as_ref()
+			.expect("LoggedIn sdk should always have keyLoader facade")
+			.get_current_sym_group_key(user_group_id)
+			.await
+			.map_err(|err| ApiCallError::internal(format!("KeyLoadError: {err:?}")))
+	}
 }
 
 #[uniffi::export]
@@ -486,11 +501,11 @@ impl<C> Encode<C> for ElementValue {
 }
 #[cfg(test)]
 mod tests {
-	use crate::entities::tutanota::Mail;
-	use crate::serialize_mail;
-	use crate::util::test_utils::create_test_entity;
+    use crate::entities::tutanota::Mail;
+    use crate::serialize_mail;
+    use crate::util::test_utils::create_test_entity;
 
-	#[test]
+    #[test]
 	fn test_serialize_mail_does_not_panic() {
 		let mail = create_test_entity::<Mail>();
 		let _ = serialize_mail(mail);
