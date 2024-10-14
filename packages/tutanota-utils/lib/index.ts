@@ -48,6 +48,7 @@ export { AsyncResult } from "./AsyncResult.js"
 export { intersection, trisectingDiff, setAddAll, max, maxBy, findBy, min, minBy, mapWith, mapWithout, setEquals, setMap } from "./CollectionUtils.js"
 export {
 	DAY_IN_MILLIS,
+	YEAR_IN_MILLIS,
 	getStartOfNextDay,
 	getEndOfDay,
 	getStartOfDay,

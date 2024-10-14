@@ -2,7 +2,7 @@ import { ListModel } from "../../../../common/misc/ListModel.js"
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, Mail, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { SomeEntity } from "../../../../common/api/common/EntityTypes.js"
 import { OperationType } from "../../../../common/api/common/TutanotaConstants.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
@@ -13,8 +13,9 @@ import {
 	downcast,
 	getEndOfDay,
 	getStartOfDay,
+	incrementMonth,
+	isSameDayOfDate,
 	isSameTypeRef,
-	isToday,
 	LazyLoaded,
 	lazyMemoized,
 	neverNull,
@@ -38,7 +39,7 @@ import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
-import { SearchResultListEntry } from "../../../../mail-app/search/view/SearchListView.js"
+import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -53,13 +54,46 @@ export class CalendarSearchViewModel {
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
 	_searchResult: SearchResult | null = null
-	includeRepeatingEvents: boolean = true
-	latestCalendarRestriction: SearchRestriction | null = null
+	private _includeRepeatingEvents: boolean = true
+	get includeRepeatingEvents(): boolean {
+		return this._includeRepeatingEvents
+	}
 
-	startDate: Date | null = null // null = current mail index date. this allows us to start the search (and the url) without end date set
-	endDate: Date | null = null // null = today
-	// Isn't an IdTuple because it is two list ids
-	selectedCalendar: readonly [Id, Id] | null = null
+	get warning(): "long" | "startafterend" | null {
+		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
+			return "startafterend"
+		} else if (this.startDate && this.startDate.getTime() - this.endDate.getTime() > YEAR_IN_MILLIS) {
+			return "long"
+		} else {
+			return null
+		}
+	}
+
+	private _startDate: Date | null = null // null = first of current month
+	get startDate(): Date | null {
+		let returnDate = this._startDate
+		if (!returnDate) {
+			returnDate = new Date()
+			returnDate.setDate(1)
+		}
+		return returnDate
+	}
+
+	private _endDate: Date | null = null // null =  2 months in the future
+	get endDate(): Date {
+		if (this._endDate) {
+			return this._endDate
+		} else {
+			return incrementMonth(new Date(), 2)
+		}
+	}
+
+	// isn't an IdTuple because it is two list ids
+	private _selectedCalendar: readonly [Id, Id] | null = null
+	get selectedCalendar(): readonly [Id, Id] | null {
+		return this._selectedCalendar
+	}
+
 	private resultSubscription: Stream<void> | null = null
 	private listStateSubscription: Stream<unknown> | null = null
 	loadingAllForSearchResult: SearchResult | null = null
@@ -206,12 +240,11 @@ export class CalendarSearchViewModel {
 			listModel.updateLoadingStatus(ListLoadingState.Done)
 		}
 
-		this.startDate = restriction.start ? new Date(restriction.start) : null
-		this.endDate = restriction.end ? new Date(restriction.end) : null
-		this.selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
-		this.includeRepeatingEvents = restriction.eventSeries ?? true
+		this._startDate = restriction.start ? new Date(restriction.start) : null
+		this._endDate = restriction.end ? new Date(restriction.end) : null
+		this._selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
+		this._includeRepeatingEvents = restriction.eventSeries ?? true
 		this.lazyCalendarInfos.load()
-		this.latestCalendarRestriction = restriction
 
 		if (args.id != null) {
 			const { start, id } = decodeCalendarSearchKey(args.id)
@@ -295,24 +328,49 @@ export class CalendarSearchViewModel {
 		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
-	async selectTimePeriod({ start, end }: { start: Date; end: Date }): Promise<PaidFunctionResult> {
-		if (!this.canSelectTimePeriod()) {
-			return PaidFunctionResult.PaidSubscriptionNeeded
-		} else {
-			if (end && isToday(end)) {
-				console.log("setting end to null")
-				this.endDate = null
-			} else {
-				this.endDate = end
-			}
-
-			this.startDate = start
-
-			return PaidFunctionResult.Success
-		}
+	selectCalendar(calendarInfo: CalendarInfo | null) {
+		this._selectedCalendar = calendarInfo ? [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents] : null
+		this.searchAgain()
 	}
 
-	searchAgain(): void {
+	selectStartDate(startDate: Date | null): PaidFunctionResult {
+		if (isSameDayOfDate(this.startDate, startDate)) {
+			return PaidFunctionResult.Success
+		}
+
+		if (!this.canSelectTimePeriod()) {
+			return PaidFunctionResult.PaidSubscriptionNeeded
+		}
+
+		this._startDate = startDate
+
+		this.searchAgain()
+
+		return PaidFunctionResult.Success
+	}
+
+	selectEndDate(endDate: Date): PaidFunctionResult {
+		if (isSameDayOfDate(this.endDate, endDate)) {
+			return PaidFunctionResult.Success
+		}
+
+		if (!this.canSelectTimePeriod()) {
+			return PaidFunctionResult.PaidSubscriptionNeeded
+		}
+
+		this._endDate = endDate
+
+		this.searchAgain()
+
+		return PaidFunctionResult.Success
+	}
+
+	selectIncludeRepeatingEvents(include: boolean) {
+		this._includeRepeatingEvents = include
+		this.searchAgain()
+	}
+
+	private searchAgain(): void {
 		this.updateSearchUrl()
 		this.updateUi()
 	}
@@ -322,10 +380,10 @@ export class CalendarSearchViewModel {
 		this.routeCalendar(
 			(selectedElement?.entry as CalendarEvent) ?? null,
 			createRestriction(
-				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
-				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
-				this.selectedCalendar == null ? [] : [...this.selectedCalendar],
-				this.includeRepeatingEvents,
+				this._startDate ? getStartOfDay(this._startDate).getTime() : null,
+				this._endDate ? getEndOfDay(this._endDate).getTime() : null,
+				this._selectedCalendar == null ? [] : [...this._selectedCalendar],
+				this._includeRepeatingEvents,
 			),
 		)
 	}

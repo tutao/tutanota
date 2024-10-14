@@ -25,11 +25,13 @@ import {
 	getEndOfDay,
 	getStartOfDay,
 	incrementMonth,
+	isSameDayOfDate,
 	isSameTypeRef,
 	LazyLoaded,
 	neverNull,
 	ofClass,
 	TypeRef,
+	YEAR_IN_MILLIS,
 } from "@tutao/tutanota-utils"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, SearchModel } from "../model/SearchModel.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
@@ -63,7 +65,6 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
-import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -93,9 +94,14 @@ export class SearchViewModel {
 	private latestMailRestriction: SearchRestriction | null = null
 	private latestCalendarRestriction: SearchRestriction | null = null
 
-	private _warning: SearchViewModel["warning"] = null
 	get warning(): "long" | "startafterend" | null {
-		return this._warning
+		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
+			return "startafterend"
+		} else if (this.startDate && this.startDate.getTime() - this.endDate.getTime() > YEAR_IN_MILLIS) {
+			return "long"
+		} else {
+			return null
+		}
 	}
 
 	/**
@@ -357,8 +363,6 @@ export class SearchViewModel {
 				}
 			}
 		}
-		// FXIME do we need it?
-		this.validateDateRange()
 	}
 
 	private extractCalendarListIds(listIds: string[]): readonly [string, string] | null {
@@ -446,6 +450,10 @@ export class SearchViewModel {
 	}
 
 	async selectStartDate(startDate: Date | null): Promise<PaidFunctionResult> {
+		if (isSameDayOfDate(this.startDate, startDate)) {
+			return PaidFunctionResult.Success
+		}
+
 		if (!this.canSelectTimePeriod()) {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
@@ -466,26 +474,29 @@ export class SearchViewModel {
 					this.updateUi()
 				})
 			} else {
+				// In this case it is not a success of payment, but we don't need to prompt for upgrade
 				return PaidFunctionResult.Success
 			}
 		} else {
 			this._startDate = startDate
 		}
 
-		this.validateDateRange()
 		this.searchAgain()
 
 		return PaidFunctionResult.Success
 	}
 
 	selectEndDate(endDate: Date): PaidFunctionResult {
+		if (isSameDayOfDate(this.endDate, endDate)) {
+			return PaidFunctionResult.Success
+		}
+
 		if (!this.canSelectTimePeriod()) {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
 		this._endDate = endDate
 
-		this.validateDateRange()
 		this.searchAgain()
 
 		return PaidFunctionResult.Success
@@ -494,16 +505,6 @@ export class SearchViewModel {
 	selectCalendar(calendarInfo: CalendarInfo | null) {
 		this._selectedCalendar = calendarInfo ? [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents] : null
 		this.searchAgain()
-	}
-
-	private validateDateRange() {
-		if (this._startDate && this._startDate.getTime() > this.endDate.getTime()) {
-			this._warning = "startafterend"
-		} else if (this._startDate && this._startDate.getTime() - this.endDate.getTime() > YEAR_IN_MILLIS) {
-			this._warning = "long"
-		} else {
-			this._warning = null
-		}
 	}
 
 	selectMailFolder(folder: Array<string>): PaidFunctionResult {
