@@ -1,12 +1,13 @@
+use crate::crypto::aes::Iv;
 use crate::crypto::key::GenericAesKey;
-use crate::crypto::Iv;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::tutanota::{Mail, MailAddress};
 use crate::entities::Entity;
+use crate::generated_id::GeneratedId;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
-use crate::TypeRef;
+use crate::{IdTuple, TypeRef};
 
 /// Generates and returns an encrypted Mail ParsedEntity. It also returns the decrypted Mail for comparison
 pub fn generate_email_entity(
@@ -18,6 +19,10 @@ pub fn generate_email_entity(
 	recipient_name: String,
 ) -> (ParsedEntity, ParsedEntity) {
 	let original_mail = Mail {
+		_id: IdTuple {
+			list_id: GeneratedId("O1RT1m6-0R-0".to_string()),
+			element_id: GeneratedId("O1RT2Dj----0".to_string()),
+		},
 		receivedDate: DateTime::from_millis(1470039025474),
 		confidential,
 		subject,

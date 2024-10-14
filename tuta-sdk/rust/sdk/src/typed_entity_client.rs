@@ -1,5 +1,5 @@
 use crate::entities::Entity;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
 use crate::generated_id::GeneratedId;

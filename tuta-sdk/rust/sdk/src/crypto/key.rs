@@ -76,6 +76,7 @@ impl GenericAesKey {
 	}
 
 	/// Encrypts `key_to_encrypt` with this key.
+	#[must_use]
 	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Vec<u8> {
 		match self {
 			Self::Aes128(key) => {
@@ -111,6 +112,7 @@ impl GenericAesKey {
 		}
 	}
 
+	#[must_use]
 	pub fn as_bytes(&self) -> &[u8] {
 		match self {
 			Self::Aes128(n) => n.as_bytes(),

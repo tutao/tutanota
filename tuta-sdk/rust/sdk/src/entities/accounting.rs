@@ -2,7 +2,8 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountPosting {
 	pub _id: CustomId,
 	pub amount: i64,
@@ -12,7 +13,6 @@ pub struct CustomerAccountPosting {
 	pub valueDate: DateTime,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
-
 impl Entity for CustomerAccountPosting {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -22,7 +22,8 @@ impl Entity for CustomerAccountPosting {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountReturn {
 	pub _format: i64,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -35,7 +36,6 @@ pub struct CustomerAccountReturn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
-
 impl Entity for CustomerAccountReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {

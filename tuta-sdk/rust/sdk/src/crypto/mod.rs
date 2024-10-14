@@ -4,8 +4,6 @@
 
 #[allow(unused_imports)]
 pub use aes::Aes128Key;
-#[cfg(test)]
-pub use aes::Iv;
 pub use aes::PlaintextAndIv;
 #[allow(unused_imports)]
 pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
@@ -15,7 +13,7 @@ pub use sha::sha256;
 #[allow(unused_imports)]
 pub use tuta_crypt::PQKeyPairs;
 
-mod aes;
+pub mod aes;
 
 mod sha;
 

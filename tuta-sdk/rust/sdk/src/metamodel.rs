@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
+use crate::date::DateTime;
+use crate::element_value::ElementValue;
 use serde::Deserialize;
 
 /// A kind of element that can appear in the model
-#[derive(Deserialize, PartialEq, Clone)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub enum ElementType {
 	/// Entity referenced by a single id
 	#[serde(rename = "ELEMENT_TYPE")]
@@ -34,6 +36,21 @@ pub enum ValueType {
 	CompressedString,
 }
 
+impl ValueType {
+	pub fn get_default(&self) -> ElementValue {
+		match self {
+			ValueType::String | ValueType::CompressedString => ElementValue::String(String::new()),
+			ValueType::Number => ElementValue::Number(0),
+			ValueType::Bytes => ElementValue::Bytes(Vec::new()),
+			ValueType::Date => ElementValue::Date(DateTime::default()),
+			ValueType::Boolean => ElementValue::Bool(false),
+			ValueType::GeneratedId | ValueType::CustomId => {
+				panic!("Can not have default value: {self:?}")
+			},
+		}
+	}
+}
+
 /// Associations (references and aggregations) have two dimensions: the type they reference and
 /// their cardinality.
 #[derive(Deserialize, PartialEq, Clone)]
@@ -47,7 +64,7 @@ pub enum Cardinality {
 }
 
 /// Relationships between elements are described as association
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Eq, PartialEq)]
 pub enum AssociationType {
 	/// References [ElementType] by id
 	#[serde(rename = "ELEMENT_ASSOCIATION")]

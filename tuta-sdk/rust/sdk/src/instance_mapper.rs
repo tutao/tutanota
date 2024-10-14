@@ -30,7 +30,6 @@ impl InstanceMapper {
 		T::deserialize(de)
 	}
 
-	#[allow(unused)] // TODO: Remove this when implementing mutations for entities
 	pub fn serialize_entity<T: Entity + Serialize>(
 		&self,
 		entity: T,

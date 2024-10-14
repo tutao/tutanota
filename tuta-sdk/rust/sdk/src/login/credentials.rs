@@ -1,6 +1,6 @@
 use crate::generated_id::GeneratedId;
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Clone)]
 pub struct Credentials {
 	pub login: String,
 	pub user_id: GeneratedId,

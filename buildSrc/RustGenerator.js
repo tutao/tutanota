@@ -13,7 +13,8 @@ import { AssociationType, Type } from "../src/common/api/common/EntityConstants.
  */
 export function generateRustType({ type, modelName }) {
 	let typeName = mapTypeName(type.name, modelName)
-	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
+	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ${typeName} {\n`
 	for (let [valueName, valueProperties] of Object.entries(type.values)) {
 		const rustType = rustValueType(valueName, type, valueProperties)
@@ -59,20 +60,81 @@ pub struct ${typeName} {\n`
 	if (type.encrypted || Object.values(type.values).some((v) => v.encrypted)) {
 		buf += `\tpub _finalIvs: HashMap<String, FinalIv>,\n`
 	}
+
 	buf += "}"
+	buf += `
+impl Entity for ${typeName} {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "${modelName}",
+			type_: "${typeName}",
+		}
+	}
+}
+`
 
-	buf += "\n\n"
+	return buf + "\n\n"
+}
 
-	buf += `impl Entity for ${typeName} {\n`
-	buf += "\tfn type_ref() -> TypeRef {\n"
-	buf += `\t\tTypeRef {\n`
-	buf += `\t\t\tapp: "${modelName}",\n`
-	buf += `\t\t\ttype_: "${typeName}",\n`
-	buf += `\t\t}\n`
-	buf += "\t}\n"
-	buf += "}"
+export function generateRustServiceDefinition(appName, appVersion, services) {
+	let imports = new Set([
+		"#![allow(unused_imports, dead_code, unused_variables)]",
+		"use crate::ApiCallError;",
+		"use crate::entities::Entity;",
+		"use crate::services::{PostService, GetService, PutService, DeleteService, Service, Executor, ExtraServiceParams};",
+		"use crate::rest_client::HttpMethod;",
+		"use crate::services::hidden::Nothing;",
+	])
+	const code = services
+		.map((s) => {
+			let serviceDefinition = `
+pub struct ${s.name};
 
-	return buf
+crate::service_impl!(declare, ${s.name}, "${appName}/${s.name.toLowerCase()}", ${appVersion});
+`
+
+			function getTypeRef(dataType) {
+				if (dataType) {
+					return `Some(${dataType}::type_ref())`
+				} else {
+					return "None"
+				}
+			}
+
+			function addImports(appName, input, output) {
+				if (input) {
+					imports.add(`use crate::entities::${appName}::${input};`)
+				}
+				if (output) {
+					imports.add(`use crate::entities::${appName}::${output};`)
+				}
+			}
+
+			function makeImpl(name, input, output) {
+				addImports(appName, input, output)
+				return `crate::service_impl!(${name}, ${s.name}, ${input ?? "()"}, ${output ?? "()"});\n`
+			}
+
+			if (s.bodyTypes.POST_IN || s.bodyTypes.POST_OUT) {
+				serviceDefinition += makeImpl("POST", s.bodyTypes.POST_IN, s.bodyTypes.POST_OUT)
+			}
+
+			if (s.bodyTypes.GET_IN || s.bodyTypes.GET_OUT) {
+				serviceDefinition += makeImpl("GET", s.bodyTypes.GET_IN, s.bodyTypes.GET_OUT)
+			}
+
+			if (s.bodyTypes.PUT_IN || s.bodyTypes.PUT_OUT) {
+				serviceDefinition += makeImpl("PUT", s.bodyTypes.PUT_IN, s.bodyTypes.PUT_OUT)
+			}
+
+			if (s.bodyTypes.DELETE_IN || s.bodyTypes.DELETE_OUT) {
+				serviceDefinition += makeImpl("DELETE", s.bodyTypes.DELETE_IN, s.bodyTypes.DELETE_OUt)
+			}
+
+			return serviceDefinition
+		})
+		.join("\n")
+	return Array.from(imports).join("\n") + code
 }
 
 /**

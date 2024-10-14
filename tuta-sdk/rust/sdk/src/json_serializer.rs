@@ -14,7 +14,6 @@ use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
-use crate::util::resolve_default_value;
 use crate::{IdTuple, TypeRef};
 
 impl From<&TypeModel> for TypeRef {
@@ -78,7 +77,7 @@ impl JsonSerializer {
 					if value_type.encrypted {
 						ElementValue::String(String::new())
 					} else {
-						resolve_default_value(&value_type.value_type)
+						value_type.value_type.get_default()
 					}
 				},
 				(Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
@@ -265,19 +264,9 @@ impl JsonSerializer {
 						field: value_name.to_owned(),
 					})?;
 
-			if !value_type.encrypted {
-				let serialized_value =
-					self.serialize_value(type_model, &value_name, value_type, value)?;
-				mapped.insert(value_name, serialized_value);
-			} else if let ElementValue::Null = value {
-				mapped.insert(value_name, JsonElement::Null);
-				continue;
-			} else if let (ElementValue::String(v), true) = (value, value_type.encrypted) {
-				mapped.insert(value_name, JsonElement::String(v));
-				continue;
-			} else {
-				panic!("Unknown entity elements!! {}", value_name)
-			}
+			let serialized_value =
+				self.serialize_value(type_model, &value_name, value_type, value)?;
+			mapped.insert(value_name, serialized_value);
 		}
 
 		for (&association_name, association_type) in &type_model.associations {
@@ -342,7 +331,7 @@ impl JsonSerializer {
 					);
 				},
 				(AssociationType::BlobElementAssociation, _, ElementValue::Array(elements)) => {
-					// Blobs ate copied as-is for now
+					// Blobs are copied as-is for now
 					let serialized_aggregates = self.make_serialized_aggregated_array(
 						&association_name,
 						&association_type_ref,
@@ -429,17 +418,27 @@ impl JsonSerializer {
 				) => Ok(JsonElement::String(v)),
 				(
 					ValueType::GeneratedId | ValueType::CustomId,
+					ElementValue::IdCustomId(v),
+					ElementType::Element | ElementType::Aggregated,
+				) => Ok(JsonElement::String(v.to_string())),
+				(
+					ValueType::GeneratedId | ValueType::CustomId,
 					ElementValue::IdTupleId(arr),
 					ElementType::ListElement,
 				) => Ok(JsonElement::Array(vec![
 					JsonElement::String(arr.list_id.into()),
 					JsonElement::String(arr.element_id.into()),
 				])),
+
 				_ => invalid_value(),
 			};
 		}
 
 		match (&model_value.value_type, element_value) {
+			(_, ElementValue::Bytes(v)) if model_value.encrypted => {
+				let str = BASE64_STANDARD.encode(v);
+				Ok(JsonElement::String(str))
+			},
 			(ValueType::String, ElementValue::String(v)) => Ok(JsonElement::String(v)),
 			(ValueType::Number, ElementValue::Number(v)) => Ok(JsonElement::String(v.to_string())),
 			(ValueType::Bytes, ElementValue::Bytes(v)) => {
@@ -566,9 +565,15 @@ impl JsonSerializer {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::crypto::key::GenericAesKey;
+	use crate::crypto::randomizer_facade::RandomizerFacade;
+	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::sys::User;
 	use crate::entities::Entity;
-	use crate::type_model_provider::init_type_model_provider;
+	use crate::instance_mapper::InstanceMapper;
+	use crate::services::test_services::HelloEncOutput;
+	use crate::type_model_provider::{init_type_model_provider, AppName, TypeName};
+	use serde::Serialize;
 
 	#[test]
 	fn test_parse_mail() {
@@ -630,5 +635,44 @@ mod tests {
 			ship.get("symEncGKey").unwrap().assert_bytes(),
 			Vec::<u8>::new()
 		);
+	}
+
+	#[test]
+	fn serialization_for_encrypted_works() {
+		use crate::entities::entity_facade::EntityFacade;
+
+		let mut type_provider: HashMap<AppName, HashMap<TypeName, TypeModel>> = HashMap::new();
+		crate::services::test_services::extend_model_resolver(&mut type_provider);
+		let type_provider = Arc::new(TypeModelProvider::new(type_provider));
+
+		let entity_to_serialize = HelloEncOutput {
+			answer: "".to_string(),
+			timestamp: Default::default(),
+			_finalIvs: Default::default(),
+		};
+
+		let instance_mapper = InstanceMapper::new();
+		let parsed_unencrypted = instance_mapper
+			.serialize_entity(entity_to_serialize)
+			.unwrap();
+		let entity_facade = EntityFacadeImpl::new(
+			type_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
+		let type_model = type_provider
+			.get_type_model(
+				HelloEncOutput::type_ref().app,
+				HelloEncOutput::type_ref().type_,
+			)
+			.unwrap();
+		let session_key = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
+		let parsed_encrypted = entity_facade
+			.encrypt_and_map(type_model, &parsed_unencrypted, &session_key)
+			.unwrap();
+
+		let json_serializer = JsonSerializer::new(type_provider);
+		json_serializer
+			.serialize(&HelloEncOutput::type_ref(), parsed_encrypted)
+			.unwrap();
 	}
 }

@@ -1,4 +1,4 @@
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::entities::tutanota::Mail;
 use crate::{ApiCallError, IdTuple};

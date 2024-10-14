@@ -9,20 +9,20 @@ use crate::crypto::{generate_key_from_passphrase, sha256, Aes256Key};
 use crate::element_value::ParsedEntity;
 use crate::entities::sys::{Session, User};
 use crate::entities::Entity;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::generated_id::{GeneratedId, GENERATED_ID_BYTES_LENGTH};
 use crate::login::credentials::Credentials;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
 use crate::util::{array_cast_slice, BASE64_EXT};
 use crate::ApiCallError::InternalSdkError;
 use crate::{ApiCallError, IdTuple};
 
 /// Error that may occur during login and session creation
-#[derive(Error, Debug, uniffi::Error)]
+#[derive(Error, Debug, uniffi::Error, Clone, PartialEq)]
 pub enum LoginError {
 	#[error("InvalidSessionId: {error_message}")]
 	InvalidSessionId { error_message: String },
@@ -201,7 +201,7 @@ mod tests {
 
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
-	use crate::crypto::{Aes128Key, Aes256Key, Iv};
+	use crate::crypto::{aes::Iv, Aes128Key, Aes256Key};
 	use crate::entities::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
 	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;

@@ -1,8 +1,8 @@
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::entities::entity_facade::EntityFacade;
 use crate::entities::Entity;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
 use crate::instance_mapper::InstanceMapper;
@@ -33,6 +33,7 @@ impl CryptoEntityClient {
 			instance_mapper,
 		}
 	}
+
 	pub async fn load<T: Entity + Deserialize<'static>, ID: IdType>(
 		&self,
 		id: &ID,
@@ -95,7 +96,8 @@ impl CryptoEntityClient {
 mod tests {
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::{Aes256Key, Iv};
+	use crate::crypto::randomizer_facade::RandomizerFacade;
+	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
 	use crate::entities::entity_facade::EntityFacadeImpl;
@@ -166,7 +168,10 @@ mod tests {
 		let type_model_provider = Arc::new(init_type_model_provider());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
-		let entity_facade = EntityFacadeImpl::new(Arc::clone(&type_model_provider));
+		let entity_facade = EntityFacadeImpl::new(
+			Arc::clone(&type_model_provider),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 
 		let crypto_entity_client = CryptoEntityClient::new(
 			Arc::new(mock_entity_client),

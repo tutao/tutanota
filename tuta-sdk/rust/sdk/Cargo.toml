@@ -27,7 +27,6 @@ rsa = "0.9.6"
 rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde_bytes = "0.11.14"
 futures = "0.3.30"
-mockall_double = "0.3.1"
 log = "0.4.22"
 simple_logger = "5.0.0"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
@@ -77,3 +76,8 @@ must_use_candidate = "warn"
 unused_async = "warn"
 implicit_clone = "warn"
 explicit_iter_loop = "warn"
+
+[[example]]
+name = "create_session"
+path = "examples/create_session.rs"
+required-features = ["net"]
