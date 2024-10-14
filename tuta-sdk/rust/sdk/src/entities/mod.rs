@@ -9,15 +9,15 @@ use crate::generated_id::GeneratedId;
 pub use crate::IdTuple;
 use crate::TypeRef;
 
-pub(crate) mod accounting;
-pub(crate) mod base;
-pub(crate) mod entity_facade;
-pub(crate) mod gossip;
-pub(crate) mod monitor;
-pub(crate) mod storage;
-pub(crate) mod sys;
-pub(crate) mod tutanota;
-pub(crate) mod usage;
+pub mod accounting;
+pub mod base;
+pub mod entity_facade;
+pub mod gossip;
+pub mod monitor;
+pub mod storage;
+pub mod sys;
+pub mod tutanota;
+pub mod usage;
 
 /// `'static` on trait bound is fine here because Entity does not contain any non-static references.
 /// See https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html#trait-bound
@@ -30,7 +30,7 @@ pub trait Entity: 'static {
 /// to the same exact value. For that we need to use the same initialization
 /// vector.
 /// FinalIv holds such an IV for a specific field.
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 #[serde(transparent)]
 pub struct FinalIv(#[serde(with = "serde_bytes")] Vec<u8>);
 

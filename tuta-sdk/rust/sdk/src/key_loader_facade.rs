@@ -1,12 +1,12 @@
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
+use crate::crypto::aes::Iv;
+use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError, VersionedAesKey};
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::Versioned;
 use crate::ListLoadDirection;
 use base64::Engine;
 use futures::future::BoxFuture;
@@ -242,8 +242,6 @@ impl KeyLoaderFacade {
 	}
 }
 
-pub type VersionedAesKey = Versioned<GenericAesKey>;
-
 struct FormerGroupKey {
 	symmetric_group_key: GenericAesKey,
 	group_key_instance: GroupKey,
@@ -254,7 +252,7 @@ mod tests {
 	use super::*;
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
-	use crate::crypto::{Aes256Key, Iv, PQKeyPairs};
+	use crate::crypto::{aes::Iv, Aes256Key, PQKeyPairs};
 	use crate::custom_id::CustomId;
 	use crate::entities::sys::{GroupKeysRef, GroupMembership, KeyPair};
 	use crate::key_cache::MockKeyCache;
@@ -597,12 +595,12 @@ mod tests {
 				.await
 				.unwrap();
 			match keypair {
-                AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
-                AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
-                AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
-                    assert_eq!(pq_key_pair, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
-                }
-            }
+				AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
+				AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
+				AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
+					assert_eq!(pq_key_pair, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
+				},
+			}
 		}
 	}
 
@@ -677,11 +675,11 @@ mod tests {
 				.await
 				.unwrap();
 			match keypair {
-                GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
-                GenericAesKey::Aes256(returned_group_key) => {
-                    assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
-                }
-            }
+				GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
+				GenericAesKey::Aes256(returned_group_key) => {
+					assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
+				},
+			}
 		}
 	}
 

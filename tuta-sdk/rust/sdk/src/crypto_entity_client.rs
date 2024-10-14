@@ -1,8 +1,8 @@
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::entities::entity_facade::EntityFacade;
 use crate::entities::Entity;
-#[mockall_double::double]
+#[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::entity_client::IdType;
 use crate::instance_mapper::InstanceMapper;
@@ -14,8 +14,14 @@ use std::sync::Arc;
 pub struct CryptoEntityClient {
 	entity_client: Arc<EntityClient>,
 	entity_facade: Arc<dyn EntityFacade>,
-	crypto_facade: Arc<CryptoFacade>,
+	pub(crate) crypto_facade: Arc<CryptoFacade>,
 	instance_mapper: Arc<InstanceMapper>,
+}
+
+impl CryptoEntityClient {
+	pub fn get_crypto_facade(&self) -> &Arc<CryptoFacade> {
+		&self.crypto_facade
+	}
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -33,6 +39,7 @@ impl CryptoEntityClient {
 			instance_mapper,
 		}
 	}
+
 	pub async fn load<T: Entity + Deserialize<'static>, ID: IdType>(
 		&self,
 		id: &ID,
@@ -95,7 +102,7 @@ impl CryptoEntityClient {
 mod tests {
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::{Aes256Key, Iv};
+	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
 	use crate::entities::entity_facade::EntityFacadeImpl;

@@ -24,6 +24,12 @@ pub struct EntityClient {
 }
 
 impl EntityClient {
+	pub fn get_headers_provider(&self) -> &Arc<HeadersProvider> {
+		&self.auth_headers_provider
+	}
+}
+
+impl EntityClient {
 	#[allow(dead_code)]
 	pub(crate) fn new(
 		rest_client: Arc<dyn RestClient>,

@@ -1,7 +1,7 @@
 use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
-use crate::util::ArrayCastingError;
+use crate::util::{ArrayCastingError, Versioned};
 use crate::ApiCallError;
 use zeroize::Zeroizing;
 
@@ -76,6 +76,7 @@ impl GenericAesKey {
 	}
 
 	/// Encrypts `key_to_encrypt` with this key.
+	#[must_use]
 	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Vec<u8> {
 		match self {
 			Self::Aes128(key) => {
@@ -111,6 +112,7 @@ impl GenericAesKey {
 		}
 	}
 
+	#[must_use]
 	pub fn as_bytes(&self) -> &[u8] {
 		match self {
 			Self::Aes128(n) => n.as_bytes(),
@@ -192,5 +194,15 @@ mod tests {
 		let text = key.decrypt_data(ciphertext.as_slice()).unwrap();
 
 		assert_eq!(raw_text, text.as_slice());
+	}
+}
+
+pub type VersionedAesKey = Versioned<GenericAesKey>;
+
+impl Versioned<GenericAesKey> {
+	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Versioned<Vec<u8>> {
+		let encrypted_key = self.object.encrypt_key(key_to_encrypt, iv);
+		// todo: this looks like the vec<u8> has the version which is not true
+		Versioned::new(encrypted_key, self.version)
 	}
 }
