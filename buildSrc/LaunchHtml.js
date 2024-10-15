@@ -48,15 +48,15 @@ export async function renderHtml(scripts, env) {
     <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Tuta Mail">
-    <meta property="og:title" content="Secure Emails Become a Breeze">
+    <meta property="og:title" content="Turn ON Privacy">
     <meta property="og:description"
-          content="Tuta Mail is the secure email service, built in Germany. Use encrypted emails on all devices with our open source email client, mobile apps &amp; desktop clients.">
+          content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">
     <meta property="og:locale" content="en">
     <meta property="og:url" content="https://tuta.com/">
     <meta property="og:image" content="https://tuta.com/resources/images/share-tutanota-fb-thumbnail.png">
     <meta property="article:publisher" content="https://www.facebook.com/tutanota">
-	<meta itemprop="name" content="Secure Emails Become a Breeze.">
-	<meta itemprop="description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
+	<meta itemprop="name" content="Turn ON Privacy">
+	<meta itemprop="description" content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">
 	<meta itemprop="image" content="https://tuta.com/images/share_image.png">
 	<meta name="apple-itunes-app" content="app-id=id922429609, affiliate-data=10lSfb">
 </head>
