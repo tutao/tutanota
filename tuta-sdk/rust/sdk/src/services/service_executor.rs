@@ -172,8 +172,7 @@ impl Executor for ServiceExecutor {
 				.type_model_provider
 				.get_type_model(input_type_ref.app, input_type_ref.type_)
 				.ok_or(ApiCallError::internal(format!(
-					"type {:?} does not exist",
-					input_type_ref
+					"type {input_type_ref:?} does not exist"
 				)))?;
 
 			let encrypted_parsed_entity = if type_model.is_encrypted() {

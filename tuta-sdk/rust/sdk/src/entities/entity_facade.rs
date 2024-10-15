@@ -94,7 +94,7 @@ impl EntityFacadeImpl {
 			Ok(instance_value.clone())
 		} else {
 			let bytes = Self::map_value_to_binary(value_type, instance_value)
-				.unwrap_or_else(|| panic!("invalid encrypted value {:?}", instance_value));
+				.unwrap_or_else(|| panic!("invalid encrypted value {instance_value:?}"));
 			let encrypted_data = session_key
 				.encrypt_data(bytes.as_slice(), iv)
 				.expect("Cannot encrypt data");
@@ -164,7 +164,7 @@ impl EntityFacadeImpl {
 						.assert_bytes()
 						.as_slice(),
 				)
-				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
+				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {err:?}")))?;
 
 				encrypted_value = Self::encrypt_value(model_value, instance_value, sk, final_iv)?
 			} else {
@@ -358,7 +358,7 @@ impl EntityFacadeImpl {
 								// Errors should be grouped inside the top-most object, so they should be
 								// extracted and removed from aggregates
 								if decrypted_aggregate.contains_key("_errors") {
-									let error_key = &format!("{}_{}", association_name, index);
+									let error_key = &format!("{association_name}_{index}");
 									self.extract_errors(
 										error_key,
 										&mut errors,
@@ -371,8 +371,7 @@ impl EntityFacadeImpl {
 							_ => {
 								return Err(ApiCallError::InternalSdkError {
 									error_message: format!(
-										"Invalid aggregate format. {} isn't a dict",
-										association_name
+										"Invalid aggregate format. {association_name} isn't a dict"
 									),
 								})
 							},
@@ -1132,7 +1131,7 @@ mod tests {
 				ElementValue::Dict(aggregate) => {
 					out.push_str(&format!("{}: {}\n", key, map_to_string(aggregate)))
 				},
-				_ => out.push_str(&format!("{}: {:?}\n", key, value)),
+				_ => out.push_str(&format!("{key}: {value:?}\n")),
 			}
 		}
 		out

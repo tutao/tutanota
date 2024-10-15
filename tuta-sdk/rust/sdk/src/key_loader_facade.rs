@@ -130,7 +130,7 @@ impl KeyLoaderFacade {
 
 	fn decode_group_key_version(&self, element_id: &GeneratedId) -> Result<i64, KeyLoadError> {
 		element_id.as_str().parse().map_err(|_| KeyLoadError {
-			reason: format!("Failed to decode group key version: {}", element_id),
+			reason: format!("Failed to decode group key version: {element_id}"),
 		})
 	}
 

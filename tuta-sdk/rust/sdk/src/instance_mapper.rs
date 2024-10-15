@@ -759,7 +759,7 @@ impl Serializer for ElementValueSerializer {
 }
 
 fn unsupported(data_type: &str) -> ! {
-	panic!("Unsupported data type: {}", data_type)
+	panic!("Unsupported data type: {data_type}")
 }
 
 impl SerializeSeq for ElementValueSeqSerializer {
