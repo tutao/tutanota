@@ -363,6 +363,12 @@ impl JsonSerializer {
 				ElementValue::String(v) => {
 					serialized_elements.push(JsonElement::String(v));
 				},
+				ElementValue::IdTupleId(id_tuple) => {
+					serialized_elements.push(JsonElement::Array(vec![
+						JsonElement::String(id_tuple.list_id.into()),
+						JsonElement::String(id_tuple.element_id.into()),
+					]))
+				},
 				_ => {
 					return Err(InvalidValue {
 						type_ref: association_type_ref.clone(),
