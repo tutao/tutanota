@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - dev-*
+      - '*/dev'
     paths:
       - 'app-android/**'
   workflow_dispatch:

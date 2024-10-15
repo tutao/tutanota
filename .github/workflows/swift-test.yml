@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - dev-*
+      - '*/dev'
     paths:
       - 'app-ios/**'
 

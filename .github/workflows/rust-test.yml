@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - dev-*
+      - '*/dev'
 
 jobs:
   test:
