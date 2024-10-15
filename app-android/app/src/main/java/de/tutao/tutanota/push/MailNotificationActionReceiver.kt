@@ -6,6 +6,17 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.ContextCompat
+import de.tutao.tutasdk.LoggedInSdk
+import de.tutao.tutasdk.Sdk
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.push.SseStorage
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -17,21 +28,33 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 		val action = intent.getStringExtra(NOTIFICATION_ACTION_EXTRA)
 		val notificationInfo =
 			Json.Default.decodeFromString<NotificationInfo>(intent.getStringExtra(NOTIFICATION_INFO_EXTRA)!!)
+		val pendingResult = goAsync()
 
-		when (action) {
-			TRASH_ACTION -> {
-				sendMailToTrash(notificationInfo)
-			}
+		@OptIn(DelicateCoroutinesApi::class)
+		GlobalScope.launch {
+			try {
+				val db = AppDatabase.getDatabase(context, true)
+				val keyStoreFacade = createAndroidKeyStoreFacade()
+				val sseStorage = SseStorage(db, keyStoreFacade)
 
-			READ_ACTION -> {
-				markMailAsRead(notificationInfo)
-			}
+				val crypto = AndroidNativeCryptoFacade(context)
+				val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+				val credentials = nativeCredentialsFacade.loadByUserId(notificationInfo.userId)!!.toSdkCredentials()
 
-			else -> {
-				Log.e(
-					TAG,
-					"Invalid notification action received: $action (valid actions are $TRASH_ACTION and $READ_ACTION)"
-				)
+				val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
+
+				when (action) {
+					TRASH_ACTION -> sendMailToTrash(sdk, notificationInfo)
+					READ_ACTION -> markMailAsRead(sdk, notificationInfo)
+					else -> {
+						Log.e(
+							TAG,
+							"Invalid notification action received: $action (valid actions are $TRASH_ACTION and $READ_ACTION)"
+						)
+					}
+				}
+			} finally {
+				pendingResult.finish()
 			}
 		}
 
@@ -41,18 +64,12 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 		dismissNotification(notificationManager, notificationId)
 	}
 
-	private fun sendMailToTrash(notificationInfo: NotificationInfo) {
-		Log.d(
-			TAG,
-			"This should send the mail to trash! mailId: ${notificationInfo.mailId} userId: ${notificationInfo.userId}"
-		)
+	private suspend fun sendMailToTrash(sdk: LoggedInSdk, notificationInfo: NotificationInfo) {
+		sdk.mailFacade().trashMails(listOf(notificationInfo.mailId!!.toSdkIdTuple()))
 	}
 
-	private fun markMailAsRead(notificationInfo: NotificationInfo) {
-		Log.d(
-			TAG,
-			"This should mark the mail as read! mailId: ${notificationInfo.mailId} userId: ${notificationInfo.userId}"
-		)
+	private suspend fun markMailAsRead(sdk: LoggedInSdk, notificationInfo: NotificationInfo) {
+		sdk.mailFacade().setUnreadStatusForMails(listOf(notificationInfo.mailId!!.toSdkIdTuple()), false)
 	}
 
 	private fun dismissNotification(notificationManager: NotificationManager, notificationIdToDismiss: Int) {
