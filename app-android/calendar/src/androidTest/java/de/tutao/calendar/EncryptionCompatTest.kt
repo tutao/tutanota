@@ -193,21 +193,17 @@ class CompatibilityTest {
 	}
 
 	@Test
-	fun argon2idTest() {
+	suspend fun argon2idTest() {
 		for (td in testData.argon2idTests) {
 			val key = hexToBytes(td.keyHex)
 			val salt = hexToBytes(td.saltHex)
-			val password = td.password.toByteArray()
+			val result = crypto.argon2idGeneratePassphraseKey(
+				td.password,
+				salt.wrap()
+			)
 			assertArrayEquals(
 				key,
-				crypto.argon2idHashRawImpl(
-					password,
-					salt,
-					ARGON2ID_TIME_COST,
-					ARGON2ID_MEMORY_COST,
-					ARGON2ID_PARALLELISM,
-					ARGON2ID_HASH_LENGTH
-				)
+				result.data
 			)
 		}
 	}
