@@ -24,6 +24,7 @@ import { styles } from "../gui/styles.js"
 import { MigratingCredentialsBanner } from "./MigratingCredentialsBanner.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
+import { showSnackBar } from "../gui/base/SnackBar.js"
 
 assertMainOrNode()
 
@@ -307,7 +308,18 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				onCredentialsDeleted:
 					this.viewModel.displayMode === DisplayMode.DeleteCredentials
 						? (credentials) => {
-								this.viewModel.deleteCredentials(credentials).then(() => m.redraw())
+								this.viewModel.deleteCredentials(credentials).then((result) => {
+									if (result == "networkError") {
+										showSnackBar({
+											message: "deleteCredentialOffline_msg",
+											button: {
+												label: "ok_action",
+												click: () => {},
+											},
+										})
+									}
+									m.redraw()
+								})
 						  }
 						: null,
 			}),

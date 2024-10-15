@@ -1804,8 +1804,9 @@ export default {
 		"birthdayEventAge_title": "{age} Jahre alt",
 		"birthdayCalendar_label": "Geburtstage",
 		"contactNotFound_msg": "Kontakt nicht gefunden",
-		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden.",
 		"sendMail_label": "Eine E-Mail senden",
-		"callNumber_label": "Rufnummer"
+		"callNumber_label": "Rufnummer",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden.",
+		"deleteCredentialOffline_msg": "Offline: Die Sitzung konnte nicht geschlossen werden"
 	}
 }

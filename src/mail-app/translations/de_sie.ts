@@ -1806,6 +1806,7 @@ export default {
 		"birthdayCalendar_label": "Geburtstage",
 		"contactNotFound_msg": "Kontakt nicht gefunden",
 		"sendMail_label": "Eine E-Mail senden",
-		"callNumber_label": "Rufnummer"
+		"callNumber_label": "Rufnummer",
+		"deleteCredentialOffline_msg": "Offline: Die Sitzung konnte nicht geschlossen werden"
 	}
 }

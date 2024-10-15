@@ -1788,3 +1788,4 @@ export type TranslationKeyType =
 	| "contactNotFound_msg"
 	| "sendMail_label"
 	| "callNumber_label"
+	| "deleteCredentialOffline_msg"

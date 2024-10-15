@@ -11,7 +11,7 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CredentialsProvider } from "../../../src/common/misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../src/common/api/common/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
-import { AccessExpiredError, NotAuthenticatedError } from "../../../src/common/api/common/error/RestError"
+import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../src/common/api/common/error/RestError"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/common/api/worker/facades/LoginFacade"
 import { Mode } from "../../../src/common/api/common/Env.js"
@@ -257,6 +257,18 @@ o.spec("LoginViewModelTest", () => {
 
 			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey.credentialInfo))
 			verify(loginControllerMock.deleteOldSession(credentialsToUnencrypted(testCredentials, null), pushIdentifier))
+		})
+		o("deletes push identifier when offline and return warning", async function () {
+			const viewModel = await getViewModel()
+			viewModel.displayMode = DisplayMode.DeleteCredentials
+			const credentialsAndKey = credentialsToUnencrypted(testCredentials, null)
+			await credentialsProviderMock.store(credentialsAndKey)
+			when(loginControllerMock.deleteOldSession(credentialsAndKey, null)).thenReject(new ConnectionError("testmessage"))
+
+			const result = await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
+
+			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey.credentialInfo))
+			o(result).equals("networkError")
 		})
 	})
 	o.spec("Login with stored credentials", function () {

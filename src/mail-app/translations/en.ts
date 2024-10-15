@@ -1802,6 +1802,7 @@ export default {
 		"contactNotFound_msg": "Contact not found",
 		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again.",
 		"sendMail_label": "Send an email",
-		"callNumber_label": "Call number"
+		"callNumber_label": "Call number",
+		"deleteCredentialOffline_msg": "Offline: Failed to close the session"
 	}
 }
