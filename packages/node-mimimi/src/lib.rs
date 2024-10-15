@@ -1,16 +1,15 @@
 #![deny(clippy::all)]
+
+#[cfg(feature = "javascript")]
 #[macro_use]
 extern crate napi_derive;
+#[macro_use]
 extern crate tutasdk;
 
-#[cfg(not(feature = "rust"))]
-pub mod importer;
-
-#[cfg(not(feature = "rust"))]
+pub mod imap;
 pub mod tuta;
 
-#[cfg(not(feature = "rust"))]
-pub mod imap;
-
-#[cfg(not(feature = "rust"))]
+#[cfg(feature = "javascript")]
+pub mod importer;
+#[cfg(feature = "javascript")]
 pub mod logging;

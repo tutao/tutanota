@@ -18,3 +18,7 @@ rustls = { version = "0.23.13", features = ["std"] }
 # [dev-dependencies]
 j4rs = { version = "0.20.0" }
 lazy_static = { version = "0.2.11" }
+
+[dev-dependencies]
+mail-parser = { git = "https://github.com/stalwartlabs/mail-parser", rev = "54ca7df" }
+mail-builder = { git = "https://github.com/stalwartlabs/mail-builder", rev = "c2b37e9" }

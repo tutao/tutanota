@@ -1,5 +1,12 @@
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::rest_client::{HttpMethod, RestClient, RestClientOptions};
+
+#[cfg(feature = "javascript")]
+fn main() {
+	panic!("Cannot run this example with `javascript` feature");
+}
+
+#[cfg(not(feature = "javascript"))]
 fn main() -> Result<(), &'static str> {
 	let mut runtime_builder = napi::tokio::runtime::Builder::new_current_thread();
 	let runtime_builder = runtime_builder.enable_all();

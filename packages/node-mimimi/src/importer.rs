@@ -20,7 +20,6 @@ const TAG: &'static str = file!();
 
 type Handle<T> = Arc<Mutex<T>>;
 
-#[cfg(not(feature = "rust"))]
 #[napi]
 pub struct ImportCredentials {
 	console: &'static Console,
@@ -32,7 +31,6 @@ pub struct ImportCredentials {
 	handle: Mutex<Option<Importer>>,
 }
 
-#[cfg(not(feature = "rust"))]
 #[napi]
 impl ImportCredentials {
 	#[napi(factory)]
@@ -60,10 +58,10 @@ impl ImportCredentials {
 	}
 
 	async fn prepare_inner(&self) -> Result<ImporterInner> {
-        let api_url: String = self.tuta_credentials.api_url.clone();
+		let api_url: String = self.tuta_credentials.api_url.clone();
 		let rest_client = NativeRestClient::try_new()?;
 		let client_version = self.tuta_credentials.client_version.clone();
-        let sdk = Sdk::new(api_url, Arc::new(rest_client), client_version);
+		let sdk = Sdk::new(api_url, Arc::new(rest_client), client_version);
 
 		let credentials: Credentials = self
 			.tuta_credentials
@@ -75,7 +73,7 @@ impl ImportCredentials {
 			Error::from_reason("failed to log into tuta")
 		})?;
 
-		let imap = Arc::new(TutanotaImapClient::start_new_session(42));
+		let imap = Arc::new(TutanotaImapClient::start_new_session("host", 42));
 
 		Ok(ImporterInner {
 			console: self.console,
@@ -91,13 +89,11 @@ struct ImporterInner {
 	imap: Arc<TutanotaImapClient>,
 }
 
-#[cfg(not(feature = "rust"))]
 #[napi]
 pub struct Importer {
 	inner: Handle<ImporterInner>,
 }
 
-#[cfg(not(feature = "rust"))]
 impl Importer {
 	fn new(inner: ImporterInner) -> Self {
 		Self {

@@ -11,7 +11,7 @@ plugins {
 }
 
 dependencies {
-    implementation("com.icegreen:greenmail-standalone:2.0.1")
+    implementation("com.icegreen:greenmail-standalone:2.1.0")
 }
 
 tasks.jar {

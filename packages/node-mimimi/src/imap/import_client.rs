@@ -1,5 +1,8 @@
 use crate::imap::credentials::ImapCredentials;
+use mail_parser::MessageParser;
+use std::borrow::Cow;
 use std::collections::HashMap;
+use std::ops::Add;
 use std::sync::Arc;
 use tuta_imap::client::types::mail::ImapMail;
 use tuta_imap::client::types::reexports::{Mailbox, StatusKind};
@@ -17,16 +20,9 @@ use tutasdk::services::tutanota::DraftService;
 use tutasdk::services::ExtraServiceParams;
 use tutasdk::{ApiCallError, LoggedInSdk};
 
-#[napi(object)]
-#[derive(Clone)]
-pub struct ImapImportParams {
-	pub root_import_mail_folder_name: String,
-	pub credentials: ImapCredentials,
-}
-
 /// current state of the imap import for this tuta account
 /// requires an initialized SDK!
-#[napi]
+#[cfg_attr(feature = "javascript", napi)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum ImapImportStatus {
 	NotInitialized,
@@ -36,13 +32,22 @@ pub enum ImapImportStatus {
 	Finished,
 }
 
-#[napi(object)]
+#[cfg_attr(feature = "javascript", napi(object))]
 #[derive(Clone)]
 pub struct ImapImportConfig {
-	pub params: ImapImportParams,
+	pub root_import_mail_folder_name: String,
+	pub credentials: ImapCredentials,
+
+	pub import_target_address: String,
 }
 
-#[napi]
+#[derive(thiserror::Error, Debug)]
+pub enum ImportError {
+	#[error("Imap server responded with unparsable eml text")]
+	InvalidEml(String),
+}
+
+#[cfg_attr(feature = "javascript", napi)]
 pub struct ImapImport {
 	pub status: ImapImportStatus,
 	pub import_config: ImapImportConfig,
@@ -62,6 +67,7 @@ pub struct ImapImport {
 	tuta_sdk: Arc<LoggedInSdk>,
 }
 
+#[cfg(feature = "javascript")]
 #[napi]
 impl ImapImport {
 	#[napi(factory)]
@@ -88,7 +94,8 @@ impl ImapImport {
 impl ImapImport {
 	pub fn new(import_config: ImapImportConfig, tuta_sdk: Arc<LoggedInSdk>) -> Self {
 		let imap_client = TutanotaImapClient::start_new_session(
-			import_config.params.credentials.port.parse().unwrap(),
+			import_config.credentials.host.as_str(),
+			import_config.credentials.port.parse().unwrap(),
 		);
 		Self {
 			status: ImapImportStatus::NotInitialized,
@@ -118,7 +125,7 @@ impl ImapImport {
 
 	pub async fn continue_import(&mut self) {
 		let imap_mail = self.get_mail_from_imap();
-		let draft_return_data = self.upload_mail_to_tutanota(imap_mail).await;
+		let draft_return_data = self.upload_mail_to_tutanota(imap_mail).await.unwrap();
 
 		// 8. do something with DraftServiceReturnData
 		eprintln!("====================== yay! ===========================");
@@ -141,19 +148,17 @@ impl ImapImport {
 		self.imap_client
 			.login(
 				self.import_config
-					.params
 					.credentials
 					.username
 					.as_ref()
-					.map(String::as_str)
-					.unwrap_or("test@greenmail.org"),
+					.expect("Need imap username")
+					.as_str(),
 				self.import_config
-					.params
 					.credentials
 					.password
 					.as_ref()
-					.map(String::as_str)
-					.unwrap_or("password"),
+					.expect("Need imap password")
+					.as_str(),
 			)
 			.eq(&StatusKind::Ok)
 			.then_some(())
@@ -172,6 +177,7 @@ impl ImapImport {
 			.eq(&StatusKind::Ok)
 			.then_some(())
 			.expect("Cannot search for uid in INBOX");
+
 		let target_mail_id = self
 			.imap_client
 			.latest_search_results
@@ -194,9 +200,15 @@ impl ImapImport {
 		fetched_mail
 	}
 
-	async fn upload_mail_to_tutanota(&mut self, fetched_mail: ImapMail) -> DraftCreateReturn {
+	async fn upload_mail_to_tutanota(
+		&mut self,
+		fetched_mail: ImapMail,
+	) -> Result<DraftCreateReturn, ImportError> {
 		// 6. convert the fetched mail to tutanota draft data
-		let mut create_draft_data = Self::make_tutanota_draft_input(fetched_mail);
+		let mut create_draft_data = Self::make_tutanota_draft_input(
+			self.import_config.import_target_address.as_str(),
+			fetched_mail,
+		)?;
 
 		// 7. call DraftService
 		// 7.1 construct a session key
@@ -206,9 +218,8 @@ impl ImapImport {
 				.as_slice(),
 		)
 		.unwrap();
-
 		let mail_group_key = self
-			.get_mail_group_key("map-free@tutanota.de")
+			.get_mail_group_key(self.import_config.import_target_address.as_str())
 			.await
 			.unwrap();
 		let owner_enc_session_key =
@@ -228,28 +239,63 @@ impl ImapImport {
 			.await
 			.expect("Cannot execute DraftService");
 
-		draft_return_data
+		Ok(draft_return_data)
 	}
 
 	/// Convert the mail format from imap server to draft mail data
-	fn make_tutanota_draft_input(imap_mail: ImapMail) -> DraftCreateData {
-		let ImapMail { subject } = imap_mail;
+	fn make_tutanota_draft_input(
+		importer_address: &str,
+		imap_mail: ImapMail,
+	) -> Result<DraftCreateData, ImportError> {
+		let ImapMail { rfc822_full } = imap_mail;
 
-		DraftCreateData {
+		// parse the full mime message
+		let imap_mail = MessageParser::new()
+			.parse(rfc822_full.as_slice())
+			.ok_or(ImportError::InvalidEml("Cannot parse rfc822 text".into()))?;
+
+		// extract the bodies
+		let mut combined_html_bodies = String::new();
+		for body in imap_mail.html_bodies() {
+			combined_html_bodies += body.text_contents().ok_or_else(|| {
+				ImportError::InvalidEml(format!("Cannot get the text content of html_body"))
+			})?;
+		}
+
+		// get the .from address
+		let mail_parser::Addr {
+			name: first_sender_name,
+			address: first_sender_address,
+		} = imap_mail
+			.from()
+			.map(|sender| sender.first())
+			.flatten()
+			.unwrap_or(&mail_parser::Addr {
+				name: None,
+				address: None,
+			});
+
+		// map to tutanota draftData
+		let draft_create_data = DraftCreateData {
 			_format: 0,
 			conversationType: 0,
 			ownerEncSessionKey: vec![],
 			ownerKeyVersion: 0,
 			previousMessageId: None,
 			draftData: DraftData {
-				subject,
+				subject: imap_mail.subject().unwrap_or("<empty subject>").to_string(),
 				_id: CustomId::from_custom_string("aaaa"),
-				bodyText: "this is a mail from imap".to_string(),
+				bodyText: combined_html_bodies,
 				compressedBodyText: None,
 				confidential: false,
 				method: 0,
-				senderMailAddress: "map-free@tutanota.de".to_string(),
-				senderName: "Tutanota Map".to_string(),
+				// we want to keep the actual sender mail address in original mail,
+				// but draftService requires that senderMailAddress is the current user of this draft,
+				senderMailAddress: importer_address.to_string(),
+				senderName: first_sender_name
+					.as_ref()
+					.unwrap_or(&Cow::Borrowed(""))
+					.to_string(),
 				addedAttachments: vec![],
 				bccRecipients: vec![],
 				ccRecipients: vec![],
@@ -260,13 +306,17 @@ impl ImapImport {
 			},
 			_errors: None,
 			_finalIvs: HashMap::new(),
-		}
+		};
+		Ok(draft_create_data)
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use super::*;
+	use crate::imap::import_client::{
+		ImapCredentials, ImapImport, ImapImportConfig, ImapImportStatus,
+	};
+	use mail_builder::MessageBuilder;
 	use std::sync::Arc;
 	use tuta_imap::testing::GreenMailTestServer;
 	use tutasdk::net::native_rest_client::NativeRestClient;
@@ -279,22 +329,16 @@ mod tests {
 			.unwrap();
 		let greenmail = GreenMailTestServer::new();
 		let imap_import_config = ImapImportConfig {
-			params: ImapImportParams {
-				root_import_mail_folder_name: "/".to_string(),
-				credentials: ImapCredentials {
-					host: "127.0.0.1".to_string(),
-					port: greenmail.imaps_port.to_string(),
-					username: Some("sug@example.org".to_string()),
-					password: Some("sug".to_string()),
-					access_token: None,
-				},
+			root_import_mail_folder_name: "/".to_string(),
+			credentials: ImapCredentials {
+				host: "127.0.0.1".to_string(),
+				port: greenmail.imaps_port.to_string(),
+				username: Some("sug@example.org".to_string()),
+				password: Some("sug".to_string()),
+				access_token: None,
 			},
+			import_target_address: "map-free@tutanota.de".to_string(),
 		};
-		let mail_group_id = logged_in_sdk
-			.mail_facade()
-			.get_group_id_for_mail_address("map-free@tutanota.de")
-			.await
-			.unwrap();
 
 		let importer = ImapImport::new(imap_import_config, logged_in_sdk);
 
@@ -309,8 +353,14 @@ mod tests {
 			CLIENT_VERSION.to_string(),
 		);
 		let (mut importer, greenmail) = init(sdk).await;
-
-		greenmail.store_mail("sug@example.org", "Subject: Find me if you can");
+		let email = MessageBuilder::new()
+			.from(("Matthias", "map@example.org"))
+			.to(("Johannes", "jmp@example.org"))
+			.subject("Hello from imap 😀!")
+			.text_body("Hello tutao! this is the first step to have email import.Want to see html 😀?<p style='color:red'>red</p>")
+			.write_to_string()
+			.unwrap();
+		greenmail.store_mail("sug@example.org", email.as_str());
 
 		importer.continue_import().await;
 		assert_eq!(ImapImportStatus::Finished, importer.status);

@@ -11,101 +11,99 @@ use std::time::Duration;
 pub type SecuredStream = rustls::StreamOwned<ClientConnection, TcpStream>;
 
 pub struct TlsStream {
-    buffer_controller: BufReader<SecuredStream>,
+	buffer_controller: BufReader<SecuredStream>,
 }
 
 impl TlsStream {
-    pub fn new(address: &str, port: u16) -> Self {
-        let tcp_address = SocketAddr::V4(SocketAddrV4::new(
-            std::net::Ipv4Addr::from_str(address).unwrap(),
-            port,
-        ));
+	pub fn new(address: &str, port: u16) -> Self {
+		let tcp_address = SocketAddr::V4(SocketAddrV4::new(
+			std::net::Ipv4Addr::from_str(address).unwrap(),
+			port,
+		));
+		let tcp_stream = TcpStream::connect_timeout(&tcp_address, Duration::from_secs(10)).unwrap();
 
-        let dangerous_config = ClientConfig::builder()
-            .dangerous()
-            .with_custom_certificate_verifier(Arc::new(MockSsl))
-            .with_no_client_auth();
+		let dangerous_config = ClientConfig::builder()
+			.dangerous()
+			.with_custom_certificate_verifier(Arc::new(MockSsl))
+			.with_no_client_auth();
+		let client_connection = rustls::ClientConnection::new(
+			Arc::new(dangerous_config),
+			address.to_string().try_into().unwrap(),
+		)
+		.unwrap();
 
-        let tcp_stream = TcpStream::connect_timeout(&tcp_address, Duration::from_secs(10)).unwrap();
-        let client_connection = rustls::ClientConnection::new(
-            Arc::new(dangerous_config),
-            "localhost".try_into().unwrap(),
-        )
-        .unwrap();
+		let buffer_controller = BufReader::new(SecuredStream::new(client_connection, tcp_stream));
+		TlsStream { buffer_controller }
+	}
 
-        let buffer_controller = BufReader::new(SecuredStream::new(client_connection, tcp_stream));
+	pub fn write_imap_command(&mut self, encoded_command: &[u8]) -> std::io::Result<usize> {
+		let writer = self.buffer_controller.get_mut();
+		let written = writer.write(encoded_command)?;
+		writer.flush()?;
+		Ok(written)
+	}
 
-        TlsStream { buffer_controller }
-    }
+	pub fn read_until_crlf(&mut self) -> std::io::Result<Vec<u8>> {
+		let mut line_until_crlf = Vec::new();
+		self.buffer_controller
+			.read_until_slice(b"\r\n", &mut line_until_crlf)?;
 
-    pub fn write_imap_command(&mut self, encoded_command: &[u8]) -> std::io::Result<usize> {
-        let writer = self.buffer_controller.get_mut();
-        let written = writer.write(encoded_command)?;
-        writer.flush()?;
-        Ok(written)
-    }
+		Ok(line_until_crlf)
+	}
 
-    pub fn read_until_crlf(&mut self) -> std::io::Result<Vec<u8>> {
-        let mut line_until_crlf = Vec::new();
-        self.buffer_controller
-            .read_until_slice(b"\r\n", &mut line_until_crlf)?;
-
-        Ok(line_until_crlf)
-    }
-
-    pub fn read_exact(&mut self, target: &mut Vec<u8>) -> std::io::Result<()> {
-        self.buffer_controller.read_exact(target)
-    }
+	pub fn read_exact(&mut self, target: &mut Vec<u8>) -> std::io::Result<()> {
+		self.buffer_controller.read_exact(target)
+	}
 }
 
 #[derive(Debug)]
 pub struct MockSsl;
 
 impl ServerCertVerifier for MockSsl {
-    fn verify_server_cert(
-        &self,
-        end_entity: &CertificateDer<'_>,
-        intermediates: &[CertificateDer<'_>],
-        server_name: &ServerName<'_>,
-        ocsp_response: &[u8],
-        now: UnixTime,
-    ) -> Result<ServerCertVerified, Error> {
-        Ok(ServerCertVerified::assertion())
-    }
+	fn verify_server_cert(
+		&self,
+		end_entity: &CertificateDer<'_>,
+		intermediates: &[CertificateDer<'_>],
+		server_name: &ServerName<'_>,
+		ocsp_response: &[u8],
+		now: UnixTime,
+	) -> Result<ServerCertVerified, Error> {
+		Ok(ServerCertVerified::assertion())
+	}
 
-    fn verify_tls12_signature(
-        &self,
-        message: &[u8],
-        cert: &CertificateDer<'_>,
-        dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, Error> {
-        Ok(HandshakeSignatureValid::assertion())
-    }
+	fn verify_tls12_signature(
+		&self,
+		message: &[u8],
+		cert: &CertificateDer<'_>,
+		dss: &DigitallySignedStruct,
+	) -> Result<HandshakeSignatureValid, Error> {
+		Ok(HandshakeSignatureValid::assertion())
+	}
 
-    fn verify_tls13_signature(
-        &self,
-        message: &[u8],
-        cert: &CertificateDer<'_>,
-        dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, Error> {
-        Ok(HandshakeSignatureValid::assertion())
-    }
+	fn verify_tls13_signature(
+		&self,
+		message: &[u8],
+		cert: &CertificateDer<'_>,
+		dss: &DigitallySignedStruct,
+	) -> Result<HandshakeSignatureValid, Error> {
+		Ok(HandshakeSignatureValid::assertion())
+	}
 
-    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        vec![
-            SignatureScheme::RSA_PKCS1_SHA1,
-            SignatureScheme::ECDSA_SHA1_Legacy,
-            SignatureScheme::RSA_PKCS1_SHA256,
-            SignatureScheme::ECDSA_NISTP256_SHA256,
-            SignatureScheme::RSA_PKCS1_SHA384,
-            SignatureScheme::ECDSA_NISTP384_SHA384,
-            SignatureScheme::RSA_PKCS1_SHA512,
-            SignatureScheme::ECDSA_NISTP521_SHA512,
-            SignatureScheme::RSA_PSS_SHA256,
-            SignatureScheme::RSA_PSS_SHA384,
-            SignatureScheme::RSA_PSS_SHA512,
-            SignatureScheme::ED25519,
-            SignatureScheme::ED448,
-        ]
-    }
+	fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+		vec![
+			SignatureScheme::RSA_PKCS1_SHA1,
+			SignatureScheme::ECDSA_SHA1_Legacy,
+			SignatureScheme::RSA_PKCS1_SHA256,
+			SignatureScheme::ECDSA_NISTP256_SHA256,
+			SignatureScheme::RSA_PKCS1_SHA384,
+			SignatureScheme::ECDSA_NISTP384_SHA384,
+			SignatureScheme::RSA_PKCS1_SHA512,
+			SignatureScheme::ECDSA_NISTP521_SHA512,
+			SignatureScheme::RSA_PSS_SHA256,
+			SignatureScheme::RSA_PSS_SHA384,
+			SignatureScheme::RSA_PSS_SHA512,
+			SignatureScheme::ED25519,
+			SignatureScheme::ED448,
+		]
+	}
 }
