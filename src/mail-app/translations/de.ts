@@ -1800,6 +1800,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden."
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden.",
+		"deleteCredentialOffline_msg": "Offline: Die Sitzung konnte nicht geschlossen werden"
 	}
 }

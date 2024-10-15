@@ -24,6 +24,7 @@ import { PersistedCredentials } from "../native/common/generatedipc/PersistedCre
 import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
 import { AppLock } from "./AppLock.js"
+import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 
 assertMainOrNode()
 
@@ -111,7 +112,7 @@ export interface ILoginViewModel {
 	 * Deletes stored credentials from the device.
 	 * @param credentials
 	 */
-	deleteCredentials(credentials: CredentialsInfo): Promise<void>
+	deleteCredentials(credentials: CredentialsInfo): Promise<"networkError" | null>
 
 	/**
 	 * Changes the display mode to DisplayMode.Form.
@@ -212,7 +213,7 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	async deleteCredentials(credentialsInfo: CredentialsInfo): Promise<void> {
+	async deleteCredentials(credentialsInfo: CredentialsInfo): Promise<"networkError" | null> {
 		let credentials
 
 		try {
@@ -229,14 +230,14 @@ export class LoginViewModel implements ILoginViewModel {
 				await this.credentialsProvider.clearCredentials(e)
 				await this.updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
-				return
+				return null
 			} else if (e instanceof CancelledError) {
 				// ignore, happens if we have app pin activated and the user
 				// cancels the prompt or provides a wrong password.
-				return
+				return null
 			} else if (e instanceof CredentialAuthenticationError) {
 				this.helpText = getLoginErrorMessage(e, false)
-				return
+				return null
 			} else if (e instanceof DeviceStorageUnavailableError) {
 				// We want to allow deleting credentials even if keychain fails
 				await this.credentialsProvider.deleteByUserId(credentialsInfo.userId)
@@ -248,11 +249,18 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 
 		if (credentials) {
-			await this.loginController.deleteOldSession(credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
 			await this.credentialsProvider.deleteByUserId(credentials.credentialInfo.userId)
 			await this.credentialRemovalHandler.onCredentialsRemoved(credentials.credentialInfo)
 			await this.updateCachedCredentials()
+			try {
+				await this.loginController.deleteOldSession(credentials, (await this.pushServiceApp?.loadPushIdentifierFromNative()) ?? null)
+			} catch (e) {
+				if (isOfflineError(e)) {
+					return "networkError"
+				}
+			}
 		}
+		return null
 	}
 
 	/** @throws CredentialAuthenticationError */

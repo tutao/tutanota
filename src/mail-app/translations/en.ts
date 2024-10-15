@@ -1796,6 +1796,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again."
+		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again.",
+		"deleteCredentialOffline_msg": "Offline: Failed to close the session"
 	}
 }

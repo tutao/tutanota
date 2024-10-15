@@ -1782,3 +1782,4 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "makeAdminPendingUserGroupKeyRotationError_msg"
+	| "deleteCredentialOffline_msg"
