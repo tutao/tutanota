@@ -145,10 +145,13 @@ impl UserFacade {
 }
 
 impl GroupMembership {
+	#[must_use]
 	pub fn group_type(&self) -> GroupType {
 		match self.groupType {
 			None => GroupType::Unknown,
-			Some(groupType) => GroupType::try_from(groupType as u64).unwrap_or(GroupType::Unknown),
+			Some(group_type) => {
+				GroupType::try_from(group_type as u64).unwrap_or(GroupType::Unknown)
+			},
 		}
 	}
 }

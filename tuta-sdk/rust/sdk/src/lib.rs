@@ -53,7 +53,9 @@ pub mod date;
 mod element_value;
 pub mod entities;
 mod entity_client;
+pub mod folder_system;
 pub mod generated_id;
+mod groups;
 mod instance_mapper;
 mod json_element;
 mod json_serializer;
@@ -75,8 +77,6 @@ mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
 mod util;
-mod groups;
-pub mod folder_system;
 
 pub static CLIENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

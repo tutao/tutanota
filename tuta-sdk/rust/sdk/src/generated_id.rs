@@ -1,7 +1,7 @@
-use std::borrow::ToOwned;
 use crate::entity_client::IdType;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::borrow::ToOwned;
 use std::fmt::{Debug, Display, Formatter};
 
 pub const GENERATED_ID_STRUCT_NAME: &str = "GeneratedId";
@@ -27,11 +27,13 @@ impl GeneratedId {
 		Self(generate_random_string::<9>())
 	}
 
+	#[must_use]
 	pub fn min_id() -> Self {
 		// ideally should return a ref to a static id
 		GeneratedId("------------".to_owned())
 	}
 
+	#[must_use]
 	pub fn max_id() -> Self {
 		// ideally should return a ref to a static id
 		GeneratedId("zzzzzzzzzzzz".to_owned())
