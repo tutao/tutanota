@@ -9,28 +9,30 @@ pub struct FolderSystem {
 #[derive(PartialEq, TryFromPrimitive)]
 #[repr(u64)]
 pub enum MailSetKind {
-	CUSTOM = 0,
-	INBOX = 1,
-	SENT = 2,
-	TRASH = 3,
-	ARCHIVE = 4,
-	SPAM = 5,
-	DRAFT = 6,
-	ALL = 7,
-	UNKNOWN = 9999,
+	Custom = 0,
+	Inbox = 1,
+	Sent = 2,
+	Trash = 3,
+	Archive = 4,
+	Spam = 5,
+	Draft = 6,
+	All = 7,
+	Unknown = 9999,
 }
 
 impl MailFolder {
 	fn mail_set_kind(&self) -> MailSetKind {
-		MailSetKind::try_from(self.folderType as u64).unwrap_or(MailSetKind::UNKNOWN)
+		MailSetKind::try_from(self.folderType as u64).unwrap_or(MailSetKind::Unknown)
 	}
 }
 
 impl FolderSystem {
+	#[must_use]
 	pub fn new(folders: Vec<MailFolder>) -> Self {
 		Self { folders }
 	}
 
+	#[must_use]
 	pub fn system_folder_by_type(&self, mail_set_kind: MailSetKind) -> Option<&MailFolder> {
 		self.folders
 			.iter()

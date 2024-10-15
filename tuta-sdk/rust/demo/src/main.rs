@@ -62,7 +62,12 @@ impl ReqwestHttpClient {
 		Ok(RestResponse {
 			status: res.status().as_u16() as u32,
 			headers: ret_headers,
-			body: Some(res.bytes().await.expect("assuming response has a body").into()),
+			body: Some(
+				res.bytes()
+					.await
+					.expect("assuming response has a body")
+					.into(),
+			),
 		})
 	}
 }
@@ -100,7 +105,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	let folders = mail_facade.load_folders_for_mailbox(&mailbox).await?;
 	let inbox = folders
-		.system_folder_by_type(MailSetKind::INBOX)
+		.system_folder_by_type(MailSetKind::Inbox)
 		.expect("inbox exists");
 	let inbox_mails = mail_facade.load_mails_in_folder(inbox).await?;
 

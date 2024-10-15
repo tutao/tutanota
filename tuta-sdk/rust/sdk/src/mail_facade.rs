@@ -1,15 +1,14 @@
 use std::sync::Arc;
 
-use crate::{ApiCallError, IdTuple, ListLoadDirection};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
-use crate::entities::sys::GroupMembership;
 use crate::entities::tutanota::{Mail, MailBox, MailFolder, MailboxGroupRoot};
 use crate::folder_system::FolderSystem;
 use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
+use crate::{ApiCallError, IdTuple, ListLoadDirection};
 
 /// Provides high level functions to manipulate mail entities via the REST API
 #[derive(uniffi::Object)]
