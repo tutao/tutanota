@@ -30,6 +30,7 @@ export default {
 		vatPercent: "% VAT",
 
 		reverseChargeVatIdNumber1: "All prices are net prices. The recipient is liable for VAT under the reverse charge mechanism",
+		reverseChargeTutaVatIdNumber1: "All prices are net prices. We are liable for VAT under the reverse charge mechanism",
 		reverseChargeVatIdNumber2: "(German: Steuerschuld des Leistungsempfängers).",
 		yourVatId: "Your VAT identification number:",
 		netPricesNoVatInGermany: "All prices are net prices and not subject to value added tax in Germany.",
@@ -98,6 +99,7 @@ export default {
 		asAgreedBlock: "Vereinbarungsgemäß rechnen wir folgende Leistungen ab:",
 
 		reverseChargeVatIdNumber1: "Alle Beträge sind netto. Die Steuerschuldnerschaft geht auf Sie als Leistungsempfänger über.",
+		reverseChargeTutaVatIdNumber1: "Alle Beträge sind netto. Die Steuerschuldnerschaft geht auf uns als Leistungsempfänger über.",
 		reverseChargeVatIdNumber2: "",
 		yourVatId: "Ihre Umsatzsteuer-Identifikationsnummer:",
 		netPricesNoVatInGermany: "Alle Beträge sind netto und werden nicht in Deutschland versteuert.",

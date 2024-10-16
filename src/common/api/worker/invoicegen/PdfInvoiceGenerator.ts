@@ -9,6 +9,7 @@ const enum VatType {
 	VAT_INCLUDED_SHOWN = "2",
 	VAT_INCLUDED_HIDDEN = "3",
 	NO_VAT_REVERSE_CHARGE = "4",
+	AFFILIATE_COMMISSION = "5",
 }
 
 const enum InvoiceType {
@@ -255,6 +256,14 @@ export class PdfInvoiceGenerator {
 				break
 			case VatType.VAT_INCLUDED_HIDDEN:
 				this.doc.addText(InvoiceTexts[this.languageCode].noVatInGermany)
+				break
+			case VatType.AFFILIATE_COMMISSION:
+				if (this.invoice.vatIdNumber != null) {
+					this.doc
+						.addText(InvoiceTexts[this.languageCode].reverseChargeTutaVatIdNumber1)
+						.addLineBreak()
+						.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber2)
+				}
 				break
 			default:
 				throw new Error("Unknown VatType " + this.invoice.vatType)
