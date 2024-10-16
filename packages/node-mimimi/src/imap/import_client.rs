@@ -6,7 +6,7 @@ use std::ops::Add;
 use std::sync::Arc;
 use tuta_imap::client::types::mail::ImapMail;
 use tuta_imap::client::types::reexports::{Mailbox, StatusKind};
-use tuta_imap::client::TutanotaImapClient;
+use tuta_imap::client::TutaImapClient;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::crypto::key::VersionedAesKey;
@@ -63,7 +63,7 @@ pub struct ImapImport {
 	// `Self::get_user_mail_group_key()` will try to fetch it from sdk and insert here
 	// so to get the key, prefer to call that method instead
 	// user_mail_group_key: HashMap<String, VersionedAesKey>,
-	imap_client: TutanotaImapClient,
+	imap_client: TutaImapClient,
 	tuta_sdk: Arc<LoggedInSdk>,
 }
 
@@ -93,7 +93,7 @@ impl ImapImport {
 
 impl ImapImport {
 	pub fn new(import_config: ImapImportConfig, tuta_sdk: Arc<LoggedInSdk>) -> Self {
-		let imap_client = TutanotaImapClient::start_new_session(
+		let imap_client = TutaImapClient::start_new_session(
 			import_config.credentials.host.as_str(),
 			import_config.credentials.port.parse().unwrap(),
 		);
