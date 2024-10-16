@@ -149,10 +149,13 @@ impl EntityClient {
 		};
 		let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
 		let body = serde_json::to_vec(&raw_entity).unwrap();
-		let options = RestClientOptions {
+		let mut options = RestClientOptions {
 			body: Some(body),
 			headers: self.auth_headers_provider.provide_headers(model_version),
 		};
+		options
+			.headers
+			.insert("Content-Type".to_owned(), "application/json".to_owned());
 		// FIXME we should look at type model whether it is ET or LET
 		let url = format!(
 			"{}/rest/{}/{}/{}",
