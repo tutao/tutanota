@@ -1,4 +1,4 @@
-import { showFileChooser } from "../../../common/file/FileController.js"
+import { showFileChooser, showNativeFilePicker } from "../../../common/file/FileController.js"
 import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -7,23 +7,24 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { exportContacts } from "../VCardExporter.js"
 import { mailLocator } from "../../mailLocator.js"
+import { isApp } from "../../../common/api/common/Env.js"
 
-export function importAsVCard() {
-	showFileChooser(true, ["vcf"]).then(async (contactFiles) => {
-		if (contactFiles.length <= 0) return
-		return showProgressDialog(
-			"pleaseWait_msg",
-			(async () => {
-				const contactImporter = await mailLocator.contactImporter()
-				const contactListId = await locator.contactModel.getContactListId()
-				// If multiple vCard files where selected, combine the data within them
-				const vCardList = contactFiles.flatMap((contactFile) => {
-					return utf8Uint8ArrayToString(contactFile.data)
-				})
-				await contactImporter.importContactsFromFile(vCardList, contactListId!)
-			})(),
-		)
-	})
+export async function importAsVCard() {
+	const allowedExtensions = ["vcf"]
+	const contactFiles = isApp() ? await showNativeFilePicker(allowedExtensions) : await showFileChooser(true, allowedExtensions)
+	if (contactFiles.length <= 0) return
+	return showProgressDialog(
+		"pleaseWait_msg",
+		(async () => {
+			const contactImporter = await mailLocator.contactImporter()
+			const contactListId = await locator.contactModel.getContactListId()
+			// If multiple vCard files where selected, combine the data within them
+			const vCardList = contactFiles.flatMap((contactFile) => {
+				return utf8Uint8ArrayToString(contactFile.data)
+			})
+			await contactImporter.importContactsFromFile(vCardList, contactListId!)
+		})(),
+	)
 }
 
 /**
