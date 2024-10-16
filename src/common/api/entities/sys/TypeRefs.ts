@@ -67,6 +67,24 @@ export type AdminGroupKeyRotationPostIn = {
 	adminGroupKeyData: GroupKeyRotationData;
 	userGroupKeyData: UserGroupKeyRotationData;
 }
+export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
+
+export function createAdministratedGroup(values: StrippedEntity<AdministratedGroup>): AdministratedGroup {
+	return Object.assign(create(typeModels.AdministratedGroup, AdministratedGroupTypeRef), values)
+}
+
+export type AdministratedGroup = {
+	_type: TypeRef<AdministratedGroup>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	groupType: NumberString;
+
+	groupInfo: IdTuple;
+	localAdminGroup: Id;
+}
 export const AdministratedGroupsRefTypeRef: TypeRef<AdministratedGroupsRef> = new TypeRef("sys", "AdministratedGroupsRef")
 
 export function createAdministratedGroupsRef(values: StrippedEntity<AdministratedGroupsRef>): AdministratedGroupsRef {

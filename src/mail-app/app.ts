@@ -39,6 +39,9 @@ import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common
 
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
+import { UserController } from "../common/api/main/UserController.js"
+import { AdministratedGroupTypeRef, GroupInfoTypeRef, GroupTypeRef } from "../common/api/entities/sys/TypeRefs.js"
+import { GroupType } from "../common/api/common/TutanotaConstants.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -141,6 +144,48 @@ import("./translations/en.js")
 				},
 				async onFullLoginSuccess() {},
 			}
+		})
+		mailLocator.logins.addPostLoginAction(async () => {
+			if (!mailLocator.logins.getUserController().isGlobalAdmin()) {
+				return
+			}
+
+			const customer = await mailLocator.logins.getUserController().loadCustomer()
+			const teamGroupInfos = await mailLocator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
+			const localAdminGroupInfos = teamGroupInfos.filter((group) => group.groupType === GroupType.LocalAdmin)
+			const adminGroupId: Id = customer.adminGroup
+			const adminGroupKey = await mailLocator.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+			localAdminGroupInfos.map(async (localAdminGroupInfo) => {
+				const localAdminGroup = await mailLocator.entityClient.load(GroupTypeRef, localAdminGroupInfo.group)
+				const administratedGroupsListId = localAdminGroup.administratedGroups?.items
+				if (administratedGroupsListId == null) return null
+				const administratedGroups = await mailLocator.entityClient.loadAll(AdministratedGroupTypeRef, administratedGroupsListId)
+				// we assume local admins never had their key roatation done and so their sym key version (requestedVersion) is stuck to 0 by default
+				const thisLocalAdminGroupKey = await mailLocator.keyLoaderFacade.loadSymGroupKey(localAdminGroup._id, 0)
+
+				administratedGroups.map(async (ag) => {
+					const thisRelatedGroupInfo = await mailLocator.entityClient.load(GroupInfoTypeRef, ag.groupInfo)
+					const thisRelatedGroup = await mailLocator.entityClient.load(GroupTypeRef, thisRelatedGroupInfo.group)
+
+					const newGroup = await mailLocator.groupManagementFacade.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+						adminGroupId,
+						adminGroupKey,
+						thisLocalAdminGroupKey,
+						thisRelatedGroup,
+					)
+					return mailLocator.entityClient.update(newGroup)
+				})
+			})
+
+			// get current user
+			// check if current user is admin
+			// if ADMIN =>
+			//	get Customer
+			//	customer.teamGroups.filter(tg => tg.groupType == GroupType.LocalAdmin)
+			// map(localGroup => all users group to global admin)
+			// await localGroupGroupController.updateGroups(newUserGroups)
+
+			UserController
 		})
 
 		if (isOfflineStorageAvailable()) {

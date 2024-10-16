@@ -203,4 +203,8 @@ o.spec("GroupManagementFacadeTest", function () {
 
 		o(userGroup).deepEquals(before)
 	})
+
+	o("traverse local admin groups", async function () {
+		await groupManagementFacade.migrateLocalAdminGroupKeysToGlobalAdminKeys(adminGroup)
+	})
 })

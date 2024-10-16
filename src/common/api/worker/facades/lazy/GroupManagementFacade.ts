@@ -334,11 +334,11 @@ export class GroupManagementFacade {
 	async replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
 		adminGroupId: string,
 		globalAdminGroupKey: VersionedKey,
-		localAdminGroupKey: VersionedKey,
+		localAdminGroupKey: AesKey,
 		userGroup: Group,
 	): Promise<Group> {
 		const userAdminEncGroupKey = assertNotNull(userGroup.adminGroupEncGKey)
-		const decryptedUserGroupKey = this.cryptoWrapper.decryptKey(localAdminGroupKey.object, userAdminEncGroupKey)
+		const decryptedUserGroupKey = this.cryptoWrapper.decryptKey(localAdminGroupKey, userAdminEncGroupKey)
 
 		const newAdminEncUserGroupKey = this.cryptoWrapper.encryptKey(globalAdminGroupKey.object, decryptedUserGroupKey)
 

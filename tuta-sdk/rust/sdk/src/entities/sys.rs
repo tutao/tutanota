@@ -77,6 +77,26 @@ impl Entity for AdminGroupKeyRotationPostIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdministratedGroup {
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub groupType: i64,
+	pub groupInfo: IdTuple,
+	pub localAdminGroup: GeneratedId,
+}
+
+impl Entity for AdministratedGroup {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdministratedGroup",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize, Debug)]
 pub struct AdministratedGroupsRef {
 	pub _id: CustomId,
 	pub items: GeneratedId,
