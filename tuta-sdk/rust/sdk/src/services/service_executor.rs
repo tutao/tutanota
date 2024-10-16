@@ -255,6 +255,9 @@ impl Executor for ServiceExecutor {
 		if let Some(extra_headers) = extra_service_params.extra_headers {
 			headers.extend(extra_headers);
 		}
+		if body.is_some() {
+			headers.insert("Content-Type".to_owned(), "application/json".to_owned());
+		}
 
 		let response = self
 			.rest_client
@@ -606,6 +609,7 @@ mod tests {
 				let expected_headers = [
 					("v", APP_VERSION_STR),
 					("accessToken", "access_token"),
+					("Content-Type", "application/json"),
 					("cv", CLIENT_VERSION),
 				]
 				.into_iter()
@@ -675,6 +679,7 @@ mod tests {
 				let expected_headers = [
 					("accessToken", "access_token"),
 					("cv", CLIENT_VERSION),
+					("Content-Type", "application/json"),
 					("v", APP_VERSION_STR),
 				]
 				.into_iter()
