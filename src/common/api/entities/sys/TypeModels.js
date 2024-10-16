@@ -327,6 +327,86 @@ export const typeModels = {
         "app": "sys",
         "version": "111"
     },
+    "AdministratedGroup": {
+        "name": "AdministratedGroup",
+        "since": 27,
+        "type": "LIST_ELEMENT_TYPE",
+        "id": 1294,
+        "rootId": "A3N5cwAFDg",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 1298,
+                "since": 27,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1296,
+                "since": 27,
+                "type": "GeneratedId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "_ownerGroup": {
+                "final": true,
+                "name": "_ownerGroup",
+                "id": 1299,
+                "since": 27,
+                "type": "GeneratedId",
+                "cardinality": "ZeroOrOne",
+                "encrypted": false
+            },
+            "_permissions": {
+                "final": true,
+                "name": "_permissions",
+                "id": 1297,
+                "since": 27,
+                "type": "GeneratedId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "groupType": {
+                "final": true,
+                "name": "groupType",
+                "id": 1300,
+                "since": 27,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "groupInfo": {
+                "final": false,
+                "name": "groupInfo",
+                "id": 1301,
+                "since": 27,
+                "type": "LIST_ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "GroupInfo",
+                "dependency": null
+            },
+            "localAdminGroup": {
+                "final": false,
+                "name": "localAdminGroup",
+                "id": 1302,
+                "since": 27,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Group",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "111"
+    },
     "AdministratedGroupsRef": {
         "name": "AdministratedGroupsRef",
         "since": 27,

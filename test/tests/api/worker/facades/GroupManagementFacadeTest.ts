@@ -12,10 +12,10 @@ import { matchers, object, verify, when } from "testdouble"
 import { AesKey, EccPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { Group, GroupTypeRef, PubEncKeyDataTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { CryptoProtocolVersion, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 
 o.spec("GroupManagementFacadeTest", function () {
 	let userFacade: UserFacade
@@ -163,5 +163,48 @@ o.spec("GroupManagementFacadeTest", function () {
 			when(userFacade.hasGroup(adminGroupId)).thenReturn(false)
 			await assertThrows(Error, async () => await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId))
 		})
+	})
+
+	o("replace local admin enc group key with global admin enc group key", async function () {
+		const symGlobalAdminGroupKey: VersionedKey = {
+			version: 1,
+			object: object(),
+		}
+
+		const symLocalAdminGroupKey: VersionedKey = {
+			version: 0,
+			object: object(),
+		}
+
+		const userGroup: Group = createTestEntity(GroupTypeRef, {
+			type: GroupType.User,
+			adminGroupEncGKey: object(),
+			adminGroupKeyVersion: "0",
+			admin: "localAdmin",
+		})
+
+		const before = createTestEntity(GroupTypeRef, userGroup)
+		const globalAdminGroupId = "globalAdmin"
+		const decrypted = object<AesKey>()
+		when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(decrypted)
+		const reencrypted = object<Uint8Array>()
+		when(cryptoWrapper.encryptKey(matchers.anything(), decrypted)).thenReturn(reencrypted)
+
+		const migratedGroup = await groupManagementFacade.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+			globalAdminGroupId,
+			symGlobalAdminGroupKey,
+			symLocalAdminGroupKey,
+			userGroup,
+		)
+
+		o(migratedGroup.admin).equals(globalAdminGroupId)
+		o(migratedGroup.adminGroupKeyVersion).equals(String(symGlobalAdminGroupKey.version))
+		o(migratedGroup.adminGroupEncGKey).equals(reencrypted)
+
+		o(userGroup).deepEquals(before)
+	})
+
+	o("traverse local admin groups", async function () {
+		await groupManagementFacade.migrateLocalAdminGroupKeysToGlobalAdminKeys(adminGroup)
 	})
 })
