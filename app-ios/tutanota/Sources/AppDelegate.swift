@@ -1,6 +1,7 @@
 import StoreKit
 import TutanotaSharedFramework
 import UIKit
+import tutasdk
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
@@ -140,8 +141,8 @@ import UIKit
 		let userInfo = response.notification.request.content.userInfo
 		guard let mailId = userInfo["mailId"] as? [String], mailId.count == 2, let userId = userInfo["userId"] as? String else { return }
 		switch response.actionIdentifier {
-		case MAIL_READ_ACTION: TUTSLog("this should mark mail as read! mailId: \(mailId), userId: \(userId)")
-		case MAIL_TRASH_ACTION: TUTSLog("this should trash the mail! mailId: \(mailId), userId: \(userId)")
+		case MAIL_READ_ACTION: Task { try await handleWithSdk(mailId: mailId, userId: userId, actionIdentifier: MAIL_READ_ACTION) }
+		case MAIL_TRASH_ACTION: Task { try await handleWithSdk(mailId: mailId, userId: userId, actionIdentifier: MAIL_TRASH_ACTION) }
 		case UNNotificationDefaultActionIdentifier:
 			let mailIdTuple = (mailId[0], mailId[1])
 			let address = userInfo["firstRecipient"] as? String ?? ""
@@ -151,6 +152,30 @@ import UIKit
 		completionHandler()
 	}
 
+	func handleWithSdk(mailId: [String], userId: String, actionIdentifier: String) async throws {
+		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
+		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
+		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
+		let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
+		let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+		guard let origin = notificationStorage.sseInfo?.sseOrigin else { return }
+		guard let unencryptedCredentials = try await credentialsFacade.loadByUserId(userId) else { return }
+		guard let encryptedPassphraseKey = unencryptedCredentials.encryptedPassphraseKey else { return }
+		let credentials = tutasdk.Credentials(
+			login: unencryptedCredentials.credentialInfo.login,
+			userId: userId,
+			accessToken: unencryptedCredentials.accessToken,
+			encryptedPassphraseKey: encryptedPassphraseKey.data,
+			credentialType: tutasdk.CredentialType.internal
+		)
+		let sdk = try await Sdk(baseUrl: origin, restClient: SdkRestClient()).login(credentials: credentials)
+		let mail = IdTuple(listId: mailId[0], elementId: mailId[1])
+		switch actionIdentifier {
+		case MAIL_TRASH_ACTION: try await sdk.mailFacade().trashMails(mails: [mail])
+		case MAIL_READ_ACTION: try await sdk.mailFacade().setUnreadStatusForMails(mails: [mail], unread: false)
+		default: TUTSLog("Invalid Notification Action")
+		}
+	}
 	func applicationDidEnterBackground(_ application: UIApplication) {
 		self.viewController.onApplicationDidEnterBackground()
 
