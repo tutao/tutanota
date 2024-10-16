@@ -587,11 +587,6 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						  ]
 						: [
 								{
-									label: "importVCard_action",
-									click: () => importAsVCard(),
-									icon: Icons.ContactImport,
-								},
-								{
 									label: "exportVCard_action",
 									click: () => exportAsVCard(locator.contactModel),
 									icon: Icons.Export,
@@ -599,6 +594,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						  ]
 
 					return vcardButtons.concat([
+						{
+							label: "importVCard_action",
+							click: () => importAsVCard(),
+							icon: Icons.ContactImport,
+						},
 						{
 							label: "merge_action",
 							icon: Icons.People,
