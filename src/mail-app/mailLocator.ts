@@ -127,6 +127,7 @@ import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 
 assertMainOrNode()
 
@@ -148,6 +149,7 @@ class MailLocator {
 	logins!: LoginController
 	header!: Header
 	customerFacade!: CustomerFacade
+	keyLoaderFacade!: KeyLoaderFacade
 	giftCardFacade!: GiftCardFacade
 	groupManagementFacade!: GroupManagementFacade
 	configFacade!: ConfigurationDatabase
@@ -649,6 +651,7 @@ class MailLocator {
 	async _createInstances() {
 		const {
 			loginFacade,
+			keyLoaderFacade,
 			customerFacade,
 			giftCardFacade,
 			groupManagementFacade,
@@ -676,6 +679,7 @@ class MailLocator {
 			contactFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
+		this.keyLoaderFacade = keyLoaderFacade
 		this.customerFacade = customerFacade
 		this.giftCardFacade = giftCardFacade
 		this.groupManagementFacade = groupManagementFacade
