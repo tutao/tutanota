@@ -73,14 +73,16 @@ pub enum AssociationType {
 	#[serde(rename = "LIST_ASSOCIATION")]
 	ListAssociation,
 	/// References List elem (of [ListElementType] by list id
-	#[serde(rename = "LIST_ELEMENT_ASSOCIATION")]
-	ListElementAssociation,
+	#[serde(rename = "LIST_ELEMENT_ASSOCIATION_GENERATED")]
+	ListElementAssociationGenerated,
 	/// References [Aggregation]
 	#[serde(rename = "AGGREGATION")]
 	Aggregation,
 	/// References [BlobElement]
 	#[serde(rename = "BLOB_ELEMENT_ASSOCIATION")]
 	BlobElementAssociation,
+	#[serde(rename = "LIST_ELEMENT_ASSOCIATION_CUSTOM")]
+	ListElementAssociationCustom,
 }
 
 /// Description of the value (value field of Element)

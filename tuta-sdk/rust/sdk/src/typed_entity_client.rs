@@ -1,10 +1,10 @@
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::entity_client::IdType;
+use crate::entity_client::{BaseIdType, IdType};
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
-use crate::{ApiCallError, IdTuple, ListLoadDirection};
+use crate::{ApiCallError, ListLoadDirection};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -58,7 +58,7 @@ impl TypedEntityClient {
 	#[allow(clippy::unused_async)]
 	async fn load_all<T: Entity + Deserialize<'static>>(
 		&self,
-		_list_id: &IdTuple,
+		_list_id: &GeneratedId,
 		_start: Option<String>,
 	) -> Result<Vec<T>, ApiCallError> {
 		todo!("typed entity client load_all")
@@ -66,10 +66,10 @@ impl TypedEntityClient {
 
 	#[allow(dead_code)]
 	#[allow(clippy::unused_async)]
-	pub async fn load_range<T: Entity + Deserialize<'static>>(
+	pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
 		&self,
 		_list_id: &GeneratedId,
-		_start_id: &GeneratedId,
+		_start_id: &Id,
 		_count: usize,
 		_list_load_direction: ListLoadDirection,
 	) -> Result<Vec<T>, ApiCallError> {
@@ -90,13 +90,13 @@ mockall::mock! {
 		 ) -> Result<T, ApiCallError>;
 		async fn load_all<T: Entity + Deserialize<'static>>(
 			&self,
-			list_id: &IdTuple,
+			list_id: &GeneratedId,
 			start: Option<String>,
 		) -> Result<Vec<T>, ApiCallError>;
-		pub async fn load_range<T: Entity + Deserialize<'static>>(
+		pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
 			&self,
 			list_id: &GeneratedId,
-			start_id: &GeneratedId,
+			start_id: &Id,
 			count: usize,
 			list_load_direction: ListLoadDirection,
 		) -> Result<Vec<T>, ApiCallError>;
