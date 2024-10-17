@@ -544,7 +544,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_encrypt_with_padding_no_mac() {
-		for td in get_test_data().aes128_tests {
+		for td in get_compatibility_test_data().aes128_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let plaintext = td.plain_text_base64;
 			let iv = &Iv(td.iv_base64.try_into().unwrap());
@@ -563,7 +563,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_encrypt_with_padding_mac() {
-		for td in get_test_data().aes128_mac_tests {
+		for td in get_compatibility_test_data().aes128_mac_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let plaintext = td.plain_text_base64;
 			let iv = &Iv(td.iv_base64.try_into().unwrap());
@@ -582,7 +582,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_encrypt_128_key() {
-		for td in get_test_data().aes128_tests {
+		for td in get_compatibility_test_data().aes128_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let plain_key = td.key_to_encrypt128;
 			let encrypted_bytes = aes_128_encrypt_no_padding_fixed_iv(&key, &plain_key).unwrap();
@@ -593,7 +593,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_encrypt_256_key() {
-		for td in get_test_data().aes128_tests {
+		for td in get_compatibility_test_data().aes128_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let plain_key = td.key_to_encrypt256;
 			let encrypted_bytes = aes_128_encrypt_no_padding_fixed_iv(&key, &plain_key).unwrap();
@@ -604,7 +604,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_decrypt_no_mac() {
-		for td in get_test_data().aes128_tests {
+		for td in get_compatibility_test_data().aes128_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let ciphertext = td.cipher_text_base64;
 
@@ -617,7 +617,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_decrypt_128_key() {
-		for td in get_test_data().aes128_tests {
+		for td in get_compatibility_test_data().aes128_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let encrypted_key = td.encrypted_key128;
 
@@ -631,7 +631,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_decrypt_256_key() {
-		for td in get_test_data().aes128_tests {
+		for td in get_compatibility_test_data().aes128_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let encrypted_key = td.encrypted_key256;
 
@@ -645,7 +645,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_128_decrypt_mac() {
-		for td in get_test_data().aes128_mac_tests {
+		for td in get_compatibility_test_data().aes128_mac_tests {
 			let key: Aes128Key = td.hex_key.try_into().unwrap();
 			let ciphertext = td.cipher_text_base64;
 
@@ -663,7 +663,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_256_encrypt_with_padding_mac() {
-		for td in get_test_data().aes256_tests {
+		for td in get_compatibility_test_data().aes256_tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let plaintext = td.plain_text_base64;
 			let iv = &Iv(td.iv_base64.try_into().unwrap());
@@ -676,7 +676,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_256_decrypt_mac() {
-		for td in get_test_data().aes256_tests {
+		for td in get_compatibility_test_data().aes256_tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let ciphertext = td.cipher_text_base64;
 
@@ -694,7 +694,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_256_encrypt_256_key() {
-		for td in get_test_data().aes256_tests {
+		for td in get_compatibility_test_data().aes256_tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let plain_key = td.key_to_encrypt256;
 			let iv = &Iv(td.iv_base64.try_into().unwrap());
@@ -707,7 +707,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_256_decrypt_256_key() {
-		for td in get_test_data().aes256_tests {
+		for td in get_compatibility_test_data().aes256_tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let encrypted_key = td.encrypted_key256;
 
@@ -722,7 +722,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_256_encrypt_128_key() {
-		for td in get_test_data().aes256_tests {
+		for td in get_compatibility_test_data().aes256_tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let plain_key = td.key_to_encrypt128;
 			let iv = &Iv(td.iv_base64.try_into().unwrap());
@@ -735,7 +735,7 @@ mod tests {
 
 	#[test]
 	fn test_aes_256_decrypt_128_key() {
-		for td in get_test_data().aes256_tests {
+		for td in get_compatibility_test_data().aes256_tests {
 			let key: Aes256Key = td.hex_key.try_into().unwrap();
 			let encrypted_key = td.encrypted_key128;
 

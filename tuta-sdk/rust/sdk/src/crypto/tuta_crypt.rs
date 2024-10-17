@@ -220,13 +220,15 @@ impl PQErrorType for AesEncryptError {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::{get_test_data, PQCryptEncryptionTest};
+	use crate::crypto::compatibility_test_utils::{
+		get_compatibility_test_data, PQCryptEncryptionTest,
+	};
 	use crate::crypto::ecc::EccPrivateKey;
 	use crate::crypto::kyber::KyberPrivateKey;
 
 	#[test]
 	fn test_bucket_key_serialize_roundtrip() {
-		let tests = get_test_data();
+		let tests = get_compatibility_test_data();
 		for i in tests.pqcrypt_encryption_tests {
 			let pq_message = PQMessage::deserialize(&i.pq_message).unwrap();
 			let serialized = pq_message.serialize();
@@ -236,7 +238,7 @@ mod tests {
 
 	#[test]
 	fn test_bucket_key_serialize_decapsulate() {
-		let tests = get_test_data();
+		let tests = get_compatibility_test_data();
 		for i in tests.pqcrypt_encryption_tests {
 			let pq_message = PQMessage::deserialize(&i.pq_message).unwrap();
 			let recipient_keys = get_recipient_keys(&i);
@@ -247,7 +249,7 @@ mod tests {
 
 	#[test]
 	fn test_bucket_key_serialize_encapsulate_roundtrip() {
-		let tests = get_test_data();
+		let tests = get_compatibility_test_data();
 		for i in tests.pqcrypt_encryption_tests {
 			let recipient_keys = get_recipient_keys(&i);
 			let PQKeyPairs {

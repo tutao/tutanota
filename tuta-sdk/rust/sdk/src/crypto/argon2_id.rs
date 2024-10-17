@@ -31,11 +31,11 @@ pub fn generate_key_from_passphrase(password: &str, salt: [u8; 16]) -> Aes256Key
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_test_data;
+	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_argon2() {
-		for test_data in get_test_data().argon2id_tests {
+		for test_data in get_compatibility_test_data().argon2id_tests {
 			let key = generate_key_from_passphrase(
 				&test_data.password,
 				test_data.salt_hex.as_slice().try_into().unwrap(),

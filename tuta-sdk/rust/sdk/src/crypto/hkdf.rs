@@ -14,7 +14,7 @@ mod tests {
 
 	#[test]
 	fn test_hkdf() {
-		for test_data in get_test_data().hkdf_tests {
+		for test_data in get_compatibility_test_data().hkdf_tests {
 			let result = hkdf(
 				&test_data.salt_hex,
 				&test_data.input_key_material_hex,
