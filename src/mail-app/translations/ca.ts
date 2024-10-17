@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "843123d4565788564ec757f2a14cdbc4",
 	"name": "ca",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2024-10-06T19:18:42Z",
+	"updated_at": "2024-10-14T22:05:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -924,6 +926,7 @@ export default {
 		"mailServer_label": "Servidor de correu",
 		"mailViewerRecipients_label": "a:",
 		"mailView_action": "Canvia a la vista de correu",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Actualment, l'usuari no pot convertir-se en administrador. Si us plau, demaneu a l'usuari que tanqui la sessió amb tots els seus dispositius i, a continuació, torni a iniciar sessió. Després, torna-ho a intentar.",
 		"makeLink_action": "Crea un enllaç",
 		"manager_label": "Gerent",
 		"manyRecipients_msg": "Aquest correu electrònic té molts destinataris que seran visibles entre ells. Enviar igualment?",

@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Váratlan hiba történt. Szeretne hibajelentést küldeni? Üzenetet írhat nekünk, amely segítségével orvosolni tudjuk a hibát.</string>
     <string name="downloadCompleted_msg">A letöltés befejeződött.</string>
     <string name="unlockCredentials_action">Hitelesítő adatok feloldása.</string>
+    <string name="delete_action">Törlés</string>
+    <string name="markRead_action">Megjelölés olvasottként</string>
 </resources>

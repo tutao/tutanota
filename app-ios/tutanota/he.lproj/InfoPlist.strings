@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "תזכורת";
 TutaoScheduleAlarmError = "לא היתה אפשרות ליצור התראה. אנא עדכנו את התוכנה.";
 TutaoUnlockCredentialsAction = "שחרר אישורים";
 TutaoPushNewMail = " התקבל אימייל חדש";
+TutaoDeleteAction = "מחיקה";
+TutaoMarkReadAction = "סמן כלא נקרא";

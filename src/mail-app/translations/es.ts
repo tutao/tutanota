@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "f5f4136a64ef8f813902c32e223bc289",
 	"name": "es",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-10-05T09:42:41Z",
+	"updated_at": "2024-10-16T10:14:04Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -451,7 +453,7 @@ export default {
 		"decline_action": "Rechazar",
 		"defaultColor_label": "Color por defecto: {1}",
 		"defaultDownloadPath_label": "Ruta de descarga predeterminada",
-		"defaultEmailSignature_msg": "--\n<br>\nEnviado con Tuta, disfruta del correo seguro y sin publicidad.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nAsegurado con Tuta Mail:\n<br>\n{1}\n",
 		"defaultExternalDeliveryInfo_msg": "La forma en que por defecto se enviará un correo a un destinatario externo: confidencial (cifrado de extremo a extremo) o no confidencial (sin cifrar).",
 		"defaultExternalDelivery_label": "Entrega predeterminada",
 		"defaultGiftCardMessage_msg": "¡Espero que disfrutes de la seguridad y la privacidad que obtienes con Tuta!",
@@ -471,6 +473,7 @@ export default {
 		"deleteContacts_action": "Borrar el/los contacto(s) seleccionado(s)",
 		"deleteContacts_msg": "¿Seguro que quieres eliminar los contactos seleccionados?",
 		"deleteContact_msg": "¿Seguro que quieres borrar este contacto?",
+		"deleteCredentialOffline_msg": "Desconectado: Error al cerrar la sesión",
 		"deleteCredentials_action": "Borrar credenciales",
 		"deletedFolder_label": "Carpeta Eliminada",
 		"deleteEmails_action": "Eliminar los correo seleccionados",
@@ -928,6 +931,7 @@ export default {
 		"mailServer_label": "Servidor de correo",
 		"mailViewerRecipients_label": "Para:",
 		"mailView_action": "Cambiar a vista de correo",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "El usuario no puede convertirse en administrador. Por favor, pide al usuario que cierre la sesión con todos sus dispositivos y vuelva a iniciar sesión. A continuación, inténtalo de nuevo.",
 		"makeLink_action": "Crear hipervínculo",
 		"manager_label": "Administrador",
 		"manyRecipients_msg": "Este correo tiene una gran cantidad de destinatarios que serán visibles entre sí. ¿Enviar de todos modos?",

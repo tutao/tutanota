@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "a25323d521c7f7450e0036f2769e5044",
 	"name": "ru",
@@ -13,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-10-01T12:03:15Z",
+	"updated_at": "2024-10-16T17:10:04Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -453,7 +455,7 @@ export default {
 		"decline_action": "Отклонить",
 		"defaultColor_label": "Цвет по умолчанию: {1}",
 		"defaultDownloadPath_label": "Путь загрузки по умолчанию",
-		"defaultEmailSignature_msg": "--\n<br>\nОтправлено с Tuta; наслаждайтесь безопасной электронной почтой без рекламы:\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nЗащищено с помощью Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Настройки для отправки нового сообщения электронной почты внешнему получателю заданные по умолчанию: конфиденциально (сквозное шифрование) или неконфиденциально (не зашифровано).",
 		"defaultExternalDelivery_label": "Доставка по умолчанию",
 		"defaultGiftCardMessage_msg": "Надеюсь, тебе понравятся безопасность и приватность, которые ты получишь с Tuta!",
@@ -473,6 +475,7 @@ export default {
 		"deleteContacts_action": "Удалить выделенные контакты",
 		"deleteContacts_msg": "Вы уверены, что хотите удалить выбранные контакты?",
 		"deleteContact_msg": "Хотите удалить этот контакт?",
+		"deleteCredentialOffline_msg": "Не в сети: Не удалось закрыть сеанс",
 		"deleteCredentials_action": "Удаление учётных данных",
 		"deletedFolder_label": "Удалённая папка",
 		"deleteEmails_action": "Удалить выбранные сообщения",
@@ -554,6 +557,7 @@ export default {
 		"email_label": "Почта",
 		"emptyShortcut_msg": "Пожалуйста, укажите ярлык для шаблона",
 		"emptyTitle_msg": "Заголовок отсутствует.",
+		"enableAnyway_action": "Включить в любом случае",
 		"enableSearchMailbox_msg": "Включение поиска для Вашего почтового ящика занимает память на Вашем устройстве и может потреблять дополнительный сетевой трафик.",
 		"endOfCurrentSubscriptionPeriod": "Конец текущего интервала оплаты",
 		"endsWith_label": "заканчивается на",
@@ -594,6 +598,7 @@ export default {
 		"exportVCard_action": "Экспорт vCard",
 		"export_action": "Скачать как .eml",
 		"externalCalendarInfo_msg": "Чтобы подписаться на внешний или публичный календарь, просто введите его URL, и мы обеспечим его синхронизацию. Этот календарь доступен только для чтения, но вы можете запустить операцию синхронизации в любое время.",
+		"externalContactSyncDetectedWarning_msg": "Синхронизация контактов включена для iCloud или другого приложения для контактов на вашем устройстве. Во избежание проблем с синхронизацией контактов Tuta отключите все другие приложения, синхронизирующие контакты.",
 		"externalFormattingInfo_msg": "Укажите, должны ли все письма включать форматирование (HTML) или должны быть конвертированы в обычный текст.",
 		"externalFormatting_label": "Форматирование",
 		"externalNotificationMailBody1_msg": "Здравствуйте,",
@@ -698,6 +703,8 @@ export default {
 		"iCalSync_error": "Ошибка при синхронизации, один или несколько календарей оказались недействительными.",
 		"icsInSharingFiles_msg": "Обнаружен один или несколько файлов календаря. Вы хотите импортировать или прикрепить их?",
 		"importCalendar_label": "Импорт календаря",
+		"importContactRemoveDuplicatesConfirm_msg": "При синхронизации на вашем устройстве было обнаружено {count} дубликатf контактов. Хотите ли вы удалить их с устройства? Обратите внимание, что это нельзя отменить.",
+		"importContactRemoveImportedContactsConfirm_msg": "Вы хотите удалить импортированные контакты с вашего устройства? Обратите внимание, что это нельзя отменить.",
 		"importContactsError_msg": "{amount} из {total} контактов не могут быть импортированы.",
 		"importContacts_label": "Импортировать контакты",
 		"importContacts_msg": "Импортируйте контакты из телефонной книги, чтобы сделать их доступными на всех устройствах.",
@@ -926,6 +933,7 @@ export default {
 		"mailServer_label": "Почтовый сервер",
 		"mailViewerRecipients_label": "кому:",
 		"mailView_action": "Переключение на просмотр электронной почты",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "В настоящее время пользователь не может стать администратором. Поопросите пользователя выйти из системы на всех устройствах, а затем снова войти в систему. После этого повторите попытку.",
 		"makeLink_action": "Создать ссылку",
 		"manager_label": "Менеджер",
 		"manyRecipients_msg": "У этого письма много получателей, которые будут видимы друг другу. Всё равно отправить?",

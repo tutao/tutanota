@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "92ad6953a5b1b188f70dc44f3e29ec78",
 	"name": "nl",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-09-25T19:31:50Z",
+	"updated_at": "2024-10-14T09:10:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -962,7 +964,7 @@ export default {
 		"newPlansOfferEnding_msg": "Stap nu over en krijg twee jaar voor de prijs van één! Maar wees er snel bij: deze eenmalige aanbieding verloopt over een paar dagen.",
 		"newPlansOfferExplanation_msg": "Stap nu over en profiteer van onze exclusieve introductieaanbieding: Boek jaarlijks en je krijgt het tweede jaar gratis. Met deze eenmalige aanbieding kun je 50% besparen op alle gloednieuwe Tuta abonnementen!!! 🥳",
 		"news_label": "Nieuws",
-		"nextChargeOn_label": "Volgend betaling op (betaaldatum)",
+		"nextChargeOn_label": "Volgend betaling op {chargeDate}",
 		"nextDay_label": "Volgende dag",
 		"nextMonth_label": "Volgende maand",
 		"nextSubscriptionPrice_msg": "Deze prijs geldt voor de volgende periode en gaat in na het lopende abonnement.",

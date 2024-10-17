@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Erinnerung";
 TutaoScheduleAlarmError = "Ein Fehler ist beim Erstellen einer Erinnerung aufgetreten. Bitte aktualisiere die Anwendung.";
 TutaoUnlockCredentialsAction = "Zugangsdaten Entschlüsseln";
 TutaoPushNewMail = "Neue E-Mail eingegangen.";
+TutaoDeleteAction = "Löschen";
+TutaoMarkReadAction = "Gelesen";

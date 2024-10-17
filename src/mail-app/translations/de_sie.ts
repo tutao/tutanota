@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "1789e6e5655183e7dddc05aa8eb88aa6",
 	"name": "de_sie",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-10-02T12:36:29Z",
+	"updated_at": "2024-10-16T07:39:16Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -451,7 +453,7 @@ export default {
 		"decline_action": "Ablehnen",
 		"defaultColor_label": "Standardfarbe: {1}",
 		"defaultDownloadPath_label": "Zielordner für Downloads",
-		"defaultEmailSignature_msg": "--\n<br>\nGesendet mit Tuta, der sicheren & werbefreien Mailbox.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nSicher mit Tuta Mail:\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Die Voreinstellung für neue E-Mails an externe Empfangsadressen: Vertraulich (Ende-zu-Ende verschlüsselt) oder nicht vertraulich (nicht Ende-zu-Ende verschlüsselt).",
 		"defaultExternalDelivery_label": "Standard-Übertragung",
 		"defaultGiftCardMessage_msg": "Ich hoffe Ihnen gefällt die Sicherheit und Privatsphäre bei Tuta!",
@@ -471,6 +473,7 @@ export default {
 		"deleteContacts_action": "Ausgewählte Kontakte löschen",
 		"deleteContacts_msg": "Möchten Sie die ausgewählten Kontakte wirklich löschen?",
 		"deleteContact_msg": "Möchten Sie den Kontakt wirklich löschen?",
+		"deleteCredentialOffline_msg": "Offline: Die Sitzung konnte nicht geschlossen werden",
 		"deleteCredentials_action": "Zugangsdaten löschen",
 		"deletedFolder_label": "Gelöschter Ordner",
 		"deleteEmails_action": "Löschen der ausgewählten E-Mails",
@@ -928,6 +931,7 @@ export default {
 		"mailServer_label": "E-Mail-Server",
 		"mailViewerRecipients_label": "an:",
 		"mailView_action": "Zur E-Mail-Ansicht wechseln",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden.",
 		"makeLink_action": "Hyperlink erstellen",
 		"manager_label": "Manager*in",
 		"manyRecipients_msg": "Diese E-Mail beinhaltet viele Empfangsadressen, die untereinander sichtbar sind. Möchten Sie die E-Mail trotzdem senden?",
@@ -1799,8 +1803,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"makeAdminPendingUserGroupKeyRotationError_msg": "Der Benutzer kann zur Zeit keine Admin-Rechte erhalten. Der Benutzer muss sich von all seinen Geräten ausloggen und neu einloggen. Anschließend kann die Aktion ausgeführt werden.",
-		"deleteCredentialOffline_msg": "Offline: Die Sitzung konnte nicht geschlossen werden"
+		"you_label": "Sie"
 	}
 }

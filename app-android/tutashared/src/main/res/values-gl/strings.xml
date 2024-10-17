@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Aconteceu algo imprevisto. Queres informar do fallo? Podes engadir unha mensaxe para axudarnos a resolver este problema.</string>
     <string name="downloadCompleted_msg">Descarga completa</string>
     <string name="unlockCredentials_action">Desbloquear credenciais</string>
+    <string name="delete_action">Eliminar</string>
+    <string name="markRead_action">Marcar como lido</string>
 </resources>
