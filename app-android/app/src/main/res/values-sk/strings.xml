@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Vyskytla sa neočakávaná chyba. Chceš odoslať chybové hlásenie? Ak pridáš aj vlastnú správu, môže nám to pomôcť s opravou tejto chyby.</string>
     <string name="downloadCompleted_msg">Sťahovanie dokončené</string>
     <string name="unlockCredentials_action">Odomknúť poverenia</string>
+    <string name="delete_action">Odstrániť</string>
+    <string name="markRead_action">Označiť ako prečítané</string>
 </resources>

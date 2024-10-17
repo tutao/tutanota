@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 	"name": "pt",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2024-09-20T14:27:32Z",
+	"updated_at": "2024-10-15T13:00:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -148,7 +150,7 @@ export default {
 		"buyGiftCard_label": "Compre um cartão presente",
 		"buy_action": "Comprar",
 		"by_label": "por",
-		"calendarAlarmsTooBigError_msg": "Os novos lembretes não puderam ser criados. Isto é muito provavelmente causado por ter demasiados dispositivos com notificações habilitadas. Por favor, vá a Definições -> Email -> Notificações para eliminar dispositivos antigos da lista de notificações.",
+		"calendarAlarmsTooBigError_msg": "Os novos lembretes não puderam ser criados. Isto é muito provavelmente causado por ter demasiados dispositivos com notificações habilitadas. Por favor, vá a Definições -> Notificações para eliminar dispositivos antigos da lista de notificações.",
 		"calendarCustomName_label": "O seu nome personalizado para este calendário: {customName}",
 		"calendarInvitationProgress_msg": "A enviar convite.",
 		"calendarInvitations_label": "Convites para calendário",
@@ -418,7 +420,7 @@ export default {
 		"decline_action": "Rejeitar",
 		"defaultColor_label": "Cor por omissão: {1}",
 		"defaultDownloadPath_label": "Pasta predefinida para transferências",
-		"defaultEmailSignature_msg": "--\n<br>\nEnviado com o Tuta; desfrute de emails seguros e sem publicidade:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nProtegido com Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Definição padrão para o envio de novos emails para destinatários externos: confidencial (encriptado ponta a ponta) ou não-confidencial (não encriptado ponta a ponta).",
 		"defaultExternalDelivery_label": "Entrega padrão",
 		"defaultGiftCardMessage_msg": "Espero que goste da segurança e privacidade que obtém com Tuta!",
@@ -946,7 +948,7 @@ export default {
 		"noContactFound_msg": "Não foram encontrados quaisquer contactos com este email.",
 		"noContacts_msg": "Não existem contactos nesta pasta.",
 		"noContact_msg": "Nenhum contacto selecionado.",
-		"noEntries_msg": "<Sem entradas>",
+		"noEntries_msg": "<Sem entradas.>",
 		"noEntryFound_label": "Nenhuma entrada encontrada",
 		"noEventSelect_msg": "Nenhum evento selecionado",
 		"noInputWasMade_msg": "Campo vazio!",
@@ -979,6 +981,7 @@ export default {
 		"notificationsDisabled_label": "Desativado",
 		"notificationSettings_action": "Notificações",
 		"notificationSync_msg": "Notificações de sincronização",
+		"notificationTargets_label": "Destinatários de Notificações",
 		"notSigned_msg": "Não assinado!",
 		"noUpdateAvailable_msg": "Nenhuma atualização encontrada.",
 		"noValidMembersToAdd_msg": "Não está a administrar nenhum utilizador que ainda não seja membro deste grupo.",

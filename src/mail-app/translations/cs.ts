@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "19ecbe40ebe264a9f75f712bb71adfbe",
 	"name": "cs",
@@ -13,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-09-24T08:22:56Z",
+	"updated_at": "2024-10-16T07:46:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -449,7 +451,7 @@ export default {
 		"decline_action": "Odmítnout",
 		"defaultColor_label": "Výchozí barva: {1}",
 		"defaultDownloadPath_label": "Výchozí cesta k stahování",
-		"defaultEmailSignature_msg": "--\n<br>\nOdesláno z Tuty, bezpečné e-mailové schránky bez reklam:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nZabezpečeno pomocí služby Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Výchozí nastavení pro odeslání nové zprávy externímu příjemci: důvěrné \n(end-to-end šifrování) nebo nezašifrované.",
 		"defaultExternalDelivery_label": "Výchozí doručení",
 		"defaultGiftCardMessage_msg": "Doufám, že si užiješ bezpečí a soukromí, které získáš s e-mailovou schránkou Tuta!",
@@ -469,6 +471,7 @@ export default {
 		"deleteContacts_action": "Vymazat vybraný(é) kontakt(y).",
 		"deleteContacts_msg": "Opravdu chcete vymazat vybrané kontakty?",
 		"deleteContact_msg": "Opravdu si přejete odstranit tento kontakt?",
+		"deleteCredentialOffline_msg": "Off-line: Nepodařilo se ukončit relaci",
 		"deleteCredentials_action": "Odstranit přihlašovací údaje",
 		"deletedFolder_label": "Odstraněná složka",
 		"deleteEmails_action": "Smazat vybrané e-maily",
@@ -550,6 +553,7 @@ export default {
 		"email_label": "E-mail",
 		"emptyShortcut_msg": "Uveďte zkratku pro šablonu",
 		"emptyTitle_msg": "Chybí název",
+		"enableAnyway_action": "Přesto povolit",
 		"enableSearchMailbox_msg": "Povolení hledání v poštovní schránce spotřebovává paměť v zařízení a může způsobit zvýšený síťový provoz.",
 		"endOfCurrentSubscriptionPeriod": "Konec zúčtovacího období",
 		"endsWith_label": "končící",
@@ -590,6 +594,7 @@ export default {
 		"exportVCard_action": "Exportovat vCard",
 		"export_action": "Exportovat",
 		"externalCalendarInfo_msg": "Chcete-li se přihlásit k odběru externího nebo veřejného kalendáře, jednoduše zadejte jeho adresu a my se postaráme o synchronizaci. Tento kalendář je určen pouze pro čtení, ale synchronizaci můžete spustit kdykoliv.",
+		"externalContactSyncDetectedWarning_msg": "Synchronizace kontaktů je povolena pro iCloud nebo jinou aplikaci ve vašem zařízení. Abyste předešli problémům se synchronizací kontaktů Tuta, zrušte prosím povolení pro všechny tyto aplikace.",
 		"externalFormattingInfo_msg": "Nastavte, zda mají být všechny zprávy zaslány včetně formátování (HTML), nebo konvertovány pouze textově.",
 		"externalFormatting_label": "Formátování",
 		"externalNotificationMailBody1_msg": "Dobrý den,",
@@ -694,6 +699,8 @@ export default {
 		"iCalSync_error": "Chyba při synchronizaci. Jeden nebo více kalendářů je neplatných.",
 		"icsInSharingFiles_msg": "Našli jsme jeden nebo více souborů kalendáře. Chcete je importovat nebo připojit?",
 		"importCalendar_label": "Importuje se kalendář",
+		"importContactRemoveDuplicatesConfirm_msg": "Po synchronizaci bylo na vašem zařízení nalezeno {count} duplicitních kontaktů. Chcete je ze zařízení odstranit? Upozorňujeme, že tento krok nelze vrátit.",
+		"importContactRemoveImportedContactsConfirm_msg": "Chcete odstranit importované kontakty z vašeho zařízení? Upozorňujeme, že tento krok nelze vrátit zpět.",
 		"importContactsError_msg": "{amount} z {total} kontaktů se nepodařilo importovat.",
 		"importContacts_label": "Importovat kontakty",
 		"importContacts_msg": "Importovat kontakty z telefonního seznamu a zpřístupnit je ve všech zařízeních.",
@@ -922,6 +929,7 @@ export default {
 		"mailServer_label": "Mail server",
 		"mailViewerRecipients_label": "komu:",
 		"mailView_action": "Přejít do zobrazení e-mailu",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Uživatel se v současné době nemůže stát správcem. Požádejte uživatele, aby se odhlásil ze všech svých zařízení a znovu přihlásil. Poté to zkuste znovu.",
 		"makeLink_action": "Vytvořit odkaz",
 		"manager_label": "Manažer",
 		"manyRecipients_msg": "Tento e-mail má mnoho příjemců, kteří se navzájem uvidí. Přesto odeslat?",

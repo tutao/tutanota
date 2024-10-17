@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "リマインダー";
 TutaoScheduleAlarmError = "アラームを設定できませんでした。アプリケーションを更新してください。";
 TutaoUnlockCredentialsAction = "ログイン情報のロックを解除";
 TutaoPushNewMail = "新しいメールが届いています。";
+TutaoDeleteAction = "削除";
+TutaoMarkReadAction = "既読にする";

@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Noget uventet gik galt. Vil du sende en fejlrapport? Du kan tilføje en besked for at hjælpe os med at rette op på denne fejl.</string>
     <string name="downloadCompleted_msg">Download afsluttet</string>
     <string name="unlockCredentials_action">Lås legitimationsoplysninger op</string>
+    <string name="delete_action">Slet</string>
+    <string name="markRead_action">Marker som læst</string>
 </resources>

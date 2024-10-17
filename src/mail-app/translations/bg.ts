@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "7099d69d03bc03d4e76962b7301d6b82",
 	"name": "bg",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2024-09-20T14:27:32Z",
+	"updated_at": "2024-10-11T10:49:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -107,7 +109,7 @@ export default {
 		"appearanceSettings_label": "Облик",
 		"appInfoAndroidImageAlt_alt": "Android приложение на Google Play",
 		"appInfoFDroidImageAlt_alt": "Приложение за Android на F-Droid",
-		"appInfoIosImageAlt_alt": "iOS приложение от Apple магазина",
+		"appInfoIosImageAlt_alt": "iOS приложението от Apple магазина",
 		"apply_action": "Прилагане",
 		"archive_action": "Архивиране",
 		"archive_label": "Архив",
@@ -144,7 +146,7 @@ export default {
 		"buyGiftCard_label": "Купуване на карта подарък",
 		"buy_action": "Купува",
 		"by_label": "от",
-		"calendarAlarmsTooBigError_msg": "Новите напомняния не може да бъдат настроени. Това най-вероятно се дължи на наличието на твърде много устройства с активирани известия. Отидете в Настройки -> Имейл -> Известия, за да изтриете старите устройства от списъка с известия.",
+		"calendarAlarmsTooBigError_msg": "Новите напомняния не може да бъдат настроени. Това най-вероятно се дължи на наличието на твърде много устройства с включени известия. Отидете в Настройки -> Известия, за да изтриете старите устройства от списъка за известия.",
 		"calendarCustomName_label": "Твое име за този календар: {customName}",
 		"calendarInvitationProgress_msg": "Праща се покана.",
 		"calendarInvitations_label": "Покани за календар",
@@ -934,13 +936,13 @@ export default {
 		"noContactFound_msg": "Няма намерен контакт с този имейл",
 		"noContacts_msg": "Няма контакти в този списък",
 		"noContact_msg": "Не е избран контакт.",
-		"noEntries_msg": "<Няма входни данни>",
+		"noEntries_msg": "<Няма записи.>",
 		"noEntryFound_label": "Няма намерени записи",
 		"noEventSelect_msg": "Няма избрано събитие",
 		"noInputWasMade_msg": "Полето за въвеждане е празно!",
 		"noKeysForThisDomain_msg": "Нямате настроени секретни ключове за този домейн, моля, добавете такъв в настройките за влизане.",
 		"noMails_msg": "Няма съобщения",
-		"noMail_msg": "Няма избран нито един имейл",
+		"noMail_msg": "Няма нито един избран имейл",
 		"noMoreSimilarContacts_msg": "Няма повече контакти",
 		"nonConfidentialStatus_msg": "Това съобщение не е изцяло шифровано.",
 		"nonConfidential_action": "Не конфиденциално",

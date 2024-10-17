@@ -4,4 +4,6 @@
     <string name="notificationSync_msg">同步通知</string>
     <string name="scheduleAlarmError_msg">无法设置警报。请更新应用程序。</string>
     <string name="wantToSendReport_msg">出现未预料的问题。您想要发送错误报告吗？您可以添加消息以帮助我们解决此错误。</string>
+    <string name="delete_action">删除</string>
+    <string name="markRead_action">标为已读</string>
 </resources>

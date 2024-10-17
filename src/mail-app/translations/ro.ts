@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "33d2a9ab1ea65cb3d7064439e005f8c1",
 	"name": "ro",
@@ -12,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-10-04T15:08:21Z",
+	"updated_at": "2024-10-13T14:45:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -452,7 +454,7 @@ export default {
 		"decline_action": "Refuză",
 		"defaultColor_label": "Culoare prestabilită: {1}",
 		"defaultDownloadPath_label": " Locul pentru descărcare",
-		"defaultEmailSignature_msg": "--\n<br>\nTrimis cu Tuta; e-mailuri sigure și fără reclame:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nTrimis cu Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Opțiunile prestabilite pentru trimiterea unui nou e-mail către un destinatar extern: confidențial (cifrat de la trimitere până la primire) sau neconfidențial (necifrat).",
 		"defaultExternalDelivery_label": "Expediere prestabilită",
 		"defaultGiftCardMessage_msg": "Sper să te bucuri de protecția și intimitatea oferite de Tuta!",
@@ -929,6 +931,7 @@ export default {
 		"mailServer_label": "Server e-mail",
 		"mailViewerRecipients_label": "către:",
 		"mailView_action": "Vezi e-mailul",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Utilizatorul nu poate deveni în prezent administrator. Utilizatorul trebuie să se deconecteze cu toate aparatele sale și apoi să se autentifice din nou. După aceea, să încerce din nou.",
 		"makeLink_action": "Creează legătura web",
 		"manager_label": "Manager",
 		"manyRecipients_msg": "Acest e-mail are o mulțime de destinatari care vor fi vizibili între ei. Trimiți oricum?",
