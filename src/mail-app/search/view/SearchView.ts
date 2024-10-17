@@ -737,41 +737,41 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
         return availableMailFolders
     }
 
-    private renderMailFilterSection(): Children {
-        const availableMailFolders = this.getAvailableMailFolders()
-        const availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({name: lang.get(f.textId), value: f.field}))
-        return [
-            this.renderDateRangeSelection(),
-            m("div.mlr-button", [
-                m(DropDownSelector, {
-                    label: "field_label",
-                    items: availableMailFields,
-                    selectedValue: this.searchViewModel.selectedMailField,
-                    selectionChangedHandler: (newValue: string | null) => {
-                        const result = this.searchViewModel.selectMailField(newValue)
-                        if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
-                            showNotAvailableForFreeDialog()
-                        }
-                    },
-                    dropdownWidth: 250,
-                }),
-                availableMailFolders.length > 0
-                    ? m(DropDownSelector, {
-                        label: "mailFolder_label",
-                        items: availableMailFolders,
-                        selectedValue: this.searchViewModel.selectedMailFolder[0] ?? null,
-                        selectionChangedHandler: (newValue: string | null) => {
-                            const result = this.searchViewModel.selectMailFolder(newValue ? [newValue] : [])
-                            if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
-                                showNotAvailableForFreeDialog()
-                            }
-                        },
-                        dropdownWidth: 250,
-                    })
-                    : null,
-            ]),
-        ].map((row) => m(".folder-row.plr-button.content-fg", row))
-    }
+	private renderMailFilterSection(): Children {
+		const availableMailFolders = this.getAvailableMailFolders()
+		const availableMailFields = SEARCH_MAIL_FIELDS.map((f) => ({ name: lang.get(f.textId), value: f.field }))
+		return [
+			this.renderDateRangeSelection(),
+			m("div.ml-button", [
+				m(DropDownSelector, {
+					label: "field_label",
+					items: availableMailFields,
+					selectedValue: this.searchViewModel.selectedMailField,
+					selectionChangedHandler: (newValue: string | null) => {
+						const result = this.searchViewModel.selectMailField(newValue)
+						if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
+							showNotAvailableForFreeDialog()
+						}
+					},
+					dropdownWidth: 250,
+				}),
+				availableMailFolders.length > 0
+					? m(DropDownSelector, {
+							label: "mailFolder_label",
+							items: availableMailFolders,
+							selectedValue: this.searchViewModel.selectedMailFolder[0] ?? null,
+							selectionChangedHandler: (newValue: string | null) => {
+								const result = this.searchViewModel.selectMailFolder(newValue ? [newValue] : [])
+								if (result === PaidFunctionResult.PaidSubscriptionNeeded) {
+									showNotAvailableForFreeDialog()
+								}
+							},
+							dropdownWidth: 250,
+					  })
+					: null,
+			]),
+		].map((row) => m(".folder-row.plr-button.content-fg", row))
+	}
 
     private renderCalendarFilterSection(): Children {
         return [this.renderDateRangeSelection(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
@@ -817,44 +817,44 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
         }
     }
 
-    private renderDateRangeSelection(): Children {
-        const renderedHelpText: TranslationText | undefined =
-            this.searchViewModel.warning === "startafterend"
-                ? "startAfterEnd_label"
-                : this.searchViewModel.warning === "long"
-                    ? "longSearchRange_msg"
-                    : this.searchViewModel.startDate == null
-                        ? "unlimited_label"
-                        : undefined
-        return m(
-            ".flex.col",
-            m(
-                ".pr-s.flex-grow.flex-space-between.flex-column",
-                m(DatePicker, {
-                    date: this.searchViewModel.startDate ?? undefined,
-                    onDateSelected: (date) => this.onStartDateSelected(date),
-                    startOfTheWeekOffset: this.startOfTheWeekOffset,
-                    label: "dateFrom_label",
-                    nullSelectionText: renderedHelpText,
-                    rightAlignDropdown: true,
-                } satisfies DatePickerAttrs),
-            ),
-            m(
-                ".pl-s.flex-grow.flex-space-between.flex-column",
-                m(DatePicker, {
-                    date: this.searchViewModel.endDate,
-                    onDateSelected: (date) => {
-                        if (this.searchViewModel.selectEndDate(date) != PaidFunctionResult.Success) {
-                            showNotAvailableForFreeDialog()
-                        }
-                    },
-                    startOfTheWeekOffset: this.startOfTheWeekOffset,
-                    label: "dateTo_label",
-                    rightAlignDropdown: true,
-                } satisfies DatePickerAttrs),
-            ),
-        )
-    }
+	private renderDateRangeSelection(): Children {
+		const renderedHelpText: TranslationText | undefined =
+			this.searchViewModel.warning === "startafterend"
+				? "startAfterEnd_label"
+				: this.searchViewModel.warning === "long"
+				? "longSearchRange_msg"
+				: this.searchViewModel.startDate == null
+				? "unlimited_label"
+				: undefined
+		return m(
+			".flex.col",
+			m(
+				".pl-s.flex-grow.flex-space-between.flex-column",
+				m(DatePicker, {
+					date: this.searchViewModel.startDate ?? undefined,
+					onDateSelected: (date) => this.onStartDateSelected(date),
+					startOfTheWeekOffset: this.startOfTheWeekOffset,
+					label: "dateFrom_label",
+					nullSelectionText: renderedHelpText,
+					rightAlignDropdown: true,
+				} satisfies DatePickerAttrs),
+			),
+			m(
+				".pl-s.flex-grow.flex-space-between.flex-column",
+				m(DatePicker, {
+					date: this.searchViewModel.endDate,
+					onDateSelected: (date) => {
+						if (this.searchViewModel.selectEndDate(date) != PaidFunctionResult.Success) {
+							showNotAvailableForFreeDialog()
+						}
+					},
+					startOfTheWeekOffset: this.startOfTheWeekOffset,
+					label: "dateTo_label",
+					rightAlignDropdown: true,
+				} satisfies DatePickerAttrs),
+			),
+		)
+	}
 
     private async onStartDateSelected(date: Date) {
         if ((await this.searchViewModel.selectStartDate(date)) != PaidFunctionResult.Success) {
@@ -1128,22 +1128,22 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
                     return isSameId([calendarValue.groupRoot.longEvents, calendarValue.groupRoot.shortEvents], this.searchViewModel.selectedCalendar)
                 })?.value ?? null
 
-            return m(
-                ".mlr-button",
-                m(DropDownSelector, {
-                    label: "calendar_label",
-                    items: [{name: lang.get("all_label"), value: null}, ...items],
-                    selectedValue,
-                    selectionChangedHandler: (value: CalendarInfo | string | null) => {
-                        // value can be null if default option has been selected
-                        this.searchViewModel.selectCalendar(value)
-                    },
-                } satisfies DropDownSelectorAttrs<CalendarInfo | string | null>),
-            )
-        } else {
-            return null
-        }
-    }
+			return m(
+				".ml-button",
+				m(DropDownSelector, {
+					label: "calendar_label",
+					items: [{ name: lang.get("all_label"), value: null }, ...items],
+					selectedValue,
+					selectionChangedHandler: (value: CalendarInfo | null) => {
+						// value can be null if default option has been selected
+						this.searchViewModel.selectCalendar(value)
+					},
+				} satisfies DropDownSelectorAttrs<CalendarInfo | string | null>),
+			)
+		} else {
+			return null
+		}
+	}
 
     private renderRepeatingFilter(): Children {
         return m(

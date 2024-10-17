@@ -393,7 +393,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
         return m(
             ".flex.col",
             m(
-                ".pr-s.flex-grow.flex-space-between.flex-column",
+                ".pl-s.flex-grow.flex-space-between.flex-column",
                 m(DatePicker, {
                     date: this.searchViewModel.startDate ?? undefined,
                     onDateSelected: (date) => {
@@ -526,7 +526,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
                 })?.value ?? null
 
             return m(
-                ".mlr-button",
+                ".ml-button",
                 m(DropDownSelector, {
                     label: "calendar_label",
                     items: [{name: lang.get("all_label"), value: null}, ...items],
