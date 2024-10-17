@@ -1,6 +1,5 @@
 import m, { Children } from "mithril"
-import type { LanguageCode } from "../misc/LanguageViewModel.js"
-import { getLanguage, lang, languageCodeToTag, languages } from "../misc/LanguageViewModel.js"
+import { getLanguage, lang, LanguageCode, languageCodeToTag, languageNative } from "../misc/LanguageViewModel.js"
 import { styles } from "../gui/styles.js"
 import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
@@ -27,10 +26,10 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const actualLanguageItems: SelectorItemList<LanguageCode | null> = languages
+		const actualLanguageItems: SelectorItemList<LanguageCode | null> = languageNative
 			.map((language) => {
 				return {
-					name: lang.get(language.textId),
+					name: language.textName,
 					value: language.code,
 				}
 			})
