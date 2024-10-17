@@ -25,8 +25,7 @@ const secondary_red = "#FF2222"
 const dunkel = "#410002"
 const blue = "#013E85"
 const secondary_blue = "#4282FF"
-const light_blue = "#4C89FF"
-const lighter_blue = "#A1C1FF"
+const light_blue = "#ACC7FF"
 
 /**
  *      dark theme background
@@ -46,8 +45,7 @@ const dark_lighter_1 = "#363636"
 const dark_lighter_0 = "#232323"
 const dark = "#222222"
 const dark_darker_0 = "#111111"
-const light_red = "#ff5353"
-const lighter_red = "#FF6C6C"
+const light_red = "#E99497"
 const logo_text_bright_grey = "#c5c7c7"
 const black = "#000000"
 
