@@ -104,6 +104,7 @@ export class MailModel {
 									return (
 										mailboxDetail &&
 										this.inboxRuleHandler?.findAndApplyMatchingRule(
+											this,
 											mailboxDetail,
 											mail,
 											this.connectivityModel ? this.connectivityModel.isLeader() : false,

@@ -549,7 +549,7 @@ export class MailViewModel {
 			let filteredMails: Mail[]
 			if (mailboxDetail) {
 				filteredMails = await promiseFilter(mails, async (mail) => {
-					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
+					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(this.mailModel, mailboxDetail, mail, true)
 					return !wasMatched
 				})
 			} else {
@@ -626,7 +626,7 @@ export class MailViewModel {
 			// applies, the email is moved out of the inbox, and we don't return it here.
 			if (mailboxDetail) {
 				const mailsToKeepInInbox = await promiseFilter(items, async (mail) => {
-					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
+					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(this.mailModel, mailboxDetail, mail, true)
 					return !wasMatched
 				})
 				return { items: mailsToKeepInInbox, complete: items.length < count }

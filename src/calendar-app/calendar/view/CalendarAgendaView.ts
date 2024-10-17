@@ -33,6 +33,7 @@ import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardVi
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { writeMail } from "../../../mail-app/contacts/view/ContactView.js"
+import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -57,6 +58,8 @@ export type CalendarAgendaViewAttrs = {
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
 	onNewEvent: (date: Date | null) => unknown
+	onEditContact: (contact: Contact) => unknown
+	onWriteMail: (recipient: PartialRecipient) => unknown
 }
 
 export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
@@ -266,7 +269,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 								color: theme.list_message_bg,
 							}),
 					  )
-					: this.handleEventPreview(attrs.eventPreviewModel),
+					: this.renderEventPreview(attrs.eventPreviewModel),
 			),
 		])
 	}
@@ -278,23 +281,23 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		return null
 	}
 
-	private handleEventPreview(eventPreviewModel: CalendarPreviewModels) {
+	private renderEventPreview(eventPreviewModel: CalendarPreviewModels): Children {
 		const model = this.getBirthdayEventModel(eventPreviewModel)
 
 		if (model) {
 			return m(
 				".flex.col",
-				m(ContactCardViewer, {
-					contact: model.contact,
-					editAction: (contact) => {
-						new ContactEditor(locator.entityClient, contact).show()
-					},
-					onWriteMail: writeMail,
-					extendedActions: true,
-					style: {
-						margin: "0",
-					},
-				}),
+				// m(ContactCardViewer, {
+				// 	contact: model.contact,
+				// 	editAction: (contact) => {
+				// 		new ContactEditor(locator.entityClient, contact).show()
+				// 	},
+				// 	onWriteMail: writeMail,
+				// 	extendedActions: true,
+				// 	style: {
+				// 		margin: "0",
+				// 	},
+				// }),
 			)
 		}
 		return m(EventDetailsView, {

@@ -1056,7 +1056,7 @@ class MailLocator {
 
 	async calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel> {
 		const { CalendarContactPreviewViewModel } = await import("../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js")
-		return new CalendarContactPreviewViewModel(event, contact, canEdit)
+		return new CalendarContactPreviewViewModel(this.systemFacade, this.entityClient, event, contact, canEdit)
 	}
 
 	readonly nativeContactsSyncManager: () => NativeContactsSyncManager = lazyMemoized(() => {

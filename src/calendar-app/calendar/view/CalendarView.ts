@@ -383,6 +383,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									onNewEvent: (date) => this.createNewEventDialog(date),
+									onEditContact: () => {
+										// FIXME,
+									},
+									onWriteMail: async (recipient) => {
+										const { writeMail } = await import("../../../mail-app/contacts/view/ContactView.js")
+										writeMail(recipient)
+									},
 								} satisfies CalendarAgendaViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 							})

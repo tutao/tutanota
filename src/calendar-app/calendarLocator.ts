@@ -854,7 +854,7 @@ class CalendarLocator {
 
 	async calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel> {
 		const { CalendarContactPreviewViewModel } = await import("./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js")
-		return new CalendarContactPreviewViewModel(event, contact, canEdit)
+		return new CalendarContactPreviewViewModel(this.systemFacade, this.entityClient, event, contact, canEdit)
 	}
 
 	postLoginActions: () => Promise<PostLoginActions> = lazyMemoized(async () => {

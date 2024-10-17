@@ -68,7 +68,7 @@ import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
-import { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
