@@ -1,7 +1,6 @@
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import type { Hex } from "@tutao/tutanota-utils"
-import { neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, Hex, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env.js"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"
@@ -93,6 +92,7 @@ export class RecoverCodeField {
 		let { recoverCode, showButtons, showMessage, showImage } = vnode.attrs
 		showButtons = showButtons ?? true
 
+		const splitRecoverCode = assertNotNull(recoverCode.match(/.{4}/g)).join(" ")
 		return [
 			showMessage
 				? showImage
@@ -110,16 +110,13 @@ export class RecoverCodeField {
 					  ])
 					: this.renderRecoveryText()
 				: m("", lang.get("emptyString_msg")),
-			m(
-				".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr",
-				neverNull(recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el)),
-			),
+			m(".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr", splitRecoverCode),
 			showButtons
 				? m(".flex.flex-end.mt-m", [
 						m(IconButton, {
 							title: "copy_action",
 							icon: Icons.Clipboard,
-							click: () => copyToClipboard(recoverCode),
+							click: () => copyToClipboard(splitRecoverCode),
 						}),
 						isApp() || typeof window.print !== "function"
 							? null
