@@ -18,6 +18,7 @@ import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpd
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
+	CalendarContactPreviewModelFactory,
 	CalendarEventEditModelsFactory,
 	CalendarEventPreviewModelFactory,
 	CalendarViewModel,
@@ -77,10 +78,12 @@ o.spec("CalendarViewModel", function () {
 		})
 		const mailboxModel: MailboxModel = object()
 		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
+		const contactPreviewModelFactory: CalendarContactPreviewModelFactory = async () => object()
 		const viewModel = new CalendarViewModel(
 			loginController,
 			makeViewModelCallback,
 			previewModelFactory,
+			contactPreviewModelFactory,
 			calendarModel,
 			eventsRepository,
 			new EntityClient(entityClientMock),

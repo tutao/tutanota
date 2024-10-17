@@ -35,6 +35,8 @@ import { PartialRecipient } from "../../../common/api/common/recipients/Recipien
 import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
 import type { AllIcons } from "../../../common/gui/base/Icon.js"
 
+import { getContactTitle } from "../../../common/gui/base/GuiUtils.js"
+
 assertMainOrNode()
 
 export interface ContactViewerAttrs {
@@ -49,13 +51,7 @@ export interface ContactViewerAttrs {
  *  Displays information about a single contact
  */
 export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
-	private readonly contactAppellation = memoized((contact: Contact) => {
-		const title = contact.title ? `${contact.title} ` : ""
-		const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "
-		const fullName = `${contact.firstName}${middleName}${contact.lastName} `
-		const suffix = contact.nameSuffix ?? ""
-		return (title + fullName + suffix).trim()
-	})
+	private readonly contactAppellation = memoized(getContactTitle)
 
 	private readonly contactPhoneticName = memoized((contact: Contact): string | null => {
 		const firstName = contact.phoneticFirst ?? ""

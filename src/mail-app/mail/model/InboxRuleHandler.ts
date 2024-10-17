@@ -2,7 +2,7 @@ import type { InboxRule, Mail, MailFolder, MoveMailData } from "../../../common/
 import { createMoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
@@ -12,8 +12,8 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { throttle } from "@tutao/tutanota-utils/dist/Utils.js"
-import { mailLocator } from "../../mailLocator.js"
 import { getMailHeaders } from "./MailUtils.js"
+import { MailModel } from "./MailModel.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -99,11 +99,19 @@ export class InboxRuleHandler {
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
 	 */
-	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<{ folder: MailFolder; mail: Mail } | null> {
+	async findAndApplyMatchingRule(
+		mailModel: MailModel,
+		mailboxDetail: MailboxDetail,
+		mail: Mail,
+		applyRulesOnServer: boolean,
+	): Promise<{
+		folder: MailFolder
+		mail: Mail
+	} | null> {
 		if (
 			mail._errors ||
 			!mail.unread ||
-			!isInboxFolder(mailboxDetail, mail) ||
+			!isInboxFolder(mailModel, mailboxDetail, mail) ||
 			!this.logins.getUserController().isPremiumAccount() ||
 			mailboxDetail.mailbox.folders == null
 		) {
@@ -112,7 +120,7 @@ export class InboxRuleHandler {
 
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
-			const folders = mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+			const folders = mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			let inboxFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.INBOX))
 			let targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
@@ -232,8 +240,8 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 	return mailAddress != null
 }
 
-export function isInboxFolder(mailboxDetail: MailboxDetail, mail: Mail): boolean {
-	const folders = mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+export function isInboxFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): boolean {
+	const folders = mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 	const mailFolder = folders.getFolderByMail(mail)
 	return mailFolder?.folderType === MailSetKind.INBOX
 }

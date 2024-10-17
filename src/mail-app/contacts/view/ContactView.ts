@@ -929,17 +929,18 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 }
 
-export function writeMail(to: PartialRecipient, subject: string = ""): Promise<unknown> {
-	return locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
-		return newMailEditorFromTemplate(
-			mailboxDetails,
-			{
-				to: [to],
-			},
-			subject,
-			appendEmailSignature("", locator.logins.getUserController().props),
-		).then((editor) => editor.show())
-	})
+export async function writeMail(to: PartialRecipient, subject: string = ""): Promise<void> {
+	const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+	const { newMailEditorFromTemplate } = await import("../../mail/editor/MailEditor.js")
+	const editor = await newMailEditorFromTemplate(
+		mailboxDetails,
+		{
+			to: [to],
+		},
+		subject,
+		appendEmailSignature("", locator.logins.getUserController().props),
+	)
+	editor.show()
 }
 
 export function deleteContacts(contactList: Contact[], onConfirm: () => void = noOp): Promise<void> {

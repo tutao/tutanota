@@ -156,3 +156,7 @@ export function bootFinished() {
 export function isOfflineStorageAvailable(): boolean {
 	return !isBrowser()
 }
+
+// export function isCalendarApp(): boolean {
+// 	return isApp() && env.appType === env.Calendar
+// }
