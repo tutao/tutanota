@@ -5,14 +5,14 @@ import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, incrementMonth, isSameDay, LazyLoaded, lazyMemoized, memoized, noOp, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, LazyLoaded, lazyMemoized, memoized, noOp } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { px, size } from "../../../../common/gui/size.js"
-import { lang, TranslationKey, type TranslationText } from "../../../../common/misc/LanguageViewModel.js"
+import { lang, type TranslationText } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
@@ -36,15 +36,9 @@ import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../../common/gui/base/DropDownSelector.js"
 import { FeatureType, Keys } from "../../../../common/api/common/TutanotaConstants.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
-import { formatDate } from "../../../../common/misc/Formatter.js"
-import { TextField } from "../../../../common/gui/base/TextField.js"
-import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
-import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
-import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { listSelectionKeyboardShortcuts } from "../../../../common/gui/base/ListUtils.js"
 import { MultiselectMode } from "../../../../common/gui/base/List.js"
-import { ClickHandler } from "../../../../common/gui/base/GuiUtils.js"
 import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -350,7 +344,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return m(
 			".flex.col",
 			m(
-				".pr-s.flex-grow.flex-space-between.flex-column",
+				".pl-s.flex-grow.flex-space-between.flex-column",
 				m(DatePicker, {
 					date: this.searchViewModel.startDate ?? undefined,
 					onDateSelected: (date) => {
@@ -446,7 +440,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				)?.value ?? null
 
 			return m(
-				".mlr-button",
+				".ml-button",
 				m(DropDownSelector, {
 					label: "calendar_label",
 					items: [{ name: lang.get("all_label"), value: null }, ...items],

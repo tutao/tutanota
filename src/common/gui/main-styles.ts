@@ -112,8 +112,8 @@ styles.registerStyle("main", () => {
 		},
 
 		/*
-	 Box Sizing
-	 */
+     Box Sizing
+     */
 		[`html, body, div, article, section, main, footer, header, form, fieldset, legend,
             pre, code, p, a, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd, textarea,
             input[type="email"], input[type="number"], input[type="password"],
@@ -509,6 +509,9 @@ styles.registerStyle("main", () => {
 		},
 		".mr-button": {
 			"margin-right": px(size.hpad_button),
+		},
+		".ml-button": {
+			"margin-left": px(size.hpad_button),
 		},
 		".mt-negative-hpad-button": {
 			"margin-top": px(-size.hpad_button),
