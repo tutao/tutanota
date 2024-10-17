@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "0d19ca046e0d291c587510d6fe8c29c0",
 	"name": "lv",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2024-09-20T14:27:32Z",
+	"updated_at": "2024-10-11T10:49:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {

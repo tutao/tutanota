@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Несподівано щось пішло не так. Бажаєте відправити звіт про помилку? Ви можете залишити повідомлення, щоб допомогти нам виправити цю помилку.</string>
     <string name="downloadCompleted_msg">Завантаження завершено</string>
     <string name="unlockCredentials_action">Розблокувати облікові дані</string>
+    <string name="delete_action">Видалити</string>
+    <string name="markRead_action">Позначити як прочитане</string>
 </resources>

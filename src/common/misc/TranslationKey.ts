@@ -1,3 +1,4 @@
+// AUTO-GENERATED WITH tutanota-translation-sanitizer. DO NOT EDIT!
 export type TranslationKeyType =
 	| "about_label"
 	| "accentColor_label"
@@ -451,6 +452,7 @@ export type TranslationKeyType =
 	| "deleteContacts_action"
 	| "deleteContacts_msg"
 	| "deleteContact_msg"
+	| "deleteCredentialOffline_msg"
 	| "deleteCredentials_action"
 	| "deletedFolder_label"
 	| "deleteEmails_action"
@@ -908,6 +910,7 @@ export type TranslationKeyType =
 	| "mailServer_label"
 	| "mailViewerRecipients_label"
 	| "mailView_action"
+	| "makeAdminPendingUserGroupKeyRotationError_msg"
 	| "makeLink_action"
 	| "manager_label"
 	| "manyRecipients_msg"
@@ -1781,5 +1784,3 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "makeAdminPendingUserGroupKeyRotationError_msg"
-	| "deleteCredentialOffline_msg"

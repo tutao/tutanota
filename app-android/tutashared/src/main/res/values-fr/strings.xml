@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Quelque chose d\'inattendu a eu lieu. Voulez-vous envoyer un rapport d\'erreur ? Vous pouvez ajouter un message pour nous aider à corriger ce problème.</string>
     <string name="downloadCompleted_msg">Téléchargement terminé</string>
     <string name="unlockCredentials_action">Déverrouillage des données </string>
+    <string name="delete_action">Supprimer</string>
+    <string name="markRead_action">Marquer comme lu</string>
 </resources>

@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "89e360bddae0ae4fe387489ceb199baa",
 	"name": "hu",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-09-25T14:31:15Z",
+	"updated_at": "2024-10-14T12:10:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -447,7 +449,7 @@ export default {
 		"decline_action": "Elutasítás",
 		"defaultColor_label": "Alapértelmezett szín: {1}",
 		"defaultDownloadPath_label": "Alapértelmezett letöltési ösvény",
-		"defaultEmailSignature_msg": "--\n<br>\nTutával küldve, élvezze a biztonságos & hirdetés nélküli e-maileket!\n\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nTuta Mail-lel biztosítva:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Külső címzettnek történő küldés esetén az alapértelmezett beállítás: bizalmas (végponti titkosítással) vagy nem bizalmas (végponti titkosítás nélkül).",
 		"defaultExternalDelivery_label": "Alapértelmezett kézbesítés",
 		"defaultGiftCardMessage_msg": "Reméljük élvezi a biztonságot & magánéletet a Tutával!",
@@ -548,6 +550,7 @@ export default {
 		"email_label": "Email",
 		"emptyShortcut_msg": "Kérjük, adjon meg egy parancsikont a sablonhoz!",
 		"emptyTitle_msg": "A cím hiányzik.",
+		"enableAnyway_action": "Engedélyezés mégis",
 		"enableSearchMailbox_msg": "A keresés engedélyezése megnövekedett memóriahasználattal és további adatforgalommal járhat.",
 		"endOfCurrentSubscriptionPeriod": "Az aktuális fizetési határidő vége",
 		"endsWith_label": "ezzel végződik",
@@ -588,6 +591,7 @@ export default {
 		"exportVCard_action": "vCard exportálása",
 		"export_action": "Exportálás",
 		"externalCalendarInfo_msg": "A belső vagy nyilvános naptár előfizetéshez egyszerűen lépjen az URL-jére és biztosítjuk azok szinkronizálását. Ez a naptár csak olvasható, de a szinkronizálási műveletet bármikor elindíthatja.",
+		"externalContactSyncDetectedWarning_msg": "A névjegy szinkronizáció az iCloud és más kapcsolat alkalmazás részére megengedett az Ön eszközén. Kérjük, tiltsa le más alkalmazásoknak, hogy szinkronizálják a névjegyeit, a Tuta névjegyek szinkronizálással kapcsolatos problémák elkerülése érdekében!",
 		"externalFormattingInfo_msg": "Állítsa be, hogy az üzenetek formázással (HTML) együtt vagy egyszerű szöveggé alakítva kerüljenek elküldésre!",
 		"externalFormatting_label": "Formázás",
 		"externalNotificationMailBody1_msg": "Üdvözlöm!",
@@ -692,6 +696,8 @@ export default {
 		"iCalSync_error": "Hiba a szinkronizáláskor, egy vagy több naptár érvénytelen.",
 		"icsInSharingFiles_msg": "Egy vagy több naptár fájl van kijelölve. Kívánja importálni vagy csatolni őket?",
 		"importCalendar_label": "Naptár importálása",
+		"importContactRemoveDuplicatesConfirm_msg": "Eszközén a szinkronizálás során duplikált névjegyek  {count} találhatók. Kívánja ezeket törölni az eszközéről? Kérjük, ügyeljen, mert ez nem vonható vissza!  ",
+		"importContactRemoveImportedContactsConfirm_msg": "Kívánja az importált névjegyeket törölni az eszközéről? Kérjük, ügyeljen, mert ez nem vonható vissza!",
 		"importContactsError_msg": "A {total} helyről a névjegyértékek {amount} nem importálhatóak.",
 		"importContacts_label": "Kapcsolattartók (névjegyek) importálása",
 		"importContacts_msg": "Importáljon névjegyeket a telefonkönyvből, hogy azok az eszközein elérhetőek legyenek!",
@@ -920,6 +926,7 @@ export default {
 		"mailServer_label": "Mail szerver",
 		"mailViewerRecipients_label": "a következőkre:",
 		"mailView_action": "Váltás e-mail nézetre",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "A felhasználó jelenleg nem válhat rendszergazdává. Kérje meg a felhasználót, hogy lépjen ki az összes eszközéről és akkor lépjen be újra! Ezután próbálja újra!",
 		"makeLink_action": "Link létrehozása",
 		"manager_label": "Menedzser",
 		"manyRecipients_msg": "Ennek az e-mailnek több címzettje van, akik egymás számára láthatóak. Mindenképpen el szeretné küldeni?",

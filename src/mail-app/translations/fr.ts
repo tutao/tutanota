@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "0bbba0bd9097c32da7426931c0c0bc05",
 	"name": "fr",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-10-03T13:57:50Z",
+	"updated_at": "2024-10-16T11:54:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -451,7 +453,7 @@ export default {
 		"decline_action": "Refuser",
 		"defaultColor_label": "Couleur par défaut : {1}",
 		"defaultDownloadPath_label": "Chemin de téléchargement par défaut",
-		"defaultEmailSignature_msg": "--\n<br>\nEnvoyé avec Tuta, la messagerie sécurisée & sans publicité.\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSécurisé avec Tuta Mail : \n<br>\n {1}",
 		"defaultExternalDeliveryInfo_msg": "Le paramètre par défaut pour envoyer un nouveau message à un destinataire externe : confidentiel (chiffré de bout en bout) ou non-confidentiel (non chiffré de bout en bout)",
 		"defaultExternalDelivery_label": "Envoi par défaut",
 		"defaultGiftCardMessage_msg": "J'espère que vous apprécierez la sécurité et la confidentialité dont vous bénéficieriez avec Tuta !",
@@ -471,6 +473,7 @@ export default {
 		"deleteContacts_action": "Supprimer le(s) contact(s) sélectionné(s)",
 		"deleteContacts_msg": "Voulez-vous vraiment supprimer le(s) contact(s) sélectionné(s) ?",
 		"deleteContact_msg": "Souhaitez-vous vraiment supprimer ce contact ?",
+		"deleteCredentialOffline_msg": "Hors ligne : Échec de la fermeture de la session",
 		"deleteCredentials_action": "Supprimer les identifiants",
 		"deletedFolder_label": "Dossier supprimé",
 		"deleteEmails_action": "Supprimer les e-mails sélectionnés",
@@ -928,6 +931,7 @@ export default {
 		"mailServer_label": "Serveur d'e-mail",
 		"mailViewerRecipients_label": "à :",
 		"mailView_action": "Aller à la page d'e-mail",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "L'utilisateur ne peut actuellement pas devenir administrateur. Demandez-lui de se déconnecter avec tous ses appareils et de se reconnecter. Réessayez ensuite.",
 		"makeLink_action": "Créer un lien",
 		"manager_label": "Reponsable",
 		"manyRecipients_msg": "Cet e-mail contient beaucoup de destinataires qui seront visibles les uns des autres. Ignorer et envoyer ?",
@@ -1240,7 +1244,7 @@ export default {
 		"pricing.gdprDataProcessing_label": "Accord de traitement des données RGPD",
 		"pricing.gdpr_label": "Conforme au RGPD",
 		"pricing.gdpr_tooltip": "Toutes les données sont stockées en conformité avec les réglementations européennes strictes en matière de protection des données, conformément au RGPD.",
-		"pricing.getStarted_label": "Commencez toute de suite",
+		"pricing.getStarted_label": "Commencer",
 		"pricing.includesTaxes_msg": "Inclut les taxes.",
 		"pricing.login_title": "Se connecter sur son propre site web",
 		"pricing.login_tooltip": "Mettez le lien de connexion à Tuta sur votre site d'internet pour que ça soit accéder par tous vos collaborateurs, internes et  externes.",

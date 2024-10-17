@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "2e467284b4e2ed1094bb7f07fbef3615",
 	"name": "pl",
@@ -13,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-10-02T17:24:40Z",
+	"updated_at": "2024-10-11T20:47:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -453,7 +455,7 @@ export default {
 		"decline_action": "Odrzuć",
 		"defaultColor_label": "Domyślny kolor: {1}",
 		"defaultDownloadPath_label": "Domyślna ścieżka pobierania",
-		"defaultEmailSignature_msg": "--\n<br>\nWysyłano z Tuta, ciesz się bezpiecznymi i wolnymi od reklam wiadomościami e-mail:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nBezpieczeństwo zapewnia Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Domyślne ustawienie dla wysyłania nowych wiadomości do zewnętrznego odbiorcy:\npoufna (szyfrowana metodą od końca do końca) lub jawna (nieszyfrowana metodą od końca do końca).",
 		"defaultExternalDelivery_label": "Tryb domyślny ",
 		"defaultGiftCardMessage_msg": "Mam nadzieję, że podoba ci się bezpieczeństwo i prywatność, które otrzymujesz dzięki Tuta!",
@@ -929,6 +931,7 @@ export default {
 		"mailServer_label": "Serwer poczty",
 		"mailViewerRecipients_label": "do:",
 		"mailView_action": "Przełącz na widok e-mail",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Ten użytkownik obecnie nie może zostać administratorem. Poproś użytkownika o wylogowanie się ze wszystkich swoich urządzeń, a następnie zaloguj się ponownie. Następnie spróbuj ponownie.",
 		"makeLink_action": "Utwórz odsyłacz",
 		"manager_label": "Kierownik/Kierowniczka",
 		"manyRecipients_msg": "Ta wiadomość ma wielu odbiorców, którzy będą widoczni dla siebie nawzajem. Wysłać mimo to?",

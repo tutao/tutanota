@@ -6,4 +6,6 @@
     <string name="wantToSendReport_msg">Что-то неожиданно пошло не так. Отправить отчет об ошибке? Вы можете добавить сообщение, чтобы помочь нам исправить эту ошибку.</string>
     <string name="downloadCompleted_msg">Загрузка завершена</string>
     <string name="unlockCredentials_action">Разблокировать учетные данные</string>
+    <string name="delete_action">Удалить</string>
+    <string name="markRead_action">Пометить как прочитанное</string>
 </resources>

@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Напоминание";
 TutaoScheduleAlarmError = "Не удалось настроить оповещение. Пожалуйста, обновите приложение.";
 TutaoUnlockCredentialsAction = "Разблокировать учетные данные";
 TutaoPushNewMail = "Новое письмо получено.";
+TutaoDeleteAction = "Удалить";
+TutaoMarkReadAction = "Пометить как прочитанное";

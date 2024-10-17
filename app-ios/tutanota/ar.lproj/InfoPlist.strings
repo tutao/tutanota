@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "تذكير ";
 TutaoScheduleAlarmError = "لا يمكن إعداد التنبيه. يرجى تحديث التطبيق.";
 TutaoUnlockCredentialsAction = "إلغاء بيانات الاعتماد";
 TutaoPushNewMail = "تم تلقي بريد إلكتروني جديد.";
+TutaoDeleteAction = "حذف";
+TutaoMarkReadAction = "علِم كمقروء";

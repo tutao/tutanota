@@ -13,3 +13,5 @@ TutaoCalendarAlarmTitle = "Påmindelse";
 TutaoScheduleAlarmError = "Kunne ikke opsætte en alarm. Opdatér venligst programmet.";
 TutaoUnlockCredentialsAction = "Lås legitimationsoplysninger op";
 TutaoPushNewMail = "Ny e-mail modtaget.";
+TutaoDeleteAction = "Slet";
+TutaoMarkReadAction = "Marker som læst";

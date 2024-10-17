@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "409275c729466acea76cbcbc9c868fde",
 	"name": "uk",
@@ -13,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2024-10-06T15:47:34Z",
+	"updated_at": "2024-10-13T07:09:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -449,7 +451,7 @@ export default {
 		"decline_action": "Відмовити",
 		"defaultColor_label": "Типовий колір: {1}",
 		"defaultDownloadPath_label": "Стандартний шлях завантаження",
-		"defaultEmailSignature_msg": "--\n<br>\nНадіслано через сервіс Tuta, насолоджуйтесь безпечною електронною поштою без реклами.\n<br>\n",
+		"defaultEmailSignature_msg": "--\n<br>\nЗахищено за допомогою Пошти Tuta:\n<br>\n",
 		"defaultExternalDeliveryInfo_msg": "Типове налаштування для надсилання нового е-повідомлення до зовнішнього отримувача: конфіденційне ( наскрізно зашифроване) або неконфіденційне (ненаскрізно зашифроване).",
 		"defaultExternalDelivery_label": "Типове доставлення ",
 		"defaultGiftCardMessage_msg": "Сподіваюся, вам подобається той рівень безпеки та конфіденційності, які ви отримуєте з Tuta!",
@@ -926,6 +928,7 @@ export default {
 		"mailServer_label": "Поштовий сервер",
 		"mailViewerRecipients_label": "до:",
 		"mailView_action": "Перейти до перегляду е-пошти",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Наразі користувач не може стати адміністратором. Будь ласка, попросіть користувача вийти з усіх його пристроїв, а потім увійти знову. Після цього спробуйте ще раз.",
 		"makeLink_action": "Створити посилання",
 		"manager_label": "Керівник",
 		"manyRecipients_msg": "Цей електронний лист містить багато отримувачів, які будуть видимими один одному. Надіслати в будь-якому випадку?",

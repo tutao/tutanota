@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "bca6e9991b687282745131bc052d31d9",
 	"name": "it",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2024-09-20T14:27:32Z",
+	"updated_at": "2024-10-11T10:49:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -663,6 +665,7 @@ export default {
 		"howCanWeHelp_title": "Come possiamo aiutarti?",
 		"htmlSourceCode_label": "Codice sorgente HTML",
 		"html_action": "HTML",
+		"iCalNotSync_msg": "Non sincronizzato.",
 		"importCalendar_label": "Importazione calendario",
 		"importContactsError_msg": "Non è stato possibile importare {amount} di {total} contatti.",
 		"importContacts_label": "Importa contatti",

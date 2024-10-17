@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "fc793e57b2ad95a6ade9c69abe1a46c4",
 	"name": "fi",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-10-07T09:56:27Z",
+	"updated_at": "2024-10-16T13:48:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -447,7 +449,7 @@ export default {
 		"decline_action": "Hylkää",
 		"defaultColor_label": "Oletusväri: {1}",
 		"defaultDownloadPath_label": "Oletuslatauskansio",
-		"defaultEmailSignature_msg": "--\n<br>\nLähetetty Tutalla, turvallisella ja mainoksettomalla sähköpostilla.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nSuojattu Tuta Maililla:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Oletusarvoinen lähetystapa ulkopuolisille vastaanottajille: luottamuksellinen (salattu) tai salaamaton.",
 		"defaultExternalDelivery_label": "Oletusarvoinen lähetystapa",
 		"defaultGiftCardMessage_msg": "Toivottavasti nautit turvallisuudesta ja yksityisyydestä, joita Tuta tarjoaa!",
@@ -467,6 +469,7 @@ export default {
 		"deleteContacts_action": "Poista valitut yhteystiedot",
 		"deleteContacts_msg": "Haluatko poistaa valitut yhteystiedot?",
 		"deleteContact_msg": "Haluatko varmasti poistaa tämän yhteystiedon?",
+		"deleteCredentialOffline_msg": "Yhteydetön tila: istunnon sulkeminen epäonnistui",
 		"deleteCredentials_action": "Poista kirjautumistiedot",
 		"deletedFolder_label": "Poistettu kansio",
 		"deleteEmails_action": "Poista valitut sähköpostit",
@@ -924,6 +927,7 @@ export default {
 		"mailServer_label": "Sähköpostipalvelin",
 		"mailViewerRecipients_label": "->",
 		"mailView_action": "Siirry sähköposteihin",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Tästä käyttäjästä ei tällä hetkellä voi tulla ylläpitäjää. Pyydä käyttäjää kirjautumaan ulos kaikilta laitteilta ja kirjautumaan takaisin sisään, ja yritä uudelleen, kun näin on tehty.",
 		"makeLink_action": "Luo linkki",
 		"manager_label": "Esimies",
 		"manyRecipients_msg": "Tällä viestillä on monia vastaanottajia, joiden osoitteet näkyvät toisille viestin saajille. Lähetetäänkö silti?",

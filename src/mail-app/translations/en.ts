@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "fcd7471b347c8e517663e194dcddf237",
 	"name": "en",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-10-02T14:57:50Z",
+	"updated_at": "2024-10-16T07:39:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -447,7 +449,7 @@ export default {
 		"decline_action": "Decline",
 		"defaultColor_label": "Default color: {1}",
 		"defaultDownloadPath_label": "Default download path",
-		"defaultEmailSignature_msg": "--\n<br>\nSent with Tuta; enjoy secure & ad-free emails:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSecured with Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "The default setting for sending a new email to an external recipient: confidential (end-to-end encrypted) or not confidential (not end-to-end encrypted).",
 		"defaultExternalDelivery_label": "Default delivery",
 		"defaultGiftCardMessage_msg": "I hope you enjoy the security & privacy you get with Tuta!",
@@ -467,6 +469,7 @@ export default {
 		"deleteContacts_action": "Delete the selected contact(s)",
 		"deleteContacts_msg": "Are you sure you want to delete the selected contact(s)?",
 		"deleteContact_msg": "Are you sure you want to delete this contact?",
+		"deleteCredentialOffline_msg": "Offline: Failed to close the session",
 		"deleteCredentials_action": "Delete credentials",
 		"deletedFolder_label": "Deleted Folder",
 		"deleteEmails_action": "Delete the selected emails",
@@ -924,6 +927,7 @@ export default {
 		"mailServer_label": "Mail server",
 		"mailViewerRecipients_label": "to:",
 		"mailView_action": "Switch to the email view",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again.",
 		"makeLink_action": "Create hyperlink",
 		"manager_label": "Manager",
 		"manyRecipients_msg": "This email has a lot of recipients who will be visible to each other. Send anyway?",
@@ -1795,8 +1799,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"makeAdminPendingUserGroupKeyRotationError_msg": "The user currently cannot become admin. Please ask the user to logout with all their devices and then login again. Afterwards try again.",
-		"deleteCredentialOffline_msg": "Offline: Failed to close the session"
+		"you_label": "You"
 	}
 }

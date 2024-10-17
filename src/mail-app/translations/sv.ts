@@ -1,3 +1,5 @@
+// DO NOT EDIT: automatically generated
+// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"id": "a484448d8bc10cfbfe9c3cbb17c08392",
 	"name": "sv",
@@ -11,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-09-24T18:40:07Z",
+	"updated_at": "2024-10-16T12:00:24Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -447,7 +449,7 @@ export default {
 		"decline_action": "Avböj",
 		"defaultColor_label": "Förvald färg: {1}",
 		"defaultDownloadPath_label": "Förvald nedladdningsväg",
-		"defaultEmailSignature_msg": "--\n<br>\nSkickad med Tuta; säker och reklamfri e-post:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSäkrad med Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Standardinställningen för att skicka ett nytt meddelande till en extern mottagare: konfidentiell (end-to-end krypterad) eller inte konfidentiell (ej end-to-end krypterad).",
 		"defaultExternalDelivery_label": "Förvald leverans",
 		"defaultGiftCardMessage_msg": "Jag hoppas du uppskattar den säkerhet och integritet du får med Tuta!",
@@ -467,6 +469,7 @@ export default {
 		"deleteContacts_action": "Ta bort de markerade kontakterna",
 		"deleteContacts_msg": "Är du säker på att du vill ta bort de markerade kontakterna?",
 		"deleteContact_msg": "Är du säker på att du vill radera den här kontakten?",
+		"deleteCredentialOffline_msg": "Offline: Misslyckades att stänga sessionen",
 		"deleteCredentials_action": "Radera inloggningsuppgifter",
 		"deletedFolder_label": "Borttagen mapp",
 		"deleteEmails_action": "Radera de valda e-postmeddelandena",
@@ -548,6 +551,7 @@ export default {
 		"email_label": "E-post",
 		"emptyShortcut_msg": "Ange en genväg för mallen",
 		"emptyTitle_msg": "Rubriken saknas",
+		"enableAnyway_action": "Aktivera ändå",
 		"enableSearchMailbox_msg": "Att aktivera sökningen för brevlådan förbrukar minne på enheten och kan förbruka ytterligare trafik.",
 		"endOfCurrentSubscriptionPeriod": "Slutet på den aktuella betalningsperioden",
 		"endsWith_label": "slutar med",
@@ -588,6 +592,7 @@ export default {
 		"exportVCard_action": "Exportera vCard",
 		"export_action": "Exportera",
 		"externalCalendarInfo_msg": "Om du vill prenumerera på en extern eller offentlig kalender anger du bara dess URL så ser vi till att den synkroniseras. Den här kalendern är skrivskyddad, men du kan när som helst trigga en synkroniseringsoperation.",
+		"externalContactSyncDetectedWarning_msg": "Kontaktsynkronisering är aktiverad för iCloud eller en annan kontaktapp på din enhet. Inaktivera alla andra appar som synkroniserar kontakter för att undvika problem med synkronisering av Tuta kontakter.",
 		"externalFormattingInfo_msg": "Konfigurera om alla meddelanden ska skickas inklusive formatering (HTML) eller konverteras till oformaterad text.",
 		"externalFormatting_label": "Formatering",
 		"externalNotificationMailBody1_msg": "Hej!",
@@ -692,6 +697,8 @@ export default {
 		"iCalSync_error": "Fel under synkroniseringen, en eller flera kalendrar var ogiltiga.",
 		"icsInSharingFiles_msg": "En eller flera kalenderfiler upptäcktes. Vill du importera eller bifoga dem?",
 		"importCalendar_label": "Importera kalender",
+		"importContactRemoveDuplicatesConfirm_msg": "Hittade {count} dubbla kontakter på din enhet under synkroniseringen.  Vill du ta bort dessa från din enhet? Observera att detta inte kan ångras.",
+		"importContactRemoveImportedContactsConfirm_msg": "Vill du ta bort de importerade kontakterna från din enhet? Observera att detta inte kan ångras.",
 		"importContactsError_msg": "{amount} av {total} kontakter kunde inte importeras.",
 		"importContacts_label": "Importera kontakter",
 		"importContacts_msg": "Importera kontakter från din telefonbok för att göra dem tillgängliga på alla dina enheter.",
@@ -920,6 +927,7 @@ export default {
 		"mailServer_label": "E-postserver",
 		"mailViewerRecipients_label": "till:",
 		"mailView_action": "Växla till e-postläge.",
+		"makeAdminPendingUserGroupKeyRotationError_msg": "Användaren kan för närvarande inte bli administratör. Be användaren att logga ut från alla sina enheter och sedan logga in igen. Försök sedan igen.",
 		"makeLink_action": "Skapa hyperlänk",
 		"manager_label": "Chef",
 		"manyRecipients_msg": "Meddelandet har en flera mottagare som kommer att vara synliga för varandra. Skicka ändå?",
