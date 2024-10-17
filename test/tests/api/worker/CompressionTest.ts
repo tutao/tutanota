@@ -45,6 +45,8 @@ o.spec("Compression/Decompression", function () {
 		o("decompression", function () {
 			for (const testCase of testData) {
 				o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(testCase.compressedBase64TextJavaScript)))).equals(testCase.uncompressedText)
+				o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(testCase.compressedBase64TextJava)))).equals(testCase.uncompressedText)
+				o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(testCase.compressedBase64TextRust)))).equals(testCase.uncompressedText)
 			}
 		})
 	})
