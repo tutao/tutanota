@@ -118,7 +118,7 @@ export type Language = {
 	textId: TranslationKey
 }
 
-export const LanguageActualNames: Record<string, string> = Object.freeze({
+export const LanguageActualNames = Object.freeze({
 	ar: "العربية",
 	be: "Беларуская",
 	bg: "Български",
