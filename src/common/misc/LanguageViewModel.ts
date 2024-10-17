@@ -117,6 +117,53 @@ export type Language = {
 	code: LanguageCode
 	textId: TranslationKey
 }
+
+export const LanguageActualNames: Record<string, string> = Object.freeze({
+	ar: "العربية",
+	be: "Беларуская",
+	bg: "Български",
+	ca: "Català",
+	cs: "Čeština",
+	da: "Dansk",
+	de: "Deutsch",
+	de_sie: "Deutsch (Sie)",
+	el: "Ελληνική",
+	en: "English",
+	en_gb: "English (UK)",
+	es: "Español",
+	et: "Eesti keel",
+	fa_ir: "فارسی",
+	fi: "suomi",
+	fr: "Français",
+	gl: "Galego",
+	he: "עברית",
+	hi: "हिंदी",
+	hr: "Hrvatski",
+	hu: "Magyar",
+	id: "Indonesia",
+	it: "Italiano",
+	ja: "日本語",
+	ko: "한국어",
+	lt: "Lietuvių",
+	lv: "Latviešu",
+	nl: "Nederlands",
+	no: "Norsk",
+	pl: "polski",
+	pt_br: "Português, Brasil",
+	pt_pt: "Português, Portugal",
+	ro: "Română",
+	ru: "Русский",
+	si: "සිංහල",
+	sk: "Slovenčina",
+	sl: "slovenščina",
+	sr_cyrl: "Srpski",
+	sv: "Svenska",
+	tr: "Türkçe",
+	uk: "Українська",
+	vi: "Tiếng Việt",
+	zh: "简体中文",
+	zh_hant: "繁體中文",
+} as const)
 export const languageByCode = {} as Record<LanguageCode, Language>
 
 // cannot import typedEntries here for some reason
@@ -134,6 +181,16 @@ export const languages: ReadonlyArray<{
 	return {
 		code,
 		textId,
+	}
+})
+
+export const languageNative: ReadonlyArray<{
+	code: LanguageCode
+	textName: string
+}> = typedEntries(LanguageActualNames).map(([code, textName]) => {
+	return {
+		code,
+		textName,
 	}
 })
 
