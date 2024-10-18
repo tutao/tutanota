@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-10-11T20:47:29Z",
+	"updated_at": "2024-10-17T17:18:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -475,6 +475,7 @@ export default {
 		"deleteContacts_action": "Usuń wybrany(e) kontakt(y)",
 		"deleteContacts_msg": "Czy na pewno chcesz usunąć wybrany(e) kontakt(y)?",
 		"deleteContact_msg": "Na pewno chcesz usunąć ten kontakt?",
+		"deleteCredentialOffline_msg": "Offline: Nie udało się zamknąć sesji",
 		"deleteCredentials_action": "Usuń poświadczenia",
 		"deletedFolder_label": "Usunięty folder",
 		"deleteEmails_action": "Usuń wybrane wiadomości e-mail",

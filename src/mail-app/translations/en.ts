@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-10-16T07:39:15Z",
+	"updated_at": "2024-10-18T10:39:23Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -156,6 +156,9 @@ export default {
 		"baseTheme_label": "Base theme",
 		"bcc_label": "Bcc",
 		"behaviorAfterMovingEmail_label": "Behavior after moving an email",
+		"birthdayCalendar_label": "Birthdays",
+		"birthdayEventAge_title": "{age} years old",
+		"birthdayEvent_title": "{name}'s birthday",
 		"birthday_alt": "Birthday",
 		"blockExternalContentSender_action": "Always block sender",
 		"blue_label": "Blue",
@@ -210,6 +213,7 @@ export default {
 		"calendarView_action": "Switch to the calendar view",
 		"calendar_label": "Calendar",
 		"callNumber_alt": "Call this number",
+		"callNumber_label": "Call number",
 		"cameraUsageDescription_msg": "Take a picture or video for adding it as attachment.",
 		"cancelContactForm_label": "Cancel contact form",
 		"cancellationConfirmation_msg": "Your answer is stored anonymized together with your Tuta account age and your plan. Thanks for participating!",
@@ -317,6 +321,7 @@ export default {
 		"contactListInvitations_label": "Contact list invitations",
 		"contactListName_label": "Contact list name",
 		"contactLists_label": "Contact lists",
+		"contactNotFound_msg": "Contact not found",
 		"contactsManagement_label": "Contacts Management",
 		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow to access your phonebook. Your Tuta contacts will synchronize automatically.",
 		"contactsSynchronization_label": "Contacts Synchronization",
@@ -1456,6 +1461,7 @@ export default {
 		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents.",
 		"sendLogs_action": "Send Logs",
 		"sendMail_alt": "Send email to this address",
+		"sendMail_label": "Send an email",
 		"sendUpdates_label": "Send updates to invitees",
 		"sendUpdates_msg": "Send update notification to invitees?",
 		"send_action": "Send",
@@ -1799,12 +1805,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"birthdayEvent_title": `{name}'s birthday`,
-		"birthdayEventAge_title": `{age} years old`,
-		"birthdayCalendar_label": "Birthdays",
-		"contactNotFound_msg": "Contact not found",
-		"sendMail_label": "Send an email",
-		"callNumber_label": "Call number"
+		"you_label": "You"
 	}
 }

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-10-16T07:39:16Z",
+	"updated_at": "2024-10-18T10:39:23Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -160,6 +160,9 @@ export default {
 		"baseTheme_label": "Basisfarbschema",
 		"bcc_label": "Bcc",
 		"behaviorAfterMovingEmail_label": "Verhalten nach dem Verschieben einer E-Mail",
+		"birthdayCalendar_label": "Geburtstage",
+		"birthdayEventAge_title": "Jahre alt",
+		"birthdayEvent_title": "{name}s Geburtstag",
 		"birthday_alt": "Geburtstag",
 		"blockExternalContentSender_action": "Diese Adresse immer blockieren",
 		"blue_label": "Blau",
@@ -214,6 +217,7 @@ export default {
 		"calendarView_action": "Zur Kalendar-Ansicht wechseln",
 		"calendar_label": "Kalender",
 		"callNumber_alt": "Diese Telefonnummer anrufen",
+		"callNumber_label": "Kontakt anrufen",
 		"cameraUsageDescription_msg": "Die Kamera wird verwendet, um Videos aufzunehmen und diese als Anhang zu versenden.",
 		"cancelContactForm_label": "Abbestellung von Kontaktformular",
 		"cancellationConfirmation_msg": "Ihre Antwort wird anonymisiert mit dem Alter Ihres Accounts und Ihrem Abo gespeichert. Danke fürs Teilnehmen!",
@@ -321,6 +325,7 @@ export default {
 		"contactListInvitations_label": "Einladungen zur Kontaktliste",
 		"contactListName_label": "Name der Kontaktliste",
 		"contactLists_label": "Kontaktlisten",
+		"contactNotFound_msg": "Kontakt nicht gefunden",
 		"contactsManagement_label": "Kontaktverwaltung",
 		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden Ihre Tuta-Kontakte mit anderen Anwendungen geteilt, denen Sie Zugriff auf Ihr Telefonbuch erlauben. Ihre Tuta-Kontakte werden automatisch synchronisiert.",
 		"contactsSynchronization_label": "Kontaktsynchronisierung",
@@ -1460,6 +1465,7 @@ export default {
 		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicken Sie auf eine Logdatei, um den Inhalt zu sehen.",
 		"sendLogs_action": "Logs senden",
 		"sendMail_alt": "E-Mail an diese Adresse senden",
+		"sendMail_label": "E-Mail senden",
 		"sendUpdates_label": "Aktualisierung an Eingeladene senden",
 		"sendUpdates_msg": "Aktualisierung an Eingeladene senden?",
 		"send_action": "Absenden",
@@ -1803,12 +1809,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"birthdayEvent_title": `{name} Geburtstag`,
-		"birthdayEventAge_title": "{age} Jahre alt",
-		"birthdayCalendar_label": "Geburtstage",
-		"contactNotFound_msg": "Kontakt nicht gefunden",
-		"sendMail_label": "Eine E-Mail senden",
-		"callNumber_label": "Rufnummer"
+		"you_label": "Sie"
 	}
 }
