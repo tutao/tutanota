@@ -63,7 +63,7 @@ import {
 } from "./view/ContactGuiUtils"
 import { parseBirthday } from "../../common/misc/DateParser"
 import type { TextFieldAttrs } from "../../common/gui/base/TextField.js"
-import { Autocomplete, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, Autocomplete, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { timestampToGeneratedId } from "../../common/api/common/utils/EntityUtils"
 import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregateEditor"
@@ -174,7 +174,14 @@ export class ContactEditor {
 		this.messengerHandles.push(this.newMessengerHandler())
 		this.pronouns = this.contact.pronouns.map((pronoun) => [pronoun, id(pronoun)])
 		this.pronouns.push(this.newPronoun())
-		this.customDates = this.contact.customDate.map((date) => [{ ...date, date: formatContactDate(date.dateIso), isValid: true }, id(date)])
+		this.customDates = this.contact.customDate.map((date) => [
+			{
+				...date,
+				date: formatContactDate(date.dateIso),
+				isValid: true,
+			},
+			id(date),
+		])
 		this.customDates.push(this.newCustomDate())
 
 		this.hasInvalidBirthday = false
@@ -505,6 +512,7 @@ export class ContactEditor {
 			fieldType: TextFieldType.Text,
 			label: getContactSocialTypeLabel(downcast<ContactSocialType>(socialId.type), socialId.customTypeName),
 			helpLabel: "emptyString_msg",
+			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
 				findAndRemove(this.socialIds, (t) => t[1] === id)
 			},
@@ -527,6 +535,7 @@ export class ContactEditor {
 			fieldType: TextFieldType.Text,
 			label: getContactCustomWebsiteTypeToLabel(downcast<ContactWebsiteType>(website.type), website.customTypeName),
 			helpLabel: "emptyString_msg",
+			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
 				findAndRemove(this.websites, (t) => t[1] === id)
 			},
@@ -571,6 +580,7 @@ export class ContactEditor {
 			fieldType: TextFieldType.Text,
 			label: getContactMessengerHandleTypeToLabel(downcast<ContactMessengerHandleType>(messengerHandle.type), messengerHandle.customTypeName),
 			helpLabel: "emptyString_msg",
+			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
 				findAndRemove(this.messengerHandles, (t) => t[1] === id)
 			},
@@ -593,6 +603,7 @@ export class ContactEditor {
 			fieldType: TextFieldType.Text,
 			label: pronouns.language,
 			helpLabel: "emptyString_msg",
+			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
 				findAndRemove(this.pronouns, (t) => t[1] === id)
 			},
@@ -822,7 +833,13 @@ export class ContactEditor {
 		return timestampToGeneratedId(Date.now())
 	}
 
-	private onTypeSelected<K, T extends { type: K; customTypeName: string }>(isCustom: boolean, key: K, aggregate: T): void {
+	private onTypeSelected<
+		K,
+		T extends {
+			type: K
+			customTypeName: string
+		},
+	>(isCustom: boolean, key: K, aggregate: T): void {
 		if (isCustom) {
 			setTimeout(() => {
 				Dialog.showTextInputDialog({

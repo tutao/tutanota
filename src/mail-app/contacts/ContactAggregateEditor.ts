@@ -1,7 +1,5 @@
-import { TextFieldAttrs, TextFieldType } from "../../common/gui/base/TextField.js"
-import { TextField } from "../../common/gui/base/TextField.js"
-import { TranslationKey, TranslationText } from "../../common/misc/LanguageViewModel"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { Autocapitalize, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
+import { lang, TranslationKey, TranslationText } from "../../common/misc/LanguageViewModel"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { animations, height, opacity } from "../../common/gui/animation/Animations"
@@ -9,8 +7,6 @@ import { attachDropdown } from "../../common/gui/base/Dropdown.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
-import { lazy } from "@tutao/tutanota-utils"
-import type { TranslationKeyType } from "../../common/misc/TranslationKey.js"
 
 export type AggregateEditorAttrs<AggregateType> = {
 	value: string
@@ -25,6 +21,7 @@ export type AggregateEditorAttrs<AggregateType> = {
 	helpLabel: TranslationText
 	typeLabels: ReadonlyArray<[AggregateType, TranslationKey]>
 	onTypeSelected: (arg0: AggregateType) => unknown
+	autocapitalizeTextField?: Autocapitalize
 }
 
 export class ContactAggregateEditor implements Component<AggregateEditorAttrs<any>> {
@@ -51,6 +48,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 				value: attrs.value,
 				label: () => attrs.label,
 				type: attrs.fieldType,
+				autocapitalize: attrs.autocapitalizeTextField,
 				helpLabel: () => helpLabel(),
 				injectionsRight: () => this._moreButtonFor(attrs),
 				oninput: (value) => attrs.onUpdate(value),
