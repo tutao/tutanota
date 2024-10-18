@@ -1,7 +1,7 @@
 import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
-import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
+import { getApiBaseUrl, isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
 import { assertNotNull, defer, delay, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
@@ -35,6 +35,7 @@ import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { ImapCredentials } from "../native/common/generatedipc/ImapCredentials"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -194,6 +195,27 @@ export class PostLoginActions implements PostLoginAction {
 
 		// Needs to be called after UsageTestModel.init() if the UsageOptInNews is live! (its isShown() requires an initialized UsageTestModel)
 		await locator.newsModel.loadNewsIds()
+
+		// FIXME
+		// initialize imap import
+		if (isDesktop()) {
+			const userId = locator.logins.getUserController().userId
+			const unencryptedCredentials = await locator.credentialsProvider.getDecryptedCredentialsByUserId(userId)
+
+			if (unencryptedCredentials) {
+				const imapCredentials: ImapCredentials = {
+					password: "imap-password",
+					username: "imap-user",
+					host: "mail.gmail.com",
+					port: "123",
+				}
+
+				const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
+				await locator.imapImportSystemFacade.setup(apiUrl, unencryptedCredentials, imapCredentials)
+			} else {
+				console.error(`could not load credentials for user with userId ${userId}`)
+			}
+		}
 
 		// Redraw to render usage tests and news, among other things that may have changed.
 		m.redraw()

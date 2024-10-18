@@ -33,7 +33,7 @@ const BUCKET_KEY_FIELD: &str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
-	key_loader_facade: Arc<KeyLoaderFacade>,
+	pub(crate) key_loader_facade: Arc<KeyLoaderFacade>,
 	instance_mapper: Arc<InstanceMapper>,
 	randomizer_facade: RandomizerFacade,
 }
@@ -374,7 +374,7 @@ mod test {
 	use crate::crypto::aes::{Aes256Key, Iv};
 	use crate::crypto::crypto_facade::{CryptoFacade, CryptoProtocolVersion};
 	use crate::crypto::ecc::EccKeyPair;
-	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, VersionedAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::rsa::{RSAEccKeyPair, RSAKeyPair};
@@ -385,7 +385,7 @@ mod test {
 	use crate::entities::Entity;
 	use crate::generated_id::GeneratedId;
 	use crate::instance_mapper::InstanceMapper;
-	use crate::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
+	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};

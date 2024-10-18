@@ -71,6 +71,10 @@ import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
+import { DesktopImapImportSystemFacade } from "./imapimport/DesktopImapImportSystemFacade.js"
+import { DomainConfigProvider } from "../api/common/DomainConfigProvider.js"
+
+mp()
 
 /**
  * Should be injected during build time.
@@ -86,7 +90,6 @@ setupAssetProtocol(electron)
 
 const TAG = "[DesktopMain]"
 
-mp()
 type Components = {
 	readonly wm: WindowManager
 	readonly tfs: TempFs
@@ -270,6 +273,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopExportFacade(tfs, conf, window, dragIcons),
 			new DesktopExternalCalendarFacade(),
 			new DesktopFileFacade(window, conf, dateProvider, desktopNet, electron, tfs, fs),
+			new DesktopImapImportSystemFacade(window),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
@@ -317,7 +321,7 @@ async function startupInstance(components: Components) {
 	const { wm, sse, tfs } = components
 	if (!(await desktopUtils.cleanupOldInstance())) return
 	sse.connect().catch((e) => log.warn("unable to start sse client", e))
-	// The second-instance event fires when we call app.requestSingleInstanceLock inside of DesktopUtils.makeSingleInstance
+	// The second-instance event fires when we call app.requestSingleInstanceLock inside DesktopUtils.makeSingleInstance
 	app.on("second-instance", async (_ev, args) => desktopUtils.handleSecondInstance(wm, args))
 	app.on("open-url", (e, url) => {
 		// MacOS mailto handling

@@ -14,7 +14,7 @@ use std::sync::Arc;
 pub struct CryptoEntityClient {
 	entity_client: Arc<EntityClient>,
 	entity_facade: Arc<dyn EntityFacade>,
-	crypto_facade: Arc<CryptoFacade>,
+	pub(crate) crypto_facade: Arc<CryptoFacade>,
 	instance_mapper: Arc<InstanceMapper>,
 }
 
