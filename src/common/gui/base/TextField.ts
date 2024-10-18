@@ -15,6 +15,7 @@ export type TextFieldAttrs = {
 	label: TranslationKey | lazy<string>
 	value: string
 	autocompleteAs?: Autocomplete
+	autocapitalize?: Autocapitalize
 	type?: TextFieldType
 	hasPopup?: AriaPopupType
 	helpLabel?: lazy<Children> | null
@@ -64,6 +65,12 @@ export const enum Autocomplete {
 	ccNumber = "cc-number",
 	ccCsc = "cc-csc",
 	ccExp = "cc-exp",
+}
+
+// relevant subset of possible values for the autocapitalize html field
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/autocapitalize
+export const enum Autocapitalize {
+	none = "none",
 }
 
 export const inputLineHeight: number = size.font_size_base + 8
@@ -234,6 +241,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				autofillGuard.concat([
 					m("input.input" + (a.alignRight ? ".right" : ""), {
 						autocomplete: a.autocompleteAs ?? "",
+						autocapitalize: a.autocapitalize,
 						type: a.type,
 						min: a.min,
 						max: a.max,
@@ -311,6 +319,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			return m("textarea.input-area.text-pre", {
 				"aria-label": lang.getMaybeLazy(a.label),
 				disabled: a.disabled,
+				autocapitalize: a.autocapitalize,
 				class: getOperatingClasses(a.disabled) + " text",
 				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement

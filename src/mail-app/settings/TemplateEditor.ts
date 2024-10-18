@@ -1,8 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
 import type { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
-import type { ButtonAttrs } from "../../common/gui/base/Button.js"
-import { Button, ButtonType } from "../../common/gui/base/Button.js"
+import { ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { createDropdown, DropdownButtonAttrs } from "../../common/gui/base/Dropdown.js"
@@ -95,6 +94,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 			}),
 			m(TextField, {
 				label: "shortcut_label",
+				autocapitalize: Autocapitalize.none,
 				value: this.model.tag(),
 				oninput: this.model.tag,
 			}),
