@@ -783,6 +783,8 @@ export type TranslationKeyType =
 	| "IpAddress_label"
 	| "keyboardShortcuts_title"
 	| "keyManagement_label"
+	| "keyManagement.publicKeyFingerprint_label"
+	| "keyManagement.publicKeyFingerprintInfo_msg"
 	| "keywords_label"
 	| "knowledgebase_label"
 	| "knownCredentials_label"

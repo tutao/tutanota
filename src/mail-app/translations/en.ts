@@ -800,6 +800,8 @@ export default {
 		"IpAddress_label": "IP address",
 		"keyboardShortcuts_title": "Keyboard shortcuts",
 		"keyManagement_label": "Key management",
+		"keyManagement.publicKeyFingerprint_label": "Public key",
+		"keyManagement.publicKeyFingerprintInfo_msg": "This is the fingerprint of the public key associated with your user account.",
 		"keywords_label": "Keywords",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Saved accounts",
