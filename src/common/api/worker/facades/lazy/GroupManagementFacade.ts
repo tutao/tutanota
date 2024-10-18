@@ -9,7 +9,16 @@ import {
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
-import { createGroup, createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRef, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import {
+	createLocalAdminGroupReplacementData,
+	createMembershipAddData,
+	createMembershipRemoveData,
+	Group,
+	GroupTypeRef,
+	LocalAdminGroupReplacementData,
+	User,
+	UserTypeRef,
+} from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
@@ -326,26 +335,26 @@ export class GroupManagementFacade {
 	 * This function will decrypt the user group key with the local admin group key and then encrypt it with the global admin group key
 	 * Please note that this function is free of side effects, it only returns a new reference of the newly modified group.
 	 *
-	 * @param adminGroupId the global admin group Id that will be the new reference in the user group
 	 * @param globalAdminGroupKey the key of the global admin that will encrypt the user group key
 	 * @param localAdminGroupKey the key of the local admin that was used to encrypt the user group key and will be used to decrypt the user group key
 	 * @param userGroup the user group that needs its adminEncGroupKey to be replaced
 	 */
 	async replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
-		adminGroupId: string,
 		globalAdminGroupKey: VersionedKey,
 		localAdminGroupKey: AesKey,
 		userGroup: Group,
-	): Promise<Group> {
-		const userAdminEncGroupKey = assertNotNull(userGroup.adminGroupEncGKey)
-		const decryptedUserGroupKey = this.cryptoWrapper.decryptKey(localAdminGroupKey, userAdminEncGroupKey)
+	): Promise<LocalAdminGroupReplacementData> {
+		const localAdminEncUserGroupKey = assertNotNull(userGroup.adminGroupEncGKey)
+		const decryptedUserGroupKey = this.cryptoWrapper.decryptKey(localAdminGroupKey, localAdminEncUserGroupKey)
 
-		const newAdminEncUserGroupKey = this.cryptoWrapper.encryptKey(globalAdminGroupKey.object, decryptedUserGroupKey)
+		const globalAdminEncUserGroupKey = this.cryptoWrapper.encryptKey(globalAdminGroupKey.object, decryptedUserGroupKey)
 
-		const newGroup = createGroup(userGroup)
-		newGroup.adminGroupEncGKey = newAdminEncUserGroupKey
-		newGroup.adminGroupKeyVersion = String(globalAdminGroupKey.version)
-		newGroup.admin = adminGroupId
-		return newGroup
+		const groupUpdate = createLocalAdminGroupReplacementData({
+			adminGroupKeyVersion: String(globalAdminGroupKey.version),
+			adminGroupEncGKey: globalAdminEncUserGroupKey,
+			groupId: userGroup._id,
+			groupKeyVersion: userGroup.groupKeyVersion,
+		})
+		return groupUpdate
 	}
 }

@@ -21,6 +21,9 @@ impl Entity for AttachmentKeyData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Birthday {
@@ -37,6 +40,9 @@ impl Entity for Birthday {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -55,6 +61,9 @@ impl Entity for Body {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarDeleteData {
@@ -69,6 +78,9 @@ impl Entity for CalendarDeleteData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -107,6 +119,9 @@ impl Entity for CalendarEvent {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventAttendee {
@@ -124,6 +139,9 @@ impl Entity for CalendarEventAttendee {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventIndexRef {
@@ -138,6 +156,9 @@ impl Entity for CalendarEventIndexRef {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -157,6 +178,9 @@ impl Entity for CalendarEventUidIndex {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -182,6 +206,9 @@ impl Entity for CalendarEventUpdate {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventUpdateList {
@@ -196,6 +223,9 @@ impl Entity for CalendarEventUpdateList {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -222,6 +252,9 @@ impl Entity for CalendarGroupRoot {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarRepeatRule {
@@ -242,6 +275,9 @@ impl Entity for CalendarRepeatRule {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -292,6 +328,9 @@ impl Entity for Contact {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactAddress {
@@ -311,6 +350,9 @@ impl Entity for ContactAddress {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactCustomDate {
@@ -329,6 +371,9 @@ impl Entity for ContactCustomDate {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -354,6 +399,9 @@ impl Entity for ContactList {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactListEntry {
@@ -376,6 +424,9 @@ impl Entity for ContactListEntry {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -400,6 +451,9 @@ impl Entity for ContactListGroupRoot {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactMailAddress {
@@ -418,6 +472,9 @@ impl Entity for ContactMailAddress {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -438,6 +495,9 @@ impl Entity for ContactMessengerHandle {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactPhoneNumber {
@@ -457,6 +517,9 @@ impl Entity for ContactPhoneNumber {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactPronouns {
@@ -473,6 +536,9 @@ impl Entity for ContactPronouns {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -493,6 +559,9 @@ impl Entity for ContactRelationship {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactSocialId {
@@ -512,6 +581,9 @@ impl Entity for ContactSocialId {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactWebsite {
@@ -530,6 +602,9 @@ impl Entity for ContactWebsite {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -552,6 +627,9 @@ impl Entity for ConversationEntry {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateExternalUserGroupData {
@@ -572,6 +650,9 @@ impl Entity for CreateExternalUserGroupData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateGroupPostReturn {
@@ -588,6 +669,9 @@ impl Entity for CreateGroupPostReturn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -611,6 +695,9 @@ impl Entity for CreateMailFolderData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateMailFolderReturn {
@@ -627,6 +714,9 @@ impl Entity for CreateMailFolderReturn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -647,6 +737,9 @@ impl Entity for CreateMailGroupData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -683,6 +776,9 @@ impl Entity for CustomerAccountCreateData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DefaultAlarmInfo {
@@ -698,6 +794,9 @@ impl Entity for DefaultAlarmInfo {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -715,6 +814,9 @@ impl Entity for DeleteGroupData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DeleteMailData {
@@ -730,6 +832,9 @@ impl Entity for DeleteMailData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -747,6 +852,9 @@ impl Entity for DeleteMailFolderData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -766,6 +874,9 @@ impl Entity for DraftAttachment {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -789,6 +900,9 @@ impl Entity for DraftCreateData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftCreateReturn {
@@ -803,6 +917,9 @@ impl Entity for DraftCreateReturn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -832,6 +949,9 @@ impl Entity for DraftData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftRecipient {
@@ -848,6 +968,9 @@ impl Entity for DraftRecipient {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -867,6 +990,9 @@ impl Entity for DraftUpdateData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftUpdateReturn {
@@ -883,6 +1009,9 @@ impl Entity for DraftUpdateReturn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -909,6 +1038,9 @@ impl Entity for EmailTemplate {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EmailTemplateContent {
@@ -925,6 +1057,9 @@ impl Entity for EmailTemplateContent {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -944,6 +1079,9 @@ impl Entity for EncryptTutanotaPropertiesData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EncryptedMailAddress {
@@ -961,6 +1099,9 @@ impl Entity for EncryptedMailAddress {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EntropyData {
@@ -977,6 +1118,9 @@ impl Entity for EntropyData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1013,6 +1157,9 @@ impl Entity for ExternalUserData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TutanotaFile {
@@ -1042,6 +1189,9 @@ impl Entity for TutanotaFile {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct FileSystem {
@@ -1065,6 +1215,9 @@ impl Entity for FileSystem {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupInvitationDeleteData {
@@ -1079,6 +1232,9 @@ impl Entity for GroupInvitationDeleteData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1096,6 +1252,9 @@ impl Entity for GroupInvitationPostData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupInvitationPostReturn {
@@ -1112,6 +1271,9 @@ impl Entity for GroupInvitationPostReturn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1134,6 +1296,9 @@ impl Entity for GroupInvitationPutData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupSettings {
@@ -1154,6 +1319,9 @@ impl Entity for GroupSettings {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Header {
@@ -1170,6 +1338,9 @@ impl Entity for Header {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1188,6 +1359,9 @@ impl Entity for ImapFolder {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1208,6 +1382,9 @@ impl Entity for ImapSyncConfiguration {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ImapSyncState {
@@ -1225,6 +1402,9 @@ impl Entity for ImapSyncState {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1244,6 +1424,9 @@ impl Entity for InboxRule {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1278,6 +1461,9 @@ impl Entity for InternalGroupData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InternalRecipientKeyData {
@@ -1297,6 +1483,9 @@ impl Entity for InternalRecipientKeyData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1323,6 +1512,9 @@ impl Entity for KnowledgeBaseEntry {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct KnowledgeBaseEntryKeyword {
@@ -1338,6 +1530,9 @@ impl Entity for KnowledgeBaseEntryKeyword {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1355,6 +1550,9 @@ impl Entity for ListUnsubscribeData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1400,6 +1598,9 @@ impl Entity for Mail {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddress {
@@ -1418,6 +1619,9 @@ impl Entity for MailAddress {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressProperties {
@@ -1435,6 +1639,9 @@ impl Entity for MailAddressProperties {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailBag {
@@ -1449,6 +1656,9 @@ impl Entity for MailBag {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1480,6 +1690,9 @@ impl Entity for MailBox {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetails {
@@ -1499,6 +1712,9 @@ impl Entity for MailDetails {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1523,6 +1739,9 @@ impl Entity for MailDetailsBlob {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsDraft {
@@ -1546,6 +1765,9 @@ impl Entity for MailDetailsDraft {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsDraftsRef {
@@ -1560,6 +1782,9 @@ impl Entity for MailDetailsDraftsRef {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1590,6 +1815,9 @@ impl Entity for MailFolder {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailFolderRef {
@@ -1604,6 +1832,9 @@ impl Entity for MailFolderRef {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1623,6 +1854,9 @@ impl Entity for MailSetEntry {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailboxGroupRoot {
@@ -1636,6 +1870,7 @@ pub struct MailboxGroupRoot {
 	pub outOfOfficeNotification: Option<GeneratedId>,
 	pub outOfOfficeNotificationRecipientList: Option<OutOfOfficeNotificationRecipientList>,
 	pub serverProperties: GeneratedId,
+	pub whitelistRequests: GeneratedId,
 }
 impl Entity for MailboxGroupRoot {
 	fn type_ref() -> TypeRef {
@@ -1645,6 +1880,9 @@ impl Entity for MailboxGroupRoot {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1670,6 +1908,9 @@ impl Entity for MailboxProperties {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailboxServerProperties {
@@ -1688,6 +1929,9 @@ impl Entity for MailboxServerProperties {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MoveMailData {
@@ -1704,6 +1948,9 @@ impl Entity for MoveMailData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1726,6 +1973,9 @@ impl Entity for NewDraftAttachment {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NewsId {
@@ -1742,6 +1992,9 @@ impl Entity for NewsId {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NewsIn {
@@ -1757,6 +2010,9 @@ impl Entity for NewsIn {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NewsOut {
@@ -1771,6 +2027,9 @@ impl Entity for NewsOut {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1790,6 +2049,9 @@ impl Entity for NotificationMail {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1812,6 +2074,9 @@ impl Entity for OutOfOfficeNotification {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationMessage {
@@ -1830,6 +2095,9 @@ impl Entity for OutOfOfficeNotificationMessage {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationRecipientList {
@@ -1844,6 +2112,9 @@ impl Entity for OutOfOfficeNotificationRecipientList {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1861,6 +2132,9 @@ impl Entity for PhishingMarkerWebsocketData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PhotosRef {
@@ -1876,6 +2150,9 @@ impl Entity for PhotosRef {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReceiveInfoServiceData {
@@ -1890,6 +2167,9 @@ impl Entity for ReceiveInfoServiceData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1907,6 +2187,9 @@ impl Entity for Recipients {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1927,6 +2210,9 @@ impl Entity for RemoteImapSyncInfo {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReportMailPostData {
@@ -1945,6 +2231,9 @@ impl Entity for ReportMailPostData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReportedMailFieldMarker {
@@ -1960,6 +2249,9 @@ impl Entity for ReportedMailFieldMarker {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1988,6 +2280,9 @@ impl Entity for SecureExternalRecipientKeyData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2018,6 +2313,9 @@ impl Entity for SendDraftData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SendDraftReturn {
@@ -2035,6 +2333,9 @@ impl Entity for SendDraftReturn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2065,21 +2366,8 @@ impl Entity for SharedGroupData {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct SimpleMoveMailPostIn {
-	pub _format: i64,
-	pub destinationSetType: i64,
-	pub mails: Vec<IdTuple>,
-}
-impl Entity for SimpleMoveMailPostIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "tutanota",
-			type_: "SimpleMoveMailPostIn",
-		}
-	}
-}
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2096,6 +2384,9 @@ impl Entity for SpamResults {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Subfiles {
@@ -2110,6 +2401,9 @@ impl Entity for Subfiles {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2129,6 +2423,9 @@ impl Entity for SymEncInternalRecipientKeyData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2154,6 +2451,9 @@ impl Entity for TemplateGroupRoot {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TranslationGetIn {
@@ -2168,6 +2468,9 @@ impl Entity for TranslationGetIn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2184,6 +2487,9 @@ impl Entity for TranslationGetOut {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2221,21 +2527,8 @@ impl Entity for TutanotaProperties {
 	}
 }
 
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct UnreadMailStatePostIn {
-	pub _format: i64,
-	pub unread: bool,
-	pub mails: Vec<IdTuple>,
-}
-impl Entity for UnreadMailStatePostIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "tutanota",
-			type_: "UnreadMailStatePostIn",
-		}
-	}
-}
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2253,6 +2546,9 @@ impl Entity for UpdateMailFolderData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAccountCreateData {
@@ -2269,6 +2565,9 @@ impl Entity for UserAccountCreateData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2325,6 +2624,9 @@ impl Entity for UserAccountUserData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAreaGroupData {
@@ -2353,6 +2655,9 @@ impl Entity for UserAreaGroupData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAreaGroupDeleteData {
@@ -2368,6 +2673,9 @@ impl Entity for UserAreaGroupDeleteData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAreaGroupPostData {
@@ -2382,6 +2690,9 @@ impl Entity for UserAreaGroupPostData {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2408,3 +2719,6 @@ impl Entity for UserSettingsGroupRoot {
 		}
 	}
 }
+
+
+

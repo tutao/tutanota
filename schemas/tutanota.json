@@ -500,16 +500,6 @@
 					"info": "AddValue GroupSettings/sourceUrl/1468."
 				}
 			]
-		},
-		{
-			"version": 76,
-			"changes": [
-				{
-					"name": "RemoveAssociation",
-					"sourceType": "MailboxGroupRoot",
-					"info": "RemoveAssociation MailboxGroupRoot/whitelistRequests."
-				}
-			]
 		}
 	]
 }

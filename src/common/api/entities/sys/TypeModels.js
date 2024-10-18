@@ -405,7 +405,7 @@ export const typeModels = {
             }
         },
         "app": "sys",
-        "version": "111"
+        "version": "112"
     },
     "AdministratedGroupsRef": {
         "name": "AdministratedGroupsRef",
@@ -3967,6 +3967,16 @@ export const typeModels = {
                 "cardinality": "Any",
                 "refType": "StringWrapper",
                 "dependency": null
+            },
+            "whitelistedDomains": {
+                "final": true,
+                "name": "whitelistedDomains",
+                "id": 1099,
+                "since": 21,
+                "type": "AGGREGATION",
+                "cardinality": "ZeroOrOne",
+                "refType": "DomainsRef",
+                "dependency": null
             }
         },
         "app": "sys",
@@ -4291,6 +4301,40 @@ export const typeModels = {
             }
         },
         "associations": {},
+        "app": "sys",
+        "version": "112"
+    },
+    "DomainsRef": {
+        "name": "DomainsRef",
+        "since": 21,
+        "type": "AGGREGATED_TYPE",
+        "id": 1096,
+        "rootId": "A3N5cwAESA",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 1097,
+                "since": 21,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "items": {
+                "final": true,
+                "name": "items",
+                "id": 1098,
+                "since": 21,
+                "type": "LIST_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Domain",
+                "dependency": null
+            }
+        },
         "app": "sys",
         "version": "112"
     },
@@ -7557,6 +7601,101 @@ export const typeModels = {
                 "type": "LIST_ASSOCIATION",
                 "cardinality": "One",
                 "refType": "KeyRotation",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "112"
+    },
+    "LocalAdminGroupReplacementData": {
+        "name": "LocalAdminGroupReplacementData",
+        "since": 112,
+        "type": "AGGREGATED_TYPE",
+        "id": 2484,
+        "rootId": "A3N5cwAJtA",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_id": {
+                "final": true,
+                "name": "_id",
+                "id": 2485,
+                "since": 112,
+                "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "adminGroupEncGKey": {
+                "final": false,
+                "name": "adminGroupEncGKey",
+                "id": 2487,
+                "since": 112,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "adminGroupKeyVersion": {
+                "final": false,
+                "name": "adminGroupKeyVersion",
+                "id": 2489,
+                "since": 112,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "groupKeyVersion": {
+                "final": false,
+                "name": "groupKeyVersion",
+                "id": 2488,
+                "since": 112,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "groupId": {
+                "final": false,
+                "name": "groupId",
+                "id": 2486,
+                "since": 112,
+                "type": "ELEMENT_ASSOCIATION",
+                "cardinality": "One",
+                "refType": "Group",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "112"
+    },
+    "LocalAdminRemovalPostIn": {
+        "name": "LocalAdminRemovalPostIn",
+        "since": 112,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2490,
+        "rootId": "A3N5cwAJug",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2491,
+                "since": 112,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "groupUpdates": {
+                "final": false,
+                "name": "groupUpdates",
+                "id": 2492,
+                "since": 112,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "LocalAdminGroupReplacementData",
                 "dependency": null
             }
         },

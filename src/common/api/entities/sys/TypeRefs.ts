@@ -952,6 +952,7 @@ export type CustomerServerProperties = {
 
 	emailSenderList: EmailSenderListElement[];
 	whitelabelRegistrationDomains: StringWrapper[];
+	whitelistedDomains:  null | DomainsRef;
 }
 export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", "DateWrapper")
 
@@ -1049,6 +1050,19 @@ export type DomainMailAddressAvailabilityReturn = {
 
 	_format: NumberString;
 	available: boolean;
+}
+export const DomainsRefTypeRef: TypeRef<DomainsRef> = new TypeRef("sys", "DomainsRef")
+
+export function createDomainsRef(values: StrippedEntity<DomainsRef>): DomainsRef {
+	return Object.assign(create(typeModels.DomainsRef, DomainsRefTypeRef), values)
+}
+
+export type DomainsRef = {
+	_type: TypeRef<DomainsRef>;
+
+	_id: Id;
+
+	items: Id;
 }
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", "EmailSenderListElement")
 
@@ -1810,6 +1824,35 @@ export type KeyRotationsRef = {
 	_id: Id;
 
 	list: Id;
+}
+export const LocalAdminGroupReplacementDataTypeRef: TypeRef<LocalAdminGroupReplacementData> = new TypeRef("sys", "LocalAdminGroupReplacementData")
+
+export function createLocalAdminGroupReplacementData(values: StrippedEntity<LocalAdminGroupReplacementData>): LocalAdminGroupReplacementData {
+	return Object.assign(create(typeModels.LocalAdminGroupReplacementData, LocalAdminGroupReplacementDataTypeRef), values)
+}
+
+export type LocalAdminGroupReplacementData = {
+	_type: TypeRef<LocalAdminGroupReplacementData>;
+
+	_id: Id;
+	adminGroupEncGKey: Uint8Array;
+	adminGroupKeyVersion: NumberString;
+	groupKeyVersion: NumberString;
+
+	groupId: Id;
+}
+export const LocalAdminRemovalPostInTypeRef: TypeRef<LocalAdminRemovalPostIn> = new TypeRef("sys", "LocalAdminRemovalPostIn")
+
+export function createLocalAdminRemovalPostIn(values: StrippedEntity<LocalAdminRemovalPostIn>): LocalAdminRemovalPostIn {
+	return Object.assign(create(typeModels.LocalAdminRemovalPostIn, LocalAdminRemovalPostInTypeRef), values)
+}
+
+export type LocalAdminRemovalPostIn = {
+	_type: TypeRef<LocalAdminRemovalPostIn>;
+
+	_format: NumberString;
+
+	groupUpdates: LocalAdminGroupReplacementData[];
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 
