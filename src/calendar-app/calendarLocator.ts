@@ -110,6 +110,7 @@ import { locator } from "../common/api/main/CommonLocator.js"
 import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
+import { ImapImportSystemFacade } from "../common/native/common/generatedipc/ImapImportSystemFacade.js"
 
 assertMainOrNode()
 
@@ -150,6 +151,7 @@ class CalendarLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	imapImportSystemFacade!: ImapImportSystemFacade
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher

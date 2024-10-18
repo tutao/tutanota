@@ -127,6 +127,7 @@ import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import { ImapImportSystemFacade } from "../common/native/common/generatedipc/ImapImportSystemFacade.js"
 
 assertMainOrNode()
 
@@ -171,6 +172,7 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	imapImportSystemFacade!: ImapImportSystemFacade
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -805,6 +807,7 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
+					this.imapImportSystemFacade = desktopInterfaces.imapImportSystemFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")

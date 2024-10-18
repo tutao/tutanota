@@ -1,3 +1,4 @@
+use crate::entity_client::IdType;
 use base64::Engine;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -30,6 +31,8 @@ impl CustomId {
 		Self(generate_random_string::<9>())
 	}
 }
+
+impl IdType for CustomId {}
 
 impl From<CustomId> for String {
 	fn from(value: CustomId) -> Self {

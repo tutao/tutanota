@@ -44,6 +44,7 @@ use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelPro
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
+use crate::ApiCallError::InternalSdkError;
 use rest_client::{RestClient, RestClientError};
 
 pub mod crypto;
@@ -107,7 +108,6 @@ impl Display for TypeRef {
 }
 
 pub struct HeadersProvider {
-	// In the future we might need to make this one optional to support "not authenticated" state
 	access_token: Option<String>,
 }
 
@@ -302,12 +302,37 @@ pub struct LoggedInSdk {
 	crypto_entity_client: Arc<CryptoEntityClient>,
 }
 
+// getters
+impl LoggedInSdk {
+	pub fn get_entity_client(&self) -> &Arc<EntityClient> {
+		&self.entity_client
+	}
+
+	pub fn get_crypto_entity_client(&self) -> &Arc<CryptoEntityClient> {
+		&self.crypto_entity_client
+	}
+
+	pub async fn get_current_sym_group_key(
+		&self,
+		user_group_id: &GeneratedId,
+	) -> Result<VersionedAesKey, ApiCallError> {
+		self.crypto_entity_client
+			.crypto_facade
+			.key_loader_facade
+			.as_ref()
+			.expect("LoggedIn sdk should always have keyLoader facade")
+			.get_current_sym_group_key(user_group_id)
+			.await
+			.map_err(|err| ApiCallError::internal(format!("KeyLoadError: {err:?}")))
+	}
+}
+
 #[uniffi::export]
 impl LoggedInSdk {
 	/// Generates a new interface to operate on mail entities
 	#[must_use]
 	pub fn mail_facade(&self) -> MailFacade {
-		MailFacade::new(self.crypto_entity_client.clone())
+		MailFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
 	}
 }
 
