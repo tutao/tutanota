@@ -8,7 +8,7 @@ import { Icon } from "../gui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
-import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { Autocapitalize, Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -76,6 +76,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			value: this.username,
 			alignRight: true,
 			autocompleteAs: Autocomplete.newPassword,
+			autocapitalize: Autocapitalize.none,
 			helpLabel: () => this.addressHelpLabel(),
 			fontSize: px(size.font_size_smaller),
 			oninput: (value) => {
@@ -199,7 +200,12 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			let result: ValidationResult
 			try {
 				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
-				result = available ? { isValid: true, errorId: null } : { isValid: false, errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg" }
+				result = available
+					? { isValid: true, errorId: null }
+					: {
+							isValid: false,
+							errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg",
+					  }
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
 					result = { isValid: false, errorId: "mailAddressDelay_msg" }
