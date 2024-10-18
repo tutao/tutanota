@@ -26,4 +26,5 @@ declare function node<F>(f: F): F
  */
 declare const buildOptions: {
 	readonly sqliteNativePath: string
+	readonly mimimiNativePath: string
 }

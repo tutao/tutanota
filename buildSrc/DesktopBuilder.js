@@ -121,7 +121,10 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		input: [path.join(dirname, "src/common/desktop/DesktopMain.ts"), path.join(dirname, "src/common/desktop/sqlworker.ts")],
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
-		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"],
+		external: (id, parent, isResolved) => {
+			if (parent != null && parent.endsWith("node-mimimi/dist/binding.cjs")) return true
+			return ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"].includes(id)
+		},
 		preserveEntrySignatures: false,
 		plugins: [
 			copyNativeModulePlugin({
@@ -131,6 +134,16 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				architecture,
 				nodeModule: "better-sqlite3",
 			}),
+			{
+				// todo: this needs to work everywhere
+				name: "copy-mimimi-plugin",
+				async buildStart() {
+					const normalDst = path.join(path.normalize("./build/desktop/"), "node-mimimi.linux-x64-gnu.node")
+					const dstDir = path.dirname(normalDst)
+					await fs.promises.mkdir(dstDir, { recursive: true })
+					await fs.promises.copyFile("./packages/node-mimimi/dist/node-mimimi.linux-x64-gnu.node", normalDst)
+				},
+			},
 			typescript({
 				tsconfig: "tsconfig.json",
 				outDir,

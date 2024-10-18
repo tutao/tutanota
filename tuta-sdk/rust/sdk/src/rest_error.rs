@@ -416,7 +416,7 @@ mod tests {
 		result.expect("An error occurred while testing precondition_failed!")
 	}
 
-	/**
+	/*
 	Asserts `from_http_response` returns the reason `reason` given `precondition`
 	for a `PreconditionFailedError`
 	 */

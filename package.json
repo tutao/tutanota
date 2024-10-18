@@ -32,6 +32,8 @@
 		"fix": "npm run style:fix && npm run lint:fix"
 	},
 	"dependencies": {
+		"@napi-rs/cli": "^2.18.4",
+		"@tutao/node-mimimi": "244.240923.0",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tuta-wasm-loader": "250.241018.0",
 		"@tutao/tutanota-crypto": "250.241018.0",
