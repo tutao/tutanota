@@ -1870,7 +1870,6 @@ pub struct MailboxGroupRoot {
 	pub outOfOfficeNotification: Option<GeneratedId>,
 	pub outOfOfficeNotificationRecipientList: Option<OutOfOfficeNotificationRecipientList>,
 	pub serverProperties: GeneratedId,
-	pub whitelistRequests: GeneratedId,
 }
 impl Entity for MailboxGroupRoot {
 	fn type_ref() -> TypeRef {
@@ -2371,6 +2370,25 @@ impl Entity for SharedGroupData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct SimpleMoveMailPostIn {
+	pub _format: i64,
+	pub destinationSetType: i64,
+	pub mails: Vec<IdTuple>,
+}
+impl Entity for SimpleMoveMailPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "SimpleMoveMailPostIn",
+		}
+	}
+}
+
+
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SpamResults {
 	pub _id: CustomId,
 	pub list: GeneratedId,
@@ -2523,6 +2541,25 @@ impl Entity for TutanotaProperties {
 		TypeRef {
 			app: "tutanota",
 			type_: "TutanotaProperties",
+		}
+	}
+}
+
+
+
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct UnreadMailStatePostIn {
+	pub _format: i64,
+	pub unread: bool,
+	pub mails: Vec<IdTuple>,
+}
+impl Entity for UnreadMailStatePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "UnreadMailStatePostIn",
 		}
 	}
 }

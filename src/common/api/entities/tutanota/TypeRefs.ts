@@ -1,10 +1,7 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
-import {DateWrapper} from '../sys/TypeRefs.js'
-import {Blob} from '../sys/TypeRefs.js'
-import {BucketKey} from '../sys/TypeRefs.js'
-import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
+import { Blob, BlobReferenceTokenWrapper, BucketKey, DateWrapper } from '../sys/TypeRefs.js'
 
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
@@ -1361,7 +1358,6 @@ export type MailboxGroupRoot = {
 	outOfOfficeNotification:  null | Id;
 	outOfOfficeNotificationRecipientList:  null | OutOfOfficeNotificationRecipientList;
 	serverProperties: Id;
-	whitelistRequests: Id;
 }
 export const MailboxPropertiesTypeRef: TypeRef<MailboxProperties> = new TypeRef("tutanota", "MailboxProperties")
 
@@ -1708,6 +1704,20 @@ export type SharedGroupData = {
 	sharedGroupEncSharedGroupInfoKey: Uint8Array;
 	sharedGroupKeyVersion: NumberString;
 }
+export const SimpleMoveMailPostInTypeRef: TypeRef<SimpleMoveMailPostIn> = new TypeRef("tutanota", "SimpleMoveMailPostIn")
+
+export function createSimpleMoveMailPostIn(values: StrippedEntity<SimpleMoveMailPostIn>): SimpleMoveMailPostIn {
+	return Object.assign(create(typeModels.SimpleMoveMailPostIn, SimpleMoveMailPostInTypeRef), values)
+}
+
+export type SimpleMoveMailPostIn = {
+	_type: TypeRef<SimpleMoveMailPostIn>;
+
+	_format: NumberString;
+	destinationSetType: NumberString;
+
+	mails: IdTuple[];
+}
 export const SpamResultsTypeRef: TypeRef<SpamResults> = new TypeRef("tutanota", "SpamResults")
 
 export function createSpamResults(values: StrippedEntity<SpamResults>): SpamResults {
@@ -1825,6 +1835,20 @@ export type TutanotaProperties = {
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
 	lastPushedMail:  null | IdTuple;
+}
+export const UnreadMailStatePostInTypeRef: TypeRef<UnreadMailStatePostIn> = new TypeRef("tutanota", "UnreadMailStatePostIn")
+
+export function createUnreadMailStatePostIn(values: StrippedEntity<UnreadMailStatePostIn>): UnreadMailStatePostIn {
+	return Object.assign(create(typeModels.UnreadMailStatePostIn, UnreadMailStatePostInTypeRef), values)
+}
+
+export type UnreadMailStatePostIn = {
+	_type: TypeRef<UnreadMailStatePostIn>;
+
+	_format: NumberString;
+	unread: boolean;
+
+	mails: IdTuple[];
 }
 export const UpdateMailFolderDataTypeRef: TypeRef<UpdateMailFolderData> = new TypeRef("tutanota", "UpdateMailFolderData")
 

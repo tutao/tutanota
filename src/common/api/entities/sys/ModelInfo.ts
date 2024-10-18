@@ -1,6 +1,6 @@
 const modelInfo = {
-	version: 112,
-	compatibleSince: 111,
+	version: 113,
+	compatibleSince: 112,
 }
 		
 export default modelInfo
