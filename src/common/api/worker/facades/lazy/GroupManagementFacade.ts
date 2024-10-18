@@ -9,7 +9,16 @@ import {
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
-import { createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRef, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import {
+	createLocalAdminGroupReplacementData,
+	createMembershipAddData,
+	createMembershipRemoveData,
+	Group,
+	GroupTypeRef,
+	LocalAdminGroupReplacementData,
+	User,
+	UserTypeRef,
+} from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
@@ -315,5 +324,37 @@ export class GroupManagementFacade {
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
 		})
 		return { object: decryptedKey.decryptedAesKey, version: Number(group.groupKeyVersion) }
+	}
+
+	/**
+	 * Context: removal of local admins
+	 * Problem: local admins encrypted the user group key of their users with their admin group key but global admin can't
+	 * decrypt these with their admin group key.
+	 * We want the global admin to still be able to decrypt user data.
+	 *
+	 * This function will decrypt the user group key with the local admin group key and then encrypt it with the global admin group key
+	 * Please note that this function is free of side effects, it only returns a new reference of the newly modified group.
+	 *
+	 * @param globalAdminGroupKey the key of the global admin that will encrypt the user group key
+	 * @param localAdminGroupKey the key of the local admin that was used to encrypt the user group key and will be used to decrypt the user group key
+	 * @param userGroup the user group that needs its adminEncGroupKey to be replaced
+	 */
+	async replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+		globalAdminGroupKey: VersionedKey,
+		localAdminGroupKey: AesKey,
+		userGroup: Group,
+	): Promise<LocalAdminGroupReplacementData> {
+		const localAdminEncUserGroupKey = assertNotNull(userGroup.adminGroupEncGKey)
+		const decryptedUserGroupKey = this.cryptoWrapper.decryptKey(localAdminGroupKey, localAdminEncUserGroupKey)
+
+		const globalAdminEncUserGroupKey = this.cryptoWrapper.encryptKey(globalAdminGroupKey.object, decryptedUserGroupKey)
+
+		const groupUpdate = createLocalAdminGroupReplacementData({
+			adminGroupKeyVersion: String(globalAdminGroupKey.version),
+			adminGroupEncGKey: globalAdminEncUserGroupKey,
+			groupId: userGroup._id,
+			groupKeyVersion: userGroup.groupKeyVersion,
+		})
+		return groupUpdate
 	}
 }
