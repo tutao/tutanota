@@ -1,5 +1,5 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { Autocapitalize, TextField } from "../../../common/gui/base/TextField.js"
 import { isDomainName } from "../../../common/misc/FormatValidator"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import type { AddDomainData } from "./AddDomainWizard"
@@ -26,6 +26,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 			m(".mt", lang.get("enterDomainGetReady_msg")),
 			m(TextField, {
 				label: "customDomain_label",
+				autocapitalize: Autocapitalize.none,
 				value: vnode.attrs.data.domain(),
 				oninput: vnode.attrs.data.domain,
 				helpLabel: () => {
