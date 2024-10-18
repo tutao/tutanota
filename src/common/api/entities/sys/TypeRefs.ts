@@ -1,6 +1,6 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
@@ -952,7 +952,6 @@ export type CustomerServerProperties = {
 
 	emailSenderList: EmailSenderListElement[];
 	whitelabelRegistrationDomains: StringWrapper[];
-	whitelistedDomains:  null | DomainsRef;
 }
 export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", "DateWrapper")
 
@@ -1050,19 +1049,6 @@ export type DomainMailAddressAvailabilityReturn = {
 
 	_format: NumberString;
 	available: boolean;
-}
-export const DomainsRefTypeRef: TypeRef<DomainsRef> = new TypeRef("sys", "DomainsRef")
-
-export function createDomainsRef(values: StrippedEntity<DomainsRef>): DomainsRef {
-	return Object.assign(create(typeModels.DomainsRef, DomainsRefTypeRef), values)
-}
-
-export type DomainsRef = {
-	_type: TypeRef<DomainsRef>;
-
-	_id: Id;
-
-	items: Id;
 }
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", "EmailSenderListElement")
 

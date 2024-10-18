@@ -139,6 +139,10 @@ export class WorkerImpl implements NativeInterface {
 				return locator.login
 			},
 
+			async keyLoaderFacade() {
+				return locator.keyLoader
+			},
+
 			async customerFacade() {
 				return locator.customer()
 			},
