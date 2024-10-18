@@ -3,14 +3,13 @@ import type { TranslationKey } from "../../common/misc/LanguageViewModel"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { isDomainOrTopLevelDomain, isMailAddress } from "../../common/misc/FormatValidator"
 import { getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTA_MAIL_ADDRESS_DOMAINS } from "../../common/api/common/TutanotaConstants"
-import { contains, neverNull, objectEntries } from "@tutao/tutanota-utils"
+import { contains, objectEntries } from "@tutao/tutanota-utils"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { EmailSenderListElement } from "../../common/api/entities/sys/TypeRefs.js"
-import { CustomerInfoTypeRef, CustomerTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import type { SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
@@ -37,6 +36,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 		}),
 		m(TextField, {
 			label: "emailSenderPlaceholder_label",
+			autocapitalize: Autocapitalize.none,
 			value: valueFieldValue(),
 			oninput: valueFieldValue,
 			helpLabel: () =>
