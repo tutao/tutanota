@@ -823,6 +823,7 @@ export default {
 		"invoice_label": "Rechnung",
 		"IpAddress_label": "IP-Adresse",
 		"keyboardShortcuts_title": "Tastatur-Kürzel",
+		"keyManagement_label": "Schlüsselverwaltung",
 		"keywords_label": "Schlüsselwörter",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",

@@ -67,6 +67,7 @@ import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
+import { KeyManagementSettingsViewer } from "../../common/settings/keymanagement/KeyManagementSettingsViewer.js"
 import { showAppRatingDialog } from "../../common/ratings/InAppRatingDialog.js"
 
 assertMainOrNode()
@@ -130,6 +131,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.Bell,
 				"notifications",
 				() => new NotificationSettingsViewer(),
+				undefined,
+			),
+			new SettingsFolder(
+				"keyManagement_label",
+				() => BootIcons.Progress,
+				"keymanagement",
+				() => new KeyManagementSettingsViewer(),
 				undefined,
 			),
 		]
