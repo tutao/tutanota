@@ -824,6 +824,8 @@ export default {
 		"IpAddress_label": "IP-Adresse",
 		"keyboardShortcuts_title": "Tastatur-Kürzel",
 		"keyManagement_label": "Schlüsselverwaltung",
+		"keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
+		"keyManagement.publicKeyFingerprintInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels.",
 		"keywords_label": "Schlüsselwörter",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",
