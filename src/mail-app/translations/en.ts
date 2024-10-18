@@ -791,6 +791,7 @@ export default {
 		"invoice_label": "Invoice",
 		"IpAddress_label": "IP address",
 		"keyboardShortcuts_title": "Keyboard shortcuts",
+		"keyManagement_label": "Key management",
 		"keywords_label": "Keywords",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Saved accounts",

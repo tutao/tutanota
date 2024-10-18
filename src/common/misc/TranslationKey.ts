@@ -775,6 +775,7 @@ export type TranslationKeyType =
 	| "invoice_label"
 	| "IpAddress_label"
 	| "keyboardShortcuts_title"
+	| "keyManagement_label"
 	| "keywords_label"
 	| "knowledgebase_label"
 	| "knownCredentials_label"
