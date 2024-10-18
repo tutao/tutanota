@@ -9,7 +9,7 @@ import { createInboxRule } from "../../common/api/entities/tutanota/TypeRefs.js"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { LockedError } from "../../common/api/common/error/RestError"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -29,7 +29,10 @@ import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.j
 
 assertMainOrNode()
 
-export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & { _id?: InboxRule["_id"]; targetFolder?: InboxRule["targetFolder"] }
+export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
+	_id?: InboxRule["_id"]
+	targetFolder?: InboxRule["targetFolder"]
+}
 
 export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
 	if (locator.logins.getUserController().isFreeAccount()) {
@@ -56,6 +59,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}),
 			m(TextField, {
 				label: "inboxRuleValue_label",
+				autocapitalize: Autocapitalize.none,
 				value: inboxRuleValue(),
 				oninput: inboxRuleValue,
 				helpLabel: () =>
