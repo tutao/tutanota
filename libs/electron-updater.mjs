@@ -72,7 +72,7 @@ class CancellationToken extends events_1.EventEmitter {
                     this.removeListener("cancel", cancelHandler);
                     cancelHandler = null;
                 }
-                catch (ignore) {
+                catch (_ignore) {
                     // ignore
                 }
             }
@@ -171,7 +171,7 @@ function requireMs () {
 	 * @api public
 	 */
 
-	ms = function(val, options) {
+	ms = function (val, options) {
 	  options = options || {};
 	  var type = typeof val;
 	  if (type === 'string' && val.length > 0) {
@@ -1400,7 +1400,7 @@ const debug_1$1 = srcExports;
 const fs_1$3 = require$$1$2;
 const stream_1$2 = require$$0$1;
 const url_1$4 = require$$4;
-const CancellationToken_1 = CancellationToken$1;
+const CancellationToken_1$1 = CancellationToken$1;
 const error_1$2 = error;
 const ProgressCallbackTransform_1 = ProgressCallbackTransform$1;
 const debug$3 = (0, debug_1$1.default)("electron-builder");
@@ -1445,7 +1445,7 @@ class HttpExecutor {
     constructor() {
         this.maxRedirects = 10;
     }
-    request(options, cancellationToken = new CancellationToken_1.CancellationToken(), data) {
+    request(options, cancellationToken = new CancellationToken_1$1.CancellationToken(), data) {
         configureRequestOptions(options);
         const json = data == null ? undefined : JSON.stringify(data);
         const encodedData = json ? Buffer.from(json) : undefined;
@@ -3907,9 +3907,31 @@ function equals(firstValue, secondValue) {
     return firstValue === secondValue;
 }
 
+var retry$2 = {};
+
+Object.defineProperty(retry$2, "__esModule", { value: true });
+retry$2.retry = retry$1;
+const CancellationToken_1 = CancellationToken$1;
+async function retry$1(task, retryCount, interval, backoff = 0, attempt = 0, shouldRetry) {
+    var _a;
+    const cancellationToken = new CancellationToken_1.CancellationToken();
+    try {
+        return await task();
+    }
+    catch (error) {
+        if (((_a = shouldRetry === null || shouldRetry === void 0 ? void 0 : shouldRetry(error)) !== null && _a !== void 0 ? _a : true) && retryCount > 0 && !cancellationToken.cancelled) {
+            await new Promise(resolve => setTimeout(resolve, interval + backoff * attempt));
+            return await retry$1(task, retryCount - 1, interval, backoff, attempt + 1, shouldRetry);
+        }
+        else {
+            throw error;
+        }
+    }
+}
+
 (function (exports) {
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.CURRENT_APP_PACKAGE_FILE_NAME = exports.CURRENT_APP_INSTALLER_FILE_NAME = exports.MemoLazy = exports.newError = exports.XElement = exports.parseXml = exports.ProgressCallbackTransform = exports.UUID = exports.parseDn = exports.githubUrl = exports.getS3LikeProviderBaseUrl = exports.configureRequestUrl = exports.parseJson = exports.safeStringifyJson = exports.configureRequestOptionsFromUrl = exports.configureRequestOptions = exports.safeGetHeader = exports.DigestTransform = exports.HttpExecutor = exports.createHttpError = exports.HttpError = exports.CancellationError = exports.CancellationToken = void 0;
+	exports.CURRENT_APP_PACKAGE_FILE_NAME = exports.CURRENT_APP_INSTALLER_FILE_NAME = exports.retry = exports.MemoLazy = exports.newError = exports.XElement = exports.parseXml = exports.ProgressCallbackTransform = exports.UUID = exports.parseDn = exports.githubUrl = exports.getS3LikeProviderBaseUrl = exports.configureRequestUrl = exports.parseJson = exports.safeStringifyJson = exports.configureRequestOptionsFromUrl = exports.configureRequestOptions = exports.safeGetHeader = exports.DigestTransform = exports.HttpExecutor = exports.createHttpError = exports.HttpError = exports.CancellationError = exports.CancellationToken = void 0;
 	exports.asArray = asArray;
 	var CancellationToken_1 = CancellationToken$1;
 	Object.defineProperty(exports, "CancellationToken", { enumerable: true, get: function () { return CancellationToken_1.CancellationToken; } });
@@ -3941,6 +3963,8 @@ function equals(firstValue, secondValue) {
 	Object.defineProperty(exports, "newError", { enumerable: true, get: function () { return error_1.newError; } });
 	var MemoLazy_1 = MemoLazy$1;
 	Object.defineProperty(exports, "MemoLazy", { enumerable: true, get: function () { return MemoLazy_1.MemoLazy; } });
+	var retry_1 = retry$2;
+	Object.defineProperty(exports, "retry", { enumerable: true, get: function () { return retry_1.retry; } });
 	// nsis
 	exports.CURRENT_APP_INSTALLER_FILE_NAME = "installer.exe";
 	// nsis-web
@@ -14903,7 +14927,7 @@ class DownloadedUpdateHelper {
             // remove stale data
             await (0, fs_extra_1$2.emptyDir)(this.cacheDirForPendingUpdate);
         }
-        catch (ignore) {
+        catch (_ignore) {
             // ignore
         }
     }
@@ -14913,7 +14937,6 @@ class DownloadedUpdateHelper {
      * @param logger
      */
     async getValidCachedUpdateFile(fileInfo, logger) {
-        var _a;
         const updateInfoFilePath = this.getUpdateInfoFile();
         const doesUpdateInfoFileExist = await (0, fs_extra_1$2.pathExists)(updateInfoFilePath);
         if (!doesUpdateInfoFileExist) {
@@ -14932,7 +14955,7 @@ class DownloadedUpdateHelper {
             logger.info(message);
             return null;
         }
-        const isCachedInfoFileNameValid = (_a = (cachedInfo === null || cachedInfo === void 0 ? void 0 : cachedInfo.fileName) !== null) !== null && _a !== void 0 ? _a : false;
+        const isCachedInfoFileNameValid = (cachedInfo === null || cachedInfo === void 0 ? void 0 : cachedInfo.fileName) !== null;
         if (!isCachedInfoFileNameValid) {
             logger.warn(`Cached update info is corrupted: no fileName, directory for cached update will be cleaned`);
             await this.cleanCacheDirForPendingUpdate();
@@ -15875,7 +15898,6 @@ class PrivateGitHubProvider extends GitHubProvider_1$1.BaseGitHubProvider {
     get fileExtraDownloadHeaders() {
         return this.configureHeaders("application/octet-stream");
     }
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     configureHeaders(accept) {
         return {
             accept,
@@ -16077,7 +16099,6 @@ function validateAndAdd(operation, operations, checksum, index) {
     }
     operations.push(operation);
 }
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function buildChecksumMap(file, fileOffset, logger) {
     const checksumToOffset = new Map();
     const checksumToSize = new Map();
@@ -16592,7 +16613,7 @@ class DifferentialDownloader {
                     try {
                         console.error(errorOnLog);
                     }
-                    catch (ignored) {
+                    catch (_ignored) {
                         // ok, give up and ignore error
                     }
                 }
@@ -16982,7 +17003,7 @@ function requireAppUpdater () {
 	        return "Deprecated. Do not use it.";
 	    }
 	    /**
-	     * Configure update provider. If value is `string`, [GenericServerOptions](/configuration/publish#genericserveroptions) will be set with value as `url`.
+	     * Configure update provider. If value is `string`, [GenericServerOptions](./publish.md#genericserveroptions) will be set with value as `url`.
 	     * @param options If you want to override configuration in the `app-update.yml`.
 	     */
 	    setFeedURL(options) {
@@ -17137,7 +17158,6 @@ function requireAppUpdater () {
 	            provider: client,
 	        };
 	    }
-	    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	    createProviderRuntimeOptions() {
 	        return {
 	            isUseMultipleRangeRequest: true,
@@ -17358,7 +17378,7 @@ function requireAppUpdater () {
 	        const tempUpdateFile = await (0, DownloadedUpdateHelper_1.createTempUpdateFile)(`temp-${updateFileName}`, cacheDir, log);
 	        try {
 	            await taskOptions.task(tempUpdateFile, downloadOptions, packageFile, removeFileIfAny);
-	            await (0, fs_extra_1.rename)(tempUpdateFile, updateFile);
+	            await (0, builder_util_runtime_1.retry)(() => (0, fs_extra_1.rename)(tempUpdateFile, updateFile), 60, 500, 0, 0, error => error instanceof Error && /^EBUSY:/.test(error.message));
 	        }
 	        catch (e) {
 	            await removeFileIfAny();
@@ -17950,15 +17970,14 @@ function requireMacUpdater () {
 	        }
 	        const provider = downloadUpdateOptions.updateInfoAndProvider.provider;
 	        const CURRENT_MAC_APP_ZIP_FILE_NAME = "update.zip";
-	        let cachedUpdateFile = "";
 	        return this.executeDownload({
 	            fileExtension: "zip",
 	            fileInfo: zipFileInfo,
 	            downloadUpdateOptions,
 	            task: async (destinationFile, downloadOptions) => {
-	                cachedUpdateFile = path.join(this.downloadedUpdateHelper.cacheDir, CURRENT_MAC_APP_ZIP_FILE_NAME);
+	                const cachedUpdateFilePath = path.join(this.downloadedUpdateHelper.cacheDir, CURRENT_MAC_APP_ZIP_FILE_NAME);
 	                const canDifferentialDownload = () => {
-	                    if (!(0, fs_extra_1.pathExistsSync)(cachedUpdateFile)) {
+	                    if (!(0, fs_extra_1.pathExistsSync)(cachedUpdateFilePath)) {
 	                        log.info("Unable to locate previous update.zip for differential download (is this first install?), falling back to full download");
 	                        return false;
 	                    }
@@ -17973,11 +17992,14 @@ function requireMacUpdater () {
 	                }
 	            },
 	            done: event => {
-	                try {
-	                    (0, fs_1.copyFileSync)(event.downloadedFile, cachedUpdateFile);
-	                }
-	                catch (error) {
-	                    this._logger.error(`Unable to copy file for caching: ${error.message}`);
+	                if (!downloadUpdateOptions.disableDifferentialDownload) {
+	                    try {
+	                        const cachedUpdateFilePath = path.join(this.downloadedUpdateHelper.cacheDir, CURRENT_MAC_APP_ZIP_FILE_NAME);
+	                        (0, fs_1.copyFileSync)(event.downloadedFile, cachedUpdateFilePath);
+	                    }
+	                    catch (error) {
+	                        this._logger.warn(`Unable to copy file for caching for future differential downloads: ${error.message}`);
+	                    }
 	                }
 	                return this.updateDownloaded(zipFileInfo, event);
 	            },
@@ -18332,7 +18354,7 @@ function requireNsisUpdater () {
 	                            try {
 	                                await (0, fs_extra_1.unlink)(packageFile);
 	                            }
-	                            catch (ignored) {
+	                            catch (_ignored) {
 	                                // ignore
 	                            }
 	                            throw e;
