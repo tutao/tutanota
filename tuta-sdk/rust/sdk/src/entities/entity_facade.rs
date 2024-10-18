@@ -577,25 +577,13 @@ impl EntityFacadeImpl {
 		// since we don't store the uncompressed size we have to guess how much memory we might
 		// need.
 		// 12 times the compressed size should work for almost all cases.
-		let mut min_uncompressed_size = compressed_bytes.len();
-		let mut uncompressed_bytes = lz4_flex::decompress(compressed_bytes, min_uncompressed_size);
+		let mut uncompressed_bytes = lz4_flex::decompress(compressed_bytes, compressed_bytes.len());
 		while let Err(DecompressError::OutputTooSmall {
 			actual,
 			expected: _,
 		}) = uncompressed_bytes
 		{
-			min_uncompressed_size = if min_uncompressed_size >= MAX_UNCOMPRESSED_INPUT_LZ4 {
-				// we tried with MAX_UNCOMPRESSED_INPUT_LZ4 size, d not try further
-				break;
-			} else if actual * 2 <= MAX_UNCOMPRESSED_INPUT_LZ4 {
-				// double the size and try again
-				actual * 2
-			} else {
-				// but always limit actual*2 to maximum limit
-				MAX_UNCOMPRESSED_INPUT_LZ4
-			};
-
-			uncompressed_bytes = lz4_flex::decompress(compressed_bytes, min_uncompressed_size);
+			uncompressed_bytes = lz4_flex::decompress(compressed_bytes, actual * 2);
 		}
 		uncompressed_bytes
 	}
