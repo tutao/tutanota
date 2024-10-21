@@ -1,4 +1,4 @@
-use crate::crypto::aes::Iv;
+use crate::crypto::aes::{AesEncryptError, Iv};
 use crate::crypto::crypto_facade::CryptoProtocolVersion;
 use crate::crypto::ecc::{EccKeyPair, EccPublicKey};
 use crate::crypto::key::{AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError};
@@ -7,11 +7,18 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
 use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
 use crate::crypto::Aes256Key;
+use crate::entities::sys::PublicKeyPutIn;
+use crate::generated_id::GeneratedId;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
+use crate::key_loader_facade::VersionedAesKey;
+use crate::services::service_executor::ServiceExecutor;
+use crate::services::sys::PublicKeyService;
+use crate::services::ExtraServiceParams;
 use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::util::ArrayCastingError;
 use crate::util::Versioned;
+use crate::ApiCallError;
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -43,19 +50,22 @@ pub struct PublicKeys {
 pub enum AsymmetricCryptoError {
 	InvalidCryptoProtocolVersion(CryptoProtocolVersion),
 	UnexpectedKeyType(AsymmetricKeyPair),
-	RsaCrypto(#[from] RSAEncryptionError),
+	RsaEncrypt(#[from] RSAEncryptionError),
 	PqCrypto(#[from] PQError),
 	ArrayCasting(#[from] ArrayCastingError),
 	KeyLoading(#[from] KeyLoadError),
 	KeyParsing(String),
 	RsaKey(#[from] RSAKeyError),
 	KyberKey(#[from] KyberKeyError),
+	AesEncrypt(#[from] AesEncryptError),
+	ApiCall(#[from] ApiCallError),
 }
 
 #[derive(uniffi::Object)]
 pub struct AsymmetricCryptoFacade {
 	key_loader_facade: Arc<KeyLoaderFacade>,
 	randomizer_facade: RandomizerFacade,
+	service_executor: Arc<ServiceExecutor>,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -63,10 +73,12 @@ impl AsymmetricCryptoFacade {
 	pub fn new(
 		key_loader_facade: Arc<KeyLoaderFacade>,
 		randomizer_facade: RandomizerFacade,
+		service_executor: Arc<ServiceExecutor>,
 	) -> Self {
 		Self {
 			key_loader_facade,
 			randomizer_facade,
+			service_executor,
 		}
 	}
 
@@ -113,42 +125,37 @@ impl AsymmetricCryptoFacade {
 		}
 	}
 
-	// /**
-	//  * Loads the recipient_key_pair in the required version and decrypts the pub_enc_sym_key with it.
-	//  */
-	// async fn load_key_pair_and_decrypt_sym_key(
-	// 	&self,
-	// 	recipient_key_pair_group_id: &GeneratedId,
-	// 	recipient_key_version: i64,
-	// 	crypto_protocol_version: CryptoProtocolVersion,
-	// 	pub_enc_sym_key: &Vec<u8>,
-	// ) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
-	// 	let key_pair = self
-	// 		.key_loader_facade
-	// 		.load_key_pair(recipient_key_pair_group_id, recipient_key_version)
-	// 		.await?;
-	// 	AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
-	// 		key_pair,
-	// 		crypto_protocol_version,
-	// 		pub_enc_sym_key,
-	// 	)
-	// }
+	/**
+	 * Loads the recipient_key_pair in the required version and decrypts the pub_enc_sym_key with it.
+	 */
+	async fn load_key_pair_and_decrypt_sym_key(
+		&self,
+		recipient_key_pair_group_id: &GeneratedId,
+		recipient_key_version: i64,
+		crypto_protocol_version: CryptoProtocolVersion,
+		pub_enc_sym_key: &Vec<u8>,
+	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
+		let key_pair = self
+			.key_loader_facade
+			.load_key_pair(recipient_key_pair_group_id, recipient_key_version)
+			.await?;
+		Self::decrypt_sym_key_with_key_pair(key_pair, crypto_protocol_version, pub_enc_sym_key)
+	}
 
-	// /**
-	//  * Encrypts the symKey asymmetrically with the provided public keys.
-	//  * @param symKey the symmetric key  to be encrypted
-	//  * @param recipientPublicKeys the public key(s) of the recipient in the current version
-	//  * @param senderGroupId the group id of the sender. will only be used in case we also need the sender's key pair, e.g. with TutaCrypt.
-	//  */
+	/**
+	 * Encrypts the symKey asymmetrically with the provided public keys.
+	 * @param symKey the symmetric key  to be encrypted
+	 * @param recipientPublicKeys the public key(s) of the recipient in the current version
+	 * @param senderGroupId the group id of the sender. will only be used in case we also need the sender's key pair, e.g. with TutaCrypt.
+	 */
 	// pub async fn asym_encrypt_sym_key(
 	// 	&self,
 	// 	sym_key: GenericAesKey,
 	// 	versioned_recipient_public_keys: Versioned<PublicKeys>,
 	// 	sender_group_id: &GeneratedId,
 	// ) -> Result<PubEncSymKey, AsymmetricCryptoError> {
-	// 	let recipient_public_key = AsymmetricCryptoFacade::extract_recipient_public_key(
-	// 		versioned_recipient_public_keys.object,
-	// 	)?;
+	// 	let recipient_public_key =
+	// 		Self::extract_recipient_public_key(versioned_recipient_public_keys.object)?;
 	//
 	// 	match recipient_public_key {
 	// 		AsymmetricPublicKey::RsaPublicKey(rsaPubKey) => {
@@ -164,20 +171,20 @@ impl AsymmetricCryptoFacade {
 	// 		AsymmetricPublicKey::PqPublicKeys(pqPubKeys) => {
 	// 			let sender_key_pair = self
 	// 				.key_loader_facade
-	// 				.load_key_pair(sender_group_id) // TODO implement load_current_key_pair
+	// 				.load_current_key_pair(sender_group_id) // TODO implement load_current_key_pair
 	// 				.await?;
-	// 			let sender_ecc_key_pair = EccKeyPair::generate(&self.randomizer_facade); // TODO self.getOrMakeSenderIdentityKeyPair(sender_key_pair.object, sender_group_id).await;
-	// 			Ok(self.tuta_crypt_encrypt_sym_key_impl(
-	// 				Versioned {
-	// 					object: pqPubKeys,
-	// 					version: versioned_recipient_public_keys.version,
-	// 				},
-	// 				sym_key.into(),
-	// 				Versioned {
-	// 					object: sender_ecc_key_pair,
-	// 					version: sender_key_pair.version,
-	// 				},
-	// 			)?)
+	// 			// let sender_ecc_key_pair = EccKeyPair::generate(&self.randomizer_facade); // TODO self.getOrMakeSenderIdentityKeyPair(sender_key_pair.object, sender_group_id).await;
+	// 			// Ok(self.tuta_crypt_encrypt_sym_key_impl(
+	// 			// 	Versioned {
+	// 			// 		object: pqPubKeys,
+	// 			// 		version: versioned_recipient_public_keys.version,
+	// 			// 	},
+	// 			// 	sym_key.into(),
+	// 			// 	Versioned {
+	// 			// 		object: sender_ecc_key_pair,
+	// 			// 		version: sender_key_pair.version,
+	// 			// 	},
+	// 			// )?)
 	// 		},
 	// 	}
 	// }
@@ -281,15 +288,47 @@ impl AsymmetricCryptoFacade {
 	// senderIdentifier: PublicKeyIdentifier,
 	// )
 
-	// /**
-	//  * Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,
-	//  * or creates a new one and writes it to the respective Group.
-	//  * @param senderKeyPair
-	//  * @param keyGroupId Id for the Group that Public Key Service might write a new IdentityKeyPair for.
-	//  * 						This is necessary as a User might send an E-Mail from a shared mailbox,
-	//  * 						for which the KeyPair should be created.
-	//  */
-	// private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<EccKeyPair>
+	/**
+		* Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,
+		* or creates a new one and writes it to the respective Group.
+		* @param senderKeyPair
+		* @param keyGroupId Id for the Group that Public Key Service might write a new IdentityKeyPair for.
+		* 						This is necessary as a User might send an E-Mail from a shared mailbox,
+		* 						for which the KeyPair should be created.
+		*/
+	async fn get_or_make_sender_identity_key_pair(
+		&self,
+		sender_key_pair: AsymmetricKeyPair,
+		key_group_id: &GeneratedId,
+	) -> Result<EccKeyPair, AsymmetricCryptoError> {
+		match sender_key_pair {
+			AsymmetricKeyPair::PQKeyPairs(pq_pairs) => Ok(pq_pairs.ecc_keys),
+			AsymmetricKeyPair::RSAEccKeyPair(rsa_ecc_pairs) => Ok(rsa_ecc_pairs.ecc_key_pair),
+			AsymmetricKeyPair::RSAKeyPair(_rsa_pair) => {
+				// there is no ecc key pair yet, so we have to generate and upload one
+				let sym_group_key: VersionedAesKey = self
+					.key_loader_facade
+					.get_current_sym_group_key(key_group_id)
+					.await?;
+				let new_identity_key_pair = EccKeyPair::generate(&self.randomizer_facade);
+				let sym_enc_priv_ecc_key = sym_group_key.object.encrypt_data(
+					new_identity_key_pair.private_key.as_bytes(),
+					Iv::generate(&self.randomizer_facade),
+				)?;
+
+				let data = PublicKeyPutIn {
+					_format: 0,
+					pubEccKey: new_identity_key_pair.public_key.as_bytes().to_vec(),
+					symEncPrivEccKey: sym_enc_priv_ecc_key,
+					keyGroup: key_group_id.to_owned(),
+				};
+				self.service_executor
+					.put::<PublicKeyService>(data, ExtraServiceParams::default())
+					.await?;
+				Ok(new_identity_key_pair)
+			},
+		}
+	}
 }
 
 // TODO tests
