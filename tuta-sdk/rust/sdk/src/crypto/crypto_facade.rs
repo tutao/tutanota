@@ -12,6 +12,7 @@ use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
+use crate::tutanota_constants::EncryptionAuthStatus;
 use crate::util::ArrayCastingError;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
@@ -276,26 +277,6 @@ pub enum CryptoProtocolVersion {
 
 	/// PQ encryption (Kyber+X25519)
 	TutaCrypt = 2,
-}
-
-/// Denotes if an entity was authenticated successfully.
-///
-/// Not all decryption methods use authentication.
-pub enum EncryptionAuthStatus {
-	/// The entity was decrypted with RSA which does not use authentication.
-	RSANoAuthentication = 0,
-
-	/// The entity was decrypted with Tutacrypt (PQ) and successfully authenticated.
-	TutacryptAuthenticationSucceeded = 1,
-
-	/// The entity was decrypted with Tutacrypt (PQ), but authentication failed.
-	TutacryptAuthenticationFailed = 2,
-
-	/// The entity was decrypted symmetrically (i.e. secure external) which does not use authentication.
-	AESNoAuthentication = 3,
-
-	/// The entity was sent by the user and doesn't need authenticated.
-	TutacryptSender = 4,
 }
 
 struct EntityOwnerKeyData<'a> {

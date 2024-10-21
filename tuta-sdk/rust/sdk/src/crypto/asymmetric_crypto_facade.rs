@@ -49,7 +49,8 @@ pub struct PublicKeys {
 #[error("AsymmetricCryptoError")]
 pub enum AsymmetricCryptoError {
 	InvalidCryptoProtocolVersion(CryptoProtocolVersion),
-	UnexpectedAsymmetricKeyType(AsymmetricKeyPair),
+	UnexpectedAsymmetricKeyPairType(AsymmetricKeyPair),
+	UnexpectedPublicKeyPairType(AsymmetricPublicKey),
 	UnexpectedSymmetricKeyType(GenericAesKey),
 	RsaEncrypt(#[from] RSAEncryptionError),
 	PqCrypto(#[from] PQError),
@@ -84,6 +85,68 @@ impl AsymmetricCryptoFacade {
 	}
 
 	/**
+	 * Verifies whether the key that the public key service returns is the same as the one used for encryption.
+	 * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
+	 *
+	 * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
+	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
+	 * @param senderKeyVersion the version of the senderIdentityPubKey.
+	 */
+	// pub async fn authenticate_sender(
+	// 	&self,
+	// 	identifier: PublicKeyIdentifier,
+	// 	sender_identity_pub_key: Vec<u8>,
+	// 	sender_key_version: i64,
+	// ) -> Result<EncryptionAuthStatus, AsymmetricCryptoError> {
+	// 	let identifier_type: i64 = identifier.identifier_type.into();
+	// 	let key_data = PublicKeyGetIn {
+	// 		_format: 0,
+	// 		identifier: identifier.identifier,
+	// 		identifierType: identifier_type,
+	// 		version: Some(sender_key_version),
+	// 	};
+	// 	let public_key_get_out = self
+	// 		.service_executor
+	// 		.get::<PublicKeyService>(key_data, ExtraServiceParams::default())
+	// 		.await?;
+	// 	if Option::is_some(&public_key_get_out.pubEccKey)
+	// 	// TODO && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
+	// 	{
+	// 		Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
+	// 	} else {
+	// 		Ok(EncryptionAuthStatus::TutacryptAuthenticationFailed)
+	// 	}
+	// }
+
+	/**
+	 * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
+	 * If the protocol does not support authentication this method will only decrypt.
+	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion and must be of the required recipientKeyVersion.
+	 * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
+	 * @param senderIdentifier the identifier for the sender's key group
+	 * @throws CryptoError in case the authentication fails.
+	 */
+	// pub async fn decryptSymKeyWithKeyPairAndAuthenticate(
+	// recipientKeyPair: AsymmetricKeyPair,
+	// pubEncKeyData: PubEncKeyData,
+	// senderIdentifier: PublicKeyIdentifier,
+	// ): Promise<DecapsulatedAesKey> {
+	// const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
+	// const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
+	// if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
+	// const encryptionAuthStatus = await this.authenticateSender(
+	// senderIdentifier,
+	// assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
+	// Number(assertNotNull(pubEncKeyData.senderKeyVersion)),
+	// )
+	// if (encryptionAuthStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
+	// throw new CryptoError("the provided public key could not be authenticated")
+	// }
+	// }
+	// return decapsulatedAesKey
+	// }
+
+	/**
 	 * Decrypts the pub_enc_sym_key with the recipientKeyPair.
 	 * @param pub_enc_sym_key the asymmetrically encrypted session key
 	 * @param crypto_protocol_version asymmetric protocol to decrypt pub_enc_sym_key (RSA or TutaCrypt)
@@ -107,7 +170,7 @@ impl AsymmetricCryptoFacade {
 						sender_identity_pub_key: None,
 					})
 				},
-				_ => Err(AsymmetricCryptoError::UnexpectedAsymmetricKeyType(
+				_ => Err(AsymmetricCryptoError::UnexpectedAsymmetricKeyPairType(
 					recipient_key_pair,
 				)),
 			},
@@ -120,7 +183,7 @@ impl AsymmetricCryptoFacade {
 						sender_identity_pub_key: Some(decapsulated_sym_key.sender_identity_pub_key),
 					})
 				},
-				_ => Err(AsymmetricCryptoError::UnexpectedAsymmetricKeyType(
+				_ => Err(AsymmetricCryptoError::UnexpectedAsymmetricKeyPairType(
 					recipient_key_pair,
 				)),
 			},
@@ -203,27 +266,40 @@ impl AsymmetricCryptoFacade {
 		}
 	}
 
-	// /**
-	//  * Encrypts the symKey asymmetrically with the provided public keys using the TutaCrypt protocol.
-	//  * @param symKey the key to be encrypted
-	//  * @param recipientPublicKeys MUST be a pq key pair
-	//  * @param senderEccKeyPair the sender's key pair (needed for authentication)
-	//  * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
-	//  */
-	// pub async fn tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
-	// let recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
-	// if (!isPqPublicKey(recipientPublicKey)) {
-	// throw new ProgrammingError("the recipient does not have pq key pairs")
-	// }
-	// return this.tutaCryptEncryptSymKeyImpl(
-	// {
-	// object: recipientPublicKey,
-	// version: recipientPublicKeys.version,
-	// },
-	// symKey,
-	// senderEccKeyPair,
-	// )
-	// }
+	/**
+	 * Encrypts the symKey asymmetrically with the provided public keys using the TutaCrypt protocol.
+	 * @param symKey the key to be encrypted
+	 * @param recipientPublicKeys MUST be a pq key pair
+	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
+	 * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
+	 */
+	pub async fn tuta_crypt_encrypt_sym_key(
+		&self,
+		sym_key: GenericAesKey,
+		recipient_public_keys: Versioned<PublicKeys>,
+		sender_ecc_key_pair: Versioned<EccKeyPair>,
+	) -> Result<PubEncSymKey, AsymmetricCryptoError> {
+		let recipient_public_key =
+			AsymmetricCryptoFacade::extract_recipient_public_key(recipient_public_keys.object)?;
+		match recipient_public_key {
+			AsymmetricPublicKey::RsaPublicKey(_) => Err(
+				AsymmetricCryptoError::UnexpectedPublicKeyPairType(recipient_public_key),
+			),
+			AsymmetricPublicKey::PqPublicKeys(pq_pub_keys) => match sym_key {
+				GenericAesKey::Aes128(_) => {
+					Err(AsymmetricCryptoError::UnexpectedSymmetricKeyType(sym_key))
+				},
+				GenericAesKey::Aes256(aes256_sym_key) => Ok(self.tuta_crypt_encrypt_sym_key_impl(
+					Versioned {
+						object: pq_pub_keys,
+						version: recipient_public_keys.version,
+					},
+					aes256_sym_key,
+					sender_ecc_key_pair,
+				)?),
+			},
+		}
+	}
 
 	fn tuta_crypt_encrypt_sym_key_impl(
 		&self,
@@ -275,32 +351,6 @@ impl AsymmetricCryptoFacade {
 			))
 		}
 	}
-
-	// FIXME: the following functions depend on service invocations and are still missing from our implementation
-
-	// /**
-	// * Verifies whether the key that the public key service returns is the same as the one used for encryption.
-	// * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
-	// *
-	// * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
-	// * @param sender_identity_pub_key the sender_identity_pub_key that was used to encrypt/authenticate the data.
-	// * @param sender_key_version the version of the sender_identity_pub_key.
-	// */
-	// async authenticateSender(identifier: PublicKeyIdentifier, sender_identity_pub_key: uint8array, sender_key_version: number): Promise<EncryptionAuthStatus>
-
-	// /**
-	//  * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
-	//  * If the protocol does not support authentication this method will only decrypt.
-	//  * @param recipientKeyPair the recipientKeyPair. Must match the crypto_protocol_version and must be of the required recipient_key_version.
-	//  * @param pubEncKeyData the encrypted symKey with the metadata (versions, group identifier etc.) for decryption and authentication.
-	//  * @param senderIdentifier the identifier for the sender's key group
-	//  * @throws CryptoError in case the authentication fails.
-	//  */
-	// async decryptSymKeyWithKeyPairAndAuthenticate(
-	// recipientKeyPair: AsymmetricKeyPair,
-	// pubEncKeyData: PubEncKeyData,
-	// senderIdentifier: PublicKeyIdentifier,
-	// )
 
 	/**
 		* Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,

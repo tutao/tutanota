@@ -19,6 +19,16 @@ pub enum AsymmetricPublicKey {
 	PqPublicKeys(TutaCryptPublicKeys),
 }
 
+// we implement this ourselves to make sure we do not leak anything
+impl Debug for AsymmetricPublicKey {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			AsymmetricPublicKey::RsaPublicKey(_) => f.debug_struct("RsaPublicKey").finish(),
+			AsymmetricPublicKey::PqPublicKeys(_) => f.debug_struct("PqPublicKeys").finish(),
+		}
+	}
+}
+
 impl From<RSAKeyPair> for AsymmetricKeyPair {
 	fn from(value: RSAKeyPair) -> Self {
 		Self::RSAKeyPair(value)

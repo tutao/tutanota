@@ -41,6 +41,7 @@ use crate::rest_error::{HttpError, ParseFailureError};
 use crate::services::service_executor::{ResolvingServiceExecutor, ServiceExecutor};
 use crate::services::sys::{SaltService, SessionService};
 use crate::services::ExtraServiceParams;
+use crate::tutanota_constants::EncryptionAuthStatus;
 use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelProvider, TypeName};
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
