@@ -764,7 +764,7 @@ mod tests {
 			)
 			.unwrap();
 		let instance_mapper = InstanceMapper::new();
-		let mail: Mail = instance_mapper
+		let _mail: Mail = instance_mapper
 			.parse_entity(decrypted_mail.clone())
 			.unwrap();
 
