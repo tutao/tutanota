@@ -37,6 +37,7 @@ impl From<PQKeyPairs> for AsymmetricKeyPair {
 	}
 }
 
+// we implement this ourselves to make sure we do not leak anything
 impl Debug for AsymmetricKeyPair {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
@@ -48,10 +49,19 @@ impl Debug for AsymmetricKeyPair {
 }
 
 #[derive(Clone, PartialEq)]
-#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum GenericAesKey {
 	Aes128(Aes128Key),
 	Aes256(Aes256Key),
+}
+
+// we implement this ourselves to make sure we do not leak anything
+impl Debug for GenericAesKey {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			GenericAesKey::Aes128(_) => f.debug_struct("Aes128").finish(),
+			GenericAesKey::Aes256(_) => f.debug_struct("Aes256").finish(),
+		}
+	}
 }
 
 impl GenericAesKey {
