@@ -39,16 +39,6 @@ import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common
 
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import {
-	AdministratedGroup,
-	AdministratedGroupTypeRef,
-	createLocalAdminRemovalPostIn,
-	GroupInfo,
-	GroupInfoTypeRef,
-	GroupTypeRef,
-} from "../common/api/entities/sys/TypeRefs.js"
-import { GroupType } from "../common/api/common/TutanotaConstants.js"
-import { LocalAdminRemovalService } from "../common/api/entities/sys/Services.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -152,48 +142,11 @@ import("./translations/en.js")
 				async onFullLoginSuccess() {},
 			}
 		})
-		const migrateLocalAdminsToGlobalAdmins = async () => {
-			if (!mailLocator.logins.getUserController().isGlobalAdmin()) {
-				return
-			}
-
-			const customer = await mailLocator.logins.getUserController().loadCustomer()
-			const teamGroupInfos = await mailLocator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
-			const localAdminGroupInfos = teamGroupInfos.filter((group) => group.groupType === GroupType.LocalAdmin)
-			const adminGroupId: Id = customer.adminGroup
-			const adminGroupKey = await mailLocator.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
-			const postIn = createLocalAdminRemovalPostIn({ groupUpdates: [] })
-			const makeLocallyAdministratedGroupGloballyAdministrated = async (localAdminGroupInfo: GroupInfo) => {
-				const localAdminGroup = await mailLocator.entityClient.load(GroupTypeRef, localAdminGroupInfo.group)
-				const administratedGroupsListId = localAdminGroup.administratedGroups?.items
-				if (administratedGroupsListId == null) return null
-				const administratedGroups: Array<AdministratedGroup> = await mailLocator.entityClient.loadAll(
-					AdministratedGroupTypeRef,
-					administratedGroupsListId,
-				)
-				// we assume local admins never had their key roatation done and so their sym key version (requestedVersion) is stuck to 0 by default
-
-				const thisLocalAdminGroupKey = await mailLocator.keyLoaderFacade.loadSymGroupKey(localAdminGroup._id, 0)
-				administratedGroups.map(async (ag) => {
-					const thisRelatedGroupInfo = await mailLocator.entityClient.load(GroupInfoTypeRef, ag.groupInfo)
-					const thisRelatedGroup = await mailLocator.entityClient.load(GroupTypeRef, thisRelatedGroupInfo.group)
-
-					const groupUpdate = await mailLocator.groupManagementFacade.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
-						adminGroupKey,
-						thisLocalAdminGroupKey,
-						thisRelatedGroup,
-					)
-					postIn.groupUpdates.push(groupUpdate)
-				})
-			}
-			localAdminGroupInfos.map(makeLocallyAdministratedGroupGloballyAdministrated)
-			await mailLocator.serviceExecutor.post(LocalAdminRemovalService, postIn)
-		}
 		mailLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {},
 				async onFullLoginSuccess() {
-					return migrateLocalAdminsToGlobalAdmins()
+					return mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
 				},
 			}
 		})

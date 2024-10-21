@@ -10,10 +10,16 @@ import {
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
 import {
+	AdministratedGroup,
+	AdministratedGroupTypeRef,
 	createLocalAdminGroupReplacementData,
+	createLocalAdminRemovalPostIn,
 	createMembershipAddData,
 	createMembershipRemoveData,
+	CustomerTypeRef,
 	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
 	GroupTypeRef,
 	LocalAdminGroupReplacementData,
 	User,
@@ -24,7 +30,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
-import { MembershipService } from "../../../entities/sys/Services.js"
+import { LocalAdminRemovalService, MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
@@ -33,6 +39,7 @@ import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { isGlobalAdmin } from "../../../common/utils/UserUtils.js"
 
 assertWorkerOrNode()
 
@@ -356,5 +363,44 @@ export class GroupManagementFacade {
 			groupKeyVersion: userGroup.groupKeyVersion,
 		})
 		return groupUpdate
+	}
+
+	/**
+	 * Since local admins won't be supported anymore and will be removed we need to let the
+	 * global admin access the locally administrated group data.
+	 * As its name suggest this function migrate the users administrated by the local admins
+	 * to the global admin of the customer so that the global admin can have direct
+	 * encryption and decryption of its users group keys.
+	 */
+	async migrateLocalAdminsToGlobalAdmins() {
+		const user = this.userFacade.getLoggedInUser()
+		if (!isGlobalAdmin(user)) {
+			return
+		}
+
+		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
+		const teamGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
+		const localAdminGroupInfos = teamGroupInfos.filter((group) => group.groupType === GroupType.LocalAdmin)
+		const adminGroupId: Id = customer.adminGroup
+		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+		const postIn = createLocalAdminRemovalPostIn({ groupUpdates: [] })
+		const makeLocallyAdministratedGroupGloballyAdministrated = async (localAdminGroupInfo: GroupInfo) => {
+			const localAdminGroup = await this.entityClient.load(GroupTypeRef, localAdminGroupInfo.group)
+			const administratedGroupsListId = localAdminGroup.administratedGroups?.items
+			if (administratedGroupsListId == null) return null
+			const administratedGroups: Array<AdministratedGroup> = await this.entityClient.loadAll(AdministratedGroupTypeRef, administratedGroupsListId)
+
+			// we assume local admins never had their key roatation done and so their sym key version (requestedVersion) is stuck to 0 by default
+			const thisLocalAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(localAdminGroup._id, 0)
+			administratedGroups.map(async (ag) => {
+				const thisRelatedGroupInfo = await this.entityClient.load(GroupInfoTypeRef, ag.groupInfo)
+				const thisRelatedGroup = await this.entityClient.load(GroupTypeRef, thisRelatedGroupInfo.group)
+
+				const groupUpdate = await this.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(adminGroupKey, thisLocalAdminGroupKey, thisRelatedGroup)
+				postIn.groupUpdates.push(groupUpdate)
+			})
+		}
+		localAdminGroupInfos.map(makeLocallyAdministratedGroupGloballyAdministrated)
+		await this.serviceExecutor.post(LocalAdminRemovalService, postIn)
 	}
 }
