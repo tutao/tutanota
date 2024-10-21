@@ -15,6 +15,7 @@ import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { listIdPart } from "../../../../common/api/common/utils/EntityUtils.js"
 import { stringToBase64 } from "@tutao/tutanota-utils"
 import { calendarLocator } from "../../../calendarLocator.js"
+import { Dialog } from "../../../../common/gui/base/Dialog.js"
 
 /**
  * small modal displaying all relevant information about a contact in a compact fashion. offers limited editing capabilities to participants in the
@@ -34,8 +35,10 @@ export class ContactEventPopup implements ModalComponent {
 		this.view = this.view.bind(this)
 	}
 
-	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = (ev: MouseEvent, receiver: HTMLElement) => {
+	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
 		if (client.isCalendarApp()) {
+			if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
+
 			const query = `contactId=${stringToBase64(this.model.contact._id.join("/"))}`
 			calendarLocator.systemFacade.openMailApp(stringToBase64(query))
 			return
@@ -69,7 +72,7 @@ export class ContactEventPopup implements ModalComponent {
 			},
 			[
 				m(".flex.flex-end", [this.renderEditButton(), this.renderCloseButton()]),
-				m(".flex-grow.scroll.visible-scrollbar", [
+				m(".flex-grow", [
 					m(ContactPreviewView, {
 						event: this.model.event,
 						contact: this.model.contact,
@@ -81,7 +84,7 @@ export class ContactEventPopup implements ModalComponent {
 
 	private renderEditButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "edit_action", icon: Icons.Edit, click: this.handleEditButtonClick })
+		return m(IconButton, { title: "edit_action", icon: Icons.ManageContact, click: this.handleEditButtonClick })
 	}
 
 	private renderCloseButton(): Children {

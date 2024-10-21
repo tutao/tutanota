@@ -155,7 +155,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 	return m(".full-width.flex.items-center.flex-end.mt-s", [
 		contact.mailAddresses.length
 			? m(
-					singleEmailAdress ? `a[href="mailto:${contact.addresses[0].address}"][target=_blank]` : "",
+					singleEmailAdress ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",
 					m(
 						BannerButton,
 						makeActionButtonAttrs(

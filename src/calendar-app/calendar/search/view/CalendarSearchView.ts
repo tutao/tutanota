@@ -256,7 +256,9 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
 				contact: contact,
-				editAction: (contact) => {
+				editAction: async (contact) => {
+					if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
+
 					const query = `contactId=${stringToBase64(contact._id.join("/"))}`
 					calendarLocator.systemFacade.openMailApp(stringToBase64(query))
 				},

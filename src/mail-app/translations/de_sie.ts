@@ -1809,6 +1809,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"openMailApp_msg": "Diese Aktion öffnet Tuta Mail App, möchten Sie fortfahren?"
 	}
 }

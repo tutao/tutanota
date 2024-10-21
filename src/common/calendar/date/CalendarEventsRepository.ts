@@ -231,12 +231,13 @@ export class CalendarEventsRepository {
 
 		const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)
 
+		let fullDateIso = contact.birthdayIso!
 		// Set the year because we can have birthdays without year
 		if (contact.birthdayIso?.startsWith("--")) {
-			contact.birthdayIso = contact.birthdayIso.replace("-", "1970")
+			fullDateIso = contact.birthdayIso.replace("-", "1970")
 		}
 
-		const birthday = new Date(contact.birthdayIso!)
+		const birthday = new Date(fullDateIso!)
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
