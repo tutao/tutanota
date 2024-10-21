@@ -14,7 +14,7 @@ export function getDefaultSignature(): string {
 		LINE_BREAK +
 		htmlSanitizer.sanitizeHTML(
 			lang.get("defaultEmailSignature_msg", {
-				"{1}": InfoLink.HomePage,
+				"{1}": `<a href=${InfoLink.HomePageFreeSignup}>${InfoLink.HomePageFreeSignup}</a>`,
 			}),
 		).html
 	)

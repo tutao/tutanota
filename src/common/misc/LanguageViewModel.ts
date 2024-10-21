@@ -221,6 +221,7 @@ export const enum InfoLink {
 	AppStorePayment = "https://tuta.com/support/#appstore-payments",
 	AppStoreDowngrade = "https://tuta.com/support/#appstore-subscription-downgrade",
 	PasswordGenerator = "https://tuta.com/faq#passphrase-generator",
+	HomePageFreeSignup = "https://tuta.com/free-email",
 }
 
 /**
