@@ -1,5 +1,16 @@
 import o from "@tutao/otest"
-import { hexToRgb, isColorLight, isValidColorCode, rgbToHex } from "../../../src/common/gui/base/Color.js"
+import {
+	hexToHSL,
+	hexToRgb,
+	hslToHex,
+	hslToRGB,
+	isColorLight,
+	isValidColorCode,
+	normalizeHueAngle,
+	rgbToHex,
+	rgbToHSL,
+} from "../../../src/common/gui/base/Color.js"
+
 o.spec("color", function () {
 	o("hexToRGB 6digit", function () {
 		o(hexToRgb("#b73a9a")).deepEquals({
@@ -13,6 +24,58 @@ o.spec("color", function () {
 			r: 170,
 			g: 187,
 			b: 204,
+		})
+	})
+	o("normalizeHueAngle", function () {
+		o(normalizeHueAngle(0)).equals(0)
+		o(normalizeHueAngle(259)).equals(259)
+		o(normalizeHueAngle(360)).equals(0)
+		o(normalizeHueAngle(576)).equals(216)
+		o(normalizeHueAngle(-120)).equals(240)
+		o(normalizeHueAngle(-576)).equals(144)
+	})
+	o("rgbToHSL", function () {
+		o(
+			rgbToHSL({
+				r: 186,
+				g: 165,
+				b: 228,
+			}),
+		).deepEquals({
+			h: 260,
+			s: 54,
+			l: 77,
+		})
+	})
+	o("hslToRGB", function () {
+		o(
+			hslToRGB({
+				h: 260,
+				s: 54,
+				l: 77,
+			}),
+		).deepEquals({
+			r: 186,
+			g: 165,
+			b: 228,
+		})
+	})
+	o("hexToHSLToHex", function () {
+		o(hslToHex(hexToHSL("#baa5e4"))).equals("#baa5e4")
+	})
+	o("hslToHexToHSL", function () {
+		o(
+			hexToHSL(
+				hslToHex({
+					h: 260,
+					s: 54,
+					l: 77,
+				}),
+			),
+		).deepEquals({
+			h: 260,
+			s: 54,
+			l: 77,
 		})
 	})
 	o("isValidColorCode", function () {
