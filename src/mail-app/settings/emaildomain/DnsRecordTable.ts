@@ -20,11 +20,11 @@ export const DnsRecordTable: Record<DnsRecordType, ActualDnsRecordType> = Object
 
 export function createDnsRecordTable(records: DnsRecord[]): Children {
 	return m(Table, {
-		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
-		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
+		columnHeading: ["type_label", "dnsRecordHostOrName_label"],
+		columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],
 		showActionButtonColumn: false,
 		lines: records.map((r) => ({
-			cells: [DnsRecordTable[r.type as DnsRecordType], r.subdomain ? r.subdomain : "@", r.value],
+			cells: () => [{ main: DnsRecordTable[r.type as DnsRecordType] }, { main: r.subdomain ? r.subdomain : "@", info: [r.value] }],
 		})),
 	})
 }
