@@ -2323,9 +2323,21 @@ styles.registerStyle("main", () => {
 			padding: "35%",
 			margin: "-35% -35%",
 		},
-		".color-picker": {
-			height: px(30),
-			width: px(100),
+		".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": client.isDesktopDevice()
+			? {
+					opacity: 0.7,
+			  }
+			: {},
+		".custom-color-container .text-field": {
+			"padding-top": "0px",
+		},
+		".custom-color-container .text.input": {
+			"text-transform": "uppercase",
+			width: "9ch",
+		},
+		".custom-color-container .inputWrapper:before": {
+			content: '"#"',
+			color: theme.content_message_bg,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
