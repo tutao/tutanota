@@ -25,6 +25,7 @@ import {
 	mapWithout,
 	memoized,
 	memoizedWithHiddenArgument,
+	noOp,
 	ofClass,
 	promiseFilter,
 } from "@tutao/tutanota-utils"
@@ -155,12 +156,16 @@ export class MailViewModel {
 
 		// This should be very quick as we only wait for the cache,
 		await this.loadExplicitMailTarget(listId, elementId, onMissingExplicitMailTarget)
+	}
 
-		if (!isSameId(this.stickyMailId, fullMailId)) return
-
-		// Make sure that we display *something* in the list, otherwise it'll be empty on mobile
-		// We could try to open the location of the mail, but it might have been moved around soon after
-		this.setListId(await this.getFolderForUserInbox())
+	private async resetOrInitializeList() {
+		if (this.listModel == null) {
+			// If we don't have a list, load the inbox so that it won't be empty on mobile.
+			this.setListId(await this.getFolderForUserInbox())
+		} else {
+			// Otherwise, deselect the current mail so it doesn't look like we're selecting the wrong mail.
+			this.listModel.selectNone()
+		}
 	}
 
 	private async showMail(folder?: MailFolder | null, mailId?: Id) {
@@ -230,12 +235,21 @@ export class MailViewModel {
 	}
 
 	private async loadExplicitMailTarget(listId: Id, mailId: Id, onMissingTargetEmail: () => unknown) {
+		// shouldStop returning true guarantees we won't load anything if the mail is not in the list already, so
+		// this will be synchronous
+		const listMail = await this.listModel?.loadAndSelect(mailId, () => true)
+		if (listMail) {
+			console.log(TAG, "opening mail from list", mailId)
+			return
+		}
+
 		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
 		if (cached) {
 			console.log(TAG, "opening cached mail", mailId)
+			await this.resetOrInitializeList()
 			this.createConversationViewModel({ mail: cached, showFolder: false })
-			this.listModel?.selectNone()
 			this.updateUi()
+			return
 		}
 
 		if (!isSameId(this.stickyMailId, [listId, mailId])) {
@@ -262,8 +276,8 @@ export class MailViewModel {
 		}
 
 		if (mail) {
+			await this.resetOrInitializeList()
 			this.createConversationViewModel({ mail, showFolder: false })
-			this.listModel?.selectNone()
 			this.updateUi()
 		} else {
 			console.log(TAG, "Explicit mail target is not found", listId, mailId)
@@ -340,7 +354,7 @@ export class MailViewModel {
 		this._folder = folder
 		this.listStreamSubscription?.end(true)
 		this.listStreamSubscription = this.listModel!.stateStream.map((state) => this.onListStateChange(state))
-		this.listModel!.loadInitial()
+		this.listModel!.loadInitial().then(noOp)
 	}
 
 	getConversationViewModel(): ConversationViewModel | null {
@@ -454,7 +468,14 @@ export class MailViewModel {
 		const mailId = this.loadingTargetId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
 		const stickyMail = this.stickyMailId
 		if (mailId != null) {
-			this.router.routeTo("/mail/:folderId/:mailId", this.addStickyMailParam({ folderId, mailId, mail: stickyMail }))
+			this.router.routeTo(
+				"/mail/:folderId/:mailId",
+				this.addStickyMailParam({
+					folderId,
+					mailId,
+					mail: stickyMail,
+				}),
+			)
 		} else {
 			this.router.routeTo("/mail/:folderId", this.addStickyMailParam({ folderId: folderId ?? "" }))
 		}
