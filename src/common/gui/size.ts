@@ -42,6 +42,12 @@ export const size = {
 	icon_segment_control_button_height: 36,
 	icon_segment_control_button_width: 48,
 
+	palette_color_size: 30,
+	hue_gradient_border_width: 1,
+	hue_gradient_height: 30,
+	hue_window_size: 24,
+	hue_stem_width: 2,
+
 	navbar_height: 70,
 	navbar_height_mobile: 52,
 	bottom_nav_bar: 50,

@@ -14,6 +14,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import type { CalendarModel } from "../model/CalendarModel.js"
 import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { ColorPicker } from "../../../common/gui/base/ColorPicker2"
 
 export type CalendarProperties = {
 	name: string
@@ -78,14 +79,15 @@ function createEditCalendarComponent(
 			label: "calendarName_label",
 		}),
 		m(".small.mt.mb-xs", lang.get("color_label")),
-		m("input.color-picker", {
-			type: "color",
-			value: colorStream(),
-			oninput: (inputEvent: InputEvent) => {
-				const target = inputEvent.target as HTMLInputElement
-				colorStream(target.value)
-			},
-		}),
+		// m("input.color-picker", {
+		// 	type: "color",
+		// 	value: colorStream(),
+		// 	oninput: (inputEvent: InputEvent) => {
+		// 		const target = inputEvent.target as HTMLInputElement
+		// 		colorStream(target.value)
+		// 	},
+		// }),
+		m(ColorPicker),
 		!shared && isNormalCalendarType(calendarType)
 			? m(RemindersEditor, {
 					alarms,

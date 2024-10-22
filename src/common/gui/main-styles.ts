@@ -2311,9 +2311,73 @@ styles.registerStyle("main", () => {
 			padding: "35%",
 			margin: "-35% -35%",
 		},
-		".color-picker": {
-			height: px(30),
-			width: px(100),
+		// ".color-picker": {},
+		".hue-picker": {
+			position: "relative",
+			overflow: "hidden",
+		},
+		".palette-color": {
+			width: px(size.palette_color_size),
+			height: px(size.palette_color_size),
+			"border-width": "1px",
+		},
+		".palette-color-wrapper": {
+			padding: "1px",
+			border: "2px solid transparent",
+			"border-radius": px(size.border_radius_medium),
+		},
+		".palette-color-wrapper.selected": {
+			"border-color": theme.content_button_selected,
+		},
+		".palette-color-wrapper.selected>.palette-color": {
+			"border-color": "transparent",
+		},
+		".hue-gradient, .palette-color": {
+			"border-radius": px(size.border_radius),
+		},
+		".hue-gradient, .hue-window, .palette-color": {
+			"border-color": theme.content_border,
+			"border-style": "solid",
+			"background-color": theme.content_border,
+		},
+		".hue-gradient": {
+			"border-width": px(size.hue_gradient_border_width),
+			overflow: "hidden",
+		},
+		".hue-gradient, .hue-gradient>img": {
+			height: px(size.hue_gradient_height),
+			width: "100%",
+		},
+		".hue-gradient>img": {
+			display: "block",
+		},
+		".hue-slider": {
+			width: "0px",
+			position: "absolute",
+			bottom: px(size.hue_gradient_border_width),
+		},
+		".hue-window": {
+			width: px(size.hue_window_size),
+			height: px(size.hue_window_size),
+			"border-width": "1px",
+			"border-radius": "50%",
+			transform: "translateX(-50%)",
+		},
+		".hue-stem": {
+			"background-color": theme.content_border,
+			width: px(size.hue_stem_width),
+			height: px(size.hue_gradient_height),
+			transform: "translateX(-50%)",
+		},
+		".palette-container": {
+			display: "flex",
+			"flex-wrap": "wrap",
+			"row-gap": px(size.vpad_xs),
+			width: "100%",
+			"align-items": "center",
+			"justify-content": "space-between",
+			"margin-top": px(12),
+			padding: `0 ${size.hpad_small}px`,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
