@@ -6,6 +6,34 @@ import {Blob} from '../sys/TypeRefs.js'
 import {BucketKey} from '../sys/TypeRefs.js'
 import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
+export const ApplyLabelServiceDeleteInTypeRef: TypeRef<ApplyLabelServiceDeleteIn> = new TypeRef("tutanota", "ApplyLabelServiceDeleteIn")
+
+export function createApplyLabelServiceDeleteIn(values: StrippedEntity<ApplyLabelServiceDeleteIn>): ApplyLabelServiceDeleteIn {
+	return Object.assign(create(typeModels.ApplyLabelServiceDeleteIn, ApplyLabelServiceDeleteInTypeRef), values)
+}
+
+export type ApplyLabelServiceDeleteIn = {
+	_type: TypeRef<ApplyLabelServiceDeleteIn>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+	mails: IdTuple[];
+}
+export const ApplyLabelServicePostInTypeRef: TypeRef<ApplyLabelServicePostIn> = new TypeRef("tutanota", "ApplyLabelServicePostIn")
+
+export function createApplyLabelServicePostIn(values: StrippedEntity<ApplyLabelServicePostIn>): ApplyLabelServicePostIn {
+	return Object.assign(create(typeModels.ApplyLabelServicePostIn, ApplyLabelServicePostInTypeRef), values)
+}
+
+export type ApplyLabelServicePostIn = {
+	_type: TypeRef<ApplyLabelServicePostIn>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+	mails: IdTuple[];
+}
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
 export function createAttachmentKeyData(values: StrippedEntity<AttachmentKeyData>): AttachmentKeyData {
@@ -1303,8 +1331,8 @@ export type MailFolder = {
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
+	color: null | string;
 	folderType: NumberString;
-	isLabel: boolean;
 	isMailSet: boolean;
 	name: string;
 
@@ -1396,6 +1424,80 @@ export type MailboxServerProperties = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	whitelistProtectionEnabled: boolean;
+}
+export const ManageLabelServiceDeleteInTypeRef: TypeRef<ManageLabelServiceDeleteIn> = new TypeRef("tutanota", "ManageLabelServiceDeleteIn")
+
+export function createManageLabelServiceDeleteIn(values: StrippedEntity<ManageLabelServiceDeleteIn>): ManageLabelServiceDeleteIn {
+	return Object.assign(create(typeModels.ManageLabelServiceDeleteIn, ManageLabelServiceDeleteInTypeRef), values)
+}
+
+export type ManageLabelServiceDeleteIn = {
+	_type: TypeRef<ManageLabelServiceDeleteIn>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+}
+export const ManageLabelServiceLabelDataTypeRef: TypeRef<ManageLabelServiceLabelData> = new TypeRef("tutanota", "ManageLabelServiceLabelData")
+
+export function createManageLabelServiceLabelData(values: StrippedEntity<ManageLabelServiceLabelData>): ManageLabelServiceLabelData {
+	return Object.assign(create(typeModels.ManageLabelServiceLabelData, ManageLabelServiceLabelDataTypeRef), values)
+}
+
+export type ManageLabelServiceLabelData = {
+	_type: TypeRef<ManageLabelServiceLabelData>;
+
+	_id: Id;
+	color: string;
+	name: string;
+}
+export const ManageLabelServicePostInTypeRef: TypeRef<ManageLabelServicePostIn> = new TypeRef("tutanota", "ManageLabelServicePostIn")
+
+export function createManageLabelServicePostIn(values: StrippedEntity<ManageLabelServicePostIn>): ManageLabelServicePostIn {
+	return Object.assign(create(typeModels.ManageLabelServicePostIn, ManageLabelServicePostInTypeRef), values)
+}
+
+export type ManageLabelServicePostIn = {
+	_type: TypeRef<ManageLabelServicePostIn>;
+	_errors: Object;
+
+	_format: NumberString;
+	ownerEncSessionKey: Uint8Array;
+	ownerGroup: Id;
+	ownerKeyVersion: NumberString;
+
+	data: ManageLabelServiceLabelData;
+}
+export const ManageLabelServicePostOutTypeRef: TypeRef<ManageLabelServicePostOut> = new TypeRef("tutanota", "ManageLabelServicePostOut")
+
+export function createManageLabelServicePostOut(values: StrippedEntity<ManageLabelServicePostOut>): ManageLabelServicePostOut {
+	return Object.assign(create(typeModels.ManageLabelServicePostOut, ManageLabelServicePostOutTypeRef), values)
+}
+
+export type ManageLabelServicePostOut = {
+	_type: TypeRef<ManageLabelServicePostOut>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+}
+export const ManageLabelServicePutInTypeRef: TypeRef<ManageLabelServicePutIn> = new TypeRef("tutanota", "ManageLabelServicePutIn")
+
+export function createManageLabelServicePutIn(values: StrippedEntity<ManageLabelServicePutIn>): ManageLabelServicePutIn {
+	return Object.assign(create(typeModels.ManageLabelServicePutIn, ManageLabelServicePutInTypeRef), values)
+}
+
+export type ManageLabelServicePutIn = {
+	_type: TypeRef<ManageLabelServicePutIn>;
+	_errors: Object;
+
+	_format: NumberString;
+	ownerEncSessionKey: Uint8Array;
+	ownerGroup: Id;
+	ownerKeyVersion: NumberString;
+
+	data: ManageLabelServiceLabelData;
+	label: IdTuple;
 }
 export const MoveMailDataTypeRef: TypeRef<MoveMailData> = new TypeRef("tutanota", "MoveMailData")
 
