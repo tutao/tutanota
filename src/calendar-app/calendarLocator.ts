@@ -111,6 +111,7 @@ import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
+import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 
 assertMainOrNode()
 
@@ -139,6 +140,7 @@ class CalendarLocator {
 	counterFacade!: CounterFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
+	keyVerificationFacade!: KeyVerificationFacade
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade

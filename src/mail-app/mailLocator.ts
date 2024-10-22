@@ -136,6 +136,8 @@ import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
+import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
+import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { getElementId } from "../common/api/common/utils/EntityUtils.js"
 
@@ -171,6 +173,7 @@ class MailLocator {
 	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
+	keyVerificationFacade!: KeyVerificationFacade
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -700,6 +703,7 @@ class MailLocator {
 			searchFacade,
 			bookingFacade,
 			mailAddressFacade,
+			keyVerificationFacade,
 			blobFacade,
 			userManagementFacade,
 			recoverCodeFacade,
@@ -727,6 +731,7 @@ class MailLocator {
 		this.searchFacade = searchFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
+		this.keyVerificationFacade = keyVerificationFacade
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
