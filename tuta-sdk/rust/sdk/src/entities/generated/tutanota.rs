@@ -5,6 +5,38 @@ use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ApplyLabelServiceDeleteIn {
+	pub _format: i64,
+	pub label: IdTuple,
+	pub mails: Vec<IdTuple>,
+}
+impl Entity for ApplyLabelServiceDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ApplyLabelServiceDeleteIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ApplyLabelServicePostIn {
+	pub _format: i64,
+	pub label: IdTuple,
+	pub mails: Vec<IdTuple>,
+}
+impl Entity for ApplyLabelServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ApplyLabelServicePostIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AttachmentKeyData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -1572,8 +1604,8 @@ pub struct MailFolder {
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: GeneratedId,
+	pub color: Option<String>,
 	pub folderType: i64,
-	pub isLabel: bool,
 	pub isMailSet: bool,
 	pub name: String,
 	pub entries: GeneratedId,
@@ -1685,6 +1717,96 @@ impl Entity for MailboxServerProperties {
 		TypeRef {
 			app: "tutanota",
 			type_: "MailboxServerProperties",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ManageLabelServiceDeleteIn {
+	pub _format: i64,
+	pub label: IdTuple,
+}
+impl Entity for ManageLabelServiceDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ManageLabelServiceDeleteIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ManageLabelServiceLabelData {
+	pub _id: CustomId,
+	pub color: String,
+	pub name: String,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+impl Entity for ManageLabelServiceLabelData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ManageLabelServiceLabelData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ManageLabelServicePostIn {
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerGroup: GeneratedId,
+	pub ownerKeyVersion: i64,
+	pub data: ManageLabelServiceLabelData,
+	pub _errors: Option<Errors>,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+impl Entity for ManageLabelServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ManageLabelServicePostIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ManageLabelServicePostOut {
+	pub _format: i64,
+	pub label: IdTuple,
+}
+impl Entity for ManageLabelServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ManageLabelServicePostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ManageLabelServicePutIn {
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerGroup: GeneratedId,
+	pub ownerKeyVersion: i64,
+	pub data: ManageLabelServiceLabelData,
+	pub label: IdTuple,
+	pub _errors: Option<Errors>,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+impl Entity for ManageLabelServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ManageLabelServicePutIn",
 		}
 	}
 }
