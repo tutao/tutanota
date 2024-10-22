@@ -1,3 +1,5 @@
+import {ApplyLabelServicePostInTypeRef} from "./TypeRefs.js"
+import {ApplyLabelServiceDeleteInTypeRef} from "./TypeRefs.js"
 import {UserAreaGroupPostDataTypeRef} from "./TypeRefs.js"
 import {CreateGroupPostReturnTypeRef} from "./TypeRefs.js"
 import {CalendarDeleteDataTypeRef} from "./TypeRefs.js"
@@ -22,6 +24,10 @@ import {DeleteMailFolderDataTypeRef} from "./TypeRefs.js"
 import {CreateMailGroupDataTypeRef} from "./TypeRefs.js"
 import {DeleteGroupDataTypeRef} from "./TypeRefs.js"
 import {DeleteMailDataTypeRef} from "./TypeRefs.js"
+import {ManageLabelServicePostInTypeRef} from "./TypeRefs.js"
+import {ManageLabelServicePostOutTypeRef} from "./TypeRefs.js"
+import {ManageLabelServicePutInTypeRef} from "./TypeRefs.js"
+import {ManageLabelServiceDeleteInTypeRef} from "./TypeRefs.js"
 import {MoveMailDataTypeRef} from "./TypeRefs.js"
 import {NewsOutTypeRef} from "./TypeRefs.js"
 import {NewsInTypeRef} from "./TypeRefs.js"
@@ -34,6 +40,15 @@ import {TranslationGetInTypeRef} from "./TypeRefs.js"
 import {TranslationGetOutTypeRef} from "./TypeRefs.js"
 import {UnreadMailStatePostInTypeRef} from "./TypeRefs.js"
 import {UserAccountCreateDataTypeRef} from "./TypeRefs.js"
+
+export const ApplyLabelService = Object.freeze({
+	app: "tutanota",
+	name: "ApplyLabelService",
+	get: null,
+	post: {data: ApplyLabelServicePostInTypeRef, return: null},
+	put: null,
+	delete: {data: ApplyLabelServiceDeleteInTypeRef, return: null},
+} as const)
 
 export const CalendarService = Object.freeze({
 	app: "tutanota",
@@ -141,6 +156,15 @@ export const MailService = Object.freeze({
 	post: null,
 	put: null,
 	delete: {data: DeleteMailDataTypeRef, return: null},
+} as const)
+
+export const ManageLabelService = Object.freeze({
+	app: "tutanota",
+	name: "ManageLabelService",
+	get: null,
+	post: {data: ManageLabelServicePostInTypeRef, return: ManageLabelServicePostOutTypeRef},
+	put: {data: ManageLabelServicePutInTypeRef, return: null},
+	delete: {data: ManageLabelServiceDeleteInTypeRef, return: null},
 } as const)
 
 export const MoveMailService = Object.freeze({
