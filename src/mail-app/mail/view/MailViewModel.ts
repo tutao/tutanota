@@ -155,12 +155,22 @@ export class MailViewModel {
 
 		// This should be very quick as we only wait for the cache,
 		await this.loadExplicitMailTarget(listId, elementId, onMissingExplicitMailTarget)
+	}
 
-		if (!isSameId(this.stickyMailId, fullMailId)) return
+	private async resetOrInitializeList(stickyMailId: IdTuple) {
+		if (this._folder != null) {
+			// If we already have a folder, deselect.
+			this.listModel?.selectNone()
+		} else {
+			// Otherwise, load the inbox so that it won't be empty on mobile when you try to go back.
+			const userInbox = await this.getFolderForUserInbox()
 
-		// Make sure that we display *something* in the list, otherwise it'll be empty on mobile
-		// We could try to open the location of the mail, but it might have been moved around soon after
-		this.setListId(await this.getFolderForUserInbox())
+			if (this.didStickyMailChange(stickyMailId, "after loading user inbox ID")) {
+				return
+			}
+
+			this.setListId(userInbox)
+		}
 	}
 
 	private async showMail(folder?: MailFolder | null, mailId?: Id) {
@@ -230,16 +240,26 @@ export class MailViewModel {
 	}
 
 	private async loadExplicitMailTarget(listId: Id, mailId: Id, onMissingTargetEmail: () => unknown) {
+		const expectedStickyMailId: IdTuple = [listId, mailId]
+
+		// shouldStop returning true guarantees we won't load anything if the mail is not in the list already, so
+		// this will be synchronous
+		const listMail = await this.listModel?.loadAndSelect(mailId, () => true)
+		if (listMail) {
+			console.log(TAG, "opening mail from list", mailId)
+			return
+		}
+
 		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
 		if (cached) {
 			console.log(TAG, "opening cached mail", mailId)
+			await this.resetOrInitializeList([listId, mailId])
 			this.createConversationViewModel({ mail: cached, showFolder: false })
-			this.listModel?.selectNone()
 			this.updateUi()
+			return
 		}
 
-		if (!isSameId(this.stickyMailId, [listId, mailId])) {
-			console.log(TAG, "target mail id changed 1", mailId, this.stickyMailId)
+		if (this.didStickyMailChange(expectedStickyMailId, "after loading cached")) {
 			return
 		}
 
@@ -256,14 +276,13 @@ export class MailViewModel {
 			}
 		}
 
-		if (!isSameId(this.stickyMailId, [listId, mailId])) {
-			console.log(TAG, "target mail id changed 2", mailId, this.stickyMailId)
+		if (this.didStickyMailChange(expectedStickyMailId, "after loading from entity client")) {
 			return
 		}
 
 		if (mail) {
+			await this.resetOrInitializeList(expectedStickyMailId)
 			this.createConversationViewModel({ mail, showFolder: false })
-			this.listModel?.selectNone()
 			this.updateUi()
 		} else {
 			console.log(TAG, "Explicit mail target is not found", listId, mailId)
@@ -272,6 +291,14 @@ export class MailViewModel {
 			this.stickyMailId = null
 			this.updateUrl()
 		}
+	}
+
+	private didStickyMailChange(expectedId: IdTuple, message: string): boolean {
+		const changed = !isSameId(this.stickyMailId, expectedId)
+		if (changed) {
+			console.log(TAG, "target mail id changed", message, expectedId, this.stickyMailId)
+		}
+		return changed
 	}
 
 	private async loadAndSelectMail(folder: MailFolder, mailId: Id) {
