@@ -22,6 +22,7 @@ import {
 	ofClass,
 	stringToBase64,
 	TypeRef,
+	YEAR_IN_MILLIS,
 } from "@tutao/tutanota-utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
@@ -65,9 +66,14 @@ export class CalendarSearchViewModel {
 		return this._includeRepeatingEvents
 	}
 
-	private _warning: CalendarSearchViewModel["warning"] = null
 	get warning(): "long" | "startafterend" | null {
-		return this._warning
+		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
+			return "startafterend"
+		} else if (this.startDate && this.endDate.getTime() - this.startDate.getTime() > YEAR_IN_MILLIS) {
+			return "long"
+		} else {
+			return null
+		}
 	}
 
 	private _startDate: Date | null = null // null = the beginning of the current month

@@ -99,9 +99,14 @@ export class SearchViewModel {
 		return this._includeRepeatingEvents
 	}
 
-	private _warning: SearchViewModel["warning"] = null
 	get warning(): "long" | "startafterend" | null {
-		return this._warning
+		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
+			return "startafterend"
+		} else if (this.startDate && this.endDate.getTime() - this.startDate.getTime() > YEAR_IN_MILLIS) {
+			return "long"
+		} else {
+			return null
+		}
 	}
 
 	/**
@@ -518,7 +523,6 @@ export class SearchViewModel {
 			this._startDate = startDate
 		}
 
-		this.validateDateRange()
 		this.searchAgain()
 
 		return PaidFunctionResult.Success
@@ -535,7 +539,6 @@ export class SearchViewModel {
 
 		this._endDate = endDate
 
-		this.validateDateRange()
 		this.searchAgain()
 
 		return PaidFunctionResult.Success
@@ -548,16 +551,6 @@ export class SearchViewModel {
 			this._selectedCalendar = [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
 		}
 		this.searchAgain()
-	}
-
-	private validateDateRange() {
-		if (this._startDate && this._startDate.getTime() > this.endDate.getTime()) {
-			this._warning = "startafterend"
-		} else if (this._startDate && this._startDate.getTime() - this.endDate.getTime() > YEAR_IN_MILLIS) {
-			this._warning = "long"
-		} else {
-			this._warning = null
-		}
 	}
 
 	selectMailFolder(folder: Array<string>): PaidFunctionResult {
