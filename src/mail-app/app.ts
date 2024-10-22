@@ -146,7 +146,7 @@ import("./translations/en.js")
 			return {
 				async onPartialLoginSuccess() {},
 				async onFullLoginSuccess() {
-					return mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
+					await mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
 				},
 			}
 		})

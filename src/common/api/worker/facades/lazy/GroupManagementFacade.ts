@@ -8,7 +8,7 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, getFirstOrThrow, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
 import {
 	AdministratedGroup,
 	AdministratedGroupTypeRef,
@@ -18,7 +18,6 @@ import {
 	createMembershipRemoveData,
 	CustomerTypeRef,
 	Group,
-	GroupInfo,
 	GroupInfoTypeRef,
 	GroupTypeRef,
 	LocalAdminGroupReplacementData,
@@ -384,23 +383,29 @@ export class GroupManagementFacade {
 		const adminGroupId: Id = customer.adminGroup
 		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 		const postIn = createLocalAdminRemovalPostIn({ groupUpdates: [] })
-		const makeLocallyAdministratedGroupGloballyAdministrated = async (localAdminGroupInfo: GroupInfo) => {
+
+		for (let localAdminGroupInfo of localAdminGroupInfos) {
 			const localAdminGroup = await this.entityClient.load(GroupTypeRef, localAdminGroupInfo.group)
 			const administratedGroupsListId = localAdminGroup.administratedGroups?.items
 			if (administratedGroupsListId == null) return null
 			const administratedGroups: Array<AdministratedGroup> = await this.entityClient.loadAll(AdministratedGroupTypeRef, administratedGroupsListId)
 
 			// we assume local admins never had their key roatation done and so their sym key version (requestedVersion) is stuck to 0 by default
-			const thisLocalAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(localAdminGroup._id, 0)
-			administratedGroups.map(async (ag) => {
+			const thisLocalAdminGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(localAdminGroup._id)
+			for (let ag of administratedGroups) {
 				const thisRelatedGroupInfo = await this.entityClient.load(GroupInfoTypeRef, ag.groupInfo)
 				const thisRelatedGroup = await this.entityClient.load(GroupTypeRef, thisRelatedGroupInfo.group)
 
-				const groupUpdate = await this.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(adminGroupKey, thisLocalAdminGroupKey, thisRelatedGroup)
+				const groupUpdate = await this.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+					adminGroupKey,
+					thisLocalAdminGroupKey.object,
+					thisRelatedGroup,
+				)
 				postIn.groupUpdates.push(groupUpdate)
-			})
+			}
 		}
-		localAdminGroupInfos.map(makeLocallyAdministratedGroupGloballyAdministrated)
-		await this.serviceExecutor.post(LocalAdminRemovalService, postIn)
+		if (isNotEmpty(postIn.groupUpdates)) {
+			await this.serviceExecutor.post(LocalAdminRemovalService, postIn)
+		}
 	}
 }
