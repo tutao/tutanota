@@ -94,6 +94,7 @@ export enum MailSetKind {
 	SPAM = "5",
 	DRAFT = "6",
 	ALL = "7",
+	LABEL = "8",
 }
 
 export const enum ReplyType {

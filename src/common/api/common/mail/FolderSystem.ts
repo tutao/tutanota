@@ -164,7 +164,7 @@ function compareCustom(folder1: MailFolder, folder2: MailFolder): number {
 	return folder1.name.localeCompare(folder2.name)
 }
 
-type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM>
+type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM | MailSetKind.LABEL>
 
 const folderTypeToOrder: Record<SystemMailFolderTypes, number> = {
 	[MailSetKind.INBOX]: 0,
