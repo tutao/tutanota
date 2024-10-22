@@ -510,6 +510,21 @@
 					"info": "RemoveAssociation MailboxGroupRoot/whitelistRequests."
 				}
 			]
+		},
+		{
+			"version": 77,
+			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "MailFolder",
+					"info": "RemoveValue MailFolder/isLabel/1457."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "MailFolder",
+					"info": "AddValue MailFolder/color/1479."
+				}
+			]
 		}
 	]
 }

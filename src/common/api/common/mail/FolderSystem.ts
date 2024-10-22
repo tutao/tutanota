@@ -174,6 +174,7 @@ const folderTypeToOrder: Record<SystemMailFolderTypes, number> = {
 	[MailSetKind.ARCHIVE]: 5,
 	[MailSetKind.SPAM]: 6,
 	[MailSetKind.ALL]: 7,
+	[MailSetKind.LABEL]: 8,
 }
 
 function compareSystem(folder1: MailFolder, folder2: MailFolder): number {

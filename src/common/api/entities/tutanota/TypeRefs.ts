@@ -1303,8 +1303,8 @@ export type MailFolder = {
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
+	color: null | string;
 	folderType: NumberString;
-	isLabel: boolean;
 	isMailSet: boolean;
 	name: string;
 
