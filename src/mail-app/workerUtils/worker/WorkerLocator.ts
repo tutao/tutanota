@@ -86,6 +86,7 @@ import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 
 assertWorkerOrNode()
 
@@ -135,6 +136,7 @@ export type WorkerLocatorType = {
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
 	cacheManagement: lazyAsync<CacheManagementFacade>
+	keyVerification: lazyAsync<KeyVerificationFacade>
 
 	// misc & native
 	configFacade: lazyAsync<ConfigurationDatabase>
@@ -490,6 +492,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
 		return new ContactFacade(new EntityClient(locator.cache))
+	})
+	locator.keyVerification = lazyMemoized(async () => {
+		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		return new KeyVerificationFacade()
 	})
 }
 

@@ -5,16 +5,23 @@ import { UserController } from "../../api/main/UserController.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { lang } from "../../misc/LanguageViewModel"
+import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	publicKeyHash: string | null
 
-	constructor(private readonly cryptoFacade: CryptoFacade, private readonly userController: UserController) {
+	constructor(
+		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly cryptoFacade: CryptoFacade,
+		private readonly userController: UserController,
+	) {
 		this.publicKeyHash = null
 	}
 
 	async init() {
 		this.publicKeyHash = await this.cryptoFacade.getPublicKeyHash(assertNotNull(this.userController.userGroupInfo.mailAddress))
+		const blah = await this.keyVerificationFacade.meow()
+		console.log("KV-Facade: ", blah)
 		m.redraw()
 	}
 
