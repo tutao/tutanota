@@ -5,6 +5,8 @@ assertMainOrNodeBoot()
 // 3 or 6 digit hex color codes
 export const VALID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
+export const MAX_HUE_ANGLE = 360
+
 /**
  * Returns true if the color code is a valid hex color code.
  *
@@ -15,12 +17,97 @@ export function isValidColorCode(colorCode: string): boolean {
 	return VALID_HEX_CODE_FORMAT.test(colorCode)
 }
 
+export function isValidCSSHexColor(colorCode: string): boolean {
+	return isValidColorCode(colorCode) && CSS.supports("color", colorCode)
+}
+
 export function isColorLight(c: string): boolean {
 	const { r, g, b } = hexToRgb(c)
 	// Counting the perceptive luminance
 	// human eye favors green color...
 	const a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255
 	return a < 0.5
+}
+
+export function normalizeHueAngle(hue: number): number {
+	return ((hue % MAX_HUE_ANGLE) + MAX_HUE_ANGLE) % MAX_HUE_ANGLE
+}
+
+export function hexToHSL(hex: string): { h: number; s: number; l: number } {
+	return rgbToHSL(hexToRgb(hex))
+}
+
+export function hslToHex(color: { h: number; s: number; l: number }): string {
+	return rgbToHex(hslToRGB(color))
+}
+
+/*
+ * Source: https://www.w3.org/TR/2011/REC-css3-color-20110607/#hsl-color
+ */
+export function hslToRGB(color: { h: number; s: number; l: number }): { r: number; g: number; b: number } {
+	let { h, s, l } = color
+
+	h = h % MAX_HUE_ANGLE
+
+	if (h < 0) {
+		h += MAX_HUE_ANGLE
+	}
+
+	s /= 100
+	l /= 100
+
+	function f(n: number) {
+		let k = (n + h / 30) % 12
+		let a = s * Math.min(l, 1 - l)
+		return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+	}
+
+	return {
+		r: Math.round(f(0) * 255),
+		g: Math.round(f(8) * 255),
+		b: Math.round(f(4) * 255),
+	}
+}
+
+/*
+ * CC0-1.0 license from MDN
+ * Source: https://github.com/mdn/css-examples/blob/main/modules/colors.html
+ */
+export function rgbToHSL(color: { r: number; g: number; b: number }): { h: number; s: number; l: number } {
+	let { r, g, b } = color
+
+	// Let's have r, g, b in the range [0, 1]
+	r = r / 255
+	g = g / 255
+	b = b / 255
+	const cmin = Math.min(r, g, b)
+	const cmax = Math.max(r, g, b)
+	const delta = cmax - cmin
+	let h = 0,
+		s = 0,
+		l = 0
+
+	if (delta === 0) {
+		h = 0
+	} else if (cmax === r) {
+		h = ((g - b) / delta) % 6
+	} else if (cmax === g) {
+		h = (b - r) / delta + 2
+	} else h = (r - g) / delta + 4
+
+	h = Math.round(h * 60)
+
+	// We want an angle between 0 and MAX_HUE_ANGLE (360°)
+	if (h < 0) {
+		h += MAX_HUE_ANGLE
+	}
+
+	l = (cmax + cmin) / 2
+	s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1))
+	s = Number((s * 100).toFixed(1))
+	l = Number((l * 100).toFixed(1))
+
+	return { h: Math.round(h), s: Math.round(s), l: Math.round(l) }
 }
 
 export function hexToRgb(colorCode: string): {
