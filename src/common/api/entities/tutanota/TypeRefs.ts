@@ -6,6 +6,34 @@ import {Blob} from '../sys/TypeRefs.js'
 import {BucketKey} from '../sys/TypeRefs.js'
 import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
+export const ApplyLabelServiceDeleteInTypeRef: TypeRef<ApplyLabelServiceDeleteIn> = new TypeRef("tutanota", "ApplyLabelServiceDeleteIn")
+
+export function createApplyLabelServiceDeleteIn(values: StrippedEntity<ApplyLabelServiceDeleteIn>): ApplyLabelServiceDeleteIn {
+	return Object.assign(create(typeModels.ApplyLabelServiceDeleteIn, ApplyLabelServiceDeleteInTypeRef), values)
+}
+
+export type ApplyLabelServiceDeleteIn = {
+	_type: TypeRef<ApplyLabelServiceDeleteIn>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+	mails: IdTuple[];
+}
+export const ApplyLabelServicePostInTypeRef: TypeRef<ApplyLabelServicePostIn> = new TypeRef("tutanota", "ApplyLabelServicePostIn")
+
+export function createApplyLabelServicePostIn(values: StrippedEntity<ApplyLabelServicePostIn>): ApplyLabelServicePostIn {
+	return Object.assign(create(typeModels.ApplyLabelServicePostIn, ApplyLabelServicePostInTypeRef), values)
+}
+
+export type ApplyLabelServicePostIn = {
+	_type: TypeRef<ApplyLabelServicePostIn>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+	mails: IdTuple[];
+}
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 
 export function createAttachmentKeyData(values: StrippedEntity<AttachmentKeyData>): AttachmentKeyData {
@@ -483,6 +511,67 @@ export type CreateGroupPostReturn = {
 	_format: NumberString;
 
 	group: Id;
+}
+export const CreateLabelServiceDeleteInTypeRef: TypeRef<CreateLabelServiceDeleteIn> = new TypeRef("tutanota", "CreateLabelServiceDeleteIn")
+
+export function createCreateLabelServiceDeleteIn(values: StrippedEntity<CreateLabelServiceDeleteIn>): CreateLabelServiceDeleteIn {
+	return Object.assign(create(typeModels.CreateLabelServiceDeleteIn, CreateLabelServiceDeleteInTypeRef), values)
+}
+
+export type CreateLabelServiceDeleteIn = {
+	_type: TypeRef<CreateLabelServiceDeleteIn>;
+
+	_format: NumberString;
+
+	label: IdTuple;
+}
+export const CreateLabelServicePostInTypeRef: TypeRef<CreateLabelServicePostIn> = new TypeRef("tutanota", "CreateLabelServicePostIn")
+
+export function createCreateLabelServicePostIn(values: StrippedEntity<CreateLabelServicePostIn>): CreateLabelServicePostIn {
+	return Object.assign(create(typeModels.CreateLabelServicePostIn, CreateLabelServicePostInTypeRef), values)
+}
+
+export type CreateLabelServicePostIn = {
+	_type: TypeRef<CreateLabelServicePostIn>;
+	_errors: Object;
+
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerPublicEncSessionKey: null | Uint8Array;
+	_publicCryptoProtocolVersion: null | NumberString;
+
+	data: CreateLabelServiceLabelData;
+	label: IdTuple;
+}
+export const CreateLabelServicePutInTypeRef: TypeRef<CreateLabelServicePutIn> = new TypeRef("tutanota", "CreateLabelServicePutIn")
+
+export function createCreateLabelServicePutIn(values: StrippedEntity<CreateLabelServicePutIn>): CreateLabelServicePutIn {
+	return Object.assign(create(typeModels.CreateLabelServicePutIn, CreateLabelServicePutInTypeRef), values)
+}
+
+export type CreateLabelServicePutIn = {
+	_type: TypeRef<CreateLabelServicePutIn>;
+	_errors: Object;
+
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerPublicEncSessionKey: null | Uint8Array;
+	_publicCryptoProtocolVersion: null | NumberString;
+
+	data: CreateLabelServiceLabelData;
+}
+export const CreateLabelServicePutOutTypeRef: TypeRef<CreateLabelServicePutOut> = new TypeRef("tutanota", "CreateLabelServicePutOut")
+
+export function createCreateLabelServicePutOut(values: StrippedEntity<CreateLabelServicePutOut>): CreateLabelServicePutOut {
+	return Object.assign(create(typeModels.CreateLabelServicePutOut, CreateLabelServicePutOutTypeRef), values)
+}
+
+export type CreateLabelServicePutOut = {
+	_type: TypeRef<CreateLabelServicePutOut>;
+
+	_format: NumberString;
+
+	label: IdTuple;
 }
 export const CreateMailFolderDataTypeRef: TypeRef<CreateMailFolderData> = new TypeRef("tutanota", "CreateMailFolderData")
 
@@ -1303,8 +1392,8 @@ export type MailFolder = {
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
+	color: null | string;
 	folderType: NumberString;
-	isLabel: boolean;
 	isMailSet: boolean;
 	name: string;
 
