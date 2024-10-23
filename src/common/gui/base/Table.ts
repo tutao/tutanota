@@ -118,13 +118,12 @@ export class Table implements Component<TableAttrs> {
 		if (typeof lineAttrs.cells == "function") {
 			cells = lineAttrs.cells().map((cellTextData, index) =>
 				m(
-					"td",
+					"td" + columnWidths[index],
 					m(
 						"",
 						{ class: useHelpButton ? "flex items-center height-100p full-width" : "" },
 						m(
 							".text-ellipsis.pr.pt-s" +
-								columnWidths[index] +
 								(bold ? ".b" : "") +
 								(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
 								(columnAlignments[index] ? ".right" : ""),
