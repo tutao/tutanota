@@ -61,12 +61,11 @@ export class ThemeController {
 
 				// We also don't need to save anything in this case
 				await this.applyCustomizations(parsedTheme, false)
-				// If it's a first start we might get a fallback theme from native. We can apply it for a short time but we should switch to the full, resolved
-				// theme after that.
-				await this.setThemePreference((await this.themeFacade.getThemePreference()) ?? this._themePreference)
-			} else {
-				await this.reloadTheme()
 			}
+
+			// If it's a first start we might get a fallback theme from native. We can apply it for a short time but we should switch to the full, resolved
+			// theme after that.
+			await this.setThemePreference((await this.themeFacade.getThemePreference()) ?? this._themePreference)
 		}
 	}
 
