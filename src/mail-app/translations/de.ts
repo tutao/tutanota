@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-10-18T10:39:23Z",
+	"updated_at": "2024-10-23T04:39:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1064,6 +1064,7 @@ export default {
 		"onlyPrivateComputer_msg": "Wähle diese Option nur bei der Verwendung eines privaten Geräts.",
 		"openCamera_action": "Kamera",
 		"openKnowledgebase_action": "Öffne die Knowledgebase",
+		"openMailApp_msg": "Diese Aktion öffnet die Tuta Mail App. Weiter?",
 		"openNewWindow_action": "Neues Fenster",
 		"openTemplatePopup_msg": "Öffnen des Vorlagen-Pop-ups",
 		"open_action": "Öffnen",
@@ -1809,7 +1810,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"openMailApp_msg": "Diese Aktion öffnet Tuta Mail App, möchtest du fortfahren?"
+		"you_label": "Du"
 	}
 }

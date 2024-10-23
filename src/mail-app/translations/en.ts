@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-10-18T10:39:23Z",
+	"updated_at": "2024-10-23T04:39:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1060,6 +1060,7 @@ export default {
 		"onlyPrivateComputer_msg": "Only choose this option if you are using a private device.",
 		"openCamera_action": "Camera",
 		"openKnowledgebase_action": "Open the knowledge base window",
+		"openMailApp_msg": "This action will open Tuta Mail App, do you want to continue?",
 		"openNewWindow_action": "New Window",
 		"openTemplatePopup_msg": "Open templates pop-up",
 		"open_action": "Open",
@@ -1805,7 +1806,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"openMailApp_msg": "This action will open Tuta Mail App, do you want to continue?"
+		"you_label": "You"
 	}
 }

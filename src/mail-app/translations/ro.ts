@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-10-18T11:47:51Z",
+	"updated_at": "2024-10-23T09:38:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1065,6 +1065,7 @@ export default {
 		"onlyPrivateComputer_msg": "Alege această opțiune doar dacă folosești aparatul tău.",
 		"openCamera_action": "Camera",
 		"openKnowledgebase_action": "Deschide fereastra bazei de cunoștințe",
+		"openMailApp_msg": "Această acțiune va deschide aplicația Tuta Mail. Doriți să continuați?",
 		"openNewWindow_action": "Fereastră nouă",
 		"openTemplatePopup_msg": "Deschide fereastra cu modele",
 		"open_action": "Deschide",

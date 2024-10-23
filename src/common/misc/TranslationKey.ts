@@ -1043,6 +1043,7 @@ export type TranslationKeyType =
 	| "onlyPrivateComputer_msg"
 	| "openCamera_action"
 	| "openKnowledgebase_action"
+	| "openMailApp_msg"
 	| "openNewWindow_action"
 	| "openTemplatePopup_msg"
 	| "open_action"
@@ -1790,4 +1791,3 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "openMailApp_msg"
