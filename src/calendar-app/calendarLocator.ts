@@ -112,7 +112,7 @@ import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
-import { ImapImportSystemFacade } from "../common/native/common/generatedipc/ImapImportSystemFacade.js"
+import { MailImportFacade } from "../common/native/common/generatedipc/MailImportFacade"
 
 assertMainOrNode()
 
@@ -153,7 +153,7 @@ class CalendarLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
-	imapImportSystemFacade!: ImapImportSystemFacade
+	mailImportFacade!: MailImportFacade
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher

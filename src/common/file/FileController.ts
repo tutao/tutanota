@@ -144,7 +144,7 @@ export function handleDownloadErrors<R>(e: Error, errorAction: (msg: Translation
 	}
 }
 
-export function readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
+export function fileListToArray(fileList: FileList): Array<File> {
 	// create an array of files form the FileList because we can not iterate the FileList directly
 	let nativeFiles: File[] = []
 
@@ -152,6 +152,11 @@ export function readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
 		nativeFiles.push(fileList[i])
 	}
 
+	return nativeFiles
+}
+
+export function readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
+	const nativeFiles = fileListToArray(fileList)
 	return promiseMap(
 		nativeFiles,
 		(nativeFile) => {

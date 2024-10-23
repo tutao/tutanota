@@ -38,8 +38,8 @@ import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/Mobil
 import { AppType } from "../../misc/ClientConstants.js"
 import { ExternalCalendarFacade } from "../common/generatedipc/ExternalCalendarFacade.js"
 import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/ExternalCalendarFacadeSendDispatcher.js"
-import { ImapImportSystemFacadeSendDispatcher } from "../common/generatedipc/ImapImportSystemFacadeSendDispatcher.js"
-import { ImapImportSystemFacade } from "../common/generatedipc/ImapImportSystemFacade.js"
+import { MailImportFacadeSendDispatcher } from "../common/generatedipc/MailImportFacadeSendDispatcher"
+import { MailImportFacade } from "../common/generatedipc/MailImportFacade"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -58,7 +58,7 @@ export type DesktopInterfaces = {
 	searchTextFacade: SearchTextInAppFacade
 	desktopSettingsFacade: SettingsFacadeSendDispatcher
 	desktopSystemFacade: DesktopSystemFacade
-	imapImportSystemFacade: ImapImportSystemFacade
+	mailImportFacade: MailImportFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
 }
 
@@ -116,7 +116,7 @@ export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInt
 		searchTextFacade: new SearchTextInAppFacadeSendDispatcher(native),
 		desktopSettingsFacade: new SettingsFacadeSendDispatcher(native),
 		desktopSystemFacade: new DesktopSystemFacadeSendDispatcher(native),
-		imapImportSystemFacade: new ImapImportSystemFacadeSendDispatcher(native),
+		mailImportFacade: new MailImportFacadeSendDispatcher(native),
 		interWindowEventSender: new InterWindowEventFacadeSendDispatcher(native),
 	}
 }

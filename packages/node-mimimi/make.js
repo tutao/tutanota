@@ -34,7 +34,7 @@ async function run(platform, { clean, release, test }) {
 
 	const target = getTarget(platform)
 	const releaseFlag = release ? "--release" : ""
-	await $`napi build --platform dist --js binding.cjs --dts binding.d.ts ${target} ${releaseFlag}`
+	await $`napi build dist --platform --js binding.cjs --dts binding.d.ts ${target} ${releaseFlag} --features javascript`
 	if (test) {
 		await $`tsc -b test`
 	}

@@ -210,11 +210,11 @@ export class PostLoginActions implements PostLoginAction {
 					password: "imap-password",
 					username: "imap-user",
 					host: "mail.gmail.com",
-					port: "123",
+					port: 123,
 				}
 
 				const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
-				await locator.imapImportSystemFacade.setup(apiUrl, unencryptedCredentials, imapCredentials)
+				await locator.mailImportFacade.setupImapImport(apiUrl, unencryptedCredentials, imapCredentials)
 			} else {
 				console.error(`could not load credentials for user with userId ${userId}`)
 			}

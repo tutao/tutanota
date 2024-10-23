@@ -1,15 +1,13 @@
-import { ImapImportSystemFacade } from "../../native/common/generatedipc/ImapImportSystemFacade.js"
 import { ImapCredentials, ImportCredentials, TutaCredentials, TutaCredentialType } from "@tutao/node-mimimi"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
-import { getApiBaseUrl } from "../../api/common/Env.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
-import { locator } from "../../api/main/CommonLocator.js"
+import { MailImportFacade } from "../../native/common/generatedipc/MailImportFacade"
 
-export class DesktopImapImportSystemFacade implements ImapImportSystemFacade {
+export class DesktopMailImportFacade implements MailImportFacade {
 	constructor(private readonly win: ApplicationWindow) {}
 
-	async setup(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, imapCredentials: ImapCredentials): Promise<void> {
+	async setupImapImport(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, imapCredentials: ImapCredentials): Promise<void> {
 		try {
 			const tutaCredentials: TutaCredentials = {
 				accessToken: unencryptedTutaCredentials?.accessToken,
@@ -31,11 +29,30 @@ export class DesktopImapImportSystemFacade implements ImapImportSystemFacade {
 		}
 	}
 
-	startImport(): Promise<void> {
+	startImapImport(): Promise<void> {
 		throw new Error("Method not implemented.")
 	}
 
-	stopImport(): Promise<void> {
+	stopImapImport(): Promise<void> {
 		throw new Error("Method not implemented.")
+	}
+
+	async importFromFiles(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, filePaths: Array<string>, targetFolder: string): Promise<string> {
+		const tutaCredentials: TutaCredentials = {
+			accessToken: unencryptedTutaCredentials?.accessToken,
+			credentialType:
+				unencryptedTutaCredentials.credentialInfo.type == CredentialType.Internal ? TutaCredentialType.Internal : TutaCredentialType.External,
+			encryptedPassphraseKey: unencryptedTutaCredentials.encryptedPassphraseKey ? Array.from(unencryptedTutaCredentials.encryptedPassphraseKey) : [],
+			login: unencryptedTutaCredentials.credentialInfo.login,
+			userId: unencryptedTutaCredentials.credentialInfo.userId,
+			apiUrl: apiUrl,
+			clientVersion: env.versionNumber,
+		}
+
+		const electron = await import("electron")
+		electron.dialog.showErrorBox("nope", JSON.stringify(filePaths))
+
+		// todo: pass to SDK / node-mimimi
+		return "first mailId in folder"
 	}
 }

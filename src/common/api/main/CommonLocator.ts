@@ -69,7 +69,7 @@ import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
-import { ImapImportSystemFacade } from "../../native/common/generatedipc/ImapImportSystemFacade.js"
+import { MailImportFacade } from "../../native/common/generatedipc/MailImportFacade.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -86,7 +86,7 @@ export interface CommonLocator {
 	infoMessageHandler: InfoMessageHandler
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade
-	imapImportSystemFacade: ImapImportSystemFacade
+	mailImportFacade: MailImportFacade
 	themeController: ThemeController
 
 	entityClient: EntityClient

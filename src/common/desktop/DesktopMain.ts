@@ -71,8 +71,7 @@ import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
-import { DesktopImapImportSystemFacade } from "./imapimport/DesktopImapImportSystemFacade.js"
-import { DomainConfigProvider } from "../api/common/DomainConfigProvider.js"
+import { DesktopMailImportFacade } from "./imapimport/DesktopMailImportFacade.js"
 
 mp()
 
@@ -273,8 +272,8 @@ async function createComponents(): Promise<Components> {
 			new DesktopExportFacade(tfs, conf, window, dragIcons),
 			new DesktopExternalCalendarFacade(),
 			new DesktopFileFacade(window, conf, dateProvider, desktopNet, electron, tfs, fs),
-			new DesktopImapImportSystemFacade(window),
 			new DesktopInterWindowEventFacade(window, wm),
+			new DesktopMailImportFacade(window),
 			nativeCredentialsFacade,
 			desktopCrypto,
 			pushFacade,
