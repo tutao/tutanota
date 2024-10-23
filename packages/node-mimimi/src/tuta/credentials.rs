@@ -1,7 +1,7 @@
 use tutasdk::generated_id::GeneratedId;
-use tutasdk::login::CredentialType;
+use tutasdk::login::{CredentialType, Credentials};
 
-#[cfg_attr(feature = "javascript", napi(object))]
+#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
 #[derive(Clone)]
 /// Passed in from js-side, will be validated before being converted to proper tuta sdk credentials.
 pub struct TutaCredentials {
@@ -15,24 +15,24 @@ pub struct TutaCredentials {
 	pub credential_type: TutaCredentialType,
 }
 
-impl TryInto<tutasdk::login::Credentials> for TutaCredentials {
+impl TryFrom<TutaCredentials> for Credentials {
 	// todo: proper errors
 	type Error = ();
 
-	fn try_into(self) -> Result<tutasdk::login::Credentials, Self::Error> {
+	fn try_from(tuta_credentials: TutaCredentials) -> Result<Credentials, Self::Error> {
 		// todo: validate!
-		Ok(tutasdk::login::Credentials {
-			login: self.login,
-			user_id: GeneratedId(self.user_id),
-			access_token: self.access_token,
-			encrypted_passphrase_key: self.encrypted_passphrase_key.clone().to_vec(),
-			credential_type: self.credential_type.into(),
+		Ok(Credentials {
+			login: tuta_credentials.login,
+			user_id: GeneratedId(tuta_credentials.user_id),
+			access_token: tuta_credentials.access_token,
+			encrypted_passphrase_key: tuta_credentials.encrypted_passphrase_key.clone().to_vec(),
+			credential_type: tuta_credentials.credential_type.into(),
 		})
 	}
 }
 
-#[cfg_attr(feature = "javascript", napi(string_enum))]
-#[cfg_attr(not(feature = "javascript"), derive(Clone))]
+#[cfg_attr(feature = "javascript", napi_derive::napi(string_enum))]
+#[derive(PartialEq, Clone)]
 pub enum TutaCredentialType {
 	Internal,
 	External,

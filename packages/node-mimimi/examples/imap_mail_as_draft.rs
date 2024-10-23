@@ -8,7 +8,7 @@
 /// 	```
 ///
 /// 3. Add account in Thunderbird with manual configuration (type in user credentials and then click on "configure manually").
-/// 	* IMAP: with host: .localhost, port: 3143, connection security: None, authentication method: Normal password,  (imap without SSL)
+/// 	* IMAP: with host: .localhost, port: 3143, connection security: None, authentication method: Normal password,  (imap_reader without SSL)
 /// 	* SMTP with host: .localhost, port: 3025, connection security: None, authentication method: Normal password (smtp without SSL)
 ///
 /// 4. Send Some Mail (by creating another account following step 2) to sug@localhost
@@ -19,15 +19,14 @@
 ///
 /// 6. Check the list of mails in the `Draft` folder and run this example.
 /// 	* Now the mail you wrote in step 4 should appear in draft folder.
-/// 	* Running this example multiple times will always import first mail retrieved by the imap `SEARCH` command.
+/// 	* Running this example multiple times will always import first mail retrieved by the imap_reader `SEARCH` command.
 ///
 /// 7. Smile :)
 #[cfg(not(feature = "javascript"))]
 #[tokio::main]
 async fn main() {
 	use std::sync::Arc;
-	use tutao_node_mimimi::imap::credentials::ImapCredentials;
-	use tutao_node_mimimi::imap::import_client::{ImapImport, ImapImportConfig};
+	use tutao_node_mimimi::importer::imap_reader::{ImapCredentials, ImapImportConfig};
 	use tutasdk::net::native_rest_client::NativeRestClient;
 	use tutasdk::Sdk;
 
