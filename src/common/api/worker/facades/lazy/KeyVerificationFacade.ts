@@ -48,16 +48,21 @@ export class KeyVerificationFacade {
 	}
 
 	async getPool(): Promise<Map<MailAddress, KeyVerificationDetails>> {
+		await this.recheckPoolEntries()
 		return Promise.resolve(this.verificationPool)
 	}
 
 	async addToPool(mailAddress: string, fingerprint: string) {
 		this.verificationPool.set(mailAddress, { fingerprint: fingerprint, verified: false })
+
+		await this.recheckPoolEntries()
 		return Promise.resolve()
 	}
 
 	async removeFromPool(mailAddress: string) {
 		this.verificationPool.delete(mailAddress)
+
+		await this.recheckPoolEntries()
 		return Promise.resolve()
 	}
 }
