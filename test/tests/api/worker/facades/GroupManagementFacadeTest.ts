@@ -18,12 +18,14 @@ import {
 	Group,
 	GroupInfoTypeRef,
 	GroupTypeRef,
+	LocalAdminRemovalPostIn,
 	PubEncKeyDataTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { LocalAdminRemovalService } from "../../../../../src/common/api/entities/sys/Services.js"
 
 o.spec("GroupManagementFacadeTest", function () {
 	let userFacade: UserFacade
@@ -224,9 +226,10 @@ o.spec("GroupManagementFacadeTest", function () {
 			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdmin._id, administratedGroups: administratedGroupsRefs[1] }),
 		]
 
-		const administratedUserGroup1 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id })
-		const administratedUserGroup2 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id })
-		const administratedUserGroup3 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[1]._id })
+		const administratedUserGroup1 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id, _id: "u1" })
+		const administratedUserGroup2 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id, _id: "u2" })
+		const administratedUserGroup3 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[1]._id, _id: "u3" })
+		const notAdministratedUserGroup4 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: globalAdmin._id, _id: "u4" })
 
 		const administratedUserGroupInfo1 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup1._id, localAdmin: localAdmins[0]._id })
 		const administratedUserGroupInfo2 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup2._id, localAdmin: localAdmins[0]._id })
@@ -242,5 +245,16 @@ o.spec("GroupManagementFacadeTest", function () {
 		// mock team group infos with local admins inside (group.groupType === GroupType.LocalAdmin)
 
 		groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
+
+		verify(
+			serviceExecutor.post(
+				LocalAdminRemovalService,
+				matchers.argThat((postIn: LocalAdminRemovalPostIn) => {
+					const userWithIds = postIn.groupUpdates.map((user) => user._id).sort()
+					o(userWithIds.sort()).deepEquals(["u1", "u2", "u3"])
+					return true
+				}),
+			),
+		)
 	})
 })
