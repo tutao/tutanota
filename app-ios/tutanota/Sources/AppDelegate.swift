@@ -172,7 +172,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 			credentialType: tutasdk.CredentialType.internal
 		)
 		let sdk = try await Sdk(baseUrl: origin, restClient: SdkRestClient()).login(credentials: credentials)
-		let mail = IdTuple(listId: mailId[0], elementId: mailId[1])
+		let mail = IdTupleGenerated(listId: mailId[0], elementId: mailId[1])
 		switch actionIdentifier {
 		case MAIL_TRASH_ACTION: try await sdk.mailFacade().trashMails(mails: [mail])
 		case MAIL_READ_ACTION: try await sdk.mailFacade().setUnreadStatusForMails(mails: [mail], unread: false)
