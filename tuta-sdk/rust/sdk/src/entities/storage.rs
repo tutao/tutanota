@@ -38,7 +38,7 @@ impl Entity for BlobAccessTokenPostOut {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobArchiveRef {
 	pub _format: i64,
-	pub _id: IdTuple,
+	pub _id: IdTupleGenerated,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub archive: GeneratedId,

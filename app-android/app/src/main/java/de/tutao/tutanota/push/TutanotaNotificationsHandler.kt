@@ -2,11 +2,8 @@ package de.tutao.tutanota.push
 
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
-import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.R
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutasdk.CredentialType
-import de.tutao.tutasdk.Credentials
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutasdk.serializeMail
 import de.tutao.tutashared.SdkRestClient
@@ -254,7 +251,7 @@ class TutanotaNotificationsHandler(
 
 		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient()).login(unencryptedCredentials.toSdkCredentials())
 
-		val mailId = notificationInfo.mailId?.toSdkIdTuple()
+		val mailId = notificationInfo.mailId?.toSdkIdTupleGenerated()
 			?: throw IllegalArgumentException("Missing mailId for notification ${sseInfo.pushIdentifier}")
 
 		val mail = sdk.mailFacade().loadEmailByIdEncrypted(mailId)
