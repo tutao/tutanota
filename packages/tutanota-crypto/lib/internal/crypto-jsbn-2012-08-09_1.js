@@ -733,7 +733,7 @@ function bnpToRadix(b) {
 	var d = nbv(a), y = nbi(), z = nbi(), r = "";
 	this.divRemTo(d, y, z);
 	while (y.signum() > 0) {
-		r = (a + z.intValue()).toString(b).substr(1) + r;
+		r = (a + z.intValue()).toString(b).substring(1) + r;
 		y.divRemTo(d, y, z);
 	}
 	return z.intValue().toString(b) + r;
