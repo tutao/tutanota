@@ -1,6 +1,7 @@
 use crate::importer::file_reader::import_client::FileImport;
 use crate::importer::imap_reader::import_client::ImapImport;
-use crate::importer::{ImportAuth, ImportSource, ImporterInner};
+use crate::importer::imap_reader::{ImapCredentials, ImapImportConfig, LoginMechanism};
+use crate::importer::{ImportAuth, ImportSource};
 use crate::importer::{Importer, NapiTokioMutex};
 use crate::logging::Console;
 use crate::tuta::credentials::TutaCredentials;
@@ -26,16 +27,66 @@ pub struct ImportBuilder {
 	handle: NapiTokioMutex<Option<Importer>>,
 }
 
+#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
+pub struct ImportInitializer {
+	pub root_import_mail_folder_name: String,
+	pub imap_username: Option<String>,
+	pub imap_password: Option<String>,
+	pub imap_oauth: Option<String>,
+	pub file_path: Option<String>,
+	pub is_mbox: Option<bool>,
+	pub tuta_credentials: TutaCredentials,
+	pub target_mail_address: String,
+	pub imap_host: Option<String>,
+	pub imap_port: Option<i32>,
+}
+
 #[napi_derive::napi]
 impl ImportBuilder {
 	#[napi(factory)]
-	pub fn setup(
-		env: Env,
-		tuta_credentials: TutaCredentials,
-		import_source_auth: ImportAuth,
-		target_mail_address: String,
-	) -> napi::Result<Self> {
+	pub fn setup(env: Env, initializer: ImportInitializer) -> napi::Result<Self> {
 		let console = Console::get(env);
+		let ImportInitializer {
+			root_import_mail_folder_name,
+			imap_username,
+			imap_password,
+			imap_oauth,
+			file_path,
+			is_mbox,
+			tuta_credentials,
+			target_mail_address,
+			imap_host,
+			imap_port,
+		} = initializer;
+
+		let import_source_auth = {
+			if let (Some(host), Some(port)) = (imap_host, imap_port) {
+				let login_mechanism =
+					if let (Some(username), Some(password)) = (imap_username, imap_password) {
+						LoginMechanism::Plain { username, password }
+					} else if let Some(access_token) = imap_oauth {
+						LoginMechanism::OAuth { access_token }
+					} else {
+						panic!("No imap login details");
+					};
+
+				ImportAuth::Imap {
+					imap_import_config: ImapImportConfig {
+						root_import_mail_folder_name,
+						credentials: ImapCredentials {
+							host,
+							port: port.try_into().unwrap(),
+							login_mechanism,
+						},
+					},
+				}
+			} else if let (Some(file_path), Some(is_mbox)) = (file_path, is_mbox) {
+				ImportAuth::LocalFile { file_path, is_mbox }
+			} else {
+				panic!("No valid import source defined")
+			}
+		};
+
 		Ok(ImportBuilder {
 			console,
 			tuta_credentials,

@@ -27,7 +27,6 @@ pub mod file_reader;
 pub mod imap_reader;
 mod importable_mail;
 
-#[napi_derive::napi(discriminant = "type2")]
 #[derive(Clone, PartialEq)]
 pub enum ImportAuth {
 	Imap {
@@ -80,7 +79,7 @@ pub enum IterationError {
 }
 
 impl ImporterInner {
-	pub async fn continue_import(&mut self) {
+	pub async fn continue_import(&mut self) -> napi::Result<ImportStatus> {
 		let mut failed_import_count = 0_usize;
 		let mut success_import_count = 0_usize;
 
@@ -132,7 +131,9 @@ impl ImporterInner {
 			// nothing failed,
 			self.status = ImportStatus::Finished;
 			eprintln!(">>>>>>>>> Imported {success_import_count} mails");
-		}
+		};
+
+		Ok(self.status.clone())
 	}
 
 	/// once we get the ImportableMail from either of srouce,
@@ -211,17 +212,17 @@ impl Importer {
 	}
 
 	#[napi]
-	pub async unsafe fn continue_import_napi(&mut self) {
-		self.inner.lock().await.continue_import().await;
+	pub async unsafe fn continue_import_napi(&mut self) -> napi::Result<ImportStatus> {
+		self.inner.lock().await.continue_import().await
 	}
 
 	#[napi]
-	pub async unsafe fn delete_import(&mut self) -> ImportStatus {
+	pub async unsafe fn delete_import(&mut self) -> napi::Result<ImportStatus> {
 		todo!()
 	}
 
 	#[napi]
-	pub async unsafe fn pause_import(&mut self) -> ImportStatus {
+	pub async unsafe fn pause_import(&mut self) -> napi::Result<ImportStatus> {
 		todo!()
 	}
 }
@@ -303,12 +304,12 @@ mod tests {
 		let (mut importer, greenmail) = init_imap_importer().await;
 
 		let email = MessageBuilder::new()
-			.from(("Matthias", "map@example.org"))
-			.to(("Johannes", "jmp@example.org"))
-			.subject("Hello from imap 😀! -- Список.doc")
-			.text_body("Hello tutao! this is the first step to have email import.Want to see html 😀?<p style='color:red'>red</p>")
-			.write_to_string()
-			.unwrap();
+            .from(("Matthias", "map@example.org"))
+            .to(("Johannes", "jmp@example.org"))
+            .subject("Hello from imap 😀! -- Список.doc")
+            .text_body("Hello tutao! this is the first step to have email import.Want to see html 😀?<p style='color:red'>red</p>")
+            .write_to_string()
+            .unwrap();
 		greenmail.store_mail("sug@example.org", email.as_str());
 
 		importer.continue_import().await;

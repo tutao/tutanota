@@ -14,24 +14,23 @@ export interface ImapCredentials {
 }
 | { type2: 'Plain', username: string, password: string }
 | { type2: 'OAuth', accessToken: string }
+export interface ImapImportConfig {
+  rootImportMailFolderName: string
+  credentials: ImapCredentials
+}
+| { type2: 'Imap', imapImportConfig: ImapImportConfig }
+| { type2: 'LocalFile', filePath: string, isMbox: boolean }
 /**
  * current state of the imap_reader import for this tuta account
  * requires an initialized SDK!
  */
-export const enum ImapImportStatus {
+export const enum ImportStatus {
   NotInitialized = 0,
   Paused = 1,
   Running = 2,
   Postponed = 3,
   Finished = 4
 }
-export interface ImapImportConfig {
-  rootImportMailFolderName: string
-  credentials: ImapCredentials
-  importTargetAddress: string
-}
-| { type2: 'Imap', imapImportConfig: ImapImportConfig }
-| { type2: 'LocalFile', filePath: string, isMbox: boolean }
 /** Passed in from js-side, will be validated before being converted to proper tuta sdk credentials. */
 export interface TutaCredentials {
   apiUrl: string
@@ -45,19 +44,14 @@ export interface TutaCredentials {
 Internal = 'Internal',
 External = 'External'
 export declare class ImportBuilder {
-  static setup(tutaCredentials: TutaCredentials, importSourceAuth: ImportAuth): ImportBuilder
+  static setup(tutaCredentials: TutaCredentials, importSourceAuth: ImportAuth, targetMailAddress: string): ImportBuilder
   build(): Promise<Importer>
 }
-export declare class FileImport {
-  filePath: string
-  isMbox: boolean
-}
-export declare class ImapImport {
-  status: ImapImportStatus
-  importConfig: ImapImportConfig
-}
+export declare class FileImport { }
+export declare class ImapImport { }
+export declare class ImapImportState { }
 export declare class Importer {
-  continueImport(): Promise<void>
-  deleteImport(): Promise<ImapImportStatus>
-  pauseImport(): Promise<ImapImportStatus>
+  continueImportNapi(): Promise<void>
+  deleteImport(): Promise<ImportStatus>
+  pauseImport(): Promise<ImportStatus>
 }
