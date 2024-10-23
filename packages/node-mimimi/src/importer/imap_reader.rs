@@ -1,6 +1,5 @@
 pub mod import_client;
 
-#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
 #[derive(Clone, PartialEq)]
 /// passed in from js before being validated and used for logging into the imap_reader server
 pub struct ImapCredentials {
@@ -12,16 +11,14 @@ pub struct ImapCredentials {
 	pub login_mechanism: LoginMechanism,
 }
 
-#[cfg_attr(feature = "javascript", napi_derive::napi(discriminant = "type2"))]
 #[derive(Clone, PartialEq)]
 pub enum LoginMechanism {
 	Plain { username: String, password: String },
 	OAuth { access_token: String },
 }
 
-#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
 #[derive(Clone, PartialEq)]
 pub struct ImapImportConfig {
 	pub root_import_mail_folder_name: String,
-	pub credentials: ImapCredentials,
+	pub(crate) credentials: ImapCredentials,
 }

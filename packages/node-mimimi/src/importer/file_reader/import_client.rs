@@ -4,7 +4,6 @@ use mail_parser::mailbox::mbox::MessageIterator;
 use mail_parser::MessageParser;
 use std::io::{BufReader, Read};
 
-#[cfg_attr(feature = "javascript", napi_derive::napi)]
 pub struct FileImport {
 	message_provider: ImportableMailProvider,
 }

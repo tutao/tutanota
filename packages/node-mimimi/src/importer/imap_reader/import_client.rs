@@ -5,7 +5,6 @@ use std::num::NonZeroU32;
 use tuta_imap::client::types::reexports::{Mailbox, StatusKind};
 use tuta_imap::client::TutaImapClient;
 
-#[cfg_attr(feature = "javascript", napi_derive::napi)]
 pub struct ImapImport {
 	import_config: ImapImportConfig,
 	imap_client: TutaImapClient,
@@ -13,7 +12,6 @@ pub struct ImapImport {
 	import_state: ImapImportState,
 }
 
-#[cfg_attr(feature = "javascript", napi_derive::napi)]
 pub struct ImapImportState {
 	done_fetched_mailbox: Vec<Mailbox<'static>>,
 	current_mailbox: Option<Mailbox<'static>>,
