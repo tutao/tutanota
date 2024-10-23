@@ -325,6 +325,24 @@ export class CryptoFacade {
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
 
+		const atLeastOneFilledArray = (...arrays: (Uint8Array | null)[]) => {
+			for (let current of arrays) {
+				if (current != null) {
+					if (current.length > 0) {
+						return true
+					}
+				}
+			}
+
+			return false
+		}
+
+		// check if the server returns at least one key
+		const validKeyExists = atLeastOneFilledArray(publicKeyGetOut.pubRsaKey, publicKeyGetOut.pubEccKey, publicKeyGetOut.pubKyberKey)
+		if (!validKeyExists) {
+			throw new Error("Server did not return a single valid public key. (tested for RSA, ECC, Kyber)")
+		}
+
 		const rsaStartDelimiter = stringToUtf8Uint8Array("RSA")
 		const eccStartDelimiter = stringToUtf8Uint8Array("ECC")
 		const kybStartDelimiter = stringToUtf8Uint8Array("KYB")
