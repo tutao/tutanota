@@ -2,6 +2,7 @@
 The type of the identifier to look up the public key for a group.
  */
 #[allow(dead_code)]
+#[derive(Debug)]
 #[repr(i64)]
 pub enum PublicKeyIdentifierType {
 	MailAddress = 0, // the default to retrieve public keys. identify the group by mail address.
@@ -20,6 +21,7 @@ impl Into<i64> for PublicKeyIdentifierType {
 /// Denotes if an entity was authenticated successfully.
 ///
 /// Not all decryption methods use authentication.
+#[derive(Debug)]
 pub enum EncryptionAuthStatus {
 	/// The entity was decrypted with RSA which does not use authentication.
 	RSANoAuthentication = 0,

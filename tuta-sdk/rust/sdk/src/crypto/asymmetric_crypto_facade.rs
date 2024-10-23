@@ -61,6 +61,7 @@ pub enum AsymmetricCryptoError {
 	KyberKey(#[from] KyberKeyError),
 	AesEncrypt(#[from] AesEncryptError),
 	ApiCall(#[from] ApiCallError),
+	AuthenticationError(EncryptionAuthStatus),
 }
 
 #[derive(uniffi::Object)]
@@ -128,24 +129,35 @@ impl AsymmetricCryptoFacade {
 	 * @param senderIdentifier the identifier for the sender's key group
 	 * @throws CryptoError in case the authentication fails.
 	 */
-	// pub async fn decryptSymKeyWithKeyPairAndAuthenticate(
-	// recipientKeyPair: AsymmetricKeyPair,
-	// pubEncKeyData: PubEncKeyData,
-	// senderIdentifier: PublicKeyIdentifier,
-	// ): Promise<DecapsulatedAesKey> {
-	// const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
-	// const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
-	// if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
-	// const encryptionAuthStatus = await this.authenticateSender(
-	// senderIdentifier,
-	// assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
-	// Number(assertNotNull(pubEncKeyData.senderKeyVersion)),
-	// )
-	// if (encryptionAuthStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
-	// throw new CryptoError("the provided public key could not be authenticated")
-	// }
-	// }
-	// return decapsulatedAesKey
+	// pub async fn decrypt_sym_key_with_key_pair_and_authenticate(
+	// 	&self,
+	// 	recipient_key_pair: AsymmetricKeyPair,
+	// 	pub_enc_key_data: PubEncKeyData,
+	// 	sender_identifier: PublicKeyIdentifier,
+	// ) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
+	// 	let crypto_protocol_version: CryptoProtocolVersion =
+	// 		pub_enc_key_data.protocolVersion.into();
+	// 	let decapsulated_aes_key = Self::decrypt_sym_key_with_key_pair(
+	// 		recipient_key_pair,
+	// 		&crypto_protocol_version,
+	// 		&pub_enc_key_data.pubEncSymKey,
+	// 	)?;
+	// 	if (crypto_protocol_version == CryptoProtocolVersion::TutaCrypt) {
+	// 		let encryption_auth_status = self
+	// 			.authenticateSender(
+	// 				sender_identifier,
+	// 				decapsulated_aes_key.senderIdentityPubKey.unwrap(),
+	// 				pub_enc_key_data.senderKeyVersion.unwrap(),
+	// 			)
+	// 			.await?;
+	// 		if (encryption_auth_status != EncryptionAuthStatus::TutacryptAuthenticationSucceeded) {
+	// 			//the provided public key could not be authenticated
+	// 			return Err(AsymmetricCryptoError::AuthenticationError(
+	// 				encryption_auth_status,
+	// 			));
+	// 		}
+	// 	}
+	// 	decapsulated_aes_key
 	// }
 
 	/**
@@ -156,7 +168,7 @@ impl AsymmetricCryptoFacade {
 	 */
 	pub fn decrypt_sym_key_with_key_pair(
 		recipient_key_pair: AsymmetricKeyPair,
-		crypto_protocol_version: CryptoProtocolVersion,
+		crypto_protocol_version: &CryptoProtocolVersion,
 		pub_enc_sym_key: &Vec<u8>,
 	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
 		match crypto_protocol_version {
@@ -202,7 +214,7 @@ impl AsymmetricCryptoFacade {
 		&self,
 		recipient_key_pair_group_id: &GeneratedId,
 		recipient_key_version: i64,
-		crypto_protocol_version: CryptoProtocolVersion,
+		crypto_protocol_version: &CryptoProtocolVersion,
 		pub_enc_sym_key: &Vec<u8>,
 	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
 		let key_pair = self
