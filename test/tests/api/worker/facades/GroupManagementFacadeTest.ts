@@ -17,9 +17,11 @@ import {
 	CustomerTypeRef,
 	Group,
 	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
 	GroupTypeRef,
 	LocalAdminRemovalPostIn,
 	PubEncKeyDataTypeRef,
+	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
@@ -213,8 +215,11 @@ o.spec("GroupManagementFacadeTest", function () {
 
 	o("traverse local admin groups", async function () {
 		// await groupManagementFacade.migrateLocalAdminGroupKeysToGlobalAdminKeys(adminGroup)
-		const globalAdmin = createTestEntity(GroupTypeRef, { _id: "globalAdminId" })
-		const customer = createTestEntity(CustomerTypeRef, { adminGroup: globalAdmin._id })
+		const globalAdminGroup = createTestEntity(GroupTypeRef, { _id: "globalAdminId" })
+		const user = createTestEntity(UserTypeRef, {
+			memberships: [createTestEntity(GroupMembershipTypeRef, { group: globalAdminGroup._id, groupType: GroupType.Admin })],
+		})
+		const customer = createTestEntity(CustomerTypeRef, { adminGroup: globalAdminGroup._id })
 
 		const administratedGroupsRefs = [
 			createTestEntity(AdministratedGroupsRefTypeRef, { items: "xs1" }),
@@ -222,14 +227,14 @@ o.spec("GroupManagementFacadeTest", function () {
 		]
 
 		const localAdmins = [
-			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdmin._id, administratedGroups: administratedGroupsRefs[0] }),
-			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdmin._id, administratedGroups: administratedGroupsRefs[1] }),
+			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdminGroup._id, administratedGroups: administratedGroupsRefs[0] }),
+			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdminGroup._id, administratedGroups: administratedGroupsRefs[1] }),
 		]
 
 		const administratedUserGroup1 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id, _id: "u1" })
 		const administratedUserGroup2 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id, _id: "u2" })
 		const administratedUserGroup3 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[1]._id, _id: "u3" })
-		const notAdministratedUserGroup4 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: globalAdmin._id, _id: "u4" })
+		const notAdministratedUserGroup4 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: globalAdminGroup._id, _id: "u4" })
 
 		const administratedUserGroupInfo1 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup1._id, localAdmin: localAdmins[0]._id })
 		const administratedUserGroupInfo2 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup2._id, localAdmin: localAdmins[0]._id })
@@ -243,6 +248,8 @@ o.spec("GroupManagementFacadeTest", function () {
 
 		// mock fake customer with load customer
 		// mock team group infos with local admins inside (group.groupType === GroupType.LocalAdmin)
+
+		when(userFacade.getLoggedInUser()).thenReturn(globalAdminGroup)
 
 		groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
 
