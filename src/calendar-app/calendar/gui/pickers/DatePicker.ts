@@ -45,15 +45,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private domInput: HTMLElement | null = null
 	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
 	private textFieldHasFocus: boolean = false
+	private previousPassedDownDate: Date
 
 	constructor({ attrs }: Vnode<DatePickerAttrs>) {
-		const initDate = attrs.date
+		const initDate = attrs.date ?? new Date()
 
-		if (initDate) {
-			this.inputText = formatDate(initDate)
-		} else {
-			this.inputText = formatDate(new Date())
-		}
+		this.inputText = formatDate(initDate)
+		this.previousPassedDownDate = initDate
 	}
 
 	view({ attrs }: Vnode<DatePickerAttrs>): Children {
@@ -61,7 +59,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
 		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programmatically
-		if (!this.textFieldHasFocus) {
+		// The same day check is because sometimes focus is lost when trying to update the date. handleInput
+		//  or handleSelectedDate should be called first, but it is not and the date trying to be selected is
+		//  lost. So checking if the date was actually passed in "from above" is a band-aid solution for now.
+		if (!this.textFieldHasFocus && !isSameDayOfDate(date, this.previousPassedDownDate)) {
 			this.inputText = date ? formatDate(date) : ""
 		}
 
