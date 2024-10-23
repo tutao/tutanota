@@ -1,5 +1,4 @@
-use napi::bindgen_prelude::*;
-use napi::{Env, JsObject, JsUndefined};
+use napi::{bindgen_prelude::*, Env, JsFunction, JsObject, JsUndefined};
 
 /// The part of the logging setup that receives log messages from the rust log
 /// {@link struct Console} and forwards them to the node environment to log.
@@ -36,7 +35,8 @@ impl Logger {
 	}
 }
 
-impl Task for Logger {
+#[cfg(feature = "javascript")]
+impl napi::Task for Logger {
 	type Output = LogMessage;
 	type JsValue = JsUndefined;
 

@@ -2,11 +2,9 @@ use crate::client::tls_stream::TlsStream;
 use crate::client::types::mail::ImapMail;
 use imap_codec::decode::{Decoder, ResponseDecodeError};
 use imap_codec::encode::Encoder;
-use imap_codec::fragmentizer::LineEnding::CrLf;
-use imap_codec::imap_types::command::{Command, CommandBody};
 use imap_codec::imap_types::core::Tag;
 use imap_codec::imap_types::fetch::MessageDataItemName;
-use imap_codec::imap_types::mailbox::{ListMailbox, Mailbox};
+use imap_codec::imap_types::mailbox::Mailbox;
 use imap_codec::imap_types::response::{
     CommandContinuationRequest, Data, Response, Status, StatusBody, StatusKind, Tagged,
 };
@@ -78,6 +76,16 @@ impl TutaImapClient {
         client
     }
 
+    pub fn is_logged_in(&self) -> bool {
+        matches!(
+            self.connection_state,
+            ConnectionState::Selected(_)
+            | ConnectionState::Authenticated
+            | ConnectionState::IdleAuthenticated(_)
+            | ConnectionState::IdleSelected(_, _)
+        )
+    }
+
     /// try to refresh the capability from server by executing CAPABILITIES command
     pub fn refresh_capabilities(&mut self) -> response::StatusKind {
         let capability_command = imap_types::command::Command {
@@ -89,7 +97,7 @@ impl TutaImapClient {
         capability_response.kind
     }
 
-    pub fn login(&mut self, username: &str, password: &str) -> response::StatusKind {
+    pub fn plain_login(&mut self, username: &str, password: &str) -> response::StatusKind {
         let login_command = imap_types::command::Command {
             tag: self.create_tag(),
             body: imap_types::command::CommandBody::Login {
@@ -112,7 +120,7 @@ impl TutaImapClient {
         assert_eq!(
             ConnectionState::Authenticated,
             self.connection_state,
-            "must be in authenticated state to list mailboxes"
+            "must be in authenticated state to list mailboxes. Current state:"
         );
         // TODO check values for mailbox_wildcard and reference
         /* let list_command = imap_types::command::Command {
@@ -142,19 +150,19 @@ impl TutaImapClient {
         );
         let select_command = imap_types::command::Command {
             tag: self.create_tag(),
-            body: imap_types::command::CommandBody::Select { mailbox },
+            body: imap_types::command::CommandBody::Select { mailbox: mailbox.clone() },
         };
 
         let select_response = self.execute_command_directly(select_command).unwrap();
         let status_kind = select_response.kind;
-        if status_kind == response::StatusKind::Ok {
-            self.connection_state = ConnectionState::Selected(Mailbox::Inbox)
+        if status_kind == StatusKind::Ok {
+            self.connection_state = ConnectionState::Selected(mailbox.to_static());
         }
         status_kind
     }
 
     // TODO implement imap commands exposing the complete syntax?
-    pub fn fetch(&mut self, command_body: CommandBody) -> StatusKind {
+    pub fn fetch(&mut self, command_body: imap_types::command::CommandBody) -> StatusKind {
         assert_eq!(
             ConnectionState::Selected(Mailbox::Inbox),
             self.connection_state,
