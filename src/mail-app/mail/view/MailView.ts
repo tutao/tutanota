@@ -8,7 +8,7 @@ import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
-import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
+import { assertMainOrNode, getApiBaseUrl, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
@@ -63,6 +63,9 @@ import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
+import { MailImportFacade } from "../../../common/native/common/generatedipc/MailImportFacade"
+import { ImapCredentials } from "@tutao/node-mimimi"
 
 assertMainOrNode()
 
@@ -76,7 +79,7 @@ export interface MailViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	cache: MailViewCache
 	header: AppHeaderAttrs
-	desktopSystemFacade: DesktopSystemFacade | null
+	mailImportFacade: MailImportFacade | null
 	mailViewModel: MailViewModel
 }
 
@@ -88,7 +91,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
-	private readonly desktopSystemFacade: DesktopSystemFacade | null
+	private readonly mailImportFacade: MailImportFacade | null
 	cache: MailViewCache
 	readonly oncreate: TopLevelView["oncreate"]
 	readonly onremove: TopLevelView["onremove"]
@@ -104,7 +107,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	constructor(vnode: Vnode<MailViewAttrs>) {
 		super()
-		this.desktopSystemFacade = vnode.attrs.desktopSystemFacade
+		this.mailImportFacade = vnode.attrs.mailImportFacade
 		this.expandedState = new Set(deviceConfig.getExpandedFolders(locator.logins.getUserController().userId))
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
@@ -247,7 +250,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private renderFilterButton() {
-		return m(MailFilterButton, { filter: this.mailViewModel.filterType, setFilter: (filter) => this.mailViewModel.setFilter(filter) })
+		return m(MailFilterButton, {
+			filter: this.mailViewModel.filterType,
+			setFilter: (filter) => this.mailViewModel.setFilter(filter),
+		})
 	}
 
 	private mailViewerSingleActions(viewModel: ConversationViewModel) {
@@ -619,7 +625,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			onFolderExpanded: (folder, state) => this.setExpandedState(folder, state),
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
-			onFolderDrop: (mailId, folder) => this.handleFolderDrop(mailId, folder),
+			onFolderDrop: (dropData, folder) => {
+				if (dropData.dropType == DropType.Mail) {
+					this.handleFolderMailDrop(dropData, folder)
+				} else if (dropData.dropType == DropType.ExternalFile) {
+					this.handeFolderFileDrop(dropData, folder)
+				}
+			},
 			inEditMode,
 			onEditMailbox,
 		})
@@ -683,24 +695,40 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async handleFolderDrop(droppedMailId: string, folder: MailFolder) {
+	private async handleFolderMailDrop(dropData: MailDropData, folder: MailFolder) {
+		const { mailId } = dropData
 		if (!this.mailViewModel.listModel) {
 			return
 		}
 		let mailsToMove: Mail[] = []
 
 		// the dropped mail is among the selected mails, move all selected mails
-		if (this.mailViewModel.listModel.isItemSelected(droppedMailId)) {
+		if (this.mailViewModel.listModel.isItemSelected(mailId)) {
 			mailsToMove = this.mailViewModel.listModel.getSelectedAsArray()
 		} else {
-			const entity = this.mailViewModel.listModel.state.items.find((item) => getElementId(item) === droppedMailId)
+			const entity = this.mailViewModel.listModel.state.items.find((item) => getElementId(item) === mailId)
 
 			if (entity) {
 				mailsToMove.push(entity)
 			}
 		}
 
-		moveMails({ mailboxModel: locator.mailboxModel, mailModel: mailLocator.mailModel, mails: mailsToMove, targetMailFolder: folder })
+		moveMails({
+			mailboxModel: locator.mailboxModel,
+			mailModel: mailLocator.mailModel,
+			mails: mailsToMove,
+			targetMailFolder: folder,
+		})
+	}
+
+	private async handeFolderFileDrop(dropData: FileDropData, mailFolder: MailFolder) {
+		const userId = locator.logins.getUserController().userId
+		const unencryptedCredentials = await locator.credentialsProvider.getDecryptedCredentialsByUserId(userId)
+
+		if (unencryptedCredentials) {
+			const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
+			this.mailImportFacade?.importFromFiles(apiUrl, unencryptedCredentials, dropData.filePaths, getElementId(mailFolder))
+		}
 	}
 
 	private async showNewMailDialog(): Promise<void> {

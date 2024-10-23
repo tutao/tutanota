@@ -34,6 +34,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
+import { DropType } from "../../../common/gui/base/GuiUtils"
 
 assertMainOrNode()
 
@@ -140,7 +141,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
 			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
-			neverNull(event.dataTransfer).setData("text", getLetId(neverNull(mailUnderCursor))[1])
+			neverNull(event.dataTransfer).setData(DropType.Mail, getLetId(neverNull(mailUnderCursor))[1])
 		} else {
 			event.preventDefault()
 		}
@@ -166,7 +167,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
 			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
-			neverNull(event.dataTransfer).setData("text", getLetId(neverNull(mailUnderCursor))[1])
+			neverNull(event.dataTransfer).setData(DropType.Mail, getLetId(neverNull(mailUnderCursor))[1])
 		} else {
 			event.preventDefault()
 		}

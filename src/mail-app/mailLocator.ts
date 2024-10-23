@@ -135,9 +135,9 @@ import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
-import { ImapImportSystemFacade } from "../common/native/common/generatedipc/ImapImportSystemFacade.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { MailImportFacade } from "../common/native/common/generatedipc/MailImportFacade"
 
 assertMainOrNode()
 
@@ -182,7 +182,7 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
-	imapImportSystemFacade!: ImapImportSystemFacade
+	mailImportFacade!: MailImportFacade
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -834,7 +834,7 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
-					this.imapImportSystemFacade = desktopInterfaces.imapImportSystemFacade
+					this.mailImportFacade = desktopInterfaces.mailImportFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
@@ -1129,7 +1129,11 @@ class MailLocator {
 		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
 			const calendarId = `${this.logins.getUserController().userId}#${id}`
 			const config = configs.get(calendarId)
-			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name: lang.get(name), color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
+			if (!config)
+				deviceConfig.updateClientOnlyCalendars(calendarId, {
+					name: lang.get(name),
+					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
+				})
 		}
 	}
 
