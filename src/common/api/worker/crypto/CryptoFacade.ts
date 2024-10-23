@@ -325,11 +325,30 @@ export class CryptoFacade {
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
 
+		const rsaStartDelimiter = stringToUtf8Uint8Array("RSA")
+		const eccStartDelimiter = stringToUtf8Uint8Array("ECC")
+		const kybStartDelimiter = stringToUtf8Uint8Array("KYB")
+
+		const rsaEndDelimiter = stringToUtf8Uint8Array("ASR")
+		const eccEndDelimiter = stringToUtf8Uint8Array("CCE")
+		const kybEndDelimiter = stringToUtf8Uint8Array("BYK")
+
 		const emptyArray = new Uint8Array(0)
 		const publicKeysConcatenation = concat(
-			publicKeyGetOut.pubEccKey != null ? publicKeyGetOut.pubEccKey : emptyArray,
+			// RSA
+			rsaStartDelimiter,
 			publicKeyGetOut.pubRsaKey != null ? publicKeyGetOut.pubRsaKey : emptyArray,
+			rsaEndDelimiter,
+
+			// Ecc
+			eccStartDelimiter,
+			publicKeyGetOut.pubEccKey != null ? publicKeyGetOut.pubEccKey : emptyArray,
+			eccEndDelimiter,
+
+			// Kyber
+			kybStartDelimiter,
 			publicKeyGetOut.pubKyberKey != null ? publicKeyGetOut.pubKyberKey : emptyArray,
+			kybEndDelimiter,
 		)
 
 		const hash = uint8ArrayToHex(sha256Hash(assertNotNull(publicKeysConcatenation)))
