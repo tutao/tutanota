@@ -1,0 +1,37 @@
+{
+	"name": "@tutao/tuta-ui",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"main": "dist/main.js",
+	"types": "dist/main.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/main.js"
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -p ./tsconfig.build.json && vite build",
+		"prepublishOnly": "npm run build"
+	},
+	"devDependencies": {
+		"@types/mithril": "^2.2.7",
+		"@types/node": "^22.7.9",
+		"glob": "^11.0.0",
+		"mithril": "^2.2.8",
+		"typescript": "~5.6.2",
+		"vite": "^5.4.9",
+		"vite-plugin-dts": "^4.3.0",
+		"vite-plugin-lib-inject-css": "^2.1.1"
+	},
+	"peerDependencies": {
+		"mithril": "^2.2.8"
+	},
+	"sideEffects": [
+		"**/*.css"
+	]
+}

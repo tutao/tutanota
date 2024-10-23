@@ -1,0 +1,49 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"compilerOptions": {
+		// -----------------------------------
+		// Language and Environment
+		// -----------------------------------
+		"lib": ["es2021", "DOM", "DOM.Iterable"],
+		// ------------------
+		// Modules
+		// ------------------
+		"baseUrl": "./",
+		// Specify the base directory to resolve non-relative module names.
+		"allowImportingTsExtensions": true,
+		// ---------------
+		// Emit
+		// ---------------
+		"noEmit": false,
+		"rootDir": "./lib",
+		"outDir": "./dist",
+		// Specify an output folder for all emitted files.
+		"declaration": true,
+		// Generate .d.ts files from TypeScript and JavaScript files in your project.
+		"emitDeclarationOnly": true,
+		// ------------------------------
+		// Section 6: Interop Constraints
+		// ------------------------------
+		"isolatedModules": true,
+		// <--- Setting to `true` tells TypeScript to warn you if you write certain code that can't be correctly interpreted by a single-file transpilation process. Ensure that each file can be safely transpiled without relying on other imports.
+		"allowSyntheticDefaultImports": true,
+		// Allow 'import x from y' when a module doesn't have a default export.
+		"forceConsistentCasingInFileNames": true,
+		// Ensure that casing is correct in imports.
+		// ------------------------
+		// Type Checking
+		// ------------------------
+		/* Linting */
+		"noUnusedLocals": true,
+		// <--- Enable error reporting when local variables aren't read.
+		"noUnusedParameters": true,
+		// <--- Raise an error when a function parameter isn't read.
+		"noImplicitOverride": true,
+		// <--- Ensure overriding members in derived classes are marked with an override modifier.
+		"noPropertyAccessFromIndexSignature": false,
+		// <--- settings this to true marks obj['firstName'] as an error, and recommends obj.firstName instead. Enforces using indexed accessors for keys declared using an indexed type.
+		"allowUnusedLabels": false
+		// <--- Disable error reporting for unused labels.
+	},
+	"include": ["lib"]
+}

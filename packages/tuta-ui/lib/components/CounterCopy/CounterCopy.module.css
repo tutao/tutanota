@@ -1,0 +1,5 @@
+.counter {
+	display: flex;
+	gap: 2rem;
+	background-color: #410002;
+}
