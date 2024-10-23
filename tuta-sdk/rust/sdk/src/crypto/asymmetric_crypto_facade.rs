@@ -16,8 +16,8 @@ use crate::services::service_executor::ServiceExecutor;
 use crate::services::sys::PublicKeyService;
 use crate::services::ExtraServiceParams;
 use crate::tutanota_constants::{EncryptionAuthStatus, PublicKeyIdentifierType};
-use crate::util::ArrayCastingError;
 use crate::util::Versioned;
+use crate::util::{vector_equals, ArrayCastingError};
 use crate::ApiCallError;
 use std::sync::Arc;
 use zeroize::Zeroizing;
@@ -110,9 +110,9 @@ impl AsymmetricCryptoFacade {
 			.get::<PublicKeyService>(key_data, ExtraServiceParams::default())
 			.await?;
 		if Option::is_some(&public_key_get_out.pubEccKey)
-			&& arrayEquals(
-				public_key_get_out.pubEccKey.unwrap(),
-				sender_identity_pub_key,
+			&& vector_equals(
+				&public_key_get_out.pubEccKey.unwrap(),
+				&sender_identity_pub_key,
 			) {
 			Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
 		} else {

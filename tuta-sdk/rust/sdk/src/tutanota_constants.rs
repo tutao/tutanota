@@ -8,6 +8,15 @@ pub enum PublicKeyIdentifierType {
 	GroupId = 1,     // e.g. needed if a user's needs the admin groups public key. identify by groupId.
 }
 
+impl Into<i64> for PublicKeyIdentifierType {
+	fn into(self) -> i64 {
+		match self {
+			PublicKeyIdentifierType::MailAddress => 0,
+			PublicKeyIdentifierType::GroupId => 1,
+		}
+	}
+}
+
 /// Denotes if an entity was authenticated successfully.
 ///
 /// Not all decryption methods use authentication.
