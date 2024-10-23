@@ -7,7 +7,7 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
 use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
 use crate::crypto::Aes256Key;
-use crate::entities::sys::PublicKeyPutIn;
+use crate::entities::sys::{PublicKeyGetIn, PublicKeyPutIn};
 use crate::generated_id::GeneratedId;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
@@ -15,7 +15,7 @@ use crate::key_loader_facade::VersionedAesKey;
 use crate::services::service_executor::ServiceExecutor;
 use crate::services::sys::PublicKeyService;
 use crate::services::ExtraServiceParams;
-use crate::tutanota_constants::PublicKeyIdentifierType;
+use crate::tutanota_constants::{EncryptionAuthStatus, PublicKeyIdentifierType};
 use crate::util::ArrayCastingError;
 use crate::util::Versioned;
 use crate::ApiCallError;
@@ -92,31 +92,33 @@ impl AsymmetricCryptoFacade {
 	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
-	// pub async fn authenticate_sender(
-	// 	&self,
-	// 	identifier: PublicKeyIdentifier,
-	// 	sender_identity_pub_key: Vec<u8>,
-	// 	sender_key_version: i64,
-	// ) -> Result<EncryptionAuthStatus, AsymmetricCryptoError> {
-	// 	let identifier_type: i64 = identifier.identifier_type.into();
-	// 	let key_data = PublicKeyGetIn {
-	// 		_format: 0,
-	// 		identifier: identifier.identifier,
-	// 		identifierType: identifier_type,
-	// 		version: Some(sender_key_version),
-	// 	};
-	// 	let public_key_get_out = self
-	// 		.service_executor
-	// 		.get::<PublicKeyService>(key_data, ExtraServiceParams::default())
-	// 		.await?;
-	// 	if Option::is_some(&public_key_get_out.pubEccKey)
-	// 	// TODO && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
-	// 	{
-	// 		Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
-	// 	} else {
-	// 		Ok(EncryptionAuthStatus::TutacryptAuthenticationFailed)
-	// 	}
-	// }
+	pub async fn authenticate_sender(
+		&self,
+		identifier: PublicKeyIdentifier,
+		sender_identity_pub_key: Vec<u8>,
+		sender_key_version: i64,
+	) -> Result<EncryptionAuthStatus, AsymmetricCryptoError> {
+		let identifier_type: i64 = identifier.identifier_type.into();
+		let key_data = PublicKeyGetIn {
+			_format: 0,
+			identifier: identifier.identifier,
+			identifierType: identifier_type,
+			version: Some(sender_key_version),
+		};
+		let public_key_get_out = self
+			.service_executor
+			.get::<PublicKeyService>(key_data, ExtraServiceParams::default())
+			.await?;
+		if Option::is_some(&public_key_get_out.pubEccKey)
+			&& arrayEquals(
+				public_key_get_out.pubEccKey.unwrap(),
+				sender_identity_pub_key,
+			) {
+			Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
+		} else {
+			Ok(EncryptionAuthStatus::TutacryptAuthenticationFailed)
+		}
+	}
 
 	/**
 	 * Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.

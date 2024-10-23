@@ -14,6 +14,20 @@ pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
 	copy
 }
 
+/// Returns true if vector a and b are the same length and all elements equal
+pub fn vector_equals<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+	if a.len() != b.len() {
+		false
+	} else {
+		for (a, b) in a.iter().zip(b.iter()) {
+			if a != b {
+				return false;
+			}
+		}
+		true
+	}
+}
+
 pub struct Versioned<T> {
 	pub object: T,
 	pub version: i64,
@@ -254,5 +268,10 @@ mod test {
 		let encoded = encode_byte_arrays(&decoded_byte_arrays).unwrap();
 		let decoded = decode_byte_arrays::<2>(&encoded).unwrap();
 		assert_eq!(decoded_byte_arrays, decoded);
+	}
+
+	#[test]
+	fn test_vector_equals() {
+		//TODO
 	}
 }
