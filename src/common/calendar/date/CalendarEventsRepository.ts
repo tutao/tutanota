@@ -28,6 +28,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/Ent
 import { generateLocalEventElementId, getAllDayDateUTC } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
+import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -278,15 +279,16 @@ export class CalendarEventsRepository {
 		const listId = await this.contactModel.getContactListId()
 		if (listId == null) return []
 
-		const dateRegex = /\d{2}-\d{2}$/
-
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
 		const filteredContacts = contacts
-			.filter((contact) => isNotNull(contact.birthdayIso))
+			.filter((contact) => contact.birthdayIso)
 			.sort((a, b) => {
-				const dateA = a.birthdayIso?.match(dateRegex)
-				const dateB = b.birthdayIso?.match(dateRegex)
-				return new Date(dateA![0]).getTime() - new Date(dateB![0]).getTime()
+				const birthdayContactA = isoDateToBirthday(a.birthdayIso!)
+				const birthdayContactB = isoDateToBirthday(b.birthdayIso!)
+				return (
+					new Date(`${birthdayContactA.month}/${birthdayContactA.day}`).getTime() -
+					new Date(`${birthdayContactB.month}/${birthdayContactB.day}`).getTime()
+				)
 			})
 
 		for (const contact of filteredContacts) {
@@ -313,7 +315,13 @@ export class CalendarEventsRepository {
 				if (removeEventOccurrences) {
 					this.removeDaysForEvent(calendarEvent.event._id)
 				}
-				this.addDaysForRecurringEvent({ ...calendarEvent.event, summary: `${calendarEvent.event.summary} ${ageString}` }, monthRangeForRecurrence)
+				this.addDaysForRecurringEvent(
+					{
+						...calendarEvent.event,
+						summary: `${calendarEvent.event.summary} ${ageString}`,
+					},
+					monthRangeForRecurrence,
+				)
 			}
 		}
 	}

@@ -169,7 +169,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 			: null,
 		contact.phoneNumbers.length
 			? m(
-					singlePhoneNumber ? `a[href="tel:${contact.phoneNumbers[0].number}"][target=_blank]` : "",
+					singlePhoneNumber ? `a[href="tel:${contact.phoneNumbers[0].number}"][target=_blank].no-text-decoration` : "",
 					m(
 						BannerButton,
 						makeActionButtonAttrs(
