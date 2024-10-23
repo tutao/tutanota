@@ -11,11 +11,23 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { matchers, object, verify, when } from "testdouble"
 import { AesKey, EccPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { Group, GroupTypeRef, PubEncKeyDataTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import {
+	AdministratedGroupTypeRef,
+	AdministratedGroupsRefTypeRef,
+	CustomerTypeRef,
+	Group,
+	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	GroupTypeRef,
+	LocalAdminRemovalPostIn,
+	PubEncKeyDataTypeRef,
+	UserTypeRef,
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { CryptoProtocolVersion, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { LocalAdminRemovalService } from "../../../../../src/common/api/entities/sys/Services.js"
 
 o.spec("GroupManagementFacadeTest", function () {
 	let userFacade: UserFacade
@@ -163,5 +175,93 @@ o.spec("GroupManagementFacadeTest", function () {
 			when(userFacade.hasGroup(adminGroupId)).thenReturn(false)
 			await assertThrows(Error, async () => await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId))
 		})
+	})
+
+	o("replace local admin enc group key with global admin enc group key", async function () {
+		const symGlobalAdminGroupKey: VersionedKey = {
+			version: 1,
+			object: object(),
+		}
+
+		const symLocalAdminGroupKey: VersionedKey = {
+			version: 0,
+			object: object(),
+		}
+
+		const userGroup: Group = createTestEntity(GroupTypeRef, {
+			type: GroupType.User,
+			adminGroupEncGKey: object(),
+			adminGroupKeyVersion: "0",
+			admin: "localAdmin",
+		})
+
+		const before = createTestEntity(GroupTypeRef, userGroup)
+		const decrypted = object<AesKey>()
+		when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(decrypted)
+		const reencrypted = object<Uint8Array>()
+		when(cryptoWrapper.encryptKey(matchers.anything(), decrypted)).thenReturn(reencrypted)
+
+		const groupUpdate = await groupManagementFacade.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+			symGlobalAdminGroupKey,
+			symLocalAdminGroupKey.object,
+			userGroup,
+		)
+
+		o(groupUpdate.adminGroupKeyVersion).equals(String(symGlobalAdminGroupKey.version))
+		o(groupUpdate.adminGroupEncGKey).equals(reencrypted)
+
+		o(userGroup).deepEquals(before)
+	})
+
+	o("traverse local admin groups", async function () {
+		// await groupManagementFacade.migrateLocalAdminGroupKeysToGlobalAdminKeys(adminGroup)
+		const globalAdminGroup = createTestEntity(GroupTypeRef, { _id: "globalAdminId" })
+		const user = createTestEntity(UserTypeRef, {
+			memberships: [createTestEntity(GroupMembershipTypeRef, { group: globalAdminGroup._id, groupType: GroupType.Admin })],
+		})
+		const customer = createTestEntity(CustomerTypeRef, { adminGroup: globalAdminGroup._id })
+
+		const administratedGroupsRefs = [
+			createTestEntity(AdministratedGroupsRefTypeRef, { items: "xs1" }),
+			createTestEntity(AdministratedGroupsRefTypeRef, { items: "xs2" }),
+		]
+
+		const localAdmins = [
+			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdminGroup._id, administratedGroups: administratedGroupsRefs[0] }),
+			createTestEntity(GroupTypeRef, { type: GroupType.LocalAdmin, admin: globalAdminGroup._id, administratedGroups: administratedGroupsRefs[1] }),
+		]
+
+		const administratedUserGroup1 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id, _id: "u1" })
+		const administratedUserGroup2 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[0]._id, _id: "u2" })
+		const administratedUserGroup3 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: localAdmins[1]._id, _id: "u3" })
+		const notAdministratedUserGroup4 = createTestEntity(GroupTypeRef, { type: GroupType.User, admin: globalAdminGroup._id, _id: "u4" })
+
+		const administratedUserGroupInfo1 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup1._id, localAdmin: localAdmins[0]._id })
+		const administratedUserGroupInfo2 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup2._id, localAdmin: localAdmins[0]._id })
+		const administratedUserGroupInfo3 = createTestEntity(GroupInfoTypeRef, { group: administratedUserGroup3._id, localAdmin: localAdmins[1]._id })
+
+		const adminstratedGroupsByLocalAdmins = [
+			createTestEntity(AdministratedGroupTypeRef, { _id: ["xs1", "1"], localAdminGroup: localAdmins[0]._id, groupInfo: administratedUserGroupInfo1._id }),
+			createTestEntity(AdministratedGroupTypeRef, { _id: ["xs1", "2"], localAdminGroup: localAdmins[0]._id, groupInfo: administratedUserGroupInfo2._id }),
+			createTestEntity(AdministratedGroupTypeRef, { _id: ["xs2", "1"], localAdminGroup: localAdmins[1]._id, groupInfo: administratedUserGroupInfo3._id }),
+		]
+
+		// mock fake customer with load customer
+		// mock team group infos with local admins inside (group.groupType === GroupType.LocalAdmin)
+
+		when(userFacade.getLoggedInUser()).thenReturn(globalAdminGroup)
+
+		groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
+
+		verify(
+			serviceExecutor.post(
+				LocalAdminRemovalService,
+				matchers.argThat((postIn: LocalAdminRemovalPostIn) => {
+					const userWithIds = postIn.groupUpdates.map((user) => user._id).sort()
+					o(userWithIds.sort()).deepEquals(["u1", "u2", "u3"])
+					return true
+				}),
+			),
+		)
 	})
 })

@@ -42,6 +42,7 @@ import { SessionType } from "../common/SessionType"
 import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils.js"
+import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 
 assertMainOrNode()
 
@@ -86,11 +87,7 @@ export class UserController {
 	 * @return True if the user is an admin
 	 */
 	isGlobalAdmin(): boolean {
-		if (this.isInternalUser()) {
-			return this.user.memberships.some((m) => m.groupType === GroupType.Admin)
-		} else {
-			return false
-		}
+		return isGlobalAdmin(this.user)
 	}
 
 	/**
@@ -110,7 +107,7 @@ export class UserController {
 	 * @return True if an internal user is logged in, false if no user or an external user is logged in.
 	 */
 	isInternalUser(): boolean {
-		return this.user.accountType !== AccountType.EXTERNAL
+		return isInternalUser(this.user)
 	}
 
 	loadCustomer(): Promise<Customer> {

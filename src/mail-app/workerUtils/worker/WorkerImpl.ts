@@ -40,12 +40,14 @@ import { ExposedEventBus, MainInterface, WorkerRandomizer } from "../../../commo
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
 export interface WorkerInterface {
 	readonly loginFacade: LoginFacade
+	readonly keyLoaderFacade: KeyLoaderFacade
 	readonly customerFacade: CustomerFacade
 	readonly giftCardFacade: GiftCardFacade
 	readonly groupManagementFacade: GroupManagementFacade
@@ -135,6 +137,10 @@ export class WorkerImpl implements NativeInterface {
 		return {
 			async loginFacade() {
 				return locator.login
+			},
+
+			async keyLoaderFacade() {
+				return locator.keyLoader
 			},
 
 			async customerFacade() {
