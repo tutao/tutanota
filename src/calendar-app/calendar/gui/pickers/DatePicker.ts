@@ -45,13 +45,11 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private domInput: HTMLElement | null = null
 	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
 	private textFieldHasFocus: boolean = false
-	private previousPassedDownDate: Date
+	private previousPassedDownDate?: Date
 
 	constructor({ attrs }: Vnode<DatePickerAttrs>) {
-		const initDate = attrs.date ?? new Date()
-
-		this.inputText = formatDate(initDate)
-		this.previousPassedDownDate = initDate
+		this.inputText = attrs.date ? formatDate(attrs.date) : ""
+		this.previousPassedDownDate = attrs.date
 	}
 
 	view({ attrs }: Vnode<DatePickerAttrs>): Children {
@@ -64,6 +62,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		//  lost. So checking if the date was actually passed in "from above" is a band-aid solution for now.
 		if (!this.textFieldHasFocus && !isSameDayOfDate(date, this.previousPassedDownDate)) {
 			this.inputText = date ? formatDate(date) : ""
+			this.previousPassedDownDate = date
 		}
 
 		return m(".rel", [
