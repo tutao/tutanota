@@ -1,9 +1,10 @@
 use crate::importer::imap_reader::{ImapImportConfig, LoginMechanism};
 use crate::importer::importable_mail::ImportableMail;
+use crate::tuta_imap::client::TutaImapClient;
+use imap_codec::imap_types::mailbox::Mailbox;
+use imap_codec::imap_types::response::StatusKind;
 use std::borrow::Borrow;
 use std::num::NonZeroU32;
-use tuta_imap::client::types::reexports::{Mailbox, StatusKind};
-use tuta_imap::client::TutaImapClient;
 
 pub struct ImapImport {
 	import_config: ImapImportConfig,

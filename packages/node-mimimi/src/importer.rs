@@ -243,8 +243,8 @@ impl Importer {
 mod tests {
 	use super::*;
 	use crate::importer::imap_reader::{ImapCredentials, LoginMechanism};
+	use crate::tuta_imap::testing::GreenMailTestServer;
 	use mail_builder::MessageBuilder;
-	use tuta_imap::testing::GreenMailTestServer;
 	use tutasdk::net::native_rest_client::NativeRestClient;
 	use tutasdk::Sdk;
 
@@ -358,11 +358,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn can_import_single_eml_file() {
-		let mut importer = init_file_importer(
-			"/home/sug/dev/repositories/tutanota-3/packages/node-mimimi/sample.eml".to_string(),
-			false,
-		)
-		.await;
+		let mut importer = init_file_importer("./test/sample.eml".to_string(), false).await;
 
 		let import_res = importer.continue_import().await.map_err(|_| ());
 		assert_eq!(

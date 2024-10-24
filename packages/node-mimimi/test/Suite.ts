@@ -10,7 +10,7 @@ let tutaCredential: TutaCredentials = {
 	encryptedPassphraseKey: [],
 	credentialType: TutaCredentialType.Internal,
 }
-let importer = await createFileImporter(tutaCredential.login, tutaCredential, "/home/sug/dev/repositories/tutanota-3/packages/node-mimimi/sample.eml", false)
+let importer = await createFileImporter(tutaCredential.login, tutaCredential, "../test/sample.eml", false)
 
 let importStatus = await importer.continueImportNapi()
 console.log("Import status is: ", importStatus)

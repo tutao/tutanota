@@ -1,4 +1,4 @@
-use crate::utils::BufReadExtension;
+use crate::tuta_imap::utils::BufReadExtension;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
 use rustls::{ClientConfig, ClientConnection, DigitallySignedStruct, Error, SignatureScheme};

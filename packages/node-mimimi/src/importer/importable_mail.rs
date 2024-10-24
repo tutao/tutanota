@@ -1,7 +1,7 @@
+use crate::tuta_imap::client::types::ImapMail;
 use mail_parser::MessageParser;
 use std::borrow::Cow;
 use std::collections::HashMap;
-use tuta_imap::client::types::mail::ImapMail;
 use tutasdk::custom_id::CustomId;
 use tutasdk::entities::tutanota::{DraftCreateData, DraftCreateReturn, DraftData};
 

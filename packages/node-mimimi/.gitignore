@@ -195,3 +195,7 @@ Cargo.lock
 !.yarn/versions
 
 *.node
+
+/java/.idea
+/java/build
+.gradle
