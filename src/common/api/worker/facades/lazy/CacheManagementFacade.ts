@@ -36,7 +36,7 @@ export class CacheManagementFacade {
 	 * @param groupId
 	 */
 	async reloadGroup(groupId: Id): Promise<Group> {
-		await this.entityRestCache.deleteFromCacheIfExists(GroupKeyTypeRef, null, groupId)
+		await this.entityRestCache.deleteFromCacheIfExists(GroupTypeRef, null, groupId)
 		return await this.cachingEntityClient.load(GroupTypeRef, groupId)
 	}
 
