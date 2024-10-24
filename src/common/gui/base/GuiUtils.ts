@@ -28,7 +28,7 @@ export type MailDropData = {
 }
 export type FileDropData = {
 	dropType: DropType.ExternalFile
-	filePaths: Array<string>
+	files: Array<File>
 }
 
 export type DropData = FileDropData | MailDropData

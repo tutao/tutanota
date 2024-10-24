@@ -14,8 +14,7 @@ import { isKeyPressed } from "../../misc/KeyManager"
 import { DropData, DropHandler, DropType } from "./GuiUtils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { stateBgHover } from "../builtinThemes.js"
-import { fileListToArray, readLocalFiles } from "../../file/FileController"
-import { Dialog } from "./Dialog"
+import { fileListToArray } from "../../file/FileController"
 
 assertMainOrNode()
 export type NavButtonAttrs = {
@@ -176,7 +175,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 				} else if (isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 					neverNull(a.dropHandler)({
 						dropType: DropType.ExternalFile,
-						filePaths: fileListToArray(ev.dataTransfer.files).map((value) => window.nativeApp.getPathForFile(value)),
+						files: fileListToArray(ev.dataTransfer.files),
 					})
 				} else {
 					console.error("received onDrop DragEvent has invalid DropType or is unsupported on this platform!")

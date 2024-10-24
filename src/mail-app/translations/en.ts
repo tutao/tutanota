@@ -554,6 +554,7 @@ export default {
 		"emailSourceCode_title": "Email Source Code",
 		"emails_label": "Emails",
 		"email_label": "Email",
+		"emlInSharingFiles_m"
 		"emptyShortcut_msg": "Please provide a shortcut for the template",
 		"emptyTitle_msg": "The title is missing.",
 		"enableAnyway_action": "Enable anyway",

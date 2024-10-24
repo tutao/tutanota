@@ -155,8 +155,7 @@ export function fileListToArray(fileList: FileList): Array<File> {
 	return nativeFiles
 }
 
-export function readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
-	const nativeFiles = fileListToArray(fileList)
+export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile>> {
 	return promiseMap(
 		nativeFiles,
 		(nativeFile) => {
