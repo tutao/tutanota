@@ -143,10 +143,9 @@ impl TutaImapClient {
     ///
     /// Caller should already invoke `list_mailboxes`  function before calling this function.
     pub fn select_mailbox(&mut self, mailbox: Mailbox) -> StatusKind {
-        assert_eq!(
-            ConnectionState::Authenticated,
-            self.connection_state,
-            "must be in authenticated state to select mailbox"
+        assert!(
+            matches!( self.connection_state, ConnectionState::Authenticated | ConnectionState::Selected(_)),
+            "must be in authenticated/selected state to select mailbox"
         );
         let select_command = imap_types::command::Command {
             tag: self.create_tag(),

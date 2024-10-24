@@ -20,12 +20,12 @@ rand = { version = "0.8.5" }
 mail-parser = { git = "https://github.com/stalwartlabs/mail-parser", rev = "54ca7df" }
 thiserror = { version = "1.0.64" }
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { git = "https://github.com/napi-rs/napi-rs", rev = "953f2e3", default-features = false, features = ["napi9", "async", "tokio_rt"], optional = true }
-napi-derive = { git = "https://github.com/napi-rs/napi-rs", rev = "953f2e3", optional = true }
+napi = { version = "2.16.12", default-features = false, features = ["napi9", "async", "tokio_rt"], optional = true }
+napi-derive = { version = "2.16.12", optional = true }
 
 
 [build-dependencies]
-napi-build = { git = "https://github.com/napi-rs/napi-rs", rev = "953f2e3" }
+napi-build = { version = "2.1.3" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
