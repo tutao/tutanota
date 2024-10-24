@@ -71,7 +71,7 @@ import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
-import { DesktopMailImportFacade } from "./imapimport/DesktopMailImportFacade.js"
+import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 
 mp()
 

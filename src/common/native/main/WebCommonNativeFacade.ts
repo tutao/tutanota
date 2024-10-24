@@ -15,6 +15,7 @@ import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { isDesktop } from "../../api/common/Env"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -79,6 +80,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				const files = await fileApp.getFilesMetaData(filesUris)
 				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CALENDAR)
+				const allFilesAreMail = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.MAIL)
 
 				if (this.appType === AppType.Calendar) {
 					if (!allFilesAreICS) {
@@ -99,6 +101,14 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 					])
 				} else if (allFilesAreICS) {
 					willImport = await Dialog.choice("icsInSharingFiles_msg", [
+						{
+							text: "import_action",
+							value: true,
+						},
+						{ text: "attachFiles_action", value: false },
+					])
+				} else if (isDesktop() && allFilesAreMail) {
+					willImport = await Dialog.choice("emlOrMboxInSharingFiles_msg", [
 						{
 							text: "import_action",
 							value: true,
@@ -164,7 +174,10 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 */
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
 		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../gui/base/Dialog.js"), import("../../settings/PasswordForm.js")])
-		const model = new PasswordModel(this.usageTestController, this.logins, { checkOldPassword: false, enforceStrength: false })
+		const model = new PasswordModel(this.usageTestController, this.logins, {
+			checkOldPassword: false,
+			enforceStrength: false,
+		})
 
 		return new Promise((resolve, reject) => {
 			const changePasswordOkAction = async (dialog: Dialog) => {

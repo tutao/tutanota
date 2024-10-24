@@ -18,12 +18,13 @@ import { getSafeAreaInsetBottom } from "./HtmlUtils.js"
 import { hasError } from "../api/common/utils/ErrorUtils.js"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
-import { CALENDAR_MIME_TYPE, VCARD_MIME_TYPES } from "../file/FileController.js"
+import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../file/FileController.js"
 
 export enum AttachmentType {
 	GENERIC,
 	CONTACT,
 	CALENDAR,
+	MAIL,
 }
 
 export type AttachmentBubbleAttrs = {
@@ -93,6 +94,8 @@ export function getAttachmentType(mimeType: string) {
 		return AttachmentType.CONTACT
 	} else if (mimeType === CALENDAR_MIME_TYPE) {
 		return AttachmentType.CALENDAR
+	} else if (Object.values<string>(MAIL_MIME_TYPES).includes(mimeType)) {
+		return AttachmentType.MAIL
 	}
 
 	return AttachmentType.GENERIC
