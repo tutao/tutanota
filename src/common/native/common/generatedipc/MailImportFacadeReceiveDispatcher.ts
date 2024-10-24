@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
 import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
-import { ImapCredentials } from "./ImapCredentials.js"
 import { MailImportFacade } from "./MailImportFacade.js"
 
 export class MailImportFacadeReceiveDispatcher {
@@ -11,8 +10,7 @@ export class MailImportFacadeReceiveDispatcher {
 			case "setupImapImport": {
 				const apiUrl: string = arg[0]
 				const unencryptedTutaCredentials: UnencryptedCredentials = arg[1]
-				const imapCredentials: ImapCredentials = arg[2]
-				return this.facade.setupImapImport(apiUrl, unencryptedTutaCredentials, imapCredentials)
+				return this.facade.setupImapImport(apiUrl, unencryptedTutaCredentials)
 			}
 			case "startImapImport": {
 				return this.facade.startImapImport()
