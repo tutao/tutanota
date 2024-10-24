@@ -134,11 +134,11 @@ fn generate_shared_secret(local_key: &EccPrivateKey, remote_key: &EccPublicKey) 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_test_data;
+	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_x25519() {
-		let data = get_test_data();
+		let data = get_compatibility_test_data();
 		for i in data.x25519_tests {
 			let alice_private_key = EccPrivateKey(i.alice_private_key_hex.try_into().unwrap());
 			let alice_public_key = EccPublicKey(i.alice_public_key_hex.try_into().unwrap());

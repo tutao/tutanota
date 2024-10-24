@@ -325,11 +325,11 @@ impl KyberKeyPair {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_test_data;
+	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_kyber() {
-		let test_data = get_test_data();
+		let test_data = get_compatibility_test_data();
 		for i in test_data.kyber_encryption_tests {
 			let shared_secret = KyberSharedSecret(i.shared_secret.as_slice().try_into().unwrap());
 			let ciphertext = KyberCiphertext(i.cipher_text.as_slice().try_into().unwrap());

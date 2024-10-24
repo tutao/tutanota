@@ -133,19 +133,19 @@ o.spec("crypto compatibility", function () {
 
 	/*
   o("aes 256 webcrypto", browser(function (done, timeout) {
-	  timeout(2000)
-	  Promise.all(
-		  compatibilityTestData.aes256Tests.map(td => {
-			  let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
-			  return aes256EncryptFile(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true).then(encryptedBytes => {
-				  o(uint8ArrayToBase64(encryptedBytes)).deepEquals(td.cipherTextBase64)
-					  return aes256Decrypt(key, encryptedBytes)
-			  }).then(decryptedBytes => {
-				  let decrypted = uint8ArrayToBase64(decryptedBytes)
-				  o(decrypted).deepEquals(td.plainTextBase64)
-			  })
-		  })
-	  ).then(() => done())
+      timeout(2000)
+      Promise.all(
+          compatibilityTestData.aes256Tests.map(td => {
+              let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
+              return aes256EncryptFile(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true).then(encryptedBytes => {
+                  o(uint8ArrayToBase64(encryptedBytes)).deepEquals(td.cipherTextBase64)
+                      return aes256Decrypt(key, encryptedBytes)
+              }).then(decryptedBytes => {
+                  let decrypted = uint8ArrayToBase64(decryptedBytes)
+                  o(decrypted).deepEquals(td.plainTextBase64)
+              })
+          })
+      ).then(() => done())
   }))
   */
 
@@ -363,10 +363,14 @@ o.spec("crypto compatibility", function () {
 	 */
 	// o("createCompressionTestData", function () {
 	// 	console.log("List<String> javaScriptCompressed = List.of(")
-	// 	console.log(compatibilityTestData.compressionTests.map(td => {
-	// 		let compressed = uint8ArrayToBase64(compress(stringToUtf8Uint8Array(td.uncompressedText)))
-	// 		return "\t\t\"" + compressed + "\""
-	// 	}).join(",\n"))
+	// 	console.log(
+	// 		testData.compressionTests
+	// 			.map((td) => {
+	// 				let compressed = uint8ArrayToBase64(compress(stringToUtf8Uint8Array(td.uncompressedText)))
+	// 				return '\t\t"' + compressed + '"'
+	// 			})
+	// 			.join(",\n"),
+	// 	)
 	// 	console.log(");")
 	// })
 })

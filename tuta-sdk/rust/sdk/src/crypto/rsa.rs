@@ -367,11 +367,11 @@ impl CryptoRng for SeedBufferRng {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_test_data;
+	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_rsa_encryption() {
-		let test_data = get_test_data();
+		let test_data = get_compatibility_test_data();
 		for i in test_data.rsa_encryption_tests {
 			let public_key = RSAPublicKey::deserialize(&i.public_key).unwrap();
 			let randomizer = RandomizerFacade::from_core(SeedBufferRng::new(i.seed));
@@ -382,7 +382,7 @@ mod tests {
 
 	#[test]
 	fn test_rsa_decryption() {
-		let test_data = get_test_data();
+		let test_data = get_compatibility_test_data();
 		for i in test_data.rsa_encryption_tests {
 			let private_key = RSAPrivateKey::deserialize(&i.private_key).unwrap();
 			let data = private_key.decrypt(&i.result).unwrap();
@@ -392,7 +392,7 @@ mod tests {
 
 	#[test]
 	fn test_rsa_serialize_roundtrip() {
-		let test_data = get_test_data();
+		let test_data = get_compatibility_test_data();
 		for i in test_data.rsa_encryption_tests {
 			let public_key = RSAPublicKey::deserialize(&i.public_key).unwrap();
 			assert_eq!(i.public_key, public_key.serialize());

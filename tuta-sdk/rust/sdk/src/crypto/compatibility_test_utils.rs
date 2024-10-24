@@ -135,6 +135,18 @@ pub struct PQCryptEncryptionTest {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CompressionTestData {
+	pub uncompressed_text: String,
+	#[serde(with = "Base64")]
+	pub compressed_base64_text_java: Vec<u8>,
+	#[serde(with = "Base64")]
+	pub compressed_base64_text_java_script: Vec<u8>,
+	#[serde(with = "Base64")]
+	pub compressed_base64_text_rust: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompatibilityTestData {
 	pub aes128_tests: Vec<AesTest>,
 	pub aes128_mac_tests: Vec<Aes128MacTest>,
@@ -145,6 +157,7 @@ pub struct CompatibilityTestData {
 	pub kyber_encryption_tests: Vec<KyberEncryptionTest>,
 	pub rsa_encryption_tests: Vec<RSAEncryptionTest>,
 	pub pqcrypt_encryption_tests: Vec<PQCryptEncryptionTest>,
+	pub compression_tests: Vec<CompressionTestData>,
 }
 
 struct Base64;
@@ -160,7 +173,9 @@ impl Base64 {
 	}
 }
 
-pub fn get_test_data() -> CompatibilityTestData {
-	let data_json = include_str!("../../test_data/CompatibilityTestData.json");
+#[must_use]
+pub fn get_compatibility_test_data() -> CompatibilityTestData {
+	let data_json =
+		include_str!("../../../../../test/tests/api/worker/crypto/CompatibilityTestData.json");
 	serde_json::from_str(data_json).unwrap()
 }

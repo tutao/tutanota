@@ -13,10 +13,13 @@ use crate::util::array_cast_slice;
 use crate::ApiCallError;
 use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE_NO_PAD};
 use base64::Engine;
+use lz4_flex::block::DecompressError;
 use minicbor::Encode;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
+
+pub const MAX_UNCOMPRESSED_INPUT_LZ4: usize = 0x7e000000;
 
 /// Provides high level functions to handle encryption/decryption of entities
 #[derive(uniffi::Object)]
@@ -26,6 +29,7 @@ pub struct EntityFacadeImpl {
 }
 
 /// Value after it has been processed
+#[cfg_attr(test, derive(Debug, PartialEq))]
 struct MappedValue {
 	/// The actual decrypted value that will be written to the field
 	value: ElementValue,
@@ -87,14 +91,18 @@ impl EntityFacadeImpl {
 	) -> Result<ElementValue, ApiCallError> {
 		let value_type = &model_value.value_type;
 
+		let element_is_nil = <ElementValue as Encode<()>>::is_nil(instance_value);
 		if !model_value.encrypted
-			|| (<ElementValue as Encode<()>>::is_nil(instance_value)
-				&& model_value.cardinality == Cardinality::ZeroOrOne)
+			|| (element_is_nil && model_value.cardinality == Cardinality::ZeroOrOne)
 		{
 			Ok(instance_value.clone())
+		} else if element_is_nil {
+			Err(ApiCallError::internal(format!(
+				"Nil encrypted value is not accepted. ModelValue Id: {}",
+				model_value.id
+			)))
 		} else {
-			let bytes = Self::map_value_to_binary(value_type, instance_value)
-				.unwrap_or_else(|| panic!("invalid encrypted value {:?}", instance_value));
+			let bytes = Self::map_value_to_binary(value_type, instance_value);
 			let encrypted_data = session_key
 				.encrypt_data(bytes.as_slice(), iv)
 				.expect("Cannot encrypt data");
@@ -111,26 +119,27 @@ impl EntityFacadeImpl {
 		None
 	}
 
-	fn map_value_to_binary(value_type: &ValueType, value: &ElementValue) -> Option<Vec<u8>> {
-		if <ElementValue as Encode<()>>::is_nil(value) {
-			return None;
-		}
+	fn map_value_to_binary(value_type: &ValueType, value: &ElementValue) -> Vec<u8> {
 		match value_type {
-			ValueType::Bytes => Some(value.assert_bytes()),
-			ValueType::String => Some(value.assert_string().as_bytes().to_vec()),
-			ValueType::Number => Some(value.assert_number().to_string().as_bytes().to_vec()),
-			ValueType::Date => Some(
-				value
-					.assert_date()
-					.as_millis()
-					.to_string()
-					.as_bytes()
-					.to_vec(),
-			),
-			ValueType::Boolean => Some(if value.assert_bool() { b"1" } else { b"0" }.to_vec()),
-			ValueType::GeneratedId => Some(value.assert_generated_id().0.as_bytes().to_vec()),
-			ValueType::CustomId => Some(value.assert_custom_id().0.as_bytes().to_vec()),
-			ValueType::CompressedString => unimplemented!("compressed string"),
+			ValueType::Bytes => value.assert_bytes(),
+			ValueType::String => value.assert_string().as_bytes().to_vec(),
+			ValueType::Number => value.assert_number().to_string().as_bytes().to_vec(),
+			ValueType::Date => value
+				.assert_date()
+				.as_millis()
+				.to_string()
+				.as_bytes()
+				.to_vec(),
+
+			ValueType::Boolean => if value.assert_bool() { b"1" } else { b"0" }.to_vec(),
+			ValueType::GeneratedId => value.assert_generated_id().0.as_bytes().to_vec(),
+			ValueType::CustomId => value.assert_custom_id().0.as_bytes().to_vec(),
+			ValueType::CompressedString => {
+				Self::lz4_compress_plain_bytes(value.assert_string().as_bytes())
+					// this limit should be checked before creating the instance/entity itself
+					// eg: client should not accept more input in mail editor once limit is reached
+					.expect("Unchecked input data? received too large byte for lz4_compression")
+			},
 		}
 	}
 
@@ -276,7 +285,7 @@ impl EntityFacadeImpl {
 		for (&key, model_value) in &type_model.values {
 			let stored_element = entity.remove(key).unwrap_or(ElementValue::Null);
 			let MappedValue { value, iv, error } =
-				self.map_value(stored_element, session_key, key, model_value)?;
+				Self::decrypt_and_parse_value(stored_element, session_key, key, model_value)?;
 
 			mapped_decrypted.insert(key.to_string(), value);
 			if let Some(error) = error {
@@ -414,8 +423,7 @@ impl EntityFacadeImpl {
 			}
 		}
 	}
-	fn map_value(
-		&self,
+	fn decrypt_and_parse_value(
 		value: ElementValue,
 		session_key: &GenericAesKey,
 		key: &str,
@@ -455,7 +463,7 @@ impl EntityFacadeImpl {
 						error_message: e.to_string(),
 					})?;
 
-				match self.parse_decrypted_value(model_value.value_type.clone(), plaintext) {
+				match Self::parse_decrypted_value(model_value.value_type.clone(), plaintext) {
 					Ok(value) => {
 						// We want to ensure we use the same IV for final encrypted values, as this
 						// will guarantee we get the same value back when we encrypt it.
@@ -488,7 +496,6 @@ impl EntityFacadeImpl {
 		}
 	}
 	fn parse_decrypted_value(
-		&self,
 		value_type: ValueType,
 		bytes: Vec<u8>,
 	) -> Result<ElementValue, ApiCallError> {
@@ -504,7 +511,7 @@ impl EntityFacadeImpl {
 				} else {
 					// Encrypted numbers are encrypted strings.
 					let string = String::from_utf8(bytes)
-						.map_err(|e| ApiCallError::internal_with_err(e, "Invalid string"))?;
+						.map_err(|e| ApiCallError::internal_with_err(e, "Invalid number string"))?;
 					let number = string
 						.parse()
 						.map_err(|e| ApiCallError::internal_with_err(e, "Invalid number"))?;
@@ -520,21 +527,65 @@ impl EntityFacadeImpl {
 					u64::from_be_bytes(bytes),
 				)))
 			},
-			ValueType::Boolean => {
-				let value = match bytes.as_slice() {
-					b"0" => false,
-					b"1" => true,
-					_ => {
-						return Err(ApiCallError::InternalSdkError {
-							error_message: "Failed to parse boolean bytes".to_owned(),
-						})
-					},
-				};
-				Ok(ElementValue::Bool(value))
+			ValueType::Boolean => match bytes.as_slice() {
+				b"1" => Ok(ElementValue::Bool(true)),
+				b"0" => Ok(ElementValue::Bool(false)),
+				_ => Err(ApiCallError::InternalSdkError {
+					error_message: "Failed to parse boolean bytes".to_owned(),
+				}),
 			},
-			ValueType::CompressedString => unimplemented!("compressed string"),
-			v => unreachable!("Can't parse {v:?} into ElementValue"),
+			ValueType::CompressedString => {
+				let uncompressed_bytes = Self::lz4_decompress_decrypted_bytes(bytes.as_slice())
+					.map_err(|e| {
+						ApiCallError::internal_with_err(e, "Cannot decompress compressed string")
+					})?;
+
+				let uncompressed_string = String::from_utf8(uncompressed_bytes).map_err(|e| {
+					ApiCallError::internal_with_err(
+						e,
+						"Invalid utf-8 character in uncompressed string",
+					)
+				})?;
+
+				Ok(ElementValue::String(uncompressed_string))
+			},
+
+			ValueType::GeneratedId | ValueType::CustomId => {
+				unreachable!("Cannot convert {value_type:?} to ElementValue");
+			},
 		}
+	}
+
+	#[must_use]
+	pub fn lz4_compress_plain_bytes(bytes: &[u8]) -> Option<Vec<u8>> {
+		if bytes.is_empty() {
+			Some(Vec::new())
+		} else if bytes.len() <= MAX_UNCOMPRESSED_INPUT_LZ4 {
+			Some(lz4_flex::compress(bytes))
+		} else {
+			None
+		}
+	}
+
+	pub fn lz4_decompress_decrypted_bytes(
+		compressed_bytes: &[u8],
+	) -> Result<Vec<u8>, DecompressError> {
+		if compressed_bytes.is_empty() {
+			return Ok(Vec::new());
+		}
+
+		// since we don't store the uncompressed size we have to guess how much memory we might
+		// need.
+		// 12 times the compressed size should work for almost all cases.
+		let mut uncompressed_bytes = lz4_flex::decompress(compressed_bytes, compressed_bytes.len());
+		while let Err(DecompressError::OutputTooSmall {
+			actual,
+			expected: _,
+		}) = uncompressed_bytes
+		{
+			uncompressed_bytes = lz4_flex::decompress(compressed_bytes, actual * 2);
+		}
+		uncompressed_bytes
 	}
 }
 
@@ -565,6 +616,81 @@ impl EntityFacade for EntityFacadeImpl {
 }
 
 #[cfg(test)]
+mod lz4_compressed_string_compatibility_tests {
+	use crate::crypto::compatibility_test_utils::{
+		get_compatibility_test_data, CompressionTestData,
+	};
+	use crate::entities::entity_facade::EntityFacadeImpl;
+	use base64::prelude::BASE64_STANDARD;
+	use base64::Engine;
+
+	#[test]
+	#[ignore]
+	fn create_compatibility_test_data() {
+		let test_data = get_compatibility_test_data().compression_tests;
+		let out = test_data
+			.iter()
+			.map(|td| {
+				BASE64_STANDARD.encode(
+					EntityFacadeImpl::lz4_compress_plain_bytes(td.uncompressed_text.as_bytes())
+						.unwrap(),
+				)
+			})
+			.collect::<Vec<String>>();
+
+		println!("List<String> rustCompressed = List.of(");
+		for (index, o) in out.iter().enumerate() {
+			print!("\t\t\"{o}\"");
+			if index != out.len() - 1 {
+				println!(",");
+			}
+		}
+		println!(");");
+	}
+
+	#[test]
+	fn compatibility_with_js_and_java() {
+		let test_data = get_compatibility_test_data().compression_tests;
+		for test_data in test_data.into_iter() {
+			let CompressionTestData {
+				uncompressed_text,
+				compressed_base64_text_java,
+				compressed_base64_text_java_script,
+				compressed_base64_text_rust,
+			} = test_data;
+
+			let new_compressed_bas64_text_rust =
+				EntityFacadeImpl::lz4_compress_plain_bytes(uncompressed_text.as_bytes()).unwrap();
+
+			assert_eq!(new_compressed_bas64_text_rust, compressed_base64_text_rust);
+
+			let decompressed_bytes_java = EntityFacadeImpl::lz4_decompress_decrypted_bytes(
+				compressed_base64_text_java.as_slice(),
+			)
+			.unwrap();
+
+			let decompressed_bytes_javascript = EntityFacadeImpl::lz4_decompress_decrypted_bytes(
+				compressed_base64_text_java_script.as_slice(),
+			)
+			.unwrap();
+
+			let decompressed_bytes_rust = EntityFacadeImpl::lz4_decompress_decrypted_bytes(
+				compressed_base64_text_rust.as_slice(),
+			)
+			.unwrap();
+
+			assert_eq!(decompressed_bytes_java, uncompressed_text.as_bytes());
+			assert_eq!(decompressed_bytes_javascript, uncompressed_text.as_bytes());
+			assert_eq!(decompressed_bytes_rust, uncompressed_text.as_bytes());
+			assert_eq!(
+				uncompressed_text.is_empty(),
+				decompressed_bytes_java.is_empty()
+			);
+		}
+	}
+}
+
+#[cfg(test)]
 mod tests {
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
 	use crate::crypto::key::GenericAesKey;
@@ -573,7 +699,9 @@ mod tests {
 	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
-	use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
+	use crate::entities::entity_facade::{
+		EntityFacade, EntityFacadeImpl, MappedValue, MAX_UNCOMPRESSED_INPUT_LZ4,
+	};
 	use crate::entities::sys::CustomerAccountTerminationRequest;
 	use crate::entities::tutanota::Mail;
 	use crate::entities::Entity;
@@ -591,6 +719,17 @@ mod tests {
 	const KNOWN_SK: [u8; 32] = [
 		83, 168, 168, 203, 48, 91, 246, 102, 175, 252, 39, 110, 36, 141, 4, 216, 135, 201, 226,
 		134, 182, 175, 15, 152, 117, 216, 81, 1, 120, 134, 116, 143,
+	];
+
+	const ALL_VALUE_TYPES: &[ValueType] = &[
+		ValueType::String,
+		ValueType::Number,
+		ValueType::Bytes,
+		ValueType::Date,
+		ValueType::Boolean,
+		ValueType::GeneratedId,
+		ValueType::CustomId,
+		ValueType::CompressedString,
 	];
 
 	#[test]
@@ -689,6 +828,102 @@ mod tests {
 	}
 
 	#[test]
+	fn decrypt_compressed_string() {
+		let model_value = create_model_value(ValueType::CompressedString, true, Cardinality::One);
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
+		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let value = ElementValue::String("this is a string value".to_string());
+
+		let encrypted_value =
+			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone()).unwrap();
+
+		let decrypted_value =
+			EntityFacadeImpl::decrypt_and_parse_value(encrypted_value, &sk, "test", &model_value);
+
+		assert_eq!(
+			Ok(MappedValue {
+				value: ElementValue::String("this is a string value".to_string()),
+				iv: Some(iv.get_inner().to_vec()),
+				error: None,
+			}),
+			decrypted_value
+		);
+	}
+
+	#[test]
+	fn decrypt_empty_compressed_string() {
+		let decrypted_value = EntityFacadeImpl::decrypt_and_parse_value(
+			ElementValue::String(String::default()),
+			&GenericAesKey::from_bytes(&KNOWN_SK).unwrap(),
+			"test",
+			&create_model_value(ValueType::CompressedString, true, Cardinality::One),
+		)
+		.map(|a| a.value);
+
+		assert_eq!(Ok(ElementValue::String(String::default())), decrypted_value);
+	}
+
+	#[test]
+	fn compress_empty_compressed_string() {
+		let session_key = GenericAesKey::from_bytes(&KNOWN_SK).unwrap();
+		let iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
+		let encrypted_value = EntityFacadeImpl::encrypt_value(
+			&create_model_value(ValueType::CompressedString, true, Cardinality::One),
+			&ElementValue::String(String::default()),
+			&session_key,
+			iv.clone(),
+		);
+
+		let encrypted_string = session_key
+			.encrypt_data(String::default().as_bytes(), iv)
+			.unwrap();
+		assert_eq!(Ok(ElementValue::Bytes(encrypted_string)), encrypted_value);
+	}
+
+	#[test]
+	fn should_not_compress_too_large_bytes() {
+		assert_eq!(MAX_UNCOMPRESSED_INPUT_LZ4, 0x7e000000);
+		let compressed_max_limit = EntityFacadeImpl::lz4_compress_plain_bytes(
+			b"a".repeat(MAX_UNCOMPRESSED_INPUT_LZ4).as_slice(),
+		);
+		let compressed_over_limit = EntityFacadeImpl::lz4_compress_plain_bytes(
+			b"a".repeat(MAX_UNCOMPRESSED_INPUT_LZ4 + 1).as_slice(),
+		);
+
+		assert!(compressed_max_limit.is_some());
+		assert_eq!(None, compressed_over_limit);
+	}
+
+	#[test]
+	fn should_decompress_with_no_limit() {
+		// Construct some compressed text by ourselves instead of calling lz4_flex::compress
+		// to save ~10seconds ( in dev machine ) of test runtime
+		// compressed_over_limit is the output of: lz4_flex::compress(b"a".repeat(MAX_UNCOMPRESSED_INPUT).as_slice());
+		let mut compressed_over_limit = vec![31, 97, 1, 0];
+		let mut compressed_rest = vec![255; 8289918];
+		let mut compressed_tail = vec![110, 96, 97, 97, 97, 97, 97, 97];
+		compressed_over_limit.append(&mut compressed_rest);
+		compressed_over_limit.append(&mut compressed_tail);
+
+		let decompressed =
+			EntityFacadeImpl::lz4_decompress_decrypted_bytes(compressed_over_limit.as_slice())
+				.map(|a| a.len())
+				.map_err(|_| ());
+
+		assert_eq!(Ok(MAX_UNCOMPRESSED_INPUT_LZ4 + 10), decompressed);
+	}
+
+	#[test]
+	fn decrypt_compressed_string_with_resize() {
+		let input_bytes = b"test ".repeat(124);
+		let compressed =
+			EntityFacadeImpl::lz4_compress_plain_bytes(input_bytes.as_slice()).unwrap();
+		let decompressed =
+			EntityFacadeImpl::lz4_decompress_decrypted_bytes(compressed.as_slice()).unwrap();
+		assert_eq!(input_bytes.as_slice(), decompressed.as_slice());
+	}
+
+	#[test]
 	fn encrypt_value_string() {
 		let model_value = create_model_value(ValueType::String, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
@@ -703,6 +938,28 @@ mod tests {
 			.unwrap();
 
 		assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+	}
+
+	#[test]
+	fn encrypt_value_compressed_string() {
+		let model_value = create_model_value(ValueType::CompressedString, true, Cardinality::One);
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
+		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+
+		let value = ElementValue::String("Hello, world".to_string());
+
+		let encrypted_value =
+			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone())
+				.map(|a| a.assert_bytes());
+
+		let expected = sk
+			.clone()
+			.encrypt_data(
+				lz4_flex::compress(value.assert_string().as_bytes()).as_slice(),
+				iv.clone(),
+			)
+			.unwrap();
+		assert_eq!(Ok(expected), encrypted_value)
 	}
 
 	#[test]
@@ -769,17 +1026,6 @@ mod tests {
 	#[test]
 	fn encrypt_value_null() {
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-
-		const ALL_VALUE_TYPES: &[ValueType] = &[
-			ValueType::String,
-			ValueType::Number,
-			ValueType::Bytes,
-			ValueType::Date,
-			ValueType::Boolean,
-			ValueType::GeneratedId,
-			ValueType::CustomId,
-			ValueType::CompressedString,
-		];
 		for value_type in ALL_VALUE_TYPES {
 			assert_eq!(
 				ElementValue::Null,
@@ -795,105 +1041,21 @@ mod tests {
 	}
 
 	#[test]
-	#[should_panic = "invalid encrypted value Null"]
-	fn encrypt_bytes_do_not_accept_null() {
+	fn encrypt_value_do_not_accept_null() {
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		assert_eq!(
-			Err(ApiCallError::internal(
-				"Value test with cardinality ONE can not be null".to_string()
-			)),
-			EntityFacadeImpl::encrypt_value(
-				&create_model_value(ValueType::Bytes, true, Cardinality::One),
-				&ElementValue::Null,
-				&sk,
-				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-			)
-		);
-	}
-
-	#[test]
-	#[should_panic = "invalid encrypted value Null"]
-	fn encrypt_number_do_not_accept_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		assert_eq!(
-			Err(ApiCallError::internal(
-				"Value test with cardinality ONE can not be null".to_string()
-			)),
-			EntityFacadeImpl::encrypt_value(
-				&create_model_value(ValueType::Number, true, Cardinality::One),
-				&ElementValue::Null,
-				&sk,
-				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-			)
-		);
-	}
-
-	#[test]
-	#[should_panic = "invalid encrypted value Null"]
-	fn encrypt_string_do_not_accept_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		assert_eq!(
-			Err(ApiCallError::internal(
-				"Value test with cardinality ONE can not be null".to_string()
-			)),
-			EntityFacadeImpl::encrypt_value(
-				&create_model_value(ValueType::String, true, Cardinality::One),
-				&ElementValue::Null,
-				&sk,
-				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-			)
-		);
-	}
-
-	#[test]
-	#[should_panic = "invalid encrypted value Null"]
-	fn encrypt_date_do_not_accept_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		assert_eq!(
-			Err(ApiCallError::internal(
-				"Value test with cardinality ONE can not be null".to_string()
-			)),
-			EntityFacadeImpl::encrypt_value(
-				&create_model_value(ValueType::Date, true, Cardinality::One),
-				&ElementValue::Null,
-				&sk,
-				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-			)
-		);
-	}
-
-	#[test]
-	#[should_panic = "invalid encrypted value Null"]
-	fn encrypt_compressed_string_do_not_accept_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		assert_eq!(
-			Err(ApiCallError::internal(
-				"Value test with cardinality ONE can not be null".to_string()
-			)),
-			EntityFacadeImpl::encrypt_value(
-				&create_model_value(ValueType::CompressedString, true, Cardinality::One),
-				&ElementValue::Null,
-				&sk,
-				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-			)
-		);
-	}
-
-	#[test]
-	#[should_panic = "invalid encrypted value Null"]
-	fn encrypt_boolean_do_not_accept_null() {
-		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		assert_eq!(
-			Err(ApiCallError::internal(
-				"Value test with cardinality ONE can not be null".to_string()
-			)),
-			EntityFacadeImpl::encrypt_value(
-				&create_model_value(ValueType::Boolean, true, Cardinality::One),
-				&ElementValue::Null,
-				&sk,
-				Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
-			)
-		);
+		for value_type in ALL_VALUE_TYPES {
+			assert_eq!(
+				Err(ApiCallError::internal(
+					"Nil encrypted value is not accepted. ModelValue Id: 426".to_string()
+				)),
+				EntityFacadeImpl::encrypt_value(
+					&create_model_value(value_type.clone(), true, Cardinality::One),
+					&ElementValue::Null,
+					&sk,
+					Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+				)
+			);
+		}
 	}
 
 	#[test]
