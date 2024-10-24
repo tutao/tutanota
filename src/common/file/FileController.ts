@@ -31,6 +31,10 @@ export enum VCARD_MIME_TYPES {
 	X_VCARD = "text/x-vcard",
 	VCARD = "text/vcard",
 }
+export enum MAIL_MIME_TYPES {
+	EML = "message/rfc822",
+	MBOX = "application/mbox",
+}
 
 const enum DownloadPostProcessing {
 	Open,
@@ -144,7 +148,7 @@ export function handleDownloadErrors<R>(e: Error, errorAction: (msg: Translation
 	}
 }
 
-export function readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
+export function fileListToArray(fileList: FileList): Array<File> {
 	// create an array of files form the FileList because we can not iterate the FileList directly
 	let nativeFiles: File[] = []
 
@@ -152,6 +156,10 @@ export function readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
 		nativeFiles.push(fileList[i])
 	}
 
+	return nativeFiles
+}
+
+export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile>> {
 	return promiseMap(
 		nativeFiles,
 		(nativeFile) => {

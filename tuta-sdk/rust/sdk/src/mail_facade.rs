@@ -1,11 +1,13 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::entities::sys::{Group, GroupInfo};
 use crate::entities::tutanota::{
 	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
 use crate::folder_system::{FolderSystem, MailSetKind};
 use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
+use crate::rest_error::HttpError;
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::ResolvingServiceExecutor;
 use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
@@ -144,6 +146,52 @@ impl MailFacade {
 			.await
 	}
 
+	pub async fn get_group_id_for_mail_address(
+		&self,
+		mail_address: &str,
+	) -> Result<GeneratedId, ApiCallError> {
+		let user = self.user_facade.get_user();
+		let mail_group_memberships = user
+			.memberships
+			.iter()
+			.filter(|membership| Some(GroupType::Mail as i64) == membership.groupType);
+
+		for mail_group_membership in mail_group_memberships.into_iter() {
+			let group: Group = self
+				.crypto_entity_client
+				.load(&mail_group_membership.group)
+				.await?;
+			match group.user {
+				None => {
+					let mail_group_info: GroupInfo = self
+						.crypto_entity_client
+						.load(&mail_group_membership.groupInfo)
+						.await?;
+
+					let enabled_mail_addresses =
+						get_enabled_mail_addresses_for_group_info(&mail_group_info);
+					if enabled_mail_addresses.contains(&mail_address.to_string()) {
+						return Ok(mail_group_membership.group.clone());
+					}
+				},
+				Some(user_id) if user._id == user_id => {
+					let user_group_info: GroupInfo = self
+						.crypto_entity_client
+						.load(&user.userGroup.groupInfo)
+						.await?;
+					let enabled_mail_addresses =
+						get_enabled_mail_addresses_for_group_info(&user_group_info);
+					if enabled_mail_addresses.contains(&mail_address.to_string()) {
+						return Ok(mail_group_membership.group.clone());
+					}
+				},
+				Some(_) => continue,
+			}
+		}
+
+		Err(HttpError::NotFoundError.into())
+	}
+
 	/// Mark mails as read/unread.
 	///
 	/// This is used to avoid having to get the Mail instance, edit it locally to change unread, and
@@ -178,6 +226,16 @@ impl MailFacade {
 	pub async fn trash_mails(&self, mails: Vec<IdTuple>) -> Result<(), ApiCallError> {
 		self.simple_move_mail(mails, MailSetKind::Trash).await
 	}
+}
+
+fn get_enabled_mail_addresses_for_group_info(group_info: &GroupInfo) -> Vec<String> {
+	group_info
+		.mailAddressAliases
+		.iter()
+		.filter(|alias| alias.enabled)
+		.map(|alias| alias.mailAddress.clone())
+		.chain(group_info.mailAddress.clone())
+		.collect()
 }
 
 #[cfg(test)]

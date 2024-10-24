@@ -1,5 +1,6 @@
 use crate::crypto::hkdf;
 use crate::crypto::key::GenericAesKey;
+use crate::crypto::key::VersionedAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
 use crate::entities::sys::{GroupMembership, User};
@@ -7,7 +8,6 @@ use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;
-use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
 use crate::ApiCallError;
 use base64::prelude::BASE64_STANDARD;

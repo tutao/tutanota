@@ -198,6 +198,27 @@ export class PostLoginActions implements PostLoginAction {
 		// Needs to be called after UsageTestModel.init() if the UsageOptInNews is live! (its isShown() requires an initialized UsageTestModel)
 		await locator.newsModel.loadNewsIds()
 
+		// FIXME
+		// initialize imap import
+		/*if (isDesktop()) {
+            const userId = locator.logins.getUserController().userId
+            const unencryptedCredentials = await locator.credentialsProvider.getDecryptedCredentialsByUserId(userId)
+
+            if (unencryptedCredentials) {
+                const imapCredentials: ImapCredentials = {
+                    password: "imap-password",
+                    username: "imap-user",
+                    host: "mail.gmail.com",
+                    port: 123,
+                }
+
+                const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
+                await locator.mailImportFacade.setupImapImport(apiUrl, unencryptedCredentials, imapCredentials)
+            } else {
+                console.error(`could not load credentials for user with userId ${userId}`)
+            }
+        }*/
+
 		// Redraw to render usage tests and news, among other things that may have changed.
 		m.redraw()
 	}

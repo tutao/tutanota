@@ -37,6 +37,10 @@ impl CryptoEntityClient {
 		}
 	}
 
+	pub fn get_crypto_facade(&self) -> &Arc<CryptoFacade> {
+		&self.crypto_facade
+	}
+
 	pub async fn load<T: Entity + Deserialize<'static>, ID: IdType>(
 		&self,
 		id: &ID,

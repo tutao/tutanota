@@ -21,13 +21,14 @@ import { MailModel } from "../model/MailModel.js"
 import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { getFolderIcon } from "./MailGuiUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { DropData } from "../../../common/gui/base/GuiUtils"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
 	mailboxDetail: MailboxDetail
 	mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onFolderClick: (folder: MailFolder) => unknown
-	onFolderDrop: (mailId: string, folder: MailFolder) => unknown
+	onFolderDrop: (dropData: DropData, folder: MailFolder) => unknown
 	expandedFolders: ReadonlySet<Id>
 	onFolderExpanded: (folder: MailFolder, state: boolean) => unknown
 	onShowFolderAddEditDialog: (mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) => unknown
@@ -111,7 +112,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + getElementId(system.folder),
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
-				dropHandler: (droppedMailId) => attrs.onFolderDrop(droppedMailId, system.folder),
+				dropHandler: (dropData) => attrs.onFolderDrop(dropData, system.folder),
 				disableHoverBackground: true,
 				disabled: attrs.inEditMode,
 			}

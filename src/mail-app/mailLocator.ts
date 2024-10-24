@@ -1,4 +1,4 @@
-import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
+import { assertMainOrNode, getApiBaseUrl, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -8,7 +8,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { CALENDAR_MIME_TYPE, FileController, guiDownload, VCARD_MIME_TYPES } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, guiDownload, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -53,7 +53,7 @@ import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherF
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
-import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties, MailFolder } from "../common/api/entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedRouter, ThrottledRouter } from "../common/gui/ScopedRouter.js"
@@ -137,6 +137,9 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { MailImportFacade } from "../common/native/common/generatedipc/MailImportFacade"
+import { getElementId } from "../common/api/common/utils/EntityUtils"
+import { folderSelectionDialog } from "../common/desktop/mailimport/MailImporter"
 
 assertMainOrNode()
 
@@ -181,6 +184,7 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	mailImportFacade!: MailImportFacade
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -832,6 +836,7 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
+					this.mailImportFacade = desktopInterfaces.mailImportFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
@@ -970,6 +975,7 @@ class MailLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllFilesVCard = files.every((file) => file.mimeType === VCARD_MIME_TYPES.X_VCARD || file.mimeType === VCARD_MIME_TYPES.VCARD)
 		const areAllFilesICS = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
+		const areAllFilesMail = files.every((file) => file.mimeType === MAIL_MIME_TYPES.EML || file.mimeType === MAIL_MIME_TYPES.MBOX)
 
 		if (areAllFilesVCard) {
 			const importer = await this.contactImporter()
@@ -1005,6 +1011,23 @@ class MailLocator {
 			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
 				dialog.close()
 				handleCalendarImport(selectedCalendar.groupRoot, parsedEvents)
+			})
+		} else if (areAllFilesMail) {
+			// Mail import of .eml or .mbox files is only supported on desktop currently.
+			// The WebCommonNativeFacade performs a platform check before calling this function.
+			const folderSystems = Array.from(this.mailModel.folders().values())
+			const indentedMailFolders = folderSystems.flatMap((folderSystem) => folderSystem.getIndentedList())
+
+			folderSelectionDialog(indentedMailFolders, async (dialog, selectedMailFolder) => {
+				dialog.close()
+
+				const userId = locator.logins.getUserController().userId
+				const unencryptedCredentials = await locator.credentialsProvider.getDecryptedCredentialsByUserId(userId)
+
+				if (unencryptedCredentials) {
+					const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
+					this.mailImportFacade?.importFromFiles(apiUrl, unencryptedCredentials, filesUris, getElementId(selectedMailFolder))
+				}
 			})
 		}
 	}
@@ -1126,7 +1149,11 @@ class MailLocator {
 		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
 			const calendarId = `${this.logins.getUserController().userId}#${id}`
 			const config = configs.get(calendarId)
-			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name: lang.get(name), color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
+			if (!config)
+				deviceConfig.updateClientOnlyCalendars(calendarId, {
+					name: lang.get(name),
+					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
+				})
 		}
 	}
 

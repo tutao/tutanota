@@ -12,6 +12,8 @@ import { FileFacade } from "./FileFacade.js"
 import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
+import { MailImportFacade } from "./MailImportFacade.js"
+import { MailImportFacadeReceiveDispatcher } from "./MailImportFacadeReceiveDispatcher.js"
 import { NativeCredentialsFacade } from "./NativeCredentialsFacade.js"
 import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
 import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
@@ -36,6 +38,7 @@ export class DesktopGlobalDispatcher {
 	private readonly externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private readonly fileFacade: FileFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
+	private readonly mailImportFacade: MailImportFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
 	private readonly nativePushFacade: NativePushFacadeReceiveDispatcher
@@ -51,6 +54,7 @@ export class DesktopGlobalDispatcher {
 		externalCalendarFacade: ExternalCalendarFacade,
 		fileFacade: FileFacade,
 		interWindowEventFacade: InterWindowEventFacade,
+		mailImportFacade: MailImportFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		nativeCryptoFacade: NativeCryptoFacade,
 		nativePushFacade: NativePushFacade,
@@ -66,6 +70,7 @@ export class DesktopGlobalDispatcher {
 		this.externalCalendarFacade = new ExternalCalendarFacadeReceiveDispatcher(externalCalendarFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
+		this.mailImportFacade = new MailImportFacadeReceiveDispatcher(mailImportFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
 		this.nativePushFacade = new NativePushFacadeReceiveDispatcher(nativePushFacade)
@@ -90,6 +95,8 @@ export class DesktopGlobalDispatcher {
 				return this.fileFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":
 				return this.interWindowEventFacade.dispatch(methodName, args)
+			case "MailImportFacade":
+				return this.mailImportFacade.dispatch(methodName, args)
 			case "NativeCredentialsFacade":
 				return this.nativeCredentialsFacade.dispatch(methodName, args)
 			case "NativeCryptoFacade":

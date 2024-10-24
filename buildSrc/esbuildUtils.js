@@ -6,7 +6,7 @@ import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 
 /**
  * Little plugin that obtains compiled better-sqlite3, copies it to dstPath and sets the path to nativeBindingPath.
- * We do not use default file loader from esbuild, it is much simpler and reliable to do it manually and it doesn't work for dynamic import (like in this case)
+ * We do not use default file loader from esbuild, it is much simpler and reliable to do it manually, and it doesn't work for dynamic import (like in this case)
  * anyway.
  * It will also replace `buildOptions.sqliteNativePath` with the nativeBindingPath
  */
@@ -32,6 +32,41 @@ export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, pl
 				})
 				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
 				await fs.promises.copyFile(modulePath, dstPath)
+			})
+		},
+	}
+}
+
+export function mimimiNativePlugin({ dstPath, platform }) {
+	return {
+		name: "mimimi-native-plugin",
+		setup(build) {
+			const options = build.initialOptions
+			options.define = options.define ?? {}
+
+			build.onStart(async () => {
+				let nativeBinaryName
+				switch (platform) {
+					case "linux":
+						nativeBinaryName = "node-mimimi.linux-x64-gnu.node"
+						break
+					case "win32":
+						nativeBinaryName = "node-mimimi.win32-x64-msvc.node"
+						break
+					case "darwin":
+						nativeBinaryName = "node-mimimi.darwin-universal.node"
+						break
+					default:
+						throw Error(`could not find node-mimimi binary: platform ${platform} is unknown`)
+				}
+
+				// Replace mentions of buildOptions.mimimiNativePath with the actual path
+				options.define["buildOptions.mimimiNativePath"] = `"./${nativeBinaryName}"`
+
+				const nativeBinarySourcePath = path.join(process.cwd(), "./packages/node-mimimi/dist", nativeBinaryName)
+
+				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
+				await fs.promises.copyFile(nativeBinarySourcePath, path.join(process.cwd(), dstPath, nativeBinaryName))
 			})
 		},
 	}
