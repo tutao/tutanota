@@ -1,38 +1,27 @@
-import m, { Component, Vnode } from "mithril"
-import { px, size } from "../size"
-import { inputLineHeight } from "./TextField.js"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
-import { lang } from "../../misc/LanguageViewModel"
-import type { lazy } from "@tutao/tutanota-utils"
+import { pureComponent } from "./PureComponent.js"
+import m from "mithril"
+import { colorForBg } from "./GuiUtils.js"
+import { size } from "../size.js"
+import { theme } from "../theme.js"
+import { isColorLight } from "./Color.js"
 
-export type LabelAttrs = {
-	label: TranslationKey | lazy<string>
-}
-
-export class Label implements Component<LabelAttrs> {
-	view(vnode: Vnode<LabelAttrs>) {
-		return m(".rel.pt", [
-			m("label.abs.text-ellipsis.noselect.z1.i.pr-s.small", lang.getMaybeLazy(vnode.attrs.label)),
-			m(
-				".flex.flex-column.flex-end",
-				{
-					style: {
-						"min-height": px(size.button_height + 2),
-					},
-				},
-				[
-					m(
-						".mt-form",
-						{
-							style: {
-								lineHeight: px(inputLineHeight),
-								"padding-bottom": "2px",
-							},
-						},
-						vnode.children,
-					),
-				],
-			),
-		])
-	}
-}
+/**
+ * Displays a mail label with color and name.
+ */
+export const Label = pureComponent(function Label({ text, color }: { text: string; color: string }) {
+	const backgroundColor = "#" + color
+	const isDarkTheme = !isColorLight(theme.content_bg)
+	return m(
+		"span.small.text-ellipsis",
+		{
+			style: {
+				// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
+				backgroundColor: isDarkTheme ? `hsl(from ${backgroundColor} h 50 l)` : backgroundColor,
+				color: colorForBg(backgroundColor),
+				padding: `1px ${size.vpad_xsm}px`,
+				borderRadius: "8px",
+			},
+		},
+		text,
+	)
+})

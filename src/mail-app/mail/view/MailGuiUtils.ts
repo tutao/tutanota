@@ -423,3 +423,9 @@ export function getConfidentialFontIcon(mail: Mail): String {
 	const confidentialIcon = getConfidentialIcon(mail)
 	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
 }
+
+// FIXME: temporary type until the model is there
+export interface LabelMailSet {
+	name: string
+	color: string
+}
