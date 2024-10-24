@@ -1,7 +1,13 @@
+import {ApplyLabelServicePostInTypeRef} from "./TypeRefs.js"
+import {ApplyLabelServiceDeleteInTypeRef} from "./TypeRefs.js"
 import {UserAreaGroupPostDataTypeRef} from "./TypeRefs.js"
 import {CreateGroupPostReturnTypeRef} from "./TypeRefs.js"
 import {CalendarDeleteDataTypeRef} from "./TypeRefs.js"
 import {UserAreaGroupDeleteDataTypeRef} from "./TypeRefs.js"
+import {CreateLabelServicePostInTypeRef} from "./TypeRefs.js"
+import {CreateLabelServicePutInTypeRef} from "./TypeRefs.js"
+import {CreateLabelServicePutOutTypeRef} from "./TypeRefs.js"
+import {CreateLabelServiceDeleteInTypeRef} from "./TypeRefs.js"
 import {CustomerAccountCreateDataTypeRef} from "./TypeRefs.js"
 import {DraftCreateDataTypeRef} from "./TypeRefs.js"
 import {DraftCreateReturnTypeRef} from "./TypeRefs.js"
@@ -35,6 +41,15 @@ import {TranslationGetOutTypeRef} from "./TypeRefs.js"
 import {UnreadMailStatePostInTypeRef} from "./TypeRefs.js"
 import {UserAccountCreateDataTypeRef} from "./TypeRefs.js"
 
+export const ApplyLabelService = Object.freeze({
+	app: "tutanota",
+	name: "ApplyLabelService",
+	get: null,
+	post: {data: ApplyLabelServicePostInTypeRef, return: null},
+	put: null,
+	delete: {data: ApplyLabelServiceDeleteInTypeRef, return: null},
+} as const)
+
 export const CalendarService = Object.freeze({
 	app: "tutanota",
 	name: "CalendarService",
@@ -51,6 +66,15 @@ export const ContactListGroupService = Object.freeze({
 	post: {data: UserAreaGroupPostDataTypeRef, return: CreateGroupPostReturnTypeRef},
 	put: null,
 	delete: {data: UserAreaGroupDeleteDataTypeRef, return: null},
+} as const)
+
+export const CreateLabelService = Object.freeze({
+	app: "tutanota",
+	name: "CreateLabelService",
+	get: null,
+	post: {data: CreateLabelServicePostInTypeRef, return: null},
+	put: {data: CreateLabelServicePutInTypeRef, return: CreateLabelServicePutOutTypeRef},
+	delete: {data: CreateLabelServiceDeleteInTypeRef, return: null},
 } as const)
 
 export const CustomerAccountService = Object.freeze({
