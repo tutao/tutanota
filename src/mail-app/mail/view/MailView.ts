@@ -688,7 +688,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 			if (mailbox != null) {
 				const dialog = await newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", locator.logins.getUserController().props), dataFiles)
-
 				dialog.show()
 			}
 		} catch (e) {
@@ -723,31 +722,39 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async handeFolderFileDrop(dropData: FileDropData, mailFolder: MailFolder) {
-		const willImport = await Dialog.choice("icsInSharingFiles_msg", [
-			{
-				text: "import_action",
-				value: true,
-			},
-			{
-				text: "attachFiles_action",
-				value: false,
-			},
-		])
+		function droppedOnlyMailFiles(files: Array<File>): boolean {
+			// there's similar logic on the AttachmentBubble, but for natively shared files.
+			return files.every((f) => f.name.endsWith(".eml") || f.name.endsWith(".mbox"))
+		}
+
+		const willImport =
+			droppedOnlyMailFiles(dropData.files) &&
+			(await Dialog.choice("emlOrMboxInSharingFiles_msg", [
+				{
+					text: "import_action",
+					value: true,
+				},
+				{
+					text: "attachFiles_action",
+					value: false,
+				},
+			]))
 
 		if (!willImport) {
 			await this.handleFileDrop(dropData)
-		}
-		const userId = locator.logins.getUserController().userId
-		const unencryptedCredentials = await locator.credentialsProvider.getDecryptedCredentialsByUserId(userId)
+		} else {
+			const userId = locator.logins.getUserController().userId
+			const unencryptedCredentials = await locator.credentialsProvider.getDecryptedCredentialsByUserId(userId)
 
-		if (unencryptedCredentials) {
-			const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
-			this.mailImportFacade?.importFromFiles(
-				apiUrl,
-				unencryptedCredentials,
-				dropData.files.map((f) => window.nativeApp.getPathForFile(f)),
-				getElementId(mailFolder),
-			)
+			if (unencryptedCredentials) {
+				const apiUrl = getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig())
+				this.mailImportFacade?.importFromFiles(
+					apiUrl,
+					unencryptedCredentials,
+					dropData.files.map((f) => window.nativeApp.getPathForFile(f)),
+					getElementId(mailFolder),
+				)
+			}
 		}
 	}
 
