@@ -13,9 +13,6 @@
 				},
 				{
 					"unencryptedTutaCredentials": "UnencryptedCredentials"
-				},
-				{
-					"imapCredentials": "ImapCredentials"
 				}
 			],
 			"ret": "void"

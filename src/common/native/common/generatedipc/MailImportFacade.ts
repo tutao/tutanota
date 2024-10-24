@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
 import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
-import { ImapCredentials } from "./ImapCredentials.js"
 /**
  * Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.
  */
@@ -9,7 +8,7 @@ export interface MailImportFacade {
 	/**
 	 * Initializing an IMAP import.
 	 */
-	setupImapImport(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, imapCredentials: ImapCredentials): Promise<void>
+	setupImapImport(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials): Promise<void>
 
 	/**
 	 * Start an IMAP import.
