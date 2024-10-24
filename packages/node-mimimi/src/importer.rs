@@ -2,7 +2,6 @@ use crate::importer::file_reader::import_client::{FileImport, FileIterationError
 use crate::importer::imap_reader::import_client::{ImapImport, ImapIterationError};
 use crate::importer::imap_reader::ImapImportConfig;
 use crate::importer::importable_mail::{ImportableMail, ImportedMailResponse};
-use crate::logging::Console;
 use std::future::Future;
 use std::sync::Arc;
 use tutasdk::crypto::aes::Iv;
@@ -22,13 +21,13 @@ pub type NapiResult<T> = napi::Result<T>;
 // todo: return more verbose status
 pub type ImporterHandle = Box<dyn Fn(ImportableMail) -> Box<dyn Future<Output = bool>>>;
 
-mod builder;
 pub mod file_reader;
 pub mod imap_reader;
 mod importable_mail;
+mod importer_api;
 
 #[derive(Clone, PartialEq)]
-pub enum ImportAuth {
+pub enum ImportParams {
 	Imap {
 		imap_import_config: ImapImportConfig,
 	},
@@ -41,8 +40,11 @@ pub enum ImportAuth {
 /// current state of the imap_reader import for this tuta account
 /// requires an initialized SDK!
 #[cfg_attr(feature = "javascript", napi_derive::napi)]
-#[derive(Clone, PartialEq, Debug)]
-pub enum ImportStatus {
+#[cfg_attr(not(feature = "javascript"), derive(Clone))]
+#[derive(PartialEq, Default)]
+#[cfg_attr(test, derive(Debug))]
+pub enum ImportState {
+	#[default]
 	NotInitialized,
 	Paused,
 	Running,
@@ -50,8 +52,15 @@ pub enum ImportStatus {
 	Finished,
 }
 
+#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
+#[derive(PartialEq, Clone, Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct ImportStatus {
+	pub state: ImportState,
+	pub imported_mails: u32,
+}
+
 struct ImporterInner {
-	console: Option<&'static Console>,
 	status: ImportStatus,
 
 	importer_mail_address: String,
@@ -80,8 +89,8 @@ pub enum IterationError {
 
 impl ImporterInner {
 	pub async fn continue_import(&mut self) -> napi::Result<ImportStatus> {
-		let mut failed_import_count = 0_usize;
-		let mut success_import_count = 0_usize;
+		let mut failed_import_count = 0_u32;
+		let mut success_import_count = 0_u32;
 
 		'walk_through_source: loop {
 			let next_importable_mail = match &mut self.import_source {
@@ -97,7 +106,7 @@ impl ImporterInner {
 
 			let import_res = match next_importable_mail {
 				Ok(mut next_importable_mail) => {
-					next_importable_mail.first_sender.0 = self.importer_mail_address.clone();
+					next_importable_mail.first_sender.0 = self.importer_mail_address.clone(); // just beacuse draft service needs same address
 					self.import_one_mail(next_importable_mail).await
 				},
 
@@ -126,11 +135,16 @@ impl ImporterInner {
 
 		if failed_import_count > 0 {
 			// some mail failed to import:
-			self.status = ImportStatus::Postponed;
+			self.status = ImportStatus {
+				state: ImportState::Postponed,
+				imported_mails: success_import_count,
+			};
 		} else {
 			// nothing failed,
-			self.status = ImportStatus::Finished;
-			eprintln!(">>>>>>>>> Imported {success_import_count} mails");
+			self.status = ImportStatus {
+				state: ImportState::Finished,
+				imported_mails: success_import_count,
+			};
 		};
 
 		Ok(self.status.clone())
@@ -193,17 +207,15 @@ impl ImporterInner {
 #[napi_derive::napi]
 impl Importer {
 	pub fn new(
-		console: &'static Console,
 		logged_in_sdk: Arc<LoggedInSdk>,
 		import_source: ImportSource,
 		importer_mail_address: String,
 	) -> Self {
 		let import_inner = ImporterInner {
-			console: Some(console),
 			logged_in_sdk,
 			import_source,
 			importer_mail_address,
-			status: ImportStatus::NotInitialized,
+			status: ImportStatus::default(),
 			randomizer_facade: RandomizerFacade::from_core(rand::rngs::OsRng),
 		};
 		Self {
@@ -268,14 +280,13 @@ mod tests {
 			logged_in_sdk,
 			import_source,
 			randomizer_facade,
-			console: None,
-			status: ImportStatus::NotInitialized,
+			status: ImportStatus::default(),
 		};
 
 		(importer, greenmail)
 	}
 
-	pub async fn init_file_importer(file_path: &str, is_mbox: bool) -> ImporterInner {
+	pub async fn init_file_importer(file_path: String, is_mbox: bool) -> ImporterInner {
 		let logged_in_sdk = Sdk::new(
 			"http://localhost:9000".to_string(),
 			Arc::new(NativeRestClient::try_new().unwrap()),
@@ -289,8 +300,7 @@ mod tests {
 		};
 		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
 		let import_inner = ImporterInner {
-			console: None,
-			status: ImportStatus::NotInitialized,
+			status: ImportStatus::default(),
 			importer_mail_address: "map-free@tutanota.de".to_string(),
 			logged_in_sdk,
 			import_source,
@@ -300,31 +310,67 @@ mod tests {
 	}
 
 	#[tokio::test]
-	pub async fn import_from_default_folder() {
+	pub async fn import_multiple_from_imap_default_folder() {
 		let (mut importer, greenmail) = init_imap_importer().await;
 
+		let email_first = sample_email("Hello from imap 😀! -- Список.doc".to_string());
+		let email_second = sample_email("Second time: hello".to_string());
+		greenmail.store_mail("sug@example.org", email_first.as_str());
+		greenmail.store_mail("sug@example.org", email_second.as_str());
+
+		let import_res = importer.continue_import().await.map_err(|_| ());
+		assert_eq!(
+			Ok(ImportStatus {
+				state: ImportState::Finished,
+				imported_mails: 2,
+			}),
+			import_res
+		);
+	}
+
+	fn sample_email(subject: String) -> String {
 		let email = MessageBuilder::new()
             .from(("Matthias", "map@example.org"))
             .to(("Johannes", "jmp@example.org"))
-            .subject("Hello from imap 😀! -- Список.doc")
+            .subject(subject)
             .text_body("Hello tutao! this is the first step to have email import.Want to see html 😀?<p style='color:red'>red</p>")
             .write_to_string()
             .unwrap();
+		email
+	}
+
+	#[tokio::test]
+	pub async fn import_single_from_imap_default_folder() {
+		let (mut importer, greenmail) = init_imap_importer().await;
+
+		let email = sample_email("Single email".to_string());
 		greenmail.store_mail("sug@example.org", email.as_str());
 
-		importer.continue_import().await;
-		assert_eq!(importer.status, ImportStatus::Finished);
+		let import_res = importer.continue_import().await.map_err(|_| ());
+		assert_eq!(
+			Ok(ImportStatus {
+				state: ImportState::Finished,
+				imported_mails: 1,
+			}),
+			import_res
+		);
 	}
 
 	#[tokio::test]
 	async fn can_import_single_eml_file() {
 		let mut importer = init_file_importer(
-			"/home/sug/dev/repositories/tutanota-3/packages/node-mimimi/sample.eml",
+			"/home/sug/dev/repositories/tutanota-3/packages/node-mimimi/sample.eml".to_string(),
 			false,
 		)
 		.await;
 
-		importer.continue_import().await;
-		assert_eq!(importer.status, ImportStatus::Finished);
+		let import_res = importer.continue_import().await.map_err(|_| ());
+		assert_eq!(
+			Ok(ImportStatus {
+				state: ImportState::Finished,
+				imported_mails: 1,
+			}),
+			import_res
+		);
 	}
 }

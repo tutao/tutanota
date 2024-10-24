@@ -1,5 +1,5 @@
 use crate::importer::importable_mail::ImportableMail;
-use crate::importer::ImportStatus;
+use crate::importer::{ImportState, ImportStatus};
 use mail_parser::mailbox::mbox::MessageIterator;
 use mail_parser::MessageParser;
 use std::io::{BufReader, Read};
@@ -85,7 +85,7 @@ impl Iterator for ImportableMailProvider {
 }
 
 impl FileImport {
-	pub fn new(file_path: &str, is_mbox: bool) -> Self {
+	pub fn new(file_path: String, is_mbox: bool) -> Self {
 		let file_handle = std::fs::File::open(file_path).unwrap();
 		let file_read_buffer = BufReader::new(file_handle);
 
@@ -129,7 +129,8 @@ impl FileImport {
 	}
 
 	pub async fn continue_import(&mut self) -> ImportStatus {
-		let mut failed_import_count = 0_usize;
+		let mut failed_import_count = 0_32;
+		let mut success_import_count = 0_u32;
 
 		while let Some(maybe_importable_mail) = self.message_provider.next() {
 			let importable_mail = match maybe_importable_mail {
@@ -140,9 +141,13 @@ impl FileImport {
 				},
 			};
 
-			let import_is_done = self.import_one_mail(importable_mail);
-			if let Err(e) = import_is_done {
-				failed_import_count += 1;
+			match self.import_one_mail(importable_mail) {
+				Ok(()) => {
+					success_import_count += 1;
+				},
+				Err(err) => {
+					failed_import_count += 1;
+				},
 			}
 		}
 
@@ -150,7 +155,10 @@ impl FileImport {
 			todo!()
 		} else {
 			// we looped through everything, and there were no failed import recorded, yay!
-			ImportStatus::Finished
+			ImportStatus {
+				state: ImportState::Finished,
+				imported_mails: success_import_count,
+			}
 		}
 	}
 

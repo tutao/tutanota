@@ -32,7 +32,8 @@ impl TryFrom<TutaCredentials> for Credentials {
 }
 
 #[cfg_attr(feature = "javascript", napi_derive::napi)]
-#[derive(PartialEq, Clone)]
+#[cfg_attr(not(feature = "javascript"), derive(Clone))]
+#[derive(PartialEq)]
 pub enum TutaCredentialType {
 	Internal,
 	External,

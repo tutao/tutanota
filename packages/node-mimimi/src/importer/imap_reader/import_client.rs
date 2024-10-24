@@ -78,14 +78,20 @@ impl ImapImport {
 	/// will switch to next mailbox, if everything from current mailbox is fetched,
 	pub async fn fetch_next_mail(&mut self) -> Result<ImportableMail, ImapIterationError> {
 		self.ensure_logged_in()?;
-		self.ensure_mailbox_selected()?;
 
 		while self.imap_client.latest_search_results.is_empty() {
-			self.import_state.finish_current_mailbox();
+			if self.imap_client.latest_search_results.is_empty()
+				&& self.import_state.current_mailbox.is_some()
+			{
+				self.import_state.finish_current_mailbox();
+				self.ensure_mailbox_selected()?;
+				continue;
+			}
 
 			// select next mailbox
 			// and search for all available mails
 			self.ensure_mailbox_selected()?;
+
 			self.imap_client
 				.search_all_uid()
 				.eq(&StatusKind::Ok)
@@ -120,11 +126,7 @@ impl ImapImport {
 				.pop()
 				.ok_or(ImapIterationError::SourceEnd)?;
 			self.import_state.current_mailbox = Some(next_mailbox_to_select);
-
-			assert!(
-				self.import_state.fetched_from_current_mailbox.is_empty(),
-				"no mailbox is selected"
-			);
+			self.import_state.fetched_from_current_mailbox = vec![];
 		}
 
 		// if something from current mailbox is selected, it means we are already in selected state
