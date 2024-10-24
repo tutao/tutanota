@@ -26,7 +26,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService,
 } from "../../entities/sys/Services"
-import { AccountType, asKdfType, CloseEventBusOption, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
+import { AccountType, asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
 import {
 	Challenge,
 	createChangeKdfPostIn,
@@ -300,6 +300,10 @@ export class LoginFacade {
 	 * @param user the user we are updating
 	 */
 	public async migrateKdfType(targetKdfType: KdfType, passphrase: string, user: User): Promise<void> {
+		if (!Const.EXECUTE_KDF_MIGRATION) {
+			// Migration is not yet enabled on this version.
+			return
+		}
 		const currentPassphraseKeyData = {
 			passphrase,
 			kdfType: asKdfType(user.kdfVersion),
