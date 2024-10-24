@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2024-10-18T13:17:31Z",
+	"updated_at": "2024-10-24T05:57:56Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1060,6 +1060,7 @@ export default {
 		"onlyPrivateComputer_msg": "Tuto možnost zvolte pouze v případě, že používáte soukromé zařízení.",
 		"openCamera_action": "Fotoaparát",
 		"openKnowledgebase_action": "Otevřít okno s bází znalostí",
+		"openMailApp_msg": "Tato akce otevře aplikaci Tuta Mail. Chcete pokračovat?",
 		"openNewWindow_action": "Nové okno",
 		"openTemplatePopup_msg": "Otevřít okno s šablonami",
 		"open_action": "Otevřít",

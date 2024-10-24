@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-10-18T13:08:00Z",
+	"updated_at": "2024-10-23T16:46:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1064,6 +1064,7 @@ export default {
 		"onlyPrivateComputer_msg": "Selecciona esta opción únicamente si estás usando un dispositivo privado.",
 		"openCamera_action": "Cámara",
 		"openKnowledgebase_action": "Abre la ventana de la base de conocimiento",
+		"openMailApp_msg": "Esta acción abrirá Tuta Mail App, ¿deseas continuar?",
 		"openNewWindow_action": "Nueva ventana",
 		"openTemplatePopup_msg": "Plantillas abiertas pop-up",
 		"open_action": "Abrir",

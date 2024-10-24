@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-10-23T04:39:11Z",
+	"updated_at": "2024-10-24T07:19:32Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -161,7 +161,7 @@ export default {
 		"bcc_label": "Bcc",
 		"behaviorAfterMovingEmail_label": "Verhalten nach dem Verschieben einer E-Mail",
 		"birthdayCalendar_label": "Geburtstage",
-		"birthdayEventAge_title": "Jahre alt",
+		"birthdayEventAge_title": "{age} Jahre alt",
 		"birthdayEvent_title": "{name}s Geburtstag",
 		"birthday_alt": "Geburtstag",
 		"blockExternalContentSender_action": "Diese Adresse immer blockieren",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-10-18T15:25:10Z",
+	"updated_at": "2024-10-23T15:27:22Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1059,6 +1059,7 @@ export default {
 		"onlyPrivateComputer_msg": "您使用的是私人裝置時才選擇此選項​​。",
 		"openCamera_action": "相機",
 		"openKnowledgebase_action": "開啟知識庫視窗",
+		"openMailApp_msg": "此操作將開啟Tuta Mail應用程式，您想繼續嗎？",
 		"openNewWindow_action": "開啟新視窗",
 		"openTemplatePopup_msg": "開啟範本彈出視窗",
 		"open_action": "開啟",
