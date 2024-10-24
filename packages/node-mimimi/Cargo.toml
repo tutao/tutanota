@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "tutao_node-mimimi"
-version = "250.241018.0"
+version = "250.241024.0"
 
 [lib]
 # need to have lib to be able to use this from rust examples
