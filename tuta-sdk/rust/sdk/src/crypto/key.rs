@@ -3,15 +3,30 @@ use super::rsa::*;
 use super::tuta_crypt::*;
 use crate::util::ArrayCastingError;
 use crate::ApiCallError;
+use std::fmt::{Debug, Formatter};
 use zeroize::Zeroizing;
 
 #[derive(Clone, PartialEq)]
-#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 #[allow(clippy::large_enum_variant)]
 pub enum AsymmetricKeyPair {
 	RSAKeyPair(RSAKeyPair),
 	RSAEccKeyPair(RSAEccKeyPair),
 	PQKeyPairs(PQKeyPairs),
+}
+
+pub enum AsymmetricPublicKey {
+	RsaPublicKey(RSAPublicKey),
+	PqPublicKeys(TutaCryptPublicKeys),
+}
+
+// we implement this ourselves to make sure we do not leak anything
+impl Debug for AsymmetricPublicKey {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			AsymmetricPublicKey::RsaPublicKey(_) => f.debug_struct("RsaPublicKey").finish(),
+			AsymmetricPublicKey::PqPublicKeys(_) => f.debug_struct("PqPublicKeys").finish(),
+		}
+	}
 }
 
 impl From<RSAKeyPair> for AsymmetricKeyPair {
@@ -32,11 +47,31 @@ impl From<PQKeyPairs> for AsymmetricKeyPair {
 	}
 }
 
+// we implement this ourselves to make sure we do not leak anything
+impl Debug for AsymmetricKeyPair {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			AsymmetricKeyPair::RSAKeyPair(_) => f.debug_struct("RSAKeyPair").finish(),
+			AsymmetricKeyPair::RSAEccKeyPair(_) => f.debug_struct("RSAEccKeyPair").finish(),
+			AsymmetricKeyPair::PQKeyPairs(_) => f.debug_struct("PQKeyPairs").finish(),
+		}
+	}
+}
+
 #[derive(Clone, PartialEq)]
-#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub enum GenericAesKey {
 	Aes128(Aes128Key),
 	Aes256(Aes256Key),
+}
+
+// we implement this ourselves to make sure we do not leak anything
+impl Debug for GenericAesKey {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			GenericAesKey::Aes128(_) => f.debug_struct("Aes128").finish(),
+			GenericAesKey::Aes256(_) => f.debug_struct("Aes256").finish(),
+		}
+	}
 }
 
 impl GenericAesKey {

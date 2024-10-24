@@ -1,5 +1,5 @@
 use crate::crypto::aes::Iv;
-use crate::crypto::ecc::EccPublicKey;
+use crate::crypto::asymmetric_crypto_facade::DecapsulatedAesKey;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
@@ -12,10 +12,12 @@ use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
+use crate::tutanota_constants::EncryptionAuthStatus;
 use crate::util::ArrayCastingError;
-use crate::IdTuple;
+use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use num_enum::TryFromPrimitive;
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -142,9 +144,9 @@ impl CryptoFacade {
 			});
 		};
 
-		let ResolvedBucketKey {
-			decrypted_bucket_key,
-			sender_identity_key: _sender_identity_key, // TODO: Use when implementing authentication
+		let DecapsulatedAesKey {
+			decrypted_aes_key: decrypted_bucket_key,
+			sender_identity_pub_key: _sender_identity_key, // TODO: Use when implementing authentication
 		} = self
 			.decrypt_bucket_key(&bucket_key, owner_group, model)
 			.await?;
@@ -155,7 +157,7 @@ impl CryptoFacade {
 			let decrypted_session_key = decrypted_bucket_key
 				.decrypt_aes_key(instance_session_key.symEncSessionKey.as_slice())?;
 
-			let instance_id = parse_id_field(entity.get(ID_FIELD))?;
+			let instance_id = parse_generated_id_field(entity.get(ID_FIELD))?;
 
 			if &instance_session_key.instanceId == instance_id {
 				session_key_for_this_instance = Some(decrypted_session_key.clone());
@@ -193,7 +195,7 @@ impl CryptoFacade {
 		bucket_key: &BucketKey,
 		owner_group: &GeneratedId,
 		model: &TypeModel,
-	) -> Result<ResolvedBucketKey, SessionKeyResolutionError> {
+	) -> Result<DecapsulatedAesKey, SessionKeyResolutionError> {
 		let mut auth_status = None;
 
 		let resolved_key = if let (Some(key_group), Some(pub_enc_bucket_key)) =
@@ -205,12 +207,11 @@ impl CryptoFacade {
 				.await?;
 			match keypair {
 				AsymmetricKeyPair::PQKeyPairs(k) => {
-					let decrypted_bucket_key = PQMessage::deserialize(pub_enc_bucket_key)?
-						.decapsulate(&k)?
-						.into();
-					ResolvedBucketKey {
-						decrypted_bucket_key,
-						sender_identity_key: Some(k.ecc_keys.public_key),
+					let decapsulated_sym_key =
+						PQMessage::deserialize(pub_enc_bucket_key)?.decapsulate(&k)?;
+					DecapsulatedAesKey {
+						decrypted_aes_key: decapsulated_sym_key.decrypted_sym_key_bytes.into(),
+						sender_identity_pub_key: Some(decapsulated_sym_key.sender_identity_pub_key), // TODO this is a bug -> should be the sender pub key NOT the recipient
 					}
 				},
 				AsymmetricKeyPair::RSAEccKeyPair(RSAEccKeyPair {
@@ -219,11 +220,10 @@ impl CryptoFacade {
 				| AsymmetricKeyPair::RSAKeyPair(k) => {
 					let bucket_key_bytes =
 						Zeroizing::new(k.private_key.decrypt(pub_enc_bucket_key)?);
-					let decrypted_bucket_key =
-						GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?;
-					ResolvedBucketKey {
-						decrypted_bucket_key,
-						sender_identity_key: None,
+					let decrypted_aes_key = GenericAesKey::from_bytes(bucket_key_bytes.as_slice())?;
+					DecapsulatedAesKey {
+						decrypted_aes_key,
+						sender_identity_pub_key: None,
 					}
 				},
 			}
@@ -246,12 +246,14 @@ impl CryptoFacade {
 }
 
 /// Resolves the id field of an entity into a generated id
-fn parse_id_field(
+fn parse_generated_id_field(
 	id_field: Option<&ElementValue>,
 ) -> Result<&GeneratedId, SessionKeyResolutionError> {
 	match id_field {
 		Some(ElementValue::IdGeneratedId(id)) => Ok(id),
-		Some(ElementValue::IdTupleId(IdTuple { element_id, .. })) => Ok(element_id),
+		Some(ElementValue::IdTupleGeneratedElementId(IdTupleGenerated { element_id, .. })) => {
+			Ok(element_id)
+		},
 		None => Err(SessionKeyResolutionError {
 			reason: "no id present on instance".to_string(),
 		}),
@@ -264,27 +266,8 @@ fn parse_id_field(
 	}
 }
 
-/// Denotes if an entity was authenticated successfully.
-///
-/// Not all decryption methods use authentication.
-pub enum EncryptionAuthStatus {
-	/// The entity was decrypted with RSA which does not use authentication.
-	RSANoAuthentication = 0,
-
-	/// The entity was decrypted with Tutacrypt (PQ) and successfully authenticated.
-	TutacryptAuthenticationSucceeded = 1,
-
-	/// The entity was decrypted with Tutacrypt (PQ), but authentication failed.
-	TutacryptAuthenticationFailed = 2,
-
-	/// The entity was decrypted symmetrically (i.e. secure external) which does not use authentication.
-	AESNoAuthentication = 3,
-
-	/// The entity was sent by the user and doesn't need authenticated.
-	TutacryptSender = 4,
-}
-
 /// Used for identifying the protocol version used for encrypting a session key.
+#[derive(Debug, Clone, Copy, TryFromPrimitive, PartialEq, Eq)]
 #[repr(i64)]
 pub enum CryptoProtocolVersion {
 	/// Legacy asymmetric encryption (RSA-2048)
@@ -294,12 +277,7 @@ pub enum CryptoProtocolVersion {
 	SymmetricEncryption = 1,
 
 	/// PQ encryption (Kyber+X25519)
-	Tutacrypt = 2,
-}
-
-struct ResolvedBucketKey {
-	decrypted_bucket_key: GenericAesKey,
-	sender_identity_key: Option<EccPublicKey>,
+	TutaCrypt = 2,
 }
 
 struct EntityOwnerKeyData<'a> {
@@ -389,7 +367,7 @@ mod test {
 	use crate::metamodel::TypeModel;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
-	use crate::IdTuple;
+	use crate::IdTupleGenerated;
 
 	#[tokio::test]
 	async fn test_pq_bucket_key_resolves() {
@@ -419,7 +397,7 @@ mod test {
 		let mut raw_mail = make_raw_mail(
 			&constants,
 			encapsulation.serialize(),
-			CryptoProtocolVersion::Tutacrypt as i64,
+			CryptoProtocolVersion::TutaCrypt as i64,
 		);
 		let mail_type_model = get_mail_type_model();
 
@@ -531,7 +509,7 @@ mod test {
 		);
 
 		let mail = Mail {
-			_id: IdTuple {
+			_id: IdTupleGenerated {
 				list_id: constants.instance_list.clone(),
 				element_id: constants.instance_id.clone(),
 			},

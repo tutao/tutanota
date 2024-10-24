@@ -11,7 +11,7 @@ use crate::services::service_executor::ResolvingServiceExecutor;
 use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::{ApiCallError, IdTuple, ListLoadDirection};
+use crate::{ApiCallError, IdTupleGenerated, ListLoadDirection};
 use std::sync::Arc;
 
 /// Provides high level functions to manipulate mail entities via the REST API
@@ -106,7 +106,7 @@ impl MailFacade {
 	/// Panics if `folder_type` is unsupported by the SimpleMoveMailService.
 	pub async fn simple_move_mail(
 		&self,
-		mut mails: Vec<IdTuple>,
+		mut mails: Vec<IdTupleGenerated>,
 		folder_type: MailSetKind,
 	) -> Result<(), ApiCallError> {
 		assert!(
@@ -137,10 +137,10 @@ impl MailFacade {
 	/// Gets an email (an entity/instance of `Mail`) from the backend
 	pub async fn load_email_by_id_encrypted(
 		&self,
-		id_tuple: &IdTuple,
+		id_tuple: &IdTupleGenerated,
 	) -> Result<Mail, ApiCallError> {
 		self.crypto_entity_client
-			.load::<Mail, IdTuple>(id_tuple)
+			.load::<Mail, IdTupleGenerated>(id_tuple)
 			.await
 	}
 
@@ -150,7 +150,7 @@ impl MailFacade {
 	/// then upload (PUT) it back on the server, as it directly invokes the UnreadMailStateService.
 	pub async fn set_unread_status_for_mails(
 		&self,
-		mut mails: Vec<IdTuple>,
+		mut mails: Vec<IdTupleGenerated>,
 		unread: bool,
 	) -> Result<(), ApiCallError> {
 		mails.dedup();
@@ -175,7 +175,7 @@ impl MailFacade {
 	/// invokes the SimpleMoveMailService. It can also be used to move multiple Mails across
 	/// different mailboxes that the user has access to, moving each Mail to their respective
 	/// Trash folders.
-	pub async fn trash_mails(&self, mails: Vec<IdTuple>) -> Result<(), ApiCallError> {
+	pub async fn trash_mails(&self, mails: Vec<IdTupleGenerated>) -> Result<(), ApiCallError> {
 		self.simple_move_mail(mails, MailSetKind::Trash).await
 	}
 }
@@ -191,7 +191,7 @@ mod tests {
 	use crate::services::service_executor::MockResolvingServiceExecutor;
 	use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 	use crate::user_facade::MockUserFacade;
-	use crate::IdTuple;
+	use crate::IdTupleGenerated;
 	use mockall::predicate::{always, eq};
 	use std::sync::Arc;
 
@@ -239,7 +239,7 @@ mod tests {
 	async fn mark_mail_deduped() {
 		async fn do_test(unread: bool) {
 			let mut executor = MockResolvingServiceExecutor::default();
-			let mails: Vec<IdTuple> = std::iter::repeat(IdTuple::new(
+			let mails: Vec<IdTupleGenerated> = std::iter::repeat(IdTupleGenerated::new(
 				GeneratedId::test_random(),
 				GeneratedId::test_random(),
 			))
@@ -335,7 +335,7 @@ mod tests {
 	#[tokio::test]
 	async fn trash_mail_dedupe() {
 		let mut executor = MockResolvingServiceExecutor::default();
-		let mails: Vec<IdTuple> = std::iter::repeat(IdTuple::new(
+		let mails: Vec<IdTupleGenerated> = std::iter::repeat(IdTupleGenerated::new(
 			GeneratedId::test_random(),
 			GeneratedId::test_random(),
 		))
@@ -379,9 +379,9 @@ mod tests {
 		facade.trash_mails(mails).await.unwrap();
 	}
 
-	fn generate_id_tuples(amt: usize) -> Vec<IdTuple> {
+	fn generate_id_tuples(amt: usize) -> Vec<IdTupleGenerated> {
 		std::iter::repeat_with(|| {
-			IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random())
+			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random())
 		})
 		.take(amt)
 		.collect()

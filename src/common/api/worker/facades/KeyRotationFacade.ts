@@ -79,7 +79,7 @@ import {
 	UserGroupKeyRotationService,
 } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { CryptoFacade, PublicKeys } from "../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../crypto/CryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
@@ -90,7 +90,7 @@ import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
-import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, PublicKeys } from "../crypto/AsymmetricCryptoFacade.js"
 
 assertWorkerOrNode()
 
