@@ -4,6 +4,11 @@ import { theme } from "../theme"
 
 const HUE_MAX = 360
 
+const enum PaletteIndex {
+	defaultVariant = 4,
+	customVariant = -1,
+}
+
 type ColorPickerAttrs = {
 	// FIXME: received value will be in hex and should be converted into HSL
 	value: string
@@ -15,64 +20,56 @@ type PaletteSchema<L extends number> = {
 }
 
 export class ColorPicker implements Component<ColorPickerAttrs> {
-	private static readonly defaultVariantIndex = 4
 	private static readonly paletteSize = 8
 	private static readonly paletteSchema: PaletteSchema<typeof ColorPicker.paletteSize> = Object.freeze({
 		hueShift: [4, 1, 0, -1, -1, 0, 0, 0],
 		saturation: [100, 100, 54, 36, 27, 25, 28, 31],
 		lightness: [94, 88, 77, 66, 55, 46, 41, 36],
 	} as const)
+	private static readonly variantIndexBySL: Map<string, number> = new Map()
 
 	private readonly theme = theme.themeId.includes("dark") ? "dark" : "light"
 	private palette = Array(ColorPicker.paletteSize).fill(null)
 	private selectedHue = Math.floor(Math.random() * HUE_MAX)
-	private selectedVariantIndex = ColorPicker.defaultVariantIndex
+	private selectedVariantIndex = PaletteIndex.defaultVariant
 
 	private huePickerDom: HTMLElement | null = null
 	private hueSliderDom: HTMLElement | null = null
 	private hueWindowDom: HTMLElement | null = null
 
-	private static getColor(hue: number, variant: number) {
-		let h = hue + this.paletteSchema.hueShift[variant]
-		const s = this.paletteSchema.saturation[variant]
-		const l = this.paletteSchema.lightness[variant]
-
-		if (h < 0 || h > HUE_MAX) {
-			h = h < 0 ? h + HUE_MAX : h % HUE_MAX
-		}
-
-		return `hsl(${h},${s}%,${l}%)`
-	}
-
-	private getHue(hue: number) {
-		const saturation = this.theme === "dark" ? 50 : 100
-		const lightness = this.theme === "dark" ? 50 : 40
-		return `hsl(${hue},${saturation}%,${lightness}%)`
-	}
-
-	private generatePalette() {
-		for (let i = 0; i < ColorPicker.paletteSize; i++) {
-			this.palette[i] = ColorPicker.getColor(this.selectedHue, i)
-		}
-	}
-
-	private handleHueChange = (e: MouseEvent) => {
-		const hueImgDomRect = (e.target as HTMLElement).getBoundingClientRect()
-		const posX = Math.floor(e.clientX - hueImgDomRect.left + size.hue_gradient_border_width)
-		this.selectedHue = Math.floor((posX / hueImgDomRect.width) * HUE_MAX)
-
-		if (this.hueSliderDom) {
-			this.hueSliderDom.style.left = `${posX}px`
-		}
-		if (this.hueWindowDom) {
-			this.hueWindowDom.style.backgroundColor = this.getHue(this.selectedHue)
-		}
-	}
-
 	view(vnode: Vnode<ColorPickerAttrs>): Children {
 		this.generatePalette()
 
-		const huePicker = m(
+		return m(".color-picker", [
+			this.renderHuePicker(),
+			m(
+				".palette-container",
+				this.palette.map((color, i) => this.renderPaletteColor(color, i)),
+			),
+			// this.renderPaletteColor("#000", PaletteIndex.customVariant),
+		])
+	}
+
+	private renderPaletteColor(color: string, i: number): Children {
+		return m(
+			".palette-color-wrapper",
+			{ className: this.selectedVariantIndex === i ? "selected" : "" },
+			m(".palette-color", {
+				onclick: () => {
+					this.selectedVariantIndex = i
+
+					// FIXME: selected should be converted to HEX
+					// vnode.attrs.onSelect(color)
+				},
+				style: {
+					backgroundColor: color,
+				},
+			}),
+		)
+	}
+
+	private renderHuePicker(): Children {
+		return m(
 			".hue-picker",
 			{
 				oncreate: (vnode) => {
@@ -97,7 +94,7 @@ export class ColorPicker implements Component<ColorPickerAttrs> {
 							const abortController = new AbortController()
 							const hueImgDom = e.target as HTMLElement
 
-							hueImgDom.addEventListener("mousemove", this.handleHueChange, { signal: abortController.signal })
+							hueImgDom.addEventListener("mousemove", (e) => this.handleHueChange(e, hueImgDom), { signal: abortController.signal })
 
 							document.addEventListener("mouseup", () => {
 								abortController.abort()
@@ -105,7 +102,7 @@ export class ColorPicker implements Component<ColorPickerAttrs> {
 								m.redraw()
 							})
 
-							this.handleHueChange(e)
+							this.handleHueChange(e, hueImgDom)
 							this.huePickerDom!.style.overflow = "visible"
 						},
 					}),
@@ -120,7 +117,7 @@ export class ColorPicker implements Component<ColorPickerAttrs> {
 					[
 						m(".hue-window", {
 							style: {
-								backgroundColor: this.getHue(this.selectedHue),
+								backgroundColor: this.getHueColor(this.selectedHue),
 							},
 							oncreate: (vnode) => {
 								this.hueWindowDom = vnode.dom as HTMLElement
@@ -131,29 +128,52 @@ export class ColorPicker implements Component<ColorPickerAttrs> {
 				),
 			],
 		)
+	}
 
-		return m(".color-picker", [
-			huePicker,
-			m(
-				".palette-container",
-				this.palette.map((color, i) =>
-					m(
-						".palette-color-wrapper",
-						{ className: this.selectedVariantIndex === i ? "selected" : "" },
-						m(".palette-color", {
-							onclick: () => {
-								this.selectedVariantIndex = i
+	private handleHueChange = (e: MouseEvent, hueImgDom: HTMLElement) => {
+		const hueImgDomRect = hueImgDom.getBoundingClientRect()
+		const posX = Math.floor(e.clientX - hueImgDomRect.left + size.hue_gradient_border_width)
+		this.selectedHue = Math.floor((posX / hueImgDomRect.width) * HUE_MAX)
 
-								// FIXME: selected should be converted to HEX
-								// vnode.attrs.onSelect(color)
-							},
-							style: {
-								backgroundColor: color,
-							},
-						}),
-					),
-				),
-			),
-		])
+		if (this.hueSliderDom) {
+			this.hueSliderDom.style.left = `${posX}px`
+		}
+		if (this.hueWindowDom) {
+			this.hueWindowDom.style.backgroundColor = this.getHueColor(this.selectedHue)
+		}
+	}
+
+	private getHueColor(hue: number) {
+		const saturation = this.theme === "dark" ? 50 : 100
+		const lightness = this.theme === "dark" ? 50 : 40
+		return `hsl(${hue},${saturation}%,${lightness}%)`
+	}
+
+	private generatePalette() {
+		for (let i = 0; i < ColorPicker.paletteSize; i++) {
+			this.palette[i] = ColorPicker.getColor(this.selectedHue, i)
+		}
+	}
+
+	private static getColor(hue: number, variant: number) {
+		let h = hue + this.paletteSchema.hueShift[variant]
+		const s = this.paletteSchema.saturation[variant]
+		const l = this.paletteSchema.lightness[variant]
+
+		if (h < 0 || h > HUE_MAX) {
+			h = h < 0 ? h + HUE_MAX : h % HUE_MAX
+		}
+
+		return `hsl(${h},${s}%,${l}%)`
+	}
+
+	private static getVariantIndexBySL(saturation: number, lightness: number) {
+		if (ColorPicker.variantIndexBySL.size === 0) {
+			for (let i = 0; i < ColorPicker.paletteSize; i++) {
+				ColorPicker.variantIndexBySL.set(`${ColorPicker.paletteSchema.saturation[i]}-${ColorPicker.paletteSchema.lightness[i]}`, i)
+			}
+		}
+
+		return ColorPicker.variantIndexBySL.get(`${saturation}-${lightness}`)
 	}
 }
