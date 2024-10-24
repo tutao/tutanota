@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { TutaCredentials } from "../../../../../packages/node-mimimi/dist/binding.js"
+export { TutaCredentials } from "@tutao/node-mimimi/dist/binding.js"

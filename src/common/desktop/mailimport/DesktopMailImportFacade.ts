@@ -1,4 +1,4 @@
-import { createFileImporter, ImportState, TutaCredentials, TutaCredentialType } from "@tutao/node-mimimi"
+import { createFileImporter, ImportState, TutaCredentials, TutaCredentialType } from "@tutao/node-mimimi/dist/binding"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"

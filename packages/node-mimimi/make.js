@@ -27,15 +27,15 @@ function getTarget(platform) {
 
 async function run(platform, { clean, release, test }) {
 	if (clean) {
-		$`rm -r -f ./build`
-		$`rm -r -f ./target`
-		$`rm -r -f ./dist`
+		await $`rm -r -f ./build`
+		await $`rm -r -f ./target`
+		await $`rm -r -f ./dist`
 	}
 
 	const target = getTarget(platform)
 	const releaseFlag = release ? "--release" : ""
-	await $`napi build dist --platform --js binding.cjs --dts binding.d.ts ${target} ${releaseFlag} --features javascript`
+	await $`napi build dist --platform --js binding.cjs --dts binding.d.cts ${target} ${releaseFlag} --features javascript`
 	if (test) {
-		await $`tsc -b test`
+		await $`npx tsc -b test`
 	}
 }

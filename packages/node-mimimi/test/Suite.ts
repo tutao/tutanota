@@ -1,5 +1,4 @@
-import { createFileImporter, TutaCredentialType } from "../dist/binding.cjs"
-import { TutaCredentials } from "../index"
+import { createFileImporter, TutaCredentials, TutaCredentialType } from "../dist/binding.cjs"
 
 // we still need to figure out where we can get the encryptedPassphraseKey from
 let tutaCredential: TutaCredentials = {

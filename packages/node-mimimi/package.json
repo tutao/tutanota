@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/node-mimimi",
-	"version": "244.240917.0",
+	"version": "250.241018.00",
 	"main": "./dist/binding.cjs",
 	"types": "./dist/binding.d.ts",
 	"napi": {
@@ -16,7 +16,7 @@
 	},
 	"license": "MIT",
 	"devDependencies": {
-		"@tutao/otest": "244.240910.0",
+		"@tutao/otest": "250.241018.0",
 		"@napi-rs/cli": "^2.18.4",
 		"typescript": "5.3.3",
 		"zx": "8.1.5"
@@ -28,7 +28,7 @@
 	"scripts": {
 		"build": "node make",
 		"prepublishOnly": "napi prepublish -t npm",
-		"test": "node make -t && cd build/test && node Suite.js && cargo test",
+		"test": "node make -t && cd build && node Suite.js && cargo test",
 		"universal": "napi universal",
 		"version": "napi version"
 	}
