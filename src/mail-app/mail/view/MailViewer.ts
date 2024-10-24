@@ -62,7 +62,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	/** it is set after we measured mail body element */
 	private bodyLineHeight: number | null = null
 
-	private isScaling = true
 	/**
 	 * Delay the display of the progress spinner in main body view for a short time to suppress it when we are switching between cached emails
 	 * and we are just sanitizing
@@ -141,8 +140,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				m.redraw()
 			})
 
-			// Reset scaling status if it's a new email.
-			this.isScaling = true
 			this.lastContentBlockingStatus = null
 			this.delayProgressSpinner = true
 			setTimeout(() => {

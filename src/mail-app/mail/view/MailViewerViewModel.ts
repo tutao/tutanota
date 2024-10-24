@@ -43,7 +43,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { getReferencedAttachments, isTutanotaTeamMail, LabelMailSet, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -74,6 +74,7 @@ import { MailModel } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { Label } from "../../../common/gui/base/Label.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -117,6 +118,43 @@ export class MailViewerViewModel {
 	private loading: Promise<void> | null = null
 
 	private collapsed: boolean = true
+	// FIXME: testing data
+	labels: readonly LabelMailSet[] = [
+		{
+			color: "009951",
+			name: "appleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleappleapple",
+		},
+		{ color: "FF007F", name: "nuclear" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+		{ color: "009951", name: "apple" },
+		{ color: "E8B931", name: "banana" },
+		{ color: "975102", name: "kiwi" },
+	]
 
 	get mail(): Mail {
 		return this._mail
