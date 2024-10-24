@@ -77,7 +77,7 @@ export type UpgradeSubscriptionData = {
 export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
-	if (isIOSApp() && !(await locator.appStorePaymentPicker.shouldEnableAppStorePayment(getPaymentMethodType(accountingInfo)))) {
+	if (isIOSApp() && !(await locator.appStorePaymentPicker.shouldEnableAppStorePayment())) {
 		Dialog.message("notAvailableInApp_msg")
 		return
 	}
@@ -163,7 +163,7 @@ export async function loadSignupWizard(
 	let message: TranslationText | null
 	if (isIOSApp()) {
 		const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
-		const enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(null)
+		const enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment()
 		// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
 		if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
 			acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)

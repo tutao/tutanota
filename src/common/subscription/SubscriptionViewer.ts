@@ -279,8 +279,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private async handleUpgradeSubscription() {
 		if (isIOSApp()) {
-			const currentPaymentType = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
-			const shouldEnableiOSPayment = await this.appStorePaymentPicker.shouldEnableAppStorePayment(currentPaymentType)
+			const shouldEnableiOSPayment = await this.appStorePaymentPicker.shouldEnableAppStorePayment()
 
 			if (!shouldEnableiOSPayment) {
 				return Dialog.message("notAvailableInApp_msg")

@@ -294,7 +294,7 @@ export enum PaymentMethodType {
 }
 
 export async function getDefaultPaymentMethod(appStorePaymentPicker: AppStorePaymentPicker): Promise<PaymentMethodType> {
-	if (isIOSApp() && (await appStorePaymentPicker.shouldEnableAppStorePayment(null))) {
+	if (isIOSApp() && (await appStorePaymentPicker.shouldEnableAppStorePayment())) {
 		return PaymentMethodType.AppStore
 	}
 

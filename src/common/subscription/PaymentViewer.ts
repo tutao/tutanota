@@ -138,7 +138,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
 		if (isIOSApp()) {
-			const shouldEnableiOSPayment = await locator.appStorePaymentPicker.shouldEnableAppStorePayment(currentPaymentMethod)
+			const shouldEnableiOSPayment = await locator.appStorePaymentPicker.shouldEnableAppStorePayment()
 			if (shouldEnableiOSPayment) {
 				return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 			} else {
