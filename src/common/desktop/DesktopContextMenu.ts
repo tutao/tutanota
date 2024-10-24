@@ -13,19 +13,19 @@ export class DesktopContextMenu {
 		const pasteItem = new this.electron.MenuItem({
 			label: lang.get("paste_action"),
 			accelerator: "CmdOrCtrl+V",
-			click: (mi, bw) => bw && bw.webContents && bw.webContents.paste(),
+			click: (_, bw) => this.getWebContents(bw)?.paste(),
 			enabled: editFlags.canPaste,
 		})
 		const copyItem = new this.electron.MenuItem({
 			label: lang.get("copy_action"),
 			accelerator: "CmdOrCtrl+C",
-			click: (mi, bw) => bw && bw.webContents && bw.webContents.copy(),
+			click: (_, bw) => this.getWebContents(bw)?.copy(),
 			enabled: editFlags.canCopy,
 		})
 		const cutItem = new this.electron.MenuItem({
 			label: lang.get("cut_action"),
 			accelerator: "CmdOrCtrl+X",
-			click: (mi, bw) => bw && bw.webContents && bw.webContents.cut(),
+			click: (_, bw) => this.getWebContents(bw)?.cut(),
 			enabled: editFlags.canCut,
 		})
 		const copyLinkItem = new this.electron.MenuItem({
@@ -36,13 +36,13 @@ export class DesktopContextMenu {
 		const undoItem = new this.electron.MenuItem({
 			label: lang.get("undo_action"),
 			accelerator: "CmdOrCtrl+Z",
-			click: (mi, bw) => bw && bw.webContents && bw.webContents.undo(),
+			click: (_, bw) => this.getWebContents(bw)?.undo(),
 			enabled: editFlags.canUndo,
 		})
 		const redoItem = new this.electron.MenuItem({
 			label: lang.get("redo_action"),
 			accelerator: "CmdOrCtrl+Shift+Z",
-			click: (mi, bw) => bw && bw.webContents && bw.webContents.redo(),
+			click: (_, bw) => this.getWebContents(bw)?.redo(),
 			enabled: editFlags.canRedo,
 		})
 		const spellingItem = new this.electron.MenuItem({
@@ -74,6 +74,10 @@ export class DesktopContextMenu {
 		menu.popup()
 	}
 
+	private getWebContents(bw: Electron.BaseWindow | undefined): WebContents | null {
+		return (bw && bw instanceof this.electron.BrowserWindow && bw.webContents) || null
+	}
+
 	private spellingSubmenu(misspelledWord: string, dictionarySuggestions: Array<string>): Menu {
 		const submenu = new this.electron.Menu()
 
@@ -81,7 +85,7 @@ export class DesktopContextMenu {
 			for (const s of dictionarySuggestions) {
 				const menuItem = new this.electron.MenuItem({
 					label: s,
-					click: (mi, bw) => bw && bw.webContents && bw.webContents.replaceMisspelling(s),
+					click: (_, bw) => this.getWebContents(bw)?.replaceMisspelling(s),
 				})
 				submenu.append(menuItem)
 			}
@@ -95,7 +99,7 @@ export class DesktopContextMenu {
 					label: lang.get("addToDict_action", {
 						"{word}": misspelledWord,
 					}),
-					click: (mi, bw) => bw && bw.webContents && bw.webContents.session.addWordToSpellCheckerDictionary(misspelledWord),
+					click: (_, bw) => this.getWebContents(bw)?.session.addWordToSpellCheckerDictionary(misspelledWord),
 				}),
 			)
 		}
@@ -105,7 +109,12 @@ export class DesktopContextMenu {
 			submenu.append(
 				new this.electron.MenuItem({
 					label: lang.get("changeSpellCheckLang_action"),
-					click: (mi, bw) => bw && bw.webContents && this.changeSpellcheckLanguage(bw.webContents),
+					click: (_, bw) => {
+						const webContents = this.getWebContents(bw)
+						if (webContents) {
+							this.changeSpellcheckLanguage(webContents)
+						}
+					},
 				}),
 			)
 		}
