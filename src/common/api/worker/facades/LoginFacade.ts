@@ -69,7 +69,6 @@ import {
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
-	decryptKey,
 	encryptKey,
 	generateKeyFromPassphraseBcrypt,
 	generateRandomSalt,
@@ -650,10 +649,7 @@ export class LoginFacade {
 
 		// Previously only the encryptedPassword was stored, now we prefer to use the key if it's already there
 		// and keep passphrase for migrating KDF for now.
-		if (credentials.encryptedPassphraseKey != null) {
-			userPassphraseKey = decryptKey(accessKey, credentials.encryptedPassphraseKey)
-			credentialsWithPassphraseKey = credentials
-		} else if (credentials.encryptedPassword) {
+		if (credentials.encryptedPassword) {
 			const passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			if (isExternalUser) {
 				await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)

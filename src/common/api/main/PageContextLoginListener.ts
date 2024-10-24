@@ -1,5 +1,5 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { arrayEquals, defer, DeferredObject } from "@tutao/tutanota-utils"
 import { Challenge } from "../entities/sys/TypeRefs.js"
 import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
 import { SessionType } from "../common/SessionType.js"
@@ -42,12 +42,28 @@ export class PageContextLoginListener implements LoginListener {
 		// a passphrase key, and then update if so.
 
 		const persistedCredentials = (await this.credentialsProvider.getAllInternalCredentials()).find((a) => a.credentialInfo.userId === credentials.userId)
-		if (persistedCredentials != null && persistedCredentials.encryptedPassphraseKey == null) {
+		if (persistedCredentials != null && this.hasPassphraseKeyChanged(persistedCredentials.encryptedPassphraseKey, credentials.encryptedPassphraseKey)) {
 			const updatedCredentials = credentialsToUnencrypted(credentials, cacheInfo.databaseKey)
 			await this.credentialsProvider.store(updatedCredentials)
 		}
 
 		this.loginPromise.resolve()
+	}
+
+	/**
+	 * It is possible that a KDF migration was executed by a different client. This would change the passphrase key, so we need to check if we have to update the stored one.
+	 * @private
+	 */
+	private hasPassphraseKeyChanged(persistedEncryptedPassphraseKey: Uint8Array | null, credentialsEncryptedPassphraseKey: Uint8Array | null) {
+		if (persistedEncryptedPassphraseKey != null && credentialsEncryptedPassphraseKey != null) {
+			return !arrayEquals(persistedEncryptedPassphraseKey, credentialsEncryptedPassphraseKey)
+		} else if (persistedEncryptedPassphraseKey == null && credentialsEncryptedPassphraseKey == null) {
+			// both are null so nothing has changed.
+			return false
+		} else {
+			// one is null and the other is not
+			return true
+		}
 	}
 
 	/**
