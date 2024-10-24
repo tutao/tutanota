@@ -17,6 +17,7 @@ use crate::util::ArrayCastingError;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use num_enum::TryFromPrimitive;
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -266,7 +267,7 @@ fn parse_generated_id_field(
 }
 
 /// Used for identifying the protocol version used for encrypting a session key.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, TryFromPrimitive, PartialEq, Eq)]
 #[repr(i64)]
 pub enum CryptoProtocolVersion {
 	/// Legacy asymmetric encryption (RSA-2048)

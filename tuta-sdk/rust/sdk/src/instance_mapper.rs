@@ -1317,7 +1317,7 @@ mod tests {
 				.get("pubAdminGroupEncGKey")
 				.unwrap()
 				.assert_dict()
-				.get("pubEncSymKey")
+				.get("pub_enc_sym_key")
 				.expect("has_pubEncSymKey")
 		);
 		assert_eq!(
@@ -1326,7 +1326,7 @@ mod tests {
 				.get("pubAdminGroupEncGKey")
 				.unwrap()
 				.assert_dict()
-				.get("recipientIdentifierType")
+				.get("recipient_identifier_type")
 				.expect("has_recipientIdentifierType")
 		);
 		assert_eq!(
@@ -1335,7 +1335,7 @@ mod tests {
 				.get("pubAdminGroupEncGKey")
 				.unwrap()
 				.assert_dict()
-				.get("protocolVersion")
+				.get("protocol_version")
 				.expect("has_protocolVersion")
 		)
 	}

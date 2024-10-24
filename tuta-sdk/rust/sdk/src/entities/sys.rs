@@ -2773,13 +2773,13 @@ impl Entity for PriceServiceReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PubEncKeyData {
 	pub _id: CustomId,
-	pub protocolVersion: i64,
+	pub protocol_version: i64,
 	#[serde(with = "serde_bytes")]
-	pub pubEncSymKey: Vec<u8>,
-	pub recipientIdentifier: String,
-	pub recipientIdentifierType: i64,
-	pub recipientKeyVersion: i64,
-	pub senderKeyVersion: Option<i64>,
+	pub pub_enc_sym_key: Vec<u8>,
+	pub recipient_identifier: String,
+	pub recipient_identifier_type: i64,
+	pub recipient_key_version: i64,
+	pub sender_key_version: Option<i64>,
 }
 impl Entity for PubEncKeyData {
 	fn type_ref() -> TypeRef {

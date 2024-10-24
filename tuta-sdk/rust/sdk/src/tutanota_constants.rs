@@ -21,7 +21,7 @@ impl Into<i64> for PublicKeyIdentifierType {
 /// Denotes if an entity was authenticated successfully.
 ///
 /// Not all decryption methods use authentication.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EncryptionAuthStatus {
 	/// The entity was decrypted with RSA which does not use authentication.
 	RSANoAuthentication = 0,
