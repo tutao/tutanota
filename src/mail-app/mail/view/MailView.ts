@@ -5,7 +5,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
@@ -63,6 +63,11 @@ import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { showEditLabelDialog } from "./EditLabelDialog"
+import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
+import { attachDropdown } from "../../../common/gui/base/Dropdown"
+import { ButtonSize } from "../../../common/gui/base/ButtonSize"
+import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 
 assertMainOrNode()
 
@@ -247,7 +252,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private renderFilterButton() {
-		return m(MailFilterButton, { filter: this.mailViewModel.filterType, setFilter: (filter) => this.mailViewModel.setFilter(filter) })
+		return m(MailFilterButton, {
+			filter: this.mailViewModel.filterType,
+			setFilter: (filter) => this.mailViewModel.setFilter(filter),
+		})
 	}
 
 	private mailViewerSingleActions(viewModel: ConversationViewModel) {
@@ -568,7 +576,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 							  }
 							: null,
-						content: this.renderFolders(editingFolderForMailGroup),
+						content: this.renderFoldersAndLabels(editingFolderForMailGroup),
 						ariaLabel: "folderTitle_label",
 					})
 				},
@@ -582,27 +590,36 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		)
 	}
 
-	private renderFolders(editingFolderForMailGroup: Id | null) {
+	private renderFoldersAndLabels(editingFolderForMailGroup: Id | null) {
 		const details = locator.mailboxModel.mailboxDetails() ?? []
 		return [
 			...details.map((mailboxDetail) => {
-				const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
-				// Only show folders for mailbox in which edit was selected
-				if (editingFolderForMailGroup && !inEditMode) {
-					return null
-				} else {
-					return m(
-						SidebarSection,
-						{
-							name: () => getMailboxName(locator.logins, mailboxDetail),
-						},
-						this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
-							EditFoldersDialog.showEdit(() => this.renderFolders(mailboxDetail.mailGroup._id))
-						}),
-					)
-				}
+				return this.renderFoldersAndLabelsForMailbox(mailboxDetail, editingFolderForMailGroup)
 			}),
 		]
+	}
+
+	private renderFoldersAndLabelsForMailbox(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null) {
+		const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
+		// Only show folders for mailbox in which edit was selected
+		if (editingFolderForMailGroup && !inEditMode) {
+			return null
+		} else {
+			return m(
+				SidebarSection,
+				{
+					name: () => getMailboxName(locator.logins, mailboxDetail),
+				},
+				[
+					this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
+						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+					}),
+					this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
+						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+					}),
+				],
+			)
+		}
 	}
 
 	private createMailboxFolderItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
@@ -700,7 +717,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}
 		}
 
-		moveMails({ mailboxModel: locator.mailboxModel, mailModel: mailLocator.mailModel, mails: mailsToMove, targetMailFolder: folder })
+		moveMails({
+			mailboxModel: locator.mailboxModel,
+			mailModel: mailLocator.mailModel,
+			mails: mailsToMove,
+			targetMailFolder: folder,
+		})
 	}
 
 	private async showNewMailDialog(): Promise<void> {
@@ -763,5 +785,83 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) {
 		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
+	}
+
+	private async onAddLabelClicked(mailbox: MailBox) {
+		const labelData = await showEditLabelDialog()
+		if (labelData != null) {
+			await this.mailViewModel.createLabel(mailbox, labelData)
+		}
+	}
+
+	private renderMailboxLabelItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
+		return [
+			m(
+				SidebarSection,
+				{
+					name: "labels_label",
+					button: inEditMode ? this.renderAddLabelButton(mailboxDetail) : this.renderEditMailboxButton(onEditMailbox),
+				},
+				[
+					m(".flex.col", [
+						mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).map((label) => {
+							return m(SidebarSectionRow, {
+								icon: Icons.Label,
+								iconColor: label.color ?? undefined,
+								label: () => label.name,
+								// FIXME
+								path: "#",
+								// FIXME
+								onClick: noOp,
+								alwaysShowMoreButton: inEditMode,
+								moreButton: attachDropdown({
+									mainButtonAttrs: {
+										icon: Icons.More,
+										title: "more_label",
+									},
+									childAttrs: () => [
+										{
+											label: "edit_action",
+											icon: Icons.Edit,
+										},
+										{ label: "delete_action", icon: Icons.Trash },
+									],
+								}),
+							})
+						}),
+					]),
+				],
+			),
+			m(RowButton, {
+				label: "addLabel_action",
+				icon: Icons.Add,
+				class: "folder-row mlr-button border-radius-small",
+				style: {
+					width: `calc(100% - ${px(size.hpad_button * 2)})`,
+				},
+				onclick: () => {
+					this.onAddLabelClicked(mailboxDetail.mailbox)
+				},
+			}),
+		]
+	}
+
+	private renderEditMailboxButton(onEditMailbox: () => unknown) {
+		return m(IconButton, {
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
+			title: "edit_action",
+			click: onEditMailbox,
+		})
+	}
+
+	private renderAddLabelButton(mailboxDetail: MailboxDetail) {
+		return m(IconButton, {
+			title: "addLabel_action",
+			icon: Icons.Add,
+			click: () => {
+				this.onAddLabelClicked(mailboxDetail.mailbox)
+			},
+		})
 	}
 }

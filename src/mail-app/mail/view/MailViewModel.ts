@@ -1,7 +1,7 @@
 import { ListModel } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { Mail, MailFolder, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailBox, MailFolder, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -129,12 +129,9 @@ export class MailViewModel {
 
 	async showMailWithFolderId(folderId?: Id, mailId?: Id): Promise<void> {
 		if (folderId) {
-			const folderStructures = this.mailModel.folders()
-			for (const folders of folderStructures.values()) {
-				const folder = folders.getFolderById(folderId)
-				if (folder) {
-					return this.showMail(folder, mailId)
-				}
+			const folder = await this.mailModel.getFolderById(folderId)
+			if (folder) {
+				return this.showMail(folder, mailId)
 			}
 		}
 		return this.showMail(null, mailId)
@@ -779,5 +776,9 @@ export class MailViewModel {
 		this.stickyMailId = null
 		this.loadingTargetId = null
 		this.listModel?.onSingleExclusiveSelection(mail)
+	}
+
+	async createLabel(mailbox: MailBox, labelData: { name: string; color: string }) {
+		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
 	}
 }
