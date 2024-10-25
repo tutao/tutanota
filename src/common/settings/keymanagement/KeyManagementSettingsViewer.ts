@@ -3,7 +3,6 @@ import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
 import m, { Children } from "mithril"
 import { UserController } from "../../api/main/UserController.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { IconButton } from "../../gui/base/IconButton"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -15,18 +14,14 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	publicKeyHash: string | null
 	verificationPool: Map<MailAddress, KeyVerificationDetails>
 
-	constructor(
-		private readonly keyVerificationFacade: KeyVerificationFacade,
-		private readonly cryptoFacade: CryptoFacade,
-		private readonly userController: UserController,
-	) {
+	constructor(private readonly keyVerificationFacade: KeyVerificationFacade, private readonly userController: UserController) {
 		this.publicKeyHash = null
 		this.verificationPool = new Map<MailAddress, KeyVerificationDetails>()
 		this.view = this.view.bind(this)
 	}
 
 	async init() {
-		this.publicKeyHash = await this.cryptoFacade.getPublicKeyHash(assertNotNull(this.userController.userGroupInfo.mailAddress))
+		this.publicKeyHash = await this.keyVerificationFacade.getPublicKeyHash(assertNotNull(this.userController.userGroupInfo.mailAddress))
 		this.verificationPool = await this.keyVerificationFacade.getPool()
 
 		m.redraw()

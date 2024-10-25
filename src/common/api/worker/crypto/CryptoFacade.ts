@@ -1,7 +1,6 @@
 import {
 	assertNotNull,
 	base64ToUint8Array,
-	concat,
 	downcast,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
@@ -11,7 +10,6 @@ import {
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
-	uint8ArrayToHex,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
@@ -297,68 +295,6 @@ export class CryptoFacade {
 	 */
 	public async sha256(value: string): Promise<string> {
 		return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value)))
-	}
-
-	/**
-	 * Returns a hashed concatenation of public keys associated with a given mail address
-	 */
-	public async getPublicKeyHash(mailAddress: string): Promise<string> {
-		const keyData = createPublicKeyGetIn({
-			identifier: mailAddress,
-			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-
-			// Fetch the latest version
-			version: null,
-		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-
-		const atLeastOneFilledArray = (...arrays: (Uint8Array | null)[]) => {
-			for (let current of arrays) {
-				if (current != null) {
-					if (current.length > 0) {
-						return true
-					}
-				}
-			}
-
-			return false
-		}
-
-		// check if the server returns at least one key
-		const validKeyExists = atLeastOneFilledArray(publicKeyGetOut.pubRsaKey, publicKeyGetOut.pubEccKey, publicKeyGetOut.pubKyberKey)
-		if (!validKeyExists) {
-			throw new Error("Server did not return a single valid public key. (tested for RSA, ECC, Kyber)")
-		}
-
-		const rsaStartDelimiter = stringToUtf8Uint8Array("RSA")
-		const eccStartDelimiter = stringToUtf8Uint8Array("ECC")
-		const kybStartDelimiter = stringToUtf8Uint8Array("KYB")
-
-		const rsaEndDelimiter = stringToUtf8Uint8Array("ASR")
-		const eccEndDelimiter = stringToUtf8Uint8Array("CCE")
-		const kybEndDelimiter = stringToUtf8Uint8Array("BYK")
-
-		const emptyArray = new Uint8Array(0)
-		const publicKeysConcatenation = concat(
-			// RSA
-			rsaStartDelimiter,
-			publicKeyGetOut.pubRsaKey != null ? publicKeyGetOut.pubRsaKey : emptyArray,
-			rsaEndDelimiter,
-
-			// Ecc
-			eccStartDelimiter,
-			publicKeyGetOut.pubEccKey != null ? publicKeyGetOut.pubEccKey : emptyArray,
-			eccEndDelimiter,
-
-			// Kyber
-			kybStartDelimiter,
-			publicKeyGetOut.pubKyberKey != null ? publicKeyGetOut.pubKyberKey : emptyArray,
-			kybEndDelimiter,
-		)
-
-		const hash = uint8ArrayToHex(sha256Hash(assertNotNull(publicKeysConcatenation)))
-
-		return Promise.resolve(hash)
 	}
 
 	/**
