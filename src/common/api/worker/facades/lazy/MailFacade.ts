@@ -5,6 +5,7 @@ import {
 	ListUnsubscribeService,
 	MailFolderService,
 	MailService,
+	ManageLabelService,
 	MoveMailService,
 	ReportMailService,
 	SendDraftService,
@@ -54,6 +55,8 @@ import {
 	createEncryptedMailAddress,
 	createExternalUserData,
 	createListUnsubscribeData,
+	createManageLabelServiceLabelData,
+	createManageLabelServicePostIn,
 	createMoveMailData,
 	createNewDraftAttachment,
 	createReportMailPostData,
@@ -1029,6 +1032,31 @@ export class MailFacade {
 			}
 			return mailDetailsDrafts[0].details
 		}
+	}
+
+	/**
+	 * Create a label (aka MailSet aka {@link MailFolder} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
+	 */
+	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
+		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
+		const sk = aes256RandomKey()
+		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+		await this.serviceExecutor.post(
+			ManageLabelService,
+			createManageLabelServicePostIn({
+				ownerGroup: mailGroupId,
+				ownerEncSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: String(ownerEncSessionKey.encryptingKeyVersion),
+				data: createManageLabelServiceLabelData({
+					name: labelData.name,
+					color: labelData.color,
+				}),
+			}),
+			{
+				sessionKey: sk,
+			},
+		)
 	}
 }
 

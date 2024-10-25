@@ -1,6 +1,6 @@
 import { groupBy, isNotEmpty, partition } from "@tutao/tutanota-utils"
 import { Mail, MailFolder } from "../../entities/tutanota/TypeRefs.js"
-import { MailSetKind } from "../TutanotaConstants.js"
+import { isFolder, MailSetKind } from "../TutanotaConstants.js"
 import { elementIdPart, getElementId, getListId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
@@ -13,7 +13,8 @@ export class FolderSystem {
 	readonly systemSubtrees: ReadonlyArray<FolderSubtree>
 	readonly customSubtrees: ReadonlyArray<FolderSubtree>
 
-	constructor(folders: readonly MailFolder[]) {
+	constructor(foldersAndLabels: readonly MailFolder[]) {
+		const folders = foldersAndLabels.filter(isFolder)
 		const folderByParent = groupBy(folders, (folder) => (folder.parentFolder ? elementIdPart(folder.parentFolder) : null))
 		const topLevelFolders = folders.filter((f) => f.parentFolder == null)
 

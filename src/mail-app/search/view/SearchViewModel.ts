@@ -247,7 +247,9 @@ export class SearchViewModel {
 			}
 		})
 
-		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => this.onMailboxesChanged(mailboxes))
+		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => {
+			this.onMailboxesChanged(mailboxes)
+		})
 		this.eventController.addEntityListener(this.entityEventsListener)
 	}
 
@@ -699,18 +701,19 @@ export class SearchViewModel {
 		return searchCategoryForRestriction(restriction)
 	}
 
-	private onMailboxesChanged(mailboxes: MailboxDetail[]) {
+	private async onMailboxesChanged(mailboxes: MailboxDetail[]) {
 		this._mailboxes = mailboxes
-		const folderStructures = mailLocator.mailModel.folders()
 
 		// if selected folder no longer exist select another one
 		const selectedMailFolder = this._selectedMailFolder
-		if (
-			selectedMailFolder[0] &&
-			mailboxes.every((mailbox) => folderStructures.get(assertNotNull(mailbox.mailbox.folders)._id)?.getFolderById(selectedMailFolder[0]) == null)
-		) {
-			const folderSystem = assertNotNull(folderStructures.get(assertNotNull(mailboxes[0].mailbox.folders)._id))
-			this._selectedMailFolder = [getElementId(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX)))]
+
+		if (selectedMailFolder[0]) {
+			const mailFolder = await mailLocator.mailModel.getFolderById(selectedMailFolder[0])
+			if (!mailFolder) {
+				const folderSystem = assertNotNull(mailLocator.mailModel.getFolderSystemByGroupId(mailboxes[0].mailGroup._id))
+				this._selectedMailFolder = [getElementId(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX)))]
+				this.updateUi()
+			}
 		}
 	}
 

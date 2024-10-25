@@ -218,17 +218,4 @@ export class MailboxModel {
 		}
 		await this.entityClient.update(mailboxProperties)
 	}
-
-	loadFolders(folderListId: Id): Promise<MailFolder[]> {
-		return this.entityClient.loadAll(MailFolderTypeRef, folderListId).then((folders) => {
-			return folders.filter((f) => {
-				// We do not show spam or archive for external users
-				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailSetKind.SPAM || f.folderType === MailSetKind.ARCHIVE)) {
-					return false
-				} else {
-					return !(this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailSetKind.SPAM)
-				}
-			})
-		})
-	}
 }

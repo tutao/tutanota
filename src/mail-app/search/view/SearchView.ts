@@ -14,19 +14,7 @@ import { px, size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import {
-	assertNotNull,
-	getFirstOrThrow,
-	incrementMonth,
-	isSameTypeRef,
-	last,
-	LazyLoaded,
-	lazyMemoized,
-	memoized,
-	noOp,
-	ofClass,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isSameTypeRef, last, LazyLoaded, lazyMemoized, memoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
@@ -709,9 +697,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		]
 
 		for (const mailbox of mailboxes) {
-			const folderStructures = mailLocator.mailModel.folders()
 			const mailboxIndex = mailboxes.indexOf(mailbox)
-			const mailFolders = folderStructures.get(assertNotNull(mailbox.mailbox.folders)._id)?.getIndentedList() ?? []
+			const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(mailbox.mailGroup._id)?.getIndentedList() ?? []
 			for (const folderInfo of mailFolders) {
 				if (folderInfo.folder.folderType !== MailSetKind.SPAM) {
 					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`

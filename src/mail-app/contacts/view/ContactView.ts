@@ -40,7 +40,7 @@ import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { attachDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
@@ -78,6 +78,7 @@ import { StructuredContact } from "../../../common/native/common/generatedipc/St
 import { validateBirthdayOfContact } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
+import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
 
 assertMainOrNode()
 
@@ -124,7 +125,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								{
 									name: () => getGroupInfoDisplayName(locator.logins.getUserController().userGroupInfo),
 								},
-								this.createContactFoldersExpanderChildren(),
+								this.renderSidebarElements(),
 							),
 						],
 						ariaLabel: "folderTitle_label",
@@ -496,19 +497,15 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return shortcuts
 	}
 
-	createContactFoldersExpanderChildren(): Children {
-		const button: NavButtonAttrs = {
-			label: "all_contacts_label",
-			icon: () => BootIcons.Contacts,
-			href: () => `/contact`,
-			click: () => this.viewSlider.focus(this.listColumn),
-			disableHoverBackground: true,
-		}
-
+	private renderSidebarElements(): Children {
 		return [
-			m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(button) ? stateBgHover : "" } }, [
-				m(".folder-row.flex-space-between.plr-button.row-selected", [m(NavButton, button), this.renderFolderMoreButton()]),
-			]),
+			m(SidebarSectionRow, {
+				icon: BootIcons.Contacts,
+				label: "all_contacts_label",
+				path: `/contact`,
+				onClick: () => this.viewSlider.focus(this.listColumn),
+				moreButton: this.createMoreButtonAttrs(),
+			} satisfies SidebarSectionRowAttrs),
 			m(
 				SidebarSection,
 				{
@@ -567,48 +564,49 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	private renderFolderMoreButton(): Children {
-		return m(
-			IconButton,
-			attachDropdown({
-				mainButtonAttrs: {
-					title: "more_label",
-					icon: Icons.More,
-					size: ButtonSize.Compact,
-					colors: ButtonColor.Nav,
-				},
-				childAttrs: () => {
-					const vcardButtons: Array<DropdownButtonAttrs> = isApp()
-						? [
-								{
-									label: "importContacts_label",
-									click: () => importContacts(),
-									icon: Icons.ContactImport,
-								},
-						  ]
-						: [
-								{
-									label: "exportVCard_action",
-									click: () => exportAsVCard(locator.contactModel),
-									icon: Icons.Export,
-								},
-						  ]
+		return m(IconButton, this.createMoreButtonAttrs())
+	}
 
-					return vcardButtons.concat([
-						{
-							label: "importVCard_action",
-							click: () => importAsVCard(),
-							icon: Icons.ContactImport,
-						},
-						{
-							label: "merge_action",
-							icon: Icons.People,
-							click: () => this._mergeAction(),
-						},
-					])
-				},
-				width: 250,
-			}),
-		)
+	private createMoreButtonAttrs(): IconButtonAttrs {
+		return attachDropdown({
+			mainButtonAttrs: {
+				title: "more_label",
+				icon: Icons.More,
+				size: ButtonSize.Compact,
+				colors: ButtonColor.Nav,
+			},
+			childAttrs: () => {
+				const vcardButtons: Array<DropdownButtonAttrs> = isApp()
+					? [
+							{
+								label: "importContacts_label",
+								click: () => importContacts(),
+								icon: Icons.ContactImport,
+							},
+					  ]
+					: [
+							{
+								label: "exportVCard_action",
+								click: () => exportAsVCard(locator.contactModel),
+								icon: Icons.Export,
+							},
+					  ]
+
+				return vcardButtons.concat([
+					{
+						label: "importVCard_action",
+						click: () => importAsVCard(),
+						icon: Icons.ContactImport,
+					},
+					{
+						label: "merge_action",
+						icon: Icons.People,
+						click: () => this._mergeAction(),
+					},
+				])
+			},
+			width: 250,
+		})
 	}
 
 	private renderContactListRow(contactListInfo: ContactListInfo, shared: boolean) {
@@ -625,17 +623,19 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 		const moreButton = this.createContactListMoreButton(contactListInfo, shared)
 
-		return m(".folders.mlr-button.border-radius-small.state-bg", { style: { background: isNavButtonSelected(contactListButton) ? stateBgHover : "" } }, [
-			m(".folder-row.flex-space-between.plr-button.row-selected", [
-				m(NavButton, contactListButton),
-				m(IconButton, {
-					...moreButton,
-				}),
-			]),
-		])
+		return m(SidebarSectionRow, {
+			icon: Icons.People,
+			label: () => contactListInfo.name,
+			path: `${CONTACTLIST_PREFIX}/${contactListInfo.groupRoot.entries}`,
+			onClick: () => {
+				this.contactListViewModel.updateSelectedContactList(contactListInfo.groupRoot.entries)
+				this.viewSlider.focus(this.listColumn)
+			},
+			moreButton: moreButton,
+		} satisfies SidebarSectionRowAttrs)
 	}
 
-	createContactListMoreButton(contactListInfo: ContactListInfo, shared: boolean) {
+	createContactListMoreButton(contactListInfo: ContactListInfo, shared: boolean): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
 				title: "more_label",
