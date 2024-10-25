@@ -177,8 +177,7 @@ function rustValueType(valueName, type, value) {
 		Boolean: "bool",
 		GeneratedId: "GeneratedId",
 		CustomId: "CustomId",
-		// not supported yet
-		CompressedString: "Vec<u8>",
+		CompressedString: "String",
 	})
 
 	let innerType
