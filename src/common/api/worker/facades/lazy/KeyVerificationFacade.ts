@@ -32,14 +32,25 @@ export class KeyVerificationFacade {
 	}
 
 	async recheckPoolEntries(): Promise<void> {
-		const entries = this.verificationPool.entries()
-		for (let [mailAddress, details] of entries) {
-			const confirmed = await this.confirmFingerprint(mailAddress, details.fingerprint)
+		console.log("recheckPoolEntries: Heads-up! This method might make lots of requests, depending on pool size.")
+		console.log("recheckPoolEntries: Do you really need to call this method or would recheckPoolEntry() be sufficient?")
 
-			details.verified = confirmed
-
-			this.verificationPool.set(mailAddress, details)
+		const addresses = this.verificationPool.keys()
+		for (let address of addresses) {
+			await this.recheckPoolEntry(address)
 		}
+	}
+
+	async recheckPoolEntry(mailAddress: string): Promise<void> {
+		const details = this.verificationPool.get(mailAddress)
+		if (details === undefined) {
+			return
+		}
+
+		const verified = await this.confirmFingerprint(mailAddress, details.fingerprint)
+		details.verified = verified
+
+		this.verificationPool.set(mailAddress, details)
 	}
 
 	async confirmFingerprint(mailAddress: string, expectedFingerprint: string): Promise<boolean> {
@@ -64,5 +75,13 @@ export class KeyVerificationFacade {
 
 		await this.recheckPoolEntries()
 		return Promise.resolve()
+	}
+
+	async isVerified(mailAddress: string): Promise<boolean> {
+		await this.recheckPoolEntry(mailAddress)
+
+		// address is considered "not verified" when not a member of the pool
+		const verified = this.verificationPool.get(mailAddress)?.verified ?? false
+		return Promise.resolve(verified)
 	}
 }
