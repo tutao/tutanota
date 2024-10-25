@@ -5,6 +5,7 @@ import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
 import { SessionType } from "../common/SessionType.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { Credentials, credentialsToUnencrypted } from "../../misc/credentials/Credentials.js"
+import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
 
 export const enum LoginFailReason {
 	SessionExpired,
@@ -42,7 +43,7 @@ export class PageContextLoginListener implements LoginListener {
 		// a passphrase key, and then update if so.
 
 		const persistedCredentials = (await this.credentialsProvider.getAllInternalCredentials()).find((a) => a.credentialInfo.userId === credentials.userId)
-		if (persistedCredentials != null && this.hasPassphraseKeyChanged(persistedCredentials.encryptedPassphraseKey, credentials.encryptedPassphraseKey)) {
+		if (persistedCredentials != null && this.isPassphraseKeyUpdatedNeeded(persistedCredentials, credentials)) {
 			const updatedCredentials = credentialsToUnencrypted(credentials, cacheInfo.databaseKey)
 			await this.credentialsProvider.store(updatedCredentials)
 		}
@@ -54,7 +55,14 @@ export class PageContextLoginListener implements LoginListener {
 	 * It is possible that a KDF migration was executed by a different client. This would change the passphrase key, so we need to check if we have to update the stored one.
 	 * @private
 	 */
-	private hasPassphraseKeyChanged(persistedEncryptedPassphraseKey: Uint8Array | null, credentialsEncryptedPassphraseKey: Uint8Array | null) {
+	private isPassphraseKeyUpdatedNeeded(persistedCredentials: PersistedCredentials, credentials: Credentials) {
+		const persistedEncryptedPassphraseKey = persistedCredentials.encryptedPassphraseKey
+		const credentialsEncryptedPassphraseKey = credentials.encryptedPassphraseKey
+		if (persistedCredentials.encryptedPassword != credentials.encryptedPassword) {
+			// we only want to update the encrypted passwordKey if we changed the kdf function.
+			// In this case we have the same endryptedPassword but a different password key.
+			return false
+		}
 		if (persistedEncryptedPassphraseKey != null && credentialsEncryptedPassphraseKey != null) {
 			return !arrayEquals(persistedEncryptedPassphraseKey, credentialsEncryptedPassphraseKey)
 		} else if (persistedEncryptedPassphraseKey == null && credentialsEncryptedPassphraseKey == null) {
