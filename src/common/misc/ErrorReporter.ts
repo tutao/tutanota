@@ -283,6 +283,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 				address: mailAddress,
 				type: RecipientType.INTERNAL,
 				contact: null,
+				verified: false,
 			},
 		],
 		"de",

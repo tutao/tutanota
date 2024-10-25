@@ -11,6 +11,7 @@ export interface Recipient {
 	readonly name: string
 	readonly type: RecipientType
 	readonly contact: Contact | null
+	readonly verified: boolean
 }
 
 /**

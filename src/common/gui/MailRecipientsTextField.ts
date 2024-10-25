@@ -73,8 +73,14 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			items: attrs.recipients.map((recipient) => recipient.address),
 			renderBubbleText: (address: string) => {
-				const name = findRecipientWithAddress(attrs.recipients, address)?.name ?? null
-				return getMailAddressDisplayText(name, address, false)
+				const recipient = findRecipientWithAddress(attrs.recipients, address)
+				if (recipient == null) {
+					return getMailAddressDisplayText(null, address, false)
+				} else {
+					const name = recipient.name
+					const verified = recipient.verified ? " ✔" : ""
+					return getMailAddressDisplayText(name, address, false) + verified
+				}
 			},
 			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
 			onBackspace: () => {
