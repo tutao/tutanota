@@ -22,6 +22,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	) {
 		this.publicKeyHash = null
 		this.verificationPool = new Map<MailAddress, KeyVerificationDetails>()
+		this.view = this.view.bind(this)
 	}
 
 	async init() {
