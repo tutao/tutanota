@@ -2,7 +2,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailboxCounters, MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { assertNotNull, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, partition, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	Mail,
 	MailboxGroupRoot,
@@ -14,6 +14,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
+	isLabel,
 	MailReportType,
 	MailSetKind,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
@@ -38,12 +39,17 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { isSpamOrTrashFolder } from "./MailChecks.js"
 
+interface MailboxSets {
+	folders: FolderSystem
+	labels: readonly MailFolder[]
+}
+
 export class MailModel {
 	readonly mailboxCounters: Stream<MailboxCounters> = stream({})
 	/**
 	 * map from mailbox folders list to folder system
 	 */
-	readonly folders: Stream<Map<Id, FolderSystem>> = stream()
+	private mailSets: Map<Id, MailboxSets> = new Map()
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -66,36 +72,49 @@ export class MailModel {
 
 		this.mailboxModel.mailboxDetails.map(() => {
 			// this can cause little race between loading the folders but it should be fine
-			this.loadFolders().then((newFolders) => this.folders(newFolders))
+			this.loadMailSets().then((newFolders) => (this.mailSets = newFolders))
 		})
 	})
 
 	async init(): Promise<void> {
 		this.initListeners()
-		const tempFolders = await this.loadFolders()
-
-		this.folders(tempFolders)
+		this.mailSets = await this.loadMailSets()
 	}
 
-	private async loadFolders(): Promise<Map<Id, FolderSystem>> {
+	private async loadMailSets(): Promise<Map<Id, MailboxSets>> {
 		const mailboxDetails = await this.mailboxModel.getMailboxDetails()
 
-		const tempFolders = new Map<Id, FolderSystem>()
+		const tempFolders = new Map<Id, MailboxSets>()
 
 		for (let detail of mailboxDetails) {
 			if (detail.mailbox.folders) {
-				const detailFolders = await this.mailboxModel.loadFolders(neverNull(detail.mailbox.folders).folders)
-				tempFolders.set(detail.mailbox.folders._id, new FolderSystem(detailFolders))
+				const mailSets = await this.loadMailSetsForListId(neverNull(detail.mailbox.folders).folders)
+				const [labels, folders] = partition(mailSets, isLabel)
+				const folderSystem = new FolderSystem(folders)
+				tempFolders.set(detail.mailbox.folders._id, { folders: folderSystem, labels })
 			}
 		}
 		return tempFolders
 	}
 
-	private async getFolders(): Promise<Map<Id, FolderSystem>> {
-		if (this.folders().size === 0) {
-			return await this.loadFolders()
+	private loadMailSetsForListId(listId: Id): Promise<MailFolder[]> {
+		return this.entityClient.loadAll(MailFolderTypeRef, listId).then((folders) => {
+			return folders.filter((f) => {
+				// We do not show spam or archive for external users
+				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailSetKind.SPAM || f.folderType === MailSetKind.ARCHIVE)) {
+					return false
+				} else {
+					return !(this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailSetKind.SPAM)
+				}
+			})
+		})
+	}
+
+	private async getFolders(): Promise<Map<Id, MailboxSets>> {
+		if (this.mailSets.size === 0) {
+			return await this.loadMailSets()
 		} else {
-			return this.folders()
+			return this.mailSets
 		}
 	}
 
@@ -172,15 +191,15 @@ export class MailModel {
 		const mailboxDetail = await this.getMailboxDetailsForMail(mail)
 		if (mailboxDetail && mailboxDetail.mailbox.folders) {
 			const folders = await this.getFolders()
-			return folders.get(mailboxDetail.mailbox.folders._id) ?? null
+			return folders.get(mailboxDetail.mailbox.folders._id)?.folders ?? null
 		} else {
 			return null
 		}
 	}
 
 	async getMailboxFoldersForId(foldersId: Id): Promise<FolderSystem> {
-		const folderStructures = await this.loadFolders()
-		const folderSystem = folderStructures.get(foldersId)
+		const folderStructures = await this.loadMailSets()
+		const folderSystem = folderStructures.get(foldersId)?.folders
 		if (folderSystem == null) {
 			throw new ProgrammingError(`no folder system for folder id ${foldersId}`)
 		}
@@ -199,13 +218,21 @@ export class MailModel {
 	}
 
 	getFolderSystemByGroupId(groupId: Id): FolderSystem | null {
+		return this.getMailSetsForGroup(groupId)?.folders ?? null
+	}
+
+	getLabelsByGroupId(groupId: Id): readonly MailFolder[] {
+		return this.getMailSetsForGroup(groupId)?.labels ?? []
+	}
+
+	private getMailSetsForGroup(groupId: Id): MailboxSets | null {
 		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
 		const detail = mailboxDetails.find((md) => groupId === md.mailGroup._id)
-		if (detail == null || detail.mailbox.folders == null) {
+		const sets = detail?.mailbox?.folders?._id
+		if (sets == null) {
 			return null
 		}
-		const folders = this.folders() ?? new Map()
-		return folders.get(detail.mailbox.folders._id) ?? null
+		return this.mailSets.get(sets) ?? null
 	}
 
 	/**
@@ -498,5 +525,23 @@ export class MailModel {
 		mailboxProperties.reportMovedMails = reportMovedMails
 		await this.entityClient.update(mailboxProperties)
 		return mailboxProperties
+	}
+
+	/**
+	 * Create a label (aka MailSet aka {@link MailFolder} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
+	 */
+	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
+		await this.mailFacade.createLabel(mailGroupId, labelData)
+	}
+
+	async getFolderById(folderElementId: Id): Promise<MailFolder | null> {
+		const folderStructures = await this.loadMailSets()
+		for (const folders of folderStructures.values()) {
+			const folder = folders.folders.getFolderById(folderElementId)
+			if (folder) {
+				return folder
+			}
+		}
+		return null
 	}
 }

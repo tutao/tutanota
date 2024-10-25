@@ -60,7 +60,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		const buttonWidth = size.icon_size_large + paddingNeeded * 2
 
 		return m(
-			".folder-row.flex.flex-row.mlr-button.border-radius-small" + (editMode ? "" : ".state-bg"),
+			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg",
 			{
 				style: {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
