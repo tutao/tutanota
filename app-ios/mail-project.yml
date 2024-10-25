@@ -188,7 +188,7 @@ schemes:
         tutanotaTests: ["test"]
     run:
       config: "Debug Production"
-      storeKitConfiguration: "Plans.storekit"
+      #storeKitConfiguration: "Plans.storekit"
     test:
       config: "Debug Production"
       targets: ["tutanotaTests"]
