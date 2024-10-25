@@ -1790,3 +1790,5 @@ export type TranslationKeyType =
 	| "contactNotFound_msg"
 	| "sendMail_label"
 	| "callNumber_label"
+	| "addLabel_action"
+	| "labels_label"

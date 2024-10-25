@@ -26,6 +26,14 @@ export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 
 export const getMailFolderType = (folder: MailFolder): MailSetKind => downcast(folder.folderType)
 
+export function isFolder(folder: MailFolder): boolean {
+	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL
+}
+
+export function isLabel(folder: MailFolder): boolean {
+	return folder.folderType === MailSetKind.LABEL
+}
+
 type ObjectPropertyKey = string | number | symbol
 export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
 	Object.keys(objectMap).reduce((r, k) => {
