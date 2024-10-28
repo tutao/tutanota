@@ -21,7 +21,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async init() {
-		this.publicKeyHash = await this.keyVerificationFacade.getPublicKeyHash(assertNotNull(this.userController.userGroupInfo.mailAddress))
+		this.publicKeyHash = await this.keyVerificationFacade.getPublicKeyHashFromServer(assertNotNull(this.userController.userGroupInfo.mailAddress))
 		this.verificationPool = await this.keyVerificationFacade.getPool()
 
 		m.redraw()

@@ -824,6 +824,7 @@ export default {
 		"keyManagement.invalidFingerprint_msg": "This fingerprint does not seem to be valid.",
 		"keyManagement.publicKeyFingerprint_label": "Public key",
 		"keyManagement.publicKeyFingerprintInfo_msg": "This is the fingerprint of the public key associated with your user account.",
+		"keyManagement.unverifiedRecipient_msg": "This recipient's public key does not match the expected one:",
 		"keyManagement.verificationPool_label": "Email addresses monitored for verification",
 		"keyManagement.verifyMailAddress_action": "Add and verify an email address",
 		"keywords_label": "Keywords",

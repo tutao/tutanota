@@ -11,7 +11,7 @@ import {
 	MailDetails,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { ApprovalStatus, ConversationType, MailSetKind, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
+import { ApprovalStatus, ConversationType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
 import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
 import {
 	assertNotNull,
@@ -62,7 +62,7 @@ import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResol
 import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { getListId, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
+import { isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
 import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
 import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
 import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
@@ -71,6 +71,7 @@ import { MailboxDetail, MailboxModel } from "./MailboxModel.js"
 import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
+import { UnverifiedRecipientError } from "../api/common/error/UnverifiedRecipientError"
 
 assertMainOrNode()
 
@@ -818,6 +819,11 @@ export class SendMailModel {
 			.catch(
 				ofClass(PreconditionFailedError, () => {
 					throw new UserError("operationStillActive_msg")
+				}),
+			)
+			.catch(
+				ofClass(UnverifiedRecipientError, (e) => {
+					throw new UserError(() => lang.get("keyManagement.unverifiedRecipient_msg") + "\n" + e.message)
 				}),
 			)
 	}

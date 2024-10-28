@@ -4,6 +4,7 @@ import {
 	downcast,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
+	lazyAsync,
 	neverNull,
 	ofClass,
 	promiseMap,
@@ -72,6 +73,8 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "./AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
+import { UnverifiedRecipientError } from "../../common/error/UnverifiedRecipientError"
 
 assertWorkerOrNode()
 
@@ -98,6 +101,7 @@ export class CryptoFacade {
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 	) {}
 
 	async applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
@@ -686,6 +690,7 @@ export class CryptoFacade {
 			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			version: null,
 		})
+
 		try {
 			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
 			// We do not create any key data in case there is one not found recipient, but we want to
@@ -693,6 +698,15 @@ export class CryptoFacade {
 			if (notFoundRecipients.length !== 0) {
 				return null
 			}
+
+			// Check if recipient is still verified for recipientMailAddress
+			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+			if (await keyVerificationFacade.poolContains(recipientMailAddress)) {
+				if (!(await keyVerificationFacade.publicKeyMatchesPinnedPublicKey(recipientMailAddress, publicKeyGetOut))) {
+					throw new UnverifiedRecipientError(recipientMailAddress)
+				}
+			}
+
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetricly when old clients are deactivated that don't support tuta-crypt.

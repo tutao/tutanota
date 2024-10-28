@@ -828,6 +828,7 @@ export default {
 		"keyManagement.invalidFingerprint_msg": "Dieser Fingerabdruck scheint nicht korrekt formatiert zu sein.",
 		"keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
 		"keyManagement.publicKeyFingerprintInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels.",
+		"keyManagement.unverifiedRecipient_msg": "Dieser Empfänger hat einen öffentlichen Schlüssel, der nicht mit dem hinterlegten übereinstimmt:",
 		"keyManagement.verificationPool_label": "Verifizierte E-Mail-Adressen",
 		"keyManagement.verifyMailAddress_action": "E-Mail-Adresse hinzufügen und verifizieren",
 		"keywords_label": "Schlüsselwörter",

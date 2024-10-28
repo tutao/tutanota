@@ -807,6 +807,7 @@ export type TranslationKeyType =
 	| "keyManagement.invalidFingerprint_msg"
 	| "keyManagement.publicKeyFingerprint_label"
 	| "keyManagement.publicKeyFingerprintInfo_msg"
+	| "keyManagement.unverifiedRecipient_msg"
 	| "keyManagement.verificationPool_label"
 	| "keyManagement.verifyMailAddress_action"
 	| "keywords_label"

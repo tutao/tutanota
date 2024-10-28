@@ -53,6 +53,7 @@ import { KeyPermanentlyInvalidatedError } from "../error/KeyPermanentlyInvalidat
 import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
 import { ContactStoreError } from "../error/ContactStoreError.js"
 import { MobilePaymentError } from "../error/MobilePaymentError"
+import { UnverifiedRecipientError } from "../error/UnverifiedRecipientError"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -128,6 +129,7 @@ const ErrorNameToType = {
 	LoginIncompleteError,
 	ParserError,
 	KeyPermanentlyInvalidatedError,
+	UnverifiedRecipientError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.SocketException": ConnectionError,

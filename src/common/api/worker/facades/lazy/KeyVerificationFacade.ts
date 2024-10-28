@@ -1,5 +1,5 @@
 import { assertWorkerOrNode } from "../../../common/Env"
-import { createPublicKeyGetIn } from "../../../entities/sys/TypeRefs"
+import { createPublicKeyGetIn, PublicKeyGetOut } from "../../../entities/sys/TypeRefs"
 import { PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { PublicKeyService } from "../../../entities/sys/Services"
 import { assertNotNull, concat, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
@@ -90,19 +90,19 @@ export class KeyVerificationFacade {
 		return Promise.resolve(verified)
 	}
 
+	async publicKeyMatchesPinnedPublicKey(mailAddress: string, publicKeyGetOut: PublicKeyGetOut): Promise<boolean> {
+		// TODO: check if this behaviour really is correct
+		return (await this.getPublicKeyHash(publicKeyGetOut)) === this.verificationPool.get(mailAddress)?.fingerprint
+	}
+
+	async poolContains(mailAddress: string): Promise<boolean> {
+		return this.verificationPool.get(mailAddress) !== undefined
+	}
+
 	/**
-	 * Returns a hashed concatenation of public keys associated with a given mail address
+	 * Returns a hashed concatenation of the given public keys
 	 */
-	public async getPublicKeyHash(mailAddress: string): Promise<string> {
-		const keyData = createPublicKeyGetIn({
-			identifier: mailAddress,
-			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-
-			// Fetch the latest version
-			version: null,
-		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-
+	public async getPublicKeyHash(publicKeyGetOut: PublicKeyGetOut): Promise<string> {
 		const atLeastOneFilledArray = (...arrays: (Uint8Array | null)[]) => {
 			for (let current of arrays) {
 				if (current != null) {
@@ -150,5 +150,21 @@ export class KeyVerificationFacade {
 		const hash = uint8ArrayToHex(sha256Hash(assertNotNull(publicKeysConcatenation)))
 
 		return Promise.resolve(hash)
+	}
+
+	/**
+	 * Returns a hashed concatenation of public keys associated with a given mail address
+	 */
+	public async getPublicKeyHashFromServer(mailAddress: string): Promise<string> {
+		const keyData = createPublicKeyGetIn({
+			identifier: mailAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+
+			// Fetch the latest version
+			version: null,
+		})
+		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+
+		return this.getPublicKeyHash(publicKeyGetOut)
 	}
 }
