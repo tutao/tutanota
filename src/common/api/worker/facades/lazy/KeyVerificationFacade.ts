@@ -5,6 +5,7 @@ import { PublicKeyService } from "../../../entities/sys/Services"
 import { assertNotNull, concat, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest"
+import { NotFoundError } from "../../../common/error/RestError"
 
 assertWorkerOrNode()
 
@@ -59,8 +60,17 @@ export class KeyVerificationFacade {
 	}
 
 	async confirmFingerprint(mailAddress: string, expectedFingerprint: string): Promise<boolean> {
-		const serverFingerprint = await this.getPublicKeyHash(mailAddress)
-		return Promise.resolve(serverFingerprint === expectedFingerprint)
+		try {
+			const serverFingerprint = await this.getPublicKeyHashFromServer(mailAddress)
+			return Promise.resolve(serverFingerprint === expectedFingerprint)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				// TODO: It might be better if NotFoundError resulted in a visible user message.
+				return Promise.resolve(false)
+			} else {
+				throw e
+			}
+		}
 	}
 
 	async getPool(): Promise<Map<MailAddress, KeyVerificationDetails>> {
