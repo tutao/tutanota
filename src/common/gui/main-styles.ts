@@ -2639,5 +2639,11 @@ styles.registerStyle("main", () => {
 		".mb-small-line-height": {
 			"margin-bottom": px(size.line_height * size.font_size_small),
 		},
+		".card-container": {
+			"box-sizing": "border-box",
+			"background-color": theme.content_bg,
+			"border-radius": px(size.border_radius_medium),
+			padding: px(size.vpad_small),
+		},
 	}
 })
