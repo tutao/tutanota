@@ -1800,3 +1800,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "pricing.legendAsterisk_msg"
+	| "pricing.cyber_monday_msg"
+	| "pricing.cyber_monday_select_action"
+	| "pricing.cyberMonday_label"

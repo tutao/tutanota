@@ -5,13 +5,14 @@ import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import type { BookingItemFeatureType } from "../api/common/TutanotaConstants"
-import { asPaymentInterval, formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, PaymentInterval } from "./PriceUtils"
-import type { BookingFacade } from "../api/worker/facades/lazy/BookingFacade.js"
+import { AvailablePlanType, Const, PlanType } from "../api/common/TutanotaConstants"
+import { formatMonthlyPrice, PaymentInterval } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
+import { theme } from "../gui/theme.js"
+import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -19,19 +20,27 @@ export type BuyOptionBoxAttr = {
 	// there is a strange interaction between the HTMLEditor in HTML mode and the ButtonN when you pass the ButtonN in via a component
 	// that doesn't occur when you pass in the attrs
 	actionButton?: lazy<Children>
-	price?: string
+	price: string
+	/**
+	 * Null when we do not want to show the difference between actual price and reference price.
+	 */
+	referencePrice?: string
 	priceHint?: TranslationKey | lazy<string>
 	helpLabel: TranslationKey | lazy<string>
 	width: number
 	height: number
 	/**
-	 * can be null if the subscription is free or it's not an initial upgrade box
+	 * can be null if the subscription is free, or it's not an initial upgrade box
 	 */
-	paymentInterval: Stream<PaymentInterval> | null
+	selectedPaymentInterval: Stream<PaymentInterval> | null
+	accountPaymentInterval: PaymentInterval | null
 	highlighted?: boolean
-	showReferenceDiscount: boolean
 	mobile: boolean
 	bonusMonths: number
+	/**
+	 * Nullable because of the gift card component compatibility
+	 */
+	targetSubscription?: AvailablePlanType
 }
 
 export type BuyOptionDetailsAttr = {
@@ -43,6 +52,7 @@ export type BuyOptionDetailsAttr = {
 	}>
 	featuresExpanded?: boolean
 	renderCategoryTitle: boolean
+	iconStyle?: Record<string, any>
 }
 
 export function getActiveSubscriptionActionButtonReplacement(): () => Children {
@@ -89,7 +99,12 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 						.filter((f) => !f.omit || this.featuresExpanded)
 						.map((f) =>
 							m(this.featureListItemSelector, { key: f.key }, [
-								f.heart ? m(Icon, { icon: BootIcons.Heart }) : m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark }),
+								f.heart
+									? m(Icon, {
+											icon: BootIcons.Heart,
+											style: attrs.iconStyle,
+									  })
+									: m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark, style: attrs.iconStyle }),
 								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
 								f.toolTip
 									? //@ts-ignore
@@ -127,6 +142,28 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const { attrs } = vnode
+
+		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
+		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
+		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
+
+		const shouldApplyCyberMonday = isLegendPlan && isCyberMonday && isYearly
+
+		const newReferencePrice: string | undefined = (() => {
+			// Just display the cyber monday deal
+			if (shouldApplyCyberMonday) {
+				return formatMonthlyPrice(96, PaymentInterval.Yearly)
+			}
+
+			// Display the yearly price. If we are on yearly view, we want to know how much the user would save compared to monthly billing
+			if (isYearly && !isCyberMonday) {
+				return attrs.referencePrice
+			}
+
+			// Do not show the yearly reference price strikethrough in case we are in monthly billing
+			return undefined
+		})()
+
 		return m(
 			".fg-black",
 			{
@@ -138,7 +175,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			},
 			[
 				m(
-					".buyOptionBox" + (attrs.highlighted ? ".highlighted" : ""),
+					".buyOptionBox" + (attrs.highlighted ? (shouldApplyCyberMonday ? ".highlighted.cyberMonday" : ".highlighted") : ""),
 					{
 						style: {
 							display: "flex",
@@ -149,12 +186,12 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						},
 					},
 					[
-						this.renderRibbon(attrs.bonusMonths),
+						shouldApplyCyberMonday ? this.renderCyberMondayRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
-						m(".text-center.pt.flex.center-vertically.center-horizontally", m("span.h1", attrs.price)),
+						this.renderPrice(attrs.price, newReferencePrice),
 						m(".small.text-center", attrs.priceHint ? lang.getMaybeLazy(attrs.priceHint) : lang.get("emptyString_msg")),
-						m(".small.text-center.pb-s", lang.getMaybeLazy(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.paymentInterval),
+						m(".small.text-center.pb-ml", lang.getMaybeLazy(attrs.helpLabel)),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, shouldApplyCyberMonday),
 						attrs.actionButton
 							? m(
 									".button-min-height",
@@ -172,13 +209,43 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderRibbon(bonusMonths: number): Children {
-		return bonusMonths > 0
-			? m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${bonusMonths} ${lang.get("pricing.months_label")}`))
-			: null
+	private renderPrice(price: string, strikethroughPrice?: string) {
+		return m(
+			".pt-ml.text-center",
+			{ style: { display: "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center" } },
+			strikethroughPrice != null
+				? m(
+						".span.strike",
+						{
+							style: {
+								color: theme.content_button,
+								fontSize: px(size.font_size_base),
+								justifySelf: "end",
+								margin: "auto 0.4em 0 0",
+								padding: "0.4em 0",
+							},
+						},
+						strikethroughPrice,
+				  )
+				: m(""),
+			m(".h1", price),
+			m(""),
+		)
 	}
 
-	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null): Children {
+	private renderBonusMonthsRibbon(bonusMonths: number): Children {
+		return bonusMonths > 0 ? this.renderRibbon(`+${bonusMonths} ${lang.get("pricing.months_label")}`) : null
+	}
+
+	private renderRibbon(text: string) {
+		return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, text))
+	}
+
+	private renderCyberMondayRibbon(): Children {
+		return m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { padding: px(3) } }, lang.get("pricing.cyberMonday_label")))
+	}
+
+	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null, shouldApplyCyberMonday: boolean): Children {
 		const paymentIntervalItems = [
 			{ name: lang.get("pricing.yearly_label"), value: PaymentInterval.Yearly },
 			{ name: lang.get("pricing.monthly_label"), value: PaymentInterval.Monthly },
@@ -191,57 +258,21 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						paymentInterval?.(v)
 						m.redraw()
 					},
+					shouldApplyCyberMonday,
 			  })
 			: null
 	}
 
 	private renderHeading(heading: string): Children {
 		return m(
-			".h4.text-center.dialog-header.flex.col.center-horizontally",
+			// we need some margin for the discount banner for longer translations shown on the website
+			`.h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header`,
 			{
 				style: {
-					// we need some margin for the discount banner for longer translations shown on the website
-					"margin-right": px(30),
-					"margin-left": px(30),
-					"margin-bottom": px(6),
-					"line-height": 1,
+					"font-size": heading.length > 20 ? "smaller" : undefined,
 				},
 			},
-			m(
-				"div",
-				{
-					style: {
-						"font-size": heading.length > 20 ? "smaller" : undefined,
-					},
-				},
-				heading,
-			),
+			heading,
 		)
-	}
-}
-
-/**
- * Loads the price information for the given feature type/amount and updates the price information on the BuyOptionBox.
- */
-export async function updateBuyOptionBoxPriceInformation(
-	bookingFacade: BookingFacade,
-	featureType: BookingItemFeatureType,
-	amount: number,
-	attrs: BuyOptionBoxAttr,
-): Promise<void> {
-	const newPrice = await bookingFacade.getPrice(featureType, amount, false)
-
-	if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, featureType)) {
-		attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
-	}
-
-	const futurePrice = newPrice.futurePriceNextPeriod
-
-	if (futurePrice) {
-		const paymentInterval = asPaymentInterval(futurePrice.paymentInterval)
-		const price = getPriceFromPriceData(futurePrice, featureType)
-		attrs.price = formatMonthlyPrice(price, paymentInterval)
-		attrs.helpLabel = paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
-		m.redraw()
 	}
 }

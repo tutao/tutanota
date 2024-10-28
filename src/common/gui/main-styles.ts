@@ -725,6 +725,10 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_accent,
 			color: theme.content_button_icon_selected,
 		},
+		".accent-bg-cyber-monday": {
+			"background-color": theme.content_accent_cyber_monday,
+			color: theme.content_button_icon_selected,
+		},
 		".accent-fg": {
 			color: theme.content_button_icon,
 		},
@@ -1777,6 +1781,9 @@ styles.registerStyle("main", () => {
 			"padding-left": px(0),
 			"padding-right": px(0),
 		},
+		".segmentControl-border-active-cyber-monday": {
+			border: `2px solid ${theme.content_accent_cyber_monday}`,
+		},
 		".segmentControlItem": {
 			cursor: "pointer",
 			background: "transparent",
@@ -1951,6 +1958,10 @@ styles.registerStyle("main", () => {
 			border: `2px solid ${theme.content_accent}`,
 			padding: px(9),
 		},
+		".buyOptionBox.highlighted.cyberMonday": {
+			border: `2px solid ${theme.content_accent_cyber_monday}`,
+			padding: px(9),
+		},
 		".info-badge": {
 			"border-radius": px(8),
 			"line-height": px(16),
@@ -2008,9 +2019,13 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			"margin-bottom": "80px",
 			background: theme.content_accent,
-			top: "50px",
+			top: "69px",
 			left: "-6px",
 			right: "-6px",
+			color: theme.content_bg,
+		},
+		".ribbon-horizontal-cyber-monday": {
+			background: theme.content_bg_cyber_monday,
 			color: theme.content_bg,
 		},
 		".ribbon-horizontal:after": {
@@ -2023,6 +2038,9 @@ styles.registerStyle("main", () => {
 			bottom: "-6px",
 			right: 0,
 		},
+		".ribbon-horizontal-cyber-monday:after": {
+			"border-left": `6px solid ${theme.content_bg_cyber_monday}`,
+		},
 		".ribbon-horizontal:before": {
 			content: '""',
 			position: "absolute",
@@ -2032,6 +2050,9 @@ styles.registerStyle("main", () => {
 			"border-bottom": "6px solid transparent",
 			bottom: "-6px",
 			left: 0,
+		},
+		".ribbon-horizontal-cyber-monday:before": {
+			"border-right": `6px solid ${theme.content_bg_cyber_monday}`,
 		},
 		// calendar
 		".flex-end-on-child .button-content": {

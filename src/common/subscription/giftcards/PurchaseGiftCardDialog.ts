@@ -146,9 +146,9 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 						helpLabel: () => this.getGiftCardHelpText(model.revolutionaryPrice, value),
 						width: 230,
 						height: 250,
-						paymentInterval: null,
+						selectedPaymentInterval: null,
+						accountPaymentInterval: null,
 						highlighted: model.selectedPackage === index,
-						showReferenceDiscount: false,
 						mobile: false,
 						bonusMonths: 0,
 					})

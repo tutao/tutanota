@@ -1819,6 +1819,10 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"pricing.legendAsterisk_msg": "Der Legend-Rabatt gilt nur für das erste Jahr. Der folgende Preis beträgt 96€ pro Jahr.",
+		"pricing.cyber_monday_msg": "Holen Sie sich den Top-Tarif für das erste Jahr für weniger Geld!",
+		"pricing.cyber_monday_select_action": "Holen Sie Sich das Angebot!",
+		"pricing.cyberMonday_label": "Sparen sie 62%"
 	}
 }

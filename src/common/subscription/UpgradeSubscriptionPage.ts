@@ -9,7 +9,7 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Const, Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/CommonLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -18,6 +18,7 @@ import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
+import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -65,6 +66,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		if (!!data.newAccountData && data.newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
 			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
 		}
+
+		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
+		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
+		const shouldApplyCyberMonday = isYearly && isCyberMonday
+
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			[PlanType.Free]: () => {
 				return {
@@ -73,7 +79,17 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				} as LoginButtonAttrs
 			},
 			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
-			[PlanType.Legend]: this.createUpgradeButton(data, PlanType.Legend),
+			[PlanType.Legend]: () => ({
+				label: () => {
+					if (shouldApplyCyberMonday) {
+						return lang.get("pricing.cyber_monday_select_action")
+					}
+
+					return lang.get("pricing.select_action")
+				},
+				class: shouldApplyCyberMonday ? "accent-bg-cyber-monday" : undefined,
+				onclick: () => this.setNonFreeDataAndGoToNextPage(data, PlanType.Legend),
+			}),
 			[PlanType.Essential]: this.createUpgradeButton(data, PlanType.Essential),
 			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
 			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),

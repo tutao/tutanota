@@ -1815,6 +1815,10 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
+		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
+		"pricing.cyber_monday_select_action": "Get The Deal!",
+		"pricing.cyberMonday_label": "Save 62%"
 	}
 }
