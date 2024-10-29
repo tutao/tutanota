@@ -451,7 +451,14 @@ export class MailViewModel {
 		const mailId = this.loadingTargetId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
 		const stickyMail = this.stickyMailId
 		if (mailId != null) {
-			this.router.routeTo("/mail/:folderId/:mailId", this.addStickyMailParam({ folderId, mailId, mail: stickyMail }))
+			this.router.routeTo(
+				"/mail/:folderId/:mailId",
+				this.addStickyMailParam({
+					folderId,
+					mailId,
+					mail: stickyMail,
+				}),
+			)
 		} else {
 			this.router.routeTo("/mail/:folderId", this.addStickyMailParam({ folderId: folderId ?? "" }))
 		}
@@ -773,5 +780,9 @@ export class MailViewModel {
 
 	async createLabel(mailbox: MailBox, labelData: { name: string; color: string }) {
 		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
+	}
+
+	async editLabel(label: MailFolder, newData: { name: string; color: string }) {
+		await this.mailModel.updateLabel(label, newData)
 	}
 }
