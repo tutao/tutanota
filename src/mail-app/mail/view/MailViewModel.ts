@@ -812,4 +812,8 @@ export class MailViewModel {
 	async editLabel(label: MailFolder, newData: { name: string; color: string }) {
 		await this.mailModel.updateLabel(label, newData)
 	}
+
+	async deleteLabel(label: MailFolder) {
+		await this.mailModel.deleteLabel(label)
+	}
 }
