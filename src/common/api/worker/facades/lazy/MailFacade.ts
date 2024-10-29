@@ -28,20 +28,8 @@ import {
 	ReportedMailFieldType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/TutanotaConstants.js"
-import type {
-	Contact,
-	DraftAttachment,
-	DraftRecipient,
-	EncryptedMailAddress,
-	File as TutanotaFile,
-	InternalRecipientKeyData,
-	Mail,
-	MailFolder,
-	ReportedMailFieldMarker,
-	SendDraftData,
-	SymEncInternalRecipientKeyData,
-} from "../../../entities/tutanota/TypeRefs.js"
 import {
+	Contact,
 	createAttachmentKeyData,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
@@ -55,6 +43,7 @@ import {
 	createEncryptedMailAddress,
 	createExternalUserData,
 	createListUnsubscribeData,
+	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
 	createMoveMailData,
@@ -63,12 +52,22 @@ import {
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
 	createUpdateMailFolderData,
+	DraftAttachment,
+	DraftRecipient,
+	EncryptedMailAddress,
+	File as TutanotaFile,
 	FileTypeRef,
+	InternalRecipientKeyData,
 	InternalRecipientKeyDataTypeRef,
+	Mail,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
+	MailFolder,
 	MailTypeRef,
+	ReportedMailFieldMarker,
+	SendDraftData,
+	SymEncInternalRecipientKeyData,
 	SymEncInternalRecipientKeyDataTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
@@ -1071,6 +1070,15 @@ export class MailFacade {
 			label.color = color
 			await this.entityClient.update(label)
 		}
+	}
+
+	async deleteLabel(label: MailFolder) {
+		await this.serviceExecutor.delete(
+			ManageLabelService,
+			createManageLabelServiceDeleteIn({
+				label: label._id,
+			}),
+		)
 	}
 }
 
