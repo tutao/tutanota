@@ -781,4 +781,8 @@ export class MailViewModel {
 	async createLabel(mailbox: MailBox, labelData: { name: string; color: string }) {
 		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
 	}
+
+	async editLabel(label: MailFolder, newData: { name: string; color: string }) {
+		await this.mailModel.updateLabel(label, newData)
+	}
 }
