@@ -538,6 +538,10 @@ export class MailModel {
 		await this.mailFacade.updateLabel(label, newData.name, newData.color)
 	}
 
+	async deleteLabel(label: MailFolder) {
+		await this.mailFacade.deleteLabel(label)
+	}
+
 	async getFolderById(folderElementId: Id): Promise<MailFolder | null> {
 		const folderStructures = await this.loadMailSets()
 		for (const folders of folderStructures.values()) {
