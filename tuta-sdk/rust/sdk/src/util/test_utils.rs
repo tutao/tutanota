@@ -190,27 +190,40 @@ fn create_test_entity_dict_with_provider(
 			Cardinality::Any => ElementValue::Array(Vec::new()),
 			Cardinality::One => {
 				match value.value_type {
-					ValueType::String => ElementValue::String(Default::default()),
+					ValueType::String | ValueType::CompressedString => {
+						ElementValue::String(Default::default())
+					},
 					ValueType::Number => ElementValue::Number(Default::default()),
 					ValueType::Bytes => ElementValue::Bytes(Default::default()),
 					ValueType::Date => ElementValue::Date(Default::default()),
 					ValueType::Boolean => ElementValue::Bool(Default::default()),
 					ValueType::GeneratedId => {
-						if name == "_id" && (model.element_type == ElementType::ListElement || model.element_type == ElementType::BlobElement) {
-							ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()))
+						if name == "_id"
+							&& (model.element_type == ElementType::ListElement
+								|| model.element_type == ElementType::BlobElement)
+						{
+							ElementValue::IdTupleId(IdTuple::new(
+								GeneratedId::test_random(),
+								GeneratedId::test_random(),
+							))
 						} else {
 							ElementValue::IdGeneratedId(GeneratedId::test_random())
 						}
 					},
 					ValueType::CustomId => {
-						if name == "_id" && (model.element_type == ElementType::ListElement || model.element_type == ElementType::BlobElement) {
+						if name == "_id"
+							&& (model.element_type == ElementType::ListElement
+								|| model.element_type == ElementType::BlobElement)
+						{
 							// TODO: adapt this when Custom Id tuples are supported
-							ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()))
+							ElementValue::IdTupleId(IdTuple::new(
+								GeneratedId::test_random(),
+								GeneratedId::test_random(),
+							))
 						} else {
 							ElementValue::IdCustomId(CustomId::test_random())
 						}
 					},
-					ValueType::CompressedString => todo!("Failed to create test entity {app}/{type_}: Compressed strings ({name}) are not yet supported!"),
 				}
 			},
 		};
@@ -277,27 +290,40 @@ fn create_encrypted_test_entity_dict_with_provider(
 					ElementValue::String(Default::default())
 				} else {
 					match value.value_type {
-						ValueType::String => ElementValue::String(Default::default()),
+						ValueType::String | ValueType::CompressedString => {
+							ElementValue::String(Default::default())
+						},
 						ValueType::Number => ElementValue::Number(Default::default()),
 						ValueType::Bytes => ElementValue::Bytes(Default::default()),
 						ValueType::Date => ElementValue::Date(Default::default()),
 						ValueType::Boolean => ElementValue::Bool(Default::default()),
 						ValueType::GeneratedId => {
-							if name == "_id" && (model.element_type == ElementType::ListElement || model.element_type == ElementType::BlobElement) {
-								ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()))
+							if name == "_id"
+								&& (model.element_type == ElementType::ListElement
+									|| model.element_type == ElementType::BlobElement)
+							{
+								ElementValue::IdTupleId(IdTuple::new(
+									GeneratedId::test_random(),
+									GeneratedId::test_random(),
+								))
 							} else {
 								ElementValue::IdGeneratedId(GeneratedId::test_random())
 							}
-						}
+						},
 						ValueType::CustomId => {
-							if name == "_id" && (model.element_type == ElementType::ListElement || model.element_type == ElementType::BlobElement) {
+							if name == "_id"
+								&& (model.element_type == ElementType::ListElement
+									|| model.element_type == ElementType::BlobElement)
+							{
 								// TODO: adapt this when Custom Id tuples are supported
-								ElementValue::IdTupleId(IdTuple::new(GeneratedId::test_random(), GeneratedId::test_random()))
+								ElementValue::IdTupleId(IdTuple::new(
+									GeneratedId::test_random(),
+									GeneratedId::test_random(),
+								))
 							} else {
 								ElementValue::IdCustomId(CustomId::test_random())
 							}
-						}
-						ValueType::CompressedString => todo!("Failed to create test entity {app}/{type_}: Compressed strings ({name}) are not yet supported!"),
+						},
 					}
 				}
 			},
