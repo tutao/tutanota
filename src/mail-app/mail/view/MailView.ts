@@ -828,7 +828,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 												this.showLabelEditDialog(label)
 											},
 										},
-										{ label: "delete_action", icon: Icons.Trash },
+										{
+											label: "delete_action",
+											icon: Icons.Trash,
+											click: () => {
+												this.mailViewModel.deleteLabel(label)
+											},
+										},
 									],
 								}),
 							})
