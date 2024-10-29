@@ -16,6 +16,7 @@ import { IconButtonAttrs } from "./IconButton.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
+import { isColorLight } from "./Color.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -241,4 +242,8 @@ export function getContactTitle(contact: Contact) {
 	const fullName = `${contact.firstName}${middleName}${contact.lastName} `
 	const suffix = contact.nameSuffix ?? ""
 	return (title + fullName + suffix).trim()
+}
+
+export function colorForBg(color: string): string {
+	return isColorLight(color) ? "black" : "white"
 }

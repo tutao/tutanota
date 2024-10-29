@@ -29,6 +29,7 @@ import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/g
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
+import { LabelsPopup } from "./LabelsPopup.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -735,6 +736,25 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							click: (_: MouseEvent, dom: HTMLElement) =>
 								showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
 							icon: Icons.Folder,
+						})
+					}
+					if (viewModel.mailModel.canAssignLabels()) {
+						actionButtons.push({
+							label: "assignLabel_action",
+							click: (_, dom) => {
+								const popup = new LabelsPopup(
+									dom,
+									dom.getBoundingClientRect(),
+									200,
+									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
+									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
+								)
+								// waiting for the dropdown to be closed
+								setTimeout(() => {
+									popup.show()
+								}, 16)
+							},
+							icon: Icons.Label,
 						})
 					}
 

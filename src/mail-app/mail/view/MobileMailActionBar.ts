@@ -10,6 +10,7 @@ import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
+import { LabelsPopup } from "./LabelsPopup.js"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
@@ -72,7 +73,29 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
-				lazyButtons: () => mailViewerMoreActions(viewModel),
+				lazyButtons: () => {
+					const moreButtons: DropdownButtonAttrs[] = []
+					if (viewModel.mailModel.canAssignLabels()) {
+						moreButtons.push({
+							label: "assignLabel_action",
+							click: (event, dom) => {
+								const referenceDom = this.dom ?? dom
+								const popup = new LabelsPopup(
+									referenceDom,
+									referenceDom.getBoundingClientRect(),
+									this.dropdownWidth() ?? 200,
+									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
+									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
+								)
+								setTimeout(() => {
+									popup.show()
+								}, 16)
+							},
+							icon: Icons.Label,
+						})
+					}
+					return [...moreButtons, ...mailViewerMoreActions(viewModel)]
+				},
 				width: this.dropdownWidth(),
 				withBackground: true,
 			}),

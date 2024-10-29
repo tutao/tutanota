@@ -1,5 +1,6 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
+	ApplyLabelService,
 	DraftService,
 	ExternalUserService,
 	ListUnsubscribeService,
@@ -30,6 +31,7 @@ import {
 } from "../../../common/TutanotaConstants.js"
 import {
 	Contact,
+	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
@@ -1079,6 +1081,15 @@ export class MailFacade {
 				label: label._id,
 			}),
 		)
+	}
+
+	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]) {
+		const postIn = createApplyLabelServicePostIn({
+			mails: mails.map((mail) => mail._id),
+			addedLabels: addedLabels.map((label) => label._id),
+			removedLabels: removedLabels.map((label) => label._id),
+		})
+		await this.serviceExecutor.post(ApplyLabelService, postIn)
 	}
 }
 

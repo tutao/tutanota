@@ -70,7 +70,7 @@ import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent }
 import { CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
-import { isColorLight, isValidColorCode } from "../../../common/gui/base/Color.js"
+import { isValidColorCode } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
@@ -520,10 +520,6 @@ export const createCustomRepeatRuleUnitValues = (): SelectorItemList<AlarmInterv
 }
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
 export const TEMPORARY_EVENT_OPACITY = 0.7
-
-export function colorForBg(color: string): string {
-	return isColorLight(color) ? "black" : "white"
-}
 
 export const enum EventLayoutMode {
 	/** Take event start and end times into account when laying out. */
