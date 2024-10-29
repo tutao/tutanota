@@ -5,26 +5,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct ApplyLabelServiceDeleteIn {
-	pub _format: i64,
-	pub label: IdTuple,
-	pub mails: Vec<IdTuple>,
-}
-impl Entity for ApplyLabelServiceDeleteIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "tutanota",
-			type_: "ApplyLabelServiceDeleteIn",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ApplyLabelServicePostIn {
 	pub _format: i64,
-	pub label: IdTuple,
+	pub addedLabels: Vec<IdTuple>,
 	pub mails: Vec<IdTuple>,
+	pub removedLabels: Vec<IdTuple>,
 }
 impl Entity for ApplyLabelServicePostIn {
 	fn type_ref() -> TypeRef {

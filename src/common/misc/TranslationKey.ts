@@ -957,6 +957,7 @@ export type TranslationKeyType =
 	| "moveToTop_action"
 	| "moveUp_action"
 	| "move_action"
+	| "assignLabel_action"
 	| "nameSuffix_placeholder"
 	| "name_label"
 	| "nativeShareGiftCard_label"
