@@ -2,7 +2,19 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailboxCounters, MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { assertNotNull, groupBy, isNotEmpty, lazyMemoized, neverNull, noOp, ofClass, partition, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	getFirstOrThrow,
+	groupBy,
+	isNotEmpty,
+	lazyMemoized,
+	neverNull,
+	noOp,
+	ofClass,
+	partition,
+	promiseMap,
+	splitInChunks,
+} from "@tutao/tutanota-utils"
 import {
 	Mail,
 	MailboxGroupRoot,
@@ -42,6 +54,15 @@ import { isSpamOrTrashFolder } from "./MailChecks.js"
 interface MailboxSets {
 	folders: FolderSystem
 	labels: readonly MailFolder[]
+}
+
+export const enum LabelState {
+	/** Label was applied to all emails*/
+	Applied,
+	/** Label was applied to some of the emails but not to others*/
+	AppliedToSome,
+	/** Label was applied to none of the emails */
+	NotApplied,
 }
 
 export class MailModel {
@@ -225,6 +246,26 @@ export class MailModel {
 		return this.getMailSetsForGroup(groupId)?.labels ?? []
 	}
 
+	getLabelsForMails(mails: readonly Mail[]): { label: MailFolder; state: LabelState }[] {
+		if (mails.length === 0) {
+			return []
+		}
+		const labels = this.getLabelsByGroupId(assertNotNull(getFirstOrThrow(mails)._ownerGroup))
+		const allUsedSets = new Map<Id, number>()
+		for (const mail of mails) {
+			for (const set of mail.sets) {
+				const currentValue = allUsedSets.get(elementIdPart(set)) ?? 0
+				allUsedSets.set(elementIdPart(set), currentValue + 1)
+			}
+		}
+
+		return labels.map((label) => {
+			const count = allUsedSets.get(getElementId(label)) ?? 0
+			const state: LabelState = count === 0 ? LabelState.NotApplied : count === mails.length ? LabelState.Applied : LabelState.AppliedToSome
+			return { label, state }
+		})
+	}
+
 	private getMailSetsForGroup(groupId: Id): MailboxSets | null {
 		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
 		const detail = mailboxDetails.find((md) => groupId === md.mailGroup._id)
@@ -360,6 +401,10 @@ export class MailModel {
 		return this.logins.getUserController().isInternalUser()
 	}
 
+	canAssignLabels(): boolean {
+		return this.logins.getUserController().isInternalUser()
+	}
+
 	isExportingMailsAllowed(): boolean {
 		return !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
@@ -375,6 +420,10 @@ export class MailModel {
 			},
 			{ concurrency: 5 },
 		)
+	}
+
+	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
+		await this.mailFacade.applyLabels(mails, addedLabels, removedLabels)
 	}
 
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {
