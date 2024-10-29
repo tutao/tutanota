@@ -2645,5 +2645,22 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.vpad_small),
 		},
+		".single-line-text-field": {
+			"box-sizing": "border-box",
+			"background-color": "transparent",
+			border: "none",
+			"border-radius": px(size.border_radius_medium),
+			color: theme.content_fg,
+			width: "100%",
+			padding: px(size.vpad_small),
+			transition: `background-color .1s ease-out`,
+			"caret-color": theme.content_accent,
+		},
+		".single-line-text-field:focus": {
+			"background-color": theme.list_border,
+		},
+		".single-line-text-field::placeholder": {
+			color: theme.content_message_bg,
+		},
 	}
 })
