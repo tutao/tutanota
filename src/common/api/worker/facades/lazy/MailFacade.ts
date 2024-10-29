@@ -1058,6 +1058,20 @@ export class MailFacade {
 			},
 		)
 	}
+
+	/*
+	 * Update a label, if needed
+	 * @param label existing label
+	 * @param name possible new name for label
+	 * @param color possible new color for label
+	 */
+	async updateLabel(label: MailFolder, name: string, color: string) {
+		if (name !== label.name || color != label.color) {
+			label.name = name
+			label.color = color
+			await this.entityClient.update(label)
+		}
+	}
 }
 
 export function phishingMarkerValue(type: ReportedMailFieldType, value: string): string {

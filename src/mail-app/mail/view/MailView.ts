@@ -787,11 +787,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
 	}
 
-	private async onAddLabelClicked(mailbox: MailBox) {
-		const labelData = await showEditLabelDialog()
-		if (labelData != null) {
-			await this.mailViewModel.createLabel(mailbox, labelData)
-		}
+	private async showLabelAddDialog(mailbox: MailBox) {
+		await showEditLabelDialog(mailbox, this.mailViewModel, null)
+	}
+
+	private async showLabelEditDialog(label: MailFolder) {
+		await showEditLabelDialog(null, this.mailViewModel, label)
 	}
 
 	private renderMailboxLabelItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
@@ -823,6 +824,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										{
 											label: "edit_action",
 											icon: Icons.Edit,
+											click: () => {
+												this.showLabelEditDialog(label)
+											},
 										},
 										{ label: "delete_action", icon: Icons.Trash },
 									],
@@ -840,7 +844,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					width: `calc(100% - ${px(size.hpad_button * 2)})`,
 				},
 				onclick: () => {
-					this.onAddLabelClicked(mailboxDetail.mailbox)
+					this.showLabelAddDialog(mailboxDetail.mailbox)
 				},
 			}),
 		]
@@ -860,7 +864,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			title: "addLabel_action",
 			icon: Icons.Add,
 			click: () => {
-				this.onAddLabelClicked(mailboxDetail.mailbox)
+				this.showLabelAddDialog(mailboxDetail.mailbox)
 			},
 		})
 	}
