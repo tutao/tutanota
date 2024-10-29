@@ -13,6 +13,7 @@ use crate::entities::sys::{
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
+use crate::metamodel::ElementType::Aggregated;
 use crate::metamodel::{AssociationType, Cardinality, ElementType, ValueType};
 use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
@@ -147,6 +148,7 @@ pub fn create_test_entity_dict<'a, T: Entity + serde::Deserialize<'a>>() -> Pars
 ///
 /// **NOTE:** The resulting dictionary is encrypted.
 #[must_use]
+#[allow(dead_code)]
 pub fn create_encrypted_test_entity_dict<'a, T: Entity + serde::Deserialize<'a>>() -> ParsedEntity {
 	let provider = init_type_model_provider();
 	let type_ref = T::type_ref();
@@ -215,6 +217,8 @@ fn create_test_entity_dict_with_provider(
 							GeneratedId::test_random(),
 							CustomId::test_random(),
 						))
+					} else if name == "_id" && model.element_type == Aggregated {
+						ElementValue::IdCustomId(CustomId::test_random_aggregate())
 					} else {
 						ElementValue::IdCustomId(CustomId::test_random())
 					}

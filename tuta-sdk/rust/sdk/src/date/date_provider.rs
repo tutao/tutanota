@@ -26,8 +26,9 @@ pub mod stub {
 			Self { value }
 		}
 
-		pub fn advance_timer(&mut self, by: u64) -> () {
-			self.value = self.value + by
+		#[allow(dead_code)]
+		pub fn advance_timer(&mut self, by: u64) {
+			self.value += by
 		}
 	}
 

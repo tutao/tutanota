@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::metamodel::TypeModel;
+use crate::TypeRef;
 
 // TODO: Change `AppName` into an enum of strings that is generated from the model
 /// The name of an app in the backend
@@ -22,6 +23,10 @@ impl TypeModelProvider {
 	pub fn get_type_model(&self, app_name: &str, entity_name: &str) -> Option<&TypeModel> {
 		let app_map = self.app_models.get(app_name)?;
 		app_map.get(entity_name)
+	}
+
+	pub fn resolve_type_ref(&self, type_ref: &TypeRef) -> Option<&TypeModel> {
+		self.get_type_model(type_ref.app, type_ref.type_)
 	}
 }
 

@@ -34,6 +34,7 @@ impl DateTime {
 		self.0
 	}
 
+	#[must_use]
 	pub fn is_after(&self, other: &DateTime) -> bool {
 		self.0 > other.0
 	}

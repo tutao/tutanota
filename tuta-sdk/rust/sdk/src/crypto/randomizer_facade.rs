@@ -2,6 +2,7 @@ use rand_core::{CryptoRng, CryptoRngCore, Error, RngCore};
 use std::sync::{Arc, Mutex};
 
 /// Provides an interface for generating values from a `CryptoRngCore` in a thread-safe way.
+#[derive(Clone)]
 pub struct RandomizerFacade {
 	source: Arc<Mutex<Box<dyn CryptoRngCore + Send + Sync>>>,
 }

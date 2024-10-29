@@ -15,7 +15,7 @@ use base64::Engine;
 use std::borrow::ToOwned;
 use std::sync::{Arc, RwLock};
 
-const USER_GROUP_KEY_DISTRIBUTION_KEY_INFO: &str = "userGroupKeyDistributionKey";
+const USER_GROUP_KEY_DISTRIBUTION_KEY_INFO: &[u8] = b"userGroupKeyDistributionKey";
 
 pub struct UserFacade {
 	user: RwLock<Arc<User>>,
@@ -89,7 +89,7 @@ impl UserFacade {
 			BASE64_STANDARD
 				.encode(user_passphrase_key.as_bytes())
 				.as_bytes(),
-			USER_GROUP_KEY_DISTRIBUTION_KEY_INFO.as_bytes(),
+			USER_GROUP_KEY_DISTRIBUTION_KEY_INFO,
 			AES_256_KEY_SIZE,
 		);
 

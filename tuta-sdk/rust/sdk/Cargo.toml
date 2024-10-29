@@ -37,8 +37,9 @@ lz4_flex = { version = "0.11.3", default-features = false, features = ["safe-enc
 hyper = { version = "1.4.1", features = ["client"], optional = true }
 hyper-util = { version = "0.1.9", features = ["full"], optional = true }
 http-body-util = { version = "0.1.2", optional = true }
-hyper-rustls = { version = "0.27.3", features = ["ring", "http2", "rustls-platform-verifier"], optional = true }
+hyper-rustls = { version = "0.27.3", features = ["ring", "http2"], optional = true }
 rustls = { version = "*", optional = true }
+form_urlencoded = "1"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_log = "0.1.3"

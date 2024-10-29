@@ -416,10 +416,8 @@ mod tests {
 		result.expect("An error occurred while testing precondition_failed!")
 	}
 
-	/**
-	Asserts `from_http_response` returns the reason `reason` given `precondition`
-	for a `PreconditionFailedError`
-	 */
+	/// Asserts `from_http_response` returns the reason `reason` given `precondition`
+	/// for a `PreconditionFailedError`
 	fn assert_precondition_failed_error(
 		precondition: Option<&str>,
 		reason: Option<PreconditionFailedReason>,

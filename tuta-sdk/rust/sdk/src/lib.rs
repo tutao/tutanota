@@ -10,6 +10,9 @@ use minicbor::{Encode, Encoder};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+#[cfg_attr(test, mockall_double::double)]
+use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
+use crate::blobs::blob_facade::BlobFacade;
 use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
@@ -19,6 +22,7 @@ use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::custom_id::CustomId;
+use crate::date::date_provider::SystemDateProvider;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::entities::sys::{CreateSessionData, SaltData};
@@ -46,7 +50,8 @@ use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelPro
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use rest_client::{RestClient, RestClientError};
+use rest_client::RestClient;
+use rest_client::RestClientError;
 
 pub mod crypto;
 mod crypto_entity_client;
@@ -68,6 +73,7 @@ pub mod login;
 mod mail_facade;
 mod metamodel;
 
+mod blobs;
 #[cfg(feature = "net")]
 pub mod net;
 pub mod rest_client;
@@ -218,12 +224,21 @@ impl Sdk {
 			self.base_url.clone(),
 		));
 
+		let date_provider = Arc::new(SystemDateProvider);
+
+		let blob_facade = self.create_blob_facade(
+			auth_headers_provider.clone(),
+			service_executor.clone(),
+			date_provider,
+		);
+
 		Ok(Arc::new(LoggedInSdk {
 			user_facade,
 			entity_client,
 			service_executor,
 			typed_entity_client,
 			crypto_entity_client,
+			blob_facade,
 		}))
 	}
 
@@ -296,6 +311,31 @@ impl Sdk {
 	}
 }
 
+impl Sdk {
+	fn create_blob_facade(
+		&self,
+		auth_headers_provider: Arc<HeadersProvider>,
+		service_executor: Arc<ResolvingServiceExecutor>,
+		date_provider: Arc<SystemDateProvider>,
+	) -> Arc<BlobFacade> {
+		let blob_access_token_facade = BlobAccessTokenFacade::new(
+			RandomizerFacade::from_core(rand_core::OsRng),
+			service_executor,
+			date_provider.clone(),
+		);
+
+		let blob_facade = BlobFacade::new(
+			blob_access_token_facade,
+			self.rest_client.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+			auth_headers_provider.clone(),
+			self.instance_mapper.clone(),
+			self.json_serializer.clone(),
+		);
+		Arc::new(blob_facade)
+	}
+}
+
 #[allow(dead_code)]
 #[derive(uniffi::Object)]
 pub struct LoggedInSdk {
@@ -304,6 +344,7 @@ pub struct LoggedInSdk {
 	service_executor: Arc<ResolvingServiceExecutor>,
 	typed_entity_client: Arc<TypedEntityClient>,
 	crypto_entity_client: Arc<CryptoEntityClient>,
+	blob_facade: Arc<BlobFacade>,
 }
 
 #[uniffi::export]
@@ -316,6 +357,11 @@ impl LoggedInSdk {
 			self.user_facade.clone(),
 			self.service_executor.clone(),
 		)
+	}
+
+	#[must_use]
+	pub fn blob_facade(&self) -> Arc<BlobFacade> {
+		self.blob_facade.clone()
 	}
 }
 

@@ -1343,17 +1343,14 @@ mod tests {
 	#[test]
 	fn test_ser_calendar_event_uid_index() {
 		let _id = IdTupleCustom::new(GeneratedId::test_random(), CustomId::test_random());
-		let progenitor = Some(IdTupleCustom::new(
-			GeneratedId::test_random(),
-			CustomId::test_random(),
-		));
+		let progenitor = IdTupleCustom::new(GeneratedId::test_random(), CustomId::test_random());
 		let calendar_event_uid_index = CalendarEventUidIndex {
 			_format: 0,
 			_id: Some(_id.clone()),
 			_ownerGroup: None,
 			_permissions: GeneratedId::test_random(),
 			alteredInstances: vec![],
-			progenitor: progenitor.clone(),
+			progenitor: Some(progenitor.clone()),
 		};
 		let mapper = InstanceMapper::new();
 		let parsed_entity = mapper.serialize_entity(calendar_event_uid_index).unwrap();
@@ -1363,7 +1360,7 @@ mod tests {
 			*parsed_entity.get("_id").unwrap()
 		);
 		assert_eq!(
-			ElementValue::IdTupleCustomElementId(progenitor.unwrap()),
+			ElementValue::IdTupleCustomElementId(progenitor),
 			*parsed_entity.get("progenitor").unwrap()
 		);
 	}

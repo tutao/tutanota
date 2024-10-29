@@ -30,6 +30,14 @@ impl CustomId {
 		use crate::util::test_utils::generate_random_string;
 		Self(generate_random_string::<9>())
 	}
+
+	/// Generates and returns a random `CustomId` of 4 bytes (only to be used for random)
+	#[cfg(test)]
+	#[must_use]
+	pub fn test_random_aggregate() -> Self {
+		use crate::util::test_utils::generate_random_string;
+		Self(generate_random_string::<4>())
+	}
 }
 
 impl From<CustomId> for String {

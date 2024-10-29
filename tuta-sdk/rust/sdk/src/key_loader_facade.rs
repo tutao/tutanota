@@ -225,7 +225,7 @@ impl KeyLoaderFacade {
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let group: Group = self.entity_client.load(key_pair_group_id).await?;
 		let group_key = self
-			.get_current_sym_group_key(&group._id.as_ref().expect("no id on group!"))
+			.get_current_sym_group_key(group._id.as_ref().expect("no id on group!"))
 			.await?;
 
 		if group_key.version == group_key_version {
@@ -550,14 +550,14 @@ mod tests {
 		);
 
 		let current_user_group_key = key_loader_facade
-			.get_current_sym_group_key(&user_group._id.as_ref().unwrap())
+			.get_current_sym_group_key(user_group._id.as_ref().unwrap())
 			.await
 			.unwrap();
 		assert_eq!(current_user_group_key.version, user_group.groupKeyVersion);
 		assert_eq!(current_user_group_key.object, user_group_key.object);
 
 		let _ = key_loader_facade
-			.get_current_sym_group_key(&user_group._id.as_ref().unwrap())
+			.get_current_sym_group_key(user_group._id.as_ref().unwrap())
 			.await; // should not be cached
 	}
 
@@ -587,7 +587,7 @@ mod tests {
 		);
 
 		let group_key = key_loader_facade
-			.get_current_sym_group_key(&group._id.as_ref().unwrap())
+			.get_current_sym_group_key(group._id.as_ref().unwrap())
 			.await
 			.unwrap();
 		assert_eq!(group_key.version, group.groupKeyVersion);
@@ -613,7 +613,7 @@ mod tests {
 
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
-				.load_key_pair(&group._id.as_ref().unwrap(), i as i64)
+				.load_key_pair(group._id.as_ref().unwrap(), i as i64)
 				.await
 				.unwrap();
 			match keypair {
@@ -693,11 +693,7 @@ mod tests {
 			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
-				.load_sym_group_key(
-					&group._id.as_ref().expect("no id on group!"),
-					i as i64,
-					None,
-				)
+				.load_sym_group_key(group._id.as_ref().expect("no id on group!"), i as i64, None)
 				.await
 				.unwrap();
 			match keypair {
@@ -729,7 +725,7 @@ mod tests {
 
 		let returned_key = key_loader_facade
 			.load_sym_group_key(
-				&group._id.as_ref().expect("no id on group!"),
+				group._id.as_ref().expect("no id on group!"),
 				current_group_key_version,
 				None,
 			)
@@ -770,7 +766,7 @@ mod tests {
 
 		key_loader_facade
 			.load_sym_group_key(
-				&group._id.as_ref().expect("no id on group!"),
+				group._id.as_ref().expect("no id on group!"),
 				current_group_key_version,
 				Some(outdated_current_group_key),
 			)
