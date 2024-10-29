@@ -12,7 +12,7 @@ use crate::services::{
 use crate::ApiCallError;
 pub struct CounterService;
 
-crate::service_impl!(declare, CounterService, "monitor/counterservice", 28);
+crate::service_impl!(declare, CounterService, "monitor/counterservice", 29);
 crate::service_impl!(POST, CounterService, WriteCounterData, ());
 crate::service_impl!(GET, CounterService, ReadCounterData, ReadCounterReturn);
 
@@ -22,6 +22,6 @@ crate::service_impl!(
 	declare,
 	ReportErrorService,
 	"monitor/reporterrorservice",
-	28
+	29
 );
 crate::service_impl!(POST, ReportErrorService, ReportErrorIn, ());

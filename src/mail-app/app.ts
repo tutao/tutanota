@@ -142,6 +142,14 @@ import("./translations/en.js")
 				async onFullLoginSuccess() {},
 			}
 		})
+		mailLocator.logins.addPostLoginAction(async () => {
+			return {
+				async onPartialLoginSuccess() {},
+				async onFullLoginSuccess() {
+					await mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
+				},
+			}
+		})
 
 		if (isOfflineStorageAvailable()) {
 			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")

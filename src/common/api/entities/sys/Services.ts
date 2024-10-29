@@ -35,6 +35,7 @@ import {GroupKeyRotationInfoGetOutTypeRef} from "./TypeRefs.js"
 import {GroupKeyRotationPostInTypeRef} from "./TypeRefs.js"
 import {InvoiceDataGetInTypeRef} from "./TypeRefs.js"
 import {InvoiceDataGetOutTypeRef} from "./TypeRefs.js"
+import {LocalAdminRemovalPostInTypeRef} from "./TypeRefs.js"
 import {LocationServiceGetReturnTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasGetInTypeRef} from "./TypeRefs.js"
 import {MailAddressAliasServiceReturnTypeRef} from "./TypeRefs.js"
@@ -281,6 +282,15 @@ export const InvoiceDataService = Object.freeze({
 	name: "InvoiceDataService",
 	get: {data: InvoiceDataGetInTypeRef, return: InvoiceDataGetOutTypeRef},
 	post: null,
+	put: null,
+	delete: null,
+} as const)
+
+export const LocalAdminRemovalService = Object.freeze({
+	app: "sys",
+	name: "LocalAdminRemovalService",
+	get: null,
+	post: {data: LocalAdminRemovalPostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

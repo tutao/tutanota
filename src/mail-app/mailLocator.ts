@@ -137,6 +137,7 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 
 assertMainOrNode()
 
@@ -158,6 +159,7 @@ class MailLocator {
 	logins!: LoginController
 	header!: Header
 	customerFacade!: CustomerFacade
+	keyLoaderFacade!: KeyLoaderFacade
 	giftCardFacade!: GiftCardFacade
 	groupManagementFacade!: GroupManagementFacade
 	configFacade!: ConfigurationDatabase

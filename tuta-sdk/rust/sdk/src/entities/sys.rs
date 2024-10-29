@@ -77,6 +77,26 @@ impl Entity for AdminGroupKeyRotationPostIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdministratedGroup {
+	pub _format: i64,
+	pub _id: IdTuple,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub groupType: i64,
+	pub groupInfo: IdTuple,
+	pub localAdminGroup: GeneratedId,
+}
+impl Entity for AdministratedGroup {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdministratedGroup",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdministratedGroupsRef {
 	pub _id: CustomId,
 	pub items: GeneratedId,
@@ -2122,6 +2142,40 @@ impl Entity for KeyRotationsRef {
 		TypeRef {
 			app: "sys",
 			type_: "KeyRotationsRef",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct LocalAdminGroupReplacementData {
+	pub _id: CustomId,
+	#[serde(with = "serde_bytes")]
+	pub adminGroupEncGKey: Vec<u8>,
+	pub adminGroupKeyVersion: i64,
+	pub groupKeyVersion: i64,
+	pub groupId: GeneratedId,
+}
+impl Entity for LocalAdminGroupReplacementData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "LocalAdminGroupReplacementData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct LocalAdminRemovalPostIn {
+	pub _format: i64,
+	pub groupUpdates: Vec<LocalAdminGroupReplacementData>,
+}
+impl Entity for LocalAdminRemovalPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "LocalAdminRemovalPostIn",
 		}
 	}
 }

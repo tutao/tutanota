@@ -8,14 +8,28 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
-import { createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRef, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { assertNotNull, freshVersioned, getFirstOrThrow, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import {
+	AdministratedGroup,
+	AdministratedGroupTypeRef,
+	createLocalAdminGroupReplacementData,
+	createLocalAdminRemovalPostIn,
+	createMembershipAddData,
+	createMembershipRemoveData,
+	CustomerTypeRef,
+	Group,
+	GroupInfoTypeRef,
+	GroupTypeRef,
+	LocalAdminGroupReplacementData,
+	User,
+	UserTypeRef,
+} from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
-import { MembershipService } from "../../../entities/sys/Services.js"
+import { LocalAdminRemovalService, MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
@@ -24,6 +38,7 @@ import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { isGlobalAdmin } from "../../../common/utils/UserUtils.js"
 
 assertWorkerOrNode()
 
@@ -315,5 +330,82 @@ export class GroupManagementFacade {
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
 		})
 		return { object: decryptedKey.decryptedAesKey, version: Number(group.groupKeyVersion) }
+	}
+
+	/**
+	 * Context: removal of local admins
+	 * Problem: local admins encrypted the user group key of their users with their admin group key but global admin can't
+	 * decrypt these with their admin group key.
+	 * We want the global admin to still be able to decrypt user data.
+	 *
+	 * This function will decrypt the user group key with the local admin group key and then encrypt it with the global admin group key
+	 * Please note that this function is free of side effects, it only returns a new reference of the newly modified group.
+	 *
+	 * @param globalAdminGroupKey the key of the global admin that will encrypt the user group key
+	 * @param localAdminGroupKey the key of the local admin that was used to encrypt the user group key and will be used to decrypt the user group key
+	 * @param userGroup the user group that needs its adminEncGroupKey to be replaced
+	 */
+	async replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+		globalAdminGroupKey: VersionedKey,
+		localAdminGroupKey: AesKey,
+		userGroup: Group,
+	): Promise<LocalAdminGroupReplacementData> {
+		const localAdminEncUserGroupKey = assertNotNull(userGroup.adminGroupEncGKey)
+		const decryptedUserGroupKey = this.cryptoWrapper.decryptKey(localAdminGroupKey, localAdminEncUserGroupKey)
+
+		const globalAdminEncUserGroupKey = this.cryptoWrapper.encryptKey(globalAdminGroupKey.object, decryptedUserGroupKey)
+
+		const groupUpdate = createLocalAdminGroupReplacementData({
+			adminGroupKeyVersion: String(globalAdminGroupKey.version),
+			adminGroupEncGKey: globalAdminEncUserGroupKey,
+			groupId: userGroup._id,
+			groupKeyVersion: userGroup.groupKeyVersion,
+		})
+		return groupUpdate
+	}
+
+	/**
+	 * Since local admins won't be supported anymore and will be removed we need to let the
+	 * global admin access the locally administrated group data.
+	 * As its name suggest this function migrate the users administrated by the local admins
+	 * to the global admin of the customer so that the global admin can have direct
+	 * encryption and decryption of its users group keys.
+	 */
+	async migrateLocalAdminsToGlobalAdmins() {
+		const user = this.userFacade.getLoggedInUser()
+		if (!isGlobalAdmin(user)) {
+			return
+		}
+
+		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
+		const teamGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
+		const localAdminGroupInfos = teamGroupInfos.filter((group) => group.groupType === GroupType.LocalAdmin)
+		const adminGroupId: Id = customer.adminGroup
+		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+		const postIn = createLocalAdminRemovalPostIn({ groupUpdates: [] })
+
+		for (let localAdminGroupInfo of localAdminGroupInfos) {
+			const localAdminGroup = await this.entityClient.load(GroupTypeRef, localAdminGroupInfo.group)
+			const administratedGroupsListId = localAdminGroup.administratedGroups?.items
+			if (administratedGroupsListId == null) return null
+			const administratedGroups: Array<AdministratedGroup> = await this.entityClient.loadAll(AdministratedGroupTypeRef, administratedGroupsListId)
+
+			// we assume local admins never had their key rotation done and so their sym key version (requestedVersion) is stuck to 0 by default
+			const thisLocalAdminGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(localAdminGroup._id)
+			for (let ag of administratedGroups) {
+				const thisRelatedGroupInfo = await this.entityClient.load(GroupInfoTypeRef, ag.groupInfo)
+				const thisRelatedGroup = await this.entityClient.load(GroupTypeRef, thisRelatedGroupInfo.group)
+
+				const groupUpdate = await this.replaceLocalAdminEncGroupKeyWithGlobalAdminEncGroupKey(
+					adminGroupKey,
+					thisLocalAdminGroupKey.object,
+					thisRelatedGroup,
+				)
+				postIn.groupUpdates.push(groupUpdate)
+			}
+		}
+		if (isNotEmpty(postIn.groupUpdates)) {
+			await this.serviceExecutor.post(LocalAdminRemovalService, postIn)
+		}
 	}
 }

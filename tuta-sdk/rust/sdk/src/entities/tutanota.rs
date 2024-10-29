@@ -42,7 +42,7 @@ impl Entity for Birthday {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Body {
 	pub _id: CustomId,
-	pub compressedText: Option<Vec<u8>>,
+	pub compressedText: Option<String>,
 	pub text: Option<String>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -809,7 +809,7 @@ impl Entity for DraftCreateReturn {
 pub struct DraftData {
 	pub _id: CustomId,
 	pub bodyText: String,
-	pub compressedBodyText: Option<Vec<u8>>,
+	pub compressedBodyText: Option<String>,
 	pub confidential: bool,
 	pub method: i64,
 	pub senderMailAddress: String,
@@ -1158,7 +1158,7 @@ impl Entity for GroupSettings {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Header {
 	pub _id: CustomId,
-	pub compressedHeaders: Option<Vec<u8>>,
+	pub compressedHeaders: Option<String>,
 	pub headers: Option<String>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
