@@ -7,6 +7,7 @@ import { DROPDOWN_MARGIN } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
+import { LabelsPopup } from "./LabelsPopup.js"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	mails: readonly Mail[]
@@ -41,6 +42,25 @@ export class MobileMailMultiselectionActionBar {
 									onSelected: () => selectNone,
 									width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
 								})
+							},
+					  })
+					: null,
+				mailModel.canAssignLabels()
+					? m(IconButton, {
+							icon: Icons.Label,
+							title: "assignLabel_action",
+							click: (e, dom) => {
+								const referenceDom = this.dom ?? dom
+								if (mails.length !== 0) {
+									const popup = new LabelsPopup(
+										referenceDom,
+										referenceDom.getBoundingClientRect(),
+										referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
+										mailModel.getLabelsForMails(mails),
+										(addedLabels, removedLabels) => mailModel.applyLabels(mails, addedLabels, removedLabels),
+									)
+									popup.show()
+								}
 							},
 					  })
 					: null,

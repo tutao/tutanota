@@ -22,6 +22,7 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import stream from "mithril/stream"
 import { exportMails } from "../export/Exporter.js"
 import { MailModel } from "../model/MailModel.js"
+import { LabelsPopup } from "./LabelsPopup.js"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -53,12 +54,14 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
 				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
+				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.mails) : null,
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.mails.length > 0) {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
 				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
+				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.mails) : null,
 				this.renderReadButton(attrs),
 				this.renderExportButton(attrs),
 			]
@@ -101,6 +104,19 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			title: "move_action",
 			icon: Icons.Folder,
 			click: (e, dom) => showMoveMailsDropdown(mailboxModel, mailModel, dom.getBoundingClientRect(), mails),
+		})
+	}
+
+	private renderLabelButton(mailModel: MailModel, mails: Mail[]): Children {
+		return m(IconButton, {
+			title: "assignLabel_action",
+			icon: Icons.Label,
+			click: (_, dom) => {
+				const popup = new LabelsPopup(dom, dom.getBoundingClientRect(), 250, mailModel.getLabelsForMails(mails), (addedLabels, removedLabels) =>
+					mailModel.applyLabels(mails, addedLabels, removedLabels),
+				)
+				popup.show()
+			},
 		})
 	}
 

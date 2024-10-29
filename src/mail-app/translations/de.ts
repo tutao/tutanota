@@ -1814,6 +1814,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"editLabel_action": "Label bearbeiten"
+		"editLabel_action": "Label bearbeiten",
+		"assignLabel_action": "Assign labels"
 	}
 }
