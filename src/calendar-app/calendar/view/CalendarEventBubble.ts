@@ -2,8 +2,7 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import type { ClickHandler } from "../../../common/gui/base/GuiUtils"
-import { colorForBg } from "../gui/CalendarGuiUtils.js"
+import { ClickHandler, colorForBg } from "../../../common/gui/base/GuiUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 
 export type CalendarEventBubbleAttrs = {

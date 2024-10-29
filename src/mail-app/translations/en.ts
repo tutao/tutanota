@@ -1810,6 +1810,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"editLabel_action": "Edit label"
+		"editLabel_action": "Edit label",
+		"assignLabel_action": "Assign labels"
 	}
 }

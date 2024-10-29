@@ -68,6 +68,7 @@ import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
 import { attachDropdown } from "../../../common/gui/base/Dropdown"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
+import { getLabelColor } from "../../../common/gui/base/Label.js"
 
 assertMainOrNode()
 
@@ -808,7 +809,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).map((label) => {
 							return m(SidebarSectionRow, {
 								icon: Icons.Label,
-								iconColor: label.color ?? undefined,
+								iconColor: getLabelColor(label.color),
 								label: () => label.name,
 								// FIXME
 								path: "#",

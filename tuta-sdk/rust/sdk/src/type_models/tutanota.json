@@ -1,6 +1,6 @@
 {
-	"ApplyLabelServiceDeleteIn": {
-		"name": "ApplyLabelServiceDeleteIn",
+	"ApplyLabelServicePostIn": {
+		"name": "ApplyLabelServicePostIn",
 		"since": 77,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 1504,
@@ -19,13 +19,13 @@
 			}
 		},
 		"associations": {
-			"label": {
+			"addedLabels": {
 				"final": false,
-				"name": "label",
+				"name": "addedLabels",
 				"id": 1507,
 				"since": 77,
 				"type": "LIST_ELEMENT_ASSOCIATION",
-				"cardinality": "One",
+				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
 			},
@@ -38,49 +38,15 @@
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "77"
-	},
-	"ApplyLabelServicePostIn": {
-		"name": "ApplyLabelServicePostIn",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1508,
-		"rootId": "CHR1dGFub3RhAAXk",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1509,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"label": {
-				"final": false,
-				"name": "label",
-				"id": 1511,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
 			},
-			"mails": {
+			"removedLabels": {
 				"final": false,
-				"name": "mails",
-				"id": 1510,
+				"name": "removedLabels",
+				"id": 1508,
 				"since": 77,
 				"type": "LIST_ELEMENT_ASSOCIATION",
 				"cardinality": "Any",
-				"refType": "Mail",
+				"refType": "MailFolder",
 				"dependency": null
 			}
 		},
