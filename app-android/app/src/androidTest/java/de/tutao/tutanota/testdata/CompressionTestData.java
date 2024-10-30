@@ -8,15 +8,17 @@ public class CompressionTestData {
 	String uncompressedText;
 	String compressedBase64TextJava;
 	String compressedBase64TextJavaScript;
+	String compressedBase64TextRust;
 
 	public CompressionTestData() {
 
 	}
 
-	public CompressionTestData(String uncompressedText, String compressedBase64TextJava, String compressedBase64TextJavaScript) {
+	public CompressionTestData(String uncompressedText, String compressedBase64TextJava, String compressedBase64TextJavaScript, String compressedBase64TextRust) {
 		this.uncompressedText = uncompressedText;
 		this.compressedBase64TextJava = compressedBase64TextJava;
 		this.compressedBase64TextJavaScript = compressedBase64TextJavaScript;
+		this.compressedBase64TextRust = compressedBase64TextRust;
 	}
 
 	public String getUncompressedText() {
@@ -41,5 +43,13 @@ public class CompressionTestData {
 
 	public void setCompressedBase64TextJavaScript(String compressedBase64TextJavaScript) {
 		this.compressedBase64TextJavaScript = compressedBase64TextJavaScript;
+	}
+
+	public String getCompressedBase64TextRust() {
+		return compressedBase64TextRust;
+	}
+
+	public void setCompressedBase64TextRust(String compressedBase64TextRust) {
+		this.compressedBase64TextRust = compressedBase64TextRust;
 	}
 }
