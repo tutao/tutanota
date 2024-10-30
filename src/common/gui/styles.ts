@@ -65,7 +65,7 @@ class Styles {
 		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 
-	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
+	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => Record<string, Partial<CSSStyleDeclaration> | {}>) {
 		if (!this.initialized && this.styles.has(id)) {
 			throw new Error("duplicate style definition: " + id)
 		}
