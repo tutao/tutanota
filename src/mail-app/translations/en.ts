@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-10-23T04:39:11Z",
+	"updated_at": "2024-10-29T11:39:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -57,6 +57,7 @@ export default {
 		"addGroup_label": "Add group",
 		"addGuest_label": "Add a guest",
 		"addInboxRule_action": "Add inbox rule",
+		"addLabel_action": "Add label",
 		"addLanguage_action": "Add language",
 		"addNext_action": "Add next item to selection",
 		"addOpenOTPApp_action": "Add to authenticator app",
@@ -692,6 +693,7 @@ export default {
 		"header_label": "Header",
 		"helpPage_label": "Help page",
 		"help_label": "Help",
+		"hexCode_label": "Hex code",
 		"hideText_action": "Hide text",
 		"hideWindows_action": "Hide windows",
 		"hide_action": "Hide",
@@ -802,6 +804,7 @@ export default {
 		"keywords_label": "Keywords",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Saved accounts",
+		"labels_label": "Labels",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albanian reformed",
 		"languageAlbanian_label": "Albanian",

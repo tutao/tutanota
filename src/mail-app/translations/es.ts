@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-10-23T16:46:19Z",
+	"updated_at": "2024-10-29T17:23:31Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -61,6 +61,7 @@ export default {
 		"addGroup_label": "Añadir grupo",
 		"addGuest_label": "Añadir invitado",
 		"addInboxRule_action": "Añadir regla a la bandeja de entrada",
+		"addLabel_action": "Añadir etiqueta",
 		"addLanguage_action": "Añadir idioma",
 		"addNext_action": "Añadir el siguiente elemento a la selección",
 		"addOpenOTPApp_action": "Añadir a la aplicación de autenticación",
@@ -696,6 +697,7 @@ export default {
 		"header_label": "Cabecera",
 		"helpPage_label": "Página de ayuda",
 		"help_label": "Ayuda",
+		"hexCode_label": "Código hexadecimal",
 		"hideText_action": "Ocultar texto",
 		"hideWindows_action": "Ocultar ventanas",
 		"hide_action": "Ocultar",
@@ -806,6 +808,7 @@ export default {
 		"keywords_label": "Palabras clave",
 		"knowledgebase_label": "Base de conocimiento",
 		"knownCredentials_label": "Cuentas guardadas",
+		"labels_label": "Etiquetas",
 		"languageAfrikaans_label": "Afrikáans",
 		"languageAlbanianref_label": "Albanés reformado",
 		"languageAlbanian_label": "Albanés",
