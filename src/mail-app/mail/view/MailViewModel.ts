@@ -56,12 +56,12 @@ export interface MailOpenedListener {
 }
 
 /** sort mail set mails in descending order (**reversed**: newest to oldest) according to their receivedDate, not their elementId */
-function sortCompareMailSetMails(firstMail: Mail, secondMail: Mail): number {
+export function sortCompareMailSetMailsReversed(firstMail: Mail, secondMail: Mail): number {
 	const firstMailReceivedTimestamp = firstMail.receivedDate.getTime()
 	const secondMailReceivedTimestamp = secondMail.receivedDate.getTime()
 	if (firstMailReceivedTimestamp > secondMailReceivedTimestamp) {
 		return -1
-	} else if (secondMailReceivedTimestamp < firstMailReceivedTimestamp) {
+	} else if (firstMailReceivedTimestamp < secondMailReceivedTimestamp) {
 		return 1
 	} else {
 		if (firstBiggerThanSecond(getElementId(firstMail), getElementId(secondMail))) {
@@ -378,7 +378,7 @@ export class MailViewModel {
 					}),
 				)
 			},
-			sortCompare: folder.isMailSet ? sortCompareMailSetMails : sortCompareByReverseId,
+			sortCompare: folder.isMailSet ? sortCompareMailSetMailsReversed : sortCompareByReverseId,
 			autoSelectBehavior: () => this.conversationPrefProvider.getMailAutoSelectBehavior(),
 		})
 	})
@@ -454,7 +454,14 @@ export class MailViewModel {
 		const mailId = this.loadingTargetId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
 		const stickyMail = this.stickyMailId
 		if (mailId != null) {
-			this.router.routeTo("/mail/:folderId/:mailId", this.addStickyMailParam({ folderId, mailId, mail: stickyMail }))
+			this.router.routeTo(
+				"/mail/:folderId/:mailId",
+				this.addStickyMailParam({
+					folderId,
+					mailId,
+					mail: stickyMail,
+				}),
+			)
 		} else {
 			this.router.routeTo("/mail/:folderId", this.addStickyMailParam({ folderId: folderId ?? "" }))
 		}

@@ -131,6 +131,7 @@ import "./api/worker/facades/KeyRotationFacadeTest.js"
 import "./mail/view/ConversationViewModelTest.js"
 import "./mail/view/MailViewerViewModelTest.js"
 import "./api/worker/facades/KeyCacheTest.js"
+import "./mail/view/MailViewModelTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
