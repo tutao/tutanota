@@ -79,10 +79,19 @@ export interface Shortcut {
 	help: TranslationKey
 }
 
+function isFocusable(e: HTMLElement) {
+	if ("disabled" in e && !!e.disabled) {
+		return false
+	}
+	if (e.tabIndex === -1) {
+		// also filter for tabIndex here to restrict tabbing to invisible inputs
+		return false
+	}
+	return e.style.display !== "none"
+}
+
 export function focusPrevious(dom: HTMLElement): boolean {
-	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
-		(e) => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1,
-	) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
+	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(isFocusable) as HTMLElement[]
 
 	const selected = tabbable.find((e) => document.activeElement === e)
 
@@ -110,9 +119,7 @@ export function focusPrevious(dom: HTMLElement): boolean {
 }
 
 export function focusNext(dom: HTMLElement): boolean {
-	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
-		(e) => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1,
-	) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
+	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(isFocusable) as HTMLElement[]
 
 	const selected = tabbable.find((e) => document.activeElement === e)
 
