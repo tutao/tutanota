@@ -2657,5 +2657,45 @@ styles.registerStyle("main", () => {
 		".single-line-text-field::placeholder": {
 			color: theme.content_message_bg,
 		},
+		".tutaui-switch": {
+			display: "flex",
+			"align-items": "center",
+			gap: px(size.vpad_small),
+		},
+		".tutaui-toggle-pill": {
+			position: "relative",
+			display: "block",
+			width: "36px",
+			height: "20px",
+			"background-color": theme.content_message_bg,
+			"border-radius": px(size.border_radius * 2),
+			transition: `background-color ${DefaultAnimationTime}ms ease-out`,
+		},
+		".tutaui-toggle-pill:after": {
+			position: "absolute",
+			content: "''",
+			width: "14px",
+			height: "14px",
+			top: "calc(50% - 7px)",
+			margin: "0 3px",
+			"background-color": "#fff",
+			"border-radius": "50%",
+			left: 0,
+			transition: `left ${DefaultAnimationTime}ms ease-out`,
+		},
+		".tutaui-toggle-pill.checked": {
+			"background-color": theme.content_accent,
+		},
+		".tutaui-toggle-pill.checked:after": {
+			left: "calc(100% - 20px)",
+		},
+		".tutaui-toggle-pill input[type='checkbox']": {
+			"z-index": "-1",
+			visibility: "hidden",
+			position: "absolute",
+		},
+		".fit-content": {
+			width: "fit-content",
+		},
 	}
 })
