@@ -10,14 +10,14 @@ export default {
 	"plural_forms": [
 		"zero",
 		"one",
-		"other"
+		"other",
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-10-29T11:39:16Z",
+	"updated_at": "2024-11-01T14:39:16Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
-		"code": "de"
+		"code": "de",
 	},
 	"fallback_locale": null,
 	"keys": {
@@ -143,6 +143,7 @@ export default {
 		"archive_action": "Archivieren",
 		"archive_label": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Sie können lokal administrierte Benutzer nicht zum globalen Admin machen.",
+		"assignLabel_action": "Labels zuweisen",
 		"assistant_label": "Assistent*in",
 		"attachFiles_action": "Dateien anhängen",
 		"attachmentAmount_label": "{amount} Anhänge",
@@ -412,6 +413,7 @@ export default {
 		"currentPlanDiscontinued_msg": "Ihr aktuelles Abonnement ist nicht mehr verfügbar. Bitte wählen Sie eines der unten angezeigten Abonnements.",
 		"customColorsInfo_msg": "Wenn Sie ein Feld leer lassen, wird die Standardfarbe aus dem hellen Farbschema verwendet.",
 		"customColors_label": "Eigene Farben",
+		"customColor_label": "Benutzerdefinierte Farbe",
 		"customDomainDeletePreconditionFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer*innen und alle E-Mail-Adressen mit der Domain: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer und alle E-Mail-Adressen mit der Domain: {domainName} und entfernen Sie die Domain als Registrierungs-Domain.",
 		"customDomainErrorDnsLookupFailure_msg": "Fehler beim Abfragen der DNS-Informationen.",
@@ -704,6 +706,7 @@ export default {
 		"howCanWeHelp_title": "Wie können wir helfen?",
 		"htmlSourceCode_label": "HTML-Quellcode",
 		"html_action": "HTML",
+		"hue_label": "Farbton",
 		"iCalNotSync_msg": "Nicht synchronisiert.",
 		"iCalSync_error": "Fehler beim Synchronisieren. Ein oder mehr Kalender sind ungültig.",
 		"icsInSharingFiles_msg": "Eine oder mehrere Kalenderdateien wurden erkannt. Möchten Sie sie importieren oder anhängen?",
@@ -1764,6 +1767,7 @@ export default {
 		"useSecurityKey_action": "Hier klicken, um Sicherheitsschlüssel zu verwenden",
 		"validInputFormat_msg": "Format ok.",
 		"value_label": "Wert",
+		"variant_label": "Variante",
 		"vcardInSharingFiles_msg": "Es wurden eine oder mehrere Kontaktdateien gefunden. Möchten Sie diese importieren oder anhängen?",
 		"verifyDNSRecords_msg": "Im letzten Schritt müssen Sie die unten aufgelisteten DNS-Einträge einrichten, damit der Tuta Mailserver E-Mails mit Ihrer Domain empfangen und versenden kann.",
 		"verifyDNSRecords_title": "DNS-Einträge einrichten",
@@ -1815,6 +1819,5 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"editLabel_action": "Label bearbeiten",
-		"assignLabel_action": "Assign labels"
-	}
+	},
 }
