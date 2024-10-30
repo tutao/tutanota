@@ -2335,7 +2335,8 @@ styles.registerStyle("main", () => {
 			width: "9ch",
 		},
 		".custom-color-container .inputWrapper:before": {
-			content: '"#"',
+			// slash in content is content alt. so that it's ignored by screen readers
+			content: '"#" / ""',
 			color: theme.content_message_bg,
 		},
 		".calendar-invite-field": {

@@ -7,7 +7,7 @@ import { hexToHSL, hslToHex, isColorLight, isValidCSSHexColor, MAX_HUE_ANGLE, no
 import { ColorPickerModel } from "./ColorPickerModel.js"
 import { client } from "../../../misc/ClientDetector.js"
 import { theme } from "../../theme.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
 import { Keys, TabIndex } from "../../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../../misc/KeyManager"
 
@@ -86,6 +86,7 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 						index: i,
 						selectedColor: attrs.value,
 						onselect: attrs.onselect,
+						// add right divider to first color option
 						className: i === 0 ? ".pr-vpad-s.mr-hpad-small" : undefined,
 						style:
 							i === 0
@@ -233,6 +234,10 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 					},
 				},
 				m(".border-radius", {
+					tabIndex: TabIndex.Default,
+					role: "radio",
+					ariaLabel: index === PaletteIndex.customVariant ? lang.get("customColor_label") : `${lang.get("variant_label")} ${index}`,
+					ariaChecked: isOptionSelected,
 					style: {
 						width: px(30),
 						height: px(30),
@@ -241,7 +246,6 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 						borderColor: isOptionSelected ? "transparent" : theme.content_border,
 						backgroundColor: isColorValid ? color : theme.content_border,
 					},
-					tabIndex: TabIndex.Default,
 					onkeydown: (e: KeyboardEvent) => {
 						if (isKeyPressed(e.key, Keys.SPACE)) {
 							e.preventDefault()
@@ -255,10 +259,14 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 	}
 
 	private renderHuePicker(onselect: ColorPickerAttrs["onselect"]): Children {
+		const a11yHueShiftStep = 5
+
 		return m(
 			".rel.overflow-hidden",
 			{
-				tabIndex: TabIndex.Default,
+				style: {
+					position: "relative",
+				},
 				onkeydown: (e: KeyboardEvent) => {
 					e.preventDefault()
 					const isRightMove = isKeyPressed(e.key, Keys.RIGHT)
@@ -266,12 +274,13 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 					const isStill = isLeftMove && isRightMove
 
 					if (!isStill && (isRightMove || isLeftMove)) {
-						const step = e.shiftKey ? 1 : 5
+						// holding down shift allows finer hue adjustment
+						const step = e.shiftKey ? 1 : a11yHueShiftStep
 						let hueStep = isLeftMove ? -step : step
 						this.selectedHueAngle = normalizeHueAngle(this.selectedHueAngle + hueStep)
+
 						this.postionSliderOnHue(assertNotNull(this.hueImgDom), assertNotNull(this.hueSliderDom))
-						assertNotNull(this.hueWindowDom).style.backgroundColor = this.model.getHueWindowColor(this.selectedHueAngle)
-						assertNotNull(this.huePickerDom).style.overflow = "visible"
+						this.toggleHueWindow(true)
 						this.generatePalette()
 
 						if (!this.isAdvanced || !isValidCSSHexColor(this.customColorHex)) {
@@ -279,16 +288,35 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 						}
 					}
 				},
-				onkeyup: () => {
-					if (assertNotNull(this.huePickerDom).style.overflow !== "hidden") {
-						assertNotNull(this.huePickerDom).style.overflow = "hidden"
-					}
-				},
+				onkeyup: () => this.toggleHueWindow(false),
 				oncreate: (vnode) => {
 					this.huePickerDom = vnode.dom as HTMLElement
 				},
 			},
 			[
+				// range input used to allow hue to be easily changed on a screen reader
+				m("input.fill-absolute.no-hover", {
+					type: "range",
+					min: 0,
+					max: MAX_HUE_ANGLE,
+					step: a11yHueShiftStep,
+					tabIndex: TabIndex.Default,
+					role: "slider",
+					ariaLabel: lang.get("hue_label"),
+					style: {
+						opacity: 0,
+					},
+					value: `${this.selectedHueAngle}`,
+					oninput: (e: InputEvent) => {
+						this.selectedHueAngle = filterInt((e.target as HTMLInputElement).value)
+
+						this.postionSliderOnHue(assertNotNull(this.hueImgDom), assertNotNull(this.hueSliderDom))
+						this.generatePalette()
+						if (!this.isAdvanced || !isValidCSSHexColor(this.customColorHex)) {
+							onselect(assertNotNull(this.palette[this.fallbackVariantIndex], `no fallback color at ${this.fallbackVariantIndex}`))
+						}
+					},
+				}),
 				// hueGradient
 				m(
 					".full-width.border-radius.overflow-hidden",
@@ -331,7 +359,7 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 							const endListener = () => {
 								abortController.abort()
 								this.generatePalette()
-								assertNotNull(this.huePickerDom).style.overflow = "hidden"
+								this.toggleHueWindow(false)
 
 								if (!this.isAdvanced || !isValidCSSHexColor(this.customColorHex)) {
 									onselect(assertNotNull(this.palette[this.fallbackVariantIndex], `no fallback color at ${this.fallbackVariantIndex}`))
@@ -345,7 +373,7 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 							document.addEventListener(client.isTouchSupported() ? "touchend" : "pointerup", endListener, { signal: abortController.signal })
 
 							this.handleHueChange(e, hueImgDom)
-							assertNotNull(this.huePickerDom).style.overflow = "visible"
+							this.toggleHueWindow(true)
 						},
 					}),
 				),
@@ -389,9 +417,14 @@ export class ColorPickerView implements Component<ColorPickerAttrs> {
 		)
 	}
 
+	private toggleHueWindow(show: boolean) {
+		assertNotNull(this.huePickerDom).style.overflow = show ? "visible" : "hidden"
+	}
+
 	private postionSliderOnHue(hueImgDom: HTMLElement, hueSliderDom: HTMLElement) {
 		const hueGradientWidth = hueImgDom.getBoundingClientRect().width
 		hueSliderDom.style.left = `${Math.floor((this.selectedHueAngle / MAX_HUE_ANGLE) * hueGradientWidth) + HUE_GRADIENT_BORDER_WIDTH}px`
+		assertNotNull(this.hueWindowDom).style.backgroundColor = this.model.getHueWindowColor(this.selectedHueAngle)
 	}
 
 	private handleHueChange = (e: PointerEvent | TouchEvent, hueImgDom: HTMLElement) => {
