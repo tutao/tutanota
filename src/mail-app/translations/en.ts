@@ -10,10 +10,10 @@ export default {
 	"plural_forms": [
 		"zero",
 		"one",
-		"other"
+		"other",
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-10-29T11:39:16Z",
+	"updated_at": "2024-11-01T14:39:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -139,6 +139,7 @@ export default {
 		"archive_action": "Archive",
 		"archive_label": "Archive",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
+		"assignLabel_action": "Assign labels",
 		"assistant_label": "Assistant",
 		"attachFiles_action": "Attach files",
 		"attachmentAmount_label": "{amount} attachments",
@@ -408,6 +409,7 @@ export default {
 		"currentPlanDiscontinued_msg": "Your current plan is no longer available. Please choose between the plans displayed below.",
 		"customColorsInfo_msg": "If you leave a blank field the color from the default light theme is used instead.",
 		"customColors_label": "Custom colors",
+		"customColor_label": "Custom color",
 		"customDomainDeletePreconditionFailed_msg": "Please deactivate all users and email addresses containing the domain: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Please deactivate all users and email addresses containing the domain: {domainName} and remove the domain as registration email domain.\n",
 		"customDomainErrorDnsLookupFailure_msg": "DNS lookup failed.",
@@ -700,6 +702,7 @@ export default {
 		"howCanWeHelp_title": "How can we help you?",
 		"htmlSourceCode_label": "HTML source code",
 		"html_action": "HTML",
+		"hue_label": "Hue",
 		"iCalNotSync_msg": "Not synced.",
 		"iCalSync_error": "Error during synchronization, one or more calendars were invalid.",
 		"icsInSharingFiles_msg": "One or more calendar files were detected. Would you like to import or attach them?",
@@ -1760,6 +1763,7 @@ export default {
 		"useSecurityKey_action": "Click to use security key",
 		"validInputFormat_msg": "Format ok.",
 		"value_label": "Value",
+		"variant_label": "Variant",
 		"vcardInSharingFiles_msg": "One or more contact files were detected. Would you like to import or attach them?",
 		"verifyDNSRecords_msg": "Finally, you have to configure the DNS records listed below to enable mail delivery to and from the Tuta mail server.",
 		"verifyDNSRecords_title": "Setup DNS records",
@@ -1811,6 +1815,5 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"editLabel_action": "Edit label",
-		"assignLabel_action": "Assign labels"
-	}
+	},
 }
