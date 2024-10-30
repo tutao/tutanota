@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-10-20T11:35:25Z",
+	"updated_at": "2024-10-25T09:14:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1060,6 +1060,7 @@ export default {
 		"onlyPrivateComputer_msg": "Valitse tämä vaihtoehto vain, jos laite on ainoastaan sinun käytössäsi.",
 		"openCamera_action": "Kamera",
 		"openKnowledgebase_action": "Avaa tietämyskantaikkuna",
+		"openMailApp_msg": "Tämä toiminto avaa Tuta Mail -sovelluksen. Haluatko jatkaa?",
 		"openNewWindow_action": "Uusi ikkuna",
 		"openTemplatePopup_msg": "Avaa viestipohjien ponnahdusikkuna",
 		"open_action": "Avaa",

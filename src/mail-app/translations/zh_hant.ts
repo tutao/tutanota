@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-10-23T15:27:22Z",
+	"updated_at": "2024-10-29T16:34:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -56,6 +56,7 @@ export default {
 		"addGroup_label": "新增群組",
 		"addGuest_label": "新增客人",
 		"addInboxRule_action": "新增收件匣規則",
+		"addLabel_action": "新增標籤",
 		"addLanguage_action": "新增語言",
 		"addNext_action": "新增下一個項目至選取範圍內",
 		"addOpenOTPApp_action": "新增到身分驗證應用程式",
@@ -691,6 +692,7 @@ export default {
 		"header_label": "標頭",
 		"helpPage_label": "幫助頁面",
 		"help_label": "幫助",
+		"hexCode_label": "十六進制顏色碼",
 		"hideText_action": "隱藏文字",
 		"hideWindows_action": "隱藏視窗",
 		"hide_action": "隱藏",
@@ -801,6 +803,7 @@ export default {
 		"keywords_label": "關鍵字",
 		"knowledgebase_label": "知識庫",
 		"knownCredentials_label": "已儲存帳戶",
+		"labels_label": "標籤",
 		"languageAfrikaans_label": "南非語",
 		"languageAlbanianref_label": "新阿爾巴尼亞語",
 		"languageAlbanian_label": "阿爾巴尼亞語",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-10-23T06:14:39Z",
+	"updated_at": "2024-10-29T12:14:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -57,6 +57,7 @@ export default {
 		"addGroup_label": "Lägg till grupp",
 		"addGuest_label": "Lägg till en gäst",
 		"addInboxRule_action": "Lägg till inkorgregel",
+		"addLabel_action": "Lägg till etikett",
 		"addLanguage_action": "Lägg till språk",
 		"addNext_action": "Lägg till föregående objekt i urval",
 		"addOpenOTPApp_action": "Lägg till i Authenticator-appen",
@@ -692,6 +693,7 @@ export default {
 		"header_label": "Sidhuvud",
 		"helpPage_label": "Hjälpsida",
 		"help_label": "Hjälp",
+		"hexCode_label": "Hex kod",
 		"hideText_action": "Dölj text",
 		"hideWindows_action": "Dölj fönster",
 		"hide_action": "Göm",
@@ -802,6 +804,7 @@ export default {
 		"keywords_label": "Nyckelord",
 		"knowledgebase_label": "Kunskapsbas",
 		"knownCredentials_label": "Sparade konton",
+		"labels_label": "Etiketter",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albanska reformerad",
 		"languageAlbanian_label": "Albanska",
