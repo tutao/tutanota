@@ -30,6 +30,8 @@ import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { LabelsPopup } from "./LabelsPopup.js"
+import { Label } from "../../../common/gui/base/Label.js"
+import { px, size } from "../../../common/gui/size.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -58,7 +60,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		return m(".header.selectable", [
 			this.renderSubjectActionsLine(attrs),
-			this.renderFolderText(viewModel),
+			this.renderFolderAndLabels(viewModel),
 			this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
 			m(
 				ExpanderPanel,
@@ -74,24 +76,49 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		])
 	}
 
-	private renderFolderText(viewModel: MailViewerViewModel) {
+	private renderFolderAndLabels(viewModel: MailViewerViewModel) {
 		const folderInfo = viewModel.getFolderInfo()
 		if (!folderInfo) return null
 		const icon = getFolderIconByType(folderInfo.folderType)
 
-		return viewModel.getFolderMailboxText()
-			? m(".flex.small.plr-l.mt-xs.mb-xs.ml-between-s", [
-					m(".b", m("", lang.get("location_label"))),
-					m(Icon, {
-						icon,
-						container: "div",
-						style: {
-							fill: theme.content_button,
-						},
+		const folderText = viewModel.getFolderMailboxText()
+		if (folderText == null && viewModel.mailModel.getLabelsForMails([viewModel.mail]).length === 0) {
+			return null
+		}
+
+		const margin = px(size.vpad_xsm)
+		return m(
+			".flex.mb-xs.flex-wrap",
+			{
+				style: {
+					columnGap: margin,
+					rowGap: margin,
+				},
+				class: responsiveCardHMargin(),
+			},
+			[
+				folderText
+					? m(".flex.small", [
+							m(".b", m("", lang.get("location_label"))),
+							m(Icon, {
+								icon,
+								container: "div",
+								style: {
+									fill: theme.content_button,
+									marginLeft: margin,
+								},
+							}),
+							m(".span", folderInfo.name),
+					  ])
+					: null,
+				viewModel.getLabels().map((label) =>
+					m(Label, {
+						text: label.name,
+						color: label.color ?? theme.content_accent,
 					}),
-					m(".span.mr-s", folderInfo.name),
-			  ])
-			: null
+				),
+			],
+		)
 	}
 
 	private renderAddressesAndDate(viewModel: MailViewerViewModel, attrs: MailViewerHeaderAttrs, dateTime: string, dateTimeFull: string) {
