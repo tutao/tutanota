@@ -117,14 +117,11 @@ const ActionButtons = pureComponent((contact: Contact) => {
 						simulateMailToClick(mailAddress.address)
 						return
 					}
-					return writeMail(
-						{
-							name: `${contact.firstName} ${contact.lastName}`.trim(),
-							address: mailAddress.address,
-							contact: contact,
-						},
-						"Happy birthday!",
-					)
+					return writeMail({
+						name: `${contact.firstName} ${contact.lastName}`.trim(),
+						address: mailAddress.address,
+						contact: contact,
+					})
 				},
 			})),
 	})
@@ -152,18 +149,30 @@ const ActionButtons = pureComponent((contact: Contact) => {
 
 	const singleEmailAdress = contact.mailAddresses.length === 1
 	const singlePhoneNumber = contact.phoneNumbers.length === 1
+
+	const onSendMailClick = (event: MouseEvent, dom: HTMLElement) => {
+		if (singleEmailAdress) {
+			if (client.isCalendarApp()) {
+				return
+			} else if (!client.isCalendarApp()) {
+				return writeMail({
+					name: `${contact.firstName} ${contact.lastName}`.trim(),
+					address: contact.mailAddresses[0].address,
+					contact: contact,
+				})
+			}
+		}
+
+		showMailDropdown(event, dom)
+	}
+
 	return m(".full-width.flex.items-center.flex-end.mt-s", [
 		contact.mailAddresses.length
 			? m(
-					singleEmailAdress ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",
+					singleEmailAdress && client.isCalendarApp() ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",
 					m(
 						BannerButton,
-						makeActionButtonAttrs(
-							singleEmailAdress ? noOp : showMailDropdown,
-							"sendMail_label",
-							emailButtonColors,
-							renderIcon(BootIcons.Mail, emailButtonColors.color),
-						),
+						makeActionButtonAttrs(onSendMailClick, "sendMail_label", emailButtonColors, renderIcon(BootIcons.Mail, emailButtonColors.color)),
 					),
 			  )
 			: null,
