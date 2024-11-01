@@ -53,7 +53,7 @@ export class Icon implements Component<IconAttrs> {
 		return m(
 			containerClasses,
 			{
-				title: vnode.attrs.title ?? "",
+				title: vnode.attrs.title ?? null,
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
 				style: this.getStyle(vnode.attrs.style ?? null),

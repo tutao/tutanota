@@ -169,8 +169,8 @@ export function calendarNavConfiguration(
 			}
 		case CalendarViewType.AGENDA:
 			return {
-				back: renderCalendarSwitchLeftButton("prevWeek_label", onBack),
-				forward: renderCalendarSwitchRightButton("nextWeek_label", onForward),
+				back: renderCalendarSwitchLeftButton("prevDay_label", onBack),
+				forward: renderCalendarSwitchRightButton("nextDay_label", onForward),
 				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
 			}
 	}
