@@ -1,8 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
-import { incrementMonth } from "@tutao/tutanota-utils"
+import { incrementMonth, isSameDay } from "@tutao/tutanota-utils"
 import { DaySelector } from "./DaySelector.js"
-import { DaysToEvents } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
 
 export interface DaySelectorSidebarAttrs {
@@ -30,6 +29,8 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 			this.openDate = vnode.attrs.selectedDate
 		}
 
+		const disableHighlight = !isSameDay(vnode.attrs.selectedDate, this.currentDate)
+
 		return m(
 			".plr-m.mt-form",
 			m(".elevated-bg.pt-s.pb-m.border-radius.flex.flex-column", [
@@ -45,9 +46,9 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 							this.onMonthChange(isNext)
 							m.redraw()
 						},
-						showDaySelection: vnode.attrs.showDaySelection,
+						showDaySelection: vnode.attrs.showDaySelection && !disableHighlight,
 						highlightToday: vnode.attrs.highlightToday,
-						highlightSelectedWeek: vnode.attrs.highlightSelectedWeek,
+						highlightSelectedWeek: vnode.attrs.highlightSelectedWeek && !disableHighlight,
 						useNarrowWeekName: true,
 						hasEventOn: vnode.attrs.hasEventsOn,
 					}),
