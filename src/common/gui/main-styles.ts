@@ -575,6 +575,12 @@ styles.registerStyle("main", () => {
 			overflow: " hidden",
 			"text-overflow": "ellipsis",
 		},
+		".text-clip": {
+			overflow: "hidden",
+			"text-overflow": "clip",
+			"min-width": 0,
+			"white-space": "nowrap",
+		},
 		".min-width-0": {
 			"min-width": 0,
 		},
