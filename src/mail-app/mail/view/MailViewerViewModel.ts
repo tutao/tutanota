@@ -29,7 +29,6 @@ import stream from "mithril/stream"
 import {
 	addAll,
 	assertNonNull,
-	assertNotNull,
 	contains,
 	downcast,
 	filterInt,
