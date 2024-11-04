@@ -82,7 +82,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const icon = getFolderIconByType(folderInfo.folderType)
 
 		const folderText = viewModel.getFolderMailboxText()
-		if (folderText == null && viewModel.mailModel.getLabelsForMails([viewModel.mail]).length === 0) {
+		const labels = viewModel.getLabels()
+		if (folderText == null && labels.length === 0) {
 			return null
 		}
 
@@ -111,7 +112,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							m(".span", folderInfo.name),
 					  ])
 					: null,
-				viewModel.getLabels().map((label) =>
+				labels.map((label) =>
 					m(Label, {
 						text: label.name,
 						color: label.color ?? theme.content_accent,
@@ -773,7 +774,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									dom,
 									dom.getBoundingClientRect(),
 									200,
-									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
+									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
 									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
 								)
 								// waiting for the dropdown to be closed

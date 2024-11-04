@@ -71,7 +71,7 @@ import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
-import { LabelState, MailModel } from "../model/MailModel.js"
+import { MailModel } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -1102,10 +1102,7 @@ export class MailViewerViewModel {
 	}
 
 	getLabels(): readonly MailFolder[] {
-		return this.mailModel
-			.getLabelsForMails([this.mail])
-			.filter(({ state }) => state === LabelState.Applied)
-			.map(({ label }) => label)
+		return this.mailModel.getLabelsForMail(this.mail)
 	}
 
 	private getMailOwnerGroup(): Id | null {

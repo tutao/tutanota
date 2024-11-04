@@ -2,7 +2,20 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailboxCounters, MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { assertNotNull, getFirstOrThrow, groupBy, lazyMemoized, neverNull, noOp, ofClass, partition, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	collectToMap,
+	getFirstOrThrow,
+	groupBy,
+	isNotNull,
+	lazyMemoized,
+	neverNull,
+	noOp,
+	ofClass,
+	partition,
+	promiseMap,
+	splitInChunks,
+} from "@tutao/tutanota-utils"
 import {
 	Mail,
 	MailboxGroupRoot,
@@ -41,7 +54,8 @@ import { isSpamOrTrashFolder } from "./MailChecks.js"
 
 interface MailboxSets {
 	folders: FolderSystem
-	labels: readonly MailFolder[]
+	/** a map from element id to the mail set */
+	labels: ReadonlyMap<Id, MailFolder>
 }
 
 export const enum LabelState {
@@ -99,8 +113,9 @@ export class MailModel {
 			if (detail.mailbox.folders) {
 				const mailSets = await this.loadMailSetsForListId(neverNull(detail.mailbox.folders).folders)
 				const [labels, folders] = partition(mailSets, isLabel)
+				const labelsMap = collectToMap(labels, getElementId)
 				const folderSystem = new FolderSystem(folders)
-				tempFolders.set(detail.mailbox.folders._id, { folders: folderSystem, labels })
+				tempFolders.set(detail.mailbox.folders._id, { folders: folderSystem, labels: labelsMap })
 			}
 		}
 		return tempFolders
@@ -226,11 +241,14 @@ export class MailModel {
 		return this.getMailSetsForGroup(groupId)?.folders ?? null
 	}
 
-	getLabelsByGroupId(groupId: Id): readonly MailFolder[] {
-		return this.getMailSetsForGroup(groupId)?.labels ?? []
+	getLabelsByGroupId(groupId: Id): ReadonlyMap<Id, MailFolder> {
+		return this.getMailSetsForGroup(groupId)?.labels ?? new Map()
 	}
 
-	getLabelsForMails(mails: readonly Mail[]): { label: MailFolder; state: LabelState }[] {
+	/**
+	 * @return all labels that could be applied to the {@param mails} with the state relative to {@param mails}.
+	 */
+	getLabelStatesForMails(mails: readonly Mail[]): { label: MailFolder; state: LabelState }[] {
 		if (mails.length === 0) {
 			return []
 		}
@@ -243,11 +261,19 @@ export class MailModel {
 			}
 		}
 
-		return labels.map((label) => {
+		return Array.from(labels.values()).map((label) => {
 			const count = allUsedSets.get(getElementId(label)) ?? 0
 			const state: LabelState = count === 0 ? LabelState.NotApplied : count === mails.length ? LabelState.Applied : LabelState.AppliedToSome
 			return { label, state }
 		})
+	}
+
+	/**
+	 * @return labels that are currently applied to {@param mail}.
+	 */
+	getLabelsForMail(mail: Mail): MailFolder[] {
+		const groupLabels = this.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
+		return mail.sets.map((labelId) => groupLabels.get(elementIdPart(labelId))).filter(isNotNull)
 	}
 
 	private getMailSetsForGroup(groupId: Id): MailboxSets | null {

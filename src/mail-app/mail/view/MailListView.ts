@@ -75,7 +75,11 @@ export class MailListView implements Component<MailListViewAttrs> {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		createElement: (dom: HTMLElement) => {
-			const mailRow = new MailRow(false, (entity) => this.attrs.onSingleExclusiveSelection(entity))
+			const mailRow = new MailRow(
+				false,
+				(mail) => this.mailViewModel.getLabelsForMail(mail),
+				(entity) => this.attrs.onSingleExclusiveSelection(entity),
+			)
 			m.render(dom, mailRow.render())
 			return mailRow
 		},

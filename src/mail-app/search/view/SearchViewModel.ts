@@ -2,7 +2,7 @@ import { ListFilter, ListModel } from "../../../common/misc/ListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
 import {
 	CLIENT_ONLY_CALENDARS,
@@ -1069,6 +1069,10 @@ export class SearchViewModel {
 		this.listStateSubscription = null
 		this.search.sendCancelSignal()
 		this.eventController.removeEntityListener(this.entityEventsListener)
+	}
+
+	getLabelsForMail(mail: Mail): MailFolder[] {
+		return mailLocator.mailModel.getLabelsForMail(mail)
 	}
 }
 

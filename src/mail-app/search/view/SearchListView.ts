@@ -7,7 +7,7 @@ import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/
 import { size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
@@ -33,17 +33,22 @@ export interface SearchListViewAttrs {
 	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
+	getLabelsForMail: (mail: Mail) => MailFolder[]
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
-	private listModel: ListModel<SearchResultListEntry>
+	private attrs: SearchListViewAttrs
+
+	private get listModel(): ListModel<SearchResultListEntry> {
+		return this.attrs.listModel
+	}
 
 	constructor({ attrs }: Vnode<SearchListViewAttrs>) {
-		this.listModel = attrs.listModel
+		this.attrs = attrs
 	}
 
 	view({ attrs }: Vnode<SearchListViewAttrs>): Children {
-		this.listModel = attrs.listModel
+		this.attrs = attrs
 		const { icon, renderConfig } = this.getRenderItems(attrs.currentType)
 
 		return attrs.listModel.isEmptyAndDone()
@@ -120,7 +125,11 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		swipe: null,
 		createElement: (dom) => {
 			const row: SearchResultListRow = new SearchResultListRow(
-				new MailRow(true, () => row.entity && this.listModel.onSingleExclusiveSelection(row.entity)),
+				new MailRow(
+					true,
+					(mail) => this.attrs.getLabelsForMail(mail),
+					() => row.entity && this.listModel.onSingleExclusiveSelection(row.entity),
+				),
 			)
 			m.render(dom, row.render())
 			return row
