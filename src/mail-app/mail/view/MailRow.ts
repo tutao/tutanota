@@ -1,6 +1,6 @@
-import { getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
+import { getMailFolderType, isLabel, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
-import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
 import m, { Children } from "mithril"
 import Badge from "../../../common/gui/base/Badge"
@@ -21,6 +21,9 @@ import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getConfidentialFontIcon, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
+import { getLabelColor } from "../../../common/gui/base/Label"
+import { colorForBg } from "../../../common/gui/base/GuiUtils"
+import { theme } from "../../../common/gui/theme"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -40,9 +43,13 @@ const shiftByForCheckbox = px(10)
 const translateXHide = "translateX(0)"
 const translateXShow = `translateX(${shiftByForCheckbox})`
 
+const ELLIPSIS = "\u2026"
+
+const MAX_DISPLAYED_LABELS = 6
+
 export class MailRow implements VirtualRow<Mail> {
 	top: number
-	domElement: HTMLElement | null = null // set from List
+	domElement: HTMLElement | null = null
 
 	entity: Mail | null = null
 	private subjectDom!: HTMLElement
@@ -50,16 +57,20 @@ export class MailRow implements VirtualRow<Mail> {
 	private dateDom!: HTMLElement
 	private iconsDom!: HTMLElement
 	private unreadDom!: HTMLElement
-	private folderIconsDom: Record<MailSetKind, HTMLElement>
 	private teamLabelDom!: HTMLElement
+	private labelsDom: HTMLElement[] = []
+	private moreLabelsIndicatorDom!: HTMLElement
 	private checkboxDom!: HTMLInputElement
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
 	private selectionSetter!: SelectableRowSelectedSetter
 
-	constructor(private readonly showFolderIcon: boolean, private readonly onSelected: (mail: Mail, selected: boolean) => unknown) {
+	constructor(
+		private readonly showFolderIcon: boolean,
+		private readonly getLabelsForMail: (mail: Mail) => MailFolder[],
+		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
+	) {
 		this.top = 0
 		this.entity = null
-		this.folderIconsDom = {} as Record<MailSetKind, HTMLElement>
 	}
 
 	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
@@ -84,11 +95,29 @@ export class MailRow implements VirtualRow<Mail> {
 			this.subjectDom.classList.remove("b")
 			this.senderDom.classList.remove("b")
 		}
+		this.updateLabels(mail)
 
 		setVisibility(this.teamLabelDom, isTutanotaTeamMail(mail))
 		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
 
 		checkboxOpacity(this.checkboxDom, selected)
+	}
+
+	private updateLabels(mail: Mail) {
+		const labels = this.getLabelsForMail(mail)
+
+		for (const [i, element] of this.labelsDom.entries()) {
+			const label = labels[i]
+			if (label) {
+				element.style.display = ""
+				element.style.backgroundColor = getLabelColor(label.color)
+				element.style.color = colorForBg(label.color ?? theme.content_accent)
+				element.textContent = label.name
+			} else {
+				element.style.display = "none"
+			}
+		}
+		this.moreLabelsIndicatorDom.style.display = labels.length > this.labelsDom.length ? "" : "none"
 	}
 
 	private showCheckboxAnimated(show: boolean) {
@@ -178,7 +207,8 @@ export class MailRow implements VirtualRow<Mail> {
 				onSelectedChangeRef: (changer) => {
 					this.selectionSetter = changer
 				},
-				oncreate: () => {
+				oncreate: (vnode) => {
+					this.domElement = vnode.dom as HTMLElement
 					// doing it right away to avoid visual glitch of it appearing/disappearing
 					// but doing it at the end of the event loop because we touch other DOM elements too which might not be there yet
 					Promise.resolve().then(() => this.showCheckbox(shouldAlwaysShowMultiselectCheckbox()))
@@ -232,7 +262,16 @@ export class MailRow implements VirtualRow<Mail> {
 							m(".text-ellipsis", {
 								oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),
 							}),
-							m(".flex-grow"),
+							m(
+								".flex.flex-grow-shrink-0.justify-end",
+								{
+									style: {
+										minWidth: px(34), // so the moreLabelIndicator is visible on smaller screens
+									},
+								},
+								this.renderLabels(),
+								this.renderLabelsMoreIndicator(),
+							),
 							m("small.text-ellipsis.flex-fixed", {
 								oncreate: (vnode) => (this.dateDom = vnode.dom as HTMLElement),
 							}),
@@ -249,6 +288,58 @@ export class MailRow implements VirtualRow<Mail> {
 					],
 				),
 			],
+		)
+	}
+
+	private renderLabelsMoreIndicator(): Children {
+		return m(
+			"span.smaller.text-center.text-ellipsis.border-radius-m",
+			{
+				style: {
+					// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
+					border: `2px solid ${getLabelColor(theme.content_button)}`,
+					color: getLabelColor(theme.content_button),
+					padding: `0px ${size.vpad_xsm}px 1px`,
+					marginRight: px(size.vpad_xsm),
+					minWidth: px(16),
+					lineHeight: px(8),
+				},
+				oncreate: (vnode) => {
+					this.moreLabelsIndicatorDom = vnode.dom as HTMLElement
+				},
+			},
+			ELLIPSIS,
+		)
+	}
+
+	private renderLabels(): Children {
+		return m(
+			".flex.overflow-hidden",
+			{
+				style: {
+					margin: `0 ${size.vpad_xsm}px`,
+					columnGap: px(size.vpad_xsm),
+					maxWidth: "fit-content",
+				},
+			},
+			Array(MAX_DISPLAYED_LABELS)
+				.fill(0)
+				.map((_, i) =>
+					// Not using the regular Label component as we have too
+					// many differences and list is a special case anyway.
+					m("span.smaller.text-center.text-ellipsis.border-radius-m", {
+						style: {
+							padding: `1px ${size.vpad_xsm}px`,
+							minWidth: "4ch",
+							maxWidth: px(48),
+							lineHeight: "100%",
+							textOverflow: "'‥'",
+						},
+						oncreate: (vnode) => {
+							this.labelsDom[i] = vnode.dom as HTMLElement
+						},
+					}),
+				),
 		)
 	}
 

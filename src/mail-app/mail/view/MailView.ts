@@ -806,7 +806,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 				[
 					m(".flex.col", [
-						mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).map((label) => {
+						Array.from(mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).values()).map((label) => {
 							return m(SidebarSectionRow, {
 								icon: Icons.Label,
 								iconColor: getLabelColor(label.color),
