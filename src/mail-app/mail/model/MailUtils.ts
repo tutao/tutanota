@@ -59,10 +59,14 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	if (folders == null) {
 		return []
 	}
+	const folder = foldersModel.getMailFolderForMail(firstMail)
+	if (folder == null) {
+		return []
+	}
+
 	return folders.getIndentedList().filter((f: IndentedFolder) => {
 		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
-			const folderId = firstMail.sets[0]
-			return !isSameId(f.folder._id, folderId)
+			return !isSameId(f.folder._id, folder._id)
 		} else {
 			return f.folder.mails !== getListId(firstMail)
 		}

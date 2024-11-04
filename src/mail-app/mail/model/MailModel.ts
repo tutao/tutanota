@@ -2,19 +2,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailboxCounters, MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import {
-	assertNotNull,
-	getFirstOrThrow,
-	groupBy,
-	isNotEmpty,
-	lazyMemoized,
-	neverNull,
-	noOp,
-	ofClass,
-	partition,
-	promiseMap,
-	splitInChunks,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, groupBy, lazyMemoized, neverNull, noOp, ofClass, partition, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	Mail,
 	MailboxGroupRoot,
@@ -231,11 +219,7 @@ export class MailModel {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 		if (folderSystem == null) return null
 
-		if (isNotEmpty(mail.sets)) {
-			return folderSystem.getFolderById(elementIdPart(mail.sets[0]))
-		} else {
-			return folderSystem.getFolderByMail(mail)
-		}
+		return folderSystem.getFolderByMail(mail)
 	}
 
 	getFolderSystemByGroupId(groupId: Id): FolderSystem | null {
@@ -304,7 +288,7 @@ export class MailModel {
 	 */
 	async moveMails(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
-			return isNotEmpty(mail.sets) ? elementIdPart(mail.sets[0]) : getListId(mail)
+			return this.getMailFolderForMail(mail)?._id?.[1]
 		})
 
 		for (const [folderId, mailsInFolder] of mailsPerFolder) {
@@ -333,7 +317,7 @@ export class MailModel {
 		}
 
 		const mailsPerFolder = groupBy(mails, (mail) => {
-			return isNotEmpty(mail.sets) ? elementIdPart(mail.sets[0]) : getListId(mail)
+			return this.getMailFolderForMail(mail)?._id?.[1]
 		})
 
 		const folders = await this.getMailboxFoldersForMail(mails[0])
