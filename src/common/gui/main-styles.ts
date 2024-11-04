@@ -974,6 +974,9 @@ styles.registerStyle("main", () => {
 		".gap-vpad": {
 			gap: px(size.vpad),
 		},
+		".gap-vpad-xs": {
+			gap: px(size.vpad_xsm),
+		},
 		".gap-hpad": {
 			gap: px(size.hpad),
 		},
@@ -2677,6 +2680,11 @@ styles.registerStyle("main", () => {
 			"z-index": "-1",
 			visibility: "hidden",
 			position: "absolute",
+		},
+		".tutaui-select-trigger": {
+			display: "flex",
+			"justify-content": "space-between",
+			gap: px(size.vpad_small),
 		},
 		".fit-content": {
 			width: "fit-content",
