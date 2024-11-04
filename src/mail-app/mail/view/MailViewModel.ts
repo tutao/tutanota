@@ -1,7 +1,7 @@
 import { ListModel } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { Mail, MailBox, MailFolder, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailBox, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -19,6 +19,7 @@ import {
 	debounce,
 	first,
 	groupByAndMap,
+	isNotNull,
 	lastThrow,
 	lazyMemoized,
 	mapWith,
@@ -326,6 +327,11 @@ export class MailViewModel {
 		return this._folder
 	}
 
+	getLabelsForMail(mail: Mail): MailFolder[] {
+		const groupLabels = this.mailModel.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
+		return mail.sets.map((labelId) => groupLabels.get(elementIdPart(labelId))).filter(isNotNull)
+	}
+
 	private setListId(folder: MailFolder) {
 		if (folder === this._folder) {
 			return
@@ -502,7 +508,11 @@ export class MailViewModel {
 		}
 
 		for (const update of updates) {
-			if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(folder.entries, update.instanceListId)) {
+			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
+				// In case labels change trigger a list redraw.
+				// We need to do it because labels are passed out of band and are not part of the list state.
+				listModel.reapplyFilter()
+			} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(folder.entries, update.instanceListId)) {
 				if (update.operation === OperationType.DELETE) {
 					const mailId = mailSetEntries.get(update.instanceId)?.mail
 					if (mailId) {

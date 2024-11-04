@@ -56,7 +56,7 @@ export class MobileMailMultiselectionActionBar {
 										referenceDom,
 										referenceDom.getBoundingClientRect(),
 										referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
-										mailModel.getLabelsForMails(mails),
+										mailModel.getLabelStatesForMails(mails),
 										(addedLabels, removedLabels) => mailModel.applyLabels(mails, addedLabels, removedLabels),
 									)
 									popup.show()

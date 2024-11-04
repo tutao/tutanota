@@ -112,7 +112,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			title: "assignLabel_action",
 			icon: Icons.Label,
 			click: (_, dom) => {
-				const popup = new LabelsPopup(dom, dom.getBoundingClientRect(), 250, mailModel.getLabelsForMails(mails), (addedLabels, removedLabels) =>
+				const popup = new LabelsPopup(dom, dom.getBoundingClientRect(), 250, mailModel.getLabelStatesForMails(mails), (addedLabels, removedLabels) =>
 					mailModel.applyLabels(mails, addedLabels, removedLabels),
 				)
 				popup.show()

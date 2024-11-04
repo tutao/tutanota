@@ -5,7 +5,6 @@ import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute, positionValue } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
-import { BrowserType } from "../misc/ClientConstants"
 import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
@@ -2363,29 +2362,6 @@ styles.registerStyle("main", () => {
 			"svg, img": {
 				"shape-rendering": "optimizeSpeed",
 			},
-		},
-		"@keyframes move-stripes": {
-			"0%": {
-				"background-position": "0 0",
-			},
-			"100%": {
-				"background-position": "15px 0",
-			},
-		},
-		".indefinite-progress": {
-			"background-image": `repeating-linear-gradient(
-  -45deg,
-  ${theme.content_accent},
-  ${theme.content_accent} 5px,
-  ${theme.content_bg} 5px,
-  ${theme.content_bg} 10px
-);`,
-			// WebKit based browsers initially implemented old specification, we cannot specify unprefixed value
-			// for them
-			[(client.browser === BrowserType.SAFARI ? "-webkit-background-size" : "background-size") as string]: px(15),
-			width: "100%",
-			height: px(3),
-			animation: "move-stripes 2s linear infinite",
 		},
 		".transition-margin": {
 			transition: `margin-bottom 200ms ease-in-out`,
