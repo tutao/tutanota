@@ -41,7 +41,13 @@ export class FolderSystem {
 	getFolderByMail(mail: Mail): MailFolder | null {
 		const sets = mail.sets
 		if (isNotEmpty(sets)) {
-			return this.getFolderById(elementIdPart(sets[0]))
+			for (const setId of sets) {
+				const folder = this.getFolderById(elementIdPart(setId))
+				if (folder != null) {
+					return folder
+				}
+			}
+			return null
 		} else {
 			return this.getFolderByMailListIdLegacy(getListId(mail))
 		}
