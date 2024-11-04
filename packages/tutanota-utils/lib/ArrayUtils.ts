@@ -305,6 +305,21 @@ export function groupBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) =>
 }
 
 /**
+ * Collect an iterable into a map based on {@param keyExtractor}.
+ */
+export function collectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element: T) => R): Map<R, T> {
+	const map = new Map()
+	for (const el of iterable) {
+		const key = keyExtractor(el)
+		if (map.has(key)) {
+			throw new Error(`The elements of iterable are not unique, duplicated key: ${key}`)
+		}
+		map.set(key, el)
+	}
+	return map
+}
+
+/**
  * split an array into chunks of a given size.
  * the last chunk will be smaller if there are less than chunkSize elements left.
  * @param chunkSize

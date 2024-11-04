@@ -221,11 +221,11 @@ export function getLetId(entity: ListElement): IdTuple {
 	return entity._id
 }
 
-export function getElementId(entity: ListElement): Id {
+export function getElementId<T extends ListElement>(entity: T): Id {
 	return elementIdPart(getLetId(entity))
 }
 
-export function getListId(entity: ListElement): Id {
+export function getListId<T extends ListElement>(entity: T): Id {
 	return listIdPart(getLetId(entity))
 }
 
