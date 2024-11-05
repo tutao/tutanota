@@ -6,6 +6,8 @@ import { assertNotNull, concat, stringToUtf8Uint8Array, uint8ArrayToHex } from "
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest"
 import { NotFoundError } from "../../../common/error/RestError"
+import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
+import { SqlType } from "../../offline/SqlValue"
 
 assertWorkerOrNode()
 
@@ -18,45 +20,12 @@ export interface KeyVerificationDetails {
 }
 
 export class KeyVerificationFacade {
-	/**
-	 * Mail addresses in this pool are eligible for key verification.
-	 * For each address, this pool keeps track of its fingerprint and
-	 * verification status (the "details").
-	 */
-	verificationPool = new Map<MailAddress, KeyVerificationDetails>()
-
 	serviceExecutor: IServiceExecutor
+	sqlCipherFacade: SqlCipherFacade
 
-	constructor(serviceExecutor: IServiceExecutor) {
+	constructor(serviceExecutor: IServiceExecutor, sqlCipherFacade: SqlCipherFacade) {
 		this.serviceExecutor = serviceExecutor
-
-		// TODO: this should not be hardcoded
-		this.verificationPool.set("freepancakes@tutanota.com", {
-			fingerprint: "a69589448040836f526eb01263605b2c2d58b849f796ab1ee96e4bd87010e849",
-			verified: false,
-		})
-	}
-
-	async recheckPoolEntries(): Promise<void> {
-		console.log("recheckPoolEntries: Heads-up! This method might make lots of requests, depending on pool size.")
-		console.log("recheckPoolEntries: Do you really need to call this method or would recheckPoolEntry() be sufficient?")
-
-		const addresses = this.verificationPool.keys()
-		for (let address of addresses) {
-			await this.recheckPoolEntry(address)
-		}
-	}
-
-	async recheckPoolEntry(mailAddress: string): Promise<void> {
-		const details = this.verificationPool.get(mailAddress)
-		if (details === undefined) {
-			return
-		}
-
-		const verified = await this.confirmFingerprint(mailAddress, details.fingerprint)
-		details.verified = verified
-
-		this.verificationPool.set(mailAddress, details)
+		this.sqlCipherFacade = sqlCipherFacade
 	}
 
 	async confirmFingerprint(mailAddress: string, expectedFingerprint: string): Promise<boolean> {
@@ -74,39 +43,71 @@ export class KeyVerificationFacade {
 	}
 
 	async getPool(): Promise<Map<MailAddress, KeyVerificationDetails>> {
-		await this.recheckPoolEntries()
-		return Promise.resolve(this.verificationPool)
+		const result = await this.sqlCipherFacade.all(`SELECT * FROM verification_pool`, [])
+
+		const pool = new Map<MailAddress, KeyVerificationDetails>()
+		for (let [_, { mailAddress, fingerprint }] of result.entries()) {
+			const mailAddressStr = mailAddress.value as string
+			const fingerprintStr = fingerprint.value as string
+
+			pool.set(mailAddressStr, { fingerprint: fingerprintStr, verified: await this.confirmFingerprint(mailAddressStr, fingerprintStr) })
+		}
+
+		return Promise.resolve(pool)
 	}
 
 	async addToPool(mailAddress: string, fingerprint: string) {
-		this.verificationPool.set(mailAddress, { fingerprint: fingerprint, verified: false })
+		/* Insert or update mailAddress / fingerprint*/
+		await this.sqlCipherFacade.run(
+			`INSERT INTO verification_pool (mailAddress, fingerprint) VALUES (?, ?)
+			ON CONFLICT(mailAddress) DO UPDATE
+				SET mailAddress=excluded.mailAddress, fingerprint=excluded.fingerprint`,
+			[
+				{ type: SqlType.String, value: mailAddress },
+				{ type: SqlType.String, value: fingerprint },
+			],
+		)
 
-		await this.recheckPoolEntries()
 		return Promise.resolve()
 	}
 
 	async removeFromPool(mailAddress: string) {
-		this.verificationPool.delete(mailAddress)
+		await this.sqlCipherFacade.run(`DELETE FROM verification_pool WHERE mailAddress = ?`, [{ type: SqlType.String, value: mailAddress }])
 
-		await this.recheckPoolEntries()
 		return Promise.resolve()
 	}
 
-	async isVerified(mailAddress: string): Promise<boolean> {
-		await this.recheckPoolEntry(mailAddress)
+	async getStoredFingerprint(mailAddress: string): Promise<string | null> {
+		const result = await this.sqlCipherFacade.get(`SELECT fingerprint FROM verification_pool WHERE mailAddress = ?`, [
+			{ type: SqlType.String, value: mailAddress },
+		])
 
-		// address is considered "not verified" when not a member of the pool
-		const verified = this.verificationPool.get(mailAddress)?.verified ?? false
-		return Promise.resolve(verified)
+		if (result == null) {
+			return Promise.resolve(null)
+		} else {
+			// TODO: Find a safer way than `result.fingerprint.value as string`
+			return Promise.resolve(result.fingerprint.value as string)
+		}
+	}
+
+	async isVerified(mailAddress: string): Promise<boolean> {
+		const storedFingerprint = await this.getStoredFingerprint(mailAddress)
+		if (storedFingerprint == null) {
+			// address is considered "not verified" when not a member of the pool
+			return Promise.resolve(false)
+		}
+
+		return Promise.resolve(this.confirmFingerprint(mailAddress, storedFingerprint))
 	}
 
 	async publicKeyMatchesPinnedPublicKey(mailAddress: string, publicKeyGetOut: PublicKeyGetOut): Promise<boolean> {
 		// TODO: check if this behaviour really is correct
-		return (await this.getPublicKeyHash(publicKeyGetOut)) === this.verificationPool.get(mailAddress)?.fingerprint
+		return (await this.getPublicKeyHash(publicKeyGetOut)) === (await this.getStoredFingerprint(mailAddress))
 	}
 
 	async poolContains(mailAddress: string): Promise<boolean> {
-		return this.verificationPool.get(mailAddress) !== undefined
+		const result = await this.sqlCipherFacade.get(`SELECT * FROM verification_pool WHERE mailAddress = ?`, [{ type: SqlType.String, value: mailAddress }])
+		return Promise.resolve(result !== null)
 	}
 
 	/**

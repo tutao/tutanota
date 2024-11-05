@@ -247,7 +247,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.keyVerification = lazyMemoized(async () => {
 		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.serviceExecutor)
+		return new KeyVerificationFacade(locator.serviceExecutor, locator.sqlCipherFacade)
 	})
 
 	locator.crypto = new CryptoFacade(
