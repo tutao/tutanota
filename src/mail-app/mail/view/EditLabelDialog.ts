@@ -1,18 +1,17 @@
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
-import { ColorPicker } from "../../../common/gui/base/ColorPicker"
 import m from "mithril"
-import { theme } from "../../../common/gui/theme"
 import type { MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { LockedError } from "../../../common/api/common/error/RestError"
 import { MailViewModel } from "./MailViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 
 export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel: MailViewModel, label: MailFolder | null): Promise<void> {
 	return new Promise((resolve) => {
 		let name = label ? label.name : ""
-		let color = label && label.color ? label.color : theme.content_accent
+		let color = label && label.color ? label.color : ""
 		Dialog.showActionDialog({
 			title: lang.get(label ? "editLabel_action" : "addLabel_action"),
 			allowCancel: true,
@@ -41,9 +40,9 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 							name = newName
 						},
 					} satisfies TextFieldAttrs),
-					m(ColorPicker, {
+					m(ColorPickerView, {
 						value: color,
-						onValueChange: (newColor) => {
+						onselect: (newColor: string) => {
 							color = newColor
 						},
 					}),
