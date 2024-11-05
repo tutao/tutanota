@@ -69,6 +69,7 @@ import { attachDropdown } from "../../../common/gui/base/Dropdown"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
+import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 
 assertMainOrNode()
 
@@ -695,7 +696,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private showMail(args: Record<string, any>) {
-		this.mailViewModel.showMailWithFolderId(args.folderId, args.mailId)
+		this.mailViewModel.showMailWithMailSetId(args.folderId, args.mailId)
 		if (styles.isSingleColumnLayout() && !args.mailId && this.viewSlider.focusedColumn === this.mailColumn) {
 			this.viewSlider.focus(this.listColumn)
 		}
@@ -807,14 +808,20 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				[
 					m(".flex.col", [
 						Array.from(mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).values()).map((label) => {
+							const path = `${MAIL_PREFIX}/${getElementId(label)}`
+
 							return m(SidebarSectionRow, {
 								icon: Icons.Label,
 								iconColor: getLabelColor(label.color),
 								label: () => label.name,
-								// FIXME
-								path: "#",
-								// FIXME
-								onClick: noOp,
+								path,
+								isSelectedPrefix: inEditMode ? false : path,
+								disabled: inEditMode,
+								onClick: () => {
+									if (!inEditMode) {
+										this.viewSlider.focus(this.listColumn)
+									}
+								},
 								alwaysShowMoreButton: inEditMode,
 								moreButton: attachDropdown({
 									mainButtonAttrs: {
