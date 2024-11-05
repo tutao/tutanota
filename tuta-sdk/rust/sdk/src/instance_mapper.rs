@@ -1110,8 +1110,8 @@ impl Serializer for MapKeySerializer {
 mod tests {
 	use super::*;
 	use crate::crypto::crypto_facade::CryptoProtocolVersion;
-	use crate::entities::sys::{Group, GroupInfo};
-	use crate::entities::tutanota::{
+	use crate::entities::generated::sys::{Group, GroupInfo};
+	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
 		OutOfOfficeNotificationRecipientList,
 	};

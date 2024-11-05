@@ -6,7 +6,7 @@ use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError};
 use crate::crypto::tuta_crypt::{PQError, PQMessage};
 use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::entities::sys::BucketKey;
+use crate::entities::generated::sys::BucketKey;
 use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
@@ -382,8 +382,8 @@ mod test {
 	use crate::crypto::rsa::{RSAEccKeyPair, RSAKeyPair};
 	use crate::crypto::tuta_crypt::{PQKeyPairs, PQMessage};
 	use crate::element_value::ParsedEntity;
-	use crate::entities::sys::{BucketKey, InstanceSessionKey};
-	use crate::entities::tutanota::Mail;
+	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
+	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::generated_id::GeneratedId;
 	use crate::instance_mapper::InstanceMapper;

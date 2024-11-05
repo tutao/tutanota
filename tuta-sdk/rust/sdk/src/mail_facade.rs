@@ -1,14 +1,14 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
-use crate::entities::tutanota::{
+use crate::entities::generated::tutanota::{
 	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
 use crate::folder_system::{FolderSystem, MailSetKind};
 use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
+use crate::services::generated::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::ResolvingServiceExecutor;
-use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
 use crate::{ApiCallError, IdTupleGenerated, ListLoadDirection};
@@ -184,12 +184,13 @@ impl MailFacade {
 mod tests {
 	use super::UnreadMailStatePostIn;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
-	use crate::entities::tutanota::SimpleMoveMailPostIn;
+	use crate::entities::generated::tutanota::SimpleMoveMailPostIn;
 	use crate::folder_system::MailSetKind;
 	use crate::generated_id::GeneratedId;
 	use crate::mail_facade::MailFacade;
+	use crate::services::generated::tutanota::SimpleMoveMailService;
+	use crate::services::generated::tutanota::UnreadMailStateService;
 	use crate::services::service_executor::MockResolvingServiceExecutor;
-	use crate::services::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 	use crate::user_facade::MockUserFacade;
 	use crate::IdTupleGenerated;
 	use mockall::predicate::{always, eq};

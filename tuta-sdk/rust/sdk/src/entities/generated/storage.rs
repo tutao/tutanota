@@ -1,5 +1,6 @@
 #![allow(non_snake_case, unused_imports)]
-use super::*;
+use super::super::*;
+use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
@@ -123,7 +124,7 @@ pub struct BlobReferenceDeleteIn {
 	pub archiveDataType: i64,
 	pub instanceId: GeneratedId,
 	pub instanceListId: Option<GeneratedId>,
-	pub blobs: Vec<sys::Blob>,
+	pub blobs: Vec<super::sys::Blob>,
 }
 impl Entity for BlobReferenceDeleteIn {
 	fn type_ref() -> TypeRef {
@@ -141,7 +142,7 @@ pub struct BlobReferencePutIn {
 	pub archiveDataType: i64,
 	pub instanceId: GeneratedId,
 	pub instanceListId: Option<GeneratedId>,
-	pub referenceTokens: Vec<sys::BlobReferenceTokenWrapper>,
+	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 }
 impl Entity for BlobReferencePutIn {
 	fn type_ref() -> TypeRef {

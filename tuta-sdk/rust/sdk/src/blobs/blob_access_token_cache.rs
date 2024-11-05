@@ -1,5 +1,5 @@
 use crate::date::DateProvider;
-use crate::entities::storage::BlobServerAccessInfo;
+use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::generated_id::GeneratedId;
 use crate::tutanota_constants::ArchiveDataType;
 use std::collections::HashMap;
@@ -85,7 +85,7 @@ mod tests {
 	};
 	use crate::date::date_provider::stub::DateProviderStub;
 	use crate::date::DateTime;
-	use crate::entities::storage::BlobServerAccessInfo;
+	use crate::entities::generated::storage::BlobServerAccessInfo;
 	use crate::tutanota_constants::ArchiveDataType;
 	use crate::util::test_utils::create_test_entity;
 	use crate::GeneratedId;

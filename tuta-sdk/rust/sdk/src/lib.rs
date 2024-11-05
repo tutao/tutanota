@@ -25,8 +25,8 @@ use crate::custom_id::CustomId;
 use crate::date::date_provider::SystemDateProvider;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
-use crate::entities::sys::{CreateSessionData, SaltData};
-use crate::entities::tutanota::Mail;
+use crate::entities::generated::sys::{CreateSessionData, SaltData};
+use crate::entities::generated::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::entity_client::{IdTupleType, IdType};
@@ -41,9 +41,9 @@ use crate::login::login_facade::{derive_user_passphrase_key, KdfType};
 use crate::login::{CredentialType, Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
+use crate::services::generated::sys::{SaltService, SessionService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::{ResolvingServiceExecutor, ServiceExecutor};
-use crate::services::sys::{SaltService, SessionService};
 use crate::services::ExtraServiceParams;
 use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelProvider, TypeName};
 #[cfg_attr(test, mockall_double::double)]
@@ -529,7 +529,7 @@ impl<C> Encode<C> for ElementValue {
 }
 #[cfg(test)]
 mod tests {
-	use crate::entities::tutanota::Mail;
+	use crate::entities::generated::tutanota::Mail;
 	use crate::serialize_mail;
 	use crate::util::test_utils::create_test_entity;
 

@@ -1,4 +1,4 @@
-use crate::entities::tutanota::MailFolder;
+use crate::entities::generated::tutanota::MailFolder;
 use num_enum::TryFromPrimitive;
 
 pub struct FolderSystem {

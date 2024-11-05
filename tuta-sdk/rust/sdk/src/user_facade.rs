@@ -2,7 +2,7 @@ use crate::crypto::hkdf;
 use crate::crypto::key::GenericAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
-use crate::entities::sys::{GroupMembership, User};
+use crate::entities::generated::sys::{GroupMembership, User};
 use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]

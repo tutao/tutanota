@@ -1,5 +1,6 @@
 #![allow(non_snake_case, unused_imports)]
-use super::*;
+use super::super::*;
+use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]

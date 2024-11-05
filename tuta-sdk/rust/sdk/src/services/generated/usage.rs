@@ -1,7 +1,7 @@
 #![allow(unused_imports, dead_code, unused_variables)]
-use crate::entities::usage::UsageTestAssignmentIn;
-use crate::entities::usage::UsageTestAssignmentOut;
-use crate::entities::usage::UsageTestParticipationIn;
+use crate::entities::generated::usage::UsageTestAssignmentIn;
+use crate::entities::generated::usage::UsageTestAssignmentOut;
+use crate::entities::generated::usage::UsageTestParticipationIn;
 use crate::entities::Entity;
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;

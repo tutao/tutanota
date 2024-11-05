@@ -154,7 +154,7 @@ mod tests {
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
 	use crate::entities::entity_facade::EntityFacadeImpl;
-	use crate::entities::tutanota::Mail;
+	use crate::entities::generated::tutanota::Mail;
 	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::metamodel::TypeModel;

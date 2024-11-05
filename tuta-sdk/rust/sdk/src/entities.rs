@@ -2,23 +2,14 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::custom_id::CustomId;
-use crate::date::DateTime;
+pub use crate::date::DateTime;
 use crate::element_value::ElementValue;
-use crate::generated_id::GeneratedId;
 pub use crate::IdTupleCustom;
 pub use crate::IdTupleGenerated;
 use crate::TypeRef;
 
-pub mod accounting;
-pub mod base;
 pub mod entity_facade;
-pub mod gossip;
-pub mod monitor;
-pub mod storage;
-pub mod sys;
-pub mod tutanota;
-pub mod usage;
+pub mod generated;
 
 /// `'static` on trait bound is fine here because Entity does not contain any non-static references.
 /// See https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html#trait-bound

@@ -8,7 +8,7 @@ use crate::crypto::key::GenericAesKey;
 use crate::crypto::{generate_key_from_passphrase, sha256, Aes256Key};
 use crate::custom_id::CustomId;
 use crate::element_value::ParsedEntity;
-use crate::entities::sys::{Session, User};
+use crate::entities::generated::sys::{Session, User};
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -204,7 +204,7 @@ mod tests {
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::{aes::Iv, Aes128Key, Aes256Key};
 	use crate::custom_id::CustomId;
-	use crate::entities::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
+	use crate::entities::generated::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
 	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;
 	use crate::generated_id::GeneratedId;

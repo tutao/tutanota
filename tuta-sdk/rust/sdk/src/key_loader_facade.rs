@@ -1,7 +1,7 @@
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::custom_id::CustomId;
-use crate::entities::sys::{Group, GroupKey};
+use crate::entities::generated::sys::{Group, GroupKey};
 use crate::generated_id::GeneratedId;
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
@@ -277,7 +277,7 @@ mod tests {
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::{aes::Iv, Aes256Key, PQKeyPairs};
 	use crate::custom_id::CustomId;
-	use crate::entities::sys::{GroupKeysRef, GroupMembership, KeyPair};
+	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership, KeyPair};
 	use crate::key_cache::MockKeyCache;
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;

@@ -3,7 +3,7 @@ use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
 use crate::crypto::kyber::{KyberKeyPair, KyberPrivateKey, KyberPublicKey};
 use crate::crypto::rsa::{RSAEccKeyPair, RSAKeyPair, RSAPrivateKey, RSAPublicKey};
 use crate::crypto::tuta_crypt::PQKeyPairs;
-use crate::entities::sys::KeyPair;
+use crate::entities::generated::sys::KeyPair;
 use crate::ApiCallError;
 use zeroize::Zeroizing;
 
@@ -116,7 +116,7 @@ mod tests {
 	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::{aes::Iv, Aes256Key, PQKeyPairs};
-	use crate::entities::sys::KeyPair;
+	use crate::entities::generated::sys::KeyPair;
 	use crate::util::test_utils::generate_random_string;
 
 	#[test]

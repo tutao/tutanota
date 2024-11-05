@@ -2,18 +2,10 @@ use crate::crypto::key::GenericAesKey;
 use crate::services::hidden::Executor;
 use crate::ApiCallError;
 use std::collections::HashMap;
-
-pub mod accounting;
-pub mod base;
 pub mod generator;
-pub mod gossip;
-pub mod monitor;
 pub mod service_executor;
-pub mod storage;
-pub mod sys;
-pub mod tutanota;
-pub mod usage;
 
+pub mod generated;
 #[cfg(test)]
 pub mod test_services;
 

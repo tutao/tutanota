@@ -103,10 +103,10 @@ crate::service_impl!(declare, ${s.name}, "${appName}/${s.name.toLowerCase()}", $
 
 			function addImports(appName, input, output) {
 				if (input) {
-					imports.add(`use crate::entities::${appName}::${input};`)
+					imports.add(`use crate::entities::generated::${appName}::${input};`)
 				}
 				if (output) {
-					imports.add(`use crate::entities::${appName}::${output};`)
+					imports.add(`use crate::entities::generated::${appName}::${output};`)
 				}
 			}
 
@@ -144,7 +144,8 @@ crate::service_impl!(declare, ${s.name}, "${appName}/${s.name.toLowerCase()}", $
 export function combineRustTypes(types) {
 	if (types.length === 0) return "\n"
 	return `#![allow(non_snake_case, unused_imports)]
-use super::*;
+use crate::*;
+use super::super::*;
 use serde::{Deserialize, Serialize};
 
 ${types.join("\n\n")}
@@ -206,7 +207,7 @@ function rustValueType(valueName, type, value) {
 function rustAssociationType(association) {
 	if (association.type === AssociationType.Aggregation) {
 		if (association.dependency) {
-			return `${association.dependency}::${association.refType}`
+			return `super::${association.dependency}::${association.refType}`
 		} else {
 			return association.refType
 		}

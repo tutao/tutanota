@@ -703,8 +703,8 @@ mod tests {
 	use crate::entities::entity_facade::{
 		EntityFacade, EntityFacadeImpl, MappedValue, MAX_UNCOMPRESSED_INPUT_LZ4,
 	};
-	use crate::entities::sys::CustomerAccountTerminationRequest;
-	use crate::entities::tutanota::Mail;
+	use crate::entities::generated::sys::CustomerAccountTerminationRequest;
+	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::{JsonElement, RawEntity};

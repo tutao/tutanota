@@ -1,5 +1,5 @@
 #![allow(unused_imports, dead_code, unused_variables)]
-use crate::entities::accounting::CustomerAccountReturn;
+use crate::entities::generated::accounting::CustomerAccountReturn;
 use crate::entities::Entity;
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;

@@ -694,7 +694,7 @@ mod tests {
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::entity_facade::EntityFacadeImpl;
-	use crate::entities::sys::User;
+	use crate::entities::generated::sys::User;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::services::test_services::HelloEncOutput;

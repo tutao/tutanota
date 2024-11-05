@@ -7,7 +7,7 @@ use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::crypto::Aes256Key;
 use crate::custom_id::CustomId;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::entities::sys::{
+use crate::entities::generated::sys::{
 	ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
 };
 use crate::entities::Entity;
@@ -97,7 +97,7 @@ pub fn leak<T>(what: T) -> &'static T {
 /// # Examples
 ///
 /// ```ignore
-/// use crate::entities::tutanota::Mail;
+/// use crate::entities::generated::tutanota::Mail;
 /// use crate::util::test_utils::create_test_entity;
 ///
 /// let mail = Mail {

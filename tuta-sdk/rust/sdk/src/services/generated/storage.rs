@@ -1,10 +1,10 @@
 #![allow(unused_imports, dead_code, unused_variables)]
-use crate::entities::storage::BlobAccessTokenPostIn;
-use crate::entities::storage::BlobAccessTokenPostOut;
-use crate::entities::storage::BlobGetIn;
-use crate::entities::storage::BlobPostOut;
-use crate::entities::storage::BlobReferenceDeleteIn;
-use crate::entities::storage::BlobReferencePutIn;
+use crate::entities::generated::storage::BlobAccessTokenPostIn;
+use crate::entities::generated::storage::BlobAccessTokenPostOut;
+use crate::entities::generated::storage::BlobGetIn;
+use crate::entities::generated::storage::BlobPostOut;
+use crate::entities::generated::storage::BlobReferenceDeleteIn;
+use crate::entities::generated::storage::BlobReferencePutIn;
 use crate::entities::Entity;
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;

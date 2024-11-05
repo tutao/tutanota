@@ -1,5 +1,6 @@
 #![allow(non_snake_case, unused_imports)]
-use super::*;
+use super::super::*;
+use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
@@ -231,7 +232,7 @@ pub struct CalendarRepeatRule {
 	pub frequency: i64,
 	pub interval: i64,
 	pub timeZone: String,
-	pub excludedDates: Vec<sys::DateWrapper>,
+	pub excludedDates: Vec<super::sys::DateWrapper>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 impl Entity for CalendarRepeatRule {
@@ -1027,7 +1028,7 @@ pub struct TutanotaFile {
 	pub mimeType: Option<String>,
 	pub name: String,
 	pub size: i64,
-	pub blobs: Vec<sys::Blob>,
+	pub blobs: Vec<super::sys::Blob>,
 	pub parent: Option<IdTupleGenerated>,
 	pub subFiles: Option<Subfiles>,
 	pub _errors: Option<Errors>,
@@ -1381,7 +1382,7 @@ pub struct Mail {
 	pub subject: String,
 	pub unread: bool,
 	pub attachments: Vec<IdTupleGenerated>,
-	pub bucketKey: Option<sys::BucketKey>,
+	pub bucketKey: Option<super::sys::BucketKey>,
 	pub conversationEntry: IdTupleGenerated,
 	pub firstRecipient: Option<MailAddress>,
 	pub mailDetails: Option<IdTupleGenerated>,
@@ -1715,7 +1716,7 @@ pub struct NewDraftAttachment {
 	pub encFileName: Vec<u8>,
 	#[serde(with = "serde_bytes")]
 	pub encMimeType: Vec<u8>,
-	pub referenceTokens: Vec<sys::BlobReferenceTokenWrapper>,
+	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 }
 impl Entity for NewDraftAttachment {
 	fn type_ref() -> TypeRef {

@@ -1,8 +1,8 @@
 #![allow(unused_imports, dead_code, unused_variables)]
-use crate::entities::monitor::ReadCounterData;
-use crate::entities::monitor::ReadCounterReturn;
-use crate::entities::monitor::ReportErrorIn;
-use crate::entities::monitor::WriteCounterData;
+use crate::entities::generated::monitor::ReadCounterData;
+use crate::entities::generated::monitor::ReadCounterReturn;
+use crate::entities::generated::monitor::ReportErrorIn;
+use crate::entities::generated::monitor::WriteCounterData;
 use crate::entities::Entity;
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;

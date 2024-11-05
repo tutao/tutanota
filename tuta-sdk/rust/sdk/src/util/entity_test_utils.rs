@@ -2,7 +2,7 @@ use crate::crypto::aes::Iv;
 use crate::crypto::key::GenericAesKey;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::entities::tutanota::{Mail, MailAddress};
+use crate::entities::generated::tutanota::{Mail, MailAddress};
 use crate::entities::Entity;
 use crate::generated_id::GeneratedId;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
