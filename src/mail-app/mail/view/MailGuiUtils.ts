@@ -423,3 +423,11 @@ export function getConfidentialFontIcon(mail: Mail): String {
 	const confidentialIcon = getConfidentialIcon(mail)
 	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
 }
+
+export function isMailContrastFixNeeded(editorDom: ParentNode): boolean {
+	return (
+		Array.from(editorDom.querySelectorAll("*[style]"), (e) => (e as HTMLElement).style).some(
+			(s) => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
+		) || editorDom.querySelectorAll("font[color]").length > 0
+	)
+}
