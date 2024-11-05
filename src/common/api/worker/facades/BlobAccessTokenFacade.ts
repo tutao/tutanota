@@ -41,11 +41,7 @@ export class BlobAccessTokenFacade {
 	// cache for upload requests are valid for the whole archive (key:<ownerGroup + archiveDataType>).
 	private readonly writeCache: BlobAccessTokenCache<string>
 
-	constructor(
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly dateProvider: DateProvider,
-		private readonly authDataProvider: AuthDataProvider,
-	) {
+	constructor(private readonly serviceExecutor: IServiceExecutor, private readonly authDataProvider: AuthDataProvider, dateProvider: DateProvider) {
 		this.readArchiveCache = new BlobAccessTokenCache<Id>(dateProvider)
 		this.readBlobCache = new BlobAccessTokenCache<Id>(dateProvider)
 		this.writeCache = new BlobAccessTokenCache<string>(dateProvider)

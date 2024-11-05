@@ -44,7 +44,7 @@ o.spec("BlobAccessTokenFacade test", function () {
 		}
 		serviceMock = object<ServiceExecutor>()
 		authDataProvider = object<AuthDataProvider>()
-		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, dateProvider, authDataProvider)
+		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, authDataProvider, dateProvider)
 	})
 
 	o.afterEach(function () {
