@@ -7596,6 +7596,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": true
             },
+            "defaultLabelCreated": {
+                "final": false,
+                "name": "defaultLabelCreated",
+                "id": 1510,
+                "since": 77,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "defaultSender": {
                 "final": false,
                 "name": "defaultSender",

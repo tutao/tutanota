@@ -2,11 +2,18 @@
 use crate::entities::generated::accounting::CustomerAccountReturn;
 use crate::ApiCallError;
 use crate::entities::Entity;
-use crate::services::{PostService, GetService, PutService, DeleteService, Service, Executor, ExtraServiceParams};
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
-use crate::entities::accounting::CustomerAccountReturn;
+use crate::services::{
+	DeleteService, Executor, ExtraServiceParams, GetService, PostService, PutService, Service,
+};
+use crate::ApiCallError;
 pub struct CustomerAccountService;
 
-crate::service_impl!(declare, CustomerAccountService, "accounting/customeraccountservice", 7);
+crate::service_impl!(
+	declare,
+	CustomerAccountService,
+	"accounting/customeraccountservice",
+	7
+);
 crate::service_impl!(GET, CustomerAccountService, (), CustomerAccountReturn);

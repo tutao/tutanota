@@ -23,9 +23,6 @@ impl Entity for CustomerAccountPosting {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountReturn {
@@ -48,6 +45,3 @@ impl Entity for CustomerAccountReturn {
 		}
 	}
 }
-
-
-

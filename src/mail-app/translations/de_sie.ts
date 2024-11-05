@@ -1819,5 +1819,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"editLabel_action": "Label bearbeiten",
+		"importantLabel_label": "Wichtig"
 	},
 }

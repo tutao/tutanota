@@ -20,9 +20,6 @@ impl Entity for BlobAccessTokenPostIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobAccessTokenPostOut {
@@ -37,9 +34,6 @@ impl Entity for BlobAccessTokenPostOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -59,9 +53,6 @@ impl Entity for BlobArchiveRef {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobGetIn {
@@ -79,9 +70,6 @@ impl Entity for BlobGetIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobId {
@@ -97,9 +85,6 @@ impl Entity for BlobId {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobPostOut {
@@ -114,9 +99,6 @@ impl Entity for BlobPostOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -134,9 +116,6 @@ impl Entity for BlobReadData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -156,9 +135,6 @@ impl Entity for BlobReferenceDeleteIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobReferencePutIn {
@@ -177,9 +153,6 @@ impl Entity for BlobReferencePutIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobServerAccessInfo {
@@ -197,9 +170,6 @@ impl Entity for BlobServerAccessInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobServerUrl {
@@ -214,9 +184,6 @@ impl Entity for BlobServerUrl {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -233,9 +200,6 @@ impl Entity for BlobWriteData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InstanceId {
@@ -250,6 +214,3 @@ impl Entity for InstanceId {
 		}
 	}
 }
-
-
-
