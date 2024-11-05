@@ -34,7 +34,6 @@ import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 
@@ -137,14 +136,22 @@ import("./translations/en.js")
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
 				},
-				async onFullLoginSuccess() {},
-			}
-		})
-		mailLocator.logins.addPostLoginAction(async () => {
-			return {
-				async onPartialLoginSuccess() {},
 				async onFullLoginSuccess() {
 					await mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
+
+					if (!mailLocator.logins.getUserController().props.defaultLabelCreated) {
+						const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()
+
+						mailLocator.mailFacade
+							.createLabel(assertNotNull(mailboxDetail[0].mailbox._ownerGroup), {
+								name: lang.get("importantLabel_label"),
+								color: "#FEDC59",
+							})
+							.then(() => {
+								mailLocator.logins.getUserController().props.defaultLabelCreated = true
+								mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
+							})
+					}
 				},
 			}
 		})

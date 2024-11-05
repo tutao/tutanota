@@ -523,6 +523,11 @@
 					"name": "AddValue",
 					"sourceType": "MailFolder",
 					"info": "AddValue MailFolder/color/1479."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "TutanotaProperties",
+					"info": "AddValue TutanotaProperties/defaultLabelCreated/1510."
 				}
 			]
 		}

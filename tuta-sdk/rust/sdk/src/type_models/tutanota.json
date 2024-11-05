@@ -24,7 +24,7 @@
 				"name": "addedLabels",
 				"id": 1507,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
@@ -34,7 +34,7 @@
 				"name": "mails",
 				"id": 1506,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
@@ -44,7 +44,7 @@
 				"name": "removedLabels",
 				"id": 1508,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
@@ -5877,7 +5877,7 @@
 				"name": "label",
 				"id": 1502,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "MailFolder",
 				"dependency": null
@@ -5982,111 +5982,6 @@
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "ManageLabelServiceLabelData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "77"
-	},
-	"ManageLabelServicePostOut": {
-		"name": "ManageLabelServicePostOut",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1490,
-		"rootId": "CHR1dGFub3RhAAXS",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1491,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"label": {
-				"final": false,
-				"name": "label",
-				"id": 1492,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "77"
-	},
-	"ManageLabelServicePutIn": {
-		"name": "ManageLabelServicePutIn",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1493,
-		"rootId": "CHR1dGFub3RhAAXV",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1494,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncSessionKey": {
-				"final": false,
-				"name": "ownerEncSessionKey",
-				"id": 1495,
-				"since": 77,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerGroup": {
-				"final": false,
-				"name": "ownerGroup",
-				"id": 1497,
-				"since": 77,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1496,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"data": {
-				"final": false,
-				"name": "data",
-				"id": 1499,
-				"since": 77,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "ManageLabelServiceLabelData",
-				"dependency": null
-			},
-			"label": {
-				"final": false,
-				"name": "label",
-				"id": 1498,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailFolder",
 				"dependency": null
 			}
 		},
@@ -7693,6 +7588,15 @@
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true
+			},
+			"defaultLabelCreated": {
+				"final": false,
+				"name": "defaultLabelCreated",
+				"id": 1510,
+				"since": 77,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			},
 			"defaultSender": {
 				"final": false,

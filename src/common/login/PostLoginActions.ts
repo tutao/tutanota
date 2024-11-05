@@ -52,7 +52,6 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly customerFacade: CustomerFacade,
 		private readonly themeController: ThemeController,
 		private readonly showSetupWizard: () => unknown,
-		private readonly appPartialLoginSuccessActions: () => unknown,
 		private readonly syncExternalCalendars: () => unknown,
 		private readonly setUpClientOnlyCalendars: () => unknown,
 	) {}

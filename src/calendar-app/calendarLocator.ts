@@ -881,9 +881,6 @@ class CalendarLocator {
 			this.customerFacade,
 			this.themeController,
 			() => this.showSetupWizard(),
-			() => {
-				calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
-			},
 			() => this.handleExternalSync(),
 			() => this.setUpClientOnlyCalendars(),
 		)
