@@ -1,10 +1,10 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
-import { arrayEquals, defer, DeferredObject } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/tutanota-utils"
 import { Challenge } from "../entities/sys/TypeRefs.js"
 import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
 import { SessionType } from "../common/SessionType.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { Credentials, credentialsToUnencrypted } from "../../misc/credentials/Credentials.js"
+import { Credentials } from "../../misc/credentials/Credentials.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
 
 export const enum LoginFailReason {
@@ -32,7 +32,7 @@ export class PageContextLoginListener implements LoginListener {
 	/**
 	 * Full login reached: any network requests can be made
 	 */
-	async onFullLoginSuccess(_sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+	async onFullLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.fullLoginFailed = false
 
 		// Update the credentials after the full login.
@@ -44,8 +44,11 @@ export class PageContextLoginListener implements LoginListener {
 
 		const persistedCredentials = (await this.credentialsProvider.getAllInternalCredentials()).find((a) => a.credentialInfo.userId === credentials.userId)
 		if (persistedCredentials != null && this.isPassphraseKeyUpdatedNeeded(persistedCredentials, credentials)) {
-			const updatedCredentials = credentialsToUnencrypted(credentials, cacheInfo.databaseKey)
-			await this.credentialsProvider.store(updatedCredentials)
+			await this.credentialsProvider.replacePassword(
+				persistedCredentials.credentialInfo,
+				assertNotNull(credentials.encryptedPassword),
+				assertNotNull(credentials.encryptedPassphraseKey),
+			)
 		}
 
 		this.loginPromise.resolve()
