@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestAssignment {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub name: String,
 	pub sendPings: bool,
 	pub testId: GeneratedId,
@@ -55,7 +55,7 @@ impl Entity for UsageTestAssignmentOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestMetricConfig {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub name: String,
 	#[serde(rename = "type")]
 	pub r#type: i64,
@@ -73,7 +73,7 @@ impl Entity for UsageTestMetricConfig {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestMetricConfigValue {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub key: String,
 	pub value: String,
 }
@@ -89,7 +89,7 @@ impl Entity for UsageTestMetricConfigValue {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestMetricData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub name: String,
 	pub value: String,
 }
@@ -123,7 +123,7 @@ impl Entity for UsageTestParticipationIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestStage {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub maxPings: i64,
 	pub minPings: i64,
 	pub name: String,

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AttachmentKeyData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub bucketEncFileSessionKey: Option<Vec<u8>>,
 	#[serde(with = "serde_bytes")]
@@ -24,7 +24,7 @@ impl Entity for AttachmentKeyData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Birthday {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub day: i64,
 	pub month: i64,
 	pub year: Option<i64>,
@@ -41,7 +41,7 @@ impl Entity for Birthday {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Body {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub compressedText: Option<String>,
 	pub text: Option<String>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -74,7 +74,7 @@ impl Entity for CalendarDeleteData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEvent {
 	pub _format: i64,
-	pub _id: IdTupleCustom,
+	pub _id: Option<IdTupleCustom>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -110,7 +110,7 @@ impl Entity for CalendarEvent {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventAttendee {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub status: i64,
 	pub address: EncryptedMailAddress,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -127,7 +127,7 @@ impl Entity for CalendarEventAttendee {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventIndexRef {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
 impl Entity for CalendarEventIndexRef {
@@ -143,7 +143,7 @@ impl Entity for CalendarEventIndexRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventUidIndex {
 	pub _format: i64,
-	pub _id: IdTupleCustom,
+	pub _id: Option<IdTupleCustom>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub alteredInstances: Vec<IdTupleCustom>,
@@ -162,7 +162,7 @@ impl Entity for CalendarEventUidIndex {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventUpdate {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -185,7 +185,7 @@ impl Entity for CalendarEventUpdate {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventUpdateList {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
 impl Entity for CalendarEventUpdateList {
@@ -201,7 +201,7 @@ impl Entity for CalendarEventUpdateList {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarGroupRoot {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -225,7 +225,7 @@ impl Entity for CalendarGroupRoot {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarRepeatRule {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub endType: i64,
 	pub endValue: Option<i64>,
 	pub frequency: i64,
@@ -247,7 +247,7 @@ impl Entity for CalendarRepeatRule {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Contact {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -295,7 +295,7 @@ impl Entity for Contact {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactAddress {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub address: String,
 	pub customTypeName: String,
 	#[serde(rename = "type")]
@@ -314,7 +314,7 @@ impl Entity for ContactAddress {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactCustomDate {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub customTypeName: String,
 	pub dateIso: String,
 	#[serde(rename = "type")]
@@ -334,7 +334,7 @@ impl Entity for ContactCustomDate {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactList {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -358,7 +358,7 @@ impl Entity for ContactList {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactListEntry {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -381,7 +381,7 @@ impl Entity for ContactListEntry {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactListGroupRoot {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -403,7 +403,7 @@ impl Entity for ContactListGroupRoot {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactMailAddress {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub address: String,
 	pub customTypeName: String,
 	#[serde(rename = "type")]
@@ -422,7 +422,7 @@ impl Entity for ContactMailAddress {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactMessengerHandle {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub customTypeName: String,
 	pub handle: String,
 	#[serde(rename = "type")]
@@ -441,7 +441,7 @@ impl Entity for ContactMessengerHandle {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactPhoneNumber {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub customTypeName: String,
 	pub number: String,
 	#[serde(rename = "type")]
@@ -460,7 +460,7 @@ impl Entity for ContactPhoneNumber {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactPronouns {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub language: String,
 	pub pronouns: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -477,7 +477,7 @@ impl Entity for ContactPronouns {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactRelationship {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub customTypeName: String,
 	pub person: String,
 	#[serde(rename = "type")]
@@ -496,7 +496,7 @@ impl Entity for ContactRelationship {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactSocialId {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub customTypeName: String,
 	pub socialId: String,
 	#[serde(rename = "type")]
@@ -515,7 +515,7 @@ impl Entity for ContactSocialId {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ContactWebsite {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub customTypeName: String,
 	#[serde(rename = "type")]
 	pub r#type: i64,
@@ -535,7 +535,7 @@ impl Entity for ContactWebsite {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ConversationEntry {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub conversationType: i64,
@@ -555,7 +555,7 @@ impl Entity for ConversationEntry {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateExternalUserGroupData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub externalPwEncUserGroupKey: Vec<u8>,
 	#[serde(with = "serde_bytes")]
@@ -686,7 +686,7 @@ impl Entity for CustomerAccountCreateData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DefaultAlarmInfo {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub trigger: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -751,7 +751,7 @@ impl Entity for DeleteMailFolderData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftAttachment {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub ownerEncFileSessionKey: Vec<u8>,
 	pub ownerKeyVersion: i64,
@@ -807,7 +807,7 @@ impl Entity for DraftCreateReturn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub bodyText: String,
 	pub compressedBodyText: Option<String>,
 	pub confidential: bool,
@@ -835,7 +835,7 @@ impl Entity for DraftData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DraftRecipient {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub mailAddress: String,
 	pub name: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -888,7 +888,7 @@ impl Entity for DraftUpdateReturn {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EmailTemplate {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -912,7 +912,7 @@ impl Entity for EmailTemplate {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EmailTemplateContent {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub languageCode: String,
 	pub text: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -947,7 +947,7 @@ impl Entity for EncryptTutanotaPropertiesData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EncryptedMailAddress {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub address: String,
 	pub name: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -1017,7 +1017,7 @@ impl Entity for ExternalUserData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TutanotaFile {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1046,7 +1046,7 @@ impl Entity for TutanotaFile {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct FileSystem {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1137,7 +1137,7 @@ impl Entity for GroupInvitationPutData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupSettings {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub color: String,
 	pub name: Option<String>,
 	pub sourceUrl: Option<String>,
@@ -1157,7 +1157,7 @@ impl Entity for GroupSettings {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Header {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub compressedHeaders: Option<String>,
 	pub headers: Option<String>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -1174,7 +1174,7 @@ impl Entity for Header {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ImapFolder {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub lastseenuid: String,
 	pub name: String,
 	pub uidvalidity: String,
@@ -1192,7 +1192,7 @@ impl Entity for ImapFolder {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ImapSyncConfiguration {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub host: String,
 	pub password: String,
 	pub port: i64,
@@ -1212,7 +1212,7 @@ impl Entity for ImapSyncConfiguration {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ImapSyncState {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub folders: Vec<ImapFolder>,
@@ -1229,7 +1229,7 @@ impl Entity for ImapSyncState {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InboxRule {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "type")]
 	pub r#type: String,
 	pub value: String,
@@ -1248,7 +1248,7 @@ impl Entity for InboxRule {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InternalGroupData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub adminEncGroupKey: Vec<u8>,
 	pub adminKeyVersion: i64,
@@ -1281,7 +1281,7 @@ impl Entity for InternalGroupData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InternalRecipientKeyData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub mailAddress: String,
 	pub protocolVersion: i64,
 	#[serde(with = "serde_bytes")]
@@ -1302,7 +1302,7 @@ impl Entity for InternalRecipientKeyData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct KnowledgeBaseEntry {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1326,7 +1326,7 @@ impl Entity for KnowledgeBaseEntry {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct KnowledgeBaseEntryKeyword {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub keyword: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -1360,7 +1360,7 @@ impl Entity for ListUnsubscribeData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Mail {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1403,7 +1403,7 @@ impl Entity for Mail {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddress {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub address: String,
 	pub name: String,
 	pub contact: Option<IdTupleGenerated>,
@@ -1421,7 +1421,7 @@ impl Entity for MailAddress {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressProperties {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub mailAddress: String,
 	pub senderName: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -1438,7 +1438,7 @@ impl Entity for MailAddressProperties {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailBag {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub mails: GeneratedId,
 }
 impl Entity for MailBag {
@@ -1454,7 +1454,7 @@ impl Entity for MailBag {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailBox {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1483,7 +1483,7 @@ impl Entity for MailBox {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetails {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub authStatus: i64,
 	pub sentDate: DateTime,
 	pub body: Body,
@@ -1504,7 +1504,7 @@ impl Entity for MailDetails {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsBlob {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1527,7 +1527,7 @@ impl Entity for MailDetailsBlob {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsDraft {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1549,7 +1549,7 @@ impl Entity for MailDetailsDraft {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailDetailsDraftsRef {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
 impl Entity for MailDetailsDraftsRef {
@@ -1565,7 +1565,7 @@ impl Entity for MailDetailsDraftsRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailFolder {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1593,7 +1593,7 @@ impl Entity for MailFolder {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailFolderRef {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub folders: GeneratedId,
 }
 impl Entity for MailFolderRef {
@@ -1609,7 +1609,7 @@ impl Entity for MailFolderRef {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailSetEntry {
 	pub _format: i64,
-	pub _id: IdTupleCustom,
+	pub _id: Option<IdTupleCustom>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub mail: IdTupleGenerated,
@@ -1627,7 +1627,7 @@ impl Entity for MailSetEntry {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailboxGroupRoot {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub calendarEventUpdates: Option<CalendarEventUpdateList>,
@@ -1650,7 +1650,7 @@ impl Entity for MailboxGroupRoot {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailboxProperties {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -1674,7 +1674,7 @@ impl Entity for MailboxProperties {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailboxServerProperties {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub whitelistProtectionEnabled: bool,
@@ -1708,7 +1708,7 @@ impl Entity for MoveMailData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NewDraftAttachment {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub encCid: Option<Vec<u8>>,
 	#[serde(with = "serde_bytes")]
@@ -1729,7 +1729,7 @@ impl Entity for NewDraftAttachment {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NewsId {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub newsItemId: GeneratedId,
 	pub newsItemName: String,
 }
@@ -1775,7 +1775,7 @@ impl Entity for NewsOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NotificationMail {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub bodyText: String,
 	pub mailboxLink: String,
 	pub recipientMailAddress: String,
@@ -1795,7 +1795,7 @@ impl Entity for NotificationMail {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotification {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub enabled: bool,
@@ -1815,7 +1815,7 @@ impl Entity for OutOfOfficeNotification {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationMessage {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub message: String,
 	pub subject: String,
 	#[serde(rename = "type")]
@@ -1833,7 +1833,7 @@ impl Entity for OutOfOfficeNotificationMessage {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationRecipientList {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
 impl Entity for OutOfOfficeNotificationRecipientList {
@@ -1864,7 +1864,7 @@ impl Entity for PhishingMarkerWebsocketData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PhotosRef {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub files: GeneratedId,
 }
 impl Entity for PhotosRef {
@@ -1894,7 +1894,7 @@ impl Entity for ReceiveInfoServiceData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Recipients {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub bccRecipients: Vec<MailAddress>,
 	pub ccRecipients: Vec<MailAddress>,
 	pub toRecipients: Vec<MailAddress>,
@@ -1912,7 +1912,7 @@ impl Entity for Recipients {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RemoteImapSyncInfo {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub seen: bool,
@@ -1948,7 +1948,7 @@ impl Entity for ReportMailPostData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReportedMailFieldMarker {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub marker: String,
 	pub status: i64,
 }
@@ -1964,7 +1964,7 @@ impl Entity for ReportedMailFieldMarker {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecureExternalRecipientKeyData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub kdfVersion: i64,
 	pub mailAddress: String,
 	#[serde(with = "serde_bytes")]
@@ -2039,7 +2039,7 @@ impl Entity for SendDraftReturn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SharedGroupData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub bucketEncInvitationSessionKey: Vec<u8>,
 	pub capability: i64,
@@ -2084,7 +2084,7 @@ impl Entity for SimpleMoveMailPostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SpamResults {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
 impl Entity for SpamResults {
@@ -2099,7 +2099,7 @@ impl Entity for SpamResults {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Subfiles {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub files: GeneratedId,
 }
 impl Entity for Subfiles {
@@ -2114,7 +2114,7 @@ impl Entity for Subfiles {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SymEncInternalRecipientKeyData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub mailAddress: String,
 	#[serde(with = "serde_bytes")]
 	pub symEncBucketKey: Vec<u8>,
@@ -2134,7 +2134,7 @@ impl Entity for SymEncInternalRecipientKeyData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TemplateGroupRoot {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -2189,7 +2189,7 @@ impl Entity for TranslationGetOut {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TutanotaProperties {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
@@ -2273,7 +2273,7 @@ impl Entity for UserAccountCreateData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAccountUserData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub contactEncContactListSessionKey: Vec<u8>,
 	#[serde(with = "serde_bytes")]
@@ -2328,7 +2328,7 @@ impl Entity for UserAccountUserData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAreaGroupData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub adminEncGroupKey: Option<Vec<u8>>,
 	pub adminKeyVersion: Option<i64>,
@@ -2387,7 +2387,7 @@ impl Entity for UserAreaGroupPostData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserSettingsGroupRoot {
 	pub _format: i64,
-	pub _id: GeneratedId,
+	pub _id: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,

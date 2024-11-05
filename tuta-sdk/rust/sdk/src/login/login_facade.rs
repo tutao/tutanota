@@ -288,7 +288,7 @@ mod tests {
 		let user_group_key = Aes128Key::generate(randomizer);
 		User {
 			_format: 0,
-			_id: user_id.to_owned(),
+			_id: Some(user_id.to_owned()),
 			_ownerGroup: None,
 			_permissions: Default::default(),
 			accountType: 0,

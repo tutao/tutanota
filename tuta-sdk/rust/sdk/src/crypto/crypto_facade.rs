@@ -533,10 +533,10 @@ mod test {
 		);
 
 		let mail = Mail {
-			_id: IdTupleGenerated {
+			_id: Some(IdTupleGenerated {
 				list_id: constants.instance_list.clone(),
 				element_id: constants.instance_id.clone(),
-			},
+			}),
 			_ownerGroup: Some(constants.key_group.clone()),
 			bucketKey: Some(bucket_key_data),
 			..create_test_entity()

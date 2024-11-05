@@ -32,20 +32,20 @@ pub fn generate_random_group(
 ) -> Group {
 	Group {
 		_format: 0,
-		_id: GeneratedId::test_random(),
+		_id: Some(GeneratedId::test_random()),
 		_ownerGroup: None,
 		_permissions: GeneratedId::test_random(),
 		groupInfo: IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
 		administratedGroups: None,
 		archives: vec![ArchiveType {
-			_id: CustomId::test_random(),
+			_id: Some(CustomId::test_random()),
 			active: ArchiveRef {
-				_id: CustomId::test_random(),
+				_id: Some(CustomId::test_random()),
 				archiveId: GeneratedId::test_random(),
 			},
 			inactive: vec![],
 			r#type: TypeInfo {
-				_id: CustomId::test_random(),
+				_id: Some(CustomId::test_random()),
 				application: "app".to_string(),
 				typeId: 1,
 			},
@@ -63,7 +63,7 @@ pub fn generate_random_group(
 		enabled: true,
 		external: false,
 		pubAdminGroupEncGKey: Some(PubEncKeyData {
-			_id: CustomId::test_random(),
+			_id: Some(CustomId::test_random()),
 			recipientIdentifier: "adminGroupId".to_string(),
 			recipientIdentifierType: PublicKeyIdentifierType::GroupId as i64,
 			protocolVersion: CryptoProtocolVersion::Tutacrypt as i64,

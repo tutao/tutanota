@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ApprovalMail {
 	pub _format: i64,
-	pub _id: IdTupleCustom,
+	pub _id: Option<IdTupleCustom>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub date: Option<DateTime>,
@@ -26,7 +26,7 @@ impl Entity for ApprovalMail {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CounterValue {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub counterId: GeneratedId,
 	pub value: i64,
 }
@@ -42,7 +42,7 @@ impl Entity for CounterValue {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ErrorReportData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub additionalInfo: String,
 	pub appVersion: String,
 	pub clientType: i64,
@@ -65,7 +65,7 @@ impl Entity for ErrorReportData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ErrorReportFile {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub content: String,
 	pub name: String,
 }

@@ -19,10 +19,10 @@ pub fn generate_email_entity(
 	recipient_name: String,
 ) -> (ParsedEntity, ParsedEntity) {
 	let original_mail = Mail {
-		_id: IdTupleGenerated {
+		_id: Some(IdTupleGenerated {
 			list_id: GeneratedId("O1RT1m6-0R-0".to_string()),
 			element_id: GeneratedId("O1RT2Dj----0".to_string()),
-		},
+		}),
 		receivedDate: DateTime::from_millis(1470039025474),
 		confidential,
 		subject,

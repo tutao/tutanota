@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountPosting {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub amount: i64,
 	pub invoiceNumber: Option<String>,
 	#[serde(rename = "type")]

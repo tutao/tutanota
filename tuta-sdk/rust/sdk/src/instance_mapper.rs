@@ -1150,10 +1150,10 @@ mod tests {
 		let mapper = InstanceMapper::new();
 		let uid_index: CalendarEventUidIndex = mapper.parse_entity(parsed_entity).unwrap();
 		assert_eq!(
-			IdTupleCustom {
+			Some(IdTupleCustom {
 				list_id: GeneratedId("O9AJe4k--w-0".to_string()),
 				element_id: CustomId("K-DUa41Th796YcV5RwMBtonQBn04PmCaSBSSfmeMUoE".to_string())
-			},
+			}),
 			uid_index._id
 		);
 		assert_eq!(
@@ -1283,7 +1283,7 @@ mod tests {
 	fn test_ser_mailbox_group_root() {
 		let group_root = MailboxGroupRoot {
 			_format: 0,
-			_id: GeneratedId::test_random(),
+			_id: Some(GeneratedId::test_random()),
 			_ownerGroup: None,
 			_permissions: GeneratedId::test_random(),
 			calendarEventUpdates: None,
@@ -1291,7 +1291,7 @@ mod tests {
 			mailboxProperties: None,
 			outOfOfficeNotification: None,
 			outOfOfficeNotificationRecipientList: Some(OutOfOfficeNotificationRecipientList {
-				_id: CustomId::test_random(),
+				_id: Some(CustomId::test_random()),
 				list: GeneratedId::test_random(),
 			}),
 			serverProperties: GeneratedId::test_random(),
@@ -1349,7 +1349,7 @@ mod tests {
 		));
 		let calendar_event_uid_index = CalendarEventUidIndex {
 			_format: 0,
-			_id: _id.clone(),
+			_id: Some(_id.clone()),
 			_ownerGroup: None,
 			_permissions: GeneratedId::test_random(),
 			alteredInstances: vec![],
@@ -1373,7 +1373,7 @@ mod tests {
 		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
 		let group_info = GroupInfo {
 			_format: 0,
-			_id: _id.clone(),
+			_id: Some(_id.clone()),
 			_ownerEncSessionKey: None,
 			_listEncSessionKey: None,
 			_ownerGroup: None,
@@ -1411,7 +1411,7 @@ mod tests {
 			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
 		let attachment_id =
 			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
-		mail._id = _id.clone();
+		mail._id = Some(_id.clone());
 		mail.mailDetails = Some(mail_details_id.clone());
 		mail.attachments = vec![attachment_id.clone()];
 		mail.sender = create_test_entity();
@@ -1447,7 +1447,7 @@ mod tests {
 
 		let deserialized: Mail = mapper.parse_entity(serialized).unwrap();
 
-		assert_eq!(_id, deserialized._id);
+		assert_eq!(Some(_id), deserialized._id);
 		assert_eq!(mail_details_id, deserialized.mailDetails.unwrap());
 	}
 
@@ -1455,7 +1455,7 @@ mod tests {
 	fn test_serde_mail_details_blob() {
 		let mut mail_details_blob = create_test_entity::<MailDetailsBlob>();
 		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
-		mail_details_blob._id = _id.clone();
+		mail_details_blob._id = Some(_id.clone());
 
 		let mapper = InstanceMapper::new();
 		let serialized = mapper.serialize_entity(mail_details_blob).unwrap();
@@ -1465,7 +1465,7 @@ mod tests {
 		);
 
 		let deserialized: MailDetailsBlob = mapper.parse_entity(serialized).unwrap();
-		assert_eq!(_id, deserialized._id);
+		assert_eq!(_id, deserialized._id.unwrap());
 	}
 
 	fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {

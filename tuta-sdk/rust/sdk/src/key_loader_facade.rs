@@ -94,7 +94,13 @@ impl KeyLoaderFacade {
 		let retrieved_keys_count = former_keys.len();
 
 		for former_key in former_keys {
-			let version = self.decode_group_key_version(&former_key._id.element_id)?;
+			let version = self.decode_group_key_version(
+				&former_key
+					._id
+					.as_ref()
+					.expect("no id on group key!")
+					.element_id,
+			)?;
 			let next_version = version + 1;
 
 			match next_version.cmp(&last_version) {
@@ -218,7 +224,9 @@ impl KeyLoaderFacade {
 		group_key_version: i64,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let group: Group = self.entity_client.load(key_pair_group_id).await?;
-		let group_key = self.get_current_sym_group_key(&group._id).await?;
+		let group_key = self
+			.get_current_sym_group_key(&group._id.as_ref().expect("no id on group!"))
+			.await?;
 
 		if group_key.version == group_key_version {
 			return self.get_and_decrypt_key_pair(&group, &group_key.object);
@@ -246,7 +254,10 @@ impl KeyLoaderFacade {
 		match &group.currentKeys {
 			Some(keys) => decrypt_key_pair(group_key, keys),
 			None => Err(KeyLoadError {
-				reason: format!("no key pair on group {}", group._id),
+				reason: format!(
+					"no key pair on group {}",
+					group._id.as_ref().expect("no id on group!")
+				),
 			}),
 		}
 	}
@@ -365,10 +376,10 @@ mod tests {
 				0,
 				GroupKey {
 					_format: 0,
-					_id: IdTupleCustom {
+					_id: Some(IdTupleCustom {
 						list_id: GeneratedId("list".to_owned()),
 						element_id: CustomId(i.to_string()),
-					},
+					}),
 					_ownerGroup: None,
 					_permissions: Default::default(),
 					adminGroupEncGKey: None,
@@ -472,17 +483,17 @@ mod tests {
 			let current_group_key = current_group_key.clone();
 			user_facade_mock
 				.expect_get_membership()
-				.with(predicate::eq(user_group_id.clone()))
+				.with(predicate::eq(user_group_id.clone().unwrap()))
 				.returning(move |_| {
 					Ok(GroupMembership {
-						_id: CustomId(user_group_id.clone().to_string()),
+						_id: Some(CustomId(user_group_id.clone().unwrap().to_string())),
 						admin: false,
 						capability: None,
 						groupKeyVersion: current_group_key.clone().version,
 						groupType: None,
 						symEncGKey: sym_enc_g_key.clone(),
 						symKeyVersion: user_group_key.version,
-						group: user_group_id.clone(),
+						group: user_group_id.clone().unwrap(),
 						groupInfo: IdTupleGenerated {
 							list_id: Default::default(),
 							element_id: Default::default(),
@@ -498,7 +509,7 @@ mod tests {
 			let user_group_id = user_group._id.clone();
 			user_facade_mock
 				.expect_get_user_group_id()
-				.returning(move || user_group_id.clone());
+				.returning(move || user_group_id.clone().unwrap());
 		}
 
 		let mut typed_entity_client_mock = MockTypedEntityClient::default();
@@ -506,7 +517,7 @@ mod tests {
 			let group = group.clone();
 			typed_entity_client_mock
 				.expect_load::<Group, GeneratedId>()
-				.with(predicate::eq(group._id.clone()))
+				.with(predicate::eq(group._id.clone().unwrap()))
 				.returning(move |_| Ok(group.clone()));
 		}
 		(user_facade_mock, typed_entity_client_mock)
@@ -521,7 +532,7 @@ mod tests {
 			let user_group = user_group.clone();
 			user_facade_mock
 				.expect_get_user_group_id()
-				.returning(move || user_group._id.clone());
+				.returning(move || user_group._id.clone().unwrap());
 		}
 		{
 			let user_group_key = user_group_key.clone();
@@ -539,14 +550,14 @@ mod tests {
 		);
 
 		let current_user_group_key = key_loader_facade
-			.get_current_sym_group_key(&user_group._id)
+			.get_current_sym_group_key(&user_group._id.as_ref().unwrap())
 			.await
 			.unwrap();
 		assert_eq!(current_user_group_key.version, user_group.groupKeyVersion);
 		assert_eq!(current_user_group_key.object, user_group_key.object);
 
 		let _ = key_loader_facade
-			.get_current_sym_group_key(&user_group._id)
+			.get_current_sym_group_key(&user_group._id.as_ref().unwrap())
 			.await; // should not be cached
 	}
 
@@ -559,7 +570,7 @@ mod tests {
 			let user_group = group.clone();
 			user_facade_mock
 				.expect_get_user_group_id()
-				.returning(move || user_group._id.clone());
+				.returning(move || user_group._id.clone().unwrap());
 		}
 		{
 			let user_group_key = current_group_key.clone();
@@ -576,7 +587,7 @@ mod tests {
 		);
 
 		let group_key = key_loader_facade
-			.get_current_sym_group_key(&group._id)
+			.get_current_sym_group_key(&group._id.as_ref().unwrap())
 			.await
 			.unwrap();
 		assert_eq!(group_key.version, group.groupKeyVersion);
@@ -602,16 +613,16 @@ mod tests {
 
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
-				.load_key_pair(&group._id, i as i64)
+				.load_key_pair(&group._id.as_ref().unwrap(), i as i64)
 				.await
 				.unwrap();
 			match keypair {
-				AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
-				AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
-				AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
-					assert_eq!(pq_key_pair, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
-				},
-			}
+                AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
+                AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
+                AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
+                    assert_eq!(pq_key_pair, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
+                }
+            }
 		}
 	}
 
@@ -627,7 +638,7 @@ mod tests {
 			let user_group_id = user_group._id.clone();
 			user_facade_mock
 				.expect_get_user_group_id()
-				.returning(move || user_group_id.clone());
+				.returning(move || user_group_id.clone().unwrap());
 		}
 		{
 			let user_group_key = user_group_key.clone();
@@ -642,7 +653,7 @@ mod tests {
 			let group_id = user_group._id.clone();
 			typed_entity_client_mock
 				.expect_load::<Group, GeneratedId>()
-				.withf(move |id| *id == group_id.clone())
+				.withf(move |id| *id == group_id.clone().unwrap())
 				.returning(move |_| Ok(user_group.clone()));
 		}
 
@@ -652,7 +663,7 @@ mod tests {
 		);
 
 		let loaded_current_key_pair = key_loader_facade
-			.load_key_pair(&user_group._id, user_group.groupKeyVersion)
+			.load_key_pair(&user_group._id.unwrap(), user_group.groupKeyVersion)
 			.await
 			.unwrap();
 
@@ -682,15 +693,19 @@ mod tests {
 			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
-				.load_sym_group_key(&group._id, i as i64, None)
+				.load_sym_group_key(
+					&group._id.as_ref().expect("no id on group!"),
+					i as i64,
+					None,
+				)
 				.await
 				.unwrap();
 			match keypair {
-				GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
-				GenericAesKey::Aes256(returned_group_key) => {
-					assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
-				},
-			}
+                GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
+                GenericAesKey::Aes256(returned_group_key) => {
+                    assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
+                }
+            }
 		}
 	}
 
@@ -713,7 +728,11 @@ mod tests {
 		);
 
 		let returned_key = key_loader_facade
-			.load_sym_group_key(&group._id, current_group_key_version, None)
+			.load_sym_group_key(
+				&group._id.as_ref().expect("no id on group!"),
+				current_group_key_version,
+				None,
+			)
 			.await
 			.unwrap();
 
@@ -751,7 +770,7 @@ mod tests {
 
 		key_loader_facade
 			.load_sym_group_key(
-				&group._id,
+				&group._id.as_ref().expect("no id on group!"),
 				current_group_key_version,
 				Some(outdated_current_group_key),
 			)

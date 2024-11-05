@@ -183,10 +183,12 @@ function rustValueType(valueName, type, value) {
 	let innerType
 	if (valueName === "_id" && (type.type === Type.ListElement || type.type === Type.BlobElement)) {
 		if (value.type === ValueType.CustomId) {
-			innerType = "IdTupleCustom"
+			innerType = "Option<IdTupleCustom>"
 		} else {
-			innerType = "IdTupleGenerated"
+			innerType = "Option<IdTupleGenerated>"
 		}
+	} else if (valueName === "_id") {
+		innerType = `Option<${ValueToRustTypes[value.type]}>`
 	} else {
 		innerType = ValueToRustTypes[value.type]
 	}

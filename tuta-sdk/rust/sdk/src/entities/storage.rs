@@ -38,7 +38,7 @@ impl Entity for BlobAccessTokenPostOut {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobArchiveRef {
 	pub _format: i64,
-	pub _id: IdTupleGenerated,
+	pub _id: Option<IdTupleGenerated>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
 	pub archive: GeneratedId,
@@ -72,7 +72,7 @@ impl Entity for BlobGetIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobId {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub blobId: GeneratedId,
 }
 impl Entity for BlobId {
@@ -102,7 +102,7 @@ impl Entity for BlobPostOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobReadData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub archiveId: GeneratedId,
 	pub instanceListId: Option<GeneratedId>,
 	pub instanceIds: Vec<InstanceId>,
@@ -155,7 +155,7 @@ impl Entity for BlobReferencePutIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobServerAccessInfo {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub blobAccessToken: String,
 	pub expires: DateTime,
 	pub servers: Vec<BlobServerUrl>,
@@ -172,7 +172,7 @@ impl Entity for BlobServerAccessInfo {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobServerUrl {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub url: String,
 }
 impl Entity for BlobServerUrl {
@@ -187,7 +187,7 @@ impl Entity for BlobServerUrl {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobWriteData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub archiveOwnerGroup: GeneratedId,
 }
 impl Entity for BlobWriteData {
@@ -202,7 +202,7 @@ impl Entity for BlobWriteData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InstanceId {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub instanceId: Option<GeneratedId>,
 }
 impl Entity for InstanceId {
