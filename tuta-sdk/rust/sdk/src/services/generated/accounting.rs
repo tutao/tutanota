@@ -7,7 +7,6 @@ use crate::services::hidden::Nothing;
 use crate::services::{
 	DeleteService, Executor, ExtraServiceParams, GetService, PostService, PutService, Service,
 };
-use crate::ApiCallError;
 pub struct CustomerAccountService;
 
 crate::service_impl!(

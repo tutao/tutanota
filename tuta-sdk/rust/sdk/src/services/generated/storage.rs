@@ -5,23 +5,10 @@ use crate::entities::generated::storage::BlobGetIn;
 use crate::entities::generated::storage::BlobPostOut;
 use crate::entities::generated::storage::BlobReferenceDeleteIn;
 use crate::entities::generated::storage::BlobReferencePutIn;
-use crate::ApiCallError;
-use crate::entities::Entity;
-use crate::services::{PostService, GetService, PutService, DeleteService, Service, Executor, ExtraServiceParams};
-use crate::rest_client::HttpMethod;
-use crate::services::hidden::Nothing;
-use crate::entities::storage::BlobAccessTokenPostIn;
-use crate::entities::storage::BlobAccessTokenPostOut;
-use crate::entities::storage::BlobGetIn;
-use crate::entities::storage::BlobPostOut;
-use crate::entities::storage::BlobReferenceDeleteIn;
-use crate::entities::storage::BlobReferencePutIn;
 use crate::entities::Entity;
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
-use crate::services::{
-	DeleteService, Executor, ExtraServiceParams, GetService, PostService, PutService, Service,
-};
+use crate::services::{DeleteService, Executor, ExtraServiceParams, GetService, PostService, PutService, Service};
 use crate::ApiCallError;
 pub struct BlobAccessTokenService;
 
