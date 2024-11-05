@@ -33,6 +33,10 @@ impl DateTime {
 	pub fn as_millis(self) -> u64 {
 		self.0
 	}
+
+	pub fn is_after(&self, other: &DateTime) -> bool {
+		self.0 > other.0
+	}
 }
 
 uniffi::custom_newtype!(DateTime, u64);
@@ -74,14 +78,13 @@ impl Visitor<'_> for DateVisitor {
 
 #[cfg(test)]
 mod tests {
-	use crate::date::DateTime;
 	use std::time::{Duration, SystemTime};
 
 	#[test]
 	fn initializing_datetime_default() {
-		let default = DateTime::default();
-		let epoch = DateTime::from_system_time(SystemTime::UNIX_EPOCH);
-		let zero = DateTime::from_millis(0);
+		let default = crate::date::DateTime::default();
+		let epoch = crate::date::DateTime::from_system_time(SystemTime::UNIX_EPOCH);
+		let zero = crate::date::DateTime::from_millis(0);
 		assert_eq!(default, epoch);
 		assert_eq!(default, zero);
 	}
@@ -90,9 +93,19 @@ mod tests {
 	fn initializing_datetime_timestamp() {
 		// 18 September 2024 @ 10:09 UTC
 		let timestamp = 1726654153555;
-		let systemtime =
-			DateTime::from_system_time(SystemTime::UNIX_EPOCH + Duration::from_millis(timestamp));
-		let millis = DateTime::from_millis(timestamp);
+		let systemtime = crate::date::DateTime::from_system_time(
+			SystemTime::UNIX_EPOCH + Duration::from_millis(timestamp),
+		);
+		let millis = crate::date::DateTime::from_millis(timestamp);
 		assert_eq!(systemtime, millis);
+	}
+
+	#[test]
+	fn is_after() {
+		let first = crate::date::DateTime::from_millis(10);
+		let second = crate::date::DateTime::from_millis(20);
+		assert!(second.is_after(&first));
+		assert!(!first.is_after(&second));
+		assert!(!first.is_after(&first));
 	}
 }
