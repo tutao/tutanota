@@ -45,7 +45,7 @@ import {
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
-import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
+import { createInlineImage, isMailContrastFixNeeded, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -194,6 +194,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
+
+			const editorDom = this.editor.getDOM()
+			const contrastFixNeeded = isMailContrastFixNeeded(editorDom)
+			// If mail body cannot be displayed as-is on the dark background then apply the background and text color
+			// fix. This class will change tutanota-quote's inside of it.
+			if (contrastFixNeeded) {
+				editorDom.classList.add("bg-fix-quoted")
+			}
 
 			this.processInlineImages()
 
