@@ -53,7 +53,7 @@ export class LabelsPopup implements ModalComponent {
 	view(): void | Children {
 		return m(".flex.col.elevated-bg.abs.dropdown-shadow.pt-s.border-radius", { tabindex: TabIndex.Programmatic }, [
 			m(
-				".pb-s",
+				".pb-s.scroll",
 				this.labels.map((labelState) => {
 					const { label, state } = labelState
 					const color = theme.content_button
@@ -116,7 +116,11 @@ export class LabelsPopup implements ModalComponent {
 
 	oncreate(vnode: VnodeDOM) {
 		this.dom = vnode.dom as HTMLElement
-		showDropdown(this.origin, this.dom, (this.labels.length + 1) * size.button_height + size.vpad_small * 2, this.width).then(() => {
+
+		// restrict label height to showing maximum 6 labels to avoid overflow
+		const displayedLabels = Math.min(this.labels.length, 6)
+		const height = (displayedLabels + 1) * size.button_height + size.vpad_small * 2
+		showDropdown(this.origin, this.dom, height, this.width).then(() => {
 			const firstLabel = vnode.dom.getElementsByTagName("label-item").item(0)
 			if (firstLabel !== null) {
 				;(firstLabel as HTMLElement).focus()
