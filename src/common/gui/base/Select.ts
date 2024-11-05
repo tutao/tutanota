@@ -1,42 +1,79 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { modal, ModalComponent } from "./Modal.js"
-import { assertNotNull, memoized } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { size } from "../size.js"
-import { AriaRole } from "../AriaUtils.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
-import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager.js"
+import { focusNext, focusPrevious, isKeyPressed, Shortcut } from "../../misc/KeyManager.js"
 import { type PosRect, showDropdown } from "./Dropdown.js"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Icon, IconSize } from "./Icon.js"
 import { ButtonColor, getColors } from "./Button.js"
 import { Icons } from "./icons/Icons.js"
-import Mithril from "mithril"
+import { AriaRole } from "../AriaUtils.js"
 
 export interface SelectOption<T> {
 	// Here we declare everything that is important to use at the select option
-	value: T | undefined
+	value: T
+	ariaValue: string
 }
 
-export interface SelectAttributes<U extends SelectOption<any>> {
+export interface SelectAttributes<U extends SelectOption<T>, T> {
 	onChange: (newValue: U) => void
 	options: Array<U>
 	renderOption: (option: U) => Children
-	classes?: string
+	ariaLabel: string
+	classes?: Array<string>
 	selected?: U
 	placeholder?: TranslationKey
 	expanded?: boolean
+	disabled?: boolean
 }
 
-export class Select<U extends SelectOption<any>> implements ClassComponent<SelectAttributes<U>> {
+type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButtonElement, "style"> & SelectAttributes<SelectOption<unknown>, unknown>>
+
+/**
+ * Select component
+ * @see Component attributes: {SelectAttributes}
+ * @example
+ *
+ * interface CalendarSelectItem extends SelectOption<string> {
+ *   color: string
+ * 	 name: string
+ * }
+ *
+ * m(Select<CalendarSelectItem, string>, {
+ *   onChange: (val) => {
+ * 	   this.selected = val
+ *   },
+ * 	 options: this.options,
+ * 	 expanded: true,
+ * 	 selected: this.selected,
+ * 	 renderOption: (option) => {
+ * 	   return m(".flex.items-center.gap-vpad-xs", [
+ * 	     m("div", { style: { width: "24px", height: "24px", borderRadius: "50%", backgroundColor: option.color } }),
+ *       m("span", option.name),
+ * 	   ])
+ * 	 },
+ * 	 ariaLabel: "Calendar"
+ * }),
+ */
+export class Select<U extends SelectOption<T>, T> implements ClassComponent<SelectAttributes<U, T>> {
 	private isExpanded: boolean = false
 
-	view({ attrs: { onChange, options, renderOption, classes, selected, placeholder, expanded } }: Vnode<SelectAttributes<U>>) {
+	view({ attrs: { onChange, options, renderOption, classes, selected, placeholder, expanded, disabled, ariaLabel } }: Vnode<SelectAttributes<U, T>>) {
 		return m(
 			"button.tutaui-select-trigger",
 			{
-				class: `${classes ?? ""} ${expanded ? "full-width" : "fit-content"}`,
-				onclick: (event: MouseEvent) => event.target && this.renderDropdown(options, event.currentTarget as HTMLElement, onChange, renderOption),
-			},
+				class: this.resolveClasses(classes, disabled, expanded),
+				onclick: (event: MouseEvent) =>
+					event.target && this.renderDropdown(options, event.currentTarget as HTMLElement, onChange, renderOption, selected?.value),
+				role: AriaRole.Combobox,
+				ariaLabel,
+				disabled: disabled,
+				ariaExpanded: String(this.isExpanded),
+				tabIndex: Number(disabled ? TabIndex.Programmatic : TabIndex.Default),
+				value: selected?.ariaValue,
+			} satisfies HTMLElementWithAttrs,
 			[
 				selected != null ? renderOption(selected) : this.renderPlaceholder(placeholder),
 				m(Icon, {
@@ -52,37 +89,83 @@ export class Select<U extends SelectOption<any>> implements ClassComponent<Selec
 		)
 	}
 
-	renderPlaceholder(placeholder?: TranslationKey): Children {
-		return m("span.placeholder", lang.get(placeholder ?? "noSelection_msg")) //FIXME Get a proper translation for default
+	private resolveClasses(classes: Array<string> = [], disabled: boolean = false, expanded: boolean = false) {
+		const classList = [...classes]
+		if (disabled) {
+			classList.push("disabled", "click-disabled")
+		}
+
+		if (expanded) {
+			classList.push("full-width")
+		} else {
+			classList.push("fit-content")
+		}
+
+		return classList.join(" ")
 	}
 
-	renderDropdown(options: Array<U>, dom: HTMLElement, onSelect: (option: U) => void, renderOptions: (option: U) => Children) {
-		const optionListContainer = new OptionListContainer(
+	private renderPlaceholder(placeholder?: TranslationKey): Children {
+		return m("span.placeholder", lang.get(placeholder ?? "noSelection_msg"))
+	}
+
+	private renderDropdown(options: Array<U>, dom: HTMLElement, onSelect: (option: U) => void, renderOptions: (option: U) => Children, selected?: T) {
+		const optionListContainer: OptionListContainer = new OptionListContainer(
 			options.map((option) =>
 				m.fragment(
 					{
-						oncreate(vnode: Mithril.VnodeDOM<any, any>): any {
-							;(vnode.dom as HTMLElement).onclick = onSelect.bind(this, option)
-						},
+						oncreate: ({ dom }) => this.setupOption(dom as HTMLElement, onSelect, option, optionListContainer, selected),
 					},
 					[renderOptions(option)],
 				),
 			),
 			dom.getBoundingClientRect().width,
-			onSelect,
 		)
+
 		optionListContainer.onClose = () => {
 			optionListContainer.close()
 			this.isExpanded = false
 		}
+
 		optionListContainer.setOrigin(dom.getBoundingClientRect())
 
 		this.isExpanded = true
 		modal.displayUnique(optionListContainer, false)
 	}
+
+	private setupOption(dom: HTMLElement, onSelect: (option: U) => void, option: U, optionListContainer: OptionListContainer, selected: T | undefined) {
+		dom.onclick = this.wrapOnChange.bind(this, onSelect, option, optionListContainer)
+
+		if (!("disabled" in dom)) {
+			// We have to set the tabIndex to make sure that it'll be focusable by tabbing
+			dom.tabIndex = Number(TabIndex.Default)
+
+			// We have to set the cursor pointer as a fallback of renderOptions that doesn't set it
+			if (!dom.style.cursor) {
+				dom.style.cursor = "pointer"
+			}
+
+			if (!dom.role) {
+				dom.role = AriaRole.Option
+			}
+
+			dom.ariaSelected = `${selected === option.value}`
+		}
+
+		dom.onkeydown = (e: KeyboardEvent) => {
+			if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+				e.preventDefault()
+				this.wrapOnChange(onSelect, option, optionListContainer)
+			}
+		}
+	}
+
+	private wrapOnChange(callback: (option: U) => void, option: U, container: OptionListContainer) {
+		callback(option)
+		container.onClose()
+	}
 }
 
-class OptionListContainer<T> implements ModalComponent {
+class OptionListContainer implements ModalComponent {
 	private domDropdown: HTMLElement | null = null
 	view: ModalComponent["view"]
 	origin: PosRect | null = null
@@ -92,7 +175,7 @@ class OptionListContainer<T> implements ModalComponent {
 	private maxHeight: number | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 
-	constructor(private readonly children: Children, width: number, onSelect: (option: T) => void) {
+	constructor(private readonly children: Children, width: number) {
 		this.width = width
 		this.shortcuts = this.buildShortcuts
 
@@ -109,7 +192,7 @@ class OptionListContainer<T> implements ModalComponent {
 				m(
 					".dropdown-content.scroll.pl-vpad-s.pr-vpad-s.flex.flex-column.gap-vpad-xs",
 					{
-						role: AriaRole.Menu,
+						role: AriaRole.Listbox,
 						tabindex: TabIndex.Programmatic,
 						oncreate: (vnode) => {
 							this.domContents = vnode.dom as HTMLElement
@@ -125,10 +208,10 @@ class OptionListContainer<T> implements ModalComponent {
 									// show the dropdown.
 									// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
 									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
-										const firstButton = vnode.dom.getElementsByTagName("button").item(0)
-										if (firstButton !== null) {
-											firstButton.focus()
-										} else {
+										const selectedOption = vnode.dom.querySelector("[aria-selected='true']") as HTMLElement | null
+										if (selectedOption) {
+											selectedOption.focus()
+										} else if (!this.domDropdown || focusNext(this.domDropdown)) {
 											this.domContents?.focus()
 										}
 									})
