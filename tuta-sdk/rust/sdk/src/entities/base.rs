@@ -17,6 +17,3 @@ impl Entity for PersistenceResourcePostReturn {
 		}
 	}
 }
-
-
-

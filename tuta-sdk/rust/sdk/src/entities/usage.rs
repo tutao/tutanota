@@ -21,9 +21,6 @@ impl Entity for UsageTestAssignment {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestAssignmentIn {
@@ -38,9 +35,6 @@ impl Entity for UsageTestAssignmentIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -57,9 +51,6 @@ impl Entity for UsageTestAssignmentOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -79,9 +70,6 @@ impl Entity for UsageTestMetricConfig {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestMetricConfigValue {
@@ -98,9 +86,6 @@ impl Entity for UsageTestMetricConfigValue {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestMetricData {
@@ -116,9 +101,6 @@ impl Entity for UsageTestMetricData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -138,9 +120,6 @@ impl Entity for UsageTestParticipationIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UsageTestStage {
@@ -158,6 +137,3 @@ impl Entity for UsageTestStage {
 		}
 	}
 }
-
-
-

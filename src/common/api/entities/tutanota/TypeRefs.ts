@@ -1883,6 +1883,7 @@ export type TutanotaProperties = {
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	customEmailSignature: string;
+	defaultLabelCreated: boolean;
 	defaultSender: null | string;
 	defaultUnconfidential: boolean;
 	emailSignatureType: NumberString;
