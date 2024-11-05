@@ -1,3 +1,4 @@
+use crate::blobs::blob_access_token_cache::BlobWriteTokenKey;
 #[cfg_attr(test, mockall_double::double)]
 use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
 use crate::crypto::aes::Iv;
@@ -73,7 +74,10 @@ impl BlobFacade {
 					source: HttpError::NotAuthorizedError,
 				}) => {
 					self.blob_access_token_facade
-						.evict_write_token(archive_data_type, owner_group_id);
+						.evict_access_token(&BlobWriteTokenKey::new(
+							owner_group_id,
+							archive_data_type,
+						));
 					self.encrypt_and_upload_chunk(
 						archive_data_type,
 						owner_group_id,
@@ -374,7 +378,7 @@ mod tests {
 
 	#[test]
 	fn encode_query_params_works() {
-		assert_eq!("", encode_query_params([] as [(&str, &str); 0]));
+		assert_eq!("", encode_query_params([("", ""); 0]));
 		assert_eq!("", encode_query_params([("", "b"), ("c", "")]));
 		assert_eq!("?c=d+d+d", encode_query_params([("", "b"), ("c", "d d d")]));
 		assert_eq!(

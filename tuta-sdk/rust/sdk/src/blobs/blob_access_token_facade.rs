@@ -1,4 +1,4 @@
-use crate::blobs::blob_access_token_cache::BlobAccessTokenCache;
+use crate::blobs::blob_access_token_cache::{BlobAccessTokenCache, BlobWriteTokenKey};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::custom_id::CustomId;
 use crate::date::DateProvider;
@@ -66,34 +66,17 @@ impl BlobAccessTokenFacade {
 
 		self.cache
 			.try_get_token(
-				&make_write_cache_key(owner_group_id, archive_data_type),
+				&BlobWriteTokenKey::new(owner_group_id, archive_data_type),
 				loader,
 			)
 			.await
 	}
 
 	/// Remove a given write token from the cache.
-	pub fn evict_write_token(
-		&self,
-		archive_data_type: ArchiveDataType,
-		owner_group_id: &GeneratedId,
-	) {
-		let key = make_write_cache_key(owner_group_id, archive_data_type);
-		self.cache.evict(&key);
+	pub fn evict_access_token(&self, key: &BlobWriteTokenKey) {
+		self.cache.evict(key);
 	}
 }
-
-pub(crate) fn make_write_cache_key(
-	owner_group_id: &GeneratedId,
-	archive_data_type: ArchiveDataType,
-) -> String {
-	format!(
-		"{}{}",
-		owner_group_id.as_str(),
-		archive_data_type.discriminant()
-	)
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;

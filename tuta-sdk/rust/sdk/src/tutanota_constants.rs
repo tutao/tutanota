@@ -10,8 +10,8 @@ pub enum PublicKeyIdentifierType {
 
 #[allow(dead_code)]
 #[repr(i64)]
-#[derive(Copy, Clone)]
-#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
 pub enum ArchiveDataType {
 	AuthorityRequests = 0,
 	Attachments = 1,
