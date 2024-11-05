@@ -66,7 +66,7 @@ export class RestClient {
 				const queryParams: Dict = options.queryParams ?? {}
 
 				if (method === HttpMethod.GET && typeof options.body === "string") {
-					queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+					queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
 				}
 
 				if (options.noCORS) {
