@@ -1079,10 +1079,6 @@ class MailLocator {
 			this.customerFacade,
 			this.themeController,
 			() => this.showSetupWizard(),
-			() => {
-				mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
-				mailLocator.nativeContactsSyncManager()?.syncContacts()
-			},
 			() => this.handleExternalSync(),
 			() => this.setUpClientOnlyCalendars(),
 		)
@@ -1128,7 +1124,11 @@ class MailLocator {
 		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
 			const calendarId = `${this.logins.getUserController().userId}#${id}`
 			const config = configs.get(calendarId)
-			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name: lang.get(name), color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
+			if (!config)
+				deviceConfig.updateClientOnlyCalendars(calendarId, {
+					name: lang.get(name),
+					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
+				})
 		}
 	}
 

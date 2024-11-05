@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ApplyLabelServicePostIn {
 	pub _format: i64,
-	pub addedLabels: Vec<IdTuple>,
-	pub mails: Vec<IdTuple>,
-	pub removedLabels: Vec<IdTuple>,
+	pub addedLabels: Vec<IdTupleGenerated>,
+	pub mails: Vec<IdTupleGenerated>,
+	pub removedLabels: Vec<IdTupleGenerated>,
 }
 impl Entity for ApplyLabelServicePostIn {
 	fn type_ref() -> TypeRef {
@@ -1710,7 +1710,7 @@ impl Entity for MailboxServerProperties {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ManageLabelServiceDeleteIn {
 	pub _format: i64,
-	pub label: IdTuple,
+	pub label: IdTupleGenerated,
 }
 impl Entity for ManageLabelServiceDeleteIn {
 	fn type_ref() -> TypeRef {
@@ -1724,7 +1724,7 @@ impl Entity for ManageLabelServiceDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ManageLabelServiceLabelData {
-	pub _id: CustomId,
+	pub _id: Option<CustomId>,
 	pub color: String,
 	pub name: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -1755,43 +1755,6 @@ impl Entity for ManageLabelServicePostIn {
 		TypeRef {
 			app: "tutanota",
 			type_: "ManageLabelServicePostIn",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct ManageLabelServicePostOut {
-	pub _format: i64,
-	pub label: IdTuple,
-}
-impl Entity for ManageLabelServicePostOut {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "tutanota",
-			type_: "ManageLabelServicePostOut",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct ManageLabelServicePutIn {
-	pub _format: i64,
-	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
-	pub ownerGroup: GeneratedId,
-	pub ownerKeyVersion: i64,
-	pub data: ManageLabelServiceLabelData,
-	pub label: IdTuple,
-	pub _errors: Option<Errors>,
-	pub _finalIvs: HashMap<String, FinalIv>,
-}
-impl Entity for ManageLabelServicePutIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "tutanota",
-			type_: "ManageLabelServicePutIn",
 		}
 	}
 }
@@ -2304,6 +2267,7 @@ pub struct TutanotaProperties {
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: GeneratedId,
 	pub customEmailSignature: String,
+	pub defaultLabelCreated: bool,
 	pub defaultSender: Option<String>,
 	pub defaultUnconfidential: bool,
 	pub emailSignatureType: i64,

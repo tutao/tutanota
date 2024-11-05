@@ -31,7 +31,7 @@ export const typeModels = {
 				"name": "addedLabels",
 				"id": 1507,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
@@ -41,7 +41,7 @@ export const typeModels = {
 				"name": "mails",
 				"id": 1506,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
@@ -51,7 +51,7 @@ export const typeModels = {
 				"name": "removedLabels",
 				"id": 1508,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
@@ -103,7 +103,7 @@ export const typeModels = {
 				"name": "file",
 				"id": 546,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "File",
 				"dependency": null
@@ -397,7 +397,7 @@ export const typeModels = {
 				"name": "alarmInfos",
 				"id": 946,
 				"since": 33,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "UserAlarmInfo",
 				"dependency": null
@@ -565,7 +565,7 @@ export const typeModels = {
 				"name": "alteredInstances",
 				"id": 1321,
 				"since": 62,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
 				"cardinality": "Any",
 				"refType": "CalendarEvent",
 				"dependency": null
@@ -575,7 +575,7 @@ export const typeModels = {
 				"name": "progenitor",
 				"id": 1099,
 				"since": 42,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
 				"cardinality": "ZeroOrOne",
 				"refType": "CalendarEvent",
 				"dependency": null
@@ -663,7 +663,7 @@ export const typeModels = {
 				"name": "file",
 				"id": 1112,
 				"since": 42,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "File",
 				"dependency": null
@@ -1158,7 +1158,7 @@ export const typeModels = {
 				"name": "photo",
 				"id": 852,
 				"since": 23,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "File",
 				"dependency": null
@@ -1963,7 +1963,7 @@ export const typeModels = {
 				"name": "mail",
 				"id": 124,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "Mail",
 				"dependency": null
@@ -1973,7 +1973,7 @@ export const typeModels = {
 				"name": "previous",
 				"id": 123,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "ConversationEntry",
 				"dependency": null
@@ -2136,7 +2136,7 @@ export const typeModels = {
 				"name": "parentFolder",
 				"id": 452,
 				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "MailFolder",
 				"dependency": null
@@ -2170,7 +2170,7 @@ export const typeModels = {
 				"name": "newFolder",
 				"id": 457,
 				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "MailFolder",
 				"dependency": null
@@ -2512,7 +2512,7 @@ export const typeModels = {
 				"name": "folder",
 				"id": 724,
 				"since": 19,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "MailFolder",
 				"dependency": null
@@ -2522,7 +2522,7 @@ export const typeModels = {
 				"name": "mails",
 				"id": 421,
 				"since": 5,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
@@ -2556,7 +2556,7 @@ export const typeModels = {
 				"name": "folders",
 				"id": 460,
 				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
@@ -2608,7 +2608,7 @@ export const typeModels = {
 				"name": "existingFile",
 				"id": 495,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "File",
 				"dependency": null
@@ -2722,7 +2722,7 @@ export const typeModels = {
 				"name": "draft",
 				"id": 518,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -2849,7 +2849,7 @@ export const typeModels = {
 				"name": "removedAttachments",
 				"id": 507,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "File",
 				"dependency": null
@@ -2944,7 +2944,7 @@ export const typeModels = {
 				"name": "draft",
 				"id": 522,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -2988,7 +2988,7 @@ export const typeModels = {
 				"name": "attachments",
 				"id": 525,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "File",
 				"dependency": null
@@ -3518,7 +3518,7 @@ export const typeModels = {
 				"name": "parent",
 				"id": 25,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "File",
 				"dependency": null
@@ -3641,7 +3641,7 @@ export const typeModels = {
 				"name": "receivedInvitation",
 				"id": 1018,
 				"since": 38,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "ReceivedGroupInvitation",
 				"dependency": null
@@ -3809,7 +3809,7 @@ export const typeModels = {
 				"name": "receivedInvitation",
 				"id": 1015,
 				"since": 38,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "ReceivedGroupInvitation",
 				"dependency": null
@@ -4165,7 +4165,7 @@ export const typeModels = {
 				"name": "targetFolder",
 				"id": 577,
 				"since": 12,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "MailFolder",
 				"dependency": null
@@ -4538,7 +4538,7 @@ export const typeModels = {
 				"name": "mail",
 				"id": 869,
 				"since": 24,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -4743,7 +4743,7 @@ export const typeModels = {
 				"name": "attachments",
 				"id": 115,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "File",
 				"dependency": null
@@ -4763,7 +4763,7 @@ export const typeModels = {
 				"name": "conversationEntry",
 				"id": 117,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "ConversationEntry",
 				"dependency": null
@@ -4793,7 +4793,7 @@ export const typeModels = {
 				"name": "mailDetailsDraft",
 				"id": 1309,
 				"since": 58,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "MailDetailsDraft",
 				"dependency": null
@@ -4813,7 +4813,7 @@ export const typeModels = {
 				"name": "sets",
 				"id": 1465,
 				"since": 74,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "MailFolder",
 				"dependency": null
@@ -4865,7 +4865,7 @@ export const typeModels = {
 				"name": "contact",
 				"id": 96,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "Contact",
 				"dependency": null
@@ -5497,7 +5497,7 @@ export const typeModels = {
 				"name": "parentFolder",
 				"id": 439,
 				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "MailFolder",
 				"dependency": null
@@ -5592,7 +5592,7 @@ export const typeModels = {
 				"name": "mail",
 				"id": 1456,
 				"since": 74,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -5884,7 +5884,7 @@ export const typeModels = {
 				"name": "label",
 				"id": 1502,
 				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "MailFolder",
 				"dependency": null
@@ -5995,111 +5995,6 @@ export const typeModels = {
 		"app": "tutanota",
 		"version": "77"
 	},
-	"ManageLabelServicePostOut": {
-		"name": "ManageLabelServicePostOut",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1490,
-		"rootId": "CHR1dGFub3RhAAXS",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1491,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"label": {
-				"final": false,
-				"name": "label",
-				"id": 1492,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "77"
-	},
-	"ManageLabelServicePutIn": {
-		"name": "ManageLabelServicePutIn",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1493,
-		"rootId": "CHR1dGFub3RhAAXV",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1494,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncSessionKey": {
-				"final": false,
-				"name": "ownerEncSessionKey",
-				"id": 1495,
-				"since": 77,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerGroup": {
-				"final": false,
-				"name": "ownerGroup",
-				"id": 1497,
-				"since": 77,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1496,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"data": {
-				"final": false,
-				"name": "data",
-				"id": 1499,
-				"since": 77,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "ManageLabelServiceLabelData",
-				"dependency": null
-			},
-			"label": {
-				"final": false,
-				"name": "label",
-				"id": 1498,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "77"
-	},
 	"MoveMailData": {
 		"name": "MoveMailData",
 		"since": 7,
@@ -6125,7 +6020,7 @@ export const typeModels = {
 				"name": "mails",
 				"id": 448,
 				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
@@ -6135,7 +6030,7 @@ export const typeModels = {
 				"name": "sourceFolder",
 				"id": 1466,
 				"since": 74,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "MailFolder",
 				"dependency": null
@@ -6145,7 +6040,7 @@ export const typeModels = {
 				"name": "targetFolder",
 				"id": 447,
 				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "MailFolder",
 				"dependency": null
@@ -6786,7 +6681,7 @@ export const typeModels = {
 				"name": "message",
 				"id": 188,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -6838,7 +6733,7 @@ export const typeModels = {
 				"name": "mailId",
 				"id": 1069,
 				"since": 40,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -7100,7 +6995,7 @@ export const typeModels = {
 				"name": "mail",
 				"id": 556,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -7182,7 +7077,7 @@ export const typeModels = {
 				"name": "sentMail",
 				"id": 562,
 				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "Mail",
 				"dependency": null
@@ -7329,7 +7224,7 @@ export const typeModels = {
 				"name": "mails",
 				"id": 1471,
 				"since": 76,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
@@ -7701,6 +7596,15 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": true
 			},
+			"defaultLabelCreated": {
+				"final": false,
+				"name": "defaultLabelCreated",
+				"id": 1510,
+				"since": 77,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
 			"defaultSender": {
 				"final": false,
 				"name": "defaultSender",
@@ -7809,7 +7713,7 @@ export const typeModels = {
 				"name": "lastPushedMail",
 				"id": 221,
 				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "Mail",
 				"dependency": null
@@ -7852,7 +7756,7 @@ export const typeModels = {
 				"name": "mails",
 				"id": 1476,
 				"since": 76,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refType": "Mail",
 				"dependency": null
@@ -7886,7 +7790,7 @@ export const typeModels = {
 				"name": "folder",
 				"id": 1313,
 				"since": 59,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refType": "MailFolder",
 				"dependency": null
@@ -7896,7 +7800,7 @@ export const typeModels = {
 				"name": "newParent",
 				"id": 1314,
 				"since": 59,
-				"type": "LIST_ELEMENT_ASSOCIATION",
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refType": "MailFolder",
 				"dependency": null

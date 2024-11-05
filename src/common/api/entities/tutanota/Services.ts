@@ -24,8 +24,6 @@ import { CreateMailGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailDataTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
-import { ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
-import { ManageLabelServicePutInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { MoveMailDataTypeRef } from "./TypeRefs.js"
 import { NewsOutTypeRef } from "./TypeRefs.js"
@@ -161,8 +159,8 @@ export const ManageLabelService = Object.freeze({
 	app: "tutanota",
 	name: "ManageLabelService",
 	get: null,
-	post: { data: ManageLabelServicePostInTypeRef, return: ManageLabelServicePostOutTypeRef },
-	put: { data: ManageLabelServicePutInTypeRef, return: null },
+	post: { data: ManageLabelServicePostInTypeRef, return: null },
+	put: null,
 	delete: { data: ManageLabelServiceDeleteInTypeRef, return: null },
 } as const)
 
