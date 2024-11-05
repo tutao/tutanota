@@ -43,7 +43,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { getReferencedAttachments, isMailContrastFixNeeded, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -967,10 +967,7 @@ export class MailViewerViewModel {
 		 *  * any tag with a style attribute that has the background-color set (besides "inherit")
 		 *  * any font tag with the color attribute set
 		 */
-		this.contrastFixNeeded =
-			Array.from(fragment.querySelectorAll("*[style]"), (e) => (e as HTMLElement).style).some(
-				(s) => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
-			) || fragment.querySelectorAll("font[color]").length > 0
+		this.contrastFixNeeded = isMailContrastFixNeeded(fragment)
 
 		m.redraw()
 		return {
