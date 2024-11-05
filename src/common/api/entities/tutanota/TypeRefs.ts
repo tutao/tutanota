@@ -1,10 +1,7 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { typeModels } from "./TypeModels.js"
-import { DateWrapper } from '../sys/TypeRefs.js'
-import { Blob } from '../sys/TypeRefs.js'
-import { BucketKey } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { Blob, BlobReferenceTokenWrapper, BucketKey, DateWrapper } from '../sys/TypeRefs.js'
 
 export const ApplyLabelServicePostInTypeRef: TypeRef<ApplyLabelServicePostIn> = new TypeRef("tutanota", "ApplyLabelServicePostIn")
 
@@ -1455,37 +1452,6 @@ export type ManageLabelServicePostIn = {
 
 	data: ManageLabelServiceLabelData;
 }
-export const ManageLabelServicePostOutTypeRef: TypeRef<ManageLabelServicePostOut> = new TypeRef("tutanota", "ManageLabelServicePostOut")
-
-export function createManageLabelServicePostOut(values: StrippedEntity<ManageLabelServicePostOut>): ManageLabelServicePostOut {
-	return Object.assign(create(typeModels.ManageLabelServicePostOut, ManageLabelServicePostOutTypeRef), values)
-}
-
-export type ManageLabelServicePostOut = {
-	_type: TypeRef<ManageLabelServicePostOut>;
-
-	_format: NumberString;
-
-	label: IdTuple;
-}
-export const ManageLabelServicePutInTypeRef: TypeRef<ManageLabelServicePutIn> = new TypeRef("tutanota", "ManageLabelServicePutIn")
-
-export function createManageLabelServicePutIn(values: StrippedEntity<ManageLabelServicePutIn>): ManageLabelServicePutIn {
-	return Object.assign(create(typeModels.ManageLabelServicePutIn, ManageLabelServicePutInTypeRef), values)
-}
-
-export type ManageLabelServicePutIn = {
-	_type: TypeRef<ManageLabelServicePutIn>;
-	_errors: Object;
-
-	_format: NumberString;
-	ownerEncSessionKey: Uint8Array;
-	ownerGroup: Id;
-	ownerKeyVersion: NumberString;
-
-	data: ManageLabelServiceLabelData;
-	label: IdTuple;
-}
 export const MoveMailDataTypeRef: TypeRef<MoveMailData> = new TypeRef("tutanota", "MoveMailData")
 
 export function createMoveMailData(values: StrippedEntity<MoveMailData>): MoveMailData {
@@ -1914,6 +1880,7 @@ export type TutanotaProperties = {
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	customEmailSignature: string;
+	defaultLabelCreated: boolean;
 	defaultSender: null | string;
 	defaultUnconfidential: boolean;
 	emailSignatureType: NumberString;
