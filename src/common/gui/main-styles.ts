@@ -661,6 +661,12 @@ styles.registerStyle("main", () => {
 		".bg-white": {
 			"background-color": "white",
 		},
+		".bg-fix-quoted blockquote.tutanota_quote": {
+			"background-color": "white",
+			color: "black",
+			// make the border thicker so it is easier to see
+			"border-width": "4px",
+		},
 		".content-black": {
 			color: "black",
 		},
