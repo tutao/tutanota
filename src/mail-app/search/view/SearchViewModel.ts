@@ -708,7 +708,7 @@ export class SearchViewModel {
 		const selectedMailFolder = this._selectedMailFolder
 
 		if (selectedMailFolder[0]) {
-			const mailFolder = await mailLocator.mailModel.getFolderById(selectedMailFolder[0])
+			const mailFolder = await mailLocator.mailModel.getMailSetById(selectedMailFolder[0])
 			if (!mailFolder) {
 				const folderSystem = assertNotNull(mailLocator.mailModel.getFolderSystemByGroupId(mailboxes[0].mailGroup._id))
 				this._selectedMailFolder = [getElementId(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX)))]

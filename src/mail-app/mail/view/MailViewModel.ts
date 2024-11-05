@@ -128,11 +128,11 @@ export class MailViewModel {
 		this.listModel?.setFilter(getMailFilterForType(filter))
 	}
 
-	async showMailWithFolderId(folderId?: Id, mailId?: Id): Promise<void> {
-		if (folderId) {
-			const folder = await this.mailModel.getFolderById(folderId)
-			if (folder) {
-				return this.showMail(folder, mailId)
+	async showMailWithMailSetId(mailsetId?: Id, mailId?: Id): Promise<void> {
+		if (mailsetId) {
+			const mailset = await this.mailModel.getMailSetById(mailsetId)
+			if (mailset) {
+				return this.showMail(mailset, mailId)
 			}
 		}
 		return this.showMail(null, mailId)

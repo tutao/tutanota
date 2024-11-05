@@ -17,6 +17,8 @@ export interface SidebarSectionRowAttrs {
 	moreButton: IconButtonAttrs
 	iconColor?: string
 	alwaysShowMoreButton?: boolean
+	isSelectedPrefix?: string | boolean
+	disabled?: boolean
 }
 
 /**
@@ -48,6 +50,8 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			click: attrs.onClick,
 			onfocus: onHover,
 			onkeydown: handleBackwardsTab,
+			isSelectedPrefix: attrs.isSelectedPrefix,
+			disabled: attrs.disabled,
 		}
 
 		return m(

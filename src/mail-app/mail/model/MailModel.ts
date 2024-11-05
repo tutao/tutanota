@@ -601,12 +601,17 @@ export class MailModel {
 		await this.mailFacade.deleteLabel(label)
 	}
 
-	async getFolderById(folderElementId: Id): Promise<MailFolder | null> {
+	async getMailSetById(folderElementId: Id): Promise<MailFolder | null> {
 		const folderStructures = await this.loadMailSets()
 		for (const folders of folderStructures.values()) {
 			const folder = folders.folders.getFolderById(folderElementId)
 			if (folder) {
 				return folder
+			}
+
+			const label = folders.labels.get(folderElementId)
+			if (label) {
+				return label
 			}
 		}
 		return null
