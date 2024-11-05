@@ -2643,7 +2643,7 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.vpad_small),
 		},
-		".single-line-text-field": {
+		".tutaui-text-field": {
 			"box-sizing": "border-box",
 			"background-color": "transparent",
 			border: "none",
@@ -2654,10 +2654,10 @@ styles.registerStyle("main", () => {
 			transition: `background-color .1s ease-out`,
 			"caret-color": theme.content_accent,
 		},
-		".single-line-text-field:focus": {
-			"background-color": theme.list_border,
+		".tutaui-text-field:focus": {
+			"background-color": theme.button_bubble_bg,
 		},
-		".single-line-text-field::placeholder": {
+		".tutaui-text-field::placeholder": {
 			color: theme.content_message_bg,
 		},
 		".tutaui-switch": {
