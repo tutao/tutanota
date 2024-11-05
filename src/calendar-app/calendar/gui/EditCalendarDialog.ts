@@ -8,12 +8,12 @@ import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
 import { deepEqual, isNotNull } from "@tutao/tutanota-utils"
 import { AlarmInterval, CalendarType, isExternalCalendarType, isNormalCalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
-import { generateRandomColor } from "./CalendarGuiUtils.js"
 import { checkURLString, isIcal } from "../../../common/calendar/import/ImportExportUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import type { CalendarModel } from "../model/CalendarModel.js"
 import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
+import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 
 export type CalendarProperties = {
 	name: string
@@ -78,12 +78,10 @@ function createEditCalendarComponent(
 			label: "calendarName_label",
 		}),
 		m(".small.mt.mb-xs", lang.get("color_label")),
-		m("input.color-picker", {
-			type: "color",
+		m(ColorPickerView, {
 			value: colorStream(),
-			oninput: (inputEvent: InputEvent) => {
-				const target = inputEvent.target as HTMLInputElement
-				colorStream(target.value)
+			onselect: (color: string) => {
+				colorStream(color)
 			},
 		}),
 		!shared && isNormalCalendarType(calendarType)
@@ -126,10 +124,10 @@ export function showCreateEditCalendarDialog({
 	isNewCalendar = true,
 	calendarModel,
 }: CreateEditDialogAttrs) {
-	if (color === "") color = generateRandomColor()
+	if (color !== "") color = "#" + color
 
 	const nameStream = stream(name)
-	const colorStream = stream("#" + color)
+	const colorStream = stream(color)
 	const urlStream = stream(sourceUrl ?? "")
 	const errorMessageStream = stream(DEFAULT_ERROR)
 

@@ -14,20 +14,20 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import type { GroupSharingTexts } from "../GroupGuiUtils.js"
 import { getTextsForGroupType } from "../GroupGuiUtils.js"
 import { GroupType } from "../../api/common/TutanotaConstants.js"
-import { ColorPicker } from "../../gui/base/ColorPicker.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
+import { ColorPickerView } from "../../gui/base/colorPicker/ColorPickerView"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
 	const texts = getTextsForGroupType(groupType)
 	const userSettingsGroupRoot = locator.logins.getUserController().userSettingsGroupRoot
 	const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === invitation.sharedGroup)
-	const color = existingGroupSettings ? existingGroupSettings.color : Math.random().toString(16).slice(-6)
-	const colorStream = stream("#" + color)
+	const color = existingGroupSettings ? "#" + existingGroupSettings.color : ""
+	const colorStream = stream(color)
 	const isDefaultGroupName = invitation.sharedGroupName === getDefaultGroupName(downcast(invitation.groupType))
 	const nameStream = stream(isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation) : invitation.sharedGroupName)
 	const alarmsStream: stream<AlarmInterval[]> = stream([])
@@ -145,9 +145,9 @@ function renderCalendarGroupInvitationFields(
 	let alarms = alarmsStream()
 	return [
 		m(".small.mt.mb-xs", lang.get("color_label")),
-		m(ColorPicker, {
+		m(ColorPickerView, {
 			value: selectedColourValue(),
-			onValueChange: selectedColourValue,
+			onselect: selectedColourValue,
 		}),
 	]
 }
