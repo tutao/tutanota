@@ -908,7 +908,10 @@ export class MailViewerViewModel {
 			const { prependEmailSignature } = await import("../signature/Signature.js")
 			const { newMailEditorAsResponse } = await import("../editor/MailEditor")
 
-			await this.loadAll(Promise.resolve(), { notify: false })
+			const isReloadNeeded = !this.sanitizeResult || this.mail.attachments.length !== this.attachments.length
+			if (isReloadNeeded) {
+				await this.loadAll(Promise.resolve(), { notify: true })
+			}
 			// It should be there after loadAll() but if not we just give up
 			const inlineImageCids = this.sanitizeResult?.inlineImageCids ?? []
 
