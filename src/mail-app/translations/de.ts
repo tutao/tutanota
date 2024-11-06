@@ -784,7 +784,7 @@ export default {
 		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
 		"invalidRegistrationCode_msg": "Der Registrierungs-Code is ungültig.",
 		"invalidTimePeriod_msg": "Der eingegebene Zeitraum ist ungültig.",
-		"invalidURLProtocol_msg": "Ungültiges Protokoll. Bitte gib eine URL mit http oder https ein.",
+		"invalidURLProtocol_msg": "Ungültiges Protokoll. Bitte gib eine URL mit https ein.",
 		"invalidURL_msg": "Ungültige URL. Bitte überprüfe und ändere die URL.",
 		"invalidVatIdNumber_msg": "Die angegebene Umsatzsteuer-Identifikationsnummer (USt-IdNr.) ist ungültig.",
 		"invalidVatIdValidationFailed_msg": "Fehler bei der Prüfung der Umsatzsteuer-Identifikationsnummer. Bitte versuche es später erneut.",
