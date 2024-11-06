@@ -773,7 +773,7 @@ export default {
 		"invalidRegexSyntax_msg": "Invalid regex syntax",
 		"invalidRegistrationCode_msg": "This registration code is invalid.",
 		"invalidTimePeriod_msg": "The entered time period is invalid.",
-		"invalidURLProtocol_msg": "Invalid protocol. Please provide an URL that uses http or https.",
+		"invalidURLProtocol_msg": "Invalid protocol. Please provide an URL that uses https.",
 		"invalidURL_msg": "Invalid URL format. Please check and modify the URL.",
 		"invalidVatIdNumber_msg": "The value added tax identification number (VAT-ID) is invalid.",
 		"invalidVatIdValidationFailed_msg": "Failed to validate the value added tax identification number. Please try again later.",
