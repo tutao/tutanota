@@ -1,4 +1,4 @@
-import { getMailFolderType, isLabel, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
+import { getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
@@ -327,9 +327,9 @@ export class MailRow implements VirtualRow<Mail> {
 				.map((_, i) =>
 					// Not using the regular Label component as we have too
 					// many differences and list is a special case anyway.
-					m("span.smaller.text-center.text-ellipsis.border-radius-m", {
+					m("span.small.text-center.text-ellipsis.border-radius-m", {
 						style: {
-							padding: `1px ${size.vpad_xsm}px`,
+							padding: `2px ${size.vpad_xsm}px`,
 							minWidth: "4ch",
 							maxWidth: px(48),
 							lineHeight: "100%",
