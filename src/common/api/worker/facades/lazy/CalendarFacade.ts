@@ -138,24 +138,50 @@ export class CalendarFacade {
 		//
 		// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
 		// take care of this now.
-		const aggregateEvents: CalendarEvent[] = []
+
+		const calendars: Array<{ long: CalendarEvent[]; short: CalendarEvent[] }> = []
 
 		for (const { groupRoot } of calendarInfos.values()) {
 			const [shortEventsResult, longEventsResult] = await Promise.all([
 				this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
 				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
 			])
-			aggregateEvents.push(...shortEventsResult.elements, ...longEventsResult)
+
+			calendars.push({
+				short: shortEventsResult.elements,
+				long: longEventsResult,
+			})
 		}
 		const newEvents = new Map<number, Array<CalendarEvent>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
-		for (const e of aggregateEvents) {
+
+		// Generate events occurrences per calendar to avoid calendars flashing in the screen
+		for (const calendar of calendars) {
+			this.generateEventOccurences(newEvents, calendar.short, month, zone, true)
+			this.generateEventOccurences(newEvents, calendar.long, month, zone, false)
+		}
+
+		return newEvents
+	}
+
+	private generateEventOccurences(
+		eventMap: Map<number, CalendarEvent[]>,
+		events: CalendarEvent[],
+		range: CalendarTimeRange,
+		zone: string,
+		overwriteRange: boolean,
+	) {
+		for (const e of events) {
+			// Overrides end of range to prevent events from being truncated. Generating them until the end of the event
+			// instead of the original end guarantees that the event will be fully displayed. This WILL NOT end in an
+			// endless loop, because short events last a maximum of two weeks.
+			const generationRange = overwriteRange ? { ...range, end: e.endTime.getTime() } : range
+
 			if (e.repeatRule) {
-				addDaysForRecurringEvent(newEvents, e, month, zone)
+				addDaysForRecurringEvent(eventMap, e, generationRange, zone)
 			} else {
-				addDaysForEventInstance(newEvents, e, month, zone)
+				addDaysForEventInstance(eventMap, e, generationRange, zone)
 			}
 		}
-		return newEvents
 	}
 
 	/**
