@@ -7,7 +7,7 @@ import { sha256Hash } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
-import { SqlType } from "../../offline/SqlValue"
+import { sql } from "../../offline/Sql"
 
 assertWorkerOrNode()
 
@@ -60,7 +60,10 @@ export class KeyVerificationFacade {
 			const mailAddressStr = mailAddress.value as string
 			const fingerprintStr = fingerprint.value as string
 
-			pool.set(mailAddressStr, { fingerprint: fingerprintStr, verified: await this.confirmFingerprint(mailAddressStr, fingerprintStr) })
+			pool.set(mailAddressStr, {
+				fingerprint: fingerprintStr,
+				verified: await this.confirmFingerprint(mailAddressStr, fingerprintStr),
+			})
 		}
 
 		return Promise.resolve(pool)
@@ -70,16 +73,11 @@ export class KeyVerificationFacade {
 	 * Adds a trusted key to the database.
 	 */
 	async addToPool(mailAddress: string, fingerprint: string) {
-		/* Insert or update mailAddress / fingerprint*/
-		await this.sqlCipherFacade.run(
-			`INSERT INTO verification_pool (mailAddress, fingerprint) VALUES (?, ?)
-			ON CONFLICT(mailAddress) DO UPDATE
-				SET mailAddress=excluded.mailAddress, fingerprint=excluded.fingerprint`,
-			[
-				{ type: SqlType.String, value: mailAddress },
-				{ type: SqlType.String, value: fingerprint },
-			],
-		)
+		/* Insert or update mailAddress / fingerprint */
+		const { query, params } = sql`INSERT INTO verification_pool (mailAddress, fingerprint) VALUES (${mailAddress}, ${fingerprint})
+                                      ON CONFLICT(mailAddress) DO UPDATE
+                                      SET mailAddress=excluded.mailAddress, fingerprint=excluded.fingerprint`
+		await this.sqlCipherFacade.run(query, params)
 
 		return Promise.resolve()
 	}
@@ -88,7 +86,8 @@ export class KeyVerificationFacade {
 	 * Removes a key from the database.
 	 */
 	async removeFromPool(mailAddress: string) {
-		await this.sqlCipherFacade.run(`DELETE FROM verification_pool WHERE mailAddress = ?`, [{ type: SqlType.String, value: mailAddress }])
+		const { query, params } = sql`DELETE FROM verification_pool WHERE mailAddress = ${mailAddress}`
+		await this.sqlCipherFacade.run(query, params)
 
 		return Promise.resolve()
 	}
@@ -97,9 +96,8 @@ export class KeyVerificationFacade {
 	 * Returns the fingerprint stored in the database for a given mail address.
 	 */
 	async getStoredFingerprint(mailAddress: string): Promise<string | null> {
-		const result = await this.sqlCipherFacade.get(`SELECT fingerprint FROM verification_pool WHERE mailAddress = ?`, [
-			{ type: SqlType.String, value: mailAddress },
-		])
+		const { query, params } = sql`SELECT fingerprint FROM verification_pool WHERE mailAddress = ${mailAddress}`
+		const result = await this.sqlCipherFacade.get(query, params)
 
 		if (result == null) {
 			return Promise.resolve(null)
@@ -136,7 +134,8 @@ export class KeyVerificationFacade {
 	 * Determines whether the database contains an entry for a given mail address.
 	 */
 	async poolContains(mailAddress: string): Promise<boolean> {
-		const result = await this.sqlCipherFacade.get(`SELECT * FROM verification_pool WHERE mailAddress = ?`, [{ type: SqlType.String, value: mailAddress }])
+		const { query, params } = sql`SELECT * FROM verification_pool WHERE mailAddress = ${mailAddress}`
+		const result = await this.sqlCipherFacade.get(query, params)
 		return Promise.resolve(result !== null)
 	}
 
