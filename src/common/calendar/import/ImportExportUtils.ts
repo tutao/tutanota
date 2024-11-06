@@ -145,7 +145,7 @@ export const enum SyncStatus {
 export function checkURLString(url: string): TranslationKey | URL {
 	const assertResult = assertValidURL(url)
 	if (!assertResult) return "invalidURL_msg"
-	if (!hasValidProtocol(assertResult, ["http:", "https:"])) return "invalidURLProtocol_msg"
+	if (!hasValidProtocol(assertResult, ["https:"])) return "invalidURLProtocol_msg"
 	return assertResult
 }
 
