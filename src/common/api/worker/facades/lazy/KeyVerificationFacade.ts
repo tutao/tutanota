@@ -14,6 +14,9 @@ assertWorkerOrNode()
 // TODO: does this type exist anywhere else maybe?
 export type MailAddress = string
 
+/**
+ * Bundles fingerprint and current verification status for presentation.
+ */
 export interface KeyVerificationDetails {
 	fingerprint: string
 	verified: boolean
@@ -28,6 +31,10 @@ export class KeyVerificationFacade {
 		this.sqlCipherFacade = sqlCipherFacade
 	}
 
+	/**
+	 * Determines whether the expected fingerprint matches the fingerprint returned by
+	 * the public key service for the given mail address.
+	 */
 	async confirmFingerprint(mailAddress: string, expectedFingerprint: string): Promise<boolean> {
 		try {
 			const serverFingerprint = await this.getPublicKeyHashFromServer(mailAddress)
@@ -42,6 +49,9 @@ export class KeyVerificationFacade {
 		}
 	}
 
+	/**
+	 * Returns all pinned/trusted keys, including fresh information if they are still valid.
+	 */
 	async getPool(): Promise<Map<MailAddress, KeyVerificationDetails>> {
 		const result = await this.sqlCipherFacade.all(`SELECT * FROM verification_pool`, [])
 
@@ -56,6 +66,9 @@ export class KeyVerificationFacade {
 		return Promise.resolve(pool)
 	}
 
+	/**
+	 * Adds a trusted key to the database.
+	 */
 	async addToPool(mailAddress: string, fingerprint: string) {
 		/* Insert or update mailAddress / fingerprint*/
 		await this.sqlCipherFacade.run(
@@ -71,12 +84,18 @@ export class KeyVerificationFacade {
 		return Promise.resolve()
 	}
 
+	/**
+	 * Removes a key from the database.
+	 */
 	async removeFromPool(mailAddress: string) {
 		await this.sqlCipherFacade.run(`DELETE FROM verification_pool WHERE mailAddress = ?`, [{ type: SqlType.String, value: mailAddress }])
 
 		return Promise.resolve()
 	}
 
+	/**
+	 * Returns the fingerprint stored in the database for a given mail address.
+	 */
 	async getStoredFingerprint(mailAddress: string): Promise<string | null> {
 		const result = await this.sqlCipherFacade.get(`SELECT fingerprint FROM verification_pool WHERE mailAddress = ?`, [
 			{ type: SqlType.String, value: mailAddress },
@@ -90,6 +109,10 @@ export class KeyVerificationFacade {
 		}
 	}
 
+	/**
+	 * Determines whether the stored fingerprint still matches the one
+	 * returned by the public key service for a given mail address.
+	 */
 	async isVerified(mailAddress: string): Promise<boolean> {
 		const storedFingerprint = await this.getStoredFingerprint(mailAddress)
 		if (storedFingerprint == null) {
@@ -100,18 +123,25 @@ export class KeyVerificationFacade {
 		return Promise.resolve(this.confirmFingerprint(mailAddress, storedFingerprint))
 	}
 
+	/**
+	 * Determines whether the stored fingerprint of a given mail address matches the one calculated
+	 * from a given PublicKeyGetOut structure.
+	 */
 	async publicKeyMatchesPinnedPublicKey(mailAddress: string, publicKeyGetOut: PublicKeyGetOut): Promise<boolean> {
 		// TODO: check if this behaviour really is correct
 		return (await this.getPublicKeyHash(publicKeyGetOut)) === (await this.getStoredFingerprint(mailAddress))
 	}
 
+	/**
+	 * Determines whether the database contains an entry for a given mail address.
+	 */
 	async poolContains(mailAddress: string): Promise<boolean> {
 		const result = await this.sqlCipherFacade.get(`SELECT * FROM verification_pool WHERE mailAddress = ?`, [{ type: SqlType.String, value: mailAddress }])
 		return Promise.resolve(result !== null)
 	}
 
 	/**
-	 * Returns a hashed concatenation of the given public keys
+	 * Returns a hashed concatenation of the given public keys.
 	 */
 	public async getPublicKeyHash(publicKeyGetOut: PublicKeyGetOut): Promise<string> {
 		const atLeastOneFilledArray = (...arrays: (Uint8Array | null)[]) => {
@@ -164,7 +194,7 @@ export class KeyVerificationFacade {
 	}
 
 	/**
-	 * Returns a hashed concatenation of public keys associated with a given mail address
+	 * Returns a hashed concatenation of public keys associated with a given mail address.
 	 */
 	public async getPublicKeyHashFromServer(mailAddress: string): Promise<string> {
 		const keyData = createPublicKeyGetIn({
