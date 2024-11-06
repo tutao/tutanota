@@ -309,6 +309,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
+		locator.cacheManagement,
 	)
 
 	locator.userManagement = lazyMemoized(async () => {

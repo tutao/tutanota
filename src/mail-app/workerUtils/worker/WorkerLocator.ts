@@ -347,6 +347,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
+		locator.cacheManagement,
 	)
 
 	locator.search = lazyMemoized(async () => {

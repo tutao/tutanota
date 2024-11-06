@@ -11,6 +11,7 @@ import {
 	DeferredObject,
 	Hex,
 	hexToUint8Array,
+	lazyAsync,
 	neverNull,
 	ofClass,
 	uint8ArrayToBase64,
@@ -96,6 +97,7 @@ import { Argon2idFacade } from "./Argon2idFacade.js"
 import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { encryptString } from "../crypto/CryptoWrapper.js"
+import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 
 assertWorkerOrNode()
 
@@ -198,6 +200,7 @@ export class LoginFacade {
 		private readonly argon2idFacade: Argon2idFacade,
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -333,6 +336,11 @@ export class LoginFacade {
 		})
 		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
 		await this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
+		// We reload the user because we experienced a race condition
+		// were we do not process the User update after doing the argon2 migration from the web client.´
+		// In order do not rework the entity processing and its initialization for new clients we
+		// replace the cached instances after doing the migration
+		await (await this.cacheManagementFacade()).reloadUser()
 		this.userFacade.setUserGroupKeyDistributionKey(newUserPassphraseKey)
 	}
 

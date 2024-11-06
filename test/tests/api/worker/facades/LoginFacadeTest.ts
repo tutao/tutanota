@@ -36,6 +36,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
 import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 
 const { anything, argThat } = matchers
 
@@ -97,6 +98,7 @@ o.spec("LoginFacadeTest", function () {
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let argon2idFacade: Argon2idFacade
+	let cacheManagmentFacadeMock: CacheManagementFacade
 
 	const timeRangeDays = 42
 	const login = "born.slippy@tuta.io"
@@ -139,6 +141,7 @@ o.spec("LoginFacadeTest", function () {
 		databaseKeyFactoryMock = object()
 		argon2idFacade = object()
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)
+		cacheManagmentFacadeMock = object()
 
 		facade = new LoginFacade(
 			restClientMock,
@@ -156,6 +159,7 @@ o.spec("LoginFacadeTest", function () {
 			argon2idFacade,
 			entityClientMock,
 			async (error: Error) => {},
+			async () => cacheManagmentFacadeMock,
 		)
 
 		eventBusClientMock = instance(EventBusClient)
@@ -802,6 +806,7 @@ o.spec("LoginFacadeTest", function () {
 					}),
 				),
 			)
+			verify(cacheManagmentFacadeMock.reloadUser())
 		})
 		o.afterEach(() => {
 			Const.EXECUTE_KDF_MIGRATION = false
