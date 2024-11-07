@@ -1613,9 +1613,9 @@ styles.registerStyle("main", () => {
 			"line-height": px(18),
 		},
 		".list-font-icons": {
-			"letter-spacing": "8px",
+			"letter-spacing": "1px",
 			"text-align": "right",
-			"margin-right": "-8px",
+			"margin-right": "-3px",
 		},
 		".monospace": {
 			"font-family": '"Lucida Console", Monaco, monospace',
