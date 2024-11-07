@@ -111,3 +111,9 @@ export function getDefaultSenderFromUser({ props, userGroupInfo }: UserControlle
 		? props.defaultSender
 		: neverNull(userGroupInfo.mailAddress)
 }
+
+export function allInSameMailbox(mails: readonly Mail[]): boolean {
+	const mailGroups = mails.map((m) => m._ownerGroup)
+	return mailGroups.every((mg) => mg === mailGroups[0])
+	// returns true if mails is empty
+}

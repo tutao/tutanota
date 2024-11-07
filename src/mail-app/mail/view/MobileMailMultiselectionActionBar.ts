@@ -8,6 +8,7 @@ import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 import { LabelsPopup } from "./LabelsPopup.js"
+import { allInSameMailbox } from "../model/MailUtils"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	mails: readonly Mail[]
@@ -16,6 +17,7 @@ export interface MobileMailMultiselectionActionBarAttrs {
 	selectNone: () => unknown
 }
 
+// Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
 export class MobileMailMultiselectionActionBar {
 	private dom: HTMLElement | null = null
 
@@ -45,7 +47,7 @@ export class MobileMailMultiselectionActionBar {
 							},
 					  })
 					: null,
-				mailModel.canAssignLabels()
+				mailModel.canAssignLabels() && allInSameMailbox(mails)
 					? m(IconButton, {
 							icon: Icons.Label,
 							title: "assignLabel_action",
@@ -69,8 +71,6 @@ export class MobileMailMultiselectionActionBar {
 					title: "markRead_action",
 					click: () => {
 						mailModel.markMails(mails, false)
-						// I think these should be left out and it stops a bug, but we'll see
-						//selectNone()
 					},
 				}),
 				m(IconButton, {
@@ -78,7 +78,6 @@ export class MobileMailMultiselectionActionBar {
 					title: "markUnread_action",
 					click: () => {
 						mailModel.markMails(mails, true)
-						//selectNone()
 					},
 				}),
 			],
