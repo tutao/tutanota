@@ -151,10 +151,10 @@ pub struct HelloEncInput {
 	pub message: String,
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[allow(non_snake_case)]
 pub struct HelloEncOutput {
 	pub answer: String,
 	pub timestamp: DateTime,
-	#[allow(non_snake_case)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 

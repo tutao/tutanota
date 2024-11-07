@@ -15,16 +15,20 @@ use base64::Engine;
 use std::borrow::ToOwned;
 use std::sync::{Arc, RwLock};
 
+#[allow(unused)]
 const USER_GROUP_KEY_DISTRIBUTION_KEY_INFO: &[u8] = b"userGroupKeyDistributionKey";
 
 pub struct UserFacade {
 	user: RwLock<Arc<User>>,
+	#[allow(unused)]
 	key_cache: Arc<KeyCache>,
 }
 
 /// UserFacade is tied to a logged in user.
 #[cfg_attr(test, mockall::automock)]
+#[allow(unused)]
 impl UserFacade {
+	#[allow(unused)]
 	pub fn new(key_cache: Arc<KeyCache>, user: User) -> Self {
 		UserFacade {
 			user: RwLock::new(Arc::new(user)),

@@ -75,6 +75,7 @@ impl BlobAccessTokenFacade {
 	}
 
 	/// Remove a given write token from the cache.
+	#[allow(unused)]
 	pub fn evict_access_token(&self, key: &BlobWriteTokenKey) {
 		self.cache.evict(key);
 	}

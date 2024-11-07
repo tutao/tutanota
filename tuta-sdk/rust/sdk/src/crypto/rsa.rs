@@ -351,9 +351,8 @@ impl RngCore for SeedBufferRng {
 	}
 
 	fn fill_bytes(&mut self, dest: &mut [u8]) {
-		let (copied, remaining) = self.buff.split_at(dest.len());
-		dest.copy_from_slice(copied);
-		self.buff = remaining.to_owned();
+		let copied = self.buff.drain(..dest.len());
+		dest.copy_from_slice(copied.as_slice());
 	}
 
 	fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {

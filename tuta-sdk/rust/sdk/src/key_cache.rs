@@ -5,6 +5,7 @@ use crate::key_loader_facade::VersionedAesKey;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
+#[allow(dead_code)]
 pub struct KeyCache {
 	current_group_keys: RwLock<HashMap<GeneratedId, VersionedAesKey>>,
 	current_user_group_key: RwLock<Option<VersionedAesKey>>,
@@ -12,6 +13,7 @@ pub struct KeyCache {
 }
 
 #[cfg_attr(test, mockall::automock)]
+#[allow(unused)]
 impl KeyCache {
 	pub fn new() -> Self {
 		KeyCache {

@@ -46,6 +46,7 @@ impl EntityClient {
 	}
 
 	/// Gets an entity/instance of type `type_ref` from the backend
+	#[allow(unused)]
 	pub async fn load<Id: IdType>(
 		&self,
 		type_ref: &TypeRef,
@@ -78,7 +79,7 @@ impl EntityClient {
 	}
 
 	/// Fetches and returns all entities/instances in a list element type
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn load_all(
 		&self,
 		_type_ref: &TypeRef,
@@ -124,13 +125,13 @@ impl EntityClient {
 	}
 
 	/// Stores a newly created entity/instance as a single element on the backend
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn setup_element(&self, _type_ref: &TypeRef, _entity: RawEntity) -> Vec<String> {
 		todo!("entity client setup_element")
 	}
 
 	/// Stores a newly created entity/instance as a part of a list element on the backend
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn setup_list_element(
 		&self,
 		_type_ref: &TypeRef,
@@ -141,6 +142,7 @@ impl EntityClient {
 	}
 
 	/// Updates an entity/instance in the backend
+	#[allow(unused)]
 	pub async fn update(
 		&self,
 		type_ref: &TypeRef,
@@ -173,7 +175,7 @@ impl EntityClient {
 	}
 
 	/// Deletes an existing single entity/instance on the backend
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn erase_element(
 		&self,
 		_type_ref: &TypeRef,
@@ -183,7 +185,7 @@ impl EntityClient {
 	}
 
 	/// Deletes an existing entity/instance of a list element type on the backend
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn erase_list_element<Id: IdTupleType>(
 		&self,
 		_type_ref: &TypeRef,

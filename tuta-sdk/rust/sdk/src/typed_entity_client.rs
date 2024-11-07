@@ -27,7 +27,7 @@ impl TypedEntityClient {
 		}
 	}
 
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(
 		&self,
 		id: &Id,
@@ -57,7 +57,7 @@ impl TypedEntityClient {
 		todo!("typed entity client load_all")
 	}
 
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
 		&self,
 		list_id: &GeneratedId,
