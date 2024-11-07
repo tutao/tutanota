@@ -1,4 +1,4 @@
-import m, { Children, ClassComponent, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { modal, ModalComponent } from "./Modal.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { size } from "../size.js"
@@ -42,6 +42,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButto
  * }
  *
  * m(Select<CalendarSelectItem, string>, {
+ *   classes: ["custom-margins"],
  *   onChange: (val) => {
  * 	   this.selected = val
  *   },
@@ -113,7 +114,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 			options.map((option) =>
 				m.fragment(
 					{
-						oncreate: ({ dom }) => this.setupOption(dom as HTMLElement, onSelect, option, optionListContainer, selected),
+						oncreate: ({ dom }: VnodeDOM<U>) => this.setupOption(dom as HTMLElement, onSelect, option, optionListContainer, selected),
 					},
 					[renderOptions(option)],
 				),
@@ -181,26 +182,29 @@ class OptionListContainer implements ModalComponent {
 
 		this.view = () => {
 			return m(
-				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow.fit-content",
+				".dropdown-panel-scrollable.elevated-bg.border-radius.dropdown-shadow.fit-content",
 				{
-					oncreate: (vnode) => {
+					oncreate: (vnode: VnodeDOM<HTMLElement>) => {
 						this.domDropdown = vnode.dom as HTMLElement
 						// It is important to set initial opacity so that user doesn't see it with full opacity before animating.
 						this.domDropdown.style.opacity = "0"
 					},
 				},
 				m(
-					".dropdown-content.scroll.pl-vpad-s.pr-vpad-s.flex.flex-column.gap-vpad-xs",
+					".dropdown-content.scroll.pl-vpad-s.pr-vpad-s.flex.flex-column.gap-vpad-sm",
 					{
 						role: AriaRole.Listbox,
 						tabindex: TabIndex.Programmatic,
-						oncreate: (vnode) => {
+						oncreate: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domContents = vnode.dom as HTMLElement
 						},
-						onupdate: (vnode) => {
+						onupdate: (vnode: VnodeDOM<HTMLElement>) => {
 							if (this.maxHeight == null) {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-								this.maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+								this.maxHeight =
+									children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) +
+									size.vpad + // size.pad accounts for top and bottom padding
+									(children.length - 1) * size.vpad_small // accounts for the gaps being applied
 
 								if (this.origin) {
 									// The dropdown-content element is added to the dom has a hidden element first.
