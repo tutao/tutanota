@@ -76,7 +76,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		multiselectionAllowed: MultiselectMode.Enabled,
 		createElement: (dom: HTMLElement) => {
 			const mailRow = new MailRow(
-				false,
+				this.mailViewModel.getSelectedMailSetKind() === MailSetKind.LABEL,
 				(mail) => this.mailViewModel.getLabelsForMail(mail),
 				(entity) => this.attrs.onSingleExclusiveSelection(entity),
 			)

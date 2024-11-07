@@ -105,6 +105,10 @@ export enum MailSetKind {
 	LABEL = "8",
 }
 
+export function getMailSetKind(folder: MailFolder): MailSetKind {
+	return folder.folderType as MailSetKind
+}
+
 export const enum ReplyType {
 	NONE = "0",
 	REPLY = "1",
