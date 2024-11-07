@@ -1,12 +1,12 @@
-import { FolderSystem, type IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
+import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, contains, first, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
-import { getListId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
 import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { getListId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
 export const MAX_FOLDER_INDENT_LEVEL = 10
@@ -59,18 +59,28 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	if (folders == null) {
 		return []
 	}
-	const folder = foldersModel.getMailFolderForMail(firstMail)
-	if (folder == null) {
+	const folderOfFirstMail = foldersModel.getMailFolderForMail(firstMail)
+	if (folderOfFirstMail == null) {
 		return []
 	}
 
-	return folders.getIndentedList().filter((f: IndentedFolder) => {
-		if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
-			return !isSameId(f.folder._id, folder._id)
-		} else {
-			return f.folder.mails !== getListId(firstMail)
-		}
-	})
+	const areMailsInDifferentFolders =
+		mails.length > 1 &&
+		mails.some((mail) => {
+			return !isSameId(folderOfFirstMail._id, assertNotNull(foldersModel.getMailFolderForMail(mail))._id)
+		})
+
+	if (areMailsInDifferentFolders) {
+		return folders.getIndentedList()
+	} else {
+		return folders.getIndentedList().filter((f: IndentedFolder) => {
+			if (f.folder.isMailSet && isNotEmpty(firstMail.sets)) {
+				return !isSameId(f.folder._id, folderOfFirstMail._id)
+			} else {
+				return f.folder.mails !== getListId(firstMail)
+			}
+		})
+	}
 }
 
 /**
