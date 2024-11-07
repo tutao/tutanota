@@ -1,4 +1,4 @@
-use crate::generated_id::GeneratedId;
+use crate::GeneratedId;
 
 #[derive(uniffi::Record, Clone)]
 pub struct Credentials {

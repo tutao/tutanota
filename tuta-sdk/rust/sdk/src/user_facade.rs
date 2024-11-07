@@ -3,13 +3,13 @@ use crate::crypto::key::GenericAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
 use crate::entities::generated::sys::{GroupMembership, User};
-use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;
 use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
 use crate::ApiCallError;
+use crate::GeneratedId;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use std::borrow::ToOwned;

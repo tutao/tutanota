@@ -1,7 +1,9 @@
-use crate::custom_id::CustomId;
+use crate::id::custom_id::CustomId;
+use crate::id::id_tuple::IdTupleCustom;
+use crate::id::id_tuple::IdTupleGenerated;
+use crate::GeneratedId;
+
 use crate::date::DateTime;
-use crate::generated_id::GeneratedId;
-use crate::{IdTupleCustom, IdTupleGenerated};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

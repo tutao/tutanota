@@ -1,7 +1,7 @@
 use crate::date::DateProvider;
 use crate::entities::generated::storage::BlobServerAccessInfo;
-use crate::generated_id::GeneratedId;
 use crate::tutanota_constants::ArchiveDataType;
+use crate::GeneratedId;
 use std::collections::HashMap;
 use std::future::Future;
 use std::sync::{Arc, RwLock};

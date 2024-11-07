@@ -4,16 +4,16 @@ use std::sync::Arc;
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use thiserror::Error;
 
-use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::generated_id::GeneratedId;
 use crate::json_element::{JsonElement, RawEntity};
 use crate::json_serializer::InstanceMapperError::InvalidValue;
 use crate::metamodel::{
 	AssociationType, Cardinality, ElementType, ModelValue, TypeModel, ValueType,
 };
 use crate::type_model_provider::TypeModelProvider;
+use crate::CustomId;
+use crate::GeneratedId;
 use crate::{IdTupleCustom, IdTupleGenerated, TypeRef};
 
 impl From<&TypeModel> for TypeRef {

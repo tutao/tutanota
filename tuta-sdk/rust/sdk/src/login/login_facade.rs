@@ -6,13 +6,12 @@ use thiserror::Error;
 
 use crate::crypto::key::GenericAesKey;
 use crate::crypto::{generate_key_from_passphrase, sha256, Aes256Key};
-use crate::custom_id::CustomId;
 use crate::element_value::ParsedEntity;
 use crate::entities::generated::sys::{Session, User};
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::generated_id::{GeneratedId, GENERATED_ID_BYTES_LENGTH};
+use crate::id::generated_id::GENERATED_ID_BYTES_LENGTH;
 use crate::login::credentials::Credentials;
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
@@ -20,6 +19,8 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 use crate::util::{array_cast_slice, BASE64_EXT};
 use crate::ApiCallError::InternalSdkError;
+use crate::CustomId;
+use crate::GeneratedId;
 use crate::{ApiCallError, IdTupleCustom};
 
 /// Error that may occur during login and session creation
@@ -203,16 +204,16 @@ mod tests {
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::{aes::Iv, Aes128Key, Aes256Key};
-	use crate::custom_id::CustomId;
 	use crate::entities::generated::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
 	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;
-	use crate::generated_id::GeneratedId;
 	use crate::login::credentials::{CredentialType, Credentials};
 	use crate::login::login_facade::LoginFacade;
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
+	use crate::CustomId;
+	use crate::GeneratedId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
 
 	#[tokio::test]

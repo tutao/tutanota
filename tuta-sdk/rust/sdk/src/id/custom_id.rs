@@ -1,4 +1,4 @@
-use crate::entity_client::{BaseIdType, IdType};
+use crate::id::id_tuple::{BaseIdType, IdType};
 use base64::Engine;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

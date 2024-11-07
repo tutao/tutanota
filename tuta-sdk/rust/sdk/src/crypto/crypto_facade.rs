@@ -7,12 +7,12 @@ use crate::crypto::tuta_crypt::{PQError, PQMessage};
 use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::generated::sys::BucketKey;
-use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
 use crate::util::ArrayCastingError;
+use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -385,12 +385,12 @@ mod test {
 	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
-	use crate::generated_id::GeneratedId;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
 	use crate::metamodel::TypeModel;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
+	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
 
 	#[tokio::test]

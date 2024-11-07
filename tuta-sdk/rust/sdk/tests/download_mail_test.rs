@@ -5,9 +5,9 @@ mod tests {
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
 	use std::sync::Arc;
-	use tutasdk::generated_id::GeneratedId;
 	use tutasdk::login::{CredentialType, Credentials};
 	use tutasdk::rest_client::{HttpMethod, RestClient};
+	use tutasdk::GeneratedId;
 	use tutasdk::{IdTupleGenerated, Sdk};
 
 	#[tokio::test]

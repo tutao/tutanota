@@ -4,9 +4,9 @@ use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::generated::tutanota::{Mail, MailAddress};
 use crate::entities::Entity;
-use crate::generated_id::GeneratedId;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
+use crate::GeneratedId;
 use crate::{IdTupleGenerated, TypeRef};
 
 /// Generates and returns an encrypted Mail ParsedEntity. It also returns the decrypted Mail for comparison
