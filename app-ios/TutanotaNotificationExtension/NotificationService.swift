@@ -65,8 +65,8 @@ class NotificationService: UNNotificationServiceExtension {
 			try await sqlCipherFacade.run(
 				"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)",
 				[
-					TaggedSqlValue.string(value: "tutanota/Mail"), TaggedSqlValue.string(value: mail.id.listId),
-					TaggedSqlValue.string(value: mail.id.elementId), TaggedSqlValue.string(value: mail.ownerGroup ?? ""),
+					TaggedSqlValue.string(value: "tutanota/Mail"), TaggedSqlValue.string(value: mail.id!.listId),
+					TaggedSqlValue.string(value: mail.id!.elementId), TaggedSqlValue.string(value: mail.ownerGroup ?? ""),
 					TaggedSqlValue.bytes(value: serializedMail.wrap()),
 				]
 			)
