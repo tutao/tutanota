@@ -3,6 +3,7 @@ package de.tutao.tutashared.credentials
 import android.accounts.*
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 
 class AccountManagerAuthenticator(context: Context) : AbstractAccountAuthenticator(context) {
 	private val context: Context
@@ -16,6 +17,7 @@ class AccountManagerAuthenticator(context: Context) : AbstractAccountAuthenticat
 							authTokenType: String,
 							requiredFeatures: Array<String>,
 							options: Bundle): Bundle? {
+		Log.d("Sync", "AccountManagerAuthenticator addAccount")
 		return null
 	}
 
