@@ -964,6 +964,23 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
+	static editMediumDialog<T extends {}>(
+		headerBarAttrs: DialogHeaderBarAttrs,
+		child: Class<Component<T>>,
+		childAttrs: T,
+		dialogStyle?: Partial<CSSStyleDeclaration> | {},
+	): Dialog {
+		return new Dialog(DialogType.EditMedium, {
+			view: () =>
+				m(".flex.col.border-radius", { style: dialogStyle }, [
+					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
+					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
+					/** variable-size child container that may be scrollable. */
+					m(".scroll.hide-outline.plr-l.flex-grow", m(child, childAttrs)),
+				]),
+		})
+	}
+
 	static editSmallDialog<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: () => Children): Dialog {
 		return new Dialog(DialogType.EditSmall, {
 			view: () => [

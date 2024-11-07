@@ -27,6 +27,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/Subscript
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
+import { theme } from "../../../../common/gui/theme.js"
 
 import { handleRatingByEvent } from "../../../../common/ratings/InAppRatingDialog.js"
 
@@ -60,17 +61,11 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 	}, new Map())
 
 	const descriptionText = convertTextToHtml(model.editModels.description.content)
-	const descriptionEditor: HtmlEditor = new HtmlEditor("description_label")
-		.setMinHeight(400)
-		.showBorders()
+	const descriptionEditor: HtmlEditor = new HtmlEditor()
+		.setMinHeight(300)
 		.setEnabled(true)
 		// We only set it once, we don't viewModel on every change, that would be slow
 		.setValue(descriptionText)
-		.setToolbarOptions({
-			alignmentEnabled: false,
-			fontSizeEnabled: false,
-		})
-		.enableToolbar()
 
 	const okAction = (dom: HTMLElement) => {
 		model.editModels.description.content = descriptionEditor.getTrimmedValue()
@@ -103,15 +98,23 @@ async function showCalendarEventEditDialog(model: CalendarEventModel, responseMa
 		},
 	}
 
-	const dialog: Dialog = Dialog.editDialog(dialogHeaderBarAttrs, CalendarEventEditView, {
-		model,
-		recipientsSearch,
-		descriptionEditor,
-		startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
-		timeFormat: getTimeFormatForUser(locator.logins.getUserController().userSettingsGroupRoot),
-		groupColors,
-		defaultAlarms,
-	})
+	const dialog: Dialog = Dialog.editMediumDialog(
+		dialogHeaderBarAttrs,
+		CalendarEventEditView,
+		{
+			model,
+			recipientsSearch,
+			descriptionEditor,
+			startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot),
+			timeFormat: getTimeFormatForUser(locator.logins.getUserController().userSettingsGroupRoot),
+			groupColors,
+			defaultAlarms,
+		},
+		{
+			height: "100%",
+			"background-color": theme.navigation_bg,
+		},
+	)
 		.addShortcut({
 			key: Keys.ESC,
 			exec: () => dialog.close(),

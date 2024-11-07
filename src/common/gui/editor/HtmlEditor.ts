@@ -228,7 +228,7 @@ export class HtmlEditor implements Component {
 
 	isEmpty(): boolean {
 		// either nothing or default squire content
-		return this.value() === "" || this.value() === "<div><br></div>"
+		return this.value() === "" || new RegExp(/^<div( dir=["'][A-z]*["'])?><br><\/div>$/).test(this.value())
 	}
 
 	/** set whether the dialog should be editable.*/
