@@ -23,6 +23,7 @@ import stream from "mithril/stream"
 import { exportMails } from "../export/Exporter.js"
 import { MailModel } from "../model/MailModel.js"
 import { LabelsPopup } from "./LabelsPopup.js"
+import { allInSameMailbox } from "../model/MailUtils"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -35,6 +36,7 @@ export interface MailViewerToolbarAttrs {
 	selectNone?: () => void
 }
 
+// Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
 export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	view(vnode: Vnode<MailViewerToolbarAttrs>) {
 		return m(".flex.ml-between-s.items-center", [
@@ -61,7 +63,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
 				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
-				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.mails) : null,
+				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.mails) ? this.renderLabelButton(mailModel, attrs.mails) : null,
 				this.renderReadButton(attrs),
 				this.renderExportButton(attrs),
 			]
