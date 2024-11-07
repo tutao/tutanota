@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The base valid EditSchema must contain "name" and "photo" DataKinds -->
+<!-- An invalid EditSchema will result in Tuta not being detected as a contact provider -->
+<ContactsAccountType>
+	<EditSchema>
+		<DataKind kind="photo" maxOccurs="1"/>
+		<DataKind kind="name"
+				  maxOccurs="1"
+				  supportsDisplayName="false"
+				  supportsPrefix="true"
+				  supportsMiddleName="true"
+				  supportsSuffix="true"
+				  supportsPhoneticGivenName="true"
+				  supportsPhoneticMiddleName="true"
+				  supportsPhoneticFamilyName="true"
+				/>
+		<DataKind kind="phone">
+			<Type type="home"/>
+			<Type type="work"/>
+			<Type type="mobile"/>
+			<Type type="other_fax"/>
+			<Type type="other"/>
+			<Type type="custom"/>
+		</DataKind>
+		<DataKind kind="email">
+			<Type type="home"/>
+			<Type type="work"/>
+			<Type type="other"/>
+			<Type type="custom"/>
+		</DataKind>
+		<DataKind kind="nickname" maxOccurs="1"/>
+		<DataKind kind="im">
+			<Type type="custom"/>
+		</DataKind>
+		<DataKind kind="postal" needsStructured="false">
+			<Type type="home"/>
+			<Type type="work"/>
+			<Type type="other"/>
+			<Type type="custom"/>
+		</DataKind>
+		<DataKind kind="organization" maxOccurs="1"/>
+		<DataKind kind="website"/>
+		<DataKind kind="note" maxOccurs="1"/>
+		<DataKind kind="event" dateWithTime="false">
+			<Type type="birthday" maxOccurs="1" yearOptional="true"/>
+		</DataKind>
+		<DataKind kind="relationship">
+			<Type type="parent"/>
+			<Type type="brother"/>
+			<Type type="sister"/>
+			<Type type="child"/>
+			<Type type="friend"/>
+			<Type type="relative"/>
+			<Type type="spouse"/>
+			<Type type="partner"/>
+			<Type type="assistant"/>
+			<Type type="manager"/>
+			<Type type="custom"/>
+		</DataKind>
+	</EditSchema>
+</ContactsAccountType>

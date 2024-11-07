@@ -2,11 +2,9 @@ package de.tutao.tutashared.credentials
 
 import android.app.Service
 import android.content.Intent
-
 import android.os.IBinder
 
-
-class AccountManagerAuthenticatorService : Service() {
+class AccountAuthenticatorService : Service() {
 	private var authenticator: AccountManagerAuthenticator? = null
 
 	override fun onCreate() {

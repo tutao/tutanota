@@ -161,19 +161,20 @@
 
 
 		<service
-				android:name="de.tutao.tutashared.credentials.AccountManagerAuthenticatorService"
+				android:name="de.tutao.tutashared.credentials.AccountAuthenticatorService"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="android.accounts.AccountAuthenticator"/>
 			</intent-filter>
+
 			<meta-data
 					android:name="android.accounts.AccountAuthenticator"
-					android:resource="@xml/authenticator"/>
+					android:resource="@xml/account_authenticator"/>
 		</service>
 
 		<service
 				android:name=".StubSyncService"
-				android:exported="false"
+				android:exported="true"
 				android:process=":sync">
 			<intent-filter>
 				<action android:name="android.content.SyncAdapter"/>
@@ -181,8 +182,10 @@
 			<meta-data
 					android:name="android.content.SyncAdapter"
 					android:resource="@xml/syncadapter"/>
+			<meta-data
+					android:name="android.provider.CONTACTS_STRUCTURE"
+					android:resource="@xml/contacts"/>
 		</service>
-
 
 		<receiver
 				android:name=".push.BootBroadcastReceiver"
