@@ -3,6 +3,7 @@ import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
 import {DateWrapper} from '../sys/TypeRefs.js'
 import {Blob} from '../sys/TypeRefs.js'
+import {StringWrapper} from '../sys/TypeRefs.js'
 import {BucketKey} from '../sys/TypeRefs.js'
 import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
@@ -1009,6 +1010,95 @@ export type ImapSyncState = {
 
 	folders: ImapFolder[];
 }
+export const ImportAttachmentTypeRef: TypeRef<ImportAttachment> = new TypeRef("tutanota", "ImportAttachment")
+
+export function createImportAttachment(values: StrippedEntity<ImportAttachment>): ImportAttachment {
+	return Object.assign(create(typeModels.ImportAttachment, ImportAttachmentTypeRef), values)
+}
+
+export type ImportAttachment = {
+	_type: TypeRef<ImportAttachment>;
+
+	_id: Id;
+	ownerEncFileSessionKey: Uint8Array;
+	ownerFileKeyVersion: NumberString;
+
+	existingAttachmentFile:  null | IdTuple;
+	newAttachment:  null | NewImportAttachment;
+}
+export const ImportMailDataTypeRef: TypeRef<ImportMailData> = new TypeRef("tutanota", "ImportMailData")
+
+export function createImportMailData(values: StrippedEntity<ImportMailData>): ImportMailData {
+	return Object.assign(create(typeModels.ImportMailData, ImportMailDataTypeRef), values)
+}
+
+export type ImportMailData = {
+	_type: TypeRef<ImportMailData>;
+	_errors: Object;
+
+	_format: NumberString;
+	compressedBodyText: string;
+	compressedHeaders: string;
+	confidential: boolean;
+	date: Date;
+	differentEnvelopeSender: null | string;
+	inReplyTo: null | string;
+	messageId: null | string;
+	method: NumberString;
+	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
+	phishingStatus: NumberString;
+	replyType: NumberString;
+	state: NumberString;
+	subject: string;
+	unread: boolean;
+
+	importedAttachments: ImportAttachment[];
+	recipients: Recipients;
+	references: ImportMailDataMailReference[];
+	replyTos: EncryptedMailAddress[];
+	sender: MailAddress;
+}
+export const ImportMailDataMailReferenceTypeRef: TypeRef<ImportMailDataMailReference> = new TypeRef("tutanota", "ImportMailDataMailReference")
+
+export function createImportMailDataMailReference(values: StrippedEntity<ImportMailDataMailReference>): ImportMailDataMailReference {
+	return Object.assign(create(typeModels.ImportMailDataMailReference, ImportMailDataMailReferenceTypeRef), values)
+}
+
+export type ImportMailDataMailReference = {
+	_type: TypeRef<ImportMailDataMailReference>;
+
+	_id: Id;
+	reference: string;
+}
+export const ImportMailPostInTypeRef: TypeRef<ImportMailPostIn> = new TypeRef("tutanota", "ImportMailPostIn")
+
+export function createImportMailPostIn(values: StrippedEntity<ImportMailPostIn>): ImportMailPostIn {
+	return Object.assign(create(typeModels.ImportMailPostIn, ImportMailPostInTypeRef), values)
+}
+
+export type ImportMailPostIn = {
+	_type: TypeRef<ImportMailPostIn>;
+
+	_format: NumberString;
+	ownerGroup: Id;
+
+	encImports: StringWrapper[];
+	targetMailFolder: IdTuple;
+}
+export const ImportMailPostOutTypeRef: TypeRef<ImportMailPostOut> = new TypeRef("tutanota", "ImportMailPostOut")
+
+export function createImportMailPostOut(values: StrippedEntity<ImportMailPostOut>): ImportMailPostOut {
+	return Object.assign(create(typeModels.ImportMailPostOut, ImportMailPostOutTypeRef), values)
+}
+
+export type ImportMailPostOut = {
+	_type: TypeRef<ImportMailPostOut>;
+
+	_format: NumberString;
+
+	mails: IdTuple[];
+}
 export const InboxRuleTypeRef: TypeRef<InboxRule> = new TypeRef("tutanota", "InboxRule")
 
 export function createInboxRule(values: StrippedEntity<InboxRule>): InboxRule {
@@ -1213,6 +1303,7 @@ export type MailBox = {
 	archivedMailBags: MailBag[];
 	currentMailBag:  null | MailBag;
 	folders:  null | MailFolderRef;
+	importedAttachments: Id;
 	mailDetailsDrafts:  null | MailDetailsDraftsRef;
 	receivedAttachments: Id;
 	sentAttachments: Id;
@@ -1425,6 +1516,24 @@ export type NewDraftAttachment = {
 	encCid: null | Uint8Array;
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
+
+	referenceTokens: BlobReferenceTokenWrapper[];
+}
+export const NewImportAttachmentTypeRef: TypeRef<NewImportAttachment> = new TypeRef("tutanota", "NewImportAttachment")
+
+export function createNewImportAttachment(values: StrippedEntity<NewImportAttachment>): NewImportAttachment {
+	return Object.assign(create(typeModels.NewImportAttachment, NewImportAttachmentTypeRef), values)
+}
+
+export type NewImportAttachment = {
+	_type: TypeRef<NewImportAttachment>;
+
+	_id: Id;
+	encCid: null | Uint8Array;
+	encFileHash: null | Uint8Array;
+	encFileName: Uint8Array;
+	encMimeType: Uint8Array;
+	ownerEncFileHashSessionKey: null | Uint8Array;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }

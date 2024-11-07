@@ -510,6 +510,16 @@
 					"info": "RemoveAssociation MailboxGroupRoot/whitelistRequests."
 				}
 			]
+		},
+		{
+			"version": 77,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailBox",
+					"info": "AddAssociation MailBox/importedAttachments/LIST_ASSOCIATION/1479."
+				}
+			]
 		}
 	]
 }

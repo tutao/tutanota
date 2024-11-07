@@ -14,6 +14,8 @@ import {GroupInvitationPostDataTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPostReturnTypeRef} from "./TypeRefs.js"
 import {GroupInvitationPutDataTypeRef} from "./TypeRefs.js"
 import {GroupInvitationDeleteDataTypeRef} from "./TypeRefs.js"
+import {ImportMailPostInTypeRef} from "./TypeRefs.js"
+import {ImportMailPostOutTypeRef} from "./TypeRefs.js"
 import {ListUnsubscribeDataTypeRef} from "./TypeRefs.js"
 import {CreateMailFolderDataTypeRef} from "./TypeRefs.js"
 import {CreateMailFolderReturnTypeRef} from "./TypeRefs.js"
@@ -105,6 +107,15 @@ export const GroupInvitationService = Object.freeze({
 	post: {data: GroupInvitationPostDataTypeRef, return: GroupInvitationPostReturnTypeRef},
 	put: {data: GroupInvitationPutDataTypeRef, return: null},
 	delete: {data: GroupInvitationDeleteDataTypeRef, return: null},
+} as const)
+
+export const ImportMailService = Object.freeze({
+	app: "tutanota",
+	name: "ImportMailService",
+	get: null,
+	post: {data: ImportMailPostInTypeRef, return: ImportMailPostOutTypeRef},
+	put: null,
+	delete: null,
 } as const)
 
 export const ListUnsubscribeService = Object.freeze({

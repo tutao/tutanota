@@ -1229,6 +1229,109 @@ impl Entity for ImapSyncState {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportAttachment {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncFileSessionKey: Vec<u8>,
+	pub ownerFileKeyVersion: i64,
+	pub existingAttachmentFile: Option<IdTupleGenerated>,
+	pub newAttachment: Option<NewImportAttachment>,
+}
+impl Entity for ImportAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportAttachment",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailData {
+	pub _format: i64,
+	pub compressedBodyText: String,
+	pub compressedHeaders: String,
+	pub confidential: bool,
+	pub date: DateTime,
+	pub differentEnvelopeSender: Option<String>,
+	pub inReplyTo: Option<String>,
+	pub messageId: Option<String>,
+	pub method: i64,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerKeyVersion: i64,
+	pub phishingStatus: i64,
+	pub replyType: i64,
+	pub state: i64,
+	pub subject: String,
+	pub unread: bool,
+	pub importedAttachments: Vec<ImportAttachment>,
+	pub recipients: Recipients,
+	pub references: Vec<ImportMailDataMailReference>,
+	pub replyTos: Vec<EncryptedMailAddress>,
+	pub sender: MailAddress,
+	pub _errors: Option<Errors>,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+impl Entity for ImportMailData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailDataMailReference {
+	pub _id: Option<CustomId>,
+	pub reference: String,
+}
+impl Entity for ImportMailDataMailReference {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailDataMailReference",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailPostIn {
+	pub _format: i64,
+	pub ownerGroup: GeneratedId,
+	pub encImports: Vec<super::sys::StringWrapper>,
+	pub targetMailFolder: IdTupleGenerated,
+}
+impl Entity for ImportMailPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailPostIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailPostOut {
+	pub _format: i64,
+	pub mails: Vec<IdTupleGenerated>,
+}
+impl Entity for ImportMailPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailPostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InboxRule {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "type")]
@@ -1465,6 +1568,7 @@ pub struct MailBox {
 	pub archivedMailBags: Vec<MailBag>,
 	pub currentMailBag: Option<MailBag>,
 	pub folders: Option<MailFolderRef>,
+	pub importedAttachments: GeneratedId,
 	pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
 	pub receivedAttachments: GeneratedId,
 	pub sentAttachments: GeneratedId,
@@ -1723,6 +1827,31 @@ impl Entity for NewDraftAttachment {
 		TypeRef {
 			app: "tutanota",
 			type_: "NewDraftAttachment",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct NewImportAttachment {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub encCid: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub encFileHash: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub encFileName: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub encMimeType: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncFileHashSessionKey: Option<Vec<u8>>,
+	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
+}
+impl Entity for NewImportAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "NewImportAttachment",
 		}
 	}
 }
