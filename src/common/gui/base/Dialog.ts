@@ -21,8 +21,7 @@ import { DropDownSelector } from "./DropDownSelector.js"
 import { DEFAULT_ERROR, Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { AriaWindow } from "../AriaUtils"
 import { styles } from "../styles"
-import { lazy, MaybeLazy, Thunk } from "@tutao/tutanota-utils"
-import { $Promisable, assertNotNull, getAsLazy, identity, mapLazily, noOp } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, MaybeLazy, noOp, Thunk } from "@tutao/tutanota-utils"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -961,6 +960,23 @@ export class Dialog implements ModalComponent {
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
 					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-l", m(child, childAttrs))),
+				]),
+		})
+	}
+
+	static editMediumDialog<T extends {}>(
+		headerBarAttrs: DialogHeaderBarAttrs,
+		child: Class<Component<T>>,
+		childAttrs: T,
+		dialogStyle?: Partial<CSSStyleDeclaration> | {},
+	): Dialog {
+		return new Dialog(DialogType.EditMedium, {
+			view: () =>
+				m(".flex.col.border-radius", { style: dialogStyle }, [
+					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
+					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
+					/** variable-size child container that may be scrollable. */
+					m(".scroll.hide-outline.plr-l.flex-grow", m(child, childAttrs)),
 				]),
 		})
 	}
