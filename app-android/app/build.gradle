@@ -46,6 +46,7 @@ android {
 	buildTypes {
 		debug {
 			resValue("string", "package_name", "de.tutao.tutanota.debug")
+			resValue("string", "account_type", "de.tutao.tutanota.debug")
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debug']
 			applicationIdSuffix ".debug"
 			jniDebuggable true
@@ -53,6 +54,7 @@ android {
 		release {
 			minifyEnabled true
 			resValue("string", "package_name", "de.tutao.tutanota")
+			resValue("string", "account_type", "de.tutao.tutanota")
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
 		}
@@ -60,6 +62,7 @@ android {
 			initWith release
 			minifyEnabled true
 			resValue("string", "package_name", "de.tutao.tutanota.test")
+			resValue("string", "account_type", "de.tutao.tutanota.test")
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.test']
 			applicationIdSuffix ".test"
