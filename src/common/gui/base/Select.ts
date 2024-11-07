@@ -85,7 +85,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		attrs: { onChange, options, renderOption, classes, selected, placeholder, expanded, disabled, ariaLabel, iconColor, id },
 	}: Vnode<SelectAttributes<U, T>>) {
 		return m(
-			"button.tutaui-select-trigger",
+			"button.tutaui-select-trigger.clickable",
 			{
 				id,
 				class: this.resolveClasses(classes, disabled, expanded),

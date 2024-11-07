@@ -2612,6 +2612,9 @@ styles.registerStyle("main", () => {
 		".faded-day": {
 			color: theme.navigation_menu_icon,
 		},
+		".faded-text": {
+			color: theme.content_message_bg,
+		},
 		".svg-text-content-bg text": {
 			fill: theme.content_bg,
 		},
@@ -2713,6 +2716,16 @@ styles.registerStyle("main", () => {
 			border: "2px solid",
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.border_radius_medium),
+		},
+		".unstyled-list": {
+			"list-style": "none",
+			margin: 0,
+			padding: 0,
+		},
+		".time-selection-grid": {
+			display: "grid",
+			"grid-template-columns": "1fr 3fr 1fr",
+			"grid-gap": px(size.vpad_small),
 		},
 	}
 })
