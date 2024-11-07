@@ -23,7 +23,6 @@ export interface SidebarSectionRowAttrs {
  * Selectable navigation row, typically used in the sidebar, like contact list or labels.
  */
 export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
-	private rightButtonClicked: boolean = false
 	private hovered: boolean = false
 
 	view({ attrs }: Vnode<SidebarSectionRowAttrs>): Children {
@@ -57,9 +56,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 				style: { background: isNavButtonSelected(navButtonAttrs) ? stateBgHover : "" },
 				onmouseenter: onHover,
 				onmouseleave: () => {
-					if (!this.rightButtonClicked) {
-						this.hovered = false
-					}
+					this.hovered = false
 				},
 			},
 			[
@@ -79,12 +76,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 					? m(IconButton, {
 							...attrs.moreButton,
 							click: (event, dom) => {
-								// Don't ask me why, but you need to set this to true twice
-								// to have hovering off the folder row work correctly on web
-								// certified JavaScript moment™
-								this.rightButtonClicked = true
 								attrs.moreButton.click(event, dom)
-								this.rightButtonClicked = true
 							},
 							onkeydown: handleForwardsTab,
 					  })
