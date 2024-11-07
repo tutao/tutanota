@@ -13,8 +13,17 @@ import { ContactSuggestion } from "../native/common/generatedipc/ContactSuggesti
 
 const MaxNativeSuggestions = 10
 
-export type RecipientSearchResultItem = { type: "recipient"; value: Recipient } | { type: "contactlist"; value: ContactListInfo }
+export type RecipientSearchResultItem =
+	| { type: "recipient"; value: Recipient }
+	| {
+			type: "contactlist"
+			value: ContactListInfo
+	  }
 export type RecipientSearchResultFilter = (item: RecipientSearchResultItem) => boolean
+
+export interface ContactSuggestionProvider {
+	getContactSuggestions(query: String): Promise<readonly ContactSuggestion[]>
+}
 
 export class RecipientsSearchModel {
 	private searchResults: Array<RecipientSearchResultItem> = []
@@ -27,7 +36,7 @@ export class RecipientsSearchModel {
 	constructor(
 		private readonly recipientsModel: RecipientsModel,
 		private readonly contactModel: ContactModel,
-		private readonly suggestionsProvider: ((query: String) => Promise<readonly ContactSuggestion[]>) | null,
+		private readonly suggestionsProvider: ContactSuggestionProvider,
 		private readonly entityClient: EntityClient,
 	) {}
 
@@ -59,8 +68,20 @@ export class RecipientsSearchModel {
 			])
 			if (query === this.currentQuery) {
 				this.searchResults = [
-					...newContactListSuggestions.map((value) => ({ type: "contactlist", value } satisfies RecipientSearchResultItem)),
-					...newContactSuggestions.map((value) => ({ type: "recipient", value } satisfies RecipientSearchResultItem)),
+					...newContactListSuggestions.map(
+						(value) =>
+							({
+								type: "contactlist",
+								value,
+							} satisfies RecipientSearchResultItem),
+					),
+					...newContactSuggestions.map(
+						(value) =>
+							({
+								type: "recipient",
+								value,
+							} satisfies RecipientSearchResultItem),
+					),
 				].filter(this.filter ?? ((_) => true))
 				this.previousQuery = query
 			}
@@ -139,7 +160,7 @@ export class RecipientsSearchModel {
 		if (!this.suggestionsProvider) {
 			return []
 		}
-		const recipients = await this.suggestionsProvider(text)
+		const recipients = await this.suggestionsProvider.getContactSuggestions(text)
 		return recipients.map(({ name, mailAddress }) => ({ name, address: mailAddress }))
 	}
 
