@@ -33,7 +33,7 @@ import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { getMailSetKind, MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -112,6 +112,10 @@ export class MailViewModel {
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
 	) {}
+
+	getSelectedMailSetKind(): MailSetKind | null {
+		return this._folder ? getMailSetKind(this._folder) : null
+	}
 
 	/** Map from element id of MailSetEntry to an entry itself. Needed to react to entity updates. Reset on folder change. */
 	private mailSetEntries: () => Map<Id, MailSetEntry> = memoizedWithHiddenArgument(
