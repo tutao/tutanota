@@ -1,4 +1,4 @@
-import m, { ClassComponent, Vnode } from "mithril"
+import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { AriaRole } from "../AriaUtils.js"
@@ -23,6 +23,7 @@ export interface SwitchAttrs {
  * @example
  * m(Switch,
  *     {
+ *         classes: ["my-custom-switch-class"],
  *         checked: this.checked,
  *         onclick: (checked: boolean) => {
  *             this.checked = checked
@@ -36,12 +37,11 @@ export interface SwitchAttrs {
  *     "My label",
  * ),
  */
-
 export class Switch implements ClassComponent<SwitchAttrs> {
 	private checkboxDom?: HTMLInputElement
 
 	view({ attrs: { disabled, variant, ariaLabel, checked, onclick, togglePillPosition, classes }, children }: Vnode<SwitchAttrs>) {
-		const childrenArr = [children, this.buildTogglePillComponent(onclick, disabled)]
+		const childrenArr = [children, this.buildTogglePillComponent(checked, onclick, disabled)]
 		if (togglePillPosition === "left") {
 			childrenArr.reverse()
 		}
@@ -66,7 +66,7 @@ export class Switch implements ClassComponent<SwitchAttrs> {
 		)
 	}
 
-	private buildTogglePillComponent(onclick: (checked: boolean) => unknown, disabled: boolean | undefined) {
+	private buildTogglePillComponent(checked: boolean = false, onclick: (checked: boolean) => unknown, disabled: boolean | undefined) {
 		return m(
 			"span.tutaui-toggle-pill",
 			{
@@ -77,8 +77,9 @@ export class Switch implements ClassComponent<SwitchAttrs> {
 				onclick: () => {
 					onclick(this.checkboxDom?.checked ?? false)
 				},
-				oncreate: ({ dom }) => {
+				oncreate: ({ dom }: VnodeDOM<HTMLInputElement>) => {
 					this.checkboxDom = dom as HTMLInputElement
+					this.checkboxDom.checked = checked
 				},
 				tabIndex: TabIndex.Programmatic,
 				disabled: disabled ? true : undefined,
