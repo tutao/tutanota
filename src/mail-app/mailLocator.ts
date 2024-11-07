@@ -50,7 +50,7 @@ import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
 import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
@@ -78,8 +78,7 @@ import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewMod
 import { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../common/gui/dialogs/ProgressDialog.js"
-import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
-import { PermissionError } from "../common/api/common/error/PermissionError.js"
+import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view/ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
@@ -138,6 +137,8 @@ import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
+import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
+import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 
 assertMainOrNode()
 
@@ -439,10 +440,21 @@ class MailLocator {
 
 	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
 		const { RecipientsSearchModel } = await import("../common/misc/RecipientsSearchModel.js")
-		const suggestionsProvider = isApp()
-			? (query: string) => this.mobileContactsFacade.findSuggestions(query).catch(ofClass(PermissionError, () => []))
-			: null
+		const suggestionsProvider = await this.contactSuggestionProvider()
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
+	}
+
+	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
+		if (isApp()) {
+			const { MobileContactSuggestionProvider } = await import("../common/native/main/MobileContactSuggestionProvider.js")
+			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
+		} else {
+			return {
+				async getContactSuggestions(_query: String): Promise<readonly ContactSuggestion[]> {
+					return []
+				},
+			}
+		}
 	}
 
 	readonly conversationViewModelFactory: lazyAsync<ConversationViewModelFactory> = async () => {
@@ -1128,7 +1140,11 @@ class MailLocator {
 		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
 			const calendarId = `${this.logins.getUserController().userId}#${id}`
 			const config = configs.get(calendarId)
-			if (!config) deviceConfig.updateClientOnlyCalendars(calendarId, { name: lang.get(name), color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)! })
+			if (!config)
+				deviceConfig.updateClientOnlyCalendars(calendarId, {
+					name: lang.get(name),
+					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
+				})
 		}
 	}
 
