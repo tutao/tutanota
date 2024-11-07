@@ -23,6 +23,17 @@ impl CustomId {
 		Self(base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(custom_string))
 	}
 
+	/// Create an unencoded String from a base64 encoded CustomId string
+	#[must_use]
+	pub fn to_custom_string(&self) -> String {
+		String::from_utf8(
+			base64::prelude::BASE64_URL_SAFE_NO_PAD
+				.decode(&self.0)
+				.unwrap(),
+		)
+		.unwrap()
+	}
+
 	/// Generates and returns a random `CustomId`
 	#[cfg(test)]
 	#[must_use]
@@ -102,5 +113,35 @@ impl Visitor<'_> for IdVisitor {
 		E: Error,
 	{
 		Ok(CustomId(s.to_owned()))
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::custom_id::CustomId;
+
+	#[tokio::test]
+	async fn base64_round_trip_custom_id_custom_string() {
+		let custom_string = "my custom string";
+		let custom_string_as_custom_id = CustomId::from_custom_string(custom_string);
+		assert_eq!(
+			"bXkgY3VzdG9tIHN0cmluZw",
+			custom_string_as_custom_id.as_str()
+		);
+		assert_eq!(custom_string, custom_string_as_custom_id.to_custom_string());
+	}
+
+	#[tokio::test]
+	async fn base64_round_trip_custom_id_number() {
+		let number_0 = 0i64;
+		let number_0_as_custom_id = CustomId::from_custom_string(number_0.to_string().as_str());
+		assert_eq!("MA", number_0_as_custom_id.as_str());
+		assert_eq!(
+			number_0,
+			number_0_as_custom_id
+				.to_custom_string()
+				.parse::<i64>()
+				.unwrap()
+		);
 	}
 }

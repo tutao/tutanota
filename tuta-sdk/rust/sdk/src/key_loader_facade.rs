@@ -138,9 +138,12 @@ impl KeyLoaderFacade {
 	}
 
 	fn decode_group_key_version(&self, element_id: &CustomId) -> Result<i64, KeyLoadError> {
-		element_id.as_str().parse().map_err(|_| KeyLoadError {
-			reason: format!("Failed to decode group key version: {}", element_id),
-		})
+		element_id
+			.to_custom_string()
+			.parse()
+			.map_err(|_| KeyLoadError {
+				reason: format!("Failed to decode group key version: {}", element_id),
+			})
 	}
 
 	pub async fn get_current_sym_group_key(
@@ -449,7 +452,7 @@ mod tests {
 					_format: 0,
 					_id: Some(IdTupleCustom {
 						list_id: GeneratedId("list".to_owned()),
-						element_id: CustomId(i.to_string()),
+						element_id: CustomId::from_custom_string(&i.to_string()),
 					}),
 					_ownerGroup: None,
 					_permissions: Default::default(),
