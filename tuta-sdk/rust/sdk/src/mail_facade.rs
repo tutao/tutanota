@@ -4,14 +4,15 @@ use crate::entities::generated::tutanota::{
 	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
 use crate::folder_system::{FolderSystem, MailSetKind};
-use crate::generated_id::GeneratedId;
 use crate::groups::GroupType;
+use crate::id::id_tuple::IdTupleGenerated;
 use crate::services::generated::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::ResolvingServiceExecutor;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::{ApiCallError, IdTupleGenerated, ListLoadDirection};
+use crate::GeneratedId;
+use crate::{ApiCallError, ListLoadDirection};
 use std::sync::Arc;
 
 /// Provides high level functions to manipulate mail entities via the REST API
@@ -186,12 +187,12 @@ mod tests {
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::entities::generated::tutanota::SimpleMoveMailPostIn;
 	use crate::folder_system::MailSetKind;
-	use crate::generated_id::GeneratedId;
 	use crate::mail_facade::MailFacade;
 	use crate::services::generated::tutanota::SimpleMoveMailService;
 	use crate::services::generated::tutanota::UnreadMailStateService;
 	use crate::services::service_executor::MockResolvingServiceExecutor;
 	use crate::user_facade::MockUserFacade;
+	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
 	use mockall::predicate::{always, eq};
 	use std::sync::Arc;

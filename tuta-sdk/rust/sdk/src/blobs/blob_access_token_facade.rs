@@ -1,17 +1,17 @@
 use crate::blobs::blob_access_token_cache::{BlobAccessTokenCache, BlobWriteTokenKey};
 use crate::crypto::randomizer_facade::RandomizerFacade;
-use crate::custom_id::CustomId;
 use crate::date::DateProvider;
 use crate::entities::generated::storage::{
 	BlobAccessTokenPostIn, BlobServerAccessInfo, BlobWriteData,
 };
-use crate::generated_id::GeneratedId;
 use crate::services::generated::storage::BlobAccessTokenService;
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::ResolvingServiceExecutor;
 use crate::services::ExtraServiceParams;
 use crate::tutanota_constants::ArchiveDataType;
 use crate::ApiCallError;
+use crate::CustomId;
+use crate::GeneratedId;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use std::sync::Arc;
@@ -84,13 +84,13 @@ impl BlobAccessTokenFacade {
 mod tests {
 	use super::*;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
-	use crate::custom_id::CustomId;
 	use crate::date::date_provider::stub::DateProviderStub;
 	use crate::date::DateTime;
 	use crate::entities::generated::storage::{BlobAccessTokenPostOut, BlobServerAccessInfo};
 	use crate::services::service_executor::MockResolvingServiceExecutor;
 	use crate::tutanota_constants::ArchiveDataType;
 	use crate::util::test_utils::create_test_entity;
+	use crate::CustomId;
 	use crate::GeneratedId;
 	use std::sync::Arc;
 

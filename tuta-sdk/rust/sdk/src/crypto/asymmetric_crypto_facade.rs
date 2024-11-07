@@ -7,7 +7,6 @@ use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPubl
 use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
 use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::{PubEncKeyData, PublicKeyGetIn, PublicKeyPutIn};
-use crate::generated_id::GeneratedId;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::key_loader_facade::VersionedAesKey;
@@ -20,6 +19,7 @@ use crate::tutanota_constants::{EncryptionAuthStatus, PublicKeyIdentifierType};
 use crate::util::ArrayCastingError;
 use crate::util::Versioned;
 use crate::ApiCallError;
+use crate::GeneratedId;
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -862,13 +862,13 @@ mod tests {
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::{Aes256Key, PQKeyPairs};
 		use crate::entities::generated::sys::PublicKeyPutIn;
-		use crate::generated_id::GeneratedId;
 		use crate::key_loader_facade::MockKeyLoaderFacade;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::services::service_executor::MockServiceExecutor;
 		use crate::services::ExtraServiceParams;
 		use crate::tutanota_constants::CryptoProtocolVersion;
 		use crate::util::Versioned;
+		use crate::GeneratedId;
 		use mockall::predicate::eq;
 		use std::sync::Arc;
 

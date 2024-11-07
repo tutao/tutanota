@@ -7,7 +7,6 @@ use std::sync::Arc;
 
 use minicbor::encode::Write;
 use minicbor::{Encode, Encoder};
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[cfg_attr(test, mockall_double::double)]
@@ -23,7 +22,6 @@ use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
-use crate::custom_id::CustomId;
 use crate::date::date_provider::SystemDateProvider;
 use crate::element_value::ElementValue;
 use crate::entities::entity_facade::EntityFacadeImpl;
@@ -31,8 +29,6 @@ use crate::entities::generated::sys::{CreateSessionData, SaltData};
 use crate::entities::generated::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::entity_client::{IdTupleType, IdType};
-use crate::generated_id::GeneratedId;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 #[cfg_attr(test, mockall_double::double)]
@@ -57,13 +53,11 @@ use rest_client::RestClientError;
 
 pub mod crypto;
 mod crypto_entity_client;
-pub mod custom_id;
 pub mod date;
 mod element_value;
 pub mod entities;
 mod entity_client;
 pub mod folder_system;
-pub mod generated_id;
 mod groups;
 mod instance_mapper;
 mod json_element;
@@ -76,6 +70,7 @@ mod mail_facade;
 mod metamodel;
 
 mod blobs;
+mod id;
 #[cfg(feature = "net")]
 pub mod net;
 pub mod rest_client;
@@ -87,6 +82,11 @@ mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
 mod util;
+
+pub use id::custom_id::CustomId;
+pub use id::generated_id::GeneratedId;
+pub use id::id_tuple::IdTupleCustom;
+pub use id::id_tuple::IdTupleGenerated;
 
 pub static CLIENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -388,56 +388,6 @@ pub enum ListLoadDirection {
 	ASC,
 	/// Reverse order
 	DESC,
-}
-
-/// A set of keys used to identify an element within a List Element Type
-#[derive(uniffi::Record, Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct IdTupleGenerated {
-	pub list_id: GeneratedId,
-	pub element_id: GeneratedId,
-}
-
-/// A set of keys used to identify an element within a List Element Type
-#[derive(uniffi::Record, Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct IdTupleCustom {
-	pub list_id: GeneratedId,
-	pub element_id: CustomId,
-}
-
-impl IdTupleGenerated {
-	#[must_use]
-	pub fn new(list_id: GeneratedId, element_id: GeneratedId) -> Self {
-		Self {
-			list_id,
-			element_id,
-		}
-	}
-}
-
-impl IdTupleCustom {
-	#[must_use]
-	pub fn new(list_id: GeneratedId, element_id: CustomId) -> Self {
-		Self {
-			list_id,
-			element_id,
-		}
-	}
-}
-impl IdType for IdTupleGenerated {}
-impl IdTupleType for IdTupleGenerated {}
-impl IdType for IdTupleCustom {}
-impl IdTupleType for IdTupleCustom {}
-
-impl Display for IdTupleGenerated {
-	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-		write!(f, "{}/{}", self.list_id, self.element_id)
-	}
-}
-
-impl Display for IdTupleCustom {
-	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-		write!(f, "{}/{}", self.list_id, self.element_id)
-	}
 }
 
 /// Contains an error from the SDK to be handled by the consuming code over the FFI

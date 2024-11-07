@@ -1,10 +1,10 @@
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::entity_client::{BaseIdType, IdType};
-use crate::generated_id::GeneratedId;
+use crate::id::id_tuple::{BaseIdType, IdType};
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::{ElementType, TypeModel};
+use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
 use serde::Deserialize;
 use std::sync::Arc;

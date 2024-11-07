@@ -8,12 +8,10 @@ use serde::ser::{Error, Impossible, SerializeMap, SerializeSeq, SerializeStruct}
 use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
-use crate::custom_id::CustomId;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
-use crate::generated_id::GeneratedId;
-use crate::{IdTupleCustom, IdTupleGenerated};
+use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated};
 
 /// Converter between untyped representations of API Entities and generated structures
 pub struct InstanceMapper {}
@@ -670,13 +668,13 @@ impl Serializer for ElementValueSerializer {
 		T: ?Sized + Serialize,
 	{
 		match name {
-			crate::generated_id::GENERATED_ID_STRUCT_NAME => {
+			crate::id::generated_id::GENERATED_ID_STRUCT_NAME => {
 				let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
 					unreachable!("should've serialized GeneratedId as a string");
 				};
 				Ok(ElementValue::IdGeneratedId(GeneratedId(id_string)))
 			},
-			crate::custom_id::CUSTOM_ID_STRUCT_NAME => {
+			crate::id::custom_id::CUSTOM_ID_STRUCT_NAME => {
 				let Ok(ElementValue::String(id_string)) = value.serialize(self) else {
 					unreachable!("should've serialized CustomId as a string");
 				};
@@ -1114,13 +1112,13 @@ mod tests {
 		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
 		OutOfOfficeNotificationRecipientList,
 	};
-	use crate::generated_id::GeneratedId;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
 	use crate::tutanota_constants::CryptoProtocolVersion;
 	use crate::tutanota_constants::PublicKeyIdentifierType;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, generate_random_group};
+	use crate::GeneratedId;
 	use crate::TypeRef;
 	use std::sync::Arc;
 

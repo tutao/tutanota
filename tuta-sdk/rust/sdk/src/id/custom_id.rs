@@ -1,4 +1,4 @@
-use crate::entity_client::{BaseIdType, IdType};
+use crate::id::id_tuple::{BaseIdType, IdType};
 use base64::Engine;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -118,7 +118,7 @@ impl Visitor<'_> for IdVisitor {
 
 #[cfg(test)]
 mod tests {
-	use crate::custom_id::CustomId;
+	use crate::CustomId;
 
 	#[tokio::test]
 	async fn base64_round_trip_custom_id_custom_string() {

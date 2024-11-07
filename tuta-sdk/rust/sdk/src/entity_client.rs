@@ -1,22 +1,15 @@
-use std::fmt::Display;
 use std::sync::Arc;
 
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::generated_id::GeneratedId;
+use crate::id::id_tuple::{BaseIdType, IdTupleType, IdType};
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
 use crate::metamodel::{ElementType, TypeModel};
 use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
+use crate::GeneratedId;
 use crate::{ApiCallError, HeadersProvider, ListLoadDirection, TypeRef};
-
-/// Denotes an ID that can be serialised into a string and used to access resources
-pub trait IdType: Display + 'static {}
-
-/// Denotes a basic ID type such as GeneratedId or CustomID that can be serialised into a string and used to access resources
-pub trait BaseIdType: Display + IdType + 'static {}
-pub trait IdTupleType: Display + IdType + 'static {}
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
 pub struct EntityClient {
@@ -273,10 +266,10 @@ mod tests {
 	use std::collections::HashMap;
 
 	use super::*;
-	use crate::custom_id::CustomId;
 	use crate::entities::Entity;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
 	use crate::rest_client::{MockRestClient, RestResponse};
+	use crate::CustomId;
 	use crate::{collection, str_map, IdTupleCustom, IdTupleGenerated};
 	use mockall::predicate::{always, eq};
 	use serde::{Deserialize, Serialize};

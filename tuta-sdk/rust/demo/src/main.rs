@@ -5,11 +5,11 @@ use std::sync::Arc;
 use async_trait::async_trait;
 
 use tutasdk::folder_system::MailSetKind;
-use tutasdk::generated_id::GeneratedId;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::rest_client::{
 	HttpMethod, RestClient, RestClientError, RestClientOptions, RestResponse,
 };
+use tutasdk::GeneratedId;
 use tutasdk::Sdk;
 
 struct ReqwestHttpClient {
