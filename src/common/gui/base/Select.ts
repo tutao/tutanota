@@ -1,4 +1,4 @@
-import m, { Children, ClassComponent, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { modal, ModalComponent } from "./Modal.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { size } from "../size.js"
@@ -20,13 +20,33 @@ export interface SelectOption<T> {
 export interface SelectAttributes<U extends SelectOption<T>, T> {
 	onChange: (newValue: U) => void
 	options: Array<U>
+	/**
+	 * This attribute is responsible to render the trigger and the options inside the dropdown.
+	 * @example
+	 * const renderOption = (option: U) => m("span", option.text);
+	 * ...
+	 * renderOption(currentOption)
+	 * ...
+	 * @param {U} option - Option to be rendered
+	 * @returns {Children} Returns the rendered option
+	 */
 	renderOption: (option: U) => Children
 	ariaLabel: string
+	id?: string
 	classes?: Array<string>
 	selected?: U
 	placeholder?: TranslationKey
 	expanded?: boolean
 	disabled?: boolean
+	/**
+	 * @example
+	 * const attrs = {
+	 *     ...
+	 *     iconColor: "#202020"
+	 *     ...
+	 * }
+	 */
+	iconColor?: string
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButtonElement, "style"> & SelectAttributes<SelectOption<unknown>, unknown>>
@@ -42,6 +62,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButto
  * }
  *
  * m(Select<CalendarSelectItem, string>, {
+ *   classes: ["custom-margins"],
  *   onChange: (val) => {
  * 	   this.selected = val
  *   },
@@ -60,10 +81,13 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButto
 export class Select<U extends SelectOption<T>, T> implements ClassComponent<SelectAttributes<U, T>> {
 	private isExpanded: boolean = false
 
-	view({ attrs: { onChange, options, renderOption, classes, selected, placeholder, expanded, disabled, ariaLabel } }: Vnode<SelectAttributes<U, T>>) {
+	view({
+		attrs: { onChange, options, renderOption, classes, selected, placeholder, expanded, disabled, ariaLabel, iconColor, id },
+	}: Vnode<SelectAttributes<U, T>>) {
 		return m(
 			"button.tutaui-select-trigger",
 			{
+				id,
 				class: this.resolveClasses(classes, disabled, expanded),
 				onclick: (event: MouseEvent) =>
 					event.target && this.renderDropdown(options, event.currentTarget as HTMLElement, onChange, renderOption, selected?.value),
@@ -82,7 +106,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 					class: "fit-content",
 					size: IconSize.Medium,
 					style: {
-						fill: getColors(ButtonColor.Content).button,
+						color: iconColor ?? getColors(ButtonColor.Content).button,
 					},
 				}),
 			],
@@ -113,7 +137,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 			options.map((option) =>
 				m.fragment(
 					{
-						oncreate: ({ dom }) => this.setupOption(dom as HTMLElement, onSelect, option, optionListContainer, selected),
+						oncreate: ({ dom }: VnodeDOM<U>) => this.setupOption(dom as HTMLElement, onSelect, option, optionListContainer, selected),
 					},
 					[renderOptions(option)],
 				),
@@ -181,26 +205,29 @@ class OptionListContainer implements ModalComponent {
 
 		this.view = () => {
 			return m(
-				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow.fit-content",
+				".dropdown-panel-scrollable.elevated-bg.border-radius.dropdown-shadow.fit-content",
 				{
-					oncreate: (vnode) => {
+					oncreate: (vnode: VnodeDOM<HTMLElement>) => {
 						this.domDropdown = vnode.dom as HTMLElement
 						// It is important to set initial opacity so that user doesn't see it with full opacity before animating.
 						this.domDropdown.style.opacity = "0"
 					},
 				},
 				m(
-					".dropdown-content.scroll.pl-vpad-s.pr-vpad-s.flex.flex-column.gap-vpad-xs",
+					".dropdown-content.scroll.pl-vpad-s.pr-vpad-s.flex.flex-column.gap-vpad-sm",
 					{
 						role: AriaRole.Listbox,
 						tabindex: TabIndex.Programmatic,
-						oncreate: (vnode) => {
+						oncreate: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domContents = vnode.dom as HTMLElement
 						},
-						onupdate: (vnode) => {
+						onupdate: (vnode: VnodeDOM<HTMLElement>) => {
 							if (this.maxHeight == null) {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-								this.maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+								this.maxHeight =
+									children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) +
+									size.vpad + // size.pad accounts for top and bottom padding
+									(children.length - 1) * size.vpad_small // accounts for the gaps being applied
 
 								if (this.origin) {
 									// The dropdown-content element is added to the dom has a hidden element first.

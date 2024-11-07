@@ -16,7 +16,7 @@ export interface SingleLineTextFieldAttrs {
 	oninput?: (newValue: string) => unknown
 	placeholder?: string
 	classes?: Array<string>
-	style?: Pick<CSSStyleDeclaration, "padding" | "fontSize">
+	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize">>
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLElement, "style"> & SingleLineTextFieldAttrs>
@@ -32,7 +32,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
  *     },
  *     placeholder: lang.get("placeholder"),
  *     disabled: model.isReadonly,
- *     classes: ["custom-font-size"], // Adding new styles
+ *     classes: ["custom-text-color"], // Adding new styles
  *     style: {
  *         "font-size": px(size.font_size_base * 1.25) // Overriding the component style
  *     }

@@ -981,6 +981,9 @@ styles.registerStyle("main", () => {
 		".gap-vpad-xs": {
 			gap: px(size.vpad_xsm),
 		},
+		".gap-vpad-sm": {
+			gap: px(size.vpad_small),
+		},
 		".gap-hpad": {
 			gap: px(size.hpad),
 		},
@@ -1651,6 +1654,13 @@ styles.registerStyle("main", () => {
 			width: 0,
 			height: 0,
 			overflow: "hidden", // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
+		},
+		".dropdown-panel-scrollable": {
+			position: "absolute",
+			width: 0,
+			height: 0,
+			"overflow-x": "hidden",
+			"overflow-y": "auto",
 		},
 		".dropdown-panel.fit-content, .dropdown-panel.fit-content .dropdown-content": {
 			"min-width": "fit-content",
@@ -2642,13 +2652,16 @@ styles.registerStyle("main", () => {
 		".mb-small-line-height": {
 			"margin-bottom": px(size.line_height * size.font_size_small),
 		},
-		".card-container": {
+		".tutaui-card-container": {
 			"box-sizing": "border-box",
 			"background-color": theme.content_bg,
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.vpad_small),
+			position: "relative",
+			height: "fit-content",
 		},
-		".tutaui-text-field": {
+		".tutaui-text-field, .child-text-editor [role='textbox']": {
+			display: "block",
 			"box-sizing": "border-box",
 			"background-color": "transparent",
 			border: "none",
@@ -2659,10 +2672,16 @@ styles.registerStyle("main", () => {
 			transition: `background-color .1s ease-out`,
 			"caret-color": theme.content_accent,
 		},
-		".tutaui-text-field:focus": {
+		".tutaui-text-field:focus, .child-text-editor [role='textbox']:focus": {
 			"background-color": theme.button_bubble_bg,
 		},
 		".tutaui-text-field::placeholder": {
+			color: theme.content_message_bg,
+		},
+		".text-editor-placeholder": {
+			position: "absolute",
+			top: px(size.vpad_small),
+			left: px(size.vpad_small),
 			color: theme.content_message_bg,
 		},
 		".tutaui-switch": {
@@ -2705,6 +2724,7 @@ styles.registerStyle("main", () => {
 		".tutaui-select-trigger": {
 			display: "flex",
 			"justify-content": "space-between",
+			"align-items": "center",
 			gap: px(size.vpad_small),
 		},
 		".fit-content": {
