@@ -46,7 +46,7 @@ import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
 import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherFacade.js"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
@@ -64,8 +64,7 @@ import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation } from "./calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../common/gui/dialogs/ProgressDialog.js"
-import { RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
-import { PermissionError } from "../common/api/common/error/PermissionError.js"
+import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
 import { NativeFileApp } from "../common/native/common/FileApp.js"
 import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
@@ -112,6 +111,7 @@ import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 
 assertMainOrNode()
 
@@ -364,10 +364,21 @@ class CalendarLocator {
 
 	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
 		const { RecipientsSearchModel } = await import("../common/misc/RecipientsSearchModel.js")
-		const suggestionsProvider = isApp()
-			? (query: string) => this.mobileContactsFacade.findSuggestions(query).catch(ofClass(PermissionError, () => []))
-			: null
+		const suggestionsProvider = await this.contactSuggestionProvider()
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
+	}
+
+	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
+		if (isApp()) {
+			const { MobileContactSuggestionProvider } = await import("../common/native/main/MobileContactSuggestionProvider.js")
+			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
+		} else {
+			return {
+				async getContactSuggestions(_query: String): Promise<readonly ContactSuggestion[]> {
+					return []
+				},
+			}
+		}
 	}
 
 	get deviceConfig(): DeviceConfig {
