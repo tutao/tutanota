@@ -9,6 +9,10 @@ import { AlarmInterval, AlarmIntervalUnit } from "../../../common/calendar/date/
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import { deepEqual } from "@tutao/tutanota-utils"
+import { Select, SelectAttributes, SelectOption } from "../../../common/gui/base/Select.js"
+import { theme } from "../../../common/gui/theme.js"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 
 export type RemindersEditorAttrs = {
 	addAlarm: (alarm: AlarmInterval) => unknown
@@ -17,7 +21,13 @@ export type RemindersEditorAttrs = {
 	label: TranslationKey
 }
 
+export interface RemindersSelectOption extends SelectOption<AlarmInterval> {
+	text: string
+}
+
 export class RemindersEditor implements Component<RemindersEditorAttrs> {
+	// FIXME colors and contrast
+
 	view(vnode: Vnode<RemindersEditorAttrs>): Children {
 		const { addAlarm, removeAlarm, alarms } = vnode.attrs
 		const addNewAlarm = (newAlarm: AlarmInterval) => {
@@ -72,10 +82,82 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 
 		textFieldAttrs[0].label = vnode.attrs.label
 
-		return m(
-			".flex.col.flex-half.pl-s",
-			textFieldAttrs.map((a) => m(TextField, a)),
+		// return m(
+		// 	".flex.col.flex-half.pl-s",
+		// 	textFieldAttrs.map((a) => m(TextField, a)),
+		// )
+		const alarmOptions = createAlarmIntervalItems(lang.languageTag).map(
+			(alarm) =>
+				({
+					text: alarm.name,
+					value: alarm.value,
+					ariaValue: alarm.name,
+				} satisfies RemindersSelectOption),
 		)
+		alarmOptions.push({
+			text: lang.get("calendarReminderIntervalDropdownCustomItem_label"),
+			ariaValue: lang.get("calendarReminderIntervalDropdownCustomItem_label"),
+			value: { value: -1, unit: AlarmIntervalUnit.MINUTE },
+		})
+
+		return m("ul.unstyled-list.flex.col.flex-grow.gap-vpad-sm", [
+			alarms.map((alarm) =>
+				m("li.flex-end.items-center.gap-vpad-sm", [
+					m(
+						"span.flex.justify-end.faded-text",
+						{ style: { color: theme.content_button } },
+						humanDescriptionForAlarmInterval(alarm, lang.languageTag),
+					),
+					m(
+						BaseButton,
+						{
+							label: "delete_action",
+							onclick: () => removeAlarm(alarm),
+							class: "flex items-center",
+						},
+						m(Icon, {
+							// title: "delete_action",
+							icon: Icons.Cancel,
+							size: IconSize.Medium,
+							style: {
+								fill: theme.content_button,
+							},
+						}),
+					),
+				]),
+			),
+
+			m(
+				"li.items-center",
+				m(Select<RemindersSelectOption, AlarmInterval>, {
+					ariaLabel: lang.get("calendarReminderIntervalValue_label"),
+					selected: { text: "none", value: { value: 0, unit: AlarmIntervalUnit.DAY }, ariaValue: "None" },
+					options: alarmOptions,
+					renderOption: (option) =>
+						m(
+							"span.right.full-width",
+							{
+								style: { color: theme.content_button },
+							},
+							option.text,
+						),
+					onChange: (newValue) => {
+						if (newValue.value.value === -1) {
+							return this.showCustomReminderIntervalDialog((value, unit) => {
+								addNewAlarm({
+									value,
+									unit,
+								})
+							})
+						}
+						addAlarm(newValue.value)
+					},
+					expanded: true,
+					iconColor: theme.content_button,
+					id: "reminders",
+				} satisfies SelectAttributes<RemindersSelectOption, AlarmInterval>),
+			),
+		])
 	}
 
 	private showCustomReminderIntervalDialog(onAddAction: (value: number, unit: AlarmIntervalUnit) => void) {

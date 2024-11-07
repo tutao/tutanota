@@ -7,6 +7,7 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 
 import { renderTwoColumnsIfFits } from "../../../../common/gui/base/GuiUtils.js"
+import { Switch } from "../../../../common/gui/base/Switch.js"
 
 export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number
@@ -76,12 +77,22 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 				],
 			),
 			m(".flex.items-center.mt-s", [
-				m(Checkbox, {
-					checked: editModel.isAllDay,
-					onChecked: (value) => (editModel.isAllDay = value),
-					disabled: attrs.disabled,
-					label: () => lang.get("allDay_label"),
-				}),
+				// m(Checkbox, {
+				// 	checked: editModel.isAllDay,
+				// 	onChecked: (value) => (editModel.isAllDay = value),
+				// 	disabled: attrs.disabled,
+				// 	label: () => lang.get("allDay_label"),
+				// }),
+				m(
+					Switch,
+					{
+						checked: editModel.isAllDay,
+						onclick: (value) => (editModel.isAllDay = value),
+						ariaLabel: lang.get("allDay_label"),
+						disabled: attrs.disabled,
+					},
+					lang.get("allDay_label"),
+				),
 				m(".flex-grow"),
 			]),
 		]
