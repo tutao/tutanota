@@ -28,7 +28,6 @@ export type MailFolderRowAttrs = {
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
-	private rightButtonClicked: boolean = false
 	private hovered: boolean = false
 
 	onupdate(vnode: Vnode<MailFolderRowAttrs>): any {
@@ -68,9 +67,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				title: lang.getMaybeLazy(button.label),
 				onmouseenter: onHover,
 				onmouseleave: () => {
-					if (!this.rightButtonClicked) {
-						this.hovered = false
-					}
+					this.hovered = false
 				},
 			},
 			[
@@ -125,12 +122,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					? m(IconButton, {
 							...rightButton,
 							click: (event, dom) => {
-								// Don't ask me why, but you need to set this to true twice
-								// to have hovering off the folder row work correctly on web
-								// certified JavaScript moment™
-								this.rightButtonClicked = true
 								rightButton.click(event, dom)
-								this.rightButtonClicked = true
 							},
 							onkeydown: handleForwardsTab,
 					  })
