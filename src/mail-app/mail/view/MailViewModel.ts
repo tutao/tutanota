@@ -242,6 +242,7 @@ export class MailViewModel {
 	private async loadExplicitMailTarget(listId: Id, mailId: Id, onMissingTargetEmail: () => unknown) {
 		const expectedStickyMailId: IdTuple = [listId, mailId]
 
+		// First try loading from the list. We don't need to do anything more if we can simply select it.
 		// shouldStop returning true guarantees we won't load anything if the mail is not in the list already, so
 		// this will be synchronous
 		const listMail = await this.listModel?.loadAndSelect(mailId, () => true)
@@ -250,17 +251,15 @@ export class MailViewModel {
 			return
 		}
 
+		// Load the cached mail to display it sooner.
+		// We still want to load the mail remotely, though, to make sure that it won't disappear due to being moved.
 		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
-		if (cached) {
-			console.log(TAG, "opening cached mail", mailId)
-			await this.resetOrInitializeList([listId, mailId])
-			this.createConversationViewModel({ mail: cached, showFolder: false })
-			this.updateUi()
-			return
-		}
-
 		if (this.didStickyMailChange(expectedStickyMailId, "after loading cached")) {
 			return
+		}
+		if (cached) {
+			console.log(TAG, "displaying cached mail", mailId)
+			await this.displayExplicitMailTarget(cached)
 		}
 
 		let mail: Mail | null
@@ -275,22 +274,42 @@ export class MailViewModel {
 				throw e
 			}
 		}
-
 		if (this.didStickyMailChange(expectedStickyMailId, "after loading from entity client")) {
 			return
 		}
 
-		if (mail) {
-			await this.resetOrInitializeList(expectedStickyMailId)
-			this.createConversationViewModel({ mail, showFolder: false })
-			this.updateUi()
+		// If the user has migrated to mailsets, simply checking if Mail exists won't be enough.
+		// Instead, we check against the sets in the Mail and see if it's moved folders since the last sync.
+		// We have to do this because if the mail did move since the last sync, it will still disappear from view.
+		let movedSetsSinceLastSync = false
+		if (mail != null && cached != null && cached.sets.length > 0) {
+			// This will most likely be the inbox
+			const currentFolderId = elementIdPart(assertNotNull(this._folder, "cached was displayed earlier, thus folder would have been set")._id)
+			// This can be false if the mail was moved while the user is logged in, which is fine, and we don't need to check the loaded mail
+			const cachedMailInFolder = cached.sets.some((id) => elementIdPart(id) === currentFolderId)
+			movedSetsSinceLastSync = cachedMailInFolder && !mail.sets.some((id) => elementIdPart(id) === currentFolderId)
+		}
+
+		if (!movedSetsSinceLastSync && mail != null) {
+			console.log(TAG, "opening mail from entity client", mailId)
+			await this.displayExplicitMailTarget(mail)
 		} else {
-			console.log(TAG, "Explicit mail target is not found", listId, mailId)
+			if (mail != null) {
+				console.log(TAG, "Explicit mail target moved sets", listId, mailId)
+			} else {
+				console.log(TAG, "Explicit mail target not found", listId, mailId)
+			}
 			onMissingTargetEmail()
 			// We already know that email is not there, we can reset the target here and avoid list loading
 			this.stickyMailId = null
 			this.updateUrl()
 		}
+	}
+
+	private async displayExplicitMailTarget(mail: Mail) {
+		await this.resetOrInitializeList(mail._id)
+		this.createConversationViewModel({ mail, showFolder: false })
+		this.updateUi()
 	}
 
 	private didStickyMailChange(expectedId: IdTuple, message: string): boolean {
