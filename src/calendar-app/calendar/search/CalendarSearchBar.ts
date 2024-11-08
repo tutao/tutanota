@@ -148,6 +148,8 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 					} else {
 						this.search()
 					}
+					// blur() is used to hide keyboard on return button click
+					this.domInput.blur()
 				},
 			},
 			{
