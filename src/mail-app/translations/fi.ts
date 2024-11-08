@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-11-02T09:24:48Z",
+	"updated_at": "2024-11-07T13:43:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -534,6 +534,7 @@ export default {
 		"editEntry_label": "Muokkaa tietuetta",
 		"editFolder_action": "Muokkaa kansiota",
 		"editInboxRule_action": "Muokkaa käsittelysääntöä",
+		"editLabel_action": "Muokkaa tunnistetta",
 		"editMail_action": "Muokkaa valittua sähköpostia",
 		"editMessage_label": "Muokkaa viestiä",
 		"editTemplate_action": "Muokkaa viestipohjaa",
@@ -706,6 +707,7 @@ export default {
 		"iCalNotSync_msg": "Synkronoimatta.",
 		"iCalSync_error": "Synkronointivirhe. Ainakin yksi kalentereista on virheellinen.",
 		"icsInSharingFiles_msg": "Tiedosto(ja) tunnistettiin kalenteritiedostoiksi. Haluatko tuoda ne vai liittää ne?",
+		"importantLabel_label": "Tärkeä",
 		"importCalendar_label": "Tuodaan kalenteria",
 		"importContactRemoveDuplicatesConfirm_msg": "Synkronoinnin aikaan laitteeltasi löytyi {count} yhteystietojen kaksoiskappaletta. Haluatko poistaa ne laitteeltasi? Huomaathan, että tätä ei voi perua.",
 		"importContactRemoveImportedContactsConfirm_msg": "Haluatko poistaa tuodut yhteystiedot laitteeltasi? Huomaathan, että tätä ei voi perua.",

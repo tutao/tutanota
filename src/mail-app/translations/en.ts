@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-11-06T05:39:11Z",
+	"updated_at": "2024-11-07T13:43:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1012,7 +1012,7 @@ export default {
 		"noContactFound_msg": "No contacts found with this email",
 		"noContacts_msg": "There are no contacts in this list.",
 		"noContact_msg": "No contacts selected",
-		"noEntries_msg": "<No entries.>",
+		"noEntries_msg": "No entries",
 		"noEntryFound_label": "No entries found",
 		"noEventSelect_msg": "No event selected",
 		"noInputWasMade_msg": "Input field is empty!",

@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-11-04T16:51:22Z",
+	"updated_at": "2024-11-07T13:43:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -713,6 +713,7 @@ export default {
 		"iCalNotSync_msg": "Nie zsynchronizowano.",
 		"iCalSync_error": "Błąd podczas synchronizacji, jeden lub więcej kalendarzy było nieprawidłowych.",
 		"icsInSharingFiles_msg": "Wykryto jeden lub więcej plików kalendarza. Czy chcesz je zaimportować lub dołączyć?",
+		"importantLabel_label": "Ważne",
 		"importCalendar_label": "Importowanie kalendarza",
 		"importContactRemoveDuplicatesConfirm_msg": "Podczas synchronizacji znaleziono {count} zduplikowanych kontaktów na urządzeniu. Czy chcesz usunąć je z urządzenia? Tej operacji nie będzie można cofnąć.",
 		"importContactRemoveImportedContactsConfirm_msg": "Czy chcesz usunąć zaimportowane kontakty z urządzenia? Tej operacji nie będzie można cofnąć.",

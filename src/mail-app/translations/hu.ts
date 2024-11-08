@@ -13,11 +13,11 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-11-04T19:55:58Z",
+	"updated_at": "2024-11-07T13:43:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
-		"about_label": "Körülbelül",
+		"about_label": "Névjegye",
 		"accentColor_label": "Hangsúlyos (ékezetes) szín.",
 		"acceptContactListEmailSubject_msg": "Kapcsolat lista meghívás elfogadva",
 		"acceptInvitation_action": "Meghívó elfogadása",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-11-04T16:29:51Z",
+	"updated_at": "2024-11-07T16:36:56Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -706,6 +706,7 @@ export default {
 		"iCalNotSync_msg": "未同步。",
 		"iCalSync_error": "同步時出現錯誤，一個或多個日曆不正確。",
 		"icsInSharingFiles_msg": "偵測到一個或多個日曆檔案。您要匯入或附加它們嗎？",
+		"importantLabel_label": "重要",
 		"importCalendar_label": "匯入日曆中",
 		"importContactRemoveDuplicatesConfirm_msg": "同步時在您的裝置上找到{count}位重複聯絡人。您想從您的裝置中刪除它們嗎？請注意，刪除後無法復原。",
 		"importContactRemoveImportedContactsConfirm_msg": "您想從您的裝置中刪除已匯入的聯絡人嗎？請注意，刪除後無法復原。",
@@ -1010,7 +1011,7 @@ export default {
 		"noContactFound_msg": "找不到此電郵的聯絡人",
 		"noContacts_msg": "無聯絡人在此清單中。",
 		"noContact_msg": "沒有選擇任何聯絡人",
-		"noEntries_msg": "<無條目。>",
+		"noEntries_msg": "無條目",
 		"noEntryFound_label": "找不到條目",
 		"noEventSelect_msg": "沒有選擇任何活動",
 		"noInputWasMade_msg": "輸入欄位留空！",

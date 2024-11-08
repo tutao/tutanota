@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-11-04T12:46:11Z",
+	"updated_at": "2024-11-08T13:22:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -707,6 +707,7 @@ export default {
 		"iCalNotSync_msg": "Inte synkroniserad.",
 		"iCalSync_error": "Fel under synkroniseringen, en eller flera kalendrar var ogiltiga.",
 		"icsInSharingFiles_msg": "En eller flera kalenderfiler upptäcktes. Vill du importera eller bifoga dem?",
+		"importantLabel_label": "Viktigt",
 		"importCalendar_label": "Importera kalender",
 		"importContactRemoveDuplicatesConfirm_msg": "Hittade {count} dubbla kontakter på din enhet under synkroniseringen.  Vill du ta bort dessa från din enhet? Observera att detta inte kan ångras.",
 		"importContactRemoveImportedContactsConfirm_msg": "Vill du ta bort de importerade kontakterna från din enhet? Observera att detta inte kan ångras.",
@@ -1011,7 +1012,7 @@ export default {
 		"noContactFound_msg": "Inga kontakter med den här e-postadressen hittades",
 		"noContacts_msg": "Det finns inga kontakter i listan.",
 		"noContact_msg": "Ingen kontakt vald",
-		"noEntries_msg": "<Inga poster.>",
+		"noEntries_msg": "Inga poster",
 		"noEntryFound_label": "Inga poster hittades",
 		"noEventSelect_msg": "Ingen händelse vald",
 		"noInputWasMade_msg": "Fältet är tomt!",
