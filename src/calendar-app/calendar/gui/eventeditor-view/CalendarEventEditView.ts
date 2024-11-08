@@ -85,7 +85,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			},
 			[
 				this.renderReadonlyMessage(vnode.attrs),
-				this.renderHeading(vnode.attrs),
+				this.renderTitle(vnode.attrs),
 				// this.renderAttendees(vnode.attrs), // FIXME Depends on new design
 				this.renderEventTimeEditor(vnode.attrs),
 				// this.renderRepeatRuleEditor(vnode.attrs), // FIXME Depends on new design
@@ -97,7 +97,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 	}
 
-	private renderHeading(attrs: CalendarEventEditViewAttrs): Children {
+	private renderTitle(attrs: CalendarEventEditViewAttrs): Children {
 		const { model } = attrs
 		return m(
 			Card,

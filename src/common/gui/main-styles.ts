@@ -2722,5 +2722,10 @@ styles.registerStyle("main", () => {
 			margin: 0,
 			padding: 0,
 		},
+		".time-selection-grid": {
+			display: "grid",
+			"grid-template-columns": "1fr 3fr 1fr",
+			"grid-gap": px(size.vpad_small),
+		},
 	}
 })
