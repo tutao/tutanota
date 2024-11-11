@@ -153,7 +153,14 @@ import("../mail-app/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			termination: makeViewResolver<TerminationViewAttrs, TerminationView, { makeViewModel: () => TerminationViewModel; header: AppHeaderAttrs }>(
+			termination: makeViewResolver<
+				TerminationViewAttrs,
+				TerminationView,
+				{
+					makeViewModel: () => TerminationViewModel
+					header: AppHeaderAttrs
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { TerminationViewModel } = await import("../common/termination/TerminationViewModel.js")
@@ -211,7 +218,11 @@ import("../mail-app/translations/en.js")
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({ header: cache.header, makeViewModel: cache.searchViewModelFactory, contactModel: cache.contactModel }),
+					prepareAttrs: (cache) => ({
+						header: cache.header,
+						makeViewModel: cache.searchViewModelFactory,
+						contactModel: cache.contactModel,
+					}),
 				},
 				calendarLocator.logins,
 			),
@@ -262,23 +273,9 @@ import("../mail-app/translations/en.js")
 			signup: {
 				async onmatch() {
 					const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
-					const { isLegacyDomain } = await import("../common/login/LoginViewModel.js")
-					if (isLegacyDomain()) {
-						const domainConfigProvider = calendarLocator.domainConfigProvider()
-						const target = new URL(
-							domainConfigProvider.getDomainConfigForHostname(location.hostname, location.protocol, location.port).partneredDomainTransitionUrl,
-						)
-						target.pathname = "signup"
-						target.search = location.search
-						target.hash = location.hash
-						console.log("redirect to", target.toString())
-						window.open(target, "_self")
-						return null
-					} else {
-						// We have to manually parse it because mithril does not put hash into args of onmatch
-						const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-						showSignupDialog(urlParams)
-					}
+					// We have to manually parse it because mithril does not put hash into args of onmatch
+					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+					showSignupDialog(urlParams)
 					// when the user presses the browser back button, we would get a /login route without arguments
 					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.

@@ -1379,7 +1379,6 @@ export default {
 		"to_label": "به",
 		"trash_action": "حذف‌شده‌ها",
 		"tutanotaAddressDoesNotExist_msg": "نشانی‌های ایمیل‌ توتانوتایی که در ادامه می‌آیند وجود ندارند.",
-		"tutanotaToTuta_msg": "توتانوتا اینک توتا نامیده می‌شود",
 		"tutaoInfo_msg": " Tutao GmbH  شرکت فراهم کننده   Tuta  برای شماست ",
 		"twitter_label": "توییتر",
 		"typeToFilter_label": "فیلتر بنویسید…",

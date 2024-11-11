@@ -10,17 +10,15 @@ import type { CredentialsProvider } from "../misc/credentials/CredentialsProvide
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/tutanota-utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
-import { assertMainOrNode, isBrowser } from "../api/common/Env"
+import { assertMainOrNode } from "../api/common/Env"
 import { SessionType } from "../api/common/SessionType"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig.js"
-import { Const } from "../api/common/TutanotaConstants.js"
 import { getWhitelabelRegistrationDomains } from "./LoginView.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
 import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
-import { PersistedCredentials } from "../native/common/generatedipc/PersistedCredentials.js"
 import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
 import { AppLock } from "./AppLock.js"
@@ -269,39 +267,6 @@ export class LoginViewModel implements ILoginViewModel {
 		return await this.credentialsProvider.getDecryptedCredentialsByUserId(userId)
 	}
 
-	/** get the origin that the current domain should open to start the credentials migration */
-	getMigrationChildOrigin(): string {
-		return this.domainConfig.partneredDomainTransitionUrl
-	}
-
-	/** only used to put the credentials we got from the old domain into the storage, unaltered. */
-	async addAllCredentials(credentials: Array<PersistedCredentials>) {
-		for (const cred of credentials) this.credentialsProvider.storeRaw(cred)
-		this.setHasAttemptedCredentialsFlag()
-		await this.updateCachedCredentials()
-	}
-
-	getAllCredentials(): Promise<readonly PersistedCredentials[]> {
-		return this.credentialsProvider.getAllInternalCredentials()
-	}
-
-	async deleteAllCredentials(): Promise<void> {
-		for (const creds of await this.deviceConfig.getCredentials()) {
-			await this.deviceConfig.deleteByUserId(creds.credentialInfo.userId)
-		}
-		this.setHasAttemptedCredentialsFlag()
-	}
-
-	/** store that the credentials migration banner on the login page should not be shown anymore */
-	setHasAttemptedCredentialsFlag() {
-		this.deviceConfig.setHasAttemptedCredentialsMigration(true)
-	}
-
-	/** check if the credentials migration banner on the login page should be shown anymore */
-	hasAttemptedCredentials() {
-		return this.deviceConfig.getHasAttemptedCredentialsMigration()
-	}
-
 	getSavedCredentials(): ReadonlyArray<CredentialsInfo> {
 		return this.savedInternalCredentials
 	}
@@ -336,10 +301,6 @@ export class LoginViewModel implements ILoginViewModel {
 
 	shouldShowAppButtons(): boolean {
 		return this.domainConfig.firstPartyDomain
-	}
-
-	shouldShowMigrationBanner(): boolean {
-		return isBrowser() && this.domainConfig.firstPartyDomain
 	}
 
 	private async updateCachedCredentials() {
@@ -489,18 +450,4 @@ export class LoginViewModel implements ILoginViewModel {
 
 		handleExpectedLoginError(error, noOp)
 	}
-}
-
-// To give people time to visit the old domain and refresh to a web app that knows about the
-// /migrate route without them being prompted to migrate right away, we have a time delay on
-// the start of the migration.
-//
-// This date is also referenced from service worker build to decide on immediate takeover
-export const ACTIVATED_MIGRATION = () => (Const.CURRENT_DATE?.getTime() ?? Date.now()) > new Date("2023-11-07T13:00:00.000Z").getTime()
-
-/** are we on *.tutanota.com?
- * influences whether we should allow saving credentials and show the credentials migration box.
- * also turns off auto login with a single stored credential. */
-export function isLegacyDomain(o: string = location.origin): boolean {
-	return new URL(o).hostname.endsWith(".tutanota.com") && isBrowser()
 }
