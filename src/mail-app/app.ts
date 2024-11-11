@@ -139,7 +139,7 @@ import("./translations/en.js")
 				async onFullLoginSuccess() {
 					await mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
 
-					if (!mailLocator.logins.getUserController().props.defaultLabelCreated) {
+					if (mailLocator.mailModel.canManageLabels() && !mailLocator.logins.getUserController().props.defaultLabelCreated) {
 						const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()
 
 						mailLocator.mailFacade
