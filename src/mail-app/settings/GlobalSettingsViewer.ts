@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
+import { InfoLinks, lang } from "../../common/misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
 import { getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType } from "../../common/api/common/TutanotaConstants"
 import {
@@ -141,7 +141,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					title: "adminSpam_action",
 					table: spamRuleTableAttrs,
 					infoMsg: "adminSpamRuleInfo_msg",
-					infoLinkId: InfoLink.SpamRules,
+					infoLinkId: InfoLinks.SpamRules,
 				}),
 				m(ExpandableTable, {
 					title: "rejectedEmails_label",
@@ -153,7 +153,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					title: "customEmailDomains_label",
 					table: customDomainTableAttrs,
 					infoMsg: "moreInfo_msg",
-					infoLinkId: InfoLink.DomainInfo,
+					infoLinkId: InfoLinks.DomainInfo,
 				}),
 				m(AccountMaintenanceSettings, {
 					customerServerProperties: this.props,

@@ -21,10 +21,23 @@ function getCspUrls(env) {
 	}
 }
 
+function getWebsiteUrl(stage) {
+	switch (stage) {
+		case "test":
+			return "https://test.tuta.com"
+		case "local":
+			return "https://local.tuta.com:9000"
+		default: // prod and host
+			return "https://tuta.com"
+	}
+}
+
 /**
  * Renders the initial HTML page to bootstrap Tutanota for different environments
  */
-export async function renderHtml(scripts, env) {
+export async function renderHtml(scripts, env, stage) {
+	// ideally check if it is possible to use the website url from the env.domainConfigs here instead of getWebsiteURL()
+	const websiteUrl = getWebsiteUrl(stage)
 	return `<!DOCTYPE html>
 <html>
 <head>
@@ -45,7 +58,7 @@ export async function renderHtml(scripts, env) {
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@TutaPrivacy">
     <meta name="twitter:domain" content="tuta.com">
-    <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
+    <meta name="twitter:image" content="${websiteUrl}/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Tuta Mail">
     <meta property="og:title" content="Turn ON Privacy">
@@ -53,11 +66,11 @@ export async function renderHtml(scripts, env) {
           content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">
     <meta property="og:locale" content="en">
     <meta property="og:url" content="https://tuta.com/">
-    <meta property="og:image" content="https://tuta.com/resources/images/share-tutanota-fb-thumbnail.png">
+    <meta property="og:image" content="${websiteUrl}/resources/images/share-tutanota-fb-thumbnail.png">
     <meta property="article:publisher" content="https://www.facebook.com/tutanota">
 	<meta itemprop="name" content="Turn ON Privacy">
 	<meta itemprop="description" content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">
-	<meta itemprop="image" content="https://tuta.com/images/share_image.png">
+	<meta itemprop="image" content="${websiteUrl}/images/share_image.png">
 	<meta name="apple-itunes-app" content="app-id=922429609, app-argument=https://app.tuta.com">
 </head>
 <body style="background-color:transparent">

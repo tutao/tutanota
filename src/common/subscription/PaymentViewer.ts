@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
 import { assertNotNull, last, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
+import { InfoLinks, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -141,7 +141,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		if (isIOSApp()) {
 			// Paid users trying to change payment method on iOS with an active subscription
 			if (currentPaymentMethod !== PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
-				return Dialog.message(() => lang.get("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+				return Dialog.message(() => lang.get("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLinks.AppStorePaymentChange }))
 			}
 
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
@@ -152,7 +152,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			// they must downgrade to Free first.
 
 			const isResubscribe = await Dialog.choice(
-				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
+				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLinks.AppStoreDowngrade }),
 				[
 					{
 						text: "changePlan_action",
@@ -352,7 +352,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			)
 		} else {
 			if (client.device == DeviceType.ANDROID) {
-				return Dialog.message("invoiceFailedWebview_msg", () => m("div", m("a", { href: InfoLink.Webview, target: "_blank" }, InfoLink.Webview)))
+				return Dialog.message("invoiceFailedWebview_msg", () => m("div", m("a", { href: InfoLinks.Webview, target: "_blank" }, InfoLinks.Webview)))
 			} else if (client.isIos()) {
 				return Dialog.message("invoiceFailedIOS_msg")
 			} else {
@@ -563,7 +563,7 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 export async function showManageThroughAppStoreDialog(): Promise<void> {
 	const confirmed = await Dialog.confirm(() =>
 		lang.get("storeSubscription_msg", {
-			"{AppStorePayment}": InfoLink.AppStorePayment,
+			"{AppStorePayment}": InfoLinks.AppStorePayment,
 		}),
 	)
 	if (confirmed) {

@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import stream from "mithril/stream"
 import type { TextFieldAttrs } from "../../gui/base/TextField.js"
 import { TextField } from "../../gui/base/TextField.js"
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../../misc/LanguageViewModel.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { CustomerPropertiesTypeRef, Session, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
@@ -111,7 +111,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [m(MoreInfoLink, { link: link })])
+				return ifAllowedTutaLinks(locator.logins, InfoLinks.RecoverCode, (link) => [m(MoreInfoLink, { link: link })])
 			},
 			value: this._stars(),
 			oninput: this._stars,
@@ -140,7 +140,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				this._usageTestModel.setOptInDecision(assertNotNull(v))
 			},
 			helpLabel: () => {
-				return ifAllowedTutaLinks(locator.logins, InfoLink.Usage, (link) => [
+				return ifAllowedTutaLinks(locator.logins, InfoLinks.Usage, (link) => [
 					m("span", lang.get("userUsageDataOptInInfo_msg") + " "),
 					m(MoreInfoLink, { link: link }),
 				])

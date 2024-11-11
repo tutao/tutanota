@@ -1,7 +1,7 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
 import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
-import { InfoLink, lang } from "../../LanguageViewModel.js"
+import { lang } from "../../LanguageViewModel.js"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UserController } from "../../../api/main/UserController.js"

@@ -1,6 +1,6 @@
 import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { InfoLinks, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import m from "mithril"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
@@ -237,7 +237,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 				},
 				[
 					m("div", lang.get("phishingReport_msg")),
-					ifAllowedTutaLinks(locator.logins, InfoLink.Phishing, (link) =>
+					ifAllowedTutaLinks(locator.logins, InfoLinks.Phishing, (link) =>
 						m(ExternalLink, {
 							href: link,
 							text: lang.get("whatIsPhishing_msg"),

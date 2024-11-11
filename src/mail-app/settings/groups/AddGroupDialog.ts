@@ -5,7 +5,7 @@ import type { ValidationResult } from "../../../common/settings/SelectMailAddres
 import { SelectMailAddressForm } from "../../../common/settings/SelectMailAddressForm.js"
 import { getGroupTypeDisplayName } from "../../../common/settings/groups/GroupDetailsView.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
+import { InfoLinks, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog.js"
 import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
@@ -67,7 +67,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 							onDomainChanged,
 						}),
 						m(".mt-m", ""),
-						m(MoreInfoLink, { link: InfoLink.SharedMailboxes, isSmall: true }),
+						m(MoreInfoLink, { link: InfoLinks.SharedMailboxes, isSmall: true }),
 				  ])
 				: m(""),
 		]

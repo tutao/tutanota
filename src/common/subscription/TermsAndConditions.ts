@@ -2,7 +2,7 @@
  * The most recently published version of the terms and conditions
  */
 import m, { Children } from "mithril"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { InfoLinks, lang } from "../misc/LanguageViewModel"
 import { isApp } from "../api/common/Env"
 import { requestFromWebsite } from "../misc/Website"
 import { Dialog } from "../gui/base/Dialog"
@@ -29,15 +29,15 @@ export function renderTermsAndConditionsButton(terms: TermsSection, version: str
 	switch (terms) {
 		case TermsSection.GiftCards:
 			label = lang.get("giftCardTerms_label")
-			link = InfoLink.GiftCardsTerms
+			link = InfoLinks.GiftCardsTerms
 			break
 		case TermsSection.Terms:
 			label = lang.get("termsAndConditionsLink_label")
-			link = InfoLink.Terms
+			link = InfoLinks.Terms
 			break
 		case TermsSection.Privacy:
 			label = lang.get("privacyLink_label")
-			link = InfoLink.Privacy
+			link = InfoLinks.Privacy
 			break
 	}
 	return m(

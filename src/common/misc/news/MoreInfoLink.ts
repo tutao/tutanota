@@ -1,4 +1,4 @@
-import { InfoLink, lang } from "../LanguageViewModel.js"
+import { InfoLink, InfoLinks, lang } from "../LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { ExternalLink, relDocument } from "../../gui/base/ExternalLink.js"
 
@@ -15,17 +15,17 @@ export class MoreInfoLink implements Component<MoreInfoLinkAttrs> {
 	view(vnode: Vnode<MoreInfoLinkAttrs>): Children {
 		let specialType: relDocument | undefined
 		switch (vnode.attrs.link) {
-			case InfoLink.HomePage:
+			case InfoLinks.HomePage:
 				specialType = "me"
 				break
-			case InfoLink.About:
+			case InfoLinks.About:
 				specialType = "license"
 				break
-			case InfoLink.Privacy:
+			case InfoLinks.Privacy:
 				specialType = "privacy-policy"
 				break
-			case InfoLink.Terms:
-			case InfoLink.GiftCardsTerms:
+			case InfoLinks.Terms:
+			case InfoLinks.GiftCardsTerms:
 				specialType = "terms-of-service"
 				break
 			default:

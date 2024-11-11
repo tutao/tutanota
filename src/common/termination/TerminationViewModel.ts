@@ -1,6 +1,6 @@
 import { SessionType } from "../api/common/SessionType.js"
 import { LoginState } from "../login/LoginViewModel.js"
-import { InfoLink, lang, TranslationText } from "../misc/LanguageViewModel.js"
+import { InfoLinks, lang, TranslationText } from "../misc/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
@@ -73,7 +73,7 @@ export class TerminationViewModel {
 						break
 					case "hasAppStoreSubscription":
 						this.onTerminationRequestFailed(() =>
-							lang.get("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+							lang.get("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLinks.AppStorePayment }),
 						)
 						break
 					default:

@@ -14,9 +14,10 @@ import path from "node:path"
  * 	staticUrl: String defining app base url for non-production environments and the native clients.
  * 	versionNumber: String containing the app's version number
  * @param app App to be built, defaults to mail app {String}
+ * @param stage Deployment for which to build: 'prod' will build for the production system, 'test' for the test system, 'local' will use local.
  * @returns {Promise<Awaited<void>[]>}
  */
-export async function createHtml(env, app = "mail") {
+export async function createHtml(env, stage, app = "mail") {
 	let jsFileName
 	let htmlFileName
 	const buildDir = app === "calendar" ? "build-calendar-app" : "build"
@@ -44,7 +45,7 @@ window.env = ${JSON.stringify(env, null, 2)}
 ${indexTemplate}`
 	return Promise.all([
 		_writeFile(`./${buildDir}/${jsFileName}`, index),
-		renderHtml(imports, env).then((content) => _writeFile(`./${buildDir}/${htmlFileName}`, content)),
+		renderHtml(imports, env, stage).then((content) => _writeFile(`./${buildDir}/${htmlFileName}`, content)),
 	])
 }
 

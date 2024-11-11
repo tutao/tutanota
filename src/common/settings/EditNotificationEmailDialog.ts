@@ -1,7 +1,7 @@
 import type { Booking, CustomerInfo, CustomerProperties, NotificationMailTemplate } from "../api/entities/sys/TypeRefs.js"
 import { BookingTypeRef, createNotificationMailTemplate, CustomerInfoTypeRef, CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
-import { InfoLink, lang, languages } from "../misc/LanguageViewModel.js"
+import { InfoLinks, lang, languages } from "../misc/LanguageViewModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
@@ -261,7 +261,7 @@ function getDefaultNotificationMail(): string {
 		HTML_PTAG_END +
 		HTML_PTAG_START +
 		lang.get("externalNotificationMailBody2_msg", {
-			"{1}": InfoLink.HomePage,
+			"{1}": InfoLinks.HomePage,
 		}) +
 		HTML_PTAG_END +
 		HTML_PTAG_START +

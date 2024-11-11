@@ -18,7 +18,7 @@ import { Checkbox } from "../gui/base/Checkbox.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { InfoLinks, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { InvalidDataError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
@@ -189,7 +189,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
 								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
-										m(ExternalLink, { href: InfoLink.DomainInfo, isCompanySite: true }),
+										m(ExternalLink, { href: InfoLinks.DomainInfo, isCompanySite: true }),
 								  ])
 								: null,
 							m(PasswordForm, {

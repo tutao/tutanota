@@ -177,10 +177,11 @@ self.onmessage = function (msg) {
 			dist: true,
 			domainConfigs,
 		}),
+		stage,
 		app,
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }), app)
+		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }), stage, app)
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)

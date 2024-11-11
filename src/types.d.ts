@@ -57,7 +57,7 @@ type DomainConfig = {
 	giftCardBaseUrl: string
 	/** Which URL to use to build the referral URL. */
 	referralBaseUrl: string
-	/** Base URL for requesting any information from de website */
+	/** Base URL for requesting any information from the website */
 	websiteBaseUrl: string
 }
 

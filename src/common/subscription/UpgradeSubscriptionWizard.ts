@@ -15,7 +15,7 @@ import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
 import m from "mithril"
 import stream from "mithril/stream"
-import { InfoLink, lang, TranslationKey, TranslationText } from "../misc/LanguageViewModel"
+import { InfoLinks, lang, TranslationKey, TranslationText } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
@@ -158,7 +158,7 @@ export async function loadSignupWizard(
 		}
 		message =
 			appstoreSubscriptionOwnership != MobilePaymentSubscriptionOwnership.NoSubscription
-				? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+				? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLinks.AppStorePayment })
 				: null
 	} else {
 		message = null

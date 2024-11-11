@@ -4,6 +4,8 @@ import { delay, downcast, LazyLoaded } from "@tutao/tutanota-utils"
 import { search } from "../api/common/utils/PlainTextSearch"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { DomainConfigProvider } from "../api/common/DomainConfigProvider.js"
 
 export type FaqEntry = {
 	id: string
@@ -45,11 +47,30 @@ export class FaqModel {
 			return Promise.all([this.fetchFAQ("en"), this.fetchFAQ(lang.code)]).then(([defaultTranslations, currentLanguageTranslations]) => {
 				if (defaultTranslations != null || currentLanguageTranslations != null) {
 					const faqLanguageViewModel = new LanguageViewModel()
-					faqLanguageViewModel.initWithTranslations(lang.code, lang.languageTag, defaultTranslations, currentLanguageTranslations)
+					const isProd = this.websiteBaseUrl === "https://tuta.com"
+					faqLanguageViewModel.initWithTranslations(
+						lang.code,
+						lang.languageTag,
+						isProd ? defaultTranslations : this.replaceWebsiteUrls(defaultTranslations),
+						isProd ? defaultTranslations : this.replaceWebsiteUrls(currentLanguageTranslations),
+					)
 					this.faqLanguages = faqLanguageViewModel
 				}
 			})
 		})
+	}
+
+	// Replaces any instances of the production website in the faq entry with the correct stage (test, local etc.) of the website
+	private replaceWebsiteUrls(translation: Translation): Translation {
+		const filteredKeys: Record<string, string> = Object.fromEntries(
+			Object.entries(translation.keys).map((entry) => {
+				const key = entry[0]
+				const value = entry[1].replaceAll("https://tuta.com", this.websiteBaseUrl)
+				return [key, value]
+			}),
+		)
+		// Expand translation to include extra fields, e.g. `name`
+		return { ...translation, code: translation.code, keys: filteredKeys }
 	}
 
 	async init(websiteBaseUrl: string): Promise<void> {
