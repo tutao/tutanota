@@ -433,7 +433,10 @@ export class MailModel {
 	}
 
 	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
-		await this.mailFacade.applyLabels(mails, addedLabels, removedLabels)
+		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+		for (const mailChunk of mailChunks) {
+			await this.mailFacade.applyLabels(mailChunk, addedLabels, removedLabels)
+		}
 	}
 
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {
