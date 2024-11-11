@@ -10,11 +10,9 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 	private var sourceController: UIViewController
 	private var cameraImage: UIImage
 	private var photoLibImage: UIImage
-	private var attachmentTypeMenu: UIDocumentMenuViewController?
 	private var imagePickerController: UIImagePickerController
 	private var supportedUTIs: [String]
 	private var resultHandler: ResponseCallback<[String]>?
-	private var popOverPresentationController: UIPopoverPresentationController?
 
 	init(viewController: UIViewController) {
 		supportedUTIs = ["public.content", "public.archive", "public.data"]
@@ -33,27 +31,24 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 			previousHandler(.success([]))
 		}
 
+		var attachmentTypeMenu: UIDocumentMenuViewController?
 		var filePicker: UIDocumentPickerViewController?
+
 		if isFileOnly {
 			filePicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content, UTType.archive, UTType.data], asCopy: true)
 			filePicker!.delegate = self
 		} else {
-			self.attachmentTypeMenu = UIDocumentMenuViewController(documentTypes: supportedUTIs, in: UIDocumentPickerMode.import)
-			self.attachmentTypeMenu!.delegate = self
+			attachmentTypeMenu = UIDocumentMenuViewController(documentTypes: supportedUTIs, in: UIDocumentPickerMode.import)
+			attachmentTypeMenu!.popoverPresentationController?.sourceView = sourceController.view
+			attachmentTypeMenu!.popoverPresentationController?.sourceRect = anchorRect
+			attachmentTypeMenu!.delegate = self
 		}
 
 		// add menu item for selecting images from photo library.
 		// according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
 		if !isFileOnly && UIImagePickerController.isSourceTypeAvailable(.savedPhotosAlbum) {
-			if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad {
-				filePicker?.modalPresentationStyle = .popover
-				popOverPresentationController = filePicker?.popoverPresentationController
-				popOverPresentationController?.permittedArrowDirections = [.up, .down]
-				popOverPresentationController?.sourceView = sourceController.view
-				popOverPresentationController?.sourceRect = anchorRect
-			}
 			let photosLabel = translate("TutaoChoosePhotosAction", default: "Photos")
-			self.attachmentTypeMenu!
+			attachmentTypeMenu!
 				.addOption(
 					withTitle: photosLabel,
 					image: photoLibImage,
@@ -87,12 +82,12 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 			let cameraLabel = translate("TutaoShowCameraAction", default: "Camera")
 
 			// capture the weak reference to avoid reference cycle
-			self.attachmentTypeMenu!.addOption(withTitle: cameraLabel, image: cameraImage, order: .first) { [weak self] in self?.openCamera() }
+			attachmentTypeMenu!.addOption(withTitle: cameraLabel, image: cameraImage, order: .first) { [weak self] in self?.openCamera() }
 		}
 
 		return try await withCheckedThrowingContinuation { continuation in
 			resultHandler = continuation.resume(with:)
-			sourceController.present((isFileOnly ? filePicker : self.attachmentTypeMenu)!, animated: true, completion: nil)
+			sourceController.present((isFileOnly ? filePicker : attachmentTypeMenu)!, animated: true, completion: nil)
 		}
 	}
 
