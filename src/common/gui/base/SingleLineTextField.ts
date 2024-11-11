@@ -1,7 +1,8 @@
-import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 
-export interface SingleLineTextFieldAttrs {
+export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
 	value: string
+	ariaLabel: string
 	disabled?: boolean
 	/**
 	 * Callback fired whenever the input is interacted with.
@@ -17,6 +18,9 @@ export interface SingleLineTextFieldAttrs {
 	placeholder?: string
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize">>
+	onfocus?: (...args: unknown[]) => unknown
+	onblur?: (...args: unknown[]) => unknown
+	onkeydown?: (...args: unknown[]) => unknown
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLElement, "style"> & SingleLineTextFieldAttrs>
@@ -27,6 +31,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
  * @example
  * m(SingleLineTextField, {
  *     value: model.value,
+ *     ariaLabel: lange.get("placeholder"),
  *     oninput: (newValue: string) => {
  *         model.value = newValue
  *     },
@@ -41,14 +46,22 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
 export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAttrs> {
 	domInput!: HTMLInputElement
 
-	oncreate(vnode: VnodeDOM<SingleLineTextFieldAttrs, this>): any {
+	oncreate(vnode: VnodeDOM<SingleLineTextFieldAttrs>): any {
 		this.domInput = vnode.dom as HTMLInputElement
+
+		if (vnode.attrs.oncreate) {
+			vnode.attrs.oncreate(vnode)
+		}
 	}
 
 	view({ attrs }: Vnode<SingleLineTextFieldAttrs, this>): Children | void | null {
 		return m("input.tutaui-text-field", {
+			ariaLabel: attrs.ariaLabel,
 			value: attrs.value,
 			disabled: attrs.disabled ?? false,
+			onblur: attrs.onblur,
+			onfocus: attrs.onfocus,
+			onkeydown: attrs.onkeydown,
 			oninput: () => {
 				if (!attrs.oninput) {
 					console.error("oninput fired without a handler function")
