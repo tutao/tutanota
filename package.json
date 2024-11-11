@@ -37,7 +37,7 @@
 		"@tutao/tutanota-crypto": "251.241108.0",
 		"@tutao/tutanota-error": "251.241108.0",
 		"@tutao/tutanota-usagetests": "251.241108.0",
-		"@tutao/tutanota-utils": "251.241108.0",
+		"@tutao/tutanota-utils": "251.241108.1",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/dompurify": "3.0.5",
 		"@types/linkifyjs": "2.1.7",
