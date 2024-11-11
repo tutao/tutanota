@@ -23,6 +23,7 @@ import {
 	createMembershipRemoveData,
 	createPaymentDataServicePutData,
 	CustomDomainReturn,
+	Customer,
 	CustomerInfoTypeRef,
 	CustomerServerProperties,
 	CustomerServerPropertiesTypeRef,
@@ -70,6 +71,7 @@ import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
+import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 
 assertWorkerOrNode()
@@ -462,6 +464,21 @@ export class CustomerFacade {
 			mimeType: "application/pdf",
 			data: pdfFile,
 			size: pdfFile.byteLength,
+			id: undefined,
+		}
+	}
+
+	async generateXRechnungInvoice(invoiceNumber: string, customer: Customer, accountingInfo: AccountingInfo): Promise<DataFile> {
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }))
+		const xRechnungGenerator = new XRechnungInvoiceGenerator(invoiceData, invoiceNumber, this.getCustomerId(), customerInfo.registrationMailAddress)
+		const xRechnungFile = xRechnungGenerator.generate()
+		return {
+			_type: "DataFile",
+			name: String(invoiceNumber) + ".xml",
+			mimeType: "application/xml",
+			data: xRechnungFile,
+			size: xRechnungFile.byteLength,
 			id: undefined,
 		}
 	}

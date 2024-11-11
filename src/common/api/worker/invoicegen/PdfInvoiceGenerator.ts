@@ -2,69 +2,19 @@ import { MARGIN_LEFT, MARGIN_TOP, PDF_FONTS, PDF_IMAGES, PdfDocument, TABLE_VERT
 import InvoiceTexts from "./InvoiceTexts.js"
 import { PdfWriter } from "../pdf/PdfWriter.js"
 import { InvoiceDataGetOut } from "../../entities/sys/TypeRefs.js"
-
-const enum VatType {
-	NO_VAT = "0",
-	ADD_VAT = "1",
-	VAT_INCLUDED_SHOWN = "2",
-	VAT_INCLUDED_HIDDEN = "3",
-	NO_VAT_REVERSE_CHARGE = "4",
-}
-
-const enum InvoiceType {
-	INVOICE = "0",
-	CREDIT = "1",
-	REFERRAL_CREDIT = "2",
-}
-
-const enum PaymentMethod {
-	INVOICE = "0",
-	CREDIT_CARD = "1",
-	SEPA_UNUSED = "2",
-	PAYPAL = "3",
-	ACCOUNT_BALANCE = "4",
-}
-
-const enum InvoiceItemType {
-	PREMIUM_USER = "0",
-	StarterUser = "1",
-	StarterUserPackage = "2",
-	StarterUserPackageUpgrade = "3",
-	StoragePackage = "4",
-	StoragePackageUpgrade = "5",
-	EmailAliasPackage = "6",
-	EmailAliasPackageUpgrade = "7",
-	SharedMailGroup = "8",
-	WhitelabelFeature = "9",
-	ContactForm_UNUSED = "10",
-	WhitelabelChild = "11",
-	LocalAdminGroup = "12",
-	Discount = "13",
-	SharingFeature = "14",
-	Credit = "15",
-	GiftCard = "16",
-	BusinessFeature = "17",
-	GiftCardMigration = "18",
-	ReferralCredit = "19",
-	CancelledReferralCredit = "20",
-	RevolutionaryAccount = "21",
-	LegendAccount = "22",
-	EssentialAccount = "23",
-	AdvancedAccount = "24",
-	UnlimitedAccount = "25",
-}
+import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
 
 /**
  * Object generating a PDF invoice document.
- * This document is ONLY responsible for rendering the data it gets and formatting it in a way that does not change anything about it.
+ * This generator is ONLY responsible for rendering the data it gets and formatting it in a way that does not change anything about it.
  * If adjustments to the data must be made prior to rendering, then these should take place within the RenderInvoice service.
  */
 export class PdfInvoiceGenerator {
 	private readonly doc: PdfDocument
 	private readonly languageCode: "de" | "en" = "en"
+	private readonly invoiceNumber: string
+	private readonly customerId: string
 	private invoice: InvoiceDataGetOut
-	private invoiceNumber: string
-	private customerId: string
 
 	constructor(pdfWriter: PdfWriter, invoice: InvoiceDataGetOut, invoiceNumber: string, customerId: string) {
 		this.invoice = invoice
@@ -170,14 +120,14 @@ export class PdfInvoiceGenerator {
 			// Entry with all invoice info
 			tableData.push([
 				this.formatAmount(invoiceItem.itemType, invoiceItem.amount),
-				this.getInvoiceItemTypeName(invoiceItem.itemType),
+				getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode),
 				invoiceItem.singlePrice == null ? "" : this.formatInvoiceCurrency(invoiceItem.singlePrice),
 				this.formatInvoiceCurrency(invoiceItem.totalPrice),
 			])
 			// Entry with date range
 			tableData.push(["", `${this.formatInvoiceDate(invoiceItem.startDate)} - ${this.formatInvoiceDate(invoiceItem.endDate)}`, "", ""])
 		}
-		const tableEndPoint = await this.doc.addTable([MARGIN_LEFT, MARGIN_TOP + 120], 165, columns, tableData)
+		const tableEndPoint = await this.doc.addTable([MARGIN_LEFT, MARGIN_TOP + 120], 165, columns, tableData, this.getTableRowsForFirstPage())
 
 		this.renderTableSummary(tableEndPoint, columns)
 		this.doc.changeTextCursorPosition([MARGIN_LEFT, tableEndPoint + 4 * TABLE_VERTICAL_SPACING])
@@ -189,6 +139,8 @@ export class PdfInvoiceGenerator {
 	renderTableSummary(tableEndPoint: number, columns: TableColumn[]) {
 		// Line break that's to be removed if no VAT appears in the summary
 		let additionalVerticalSpace = 1
+
+		this.doc.changeFont(PDF_FONTS.REGULAR, 11)
 
 		// Sub total
 		this.doc.addTableRow([MARGIN_LEFT, tableEndPoint], columns, [
@@ -231,7 +183,7 @@ export class PdfInvoiceGenerator {
 	 * Additional blocks displayed below the table depending on invoice type, vat type and payment method
 	 */
 	renderAdditional() {
-		this.doc.changeFont(PDF_FONTS.REGULAR, 12)
+		this.doc.changeFont(PDF_FONTS.REGULAR, 11)
 
 		// No VAT / VAT not shown in table
 		switch (this.invoice.vatType) {
@@ -249,6 +201,7 @@ export class PdfInvoiceGenerator {
 						.addText(`${InvoiceTexts[this.languageCode].yourVatId} `)
 						.changeFont(PDF_FONTS.BOLD, 11)
 						.addText(`${this.invoice.vatIdNumber}`)
+						.changeFont(PDF_FONTS.REGULAR, 11)
 				} else {
 					this.doc.addText(InvoiceTexts[this.languageCode].netPricesNoVatInGermany)
 				}
@@ -321,6 +274,23 @@ export class PdfInvoiceGenerator {
 	}
 
 	/**
+	 * Determines how many table rows (invoice items) can be rendered on the first page depending on the texts that follow after the table
+	 */
+	getTableRowsForFirstPage(): number {
+		if (
+			this.invoice.paymentMethod === PaymentMethod.INVOICE &&
+			this.invoice.vatIdNumber != null &&
+			(this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_REVERSE_CHARGE)
+		) {
+			// In these scenarios, there will be a lot of text after the table summary, so few rows can render
+			return 4
+		} else {
+			// In all other scenarios, there will be little text after the table summary, so more rows can render
+			return 8
+		}
+	}
+
+	/**
 	 * Get the name of a given InvoiceType
 	 */
 	getInvoiceTypeName(type: NumberString, amount: NumberString): string {
@@ -337,68 +307,6 @@ export class PdfInvoiceGenerator {
 				}
 			default:
 				throw new Error("Invalid InvoiceType " + type)
-		}
-	}
-
-	/**
-	 * Get the name of a given InvoiceItemType
-	 */
-	getInvoiceItemTypeName(type: NumberString): string {
-		switch (type) {
-			case InvoiceItemType.PREMIUM_USER:
-				return InvoiceTexts[this.languageCode].premiumUser
-			case InvoiceItemType.StarterUser:
-				return InvoiceTexts[this.languageCode].starterUser
-			case InvoiceItemType.StarterUserPackage:
-				return InvoiceTexts[this.languageCode].starterUserPackage
-			case InvoiceItemType.StarterUserPackageUpgrade:
-				return InvoiceTexts[this.languageCode].starterUserPackageUpgrade
-			case InvoiceItemType.StoragePackage:
-				return InvoiceTexts[this.languageCode].storagePackage
-			case InvoiceItemType.StoragePackageUpgrade:
-				return InvoiceTexts[this.languageCode].storagePackageUpgrade
-			case InvoiceItemType.EmailAliasPackage:
-				return InvoiceTexts[this.languageCode].emailAliasPackage
-			case InvoiceItemType.EmailAliasPackageUpgrade:
-				return InvoiceTexts[this.languageCode].emailAliasPackageUpgrade
-			case InvoiceItemType.SharedMailGroup:
-				return InvoiceTexts[this.languageCode].sharedMailGroup
-			case InvoiceItemType.WhitelabelFeature:
-				return InvoiceTexts[this.languageCode].whitelabelFeature
-			case InvoiceItemType.ContactForm_UNUSED:
-				return InvoiceTexts[this.languageCode].contactFormUnused
-			case InvoiceItemType.WhitelabelChild:
-				return InvoiceTexts[this.languageCode].whitelabelChild
-			case InvoiceItemType.LocalAdminGroup:
-				return InvoiceTexts[this.languageCode].localAdminGroup
-			case InvoiceItemType.Discount:
-				return InvoiceTexts[this.languageCode].discount
-			case InvoiceItemType.SharingFeature:
-				return InvoiceTexts[this.languageCode].sharingFeature
-			case InvoiceItemType.Credit:
-				return InvoiceTexts[this.languageCode].creditType
-			case InvoiceItemType.GiftCard:
-				return InvoiceTexts[this.languageCode].giftCard
-			case InvoiceItemType.BusinessFeature:
-				return InvoiceTexts[this.languageCode].businessFeature
-			case InvoiceItemType.GiftCardMigration:
-				return InvoiceTexts[this.languageCode].giftCardMigration
-			case InvoiceItemType.ReferralCredit:
-				return InvoiceTexts[this.languageCode].referralCredit
-			case InvoiceItemType.CancelledReferralCredit:
-				return InvoiceTexts[this.languageCode].cancelledReferralCredit
-			case InvoiceItemType.RevolutionaryAccount:
-				return InvoiceTexts[this.languageCode].revolutionaryAccount
-			case InvoiceItemType.LegendAccount:
-				return InvoiceTexts[this.languageCode].legendAccount
-			case InvoiceItemType.EssentialAccount:
-				return InvoiceTexts[this.languageCode].essentialAccount
-			case InvoiceItemType.AdvancedAccount:
-				return InvoiceTexts[this.languageCode].advancedAccount
-			case InvoiceItemType.UnlimitedAccount:
-				return InvoiceTexts[this.languageCode].unlimitedAccount
-			default:
-				throw new Error("Unknown InvoiceItemType " + type)
 		}
 	}
 
@@ -441,8 +349,4 @@ export class PdfInvoiceGenerator {
 			return amount
 		}
 	}
-}
-
-function countryUsesGerman(country: string): "de" | "en" {
-	return country === "DE" || country === "AT" ? "de" : "en"
 }
