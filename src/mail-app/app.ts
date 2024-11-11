@@ -31,8 +31,6 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import type { CredentialsMigrationView, CredentialsMigrationViewAttrs } from "../common/login/CredentialsMigrationView.js"
-import type { CredentialsMigrationViewModel } from "../common/login/CredentialsMigrationViewModel.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
@@ -425,23 +423,10 @@ import("./translations/en.js")
 			signup: {
 				async onmatch() {
 					const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
-					const { isLegacyDomain } = await import("../common/login/LoginViewModel.js")
-					if (isLegacyDomain()) {
-						const domainConfigProvider = mailLocator.domainConfigProvider()
-						const target = new URL(
-							domainConfigProvider.getDomainConfigForHostname(location.hostname, location.protocol, location.port).partneredDomainTransitionUrl,
-						)
-						target.pathname = "signup"
-						target.search = location.search
-						target.hash = location.hash
-						console.log("redirect to", target.toString())
-						window.open(target, "_self")
-						return null
-					} else {
-						// We have to manually parse it because mithril does not put hash into args of onmatch
-						const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-						showSignupDialog(urlParams)
-					}
+
+					// We have to manually parse it because mithril does not put hash into args of onmatch
+					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+					showSignupDialog(urlParams)
 					// when the user presses the browser back button, we would get a /login route without arguments
 					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
@@ -516,31 +501,6 @@ import("./translations/en.js")
 							cache: {
 								browserWebauthn: new BrowserWebauthn(navigator.credentials, domainConfig),
 							},
-						}
-					},
-					prepareAttrs: (cache) => cache,
-					requireLogin: false,
-				},
-				mailLocator.logins,
-			),
-			migrate: makeViewResolver<
-				CredentialsMigrationViewAttrs,
-				CredentialsMigrationView,
-				{
-					credentialsMigrationViewModel: CredentialsMigrationViewModel
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { CredentialsMigrationViewModel } = await import("../common/login/CredentialsMigrationViewModel.js")
-						const { CredentialsMigrationView } = await import("../common/login/CredentialsMigrationView.js")
-						const domainConfig = mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
-						const parentOrigin = domainConfig.partneredDomainTransitionUrl
-						const loginViewModelFactory = await mailLocator.loginViewModelFactory()
-						const credentialsMigrationViewModel = new CredentialsMigrationViewModel(loginViewModelFactory(), parentOrigin)
-						return {
-							component: CredentialsMigrationView,
-							cache: { credentialsMigrationViewModel },
 						}
 					},
 					prepareAttrs: (cache) => cache,

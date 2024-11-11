@@ -23,7 +23,10 @@ export enum ListAutoSelectBehavior {
 	NEWER,
 }
 
-export type LastExternalCalendarSyncEntry = { lastSuccessfulSync: number | undefined | null; lastSyncStatus: SyncStatus }
+export type LastExternalCalendarSyncEntry = {
+	lastSuccessfulSync: number | undefined | null
+	lastSyncStatus: SyncStatus
+}
 
 export type ClientOnlyCalendarsInfo = Pick<GroupSettings, "name" | "color">
 
@@ -50,8 +53,6 @@ interface ConfigObject {
 	_testAssignments: PersistedAssignmentData | null
 	offlineTimeRangeDaysByUser: Record<Id, number>
 	conversationViewShowOnlySelectedMail: boolean
-	/** true on legacy domain if it sent the credentials, true on new if it tried to receive them */
-	hasParticipatedInCredentialsMigration: boolean
 	/** Stores each users' definition about contact synchronization */
 	syncContactsWithPhonePreference: Record<Id, boolean>
 	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
@@ -117,7 +118,6 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			_signupToken: signupToken,
 			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
-			hasParticipatedInCredentialsMigration: loadedConfig.hasParticipatedInCredentialsMigration ?? false,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
@@ -376,15 +376,6 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	setConversationViewShowOnlySelectedMail(setting: boolean) {
 		this.config.conversationViewShowOnlySelectedMail = setting
-		this.writeToStorage()
-	}
-
-	getHasAttemptedCredentialsMigration(): boolean {
-		return this.config.hasParticipatedInCredentialsMigration
-	}
-
-	setHasAttemptedCredentialsMigration(v: boolean): void {
-		this.config.hasParticipatedInCredentialsMigration = v
 		this.writeToStorage()
 	}
 

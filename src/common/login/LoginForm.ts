@@ -7,7 +7,6 @@ import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector.js"
 import { isApp, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
-import { ACTIVATED_MIGRATION, isLegacyDomain } from "./LoginViewModel.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { Keys } from "../api/common/TutanotaConstants"
@@ -53,14 +52,10 @@ export class LoginForm implements Component<LoginFormAttrs> {
 		this.passwordTextField.value = ""
 	}
 
-	isSavePasswordDisabled(): boolean {
-		return ACTIVATED_MIGRATION() && isLegacyDomain()
-	}
-
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 		const canSaveCredentials = client.localStorage()
-		if (a.savePassword && (isApp() || isDesktop()) && !this.isSavePasswordDisabled()) {
+		if (a.savePassword && (isApp() || isDesktop())) {
 			a.savePassword(true)
 		}
 		return m(
@@ -115,7 +110,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						},
 					}),
 				),
-				a.savePassword && !this.isSavePasswordDisabled()
+				a.savePassword
 					? isApp() || isDesktop()
 						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
 						: m(

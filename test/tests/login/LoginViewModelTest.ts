@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DisplayMode, isLegacyDomain, LoginState, LoginViewModel } from "../../../src/common/login/LoginViewModel.js"
+import { DisplayMode, LoginState, LoginViewModel } from "../../../src/common/login/LoginViewModel.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { GroupInfoTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
@@ -14,7 +14,6 @@ import { instance, matchers, object, replace, verify, when } from "testdouble"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../src/common/api/common/error/RestError"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/common/api/worker/facades/LoginFacade"
-import { Mode } from "../../../src/common/api/common/Env.js"
 import { createTestEntity, domainConfigStub, textIncludes } from "../TestUtils.js"
 import { CredentialRemovalHandler } from "../../../src/common/login/CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp.js"
@@ -438,7 +437,10 @@ o.spec("LoginViewModelTest", () => {
 		})
 
 		o.spec("Should clear old credentials on login", function () {
-			const oldCredentials: Credentials = Object.assign({}, credentialsWithoutPassword, { accessToken: "oldAccessToken", encryptedPassword: "encPw" })
+			const oldCredentials: Credentials = Object.assign({}, credentialsWithoutPassword, {
+				accessToken: "oldAccessToken",
+				encryptedPassword: "encPw",
+			})
 
 			o("same address & same user id", async function () {
 				await doTest(oldCredentials)
@@ -520,18 +522,6 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.InvalidCredentials)
 			o(viewModel.helpText).equals("loginFailed_msg")
 			verify(loginControllerMock.createSession(anything(), anything(), anything()), { times: 0 })
-		})
-	})
-
-	o.spec("newDomain", function () {
-		o("isLegacyDomain", function () {
-			const oldmode = env.mode
-			env.mode = Mode.Browser
-			o(isLegacyDomain("https://mail.tutanota.com")).equals(true)
-			o(isLegacyDomain("https://mail.tuta.com")).equals(false)
-			o(isLegacyDomain("https://app.local.tutanota.com")).equals(true)
-			o(isLegacyDomain("https://app.local.nottutanota.com")).equals(false)
-			env.mode = oldmode
 		})
 	})
 })

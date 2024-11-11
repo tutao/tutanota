@@ -9,7 +9,7 @@ import { windowFacade } from "../misc/WindowFacade.js"
 import { DeviceType } from "../misc/ClientConstants.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
-import { ACTIVATED_MIGRATION, DisplayMode, isLegacyDomain, LoginState, LoginViewModel } from "./LoginViewModel.js"
+import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel.js"
 import { LoginForm } from "./LoginForm.js"
 import { CredentialsSelector } from "./CredentialsSelector.js"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
@@ -18,10 +18,8 @@ import type { ClickHandler } from "../gui/base/GuiUtils"
 import { IconButton } from "../gui/base/IconButton.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { px } from "../gui/size.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { styles } from "../gui/styles.js"
-import { MigratingCredentialsBanner } from "./MigratingCredentialsBanner.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../gui/base/SnackBar.js"
@@ -97,7 +95,6 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 			},
 			[
 				m(LoginScreenHeader),
-				this._renderMigratingCredentialsMessage(),
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
@@ -137,10 +134,6 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		}
 	}
 
-	private _renderMigratingCredentialsMessage(): Children {
-		return m(MigratingCredentialsBanner, { viewModel: this.viewModel })
-	}
-
 	private renderMoreOptions(): Children {
 		return m(".flex-center.flex-column", [
 			this._loginAnotherLinkVisible()
@@ -170,7 +163,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				? m(Button, {
 						label: "register_label",
 						type: ButtonType.Secondary,
-						click: () => (isLegacyDomain() ? window.open(this.viewModel.getMigrationChildOrigin() + "/signup", "_self") : m.route.set("/signup")),
+						click: () => m.route.set("/signup"),
 				  })
 				: null,
 			this._switchThemeLinkVisible()
@@ -365,11 +358,6 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
-		if (isLegacyDomain() && ACTIVATED_MIGRATION()) {
-			// we want people to see the banner even if the only have
-			// one set of stored credentials.
-			args.noAutoLogin = true
-		}
 		if (args.requestedPath) {
 			this.selectedRedirect = args.requestedPath
 		} else if (args.action) {

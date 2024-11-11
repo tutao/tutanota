@@ -34,12 +34,12 @@ export class CredentialsProvider {
 			throw new Error(`Trying to replace password for credentials but credentials are not persisted: ${credentials.userId}`)
 		}
 		// Encrypted password is encrypted with the session key and is the same for encrypted and decrypted credentials, no additional logic is needed.
-		const newEncryptedCredentials: PersistedCredentials = { ...encryptedCredentials, encryptedPassword, encryptedPassphraseKey }
+		const newEncryptedCredentials: PersistedCredentials = {
+			...encryptedCredentials,
+			encryptedPassword,
+			encryptedPassphraseKey,
+		}
 		await this.credentialsFacade.storeEncrypted(newEncryptedCredentials)
-	}
-
-	async storeRaw(credentials: PersistedCredentials) {
-		await this.credentialsFacade.storeEncrypted(credentials)
 	}
 
 	async getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null> {
