@@ -132,13 +132,11 @@ class AndroidThemeFacade(
 		// So for Android M and above we alternate between white and dark status bar colors and
 		// we change lightStatusBar flag accordingly.
 		activity.window.statusBarColor = statusBarColor
-		if (isStatusBarLight) {
-			windowInsetController.isAppearanceLightStatusBars = true
-		}
+		windowInsetController.isAppearanceLightStatusBars = isStatusBarLight
 	}
 
 	private fun getColor(theme: Map<String, String>, key: String): String =
-			theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
+		theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
 
 	override suspend fun getThemes(): List<Map<String, String>> {
 		return this.themes
