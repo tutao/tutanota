@@ -616,9 +616,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
 						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
 					}),
-					this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
-						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-					}),
+					mailLocator.mailModel.canManageLabels()
+						? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
+								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+						  })
+						: null,
 				],
 			)
 		}
