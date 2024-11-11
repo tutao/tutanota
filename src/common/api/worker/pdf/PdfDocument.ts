@@ -31,8 +31,7 @@ const ORIGIN_POSITION: [x: number, y: number] = [0, 0]
 // Transform matrix to set origin point top-left
 const TRANSFORM_MATRIX = `1 0 0 -1 0 ${mmToPSPoint(PAPER_HEIGHT)}`
 // 1 InvoiceItem = 2 Table rows (first row item info, second row dates)
-// Amount of table rows that can fit on the first page
-const ROWS_FIRST_PAGE_SINGLE = 4 // 2 InvoiceItems
+// The amount of rows rendered on the first page is dynamically determined in the addTable() method
 // Amount of table rows that can fit on the first page if a second is rendered too
 const ROWS_FIRST_PAGE_MULTIPLE = 24 // 12 InvoiceItems
 // Amount of table rows that can fit on any n-th page that isn't the first
@@ -51,13 +50,13 @@ const ADDRESS_FIELD_HEIGHT = 320
  */
 export class PdfDocument {
 	private readonly pdfWriter: PdfWriter
+	private readonly deflater: Deflater
 	private pageCount: number = 0
 	private textStream: string = ""
 	private graphicsStream: string = ""
 	private currentFont: PDF_FONTS = PDF_FONTS.REGULAR
 	private currentFontSize: number = 12
 	private pageList: PdfObjectRef[] = []
-	private deflater: Deflater
 
 	constructor(pdfWriter: PdfWriter) {
 		this.pdfWriter = pdfWriter
@@ -263,14 +262,24 @@ export class PdfDocument {
 	 * @param tableWidth The width of the table
 	 * @param columns Array of ColumnObjects, specifying the header name and width of each column in percent of the total tableWidth { headerName: string, columnWidth: number  }
 	 * @param data Two-dimensional array of strings, specifying the data for every row : [ //row1 [a,b,c] //row2 [x,y,z]...   ]. The inner arrays (rows) must have the same length as the columns array!
+	 * @param rowsOnFirstPage How many rows can fit on the first page. This is dynamically decided by the amount of text that should follow after the table
 	 */
-	async addTable(position: [x: number, y: number], tableWidth: number, columns: TableColumn[], data: ReadonlyArray<ReadonlyArray<string>>): Promise<number> {
+	async addTable(
+		position: [x: number, y: number],
+		tableWidth: number,
+		columns: TableColumn[],
+		data: ReadonlyArray<ReadonlyArray<string>>,
+		rowsOnFirstPage: number = 4,
+	): Promise<number> {
 		this.addTableHeader(position, tableWidth, columns)
 		// If all entries fit on the first page, then have "ITEMS_FIRST_PAGE_SINGLE" amount of entries, else "ROWS_FIRST_PAGE_MULTIPLE"
-		const entriesOnFirstPage = data.length > ROWS_FIRST_PAGE_SINGLE ? ROWS_FIRST_PAGE_MULTIPLE : ROWS_FIRST_PAGE_SINGLE
+		const entriesOnFirstPage = data.length > rowsOnFirstPage ? ROWS_FIRST_PAGE_MULTIPLE : rowsOnFirstPage
 		// Render the first page, save the height of the table
 		let tableHeight = this.addTablePage(position, tableWidth, columns, data.slice(0, entriesOnFirstPage))
 		let entryCounter = entriesOnFirstPage
+
+		// only two fit on first page to then have enough space to render the BIGGEST, we have three so we new page
+		// BIGGEST is German or Enligsh (its close) invoice + not vat + vatid
 
 		// Keep writing pages of entries until all data is exhausted
 		while (entryCounter < data.length) {
@@ -282,6 +291,7 @@ export class PdfDocument {
 
 		const lastPageCannotFitRemainingRows = (entryCounter - entriesOnFirstPage) % ROWS_N_PAGE <= ROWS_FIRST_PAGE_MULTIPLE
 		const insufficientSpaceBelowTable = entryCounter == ROWS_FIRST_PAGE_MULTIPLE
+
 		if (!lastPageCannotFitRemainingRows || insufficientSpaceBelowTable) {
 			await this.addPage()
 			tableHeight = MARGIN_TOP

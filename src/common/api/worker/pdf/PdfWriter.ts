@@ -1,5 +1,5 @@
 import { PdfObject } from "./PdfObject.js"
-import { GENERATION_NUMBER, NEW_LINE, PDF_DEFAULT_OBJECTS, PdfDictValue, PdfObjectRef, PdfStreamEncoding } from "./PdfConstants.js"
+import { GENERATION_NUMBER, NEW_LINE, PDF_DEFAULT_OBJECTS, PDF_METADATA, PdfDictValue, PdfObjectRef, PdfStreamEncoding } from "./PdfConstants.js"
 import { PdfStreamObject } from "./PdfStreamObject.js"
 import { concat, hexToUint8Array } from "@tutao/tutanota-utils"
 import { Deflater } from "./Deflater.js"
@@ -18,11 +18,11 @@ type GlobalFetch = typeof global.fetch
  */
 export class PdfWriter {
 	private readonly textEncoder: TextEncoder
+	private readonly customFetch: GlobalFetch | undefined
+	private readonly deflater: Deflater
 	private byteLengthPosition = PDF_HEADER.byteLength
 	private pdfObjectList: PdfObject[] = []
 	private referenceTable: Map<string, PdfObject> = new Map<string, PdfObject>()
-	private customFetch: GlobalFetch | undefined
-	private deflater: Deflater
 	private cachedResources: ArrayBuffer[] | undefined
 
 	constructor(textEncoder: TextEncoder, customFetch: GlobalFetch | undefined) {
@@ -191,21 +191,15 @@ export class PdfWriter {
 		const baseUrl = typeof location === "undefined" ? "" : location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 		if (!this.cachedResources) {
 			this.cachedResources = await Promise.all(
-				[
-					"/pdf/SourceSans3-Regular.ttf",
-					"/pdf/SourceSans3-Bold.ttf",
-					"/pdf/sRGB2014.icc",
-					"/pdf/identity_h.cmap",
-					"/pdf/tutanota_logo_en.jpg",
-					"/pdf/metadata.xml",
-				].map((url) =>
-					typeof this.customFetch !== "undefined"
-						? this.customFetch(baseUrl + url).then((r) => r.arrayBuffer())
-						: fetch(baseUrl + url).then((r) => r.arrayBuffer()),
+				["/pdf/SourceSans3-Regular.ttf", "/pdf/SourceSans3-Bold.ttf", "/pdf/sRGB2014.icc", "/pdf/identity_h.cmap", "/pdf/tutanota_logo_en.jpg"].map(
+					(url) =>
+						typeof this.customFetch !== "undefined"
+							? this.customFetch(baseUrl + url).then((r) => r.arrayBuffer())
+							: fetch(baseUrl + url).then((r) => r.arrayBuffer()),
 				),
 			)
 		}
-		const [fontRegular, fontBold, colorProfile, cmap, tutaImage, metaData] = this.cachedResources
+		const [fontRegular, fontBold, colorProfile, cmap, tutaImage] = this.cachedResources
 
 		// Regular font file
 		this.createStreamObject(
@@ -258,12 +252,14 @@ export class PdfWriter {
 			"IMG_TUTA_LOGO",
 		)
 		// Metadata
+		const todayDate = new Date()
+		const metaData = PDF_METADATA.replace("{slotCreateDate}", todayDate.toISOString()).replace("{slotModifyDate}", todayDate.toISOString())
 		this.createStreamObject(
 			new Map([
 				["Type", "/Metadata"],
 				["Subtype", "/XML"],
 			]),
-			new Uint8Array(metaData),
+			new Uint8Array(this.textEncoder.encode(metaData)),
 			PdfStreamEncoding.NONE,
 			"METADATA",
 		)
