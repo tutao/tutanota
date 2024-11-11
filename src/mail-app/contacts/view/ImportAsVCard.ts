@@ -11,7 +11,7 @@ import { isApp } from "../../../common/api/common/Env.js"
 
 export async function importAsVCard() {
 	const allowedExtensions = ["vcf"]
-	const contactFiles = isApp() ? await showNativeFilePicker(allowedExtensions) : await showFileChooser(true, allowedExtensions)
+	const contactFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(true, allowedExtensions)
 	if (contactFiles.length <= 0) return
 	return showProgressDialog(
 		"pleaseWait_msg",
