@@ -83,11 +83,25 @@ export class SafeStorageSecretStorage implements SecretStorage {
 	private async assertAvailable(): Promise<void> {
 		await this.electron.app.whenReady()
 		await this.fs.promises.mkdir(this.getSafeStoragePath(), { recursive: true })
+
+		const onLinux = process.platform === "linux"
+		const backend = onLinux ? this.electron.safeStorage.getSelectedStorageBackend() : null
+
+		if (!this.initialized && backend === "basic_text") {
+			// this will force isEncryptionAvailable to return true
+			this.electron.safeStorage.setUsePlainTextEncryption(true)
+
+			// note that `basic_text` uses a hardcoded key which is insecure
+			console.warn(
+				`Detected safeStorage backend is insecure: ${backend}. Consider choosing a different one via command line args, or set up an app password to protect local data`,
+			)
+		}
+
 		if (this.electron.safeStorage.isEncryptionAvailable()) {
-			if (!this.initialized && process.platform === "linux") {
+			if (!this.initialized && onLinux) {
 				// only linux has variable backends
 				this.initialized = true
-				console.log("using safeStorage with backend", this.electron.safeStorage.getSelectedStorageBackend())
+				console.log("using safeStorage with backend", backend)
 			}
 			return
 		}
