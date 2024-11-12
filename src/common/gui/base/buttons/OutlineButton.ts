@@ -1,12 +1,12 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
+import { lang, TranslationKey, TranslationText } from "../../../misc/LanguageViewModel.js"
 import { ClickHandler } from "../GuiUtils.js"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
 import { theme } from "../../theme.js"
 
 export interface OutlineButtonAttrs {
 	label: TranslationKey
-	text?: TranslationKey
+	text?: TranslationText
 	click?: ClickHandler
 	disabled?: boolean
 	expanded?: boolean
@@ -50,8 +50,8 @@ export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
 			"justify-center",
 		]
 
-		if (!expanded) {
-			classes.push("fit-content")
+		if (expanded) {
+			classes.push("full-width")
 		}
 
 		if (disabled) {

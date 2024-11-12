@@ -989,6 +989,9 @@ styles.registerStyle("main", () => {
 		".gap-vpad-sm": {
 			gap: px(size.vpad_small),
 		},
+		".gap-vpad-sm-15": {
+			gap: px(size.vpad_small * 1.5),
+		},
 		".gap-hpad": {
 			gap: px(size.hpad),
 		},
@@ -2732,6 +2735,7 @@ styles.registerStyle("main", () => {
 			border: "2px solid",
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.border_radius_medium),
+			"text-align": "center",
 		},
 		".unstyled-list": {
 			"list-style": "none",
@@ -2742,6 +2746,30 @@ styles.registerStyle("main", () => {
 			display: "grid",
 			"grid-template-columns": "1fr 3fr 1fr",
 			"grid-gap": px(size.vpad_small),
+			"align-items": "center",
+		},
+		".time-selection-grid > *": {
+			overflow: "hidden",
+			"white-space": "nowrap",
+			"text-overflow": "clip",
+		},
+		".invisible": {
+			all: "none",
+			"background-color": "transparent",
+			border: "none",
+			color: "transparent",
+		},
+		".invisible::selection": {
+			all: "none",
+			"background-color": "transparent",
+			border: "none",
+			color: "transparent",
+		},
+		".invisible::-moz-selection": {
+			all: "none",
+			"background-color": "transparent",
+			border: "none",
+			color: "transparent",
 		},
 	}
 })

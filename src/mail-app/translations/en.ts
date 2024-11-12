@@ -1818,6 +1818,8 @@ export default {
 		"you_label": "You",
 		"confirmDeleteLabel_msg": "Are you sure that you want to delete the label \"{1}\"?",
 		"timeSection_label": "Time selection",
-		"addReminder_label": "Add reminder"
+		"addReminder_label": "Add reminder",
+		"startTime_label": "Start time",
+		"endTime_label": "End time"
 	}
 }

@@ -1802,3 +1802,6 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "confirmDeleteLabel_msg"
 	| "addReminder_label"
+	| "startTime_label"
+	| "endTime_label"
+	| "timeSection_label"
