@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 
-export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
+export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate">, Pick<HTMLInputElement, "type"> {
 	value: string
 	ariaLabel: string
 	disabled?: boolean
