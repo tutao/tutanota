@@ -1821,6 +1821,9 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"confirmDeleteLabel_msg": "Möchtest du wirklich das Label \"{1}\" löschen?",
-		"addReminder_label": "Erinnerung hinzufügen"
+		"addReminder_label": "Erinnerung hinzufügen",
+		"timeSection_label": "Zeitauswahl",
+		"startTime_label": "Startzeit",
+		"endTime_label": "Endzeit"
 	}
 }
