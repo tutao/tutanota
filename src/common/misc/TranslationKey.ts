@@ -1796,3 +1796,5 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "timeSection_label"
 	| "addReminder_label"
+	| "startTime_label"
+	| "endTime_label"

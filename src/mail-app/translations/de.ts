@@ -1814,6 +1814,9 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"addReminder_label": "Erinnerung hinzufügen"
+		"addReminder_label": "Erinnerung hinzufügen",
+		"timeSection_label": "Zeitauswahl",
+		"startTime_label": "Startzeit",
+		"endTime_label": "Endzeit"
 	}
 }

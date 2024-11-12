@@ -9,7 +9,7 @@ import { theme } from "../../../../common/gui/theme.js"
 import { getStartOfDay, isSameDayOfDate, memoized } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { TextField } from "../../../../common/gui/base/TextField.js"
+import { TextField, TextFieldType } from "../../../../common/gui/base/TextField.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
 import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
@@ -17,6 +17,8 @@ import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../common/misc/KeyManager.js"
 import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { AriaPopupType } from "../../../../common/gui/AriaUtils.js"
+import { isApp } from "../../../../common/api/common/Env.js"
+import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../common/gui/base/InputButton.js"
 
 export interface DatePickerAttrs {
 	date?: Date
@@ -26,6 +28,7 @@ export interface DatePickerAttrs {
 	nullSelectionText?: TranslationText
 	disabled?: boolean
 	rightAlignDropdown?: boolean
+	useInputButton?: boolean
 }
 
 /**
@@ -66,11 +69,76 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 
 		return m(".rel", [
-			this.renderTextField(attrs),
+			!attrs.useInputButton ? this.renderTextField(attrs) : this.renderInputButtonPicker(attrs),
 			this.showingDropdown ? this.renderDropdown(attrs) : null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
-			client.isMobileDevice() ? this.renderMobileDateInput(attrs) : null,
+			client.isMobileDevice() && !attrs.useInputButton ? this.renderMobileDateInput(attrs) : null,
+		])
+	}
+
+	private renderInputButtonPicker({ disabled, date, onDateSelected, label }: DatePickerAttrs): Children {
+		return m.fragment({}, [
+			isApp()
+				? m("input.fill-absolute.invisible.tutaui-button-outline", {
+						disabled,
+						type: TextFieldType.Date,
+						style: {
+							zIndex: 1,
+							border: `2px solid ${theme.content_message_bg}`,
+							width: "-webkit-fill-available",
+							height: "-webkit-fill-available",
+							padding: 0,
+							appearance: "none",
+							opacity: disabled ? 0.7 : 1.0,
+						},
+						value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
+						oninput: (event: InputEvent) => {
+							this.handleNativeInput(event, onDateSelected)
+						},
+				  })
+				: null,
+			m(InputButton, {
+				tabIndex: Number(isApp() ? TabIndex.Programmatic : TabIndex.Default),
+				ariaLabel: lang.getMaybeLazy(label),
+				inputValue: this.inputText,
+				oninput: (newValue: string) => (this.inputText = newValue),
+				display: formatDateWithWeekdayAndYear(date ?? new Date()),
+				variant: InputButtonVariant.OUTLINE,
+				disabled,
+				type: TextFieldType.Text,
+				onclick: () => {
+					if (!disabled) {
+						this.showingDropdown = true
+					}
+				},
+				onfocus: (_, input) => {
+					if (!disabled) {
+						this.showingDropdown = true
+					}
+					this.textFieldHasFocus = true
+				},
+				oncreate: (input: any) => {
+					if (this.domInput == null) {
+						this.domInput = input.dom as HTMLInputElement
+					}
+				},
+				onblur: () => {
+					this.textFieldHasFocus = false
+				},
+				onkeydown: (event: KeyboardEvent) => {
+					const key = keyboardEventToKeyPress(event)
+					return this.handleInputKeyEvents(key, disabled, onDateSelected)
+				},
+				containerStyle: isApp()
+					? {
+							zIndex: "2",
+							position: "inherit",
+							borderColor: "transparent",
+							pointerEvents: "none",
+					  }
+					: {},
+			} satisfies InputButtonAttributes),
 		])
 	}
 
@@ -109,14 +177,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.textFieldHasFocus = false
 				},
 				keyHandler: (key) => {
-					if (isKeyPressed(key.key, Keys.DOWN)) {
-						if (!disabled && !key.shift && !key.ctrl && !key.meta) {
-							this.showingDropdown = true
-						}
-					} else if (isKeyPressed(key.key, Keys.RETURN)) {
-						this.handleInput(this.inputText, onDateSelected)
-					}
-					return this.handleEscapePress(key)
+					return this.handleInputKeyEvents(key, disabled, onDateSelected)
 				},
 			}),
 		)
@@ -222,13 +283,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			// Format as ISO date format (YYYY-MM-dd). We use luxon for that because JS Date only supports full format with time.
 			value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
 			oninput: (event: InputEvent) => {
-				// valueAsDate is always 00:00 UTC
-				// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
-				const htmlDate = (event.target as HTMLInputElement).valueAsDate
-				// It can be null if user clicks "clear". Ignore it.
-				if (htmlDate != null) {
-					this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
-				}
+				this.handleNativeInput(event, onDateSelected)
 			},
 		})
 	}
@@ -258,6 +313,27 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 		return null
 	})
+
+	private handleInputKeyEvents(key: KeyPress, disabled: boolean | undefined, onDateSelected: (date: Date) => unknown) {
+		if (isKeyPressed(key.key, Keys.DOWN)) {
+			if (!disabled && !key.shift && !key.ctrl && !key.meta) {
+				this.showingDropdown = true
+			}
+		} else if (isKeyPressed(key.key, Keys.RETURN)) {
+			this.handleInput(this.inputText, onDateSelected)
+		}
+		return this.handleEscapePress(key)
+	}
+
+	private handleNativeInput(event: InputEvent, onDateSelected: (date: Date) => unknown) {
+		// valueAsDate is always 00:00 UTC
+		// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
+		const htmlDate = (event.target as HTMLInputElement).valueAsDate
+		// It can be null if user clicks "clear". Ignore it.
+		if (htmlDate != null) {
+			this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
+		}
+	}
 }
 
 type VisualDatePickerAttrs = {
