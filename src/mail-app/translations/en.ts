@@ -1817,6 +1817,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"confirmDeleteLabel_msg": "Are you sure that you want to delete the label \"{1}\"?",
-		"timeSection_label": "Time selection"
+		"timeSection_label": "Time selection",
+		"addReminder_label": "Add reminder"
 	}
 }

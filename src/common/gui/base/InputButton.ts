@@ -1,6 +1,7 @@
 import m, { ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "./SingleLineTextField.js"
+import { TextFieldType } from "./TextField.js"
 
 export enum InputButtonVariant {
 	OUTLINE = "outline",
@@ -87,6 +88,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 
 							attrs.oncreate?.(vnode)
 						},
+						type: TextFieldType.Text,
 						disabled: attrs.disabled,
 						value: attrs.inputValue,
 						oninput: attrs.oninput,
