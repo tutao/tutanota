@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-11-07T13:43:39Z",
+	"updated_at": "2024-11-11T12:13:41Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -370,7 +370,6 @@ export default {
 		"createSharedMailbox_label": "Mailbox anlegen",
 		"createTemplate_action": "Vorlage erstellen",
 		"createUserFailed_msg": "Benutzer konnte nicht erstellt werden. Bitte kontaktieren Sie den Support.",
-		"credentialMigrationDone_msg": "Gratulation! Sie können jetzt Ihre Zugangsdaten auf der neuen Login-Seite verwenden.",
 		"credentialsEncryptionModeAppPasswordHelp_msg": "Schützen Sie Ihre gespeicherten Zugangsdaten mit einem separaten Passwort.",
 		"credentialsEncryptionModeAppPassword_label": "App-Passwort",
 		"credentialsEncryptionModeBiometricsHelp_msg": "Die sicherste Variante. Die gespeicherten Zugangsdaten werden entfernt, wenn die Biometrieeinstellungen geändert werden.",
@@ -664,7 +663,6 @@ export default {
 		"general_label": "Allgemein",
 		"generatePassphrase_action": "Optional: Passwort generieren",
 		"germanLanguageFile_label": "Deutsche Sprachdatei",
-		"getCredsFromLegacy_msg": "Sie können gespeicherte Tuta Zugangsdaten von der alten Login-Domain übertragen und weiterverwenden, indem Sie hier klicken:",
 		"giftCardCopied_msg": "Der Gutscheinlink wurde in die Zwischenablage kopiert",
 		"giftCardCreditNotify_msg": "Der Betrag von {credit} wird Ihrem Account gutgeschrieben.",
 		"giftCardLoginError_msg": "Ihr neuer Account wurde bereits erstellt, aber der Login ist fehlgeschlagen und der Gutschein wurde nicht eingelöst. Bitte versuchen Sie sich mit Ihrem neuen Account erneut mit demselben Gutscheinlink einzuloggen.",
@@ -971,7 +969,6 @@ export default {
 		"moreInfo_msg": "Mehr Infos:",
 		"moreResultsFound_msg": "{1} weitere Ergebnisse gefunden.",
 		"more_label": "Mehr",
-		"movedDomainLegacy_msg": "Der Login ist auf tuta.com umgezogen. Loggen Sie sich jetzt dort ein:",
 		"moveDown_action": "Nach unten",
 		"moveToBottom_action": "An das Ende verschieben",
 		"moveToInbox_action": "In den Posteingang verschieben",
@@ -1241,6 +1238,8 @@ export default {
 		"pricing.currentPlan_label": "Aktuelles Abo",
 		"pricing.custom_title": "Eigenes Branding",
 		"pricing.custom_tooltip": "Whitelabeln Sie Tuta mit Ihrem eigenen Branding, indem Sie die Logos und Farben der Tuta Web-, Mobile- und Desktop-Clients definieren.",
+		"pricing.cyber_monday_msg": "Holen Sie sich das Top-Abo für das erste Jahr mit Rabatt!",
+		"pricing.cyber_monday_select_action": "Jetzt auswählen",
 		"pricing.encryptedCalendar_label": "Verschlüsselter Kalender",
 		"pricing.encryptedCalendar_tooltip": "Alle Daten in den Tuta-Kalendern sind verschlüsselt, selbst Benachrichtigungen werden verschlüsselt gesendet.",
 		"pricing.encryptedContacts_label": "Verschlüsseltes Adressbuch",
@@ -1260,6 +1259,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle Daten werden in Übereinstimmung mit den strengen europäischen Datenschutzbestimmungen gemäß der DSGVO gespeichert.",
 		"pricing.getStarted_label": "Erste Schritte",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
+		"pricing.legendAsterisk_msg": "Der Rabatt gilt nur für das erste Jahr. Im Anschluss kostet Legend 96€ pro Jahr.",
 		"pricing.login_title": "Login auf der eigenen Webseite",
 		"pricing.login_tooltip": "Platzieren Sie das Tuta-Login auf Ihrer eigenen Webseite, so dass Ihre Mitarbeiter sich direkt dort einloggen können.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra E-Mail-Adressen",
@@ -1704,10 +1704,8 @@ export default {
 		"totpTransferSecretApp_msg": "Bitte aktualisieren Sie Ihre Authenticator-App durch betätigen des Buttons oder die manuelle Eingabe des Geheimnisses.",
 		"totpTransferSecret_msg": "Bitte aktualisieren Sie Ihre Authenticator-App durch das Scannen des QR-Codes oder die manuelle Eingabe des Geheimnisses.",
 		"to_label": "An",
-		"transferCredentials_msg": "Übertragen Sie jetzt Ihre Tuta Zugangsdaten zur neuen Login-Seite:",
 		"trash_action": "Papierkorb",
 		"tutanotaAddressDoesNotExist_msg": "Die folgenden Tuta E-Mail-Adressen existieren nicht.",
-		"tutanotaToTuta_msg": "Tutanota wird zu Tuta",
 		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tuta entwickelt und bereitstellt.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Filtern ...",
@@ -1819,10 +1817,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"pricing.legendAsterisk_msg": "Der Legend-Rabatt gilt nur für das erste Jahr. Der folgende Preis beträgt 96€ pro Jahr.",
-		"pricing.cyber_monday_msg": "Holen Sie sich den Top-Tarif für das erste Jahr für weniger Geld!",
-		"pricing.cyber_monday_select_action": "Holen Sie Sich das Angebot!",
-		"pricing.cyberMonday_label": "Sparen sie 62%"
+		"you_label": "Sie"
 	}
 }

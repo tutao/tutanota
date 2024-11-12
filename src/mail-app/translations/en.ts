@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-11-07T13:43:27Z",
+	"updated_at": "2024-11-11T12:13:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -366,7 +366,6 @@ export default {
 		"createSharedMailbox_label": "Create shared mailbox",
 		"createTemplate_action": "Create template",
 		"createUserFailed_msg": "Could not create the user. Please contact support.",
-		"credentialMigrationDone_msg": "Success! You can now use your credentials on the new login page.",
 		"credentialsEncryptionModeAppPasswordHelp_msg": "Protect your stored credentials with a separate password.",
 		"credentialsEncryptionModeAppPassword_label": "App password",
 		"credentialsEncryptionModeBiometricsHelp_msg": "The most secure option. Stored credentials are cleared when biometrics are added or removed.",
@@ -660,7 +659,6 @@ export default {
 		"general_label": "General",
 		"generatePassphrase_action": "Optional: Generate password",
 		"germanLanguageFile_label": "German language file",
-		"getCredsFromLegacy_msg": "You can transfer and reuse any saved Tuta credentials from the old login page by clicking here:",
 		"giftCardCopied_msg": "Gift card link copied to clipboard!",
 		"giftCardCreditNotify_msg": "Your account will receive {credit} credit.",
 		"giftCardLoginError_msg": "Your new account was created but we had trouble logging you in and your gift card was not redeemed. Please try logging in later with the same gift card link to redeem the card.",
@@ -967,7 +965,6 @@ export default {
 		"moreInfo_msg": "More Info:",
 		"moreResultsFound_msg": "{1} more results found.",
 		"more_label": "More",
-		"movedDomainLegacy_msg": "The login page has moved to tuta.com. You can go there now to log in:",
 		"moveDown_action": "Move down",
 		"moveToBottom_action": "Move to the bottom",
 		"moveToInbox_action": "Move to Inbox",
@@ -1237,6 +1234,8 @@ export default {
 		"pricing.currentPlan_label": "Current plan",
 		"pricing.custom_title": "Custom branding",
 		"pricing.custom_tooltip": "Whitelabel Tuta with your own branding by defining the logos and colors of the Tuta web, mobile and desktop clients.",
+		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
+		"pricing.cyber_monday_select_action": "Get The Deal!",
 		"pricing.encryptedCalendar_label": "Fully encrypted calendar",
 		"pricing.encryptedCalendar_tooltip": "All data in your Tuta Calendars are encrypted, even notifications are sent encrypted to your device.",
 		"pricing.encryptedContacts_label": "Encrypted address book",
@@ -1256,6 +1255,7 @@ export default {
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.getStarted_label": "Get started",
 		"pricing.includesTaxes_msg": "Includes taxes.",
+		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
 		"pricing.login_title": "Login on own website",
 		"pricing.login_tooltip": "Place the Tuta login on your own website for your employees and externals.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra email addresses",
@@ -1700,10 +1700,8 @@ export default {
 		"totpTransferSecretApp_msg": "Please update your authenticator app by pressing the button below or by entering the secret key manually.",
 		"totpTransferSecret_msg": "Please update your authenticator app by scanning the QR code (below) or by entering the secret key manually.",
 		"to_label": "To",
-		"transferCredentials_msg": "You can now transfer your Tuta credentials to the new login page:",
 		"trash_action": "Trash",
 		"tutanotaAddressDoesNotExist_msg": "The following Tuta email addresses do not exist.",
-		"tutanotaToTuta_msg": "Tutanota is now Tuta",
 		"tutaoInfo_msg": "Tutao GmbH is the company providing Tuta to you.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Type to filter ...",
@@ -1815,10 +1813,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
-		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
-		"pricing.cyber_monday_select_action": "Get The Deal!",
-		"pricing.cyberMonday_label": "Save 62%"
+		"you_label": "You"
 	}
 }
