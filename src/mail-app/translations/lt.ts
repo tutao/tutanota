@@ -15,7 +15,7 @@ export default {
 		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2024-10-11T10:49:42Z",
+	"updated_at": "2024-11-12T10:12:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -150,7 +150,7 @@ export default {
 		"deactivated_label": "Deaktyvuota",
 		"deactivatePremiumWithCustomDomainError_msg": "Negalima pereiti prie Tuta Nemokama sąskaitos, kai esate prisijungęs kaip užsakymo domeno vartotojas.",
 		"deactivate_action": "Išjungti",
-		"defaultEmailSignature_msg": "--\n<br>\nSaugiai išsiųsta su Tuta. Įsigykite savo šifruotą, be reklamų pašto dėžutę jau šiandien!⏎ \n<br>⏎ \n {1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSaugiai išsiųsta su Tuta. Įsigykite savo šifruotą, be reklamų pašto dėžutę jau šiandien!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Naujų laiškų išoriniams gavėjams numatytasis siuntimo būdas: konfidencialiai (šifruotas nuo galo-iki-galo) arba nekonfidencialios (neužšifruotas).",
 		"defaultExternalDelivery_label": "Įprastinis pristatymas",
 		"defaultSenderMailAddressInfo_msg": "Numatytasis siuntėjo pašto adresas naujiems laiškams.",

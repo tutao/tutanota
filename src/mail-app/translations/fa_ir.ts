@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2024-10-02T14:35:36Z",
+	"updated_at": "2024-11-11T12:13:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1379,7 +1379,6 @@ export default {
 		"to_label": "به",
 		"trash_action": "حذف‌شده‌ها",
 		"tutanotaAddressDoesNotExist_msg": "نشانی‌های ایمیل‌ توتانوتایی که در ادامه می‌آیند وجود ندارند.",
-		"tutanotaToTuta_msg": "توتانوتا اینک توتا نامیده می‌شود",
 		"tutaoInfo_msg": " Tutao GmbH  شرکت فراهم کننده   Tuta  برای شماست ",
 		"twitter_label": "توییتر",
 		"typeToFilter_label": "فیلتر بنویسید…",
