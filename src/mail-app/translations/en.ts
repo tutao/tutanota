@@ -1816,6 +1816,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"timeSection_label": "Time selection",
-		"addReminder_label": "Add reminder"
+		"addReminder_label": "Add reminder",
+		"startTime_label": "Start time",
+		"endTime_label": "End time"
 	}
 }

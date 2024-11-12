@@ -6,6 +6,9 @@ import { Switch } from "../../../../common/gui/base/Switch.js"
 import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { theme } from "../../../../common/gui/theme.js"
+import { isApp } from "../../../../common/api/common/Env.js"
+import { DatePicker } from "../pickers/DatePicker.js"
+import { TimePicker } from "../pickers/TimePicker.js"
 
 export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number
@@ -21,36 +24,76 @@ export type EventTimeEditorAttrs = {
 export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 	view(vnode: Vnode<EventTimeEditorAttrs>) {
 		const { attrs } = vnode
-		const { startOfTheWeekOffset, editModel, timeFormat } = attrs
+		const { startOfTheWeekOffset, editModel, timeFormat, disabled } = attrs
+
+		const amPm = timeFormat === TimeFormat.TWELVE_HOURS
 
 		return m(".flex.gap-vpad-sm", [
 			m(Icon, {
-				icon: Icons.Notifications,
+				icon: Icons.Time,
 				style: {
 					fill: theme.content_fg,
 				},
 				title: lang.get("timeSection_label"),
 				size: IconSize.Medium,
 			}),
-			m(".flex.col.flex-grow.gap-vpad-sm", [
+			m(".flex.col.flex-grow.gap-vpad-sm-15", [
 				m(
 					Switch,
 					{
 						checked: editModel.isAllDay,
 						onclick: (value) => (editModel.isAllDay = value),
 						ariaLabel: lang.get("allDay_label"),
-						disabled: attrs.disabled,
+						disabled: disabled,
 						variant: "expanded",
 					},
 					lang.get("allDay_label"),
 				),
 				m(".time-selection-grid", [
-					m("", "Placeholder"),
-					m("", "Placeholder"),
-					m("", "Placeholder"),
-					m("", "Placeholder"),
-					m("", "Placeholder"),
-					m("", "Placeholder"),
+					m("", lang.get("dateFrom_label")),
+					m(
+						`${isApp() ? "" : ".pl-vpad-l"}`,
+						m(DatePicker, {
+							date: attrs.editModel.startDate,
+							onDateSelected: (date) => date && (editModel.startDate = date),
+							startOfTheWeekOffset,
+							label: "dateFrom_label",
+							useInputButton: true,
+							disabled: attrs.disabled,
+						}),
+					),
+					m(
+						"",
+						m(TimePicker, {
+							time: editModel.startTime,
+							onTimeSelected: (time) => (editModel.startTime = time),
+							timeFormat,
+							disabled: attrs.disabled || attrs.editModel.isAllDay,
+							ariaLabel: lang.get("startTime_label"),
+						}),
+					),
+					m("", lang.get("dateTo_label")),
+					m(
+						`${isApp() ? "" : ".pl-vpad-l"}`,
+						m(DatePicker, {
+							date: attrs.editModel.endDate,
+							onDateSelected: (date) => date && (editModel.endDate = date),
+							startOfTheWeekOffset,
+							label: "dateTo_label",
+							useInputButton: true,
+							disabled: attrs.disabled,
+						}),
+					),
+					m(
+						"",
+						m(TimePicker, {
+							time: editModel.endTime,
+							onTimeSelected: (time) => (editModel.endTime = time),
+							timeFormat,
+							disabled: attrs.disabled || attrs.editModel.isAllDay,
+							ariaLabel: lang.get("endTime_label"),
+						}),
+					),
 				]),
 			]),
 		])

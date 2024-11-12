@@ -59,6 +59,9 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	 * }
 	 */
 	iconColor?: string
+	keepFocus?: boolean
+	tabIndex?: number
+	onClose?: () => void
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButtonElement, "style"> & SelectAttributes<SelectOption<unknown>, unknown>>
@@ -95,7 +98,24 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 	private isExpanded: boolean = false
 
 	view({
-		attrs: { onChange, options, renderOption, renderDisplay, classes, selected, placeholder, expanded, disabled, ariaLabel, iconColor, id, noIcon },
+		attrs: {
+			onChange,
+			options,
+			renderOption,
+			renderDisplay,
+			classes,
+			selected,
+			placeholder,
+			expanded,
+			disabled,
+			ariaLabel,
+			iconColor,
+			id,
+			noIcon,
+			keepFocus,
+			tabIndex,
+			onClose,
+		},
 	}: Vnode<SelectAttributes<U, T>>) {
 		return m(
 			"button.tutaui-select-trigger.clickable",
@@ -103,12 +123,13 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 				id,
 				class: this.resolveClasses(classes, disabled, expanded),
 				onclick: (event: MouseEvent) =>
-					event.target && this.renderDropdown(options, event.currentTarget as HTMLElement, onChange, renderOption, selected?.value),
+					event.target &&
+					this.renderDropdown(options, event.target as HTMLElement, onChange, renderOption, keepFocus ?? false, selected?.value, onClose),
 				role: AriaRole.Combobox,
 				ariaLabel,
 				disabled: disabled,
 				ariaExpanded: String(this.isExpanded),
-				tabIndex: Number(disabled ? TabIndex.Programmatic : TabIndex.Default),
+				tabIndex: tabIndex ?? Number(disabled ? TabIndex.Programmatic : TabIndex.Default),
 				value: selected?.ariaValue,
 			} satisfies HTMLElementWithAttrs,
 			[
@@ -147,7 +168,15 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		return m("span.placeholder", lang.get(placeholder ?? "noSelection_msg"))
 	}
 
-	private renderDropdown(options: Array<U>, dom: HTMLElement, onSelect: (option: U) => void, renderOptions: (option: U) => Children, selected?: T) {
+	private renderDropdown(
+		options: Array<U>,
+		dom: HTMLElement,
+		onSelect: (option: U) => void,
+		renderOptions: (option: U) => Children,
+		keepFocus: boolean,
+		selected?: T,
+		onClose?: () => void,
+	) {
 		const optionListContainer: OptionListContainer = new OptionListContainer(
 			options.map((option) =>
 				m.fragment(
@@ -158,10 +187,12 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 				),
 			),
 			dom.getBoundingClientRect().width,
+			keepFocus,
 		)
 
 		optionListContainer.onClose = () => {
 			optionListContainer.close()
+			onClose?.()
 			this.isExpanded = false
 		}
 
@@ -214,7 +245,7 @@ class OptionListContainer implements ModalComponent {
 	private maxHeight: number | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 
-	constructor(private readonly children: Children, width: number) {
+	constructor(private readonly children: Children, width: number, keepFocus: boolean) {
 		this.width = width
 		this.shortcuts = this.buildShortcuts
 
@@ -239,7 +270,10 @@ class OptionListContainer implements ModalComponent {
 						onupdate: (vnode: VnodeDOM<HTMLElement>) => {
 							if (this.maxHeight == null) {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-								this.maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad // size.pad accounts for top and bottom padding
+								this.maxHeight = Math.min(
+									400 + size.vpad,
+									children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad,
+								) // size.pad accounts for top and bottom padding
 
 								if (this.origin) {
 									// The dropdown-content element is added to the dom has a hidden element first.
@@ -248,9 +282,9 @@ class OptionListContainer implements ModalComponent {
 									// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
 									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
 										const selectedOption = vnode.dom.querySelector("[aria-selected='true']") as HTMLElement | null
-										if (selectedOption) {
+										if (selectedOption && !keepFocus) {
 											selectedOption.focus()
-										} else if (!this.domDropdown || focusNext(this.domDropdown)) {
+										} else if (!keepFocus && (!this.domDropdown || focusNext(this.domDropdown))) {
 											this.domContents?.focus()
 										}
 									})
