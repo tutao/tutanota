@@ -23,6 +23,9 @@ import { Card } from "../../../../common/gui/base/Card.js"
 import { Select, SelectAttributes, SelectOption } from "../../../../common/gui/base/Select.js"
 import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
+import { TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { deepEqual } from "@tutao/tutanota-utils"
+import { ButtonColor, getColors } from "../../../../common/gui/base/Button.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -115,6 +118,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				style: {
 					fontSize: px(size.font_size_base * 1.25), // Overriding the component style
 				},
+				type: TextFieldType.Text,
 			} satisfies SingleLineTextFieldAttrs),
 		)
 	}
@@ -231,17 +235,27 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				options,
 				expanded: true,
 				selected,
-				renderOption: (option: CalendarSelectItem) => {
-					console.log("Render:", option)
-					return m(".flex.items-center.gap-vpad-sm.full-width", [
-						m("div", { style: { width: "20px", height: "20px", borderRadius: "50%", backgroundColor: option.color } }),
-						m("span", option.name),
-					])
-				},
+				renderOption: (option) => this.renderCalendarOptions(option, deepEqual(option.value, selected.value), false),
+				renderDisplay: (option) => this.renderCalendarOptions(option, false, true),
 				ariaLabel: lang.get("calendar_label"),
 				disabled: !model.canChangeCalendar() || availableCalendars.length < 2,
 			} satisfies SelectAttributes<CalendarSelectItem, CalendarInfo>),
 		)
+	}
+
+	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
+		return m(".flex.items-center.gap-vpad-sm.flex-grow", { class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-s pb-s"}` }, [
+			m("div", {
+				style: {
+					width: px(size.hpad_large),
+					height: px(size.hpad_large),
+					borderRadius: "50%",
+					backgroundColor: option.color,
+					marginInline: px(size.vpad_xsm / 2),
+				},
+			}),
+			m("span", { style: { color: isSelected ? theme.content_button_selected : undefined } }, option.name),
+		])
 	}
 
 	private renderRemindersEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
@@ -250,28 +264,27 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		return m(
 			Card,
-			m(".flex.gap-vpad-small", [
+			m(".flex.gap-vpad-sm", [
 				m(
-					"label.cursor-pointer",
-					{ for: "reminders" },
-					m(".flex.items-center", { color: theme.content_fg }, [
+					".flex",
+					{
+						class: alarmModel.alarms.length === 0 ? "items-center" : "items-start",
+					},
+					[
 						m(Icon, {
-							icon: Icons.Notifications,
-							class: "mr-s",
-							style: {
-								fill: theme.content_fg,
-							},
+							icon: Icons.Clock,
+							style: { fill: getColors(ButtonColor.Content).button },
 							title: lang.get("reminderBeforeEvent_label"),
 							size: IconSize.Medium,
 						}),
-						"Reminders",
-					]),
+					],
 				),
 				m(RemindersEditor, {
 					alarms: alarmModel.alarms,
 					addAlarm: alarmModel.addAlarm.bind(alarmModel),
 					removeAlarm: alarmModel.removeAlarm.bind(alarmModel),
 					label: "reminderBeforeEvent_label",
+					useNewEditor: true,
 				} satisfies RemindersEditorAttrs),
 			]),
 		)
@@ -295,6 +308,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					ariaLabel: lang.get("location_label"),
 					placeholder: lang.get("location_label"),
 					disabled: !model.isFullyWritable(),
+					type: TextFieldType.Text,
 				}),
 				this.addressURI
 					? m(IconButton, {
