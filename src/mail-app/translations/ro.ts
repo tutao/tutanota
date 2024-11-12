@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-11-08T12:32:28Z",
+	"updated_at": "2024-11-11T15:14:59Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1239,6 +1239,8 @@ export default {
 		"pricing.currentPlan_label": "Abonamentul actual",
 		"pricing.custom_title": "Emblemă personală",
 		"pricing.custom_tooltip": "Personalizează Tuta cu marca ta, stabilind emblemele și culorile programelor Tuta pentru web, mobil și computer.",
+		"pricing.cyber_monday_msg": "Obține abonamentul cel mai mare cu reducere pentru primul an!",
+		"pricing.cyber_monday_select_action": "Obține oferta!",
 		"pricing.encryptedCalendar_label": "Calendar complet cifrat",
 		"pricing.encryptedCalendar_tooltip": "Toate datele din calendarele tale Tuta sunt cifrate, chiar și notificările sunt trimise cifrate către aparatul tău.",
 		"pricing.encryptedContacts_label": "Agendă de adrese cifrată",
@@ -1258,6 +1260,7 @@ export default {
 		"pricing.gdpr_tooltip": "Toate datele sunt stocate în conformitate cu reglementările europene stricte privind protecția datelor, în conformitate cu GDPR.",
 		"pricing.getStarted_label": "Începe",
 		"pricing.includesTaxes_msg": "Taxe incluse.",
+		"pricing.legendAsterisk_msg": "Reducerea la Legend se aplică numai pentru primul an. Prețul următor va fi de 96€ pe an.",
 		"pricing.login_title": "Autentificare pe situl propriu",
 		"pricing.login_tooltip": "Pune autentificarea Tuta pe situl tău web pentru angajații tăi și persoanele din exterior.",
 		"pricing.mailAddressAliasesShort_label": "{amount} adrese de e-mail suplimentare",

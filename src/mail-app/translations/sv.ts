@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-11-08T13:22:43Z",
+	"updated_at": "2024-11-11T12:13:59Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1234,6 +1234,8 @@ export default {
 		"pricing.currentPlan_label": "Nuvarande abonnemang",
 		"pricing.custom_title": "Anpassad varumärkesprofil",
 		"pricing.custom_tooltip": "Whitelabel Tuta med ditt eget varumärke genom att definiera logotyper och färger för Tuta klienterna på webben, mobilen och datorn.",
+		"pricing.cyber_monday_msg": "Skaffa det bästa abonnemanget till ett lägre pris första året!",
+		"pricing.cyber_monday_select_action": "Ta del av erbjudandet!",
 		"pricing.encryptedCalendar_label": "Helt krypterad kalender",
 		"pricing.encryptedCalendar_tooltip": "Alla data i dina Tuta kalendrar är krypterade, även meddelanden skickas krypterade till din enhet.",
 		"pricing.encryptedContacts_label": "Krypterad adressbok",
@@ -1253,6 +1255,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alla uppgifter lagras i enlighet med strikta Europeiska bestämmelser om dataskydd enligt GDPR.",
 		"pricing.getStarted_label": "Kom igång",
 		"pricing.includesTaxes_msg": "Inklusive skatter",
+		"pricing.legendAsterisk_msg": "Legend rabatten gäller endast det första året. Priset är därefter 96 € per år.",
 		"pricing.login_title": "Logga in på din egen webbplats",
 		"pricing.login_tooltip": "Placera Tuta inloggningen på din egen webbplats för dina anställda och externa användare.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra e-postadresser",

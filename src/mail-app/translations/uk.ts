@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2024-11-07T13:43:27Z",
+	"updated_at": "2024-11-11T12:13:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -535,6 +535,7 @@ export default {
 		"editEntry_label": "Редагувати запис",
 		"editFolder_action": "Редагувати папку",
 		"editInboxRule_action": "Редагувати правило вхідних повідомлень",
+		"editLabel_action": "Редагувати позначку",
 		"editMail_action": "Редагувати обраний ел. лист",
 		"editMessage_label": "Редагувати повідомлення",
 		"editTemplate_action": "Редагувати шаблон",
@@ -706,6 +707,7 @@ export default {
 		"iCalNotSync_msg": "Не синхронізовано.",
 		"iCalSync_error": "Помилка під час синхронізації, один або декілька календарів виявилися недійсними.",
 		"icsInSharingFiles_msg": "Виявлено один або декілька файлів календаря. Бажаєте імпортувати або прикріпити їх?",
+		"importantLabel_label": "Важливо",
 		"importCalendar_label": "Імпортування календаря",
 		"importContactRemoveDuplicatesConfirm_msg": "Під час синхронізації на вашому пристрої знайдено {count} дублікатів контактів. Бажаєте видалити їх зі свого пристрою? Зверніть увагу, що цю дію неможливо скасувати.",
 		"importContactRemoveImportedContactsConfirm_msg": "Бажаєте видалити імпортовані контакти зі свого пристрою? Майте на увазі, що цю дію не можна скасувати.",
@@ -1009,7 +1011,7 @@ export default {
 		"noContactFound_msg": "Не знайдено контактів з цією адресою",
 		"noContacts_msg": "Контакти відсутні у цьому списку.",
 		"noContact_msg": "Контакту не обрано",
-		"noEntries_msg": "<Записів немає>",
+		"noEntries_msg": "Записів немає",
 		"noEntryFound_label": "Записів не знайдено",
 		"noEventSelect_msg": "Не обрано жодної події",
 		"noInputWasMade_msg": "Поле вводу порожнє!",

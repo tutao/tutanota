@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-11-08T15:35:03Z",
+	"updated_at": "2024-11-11T15:55:05Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1238,6 +1238,8 @@ export default {
 		"pricing.currentPlan_label": "Suscripción Actual",
 		"pricing.custom_title": "Personalización de marca",
 		"pricing.custom_tooltip": "Personaliza Tuta con tu propia marca, al usar Etiqueta Blanca, definiendo los logotipos y colores de los clientes web, móviles y de escritorio de Tuta.",
+		"pricing.cyber_monday_msg": "¡Obtén el plan de primer nivel durante el primer año por menos!",
+		"pricing.cyber_monday_select_action": "¡Consigue el trato!",
 		"pricing.encryptedCalendar_label": "Calendario totalmente cifrado",
 		"pricing.encryptedCalendar_tooltip": "Todos los datos de tus calendarios Tuta están cifrados, incluso las notificaciones se envían cifrada a tu dispositivo.",
 		"pricing.encryptedContacts_label": "Libreta de direcciones cifrada",
@@ -1257,6 +1259,7 @@ export default {
 		"pricing.gdpr_tooltip": "Todos los datos se almacenan de conformidad con las estrictas regulaciones europeas de protección de datos de acuerdo con el RGPD.",
 		"pricing.getStarted_label": "Empezar",
 		"pricing.includesTaxes_msg": "Impuestos incluidos.",
+		"pricing.legendAsterisk_msg": "El descuento Legend solo se aplica durante el primer año. El siguiente precio será de 96 € al año.",
 		"pricing.login_title": "Inicia sesión en tu propio sitio web",
 		"pricing.login_tooltip": "Coloca el inicio de sesión de Tuta en tu propio sitio web para tus empleados y visitantes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dirección/es de correo extra",

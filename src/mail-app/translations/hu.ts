@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-11-07T13:43:27Z",
+	"updated_at": "2024-11-11T12:13:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -705,6 +705,7 @@ export default {
 		"iCalNotSync_msg": "Nincs szinkronizálva.",
 		"iCalSync_error": "Hiba a szinkronizáláskor, egy vagy több naptár érvénytelen.",
 		"icsInSharingFiles_msg": "Egy vagy több naptár fájl van kijelölve. Kívánja importálni vagy csatolni őket?",
+		"importantLabel_label": "Fontos",
 		"importCalendar_label": "Naptár importálása",
 		"importContactRemoveDuplicatesConfirm_msg": "Eszközén a szinkronizálás során duplikált névjegyek  {count} találhatók. Kívánja ezeket törölni az eszközéről? Kérjük, ügyeljen, mert ez nem vonható vissza!  ",
 		"importContactRemoveImportedContactsConfirm_msg": "Kívánja az importált névjegyeket törölni az eszközéről? Kérjük, ügyeljen, mert ez nem vonható vissza!",
@@ -1008,7 +1009,7 @@ export default {
 		"noContactFound_msg": "Ehhez az e-mailhez nincsenek névjegyek.",
 		"noContacts_msg": "Ezen a listán nincsenek névjegyek.",
 		"noContact_msg": "Nincs kijelölt névjegy.",
-		"noEntries_msg": "<Nincs bejegyzés>",
+		"noEntries_msg": "Nincsenek bejegyzések",
 		"noEntryFound_label": "Nem található bejegyzés",
 		"noEventSelect_msg": "Nincs kiválasztott esemény",
 		"noInputWasMade_msg": "A beviteli mező üres!",

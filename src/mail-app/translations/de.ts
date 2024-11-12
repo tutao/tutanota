@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-11-07T13:43:32Z",
+	"updated_at": "2024-11-12T10:23:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1238,6 +1238,9 @@ export default {
 		"pricing.currentPlan_label": "Aktuelles Abo",
 		"pricing.custom_title": "Eigenes Branding",
 		"pricing.custom_tooltip": "Whitelabel Tuta mit deinem eigenen Branding, indem du die Logos und Farben der Tuta Web-, Mobile- und Desktop-Clients definierst.",
+		"pricing.cyberMonday_label": "Spare 62%",
+		"pricing.cyber_monday_msg": "Hol dir das Top-Abo für das erste Jahr mit Rabatt!",
+		"pricing.cyber_monday_select_action": "Hol dir das Angebot!",
 		"pricing.encryptedCalendar_label": "Verschlüsselter Kalender",
 		"pricing.encryptedCalendar_tooltip": "Alle Daten im Tuta Calendar sind verschlüsselt, selbst Benachrichtigungen werden verschlüsselt gesendet.",
 		"pricing.encryptedContacts_label": "Verschlüsseltes Adressbuch",
@@ -1257,6 +1260,7 @@ export default {
 		"pricing.gdpr_tooltip": "Alle Daten werden konform mit den strengen europäischen Datenschutz-Bestimmungen gemäß der DSGVO gespeichert.",
 		"pricing.getStarted_label": "Erste Schritte",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
+		"pricing.legendAsterisk_msg": "Der Rabatt gilt nur für das erste Jahr. Im Anschluss kostet Legend 96€ pro Jahr.",
 		"pricing.login_title": "Login auf der eigenen Webseite",
 		"pricing.login_tooltip": "Platziere den Tuta-Login auf deiner eigenen Webseite, so dass deine Mitarbeiter*innen und Externe sich direkt dort einloggen können.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra E-Mail-Adressen",
@@ -1814,10 +1818,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"pricing.legendAsterisk_msg": "Der Legend-Rabatt gilt nur für das erste Jahr. Der folgende Preis beträgt 96€ pro Jahr.",
-		"pricing.cyber_monday_msg": "Hol Dir den Top-Tarif für das erste Jahr für weniger Geld!",
-		"pricing.cyber_monday_select_action": "Hol Dir das Angebot!",
-		"pricing.cyberMonday_label": "Spare 62%"
+		"you_label": "Du"
 	}
 }

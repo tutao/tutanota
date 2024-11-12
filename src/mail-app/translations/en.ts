@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-11-07T13:43:27Z",
+	"updated_at": "2024-11-12T10:23:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1234,6 +1234,9 @@ export default {
 		"pricing.currentPlan_label": "Current plan",
 		"pricing.custom_title": "Custom branding",
 		"pricing.custom_tooltip": "Whitelabel Tuta with your own branding by defining the logos and colors of the Tuta web, mobile and desktop clients.",
+		"pricing.cyberMonday_label": "Save 62%",
+		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
+		"pricing.cyber_monday_select_action": "Get The Deal!",
 		"pricing.encryptedCalendar_label": "Fully encrypted calendar",
 		"pricing.encryptedCalendar_tooltip": "All data in your Tuta Calendars are encrypted, even notifications are sent encrypted to your device.",
 		"pricing.encryptedContacts_label": "Encrypted address book",
@@ -1253,6 +1256,7 @@ export default {
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.getStarted_label": "Get started",
 		"pricing.includesTaxes_msg": "Includes taxes.",
+		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
 		"pricing.login_title": "Login on own website",
 		"pricing.login_tooltip": "Place the Tuta login on your own website for your employees and externals.",
 		"pricing.mailAddressAliasesShort_label": "{amount} extra email addresses",
@@ -1810,10 +1814,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
-		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
-		"pricing.cyber_monday_select_action": "Get The Deal!",
-		"pricing.cyberMonday_label": "Save 62%"
+		"you_label": "You"
 	}
 }

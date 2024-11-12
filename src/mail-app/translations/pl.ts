@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-11-07T13:43:27Z",
+	"updated_at": "2024-11-11T12:13:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1014,7 +1014,7 @@ export default {
 		"noContactFound_msg": "Nie znaleziono kontaktów z tym adresem e-mail",
 		"noContacts_msg": "Nie ma żadnych kontaktów na liście.",
 		"noContact_msg": "Nie wybrano żadnego kontaktu",
-		"noEntries_msg": "<Brak wpisów>",
+		"noEntries_msg": "Brak wpisów",
 		"noEntryFound_label": "Nie znaleziono wpisów",
 		"noEventSelect_msg": "Nie wybrano żadnego wydarzenia",
 		"noInputWasMade_msg": "Pole jest puste!",
