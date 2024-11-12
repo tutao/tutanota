@@ -1,6 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
+import type { TextFieldType } from "./TextField.js"
 
-export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate">, Pick<HTMLInputElement, "type"> {
+export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
 	value: string
 	ariaLabel: string
 	disabled?: boolean
@@ -17,10 +18,12 @@ export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate">, P
 	oninput?: (newValue: string) => unknown
 	placeholder?: string
 	classes?: Array<string>
-	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize">>
+	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "textAlign">>
+	onclick?: (...args: unknown[]) => unknown
 	onfocus?: (...args: unknown[]) => unknown
 	onblur?: (...args: unknown[]) => unknown
 	onkeydown?: (...args: unknown[]) => unknown
+	type?: TextFieldType
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLElement, "style"> & SingleLineTextFieldAttrs>
@@ -62,6 +65,7 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 			onblur: attrs.onblur,
 			onfocus: attrs.onfocus,
 			onkeydown: attrs.onkeydown,
+			onclick: attrs.onclick,
 			oninput: () => {
 				if (!attrs.oninput) {
 					console.error("oninput fired without a handler function")

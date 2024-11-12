@@ -49,8 +49,9 @@ export const enum TextFieldType {
 	Password = "password",
 	Area = "area",
 	Number = "number",
-	Time = "time",
 	Url = "url",
+	Date = "date",
+	Time = "time",
 }
 
 // relevant subset of possible values for the autocomplete html field
