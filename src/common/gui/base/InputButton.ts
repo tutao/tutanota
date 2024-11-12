@@ -1,7 +1,9 @@
 import m, { ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "./SingleLineTextField.js"
+import { px, size } from "../size.js"
 import { TextFieldType } from "./TextField.js"
+import { TabIndex } from "../../api/common/TutanotaConstants.js"
 
 export enum InputButtonVariant {
 	OUTLINE = "outline",
@@ -14,12 +16,15 @@ export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
 	disabled?: boolean
 	classes?: Array<string>
 	variant?: InputButtonVariant
-	displayStyle?: CSSStyleDeclaration
+	containerStyle?: Partial<CSSStyleDeclaration>
+	displayStyle?: Partial<CSSStyleDeclaration>
 	onclick?: (event: MouseEvent) => unknown
 	oninput: (newValue: string) => unknown
 	onblur?: (...args: unknown[]) => unknown
 	onfocus?: (...args: unknown[]) => unknown
 	onkeydown?: (...args: unknown[]) => unknown
+	type?: TextFieldType
+	tabIndex?: number
 }
 
 /**
@@ -41,7 +46,8 @@ export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
  */
 export class InputButton implements ClassComponent<InputButtonAttributes> {
 	private isFocused: boolean = false
-	private inputDOM: HTMLElement | null = null
+	private inputDOM?: HTMLInputElement
+	private buttonDOM?: HTMLButtonElement
 
 	view({ attrs }: Vnode<InputButtonAttributes, this>) {
 		return m(
@@ -50,15 +56,20 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 				title: attrs.ariaLabel,
 				"aria-live": "off", // Button contents and label will be handled by the input field
 				class: this.resolveContainerClasses(attrs.variant, attrs.classes, attrs.disabled),
+				tabIndex: attrs.tabIndex,
 				style: {
 					borderColor: theme.content_message_bg,
 					padding: 0,
+					...attrs.containerStyle,
+				},
+				oncreate: (vnode) => {
+					this.buttonDOM = vnode.dom as HTMLButtonElement
 				},
 				onclick: (event: MouseEvent) => {
 					this.isFocused = true
 					if (this.inputDOM) {
 						this.inputDOM.style.display = "block"
-						this.inputDOM.focus()
+						this.inputDOM.click()
 					}
 
 					attrs.onclick?.(event)
@@ -67,6 +78,9 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 					this.isFocused = true
 					if (this.inputDOM) {
 						this.inputDOM.style.display = "block"
+						if (this.buttonDOM) {
+							this.buttonDOM.tabIndex = Number(TabIndex.Programmatic)
+						}
 						this.inputDOM.focus()
 					}
 				},
@@ -79,24 +93,40 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						onblur: () => {
 							this.isFocused = false
 							this.inputDOM!.style.display = "none"
-
+							if (this.buttonDOM) {
+								this.buttonDOM.tabIndex = Number(attrs.tabIndex ?? TabIndex.Default)
+							}
 							attrs.onblur?.()
 						},
 						oncreate: (vnode: VnodeDOM<SingleLineTextFieldAttrs>) => {
-							this.inputDOM = vnode.dom as HTMLElement
+							this.inputDOM = vnode.dom as HTMLInputElement
 							this.inputDOM.style.display = "none"
 
 							attrs.oncreate?.(vnode)
 						},
-						type: TextFieldType.Text,
 						disabled: attrs.disabled,
 						value: attrs.inputValue,
 						oninput: attrs.oninput,
 						onkeydown: attrs.onkeydown,
 						onfocus: attrs.onfocus,
+						classes: ["text-center", "tutaui-input-button-focus-fix", "noselect"],
+						style: {
+							padding: `${px(size.vpad_small)} 0`,
+						},
+						type: attrs.type,
 					} satisfies SingleLineTextFieldAttrs & Omit<Component, "view">),
 				]),
-				m("span.tutaui-text-field", { style: { display: this.isFocused ? "none" : "block", ...attrs.displayStyle } }, attrs.display),
+				m(
+					"span.tutaui-text-field",
+					{
+						style: {
+							display: this.isFocused ? "none" : "block",
+							padding: `${px(size.vpad_small)} 0`,
+							...attrs.displayStyle,
+						},
+					},
+					attrs.display,
+				),
 			],
 		)
 	}

@@ -1,23 +1,32 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { TextField, TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { client } from "../../../../common/misc/ClientDetector.js"
-import { Keys, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
-import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
+import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
+import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
+import { isApp } from "../../../../common/api/common/Env.js"
+import { px, size } from "../../../../common/gui/size.js"
 
 export type TimePickerAttrs = {
 	time: Time | null
 	onTimeSelected: (arg0: Time | null) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
+	ariaLabel: string
+}
+
+interface TimeOption {
+	value: string
+	ariaValue: string
+	name: string
 }
 
 export class TimePicker implements Component<TimePickerAttrs> {
 	private values: ReadonlyArray<string>
 	private focused: boolean
-	private selectedIndex!: number
+	private isExpanded: boolean = false
 	private oldValue: string
 	private value: string
 	private readonly amPm: boolean
@@ -40,14 +49,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
 		if (attrs.time) {
 			const timeAsString = attrs.time?.toString(this.amPm) ?? ""
-			this.selectedIndex = this.values.indexOf(timeAsString)
 
 			if (!this.focused) {
 				this.value = timeAsString
 			}
 		}
 
-		if (client.isMobileDevice()) {
+		if (isApp()) {
 			return this.renderNativeTimePicker(attrs)
 		} else {
 			return this.renderCustomTimePicker(attrs)
@@ -62,96 +70,137 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
 		const timeAsString = attrs.time?.toString(false) ?? ""
 		this.oldValue = timeAsString
-
 		this.value = timeAsString
 
-		const displayTime = attrs.time?.toString(this.amPm) ?? ""
+		const displayTime = attrs.time?.toString(this.amPm)
 
-		return [
-			m(TextField, {
-				class: "time-picker pt",
-				label: "emptyString_msg",
-				value: this.value,
+		return m(".rel", [
+			m("input.fill-absolute.invisible.tutaui-button-outline", {
+				disabled: attrs.disabled,
 				type: TextFieldType.Time,
-				oninput: (value) => {
-					if (this.value === value) {
+				style: {
+					zIndex: 1,
+					border: `2px solid ${theme.content_message_bg}`,
+					width: "-webkit-fill-available",
+					height: "-webkit-fill-available",
+					appearance: "none",
+					opacity: attrs.disabled ? 0.7 : 1.0,
+				},
+				value: this.value,
+				oninput: (event: InputEvent) => {
+					const inputValue = (event.target as HTMLInputElement).value
+					if (this.value === inputValue) {
 						return
 					}
-					this.value = value
-					attrs.onTimeSelected(Time.parseFromString(value))
+					this.value = inputValue
+					attrs.onTimeSelected(Time.parseFromString(inputValue))
 				},
-				disabled: attrs.disabled,
 			}),
-			// A 'fake' display that overlays over the real time input that allows us to show 12 or 24 time format regardless of browser locale
-			m(".time-picker-fake-display.rel.no-hover", displayTime),
-		]
+			m(
+				".tutaui-button-outline",
+				{
+					style: {
+						zIndex: "2",
+						position: "inherit",
+						borderColor: "transparent",
+						pointerEvents: "none",
+						padding: `${px(size.vpad_small)} 0`,
+						opacity: attrs.disabled ? 0.7 : 1.0,
+					},
+				},
+				displayTime,
+			),
+		])
 	}
 
 	private renderCustomTimePicker(attrs: TimePickerAttrs): Children {
-		return [this.renderInputField(attrs), this.focused ? this.renderTimeSelector(attrs) : null]
-	}
+		const options = this.values.map((time) => ({
+			value: time,
+			name: time,
+			ariaValue: time,
+		}))
 
-	private renderInputField(attrs: TimePickerAttrs): Children {
-		return m(TextField, {
-			label: "emptyString_msg",
-			value: this.value,
-			oninput: (v) => (this.value = v),
+		return m(Select<TimeOption, string>, {
+			onChange: (newValue) => {
+				if (this.value === newValue.value) {
+					return
+				}
+
+				this.value = newValue.value
+				this.onSelected(attrs)
+				m.redraw.sync()
+			},
+			onClose: () => {
+				this.isExpanded = false
+			},
+			selected: { value: this.value, name: this.value, ariaValue: this.value },
+			ariaLabel: attrs.ariaLabel,
 			disabled: attrs.disabled,
-			onfocus: (dom, input) => {
-				this.focused = true
-				input.select()
-			},
-			onblur: (e) => {
-				if (this.focused) {
-					this.onSelected(attrs)
-				}
-
-				e.redraw = false
-			},
-			keyHandler: (key) => {
-				if (isKeyPressed(key.key, Keys.RETURN)) {
-					this.onSelected(attrs)
-					const active = document.activeElement as HTMLElement | null
-					active?.blur()
-				}
-
-				return true
-			},
-		})
+			options,
+			noIcon: true,
+			expanded: true,
+			tabIndex: Number(TabIndex.Programmatic),
+			renderDisplay: () => this.renderTimeSelectInput(attrs),
+			renderOption: (option) => this.renderTimeOptions(option),
+			keepFocus: true,
+		} satisfies SelectAttributes<TimeOption, string>)
 	}
 
-	private renderTimeSelector(attrs: TimePickerAttrs): Children {
+	private renderTimeOptions(option: TimeOption) {
 		return m(
-			".fixed.flex.col.mt-s.menu-shadow",
+			"button.items-center.flex-grow",
 			{
-				oncreate: (vnode) => this.setScrollTop(attrs, vnode),
-				onupdate: (vnode) => this.setScrollTop(attrs, vnode),
+				class: "state-bg button-content dropdown-button pt-s pb-s",
+			},
+			option.name,
+		)
+	}
+
+	private renderTimeSelectInput(attrs: TimePickerAttrs) {
+		return m(
+			".tutaui-button-outline.text-center",
+			{
 				style: {
-					width: "100px",
-					height: "400px",
-					"z-index": "3",
-					background: theme.content_bg,
-					overflow: "auto",
+					borderColor: theme.content_message_bg,
+					padding: 0,
 				},
 			},
-			this.values.map((time, i) =>
-				m(
-					"pr-s.pl-s.darker-hover",
-					{
-						key: time,
-						style: {
-							"background-color": this.selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
-							flex: "1 0 auto",
-							"line-height": "44px",
-						},
-						onmousedown: () => {
-							this.focused = false
-							attrs.onTimeSelected(Time.parseFromString(time))
-						},
-					},
-					time,
-				),
-			),
+			m(SingleLineTextField, {
+				value: this.value,
+				oninput: (val) => {
+					if (this.value === val) {
+						return
+					}
+
+					this.value = val
+				},
+				disabled: attrs.disabled,
+				ariaLabel: attrs.ariaLabel,
+				style: {
+					textAlign: "center",
+				},
+				onclick: (e: MouseEvent) => {
+					e.stopImmediatePropagation()
+					if (!this.isExpanded) {
+						;(e.target as HTMLElement).parentElement?.click()
+						this.isExpanded = true
+					}
+				},
+				onfocus: (event: FocusEvent) => {
+					this.focused = true
+					if (!this.isExpanded) {
+						;(event.target as HTMLElement).parentElement?.click()
+						this.isExpanded = true
+					}
+				},
+				onblur: (e: any) => {
+					if (this.focused) {
+						this.onSelected(attrs)
+					}
+
+					e.redraw = false
+				},
+			}),
 		)
 	}
 
@@ -159,13 +208,5 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		this.focused = false
 
 		attrs.onTimeSelected(Time.parseFromString(this.value))
-	}
-
-	private setScrollTop(attrs: TimePickerAttrs, vnode: VnodeDOM<TimePickerAttrs>) {
-		if (this.selectedIndex !== -1) {
-			requestAnimationFrame(() => {
-				vnode.dom.scrollTop = 44 * this.selectedIndex
-			})
-		}
 	}
 }
