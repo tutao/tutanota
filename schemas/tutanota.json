@@ -530,6 +530,21 @@
 					"info": "AddValue TutanotaProperties/defaultLabelCreated/1510."
 				}
 			]
+		},
+		{
+			"version": 79,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailBox",
+					"info": "AddAssociation MailBox/importedAttachments/LIST_ASSOCIATION/1512."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailBox",
+					"info": "AddAssociation MailBox/mailImportStates/LIST_ASSOCIATION/1578."
+				}
+			]
 		}
 	]
 }

@@ -87,6 +87,8 @@ import { UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
 import { UpgradePriceServiceReturnTypeRef } from "./TypeRefs.js"
 import { UserGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
 import { UserDataDeleteTypeRef } from "./TypeRefs.js"
+import { VerifierTokenServiceInTypeRef } from "./TypeRefs.js"
+import { VerifierTokenServiceOutTypeRef } from "./TypeRefs.js"
 import { VersionDataTypeRef } from "./TypeRefs.js"
 import { VersionReturnTypeRef } from "./TypeRefs.js"
 
@@ -538,6 +540,15 @@ export const UserService = Object.freeze({
 	post: null,
 	put: null,
 	delete: { data: UserDataDeleteTypeRef, return: null },
+} as const)
+
+export const VerifierTokenService = Object.freeze({
+	app: "sys",
+	name: "VerifierTokenService",
+	get: null,
+	post: { data: VerifierTokenServiceInTypeRef, return: VerifierTokenServiceOutTypeRef },
+	put: null,
+	delete: null,
 } as const)
 
 export const VersionService = Object.freeze({

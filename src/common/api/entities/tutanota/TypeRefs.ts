@@ -1229,7 +1229,9 @@ export type MailBox = {
 	archivedMailBags: MailBag[];
 	currentMailBag: null | MailBag;
 	folders: null | MailFolderRef;
+	importedAttachments: Id;
 	mailDetailsDrafts: null | MailDetailsDraftsRef;
+	mailImportStates: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
 	spamResults: null | SpamResults;

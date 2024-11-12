@@ -48,6 +48,10 @@ export interface EntityRestClientUpdateOptions {
 	ownerKeyProvider?: OwnerKeyProvider
 }
 
+export interface EntityRestClientEraseOptions {
+	extraHeaders?: Dict
+}
+
 /**
  * Whether to use the cache to fetch the entity
  */
@@ -121,7 +125,7 @@ export interface EntityRestInterface {
 	/**
 	 * Deletes a single element on the server.
 	 */
-	erase<T extends SomeEntity>(instance: T): Promise<void>
+	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void>
 
 	/**
 	 * Must be called when entity events are received.
@@ -445,9 +449,16 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	async erase<T extends SomeEntity>(instance: T): Promise<void> {
+	async erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
 		const { listId, elementId } = expandId(instance._id)
-		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, undefined)
+		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
+			instance._type,
+			listId,
+			elementId,
+			undefined,
+			options?.extraHeaders,
+			undefined,
+		)
 		await this.restClient.request(path, HttpMethod.DELETE, {
 			queryParams,
 			headers,

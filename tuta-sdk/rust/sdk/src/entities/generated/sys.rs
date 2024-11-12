@@ -4330,6 +4330,39 @@ impl Entity for VariableExternalAuthInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct VerifierTokenServiceIn {
+	pub _format: i64,
+	#[serde(with = "serde_bytes")]
+	pub authVerifier: Vec<u8>,
+}
+
+impl Entity for VerifierTokenServiceIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "VerifierTokenServiceIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct VerifierTokenServiceOut {
+	pub _format: i64,
+	pub token: String,
+}
+
+impl Entity for VerifierTokenServiceOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "VerifierTokenServiceOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct VerifyRegistrationCodeData {
 	pub _format: i64,
 	pub authToken: String,
