@@ -2816,15 +2816,5 @@ styles.registerStyle("main", () => {
 			"border-bottom-right-radius": px(0),
 			"border-bottom-left-radius": px(0),
 		},
-		".unstyled-list": {
-			"list-style": "none",
-			margin: 0,
-			padding: 0,
-		},
-		".time-selection-grid": {
-			display: "grid",
-			"grid-template-columns": "1fr 3fr 1fr",
-			"grid-gap": px(size.vpad_small),
-		},
 	}
 })
