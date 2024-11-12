@@ -2,15 +2,13 @@ import m, { Children } from "mithril"
 import { assertMainOrNode } from "../../../api/common/Env.js"
 import type { SecondFactor, User } from "../../../api/entities/sys/TypeRefs.js"
 import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
-import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, LazyLoaded, neverNull, noOp } from "@tutao/tutanota-utils"
 import { Icons } from "../../../gui/base/icons/Icons.js"
-import { Dialog } from "../../../gui/base/Dialog.js"
 import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
 import { assertEnumValue, SecondFactorType } from "../../../api/common/TutanotaConstants.js"
-import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
-import { NotFoundError } from "../../../api/common/error/RestError.js"
+import { NotAuthorizedError, NotFoundError } from "../../../api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
@@ -21,16 +19,28 @@ import { appIdToLoginUrl } from "../../../misc/2fa/SecondFactorUtils.js"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../api/common/utils/EntityUpdateUtils.js"
 import { MoreInfoLink } from "../../../misc/news/MoreInfoLink.js"
+import { showRequestPasswordDialog } from "../../../misc/passwords/PasswordRequestDialog"
+import { LoginFacade } from "../../../api/worker/facades/LoginFacade"
+import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog"
+import { Dialog } from "../../../gui/base/Dialog"
 
 assertMainOrNode()
 
 export class SecondFactorsEditForm {
 	_2FALineAttrs: TableLineAttrs[]
 
-	constructor(private readonly user: LazyLoaded<User>, private readonly domainConfigProvider: DomainConfigProvider) {
+	constructor(
+		private readonly user: LazyLoaded<User>,
+		private readonly domainConfigProvider: DomainConfigProvider,
+		private readonly loginFacade: LoginFacade,
+		private askForPassword: boolean,
+		private isDeactivated: boolean,
+	) {
 		this._2FALineAttrs = []
 
 		this._updateSecondFactors()
+
+		this.view = this.view.bind(this)
 	}
 
 	view(): Children {
@@ -41,7 +51,15 @@ export class SecondFactorsEditForm {
 			showActionButtonColumn: true,
 			addButtonAttrs: {
 				title: "addSecondFactor_action",
-				click: () => this._showAddSecondFactorDialog(),
+				click: () => {
+					if (this.isDeactivated) {
+						Dialog.message("userAccountDeactivated_msg")
+					} else if (this.askForPassword) {
+						this.showAddSecondFactorDialogWithPasswordCheck()
+					} else {
+						this.showAddSecondFactorDialog()
+					}
+				},
 				icon: Icons.Add,
 				size: ButtonSize.Compact,
 			},
@@ -50,7 +68,14 @@ export class SecondFactorsEditForm {
 			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
 			m(Table, secondFactorTableAttrs),
 			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
-				? [ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) => m(MoreInfoLink, { link: link, isSmall: true }))]
+				? [
+						ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
+							m(MoreInfoLink, {
+								link: link,
+								isSmall: true,
+							}),
+						),
+				  ]
 				: null,
 		]
 	}
@@ -73,10 +98,15 @@ export class SecondFactorsEditForm {
 		this._2FALineAttrs = factors.map((f) => {
 			const removeButtonAttrs: IconButtonAttrs = {
 				title: "remove_action",
-				click: () =>
-					Dialog.confirm("confirmDeleteSecondFactor_msg")
-						.then((res) => (res ? showProgressDialog("pleaseWait_msg", locator.entityClient.erase(f)) : Promise.resolve()))
-						.catch(ofClass(NotFoundError, (e) => console.log("could not delete second factor (already deleted)", e))),
+				click: () => {
+					if (this.isDeactivated) {
+						Dialog.message("userAccountDeactivated_msg")
+					} else if (this.askForPassword) {
+						this.removeSecondFactorWithPasswordCheck(f)
+					} else {
+						this.removeSecondFactor(f)
+					}
+				},
 				icon: Icons.Cancel,
 				size: ButtonSize.Compact,
 			}
@@ -106,9 +136,72 @@ export class SecondFactorsEditForm {
 		}
 	}
 
-	_showAddSecondFactorDialog() {
-		const mailAddress = assertNotNull(locator.logins.getUserController().userGroupInfo.mailAddress)
-		SecondFactorEditDialog.loadAndShow(locator.entityClient, this.user, mailAddress)
+	private showAddSecondFactorDialogWithPasswordCheck() {
+		const dialog = showRequestPasswordDialog({
+			action: async (passphrase) => {
+				try {
+					const token = await this.loginFacade.getVerifierToken(passphrase)
+					this.showAddSecondFactorDialog(token)
+				} catch (e) {
+					if (e instanceof NotAuthorizedError) {
+						return lang.get("invalidPassword_msg")
+					} else {
+						throw e
+					}
+				}
+				dialog.close()
+				return ""
+			},
+			cancel: {
+				textId: "cancel_action",
+				action: noOp,
+			},
+		})
+	}
+
+	private showAddSecondFactorDialog(token?: string) {
+		SecondFactorEditDialog.loadAndShow(locator.entityClient, this.user, token)
+	}
+
+	private removeSecondFactorWithPasswordCheck(secondFactorToRemove: SecondFactor) {
+		const dialog = showRequestPasswordDialog({
+			action: async (passphrase) => {
+				let token = undefined
+				try {
+					token = await this.loginFacade.getVerifierToken(passphrase)
+				} catch (e) {
+					if (e instanceof NotAuthorizedError) {
+						return lang.get("invalidPassword_msg")
+					} else {
+						throw e
+					}
+				}
+				this.removeSecondFactor(secondFactorToRemove, token)
+				dialog.close()
+				return ""
+			},
+			messageText: lang.get("confirmDeleteSecondFactor_msg"),
+			cancel: {
+				textId: "cancel_action",
+				action: noOp,
+			},
+		})
+	}
+
+	private removeSecondFactor(secondFactorToRemove: SecondFactor, token?: string) {
+		try {
+			let options = undefined
+			if (token) {
+				options = { extraHeaders: { token } }
+			}
+			showProgressDialog("pleaseWait_msg", locator.entityClient.erase(secondFactorToRemove, options))
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log("could not delete second factor (already deleted)")
+			} else {
+				throw e
+			}
+		}
 	}
 
 	entityEventReceived(update: EntityUpdateData): Promise<void> {

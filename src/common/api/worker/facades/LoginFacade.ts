@@ -26,6 +26,7 @@ import {
 	SecondFactorAuthService,
 	SessionService,
 	TakeOverDeletedAddressService,
+	VerifierTokenService,
 } from "../../entities/sys/Services"
 import { AccountType, asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
 import {
@@ -40,6 +41,7 @@ import {
 	createSecondFactorAuthGetData,
 	CreateSessionReturn,
 	createTakeOverDeletedAddressData,
+	createVerifierTokenServiceIn,
 	GroupInfo,
 	GroupInfoTypeRef,
 	RecoverCodeTypeRef,
@@ -136,7 +138,14 @@ type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData }
 type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
-type AsyncLoginState = { state: "idle" } | { state: "running" } | { state: "failed"; credentials: Credentials; cacheInfo: CacheInfo }
+type AsyncLoginState =
+	| { state: "idle" }
+	| { state: "running" }
+	| {
+			state: "failed"
+			credentials: Credentials
+			cacheInfo: CacheInfo
+	  }
 
 /**
  * All attributes that are required to derive the passphrase key.
@@ -759,7 +768,16 @@ export class LoginFacade {
 	 */
 	private async initCache({ userId, databaseKey, timeRangeDays, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			return { databaseKey, ...(await this.cacheInitializer.initialize({ type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase })) }
+			return {
+				databaseKey,
+				...(await this.cacheInitializer.initialize({
+					type: "offline",
+					userId,
+					databaseKey,
+					timeRangeDays,
+					forceNewDatabase,
+				})),
+			}
 		} else {
 			return { databaseKey: null, ...(await this.cacheInitializer.initialize({ type: "ephemeral", userId })) }
 		}
@@ -809,7 +827,13 @@ export class LoginFacade {
 		}
 	}
 
-	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<{ kdfType: KdfType; userPassphraseKey: AesKey }> {
+	private async loadUserPassphraseKey(
+		mailAddress: string,
+		passphrase: string,
+	): Promise<{
+		kdfType: KdfType
+		userPassphraseKey: AesKey
+	}> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
@@ -1103,5 +1127,22 @@ export class LoginFacade {
 		} else {
 			throw new Error("credentials went missing")
 		}
+	}
+
+	/**
+	 * Returns a verifier token, which is proof of password authentication and is valid for a limited time.
+	 * This token will have to be passed back to the server with the appropriate call.
+	 */
+	async getVerifierToken(passphrase: string): Promise<string> {
+		const user = this.userFacade.getLoggedInUser()
+		const passphraseKey = await this.deriveUserPassphraseKey({
+			kdfType: asKdfType(user.kdfVersion),
+			passphrase,
+			salt: assertNotNull(user.salt),
+		})
+
+		const authVerifier = createAuthVerifier(passphraseKey)
+		const out = await this.serviceExecutor.post(VerifierTokenService, createVerifierTokenServiceIn({ authVerifier }))
+		return out.token
 	}
 }
