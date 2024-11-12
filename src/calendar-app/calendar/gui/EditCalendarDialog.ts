@@ -97,6 +97,7 @@ function createEditCalendarComponent(
 						if (index !== -1) alarms?.splice(index, 1)
 					},
 					label: "calendarDefaultReminder_label",
+					useNewEditor: false,
 			  })
 			: null,
 		isExternalCalendarType(calendarType) ? sourceUrlInputField(urlStream, errorMessageStream) : null,

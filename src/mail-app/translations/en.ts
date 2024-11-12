@@ -1815,6 +1815,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"timeSection_label": "Time selection"
+		"timeSection_label": "Time selection",
+		"addReminder_label": "Add reminder"
 	}
 }
