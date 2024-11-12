@@ -28,7 +28,15 @@ export class RowButton implements Component<RowButtonAttrs> {
 		const color = attrs.selected ? theme.content_button_selected : theme.content_button
 		return m(BaseButton, {
 			label,
-			text: m(".plr-button.text-ellipsis", { style: { color } }, text),
+			text: m(
+				".plr-button.text-ellipsis",
+				{
+					style: { color },
+					// When the label doesn't match content, screen readers read both
+					ariaHidden: label !== text, // this prevents that
+				},
+				text,
+			),
 			role: attrs.role,
 			selected: attrs.selected,
 			icon:
