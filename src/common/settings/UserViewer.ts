@@ -51,7 +51,13 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.mailAddressTableExpanded = false
 
-		this.secondFactorsForm = new SecondFactorsEditForm(this.user, locator.domainConfigProvider())
+		this.secondFactorsForm = new SecondFactorsEditForm(
+			this.user,
+			locator.domainConfigProvider(),
+			locator.loginFacade,
+			this.isAdmin,
+			!!this.userGroupInfo.deleted,
+		)
 
 		this.teamGroupInfos.getAsync().then(async (availableTeamGroupInfos) => {
 			if (availableTeamGroupInfos.length > 0) {
@@ -157,10 +163,17 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private onChangeName(name: string) {
-		Dialog.showProcessTextInputDialog({ title: "edit_action", label: "name_label", defaultValue: name }, (newName) => {
-			this.userGroupInfo.name = newName
-			return locator.entityClient.update(this.userGroupInfo)
-		})
+		Dialog.showProcessTextInputDialog(
+			{
+				title: "edit_action",
+				label: "name_label",
+				defaultValue: name,
+			},
+			(newName) => {
+				this.userGroupInfo.name = newName
+				return locator.entityClient.update(this.userGroupInfo)
+			},
+		)
 	}
 
 	private renderAdminStatusSelector(): Children {

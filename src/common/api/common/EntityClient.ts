@@ -1,4 +1,5 @@
 import {
+	EntityRestClientEraseOptions,
 	EntityRestClientLoadOptions,
 	EntityRestClientSetupOptions,
 	EntityRestClientUpdateOptions,
@@ -112,8 +113,8 @@ export class EntityClient {
 		return this._target.update(instance, options)
 	}
 
-	erase<T extends SomeEntity>(instance: T): Promise<void> {
-		return this._target.erase(instance)
+	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+		return this._target.erase(instance, options)
 	}
 
 	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {

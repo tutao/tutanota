@@ -48,15 +48,14 @@ export class SecondFactorEditModel {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly user: User,
-		private readonly mailAddress: string,
 		private readonly webauthnClient: WebauthnClient,
 		readonly totpKeys: TotpSecret,
 		private readonly webauthnSupported: boolean,
-		private readonly lang: LanguageViewModel,
 		private readonly loginFacade: LoginFacade,
 		private readonly hostname: string,
 		private readonly domainConfig: DomainConfig,
 		private readonly updateViewCallback: () => void,
+		private readonly token?: string,
 	) {
 		this.selectedType = webauthnSupported ? SecondFactorType.webauthn : SecondFactorType.totp
 		this.setDefaultNameIfNeeded()
@@ -209,7 +208,7 @@ export class SecondFactorEditModel {
 				sf.otpSecret = this.totpKeys.key
 			}
 		}
-		await this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf)
+		await this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf, this.token ? { token: this.token } : undefined)
 		return this.user
 	}
 

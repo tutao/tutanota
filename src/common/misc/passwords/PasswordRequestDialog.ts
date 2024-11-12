@@ -14,6 +14,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 
 export function showRequestPasswordDialog(props: {
 	title?: string
+	messageText?: string
 	action: (pw: string) => Promise<string>
 	cancel: {
 		textId: TranslationKey
@@ -36,21 +37,24 @@ export function showRequestPasswordDialog(props: {
 		view: () => {
 			const savedState = state
 			return savedState.type == "idle"
-				? m(PasswordField, {
-						label: title,
-						helpLabel: () => savedState.message,
-						value: value,
-						oninput: (newValue) => (value = newValue),
-						autocompleteAs: Autocomplete.off,
-						keyHandler: (key: KeyPress) => {
-							if (isKeyPressed(key.key, Keys.RETURN)) {
-								doAction()
-								return false
-							}
+				? m("", [
+						props.messageText ? m(".pt", props.messageText) : null,
+						m(PasswordField, {
+							label: title,
+							helpLabel: () => savedState.message,
+							value: value,
+							oninput: (newValue) => (value = newValue),
+							autocompleteAs: Autocomplete.off,
+							keyHandler: (key: KeyPress) => {
+								if (isKeyPressed(key.key, Keys.RETURN)) {
+									doAction()
+									return false
+								}
 
-							return true
-						},
-				  } satisfies PasswordFieldAttrs)
+								return true
+							},
+						} satisfies PasswordFieldAttrs),
+				  ])
 				: m(Icon, {
 						icon: BootIcons.Progress,
 						class: "icon-xl icon-progress block mt mb",

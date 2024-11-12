@@ -23,6 +23,7 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
+import { NotAuthorizedError } from "../../../api/common/error/RestError"
 
 export class SecondFactorEditDialog {
 	private readonly dialog: Dialog
@@ -50,6 +51,12 @@ export class SecondFactorEditDialog {
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
 				Dialog.message(() => e.message)
+			} else if (e instanceof NotAuthorizedError) {
+				this.dialog.close()
+				Dialog.message("contactFormSubmitError_msg")
+				return
+			} else {
+				throw e
 			}
 		}
 	}
@@ -59,8 +66,8 @@ export class SecondFactorEditDialog {
 		RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user)
 	}
 
-	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<void> {
-		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, mailAddress))
+	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, token?: string): Promise<void> {
+		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, token))
 		dialog.dialog.show()
 	}
 
@@ -167,22 +174,21 @@ export class SecondFactorEditDialog {
 		}
 	}
 
-	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<SecondFactorEditDialog> {
+	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, token?: string): Promise<SecondFactorEditDialog> {
 		const totpKeys = await locator.loginFacade.generateTotpSecret()
 		const user = await lazyUser.getAsync()
 		const webauthnSupported = await locator.webAuthn.isSupported()
 		const model = new SecondFactorEditModel(
 			entityClient,
 			user,
-			mailAddress,
 			locator.webAuthn,
 			totpKeys,
 			webauthnSupported,
-			lang,
 			locator.loginFacade,
 			location.hostname,
 			locator.domainConfigProvider().getCurrentDomainConfig(),
 			m.redraw,
+			token,
 		)
 		return new SecondFactorEditDialog(model)
 	}

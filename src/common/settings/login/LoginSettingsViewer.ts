@@ -44,6 +44,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _secondFactorsForm = new SecondFactorsEditForm(
 		new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)),
 		locator.domainConfigProvider(),
+		locator.loginFacade,
+		true,
+		false,
 	)
 	private readonly _usageTestModel: UsageTestModel
 	private credentialEncryptionMode: CredentialEncryptionMode | null = null

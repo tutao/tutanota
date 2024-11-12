@@ -1,6 +1,7 @@
 import {
 	CacheMode,
 	EntityRestClient,
+	EntityRestClientEraseOptions,
 	EntityRestClientLoadOptions,
 	EntityRestClientSetupOptions,
 	EntityRestInterface,
@@ -312,8 +313,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.entityRestClient.update(instance)
 	}
 
-	erase<T extends SomeEntity>(instance: T): Promise<void> {
-		return this.entityRestClient.erase(instance)
+	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+		return this.entityRestClient.erase(instance, options)
 	}
 
 	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
