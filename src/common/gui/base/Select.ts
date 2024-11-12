@@ -21,7 +21,7 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	onChange: (newValue: U) => void
 	options: Array<U>
 	/**
-	 * This attribute is responsible to render the trigger and the options inside the dropdown.
+	 * This attribute is responsible to render the options inside the dropdown.
 	 * @example
 	 * const renderOption = (option: U) => m("span", option.text);
 	 * ...
@@ -31,6 +31,17 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	 * @returns {Children} Returns the rendered option
 	 */
 	renderOption: (option: U) => Children
+	/**
+	 * This attribute is responsible to render the selected option inside the trigger.
+	 * @example
+	 * const renderSelected = (option: U) => m("span", option.text);
+	 * ...
+	 * renderSelected(currentOption)
+	 * ...
+	 * @param {U} option - Option to be rendered
+	 * @returns {Children} Returns the rendered option
+	 */
+	renderDisplay: (option: U) => Children
 	ariaLabel: string
 	id?: string
 	classes?: Array<string>
@@ -38,6 +49,7 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	placeholder?: TranslationKey
 	expanded?: boolean
 	disabled?: boolean
+	noIcon?: boolean
 	/**
 	 * @example
 	 * const attrs = {
@@ -75,6 +87,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButto
  *       m("span", option.name),
  * 	   ])
  * 	 },
+ * 	 renderDisplay: (option) => m("span", { style: { color: "red" } }, option.name),
  * 	 ariaLabel: "Calendar"
  * }),
  */
@@ -82,7 +95,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 	private isExpanded: boolean = false
 
 	view({
-		attrs: { onChange, options, renderOption, classes, selected, placeholder, expanded, disabled, ariaLabel, iconColor, id },
+		attrs: { onChange, options, renderOption, renderDisplay, classes, selected, placeholder, expanded, disabled, ariaLabel, iconColor, id, noIcon },
 	}: Vnode<SelectAttributes<U, T>>) {
 		return m(
 			"button.tutaui-select-trigger.clickable",
@@ -99,16 +112,18 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 				value: selected?.ariaValue,
 			} satisfies HTMLElementWithAttrs,
 			[
-				selected != null ? renderOption(selected) : this.renderPlaceholder(placeholder),
-				m(Icon, {
-					icon: this.isExpanded ? Icons.ChevronCollapse : Icons.ChevronExpand,
-					container: "div",
-					class: "fit-content",
-					size: IconSize.Medium,
-					style: {
-						color: iconColor ?? getColors(ButtonColor.Content).button,
-					},
-				}),
+				selected != null ? renderDisplay(selected) : this.renderPlaceholder(placeholder),
+				noIcon !== true
+					? m(Icon, {
+							icon: this.isExpanded ? Icons.ChevronCollapse : Icons.ChevronExpand,
+							container: "div",
+							class: "fit-content",
+							size: IconSize.Medium,
+							style: {
+								color: iconColor ?? getColors(ButtonColor.Content).button,
+							},
+					  })
+					: null,
 			],
 		)
 	}
@@ -214,7 +229,7 @@ class OptionListContainer implements ModalComponent {
 					},
 				},
 				m(
-					".dropdown-content.scroll.pl-vpad-s.pr-vpad-s.flex.flex-column.gap-vpad-sm",
+					".dropdown-content.scroll.flex.flex-column",
 					{
 						role: AriaRole.Listbox,
 						tabindex: TabIndex.Programmatic,
@@ -224,10 +239,7 @@ class OptionListContainer implements ModalComponent {
 						onupdate: (vnode: VnodeDOM<HTMLElement>) => {
 							if (this.maxHeight == null) {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-								this.maxHeight =
-									children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) +
-									size.vpad + // size.pad accounts for top and bottom padding
-									(children.length - 1) * size.vpad_small // accounts for the gaps being applied
+								this.maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad // size.pad accounts for top and bottom padding
 
 								if (this.origin) {
 									// The dropdown-content element is added to the dom has a hidden element first.
