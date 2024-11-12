@@ -1801,3 +1801,4 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "confirmDeleteLabel_msg"
+	| "addReminder_label"

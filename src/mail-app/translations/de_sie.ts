@@ -1820,6 +1820,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
         "you_label": "Sie",
-		"confirmDeleteLabel_msg": "Möchten Sie wirklich das Label \"{1}\" löschen?"
+		"confirmDeleteLabel_msg": "Möchten Sie wirklich das Label \"{1}\" löschen?",
+		"addReminder_label": "Erinnerung hinzufügen"
 	}
 }

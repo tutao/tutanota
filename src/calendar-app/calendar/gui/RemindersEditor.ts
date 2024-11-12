@@ -10,15 +10,16 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import { deepEqual } from "@tutao/tutanota-utils"
 import { Select, SelectAttributes, SelectOption } from "../../../common/gui/base/Select.js"
-import { theme } from "../../../common/gui/theme.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
+import { ButtonColor, getColors } from "../../../common/gui/base/Button.js"
 
 export type RemindersEditorAttrs = {
 	addAlarm: (alarm: AlarmInterval) => unknown
 	removeAlarm: (alarm: AlarmInterval) => unknown
 	alarms: readonly AlarmInterval[]
 	label: TranslationKey
+	useNewEditor: boolean
 }
 
 export interface RemindersSelectOption extends SelectOption<AlarmInterval> {
@@ -27,12 +28,21 @@ export interface RemindersSelectOption extends SelectOption<AlarmInterval> {
 
 export class RemindersEditor implements Component<RemindersEditorAttrs> {
 	view(vnode: Vnode<RemindersEditorAttrs>): Children {
-		const { addAlarm, removeAlarm, alarms } = vnode.attrs
+		const { addAlarm, removeAlarm, alarms, useNewEditor } = vnode.attrs
 		const addNewAlarm = (newAlarm: AlarmInterval) => {
 			const hasAlarm = alarms.find((alarm) => deepEqual(alarm, newAlarm))
 			if (hasAlarm) return
 			addAlarm(newAlarm)
 		}
+		return useNewEditor ? this.renderNewEditor(alarms, removeAlarm, addNewAlarm, addAlarm) : this.renderOldEditor(alarms, removeAlarm, addNewAlarm, vnode)
+	}
+
+	private renderOldEditor(
+		alarms: readonly AlarmInterval[],
+		removeAlarm: (alarm: AlarmInterval) => unknown,
+		addNewAlarm: (newAlarm: AlarmInterval) => void,
+		vnode: Vnode<RemindersEditorAttrs>,
+	) {
 		const textFieldAttrs: Array<TextFieldAttrs> = alarms.map((a) => ({
 			value: humanDescriptionForAlarmInterval(a, lang.languageTag),
 			label: "emptyString_msg",
@@ -80,10 +90,18 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 
 		textFieldAttrs[0].label = vnode.attrs.label
 
-		// return m(
-		// 	".flex.col.flex-half.pl-s",
-		// 	textFieldAttrs.map((a) => m(TextField, a)),
-		// )
+		return m(
+			".flex.col.flex-half.pl-s",
+			textFieldAttrs.map((a) => m(TextField, a)),
+		)
+	}
+
+	private renderNewEditor(
+		alarms: readonly AlarmInterval[],
+		removeAlarm: (alarm: AlarmInterval) => unknown,
+		addNewAlarm: (newAlarm: AlarmInterval) => void,
+		addAlarm: (alarm: AlarmInterval) => unknown,
+	) {
 		const alarmOptions = createAlarmIntervalItems(lang.languageTag).map(
 			(alarm) =>
 				({
@@ -92,53 +110,49 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 					ariaValue: alarm.name,
 				} satisfies RemindersSelectOption),
 		)
+
 		alarmOptions.push({
 			text: lang.get("calendarReminderIntervalDropdownCustomItem_label"),
 			ariaValue: lang.get("calendarReminderIntervalDropdownCustomItem_label"),
 			value: { value: -1, unit: AlarmIntervalUnit.MINUTE },
 		})
 
+		const defaultSelected = {
+			text: lang.get("addReminder_label"),
+			value: { value: -2, unit: AlarmIntervalUnit.MINUTE },
+			ariaValue: lang.get("addReminder_label"),
+		}
+
 		return m("ul.unstyled-list.flex.col.flex-grow.gap-vpad-sm", [
 			alarms.map((alarm) =>
-				m("li.flex-end.items-center.gap-vpad-sm", [
-					m(
-						"span.flex.justify-end.faded-text",
-						{ style: { color: theme.content_button } },
-						humanDescriptionForAlarmInterval(alarm, lang.languageTag),
-					),
+				m("li.flex.justify-between.flew-grow.items-center.gap-vpad-sm", [
+					m("span.flex.justify-between", humanDescriptionForAlarmInterval(alarm, lang.languageTag)),
 					m(
 						BaseButton,
 						{
-							label: "delete_action",
+							//This might not make sense in other languages, but is better than what we have now
+							label: `${lang.get("delete_action")} ${humanDescriptionForAlarmInterval(alarm, lang.languageTag)}`,
 							onclick: () => removeAlarm(alarm),
 							class: "flex items-center",
 						},
 						m(Icon, {
-							// title: "delete_action",
 							icon: Icons.Cancel,
 							size: IconSize.Medium,
 							style: {
-								fill: theme.content_button,
+								fill: getColors(ButtonColor.Content).button,
 							},
 						}),
 					),
 				]),
 			),
-
 			m(
 				"li.items-center",
 				m(Select<RemindersSelectOption, AlarmInterval>, {
 					ariaLabel: lang.get("calendarReminderIntervalValue_label"),
-					selected: { text: "none", value: { value: 0, unit: AlarmIntervalUnit.DAY }, ariaValue: "None" },
+					selected: defaultSelected,
 					options: alarmOptions,
-					renderOption: (option) =>
-						m(
-							"span.right.full-width",
-							{
-								style: { color: theme.content_button },
-							},
-							option.text,
-						),
+					renderOption: (option) => this.renderReminderOptions(option, false, false),
+					renderDisplay: (option) => this.renderReminderOptions(option, alarms.length > 0, true),
 					onChange: (newValue) => {
 						if (newValue.value.value === -1) {
 							return this.showCustomReminderIntervalDialog((value, unit) => {
@@ -151,11 +165,32 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 						addAlarm(newValue.value)
 					},
 					expanded: true,
-					iconColor: theme.content_button,
-					id: "reminders",
+					iconColor: getColors(ButtonColor.Content).button,
+					noIcon: true,
 				} satisfies SelectAttributes<RemindersSelectOption, AlarmInterval>),
 			),
 		])
+	}
+
+	private renderReminderOptions(option: RemindersSelectOption, showIcon: boolean, isDisplay: boolean) {
+		return m(
+			"button.items-center.flex-grow",
+			{
+				class: `${isDisplay ? "gap-vpad-sm flex" : "state-bg button-content dropdown-button pt-s pb-s"}`,
+			},
+			[
+				showIcon
+					? m(Icon, {
+							icon: Icons.Add,
+							size: IconSize.Medium,
+							style: {
+								fill: getColors(ButtonColor.Content).button,
+							},
+					  })
+					: null,
+				option.text,
+			],
+		)
 	}
 
 	private showCustomReminderIntervalDialog(onAddAction: (value: number, unit: AlarmIntervalUnit) => void) {
