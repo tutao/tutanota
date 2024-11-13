@@ -162,7 +162,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 		}
 
-		const shouldShowFirstYearDiscountNotice = isCyberMonday && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly
+		const shouldShowFirstYearDiscountNotice = !isIOSApp() && isCyberMonday && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly
 
 		additionalInfo = m(".flex.flex-column.items-center", [
 			featureExpander.All, // global feature expander
@@ -265,11 +265,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				switch (interval) {
 					case PaymentInterval.Monthly:
 						price = prices.monthlyPerMonth
-						referencePriceStr = prices.monthlyPerMonth
 						break
 					case PaymentInterval.Yearly:
 						price = prices.yearlyPerMonth
-						referencePriceStr = prices.yearlyPerMonth
+						referencePriceStr = prices.monthlyPerMonth
 						break
 				}
 			} else {
@@ -284,7 +283,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		// If we are on the cyber monday campaign, we want to let the user know the discount is just for the first year.
-		const asteriskOrEmptyString = isCyberMonday && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly ? "*" : ""
+		const asteriskOrEmptyString = !isIOSApp() && isCyberMonday && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly ? "*" : ""
 
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
