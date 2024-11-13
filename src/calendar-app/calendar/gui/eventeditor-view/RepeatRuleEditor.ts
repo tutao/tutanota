@@ -1,160 +1,219 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
-import { TextField } from "../../../../common/gui/base/TextField.js"
+import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { DropDownSelector, DropDownSelectorAttrs, SelectorItemList } from "../../../../common/gui/base/DropDownSelector.js"
 import { EndType, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { DatePicker } from "../pickers/DatePicker.js"
-import { IconButton } from "../../../../common/gui/base/IconButton.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
+import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
-import { renderTwoColumnsIfFits } from "../../../../common/gui/base/GuiUtils.js"
-
-import { createIntervalValues, createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues } from "../CalendarGuiUtils.js"
+import { createCustomEndTypeOptions, createRepeatRuleOptions, customFrequenciesOptions } from "../CalendarGuiUtils.js"
+import { px, size } from "../../../../common/gui/size.js"
+import { Card } from "../../../../common/gui/base/Card.js"
+import { RadioGroup, RadioGroupAttrs, RadioGroupOption } from "../../../../common/gui/base/RadioGroup.js"
+import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../common/gui/base/SingleLineTextField.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
-	disabled: boolean
 	startOfTheWeekOffset: number
+	width: number
 }
 
+type RepeatRuleOption = RepeatPeriod | "CUSTOM" | null
+
 export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
+	private repeatRuleType: RepeatRuleOption | null = null
+	private repeatInterval: string = ""
+	private repeatOccurrences: string = ""
+
+	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
+		if (attrs.model.repeatPeriod != null) {
+			this.repeatRuleType = this.getRepeatType(attrs.model.repeatPeriod, attrs.model.repeatInterval, attrs.model.repeatEndType)
+		}
+
+		this.repeatInterval = attrs.model.repeatInterval.toString()
+		this.repeatOccurrences = attrs.model.repeatEndOccurrences.toString()
+	}
+
+	private getRepeatType(period: RepeatPeriod, interval: number, endTime: EndType) {
+		if (interval > 1 || endTime !== EndType.Never) {
+			return "CUSTOM"
+		}
+
+		return period
+	}
+
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
-		const { model, disabled } = attrs
-		return [
-			renderTwoColumnsIfFits(
-				[
-					m(".flex-grow.pr-s", this.renderRepeatPeriod(attrs)),
-					m(
-						".flex-grow.pl-s" + (model.repeatPeriod != null ? "" : ".hidden"),
-						this.renderRepeatInterval({
-							...attrs,
-							disabled: model.repeatPeriod == null ? true : attrs.disabled,
-						}),
-					),
-				],
-				this.renderEndCondition(attrs),
-			),
-			renderTwoColumnsIfFits(this.renderExclusionCount(attrs), null),
-		]
+		const customRuleOptions = customFrequenciesOptions.map((option) => ({
+			...option,
+			name: attrs.model.repeatInterval > 1 ? option.name.plural : option.name.singular,
+		})) as RadioGroupOption<RepeatPeriod>[]
+
+		return m(
+			".pb.pt.flex.col.gap-vpad.fit-height",
+			{
+				class: this.repeatRuleType === "CUSTOM" ? "box-content" : "",
+				style: {
+					width: px(attrs.width),
+				},
+			},
+			[
+				m(
+					Card,
+					{
+						style: {
+							padding: `${size.vpad}px ${size.vpad_small}px`,
+						},
+					},
+					m(RadioGroup, {
+						ariaLabel: "calendarRepeating_label",
+						name: "calendarRepeating_label",
+						options: createRepeatRuleOptions(),
+						selectedOption: this.repeatRuleType,
+						onOptionSelected: (option: RepeatRuleOption) => {
+							this.repeatRuleType = option
+							if (option === "CUSTOM") {
+								attrs.model.repeatPeriod = attrs.model.repeatPeriod ?? RepeatPeriod.DAILY
+							} else {
+								attrs.model.repeatInterval = 1
+								attrs.model.repeatEndType = EndType.Never
+								attrs.model.repeatPeriod = option as RepeatPeriod
+							}
+						},
+						classes: ["cursor-pointer"],
+					} satisfies RadioGroupAttrs<RepeatRuleOption>),
+				),
+				this.renderFrequencyOptions(attrs, customRuleOptions),
+				this.renderEndOptions(attrs),
+			],
+		)
 	}
 
-	private renderEndCondition(attrs: RepeatRuleEditorAttrs): Children {
-		const { model } = attrs
-		if (model.repeatPeriod == null) {
+	private renderEndOptions(attrs: RepeatRuleEditorAttrs) {
+		if (this.repeatRuleType !== "CUSTOM") {
 			return null
 		}
-		return [m(".flex-grow.pr-s", this.renderEndType(attrs)), m(".flex-grow.pl-s", this.renderEndValue(attrs))]
+
+		return m(
+			Card,
+			{
+				style: {
+					padding: `${size.vpad}px ${size.vpad_small}px`,
+				},
+				classes: ["flex", "col", "gap-vpad-sm"],
+			},
+			[
+				m("label", lang.get("calendarRepeatStopCondition_label")),
+				m(RadioGroup, {
+					ariaLabel: "calendarRepeatStopCondition_label",
+					name: "calendarRepeatStopCondition_label",
+					options: createCustomEndTypeOptions(),
+					selectedOption: attrs.model.repeatEndType,
+					onOptionSelected: (option: EndType) => {
+						attrs.model.repeatEndType = option
+					},
+					classes: ["cursor-pointer"],
+					injectionMap: this.buildInjections(attrs),
+				} satisfies RadioGroupAttrs<EndType>),
+			],
+		)
 	}
 
-	private renderExclusionCount({ model, disabled }: RepeatRuleEditorAttrs): Children {
-		if (model.repeatPeriod == null || model.excludedDates.length === 0) {
+	private renderFrequencyOptions(attrs: RepeatRuleEditorAttrs, customRuleOptions: RadioGroupOption<RepeatPeriod>[]) {
+		if (this.repeatRuleType !== "CUSTOM") {
 			return null
 		}
-		return [
-			m(
-				".flex-grow.pr-s",
-				m(TextField, {
-					label: "emptyString_msg",
-					value: lang.get("someRepetitionsDeleted_msg"),
-					injectionsRight: () => (disabled ? null : this.renderDeleteExclusionButton(model)),
-					isReadOnly: true,
-				}),
-			),
-		]
+
+		return m(
+			Card,
+			{
+				style: {
+					padding: `${size.vpad}px ${size.vpad_small}px`,
+				},
+				classes: ["flex", "col", "gap-vpad-sm"],
+			},
+			[
+				m("label.flex.col", [
+					lang.get("repeatsEvery_label"),
+					m(SingleLineTextField, {
+						type: TextFieldType.Number,
+						value: this.repeatInterval,
+						oninput: (newValue: number) => {
+							this.repeatInterval = String(newValue)
+						},
+						onblur: () => {
+							this.updateCustomRule(attrs.model, { interval: this.repeatInterval === "" ? undefined : Number(this.repeatInterval) })
+						},
+						ariaLabel: lang.get("repeatsEvery_label"),
+						placeholder: lang.get("repeatsEvery_label"),
+						classes: ["outlined"],
+					} satisfies SingleLineTextFieldAttrs),
+				]),
+				m(RadioGroup, {
+					ariaLabel: "intervalFrequency_label",
+					name: "intervalFrequency_label",
+					options: customRuleOptions,
+					selectedOption: attrs.model.repeatPeriod,
+					onOptionSelected: (option: RepeatPeriod) => {
+						this.updateCustomRule(attrs.model, { intervalFrequency: option })
+					},
+					classes: ["cursor-pointer", "capitalize"],
+				} satisfies RadioGroupAttrs<RepeatPeriod>),
+			],
+		)
 	}
 
-	/**
-	 * how frequently the event repeats (Never, daily, annually etc)
-	 * @private
-	 */
-	private renderRepeatPeriod({ model, disabled }: RepeatRuleEditorAttrs) {
-		const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
-		return m(DropDownSelector, {
-			label: "calendarRepeating_label",
-			items: repeatValues,
-			selectedValue: model.repeatPeriod,
-			selectionChangedHandler: (period) => (model.repeatPeriod = period),
-			icon: BootIcons.Expand,
-			disabled,
-		} satisfies DropDownSelectorAttrs<RepeatPeriod | null>)
+	private buildInjections(attrs: RepeatRuleEditorAttrs) {
+		const injectionMap = new Map<string, Child>()
+		injectionMap.set(
+			EndType.Count,
+			m(SingleLineTextField, {
+				value: this.repeatOccurrences,
+				oninput: (newValue: number) => {
+					this.repeatOccurrences = String(newValue)
+				},
+				onblur: () => {
+					const isEmpty = this.repeatOccurrences === ""
+					if (isEmpty) {
+						return (this.repeatOccurrences = String(attrs.model.repeatEndOccurrences))
+					}
+
+					attrs.model.repeatEndOccurrences = Number(this.repeatOccurrences)
+				},
+				ariaLabel: lang.get("occurrencesCount_label"),
+				placeholder: lang.get("occurrencesCount_label"),
+				type: TextFieldType.Number,
+				classes: ["outlined", "full-width", "flex-grow"],
+				disabled: attrs.model.repeatEndType !== EndType.Count,
+			} satisfies SingleLineTextFieldAttrs),
+		)
+
+		injectionMap.set(
+			EndType.UntilDate,
+			m(DatePicker, {
+				date: attrs.model.repeatEndDateForDisplay,
+				onDateSelected: (date) => date && (attrs.model.repeatEndDateForDisplay = date),
+				label: "endDate_label",
+				useInputButton: true,
+				startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+				position: PickerPosition.TOP,
+				disabled: attrs.model.repeatEndType !== EndType.UntilDate,
+				classes: ["full-width", "flex-grow"],
+			} satisfies DatePickerAttrs),
+		)
+
+		return injectionMap
 	}
 
-	/** Repeat interval: every day, every second day etc
-	 * @private
-	 */
-	private renderRepeatInterval({ model, disabled }: RepeatRuleEditorAttrs) {
-		const intervalValues: SelectorItemList<number> = createIntervalValues()
-		return m(DropDownSelector, {
-			label: "interval_title",
-			items: intervalValues,
-			selectedValue: model.repeatInterval,
-			selectionChangedHandler: (interval: number) => (model.repeatInterval = interval),
-			icon: BootIcons.Expand,
-			disabled,
-		})
-	}
+	private updateCustomRule(whenModel: CalendarEventWhenModel, customRule: Partial<{ interval: number; intervalFrequency: RepeatPeriod }>) {
+		const { interval, intervalFrequency } = customRule
 
-	/**
-	 * if and how the event stops repeating, like after number of occurrences or after a date.
-	 * @param model
-	 * @private
-	 */
-	private renderEndType({ model, disabled }: RepeatRuleEditorAttrs) {
-		const endTypeValues: SelectorItemList<EndType> = createRepeatRuleEndTypeValues()
-		return m(DropDownSelector, {
-			label: () => lang.get("calendarRepeatStopCondition_label"),
-			items: endTypeValues,
-			selectedValue: model.repeatEndType,
-			selectionChangedHandler: (end: EndType) => (model.repeatEndType = end),
-			icon: BootIcons.Expand,
-			disabled,
-		})
-	}
-
-	/**
-	 * the value of the end condition - a number for ending after number of occurrences, a date for ending after date.
-	 * @private
-	 */
-	private renderEndValue(attrs: RepeatRuleEditorAttrs): Children {
-		const { model, startOfTheWeekOffset, disabled } = attrs
-		const intervalValues: SelectorItemList<number> = createIntervalValues()
-		if (model.repeatPeriod == null || model.repeatEndType === EndType.Never) {
-			return null
-		} else if (model.repeatEndType === EndType.Count) {
-			return m(DropDownSelector, {
-				label: "emptyString_msg",
-				items: intervalValues,
-				selectedValue: model.repeatEndOccurrences,
-				selectionChangedHandler: (endValue: number) => (model.repeatEndOccurrences = endValue),
-				icon: BootIcons.Expand,
-				disabled,
-			})
-		} else if (model.repeatEndType === EndType.UntilDate) {
-			return m(DatePicker, {
-				date: model.repeatEndDateForDisplay,
-				onDateSelected: (date) => (model.repeatEndDateForDisplay = date),
-				startOfTheWeekOffset,
-				label: "emptyString_msg",
-				nullSelectionText: "emptyString_msg",
-				// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
-				// to fix this we could either:
-				// * reorganize the layout so it doesn't go over the right edge
-				// * change the alignment so that it goes to the left (this is what we do)
-				rightAlignDropdown: true,
-				disabled,
-			})
+		if (interval && !isNaN(interval)) {
+			whenModel.repeatInterval = interval
 		} else {
-			return null
+			this.repeatInterval = whenModel.repeatInterval.toString()
 		}
-	}
 
-	private renderDeleteExclusionButton(model: CalendarEventWhenModel): Children {
-		return m(IconButton, {
-			title: "restoreExcludedRecurrences_action",
-			click: () => model.deleteExcludedDates(),
-			icon: Icons.Cancel,
-		})
+		if (intervalFrequency) {
+			whenModel.repeatPeriod = intervalFrequency
+		}
 	}
 }

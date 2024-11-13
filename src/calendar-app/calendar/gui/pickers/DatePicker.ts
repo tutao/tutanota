@@ -20,6 +20,11 @@ import { AriaPopupType } from "../../../../common/gui/AriaUtils.js"
 import { isApp } from "../../../../common/api/common/Env.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../common/gui/base/InputButton.js"
 
+export enum PickerPosition {
+	TOP,
+	BOTTOM,
+}
+
 export interface DatePickerAttrs {
 	date?: Date
 	onDateSelected: (date: Date) => unknown
@@ -29,6 +34,8 @@ export interface DatePickerAttrs {
 	disabled?: boolean
 	rightAlignDropdown?: boolean
 	useInputButton?: boolean
+	position?: PickerPosition
+	classes?: Array<string>
 }
 
 /**
@@ -68,7 +75,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			this.previousPassedDownDate = date
 		}
 
-		return m(".rel", [
+		return m(".rel", { class: attrs.classes?.join(" ") }, [
 			!attrs.useInputButton ? this.renderTextField(attrs) : this.renderInputButtonPicker(attrs),
 			this.showingDropdown ? this.renderDropdown(attrs) : null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
@@ -202,11 +209,11 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 	}
 
-	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown, label }: DatePickerAttrs): Children {
+	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown, label, position }: DatePickerAttrs): Children {
 		// We would like to show the date being typed in the dropdown
 		const dropdownDate = this.parseDate(this.inputText) ?? date ?? new Date()
 		return m(
-			".fixed.content-bg.z3.menu-shadow.plr.pb-s",
+			".content-bg.z3.menu-shadow.plr.pb-s",
 			{
 				"aria-modal": "true",
 				"aria-label": lang.getMaybeLazy(label),
@@ -214,6 +221,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					width: "240px",
 					right: rightAlignDropdown ? "0" : null,
 				},
+				class: position === PickerPosition.TOP ? "abs" : "fixed",
 				oncreate: (vnode) => {
 					const listener = (e: MouseEvent) => {
 						if (!vnode.dom.contains(e.target as HTMLElement) && !this.domInput?.contains(e.target as HTMLElement)) {
@@ -224,6 +232,11 @@ export class DatePicker implements Component<DatePickerAttrs> {
 								m.redraw()
 							}
 						}
+					}
+
+					if (position === PickerPosition.TOP && vnode.dom.parentElement) {
+						const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
+						;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
 					}
 
 					this.documentInteractionListener = listener

@@ -3,12 +3,12 @@ import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../../../common/c
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarModel } from "../../model/CalendarModel.js"
-import { showExistingCalendarEventEditDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
 import { clone, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -161,7 +161,8 @@ export class CalendarEventPreviewViewModel {
 			return
 		}
 		try {
-			return await showExistingCalendarEventEditDialog(model, {
+			const eventEditor = new EventEditorDialog()
+			return await eventEditor.showExistingCalendarEventEditDialog(model, {
 				uid: this.calendarEvent.uid,
 				sequence: this.calendarEvent.sequence,
 				recurrenceId: this.calendarEvent.startTime,
@@ -183,7 +184,8 @@ export class CalendarEventPreviewViewModel {
 			return
 		}
 		try {
-			return await showExistingCalendarEventEditDialog(model, {
+			const eventEditor = new EventEditorDialog()
+			return await eventEditor.showExistingCalendarEventEditDialog(model, {
 				uid: this.calendarEvent.uid,
 				sequence: this.calendarEvent.sequence,
 				recurrenceId: null,

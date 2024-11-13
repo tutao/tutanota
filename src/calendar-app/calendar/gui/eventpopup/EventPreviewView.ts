@@ -5,7 +5,7 @@ import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { getRepeatEndTimeForDisplay, getTimeZone, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
+import { getRepeatEndTimeForDisplay, getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
@@ -224,7 +224,7 @@ export function getLocationUrl(text: string): URL {
 	return url
 }
 
-function formatRepetitionFrequency(repeatRule: RepeatRule): string | null {
+export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null {
 	if (repeatRule.interval === "1") {
 		const frequency = createRepeatRuleFrequencyValues().find((frequency) => frequency.value === repeatRule.frequency)
 
@@ -244,7 +244,7 @@ function formatRepetitionFrequency(repeatRule: RepeatRule): string | null {
 /**
  * @returns {string} The returned string includes a leading separator (", " or " ").
  */
-function formatRepetitionEnd(repeatRule: RepeatRule, isAllDay: boolean): string {
+export function formatRepetitionEnd(repeatRule: RepeatRule, isAllDay: boolean): string {
 	switch (repeatRule.endType) {
 		case EndType.Count:
 			if (!repeatRule.endValue) {
