@@ -7,8 +7,9 @@ import { lang } from "../../misc/LanguageViewModel"
 import { IconButton } from "../../gui/base/IconButton"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
-import { VerifyMailAddressDialog } from "./VerifyMailAddressDialog"
+import { KeyVerificationProcessDialog } from "./KeyVerificationProcessDialog"
 import { KeyVerificationDetails, KeyVerificationFacade, MailAddress } from "../../api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationProcessModel } from "./KeyVerificationProcessModel"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	publicKeyHash: string | null
@@ -42,7 +43,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const obj = this
+		const obj: KeyManagementSettingsViewer = this
 
 		const addressRows = Array.from(this.verificationPool.entries()).map(([mailAddress, details]: [string, KeyVerificationDetails]) => {
 			return [
@@ -75,10 +76,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					lang.get("keyManagement.verifyMailAddress_action"),
 					m(IconButton, {
 						title: "keyManagement.verifyMailAddress_action",
-						click: async () => {
-							const dialog = new VerifyMailAddressDialog(this.keyVerificationFacade, () => obj.reload())
-							dialog.show()
-						},
+						click: () => this._showVerificationDialog(obj),
 						icon: Icons.Add,
 						size: ButtonSize.Compact,
 					}),
@@ -87,5 +85,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				m("", ...addressRows),
 			]),
 		])
+	}
+
+	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
+		console.log("[_showVerificationDialog]")
+		const model = new KeyVerificationProcessModel()
+		const dialog = new KeyVerificationProcessDialog(this.keyVerificationFacade, model, () => parent.reload())
+		dialog.show()
 	}
 }
