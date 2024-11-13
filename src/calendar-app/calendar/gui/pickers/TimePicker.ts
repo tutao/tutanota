@@ -167,7 +167,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			},
 			m(SingleLineTextField, {
 				value: this.value,
-				oninput: (val) => {
+				oninput: (val: string) => {
 					if (this.value === val) {
 						return
 					}

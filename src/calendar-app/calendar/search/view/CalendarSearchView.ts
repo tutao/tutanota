@@ -42,7 +42,6 @@ import { MultiselectMode } from "../../../../common/gui/base/List.js"
 import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { showNewCalendarEventEditDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
@@ -60,6 +59,7 @@ import { ContactModel } from "../../../../common/contactsFunctionality/ContactMo
 import { PartialRecipient } from "../../../../common/api/common/recipients/Recipient.js"
 import { simulateMailToClick } from "../../gui/eventpopup/ContactPreviewView.js"
 import { DatePicker, DatePickerAttrs } from "../../gui/pickers/DatePicker.js"
+import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
 
 assertMainOrNode()
 
@@ -485,7 +485,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		)
 
 		if (model) {
-			await showNewCalendarEventEditDialog(model)
+			const eventEditor = new EventEditorDialog()
+			await eventEditor.showNewCalendarEventEditDialog(model)
 		}
 	}
 

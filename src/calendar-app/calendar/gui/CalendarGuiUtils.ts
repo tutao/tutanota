@@ -80,6 +80,7 @@ import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreview
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
+import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
@@ -391,6 +392,71 @@ export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod
 		},
 	]
 }
+export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | "CUSTOM" | null>> => {
+	return [
+		{
+			name: "calendarRepeatIntervalNoRepeat_label",
+			value: null,
+		},
+		{
+			name: "calendarRepeatIntervalDaily_label",
+			value: RepeatPeriod.DAILY,
+		},
+		{
+			name: "calendarRepeatIntervalWeekly_label",
+			value: RepeatPeriod.WEEKLY,
+		},
+		{
+			name: "calendarRepeatIntervalMonthly_label",
+			value: RepeatPeriod.MONTHLY,
+		},
+		{
+			name: "calendarRepeatIntervalAnnually_label",
+			value: RepeatPeriod.ANNUALLY,
+		},
+		{
+			name: "custom_label",
+			value: "CUSTOM",
+		},
+	]
+}
+
+export const customFrequenciesOptions = [
+	{
+		name: { singular: "day_label", plural: "days_label" },
+		value: RepeatPeriod.DAILY,
+	},
+	{
+		name: { singular: "week_label", plural: "weeks_label" },
+		value: RepeatPeriod.WEEKLY,
+	},
+	{
+		name: { singular: "month_label", plural: "months_label" },
+		value: RepeatPeriod.MONTHLY,
+	},
+	{
+		name: { singular: "year_label", plural: "years_label" },
+		value: RepeatPeriod.ANNUALLY,
+	},
+]
+
+export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<EndType>> => {
+	return [
+		{
+			name: "calendarRepeatStopConditionNever_label",
+			value: EndType.Never,
+		},
+		{
+			name: "calendarRepeatStopConditionOccurrences_label",
+			value: EndType.Count,
+		},
+		{
+			name: "calendarRepeatStopConditionDate_label",
+			value: EndType.UntilDate,
+		},
+	]
+}
+
 export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
 	return [
 		{

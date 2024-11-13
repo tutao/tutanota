@@ -1835,6 +1835,12 @@ export default {
 		"timeSection_label": "Time selection",
 		"addReminder_label": "Add reminder",
 		"startTime_label": "Start time",
-		"endTime_label": "End time"
+		"endTime_label": "End time",
+		"intervalFrequency_label": "Interval frequency",
+		"endDate_label": "End date",
+		"occurrencesCount_label": "Occurrences count",
+		"year_label": "Year",
+		"months_label": "Months",
+		"repeatsEvery_label": "Repeats every"
 	}
 }

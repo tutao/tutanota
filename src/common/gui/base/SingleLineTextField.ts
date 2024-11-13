@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import type { TextFieldType } from "./TextField.js"
 
 export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
-	value: string
+	value: string | number
 	ariaLabel: string
 	disabled?: boolean
 	/**
@@ -15,7 +15,7 @@ export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
 	 * @param {string} newValue - String value typed on the input field
 	 * @returns {unknown} Return type depends on the callback provided
 	 */
-	oninput?: (newValue: string) => unknown
+	oninput?: (newValue: string | number) => unknown
 	placeholder?: string
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "textAlign">>
@@ -59,6 +59,7 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 
 	view({ attrs }: Vnode<SingleLineTextFieldAttrs, this>): Children | void | null {
 		return m("input.tutaui-text-field", {
+			type: attrs.type,
 			ariaLabel: attrs.ariaLabel,
 			value: attrs.value,
 			disabled: attrs.disabled ?? false,
