@@ -17,7 +17,7 @@ export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<
 	 * @param {string} newValue - String value typed on the input field
 	 * @returns {unknown} Return type depends on the callback provided
 	 */
-	oninput?: (newValue: string | number) => unknown
+	oninput?: (newValue: string) => unknown
 	placeholder?: string
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "textAlign">>
@@ -100,7 +100,6 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 
 	private renderInput(attrs: InputAttrs<T>, inputPadding?: string) {
 		return m("input.tutaui-text-field", {
-			type: attrs.type,
 			ariaLabel: attrs.ariaLabel,
 			value: attrs.value,
 			disabled: attrs.disabled ?? false,
