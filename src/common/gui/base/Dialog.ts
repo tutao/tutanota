@@ -976,7 +976,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".scroll.hide-outline.plr-l.flex-grow", m(child, childAttrs)),
+					m(".scroll.hide-outline.plr-l.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
 				]),
 		})
 	}

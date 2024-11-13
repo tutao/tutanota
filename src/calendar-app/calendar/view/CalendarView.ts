@@ -65,7 +65,6 @@ import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
-import { showNewCalendarEventEditDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { CalendarInfo, CalendarModel } from "../model/CalendarModel"
@@ -104,6 +103,7 @@ import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
+import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -636,7 +636,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const model = await locator.calendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
 		if (model) {
-			await showNewCalendarEventEditDialog(model)
+			const eventEditor = new EventEditorDialog()
+			await eventEditor.showNewCalendarEventEditDialog(model)
 		}
 	}
 
