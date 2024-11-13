@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-11-11T17:20:53Z",
+	"updated_at": "2024-11-12T15:22:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -573,7 +573,7 @@ export default {
 		"enterDomainIntroduction_msg": "您只需要數個步驟就可以在Tuta中使用您的自訂電郵域名。",
 		"enterMissingPassword_msg": "沒有偵測到密碼。請輸入密碼。",
 		"enterName_msg": "請輸入名稱。",
-		"enterPaymentDataFirst_msg": "加購套餐前，請先輸入您的付款資料。",
+		"enterPaymentDataFirst_msg": "訂購更多套餐前，請先輸入您的付款資料。",
 		"enterPresharedPassword_msg": "請輸入您與寄件人約定好的密碼。",
 		"envelopeSenderInfo_msg": "技術寄件人與「寄件人」的電郵地址不同。由於「寄件人」的地址可以偽造，因此技術寄件人也會顯示出來，以便了解真正是誰發送此電郵。",
 		"errorAtLine_msg": "第{index}行出現錯誤：{error}",
@@ -1233,6 +1233,7 @@ export default {
 		"pricing.currentPlan_label": "目前計劃",
 		"pricing.custom_title": "自訂品牌",
 		"pricing.custom_tooltip": "透過定義Tuta網頁、手機及桌面用戶端的標誌和顏色，對Tuta貼上白標來顯示您自己的品牌。",
+		"pricing.cyberMonday_label": "節省62%",
 		"pricing.cyber_monday_msg": "以更低的價格獲得首年的頂級計劃！",
 		"pricing.cyber_monday_select_action": "領取優惠！",
 		"pricing.encryptedCalendar_label": "完全加密的日曆",

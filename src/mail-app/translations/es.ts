@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-11-11T15:55:05Z",
+	"updated_at": "2024-11-12T14:41:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1238,6 +1238,7 @@ export default {
 		"pricing.currentPlan_label": "Suscripción Actual",
 		"pricing.custom_title": "Personalización de marca",
 		"pricing.custom_tooltip": "Personaliza Tuta con tu propia marca, al usar Etiqueta Blanca, definiendo los logotipos y colores de los clientes web, móviles y de escritorio de Tuta.",
+		"pricing.cyberMonday_label": "Ahorra un 62%",
 		"pricing.cyber_monday_msg": "¡Obtén el plan de primer nivel durante el primer año por menos!",
 		"pricing.cyber_monday_select_action": "¡Consigue el trato!",
 		"pricing.encryptedCalendar_label": "Calendario totalmente cifrado",

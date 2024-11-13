@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2024-11-13T10:03:05Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1238,6 +1238,9 @@ export default {
 		"pricing.currentPlan_label": "Abonnement actuel",
 		"pricing.custom_title": "Marque personnalisée",
 		"pricing.custom_tooltip": "Marquez Tuta de votre propre marque en définissant les logos et les couleurs des clients web, mobiles et de bureau de Tuta.",
+		"pricing.cyberMonday_label": "Economisez 62%.",
+		"pricing.cyber_monday_msg": "Obtenez la meilleure offre pendant la première année à un tarif réduit ! ",
+		"pricing.cyber_monday_select_action": "Profitez de l'offre !",
 		"pricing.encryptedCalendar_label": "Calendrier entièrement chiffré",
 		"pricing.encryptedCalendar_tooltip": "Toutes les données de vos calendriers Tuta sont chiffrées - même les notifications sont envoyées de manière chiffrée à votre appareil.",
 		"pricing.encryptedContacts_label": "Carnet d'adresses chiffré",
@@ -1257,6 +1260,7 @@ export default {
 		"pricing.gdpr_tooltip": "Toutes les données sont stockées en conformité avec les réglementations européennes strictes en matière de protection des données, conformément au RGPD.",
 		"pricing.getStarted_label": "Commencer",
 		"pricing.includesTaxes_msg": "Inclut les taxes.",
+		"pricing.legendAsterisk_msg": "La réduction \"Légende\" ne s'applique que pour la première année. Le prix suivant sera de 96€ par an.",
 		"pricing.login_title": "Se connecter sur son propre site web",
 		"pricing.login_tooltip": "Mettez le lien de connexion à Tuta sur votre site d'internet pour que ça soit accéder par tous vos collaborateurs, internes et  externes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} adresse(s) e-mail(s) supplémentaire(s)",
