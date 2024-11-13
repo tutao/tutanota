@@ -213,7 +213,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		return m(
 			".pt-ml.text-center",
 			{ style: { display: "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center" } },
-			strikethroughPrice != null
+			strikethroughPrice != null && strikethroughPrice.trim() !== ""
 				? m(
 						".span.strike",
 						{
