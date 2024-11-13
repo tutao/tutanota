@@ -678,6 +678,9 @@ styles.registerStyle("main", () => {
 		".content-accent-accent": {
 			"accent-color": theme.content_accent,
 		},
+		".content-accent-content-button": {
+			"accent-color": theme.content_button,
+		},
 		".icon-accent svg": {
 			fill: theme.content_accent,
 		},
@@ -994,6 +997,9 @@ styles.registerStyle("main", () => {
 		},
 		".gap-hpad": {
 			gap: px(size.hpad),
+		},
+		".gap-vpad-xxl": {
+			gap: px(size.vpad_xxl),
 		},
 		".flex": {
 			display: "flex",
@@ -2770,6 +2776,30 @@ styles.registerStyle("main", () => {
 			"background-color": "transparent",
 			border: "none",
 			color: "transparent",
+		},
+		".transition-transform": {
+			transition: `transform ${DefaultAnimationTime}ms linear`,
+		},
+		"border-none": {
+			border: "none",
+		},
+		".big-radio": {
+			/* Increase radio button's size */
+			width: "20px",
+			height: "20px",
+		},
+		".outlined": {
+			border: `2px solid ${theme.content_border}`,
+			"border-radius": px(size.border_radius_medium),
+		},
+		".capitalize": {
+			"text-transform": "capitalize",
+		},
+		".box-content": {
+			"box-sizing": "content-box",
+		},
+		".fit-height": {
+			height: "fit-content",
 		},
 	}
 })

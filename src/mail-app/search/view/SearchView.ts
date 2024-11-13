@@ -82,7 +82,7 @@ import {
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { showNewCalendarEventEditDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
+import { EventEditorDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -970,7 +970,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const model = await locator.calendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
 
 		if (model) {
-			await showNewCalendarEventEditDialog(model)
+			const eventEditor = new EventEditorDialog()
+			await eventEditor.showNewCalendarEventEditDialog(model)
 		}
 	}
 
