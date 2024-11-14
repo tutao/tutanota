@@ -3,8 +3,11 @@
 	"type": "struct",
 	"fields": {
 		"name": "string",
-		"monthlyPerMonth": "string",
-		"yearlyPerYear": "string",
-		"yearlyPerMonth": "string"
+		"rawMonthlyPerMonth": "string",
+		"rawYearlyPerYear": "string",
+		"rawYearlyPerMonth": "string",
+		"displayMonthlyPerMonth": "string",
+		"displayYearlyPerYear": "string",
+		"displayYearlyPerMonth": "string"
 	}
 }
