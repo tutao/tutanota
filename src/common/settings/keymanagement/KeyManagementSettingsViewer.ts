@@ -10,7 +10,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize"
 import { KeyVerificationProcessDialog } from "./KeyVerificationProcessDialog"
 import { KeyVerificationDetails, KeyVerificationFacade, MailAddress } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationProcessModel } from "./KeyVerificationProcessModel"
-import { renderFingerprintAsText } from "./FingerprintRenderers"
+import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./FingerprintRenderers"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	publicKeyHash: string | null
@@ -72,6 +72,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m(".fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("keyManagement.publicKeyFingerprint_label")),
 				m("p", [m(".small.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
+				m("p", [m.trust(renderFingerprintAsQrCode(selfFingerprint))]),
 				m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintInfo_msg") + " "),
 
 				m(".h4.mt-l", lang.get("keyManagement.verificationPool_label")),
@@ -92,6 +93,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
 		console.log("[_showVerificationDialog]")
+
 		const model = new KeyVerificationProcessModel()
 		const dialog = new KeyVerificationProcessDialog(this.keyVerificationFacade, model, () => parent.reload())
 		dialog.show()
