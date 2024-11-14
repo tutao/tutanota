@@ -10,6 +10,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize"
 import { KeyVerificationProcessDialog } from "./KeyVerificationProcessDialog"
 import { KeyVerificationDetails, KeyVerificationFacade, MailAddress } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationProcessModel } from "./KeyVerificationProcessModel"
+import { renderFingerprintAsText } from "./FingerprintRenderers"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	publicKeyHash: string | null
@@ -45,6 +46,8 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const obj: KeyManagementSettingsViewer = this
 
+		const selfFingerprint = assertNotNull(this.publicKeyHash)
+
 		const addressRows = Array.from(this.verificationPool.entries()).map(([mailAddress, details]: [string, KeyVerificationDetails]) => {
 			return [
 				m(".flex.items-center.selectable", [
@@ -68,7 +71,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		return m("", [
 			m(".fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("keyManagement.publicKeyFingerprint_label")),
-				m("p", [m(".small.text-break.monospace.selectable", this.publicKeyHash)]),
+				m("p", [m(".small.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
 				m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintInfo_msg") + " "),
 
 				m(".h4.mt-l", lang.get("keyManagement.verificationPool_label")),
