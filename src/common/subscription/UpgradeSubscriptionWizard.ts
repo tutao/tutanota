@@ -26,7 +26,7 @@ import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { queryAppStoreSubscriptionOwnership, UpgradeType } from "./SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
-import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
@@ -49,13 +49,8 @@ export type UpgradeSubscriptionData = {
 	invoiceData: InvoiceData
 	paymentData: PaymentData
 	type: PlanType
-	// Subscription price as a float
-	price: string
-	// Subscription price as a formatted string with the currency symbol and with decimal separator from local
-	// On iOS: in the local currency
-	// Else: in Euro
-	displayPrice: string
-	priceNextYear: string | null
+	price: SubscriptionPrice | null
+	nextYearPrice: SubscriptionPrice | null
 	accountingInfo: AccountingInfo | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
 	customer: Customer | null
@@ -96,10 +91,9 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 			paymentMethod: getPaymentMethodType(accountingInfo) || (await getDefaultPaymentMethod()),
 			creditCardData: null,
 		},
-		price: "",
-		displayPrice: "",
+		price: null,
 		type: PlanType.Revolutionary,
-		priceNextYear: null,
+		nextYearPrice: null,
 		accountingInfo: accountingInfo,
 		customer: customer,
 		newAccountData: null,
@@ -184,9 +178,8 @@ export async function loadSignupWizard(
 			paymentMethod: await getDefaultPaymentMethod(),
 			creditCardData: null,
 		},
-		price: "",
-		displayPrice: "",
-		priceNextYear: null,
+		price: null,
+		nextYearPrice: null,
 		type: PlanType.Free,
 		accountingInfo: null,
 		customer: null,

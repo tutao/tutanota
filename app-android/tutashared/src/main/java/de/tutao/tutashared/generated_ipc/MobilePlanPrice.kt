@@ -10,7 +10,10 @@ import kotlinx.serialization.json.*
 @Serializable
 data class MobilePlanPrice(
 	val name: String,
-	val monthlyPerMonth: String,
-	val yearlyPerYear: String,
-	val yearlyPerMonth: String,
+	val rawMonthlyPerMonth: String,
+	val rawYearlyPerYear: String,
+	val rawYearlyPerMonth: String,
+	val displayMonthlyPerMonth: String,
+	val displayYearlyPerYear: String,
+	val displayYearlyPerMonth: String,
 )
