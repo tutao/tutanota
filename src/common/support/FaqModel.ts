@@ -53,6 +53,10 @@ export class FaqModel {
 	}
 
 	async init(websiteBaseUrl: string): Promise<void> {
+		//resetting the lazy reload whenever the language preference change to clear caching.
+		if (this.currentLanguageCode !== lang.code) {
+			this.lazyLoaded.reset()
+		}
 		this.websiteBaseUrl = websiteBaseUrl
 		await this.lazyLoaded.getAsync()
 		this.getList()
