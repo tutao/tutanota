@@ -159,8 +159,10 @@ export class Dropdown implements ModalComponent {
 
 		const contents = () => {
 			const showingIcons = this.children.some((c) => "icon" in c && typeof c.icon !== "undefined")
+			// We need to set the height to the height of the parent which already has the calculated and measured height, otherwise this element might
+			// overflow the parent (the overall dropdown container) when there's not enough vertical space to display all items
 			return m(
-				".dropdown-content.scroll",
+				".dropdown-content.scroll.height-100p",
 				{
 					class: this.isFilterable ? "abs" : "",
 					role: AriaRole.Menu,
