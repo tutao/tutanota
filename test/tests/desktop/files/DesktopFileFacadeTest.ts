@@ -36,6 +36,7 @@ o.spec("DesktopFileFacade", function () {
 		fs = object()
 		tfs = object()
 		fs.promises = object()
+		when(fs.promises.stat(matchers.anything())).thenResolve({ size: 42 })
 		electron = object()
 		// @ts-ignore read-only prop
 		electron.shell = object()
@@ -210,7 +211,13 @@ o.spec("DesktopFileFacade", function () {
 		const fileToUploadPath = "/tutnaota/tmp/path/encrypted/toUpload.txt"
 		const targetUrl = "https://test.tutanota.com/rest/for/a/bit"
 
-		function mockResponse(statusCode: number, resOpts: { responseBody?: Uint8Array; responseHeaders?: Record<string, string> }): http.IncomingMessage {
+		function mockResponse(
+			statusCode: number,
+			resOpts: {
+				responseBody?: Uint8Array
+				responseHeaders?: Record<string, string>
+			},
+		): http.IncomingMessage {
 			const { responseBody, responseHeaders } = resOpts
 			const response: http.IncomingMessage = object()
 			response.statusCode = statusCode
@@ -237,7 +244,17 @@ o.spec("DesktopFileFacade", function () {
 			}
 			const fileStreamMock = mockReadStream()
 			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
-			when(net.executeRequest(urlMatches(new URL(targetUrl)), { method: "POST", headers, timeout: 20000 }, fileStreamMock)).thenResolve(response)
+			when(
+				net.executeRequest(
+					urlMatches(new URL(targetUrl)),
+					{
+						method: "POST",
+						headers,
+						timeout: 20000,
+					},
+					fileStreamMock,
+				),
+			).thenResolve(response)
 			const uploadResult = await ff.upload(fileToUploadPath, targetUrl, "POST", headers)
 
 			o(uploadResult.statusCode).equals(200)
@@ -332,7 +349,12 @@ o.spec("DesktopFileFacade", function () {
 
 		o("open on windows", async function () {
 			n.setPlatform("win32")
-			when(electron.dialog.showMessageBox(matchers.anything())).thenReturn(Promise.resolve({ response: 1, checkboxChecked: false }))
+			when(electron.dialog.showMessageBox(matchers.anything())).thenReturn(
+				Promise.resolve({
+					response: 1,
+					checkboxChecked: false,
+				}),
+			)
 			await ff.open("exec.exe")
 			verify(electron.shell.openPath(matchers.anything()), { times: 0 })
 		})

@@ -219,6 +219,8 @@ export class DesktopFileFacade implements FileFacade {
 
 	async upload(fileUri: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
 		const fileStream = this.fs.createReadStream(fileUri)
+		const stat = await this.fs.promises.stat(fileUri)
+		headers["Content-Length"] = `${stat.size}`
 		const response = await this.net.executeRequest(new URL(targetUrl), { method, headers, timeout: 20000 }, fileStream)
 
 		let responseBody: Uint8Array
