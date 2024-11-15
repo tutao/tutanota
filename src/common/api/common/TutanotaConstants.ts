@@ -495,6 +495,7 @@ export enum KeyVerificationMethodType {
 	qr = "1",
 }
 
+// TODO: DRY! There is a similar object in KeyVerificationProcessModel.
 export const KeyVerificationMethodOptions = Object.freeze([
 	{ name: "Text", value: KeyVerificationMethodType.text },
 	{ name: "QR code", value: KeyVerificationMethodType.qr },

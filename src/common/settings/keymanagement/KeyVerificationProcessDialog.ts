@@ -5,6 +5,8 @@ import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerifica
 import m, { Children } from "mithril"
 import { TextField, TextFieldType } from "../../gui/base/TextField"
 import { KeyVerificationProcessModel } from "./KeyVerificationProcessModel"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector"
+import { KeyVerificationMethodOptions, KeyVerificationMethodType } from "../../api/common/TutanotaConstants"
 
 export class KeyVerificationProcessDialog {
 	keyVerificationFacade: KeyVerificationFacade
@@ -37,6 +39,24 @@ export class KeyVerificationProcessDialog {
 	}
 
 	render(): Children {
+		const dropdownAttrs: DropDownSelectorAttrs<KeyVerificationMethodType> = {
+			label: "type_label",
+			selectedValue: this.model.selectedMethod,
+			selectionChangedHandler: (newValue) => this.model.onMethodSelected(newValue),
+			items: KeyVerificationMethodOptions,
+			dropdownWidth: 300,
+		}
+
+		let renderChosenVerificationMethod: () => Children = () => {
+			return null
+		}
+		if (this.model.selectedMethod === KeyVerificationMethodType.text) {
+			renderChosenVerificationMethod = this.renderForTextMethod
+		}
+		if (this.model.selectedMethod === KeyVerificationMethodType.qr) {
+			renderChosenVerificationMethod = this.renderForQRMethod
+		}
+
 		return [
 			m(TextField, {
 				label: "mailAddress_label",
@@ -44,6 +64,14 @@ export class KeyVerificationProcessDialog {
 				type: TextFieldType.Email,
 				oninput: (newValue) => (this.model.mailAddress = newValue),
 			}),
+			m(DropDownSelector, dropdownAttrs),
+
+			renderChosenVerificationMethod.bind(this)(),
+		]
+	}
+
+	private renderForTextMethod(): Children {
+		return [
 			m(TextField, {
 				label: "keyManagement.fingerprint_label",
 				value: this.model.fingerprint,
@@ -51,6 +79,10 @@ export class KeyVerificationProcessDialog {
 				oninput: (newValue) => (this.model.fingerprint = newValue),
 			}),
 		]
+	}
+
+	private renderForQRMethod(): Children {
+		return "qr method"
 	}
 
 	private validateInputs(): TranslationKey | null {
