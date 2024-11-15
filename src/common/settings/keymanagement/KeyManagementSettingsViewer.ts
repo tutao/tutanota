@@ -74,9 +74,9 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const fingerprintRenderDropdownAttrs: DropDownSelectorAttrs<KeyVerificationMethodType> = {
 			label: "keyManagement.showFingerprintAs_label",
 			selectedValue: this.selectedFingerprintRenderMethod,
-			selectionChangedHandler: (newValue) => this.selectedFingerprintRenderMethod = newValue,
+			selectionChangedHandler: (newValue) => (this.selectedFingerprintRenderMethod = newValue),
 			items: KeyVerificationMethodOptions,
-			dropdownWidth: 300
+			dropdownWidth: 300,
 		}
 
 		let renderChosenVerificationMethod: (selfFingerprint: string) => Children
@@ -93,7 +93,6 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m(".fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("keyManagement.publicKeyFingerprint_label")),
 				m(DropDownSelector, fingerprintRenderDropdownAttrs),
-				m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintInfo_msg") + " "),
 
 				renderChosenVerificationMethod(selfFingerprint),
 
@@ -116,13 +115,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	private renderForTextMethod(selfFingerprint: string): Children {
 		return [
 			m("p", [m(".small.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
+			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintTextInfo_msg")),
 		]
 	}
 
 	private renderForQrMethod(selfFingerprint: string): Children {
-		return [
-			m("p", [m.trust(renderFingerprintAsQrCode(selfFingerprint))]),
-		]
+		return [m("p", [m.trust(renderFingerprintAsQrCode(selfFingerprint))]), m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg"))]
 	}
 
 	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
