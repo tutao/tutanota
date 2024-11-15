@@ -114,7 +114,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderForTextMethod(selfFingerprint: string): Children {
 		return [
-			m("p", [m(".small.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
+			m("p", [m(".b.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
 			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintTextInfo_msg")),
 		]
 	}
