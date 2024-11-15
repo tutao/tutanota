@@ -1803,3 +1803,4 @@ export type TranslationKeyType =
 	| "editLabel_action"
 	| "importantLabel_label"
 	| "labelLimitExceeded_msg"
+	| "confirmDeleteLabel_msg"

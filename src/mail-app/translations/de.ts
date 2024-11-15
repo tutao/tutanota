@@ -1819,6 +1819,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"confirmDeleteLabel_msg": "Möchtest du wirklich das Label \"{1}\" löschen?"
 	}
 }

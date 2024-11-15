@@ -799,6 +799,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await showEditLabelDialog(null, this.mailViewModel, label)
 	}
 
+	private async showLabelDeleteDialog(label: MailFolder) {
+		const confirmed = await Dialog.confirm(() =>
+			lang.get("confirmDeleteLabel_msg", {
+				"{1}": label.name,
+			}),
+		)
+		if (!confirmed) return
+		await this.mailViewModel.deleteLabel(label)
+	}
+
 	private renderMailboxLabelItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
 		return [
 			m(
@@ -842,7 +852,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											label: "delete_action",
 											icon: Icons.Trash,
 											click: () => {
-												this.mailViewModel.deleteLabel(label)
+												this.showLabelDeleteDialog(label)
 											},
 										},
 									],
