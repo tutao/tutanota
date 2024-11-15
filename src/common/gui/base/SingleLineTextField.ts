@@ -1,5 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import type { TextFieldType } from "./TextField.js"
+import { AllIcons, Icon, IconSize } from "./Icon.js"
+import { px, size } from "../size.js"
 
 export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
 	value: string | number
@@ -24,6 +26,10 @@ export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
 	onblur?: (...args: unknown[]) => unknown
 	onkeydown?: (...args: unknown[]) => unknown
 	type?: TextFieldType
+	leadingIcon?: {
+		icon: AllIcons
+		color: string
+	}
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLElement, "style"> & SingleLineTextFieldAttrs>
@@ -58,6 +64,44 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 	}
 
 	view({ attrs }: Vnode<SingleLineTextFieldAttrs, this>): Children | void | null {
+		return attrs.leadingIcon ? this.renderInputWithIcon(attrs) : this.renderInput(attrs)
+	}
+
+	private renderInputWithIcon(attrs: SingleLineTextFieldAttrs) {
+		if (!attrs.leadingIcon) {
+			return
+		}
+
+		const fontSize = Number(attrs.style?.fontSize?.replace("px", "")) ?? 16
+		let iconSize
+		let padding
+
+		if (fontSize > 16 && fontSize < 32) {
+			iconSize = IconSize.Large
+			padding = size.icon_size_large
+		} else if (fontSize > 32) {
+			iconSize = IconSize.XL
+			padding = size.icon_size_xl
+		} else {
+			iconSize = IconSize.Medium
+			padding = size.icon_size_medium_large
+		}
+
+		return m(".rel.flex.flex-grow", [
+			m(
+				".abs.pl-vpad-s.flex.items-center",
+				{ style: { top: 0, bottom: 0 } },
+				m(Icon, {
+					size: iconSize,
+					icon: attrs.leadingIcon.icon,
+					style: { fill: attrs.leadingIcon.color },
+				}),
+			),
+			this.renderInput(attrs, px(padding + size.vpad)),
+		])
+	}
+
+	private renderInput(attrs: SingleLineTextFieldAttrs, inputPadding?: string) {
 		return m("input.tutaui-text-field", {
 			type: attrs.type,
 			ariaLabel: attrs.ariaLabel,
@@ -76,7 +120,10 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 			},
 			placeholder: attrs.placeholder,
 			class: this.resolveClasses(attrs.classes, attrs.disabled),
-			style: attrs.style,
+			style: {
+				...(inputPadding ? { paddingLeft: inputPadding } : {}),
+				...attrs.style,
+			},
 		} satisfies HTMLElementWithAttrs)
 	}
 
