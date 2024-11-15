@@ -1,32 +1,32 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { MailRecipientsTextField } from "../../../../common/gui/MailRecipientsTextField.js"
 import { RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
 import { ToggleButton } from "../../../../common/gui/base/buttons/ToggleButton.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
-import { Checkbox } from "../../../../common/gui/base/Checkbox.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { AccountType, CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
-import { Autocomplete } from "../../../../common/gui/base/TextField.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
-import { noOp } from "@tutao/tutanota-utils"
 import { Guest } from "../../view/CalendarInvites.js"
-import { Icon } from "../../../../common/gui/base/Icon.js"
+import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
-import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { px, size } from "../../../../common/gui/size.js"
-import { createDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { CalendarEventWhoModel } from "../eventeditor-model/CalendarEventWhoModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { CalendarEventModel, CalendarOperation } from "../eventeditor-model/CalendarEventModel.js"
-import { DropDownSelector } from "../../../../common/gui/base/DropDownSelector.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationModel.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 
-import { createAttendingItems, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
-import { PasswordField } from "../../../../common/misc/passwords/PasswordField.js"
+import { AttendingItem, createAttendingItems, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
+import { Card } from "../../../../common/gui/base/Card.js"
+import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
+import stream from "mithril/stream"
+import { OrganizerSelectItem } from "./CalendarEventEditView.js"
+import { GuestPicker } from "../pickers/GuestPicker.js"
+import { IconMessageBox } from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
+import { PasswordInput } from "../../../../common/gui/PasswordInput.js"
+import { Switch } from "../../../../common/gui/base/Switch.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -35,6 +35,7 @@ export type AttendeeListEditorAttrs = {
 	/** these are needed to show suggestions and external passwords. */
 	recipientsSearch: RecipientsSearchModel
 	logins: LoginController
+	width: number
 }
 
 /**
@@ -42,243 +43,321 @@ export type AttendeeListEditorAttrs = {
  * including the own attendance, the own organizer address and external passwords.
  */
 export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
-	private text: string = ""
 	private hasPlanWithInvites: boolean = false
 
 	view({ attrs }: Vnode<AttendeeListEditorAttrs>): Children {
-		return [m(".flex-grow", this.renderInvitationField(attrs)), m(".flex-grow", this.renderGuestList(attrs))]
-	}
-
-	private renderInvitationField(attrs: AttendeeListEditorAttrs): Children {
-		const { model, recipientsSearch, logins } = attrs
-		if (!model.editModels.whoModel.canModifyGuests) return null
-		return m(".flex.flex-column.flex-grow", [
-			m(MailRecipientsTextField, {
-				label: "addGuest_label",
-				text: this.text,
-				onTextChanged: (v) => (this.text = v),
-				// we don't show bubbles, we just want the search dropdown
-				recipients: [],
-				disabled: false,
-				onRecipientAdded: async (address, name, contact) => {
-					if (!(await hasPlanWithInvites(logins)) && !this.hasPlanWithInvites) {
-						if (logins.getUserController().user.accountType === AccountType.EXTERNAL) return
-						if (logins.getUserController().isGlobalAdmin()) {
-							const { getAvailablePlansWithEventInvites } = await import("../../../../common/subscription/SubscriptionUtils.js")
-							const plansWithEventInvites = await getAvailablePlansWithEventInvites()
-							if (plansWithEventInvites.length === 0) return
-							//entity event updates are too slow to call updateBusinessFeature()
-							this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
-							// the user could have, but did not upgrade.
-							if (!this.hasPlanWithInvites) return
-						} else {
-							Dialog.message(() => lang.get("contactAdmin_msg"))
-						}
-					} else {
-						model.editModels.whoModel.addAttendee(address, contact)
-					}
-				},
-				// do nothing because we don't have any bubbles here
-				onRecipientRemoved: noOp,
-				injectionsRight: this.renderIsConfidentialToggle(attrs),
-				search: recipientsSearch,
-			}),
-			this.renderSendUpdateCheckbox(attrs),
-		])
-	}
-
-	private renderIsConfidentialToggle(attrs: AttendeeListEditorAttrs): Children {
-		const { whoModel } = attrs.model.editModels
-		const guests = whoModel.guests
-		if (!guests.some((a) => a.type === RecipientType.EXTERNAL)) return null
-		return m(ToggleButton, {
-			title: "confidential_action",
-			onToggled: (_, e) => {
-				whoModel.isConfidential = !whoModel.isConfidential
-				e.stopPropagation()
-			},
-			icon: whoModel.isConfidential ? Icons.Lock : Icons.Unlock,
-			toggled: whoModel.isConfidential,
-			size: ButtonSize.Compact,
-		})
-	}
-
-	private renderSendUpdateCheckbox({ model }: AttendeeListEditorAttrs): Children {
-		const { whoModel } = model.editModels
-		return !whoModel.initiallyHadOtherAttendees
-			? null
-			: m(
-					".mt-negative-s",
-					m(Checkbox, {
-						label: () => lang.get("sendUpdates_label"),
-						onChecked: (v) => (whoModel.shouldSendUpdates = v),
-						checked: whoModel.shouldSendUpdates,
-					}),
-			  )
-	}
-
-	/**
-	 * render the list of guests, always putting the organizer on top, then the rest,
-	 * followed by the external passwords.
-	 *
-	 * in cases where we can see the event editor AND we have to render a guest list, we're guaranteed to be the organizer.
-	 * @private
-	 */
-	private renderGuestList(attrs: AttendeeListEditorAttrs): Children {
 		const { whoModel } = attrs.model.editModels
 		const organizer = whoModel.organizer
-		const guests: Array<Guest> = whoModel.guests.slice()
-		const attendeeRenderers: Array<() => Children> = []
+		return [
+			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt.box-content.fit-height", { style: { width: px(attrs.width) } }, [
+				this.renderOrganizer(attrs.model, organizer),
+				m(".flex.flex-column.gap-vpad-s", [
+					whoModel.canModifyGuests ? this.renderGuestsInput(whoModel, attrs.logins, attrs.recipientsSearch) : null,
+					this.renderSendUpdateCheckbox(attrs.model.editModels.whoModel),
+					this.renderGuestList(attrs, organizer),
+				]),
+			]),
+		]
+	}
 
-		if (organizer != null) {
-			attendeeRenderers.push(() => renderOrganizer(organizer, attrs))
-		}
+	private renderGuestList(attrs: AttendeeListEditorAttrs, organizer: Guest | null): Children {
+		const { whoModel } = attrs.model.editModels
+		const guestItems: (() => Children)[] = []
 
 		for (const guest of whoModel.guests) {
-			attendeeRenderers.push(() => renderGuest(guest, attrs))
+			let password: string
+			let strength: number
+
+			if (guest.type === RecipientType.EXTERNAL) {
+				const presharedPassword = whoModel.getPresharedPassword(guest.address)
+				password = presharedPassword.password
+				strength = presharedPassword.strength
+			}
+
+			guestItems.push(() => this.renderGuest(guest, attrs, password, strength))
 		}
 
 		// ownGuest is never in the guest list, but it may be identical to organizer.
 		const ownGuest = whoModel.ownGuest
 		if (ownGuest != null && ownGuest.address !== organizer?.address) {
-			attendeeRenderers.push(() => renderGuest(ownGuest, attrs))
+			guestItems.push(() => this.renderGuest(ownGuest, attrs))
 		}
 
-		const externalGuestPasswords = whoModel.isConfidential
-			? guests
-					.filter((a) => a.type === RecipientType.EXTERNAL)
-					.map((guest) => {
-						const { address } = guest
-						const { password, strength } = whoModel.getPresharedPassword(address)
-						return m(PasswordField, {
-							value: password,
-							passwordStrength: strength,
-							autocompleteAs: Autocomplete.off,
-							label: () =>
-								lang.get("passwordFor_label", {
-									"{1}": guest.address,
-								}),
-							key: address,
-							oninput: (newValue) => whoModel.setPresharedPassword(address, newValue),
-						})
-					})
-			: []
-
-		return m("", [...attendeeRenderers.map((r) => r()), externalGuestPasswords])
+		const verticalPadding = guestItems.length > 0 ? size.vpad_small : 0
+		return m(
+			Card,
+			{
+				classes: ["min-h-s flex flex-column gap-vpad-s"],
+				style: {
+					padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.vpad_small : 0)} ${px(size.vpad_small)} ${px(verticalPadding)}`,
+				},
+			},
+			[...guestItems.map((r) => r()), this.renderNoGuests(guestItems.length === 0)],
+		)
 	}
-}
 
-/**
- *
- * @param editModel the event to set the organizer on when a button in the dropdown is clicked
- * @param e
- */
-function showOrganizerDropdown(editModel: CalendarEventWhoModel, e: MouseEvent) {
-	const lazyButtons = () =>
-		editModel.possibleOrganizers.map((organizer) => {
+	private renderNoGuests(isEmpty: boolean) {
+		return isEmpty
+			? m(".flex.items-center.justify-center.min-h-s", [
+					m(IconMessageBox, {
+						message: "noEntries_msg",
+						icon: Icons.People,
+						color: theme.list_message_bg,
+					}),
+			  ])
+			: null
+	}
+
+	private renderGuestsInput(whoModel: CalendarEventWhoModel, logins: LoginController, recipientsSearch: RecipientsSearchModel): Children {
+		const guests = whoModel.guests
+		const hasExternalGuests = guests.some((a) => a.type === RecipientType.EXTERNAL)
+
+		return m(".flex.items-center.flex-grow.gap-vpad-s", [
+			m(Card, { style: { padding: "0" }, classes: ["flex-grow"] }, [
+				m(".flex.flex-grow.rel.button-height", [
+					m(GuestPicker, {
+						ariaLabel: "addGuest_label",
+						disabled: false,
+						onRecipientAdded: async (address, name, contact) => {
+							if (!(await hasPlanWithInvites(logins)) && !this.hasPlanWithInvites) {
+								if (logins.getUserController().user.accountType === AccountType.EXTERNAL) return
+								if (logins.getUserController().isGlobalAdmin()) {
+									const { getAvailablePlansWithEventInvites } = await import("../../../../common/subscription/SubscriptionUtils.js")
+									const plansWithEventInvites = await getAvailablePlansWithEventInvites()
+									if (plansWithEventInvites.length === 0) return
+									//entity event updates are too slow to call updateBusinessFeature()
+									this.hasPlanWithInvites = await showPlanUpgradeRequiredDialog(plansWithEventInvites)
+									// the user could have, but did not upgrade.
+									if (!this.hasPlanWithInvites) return
+								} else {
+									Dialog.message(() => lang.get("contactAdmin_msg"))
+								}
+							} else {
+								whoModel.addAttendee(address, contact)
+							}
+						},
+						search: recipientsSearch,
+					}),
+				]),
+			]),
+			hasExternalGuests
+				? m(
+						Card,
+						{ style: { padding: "0" } },
+						m(ToggleButton, {
+							title: "confidential_action",
+							onToggled: (_, e) => {
+								whoModel.isConfidential = !whoModel.isConfidential
+								e.stopPropagation()
+							},
+							icon: whoModel.isConfidential ? Icons.Lock : Icons.Unlock,
+							toggled: whoModel.isConfidential,
+							size: ButtonSize.Normal,
+						}),
+				  )
+				: null,
+		])
+	}
+
+	private renderAttendeeStatus(organizer: Guest, model: CalendarEventWhoModel): Children {
+		const { status } = organizer
+
+		const attendingOptions = createAttendingItems().filter((option) => option.selectable !== false)
+		const attendingStatus = attendingOptions.find((option) => option.value === status)
+
+		return m(".flex.flex-column", [
+			m(".small", { style: { lineHeight: px(size.vpad_small) } }, lang.get("attending_label")),
+			m(Select<AttendingItem, CalendarAttendeeStatus>, {
+				onchange: (option) => {
+					if (option.selectable === false) return
+					model.setOwnAttendance(option.value)
+				},
+				selected: attendingStatus,
+				disabled: false,
+				ariaLabel: lang.get("attending_label"),
+				renderOption: (option) =>
+					m(
+						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s",
+						{
+							class: option.selectable === false ? `no-hover` : "",
+							style: { color: option.value === status ? theme.content_button_selected : undefined },
+						},
+						option.name,
+					),
+				renderDisplay: (option) => m("", option.name),
+				options: stream(attendingOptions),
+				expanded: true,
+			} satisfies SelectAttributes<AttendingItem, CalendarAttendeeStatus>),
+		])
+	}
+
+	private renderOrganizer(model: CalendarEventModel, organizer: Guest | null): Children {
+		const { whoModel } = model.editModels
+
+		if (!(whoModel.possibleOrganizers.length > 0 || organizer)) {
+			console.log("Trying to access guest without organizer")
+			return null
+		}
+
+		const { address, name, status } = organizer ?? {}
+		const hasGuest = whoModel.guests.length > 0
+		const isMe = organizer?.address === whoModel.ownGuest?.address
+		const editableOrganizer = whoModel.possibleOrganizers.length > 1 && isMe
+
+		const options = whoModel.possibleOrganizers.map((organizer) => {
 			return {
-				label: () => organizer.address,
-				click: () => editModel.addAttendee(organizer.address, null),
+				name: organizer.name,
+				address: organizer.address,
+				ariaValue: organizer.address,
+				value: organizer.address,
 			}
 		})
 
-	createDropdown({ lazyButtons, width: 300 })(e, e.target as HTMLElement)
-}
+		const disabled = !editableOrganizer || !hasGuest
+		const selected = options.find((option) => option.address === address) ?? options[0]
 
-function renderOrganizer(organizer: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">): Children {
-	const { whoModel } = model.editModels
-	const { address, name, status } = organizer
-	const isMe = organizer.address === whoModel.ownGuest?.address
-	const editableOrganizer = whoModel.possibleOrganizers.length > 1 && isMe
-	const roleLabel = isMe ? `${lang.get("organizer_label")} | ${lang.get("you_label")}` : lang.get("organizer_label")
-	const statusLine = m(".small.flex.center-vertically", [renderStatusIcon(status), roleLabel])
-	const fullName = m("div.text-ellipsis", { style: { lineHeight: px(24) } }, name.length > 0 ? `${name} ${address}` : address)
-	const nameAndAddress = editableOrganizer
-		? m(".flex.flex-grow.items-center.click", { onclick: (e: MouseEvent) => showOrganizerDropdown(whoModel, e) }, [
-				fullName,
-				m(Icon, {
-					icon: BootIcons.Expand,
-					style: {
-						fill: theme.content_fg,
-					},
-				}),
-		  ])
-		: m(".flex.flex-grow.items-center", fullName)
-
-	const rightContent =
-		// this prevents us from setting our own attendance on a single instance that we're editing.
-		model.operation !== CalendarOperation.EditThis
-			? isMe
-				? m(
-						"",
-						{ style: { minWidth: "120px" } },
-						m(DropDownSelector, {
-							label: "attending_label",
-							items: createAttendingItems(),
-							selectedValue: status,
-							class: "",
-							selectionChangedHandler: (value: CalendarAttendeeStatus) => {
-								if (value == null) return
-								whoModel.setOwnAttendance(value)
-							},
-						}),
-				  )
-				: m(IconButton, {
-						title: "sendMail_alt",
-						click: async () =>
-							(await import("../../../../mail-app/contacts/view/ContactView.js")).writeMail(
-								organizer,
-								lang.get("repliedToEventInvite_msg", {
-									"{event}": model.editModels.summary.content,
-								}),
+		return m(Card, [
+			m(".flex.flex-column.gap-vpad-s", [
+				m(".flex", [
+					m(Select<OrganizerSelectItem, string>, {
+						classes: ["flex-grow"],
+						onchange: (option) => {
+							const organizer = whoModel.possibleOrganizers.find((organizer) => organizer.address === option.address)
+							if (organizer) {
+								whoModel.addAttendee(organizer.address, null)
+							}
+						},
+						selected,
+						disabled,
+						ariaLabel: lang.get("organizer_label"),
+						renderOption: (option) =>
+							m(
+								"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s",
+								{ style: { color: selected.address === option.address ? theme.content_button_selected : undefined } },
+								option.address,
 							),
-						icon: Icons.PencilSquare,
-				  })
-			: null
+						renderDisplay: (option) => m("", option.name ? `${option.name} <${option.address}>` : option.address),
+						options: stream(
+							whoModel.possibleOrganizers.map((organizer) => {
+								return {
+									name: organizer.name,
+									address: organizer.address,
+									ariaValue: organizer.address,
+									value: organizer.address,
+								}
+							}),
+						),
+						noIcon: disabled,
+						expanded: true,
+					} satisfies SelectAttributes<OrganizerSelectItem, string>),
+					model.operation !== CalendarOperation.EditThis && organizer && !isMe
+						? m(IconButton, {
+								title: "sendMail_alt",
+								click: async () =>
+									(await import("../../../../mail-app/contacts/view/ContactView.js")).writeMail(
+										organizer,
+										lang.get("repliedToEventInvite_msg", {
+											"{event}": model.editModels.summary.content,
+										}),
+									),
+								size: ButtonSize.Compact,
+								icon: Icons.PencilSquare,
+						  })
+						: null,
+				]),
+				isMe && organizer && model.operation !== CalendarOperation.EditThis ? this.renderAttendeeStatus(organizer, whoModel) : null,
+			]),
+		])
+	}
 
-	return renderAttendee(nameAndAddress, statusLine, rightContent)
-}
+	private renderSendUpdateCheckbox(whoModel: CalendarEventWhoModel): Children {
+		return !whoModel.initiallyHadOtherAttendees || !whoModel.canModifyGuests
+			? null
+			: m(
+					Card,
+					m(
+						Switch,
+						{
+							checked: whoModel.shouldSendUpdates,
+							onclick: (value) => (whoModel.shouldSendUpdates = value),
+							ariaLabel: lang.get("sendUpdates_label"),
+							disabled: false,
+							variant: "expanded",
+						},
+						lang.get("sendUpdates_label"),
+					),
+			  )
+	}
 
-function renderGuest(guest: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">): Children {
-	const { whoModel } = model.editModels
-	const { address, name, status } = guest
-	const isMe = guest.address === whoModel.ownGuest?.address
-	const roleLabel = isMe ? `${lang.get("guest_label")} | ${lang.get("you_label")}` : lang.get("guest_label")
-	const statusLine = m(".small.flex.center-vertically", [renderStatusIcon(status), roleLabel])
-	const fullName = m("div.text-ellipsis", { style: { lineHeight: px(24) } }, name.length > 0 ? `${name} ${address}` : address)
-	const nameAndAddress = m(".flex.flex-grow.items-center", fullName)
-	const rightContent = whoModel.canModifyGuests
-		? m(IconButton, {
+	private renderGuest(guest: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">, password?: string, strength?: number): Children {
+		const { whoModel } = model.editModels
+		const { address, name, status } = guest
+		const isMe = guest.address === whoModel.ownGuest?.address
+		const roleLabel = isMe ? `${lang.get("guest_label")} | ${lang.get("you_label")}` : lang.get("guest_label")
+		const renderPasswordField = whoModel.isConfidential && password != null && guest.type === RecipientType.EXTERNAL
+
+		let rightContent: Children = null
+
+		if (isMe) {
+			rightContent = m("", { style: { paddingRight: px(size.vpad_small) } }, this.renderAttendeeStatus(guest, model.editModels.whoModel))
+		} else if (whoModel.canModifyGuests) {
+			rightContent = m(IconButton, {
 				title: "remove_action",
 				icon: Icons.Cancel,
 				click: () => whoModel.removeAttendee(guest.address),
-		  })
-		: null
-	return renderAttendee(nameAndAddress, statusLine, rightContent)
-}
+			})
+		}
 
-function renderAttendee(nameAndAddress: Children, statusLine: Children, rightContent: Children): Children {
-	const spacer = m(".flex-grow")
-	return m(
-		".flex",
-		{
+		return m(".flex.flex-column.items-center", [
+			m(".flex.items-center.flex-grow.full-width", [
+				this.renderStatusIcon(status),
+				m(".flex.flex-column.flex-grow.min-width-0", [
+					m(".small", { style: { lineHeight: px(size.vpad_small) } }, roleLabel),
+					m(".text-ellipsis", name.length > 0 ? `${name} ${address}` : address),
+				]),
+				rightContent,
+			]),
+			renderPasswordField ? this.renderPasswordField(address, password, strength ?? 0, whoModel) : null,
+		])
+	}
+
+	private renderPasswordField(address: string, password: string, strength: number, whoModel: CalendarEventWhoModel): Children {
+		const label = lang.get("passwordFor_label", {
+			"{1}": address,
+		})
+		return m(".flex.flex-grow.full-width.justify-between.items-end", [
+			m(
+				".flex.flex-column.full-width",
+				{
+					style: {
+						paddingLeft: px(size.hpad_medium + size.vpad_small),
+						paddingRight: px((size.button_height - size.button_height_compact) / 2),
+					},
+				},
+				[
+					m(".small", { style: { lineHeight: px(size.vpad) } }, label),
+					m(PasswordInput, {
+						ariaLabel: label,
+						password,
+						strength,
+						oninput: (newPassword) => {
+							whoModel.setPresharedPassword(address, newPassword)
+						},
+					}),
+				],
+			),
+		])
+	}
+
+	private renderStatusIcon(status: CalendarAttendeeStatus): Children {
+		const icon = iconForAttendeeStatus[status]
+		return m(Icon, {
+			icon,
+			size: IconSize.Large,
+			class: "mr-s",
 			style: {
-				height: px(size.button_height),
-				borderBottom: "1px transparent",
-				marginTop: px(size.vpad),
+				fill: theme.content_fg,
 			},
-		},
-		[m(".flex.col.flex-grow.overflow-hidden.flex-no-grow-shrink-auto", [nameAndAddress, statusLine]), spacer, rightContent],
-	)
-}
-
-function renderStatusIcon(status: CalendarAttendeeStatus): Children {
-	const icon = iconForAttendeeStatus[status]
-	return m(Icon, {
-		icon,
-		class: "mr-s",
-		style: {
-			fill: theme.content_fg,
-		},
-	})
+		})
+	}
 }

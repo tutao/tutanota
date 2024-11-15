@@ -37,7 +37,7 @@ assertMainOrNode()
 export type ContactNames = Pick<Contact, "nickname" | "firstName" | "lastName">
 
 export function getContactDisplayName(contact: ContactNames): string {
-	if (contact.nickname != null) {
+	if (contact.nickname != null && contact.nickname !== "") {
 		return contact.nickname
 	} else {
 		return `${contact.firstName} ${contact.lastName}`.trim()

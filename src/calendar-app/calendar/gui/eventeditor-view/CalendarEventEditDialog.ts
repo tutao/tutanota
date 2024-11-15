@@ -101,7 +101,8 @@ export class EventEditorDialog {
 
 		const descriptionText = convertTextToHtml(model.editModels.description.content)
 		const descriptionEditor: HtmlEditor = new HtmlEditor()
-			.setMinHeight(300)
+			.setShowOutline(true)
+			.setMinHeight(200)
 			.setEnabled(true)
 			// We only set it once, we don't viewModel on every change, that would be slow
 			.setValue(descriptionText)

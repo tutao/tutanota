@@ -984,10 +984,10 @@ styles.registerStyle("main", () => {
 		".gap-vpad-xs": {
 			gap: px(size.vpad_xsm),
 		},
-		".gap-vpad-sm": {
+		".gap-vpad-s": {
 			gap: px(size.vpad_small),
 		},
-		".gap-vpad-sm-15": {
+		".gap-vpad-s-15": {
 			gap: px(size.vpad_small * 1.5),
 		},
 		".gap-hpad": {
@@ -2684,6 +2684,9 @@ styles.registerStyle("main", () => {
 			transition: `background-color .1s ease-out`,
 			"caret-color": theme.content_accent,
 		},
+		".child-text-editor [role='textbox']:focus-visible": {
+			outline: "medium invert color",
+		},
 		".tutaui-text-field:focus, .child-text-editor [role='textbox']:focus": {
 			"background-color": theme.button_bubble_bg,
 		},
@@ -2805,6 +2808,9 @@ styles.registerStyle("main", () => {
 		},
 		".fit-height": {
 			height: "fit-content",
+		},
+		".min-h-s": {
+			"min-height": px(size.vpad_xl * 4),
 		},
 	}
 })
