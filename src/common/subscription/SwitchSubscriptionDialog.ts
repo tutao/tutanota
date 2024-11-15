@@ -288,6 +288,8 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 					return showManageThroughAppStoreDialog()
 				}
 
+			case UnsubscribeFailureReason.LABEL_LIMIT_EXCEEDED:
+				return Dialog.message("labelLimitExceeded_msg")
 			default:
 				throw e
 		}
@@ -377,6 +379,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {
 				await handleSwitchAccountPreconditionFailed(e)
+
 				return currentPlanInfo.planType
 			}
 			throw e

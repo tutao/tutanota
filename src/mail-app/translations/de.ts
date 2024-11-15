@@ -1819,6 +1819,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"labelLimitExceeded_msg": "There are still more labels than included in the free plan. They will need to be deleted before you can downgrade."
 	}
 }
