@@ -28,7 +28,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 
 		const amPm = timeFormat === TimeFormat.TWELVE_HOURS
 
-		return m(".flex.gap-vpad-sm", [
+		return m(".flex.gap-vpad-s", [
 			m(Icon, {
 				icon: Icons.Time,
 				style: {
@@ -37,7 +37,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 				title: lang.get("timeSection_label"),
 				size: IconSize.Medium,
 			}),
-			m(".flex.col.flex-grow.gap-vpad-sm-15", [
+			m(".flex.col.flex-grow.gap-vpad-s-15", [
 				m(
 					Switch,
 					{

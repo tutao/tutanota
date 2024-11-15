@@ -60,7 +60,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			"li.flex.gap-vpad-sm.cursor-pointer.full-width",
+			"li.flex.gap-vpad-s.cursor-pointer.full-width",
 			{
 				class: optionClass ?? "",
 				onclick: () => {

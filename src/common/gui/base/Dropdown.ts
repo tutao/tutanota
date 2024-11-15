@@ -501,7 +501,13 @@ export function attachDropdown({
 
 export const DROPDOWN_MARGIN = 4
 
-export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number): Promise<unknown> {
+export function showDropdown(
+	origin: PosRect,
+	domDropdown: HTMLElement,
+	contentHeight: number,
+	contentWidth: number,
+	position?: "top" | "bottom",
+): Promise<unknown> {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
 	// |      |-------|   |    |  |-------|       |    |  |-----------^   |    |  ^-----------|   |
@@ -529,7 +535,8 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 	let transformOrigin = ""
 	let maxHeight
 
-	if (lowerSpace > upperSpace) {
+	const showBelow = (!position && lowerSpace > upperSpace) || position === "bottom"
+	if (showBelow) {
 		// element is in the upper part of the screen, dropdown should be below the element
 		transformOrigin += "top"
 		domDropdown.style.top = bottomEdgeOfElement + "px"
