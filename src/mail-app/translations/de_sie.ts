@@ -1146,6 +1146,7 @@ export default {
 		"passwordWrongInvalid_msg": "Das Passwort ist falsch.",
 		"password_label": "Passwort",
 		"paste_action": "Einfügen",
+		"pasteWithoutFormatting_action": "Einfügen ohne Formatierung",
 		"pathAlreadyExists_msg": "Dieser Pfad existiert bereits.",
 		"payCardContactBankError_msg": "Leider wurde die Zahlung von Ihrer Bank abgelehnt. Bitte prüfen Sie, dass die Kreditkartendaten korrekt sind, oder kontaktieren Sie Ihre Bank.",
 		"payCardExpiredError_msg": "Leider ist die Kreditkarte abgelaufen. Bitte aktualisieren Sie Ihre Zahlungsdaten.",
