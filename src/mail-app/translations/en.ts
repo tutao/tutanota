@@ -1816,6 +1816,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"labelLimitExceeded_msg": "There are still more labels than included in the free plan. They will need to be deleted before you can downgrade."
+		"labelLimitExceeded_msg": "There are still more labels than included in the free plan. They will need to be deleted before you can downgrade.",
+		"confirmDeleteLabel_msg": "Are you sure that you want to delete the label \"{1}\"?"
 	}
 }

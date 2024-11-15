@@ -1820,6 +1820,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"labelLimitExceeded_msg": "There are still more labels than included in the free plan. They will need to be deleted before you can downgrade."
+		"labelLimitExceeded_msg": "There are still more labels than included in the free plan. They will need to be deleted before you can downgrade.",
+		"confirmDeleteLabel_msg": "Möchtest du wirklich das Label \"{1}\" löschen?"
 	}
 }
