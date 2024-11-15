@@ -98,7 +98,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				style: {
 					padding: `${size.vpad}px ${size.vpad_small}px`,
 				},
-				classes: ["flex", "col", "gap-vpad-sm"],
+				classes: ["flex", "col", "gap-vpad-s"],
 			},
 			[
 				m("label", lang.get("calendarRepeatStopCondition_label")),
@@ -128,7 +128,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				style: {
 					padding: `${size.vpad}px ${size.vpad_small}px`,
 				},
-				classes: ["flex", "col", "gap-vpad-sm"],
+				classes: ["flex", "col", "gap-vpad-s"],
 			},
 			[
 				m("label.flex.col", [

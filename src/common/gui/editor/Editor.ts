@@ -26,6 +26,7 @@ export class Editor implements ImageHandler, Component {
 	squire: SquireEditor | null
 	initialized = defer<void>()
 	domElement: HTMLElement | null = null
+	private showOutline = false
 	private enabled = true
 	private readOnly = false
 	private createsLists = true
@@ -85,12 +86,12 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	view(): Children {
-		return m(".hide-outline.selectable", {
+		return m(".selectable", {
 			role: "textbox",
 			"aria-multiline": "true",
 			tabindex: TabIndex.Default,
 			oncreate: (vnode) => this.initSquire(vnode.dom as HTMLElement),
-			class: "flex-grow",
+			class: `flex-grow ${this.showOutline ? "" : "hide-outline"}`,
 			style: this.staticLineAmount
 				? {
 						"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
@@ -120,6 +121,10 @@ export class Editor implements ImageHandler, Component {
 	setMinHeight(minHeight: number): Editor {
 		this.minHeight = minHeight
 		return this
+	}
+
+	setShowOutline(show: boolean) {
+		this.showOutline = show
 	}
 
 	/**

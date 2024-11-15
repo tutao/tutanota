@@ -214,7 +214,7 @@ interface ParsedInput {
  * Parse a list of valid mail addresses separated by either a semicolon or a comma.
  * Invalid addresses will be returned as a separate list
  */
-function parsePastedInput(text: string): ParsedInput {
+export function parsePastedInput(text: string): ParsedInput {
 	const separator = text.indexOf(";") !== -1 ? ";" : ","
 	const textParts = text.split(separator).map((part) => part.trim())
 
@@ -249,7 +249,7 @@ function parsePastedInput(text: string): ParsedInput {
  * invalid input gets returned in `remainingText`, `errors` is always empty
  * @param text
  */
-function parseTypedInput(text: string): ParsedInput {
+export function parseTypedInput(text: string): ParsedInput {
 	const lastCharacter = text.slice(-1)
 
 	// on semicolon, comman or space we want to try to resolve the input text
