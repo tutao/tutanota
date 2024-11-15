@@ -202,9 +202,8 @@ export class PriceAndConfigProvider {
 	private getYearlySubscriptionPrice(subscription: PlanType, upgrade: UpgradePriceType): number {
 		const prices = this.getPlanPricesForPlan(subscription)
 		const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
-		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice ? Number(PaymentInterval.Yearly) : 10
 		const discount = upgrade === UpgradePriceType.PlanActualPrice ? Number(prices.firstYearDiscount) : 0
-		return monthlyPrice * monthsFactor - discount
+		return monthlyPrice * 10 - discount
 	}
 
 	private getMonthlySubscriptionPrice(subscription: PlanType, upgrade: UpgradePriceType): number {

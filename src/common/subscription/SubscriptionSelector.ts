@@ -223,7 +223,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		renderCategoryTitle: boolean,
 		planType: AvailablePlanType,
 		featureExpander: Record<ExpanderTargets, Children>,
-		isCyberMonday: boolean,
+		isCyberMonday: boolean, // change to isDiscountForAnyPlanAvailable when removing the cyber monday implementation
 	): Children {
 		return m(
 			"",
@@ -253,32 +253,52 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 			return upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
 		})()
-		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanActualPrice)
-		const referencePrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanReferencePrice)
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 
-		let price: string
+		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanActualPrice)
+
+		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
 		if (isIOSApp() && !client.isCalendarApp()) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
-				switch (interval) {
-					case PaymentInterval.Monthly:
-						price = prices.monthlyPerMonth
-						break
-					case PaymentInterval.Yearly:
-						price = prices.yearlyPerMonth
-						referencePriceStr = prices.monthlyPerMonth
-						break
+				if (isCyberMonday && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
+					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
+					priceStr = revolutionaryPrice?.yearlyPerMonth ?? NBSP
+					// if there is a discount for this plan we show the original price as reference
+					referencePriceStr = prices?.yearlyPerMonth
+				} else {
+					switch (interval) {
+						case PaymentInterval.Monthly:
+							priceStr = prices.monthlyPerMonth
+							break
+						case PaymentInterval.Yearly:
+							priceStr = prices.yearlyPerMonth
+							if (!isCyberMonday) {
+								// if there is no discount for any plan then we show the monthly price as reference
+								referencePriceStr = prices.monthlyPerMonth
+							}
+							break
+					}
 				}
 			} else {
-				price = NBSP
+				priceStr = NBSP
 				referencePriceStr = NBSP
 			}
 		} else {
-			price = formatMonthlyPrice(subscriptionPrice, interval)
+			const referencePrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanReferencePrice)
+			priceStr = formatMonthlyPrice(subscriptionPrice, interval)
 			if (referencePrice > subscriptionPrice) {
+				// if there is a discount for this plan we show the original price as reference
 				referencePriceStr = formatMonthlyPrice(referencePrice, interval)
+			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !isCyberMonday) {
+				// if there is no discount for any plan then we show the monthly price as reference
+				const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(
+					PaymentInterval.Monthly,
+					targetSubscription,
+					UpgradePriceType.PlanActualPrice,
+				)
+				referencePriceStr = formatMonthlyPrice(monthlyReferencePrice, PaymentInterval.Monthly)
 			}
 		}
 
@@ -291,7 +311,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				selectorAttrs.currentPlanType === targetSubscription
 					? getActiveSubscriptionActionButtonReplacement()
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
-			price,
+			price: priceStr,
 			referencePrice: referencePriceStr,
 			priceHint: () => `${getPriceHint(subscriptionPrice, interval, multiuser)}${asteriskOrEmptyString}`,
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
