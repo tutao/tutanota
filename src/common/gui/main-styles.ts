@@ -8,6 +8,7 @@ import { getContentButtonIconBackground, getElevatedBackground, getNavigationMen
 import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -35,6 +36,7 @@ const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
 
 const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
+	const lightTheme = locator.themeController.getBaseTheme("light")
 	return {
 		"#link-tt": isElectronClient()
 			? {
@@ -2518,6 +2520,8 @@ styles.registerStyle("main", () => {
 			"html, body": {
 				position: "initial",
 				overflow: "visible !important",
+				color: lightTheme.content_fg,
+				"background-color": `${lightTheme.content_bg} !important`,
 			},
 			// overwrite position "fixed" otherwise only one page will be printed.
 			".header-nav": {
