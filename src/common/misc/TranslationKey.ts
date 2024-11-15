@@ -1802,3 +1802,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "editLabel_action"
 	| "importantLabel_label"
+	| "labelLimitExceeded_msg"
