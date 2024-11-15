@@ -1142,6 +1142,7 @@ export default {
 		"passwordWrongInvalid_msg": "Your password is wrong.",
 		"password_label": "Password",
 		"paste_action": "Paste",
+		"pasteWithoutFormatting_action": "Paste without formatting",
 		"pathAlreadyExists_msg": "This path already exists.",
 		"payCardContactBankError_msg": "Sorry, the payment transaction was rejected by your bank. Please make sure that your credit card details are correct or contact your bank.",
 		"payCardExpiredError_msg": "Sorry, the credit card has expired. Please update your payment details.",

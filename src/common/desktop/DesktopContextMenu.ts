@@ -1,6 +1,7 @@
 import type { ContextMenuParams, Menu, WebContents } from "electron"
 import { lang } from "../misc/LanguageViewModel"
 import { WindowManager } from "./DesktopWindowManager.js"
+import { client } from "../misc/ClientDetector.js"
 
 type Electron = typeof Electron.CrossProcessExports
 
@@ -14,6 +15,12 @@ export class DesktopContextMenu {
 			label: lang.get("paste_action"),
 			accelerator: "CmdOrCtrl+V",
 			click: (_, bw) => this.getWebContents(bw)?.paste(),
+			enabled: editFlags.canPaste,
+		})
+		const pasteWithoutFormattingItem = new this.electron.MenuItem({
+			label: lang.get("pasteWithoutFormatting_action"),
+			accelerator: client.isMacOS ? "Cmd+Option+Shift+V" : "Ctrl+Shift+V",
+			click: (_, bw) => this.getWebContents(bw)?.pasteAndMatchStyle(),
 			enabled: editFlags.canPaste,
 		})
 		const copyItem = new this.electron.MenuItem({
@@ -53,6 +60,7 @@ export class DesktopContextMenu {
 		menu.append(cutItem)
 		menu.append(copyLinkItem)
 		menu.append(pasteItem)
+		menu.append(pasteWithoutFormattingItem)
 		menu.append(
 			new this.electron.MenuItem({
 				type: "separator",
