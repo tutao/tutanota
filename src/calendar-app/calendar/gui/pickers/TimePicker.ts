@@ -8,6 +8,7 @@ import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { isApp } from "../../../../common/api/common/Env.js"
 import { px, size } from "../../../../common/gui/size.js"
+import stream from "mithril/stream"
 
 export type TimePickerAttrs = {
 	time: Time | null
@@ -121,7 +122,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		}))
 
 		return m(Select<TimeOption, string>, {
-			onChange: (newValue) => {
+			onchange: (newValue) => {
 				if (this.value === newValue.value) {
 					return
 				}
@@ -130,13 +131,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				this.onSelected(attrs)
 				m.redraw.sync()
 			},
-			onClose: () => {
+			onclose: () => {
 				this.isExpanded = false
 			},
 			selected: { value: this.value, name: this.value, ariaValue: this.value },
 			ariaLabel: attrs.ariaLabel,
 			disabled: attrs.disabled,
-			options,
+			options: stream(options),
 			noIcon: true,
 			expanded: true,
 			tabIndex: Number(TabIndex.Programmatic),

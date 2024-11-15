@@ -347,6 +347,8 @@ export class CalendarEventWhoModel {
 			// if there are other attendees and we have an organizer that's us, we must use that organizer
 			// because changing the organizer address after the attendees were invited is suboptimal.
 			return [this._organizer.address]
+		} else if (this.eventType === EventType.OWN) {
+			return this.ownMailAddresses
 		} else {
 			// something is wrong.
 			throw new ProgrammingError("could not figure out which addresses are a valid organizer for this event.")

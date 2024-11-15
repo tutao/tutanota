@@ -1,15 +1,18 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { modal, ModalComponent } from "./Modal.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { size } from "../size.js"
+import { px, size } from "../size.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { focusNext, focusPrevious, isKeyPressed, Shortcut } from "../../misc/KeyManager.js"
 import { type PosRect, showDropdown } from "./Dropdown.js"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 import { Icon, IconSize } from "./Icon.js"
 import { ButtonColor, getColors } from "./Button.js"
 import { Icons } from "./icons/Icons.js"
 import { AriaRole } from "../AriaUtils.js"
+import Stream from "mithril/stream"
+import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils.js"
+import { theme } from "../theme.js"
 
 export interface SelectOption<T> {
 	// Here we declare everything that is important to use at the select option
@@ -18,8 +21,8 @@ export interface SelectOption<T> {
 }
 
 export interface SelectAttributes<U extends SelectOption<T>, T> {
-	onChange: (newValue: U) => void
-	options: Array<U>
+	onchange: (newValue: U) => void
+	options: Stream<Array<U>>
 	/**
 	 * This attribute is responsible to render the options inside the dropdown.
 	 * @example
@@ -46,7 +49,7 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	id?: string
 	classes?: Array<string>
 	selected?: U
-	placeholder?: TranslationKey
+	placeholder?: Children
 	expanded?: boolean
 	disabled?: boolean
 	noIcon?: boolean
@@ -61,10 +64,16 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	iconColor?: string
 	keepFocus?: boolean
 	tabIndex?: number
-	onClose?: () => void
+	onclose?: () => void
+	oncreate?: (...args: any[]) => unknown
+	dropdownPosition?: "top" | "bottom"
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButtonElement, "style"> & SelectAttributes<SelectOption<unknown>, unknown>>
+
+export interface SelectState {
+	dropdownContainer?: OptionListContainer
+}
 
 /**
  * Select component
@@ -96,10 +105,12 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLButto
  */
 export class Select<U extends SelectOption<T>, T> implements ClassComponent<SelectAttributes<U, T>> {
 	private isExpanded: boolean = false
+	private dropdownContainer?: OptionListContainer
+	private key: number = 0
 
 	view({
 		attrs: {
-			onChange,
+			onchange,
 			options,
 			renderOption,
 			renderDisplay,
@@ -114,17 +125,27 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 			noIcon,
 			keepFocus,
 			tabIndex,
-			onClose,
+			onclose,
+			dropdownPosition,
 		},
-	}: Vnode<SelectAttributes<U, T>>) {
+	}: Vnode<SelectAttributes<U, T>, this>) {
 		return m(
 			"button.tutaui-select-trigger.clickable",
 			{
 				id,
 				class: this.resolveClasses(classes, disabled, expanded),
 				onclick: (event: MouseEvent) =>
-					event.target &&
-					this.renderDropdown(options, event.target as HTMLElement, onChange, renderOption, keepFocus ?? false, selected?.value, onClose),
+					event.currentTarget &&
+					this.renderDropdown(
+						options,
+						event.currentTarget as HTMLElement,
+						onchange,
+						renderOption,
+						keepFocus ?? false,
+						selected?.value,
+						onclose,
+						dropdownPosition,
+					),
 				role: AriaRole.Combobox,
 				ariaLabel,
 				disabled: disabled,
@@ -164,30 +185,38 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		return classList.join(" ")
 	}
 
-	private renderPlaceholder(placeholder?: TranslationKey): Children {
-		return m("span.placeholder", lang.get(placeholder ?? "noSelection_msg"))
+	private renderPlaceholder(placeholder?: Children): Children {
+		if (placeholder == null || typeof placeholder === "string") {
+			return m("span.placeholder", placeholder ?? lang.get("noSelection_msg"))
+		}
+
+		return placeholder
 	}
 
 	private renderDropdown(
-		options: Array<U>,
+		options: Stream<Array<U>>,
 		dom: HTMLElement,
 		onSelect: (option: U) => void,
 		renderOptions: (option: U) => Children,
 		keepFocus: boolean,
 		selected?: T,
 		onClose?: () => void,
+		dropdownPosition?: "top" | "bottom",
 	) {
 		const optionListContainer: OptionListContainer = new OptionListContainer(
-			options.map((option) =>
-				m.fragment(
+			options,
+			(option: U) => {
+				return m.fragment(
 					{
+						key: ++this.key,
 						oncreate: ({ dom }: VnodeDOM<U>) => this.setupOption(dom as HTMLElement, onSelect, option, optionListContainer, selected),
 					},
 					[renderOptions(option)],
-				),
-			),
+				)
+			},
 			dom.getBoundingClientRect().width,
 			keepFocus,
+			dropdownPosition,
 		)
 
 		optionListContainer.onClose = () => {
@@ -199,6 +228,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		optionListContainer.setOrigin(dom.getBoundingClientRect())
 
 		this.isExpanded = true
+		this.dropdownContainer = optionListContainer
 		modal.displayUnique(optionListContainer, false)
 	}
 
@@ -245,7 +275,13 @@ class OptionListContainer implements ModalComponent {
 	private maxHeight: number | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 
-	constructor(private readonly children: Children, width: number, keepFocus: boolean) {
+	constructor(
+		private readonly items: Stream<Array<unknown>>,
+		private readonly buildFunction: (option: unknown) => Children,
+		width: number,
+		keepFocus: boolean,
+		dropdownPosition?: "top" | "bottom",
+	) {
 		this.width = width
 		this.shortcuts = this.buildShortcuts
 
@@ -280,7 +316,7 @@ class OptionListContainer implements ModalComponent {
 									// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
 									// show the dropdown.
 									// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
-									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
+									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width, dropdownPosition).then(() => {
 										const selectedOption = vnode.dom.querySelector("[aria-selected='true']") as HTMLElement | null
 										if (selectedOption && !keepFocus) {
 											selectedOption.focus()
@@ -289,6 +325,8 @@ class OptionListContainer implements ModalComponent {
 										}
 									})
 								}
+							} else {
+								this.updateDropdownSize(vnode)
 							}
 						},
 						onscroll: (ev: EventRedraw<Event>) => {
@@ -298,10 +336,30 @@ class OptionListContainer implements ModalComponent {
 								this.domContents != null && target.scrollTop < 0 && target.scrollTop + this.domContents.offsetHeight > target.scrollHeight
 						},
 					},
-					this.children,
+					this.items().length === 0 ? this.renderNoItem() : this.items().map((item) => this.buildFunction(item)),
 				),
 			)
 		}
+	}
+
+	private updateDropdownSize(vnode: VnodeDOM<HTMLElement>) {
+		if (!(this.origin && this.domDropdown)) {
+			return
+		}
+
+		const upperSpace = this.origin.top - getSafeAreaInsetTop()
+		const lowerSpace = window.innerHeight - this.origin.bottom - getSafeAreaInsetBottom()
+
+		const children = Array.from(vnode.dom.children) as Array<HTMLElement>
+		const contentHeight = Math.min(400 + size.vpad, children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad)
+
+		this.maxHeight = lowerSpace > upperSpace ? Math.min(contentHeight, lowerSpace) : Math.min(contentHeight, upperSpace)
+
+		this.domDropdown.style.height = px(this.maxHeight)
+	}
+
+	private renderNoItem(): Children {
+		return m("span.placeholder.text-center", { color: theme.list_message_bg }, lang.get("noEntries_msg"))
 	}
 
 	backgroundClick = (e: MouseEvent) => {

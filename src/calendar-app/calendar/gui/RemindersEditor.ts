@@ -13,6 +13,8 @@ import { Select, SelectAttributes, SelectOption } from "../../../common/gui/base
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { ButtonColor, getColors } from "../../../common/gui/base/Button.js"
+import stream from "mithril/stream"
+import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 
 export type RemindersEditorAttrs = {
 	addAlarm: (alarm: AlarmInterval) => unknown
@@ -123,9 +125,9 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			ariaValue: lang.get("addReminder_label"),
 		}
 
-		return m("ul.unstyled-list.flex.col.flex-grow.gap-vpad-sm", [
+		return m("ul.unstyled-list.flex.col.flex-grow.gap-vpad-s", [
 			alarms.map((alarm) =>
-				m("li.flex.justify-between.flew-grow.items-center.gap-vpad-sm", [
+				m("li.flex.justify-between.flew-grow.items-center.gap-vpad-s", [
 					m("span.flex.justify-between", humanDescriptionForAlarmInterval(alarm, lang.languageTag)),
 					m(
 						BaseButton,
@@ -150,17 +152,20 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 				m(Select<RemindersSelectOption, AlarmInterval>, {
 					ariaLabel: lang.get("calendarReminderIntervalValue_label"),
 					selected: defaultSelected,
-					options: alarmOptions,
+					options: stream(alarmOptions),
 					renderOption: (option) => this.renderReminderOptions(option, false, false),
 					renderDisplay: (option) => this.renderReminderOptions(option, alarms.length > 0, true),
-					onChange: (newValue) => {
+					onchange: (newValue) => {
 						if (newValue.value.value === -1) {
-							return this.showCustomReminderIntervalDialog((value, unit) => {
-								addNewAlarm({
-									value,
-									unit,
+							// timeout needed to prevent the custom interval dialog to be closed by the key event triggered inside the select component
+							return setTimeout(() => {
+								this.showCustomReminderIntervalDialog((value, unit) => {
+									addNewAlarm({
+										value,
+										unit,
+									})
 								})
-							})
+							}, 0)
 						}
 						addAlarm(newValue.value)
 					},
@@ -176,7 +181,8 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 		return m(
 			"button.items-center.flex-grow",
 			{
-				class: `${isDisplay ? "gap-vpad-sm flex" : "state-bg button-content dropdown-button pt-s pb-s"}`,
+				tabIndex: isDisplay ? TabIndex.Programmatic : undefined,
+				class: `${isDisplay ? "gap-vpad-s flex" : "state-bg button-content dropdown-button pt-s pb-s"}`,
 			},
 			[
 				showIcon

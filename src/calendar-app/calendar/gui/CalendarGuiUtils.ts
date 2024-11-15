@@ -80,6 +80,7 @@ import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreview
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
+import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
@@ -488,23 +489,33 @@ export const createAlarmIntervalItems = (locale: string): SelectorItemList<Alarm
 			name: humanDescriptionForAlarmInterval(value, locale),
 		}
 	})
-export const createAttendingItems = (): SelectorItemList<CalendarAttendeeStatus> => [
+
+export interface AttendingItem extends SelectOption<CalendarAttendeeStatus> {
+	name: string
+	selectable?: boolean
+}
+
+export const createAttendingItems = (): AttendingItem[] => [
 	{
 		name: lang.get("yes_label"),
 		value: CalendarAttendeeStatus.ACCEPTED,
+		ariaValue: lang.get("yes_label"),
 	},
 	{
 		name: lang.get("maybe_label"),
 		value: CalendarAttendeeStatus.TENTATIVE,
+		ariaValue: lang.get("maybe_label"),
 	},
 	{
 		name: lang.get("no_label"),
 		value: CalendarAttendeeStatus.DECLINED,
+		ariaValue: lang.get("no_label"),
 	},
 	{
 		name: lang.get("pending_label"),
 		value: CalendarAttendeeStatus.NEEDS_ACTION,
 		selectable: false,
+		ariaValue: lang.get("pending_label"),
 	},
 ]
 

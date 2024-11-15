@@ -222,6 +222,11 @@ export class HtmlEditor implements Component {
 		return this
 	}
 
+	setShowOutline(show: boolean) {
+		this.editor.setShowOutline(show)
+		return this
+	}
+
 	isActive(): boolean {
 		return this.active
 	}
