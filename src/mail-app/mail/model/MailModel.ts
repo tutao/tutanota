@@ -43,7 +43,7 @@ export class MailModel {
 	/**
 	 * map from mailbox folders list to folder system
 	 */
-	readonly folders: Stream<Map<Id, FolderSystem>> = stream()
+	readonly folders: Stream<Map<Id, FolderSystem>> = stream(new Map())
 
 	constructor(
 		private readonly notifications: Notifications,
