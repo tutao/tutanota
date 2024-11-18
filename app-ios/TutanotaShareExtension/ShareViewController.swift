@@ -100,8 +100,8 @@ import WebKit
 		var responder: UIResponder? = self
 		while responder != nil {
 			if let application = responder as? UIApplication {
-				let result = application.perform(#selector(openURL(_:)), with: url)
-				return result != nil
+				application.open(url)
+				return true
 			}
 			responder = responder?.next
 		}
