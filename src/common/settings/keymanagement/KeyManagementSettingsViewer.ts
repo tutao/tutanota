@@ -92,8 +92,8 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		return m("", [
 			m(".fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("keyManagement.publicKeyFingerprint_label")),
-				m(DropDownSelector, fingerprintRenderDropdownAttrs),
 
+				m(DropDownSelector, fingerprintRenderDropdownAttrs),
 				renderChosenVerificationMethod(selfFingerprint),
 
 				m(".h4.mt-l", lang.get("keyManagement.verificationPool_label")),
@@ -107,7 +107,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					}),
 				]),
 
-				m("", ...addressRows),
+				...addressRows,
 			]),
 		])
 	}
@@ -124,8 +124,6 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
-		console.log("[_showVerificationDialog]")
-
 		const model = new KeyVerificationProcessModel()
 		const dialog = new KeyVerificationProcessDialog(this.keyVerificationFacade, model, () => parent.reload())
 		dialog.show()
