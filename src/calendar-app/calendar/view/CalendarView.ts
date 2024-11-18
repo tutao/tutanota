@@ -76,13 +76,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
-import {
-	CalendarViewType,
-	getEventWithDefaultTimes,
-	getNextHalfHour,
-	serializeAlarmInterval,
-	setNextHalfHour,
-} from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { CalendarViewType, getEventWithDefaultTimes, serializeAlarmInterval, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -152,7 +146,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						button: styles.isDesktopLayout()
 							? {
 									label: "newEvent_action",
-									click: () => this.createNewEventDialog(getNextHalfHour()),
+									click: () => this.createNewEventDialog(),
 							  }
 							: null,
 						content: [
