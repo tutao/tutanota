@@ -50,6 +50,7 @@
 		"dompurify": "3.2.3",
 		"electron": "33.3.0",
 		"electron-updater": "6.3.4",
+		"jsqr": "1.4.0",
 		"jszip": "3.10.1",
 		"linkify-html": "4.1.3",
 		"linkifyjs": "4.1.3",
