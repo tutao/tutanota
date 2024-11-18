@@ -114,7 +114,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			country: "RU",
 			subTotal: "30.00",
 			grandTotal: "30.00",
-			vatType: VatType.NO_VAT_REVERSE_CHARGE,
+			vatType: VatType.NO_VAT_CHARGE_TUTAO, // Needs fix @arm, @jug, @jop
 			vatRate: "0",
 			vat: "0",
 			vatIdNumber: "RU1234567891",

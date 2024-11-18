@@ -175,7 +175,8 @@ export class PdfInvoiceGenerator {
 			"",
 			"",
 			InvoiceTexts[this.languageCode].grandTotal,
-			this.formatInvoiceCurrency(this.invoice.grandTotal),
+			// in case of NO_VAT_CHARGE_TUTAO we must not show the VAT in the invoice, but we pay the taxes ourselves, so they need to be existing on the invoice
+			this.formatInvoiceCurrency(this.invoice.vatType == VatType.NO_VAT_CHARGE_TUTAO ? this.invoice.subTotal : this.invoice.grandTotal),
 		])
 	}
 
@@ -191,7 +192,6 @@ export class PdfInvoiceGenerator {
 			case VatType.VAT_INCLUDED_SHOWN:
 				break
 			case VatType.NO_VAT:
-			case VatType.NO_VAT_REVERSE_CHARGE:
 				if (this.invoice.vatIdNumber != null) {
 					this.doc
 						.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber1)
@@ -204,6 +204,19 @@ export class PdfInvoiceGenerator {
 						.changeFont(PDF_FONTS.REGULAR, 11)
 				} else {
 					this.doc.addText(InvoiceTexts[this.languageCode].netPricesNoVatInGermany)
+				}
+				break
+			case VatType.NO_VAT_CHARGE_TUTAO:
+				this.doc
+					.addText(InvoiceTexts[this.languageCode].reverseChargeAffiliate)
+					.addLineBreak()
+					.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber2)
+				if (this.invoice.vatIdNumber != null) {
+					this.doc
+						.addLineBreak()
+						.addText(`${InvoiceTexts[this.languageCode].yourVatId} `)
+						.changeFont(PDF_FONTS.BOLD, 11)
+						.addText(`${this.invoice.vatIdNumber}`)
 				}
 				break
 			case VatType.VAT_INCLUDED_HIDDEN:
@@ -280,7 +293,8 @@ export class PdfInvoiceGenerator {
 		if (
 			this.invoice.paymentMethod === PaymentMethod.INVOICE &&
 			this.invoice.vatIdNumber != null &&
-			(this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_REVERSE_CHARGE)
+			// Needs fix @arm, @jug, @jop
+			(this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO)
 		) {
 			// In these scenarios, there will be a lot of text after the table summary, so few rows can render
 			return 4

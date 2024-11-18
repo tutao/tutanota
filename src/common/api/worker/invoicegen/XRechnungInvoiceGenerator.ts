@@ -19,7 +19,7 @@ const VatTypeCategoryCodes: Record<VatType, string> = Object.freeze({
 	[VatType.ADD_VAT]: "S",
 	[VatType.VAT_INCLUDED_SHOWN]: "S",
 	[VatType.VAT_INCLUDED_HIDDEN]: "S",
-	[VatType.NO_VAT_REVERSE_CHARGE]: "AE",
+	[VatType.NO_VAT_CHARGE_TUTAO]: "AE",
 })
 
 /**
@@ -207,7 +207,8 @@ export class XRechnungInvoiceGenerator {
 	 * @private
 	 */
 	private resolveTaxExemptionReason(): string {
-		if (this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_REVERSE_CHARGE) {
+		// Needs fix @arm, @jug, @jop
+		if (this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO) {
 			return `<cbc:TaxExemptionReason>Umkehrung der Steuerschuldnerschaft</cbc:TaxExemptionReason>`
 		}
 		return ""

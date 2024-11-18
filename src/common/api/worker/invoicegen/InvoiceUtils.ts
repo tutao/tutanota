@@ -5,7 +5,7 @@ export const enum VatType {
 	ADD_VAT = "1",
 	VAT_INCLUDED_SHOWN = "2",
 	VAT_INCLUDED_HIDDEN = "3",
-	NO_VAT_REVERSE_CHARGE = "4",
+	NO_VAT_CHARGE_TUTAO = "4",
 }
 
 export const enum InvoiceType {
