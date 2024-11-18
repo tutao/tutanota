@@ -34,6 +34,7 @@ export default {
 		yourVatId: "Your VAT identification number:",
 		netPricesNoVatInGermany: "All prices are net prices and not subject to value added tax in Germany.",
 		noVatInGermany: "Prices are not subject to value added tax in Germany.",
+		reverseChargeAffiliate: "All prices are net prices. We are liable for VAT under the reverse charge mechanism",
 
 		paymentInvoiceDue1: "The payment is due 7 days after the invoice date without any deduction. Please",
 		paymentInvoiceDue2: "transfer the grand total with reference to the invoice number to our account:",
@@ -102,6 +103,7 @@ export default {
 		yourVatId: "Ihre Umsatzsteuer-Identifikationsnummer:",
 		netPricesNoVatInGermany: "Alle Beträge sind netto und werden nicht in Deutschland versteuert.",
 		noVatInGermany: "Beträge werden nicht in Deutschland versteuert.",
+		reverseChargeAffiliate: "Alle Beträge sind netto. Die Steuerschuldnerschaft geht auf uns als Leistungsempfänger über.",
 
 		quantity: "Menge",
 		item: "Item",
