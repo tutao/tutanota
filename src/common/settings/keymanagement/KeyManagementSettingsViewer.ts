@@ -15,18 +15,21 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDown
 import { KeyVerificationMethodOptions, KeyVerificationMethodType } from "../../api/common/TutanotaConstants"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
+	mailAddress: string | null
 	publicKeyHash: string | null
 	verificationPool: Map<MailAddress, KeyVerificationDetails>
 	selectedFingerprintRenderMethod: KeyVerificationMethodType = KeyVerificationMethodType.text
 
 	constructor(private readonly keyVerificationFacade: KeyVerificationFacade, private readonly userController: UserController) {
+		this.mailAddress = null
 		this.publicKeyHash = null
 		this.verificationPool = new Map<MailAddress, KeyVerificationDetails>()
 		this.view = this.view.bind(this)
 	}
 
 	async init() {
-		this.publicKeyHash = await this.keyVerificationFacade.getPublicKeyHashFromServer(assertNotNull(this.userController.userGroupInfo.mailAddress))
+		this.mailAddress = assertNotNull(this.userController.userGroupInfo.mailAddress)
+		this.publicKeyHash = await this.keyVerificationFacade.getPublicKeyHashFromServer(this.mailAddress)
 		this.verificationPool = await this.keyVerificationFacade.getPool()
 
 		m.redraw()
@@ -49,6 +52,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const obj: KeyManagementSettingsViewer = this
 
+		const selfMailAddress = assertNotNull(this.mailAddress)
 		const selfFingerprint = assertNotNull(this.publicKeyHash)
 
 		const addressRows = Array.from(this.verificationPool.entries()).map(([mailAddress, details]: [string, KeyVerificationDetails]) => {
@@ -79,7 +83,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			dropdownWidth: 300,
 		}
 
-		let renderChosenVerificationMethod: (selfFingerprint: string) => Children
+		let renderChosenVerificationMethod: (selfMailAddress: string, selfFingerprint: string) => Children
 		if (this.selectedFingerprintRenderMethod === KeyVerificationMethodType.text) {
 			renderChosenVerificationMethod = this.renderForTextMethod.bind(this)
 		} else if (this.selectedFingerprintRenderMethod === KeyVerificationMethodType.qr) {
@@ -94,7 +98,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				m(".h4.mt-l", lang.get("keyManagement.publicKeyFingerprint_label")),
 
 				m(DropDownSelector, fingerprintRenderDropdownAttrs),
-				renderChosenVerificationMethod(selfFingerprint),
+				renderChosenVerificationMethod(selfMailAddress, selfFingerprint),
 
 				m(".h4.mt-l", lang.get("keyManagement.verificationPool_label")),
 				m(".full-width.flex-space-between.items-center.mb-s", [
@@ -112,15 +116,15 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	private renderForTextMethod(selfFingerprint: string): Children {
+	private renderForTextMethod(selfMailAddress: string, selfFingerprint: string): Children {
 		return [
 			m("p", [m(".b.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
 			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintTextInfo_msg")),
 		]
 	}
 
-	private renderForQrMethod(selfFingerprint: string): Children {
-		return [m("p", [m.trust(renderFingerprintAsQrCode(selfFingerprint))]), m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg"))]
+	private renderForQrMethod(selfMailAddress: string, selfFingerprint: string): Children {
+		return [m("p", [m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))]), m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg"))]
 	}
 
 	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
