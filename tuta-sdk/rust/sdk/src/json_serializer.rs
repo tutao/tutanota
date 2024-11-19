@@ -55,7 +55,7 @@ impl JsonSerializer {
 		mut raw_entity: RawEntity,
 	) -> Result<ParsedEntity, InstanceMapperError> {
 		let type_model = self.get_type_model(type_ref)?;
-		let mut mapped: HashMap<String, ElementValue> = HashMap::new();
+		let mut mapped: ParsedEntity = HashMap::new();
 		for (&value_name, value_type) in &type_model.values {
 			// reuse the name
 			let (value_name, value) =
@@ -338,6 +338,7 @@ impl JsonSerializer {
 						type_ref: type_ref.clone(),
 						field: association_name.to_owned(),
 					})?;
+
 			let association_type_ref = TypeRef {
 				// aggregates can be imported across app (e.g. SystemModel, etc.)
 				app: association_type.dependency.unwrap_or(type_ref.app),

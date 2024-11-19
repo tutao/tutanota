@@ -24,8 +24,9 @@ use crate::{IdTupleCustom, IdTupleGenerated};
 #[must_use]
 pub fn generate_random_string<const SIZE: usize>() -> String {
 	use base64::engine::Engine;
+	use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 	let random_bytes: [u8; SIZE] = make_thread_rng_facade().generate_random_array();
-	base64::engine::general_purpose::URL_SAFE.encode(random_bytes)
+	BASE64_URL_SAFE_NO_PAD.encode(random_bytes)
 }
 
 pub fn generate_random_group(

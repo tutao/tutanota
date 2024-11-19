@@ -20,7 +20,7 @@ pub enum ElementValue {
 	IdGeneratedId(GeneratedId),
 	IdCustomId(CustomId),
 	IdTupleGeneratedElementId(IdTupleGenerated),
-	Dict(HashMap<String, ElementValue>),
+	Dict(ParsedEntity),
 	Array(Vec<ElementValue>),
 	IdTupleCustomElementId(IdTupleCustom),
 }
@@ -56,7 +56,7 @@ impl ElementValue {
 		}
 	}
 
-	pub fn assert_dict(&self) -> HashMap<String, ElementValue> {
+	pub fn assert_dict(&self) -> ParsedEntity {
 		match self {
 			ElementValue::Dict(value) => value.clone(),
 			_ => panic!("Invalid type"),
@@ -70,14 +70,14 @@ impl ElementValue {
 		}
 	}
 
-	pub fn assert_dict_ref(&self) -> &HashMap<String, ElementValue> {
+	pub fn assert_dict_ref(&self) -> &ParsedEntity {
 		match self {
 			ElementValue::Dict(value) => value,
 			_ => panic!("Invalid type"),
 		}
 	}
 
-	pub fn assert_dict_mut_ref(&mut self) -> &mut HashMap<String, ElementValue> {
+	pub fn assert_dict_mut_ref(&mut self) -> &mut ParsedEntity {
 		match self {
 			ElementValue::Dict(value) => value,
 			_ => panic!("Invalid type"),
@@ -210,8 +210,8 @@ impl From<IdTupleCustom> for ElementValue {
 	}
 }
 
-impl From<HashMap<String, ElementValue>> for ElementValue {
-	fn from(value: HashMap<String, ElementValue>) -> Self {
+impl From<ParsedEntity> for ElementValue {
+	fn from(value: ParsedEntity) -> Self {
 		Self::Dict(value)
 	}
 }

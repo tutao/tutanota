@@ -59,6 +59,11 @@ impl CryptoFacade {
 		}
 	}
 
+	#[must_use]
+	pub fn get_key_loader_facade(&self) -> &Arc<KeyLoaderFacade> {
+		&self.key_loader_facade
+	}
+
 	/// Returns the session key from `entity` and resolves the bucket key fields contained inside
 	/// if present
 	pub async fn resolve_session_key(
@@ -300,7 +305,7 @@ mod test {
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::ecc::EccKeyPair;
-	use crate::crypto::key::GenericAesKey;
+	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::element_value::ParsedEntity;
@@ -308,7 +313,7 @@ mod test {
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
-	use crate::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
+	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
 	use crate::tutanota_constants::CryptoProtocolVersion;
 	use crate::type_model_provider::init_type_model_provider;

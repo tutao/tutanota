@@ -313,7 +313,7 @@ mod tests {
 		let type_model_provider = mock_type_model_provider();
 
 		let list_id = GeneratedId("list_id".to_owned());
-		let entity_map: HashMap<String, ElementValue> = collection! {
+		let entity_map: ParsedEntity = collection! {
 			ID_FIELD => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
@@ -363,7 +363,7 @@ mod tests {
 		let type_model_provider = mock_type_model_provider();
 
 		let list_id = GeneratedId("list_id".to_owned());
-		let entity_map: HashMap<String, ElementValue> = collection! {
+		let entity_map: ParsedEntity = collection! {
 			ID_FIELD => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
@@ -413,7 +413,7 @@ mod tests {
 		let type_model_provider = mock_type_model_provider();
 
 		let list_id = GeneratedId("list_id".to_owned());
-		let entity_map: HashMap<String, ElementValue> = collection! {
+		let entity_map: ParsedEntity = collection! {
 			ID_FIELD => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
@@ -463,7 +463,7 @@ mod tests {
 		let type_model_provider = mock_type_model_provider();
 
 		let list_id = GeneratedId("list_id".to_owned());
-		let entity_map: HashMap<String, ElementValue> = collection! {
+		let entity_map: ParsedEntity = collection! {
 			ID_FIELD => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};

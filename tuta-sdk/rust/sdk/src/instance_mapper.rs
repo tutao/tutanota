@@ -364,7 +364,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 				}
 			}
 		}
-		if name == "IdTupleGenerated" {
+		if name == crate::id::id_tuple::ID_TUPLE_GENERATED_NAME {
 			return if let ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
 				list_id: GeneratedId(list_id_str),
 				element_id: GeneratedId(element_id_str),
@@ -375,10 +375,10 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 					value: None,
 				})
 			} else {
-				Err(self.wrong_type_err("IdTupleGenerated"))
+				Err(self.wrong_type_err(crate::id::id_tuple::ID_TUPLE_GENERATED_NAME))
 			};
 		}
-		if name == "IdTupleCustom" {
+		if name == crate::id::id_tuple::ID_TUPLE_CUSTOM_NAME {
 			return if let ElementValue::IdTupleCustomElementId(IdTupleCustom {
 				list_id: GeneratedId(list_id_str),
 				element_id: CustomId(element_id_str),
@@ -389,7 +389,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 					value: None,
 				})
 			} else {
-				Err(self.wrong_type_err("IdTupleCustom"))
+				Err(self.wrong_type_err(crate::id::id_tuple::ID_TUPLE_CUSTOM_NAME))
 			};
 		}
 		if let ElementValue::Dict(dict) = self.value {
@@ -548,7 +548,7 @@ struct ElementValueSerializer;
 
 enum ElementValueStructSerializer {
 	Struct {
-		map: HashMap<String, ElementValue>,
+		map: ParsedEntity,
 	},
 	IdTupleGenerated {
 		list_id: Option<GeneratedId>,
@@ -751,12 +751,12 @@ impl Serializer for ElementValueSerializer {
 		name: &'static str,
 		len: usize,
 	) -> Result<Self::SerializeStruct, Self::Error> {
-		if name == "IdTupleGenerated" {
+		if name == crate::id::id_tuple::ID_TUPLE_GENERATED_NAME {
 			Ok(ElementValueStructSerializer::IdTupleGenerated {
 				list_id: None,
 				element_id: None,
 			})
-		} else if name == "IdTupleCustom" {
+		} else if name == crate::id::id_tuple::ID_TUPLE_CUSTOM_NAME {
 			Ok(ElementValueStructSerializer::IdTupleCustom {
 				list_id: None,
 				element_id: None,
@@ -888,7 +888,7 @@ impl SerializeStruct for ElementValueStructSerializer {
 /// Yet Another Serializer, this one serializes a map with dynamic keys.
 struct ElementValueMapSerializer {
 	next_key: Option<String>,
-	map: HashMap<String, ElementValue>,
+	map: ParsedEntity,
 }
 
 impl SerializeMap for ElementValueMapSerializer {
@@ -929,10 +929,14 @@ impl ElementValue {
 			ElementValue::Bool(v) => Unexpected::Bool(*v),
 			ElementValue::IdGeneratedId(_) => Unexpected::Other("GeneratedId"),
 			ElementValue::IdCustomId(_) => Unexpected::Other("CustomId"),
-			ElementValue::IdTupleGeneratedElementId(_) => Unexpected::Other("IdTupleGenerated"),
+			ElementValue::IdTupleGeneratedElementId(_) => {
+				Unexpected::Other(crate::id::id_tuple::ID_TUPLE_GENERATED_NAME)
+			},
 			ElementValue::Dict(_) => Unexpected::Map,
 			ElementValue::Array(_) => Unexpected::Seq,
-			ElementValue::IdTupleCustomElementId(_) => Unexpected::Other("IdTupleCustom"),
+			ElementValue::IdTupleCustomElementId(_) => {
+				Unexpected::Other(crate::id::id_tuple::ID_TUPLE_CUSTOM_NAME)
+			},
 		}
 	}
 }

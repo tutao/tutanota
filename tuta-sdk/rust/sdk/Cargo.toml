@@ -59,9 +59,10 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb37
 
 [features]
 net = ["dep:hyper", "dep:hyper-util", "dep:http-body-util", "dep:hyper-rustls", "dep:rustls"]
+testing = []
 
 [dev-dependencies]
-tuta-sdk = { path = ".", features = ["net"] }
+tuta-sdk = { path = ".", features = ["net", "testing"] }
 mockall = { version = "0.13.0" }
 mockall_double = { version = "0.3.1" }
 rand = { version = "0.8.5" }
@@ -86,4 +87,14 @@ explicit_iter_loop = "warn"
 [[example]]
 name = "create_session"
 path = "examples/create_session.rs"
+required-features = ["net"]
+
+[[example]]
+name = "get_default_folders"
+path = "examples/get_default_folders.rs"
+required-features = ["net"]
+
+[[example]]
+name = "http_request"
+path = "examples/http_request.rs"
 required-features = ["net"]

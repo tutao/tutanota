@@ -385,7 +385,7 @@ impl BlobFacade {
 		archive_data_type: ArchiveDataType,
 		owner_group_id: &GeneratedId,
 		session_key: &GenericAesKey,
-		data: Vec<u8>,
+		data: &[u8],
 	) -> Result<Vec<BlobReferenceTokenWrapper>, ApiCallError> {
 		let blobs = chunk_data(&data, MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
 		let mut blob_reference_token_wrappers: Vec<BlobReferenceTokenWrapper> =
@@ -1143,7 +1143,7 @@ mod tests {
 				ArchiveDataType::Attachments,
 				&owner_group_id,
 				&session_key,
-				blob_data.clone(),
+				&blob_data,
 			)
 			.await
 			.unwrap();

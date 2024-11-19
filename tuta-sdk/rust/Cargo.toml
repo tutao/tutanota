@@ -5,8 +5,4 @@ resolver = "2"
 members = [
     "sdk",
     "uniffi-bindgen",
-    "demo",
 ]
-
-# Exclude demo from default members to prevent cross-compiling openssl
-default-members = ["sdk", "uniffi-bindgen"]
