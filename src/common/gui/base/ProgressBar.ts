@@ -2,6 +2,12 @@ import m, { Component, Vnode } from "mithril"
 
 export type ProgressBarAttrs = {
 	progress: number
+	type?: ProgressBarType
+}
+
+export enum ProgressBarType {
+	Small,
+	Large,
 }
 
 export const PROGRESS_DONE = 1
@@ -33,7 +39,8 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 		}
 
 		this.lastProgress = a.progress
-		return m(".abs.accent-bg", {
+		let progressBarSelector = a.type == ProgressBarType.Large ? ".abs.accent-bg.border-radius-big" : ".abs.accent-bg"
+		return m(progressBarSelector, {
 			onbeforeremove: (vn) =>
 				new Promise<void>((resolve) => {
 					vn.dom.addEventListener("transitionend", () => {
@@ -50,7 +57,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 				left: 0,
 				transition: "width 500ms",
 				width: a.progress * 100 + "%",
-				height: "2px",
+				height: a.type == ProgressBarType.Large ? "100%" : "2px",
 			},
 		})
 	}

@@ -15,8 +15,11 @@ import {
 	partition,
 	promiseMap,
 	splitInChunks,
+	TypeRef,
 } from "@tutao/tutanota-utils"
 import {
+	ImportedMailTypeRef,
+	ImportMailStateTypeRef,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -37,7 +40,7 @@ import {
 import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
-import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
+import { createEntityUpdate, WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -560,7 +563,7 @@ export class MailModel {
 	}
 
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailSetKind.CUSTOM) {
+		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.Imported) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
@@ -625,5 +628,9 @@ export class MailModel {
 			}
 		}
 		return null
+	}
+
+	getImportedMailSets(): Array<MailFolder> {
+		return [...this.mailSets.values()].filter((f) => f.folders.importedMailSet).map((f) => f.folders.importedMailSet!)
 	}
 }

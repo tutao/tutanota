@@ -1,0 +1,65 @@
+{
+	"name": "NativeMailImportFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
+	"methods": {
+		"importFromFiles": {
+			"doc": "Import multiple mails from .eml or .mbox files.",
+			"arg": [
+				{
+					"apiUrl": "string"
+				},
+				{
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				},
+				{
+					"targetOwnerGroup": "string"
+				},
+				{
+					"targetFolder": "List<string>"
+				},
+				{
+					"filePaths": "List<string>"
+				}
+			],
+			"ret": "void"
+		},
+		"setContinueProgressAction": {
+			"doc": "Sets progress action to continue for next callback",
+			"arg": [],
+			"ret": "void"
+		},
+		"setStopProgressAction": {
+			"doc": "Sets progress action to stop for next callback",
+			"arg": [],
+			"ret": "void"
+		},
+		"setPausedProgressAction": {
+			"doc": "Sets progress action to pause for next callback",
+			"arg": [],
+			"ret": "void"
+		},
+		"getResumeableImport": {
+			"doc": "@returns the mail import state id of the import that might be resumed",
+			"arg": [],
+			"ret": "ResumableImport"
+		},
+		"resumeImport": {
+			"doc": "resumes the import for a previously paused import",
+			"arg": [
+				{
+					"apiUrl": "string"
+				},
+				{
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				},
+				{
+					"importStateId": "IdTuple"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

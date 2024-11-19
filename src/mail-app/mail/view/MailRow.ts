@@ -35,6 +35,7 @@ const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.DRAFT]: FontIcons.Draft,
 	[MailSetKind.ALL]: FontIcons.Folder,
 	[MailSetKind.LABEL]: FontIcons.Folder,
+	[MailSetKind.Imported]: FontIcons.Folder,
 }
 
 export const MAIL_ROW_V_MARGIN = 3

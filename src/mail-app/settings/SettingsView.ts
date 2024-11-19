@@ -23,7 +23,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
-import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
+import { first, LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
@@ -67,7 +67,8 @@ import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
-import { showAppRatingDialog } from "../../common/ratings/InAppRatingDialog.js"
+import { MailImportSettingsViewer } from "./MailImportSettingsViewer.js"
+import { mailLocator } from "../mailLocator"
 
 assertMainOrNode()
 
@@ -151,6 +152,22 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				),
 			)
 		}
+
+		mailLocator.mailboxModel.getMailboxDetails().then((mailboxes) => {
+			if (first(mailboxes)?.mailbox.currentMailBag != null) {
+				this._userFolders.push(
+					new SettingsFolder(
+						"mailImportSettings_label",
+						() => Icons.Import,
+						"mailImport",
+						() => {
+							return new MailImportSettingsViewer(mailLocator.mailImporter, mailLocator.entityClient, isDesktop() ? mailLocator.fileApp : null)
+						},
+						undefined,
+					),
+				)
+			}
+		})
 
 		this._adminFolders = []
 		this._templateFolders = []

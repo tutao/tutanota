@@ -11,7 +11,7 @@ use crate::metamodel::{
 use crate::type_model_provider::TypeModelProvider;
 use crate::util::array_cast_slice;
 use crate::ApiCallError;
-use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE_NO_PAD};
+use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
@@ -91,8 +91,14 @@ impl EntityFacadeImpl {
 	) -> bool {
 		if model_value.encrypted {
 			if let Some(final_ivs) = Self::get_final_iv_for_key(instance, key) {
+				if final_ivs.assert_bytes().is_empty() {
+					eprintln!(
+						"Have empty finalIv and contains value: {:?} for key: {key}. Is of type: {:?}",
+						value, model_value.value_type
+					);
+				}
 				return final_ivs.assert_bytes().is_empty()
-					&& value == &ValueType::get_default(&model_value.value_type);
+					&& model_value.value_type.get_default().eq(value);
 			}
 		}
 		false
@@ -126,17 +132,18 @@ impl EntityFacadeImpl {
 	}
 
 	fn get_final_iv_for_key(instance: &ParsedEntity, key: &str) -> Option<ElementValue> {
-		if let Some(final_ivs) = instance.get("_finalIvs") {
-			if let Some(array) = final_ivs.assert_dict_ref().get(key) {
-				return Some(ElementValue::Bytes(array.assert_bytes()));
-			};
-		};
-		None
+		let finals_ivs = instance.get("_finalIvs")?;
+		let arrays = finals_ivs
+			.assert_dict_ref()
+			.get(key)?
+			.assert_bytes()
+			.to_owned();
+		Some(ElementValue::Bytes(arrays))
 	}
 
 	fn map_value_to_binary(value_type: &ValueType, value: &ElementValue) -> Vec<u8> {
 		match value_type {
-			ValueType::Bytes => value.assert_bytes(),
+			ValueType::Bytes => value.assert_bytes().to_vec(),
 			ValueType::String => value.assert_string().as_bytes().to_vec(),
 			ValueType::Number => value.assert_number().to_string().as_bytes().to_vec(),
 			ValueType::Date => value
@@ -171,17 +178,15 @@ impl EntityFacadeImpl {
 				ApiCallError::internal(format!("Can not find key: {key} in instance: {instance:?}"))
 			})?;
 
-			let encrypted_value: ElementValue;
-
-			if Self::should_restore_default_value(model_value, instance_value, instance, key) {
+			let encrypted_value = if !model_value.encrypted {
+				instance_value.clone()
+			} else if Self::should_restore_default_value(model_value, instance_value, instance, key)
+			{
 				// restore the default encrypted value because it has not changed
 				// note: this branch must be checked *before* the one which reuses IVs as this one checks
 				// the length.
-				encrypted_value = ElementValue::String("".to_string());
-			} else if model_value.encrypted
-				&& model_value.is_final
-				&& Self::get_final_iv_for_key(instance, key).is_some()
-			{
+				ElementValue::String(String::new())
+			} else if model_value.is_final && Self::get_final_iv_for_key(instance, key).is_some() {
 				let final_iv = Iv::from_bytes(
 					Self::get_final_iv_for_key(instance, key)
 						.unwrap()
@@ -190,25 +195,31 @@ impl EntityFacadeImpl {
 				)
 				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
 
-				encrypted_value = Self::encrypt_value(model_value, instance_value, sk, final_iv)?
+				Self::encrypt_value(model_value, instance_value, sk, final_iv)?
 			} else {
-				encrypted_value = Self::encrypt_value(
+				Self::encrypt_value(
 					model_value,
 					instance_value,
 					sk,
 					Iv::generate(&self.randomizer_facade),
 				)?
-			}
+			};
 			encrypted.insert(key.to_string(), encrypted_value);
 		}
 
-		if type_model.element_type == ElementType::Aggregated && !encrypted.contains_key(ID_FIELD) {
-			let new_id = self.randomizer_facade.generate_random_array::<4>();
-
-			encrypted.insert(
-				String::from(ID_FIELD),
-				ElementValue::String(BASE64_URL_SAFE_NO_PAD.encode(BASE64_STANDARD.encode(new_id))),
-			);
+		if type_model.element_type == ElementType::Aggregated {
+			let id_key = String::from(ID_FIELD);
+			match encrypted.get(&id_key) {
+				Some(ElementValue::Null) => {
+					encrypted.insert(id_key, make_random_aggregate_id(&self.randomizer_facade));
+				},
+				Some(_) => {
+					// the _id is most likely already set to some valid value
+				},
+				None => {
+					unreachable!("aggregate parsedEntity without an _id field encountered");
+				},
+			}
 		}
 
 		for (association_name, association) in &type_model.associations {
@@ -294,7 +305,7 @@ impl EntityFacadeImpl {
 		mut entity: ParsedEntity,
 		session_key: &GenericAesKey,
 	) -> Result<ParsedEntity, ApiCallError> {
-		let mut mapped_decrypted: HashMap<String, ElementValue> = Default::default();
+		let mut mapped_decrypted: ParsedEntity = Default::default();
 		let mut mapped_errors: Errors = Default::default();
 		let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
@@ -446,8 +457,8 @@ impl EntityFacadeImpl {
 		model_value: &ModelValue,
 	) -> Result<MappedValue, ApiCallError> {
 		match (&model_value.cardinality, &model_value.encrypted, value) {
-			(Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::String(s))
-				if s.is_empty() =>
+			(Cardinality::One | Cardinality::ZeroOrOne, true, value)
+				if value.eq(&model_value.value_type.get_default()) =>
 			{
 				// If the value is default-encrypted (empty string) then return default value and
 				// empty IV. When re-encrypting we should put the empty value back to not increase
@@ -635,6 +646,13 @@ impl EntityFacade for EntityFacadeImpl {
 	}
 }
 
+fn make_random_aggregate_id(random: &RandomizerFacade) -> ElementValue {
+	let new_id_bytes = random.generate_random_array::<4>();
+	let new_id_string = BASE64_URL_SAFE_NO_PAD.encode(new_id_bytes);
+	let new_id = crate::CustomId(new_id_string);
+	ElementValue::IdCustomId(new_id)
+}
+
 #[cfg(test)]
 mod lz4_compressed_string_compatibility_tests {
 	use crate::crypto::compatibility_test_utils::{
@@ -720,9 +738,9 @@ mod tests {
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
 	use crate::entities::entity_facade::{
-		EntityFacade, EntityFacadeImpl, MappedValue, BUCKET_KEY_FIELD, FORMAT_FIELD, ID_FIELD,
-		MAX_UNCOMPRESSED_INPUT_LZ4, OWNER_ENC_SESSION_KEY_FIELD, OWNER_GROUP_FIELD,
-		OWNER_KEY_VERSION_FIELD, PERMISSIONS_FIELD,
+		make_random_aggregate_id, EntityFacade, EntityFacadeImpl, MappedValue, BUCKET_KEY_FIELD,
+		FORMAT_FIELD, ID_FIELD, MAX_UNCOMPRESSED_INPUT_LZ4, OWNER_ENC_SESSION_KEY_FIELD,
+		OWNER_GROUP_FIELD, OWNER_KEY_VERSION_FIELD, PERMISSIONS_FIELD,
 	};
 	use crate::entities::generated::sys::CustomerAccountTerminationRequest;
 	use crate::entities::generated::tutanota::Mail;
@@ -833,7 +851,7 @@ mod tests {
 				.get("subject")
 				.expect("has_subject")
 				.assert_bytes(),
-			vec![
+			&vec![
 				0x54, 0x58, 0x02, 0x8b, 0x82, 0xca, 0xb8, 0xa2, 0xd2, 0x01, 0x94, 0xa5, 0x0f, 0x53,
 				0x72, 0x06
 			],
@@ -961,7 +979,7 @@ mod tests {
 			.encrypt_data(value.assert_string().as_bytes(), iv)
 			.unwrap();
 
-		assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+		assert_eq!(&expected, encrypted_value.unwrap().assert_bytes())
 	}
 
 	#[test]
@@ -974,7 +992,7 @@ mod tests {
 
 		let encrypted_value =
 			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone())
-				.map(|a| a.assert_bytes());
+				.map(|a| a.assert_bytes().to_owned());
 
 		let expected = sk
 			.clone()
@@ -999,7 +1017,7 @@ mod tests {
 				EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 			let expected = sk.clone().encrypt_data("1".as_bytes(), iv.clone()).unwrap();
-			assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+			assert_eq!(&expected, encrypted_value.unwrap().assert_bytes())
 		}
 
 		{
@@ -1008,7 +1026,7 @@ mod tests {
 				EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 			let expected = sk.clone().encrypt_data("0".as_bytes(), iv.clone()).unwrap();
-			assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+			assert_eq!(&expected, encrypted_value.unwrap().assert_bytes())
 		}
 	}
 
@@ -1026,7 +1044,7 @@ mod tests {
 			.encrypt_data(value.assert_date().as_millis().to_string().as_bytes(), iv)
 			.unwrap();
 
-		assert_eq!(expected, encrypted_value.unwrap().assert_bytes());
+		assert_eq!(&expected, encrypted_value.unwrap().assert_bytes());
 	}
 
 	#[test]
@@ -1044,7 +1062,7 @@ mod tests {
 			.encrypt_data(value.assert_bytes().as_slice(), iv)
 			.unwrap();
 
-		assert_eq!(expected, encrypted_value.unwrap().assert_bytes());
+		assert_eq!(&expected, encrypted_value.unwrap().assert_bytes());
 	}
 
 	#[test]
@@ -1083,13 +1101,18 @@ mod tests {
 	}
 
 	#[test]
-	fn encrypt_instance() {
+	fn encrypt_and_map_instance() {
 		let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(KNOWN_SK.as_slice()).unwrap());
 		let owner_enc_session_key = [0, 1, 2];
 		let owner_key_version = 0i64;
 
 		let deterministic_rng = DeterministicRng(20);
-		let iv = Iv::generate(&RandomizerFacade::from_core(deterministic_rng.clone()));
+		let random = RandomizerFacade::from_core(deterministic_rng.clone());
+		// we're kind of using the implementation to test itself here, but
+		// this is not about the actual value, but that it is set at all
+		let expected_aggregate_id = make_random_aggregate_id(&random);
+
+		let iv = Iv::generate(&random);
 		let type_model_provider = Arc::new(init_type_model_provider());
 
 		let type_ref = Mail::type_ref();
@@ -1102,7 +1125,7 @@ mod tests {
 			RandomizerFacade::from_core(deterministic_rng),
 		);
 
-		let (mut expected_encrypted_mail, raw_mail) = generate_email_entity(
+		let (mut expected_encrypted_mail, mut raw_mail) = generate_email_entity(
 			&sk,
 			&iv,
 			true,
@@ -1111,7 +1134,7 @@ mod tests {
 			String::from("Munich"),
 		);
 
-		// remove finalIvs for easy comparision
+		// removes finalIvs for easy comparison as well as setting the aggregate _id fields
 		{
 			expected_encrypted_mail.remove("_finalIvs").unwrap();
 			expected_encrypted_mail
@@ -1121,21 +1144,60 @@ mod tests {
 				.remove("_finalIvs")
 				.unwrap();
 			expected_encrypted_mail
+				.get_mut("sender")
+				.unwrap()
+				.assert_dict_mut_ref()
+				.insert(ID_FIELD.to_string(), expected_aggregate_id.clone());
+			expected_encrypted_mail
 				.get_mut("firstRecipient")
 				.unwrap()
 				.assert_dict_mut_ref()
 				.remove("_finalIvs")
 				.unwrap();
+			expected_encrypted_mail
+				.get_mut("firstRecipient")
+				.unwrap()
+				.assert_dict_mut_ref()
+				.insert("_id".to_string(), expected_aggregate_id.clone());
 		}
 
-		let encrypted_mail = entity_facade.encrypt_and_map_inner(type_model, &raw_mail, &sk);
+		{
+			// generate_email_entity generates aggregate ids for us, but the entity_facade is supposed to set
+			// them on the fly if they're missing. by removing them here we test that they're re-created
+			raw_mail
+				.get_mut("sender")
+				.unwrap()
+				.assert_dict_mut_ref()
+				.insert(String::from(ID_FIELD), ElementValue::Null);
+			raw_mail
+				.get_mut("firstRecipient")
+				.unwrap()
+				.assert_dict_mut_ref()
+				.insert(String::from(ID_FIELD), ElementValue::Null);
+		}
 
-		assert_eq!(Ok(expected_encrypted_mail), encrypted_mail);
+		let encrypted_mail = entity_facade
+			.encrypt_and_map_inner(type_model, &raw_mail, &sk)
+			.unwrap();
+
+		assert_eq!(expected_encrypted_mail, encrypted_mail);
 
 		// verify every data is preserved as is after decryption
 		{
-			let original_mail = raw_mail;
-			let encrypted_mail = encrypted_mail.unwrap();
+			let mut original_mail = raw_mail;
+			{
+				original_mail
+					.get_mut("sender")
+					.unwrap()
+					.assert_dict_mut_ref()
+					.insert(String::from(ID_FIELD), expected_aggregate_id.clone());
+				original_mail
+					.get_mut("firstRecipient")
+					.unwrap()
+					.assert_dict_mut_ref()
+					.insert(String::from(ID_FIELD), expected_aggregate_id.clone());
+			}
+			let encrypted_mail = encrypted_mail;
 
 			let mut decrypted_mail = entity_facade
 				.decrypt_and_map(
@@ -1274,7 +1336,8 @@ mod tests {
 			.assert_dict()
 			.get("name")
 			.unwrap()
-			.assert_bytes();
+			.assert_bytes()
+			.to_vec();
 		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
 		assert_eq!(original_iv.get_inner().to_vec(), recipient_and_iv.iv)
 	}
@@ -1313,7 +1376,7 @@ mod tests {
 		assert_eq!(default_subject.as_bytes(), encrypted_subject.as_slice());
 	}
 
-	fn map_to_string(map: &HashMap<String, ElementValue>) -> String {
+	fn map_to_string(map: &ParsedEntity) -> String {
 		let mut out = String::new();
 		let sorted_map: BTreeMap<String, ElementValue> = map.clone().into_iter().collect();
 		for (key, value) in &sorted_map {

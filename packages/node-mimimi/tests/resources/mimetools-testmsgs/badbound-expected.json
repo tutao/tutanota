@@ -1,0 +1,7 @@
+{
+	"exception": {
+		"clazz": "javax.mail.internet.ParseException",
+		"message": "Missing start boundary"
+	},
+	"result": null
+}

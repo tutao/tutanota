@@ -1,0 +1,18 @@
+{
+	"name": "MailImportFacade",
+	"type": "facade",
+	"senders": ["desktop"],
+	"receivers": ["web"],
+	"doc": "Facade implemented by the web worker, receiving events for the mail import.",
+	"methods": {
+		"onNewLocalImportMailState": {
+			"doc": "new localImportMailState event",
+			"arg": [
+				{
+					"localImportMailState": "LocalImportMailState"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

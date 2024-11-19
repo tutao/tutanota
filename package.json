@@ -32,6 +32,7 @@
 		"fix": "npm run style:fix && npm run lint:fix"
 	},
 	"dependencies": {
+		"@tutao/node-mimimi": "file:./packages/node-mimimi",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tuta-wasm-loader": "259.241223.0",
 		"@tutao/tutanota-crypto": "259.241223.0",

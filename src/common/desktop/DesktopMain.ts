@@ -72,6 +72,10 @@ import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
 import { customFetch } from "./net/NetAgent"
+import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
+import { locator } from "../../mail-app/workerUtils/worker/WorkerLocator.js"
+
+mp()
 
 /**
  * Should be injected during build time.
@@ -87,7 +91,6 @@ setupAssetProtocol(electron)
 
 const TAG = "[DesktopMain]"
 
-mp()
 type Components = {
 	readonly wm: WindowManager
 	readonly tfs: TempFs
@@ -274,6 +277,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
+			new DesktopMailImportFacade(window, electron.app.getPath("userData")),
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
@@ -318,7 +322,7 @@ async function startupInstance(components: Components) {
 	const { wm, sse, tfs } = components
 	if (!(await desktopUtils.cleanupOldInstance())) return
 	sse.connect().catch((e) => log.warn("unable to start sse client", e))
-	// The second-instance event fires when we call app.requestSingleInstanceLock inside of DesktopUtils.makeSingleInstance
+	// The second-instance event fires when we call app.requestSingleInstanceLock inside DesktopUtils.makeSingleInstance
 	app.on("second-instance", async (_ev, args) => desktopUtils.handleSecondInstance(wm, args))
 	app.on("open-url", (e, url) => {
 		// MacOS mailto handling

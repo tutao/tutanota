@@ -21,7 +21,7 @@ import {
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
@@ -41,6 +41,7 @@ import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedip
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import { appStorePlanName, hasRunningAppStoreSubscription } from "./SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
+import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
 import { SubscriptionApp } from "./SubscriptionViewer.js"
 
@@ -150,6 +151,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 			}
 		}
 	}
+
 	const reason = await showLeavingUserSurveyWizard(true, true)
 	const data =
 		reason.submitted && reason.category && reason.reason
@@ -160,7 +162,11 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 					version: SURVEY_VERSION_NUMBER,
 			  })
 			: null
-	cancelSubscription(dialog, currentPlanInfo, customer, data)
+	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
+
+	if (newPlanType === PlanType.Free) {
+		for (const importedMailSet of mailLocator.mailModel.getImportedMailSets()) mailLocator.mailModel.finallyDeleteCustomMailFolder(importedMailSet)
+	}
 }
 
 async function waitUntilRenewalDisabled() {
@@ -304,6 +310,12 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 	}
 }
 
+/**
+ * @param customer
+ * @param currentPlanInfo
+ * @param surveyData
+ * @returns the new plan type after the attempt.
+ */
 async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: CurrentPlanInfo, surveyData: SurveyData | null): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
@@ -333,13 +345,29 @@ async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: Cu
 	}
 }
 
-async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, customer: Customer, surveyData: SurveyData | null = null): Promise<void> {
-	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
-		return
+async function cancelSubscription(
+	dialog: Dialog,
+	currentPlanInfo: CurrentPlanInfo,
+	customer: Customer,
+	surveyData: SurveyData | null = null,
+): Promise<PlanType> {
+	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
+		return m(
+			".pt",
+			m("ul.usage-test-opt-in-bullets", [
+				m("li", lang.get("importedMailsWillBeDeleted_label")),
+				m("li", lang.get("accountWillBeDeactivatedIn6Month_label")),
+				m("li", lang.get("accountWillHaveLessStorage_label")),
+			]),
+		)
+	})
+
+	if (!(await confirmCancelSubscription)) {
+		return currentPlanInfo.planType
 	}
 
 	try {
-		await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo, surveyData))
+		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo, surveyData))
 	} finally {
 		dialog.close()
 	}

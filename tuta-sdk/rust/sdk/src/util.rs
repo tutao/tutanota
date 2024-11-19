@@ -14,21 +14,10 @@ pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
 	copy
 }
 
+#[derive(Clone)]
 pub struct Versioned<T> {
 	pub object: T,
 	pub version: i64,
-}
-
-impl<T> Clone for Versioned<T>
-where
-	T: Clone,
-{
-	fn clone(&self) -> Self {
-		Versioned {
-			object: self.object.clone(),
-			version: self.version,
-		}
-	}
 }
 
 impl<T> Versioned<T> {

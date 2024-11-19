@@ -32,7 +32,7 @@ macro_rules! __service_handle_response {
 		return Ok(());
 	};
 	($x:expr, $res:expr, $output: tt) => {
-		return $x.handle_response::<Self::Output>($res).await;
+		return  $x.handle_response::<Self::Output>($res).await;
 	};
 }
 
