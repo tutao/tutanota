@@ -55,14 +55,6 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
 export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAttrs> {
 	domInput!: HTMLInputElement
 
-	oncreate(vnode: VnodeDOM<SingleLineTextFieldAttrs>): any {
-		this.domInput = vnode.dom as HTMLInputElement
-
-		if (vnode.attrs.oncreate) {
-			vnode.attrs.oncreate(vnode)
-		}
-	}
-
 	view({ attrs }: Vnode<SingleLineTextFieldAttrs, this>): Children | void | null {
 		return attrs.leadingIcon ? this.renderInputWithIcon(attrs) : this.renderInput(attrs)
 	}
@@ -117,6 +109,12 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 					return
 				}
 				attrs.oninput(this.domInput.value)
+			},
+			oncreate: (vnode: VnodeDOM<SingleLineTextFieldAttrs>) => {
+				this.domInput = vnode.dom as HTMLInputElement
+				if (attrs.oncreate) {
+					attrs.oncreate(vnode)
+				}
 			},
 			placeholder: attrs.placeholder,
 			class: this.resolveClasses(attrs.classes, attrs.disabled),
