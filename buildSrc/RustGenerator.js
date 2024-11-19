@@ -14,7 +14,7 @@ import { AssociationType, Type, ValueType } from "../src/common/api/common/Entit
 export function generateRustType({ type, modelName }) {
 	let typeName = mapTypeName(type.name, modelName)
 	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ${typeName} {\n`
 	for (let [valueName, valueProperties] of Object.entries(type.values)) {
 		const rustType = rustValueType(valueName, type, valueProperties)

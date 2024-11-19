@@ -4,7 +4,7 @@ use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct AttachmentKeyData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -23,7 +23,7 @@ impl Entity for AttachmentKeyData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Birthday {
 	pub _id: Option<CustomId>,
 	pub day: i64,
@@ -40,7 +40,7 @@ impl Entity for Birthday {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Body {
 	pub _id: Option<CustomId>,
 	pub compressedText: Option<String>,
@@ -57,7 +57,7 @@ impl Entity for Body {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarDeleteData {
 	pub _format: i64,
 	pub groupRootId: GeneratedId,
@@ -72,7 +72,7 @@ impl Entity for CalendarDeleteData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarEvent {
 	pub _format: i64,
 	pub _id: Option<IdTupleCustom>,
@@ -109,7 +109,7 @@ impl Entity for CalendarEvent {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarEventAttendee {
 	pub _id: Option<CustomId>,
 	pub status: i64,
@@ -126,7 +126,7 @@ impl Entity for CalendarEventAttendee {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarEventIndexRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
@@ -141,7 +141,7 @@ impl Entity for CalendarEventIndexRef {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarEventUidIndex {
 	pub _format: i64,
 	pub _id: Option<IdTupleCustom>,
@@ -160,7 +160,7 @@ impl Entity for CalendarEventUidIndex {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarEventUpdate {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -184,7 +184,7 @@ impl Entity for CalendarEventUpdate {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarEventUpdateList {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
@@ -199,7 +199,7 @@ impl Entity for CalendarEventUpdateList {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarGroupRoot {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -224,7 +224,7 @@ impl Entity for CalendarGroupRoot {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CalendarRepeatRule {
 	pub _id: Option<CustomId>,
 	pub endType: i64,
@@ -245,7 +245,7 @@ impl Entity for CalendarRepeatRule {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Contact {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -294,7 +294,7 @@ impl Entity for Contact {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactAddress {
 	pub _id: Option<CustomId>,
 	pub address: String,
@@ -313,7 +313,7 @@ impl Entity for ContactAddress {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactCustomDate {
 	pub _id: Option<CustomId>,
 	pub customTypeName: String,
@@ -332,7 +332,7 @@ impl Entity for ContactCustomDate {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactList {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -356,7 +356,7 @@ impl Entity for ContactList {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactListEntry {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -379,7 +379,7 @@ impl Entity for ContactListEntry {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactListGroupRoot {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -402,7 +402,7 @@ impl Entity for ContactListGroupRoot {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactMailAddress {
 	pub _id: Option<CustomId>,
 	pub address: String,
@@ -421,7 +421,7 @@ impl Entity for ContactMailAddress {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactMessengerHandle {
 	pub _id: Option<CustomId>,
 	pub customTypeName: String,
@@ -440,7 +440,7 @@ impl Entity for ContactMessengerHandle {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactPhoneNumber {
 	pub _id: Option<CustomId>,
 	pub customTypeName: String,
@@ -459,7 +459,7 @@ impl Entity for ContactPhoneNumber {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactPronouns {
 	pub _id: Option<CustomId>,
 	pub language: String,
@@ -476,7 +476,7 @@ impl Entity for ContactPronouns {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactRelationship {
 	pub _id: Option<CustomId>,
 	pub customTypeName: String,
@@ -495,7 +495,7 @@ impl Entity for ContactRelationship {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactSocialId {
 	pub _id: Option<CustomId>,
 	pub customTypeName: String,
@@ -514,7 +514,7 @@ impl Entity for ContactSocialId {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ContactWebsite {
 	pub _id: Option<CustomId>,
 	pub customTypeName: String,
@@ -533,7 +533,7 @@ impl Entity for ContactWebsite {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ConversationEntry {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -554,7 +554,7 @@ impl Entity for ConversationEntry {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CreateExternalUserGroupData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -574,7 +574,7 @@ impl Entity for CreateExternalUserGroupData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CreateGroupPostReturn {
 	pub _format: i64,
 	pub group: GeneratedId,
@@ -591,7 +591,7 @@ impl Entity for CreateGroupPostReturn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CreateMailFolderData {
 	pub _format: i64,
 	pub folderName: String,
@@ -613,7 +613,7 @@ impl Entity for CreateMailFolderData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CreateMailFolderReturn {
 	pub _format: i64,
 	pub newFolder: IdTupleGenerated,
@@ -630,7 +630,7 @@ impl Entity for CreateMailFolderReturn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CreateMailGroupData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -650,7 +650,7 @@ impl Entity for CreateMailGroupData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerAccountCreateData {
 	pub _format: i64,
 	pub accountGroupKeyVersion: i64,
@@ -685,7 +685,7 @@ impl Entity for CustomerAccountCreateData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DefaultAlarmInfo {
 	pub _id: Option<CustomId>,
 	pub trigger: String,
@@ -701,7 +701,7 @@ impl Entity for DefaultAlarmInfo {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DeleteGroupData {
 	pub _format: i64,
 	pub restore: bool,
@@ -717,7 +717,7 @@ impl Entity for DeleteGroupData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DeleteMailData {
 	pub _format: i64,
 	pub folder: Option<IdTupleGenerated>,
@@ -733,7 +733,7 @@ impl Entity for DeleteMailData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DeleteMailFolderData {
 	pub _format: i64,
 	pub folders: Vec<IdTupleGenerated>,
@@ -750,7 +750,7 @@ impl Entity for DeleteMailFolderData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftAttachment {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -769,7 +769,7 @@ impl Entity for DraftAttachment {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftCreateData {
 	pub _format: i64,
 	pub conversationType: i64,
@@ -791,7 +791,7 @@ impl Entity for DraftCreateData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftCreateReturn {
 	pub _format: i64,
 	pub draft: IdTupleGenerated,
@@ -806,7 +806,7 @@ impl Entity for DraftCreateReturn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftData {
 	pub _id: Option<CustomId>,
 	pub bodyText: String,
@@ -834,7 +834,7 @@ impl Entity for DraftData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftRecipient {
 	pub _id: Option<CustomId>,
 	pub mailAddress: String,
@@ -851,7 +851,7 @@ impl Entity for DraftRecipient {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftUpdateData {
 	pub _format: i64,
 	pub draft: IdTupleGenerated,
@@ -869,7 +869,7 @@ impl Entity for DraftUpdateData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DraftUpdateReturn {
 	pub _format: i64,
 	pub attachments: Vec<IdTupleGenerated>,
@@ -886,7 +886,7 @@ impl Entity for DraftUpdateReturn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EmailTemplate {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -911,7 +911,7 @@ impl Entity for EmailTemplate {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EmailTemplateContent {
 	pub _id: Option<CustomId>,
 	pub languageCode: String,
@@ -928,7 +928,7 @@ impl Entity for EmailTemplateContent {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EncryptTutanotaPropertiesData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -946,7 +946,7 @@ impl Entity for EncryptTutanotaPropertiesData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EncryptedMailAddress {
 	pub _id: Option<CustomId>,
 	pub address: String,
@@ -963,7 +963,7 @@ impl Entity for EncryptedMailAddress {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EntropyData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -980,7 +980,7 @@ impl Entity for EntropyData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ExternalUserData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -1015,7 +1015,7 @@ impl Entity for ExternalUserData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct TutanotaFile {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1044,7 +1044,7 @@ impl Entity for TutanotaFile {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct FileSystem {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1067,7 +1067,7 @@ impl Entity for FileSystem {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct GroupInvitationDeleteData {
 	pub _format: i64,
 	pub receivedInvitation: IdTupleGenerated,
@@ -1082,7 +1082,7 @@ impl Entity for GroupInvitationDeleteData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct GroupInvitationPostData {
 	pub _format: i64,
 	pub internalKeyData: Vec<InternalRecipientKeyData>,
@@ -1098,7 +1098,7 @@ impl Entity for GroupInvitationPostData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct GroupInvitationPostReturn {
 	pub _format: i64,
 	pub existingMailAddresses: Vec<MailAddress>,
@@ -1115,7 +1115,7 @@ impl Entity for GroupInvitationPostReturn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct GroupInvitationPutData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -1136,7 +1136,7 @@ impl Entity for GroupInvitationPutData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct GroupSettings {
 	pub _id: Option<CustomId>,
 	pub color: String,
@@ -1156,7 +1156,7 @@ impl Entity for GroupSettings {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Header {
 	pub _id: Option<CustomId>,
 	pub compressedHeaders: Option<String>,
@@ -1173,7 +1173,7 @@ impl Entity for Header {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImapFolder {
 	pub _id: Option<CustomId>,
 	pub lastseenuid: String,
@@ -1191,7 +1191,7 @@ impl Entity for ImapFolder {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImapSyncConfiguration {
 	pub _id: Option<CustomId>,
 	pub host: String,
@@ -1210,7 +1210,7 @@ impl Entity for ImapSyncConfiguration {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImapSyncState {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1228,7 +1228,7 @@ impl Entity for ImapSyncState {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportAttachment {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -1247,7 +1247,7 @@ impl Entity for ImportAttachment {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportMailData {
 	pub _format: i64,
 	pub compressedBodyText: String,
@@ -1284,7 +1284,7 @@ impl Entity for ImportMailData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportMailDataMailReference {
 	pub _id: Option<CustomId>,
 	pub reference: String,
@@ -1299,7 +1299,7 @@ impl Entity for ImportMailDataMailReference {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportMailPostIn {
 	pub _format: i64,
 	pub ownerGroup: GeneratedId,
@@ -1316,7 +1316,7 @@ impl Entity for ImportMailPostIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportMailPostOut {
 	pub _format: i64,
 	pub mails: Vec<IdTupleGenerated>,
@@ -1331,7 +1331,7 @@ impl Entity for ImportMailPostOut {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct InboxRule {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "type")]
@@ -1350,7 +1350,7 @@ impl Entity for InboxRule {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct InternalGroupData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -1383,7 +1383,7 @@ impl Entity for InternalGroupData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct InternalRecipientKeyData {
 	pub _id: Option<CustomId>,
 	pub mailAddress: String,
@@ -1403,7 +1403,7 @@ impl Entity for InternalRecipientKeyData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct KnowledgeBaseEntry {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1428,7 +1428,7 @@ impl Entity for KnowledgeBaseEntry {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct KnowledgeBaseEntryKeyword {
 	pub _id: Option<CustomId>,
 	pub keyword: String,
@@ -1444,7 +1444,7 @@ impl Entity for KnowledgeBaseEntryKeyword {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ListUnsubscribeData {
 	pub _format: i64,
 	pub headers: String,
@@ -1461,7 +1461,7 @@ impl Entity for ListUnsubscribeData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Mail {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1505,7 +1505,7 @@ impl Entity for Mail {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailAddress {
 	pub _id: Option<CustomId>,
 	pub address: String,
@@ -1523,7 +1523,7 @@ impl Entity for MailAddress {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailAddressProperties {
 	pub _id: Option<CustomId>,
 	pub mailAddress: String,
@@ -1540,7 +1540,7 @@ impl Entity for MailAddressProperties {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailBag {
 	pub _id: Option<CustomId>,
 	pub mails: GeneratedId,
@@ -1555,7 +1555,7 @@ impl Entity for MailBag {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailBox {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1586,7 +1586,7 @@ impl Entity for MailBox {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailDetails {
 	pub _id: Option<CustomId>,
 	pub authStatus: i64,
@@ -1606,7 +1606,7 @@ impl Entity for MailDetails {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailDetailsBlob {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1629,7 +1629,7 @@ impl Entity for MailDetailsBlob {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailDetailsDraft {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1652,7 +1652,7 @@ impl Entity for MailDetailsDraft {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailDetailsDraftsRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
@@ -1667,7 +1667,7 @@ impl Entity for MailDetailsDraftsRef {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailFolder {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1696,7 +1696,7 @@ impl Entity for MailFolder {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailFolderRef {
 	pub _id: Option<CustomId>,
 	pub folders: GeneratedId,
@@ -1711,7 +1711,7 @@ impl Entity for MailFolderRef {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailSetEntry {
 	pub _format: i64,
 	pub _id: Option<IdTupleCustom>,
@@ -1729,7 +1729,7 @@ impl Entity for MailSetEntry {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxGroupRoot {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1752,7 +1752,7 @@ impl Entity for MailboxGroupRoot {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxProperties {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1776,7 +1776,7 @@ impl Entity for MailboxProperties {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxServerProperties {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1794,7 +1794,7 @@ impl Entity for MailboxServerProperties {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MoveMailData {
 	pub _format: i64,
 	pub mails: Vec<IdTupleGenerated>,
@@ -1811,7 +1811,7 @@ impl Entity for MoveMailData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NewDraftAttachment {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -1832,7 +1832,7 @@ impl Entity for NewDraftAttachment {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NewImportAttachment {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -1857,7 +1857,7 @@ impl Entity for NewImportAttachment {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NewsId {
 	pub _id: Option<CustomId>,
 	pub newsItemId: GeneratedId,
@@ -1873,7 +1873,7 @@ impl Entity for NewsId {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NewsIn {
 	pub _format: i64,
 	pub newsItemId: Option<GeneratedId>,
@@ -1888,7 +1888,7 @@ impl Entity for NewsIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NewsOut {
 	pub _format: i64,
 	pub newsItemIds: Vec<NewsId>,
@@ -1903,7 +1903,7 @@ impl Entity for NewsOut {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NotificationMail {
 	pub _id: Option<CustomId>,
 	pub bodyText: String,
@@ -1922,7 +1922,7 @@ impl Entity for NotificationMail {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotification {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -1943,7 +1943,7 @@ impl Entity for OutOfOfficeNotification {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationMessage {
 	pub _id: Option<CustomId>,
 	pub message: String,
@@ -1961,7 +1961,7 @@ impl Entity for OutOfOfficeNotificationMessage {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationRecipientList {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
@@ -1976,7 +1976,7 @@ impl Entity for OutOfOfficeNotificationRecipientList {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct PhishingMarkerWebsocketData {
 	pub _format: i64,
 	pub lastId: GeneratedId,
@@ -1992,7 +1992,7 @@ impl Entity for PhishingMarkerWebsocketData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct PhotosRef {
 	pub _id: Option<CustomId>,
 	pub files: GeneratedId,
@@ -2007,7 +2007,7 @@ impl Entity for PhotosRef {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ReceiveInfoServiceData {
 	pub _format: i64,
 	pub language: String,
@@ -2022,7 +2022,7 @@ impl Entity for ReceiveInfoServiceData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Recipients {
 	pub _id: Option<CustomId>,
 	pub bccRecipients: Vec<MailAddress>,
@@ -2039,7 +2039,7 @@ impl Entity for Recipients {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct RemoteImapSyncInfo {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -2058,7 +2058,7 @@ impl Entity for RemoteImapSyncInfo {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ReportMailPostData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -2076,7 +2076,7 @@ impl Entity for ReportMailPostData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ReportedMailFieldMarker {
 	pub _id: Option<CustomId>,
 	pub marker: String,
@@ -2092,7 +2092,7 @@ impl Entity for ReportedMailFieldMarker {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SecureExternalRecipientKeyData {
 	pub _id: Option<CustomId>,
 	pub kdfVersion: i64,
@@ -2120,7 +2120,7 @@ impl Entity for SecureExternalRecipientKeyData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SendDraftData {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]
@@ -2149,7 +2149,7 @@ impl Entity for SendDraftData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SendDraftReturn {
 	pub _format: i64,
 	pub messageId: String,
@@ -2167,7 +2167,7 @@ impl Entity for SendDraftReturn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SharedGroupData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -2196,7 +2196,7 @@ impl Entity for SharedGroupData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SimpleMoveMailPostIn {
 	pub _format: i64,
 	pub destinationSetType: i64,
@@ -2212,7 +2212,7 @@ impl Entity for SimpleMoveMailPostIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SpamResults {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
@@ -2227,7 +2227,7 @@ impl Entity for SpamResults {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Subfiles {
 	pub _id: Option<CustomId>,
 	pub files: GeneratedId,
@@ -2242,7 +2242,7 @@ impl Entity for Subfiles {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SymEncInternalRecipientKeyData {
 	pub _id: Option<CustomId>,
 	pub mailAddress: String,
@@ -2261,7 +2261,7 @@ impl Entity for SymEncInternalRecipientKeyData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct TemplateGroupRoot {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -2285,7 +2285,7 @@ impl Entity for TemplateGroupRoot {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct TranslationGetIn {
 	pub _format: i64,
 	pub lang: String,
@@ -2300,7 +2300,7 @@ impl Entity for TranslationGetIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct TranslationGetOut {
 	pub _format: i64,
 	pub giftCardSubject: String,
@@ -2316,7 +2316,7 @@ impl Entity for TranslationGetOut {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct TutanotaProperties {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,
@@ -2352,7 +2352,7 @@ impl Entity for TutanotaProperties {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UnreadMailStatePostIn {
 	pub _format: i64,
 	pub unread: bool,
@@ -2368,7 +2368,7 @@ impl Entity for UnreadMailStatePostIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UpdateMailFolderData {
 	pub _format: i64,
 	pub folder: IdTupleGenerated,
@@ -2384,7 +2384,7 @@ impl Entity for UpdateMailFolderData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserAccountCreateData {
 	pub _format: i64,
 	pub date: Option<DateTime>,
@@ -2401,7 +2401,7 @@ impl Entity for UserAccountCreateData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserAccountUserData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -2456,7 +2456,7 @@ impl Entity for UserAccountUserData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserAreaGroupData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -2484,7 +2484,7 @@ impl Entity for UserAreaGroupData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserAreaGroupDeleteData {
 	pub _format: i64,
 	pub group: GeneratedId,
@@ -2499,7 +2499,7 @@ impl Entity for UserAreaGroupDeleteData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserAreaGroupPostData {
 	pub _format: i64,
 	pub groupData: UserAreaGroupData,
@@ -2514,7 +2514,7 @@ impl Entity for UserAreaGroupPostData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserSettingsGroupRoot {
 	pub _format: i64,
 	pub _id: Option<GeneratedId>,

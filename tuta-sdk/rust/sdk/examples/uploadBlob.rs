@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 			ArchiveDataType::Attachments,
 			&owner_group_id,
 			&new_aes_256_key,
-			vec![0; 1024],
+			&vec![0; 1024],
 		)
 		.await?;
 	for tw in result {

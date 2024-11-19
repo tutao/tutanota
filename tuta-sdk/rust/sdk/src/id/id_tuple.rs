@@ -3,6 +3,9 @@ use crate::GeneratedId;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
+pub const ID_TUPLE_GENERATED_NAME: &str = "IdTupleGenerated";
+pub const ID_TUPLE_CUSTOM_NAME: &str = "IdTupleCustom";
+
 /// Denotes an ID that can be serialised into a string and used to access resources
 pub trait IdType: Display + 'static {}
 
