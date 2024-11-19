@@ -18,7 +18,23 @@ import { client } from "../../misc/ClientDetector.js"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { isColorLight } from "./Color.js"
 
-export type dropHandler = (dragData: string) => void
+export const enum DropType {
+	ExternalFile = "ExternalFile",
+	Mail = "Mail",
+}
+
+export type MailDropData = {
+	dropType: DropType.Mail
+	mailId: string
+}
+export type FileDropData = {
+	dropType: DropType.ExternalFile
+	files: Array<File>
+}
+
+export type DropData = FileDropData | MailDropData
+
+export type DropHandler = (dropData: DropData) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 export type ClickHandler = (event: MouseEvent, dom: HTMLElement) => void
 

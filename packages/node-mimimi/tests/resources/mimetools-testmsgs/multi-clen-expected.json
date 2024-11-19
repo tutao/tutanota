@@ -1,0 +1,53 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "simple boundary",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Nathaniel Borenstein",
+			"mailAddress": "nsb@bellcore.com",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Ned Freed",
+				"mailAddress": "ned@innosoft.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "Sample message",
+		"plainBodyText": "This is implicitly typed plain ASCII text.\r\nIt does NOT end with a linebreak.",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "unknown.txt",
+				"data": "MTIzNDU2Nzg5DQoxMjM0NTY3ODkNCjEyMzQ1Njc4OQ0K",
+				"mimeType": "text/x-numbers",
+				"charset": "us-ascii",
+				"contentId": "",
+				"calendarMethod": null
+			},
+			{
+				"name": "unknown.txt",
+				"data": "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTIgQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTINCkFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaMDEyIEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaMDEyDQpBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWjAxMiBBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWjAxMg0KQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTIgQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTINCkFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaMDEyIEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaMDEyDQpBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWjAxMiBBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWjAxMg0KQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTIgQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTINCkFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaMDEyIEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaMDEyDQpBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWjAxMiBBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWjAxMg0KQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTIgQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTINCg==",
+				"mimeType": "text/x-alphabet",
+				"charset": "us-ascii",
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "From: Nathaniel Borenstein <nsb@bellcore.com>\nTo:  Ned Freed <ned@innosoft.com>\nSubject: Sample message\nMIME-Version: 1.0\nContent-type: multipart/mixed; boundary=\"simple\r\n boundary\"",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

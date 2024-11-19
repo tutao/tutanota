@@ -1,0 +1,13 @@
+{
+	"name": "LocalImportMailState",
+	"type": "struct",
+	"doc": "Local import mail state, to show progress during an mail import.",
+	"fields": {
+		"remoteStateId": "IdTuple",
+		"status": "number",
+		"start_timestamp": "number",
+		"totalMails": "number",
+		"successfulMails": "number",
+		"failedMails": "number"
+	}
+}

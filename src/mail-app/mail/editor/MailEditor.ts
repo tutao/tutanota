@@ -56,7 +56,7 @@ import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel
 import { styles } from "../../../common/gui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { FileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
+import { fileListToArray, FileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { Shortcut } from "../../../common/misc/KeyManager"
@@ -417,7 +417,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				},
 				ondrop: (ev: DragEvent) => {
 					if (ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-						readLocalFiles(ev.dataTransfer.files)
+						let nativeFiles = fileListToArray(ev.dataTransfer.files)
+						readLocalFiles(nativeFiles)
 							.then((dataFiles) => {
 								model.attachFiles(dataFiles as any)
 								m.redraw()

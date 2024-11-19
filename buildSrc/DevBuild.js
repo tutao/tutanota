@@ -4,7 +4,7 @@ import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, writeFile } from "./buildUtils.js"
 import "zx/globals"
 import * as env from "./env.js"
-import { externalTranslationsPlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
+import { externalTranslationsPlugin, libDeps, mimimiNativePlugin, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
@@ -173,7 +173,7 @@ async function buildDesktopPart({ version, app }) {
 			format: "cjs",
 			sourcemap: "linked",
 			platform: "node",
-			external: ["electron"],
+			external: ["electron", "*.node"],
 			banner: {
 				js: `globalThis.buildOptions = globalThis.buildOptions ?? {}
 globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
@@ -186,6 +186,10 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 					platform: process.platform,
 					architecture: process.arch,
 					nativeBindingPath: "./better_sqlite3.node",
+				}),
+				mimimiNativePlugin({
+					dstPath: `./${buildDir}/desktop/`,
+					platform: process.platform,
 				}),
 				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs })),
 				externalTranslationsPlugin(),

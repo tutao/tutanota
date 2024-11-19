@@ -25,6 +25,9 @@
 		},
 		{
 			"path": "./packages/tuta-wasm-loader"
+		},
+		{
+			"path": "./packages/node-mimimi"
 		}
 	]
 }

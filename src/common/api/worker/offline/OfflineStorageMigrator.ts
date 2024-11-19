@@ -35,6 +35,7 @@ import { tutanota77 } from "./migrations/tutanota-v77.js"
 import { sys114 } from "./migrations/sys-v114.js"
 import { offline2 } from "./migrations/offline2.js"
 import { sys115 } from "./migrations/sys-v115.js"
+import { tutanota78 } from "./migrations/tutanota-v78.js"
 import { sys116 } from "./migrations/sys-v116.js"
 import { tutanota79 } from "./migrations/tutanota-v79.js"
 
@@ -84,6 +85,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys114,
 	offline2,
 	sys115,
+	tutanota78,
 	sys116,
 	tutanota79,
 ]

@@ -41,6 +41,8 @@ export interface MobileSystemFacade {
 
 	openMailApp(query: string): Promise<void>
 
+	openCalendarApp(query: string): Promise<void>
+
 	/**
 	 * Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.
 	 */
@@ -50,6 +52,4 @@ export interface MobileSystemFacade {
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	requestInAppRating(): Promise<void>
-
-	openCalendarApp(query: string): Promise<void>
 }

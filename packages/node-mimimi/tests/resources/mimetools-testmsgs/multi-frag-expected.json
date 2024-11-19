@@ -1,0 +1,7 @@
+{
+	"exception": {
+		"clazz": "com.sun.mail.util.DecodingException",
+		"message": "BASE64Decoder: Error in encoded stream: needed 4 valid base64 characters but only got 3 before EOF, the 10 most recent characters were: \"message.\\r\\n\""
+	},
+	"result": null
+}

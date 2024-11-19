@@ -36,6 +36,7 @@ pub fn generate_email_entity(
 			name: sender_name,
 			..create_test_entity()
 		},
+		listUnsubscribe: false,
 		..create_test_entity()
 	};
 

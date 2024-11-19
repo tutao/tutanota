@@ -1,18 +1,26 @@
 import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants"
-import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
+	File as TutanotaFile,
 	FileTypeRef,
+	ImportedMailTypeRef,
+	ImportMailStateTypeRef,
+	Mail,
+	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
+	MailFolder,
 	MailFolderTypeRef,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
 import { assertNotNull, first, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import {
+	deconstructMailSetEntryId,
 	elementIdPart,
 	isSameId,
 	LEGACY_BCC_RECIPIENTS_ID,
@@ -53,12 +61,22 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { isDraft } from "../../mail/model/MailChecks.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-const ENTITY_INDEXER_CHUNK = 20
+const ENTITY_INDEXER_CHUNK = 50
 export const MAIL_INDEXER_CHUNK = 100
 const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 // one day
 
 export class MailIndexer {
-	currentIndexTimestamp: number // The oldest timestamp that has been indexed for all mail lists
+	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
+	// There are two scenarios in which new mails are indexed:
+	// a) a new mail (internal/external) is received from our mail server
+	// 	  * mail timestamp is guaranteed to be newer than the currentIndexTimestamp
+	//    	=> mail will be indexed
+	// b) an old mail is imported to our tutadb server
+	// 	  * mail timestamp is newer than currentIndexTimestamp
+	//    	=> mail will be indexed
+	//    * mail timestamp is older than currentIndexTimestamp
+	//    	=> mail will not be indexed
+	currentIndexTimestamp: number
 
 	mailIndexingEnabled: boolean
 	mailboxIndexingPromise: Promise<void>
@@ -149,12 +167,12 @@ export class MailIndexer {
 		return keyToIndexEntries
 	}
 
-	processNewMail(event: EntityUpdate): Promise<{
+	processNewMail(mailId: IdTuple): Promise<{
 		mail: Mail
 		keyToIndexEntries: Map<string, SearchIndexEntry[]>
 	} | null> {
 		return this._defaultCachingEntity
-			.load(MailTypeRef, [event.instanceListId, event.instanceId])
+			.load(MailTypeRef, mailId)
 			.then(async (mail) => {
 				let mailDetails: MailDetails
 				if (isDraft(mail)) {
@@ -222,7 +240,7 @@ export class MailIndexer {
 					})
 				} else {
 					// instance is moved but not yet indexed: handle as new for example moving a mail from non indexed folder like spam to indexed folder
-					return this.processNewMail(event).then((result) => {
+					return this.processNewMail([event.instanceListId, event.instanceId]).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						}
@@ -385,7 +403,13 @@ export class MailIndexer {
 		}
 	}
 
-	_indexMailLists(mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }>, oldestTimestamp: number): Promise<void> {
+	_indexMailLists(
+		mailBoxes: Array<{
+			mbox: MailBox
+			newestTimestamp: number
+		}>,
+		oldestTimestamp: number,
+	): Promise<void> {
 		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
 		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
 			this.infoMessageHandler.onSearchIndexStateUpdate({
@@ -596,6 +620,56 @@ export class MailIndexer {
 			})
 	}
 
+	async processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+		if (!this.mailIndexingEnabled) return Promise.resolve()
+		await promiseMap(events, async (event) => {
+			// we can only process update event,
+			// and we don't have to look for delete
+			if (event.operation === OperationType.UPDATE) {
+				let mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId])
+
+				await this.preloadMails(mailIds)
+
+				return await promiseMap(mailIds, (mailId) =>
+					this.processNewMail(mailId).then((result) => {
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						}
+					}),
+				)
+			}
+		})
+	}
+
+	/**
+	 * We preload all mails and mail details into the cache in order to prevent loading mails one by one
+	 * after importing lots of mails...
+	 */
+	private async preloadMails(mailIds: IdTuple[]) {
+		const mailsByList = groupBy(mailIds, (m) => listIdPart(m))
+		let mails: Array<Mail> = []
+		for (const [listId, mailIds] of mailsByList.entries()) {
+			const mailElementIds = mailIds.map((m) => elementIdPart(m))
+			mails = mails.concat(await this._defaultCachingEntity.loadMultiple(MailTypeRef, listId, mailElementIds))
+		}
+		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient, true)
+		await indexLoader.loadMailDetails(mails)
+		await indexLoader.loadAttachments(mails)
+	}
+
+	async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
+		const importMailState = await this._defaultCachingEntity.load(ImportMailStateTypeRef, importStateId)
+		let importedMailEntries = await this._defaultCachingEntity.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+		let importedMailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
+		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp
+		let dateRangeFilteredMailSetEntryIds = importedMailEntries
+			.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+			.filter((importedEntry) => deconstructMailSetEntryId(importedEntry).receiveDate.getTime() >= this.currentIndexTimestamp)
+		return this._defaultCachingEntity
+			.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, dateRangeFilteredMailSetEntryIds)
+			.then((entries) => entries.map((entry) => entry.mail))
+	}
+
 	/**
 	 * Prepare IndexUpdate in response to the new entity events.
 	 * {@see MailIndexerTest.js}
@@ -608,12 +682,13 @@ export class MailIndexer {
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
 		return promiseMap(events, (event) => {
+			const mailId: IdTuple = [event.instanceListId, event.instanceId]
 			if (event.operation === OperationType.CREATE) {
 				if (containsEventOfType(events as readonly EntityUpdateData[], OperationType.DELETE, event.instanceId)) {
 					// do not execute move operation if there is a delete event or another move event.
 					return this.processMovedMail(event, indexUpdate)
 				} else {
-					return this.processNewMail(event).then((result) => {
+					return this.processNewMail(mailId).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
 						}
@@ -626,7 +701,7 @@ export class MailIndexer {
 						if (mail.state === MailState.DRAFT) {
 							return Promise.all([
 								this._core._processDeleted(event, indexUpdate),
-								this.processNewMail(event).then((result) => {
+								this.processNewMail(mailId).then((result) => {
 									if (result) {
 										this._core.encryptSearchIndexEntries(
 											result.mail._id,

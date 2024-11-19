@@ -1,10 +1,21 @@
 import { ListModel } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { Mail, MailBox, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import {
+	ImportedMailTypeRef,
+	ImportMailStateTypeRef,
+	Mail,
+	MailBox,
+	MailFolder,
+	MailFolderTypeRef,
+	MailSetEntry,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
+	deconstructMailSetEntryId,
 	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -19,7 +30,9 @@ import {
 	debounce,
 	first,
 	groupByAndMap,
+	isNotEmpty,
 	isNotNull,
+	last,
 	lastThrow,
 	lazyMemoized,
 	mapWith,
@@ -28,6 +41,7 @@ import {
 	memoizedWithHiddenArgument,
 	ofClass,
 	promiseFilter,
+	promiseMap,
 } from "@tutao/tutanota-utils"
 import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -566,6 +580,7 @@ export class MailViewModel {
 			return this.entityEventsReceivedForLegacy(updates)
 		}
 
+		let importMailStateUpdates = []
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				// In case labels change trigger a list redraw.
@@ -592,6 +607,45 @@ export class MailViewModel {
 				if (mailWasInThisFolder) {
 					await listModel.entityEventReceived(update.instanceListId, update.instanceId, OperationType.UPDATE)
 				}
+			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update) && update.operation == OperationType.UPDATE) {
+				importMailStateUpdates.push(update)
+			}
+
+			await promiseMap(importMailStateUpdates, (update) => this.processImportedMails(update))
+		}
+	}
+
+	private async processImportedMails(update: EntityUpdateData) {
+		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+		let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+		const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
+
+		if (importedMailEntries.length !== parseInt(importMailState.successfulMails)) {
+			throw new ProgrammingError(`Imported ${importMailState.successfulMails} mails, but only got: ${importedMailEntries.length}`)
+		} else if (importedMailEntries.length === 0) {
+			return Promise.resolve()
+		}
+
+		let loadMailListIds = this.listModel?.getUnfilteredAsArray() ?? []
+		let lastLoadedMailTimestamp = last(loadMailListIds)?.receivedDate.getTime() ?? 0
+		if (lastLoadedMailTimestamp) {
+			let dateRangeFilteredMailSetEntryIds = importedMailEntries
+				.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+				// we only want to load and display mails that are newer than the currently loaded mail range
+				.filter((importedEntry) => deconstructMailSetEntryId(importedEntry).receiveDate.getTime() >= lastLoadedMailTimestamp)
+
+			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
+			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, dateRangeFilteredMailSetEntryIds)
+			if (isNotEmpty(importedMailSetEntries)) {
+				const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
+				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
+					if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
+					return listModelOfImport.entityEventReceived(
+						listIdPart(importedMailSetEntry.mail),
+						elementIdPart(importedMailSetEntry.mail),
+						OperationType.CREATE,
+					)
+				})
 			}
 		}
 	}

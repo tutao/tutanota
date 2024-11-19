@@ -57,6 +57,14 @@ impl From<GeneratedId> for String {
 	}
 }
 
+/// does not verify that the string is actually a valid GeneratedId yet (e.g. length of bytes and
+/// format is not checked).
+impl From<String> for GeneratedId {
+	fn from(value: String) -> Self {
+		Self(value)
+	}
+}
+
 impl Display for GeneratedId {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		f.write_str(self.as_str())

@@ -208,6 +208,24 @@ impl FromStr for UsageTestFailureReason {
 	}
 }
 
+#[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
+pub enum ImportFailureReason {
+	#[error("ImportDisabled")]
+	ImportDisabled,
+}
+
+impl FromStr for ImportFailureReason {
+	type Err = ParseFailureError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		use ImportFailureReason::*;
+		match s {
+			"import.disabled" => Ok(ImportDisabled),
+			_ => Err(ParseFailureError),
+		}
+	}
+}
+
 /// The possible failed preconditions when unsuccessfully performing an operation on the backend
 #[derive(Error, Debug, uniffi::Enum, Eq, PartialEq, Clone)]
 pub enum PreconditionFailedReason {
@@ -229,6 +247,8 @@ pub enum PreconditionFailedReason {
 	FailureUserDisabled,
 	#[error("FailureUpgradeRequired")]
 	FailureUpgradeRequired,
+	#[error("ImportFailure")]
+	ImportFailure(#[from] ImportFailureReason),
 }
 
 impl FromStr for PreconditionFailedReason {
@@ -250,6 +270,8 @@ impl FromStr for PreconditionFailedReason {
 			Ok(TemplateGroupFailure(reason))
 		} else if let Ok(reason) = UsageTestFailureReason::from_str(s) {
 			Ok(UsageTestFailure(reason))
+		} else if let Ok(reason) = ImportFailureReason::from_str(s) {
+			Ok(ImportFailure(reason))
 		} else {
 			match s {
 				"lock.locked" => Ok(FailureLocked),
@@ -406,6 +428,13 @@ mod tests {
 			Some("bookingservice.too_much_storage_used"),
 			Some(expected_reason),
 		)
+	}
+
+	#[test]
+	fn from_http_response_precondition_failed_error_import_reason_test() {
+		let expected_reason =
+			PreconditionFailedReason::ImportFailure(ImportFailureReason::ImportDisabled);
+		assert_precondition_failed_error(Some("import.disabled"), Some(expected_reason))
 	}
 
 	/// Returns the Ok value from `from_http_response` and panics if the value is None
