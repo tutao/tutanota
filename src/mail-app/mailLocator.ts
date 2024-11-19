@@ -8,7 +8,7 @@ import { EntityClient } from "../common/api/common/EntityClient.js"
 import { ProgressTracker } from "../common/api/main/ProgressTracker.js"
 import { CredentialsProvider } from "../common/misc/credentials/CredentialsProvider.js"
 import { bootstrapWorker, WorkerClient } from "../common/api/main/WorkerClient.js"
-import { CALENDAR_MIME_TYPE, FileController, guiDownload, VCARD_MIME_TYPES } from "../common/file/FileController.js"
+import { CALENDAR_MIME_TYPE, FileController, guiDownload, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../common/file/FileController.js"
 import { SecondFactorHandler } from "../common/misc/2fa/SecondFactorHandler.js"
 import { WebauthnClient } from "../common/misc/2fa/webauthn/WebauthnClient.js"
 import { LoginFacade } from "../common/api/worker/facades/LoginFacade.js"
@@ -138,6 +138,7 @@ import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/g
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
+import { Importer } from "./mail/import/Importer"
 
 assertMainOrNode()
 
@@ -183,6 +184,7 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	mailImporter!: Importer
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -838,7 +840,7 @@ class MailLocator {
 				this.logins,
 				AppType.Integrated,
 			)
-
+			this.credentialsProvider = await this.createCredentialsProvider()
 			if (isElectronClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
@@ -847,13 +849,23 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
+					this.mailImporter = new Importer(
+						desktopInterfaces.mailImportFacade,
+						this.credentialsProvider,
+						this.domainConfigProvider(),
+						this.logins,
+						this.entityClient,
+					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
 				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
 			}
+		} else {
+			this.credentialsProvider = await this.createCredentialsProvider()
 		}
+
 		if (this.webAuthn == null) {
 			this.webAuthn = new WebauthnClient(
 				new BrowserWebauthn(navigator.credentials, this.domainConfigProvider().getCurrentDomainConfig()),
@@ -868,7 +880,7 @@ class MailLocator {
 			this.loginFacade,
 			this.domainConfigProvider(),
 		)
-		this.credentialsProvider = await this.createCredentialsProvider()
+
 		this.loginListener = new PageContextLoginListener(this.secondFactorHandler, this.credentialsProvider)
 		this.random = random
 
@@ -984,6 +996,7 @@ class MailLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllFilesVCard = files.every((file) => file.mimeType === VCARD_MIME_TYPES.X_VCARD || file.mimeType === VCARD_MIME_TYPES.VCARD)
 		const areAllFilesICS = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
+		const areAllFilesMail = files.every((file) => file.mimeType === MAIL_MIME_TYPES.EML || file.mimeType === MAIL_MIME_TYPES.MBOX)
 
 		if (areAllFilesVCard) {
 			const importer = await this.contactImporter()

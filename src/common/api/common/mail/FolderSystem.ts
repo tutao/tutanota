@@ -12,14 +12,16 @@ export interface IndentedFolder {
 export class FolderSystem {
 	readonly systemSubtrees: ReadonlyArray<FolderSubtree>
 	readonly customSubtrees: ReadonlyArray<FolderSubtree>
+	readonly importedMailSet: Readonly<MailFolder | null>
 
-	constructor(foldersAndLabels: readonly MailFolder[]) {
-		const folders = foldersAndLabels.filter(isFolder)
+	constructor(mailSets: readonly MailFolder[]) {
+		const [folders, nonFolders] = partition(mailSets, (f) => isFolder(f))
 		const folderByParent = groupBy(folders, (folder) => (folder.parentFolder ? elementIdPart(folder.parentFolder) : null))
 		const topLevelFolders = folders.filter((f) => f.parentFolder == null)
 
 		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailSetKind.CUSTOM)
 
+		this.importedMailSet = nonFolders.find((f) => f.folderType === MailSetKind.Imported) || null
 		this.systemSubtrees = systemFolders.sort(compareSystem).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 	}
@@ -171,7 +173,7 @@ function compareCustom(folder1: MailFolder, folder2: MailFolder): number {
 	return folder1.name.localeCompare(folder2.name)
 }
 
-type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM | MailSetKind.LABEL>
+type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM | MailSetKind.LABEL | MailSetKind.Imported>
 
 const folderTypeToOrder: Record<SystemMailFolderTypes, number> = {
 	[MailSetKind.INBOX]: 0,

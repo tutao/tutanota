@@ -8,6 +8,7 @@ use std::sync::Arc;
 use minicbor::encode::Write;
 use minicbor::{Encode, Encoder};
 use serde::Serialize;
+use std::borrow::Borrow;
 use thiserror::Error;
 
 #[cfg_attr(test, mockall_double::double)]
@@ -20,13 +21,13 @@ use crate::crypto::crypto_facade::create_auth_verifier;
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 use crate::crypto::randomizer_facade::RandomizerFacade;
-use crate::crypto::{aes::Iv, Aes256Key};
+use crate::crypto::{aes::Iv, Aes256Key, AES_256_KEY_SIZE};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::date::date_provider::SystemDateProvider;
-use crate::element_value::ElementValue;
+use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
-use crate::entities::generated::sys::{CreateSessionData, SaltData};
+use crate::entities::generated::sys::{CreateSessionData, SaltData, User};
 use crate::entities::generated::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -52,7 +53,7 @@ use crate::user_facade::UserFacade;
 use bindings::rest_client::{RestClient, RestClientError};
 
 pub mod crypto;
-mod crypto_entity_client;
+pub mod crypto_entity_client;
 pub mod date;
 mod element_value;
 pub mod entities;
@@ -74,7 +75,7 @@ pub mod blobs;
 mod id;
 #[cfg(feature = "net")]
 pub mod net;
-mod rest_error;
+pub mod rest_error;
 pub mod services;
 mod simple_crypto;
 pub mod tutanota_constants;
@@ -84,7 +85,13 @@ mod user_facade;
 mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
+use crate::entities::generated::base::PersistenceResourcePostReturn;
+use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::entities::Entity;
+use crate::groups::GroupType;
+use crate::json_element::RawEntity;
+use crate::metamodel::TypeModel;
+use crate::tutanota_constants::ArchiveDataType;
 pub use id::custom_id::CustomId;
 pub use id::generated_id::GeneratedId;
 pub use id::id_tuple::IdTupleCustom;
@@ -159,7 +166,7 @@ impl Sdk {
 	#[uniffi::constructor]
 	pub fn new(base_url: String, raw_rest_client: Arc<dyn RestClient>) -> Sdk {
 		logging::init_logger();
-		log::debug!("Initializing SDK...");
+		log::info!("Initializing SDK...");
 
 		let type_model_provider = Arc::new(init_type_model_provider());
 		// TODO validate parameters
@@ -180,12 +187,19 @@ impl Sdk {
 	pub async fn login(&self, credentials: Credentials) -> Result<Arc<LoggedInSdk>, LoginError> {
 		let auth_headers_provider =
 			Arc::new(HeadersProvider::new(Some(credentials.access_token.clone())));
+
+		let entity_facade = Arc::new(EntityFacadeImpl::new(
+			self.type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		));
+
 		let entity_client = Arc::new(EntityClient::new(
 			self.rest_client.clone(),
 			self.json_serializer.clone(),
 			self.base_url.clone(),
 			auth_headers_provider.clone(),
 			self.type_model_provider.clone(),
+			entity_facade.clone(),
 		));
 		let typed_entity_client: Arc<TypedEntityClient> = Arc::new(TypedEntityClient::new(
 			entity_client.clone(),
@@ -201,10 +215,6 @@ impl Sdk {
 		let key_loader = Arc::new(KeyLoaderFacade::new(
 			user_facade.clone(),
 			typed_entity_client.clone(),
-		));
-		let entity_facade = Arc::new(EntityFacadeImpl::new(
-			self.type_model_provider.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
 		));
 		let service_executor: Arc<ServiceExecutor> = Arc::new(ServiceExecutor::new(
 			auth_headers_provider.clone(),
@@ -367,19 +377,32 @@ pub struct LoggedInSdk {
 	user_facade: Arc<UserFacade>,
 	entity_client: Arc<EntityClient>,
 	service_executor: Arc<ResolvingServiceExecutor>,
-	instance_mapper: Arc<InstanceMapper>,
 	entity_facade: Arc<dyn EntityFacade>,
 	json_serializer: Arc<JsonSerializer>,
 	typed_entity_client: Arc<TypedEntityClient>,
 	crypto_entity_client: Arc<CryptoEntityClient>,
 	blob_facade: Arc<BlobFacade>,
-	type_model_provider: Arc<TypeModelProvider>,
+	pub instance_mapper: Arc<InstanceMapper>,
+	pub type_model_provider: Arc<TypeModelProvider>,
 }
 
 impl LoggedInSdk {
 	#[must_use]
 	pub fn get_service_executor(&self) -> &Arc<ResolvingServiceExecutor> {
 		&self.service_executor
+	}
+
+	pub fn encrypt_and_map(
+		&self,
+		type_model: &TypeModel,
+		instance: &ParsedEntity,
+		sk: &GenericAesKey,
+	) -> Result<ParsedEntity, ApiCallError> {
+		self.entity_facade.encrypt_and_map(type_model, instance, sk)
+	}
+
+	pub fn get_entity_client(&self) -> Arc<EntityClient> {
+		self.entity_client.clone()
 	}
 
 	pub async fn get_current_sym_group_key(
@@ -395,6 +418,24 @@ impl LoggedInSdk {
 			.map_err(|err| ApiCallError::internal(format!("KeyLoadError: {err:?}")))
 	}
 
+	pub fn get_user_group_id(&self) -> GeneratedId {
+		self.user_facade.get_user_group_id()
+	}
+
+	pub async fn request_blob_facade_write_token(
+		&self,
+		archive_data_type: ArchiveDataType,
+	) -> Result<BlobServerAccessInfo, ApiCallError> {
+		let mail_group_id = self
+			.user_facade
+			.get_membership_by_group_type(GroupType::Mail)?
+			.group;
+		self.blob_facade
+			.blob_access_token_facade
+			.request_write_token(archive_data_type, &mail_group_id)
+			.await
+	}
+
 	pub fn serialize_instance_to_json<Instance>(
 		&self,
 		instance: Instance,
@@ -403,34 +444,49 @@ impl LoggedInSdk {
 	where
 		Instance: Entity + Serialize,
 	{
+		let parsed_entity = self.serialize_entity(instance, key)?;
+		let raw_entity = self
+			.json_serializer
+			.serialize(&Instance::type_ref(), parsed_entity)?;
+		serde_json::to_string(&raw_entity).map_err(|_e| {
+			ApiCallError::internal(format!(
+				"failed to stringify raw entity {}",
+				Instance::type_ref()
+			))
+		})
+	}
+
+	pub fn serialize_entity<Instance>(
+		&self,
+		instance: Instance,
+		key: &GenericAesKey,
+	) -> Result<ParsedEntity, ApiCallError>
+	where
+		Instance: Entity + Serialize,
+	{
 		let type_ref = &Instance::type_ref();
 		let type_model = self
 			.type_model_provider
 			.resolve_type_ref(type_ref)
-			.ok_or_else(|| ApiCallError::InternalSdkError {
-				error_message: format!(
+			.ok_or_else(|| {
+				ApiCallError::internal(format!(
 					"failed to find type model for type ref of instance {}",
 					type_ref
-				),
+				))
 			})?;
 		let parsed_instance = self
 			.instance_mapper
 			.serialize_entity(instance)
-			.map_err(|e| ApiCallError::InternalSdkError {
-				error_message: format!("failed to serialize instance {}", type_ref),
+			.map_err(|_e| {
+				ApiCallError::internal(format!("failed to serialize instance {}", type_ref))
 			})?;
-		let encrypted_parsed_entity = if type_model.is_encrypted() {
+		if type_model.is_encrypted() {
 			self.entity_facade
-				.encrypt_and_map(type_model, &parsed_instance, key)?
+				.encrypt_and_map(type_model, &parsed_instance, key)
+				.map_err(Into::into)
 		} else {
-			parsed_instance
-		};
-		let raw_entity = self
-			.json_serializer
-			.serialize(type_ref, encrypted_parsed_entity)?;
-		serde_json::to_string(&raw_entity).map_err(|e| ApiCallError::InternalSdkError {
-			error_message: format!("failed to stringify raw entity {}", type_ref),
-		})
+			Ok(parsed_instance)
+		}
 	}
 }
 

@@ -1,0 +1,15 @@
+{
+	"extends": "../../../tsconfig_common.json",
+	"include": ["../../../types/*.d.ts"],
+	"files": ["Suite.ts"],
+	"compilerOptions": {
+		"outDir": "../build",
+		"declaration": false,
+		"noImplicitAny": false
+	},
+	"references": [
+		{
+			"path": "../../tutanota-test-utils/tsconfig.json"
+		}
+	]
+}

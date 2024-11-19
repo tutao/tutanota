@@ -8,12 +8,12 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { assertNotNull, endsWith, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
+	EncryptionAuthStatus,
+	getMailFolderType,
 	MailReportType,
 	MailSetKind,
 	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
-	getMailFolderType,
-	EncryptionAuthStatus,
 } from "../../../common/api/common/TutanotaConstants"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
@@ -29,11 +29,11 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel } from "../model/MailModel.js"
 import { hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { assertSystemFolderOfType, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
+import { assertSystemFolderOfType, FolderInfo, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
-import type { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -337,25 +337,49 @@ export async function showMoveMailsDropdown(
 	mails: readonly Mail[],
 	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
 ): Promise<void> {
-	const { width = 300, withBackground = false, onSelected = noOp } = opts ?? {}
 	const folders = await getMoveTargetFolderSystems(model, mails)
+	await showMailFolderDropdown(
+		origin,
+		folders,
+		(f) =>
+			moveMails({
+				mailboxModel,
+				mailModel: model,
+				mails: mails,
+				targetMailFolder: f.folder,
+			}),
+		opts,
+	)
+}
+
+export async function showMailFolderDropdown(
+	origin: PosRect,
+	folders: readonly FolderInfo[],
+	onClick: (folder: IndentedFolder) => unknown,
+	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
+): Promise<void> {
+	const { width = 300, withBackground = false, onSelected = noOp } = opts ?? {}
+
 	if (folders.length === 0) return
 	const folderButtons = folders.map(
 		(f) =>
 			({
 				// We need to pass in the raw folder name to avoid including it in searches
-				label: () => lang.get("folderDepth_label", { "{folderName}": getFolderName(f.folder), "{depth}": f.level }),
+				label: () =>
+					lang.get("folderDepth_label", {
+						"{folderName}": getFolderName(f.folder),
+						"{depth}": f.level,
+					}),
 				text: () => getIndentedFolderNameForDropdown(f),
 				click: () => {
 					onSelected()
-					moveMails({ mailboxModel, mailModel: model, mails: mails, targetMailFolder: f.folder })
+					onClick(f)
 				},
 				icon: getFolderIcon(f.folder),
 			} satisfies DropdownChildAttrs),
 	)
 
 	const dropdown = new Dropdown(() => folderButtons, width)
-
 	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, origin.height))
 	modal.displayUnique(dropdown, withBackground)
 }

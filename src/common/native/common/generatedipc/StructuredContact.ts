@@ -7,6 +7,7 @@ import { StructuredCustomDate } from "./StructuredCustomDate.js"
 import { StructuredMessengerHandle } from "./StructuredMessengerHandle.js"
 import { StructuredRelationship } from "./StructuredRelationship.js"
 import { StructuredWebsite } from "./StructuredWebsite.js"
+
 export interface StructuredContact {
 	readonly id: string | null
 	readonly firstName: string

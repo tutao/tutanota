@@ -1750,7 +1750,7 @@ export default {
 		"unprocessedBookings_msg": "You have some unprocessed orders with a total value of {amount}. This amount will be deducted from your balance and/or chosen payment method upon the next invoice.",
 		"unrecognizedU2fDevice_msg": "Your security key has not been recognized.",
 		"unregistered_label": "Not registered",
-		"unsubscribeConfirm_msg": "Do you really want to stop your subscription? Your account will be reset to Free now and you will immediately lose your paid features. Please also note that Free accounts are deleted if they have not been used for more than six months.",
+		"unsubscribeConfirm_msg": "Your are about to downgrade your account. Please be aware of following side effects",
 		"unsubscribeFailed_msg": "Could not cancel newsletter or mailing list.",
 		"unsubscribeSuccessful_msg": "The newsletter or mailing list has been cancelled successfully!",
 		"unsubscribe_action": "Unsubscribe",
@@ -1845,6 +1845,10 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"emlOrMboxInSharingFiles_msg": "One or more mail files were detected. Would you like to import or attach them?",
+		"mailImportSelection_label": "Import or Attach?",
+		"accountWillBeDeactivatedIn6Month_label": "Your account will be deleted if you don't login for 6 months",
+		"accountWillHaveLessStorage_label": "Your account will only have 1GB of storage"
 	}
 }

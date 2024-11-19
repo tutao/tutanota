@@ -1,6 +1,7 @@
 use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
+use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::util::{ArrayCastingError, Versioned};
 use crate::ApiCallError;
 use std::fmt::{Debug, Formatter};

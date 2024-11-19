@@ -1,0 +1,48 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Keith Moore",
+			"mailAddress": "moore@cs.utk.edu",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Keld Jørn Simonsen",
+				"mailAddress": "keld@dkuug.dk",
+				"valid": true
+			}
+		],
+		"ccRecipients": [
+			{
+				"name": "André  Pirard",
+				"mailAddress": "PIRARD@vm1.ulg.ac.be",
+				"valid": true
+			}
+		],
+		"bccRecipients": [
+			{
+				"name": "Patrik Fältström",
+				"mailAddress": "paf@nada.kth.se",
+				"valid": true
+			}
+		],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "If you can read this you understand the example... so, cool!",
+		"plainBodyText": "How's this?\n\n\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "From: \"Keith Moore\" <moore@cs.utk.edu>\nTo: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>\nCC: =?ISO-8859-1?Q?Andr=E9_?= Pirard <PIRARD@vm1.ulg.ac.be>\nBCC: =?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?= <paf@nada.kth.se>\nSubject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=\r\n =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=\r\n =?US-ASCII?Q?.._so,_cool!?=\nContent-type: text/plain",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

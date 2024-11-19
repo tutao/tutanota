@@ -1,0 +1,52 @@
+{
+	"name": "NativeMailImportFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
+	"methods": {
+		"setupImapImport": {
+			"doc": "Initializing an IMAP import.",
+			"arg": [
+				{
+					"apiUrl": "string"
+				},
+				{
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				}
+			],
+			"ret": "void"
+		},
+		"startImapImport": {
+			"doc": "Start an IMAP import.",
+			"arg": [],
+			"ret": "void"
+		},
+		"stopImapImport": {
+			"doc": "Stop a running IMAP import.",
+			"arg": [],
+			"ret": "void"
+		},
+		"importFromFiles": {
+			"doc": "Import multiple mails from .eml or .mbox files.",
+			"arg": [
+				{
+					"apiUrl": "string"
+				},
+				{
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				},
+				{
+					"targetOwnerGroup": "string"
+				},
+				{
+					"targetFolder": "List<string>"
+				},
+				{
+					"filePaths": "List<string>"
+				}
+			],
+			"ret": "string"
+		}
+	}
+}

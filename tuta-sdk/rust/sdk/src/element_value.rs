@@ -46,9 +46,9 @@ impl ElementValue {
 		}
 	}
 
-	pub fn assert_bytes(&self) -> Vec<u8> {
+	pub fn assert_bytes(&self) -> &Vec<u8> {
 		match self {
-			ElementValue::Bytes(value) => value.clone(),
+			ElementValue::Bytes(value) => value,
 			_ => panic!(
 				"Invalid type, expected bytes, got: {}",
 				self.type_variant_name()

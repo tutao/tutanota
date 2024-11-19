@@ -4,6 +4,7 @@ import { CommonSystemFacade } from "./CommonSystemFacade.js"
 
 export class CommonSystemFacadeReceiveDispatcher {
 	constructor(private readonly facade: CommonSystemFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "initializeRemoteBridge": {

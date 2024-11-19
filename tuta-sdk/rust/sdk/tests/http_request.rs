@@ -1,6 +1,6 @@
+use tutasdk::bindings::rest_client::RestResponse;
+use tutasdk::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use tutasdk::net::native_rest_client::NativeRestClient;
-use tutasdk::rest_client::RestResponse;
-use tutasdk::rest_client::{HttpMethod, RestClient, RestClientOptions};
 
 #[tokio::main]
 async fn main() {
@@ -14,6 +14,7 @@ async fn main() {
 			RestClientOptions {
 				headers: Default::default(),
 				body: Default::default(),
+				suspension_behavior: Default::default(),
 			},
 		)
 		.await;

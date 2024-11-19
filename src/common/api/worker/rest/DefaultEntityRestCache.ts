@@ -166,6 +166,9 @@ export interface ExposedCacheStorage {
 	 * we must maintain the integrity of our list ranges.
 	 * */
 	deleteIfExists<T extends ElementEntity>(typeRef: TypeRef<T>, listId: null, id: Id): Promise<void>
+
+	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
+	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -220,9 +223,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>
-
-	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
-	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>
 
 	/**
 	 * We want to lock the access to the "ranges" db when updating / reading the

@@ -34,7 +34,7 @@ const BLOB_SERVICE_REST_PATH: &str = "/rest/storage/blobservice";
 
 #[derive(uniffi::Object)]
 pub struct BlobFacade {
-	blob_access_token_facade: BlobAccessTokenFacade,
+	pub(crate) blob_access_token_facade: BlobAccessTokenFacade,
 	rest_client: Arc<dyn RestClient>,
 	randomizer_facade: RandomizerFacade,
 	auth_headers_provider: Arc<HeadersProvider>,

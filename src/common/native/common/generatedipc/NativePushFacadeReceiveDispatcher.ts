@@ -6,6 +6,7 @@ import { NativePushFacade } from "./NativePushFacade.js"
 
 export class NativePushFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativePushFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "getPushIdentifier": {

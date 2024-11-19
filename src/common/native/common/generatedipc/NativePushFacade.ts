@@ -2,6 +2,7 @@
 
 import { EncryptedAlarmNotification } from "./EncryptedAlarmNotification.js"
 import { ExtendedNotificationMode } from "./ExtendedNotificationMode.js"
+
 /**
  * Push notifications and alarms operations
  */

@@ -1,5 +1,5 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { TranslationKey } from "../../misc/LanguageViewModel.js"
+import { TranslationKey, TranslationText } from "../../misc/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -15,6 +15,8 @@ import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { isDesktop } from "../../api/common/Env"
+import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -80,6 +82,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				const files = await fileApp.getFilesMetaData(filesUris)
 				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
 				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CALENDAR)
+				const allFilesAreMail = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.MAIL)
 
 				if (this.appType === AppType.Calendar) {
 					if (!allFilesAreICS) {
@@ -106,6 +109,20 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 						},
 						{ text: "attachFiles_action", value: false },
 					])
+				} else if (isDesktop() && allFilesAreMail) {
+					// importing mails is currently only allowed on plan LEGEND and UNLIMITED
+					const currentPlanType = await locator.logins.getUserController().getPlanType()
+					const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
+
+					let importAction: { text: TranslationText; value: boolean } = {
+						text: "import_action",
+						value: true,
+					}
+					let attachFilesAction: { text: TranslationText; value: boolean } = {
+						text: "attachFiles_action",
+						value: false,
+					}
+					willImport = isHighestTierPlan && (await Dialog.choice("emlOrMboxInSharingFiles_msg", [importAction, attachFilesAction]))
 				}
 
 				if (willImport) {
@@ -165,7 +182,10 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 */
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
 		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../gui/base/Dialog.js"), import("../../settings/PasswordForm.js")])
-		const model = new PasswordModel(this.usageTestController, this.logins, { checkOldPassword: false, enforceStrength: false })
+		const model = new PasswordModel(this.usageTestController, this.logins, {
+			checkOldPassword: false,
+			enforceStrength: false,
+		})
 
 		return new Promise((resolve, reject) => {
 			const changePasswordOkAction = async (dialog: Dialog) => {

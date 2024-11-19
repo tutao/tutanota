@@ -1,0 +1,39 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "------------050706070100080203090004",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "",
+			"mailAddress": "",
+			"valid": false
+		},
+		"toRecipients": [],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "",
+		"plainBodyText": "Attachment Test\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "attachment.äöü",
+				"data": "VGVzdAo=",
+				"mimeType": "text/plain",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "MIME-Version: 1.0\nContent-Type: multipart/mixed;\r\n boundary=\"------------050706070100080203090004\"",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

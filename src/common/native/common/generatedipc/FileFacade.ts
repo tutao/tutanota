@@ -4,6 +4,7 @@ import { IpcClientRect } from "./IpcClientRect.js"
 import { UploadTaskResponse } from "./UploadTaskResponse.js"
 import { DownloadTaskResponse } from "./DownloadTaskResponse.js"
 import { DataFile } from "./DataFile.js"
+
 /**
  * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
  */

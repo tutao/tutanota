@@ -1,0 +1,69 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "unique-boundary-2",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Lord John Whorfin",
+			"mailAddress": "whorfin@yoyodyne.com",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "john-yaya@yoyodyne.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "A complex nested multipart example",
+		"plainBodyText": "Part 1 of the outer message.\r\n[Note that the preceding blank line means\r\nno header fields were given and this is text,\r\nwith charset US ASCII.  It could have been\r\ndone with explicit typing as in the next part.]\r\nPart 2 of the outer message.\r\nThis could have been part of the previous part,\r\nbut illustrates explicit versus implicit\r\ntyping of body parts.\r\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "3d-vise.gif",
+				"data": "R0lGODdhKAAoAOMAAAAAAAAAgB6Q/y9PT25ubnCAkKBSLb6+vufn5/Xes/+lAP/6zQAAAAAAAAAAAAAAACwAAAAAKAAoAAAE/hDJSau9eJLMOyYbcoxkaZ5oCkoH6L5wLMfiWqd4btZhmxbAoFCY47EIqMJgyWw2ATjj7aRkAq5YwDMl9VGtKO0SiuoiTVlscsxt9c4HgXxUIA0EAVOVfDKT8Hl1B3kDAYYle202XnGGgoMHhYckiWVuR3+OTgCGeZRslotwgJ2lnYigfZdTjQULr7ALBZN0qTurjHgLKAu0B5Wqopm7J72etQN8t8Ijury+wMtvw8/Hv7Ylfs0BxCbGqMmK0yOOQ0GTCgrR2bhwJGlXJQYG6mMKoeNoWSbzCWIACe5JwxQm3AkDAbUAQCiQhDZEBeBl6afgCsOBrD45edIvQceGWSMevpOYhl6CkydBHhBZQmGKjihVshypjB9ClAHZMTugzOU7mzhBPiSZ5uDNnA7b/aTZ0mhMnfl0pDBFa6bUElSPWb0qtYuHrxlwcR17YsWMs2jTql3LFkQEADs=",
+				"mimeType": "image/gif",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			},
+			{
+				"name": "3d-eye.gif",
+				"data": "R0lGODdhKAAoAPMAAAAAAAAAzN3u/76+voiIiG5ubszd7v///+fn5wAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAKAAoAAAE/hDJSau9eJbMOy4bMoxkaZ5oCkoD6L5wLMfiWns41oZt7lM7VujnC96IRVsPWQE4nxPjkvmsQmu8oc/KBUSVWk7XepGGLeNrxoxJO1MjILjthg/kWXQ6wO/7+3dCeRRjfAKHiImJAV+DCF0BiW5VAo1CElaRh5NjlkeYmpyTgpcTAKGiaaSfpwKpVQaxVatLrU8GaQdOBAQAB7+yXliXTrgAxsW4vFabv8BOtBsBt7cGvwCIT9nOyNEIxuC4zrqKzc9XbODJvs7Y5ewH3d7Fxe3jB4rj8t6PuNa6r2bhKQXN17FYCBMqTGiBzSNhx5g0nEMhlsSJjiRYvDjwE0cdGxQ/gswosoKUkmuU2FnJcsSKGTBjypxJsyaICAA7",
+				"mimeType": "image/gif",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			},
+			{
+				"name": "unknown.txt",
+				"data": "VGhpcyBpcyA8Ym9sZD5wYXJ0IDQgb2YgdGhlIG91dGVyIG1lc3NhZ2U8L2JvbGQ+DQo8c21hbGxlcj5hcyBkZWZpbmVkIGluIFJGQzEzNDE8L3NtYWxsZXI+PG5sPg0KPG5sPg0KSXNuJ3QgaXQgPGJpZ2dlcj48YmlnZ2VyPmNvb2w/PC9iaWdnZXI+PC9iaWdnZXI+DQo=",
+				"mimeType": "text/richtext",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			},
+			{
+				"name": "nice.name",
+				"data": "RnJvbTogKG1haWxib3ggaW4gVVMtQVNDSUkpDQpUbzogKGFkZHJlc3MgaW4gVVMtQVNDSUkpDQpTdWJqZWN0OiBQYXJ0IDUgb2YgdGhlIG91dGVyIG1lc3NhZ2UgaXMgaXRzZWxmIGFuIFJGQzgyMiBtZXNzYWdlIQ0KQ29udGVudC1UeXBlOiBUZXh0L3BsYWluOyBjaGFyc2V0PUlTTy04ODU5LTENCkNvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6IFF1b3RlZC1wcmludGFibGUNCg0KUGFydCA1IG9mIHRoZSBvdXRlciBtZXNzYWdlIGlzIGl0c2VsZiBhbiBSRkM4MjIgbWVzc2FnZSENCg==",
+				"mimeType": "message/rfc822",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "MIME-Version: 1.0\nFrom: Lord John Whorfin <whorfin@yoyodyne.com>\nTo: <john-yaya@yoyodyne.com>\nSubject: A complex nested multipart example\nContent-Type: multipart/mixed;\r\n     boundary=unique-boundary-1",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

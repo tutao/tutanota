@@ -20,7 +20,7 @@ hkdf = "0.12.4"
 argon2 = { version = "0.5.3", features = ["zeroize"] }
 curve25519-dalek = "4.1.2"
 pqcrypto-kyber = { version = "0.7.9", default-features = false, features = [
-    "std",
+	"std",
 ] }
 # Pin the version explicitly as pqcrypto-kyber depends on pqcrypto-internals ^0.2 and 0.2.6 does not compile for iOS
 # see https://github.com/rustpq/pqcrypto/issues/68
@@ -31,7 +31,6 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde_bytes = "0.11.14"
 futures = "0.3.30"
 log = "0.4.22"
-simple_logger = "5.0.0"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
 num_enum = "0.7.3"
 lz4_flex = { version = "0.11.3", default-features = false, features = ["safe-encode", "safe-decode", "std"] }
@@ -44,6 +43,8 @@ http-body-util = { version = "0.1.2", optional = true }
 hyper-rustls = { version = "0.27.3", features = ["ring", "http2"], optional = true }
 rustls = { version = "*", optional = true }
 form_urlencoded = "1"
+# allow initializing a simple_logger if the consuming application (or examples) want to do that.
+simple_logger = { version = "5.0.0", optional = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_log = "0.1.3"
@@ -53,13 +54,15 @@ oslog = "0.2.0"
 
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = [
-    "build",
+	"build",
 ] }
 
 
 [features]
 net = ["dep:hyper", "dep:hyper-util", "dep:http-body-util", "dep:hyper-rustls", "dep:rustls"]
-testing = []
+# turns on the simple_logger logger when the sdk is initialized.
+logging = ["dep:simple_logger"]
+testing = ["logging"]
 
 [dev-dependencies]
 tuta-sdk = { path = ".", features = ["net", "testing"] }
@@ -83,18 +86,3 @@ must_use_candidate = "warn"
 unused_async = "warn"
 implicit_clone = "warn"
 explicit_iter_loop = "warn"
-
-[[example]]
-name = "create_session"
-path = "examples/create_session.rs"
-required-features = ["net"]
-
-[[example]]
-name = "get_default_folders"
-path = "examples/get_default_folders.rs"
-required-features = ["net"]
-
-[[example]]
-name = "http_request"
-path = "examples/http_request.rs"
-required-features = ["net"]

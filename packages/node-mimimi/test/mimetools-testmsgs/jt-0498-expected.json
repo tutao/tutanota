@@ -1,0 +1,45 @@
+{
+	"exception": null,
+	"result": {
+		"id": "c8384e50.354898b3@aol.com",
+		"boundary": "part0_893950130_boundary",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Gaffneydp",
+			"mailAddress": "Gaffneydp@aol.com",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "PC800@hpc.uh.edu",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 893935730000,
+		"subject": "Fwd: PC800: Tall Hondaline Windshield Distortion",
+		"plainBodyText": "Hello to all, \n\nI purchased a tall windshield about two weeks ago from Waynesville Cycle\nCenter in NC.  The entire length and width of the windshield has optical waves\nor ripples which distort the view through it.  It was very uncomfortable to\nride with and I would be afraid to ride at night with it.\n\nI contacted the manager at WCC.  He in turn contacted Honda Customer Service\n(310-532-9811).  They replied to him that there were no bulletins concerning\nthis problem and that they inspected several windshields.  They claim that all\nthe windshields had distortions.  They have offered to give me a full refund.\n\nWhat bothers me is two things.  First, the stock windshield has no optical\ndistortion.  Second, it appears that Honda knows that it is selling a less\nthan perfect product and is apparently unconcerned about it (seems like a\nstrange way to do business).  \n\nPerhaps my windshield is the worst one ever made, but they made no offer to\ninspect mine and compare to others that they have in stock.\n\nI am going to call Honda on Monday and raise the issues of safety and quality.\nI will ask them if they have a problem with me forwarding their position to\npublications such as Cycle World, Rider, etc.\n\nDennis Gaffney\nMarlboro, NY\ngaffneydp@aol.com\n1994 PC800\nBought used in 1997 (2000 miles)\nModifications:  tall windshield?\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "Re_ PC800_ Tall Hondaline Windshield Distortion.eml",
+				"data": "UmV0dXJuLVBhdGg6IDxvd25lci1wYzgwMEBocGMudWguZWR1PgpSZWNlaXZlZDogZnJvbSAgcmx5LXphMDQubXguYW9sLmNvbSAocmx5LXphMDQubWFpbC5hb2wuY29tIFsxNzIuMzEuMzYuMTAwXSkgYnkKICAgICAgICBhaXItemEwNC5tYWlsLmFvbC5jb20gKHY0Mi40KSB3aXRoIFNNVFA7IFdlZCwgMjkgQXByIDE5OTggMDk6MTQ6MTgKICAgICAgICAtMDQwMApSZWNlaXZlZDogZnJvbSBzaW5hLmhwYy51aC5lZHUgKFNpbmEuSFBDLlVILkVEVSBbMTI5LjcuMy41XSkKICAgICAgICAgIGJ5IHJseS16YTA0Lm14LmFvbC5jb20gKDguOC41LzguOC41L0FPTC00LjAuMCkKICAgICAgICAgIHdpdGggRVNNVFAgaWQgSkFBMjc2MjM7CiAgICAgICAgICBXZWQsIDI5IEFwciAxOTk4IDA5OjE0OjA4IC0wNDAwIChFRFQpClJlY2VpdmVkOiBmcm9tIHNpbmEuaHBjLnVoLmVkdSAobGlzdHNAU2luYS5IUEMuVUguRURVIFsxMjkuNy4zLjVdKSBieQogICAgICAgIHNpbmEuaHBjLnVoLmVkdSAoOC43LjMvOC43LjMpIHdpdGggRVNNVFAgaWQgSUFBMjUyOTQ7IFdlZCwgMjkgQXByCiAgICAgICAgMTk5OCAwODoxNDoyMyAtMDUwMCAoQ0RUKQpSZWNlaXZlZDogYnkgc2luYS5ocGMudWguZWR1IChUTEIgdjAuMDlhICgxLjIwIHRpYmJzIDE5OTYvMTAvMDkgMjI6MDM6MDcpKTsKICAgICAgICBXZWQsIDI5IEFwciAxOTk4IDA4OjE0OjIwIC0wNTAwIChDRFQpClJlY2VpdmVkOiBmcm9tIGRvbmFsZC5jeWJlcmNvbW0ubmwgKGRvbmFsZC5jeWJlcmNvbW0ubmwgWzE5NC4yMzUuMTEzLjVdKSBieQogICAgICAgIHNpbmEuaHBjLnVoLmVkdSAoOC43LjMvOC43LjMpIHdpdGggRVNNVFAgaWQgSUFBMjUyNzUgZm9yCiAgICAgICAgPHBjODAwQGhwYy51aC5lZHU+OyBXZWQsIDI5IEFwciAxOTk4IDA4OjE0OjExIC0wNTAwIChDRFQpClJlY2VpdmVkOiBmcm9tIGRlZmF1bHQgKHBvb3J0MjItaXAteDIuZW5lcnRlbC5jeWJlcmNvbW0ubmwgWzE5NC4yMzUuMTE4LjIyXSkKICAgICAgICBieSBkb25hbGQuY3liZXJjb21tLm5sICg4LjguNi84LjguNikgd2l0aCBFU01UUCBpZCBPQUEyNTY3NgogICAgICAgIGZvciA8cGM4MDBAaHBjLnVoLmVkdT47IFdlZCwgMjkgQXByIDE5OTggMTQ6MTI6MTAgLTAxMDAgKE1FVCkKTWVzc2FnZS1JZDogPDE5OTgwNDI5MTUxMi5PQUEyNTY3NkBkb25hbGQuY3liZXJjb21tLm5sPgpGcm9tOiAiRW1pbGUgTm9zc2luIiA8RW1pbGVAQ3liZXJDb21tLm5sPgpUbzogIlBDODAwIiA8cGM4MDBAaHBjLnVoLmVkdT4KU3ViamVjdDogUmU6IFBDODAwOiBUYWxsIEhvbmRhbGluZSBXaW5kc2hpZWxkIERpc3RvcnRpb24KRGF0ZTogV2VkLCAyOSBBcHIgMTk5OCAxNToxMzoyMCArMDIwMApYLU1TTWFpbC1Qcmlvcml0eTogTm9ybWFsClgtUHJpb3JpdHk6IDMKWC1NYWlsZXI6IE1pY3Jvc29mdCBJbnRlcm5ldCBNYWlsIDQuNzAuMTE1NQpTZW5kZXI6IG93bmVyLXBjODAwQGhwYy51aC5lZHUKUHJlY2VkZW5jZTogbGlzdApYLU1ham9yZG9tbzogMS45NC5qbHQ3Ck1pbWUtVmVyc2lvbjogMS4wCkNvbnRlbnQtdHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1JU08tODg1OS0xCkNvbnRlbnQtdHJhbnNmZXItZW5jb2Rpbmc6IHF1b3RlZC1wcmludGFibGUKCkhpIFBhdCwKSSBkb24ndCBzZWUgYW55IGRpc3RvcnRpb24gaW4gbXkgdGFsbCBIb25kYSBzY3JlZW4sIG5vciBhbnkgbWFnaW5maWNhdGlvbj0KLS0KVmlzaXQgdGhlIFBDODAwIHdlYiBwYWdlIGF0IDxVUkw6aHR0cDovL21lbWJlcnMuYW9sLmNvbS93d3dwYzgwMC8+ClRvIHVuc3Vic2NyaWJlIGZyb20gdGhlIGxpc3QsIHNlbmQgInVuc3Vic2NyaWJlIHBjODAwIiBpbiB0aGUgYm9keSBvZiBhCm1lc3NhZ2UgdG8gbWFqb3Jkb21vQGhwYy51aC5lZHUuClRvIHJlcG9ydCBwcm9ibGVtcywgc2VuZCBtYWlsIHRvIHBjODAwLW93bmVyQGhwYy51aC5lZHUuCgo=",
+				"mimeType": "message/rfc822",
+				"charset": null,
+				"contentId": "0_893950130@inet_out.mail.aol.com.2",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "From owner-funnel-pc@hpc.uh.edu  Thu Apr 30 14:27:51 1998\nReceived: from farabi.hpc.uh.edu (farabi.hpc.uh.edu [129.7.102.2]) by sina.hpc.uh.edu (8.7.3/8.7.3) with ESMTP id OAA27026; Thu, 30 Apr 1998 14:27:51 -0500 (CDT)\nReceived: from sina.hpc.uh.edu (lists@[10.1.1.1]) by farabi.hpc.uh.edu (8.7.3/8.7.3) with ESMTP id WAD14645; Mon, 27 Apr 1998 22:20:19 -0500 (CDT)\nReceived: by sina.hpc.uh.edu (TLB v0.09a (1.20 tibbs 1996/10/09 22:03:07)); Thu, 30 Apr 1998 14:26:26 -0500 (CDT)\nReceived: (from tibbs@localhost) by sina.hpc.uh.edu (8.7.3/8.7.3) id OAA26968 for pc800@hpc.uh.edu; Thu, 30 Apr 1998 14:26:17 -0500 (CDT)\nReceived: from imo11.mx.aol.com (imo11.mx.aol.com [198.81.17.33]) by sina.hpc.uh.edu (8.7.3/8.7.3) with ESMTP id KAA22560 for <PC800@hpc.uh.edu>; Thu, 30 Apr 1998 10:29:47 -0500 (CDT)\nReceived: from Gaffneydp@aol.com\r\n        by imo11.mx.aol.com (IMOv14.1) id QICDa02864\r\n        for <PC800@hpc.uh.edu>; Thu, 30 Apr 1998 11:28:50 -0400 (EDT)\nFrom: Gaffneydp <Gaffneydp@aol.com>\nMessage-ID: <c8384e50.354898b3@aol.com>\nDate: Thu, 30 Apr 1998 11:28:50 EDT\nTo: PC800@hpc.uh.edu\nMime-Version: 1.0\nSubject: Fwd: PC800: Tall Hondaline Windshield Distortion\nContent-type: multipart/mixed;\r\n        boundary=\"part0_893950130_boundary\"\nX-Mailer: AOL 3.0 16-bit for Windows sub 41\nSender: owner-pc800@hpc.uh.edu\nPrecedence: list\nX-Majordomo: 1.94.jlt7",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

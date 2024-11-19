@@ -1,0 +1,22 @@
+From: Art Vandelay <art@vandelay.com> (Vandelay Industries)
+To: "Colleagues": "James Smythe" <james@vandelay.com>; Friends:
+   jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?= <john@example.com>;
+Date: Sat, 20 Nov 2021 14:22:01 -0800
+Subject: Why not both importing AND exporting? =?utf-8?b?4pi6?=
+Content-Type: multipart/mixed; boundary="festivus";
+
+--festivus
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: base64
+
+PGh0bWw+PHA+SSB3YXMgdGhpbmtpbmcgYWJvdXQgcXVpdHRpbmcgdGhlICZsZHF1bztle
+HBvcnRpbmcmcmRxdW87IHRvIGZvY3VzIGp1c3Qgb24gdGhlICZsZHF1bztpbXBvcnRpbm
+cmcmRxdW87LDwvcD48cD5idXQgdGhlbiBJIHRob3VnaHQsIHdoeSBub3QgZG8gYm90aD8
+gJiN4MjYzQTs8L3A+PC9odG1sPg==
+--festivus
+Content-Type: image/gif; name="TestFile.gif";
+Content-Transfer-Encoding: Base64
+Content-Disposition: attachment
+
+R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
+--festivus--

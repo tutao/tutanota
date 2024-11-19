@@ -1,0 +1,53 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "------------299A70B339B65A93542D2AE",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Eryq",
+			"mailAddress": "eryq@rhine.gsfc.nasa.gov",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "john-bigboote@eryq.pr.mcs.net",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 829203030000,
+		"subject": "Two images for you...",
+		"plainBodyText": "When unpacked, this message should produce two GIF files:\r\n\r\n\t* The 1st should be called \"3d-compress.gif\"\r\n\t* The 2nd should be called \"3d-eye.gif\"\r\n\r\nDifferent ways of specifying the filenames have been used.\r\n\r\n-- \r\n   ____           __\r\n  / __/__________/_/  Eryq (eryq@rhine.gsfc.nasa.gov)\r\n / __/ _/ / / , /     Hughes STX Corporation, NASA/Goddard\r\n/___/_/ \\  /\\  /___ \r\n        /_/ /_____/   http://selsvr.stx.com/~eryq/\r\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "_evil_because_ofpath3d-=_ISO-8859-1_Q_=63_=om=_US-ASCII_EN_Q_pr_=ess.gif",
+				"data": "R0lGODdhKAAoAOMAAAAAAAAAgB6Q/y9PT25ubnCAkKBSLb6+vufn5/Xes/+lAP/6zQAAAAAAAAAAAAAAACwAAAAAKAAoAAAE/hDJSau9eJLMOyYbcoxkaZ5oCkoH6L5wLMfiWqd4btZhmxbAoFCY47EIqMJgyWw2ATjj7aRkAq5YwDMl9VGtKO0SiuoiTVlscsxt9c4HgXxUIA0EAVOVfDKT8Hl1B3kDAYYle202XnGGgoMHhYckiWVuR3+OTgCGeZRslotwgJ2lnYigfZdTjQULr7ALBZN0qTurjHgLKAu0B5Wqopm7J72etQN8t8Ijury+wMtvw8/Hv7Ylfs0BxCbGqMmK0yOOQ0GTCgrR2bhwJGlXJQYG6mMKoeNoWSbzCWIACe5JwxQm3AkDAbUAQCiQhDZEBeBl6afgCsOBrD45edIvQceGWSMevpOYhl6CkydBHhBZQmGKjihVshypjB9ClAHZMTugzOU7mzhBPiSZ5uDNnA7b/aTZ0mhMnfl0pDBFa6bUElSPWb0qtYuHrxlwcR17YsWMs2jTql3LFkQEADs=",
+				"mimeType": "image/gif",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			},
+			{
+				"name": "3d-eye-is-an-evil-filename because of excessive length and verbosity.  Unfortunately what can we do given an idiotic situation such as this_",
+				"data": "R0lGODdhKAAoAPMAAAAAAAAAzN3u/76+voiIiG5ubszd7v///+fn5wAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAKAAoAAAE/hDJSau9eJbMOy4bMoxkaZ5oCkoD6L5wLMfiWns41oZt7lM7VujnC96IRVsPWQE4nxPjkvmsQmu8oc/KBUSVWk7XepGGLeNrxoxJO1MjILjthg/kWXQ6wO/7+3dCeRRjfAKHiImJAV+DCF0BiW5VAo1CElaRh5NjlkeYmpyTgpcTAKGiaaSfpwKpVQaxVatLrU8GaQdOBAQAB7+yXliXTrgAxsW4vFabv8BOtBsBt7cGvwCIT9nOyNEIxuC4zrqKzc9XbODJvs7Y5ewH3d7Fxe3jB4rj8t6PuNa6r2bhKQXN17FYCBMqTGiBzSNhx5g0nEMhlsSJjiRYvDjwE0cdGxQ/gswosoKUkmuU2FnJcsSKGTBjypxJsyaICAA7",
+				"mimeType": "image/gif",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "Return-Path: eryq@rhine.gsfc.nasa.gov\nSender: john-bigboote\nDate: Thu, 11 Apr 1996 01:10:30 -0500\nFrom: Eryq <eryq@rhine.gsfc.nasa.gov>\nOrganization: Yoyodyne Propulsion Systems\nX-Mailer: Mozilla 2.0 (X11; I; Linux 1.1.18 i486)\nMIME-Version: 1.0\nTo: john-bigboote@eryq.pr.mcs.net\nSubject: Two images for you...\nContent-Type: multipart/mixed; boundary=\"------------299A70B339B65A93542D2AE\"",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

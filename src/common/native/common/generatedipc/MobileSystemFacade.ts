@@ -2,6 +2,7 @@
 
 import { PermissionType } from "./PermissionType.js"
 import { AppLockMethod } from "./AppLockMethod.js"
+
 /**
  * Common operations implemented by each mobile platform.
  */

@@ -560,7 +560,7 @@ export class MailModel {
 	}
 
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailSetKind.CUSTOM) {
+		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.Imported) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
@@ -625,5 +625,9 @@ export class MailModel {
 			}
 		}
 		return null
+	}
+
+	getImportedMailSets(): Array<MailFolder> {
+		return [...this.mailSets.values()].filter((f) => f.folders.importedMailSet).map((f) => f.folders.importedMailSet!)
 	}
 }

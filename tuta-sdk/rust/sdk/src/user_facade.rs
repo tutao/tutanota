@@ -132,6 +132,21 @@ impl UserFacade {
 		self.key_cache.get_current_user_group_key()
 	}
 
+	pub fn get_membership_by_group_type(
+		&self,
+		group_type: GroupType,
+	) -> Result<GroupMembership, ApiCallError> {
+		let memberships = &self.get_user().memberships;
+		let group_type = group_type as i64;
+		memberships
+			.iter()
+			.find(|g| g.groupType == Some(group_type))
+			.map(|m| m.to_owned())
+			.ok_or_else(|| ApiCallError::InternalSdkError {
+				error_message: format!("No group with groupType {} found!", group_type),
+			})
+	}
+
 	#[allow(unused)]
 	pub(crate) fn get_membership(
 		&self,

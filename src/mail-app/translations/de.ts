@@ -1849,6 +1849,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"accountWillBeDeactivatedIn6Month_label": "Dein Account wird 6 Monate nach dem letzten Login gelöscht",
+		"accountWillHaveLessStorage_label": "Dein Account wird auf 1GB Speicher begrenzt"
 	}
 }

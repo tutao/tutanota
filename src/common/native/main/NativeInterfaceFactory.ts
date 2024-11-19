@@ -38,6 +38,8 @@ import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/Mobil
 import { AppType } from "../../misc/ClientConstants.js"
 import { ExternalCalendarFacade } from "../common/generatedipc/ExternalCalendarFacade.js"
 import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/ExternalCalendarFacadeSendDispatcher.js"
+import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
+import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -56,6 +58,7 @@ export type DesktopInterfaces = {
 	searchTextFacade: SearchTextInAppFacade
 	desktopSettingsFacade: SettingsFacadeSendDispatcher
 	desktopSystemFacade: DesktopSystemFacade
+	mailImportFacade: NativeMailImportFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
 }
 
@@ -113,6 +116,7 @@ export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInt
 		searchTextFacade: new SearchTextInAppFacadeSendDispatcher(native),
 		desktopSettingsFacade: new SettingsFacadeSendDispatcher(native),
 		desktopSystemFacade: new DesktopSystemFacadeSendDispatcher(native),
+		mailImportFacade: new NativeMailImportFacadeSendDispatcher(native),
 		interWindowEventSender: new InterWindowEventFacadeSendDispatcher(native),
 	}
 }

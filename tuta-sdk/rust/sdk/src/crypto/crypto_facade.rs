@@ -23,6 +23,7 @@ use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use futures::FutureExt;
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
@@ -68,7 +69,7 @@ impl CryptoFacade {
 	/// if present
 	pub async fn resolve_session_key(
 		&self,
-		entity: &mut ParsedEntity,
+		entity: &ParsedEntity,
 		model: &TypeModel,
 	) -> Result<Option<ResolvedSessionKey>, SessionKeyResolutionError> {
 		if !model.marked_encrypted() {
@@ -90,7 +91,6 @@ impl CryptoFacade {
 				},
 			}
 		}
-
 		// Extract the session key data from the owner group of the entity
 		let EntityOwnerKeyData {
 			owner_enc_session_key: Some(owner_enc_session_key),
@@ -120,7 +120,7 @@ impl CryptoFacade {
 	/// Resolves the bucket key fields inside `entity` and returns the session key
 	async fn resolve_bucket_key(
 		&self,
-		entity: &mut ParsedEntity,
+		entity: &ParsedEntity,
 		model: &TypeModel,
 	) -> Result<ResolvedSessionKey, SessionKeyResolutionError> {
 		let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_FIELD) else {

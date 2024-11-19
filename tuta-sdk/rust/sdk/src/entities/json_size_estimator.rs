@@ -430,7 +430,6 @@ enum CompoundType {
 	Seq,
 }
 
-///
 struct SizeEstimatingCompoundSerializer(CompoundType, usize);
 
 impl<'a> SerializeSeq for SizeEstimatingCompoundSerializer {

@@ -82,6 +82,10 @@ impl MailFacade {
 		Ok(FolderSystem::new(folders))
 	}
 
+	pub fn get_crypto_entity_client(&self) -> Arc<CryptoEntityClient> {
+		self.crypto_entity_client.clone()
+	}
+
 	pub async fn load_mails_in_folder(
 		&self,
 		folder: &MailFolder,

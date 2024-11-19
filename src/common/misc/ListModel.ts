@@ -66,7 +66,7 @@ export class ListModel<ElementType extends ListElement> {
 		return this.rawStateStream()
 	}
 
-	private rawStateStream: Stream<PrivateListState<ElementType>> = stream({
+	private defaultRawStateStream: PrivateListState<ElementType> = {
 		unfilteredItems: [],
 		filteredItems: [],
 		inMultiselect: false,
@@ -74,7 +74,8 @@ export class ListModel<ElementType extends ListElement> {
 		loadingAll: false,
 		selectedItems: new Set(),
 		activeElement: null,
-	})
+	}
+	private rawStateStream: Stream<PrivateListState<ElementType>> = stream(this.defaultRawStateStream)
 
 	readonly stateStream: Stream<ListState<ElementType>> = this.rawStateStream.map((state) => {
 		const activeElement = state.activeElement
@@ -97,6 +98,12 @@ export class ListModel<ElementType extends ListElement> {
 		new Set(),
 		this.stateStream,
 	)
+
+	resetLoadingState() {
+		this.loadState = "created"
+		this.loading = Promise.resolve()
+		this.updateState(this.defaultRawStateStream)
+	}
 
 	private updateState(newStatePart: Partial<PrivateListState<ElementType>>) {
 		this.rawStateStream({ ...this.rawState, ...newStatePart })

@@ -1,11 +1,11 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, TranslationText } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, HighestTierPlans, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import type { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
@@ -19,14 +19,12 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
-import { UserError } from "../../../common/api/main/UserError"
-import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { archiveMails, getConversationTitle, getMoveMailBounds, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import Stream from "mithril/stream"
-import { readLocalFiles } from "../../../common/file/FileController.js"
+import { fileListToArray, readLocalFiles } from "../../../common/file/FileController.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
@@ -39,7 +37,6 @@ import { EditFoldersDialog } from "./EditFoldersDialog.js"
 import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { conversationCardMargin, ConversationViewer } from "./ConversationViewer.js"
-import type { DesktopSystemFacade } from "../../../common/native/common/generatedipc/DesktopSystemFacade.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { MailViewerActions } from "./MailViewerToolbar.js"
@@ -70,6 +67,8 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
+import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
+import { Importer } from "../import/Importer"
 
 assertMainOrNode()
 
@@ -83,7 +82,7 @@ export interface MailViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	cache: MailViewCache
 	header: AppHeaderAttrs
-	desktopSystemFacade: DesktopSystemFacade | null
+	mailImporter: Importer | null
 	mailViewModel: MailViewModel
 }
 
@@ -95,7 +94,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
-	private readonly desktopSystemFacade: DesktopSystemFacade | null
+	private readonly mailImporter: Importer | null
 	cache: MailViewCache
 	readonly oncreate: TopLevelView["oncreate"]
 	readonly onremove: TopLevelView["onremove"]
@@ -111,7 +110,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	constructor(vnode: Vnode<MailViewAttrs>) {
 		super()
-		this.desktopSystemFacade = vnode.attrs.desktopSystemFacade
+		this.mailImporter = vnode.attrs.mailImporter
 		this.expandedState = new Set(deviceConfig.getExpandedFolders(locator.logins.getUserController().userId))
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
@@ -344,24 +343,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 				ondrop: (ev: DragEvent) => {
 					if (isNewMailActionAvailable() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-						Promise.all([
-							this.mailViewModel.getMailboxDetails(),
-							readLocalFiles(ev.dataTransfer.files),
-							import("../signature/Signature"),
-							import("../editor/MailEditor"),
-						])
-							.then(([mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }]) => {
-								mailbox &&
-									newMailEditorFromTemplate(
-										mailbox,
-										{},
-										"",
-										appendEmailSignature("", locator.logins.getUserController().props),
-										dataFiles,
-									).then((dialog) => dialog.show())
-							})
-							.catch(ofClass(PermissionError, noOp))
-							.catch(ofClass(UserError, showUserError))
+						this.handleFileDrop({
+							dropType: DropType.ExternalFile,
+							files: fileListToArray(ev.dataTransfer.files),
+						})
 					}
 
 					// prevent in any case because firefox tries to open
@@ -640,7 +625,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			onFolderExpanded: (folder, state) => this.setExpandedState(folder, state),
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
-			onFolderDrop: (mailId, folder) => this.handleFolderDrop(mailId, folder),
+			onFolderDrop: (dropData, folder) => {
+				if (dropData.dropType == DropType.Mail) {
+					this.handleFolderMailDrop(dropData, folder)
+				} else if (dropData.dropType == DropType.ExternalFile) {
+					this.handeFolderFileDrop(dropData, mailboxDetail, folder)
+				}
+			},
 			inEditMode,
 			onEditMailbox,
 		})
@@ -704,17 +695,36 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async handleFolderDrop(droppedMailId: string, folder: MailFolder) {
+	private async handleFileDrop(fileDrop: FileDropData) {
+		try {
+			const [mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }] = await Promise.all([
+				this.mailViewModel.getMailboxDetails(),
+				readLocalFiles(fileDrop.files),
+				import("../signature/Signature"),
+				import("../editor/MailEditor"),
+			])
+
+			if (mailbox != null) {
+				const dialog = await newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", locator.logins.getUserController().props), dataFiles)
+				dialog.show()
+			}
+		} catch (e) {
+			if (!(e instanceof PermissionError)) throw e
+		}
+	}
+
+	private async handleFolderMailDrop(dropData: MailDropData, folder: MailFolder) {
+		const { mailId } = dropData
 		if (!this.mailViewModel.listModel) {
 			return
 		}
 		let mailsToMove: Mail[] = []
 
 		// the dropped mail is among the selected mails, move all selected mails
-		if (this.mailViewModel.listModel.isItemSelected(droppedMailId)) {
+		if (this.mailViewModel.listModel.isItemSelected(mailId)) {
 			mailsToMove = this.mailViewModel.listModel.getSelectedAsArray()
 		} else {
-			const entity = this.mailViewModel.listModel.state.items.find((item) => getElementId(item) === droppedMailId)
+			const entity = this.mailViewModel.listModel.state.items.find((item) => getElementId(item) === mailId)
 
 			if (entity) {
 				mailsToMove.push(entity)
@@ -727,6 +737,38 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mails: mailsToMove,
 			targetMailFolder: folder,
 		})
+	}
+
+	private async handeFolderFileDrop(dropData: FileDropData, mailboxDetail: MailboxDetail, mailFolder: MailFolder) {
+		function droppedOnlyMailFiles(files: Array<File>): boolean {
+			// there's similar logic on the AttachmentBubble, but for natively shared files.
+			return files.every((f) => f.name.endsWith(".eml") || f.name.endsWith(".mbox"))
+		}
+
+		// importing mails is currently only allowed on plan LEGEND and UNLIMITED
+		const currentPlanType = await locator.logins.getUserController().getPlanType()
+		const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
+
+		let importAction: { text: TranslationText; value: boolean } = {
+			text: "import_action",
+			value: true,
+		}
+		let attachFilesAction: { text: TranslationText; value: boolean } = {
+			text: "attachFiles_action",
+			value: false,
+		}
+		const willImport =
+			isHighestTierPlan && droppedOnlyMailFiles(dropData.files) && (await Dialog.choice("emlOrMboxInSharingFiles_msg", [importAction, attachFilesAction]))
+
+		if (!willImport) {
+			await this.handleFileDrop(dropData)
+		} else if (mailFolder._ownerGroup && this.mailImporter) {
+			await this.mailImporter.importFromFiles(
+				mailFolder,
+				mailboxDetail,
+				dropData.files.map((file) => window.nativeApp.getPathForFile(file)),
+			)
+		}
 	}
 
 	private async showNewMailDialog(): Promise<void> {

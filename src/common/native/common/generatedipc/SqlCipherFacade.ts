@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { TaggedSqlValue } from "./TaggedSqlValue.js"
+
 export interface SqlCipherFacade {
 	openDb(userId: string, dbKey: Uint8Array): Promise<void>
 

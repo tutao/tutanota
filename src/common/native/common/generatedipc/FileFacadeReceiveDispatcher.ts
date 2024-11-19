@@ -6,6 +6,7 @@ import { FileFacade } from "./FileFacade.js"
 
 export class FileFacadeReceiveDispatcher {
 	constructor(private readonly facade: FileFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "open": {

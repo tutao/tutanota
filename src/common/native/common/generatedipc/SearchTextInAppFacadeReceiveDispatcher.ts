@@ -4,6 +4,7 @@ import { SearchTextInAppFacade } from "./SearchTextInAppFacade.js"
 
 export class SearchTextInAppFacadeReceiveDispatcher {
 	constructor(private readonly facade: SearchTextInAppFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "findInPage": {

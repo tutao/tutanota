@@ -75,11 +75,7 @@ impl JsonSerializer {
 					// When the value is encrypted we need to pass on the information about the
 					// default value, so we keep it as an empty string (see entity_facade.rs).
 					// Otherwise, we resolve the field to its default value.
-					if value_type.encrypted {
-						ElementValue::String(String::new())
-					} else {
-						value_type.value_type.get_default()
-					}
+					value_type.value_type.get_default()
 				},
 				(Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
 					if value_type.encrypted =>
@@ -344,7 +340,7 @@ impl JsonSerializer {
 				app: association_type.dependency.unwrap_or(type_ref.app),
 				type_: association_type.ref_type,
 			};
-			match (
+			let serialized_association = match (
 				&association_type.association_type,
 				&association_type.cardinality,
 				value,
@@ -355,7 +351,7 @@ impl JsonSerializer {
 					ElementValue::Dict(dict),
 				) => {
 					let serialized = self.serialize(&association_type_ref, dict)?;
-					mapped.insert(association_name, JsonElement::Dict(serialized));
+					JsonElement::Dict(serialized)
 				},
 				(
 					AssociationType::Aggregation
@@ -369,45 +365,34 @@ impl JsonSerializer {
 						&association_type_ref,
 						elements,
 					)?;
-					mapped.insert(association_name, JsonElement::Array(serialized_aggregates));
+					JsonElement::Array(serialized_aggregates)
 				},
-				(_, Cardinality::ZeroOrOne, ElementValue::Null) => {
-					mapped.insert(association_name, JsonElement::Null);
-				},
+				(_, Cardinality::ZeroOrOne, ElementValue::Null) => JsonElement::Null,
 				(
 					AssociationType::ElementAssociation | AssociationType::ListAssociation,
 					Cardinality::One | Cardinality::ZeroOrOne,
 					ElementValue::IdGeneratedId(id),
 				) => {
 					// FIXME it's not always generated id but it's fine probably
-					mapped.insert(association_name, JsonElement::String(id.into()));
+					JsonElement::String(id.into())
 				},
 				(
-					AssociationType::ListElementAssociationGenerated,
-					Cardinality::One,
+					AssociationType::ListElementAssociationGenerated
+					| AssociationType::BlobElementAssociation,
+					_,
 					ElementValue::IdTupleGeneratedElementId(id_tuple),
-				) => {
-					mapped.insert(
-						association_name,
-						JsonElement::Array(vec![
-							JsonElement::String(id_tuple.list_id.into()),
-							JsonElement::String(id_tuple.element_id.into()),
-						]),
-					);
-				},
+				) => JsonElement::Array(vec![
+					JsonElement::String(id_tuple.list_id.into()),
+					JsonElement::String(id_tuple.element_id.into()),
+				]),
 				(
 					AssociationType::ListElementAssociationCustom,
 					Cardinality::One,
 					ElementValue::IdTupleCustomElementId(id_tuple),
-				) => {
-					mapped.insert(
-						association_name,
-						JsonElement::Array(vec![
-							JsonElement::String(id_tuple.list_id.into()),
-							JsonElement::String(id_tuple.element_id.into()),
-						]),
-					);
-				},
+				) => JsonElement::Array(vec![
+					JsonElement::String(id_tuple.list_id.into()),
+					JsonElement::String(id_tuple.element_id.into()),
+				]),
 				(AssociationType::BlobElementAssociation, _, ElementValue::Array(elements)) => {
 					// Blobs are copied as-is for now
 					let serialized_aggregates = self.make_serialized_aggregated_array(
@@ -415,10 +400,16 @@ impl JsonSerializer {
 						&association_type_ref,
 						elements,
 					)?;
-					mapped.insert(association_name, JsonElement::Array(serialized_aggregates));
+					JsonElement::Array(serialized_aggregates)
 				},
-				_ => {},
-			}
+
+				_ => {
+					debug_assert!(false, "unknown combination of association");
+					continue;
+				},
+			};
+
+			mapped.insert(association_name, serialized_association);
 		}
 
 		Ok(mapped)
@@ -492,10 +483,8 @@ impl JsonSerializer {
 		// FIXME there are more null/empty cases we need to take care of
 		if model_value.cardinality == Cardinality::ZeroOrOne && element_value == ElementValue::Null
 		{
-			return Ok(JsonElement::Null);
-		}
-
-		if value_name == ID_FIELD {
+			Ok(JsonElement::Null)
+		} else if value_name == ID_FIELD {
 			return match (
 				&model_value.value_type,
 				element_value,
@@ -535,33 +524,58 @@ impl JsonSerializer {
 
 				_ => invalid_value(),
 			};
+		} else {
+			Self::map_element_value_to_json_element(model_value, element_value).ok_or_else(|| {
+				InvalidValue {
+					type_ref: type_model.into(),
+					field: value_name.to_owned(),
+				}
+			})
 		}
+	}
 
+	fn map_element_value_to_json_element(
+		model_value: &ModelValue,
+		element_value: ElementValue,
+	) -> Option<JsonElement> {
 		match (&model_value.value_type, element_value) {
+			(_, ElementValue::String(v))
+				if model_value.encrypted
+						// the model value is not a string - this field was added as the default value marker for
+						// some other model type
+					&& v.is_empty() && !matches!(model_value.value_type, ValueType::String) =>
+			{
+				Some(JsonElement::String(v))
+			},
+
 			(_, ElementValue::Bytes(v)) if model_value.encrypted => {
 				let str = BASE64_STANDARD.encode(v);
-				Ok(JsonElement::String(str))
+				Some(JsonElement::String(str))
 			},
-			(ValueType::String, ElementValue::String(v)) => Ok(JsonElement::String(v)),
-			(ValueType::Number, ElementValue::Number(v)) => Ok(JsonElement::String(v.to_string())),
+			(ValueType::String, ElementValue::String(v)) => Some(JsonElement::String(v)),
+			(ValueType::Number, ElementValue::Number(v)) => {
+				Some(JsonElement::String(v.to_string()))
+			},
 			(ValueType::Bytes, ElementValue::Bytes(v)) => {
 				let str = BASE64_STANDARD.encode(v);
-				Ok(JsonElement::String(str))
+				Some(JsonElement::String(str))
 			},
 			(ValueType::Date, ElementValue::Date(v)) => {
-				Ok(JsonElement::String(v.as_millis().to_string()))
+				Some(JsonElement::String(v.as_millis().to_string()))
 			},
 			(ValueType::Boolean, ElementValue::Bool(v)) => {
-				Ok(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
+				Some(JsonElement::String(if v { "1" } else { "0" }.to_owned()))
 			},
 			(ValueType::GeneratedId, ElementValue::IdGeneratedId(v)) => {
-				Ok(JsonElement::String(v.into()))
+				Some(JsonElement::String(v.into()))
 			},
-			(ValueType::CustomId, ElementValue::IdCustomId(v)) => Ok(JsonElement::String(v.into())),
+			(ValueType::CustomId, ElementValue::IdCustomId(v)) => {
+				Some(JsonElement::String(v.into()))
+			},
 			(ValueType::CompressedString, ElementValue::String(_)) => {
 				unimplemented!("compressed string")
 			},
-			_ => invalid_value(),
+			_ => None,
 		}
 	}
 
@@ -763,7 +777,7 @@ mod tests {
 			.assert_dict();
 		assert_eq!(
 			ship.get("symEncGKey").unwrap().assert_bytes(),
-			Vec::<u8>::new()
+			&Vec::<u8>::new()
 		);
 	}
 

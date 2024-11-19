@@ -1,17 +1,23 @@
-use std::sync::Arc;
-
-use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
+use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions, RestResponse};
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
+use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::entity_facade::EntityFacade;
 use crate::entities::entity_facade::ID_FIELD;
+use crate::entities::generated::base::PersistenceResourcePostReturn;
+use crate::entities::Entity;
 use crate::id::id_tuple::{BaseIdType, IdTupleType, IdType};
-use crate::json_element::RawEntity;
+use crate::instance_mapper::InstanceMapper;
+use crate::json_element::{JsonElement, RawEntity};
 use crate::json_serializer::JsonSerializer;
 use crate::metamodel::{ElementType, TypeModel};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::GeneratedId;
-use crate::{ApiCallError, HeadersProvider, ListLoadDirection, TypeRef};
+use crate::{ApiCallError, HeadersProvider, IdTupleCustom, ListLoadDirection, TypeRef};
+use crate::{GeneratedId, IdTupleGenerated};
+use futures::StreamExt;
+use serde_bytes::Serialize;
+use std::sync::Arc;
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
 pub struct EntityClient {
@@ -20,6 +26,7 @@ pub struct EntityClient {
 	auth_headers_provider: Arc<HeadersProvider>,
 	json_serializer: Arc<JsonSerializer>,
 	type_model_provider: Arc<TypeModelProvider>,
+	entity_facade: Arc<dyn EntityFacade>,
 }
 
 impl EntityClient {
@@ -30,8 +37,10 @@ impl EntityClient {
 		base_url: String,
 		auth_headers_provider: Arc<HeadersProvider>,
 		type_model_provider: Arc<TypeModelProvider>,
+		entity_facade: Arc<dyn EntityFacade>,
 	) -> Self {
 		EntityClient {
+			entity_facade,
 			rest_client,
 			json_serializer,
 			base_url,
@@ -41,7 +50,6 @@ impl EntityClient {
 	}
 
 	/// Gets an entity/instance of type `type_ref` from the backend
-	#[allow(unused)]
 	pub async fn load<Id: IdType>(
 		&self,
 		type_ref: &TypeRef,
@@ -66,10 +74,10 @@ impl EntityClient {
 		self.type_model_provider
 			.get_type_model(type_ref.app, type_ref.type_)
 			.ok_or_else(|| {
-				let message = format!("Model {} not found in app {}", type_ref.type_, type_ref.app);
-				ApiCallError::InternalSdkError {
-					error_message: message,
-				}
+				ApiCallError::internal(format!(
+					"Model {} not found in app {}",
+					type_ref.type_, type_ref.app
+				))
 			})
 	}
 
@@ -119,38 +127,67 @@ impl EntityClient {
 		Ok(parsed_entities)
 	}
 
-	/// Stores a newly created entity/instance as a single element on the backend
-	#[allow(clippy::unused_async, unused)]
-	pub async fn setup_element(&self, _type_ref: &TypeRef, _entity: RawEntity) -> Vec<String> {
-		todo!("entity client setup_element")
-	}
-
-	/// Stores a newly created entity/instance as a part of a list element on the backend
-	#[allow(clippy::unused_async, unused)]
-	pub async fn setup_list_element(
+	async fn post_instance_changes(
 		&self,
-		_type_ref: &TypeRef,
-		_list_id: &GeneratedId,
-		_entity: RawEntity,
-	) -> Vec<String> {
-		todo!("entity client setup_list_element")
-	}
-
-	/// Updates an entity/instance in the backend
-	#[allow(unused)]
-	pub async fn update(
-		&self,
+		parsed_entity: ParsedEntity,
 		type_ref: &TypeRef,
-		entity: ParsedEntity,
-		model_version: u32,
-	) -> Result<(), ApiCallError> {
-		let id = match &entity.get(ID_FIELD).unwrap() {
-			ElementValue::IdTupleGeneratedElementId(ref id_tuple) => id_tuple.to_string(),
-			ElementValue::IdTupleCustomElementId(ref id_tuple) => id_tuple.to_string(),
-			_ => panic!("id is not string or array"),
+		request_type: HttpMethod,
+	) -> Result<RestResponse, ApiCallError> {
+		let mut request_url = format!(
+			"{}/rest/{}/{}/",
+			self.base_url, type_ref.app, type_ref.type_
+		);
+		let type_model = self.get_type_model(&type_ref)?;
+		let model_version_str = type_model.version;
+		let model_version = model_version_str.parse::<u32>().map_err(|_e| {
+			ApiCallError::internal(format!(
+				"Expected version to be u32 compatible. Found: {model_version_str}"
+			))
+		})?;
+
+		let entity_id = parsed_entity
+			.get(ID_FIELD)
+			.filter(|id| !matches!(id, ElementValue::Null))
+			.ok_or_else(|| {
+				ApiCallError::internal(
+					"_id field have to be set while updating the instance".to_string(),
+				)
+			})?
+			.clone();
+
+		let mut raw_entity = self.json_serializer.serialize(type_ref, parsed_entity)?;
+		let (list_id, element_id) = match entity_id {
+			ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
+				list_id,
+				element_id,
+			}) => (Some(list_id), element_id.to_string()),
+
+			ElementValue::IdTupleCustomElementId(IdTupleCustom {
+				list_id,
+				element_id,
+			}) => (Some(list_id), element_id.to_string()),
+
+			ElementValue::IdGeneratedId(element_id) => (None, element_id.to_string()),
+			ElementValue::IdCustomId(element_id) => (None, element_id.to_string()),
+
+			_ => panic!("Invalid type of _id for TypeRef: {type_ref}"),
 		};
-		let raw_entity = self.json_serializer.serialize(type_ref, entity)?;
-		let body = serde_json::to_vec(&raw_entity).unwrap();
+
+		if let Some(list_id) = list_id {
+			request_url.push_str(list_id.as_str());
+		}
+
+		if request_type == HttpMethod::POST {
+			raw_entity.insert("_id".to_string(), JsonElement::Null);
+			raw_entity.insert("_permissions".to_string(), JsonElement::Null);
+		} else {
+			request_url.push('/');
+			request_url.push_str(element_id.as_str());
+		}
+
+		let body = serde_json::to_vec(&raw_entity).map_err(|_| {
+			ApiCallError::internal("Cannot serialize RawEntity to json".to_string())
+		})?;
 		let mut options = RestClientOptions {
 			body: Some(body),
 			headers: self.auth_headers_provider.provide_headers(model_version),
@@ -159,14 +196,75 @@ impl EntityClient {
 		options
 			.headers
 			.insert("Content-Type".to_owned(), "application/json".to_owned());
-		// FIXME we should look at type model whether it is ET or LET
-		let url = format!(
-			"{}/rest/{}/{}/{}",
-			self.base_url, type_ref.app, type_ref.type_, id
-		);
-		self.rest_client
-			.request_binary(url, HttpMethod::PUT, options)
+
+		let response = self
+			.rest_client
+			.request_binary(request_url, request_type, options)
 			.await?;
+
+		Ok(response)
+	}
+
+	pub async fn create_instance(
+		&self,
+		type_ref: &TypeRef,
+		parsed_entity: ParsedEntity,
+		instance_mapper: &InstanceMapper,
+	) -> Result<PersistenceResourcePostReturn, ApiCallError> {
+		let response = self
+			.post_instance_changes(parsed_entity, type_ref, HttpMethod::POST)
+			.await?;
+
+		assert!(
+			response.status >= 200 && response.status <= 300,
+			"non-ok status code"
+		);
+
+		let raw_response = response
+			.body
+			.as_deref()
+			.map(|body| serde_json::from_slice(body).ok())
+			.flatten()
+			.ok_or_else(|| {
+				ApiCallError::internal("server did not responded with valid json".to_string())
+			})?;
+
+		let response_entity = self
+			.json_serializer
+			.parse(&PersistenceResourcePostReturn::type_ref(), raw_response)
+			.map_err(|e| {
+				ApiCallError::internal_with_err(
+					e,
+					"PersistenceResourcePostReturn returned by server is expected to be valid",
+				)
+			})?;
+
+		let persistent_resource = instance_mapper
+			.parse_entity(response_entity)
+			.map_err(|_e| {
+				ApiCallError::internal(
+					"Cannot convert ParsedEntity to valid PersistenceResourcePostReturn"
+						.to_string(),
+				)
+			})?;
+
+		Ok(persistent_resource)
+	}
+
+	pub async fn update_instance(
+		&self,
+		type_ref: &TypeRef,
+		parsed_entity: ParsedEntity,
+	) -> Result<(), ApiCallError> {
+		println!("some mail probably: {:?}", parsed_entity);
+		let response = self
+			.post_instance_changes(parsed_entity, type_ref, HttpMethod::PUT)
+			.await?;
+		assert!(
+			response.status >= 200 && response.status <= 299,
+			"non-ok status code {}",
+			response.status
+		);
 		Ok(())
 	}
 
@@ -206,15 +304,16 @@ impl EntityClient {
 			.rest_client
 			.request_binary(url, HttpMethod::GET, options)
 			.await?;
-		let precondition = response.headers.get("precondition");
+
 		match response.status {
 			200..=299 => {
 				// Ok
 			},
 			_ => {
+				let precondition = response.headers.get("precondition");
 				return Err(ApiCallError::ServerResponseError {
 					source: HttpError::from_http_response(response.status, precondition)?,
-				})
+				});
 			},
 		}
 		Ok(response.body)
@@ -230,6 +329,7 @@ mockall::mock! {
 			base_url: String,
 			auth_headers_provider: Arc<HeadersProvider>,
 			type_model_provider: Arc<TypeModelProvider>,
+			entity_facade: Arc<dyn EntityFacade>
 		) -> Self;
 		pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;
 		pub async fn load<Id: IdType>(
@@ -258,10 +358,14 @@ mockall::mock! {
 			list_id: &GeneratedId,
 			entity: RawEntity,
 		) -> Vec<String>;
-		pub async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity, model_version: u32)
-						-> Result<(), ApiCallError>;
+		pub async fn update(&self, type_ref: &TypeRef, entity: ParsedEntity) -> Result<(), ApiCallError>;
 		pub async fn erase_element(&self, type_ref: &TypeRef, id: &GeneratedId) -> Result<(), ApiCallError>;
 		pub async fn erase_list_element<Id: IdTupleType>(&self, type_ref: &TypeRef, id: Id) -> Result<(), ApiCallError>;
+		async fn post_instance_changes( &self, parsed_entity: ParsedEntity, type_ref: &TypeRef, request_type: HttpMethod,
+			) -> Result<RestResponse, ApiCallError>;
+		pub async fn update_instance(&self, type_ref: &TypeRef, parsed_entity: ParsedEntity) -> Result<(), ApiCallError>;
+		pub async fn create_instance(&self, type_ref: &TypeRef, parsed_entity: ParsedEntity, instance_mapper: &InstanceMapper)
+			-> Result<PersistenceResourcePostReturn, ApiCallError>;
 	}
 }
 
@@ -271,6 +375,7 @@ mod tests {
 
 	use super::*;
 	use crate::bindings::rest_client::{MockRestClient, RestResponse};
+	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::Entity;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
 	use crate::CustomId;
@@ -311,6 +416,10 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
+		let entity_facade = EntityFacadeImpl::new(
+			type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -343,6 +452,7 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
+			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client
@@ -361,6 +471,10 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_custom_element_id() {
 		let type_model_provider = mock_type_model_provider();
+		let entity_facade = EntityFacadeImpl::new(
+			type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -393,6 +507,7 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
+			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client
@@ -411,6 +526,10 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_asc_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
+		let entity_facade = EntityFacadeImpl::new(
+			type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -443,6 +562,7 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
+			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client
@@ -461,6 +581,10 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_asc_custom_element_id() {
 		let type_model_provider = mock_type_model_provider();
+		let entity_facade = EntityFacadeImpl::new(
+			type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -493,6 +617,7 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
+			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client

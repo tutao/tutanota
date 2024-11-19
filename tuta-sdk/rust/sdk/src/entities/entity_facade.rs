@@ -91,8 +91,14 @@ impl EntityFacadeImpl {
 	) -> bool {
 		if model_value.encrypted {
 			if let Some(final_ivs) = Self::get_final_iv_for_key(instance, key) {
+				if final_ivs.assert_bytes().is_empty() {
+					eprintln!(
+						"Have empty finalIv and contains value: {:?} for key: {key}. Is of type: {:?}",
+						value, model_value.value_type
+					);
+				}
 				return final_ivs.assert_bytes().is_empty()
-					&& value == &ValueType::get_default(&model_value.value_type);
+					&& model_value.value_type.get_default().eq(value);
 			}
 		}
 		false
@@ -126,17 +132,18 @@ impl EntityFacadeImpl {
 	}
 
 	fn get_final_iv_for_key(instance: &ParsedEntity, key: &str) -> Option<ElementValue> {
-		if let Some(final_ivs) = instance.get("_finalIvs") {
-			if let Some(array) = final_ivs.assert_dict_ref().get(key) {
-				return Some(ElementValue::Bytes(array.assert_bytes()));
-			};
-		};
-		None
+		let finals_ivs = instance.get("_finalIvs")?;
+		let arrays = finals_ivs
+			.assert_dict_ref()
+			.get(key)?
+			.assert_bytes()
+			.to_owned();
+		Some(ElementValue::Bytes(arrays))
 	}
 
 	fn map_value_to_binary(value_type: &ValueType, value: &ElementValue) -> Vec<u8> {
 		match value_type {
-			ValueType::Bytes => value.assert_bytes(),
+			ValueType::Bytes => value.assert_bytes().to_vec(),
 			ValueType::String => value.assert_string().as_bytes().to_vec(),
 			ValueType::Number => value.assert_number().to_string().as_bytes().to_vec(),
 			ValueType::Date => value
@@ -171,16 +178,14 @@ impl EntityFacadeImpl {
 				ApiCallError::internal(format!("Can not find key: {key} in instance: {instance:?}"))
 			})?;
 
-			let encrypted_value: ElementValue;
-
-			if !model_value.encrypted {
-				encrypted_value = instance_value.clone()
+			let encrypted_value = if !model_value.encrypted {
+				instance_value.clone()
 			} else if Self::should_restore_default_value(model_value, instance_value, instance, key)
 			{
 				// restore the default encrypted value because it has not changed
 				// note: this branch must be checked *before* the one which reuses IVs as this one checks
 				// the length.
-				encrypted_value = ElementValue::String("".to_string());
+				ElementValue::String(String::new())
 			} else if model_value.is_final && Self::get_final_iv_for_key(instance, key).is_some() {
 				let final_iv = Iv::from_bytes(
 					Self::get_final_iv_for_key(instance, key)
@@ -190,15 +195,15 @@ impl EntityFacadeImpl {
 				)
 				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
 
-				encrypted_value = Self::encrypt_value(model_value, instance_value, sk, final_iv)?
+				Self::encrypt_value(model_value, instance_value, sk, final_iv)?
 			} else {
-				encrypted_value = Self::encrypt_value(
+				Self::encrypt_value(
 					model_value,
 					instance_value,
 					sk,
 					Iv::generate(&self.randomizer_facade),
 				)?
-			}
+			};
 			encrypted.insert(key.to_string(), encrypted_value);
 		}
 
@@ -452,8 +457,8 @@ impl EntityFacadeImpl {
 		model_value: &ModelValue,
 	) -> Result<MappedValue, ApiCallError> {
 		match (&model_value.cardinality, &model_value.encrypted, value) {
-			(Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::String(s))
-				if s.is_empty() =>
+			(Cardinality::One | Cardinality::ZeroOrOne, true, value)
+				if value.eq(&model_value.value_type.get_default()) =>
 			{
 				// If the value is default-encrypted (empty string) then return default value and
 				// empty IV. When re-encrypting we should put the empty value back to not increase
@@ -846,7 +851,7 @@ mod tests {
 				.get("subject")
 				.expect("has_subject")
 				.assert_bytes(),
-			vec![
+			&vec![
 				0x54, 0x58, 0x02, 0x8b, 0x82, 0xca, 0xb8, 0xa2, 0xd2, 0x01, 0x94, 0xa5, 0x0f, 0x53,
 				0x72, 0x06
 			],
@@ -974,7 +979,7 @@ mod tests {
 			.encrypt_data(value.assert_string().as_bytes(), iv)
 			.unwrap();
 
-		assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+		assert_eq!(&expected, encrypted_value.unwrap().assert_bytes())
 	}
 
 	#[test]
@@ -987,7 +992,7 @@ mod tests {
 
 		let encrypted_value =
 			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone())
-				.map(|a| a.assert_bytes());
+				.map(|a| a.assert_bytes().to_owned());
 
 		let expected = sk
 			.clone()
@@ -1012,7 +1017,7 @@ mod tests {
 				EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 			let expected = sk.clone().encrypt_data("1".as_bytes(), iv.clone()).unwrap();
-			assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+			assert_eq!(&expected, encrypted_value.unwrap().assert_bytes())
 		}
 
 		{
@@ -1021,7 +1026,7 @@ mod tests {
 				EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone());
 
 			let expected = sk.clone().encrypt_data("0".as_bytes(), iv.clone()).unwrap();
-			assert_eq!(expected, encrypted_value.unwrap().assert_bytes())
+			assert_eq!(&expected, encrypted_value.unwrap().assert_bytes())
 		}
 	}
 
@@ -1039,7 +1044,7 @@ mod tests {
 			.encrypt_data(value.assert_date().as_millis().to_string().as_bytes(), iv)
 			.unwrap();
 
-		assert_eq!(expected, encrypted_value.unwrap().assert_bytes());
+		assert_eq!(&expected, encrypted_value.unwrap().assert_bytes());
 	}
 
 	#[test]
@@ -1057,7 +1062,7 @@ mod tests {
 			.encrypt_data(value.assert_bytes().as_slice(), iv)
 			.unwrap();
 
-		assert_eq!(expected, encrypted_value.unwrap().assert_bytes());
+		assert_eq!(&expected, encrypted_value.unwrap().assert_bytes());
 	}
 
 	#[test]
@@ -1331,7 +1336,8 @@ mod tests {
 			.assert_dict()
 			.get("name")
 			.unwrap()
-			.assert_bytes();
+			.assert_bytes()
+			.to_vec();
 		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
 		assert_eq!(original_iv.get_inner().to_vec(), recipient_and_iv.iv)
 	}

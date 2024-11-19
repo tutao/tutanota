@@ -4,6 +4,7 @@ import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
 
 export class InterWindowEventFacadeReceiveDispatcher {
 	constructor(private readonly facade: InterWindowEventFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "localUserDataInvalidated": {

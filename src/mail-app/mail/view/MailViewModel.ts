@@ -1,7 +1,16 @@
 import { ListModel } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { Mail, MailBox, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import {
+	ImportMailStateTypeRef,
+	Mail,
+	MailBox,
+	MailFolder,
+	MailFolderTypeRef,
+	MailSetEntry,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -557,6 +566,7 @@ export class MailViewModel {
 			return this.entityEventsReceivedForLegacy(updates)
 		}
 
+		let needsRedrawAsImportStateChanged = false
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				// In case labels change trigger a list redraw.
@@ -583,7 +593,20 @@ export class MailViewModel {
 				if (mailWasInThisFolder) {
 					await listModel.entityEventReceived(update.instanceListId, update.instanceId, OperationType.UPDATE)
 				}
+			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+				const targetMailSet = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
+				await this.cacheStorage.deleteWholeList(MailSetEntryTypeRef, targetMailSet.entries)
+
+				needsRedrawAsImportStateChanged = needsRedrawAsImportStateChanged || (this._folder != null && isSameId(targetMailSet._id, this._folder._id))
 			}
+		}
+
+		if (needsRedrawAsImportStateChanged) {
+			// will do initial loading if this is the mailFolder in active view
+			mailSetEntries.clear()
+			listModel.resetLoadingState()
+			await listModel.loadInitial()
 		}
 	}
 
