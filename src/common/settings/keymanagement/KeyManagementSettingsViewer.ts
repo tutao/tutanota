@@ -124,7 +124,10 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderForQrMethod(selfMailAddress: string, selfFingerprint: string): Children {
-		return [m("p", [m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))]), m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg"))]
+		return [
+			m("p", [m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))]),
+			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
+		]
 	}
 
 	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
