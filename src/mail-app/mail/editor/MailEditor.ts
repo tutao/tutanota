@@ -67,7 +67,7 @@ import { getContactDisplayName } from "../../../common/contactsFunctionality/Con
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 
 import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
-import { readLocalFiles } from "../../../common/file/FileController"
+import { fileListToArray, readLocalFiles } from "../../../common/file/FileController"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ToggleButton, ToggleButtonAttrs } from "../../../common/gui/base/buttons/ToggleButton.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -417,7 +417,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				},
 				ondrop: (ev: DragEvent) => {
 					if (ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-						readLocalFiles(ev.dataTransfer.files)
+						let nativeFiles = fileListToArray(ev.dataTransfer.files)
+						readLocalFiles(nativeFiles)
 							.then((dataFiles) => {
 								model.attachFiles(dataFiles as any)
 								m.redraw()
