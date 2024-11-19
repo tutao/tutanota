@@ -1,0 +1,7 @@
+{
+	"exception": {
+		"clazz": "java.io.IOException",
+		"message": "Unknown encoding: x-gzip64"
+	},
+	"result": null
+}

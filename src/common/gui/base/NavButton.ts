@@ -11,9 +11,10 @@ import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
-import type { dropHandler } from "./GuiUtils"
-import { assertMainOrNode } from "../../api/common/Env"
+import { DropData, DropHandler, DropType } from "./GuiUtils"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { stateBgHover } from "../builtinThemes.js"
+import { fileListToArray } from "../../file/FileController"
 
 assertMainOrNode()
 export type NavButtonAttrs = {
@@ -23,7 +24,7 @@ export type NavButtonAttrs = {
 	isSelectedPrefix?: string | boolean
 	click?: (event: Event, dom: HTMLElement) => unknown
 	colors?: NavButtonColor
-	dropHandler?: dropHandler
+	dropHandler?: DropHandler
 	hideLabel?: boolean
 	vertical?: boolean
 	fontSize?: number
@@ -163,9 +164,21 @@ export class NavButton implements Component<NavButtonAttrs> {
 				this._dropCounter = 0
 				this._draggedOver = false
 				ev.preventDefault()
+				ev.stopPropagation()
 
-				if (ev.dataTransfer?.getData("text")) {
-					neverNull(a.dropHandler)(ev.dataTransfer.getData("text"))
+				if (ev.dataTransfer?.getData(DropType.Mail)) {
+					let dropData: DropData = {
+						dropType: DropType.Mail,
+						mailId: ev.dataTransfer.getData(DropType.Mail),
+					}
+					neverNull(a.dropHandler)(dropData)
+				} else if (isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
+					neverNull(a.dropHandler)({
+						dropType: DropType.ExternalFile,
+						files: fileListToArray(ev.dataTransfer.files),
+					})
+				} else {
+					console.error("received onDrop DragEvent has invalid DropType or is unsupported on this platform!")
 				}
 			}
 		}

@@ -1,0 +1,35 @@
+{
+	"name": "@tutao/node-mimimi",
+	"version": "250.241018.00",
+	"main": "./dist/binding.cjs",
+	"types": "./dist/binding.d.ts",
+	"napi": {
+		"name": "node-mimimi",
+		"triples": {
+			"defaults": false,
+			"additional": [
+				"x86_64-pc-windows-msvc",
+				"x86_64-unknown-linux-gnu",
+				"universal-apple-darwin"
+			]
+		}
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@tutao/otest": "250.241018.0",
+		"@napi-rs/cli": "^2.18.4",
+		"typescript": "5.3.3",
+		"zx": "8.1.5"
+	},
+	"engines": {
+		"node": ">= 20"
+	},
+	"type": "module",
+	"scripts": {
+		"build": "node make",
+		"prepublishOnly": "napi prepublish -t npm",
+		"test": "node make -t && cd build && node Suite.js && cargo test",
+		"universal": "napi universal",
+		"version": "napi version"
+	}
+}

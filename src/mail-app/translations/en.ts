@@ -1814,6 +1814,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"emlOrMboxInSharingFiles_msg": "One or more mail files were detected. Would you like to import or attach them?",
+		"mailImportSelection_label": "Import or Attach?"
 	}
 }

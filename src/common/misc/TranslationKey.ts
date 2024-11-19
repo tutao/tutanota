@@ -1799,3 +1799,5 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "emlOrMboxInSharingFiles_msg"
+	| "mailImportSelection_label"

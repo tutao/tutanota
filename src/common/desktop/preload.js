@@ -7,7 +7,7 @@
  * Note: we can't import any other desktop code here because it is in the web (render) process.
  */
 
-const { ipcRenderer, contextBridge } = require("electron")
+const { ipcRenderer, contextBridge, webUtils } = require("electron")
 
 contextBridge.exposeInMainWorld("nativeApp", {
 	invoke: (msg) => ipcRenderer.invoke("to-main", msg),
@@ -16,4 +16,5 @@ contextBridge.exposeInMainWorld("nativeApp", {
 		ipcRenderer.on("to-renderer", (ev, msg) => handler(msg))
 		return undefined
 	},
+	getPathForFile: (file) => webUtils.getPathForFile(file),
 })

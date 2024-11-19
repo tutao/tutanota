@@ -1,0 +1,51 @@
+{
+	"exception": null,
+	"result": {
+		"id": "33D89532.29EA@atl.mindspring.com",
+		"boundary": "------------52E03A8932B4",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Lennie Jarratt",
+			"mailAddress": "lbj_ccsi@mindspring.com",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "lbj_ccsi@atl.mindspring.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [
+			{
+				"name": "",
+				"mailAddress": "lbj_ccsi@mindspring.com",
+				"valid": true
+			}
+		],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 869831986000,
+		"subject": "Test Mail Again",
+		"plainBodyText": null,
+		"htmlBodyText": "This is the message body.<br><br>A picture should also be displayed.<br><br><BASE HREF=\"file:///E|/ChckFree/Html/Pull3.html\">\n\n<HTML>\n<HEAD>\n<TITLE>Client Pull Rolling Page Demo></TITLE>\n\n<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"10; URL=Pull1.html\">\n\n</HEAD>\n\n<BODY>\nThis is Page 3 of my rolling web page demo.\n</BODY>\n\n</HTML>\n",
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "WWWIcon.gif",
+				"data": "R0lGODdhPAA8AOYAAP///+/v7+fv7+/39/f//9be3r3O1rXGzsbW3qW1va29xoyltXOMnGuElClSa4ScrXuUpUJje1p7lFJzjEprhDlacxhCYylScyFKaxA5WggxUgApSt7n773GzpytvZSltWuEnM7W3sbO1q29zqW1xoycrYSUpWN7lFpzjFJrhEJjhDlaezFScylKayFCYwgxWgApUtbe5yFCaxg5YxAxWggpUpSlvXOEnFpzlFJrjEpjhEJaezlSc3uMpYyctYSUrb3G1sbO3qWtvbW9zq21xufn79bW3t7e5wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAPAA8AAAH/4AAgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGinSIfJxEtMzMtEScfIqOKRwsUMy4YLQ4sLA4tGC4zFAtHsYQBCysWLSwrKhQ5Eyg5FCorLC0WKwsBxUAoyhU6KA0MEA8lJQ8QDCcoOhXYKECjQhUyLDo4DA8fQkRDAIcQEfLhAQMcOljIqCAklI0WLVZMAPHAA5EDBoKE2BgCgYEDRDw8ADFhBUQbnzxgwLACBQMfCYYAQRCiQIybMYx0NDAkgQ8GKFas9NCpAwsLLChQ9KAAowiaHDcGEfFRgUgQFI6y6LBJQA4aLnjkAPHjgwcSRBSMGLI24AgFRP9IePjwA0SOCi5o5BCgqQQMsEkl3Ohh4seDc+gSJz5sAsKNE1nzwiiRKUYLGBoy3Nuhg0KKHNAmiB6NYjRoCjp2KMygAUaLGJj8woDxIoMFGRBz6drFu7eDXhAxWMjwYvZkTCuMY35BI4Pz59CjR6fxorXxFZg4bNgxCIYMQydqwALwQ0OCQkVgROjuQtOGE4NccBc0/gcMDoKEwBg/HgAM+ILIpwkLJgyyA4AAjCDICBsMYsAG+CU4CIEGInjJDkQJckKBABjAoQHtCaKdgQZmCMCGmphgwCAmKNghgvMJwoKBEarIoouYmBDCIAusCMACMaZAiJCC0OCjjjz6iIn/j/gpaQINDgIQoZIbLCAIkx1usmOWWwKQQoOC7OjjliFswOGWK3a5iYUA7LCBkj+q+WCMGoJCJwA0bIAjADbyuMGMhNypyYOFbGBmoBwKYoKhhBDqyQgwDDAIB7PdQAgLlg5ywmySLhjpIASkuN8gIsy2XnenChLBbP3ZB+clshlXgwYvMEcDdbXmquutuGpQg3LHXWKZcbRmMIMFFriA7LLMLqusBTMQZ51rsMU2Ww21WYBLb7v89hu318gw3Au/BouJABRgRoO2LFSwQwTwxiuvvDtUwIJwNLRGAV+adNCCBjTMgAEzEajQGQUIJ5ywDipEYC8GM+TbAleceDBDkmbKtPuuDgcrzHEEO1iDDWszmMjJBxcb68IyzKyww7sgh2zNNcCQ/EEoHvxb27G4QbQbcC2IG211LZj8SQcpYEZrc6ocC60qGVCnQWspUDyKACVcIOvUXHNdLgwXlMBvMQDEUMIOwKYNww4lVEt2IQaUgAILM8w2AwsolPDq23z37fffgAcu+OCEF2744YgnXnggADs=",
+				"mimeType": "image/gif",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "Return-Path: <lbj_ccsi@atl.mindspring.com>\nReceived: from brickbat8.mindspring.com (brickbat8.mindspring.com [207.69.200.11])\r\n        by camel10.mindspring.com (8.8.5/8.8.5) with ESMTP id GAA27894\r\n        for <lbj_ccsi@atl.mindspring.com>; Fri, 25 Jul 1997 06:58:07 -0400 (EDT)\nReceived: from lennie (user-2k7i8oq.dialup.mindspring.com [168.121.35.26])\r\n        by brickbat8.mindspring.com (8.8.5/8.8.5) with SMTP id GAA22488\r\n        for <lbj_ccsi@atl.mindspring.com>; Fri, 25 Jul 1997 06:58:05 -0400 (EDT)\nMessage-ID: <33D89532.29EA@atl.mindspring.com>\nDate: Fri, 25 Jul 1997 06:59:46 -0500\nFrom: Lennie Jarratt <lbj_ccsi@mindspring.com>\nReply-To: lbj_ccsi@mindspring.com\nOrganization: Custom Computer Services Inc.\nX-Mailer: Mozilla 3.01Gold (Win95; I)\nMIME-Version: 1.0\nTo: lbj_ccsi@atl.mindspring.com\nSubject: Test Mail Again\nContent-Type: multipart/mixed; boundary=\"------------52E03A8932B4\"",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

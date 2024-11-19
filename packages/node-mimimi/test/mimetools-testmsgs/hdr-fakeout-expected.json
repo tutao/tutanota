@@ -1,0 +1,36 @@
+{
+	"exception": null,
+	"result": {
+		"id": "20000519215502.A24482@quist.on.ca",
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Russell P. Sutherland",
+			"mailAddress": "russ@quist.on.ca",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Russell P. Sutherland",
+				"mailAddress": "russ@quist.on.ca",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 958787702000,
+		"subject": "test message 1",
+		"plainBodyText": "",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "Received: (qmail 24486 invoked by uid 501); 20 May 2000 01:55:02 -0000\nDate: Fri, 19 May 2000 21:55:02 -0400\nFrom: \"Russell P. Sutherland\" <russ@quist.on.ca>\nTo: \"Russell P. Sutherland\" <russ@quist.on.ca>\nSubject: test message 1\nMessage-ID: <20000519215502.A24482@quist.on.ca>\nMime-Version: 1.0\nContent-transfer-encoding: 7BIT\nContent-Type: text/plain; charset=us-ascii\nX-Mailer: Mutt 1.0us\nOrganization: Quist Consulting\r\n \nThe header is not properly terminated; the \"blank line\" \nactually has a space in it.",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

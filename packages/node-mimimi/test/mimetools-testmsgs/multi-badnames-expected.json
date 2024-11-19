@@ -1,0 +1,36 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "simple boundary",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Nathaniel Borenstein",
+			"mailAddress": "nsb@bellcore.com",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Ned Freed",
+				"mailAddress": "ned@innosoft.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "Sample message",
+		"plainBodyText": "This is explicitly typed plain ASCII text.\nIt DOES end with a linebreak.\n\nThis is explicitly typed plain ASCII text.\nIt DOES end with a linebreak.\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "From: Nathaniel Borenstein <nsb@bellcore.com>\nTo:  Ned Freed <ned@innosoft.com>\nSubject: Sample message\nMIME-Version: 1.0\nContent-type: multipart/mixed; boundary=\"simple\r\n boundary\"",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "-------------------------------147881770724098",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Michelle Holm",
+			"mailAddress": "holm@sitka.colorado.edu",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "imswww@rhine.gsfc.nasa.gov",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 809011857000,
+		"subject": "http://rhine.gsfc.nasa.gov:8080/ims-bin/v.b/imssearch",
+		"plainBodyText": "[[ERROR]] Error 600: Internal logic.\n\nDying gasp:\nBad mode: SEARCH/ (600).\n\nRecommended action to correct the situation:\nYIKES! IMS/www failed one of its internal consistency checks! Please SAVE THIS\nFILE, and contact IMS/www's developers immediately so they can fix the problem!\nIf the parentheses at the end of this sentence are not blank, you can contact\nthem here (imswww@rhine.gsfc.nasa.gov).\n\n    ------------------------------------------------------------------------\n\n\nLocation of error\n\nDying gasp:\nPackage \"main\", file \"/usr/app/people/imswww/v.b/lib/perl/imssearch.pl\", line\n753.\n\nTraceback:\n\n  1.  Iw::Die: from \"main\", \"/usr/app/people/imswww/v.b/lib/perl/imssearch.pl\n     line 753\n  2.  main::Main: from \"main\", \"/usr/app/people/imswww/public_cgi/v.b/imssearch\n     line 85\n\n    ------------------------------------------------------------------------\n\n\nBasic state information\n\nInclude path\n\n/usr/app/people/imswww/v.b/lib/perl\n/usr/app/people/imswww/v.b/lib/perl/Eg\n/usr/local/lib/perl5/sun4-sunos\n/usr/local/lib/perl5\n\n\n\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "From: Michelle Holm <holm@sitka.colorado.edu>\nDate: Mon, 21 Aug 95 13:30:57 -600\nSender: holm@sitka.colorado.edu\nTo: imswww@rhine.gsfc.nasa.gov\nMime-Version: 1.0\nX-Mailer: Mozilla/1.0N (X11; IRIX 5.2 IP20)\nContent-Type: multipart/mixed;\r\n\tboundary=\"-------------------------------147881770724098\"\nSubject: http://rhine.gsfc.nasa.gov:8080/ims-bin/v.b/imssearch\nX-Url: http://rhine.gsfc.nasa.gov:8080/ims-bin/v.b/imssearch\nContent-Type: text/plain;  charset=iso-8859-1\nContent-Transfer-Encoding: 8bit",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

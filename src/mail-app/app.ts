@@ -308,6 +308,7 @@ import("./translations/en.js")
 						cache,
 						header,
 						desktopSystemFacade: mailLocator.desktopSystemFacade,
+						mailImportFacade: mailLocator.mailImportFacade,
 						mailViewModel,
 					}),
 				},

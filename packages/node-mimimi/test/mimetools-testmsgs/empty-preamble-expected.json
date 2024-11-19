@@ -1,0 +1,39 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "t0UkRYy7tHLRMCai",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "",
+			"mailAddress": "",
+			"valid": false
+		},
+		"toRecipients": [],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "",
+		"plainBodyText": "Das ist ein Test.\n-- \nsub i($){print$_[0]}*j=*ENV;sub w($){sleep$_[0]}sub _($){i\"$p:$c> \",w+01\n,$_=$_[0],tr;i-za-h,;a-hi-z ;,i$_,w+01,i\"\\n\"}$|=1;$f='HO';($c=$j{PWD})=~\ns+$j{$f.\"ME\"}+~+;$p.=\"$j{USER}\\@\".`hostname`;chop$p;_\"kl\",$c='~',_\"zu,\".\n\"-zn,*\",_\"#,epg,lw,gwc,mfmkcbm,cvsvwev,uiqt,kwvbmvb?\",i\"$p:$c> \";w+1<<07\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "dot.png",
+				"data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1AUbFQQ0Vbb7XQAAAB10RVh0Q29tbWVudABDcmVhdGVkIHdpdGggVGhlIEdJTVDvZCVuAAAAFklEQVR42mP8//8/AwMDEwMDAwMDAwAkBgMB/umWrAAAAABJRU5ErkJggg==",
+				"mimeType": "image/png",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "Content-Type: multipart/mixed; boundary=\"t0UkRYy7tHLRMCai\"\nContent-Disposition: inline",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

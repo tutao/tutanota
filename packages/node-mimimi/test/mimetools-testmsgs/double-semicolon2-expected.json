@@ -1,0 +1,7 @@
+{
+	"exception": {
+		"clazz": "javax.mail.internet.ParseException",
+		"message": "In parameter list < ; ; ; ;; ;;;;;;;; boundary=\"foo\">, expected parameter name, got \";\""
+	},
+	"result": null
+}

@@ -1,0 +1,36 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Jörn Reder",
+			"mailAddress": "joern@zyn.de",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "joern@zyn.de",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 1135198964000,
+		"subject": "Testnachricht",
+		"plainBodyText": "\nHallo,\n\ndas ist eine Testnachricht mit 8 Bit Sönderzäichen, und obendrein noch \nquoted-printable kodiert.\n\nGrüße,\n\nJörn\n\n-- \n .''`.  Jörn Reder <joern@zyn.de>\n: :' :  http://www.exit1.org/ http://www.zyn.de/\n`. `'\n  `-    Debian GNU/Linux -- The power of freedom\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "Content-Type: text/plain; charset=\"iso-8859-15\"\nContent-Disposition: inline\nContent-Transfer-Encoding: quoted-printable\nMIME-Version: 1.0\nX-Mailer: JaM - Just A Mailer\nSubject: Testnachricht\nReturn-Path: <joern@zyn.de>\nDate: Wed, 21 Dec 2005 22:02:44 +0100\nTo: joern@zyn.de\nFrom: \"Jörn\" Reder <joern@zyn.de>",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

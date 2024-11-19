@@ -1,0 +1,36 @@
+{
+	"exception": null,
+	"result": {
+		"id": "199606191814.SAA30680@ULM02.mnh.telekom.de",
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Guenter Deuschle",
+			"mailAddress": "deuschle@mnh.telekom.de",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Juergen Specht",
+				"mailAddress": "specht@kulturbox.de",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 835200722000,
+		"subject": "Re: 34Mbit/s Netz",
+		"plainBodyText": "Hallo Herr Specht,\r\nentschuldigen Sie vorab, dass ich Ihnen nicht telefonisch zur Verfuegung\r\nstehe, ich Praesentationen gehalten/ noch zu halten und viele\r\nKundennachfragen zu projektieren. Nach Informationen des Produkt-Managers\r\nTemme steht der POP schon zur Verfügung! Standort: voraussichtlich:\r\nWinterfeldstr. 21, 10781 Berlin.\r\nDer POP hat zur Zeit direkte 34M-Anbindungen zu folgenden Orten: Rostock,\r\nHamburg, Hannover & Leipzig. 4 weitere werden in kuerze in Betrieb gehen.\r\nDamit haben Sie einen Besonderen Sicherheitsstandard verfuegbar!\r\nKontakt muessen Sie ueber Ihre oerltliche Vertriebseinheit aufnehmen:\r\nentweder den Geschaefts-Kunden-Vertrieb oder das GrossKundenManagement.\r\nDiese Vertriebseinheiten greifen auf den oertlichen Technischen\r\nVertriebs-Support zu. Die Informationen werden ueber TVS zur Vertriebseiheit\r\ngegeben und dann zu Ihnen.\r\n Sie benoetigen eine Standleitung von Ihrer Lokation zum Internet-POP\r\nUebergabepunkt zu Ihrem Info-Server ist ein CISCO 1000-Router. Dann zahlen\r\nSie neben den monatlichen Kosten fuer die Standleitung die Kosten fuer den\r\nInternet-Zugang: zB bei 64k: 1500DM bei 2GByte Freivolumen. 128K: 3000 DM\r\nbei 5 GB Freivolumen & 2M: 30.000 DM bei 50GB Freivolumen.\r\nFreundliche Gruesse \r\nGuenter Deuschle\r\n\r\n\r\n>Sehr geehrter Herr Deuschle,\r\n>Sie sind mir von Herrn Meyendriesch empfohlen worden.\r\n>Ich versuche Informationen ueber das T-eigene 34Mbit/s Netz und den \r\n>lokalen Pop-Berlin rauszufinden, bzw. was ein Anschluss kostet und \r\n>wo man ihn herbekommt. Laut Herrn Schnick in Berlin gibt es den \r\n>T-Pop nicht, laut Traceroute von Herrn Meyendriesch sehrwohl. Auch \r\n>ist dies Netz in der IX vom Mai 96 erwaehnt.\r\n>Koennen Sie mir helfen?\r\n>\r\n>MfG\r\n>-- \r\n>Juergen Specht - KULTURBOX\r\n>\r\n>\r\n\r\n===================================================\r\nDipl.-Ing.  Guenter     D E U S C H L E\r\nDeutsche Telekom AG     Niederlassung 3 Hannover\r\nGrossKundenManagement - Techn. Vertriebs-Support:\r\nTeam-Leiter             Internet Online-Dienste\r\n---------------------------------------------------\r\nGrKM-TVS-IOD           Tel: +49-511-333-2772\r\nVahrenwalder-Str. 245  FAX: +49-511-333-2751\r\n30179 Hannover       eMail: deuschle@mnh.telekom.de \r\n===================================================\r\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "X-POP3-Rcpt: specht@trachea\nReturn-Path: hermes\nReceived: (from hermes@localhost) by kulturbox.netmbx.de (8.7.1/8.7.1) id SAA04513 for specht; Wed, 19 Jun 1996 18:30:12 +0200\nReceived: by netmbx.netmbx.de (/\\==/\\ Smail3.1.28.1)\r\n\t  from mail.cs.tu-berlin.de with smtp\r\n\t  id <m0uWPrO-0004wpC>; Wed, 19 Jun 96 18:12 MES\nReceived: (from nobody@localhost) by mail.cs.tu-berlin.de (8.6.12/8.6.12) id SAA12413; Wed, 19 Jun 1996 18:26:28 +0200\nResent-Date: Wed, 19 Jun 1996 18:26:28 +0200\nResent-Message-Id: <199606191626.SAA12413@mail.cs.tu-berlin.de>\nResent-From: nobody@cs.tu-berlin.de\nResent-To: kultur@kulturbox.netmbx.de\nReceived: from gatekeeper.telekom.de ([194.25.15.11]) by mail.cs.tu-berlin.de (8.6.12/8.6.12) with SMTP id SAA11678 for <specht@kulturbox.de>; Wed, 19 Jun 1996 18:11:29 +0200\nReceived: from ULM02.mnh.telekom.de by gatekeeper.telekom.de; (5.65v3.0/1.1.8.2/02Aug95-0132PM)\r\n\tid AA01376; Wed, 19 Jun 1996 18:11:27 +0200\nReceived: from ulm02.mnh.telekom.de (deuschle@mnh.telekom.de) by ULM02.mnh.telekom.de (8.6.10/3) with SMTP id SAA30680 for <specht@kulturbox.de>; Wed, 19 Jun 1996 18:14:40 GMT\nMessage-Id: <199606191814.SAA30680@ULM02.mnh.telekom.de>\nX-Sender: deuschle@ulm02.mnh.telekom.de\nX-Mailer: Windows Eudora Version 1.4.4\nMime-Version: 1.0\nContent-Type: text/plain; charset=\"iso-8859-1\"\nContent-Transfer-Encoding: quoted-printable\nDate: Wed, 19 Jun 1996 18:12:02 +0200\nTo: Juergen Specht <specht@kulturbox.de>\nFrom: deuschle@mnh.telekom.de (Guenter Deuschle)\nSubject: Re: 34Mbit/s Netz\nX-Mozilla-Status: 0011",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

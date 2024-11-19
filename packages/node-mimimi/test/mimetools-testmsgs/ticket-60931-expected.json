@@ -1,0 +1,30 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": "90e6ba4fc6ea25d329048ec69d99",
+		"sender": {
+			"name": "",
+			"mailAddress": "",
+			"valid": false
+		},
+		"toRecipients": [],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "",
+		"plainBodyText": "HELLO\n",
+		"htmlBodyText": "HELLO<br>\n",
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "MIME-Version: 1.0\nReceived: by 10.220.78.157 with HTTP; Thu, 26 Aug 2010 21:33:17 -0700 (PDT)\nContent-Type: multipart/alternative; boundary=90e6ba4fc6ea25d329048ec69d99",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

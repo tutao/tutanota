@@ -1,0 +1,36 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Sebastian Rahtz",
+			"mailAddress": "s.rahtz@elsevier.co.uk",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Eryq",
+				"mailAddress": "eryq@rhine.stx.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 792841098000,
+		"subject": "Re: HELP! Problems installing PSNFSS, and other querys",
+		"plainBodyText": "try reading the LaTeX Companion for more details\n\nignore the checksum error in lucida.dtx. i'll fix it\n\nsebastian\nSebastian Rahtz                              s.rahtz@elsevier.co.uk\nProduction Methods Group                     +44 1865 843662\nElsevier Science Ltd\nKidlington\nOxford, UK\n\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "Return-Path: <s.rahtz@elsevier.co.uk>\nTo: Eryq <eryq@rhine.stx.com>\nFrom: s.rahtz@elsevier.co.uk (Sebastian Rahtz)\nSubject: Re: HELP! Problems installing PSNFSS, and other querys\nDate: Wed, 15 Feb 1995 09:38:18",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

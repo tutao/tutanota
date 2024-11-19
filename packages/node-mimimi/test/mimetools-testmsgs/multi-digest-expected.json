@@ -1,0 +1,45 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "simple boundary",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Nathaniel Borenstein",
+			"mailAddress": "nsb@bellcore.com",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "Ned Freed",
+				"mailAddress": "ned@innosoft.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "Sample digest message",
+		"plainBodyText": "From: noone@nowhere.org\r\nSubject: embedded message 1\r\n\r\nThis is implicitly-typed ASCII text.\r\nIt does NOT end with a linebreak.",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "embedded message 2.eml",
+				"data": "RnJvbTogbm9vbmVAbm93aGVyZS5vcmcNClN1YmplY3Q6IGVtYmVkZGVkIG1lc3NhZ2UgMg0KQ29udGVudC10eXBlOiB0ZXh0DQoNClRoaXMgaXMgZXhwbGljaXRseSB0eXBlZCBwbGFpbiBBU0NJSSB0ZXh0Lg0KSXQgRE9FUyBlbmQgd2l0aCBhIGxpbmVicmVhay4NCg==",
+				"mimeType": "message/rfc822",
+				"charset": "us-ascii",
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "From: Nathaniel Borenstein <nsb@bellcore.com>\nTo:  Ned Freed <ned@innosoft.com>\nSubject: Sample digest message\nMIME-Version: 1.0\nContent-type: multipart/digest; boundary=\"simple\r\n boundary\"",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

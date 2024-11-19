@@ -1,0 +1,55 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": "------------70522FC73543",
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "Juergen Specht",
+			"mailAddress": "specht@kulturbox.de",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "andreas.koenig@mind.de",
+				"valid": true
+			},
+			{
+				"name": "",
+				"mailAddress": "kun@pop.combox.de",
+				"valid": true
+			},
+			{
+				"name": "",
+				"mailAddress": "101762.2307@compuserve.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 835252517000,
+		"subject": "[Fwd: Re: 34Mbit/s Netz]",
+		"plainBodyText": "-- \nJuergen Specht - KULTURBOX\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "Re_ 34Mbit_s Netz.eml",
+				"data": "WC1QT1AzLVJjcHQ6IHNwZWNodEB0cmFjaGVhClJldHVybi1QYXRoOiBoZXJtZXMKUmVjZWl2ZWQ6IChmcm9tIGhlcm1lc0Bsb2NhbGhvc3QpIGJ5IGt1bHR1cmJveC5uZXRtYnguZGUgKDguNy4xLzguNy4xKSBpZCBTQUEwNDUxMyBmb3Igc3BlY2h0OyBXZWQsIDE5IEp1biAxOTk2IDE4OjMwOjEyICswMjAwClJlY2VpdmVkOiBieSBuZXRtYngubmV0bWJ4LmRlICgvXD09L1wgU21haWwzLjEuMjguMSkKCSAgZnJvbSBtYWlsLmNzLnR1LWJlcmxpbi5kZSB3aXRoIHNtdHAKCSAgaWQgPG0wdVdQck8tMDAwNHdwQz47IFdlZCwgMTkgSnVuIDk2IDE4OjEyIE1FUwpSZWNlaXZlZDogKGZyb20gbm9ib2R5QGxvY2FsaG9zdCkgYnkgbWFpbC5jcy50dS1iZXJsaW4uZGUgKDguNi4xMi84LjYuMTIpIGlkIFNBQTEyNDEzOyBXZWQsIDE5IEp1biAxOTk2IDE4OjI2OjI4ICswMjAwClJlc2VudC1EYXRlOiBXZWQsIDE5IEp1biAxOTk2IDE4OjI2OjI4ICswMjAwClJlc2VudC1NZXNzYWdlLUlkOiA8MTk5NjA2MTkxNjI2LlNBQTEyNDEzQG1haWwuY3MudHUtYmVybGluLmRlPgpSZXNlbnQtRnJvbTogbm9ib2R5QGNzLnR1LWJlcmxpbi5kZQpSZXNlbnQtVG86IGt1bHR1ckBrdWx0dXJib3gubmV0bWJ4LmRlClJlY2VpdmVkOiBmcm9tIGdhdGVrZWVwZXIudGVsZWtvbS5kZSAoWzE5NC4yNS4xNS4xMV0pIGJ5IG1haWwuY3MudHUtYmVybGluLmRlICg4LjYuMTIvOC42LjEyKSB3aXRoIFNNVFAgaWQgU0FBMTE2NzggZm9yIDxzcGVjaHRAa3VsdHVyYm94LmRlPjsgV2VkLCAxOSBKdW4gMTk5NiAxODoxMToyOSArMDIwMApSZWNlaXZlZDogZnJvbSBVTE0wMi5tbmgudGVsZWtvbS5kZSBieSBnYXRla2VlcGVyLnRlbGVrb20uZGU7ICg1LjY1djMuMC8xLjEuOC4yLzAyQXVnOTUtMDEzMlBNKQoJaWQgQUEwMTM3NjsgV2VkLCAxOSBKdW4gMTk5NiAxODoxMToyNyArMDIwMApSZWNlaXZlZDogZnJvbSB1bG0wMi5tbmgudGVsZWtvbS5kZSAoZGV1c2NobGVAbW5oLnRlbGVrb20uZGUpIGJ5IFVMTTAyLm1uaC50ZWxla29tLmRlICg4LjYuMTAvMykgd2l0aCBTTVRQIGlkIFNBQTMwNjgwIGZvciA8c3BlY2h0QGt1bHR1cmJveC5kZT47IFdlZCwgMTkgSnVuIDE5OTYgMTg6MTQ6NDAgR01UCk1lc3NhZ2UtSWQ6IDwxOTk2MDYxOTE4MTQuU0FBMzA2ODBAVUxNMDIubW5oLnRlbGVrb20uZGU+ClgtU2VuZGVyOiBkZXVzY2hsZUB1bG0wMi5tbmgudGVsZWtvbS5kZQpYLU1haWxlcjogV2luZG93cyBFdWRvcmEgVmVyc2lvbiAxLjQuNApNaW1lLVZlcnNpb246IDEuMApDb250ZW50LVR5cGU6IHRleHQvcGxhaW47IGNoYXJzZXQ9Imlzby04ODU5LTEiCkNvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6IHF1b3RlZC1wcmludGFibGUKRGF0ZTogV2VkLCAxOSBKdW4gMTk5NiAxODoxMjowMiArMDIwMApUbzogSnVlcmdlbiBTcGVjaHQgPHNwZWNodEBrdWx0dXJib3guZGU+CkZyb206IGRldXNjaGxlQG1uaC50ZWxla29tLmRlIChHdWVudGVyIERldXNjaGxlKQpTdWJqZWN0OiBSZTogMzRNYml0L3MgTmV0egpYLU1vemlsbGEtU3RhdHVzOiAwMDExCgpIYWxsbyBIZXJyIFNwZWNodCwKZW50c2NodWxkaWdlbiBTaWUgdm9yYWIsIGRhc3MgaWNoIElobmVuIG5pY2h0IHRlbGVmb25pc2NoIHp1ciBWZXJmdWVndW5nCnN0ZWhlLCBpY2ggUHJhZXNlbnRhdGlvbmVuIGdlaGFsdGVuLyBub2NoIHp1IGhhbHRlbiB1bmQgdmllbGUKS3VuZGVubmFjaGZyYWdlbiB6dSBwcm9qZWt0aWVyZW4uIE5hY2ggSW5mb3JtYXRpb25lbiBkZXMgUHJvZHVrdC1NYW5hZ2VycwpUZW1tZSBzdGVodCBkZXIgUE9QIHNjaG9uIHp1ciBWZXJmPUZDZ3VuZyEgU3RhbmRvcnQ6IHZvcmF1c3NpY2h0bGljaDoKV2ludGVyZmVsZHN0ci4gMjEsIDEwNzgxIEJlcmxpbi4KRGVyIFBPUCBoYXQgenVyIFplaXQgZGlyZWt0ZSAzNE0tQW5iaW5kdW5nZW4genUgZm9sZ2VuZGVuIE9ydGVuOiBSb3N0b2NrLApIYW1idXJnLCBIYW5ub3ZlciAmIExlaXB6aWcuIDQgd2VpdGVyZSB3ZXJkZW4gaW4ga3VlcnplIGluIEJldHJpZWIgZ2VoZW4uCkRhbWl0IGhhYmVuIFNpZSBlaW5lbiBCZXNvbmRlcmVuIFNpY2hlcmhlaXRzc3RhbmRhcmQgdmVyZnVlZ2JhciEKS29udGFrdCBtdWVzc2VuIFNpZSB1ZWJlciBJaHJlIG9lcmx0bGljaGUgVmVydHJpZWJzZWluaGVpdCBhdWZuZWhtZW46CmVudHdlZGVyIGRlbiBHZXNjaGFlZnRzLUt1bmRlbi1WZXJ0cmllYiBvZGVyIGRhcyBHcm9zc0t1bmRlbk1hbmFnZW1lbnQuCkRpZXNlIFZlcnRyaWVic2VpbmhlaXRlbiBncmVpZmVuIGF1ZiBkZW4gb2VydGxpY2hlbiBUZWNobmlzY2hlbgpWZXJ0cmllYnMtU3VwcG9ydCB6dS4gRGllIEluZm9ybWF0aW9uZW4gd2VyZGVuIHVlYmVyIFRWUyB6dXIgVmVydHJpZWJzZWloZWl0CmdlZ2ViZW4gdW5kIGRhbm4genUgSWhuZW4uCiBTaWUgYmVub2V0aWdlbiBlaW5lIFN0YW5kbGVpdHVuZyB2b24gSWhyZXIgTG9rYXRpb24genVtIEludGVybmV0LVBPUApVZWJlcmdhYmVwdW5rdCB6dSBJaHJlbSBJbmZvLVNlcnZlciBpc3QgZWluIENJU0NPIDEwMDAtUm91dGVyLiBEYW5uIHphaGxlbgpTaWUgbmViZW4gZGVuIG1vbmF0bGljaGVuIEtvc3RlbiBmdWVyIGRpZSBTdGFuZGxlaXR1bmcgZGllIEtvc3RlbiBmdWVyIGRlbgpJbnRlcm5ldC1adWdhbmc6IHpCIGJlaSA2NGs6IDE1MDBETSBiZWkgMkdCeXRlIEZyZWl2b2x1bWVuLiAxMjhLOiAzMDAwIERNCmJlaSA1IEdCIEZyZWl2b2x1bWVuICYgMk06IDMwLjAwMCBETSBiZWkgNTBHQiBGcmVpdm9sdW1lbi4KRnJldW5kbGljaGUgR3J1ZXNzZT0yMApHdWVudGVyIERldXNjaGxlCgoKPlNlaHIgZ2VlaHJ0ZXIgSGVyciBEZXVzY2hsZSwKPlNpZSBzaW5kIG1pciB2b24gSGVycm4gTWV5ZW5kcmllc2NoIGVtcGZvaGxlbiB3b3JkZW4uCj5JY2ggdmVyc3VjaGUgSW5mb3JtYXRpb25lbiB1ZWJlciBkYXMgVC1laWdlbmUgMzRNYml0L3MgTmV0eiB1bmQgZGVuPTIwCj5sb2thbGVuIFBvcC1CZXJsaW4gcmF1c3p1ZmluZGVuLCBiencuIHdhcyBlaW4gQW5zY2hsdXNzIGtvc3RldCB1bmQ9MjAKPndvIG1hbiBpaG4gaGVyYmVrb21tdC4gTGF1dCBIZXJybiBTY2huaWNrIGluIEJlcmxpbiBnaWJ0IGVzIGRlbj0yMAo+VC1Qb3AgbmljaHQsIGxhdXQgVHJhY2Vyb3V0ZSB2b24gSGVycm4gTWV5ZW5kcmllc2NoIHNlaHJ3b2hsLiBBdWNoPTIwCj5pc3QgZGllcyBOZXR6IGluIGRlciBJWCB2b20gTWFpIDk2IGVyd2FlaG50Lgo+S29lbm5lbiBTaWUgbWlyIGhlbGZlbj8KPgo+TWZHCj4tLT0yMAo+SnVlcmdlbiBTcGVjaHQgLSBLVUxUVVJCT1gKPgo+Cgo9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9M0Q9Cj0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0KPTNECkRpcGwuLUluZy4gIEd1ZW50ZXIgICAgIEQgRSBVIFMgQyBIIEwgRQpEZXV0c2NoZSBUZWxla29tIEFHICAgICBOaWVkZXJsYXNzdW5nIDMgSGFubm92ZXIKR3Jvc3NLdW5kZW5NYW5hZ2VtZW50IC0gVGVjaG4uIFZlcnRyaWVicy1TdXBwb3J0OgpUZWFtLUxlaXRlciAgICAgICAgICAgICBJbnRlcm5ldCBPbmxpbmUtRGllbnN0ZQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KR3JLTS1UVlMtSU9EICAgICAgICAgICBUZWw6ICs0OS01MTEtMzMzLTI3NzIKVmFocmVud2FsZGVyLVN0ci4gMjQ1ICBGQVg6ICs0OS01MTEtMzMzLTI3NTEKMzAxNzkgSGFubm92ZXIgICAgICAgZU1haWw6IGRldXNjaGxlQG1uaC50ZWxla29tLmRlPTIwCj0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0zRD0KPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPTNEPQo9M0QKCgoK",
+				"mimeType": "message/rfc822",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "From specht@kulturbox.de  Thu Jun 20 08:35:23 1996\nDate: Thu, 20 Jun 1996 08:35:17 +0200\nFrom: Juergen Specht <specht@kulturbox.de>\nOrganization: KULTURBOX\nX-Mailer: Mozilla 2.02 (WinNT; I)\nMIME-Version: 1.0\nTo: andreas.koenig@mind.de, kun@pop.combox.de, 101762.2307@compuserve.com\nSubject: [Fwd: Re: 34Mbit/s Netz]\nContent-Type: multipart/mixed; boundary=\"------------70522FC73543\"\nX-Filter: mailagent [version 3.0 PL44] for k@.in-berlin.de",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}
