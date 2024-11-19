@@ -16,6 +16,8 @@ import { NativeCredentialsFacade } from "./NativeCredentialsFacade.js"
 import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
 import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
 import { NativeCryptoFacadeReceiveDispatcher } from "./NativeCryptoFacadeReceiveDispatcher.js"
+import { NativeMailImportFacade } from "./NativeMailImportFacade.js"
+import { NativeMailImportFacadeReceiveDispatcher } from "./NativeMailImportFacadeReceiveDispatcher.js"
 import { NativePushFacade } from "./NativePushFacade.js"
 import { NativePushFacadeReceiveDispatcher } from "./NativePushFacadeReceiveDispatcher.js"
 import { SearchTextInAppFacade } from "./SearchTextInAppFacade.js"
@@ -38,6 +40,7 @@ export class DesktopGlobalDispatcher {
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
+	private readonly nativeMailImportFacade: NativeMailImportFacadeReceiveDispatcher
 	private readonly nativePushFacade: NativePushFacadeReceiveDispatcher
 	private readonly searchTextInAppFacade: SearchTextInAppFacadeReceiveDispatcher
 	private readonly settingsFacade: SettingsFacadeReceiveDispatcher
@@ -53,6 +56,7 @@ export class DesktopGlobalDispatcher {
 		interWindowEventFacade: InterWindowEventFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		nativeCryptoFacade: NativeCryptoFacade,
+		nativeMailImportFacade: NativeMailImportFacade,
 		nativePushFacade: NativePushFacade,
 		searchTextInAppFacade: SearchTextInAppFacade,
 		settingsFacade: SettingsFacade,
@@ -68,6 +72,7 @@ export class DesktopGlobalDispatcher {
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
+		this.nativeMailImportFacade = new NativeMailImportFacadeReceiveDispatcher(nativeMailImportFacade)
 		this.nativePushFacade = new NativePushFacadeReceiveDispatcher(nativePushFacade)
 		this.searchTextInAppFacade = new SearchTextInAppFacadeReceiveDispatcher(searchTextInAppFacade)
 		this.settingsFacade = new SettingsFacadeReceiveDispatcher(settingsFacade)
@@ -94,6 +99,8 @@ export class DesktopGlobalDispatcher {
 				return this.nativeCredentialsFacade.dispatch(methodName, args)
 			case "NativeCryptoFacade":
 				return this.nativeCryptoFacade.dispatch(methodName, args)
+			case "NativeMailImportFacade":
+				return this.nativeMailImportFacade.dispatch(methodName, args)
 			case "NativePushFacade":
 				return this.nativePushFacade.dispatch(methodName, args)
 			case "SearchTextInAppFacade":

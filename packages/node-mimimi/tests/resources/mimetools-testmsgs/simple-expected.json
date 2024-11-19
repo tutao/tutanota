@@ -1,0 +1,47 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "",
+			"mailAddress": "eryq@rhine.gsfc.nasa.gov",
+			"valid": true
+		},
+		"toRecipients": [
+			{
+				"name": "",
+				"mailAddress": "sitaram@selsvr.stx.com",
+				"valid": true
+			}
+		],
+		"ccRecipients": [
+			{
+				"name": "",
+				"mailAddress": "johnson@killians.gsfc.nasa.gov",
+				"valid": true
+			},
+			{
+				"name": "",
+				"mailAddress": "harvel@killians.gsfc.nasa.gov",
+				"valid": true
+			}
+		],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 819511140000,
+		"subject": "Request for Leave",
+		"plainBodyText": "I will be taking vacation from Friday, 12/22/95, through 12/26/95.  \r\nI will be back on Wednesday, 12/27/95.\r\n\r\nAdvance notice: I may take a second stretch of vacation after that, \r\naround New Year's.\r\n\r\nThanks,\r\n ____           __\r\n|  _/__________/_/   Eryq (eryq@rhine.gsfc.nasa.gov)\r\n|  _| _/ | | . |     Hughes STX Corporation, NASA/Goddard Space Flight Cntr.\r\n|___|_|\\_  |_  |___     \r\n         | | |____/  http://selsvr.stx.com/~eryq/\r\n         `-'\r\n",
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [],
+		"mailHeaders": "Return-Path: eryq@rhine.gsfc.nasa.gov\nDate: Wed, 20 Dec 95 19:59 CST\nFrom: eryq@rhine.gsfc.nasa.gov\nTo: sitaram@selsvr.stx.com\nCc: johnson@killians.gsfc.nasa.gov,harvel@killians.gsfc.nasa.gov, eryq\nSubject: Request for Leave",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

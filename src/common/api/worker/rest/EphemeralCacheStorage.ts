@@ -1,7 +1,7 @@
 import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import { EntityRestClient, typeRefToPath } from "./EntityRestClient.js"
 import { firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, expandId, LastUpdateTime } from "./DefaultEntityRestCache.js"
+import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
 import { assertNotNull, clone, getFromMap, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"

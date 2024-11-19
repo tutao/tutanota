@@ -8,7 +8,7 @@ import { elementIdPart, getElementId } from "../../../common/api/common/utils/En
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
-import { assertNotNull, last, noOp, Thunk } from "@tutao/tutanota-utils"
+import { last, noOp, Thunk } from "@tutao/tutanota-utils"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
@@ -21,13 +21,14 @@ import { MailModel } from "../model/MailModel.js"
 import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { getFolderIcon } from "./MailGuiUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { DropData } from "../../../common/gui/base/GuiUtils"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
 	mailboxDetail: MailboxDetail
 	mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onFolderClick: (folder: MailFolder) => unknown
-	onFolderDrop: (mailId: string, folder: MailFolder) => unknown
+	onFolderDrop: (dropData: DropData, folder: MailFolder) => unknown
 	expandedFolders: ReadonlySet<Id>
 	onFolderExpanded: (folder: MailFolder, state: boolean) => unknown
 	onShowFolderAddEditDialog: (mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) => unknown
@@ -50,7 +51,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
 		const customSystems = folders?.customSubtrees ?? []
-		const systemSystems = folders?.systemSubtrees ?? []
+		const systemSystems = folders?.systemSubtrees.filter((f) => f.folder.folderType !== MailSetKind.Imported) ?? []
 		const children: Children = []
 		const selectedFolder = folders
 			?.getIndentedList()
@@ -111,7 +112,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + getElementId(system.folder),
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
-				dropHandler: (droppedMailId) => attrs.onFolderDrop(droppedMailId, system.folder),
+				dropHandler: (dropData) => attrs.onFolderDrop(dropData, system.folder),
 				disableHoverBackground: true,
 				disabled: attrs.inEditMode,
 			}

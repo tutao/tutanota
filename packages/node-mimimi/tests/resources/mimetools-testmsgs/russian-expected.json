@@ -1,0 +1,39 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "",
+			"mailAddress": "",
+			"valid": false
+		},
+		"toRecipients": [],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": null,
+		"subject": "Greetings",
+		"plainBodyText": null,
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "Список.doc",
+				"data": "U2FsdXRhdGlvbnMNCg0KDQo=",
+				"mimeType": "text/plain",
+				"charset": "us-ascii",
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "Content-Type: text/plain; charset=\"US-ASCII\"; name==?koi8-r?B?89DJ08/LLmRvYw==?=\nContent-Disposition: attachment; filename==?koi8-r?B?89DJ08/LLmRvYw==?=\nSubject: Greetings",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

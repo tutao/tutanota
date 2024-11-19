@@ -26,7 +26,7 @@ export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 export const getMailFolderType = (folder: MailFolder): MailSetKind => downcast(folder.folderType)
 
 export function isFolder(folder: MailFolder): boolean {
-	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL
+	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL && folder.folderType !== MailSetKind.Imported
 }
 
 export function isLabel(folder: MailFolder): boolean {
@@ -102,6 +102,7 @@ export enum MailSetKind {
 	DRAFT = "6",
 	ALL = "7",
 	LABEL = "8",
+	Imported = "9",
 }
 
 export function getMailSetKind(folder: MailFolder): MailSetKind {
@@ -265,6 +266,7 @@ export const NewPersonalPlans: AvailablePlanType[] = [PlanType.Free, PlanType.Re
 
 export const LegacyPlans = [PlanType.Premium, PlanType.PremiumBusiness, PlanType.Teams, PlanType.TeamsBusiness, PlanType.Pro]
 export const HighlightedPlans: AvailablePlanType[] = [PlanType.Revolutionary, PlanType.Advanced]
+export const HighestTierPlans: PlanType[] = [PlanType.Legend, PlanType.Unlimited]
 
 export const PlanTypeToName = reverse(PlanType)
 

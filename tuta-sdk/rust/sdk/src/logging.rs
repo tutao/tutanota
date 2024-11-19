@@ -5,7 +5,7 @@ static LOG_INIT: AtomicBool = AtomicBool::new(false);
 
 /// Initialize the logger.
 ///
-/// This is a no-op if it is called multiple times.
+/// This is a no-op if called after the first time. it also does nothing if the "logging" feature is turned off.
 #[allow(unreachable_code)] // android/ios implementations return before simple_logger code
 pub(crate) fn init_logger() {
 	if !LOG_INIT.swap(true, Ordering::Relaxed) {
@@ -27,6 +27,7 @@ pub(crate) fn init_logger() {
 		}
 
 		// Use standard output for logging by default
+		#[cfg(feature = "logging")]
 		simple_logger::init().expect("failed to load simple_logger logger");
 	}
 }

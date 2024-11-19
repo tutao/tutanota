@@ -1,0 +1,39 @@
+{
+	"exception": null,
+	"result": {
+		"id": null,
+		"boundary": null,
+		"alternativeBoundary": null,
+		"sender": {
+			"name": "",
+			"mailAddress": "user2",
+			"valid": false
+		},
+		"toRecipients": [],
+		"ccRecipients": [],
+		"bccRecipients": [],
+		"replyTo": [],
+		"inReplyTo": null,
+		"references": [],
+		"autoSubmitted": null,
+		"sentDate": 960261611000,
+		"subject": "Re: Fwd: hello world",
+		"plainBodyText": null,
+		"htmlBodyText": null,
+		"attachedMessages": [],
+		"attachedFiles": [
+			{
+				"name": "Fwd_ hello world.eml",
+				"data": "Q29udGVudC1EaXNwb3NpdGlvbjogaW5saW5lDQpDb250ZW50LVRyYW5zZmVyLUVuY29kaW5nOiBiaW5hcnkNCkNvbnRlbnQtVHlwZTogbWVzc2FnZS9yZmM4MjINCk1JTUUtVmVyc2lvbjogMS4wDQpYLU1haWxlcjogTUlNRTo6TGl0ZSAxLjE0NyAgKEIyLjA5OyBRMi4wMykNCkRhdGU6IFR1ZSwgNiBKdW4gMjAwMCAwMzoyMDoxMSBVVA0KRnJvbTogdXNlcjENClRvOiB1c2VyMg0KU3ViamVjdDogRndkOiBoZWxsbyB3b3JsZA0KDQpDb250ZW50LURpc3Bvc2l0aW9uOiBpbmxpbmUNCkNvbnRlbnQtTGVuZ3RoOiA2MA0KQ29udGVudC1UcmFuc2Zlci1FbmNvZGluZzogYmluYXJ5DQpDb250ZW50LVR5cGU6IHRleHQvcGxhaW4NCk1JTUUtVmVyc2lvbjogMS4wDQpYLU1haWxlcjogTUlNRTo6TGl0ZSAxLjE0NyAgKEIyLjA5OyBRMi4wMykNCkRhdGU6IFR1ZSwgNiBKdW4gMjAwMCAwMzoyMDoxMSBVVA0KRnJvbTogdXNlcjANClRvOiB1c2VyMQ0KU3ViamVjdDogaGVsbG8gd29ybGQNCg0KVGhpcyBpcyB0aGUgb3JpZ2luYWwgbWVzc2FnZS4NCkxldCdzIHNlZSBpZiB3ZSBjYW4gZW1iZWQgaXQhDQo=",
+				"mimeType": "message/rfc822",
+				"charset": null,
+				"contentId": "",
+				"calendarMethod": null
+			}
+		],
+		"mailHeaders": "Content-Disposition: inline\nContent-Transfer-Encoding: binary\nContent-Type: message/rfc822\nMIME-Version: 1.0\nX-Mailer: MIME::Lite 1.147  (B2.09; Q2.03)\nDate: Tue, 6 Jun 2000 03:20:11 UT\nFrom: user2\nTo: user0\nSubject: Re: Fwd: hello world",
+		"spfResult": "None",
+		"listUnsubscribe": false,
+		"mailAuthenticationResult": null
+	}
+}

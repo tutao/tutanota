@@ -1,0 +1,9 @@
+{
+	"name": "ResumableImport",
+	"type": "struct",
+	"doc": "State Id and number of remaining mails of resumable import",
+	"fields": {
+		"remoteStateId": "IdTuple",
+		"remainingEmlCount": "number"
+	}
+}

@@ -149,3 +149,14 @@ export function assertOnlyFileReferences(files: Array<Attachment>): asserts file
 export function assertOnlyDataFiles(files: Array<Attachment>): asserts files is Array<DataFile> {
 	if (files.some((f) => !isDataFile(f))) throw new TypeError("not only DataFiles")
 }
+
+export function fileListToArray(fileList: FileList): Array<File> {
+	// create an array of files form the FileList because we can not iterate the FileList directly
+	let nativeFiles: File[] = []
+
+	for (let i = 0; i < fileList.length; i++) {
+		nativeFiles.push(fileList[i])
+	}
+
+	return nativeFiles
+}

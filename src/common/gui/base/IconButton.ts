@@ -17,6 +17,7 @@ export interface IconButtonAttrs {
 	colors?: ButtonColor
 	size?: ButtonSize
 	onkeydown?: (event: KeyboardEvent) => unknown
+	disabled?: boolean
 }
 
 export class IconButton implements Component<IconButtonAttrs> {
@@ -30,11 +31,16 @@ export class IconButton implements Component<IconButtonAttrs> {
 				size: attrs.size === ButtonSize.Large ? IconSize.XL : IconSize.Medium,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
+					visibility: attrs.disabled ? "hidden" : "visible",
 				},
 			}),
 			onclick: attrs.click,
 			onkeydown: attrs.onkeydown,
 			class: `icon-button state-bg ${IconButton.getSizeClass(attrs.size)}`,
+			disabled: attrs.disabled,
+			style: {
+				visibility: attrs.disabled ? "hidden" : "visible",
+			},
 		} satisfies BaseButtonAttrs)
 	}
 
