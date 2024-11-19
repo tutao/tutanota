@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { defaultCalendarColor, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { defaultCalendarColor, TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -70,7 +70,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private hasAnimationEnded = true
 	private pages: Map<EditorPages, (...args: any) => Children> = new Map()
 	private pagesWrapperDomElement!: HTMLElement
-	private allowRenderMainPage: boolean = true
+	private allowRenderMainPage: stream<boolean> = stream(true)
 	private dialogHeight: number | null = null
 	private pageStreamListener: stream<void> | null
 
@@ -89,6 +89,22 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		this.pageStreamListener = vnode.attrs.currentPage.map((newPage) => {
 			this.transitionTo(newPage)
 		})
+		this.allowRenderMainPage.map((allowRendering) => {
+			return this.handleEditorStatus(allowRendering, vnode)
+		})
+	}
+
+	private handleEditorStatus(allowRendering: boolean, vnode: Vnode<CalendarEventEditViewAttrs>) {
+		if (allowRendering && vnode.attrs.currentPage() === EditorPages.MAIN) {
+			if (vnode.attrs.descriptionEditor.editor.domElement) {
+				vnode.attrs.descriptionEditor.editor.domElement.tabIndex = Number(TabIndex.Default)
+			}
+			return vnode.attrs.descriptionEditor.setEnabled(true)
+		}
+		if (vnode.attrs.descriptionEditor.editor.domElement) {
+			vnode.attrs.descriptionEditor.editor.domElement.tabIndex = Number(TabIndex.Programmatic)
+		}
+		vnode.attrs.descriptionEditor.setEnabled(false)
 	}
 
 	onremove() {
@@ -101,14 +117,14 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		this.pagesWrapperDomElement.addEventListener("transitionend", () => {
 			if (vnode.attrs.currentPage() !== EditorPages.MAIN) {
-				this.allowRenderMainPage = false
+				this.allowRenderMainPage(false)
 				m.redraw()
 				return
 			}
 
 			this.transitionPage = vnode.attrs.currentPage()
 			this.hasAnimationEnded = true
-			this.allowRenderMainPage = true
+			this.allowRenderMainPage(true)
 			m.redraw()
 		})
 	}
@@ -239,7 +255,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 	}
 
-	private renderGuestsNavButton({ navigationCallback }: CalendarEventEditViewAttrs): Children {
+	private renderGuestsNavButton({ navigationCallback, model }: CalendarEventEditViewAttrs): Children {
 		return m(
 			Card,
 			m(".flex.gap-vpad-s", [
@@ -260,13 +276,16 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					},
 					[
 						lang.get("guests_label"),
-						m(Icon, {
-							icon: Icons.ArrowDropRight,
-							class: "flex items-center",
-							style: { fill: getColors(ButtonColor.Content).button },
-							title: lang.get("guests_label"),
-							size: IconSize.Medium,
-						}),
+						m(".flex", [
+							model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
+							m(Icon, {
+								icon: Icons.ArrowDropRight,
+								class: "flex items-center",
+								style: { fill: getColors(ButtonColor.Content).button },
+								title: lang.get("guests_label"),
+								size: IconSize.Medium,
+							}),
+						]),
 					],
 				),
 			]),
@@ -406,14 +425,6 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderMainPage(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
-		if (!this.allowRenderMainPage) {
-			return m("", {
-				style: {
-					width: px(this.getPageWidth()),
-				},
-			})
-		}
-
 		return m(
 			".pb.pt.flex.col.gap-vpad.fit-height.box-content",
 			{
@@ -427,18 +438,22 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					transform: "translate(0)",
 					color: theme.button_bubble_fg,
 					width: px(this.getPageWidth()),
-					"pointer-events": `${this.allowRenderMainPage ? "auto" : "none"}`,
+					"pointer-events": `${this.allowRenderMainPage() ? "auto" : "none"}`,
 				},
 			},
 			[
-				this.renderReadonlyMessage(vnode.attrs),
-				this.renderTitle(vnode.attrs),
-				this.renderEventTimeEditor(vnode.attrs),
-				this.renderCalendarPicker(vnode),
-				this.renderRepeatRuleNavButton(vnode.attrs),
-				this.renderRemindersEditor(vnode),
-				this.renderGuestsNavButton(vnode.attrs),
-				this.renderLocationField(vnode),
+				this.allowRenderMainPage()
+					? m.fragment({}, [
+							this.renderReadonlyMessage(vnode.attrs),
+							this.renderTitle(vnode.attrs),
+							this.renderEventTimeEditor(vnode.attrs),
+							this.renderCalendarPicker(vnode),
+							this.renderRepeatRuleNavButton(vnode.attrs),
+							this.renderRemindersEditor(vnode),
+							this.renderGuestsNavButton(vnode.attrs),
+							this.renderLocationField(vnode),
+					  ])
+					: null,
 				this.renderDescriptionEditor(vnode),
 			],
 		)
@@ -466,7 +481,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		this.hasAnimationEnded = false
 
 		if (targetPage === EditorPages.MAIN) {
-			this.allowRenderMainPage = true
+			this.allowRenderMainPage(true)
 			this.pagesWrapperDomElement.style.transform = "translateX(0px)"
 			return
 		}
