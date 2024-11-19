@@ -1081,7 +1081,9 @@ export type ImportMailPostIn = {
 	_type: TypeRef<ImportMailPostIn>;
 
 	_format: NumberString;
+	ownerEncSessionKey: Uint8Array;
 	ownerGroup: Id;
+	ownerKeyVersion: NumberString;
 
 	encImports: StringWrapper[];
 	targetMailFolder: IdTuple;

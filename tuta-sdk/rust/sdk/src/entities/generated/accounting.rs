@@ -1,6 +1,6 @@
 #![allow(non_snake_case, unused_imports)]
-use super::super::*;
 use crate::*;
+use super::super::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
@@ -22,6 +22,9 @@ impl Entity for CustomerAccountPosting {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
@@ -45,3 +48,6 @@ impl Entity for CustomerAccountReturn {
 		}
 	}
 }
+
+
+

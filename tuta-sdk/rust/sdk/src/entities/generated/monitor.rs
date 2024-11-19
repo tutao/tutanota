@@ -1,6 +1,6 @@
 #![allow(non_snake_case, unused_imports)]
-use super::super::*;
 use crate::*;
+use super::super::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
@@ -24,6 +24,9 @@ impl Entity for ApprovalMail {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CounterValue {
@@ -39,6 +42,9 @@ impl Entity for CounterValue {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
@@ -63,6 +69,9 @@ impl Entity for ErrorReportData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ErrorReportFile {
@@ -78,6 +87,9 @@ impl Entity for ErrorReportFile {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
@@ -96,6 +108,9 @@ impl Entity for ReadCounterData {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ReadCounterReturn {
@@ -112,6 +127,9 @@ impl Entity for ReadCounterReturn {
 	}
 }
 
+
+
+
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ReportErrorIn {
@@ -127,6 +145,9 @@ impl Entity for ReportErrorIn {
 		}
 	}
 }
+
+
+
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
@@ -145,3 +166,6 @@ impl Entity for WriteCounterData {
 		}
 	}
 }
+
+
+

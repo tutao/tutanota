@@ -79,7 +79,7 @@ export class SseClient {
 	constructor(private readonly net: DesktopNetworkClient, private readonly delay: SseDelay, private readonly scheduler: Scheduler) {}
 
 	async connect(options: SseConnectOptions) {
-		log.debug("connect")
+		log.debug("connect", options)
 		switch (this.state.state) {
 			case ConnectionState.delayedReconnect:
 				this.scheduler.unscheduleTimeout(this.state.timeout)

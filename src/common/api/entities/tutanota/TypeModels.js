@@ -4389,6 +4389,15 @@ export const typeModels = {
                 "cardinality": "One",
                 "encrypted": false
             },
+            "ownerEncSessionKey": {
+                "final": true,
+                "name": "ownerEncSessionKey",
+                "id": 1523,
+                "since": 77,
+                "type": "Bytes",
+                "cardinality": "One",
+                "encrypted": false
+            },
             "ownerGroup": {
                 "final": false,
                 "name": "ownerGroup",
@@ -4397,13 +4406,22 @@ export const typeModels = {
                 "type": "GeneratedId",
                 "cardinality": "One",
                 "encrypted": false
+            },
+            "ownerKeyVersion": {
+                "final": true,
+                "name": "ownerKeyVersion",
+                "id": 1522,
+                "since": 77,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
             }
         },
         "associations": {
             "encImports": {
                 "final": false,
                 "name": "encImports",
-                "id": 1523,
+                "id": 1525,
                 "since": 77,
                 "type": "AGGREGATION",
                 "cardinality": "Any",
@@ -4413,7 +4431,7 @@ export const typeModels = {
             "targetMailFolder": {
                 "final": true,
                 "name": "targetMailFolder",
-                "id": 1522,
+                "id": 1524,
                 "since": 77,
                 "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "One",
@@ -4428,15 +4446,15 @@ export const typeModels = {
         "name": "ImportMailPostOut",
         "since": 77,
         "type": "DATA_TRANSFER_TYPE",
-        "id": 1524,
-        "rootId": "CHR1dGFub3RhAAX0",
+        "id": 1526,
+        "rootId": "CHR1dGFub3RhAAX2",
         "versioned": false,
         "encrypted": false,
         "values": {
             "_format": {
                 "final": false,
                 "name": "_format",
-                "id": 1525,
+                "id": 1527,
                 "since": 77,
                 "type": "Number",
                 "cardinality": "One",
@@ -4447,7 +4465,7 @@ export const typeModels = {
             "mails": {
                 "final": false,
                 "name": "mails",
-                "id": 1526,
+                "id": 1528,
                 "since": 77,
                 "type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
                 "cardinality": "Any",

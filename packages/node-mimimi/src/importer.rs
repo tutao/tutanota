@@ -13,7 +13,7 @@ use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::StringWrapper;
 use tutasdk::entities::generated::tutanota::{
-	ImportAttachment, ImportMailData, ImportMailPostIn, NewImportAttachment,
+    ImportAttachment, ImportMailData, ImportMailPostIn, NewImportAttachment,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::login::Credentials;
@@ -272,10 +272,24 @@ impl Importer {
 
 			let serialized_imports = maybe_serialized_imports.map_err(|e| ())?;
 
+			let new_enc_session_key_aes256 = GenericAesKey::from_bytes(
+				self.randomizer_facade
+					.generate_random_array::<{ tutasdk::crypto::aes::AES_256_KEY_SIZE }>()
+					.as_slice(),
+			)
+			.unwrap();
+
+			// todo: extract generating new VersionedSessionKey to a separate function
+			let owner_enc_session_key = mail_group_key.encrypt_key(
+				&new_enc_session_key_aes256,
+				Iv::generate(&self.randomizer_facade),
+			);
 			let import_mail_post_in = ImportMailPostIn {
 				ownerGroup: self.target_owner_group.clone(),
 				encImports: serialized_imports,
 				targetMailFolder: self.target_mail_folder.clone(),
+				ownerKeyVersion: owner_enc_session_key.version,
+				ownerEncSessionKey: owner_enc_session_key.object,
 				_format: 0,
 			};
 
@@ -456,16 +470,16 @@ impl ImporterApi {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	use crate::importer::imap_reader::{ImapCredentials, LoginMechanism};
-	use crate::tuta_imap::testing::GreenMailTestServer;
-	use mail_builder::MessageBuilder;
-	use tutasdk::entities::generated::tutanota::MailFolder;
-	use tutasdk::folder_system::MailSetKind;
-	use tutasdk::net::native_rest_client::NativeRestClient;
-	use tutasdk::Sdk;
+    use super::*;
+    use crate::importer::imap_reader::{ImapCredentials, LoginMechanism};
+    use crate::tuta_imap::testing::GreenMailTestServer;
+    use mail_builder::MessageBuilder;
+    use tutasdk::entities::generated::tutanota::MailFolder;
+    use tutasdk::folder_system::MailSetKind;
+    use tutasdk::net::native_rest_client::NativeRestClient;
+    use tutasdk::Sdk;
 
-	fn sample_email(subject: String) -> String {
+    fn sample_email(subject: String) -> String {
 		let email = MessageBuilder::new()
             .from(("Matthias", "map@example.org"))
             .to(("Johannes", "jhm@example.org"))
