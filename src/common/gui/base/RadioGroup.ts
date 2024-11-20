@@ -56,14 +56,15 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 		const isSelected = option.value === selectedOption
 
 		// IDs used to link the label and description for accessibility
-		const optionId = `${name}-${valueString}}`
+		const optionId = `${name}-${valueString}`
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			"li.flex.gap-vpad-s.cursor-pointer.full-width",
+			"li.flex.gap-vpad-s.cursor-pointer.full-width.flash",
 			{
 				class: optionClass ?? "",
 				onclick: () => {
+					console.log("Clicked?")
 					onOptionSelected(option.value)
 				},
 			},

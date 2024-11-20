@@ -181,7 +181,7 @@ export class EventEditorDialog {
 		const okAction: EditDialogOkHandler = async (posRect, finish) => {
 			/** new event, so we always want to send invites. */
 			model.editModels.whoModel.shouldSendUpdates = true
-			if (finished || (await this.askUserIfInsecurePasswordsAreOk(model)) === ConfirmationResult.Cancel) {
+			if (finished) {
 				return
 			}
 
@@ -223,11 +223,7 @@ export class EventEditorDialog {
 		}
 
 		const okAction: EditDialogOkHandler = async (posRect, finish) => {
-			if (
-				finished ||
-				(await this.askUserIfUpdatesAreNeededOrCancel(model)) === ConfirmationResult.Cancel ||
-				(await this.askUserIfInsecurePasswordsAreOk(model)) === ConfirmationResult.Cancel
-			) {
+			if (finished || (await this.askUserIfUpdatesAreNeededOrCancel(model)) === ConfirmationResult.Cancel) {
 				return
 			}
 
@@ -270,21 +266,6 @@ export class EventEditorDialog {
 					console.log("not saving event: user cancelled update sending.")
 					return ConfirmationResult.Cancel
 			}
-		}
-
-		return ConfirmationResult.Continue
-	}
-
-	/** if {@param model} is set to send updates but has insecure external passwords, ask the user what the action to resolve this should be.
-	 * @returns {ConfirmationResult} Cancel if the dialog should stay open, Continue if the save action should proceed despite insecure passwords. */
-	async askUserIfInsecurePasswordsAreOk(model: CalendarEventModel): Promise<ConfirmationResult> {
-		if (
-			model.editModels.whoModel.shouldSendUpdates && // we want to send updates
-			model.editModels.whoModel.hasInsecurePasswords() && // the model declares some of the passwords insecure
-			!(await Dialog.confirm("presharedPasswordNotStrongEnough_msg")) // and the user is not OK with that
-		) {
-			console.log("not saving event: insecure passwords.")
-			return ConfirmationResult.Cancel
 		}
 
 		return ConfirmationResult.Continue

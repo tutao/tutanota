@@ -181,8 +181,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				ariaLabel: lang.get("occurrencesCount_label"),
 				placeholder: lang.get("occurrencesCount_label"),
 				type: TextFieldType.Number,
-				classes: ["outlined", "full-width", "flex-grow"],
-				disabled: attrs.model.repeatEndType !== EndType.Count,
+				classes: ["outlined", "full-width", "flex-grow", attrs.model.repeatEndType !== EndType.Count ? "disabled" : ""],
 			} satisfies SingleLineTextFieldAttrs),
 		)
 
@@ -195,8 +194,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				useInputButton: true,
 				startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 				position: PickerPosition.TOP,
-				disabled: attrs.model.repeatEndType !== EndType.UntilDate,
-				classes: ["full-width", "flex-grow"],
+				classes: ["full-width", "flex-grow", attrs.model.repeatEndType !== EndType.UntilDate ? "disabled" : ""],
 			} satisfies DatePickerAttrs),
 		)
 
