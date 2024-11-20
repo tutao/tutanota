@@ -1,6 +1,6 @@
 import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
-import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, NBSP, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
@@ -12,6 +12,7 @@ import { isIOSApp } from "../api/common/Env"
 import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../api/main/CommonLocator.js"
 import { client } from "../misc/ClientDetector"
+import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
 
 export const enum PaymentInterval {
 	Monthly = 1,
@@ -177,21 +178,38 @@ export class PriceAndConfigProvider {
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): SubscriptionPrice {
 		const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 		const rawPrice = price.toString()
-		if (isIOSApp() && !client.isCalendarApp()) {
-			const planName = PlanTypeToName[subscription]
-			const mobilePlan = this.getMobilePrices().get(planName.toLowerCase())
-			if (mobilePlan) {
-				switch (paymentInterval) {
-					case PaymentInterval.Monthly:
-						return { displayPrice: mobilePlan.monthlyPerMonth, rawPrice }
-					case PaymentInterval.Yearly:
-						return { displayPrice: mobilePlan.yearlyPerYear, rawPrice }
-				}
-			}
-			throw new Error(`no such iOS plan ${planName}`)
+
+		const supportsAppStorePayments = isIOSApp() && !client.isCalendarApp()
+
+		if (supportsAppStorePayments) {
+			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval, rawPrice, type)
 		} else {
 			const displayPrice = formatPrice(price, true)
 			return { displayPrice, rawPrice }
+		}
+	}
+
+	private getAppStorePaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval, rawPrice: string, type: UpgradePriceType) {
+		const planName = PlanTypeToName[subscription]
+		const applePrices = this.getMobilePrices().get(planName.toLowerCase())
+
+		if (!applePrices) {
+			throw new Error(`no such iOS plan ${planName}`)
+		}
+
+		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
+
+		switch (paymentInterval) {
+			case PaymentInterval.Monthly:
+				return { displayPrice: applePrices.monthlyPerMonth, rawPrice }
+			case PaymentInterval.Yearly:
+				if (isCyberMonday && subscription === PlanType.Legend && type === UpgradePriceType.PlanActualPrice) {
+					const revolutionaryYearlyPerYear = this.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())?.yearlyPerYear ?? NBSP
+
+					return { displayPrice: revolutionaryYearlyPerYear, rawPrice }
+				}
+
+				return { displayPrice: applePrices.yearlyPerYear, rawPrice }
 		}
 	}
 
