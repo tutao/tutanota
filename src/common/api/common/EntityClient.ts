@@ -85,8 +85,15 @@ export class EntityClient {
 		}
 	}
 
-	loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		return this._target.loadRange(typeRef, listId, start, count, reverse)
+	loadRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions = {},
+	): Promise<T[]> {
+		return this._target.loadRange(typeRef, listId, start, count, reverse, opts)
 	}
 
 	/**
@@ -97,8 +104,9 @@ export class EntityClient {
 		listId: Id | null,
 		elementIds: Id[],
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		opts: EntityRestClientLoadOptions = {},
 	): Promise<T[]> {
-		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider)
+		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
