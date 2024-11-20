@@ -4,5 +4,5 @@ public class PermissionError: TutanotaError {
 
 	init(message: String) { super.init(message: message, underlyingError: nil) }
 
-	public override var name: String { get { "de.tutao.tutanota.PermissionError" } }
+	public override var name: String { get { "de.tutao.tutashared.PermissionError" } }
 }

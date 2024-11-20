@@ -5,7 +5,7 @@ enum ListIdLockState {
 	case listIdUnlocked
 }
 
-let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutanota.offline.OfflineDbClosedError"
+let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutashared.offline.OfflineDbClosedError"
 
 public actor IosSqlCipherFacade: SqlCipherFacade {
 	private var db: SqlCipherDb?

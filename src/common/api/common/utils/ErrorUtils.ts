@@ -78,7 +78,7 @@ export function isOfflineError(e: Error) {
 
 /**
  * This maps the errors from their names to their constructors.
- * This is needed generally when errros cross IPC boundaries and more specifically when we want to map native errors to
+ * This is needed generally when errors cross IPC boundaries and more specifically when we want to map native errors to
  * our error classes.
  *
  * All errors that cross IPC boundaries should be added here.
@@ -138,23 +138,23 @@ const ErrorNameToType = {
 	"java.net.UnknownHostException": ConnectionError,
 	"java.lang.SecurityException": PermissionError,
 	"java.io.FileNotFoundException": FileNotFoundError,
-	"de.tutao.tutanota.CryptoError": CryptoError,
+	"de.tutao.tutashared.CryptoError": CryptoError,
 	// Android app exception class name
-	"de.tutao.tutanota.TutCrypto": CryptoError,
+	"de.tutao.tutashared.TutCrypto": CryptoError,
 	// iOS app crypto error domain
 	"android.content.ActivityNotFoundException": FileOpenError,
-	"de.tutao.tutanota.TutFileViewer": FileOpenError,
+	"de.tutao.tutashared.TutFileViewer": FileOpenError,
 	NSURLErrorDomain: ConnectionError,
 	"de.tutao.tutashared.CredentialAuthenticationException": CredentialAuthenticationError,
 	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
-	"de.tutao.tutanota.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
-	"de.tutao.tutanota.CredentialAuthenticationError": CredentialAuthenticationError,
-	"de.tutao.tutanota.offline.OfflineDbClosedError": OfflineDbClosedError,
-	"de.tutao.tutanota.CancelledError": CancelledError,
+	"de.tutao.tutashared.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
+	"de.tutao.tutashared.CredentialAuthenticationError": CredentialAuthenticationError,
+	"de.tutao.tutashared.offline.OfflineDbClosedError": OfflineDbClosedError,
+	"de.tutao.tutashared.CancelledError": CancelledError,
 	"de.tutao.tutanota.webauthn.WebauthnError": WebauthnError,
 	"de.tutao.tutanota.Webauthn": WebauthnError,
-	"de.tutao.tutanota.PermissionError": PermissionError,
-	"de.tutao.ContactStoreError": ContactStoreError,
+	"de.tutao.tutashared.PermissionError": PermissionError,
+	"de.tutao.tutashared.ContactStoreError": ContactStoreError,
 	"de.tutao.tutanota.MobilePayment": MobilePaymentError,
 }
 
