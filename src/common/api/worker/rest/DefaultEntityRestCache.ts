@@ -4,6 +4,7 @@ import {
 	EntityRestClientLoadOptions,
 	EntityRestClientSetupOptions,
 	EntityRestInterface,
+	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
@@ -261,24 +262,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
-		const { queryParams, cacheMode = CacheMode.Cache } = opts
-		const { listId, elementId } = expandId(id)
-
-		// if a specific version is requested we have to load again and do not want to store it in the cache
-		if (queryParams?.version != null) {
+		const useCache = await this.shouldUseCache(typeRef, opts)
+		if (!useCache) {
 			return await this.entityRestClient.load(typeRef, id, opts)
 		}
 
-		let cachedEntity: T | null
-		if (cacheMode === CacheMode.Cache) {
-			cachedEntity = await this.storage.get(typeRef, listId, elementId)
-		} else {
-			cachedEntity = null
-		}
+		const { listId, elementId } = expandId(id)
+		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
+		const cachedEntity = cachingBehavior.readsFromCache ? await this.storage.get(typeRef, listId, elementId) : null
 
 		if (cachedEntity == null) {
 			const entity = await this.entityRestClient.load(typeRef, id, opts)
-			if (!isIgnoredType(typeRef)) {
+			if (cachingBehavior.writesToCache) {
 				await this.storage.put(entity)
 			}
 			return entity
@@ -287,17 +282,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return cachedEntity
 	}
 
-	loadMultiple<T extends SomeEntity>(
+	async loadMultiple<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
-		elementIds: Array<Id>,
+		ids: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		opts: EntityRestClientLoadOptions = {},
 	): Promise<Array<T>> {
-		if (isIgnoredType(typeRef)) {
-			return this.entityRestClient.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider)
+		const useCache = await this.shouldUseCache(typeRef, opts)
+		if (!useCache) {
+			return await this.entityRestClient.loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 		}
-
-		return this._loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider)
+		return await this._loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 	}
 
 	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
@@ -371,55 +367,94 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		listId: Id | null,
 		ids: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		opts: EntityRestClientLoadOptions = {},
 	): Promise<Array<T>> {
+		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
 		const entitiesInCache: T[] = []
-		const idsToLoad: Id[] = []
-		for (let id of ids) {
-			const cachedEntity = await this.storage.get(typeRef, listId, id)
-			if (cachedEntity != null) {
-				entitiesInCache.push(cachedEntity)
-			} else {
-				idsToLoad.push(id)
+
+		let idsToLoad: Id[]
+		if (cachingBehavior.readsFromCache) {
+			idsToLoad = []
+			for (const id of ids) {
+				const cachedEntity = await this.storage.get(typeRef, listId, id)
+				if (cachedEntity != null) {
+					entitiesInCache.push(cachedEntity)
+				} else {
+					idsToLoad.push(id)
+				}
 			}
-		}
-		const entitiesFromServer: T[] = []
-		if (idsToLoad.length > 0) {
-			const entities = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider)
-			for (let entity of entities) {
-				await this.storage.put(entity)
-				entitiesFromServer.push(entity)
-			}
+		} else {
+			idsToLoad = ids
 		}
 
-		return entitiesFromServer.concat(entitiesInCache)
+		if (idsToLoad.length > 0) {
+			const entitiesFromServer = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider, opts)
+			if (cachingBehavior.writesToCache) {
+				for (const entity of entitiesFromServer) {
+					await this.storage.put(entity)
+				}
+			}
+			return entitiesFromServer.concat(entitiesInCache)
+		} else {
+			return entitiesInCache
+		}
 	}
 
-	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	async loadRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions = {},
+	): Promise<T[]> {
 		if (this.storage.getCustomCacheHandlerMap(this.entityRestClient).has(typeRef)) {
 			return await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)!.loadRange(this.storage, listId, start, count, reverse)
 		}
 
-		const typeModel = await resolveTypeReference(typeRef)
-		if (!isCachedType(typeModel, typeRef)) {
-			return this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
+		const useCache = await this.shouldUseCache(typeRef, opts)
+		if (!useCache) {
+			return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
+		}
+
+		const behavior = getCacheModeBehavior(opts.cacheMode)
+		if (!behavior.readsFromCache) {
+			throw new ProgrammingError("cannot write to cache without reading with range requests")
 		}
 
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the ranges database.
 		await this.storage.lockRangesDbAccess(listId)
 
 		try {
+			const typeModel = await resolveTypeReference(typeRef)
 			const range = await this.storage.getRangeForList(typeRef, listId)
-			if (range == null) {
-				await this.populateNewListWithRange(typeRef, listId, start, count, reverse)
-			} else if (isStartIdWithinRange(range, start, typeModel)) {
-				await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
-			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
-				await this.extendAwayFromRange(typeRef, listId, start, count, reverse)
-			} else {
-				await this.extendTowardsRange(typeRef, listId, start, count, reverse)
-			}
 
-			return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			if (behavior.writesToCache) {
+				if (range == null) {
+					await this.populateNewListWithRange(typeRef, listId, start, count, reverse, opts)
+				} else if (isStartIdWithinRange(range, start, typeModel)) {
+					await this.extendFromWithinRange(typeRef, listId, start, count, reverse, opts)
+				} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
+					await this.extendAwayFromRange(typeRef, listId, start, count, reverse, opts)
+				} else {
+					await this.extendTowardsRange(typeRef, listId, start, count, reverse, opts)
+				}
+				return await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			} else {
+				if (range && isStartIdWithinRange(range, start, typeModel)) {
+					const provided = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+					const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
+					const newElements = newCount > 0 ? await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse) : []
+					return provided.concat(newElements)
+				} else {
+					// Since our starting ID is not in our range, we can't use the cache because we don't know exactly what
+					// elements are missing.
+					//
+					// This can result in us re-retrieving elements we already have. Since we anyway must do a request,
+					// this is fine.
+					return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
+				}
+			}
 		} finally {
 			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
 			await this.storage.unlockRangesDbAccess(listId)
@@ -433,9 +468,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * range becomes: |---------|
 	 * @private
 	 */
-	private async populateNewListWithRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
+	private async populateNewListWithRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions,
+	) {
 		// Create a new range and load everything
-		const entities = await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
+		const entities = await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
 
 		// Initialize a new range for this list
 		await this.storage.setNewRangeForList(typeRef, listId, start, start)
@@ -450,11 +492,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * request:             *-------------->
 	 * range becomes: |--------------------|
 	 */
-	private async extendFromWithinRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
+	private async extendFromWithinRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions,
+	) {
 		const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
 		if (newCount > 0) {
 			// We will be able to provide some entities from the cache, so we just want to load the remaining entities from the server
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse)
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse, opts)
 			await this.updateRangeInStorage(typeRef, listId, newCount, reverse, entities)
 		}
 	}
@@ -467,7 +516,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * request:                     *------->
 	 * range becomes:  |--------------------|
 	 */
-	private async extendAwayFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
+	private async extendAwayFromRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions,
+	) {
 		// Start is outside the range, and we are loading away from the range, so we grow until we are able to provide enough
 		// entities starting at startId
 		while (true) {
@@ -479,8 +535,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const requestCount = Math.max(count, EXTEND_RANGE_MIN_CHUNK_SIZE)
 
 			// Load some entities
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, reverse)
-
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, reverse, opts)
 			await this.updateRangeInStorage(typeRef, listId, requestCount, reverse, entities)
 
 			// If we exhausted the entities from the server
@@ -509,7 +564,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * request:       <-------------------*
 	 * range becomes: |--------------------|
 	 */
-	private async extendTowardsRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
+	private async extendTowardsRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions,
+	) {
 		while (true) {
 			const range = assertNotNull(await this.storage.getRangeForList(typeRef, listId))
 
@@ -517,7 +579,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			const requestCount = Math.max(count, EXTEND_RANGE_MIN_CHUNK_SIZE)
 
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, !reverse)
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, !reverse, opts)
 
 			await this.updateRangeInStorage(typeRef, listId, requestCount, !reverse, entities)
 
@@ -528,7 +590,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 
-		await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
+		await this.extendFromWithinRange(typeRef, listId, start, count, reverse, opts)
 	}
 
 	/**
@@ -572,7 +634,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	/**
 	 * Calculates the new start value for the getElementRange request and the number of elements to read in
 	 * order to read no duplicate values.
-	 * @return returns the new start and count value.
+	 * @return returns the new start and count value. Important: count can be negative if everything is cached
 	 */
 	private async recalculateRangeRequest<T extends ListElementEntity>(
 		typeRef: TypeRef<T>,
@@ -685,7 +747,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 				try {
 					// loadMultiple is only called to cache the elements and check which ones return errors
-					const returnedInstances = await this._loadMultiple(typeRef, instanceListId, idsInCacheRange)
+					const returnedInstances = await this._loadMultiple(typeRef, instanceListId, idsInCacheRange, undefined, { cacheMode: CacheMode.Bypass })
 					//We do not want to pass updates that caused an error
 					if (returnedInstances.length !== idsInCacheRange.length) {
 						const returnedIds = returnedInstances.map((instance) => getElementId(instance))
@@ -895,6 +957,28 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (!updatedFolder.isMailSet) return
 		await this.storage.deleteWholeList(MailTypeRef, updatedFolder.mails)
 		await this.storage.put(updatedFolder)
+	}
+
+	/**
+	 * Check if the given request should use the cache
+	 * @param typeRef typeref of the type
+	 * @param opts entity rest client options, if any
+	 * @return true if the cache can be used, false if a direct network request should be performed
+	 */
+	private async shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): Promise<boolean> {
+		// some types won't be cached
+		if (isIgnoredType(typeRef)) {
+			return false
+		}
+
+		// if a specific version is requested we have to load again and do not want to store it in the cache
+		if (opts?.queryParams?.version != null) {
+			return false
+		}
+
+		// otherwise we should ignore certain custom id types
+		const typeModel = await resolveTypeReference(typeRef)
+		return isCachedType(typeModel, typeRef)
 	}
 }
 
