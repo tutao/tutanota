@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "tuta-sdk"
-version = "251.241115.0"
+version = "251.241120.0"
 
 [dependencies]
 async-trait = "0.1.77"
