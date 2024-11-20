@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-11-12T14:41:50Z",
+	"updated_at": "2024-11-18T15:42:59Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -811,6 +811,7 @@ export default {
 		"keywords_label": "Palabras clave",
 		"knowledgebase_label": "Base de conocimiento",
 		"knownCredentials_label": "Cuentas guardadas",
+		"labelLimitExceeded_msg": "El plan gratuito solo incluye 3 etiquetas. Por favor, elimina las etiquetas para bajar de categoría.",
 		"labels_label": "Etiquetas",
 		"languageAfrikaans_label": "Afrikáans",
 		"languageAlbanianref_label": "Albanés reformado",

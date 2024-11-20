@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-11-12T10:23:47Z",
+	"updated_at": "2024-11-18T14:39:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -811,6 +811,7 @@ export default {
 		"keywords_label": "Schlüsselwörter",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",
+		"labelLimitExceeded_msg": "In der kostenlosen Version sind nur 3 Labels enthalten. Bitte lösche Labels, um zu Free wechseln zu können.",
 		"labels_label": "Labels",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albanisch reformiert",

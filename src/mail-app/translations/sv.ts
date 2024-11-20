@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-11-11T12:13:59Z",
+	"updated_at": "2024-11-18T16:52:40Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -807,6 +807,7 @@ export default {
 		"keywords_label": "Nyckelord",
 		"knowledgebase_label": "Kunskapsbas",
 		"knownCredentials_label": "Sparade konton",
+		"labelLimitExceeded_msg": "Endast 3 etiketter ingår i den kostnadsfria planen. Ta bort etiketter för att nedgradera.",
 		"labels_label": "Etiketter",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albanska reformerad",
@@ -1234,6 +1235,7 @@ export default {
 		"pricing.currentPlan_label": "Nuvarande abonnemang",
 		"pricing.custom_title": "Anpassad varumärkesprofil",
 		"pricing.custom_tooltip": "Whitelabel Tuta med ditt eget varumärke genom att definiera logotyper och färger för Tuta klienterna på webben, mobilen och datorn.",
+		"pricing.cyberMonday_label": "Spara 62%",
 		"pricing.cyber_monday_msg": "Skaffa det bästa abonnemanget till ett lägre pris första året!",
 		"pricing.cyber_monday_select_action": "Ta del av erbjudandet!",
 		"pricing.encryptedCalendar_label": "Helt krypterad kalender",

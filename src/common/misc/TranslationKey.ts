@@ -790,6 +790,7 @@ export type TranslationKeyType =
 	| "keywords_label"
 	| "knowledgebase_label"
 	| "knownCredentials_label"
+	| "labelLimitExceeded_msg"
 	| "labels_label"
 	| "languageAfrikaans_label"
 	| "languageAlbanianref_label"

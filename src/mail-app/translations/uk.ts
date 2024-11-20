@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2024-11-13T18:36:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1236,6 +1236,9 @@ export default {
 		"pricing.currentPlan_label": "Поточна підписка",
 		"pricing.custom_title": "Власний брендинг",
 		"pricing.custom_tooltip": "Надайте Tuta власний фірмовий стиль, визначивши логотипи та кольори веб-, мобільних і настільних клієнтів Tuta.",
+		"pricing.cyberMonday_label": "Заощаджуйте 62%",
+		"pricing.cyber_monday_msg": "Отримайте тарифний план найвищого рівня на перший рік за меншу ціну!",
+		"pricing.cyber_monday_select_action": "Домовились!",
 		"pricing.encryptedCalendar_label": "Повністю зашифрований календар",
 		"pricing.encryptedCalendar_tooltip": "Всі дані в календарях Tuta зашифровані, навіть сповіщення надсилаються на ваш пристрій у зашифрованому вигляді.",
 		"pricing.encryptedContacts_label": "Зашифрована адресна книга",
@@ -1255,6 +1258,7 @@ export default {
 		"pricing.gdpr_tooltip": "Всі дані зберігаються з дотриманням суворих європейських правил захисту даних відповідно до GDPR.",
 		"pricing.getStarted_label": "Розпочати",
 		"pricing.includesTaxes_msg": "Включно з податками.",
+		"pricing.legendAsterisk_msg": "Знижка за тарифом Legend діє лише на перший рік. Подальша ціна становитиме 96€ на рік.",
 		"pricing.login_title": "Вхід на власному сайті",
 		"pricing.login_tooltip": "Розташуйте вікно входу до сервісу Tuta на власному вебсайті для своїх співробітників і зовнішніх користувачів.",
 		"pricing.mailAddressAliasesShort_label": "{amount} додаткові адреси електронної пошти",

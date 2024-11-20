@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-11-12T15:22:32Z",
+	"updated_at": "2024-11-18T17:46:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -806,6 +806,7 @@ export default {
 		"keywords_label": "關鍵字",
 		"knowledgebase_label": "知識庫",
 		"knownCredentials_label": "已儲存帳戶",
+		"labelLimitExceeded_msg": "免費計劃只包含3個標籤。請刪除標籤以降級。",
 		"labels_label": "標籤",
 		"languageAfrikaans_label": "南非語",
 		"languageAlbanianref_label": "新阿爾巴尼亞語",

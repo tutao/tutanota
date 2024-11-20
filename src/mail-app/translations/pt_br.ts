@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2024-11-15T15:09:25Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -1170,6 +1170,7 @@ export default {
 		"pricing.currentPlan_label": "Plano atual",
 		"pricing.custom_title": "Marca comercial personalizada",
 		"pricing.custom_tooltip": "Whitelabel Tuta com a sua própria marca, definindo os logotipos e as cores da web Tuta, clientes móveis e desktop.\n",
+		"pricing.cyber_monday_select_action": "Aproveite a Oferta!",
 		"pricing.encryptedCalendar_label": "Calendário completamente criptografado",
 		"pricing.encryptedCalendar_tooltip": "Todos os dados nos seus calendários do Tuta, mesmo as notificações são enviadas criptografadas para o seu dispositivo.",
 		"pricing.encryptedContacts_label": "Livro de endereço criptografado.",

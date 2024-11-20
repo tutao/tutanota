@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2024-11-17T20:25:48Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1234,6 +1234,9 @@ export default {
 		"pricing.currentPlan_label": "Jelenlegi előfizetés",
 		"pricing.custom_title": "Egyedi márkaépítés",
 		"pricing.custom_tooltip": "A Tuta fehércímkézése saját márkajelzéssel a Tuta webes, mobil és asztali kliensek logóinak és színeinek meghatározásával.",
+		"pricing.cyberMonday_label": "Mentés-megtakarítás 62%",
+		"pricing.cyber_monday_msg": "Szerezze be a legjobb csomagot az első évre olcsóbban!",
+		"pricing.cyber_monday_select_action": "Szerezze meg az ajánlatot!",
 		"pricing.encryptedCalendar_label": "Teljesen titkosított naptár",
 		"pricing.encryptedCalendar_tooltip": "A Tuta naptárak minden adata titkosítva van, még az értesítések is titkosítva kerülnek a készülékére.",
 		"pricing.encryptedContacts_label": "Titkosított címjegyzék",
@@ -1253,6 +1256,7 @@ export default {
 		"pricing.gdpr_tooltip": "Minden adatot a GDPR szerinti szigorú európai adatvédelmi előírásoknak megfelelően tárolunk.",
 		"pricing.getStarted_label": "Kezdjünk hozzá!",
 		"pricing.includesTaxes_msg": "Tartalmazza az adókat",
+		"pricing.legendAsterisk_msg": "A Legend kedvezmény csak az első évre vonatkozik. A következő ár 96€ lesz évente.",
 		"pricing.login_title": "Bejelentkezés a saját weboldalon",
 		"pricing.login_tooltip": "Helyezze el a Tuta bejelentkezést a saját weboldalán az alkalmazottai és külsősök számára!",
 		"pricing.mailAddressAliasesShort_label": "{amount} További e-mail címek",

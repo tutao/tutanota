@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2024-11-13T21:31:49Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1239,6 +1239,9 @@ export default {
 		"pricing.currentPlan_label": "Obecna oferta",
 		"pricing.custom_title": "Własne oznakowanie",
 		"pricing.custom_tooltip": "Oznaczaj Tuta własną marką, definiując loga i kolory klientów Tuta w wersji internetowej, mobilnej i stacjonarnej.",
+		"pricing.cyberMonday_label": "Zaoszczędź 62%",
+		"pricing.cyber_monday_msg": "Zdobądź najlepszą ofertę na pierwszy rok za mniej!",
+		"pricing.cyber_monday_select_action": "Skorzystaj z oferty!",
 		"pricing.encryptedCalendar_label": "W pełni zaszyfrowany kalendarz",
 		"pricing.encryptedCalendar_tooltip": "Wszystkie dane w kalendarzach Tuta są zaszyfrowane, nawet powiadomienia są wysyłane do urządzenia w formie zaszyfrowanej.",
 		"pricing.encryptedContacts_label": "Zaszyfrowana książka adresowa",
@@ -1258,6 +1261,7 @@ export default {
 		"pricing.gdpr_tooltip": "Wszystkie dane są przechowywane zgodnie z surowymi europejskimi przepisami o ochronie danych osobowych, zgodnie z RODO.",
 		"pricing.getStarted_label": "Rozpocznij",
 		"pricing.includesTaxes_msg": "Zawiera podatek.",
+		"pricing.legendAsterisk_msg": "Zniżka na ofertę Legend obowiązuje tylko przez pierwszy rok. Po tym okresie cena będzie wynosić 96 € rocznie.",
 		"pricing.login_title": "Loguj się na własnej stronie internetowej",
 		"pricing.login_tooltip": "Umieść login Tuta na własnej stronie internetowej dla swoich pracowników oraz innych użytkowników.",
 		"pricing.mailAddressAliasesShort_label": "{amount} dodatkowych adresów e-mail",

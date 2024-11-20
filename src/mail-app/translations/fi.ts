@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-11-11T16:34:15Z",
+	"updated_at": "2024-11-13T18:34:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1234,6 +1234,7 @@ export default {
 		"pricing.currentPlan_label": "Nykyinen tilaus",
 		"pricing.custom_title": "Brändäys",
 		"pricing.custom_tooltip": "Brändää Tuta omalla brändilläsi ja käytä omia logoja ja värejäsi Tutan verkko-, työpöytä- ja mobiilisovelluksissa.",
+		"pricing.cyberMonday_label": "Säästä 62%",
 		"pricing.cyber_monday_msg": "Hanki huippupaketti ensimmäiselle vuodelle edullisemmin!",
 		"pricing.cyber_monday_select_action": "Tartu tarjoukseen!",
 		"pricing.encryptedCalendar_label": "Täysin salattu kalenteri",

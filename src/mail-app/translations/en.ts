@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-11-12T10:23:47Z",
+	"updated_at": "2024-11-18T14:39:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -807,6 +807,7 @@ export default {
 		"keywords_label": "Keywords",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Saved accounts",
+		"labelLimitExceeded_msg": "Only 3 labels are included in the free plan. Please delete labels to downgrade.",
 		"labels_label": "Labels",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albanian reformed",

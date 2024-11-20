@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2024-11-13T10:03:05Z",
+	"updated_at": "2024-11-19T08:47:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -811,6 +811,7 @@ export default {
 		"keywords_label": "Mots-clés",
 		"knowledgebase_label": "Base de connaissances",
 		"knownCredentials_label": "Comptes sauvegardés",
+		"labelLimitExceeded_msg": "Seules 3 étiquettes sont incluses dans le plan gratuit. Veuillez supprimer des étiquettes.",
 		"labels_label": "Labels",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albanais (réforme)",

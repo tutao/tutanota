@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2024-11-11T15:14:59Z",
+	"updated_at": "2024-11-18T17:05:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -812,6 +812,7 @@ export default {
 		"keywords_label": "Cuvinte cheie",
 		"knowledgebase_label": "Bază de cunoștințe",
 		"knownCredentials_label": "Conturi salvate",
+		"labelLimitExceeded_msg": "Versiunea gratuită include doar 3 etichete. Trebuie eliminate etichetele înainte de a trece la versiunea gratuită.",
 		"labels_label": "Etichete",
 		"languageAfrikaans_label": "Afrikaans",
 		"languageAlbanianref_label": "Albaneză reformată",
@@ -1239,6 +1240,7 @@ export default {
 		"pricing.currentPlan_label": "Abonamentul actual",
 		"pricing.custom_title": "Emblemă personală",
 		"pricing.custom_tooltip": "Personalizează Tuta cu marca ta, stabilind emblemele și culorile programelor Tuta pentru web, mobil și computer.",
+		"pricing.cyberMonday_label": "Economisește 62%",
 		"pricing.cyber_monday_msg": "Obține abonamentul cel mai mare cu reducere pentru primul an!",
 		"pricing.cyber_monday_select_action": "Obține oferta!",
 		"pricing.encryptedCalendar_label": "Calendar complet cifrat",
