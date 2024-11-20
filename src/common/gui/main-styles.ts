@@ -606,7 +606,7 @@ styles.registerStyle("main", () => {
 			"word-break": "break-all",
 		},
 		".break-word-links a": {
-			"word-wrap": "break-word",
+			"overflow-wrap": "anywhere",
 		},
 		".text-prewrap": {
 			"white-space": "pre-wrap",
