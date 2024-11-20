@@ -29,17 +29,6 @@ if (wasRunFromCli) {
 }
 
 async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
-	const releaseToken = process.env.GITHUB_TOKEN
-
-	if (!releaseToken) {
-		throw new Error("No GITHUB_TOKEN set!")
-	}
-
-	const octokit = new Octokit({
-		auth: releaseToken,
-		userAgent: "tuta-github-release-v0.0.1",
-	})
-
 	notes = renderCompleteNotes({ notes: await fs.promises.readFile(notes, { encoding: "utf8" }), files: uploadFile })
 
 	if (toFile) {
@@ -48,6 +37,17 @@ async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
 	} else if (dryRun) {
 		console.log(`dry run, so not creating draft with release notes\n\n${notes}\nand name ${name}, tag ${tag} \n ${uploadFile}`)
 	} else {
+		const releaseToken = process.env.GITHUB_TOKEN
+
+		if (!releaseToken) {
+			throw new Error("No GITHUB_TOKEN set!")
+		}
+
+		const octokit = new Octokit({
+			auth: releaseToken,
+			userAgent: "tuta-github-release-v0.0.1",
+		})
+
 		const draftResponse = await createReleaseDraft(octokit, name, tag, notes)
 
 		const { upload_url, id } = draftResponse.data

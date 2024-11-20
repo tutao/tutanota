@@ -128,12 +128,12 @@ pipeline {
 					}
 					steps {
 						script {
-							catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to upload android app to GitHub') {
+							catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to upload iOS app to GitHub') {
 								writeReleaseNotes("ios", "iOS", "${env.VERSION}", "")
 							}
 						} // script
 					} // steps
-				} // stage Android App
+				} // stage iOS App
 			}
 		}
 		stage("Publishing Artifacts to Stores") {

@@ -2,7 +2,6 @@ pipeline {
 	environment {
 		NODE_MAC_PATH = "/usr/local/opt/node@20/bin/"
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-		RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
 	}
 
 	agent {
@@ -11,10 +10,9 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'RELEASE',
+			name: 'UPLOAD',
 			defaultValue: false,
-			description: "Build testing and production version, and upload them to nexus/testflight/appstore. " +
-				"The production version will need to be released manually from appstoreconnect.apple.com."
+			description: "Upload staging/prod to Nexus"
 		)
 		booleanParam(
 			name: 'PROD',
@@ -24,14 +22,20 @@ pipeline {
 			name: 'STAGING',
 			defaultValue: true
 		)
-		persistentText(
-			name: "releaseNotes",
-			defaultValue: "",
-			description: "release notes for this build"
-		 )
 	}
 
 	stages {
+        stage("Checking params") {
+            steps {
+                script{
+                    if(!params.STAGING && !params.PROD) {
+                        currentBuild.result = 'ABORTED'
+                        error('No artifacts were selected.')
+                    }
+                }
+                echo "Params OKAY"
+            }
+        } // stage checking params
     	stage('Check Github') {
 			steps {
 				script {
@@ -42,7 +46,7 @@ pipeline {
     	}
 		stage("Run tests") {
 			agent {
-				label 'mac-intel'
+				label 'mac'
 			}
 			environment {
 				LC_ALL = "en_US.UTF-8"
@@ -57,23 +61,23 @@ pipeline {
 						sh 'fastlane test'
 					}
 				}
-			}
-		}
+			} // steps
+		} // stage run tests
 
-		stage("Build and upload to Apple") {
+		stage("Build") {
 			environment {
-				PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
 				LC_ALL = "en_US.UTF-8"
 				LANG = "en_US.UTF-8"
 			}
-			agent {
-				label 'mac-intel'
-			}
 			stages {
 				stage('Staging') {
-					when {
-						expression { return params.STAGING }
+					when { expression { return params.STAGING } }
+					environment {
+						PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+					}
+					agent {
+						label 'mac-intel'
 					}
 					steps {
 						script {
@@ -81,16 +85,21 @@ pipeline {
 							buildWebapp("test")
 							generateXCodeProjects()
 							util.runFastlane("de.tutao.tutanota.test", "adhoc_staging")
-							if (params.RELEASE) {
-								util.runFastlane("de.tutao.tutanota.test", "testflight_staging")
+							if (params.UPLOAD) {
+								util.runFastlane("de.tutao.tutanota.test", "build_mail_staging")
+                                stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
 							}
-							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
+							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
 						}
 					}
-				}
+				} // stage staging
 				stage('Production') {
-					when {
-						expression { return params.PROD }
+					when { expression { return params.PROD } }
+					environment {
+						PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+					}
+					agent {
+						label 'mac-intel'
 					}
 					steps {
 						script {
@@ -98,88 +107,64 @@ pipeline {
 							buildWebapp("prod")
 							generateXCodeProjects()
 							util.runFastlane("de.tutao.tutanota", "adhoc_prod")
-							if (params.RELEASE) {
-								writeReleaseNotesForAppStore()
-								util.runFastlane("de.tutao.tutanota", "appstore_prod submit:true")
+							if (params.UPLOAD) {
+								util.runFastlane("de.tutao.tutanota", "build_mail_prod")
+							 	stash includes: "app-ios/releases/tutanota-${VERSION}.ipa", name: 'ipa-production'
 							}
-							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
+							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 						}
-					}
-				}
-			}
-		}
+					} // steps
+				} // stage production
+			} // stages
+		} // stage build
 
 		stage('Upload to Nexus') {
+			when { expression { return params.UPLOAD } }
 			environment {
 				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
-			when {
-				expression { return params.RELEASE }
-			}
-			agent {
-				label 'linux'
-			}
-			steps {
-				script {
-					if (params.STAGING) {
-						unstash 'ipa-testing'
-						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
-							publishToNexus("ios-test", "tutanota-${VERSION}-adhoc-test.ipa")
-						}
+			parallel {
+				stage("Staging") {
+					when { expression { return params.STAGING } }
+					agent {
+						label 'linux'
 					}
+					steps {
+						unstash 'ipa-adhoc-staging'
+						unstash 'ipa-staging'
 
-					if (params.PROD) {
+                        uploadToNexus("ios-test", "tutanota-${VERSION}-adhoc-test.ipa", "adhoc.ipa")
+                        uploadToNexus("ios-test", "tutanota-${VERSION}-test.ipa", "ipa")
+					}
+				}
+				stage("Production") {
+					when { expression { return params.PROD } }
+					agent {
+						label 'linux'
+					}
+					steps {
+						unstash 'ipa-adhoc-production'
 						unstash 'ipa-production'
-						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
-							publishToNexus("ios", "tutanota-${VERSION}-adhoc.ipa")
-						}
+
+                        uploadToNexus("ios", "tutanota-${VERSION}-adhoc.ipa", "adhoc.ipa")
+                        uploadToNexus("ios", "tutanota-${VERSION}.ipa", "ipa")
 					}
 				}
-			}
-		}
+			} // parallel
+		} // stage upload to nexus
+	} // stages
+} // pipeline
 
-		stage('Tag and create github release page') {
-			environment {
-				PATH = "${env.NODE_PATH}:${env.PATH}"
-			}
-			when {
-				expression { return params.RELEASE }
-			}
-			agent {
-				label 'linux'
-			}
-			steps {
-				script {
-
-					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for ios') {
-						def tag = "tutanota-ios-release-${VERSION}"
-						// need to run npm ci to install dependencies of releaseNotes.js
-						sh "npm ci"
-
-						writeFile file: "notes.txt", text: params.releaseNotes
-						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
-																		   --tag 'tutanota-ios-release-${VERSION}' \
-																		   --notes notes.txt"""
-						} // withCredentials
-						sh "rm notes.txt"
-					} // catchError
-				}
-			}
-		}
-	}
-}
-
-void stubClientDirectory() {
+def stubClientDirectory() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
-		sh "mkdir build-calendar-app"
+        sh "mkdir build-calendar-app"
     	sh "mkdir build"
 	}
 }
 
-void buildWebapp(String stage) {
+def buildWebapp(String stage) {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
@@ -191,7 +176,7 @@ void buildWebapp(String stage) {
 }
 
 // Runs xcodegen on `projectPath`, a directory containing a `project.yml`
-void generateXCodeProject(String projectPath, String spec) {
+def generateXCodeProject(String projectPath, String spec) {
 	// xcodegen ignores its --project and --project-roots flags
 	// so we need to change the directory manually
 	script {
@@ -200,41 +185,22 @@ void generateXCodeProject(String projectPath, String spec) {
 }
 
 // Runs xcodegen on all of our project specs
-void generateXCodeProjects() {
+def generateXCodeProjects() {
 	generateXCodeProject("app-ios", "mail-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
 }
 
-void generateCalendarProject() {
+def generateCalendarProject() {
 	generateXCodeProject("app-ios", "calendar-project")
 }
 
-
-void writeReleaseNotesForAppStore() {
-	script {
-		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes for ios') {
-			// need to run npm ci to install dependencies of releaseNotes.js
-			sh "npm ci"
-			writeFile file: "notes.txt", text: params.releaseNotes
-			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-				sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
-																   --tag 'tutanota-ios-release-${VERSION}'\
-																   --notes notes.txt \
-																   --toFile ${RELEASE_NOTES_PATH}"""
-			}
-			sh "rm notes.txt"
-		}
-	}
-
-	sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
-}
-
-void publishToNexus(String artifactId, String ipaFileName) {
+def uploadToNexus(String artifactId, String assetFileName, String fileExtension) {
 	def util = load "ci/jenkins-lib/util.groovy"
-	util.publishToNexus(groupId: "app",
+	util.publishToNexus(
+			groupId: "app",
 			artifactId: "${artifactId}",
 			version: "${VERSION}",
-			assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
-			fileExtension: "ipa"
+			assetFilePath: "${WORKSPACE}/app-ios/releases/${assetFileName}",
+			fileExtension: "${fileExtension}"
 	)
 }

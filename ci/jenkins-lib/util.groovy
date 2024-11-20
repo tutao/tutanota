@@ -7,7 +7,7 @@ def publishToNexus(Map params) {
 			"-F maven2.groupId=${params.groupId} " +
 			"-F maven2.artifactId=${params.artifactId} " +
 			"-F maven2.version=${params.version} " +
-			"-F maven2.generate-pom=true " +
+			"-F maven2.generate-pom=false " +
 			"-F maven2.asset1=@${params.assetFilePath} " +
 			"-F maven2.asset1.extension=${params.fileExtension}"
 	}
