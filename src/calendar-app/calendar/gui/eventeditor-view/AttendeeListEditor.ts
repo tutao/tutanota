@@ -27,6 +27,7 @@ import { GuestPicker } from "../pickers/GuestPicker.js"
 import { IconMessageBox } from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { PasswordInput } from "../../../../common/gui/PasswordInput.js"
 import { Switch } from "../../../../common/gui/base/Switch.js"
+import { Divider } from "../../../../common/gui/Divider.js"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -84,6 +85,18 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		}
 
 		const verticalPadding = guestItems.length > 0 ? size.vpad_small : 0
+
+		const renderDivider = (index: number) => {
+			return index < guestItems.length - 1
+				? m(Divider, {
+						color: theme.content_message_bg,
+						style: {
+							margin: `0 ${px((size.button_height - size.button_height_compact) / 2)} 0 ${px(size.vpad_small + size.icon_size_medium_large)}`,
+						},
+				  })
+				: null
+		}
+
 		return m(
 			Card,
 			{
@@ -92,7 +105,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.vpad_small : 0)} ${px(size.vpad_small)} ${px(verticalPadding)}`,
 				},
 			},
-			[...guestItems.map((r) => r()), this.renderNoGuests(guestItems.length === 0)],
+			[...guestItems.map((r, index) => [r(), renderDivider(index)]), this.renderNoGuests(guestItems.length === 0)],
 		)
 	}
 
@@ -159,21 +172,22 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		])
 	}
 
-	private renderAttendeeStatus(organizer: Guest, model: CalendarEventWhoModel): Children {
-		const { status } = organizer
+	private renderAttendeeStatus(model: CalendarEventWhoModel, organizer: Guest | null): Children {
+		const { status } = organizer ?? { status: CalendarAttendeeStatus.TENTATIVE }
 
 		const attendingOptions = createAttendingItems().filter((option) => option.selectable !== false)
 		const attendingStatus = attendingOptions.find((option) => option.value === status)
 
 		return m(".flex.flex-column", [
-			m(".small", { style: { lineHeight: px(size.vpad_small) } }, lang.get("attending_label")),
+			m(".small", { class: organizer == null ? "disabled" : "", style: { lineHeight: px(size.vpad_small) } }, lang.get("attending_label")),
 			m(Select<AttendingItem, CalendarAttendeeStatus>, {
 				onchange: (option) => {
 					if (option.selectable === false) return
 					model.setOwnAttendance(option.value)
 				},
+				classes: ["button-min-height"],
 				selected: attendingStatus,
-				disabled: false,
+				disabled: organizer == null,
 				ariaLabel: lang.get("attending_label"),
 				renderOption: (option) =>
 					m(
@@ -187,6 +201,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				renderDisplay: (option) => m("", option.name),
 				options: stream(attendingOptions),
 				expanded: true,
+				noIcon: organizer == null,
 			} satisfies SelectAttributes<AttendingItem, CalendarAttendeeStatus>),
 		])
 	}
@@ -220,7 +235,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			m(".flex.flex-column.gap-vpad-s", [
 				m(".flex", [
 					m(Select<OrganizerSelectItem, string>, {
-						classes: ["flex-grow"],
+						classes: ["flex-grow", "button-min-height"],
 						onchange: (option) => {
 							const organizer = whoModel.possibleOrganizers.find((organizer) => organizer.address === option.address)
 							if (organizer) {
@@ -265,7 +280,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						  })
 						: null,
 				]),
-				isMe && organizer && model.operation !== CalendarOperation.EditThis ? this.renderAttendeeStatus(organizer, whoModel) : null,
+				isMe && model.operation !== CalendarOperation.EditThis ? this.renderAttendeeStatus(whoModel, organizer) : null,
 			]),
 		])
 	}
@@ -299,7 +314,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		let rightContent: Children = null
 
 		if (isMe) {
-			rightContent = m("", { style: { paddingRight: px(size.vpad_small) } }, this.renderAttendeeStatus(guest, model.editModels.whoModel))
+			rightContent = m("", { style: { paddingRight: px(size.vpad_small) } }, this.renderAttendeeStatus(model.editModels.whoModel, guest))
 		} else if (whoModel.canModifyGuests) {
 			rightContent = m(IconButton, {
 				title: "remove_action",
@@ -335,7 +350,6 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					},
 				},
 				[
-					m(".small", { style: { lineHeight: px(size.vpad) } }, label),
 					m(PasswordInput, {
 						ariaLabel: label,
 						password,

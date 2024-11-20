@@ -2702,19 +2702,23 @@ styles.registerStyle("main", () => {
 		".tutaui-toggle-pill": {
 			position: "relative",
 			display: "block",
-			width: "36px",
-			height: "20px",
+			width: "45.5px",
+			height: "28px",
 			"background-color": theme.content_message_bg,
-			"border-radius": px(size.border_radius * 2),
+			"border-radius": px(size.vpad_small * 4),
 			transition: `background-color ${DefaultAnimationTime}ms ease-out`,
 		},
 		".tutaui-toggle-pill:after": {
 			position: "absolute",
 			content: "''",
-			width: "14px",
-			height: "14px",
-			top: "calc(50% - 7px)",
-			margin: "0 3px",
+			width: "21px",
+			height: "21px",
+			top: "50%",
+			"-webkit-transform": "translateY(-50%)",
+			"-moz-transform": "translateY(-50%)",
+			"-ms-transform": "translateY(-50%)",
+			transform: "translateY(-50%)",
+			margin: "0 4px",
 			"background-color": "#fff",
 			"border-radius": "50%",
 			left: 0,
@@ -2724,7 +2728,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_accent,
 		},
 		".tutaui-toggle-pill.checked:after": {
-			left: "calc(100% - 20px)",
+			left: "calc(100% - 29px)",
 		},
 		".tutaui-toggle-pill input[type='checkbox']": {
 			"z-index": "-1",
@@ -2783,7 +2787,7 @@ styles.registerStyle("main", () => {
 		".transition-transform": {
 			transition: `transform ${DefaultAnimationTime}ms linear`,
 		},
-		"border-none": {
+		".border-none": {
 			border: "none",
 		},
 		".big-radio": {

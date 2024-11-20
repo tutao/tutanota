@@ -47,7 +47,7 @@ export class Switch implements ClassComponent<SwitchAttrs> {
 		}
 
 		return m(
-			"label.tutaui-switch",
+			"label.tutaui-switch.flash",
 			{
 				class: this.resolveClasses(classes, disabled, variant),
 				role: AriaRole.Switch,

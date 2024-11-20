@@ -131,8 +131,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	onupdate(vnode: VnodeDOM<CalendarEventEditViewAttrs>): any {
 		const dom = vnode.dom as HTMLElement
-		if (this.dialogHeight == null) {
-			this.dialogHeight = dom.clientHeight
+		if (this.dialogHeight == null && dom.parentElement) {
+			this.dialogHeight = dom.parentElement.clientHeight
 			;(vnode.dom as HTMLElement).style.height = px(this.dialogHeight)
 		}
 	}
@@ -222,7 +222,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const disabled = !model.canEditSeries()
 		return m(
 			Card,
-			m(".flex.gap-vpad-s", [
+			{ classes: ["button-min-height", "flex", "items-center"] },
+			m(".flex.gap-vpad-s.items-center.flex-grow", [
 				m(".flex.items-center", [
 					m(Icon, {
 						icon: Icons.Sync,
@@ -232,7 +233,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					}),
 				]),
 				m(
-					"button.flex.items-center.justify-between.flex-grow",
+					"button.flex.items-center.justify-between.flex-grow.flash",
 					{
 						onclick: (event: MouseEvent) => {
 							navigationCallback(EditorPages.REPEAT_RULES)
@@ -243,7 +244,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					[
 						this.getTranslatedRepeatRule(model.editModels.whenModel.result.repeatRule, model.editModels.whenModel.isAllDay),
 						m(Icon, {
-							icon: Icons.ArrowDropRight,
+							icon: Icons.ArrowForward,
 							class: "flex items-center",
 							style: { fill: getColors(ButtonColor.Content).button },
 							title: lang.get("calendarRepeating_label"),
@@ -258,7 +259,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderGuestsNavButton({ navigationCallback, model }: CalendarEventEditViewAttrs): Children {
 		return m(
 			Card,
-			m(".flex.gap-vpad-s", [
+			{ classes: ["button-min-height", "flex", "items-center"] },
+			m(".flex.gap-vpad-s.flash.items-center.flex-grow", [
 				m(".flex.items-center", [
 					m(Icon, {
 						icon: Icons.People,
@@ -268,7 +270,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					}),
 				]),
 				m(
-					"button.flex.items-center.justify-between.flex-grow",
+					"button.flex.items-center.justify-between.flex-grow.flash",
 					{
 						onclick: (event: MouseEvent) => {
 							navigationCallback(EditorPages.GUESTS)
@@ -279,7 +281,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 						m(".flex", [
 							model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
 							m(Icon, {
-								icon: Icons.ArrowDropRight,
+								icon: Icons.ArrowForward,
 								class: "flex items-center",
 								style: { fill: getColors(ButtonColor.Content).button },
 								title: lang.get("guests_label"),
@@ -316,6 +318,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		}
 		return m(
 			Card,
+			{ style: { padding: "0" } },
 			m(Select<CalendarSelectItem, CalendarInfo>, {
 				onchange: (val) => {
 					model.editModels.alarmModel.removeAll()
@@ -325,6 +328,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				options: stream(options),
 				expanded: true,
 				selected,
+				classes: ["button-min-height", "pl-vpad-s", "pr-vpad-s"],
 				renderOption: (option) => this.renderCalendarOptions(option, deepEqual(option.value, selected.value), false),
 				renderDisplay: (option) => this.renderCalendarOptions(option, false, true),
 				ariaLabel: lang.get("calendar_label"),
@@ -354,7 +358,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		return m(
 			Card,
-			m(".flex.gap-vpad-s", [
+			{ classes: ["button-min-height", "flex", "items-center"] },
+			m(".flex.gap-vpad-s.items-center.flex-grow", [
 				m(
 					".flex",
 					{
@@ -394,6 +399,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					oninput: (newValue: string) => {
 						model.editModels.location.content = newValue
 					},
+					classes: ["button-min-height"],
 					ariaLabel: lang.get("location_label"),
 					placeholder: lang.get("location_label"),
 					disabled: !model.isFullyWritable(),
