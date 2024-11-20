@@ -53,13 +53,36 @@ export interface EntityRestClientEraseOptions {
 }
 
 /**
- * Whether to use the cache to fetch the entity
+ * Determines how to handle caching behavior (i.e. reading/writing).
+ *
+ * Use {@link getCacheModeBehavior} to programmatically check the behavior of the cache mode.
  */
 export const enum CacheMode {
 	/** Prefer cached value if it's there or fall back to network. */
 	Cache,
-	/** Prefer the value from network, do not fetch from cache. The entity will still be cached upon loading. */
+	/**
+	 * Prefer the value from network, do not fetch from cache. The entity will still be cached upon loading.
+	 *
+	 * NOTE: This cannot be used for ranged requests.
+	 */
 	Bypass,
+	/** Prefer cached value, but in case of a cache miss, retrieve the value from network but don't write it to cache. */
+	ReadOnly,
+}
+
+/**
+ * Get the behavior of the cache mode for the options
+ * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.Cache})
+ */
+export function getCacheModeBehavior(cacheMode: CacheMode | undefined): { readsFromCache: boolean; writesToCache: boolean } {
+	switch (cacheMode ?? CacheMode.Cache) {
+		case CacheMode.Cache:
+			return { readsFromCache: true, writesToCache: true }
+		case CacheMode.Bypass:
+			return { readsFromCache: false, writesToCache: true }
+		case CacheMode.ReadOnly:
+			return { readsFromCache: true, writesToCache: false }
+	}
 }
 
 export interface EntityRestClientLoadOptions {
@@ -92,7 +115,14 @@ export interface EntityRestInterface {
 	/**
 	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
 	 */
-	loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>
+	loadRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		loadOptions?: EntityRestClientLoadOptions,
+	): Promise<T[]>
 
 	/**
 	 * Reads multiple elements from the server (or cache). Entities are decrypted before they are returned.
@@ -103,6 +133,7 @@ export interface EntityRestInterface {
 		listId: Id | null,
 		elementIds: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		loadOptions?: EntityRestClientLoadOptions,
 	): Promise<Array<T>>
 
 	/**
@@ -198,7 +229,14 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	async loadRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions = {},
+	): Promise<T[]> {
 		const rangeRequestParams = {
 			start: String(start),
 			count: String(count),
@@ -208,9 +246,9 @@ export class EntityRestClient implements EntityRestInterface {
 			typeRef,
 			listId,
 			null,
-			rangeRequestParams,
-			undefined,
-			undefined,
+			Object.assign(rangeRequestParams, opts.queryParams),
+			opts.extraHeaders,
+			opts.ownerKeyProvider,
 		)
 		// This should never happen if type checking is not bypassed with any
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
@@ -227,8 +265,9 @@ export class EntityRestClient implements EntityRestInterface {
 		listId: Id | null,
 		elementIds: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		opts: EntityRestClientLoadOptions = {},
 	): Promise<Array<T>> {
-		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
+		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, opts.queryParams, opts.extraHeaders, opts.ownerKeyProvider)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const typeModel = await resolveTypeReference(typeRef)
 
