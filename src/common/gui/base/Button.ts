@@ -90,12 +90,23 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	}
 
 	private resolveClasses(type: ButtonType) {
-		let classes = ["limit-width", "noselect", "bg-transparent", "text-ellipsis", "content-accent-fg", "flex", "items-center", "justify-center", "flash"]
+		let classes = [
+			"limit-width",
+			"noselect",
+			"bg-transparent",
+			"button-height",
+			"text-ellipsis",
+			"content-accent-fg",
+			"flex",
+			"items-center",
+			"justify-center",
+			"flash",
+		]
 
 		if (type === ButtonType.Primary) {
 			classes.push("b")
 		} else {
-			classes.push("button-height", "plr-button", "button-content")
+			classes.push("plr-button", "button-content")
 		}
 
 		return classes
