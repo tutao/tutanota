@@ -1,21 +1,16 @@
 pipeline {
     environment {
-         PATH="${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
+        PATH="${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
     }
 	options {
 		preserveStashes()
 	}
 	parameters {
         booleanParam(
-			name: 'RELEASE',
+			name: 'UPLOAD',
 			defaultValue: false,
-			description: "Prepare a release version (doesn't publish to production, this is done manually). Also publishes NPM modules"
+			description: "Upload release version to Nexus"
 		)
-		persistentText(
-			name: "releaseNotes",
-			defaultValue: "",
-			description: "release notes for this build"
-		 )
     }
     agent {
         label 'master'
@@ -37,8 +32,13 @@ pipeline {
             	sh 'npm ci'
             	sh 'npm run build-packages'
 				sh 'node webapp.js release'
-				// excluding web-specific and mobile specific parts which we don't need in desktop
-				stash includes: 'build/**', excludes: '**/app.html, **/desktop.html, **/index-app.js, **/index-desktop.js', name: 'webapp_built'
+
+			    script {
+                    if (params.UPLOAD) {
+                        // excluding web-specific and mobile specific parts which we don't need in desktop
+                        stash includes: 'build/**', excludes: '**/app.html, **/desktop.html, **/index-app.js, **/index-desktop.js', name: 'webapp_built'
+                    }
+			    }
 
 				// Bundle size stats
 				publishHTML target: [
@@ -61,51 +61,36 @@ pipeline {
 					reportName: 'bundle dependencies'
 				]
             }
-        }
+        } // stage build
 
-        stage('Publish') {
+        stage('Upload to Nexus') {
+            when {
+            	expression { return params.UPLOAD }
+            }
         	environment {
          		VERSION = sh(returnStdout: true, script: "node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
          	}
-            when {
-            	expression { return params.RELEASE }
-            }
             agent {
                 label 'linux'
             }
             steps {
-            	sh 'echo Publishing version $VERSION'
-            	sh 'npm ci'
+            	sh 'echo Uploading version $VERSION'
 				sh 'rm -rf ./build/*'
-
 				unstash 'webapp_built'
-				sh 'node buildSrc/publish.js webapp'
-				writeFile file: "notes.txt", text: params.releaseNotes
+                sh 'tar -cvzf webapp_built.tar.gz ./build'
 
-				catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release for webapp') {
-					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh '''node buildSrc/createReleaseDraft.js --name ${VERSION} --tag tutanota-release-${VERSION} --notes notes.txt'''
-					}
-				}
-            }
-        }
+                script {
+                    def util = load "ci/jenkins-lib/util.groovy"
 
-        stage('Publish npm modules') {
-			when {
-				expression { return params.RELEASE }
-			}
-			agent {
-				label 'linux'
-			}
-			steps {
-				catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-					sh "npm ci && npm run build-packages"
-					// .npmrc expects $NPM_TOKEN
-					withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-						sh "npm --workspaces publish --access public"
-					}
-				}
-			}
-        }
-    }
-}
+                    util.publishToNexus(
+                            groupId: "app",
+                            artifactId: "webapp",
+                            version: "${VERSION}",
+                            assetFilePath: "${WORKSPACE}/webapp_built.tar.gz",
+                            fileExtension: "tar.gz"
+                    )
+                }
+            } // steps
+        } // stage upload to nexus
+    } // stages
+} // pipeline
