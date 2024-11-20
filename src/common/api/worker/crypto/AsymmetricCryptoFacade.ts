@@ -21,13 +21,14 @@ import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
-import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
+import { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
 
 assertWorkerOrNode()
 
@@ -64,26 +65,41 @@ export class AsymmetricCryptoFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 	) {}
 
 	/**
-	 * Verifies whether the key that the public key service returns is the same as the one used for encryption.
-	 * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
+	 * Verifies whether the key returned by the public key service and the pinned one are the same as the one used for encryption.
 	 *
 	 * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
 	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
 	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
+		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+
+		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+
+		// Compare against public key service
 		const keyData = createPublicKeyGetIn({
 			identifier: identifier.identifier,
 			identifierType: identifier.identifierType,
 			version: senderKeyVersion.toString(),
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-		return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
-			? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-			: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+
+		if (publicKeyGetOut.pubEccKey == null || !arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)) {
+			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+		}
+
+		// Compare against pinned key (if possible)
+		if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS && (await keyVerificationFacade.poolContains(identifier.identifier))) {
+			if (!(await keyVerificationFacade.publicKeyMatchesPinnedPublicKey(identifier.identifier, publicKeyGetOut))) {
+				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			}
+		}
+
+		return authStatus
 	}
 
 	/**
