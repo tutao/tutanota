@@ -10,15 +10,25 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'RELEASE',
+			name: 'UPLOAD',
 			defaultValue: false,
-			description: "Prepare a release version (doesn't publish to production, this is done manually)"
+			description: "Upload built clients to Nexus"
 		)
-		persistentText(
-			name: "releaseNotes",
-			defaultValue: "",
-			description: "release notes for this build"
-		 )
+        booleanParam(
+			name: 'WINDOWS',
+			defaultValue: true,
+			description: "Build Windows client"
+		)
+        booleanParam(
+			name: 'MAC',
+			defaultValue: true,
+			description: "Build Mac client"
+		)
+        booleanParam(
+			name: 'LINUX',
+			defaultValue: true,
+			description: "Build Linux client"
+		)
 	}
 
 	agent {
@@ -26,6 +36,17 @@ pipeline {
 	}
 
     stages {
+        stage("Checking params") {
+            steps {
+                script{
+                    if(!params.WINDOWS && !params.MAC && !params.LINUX) {
+                        currentBuild.result = 'ABORTED'
+                        error('No artifacts were selected.')
+                    }
+                }
+                echo "Params OKAY"
+            }
+        } // stage checking params
 		stage('Check Github') {
 			steps {
 				script {
@@ -33,74 +54,74 @@ pipeline {
 					util.checkGithub()
 				}
 			}
-		}
-		stage('Build dependencies') {
-			parallel {
-				stage('Build webapp') {
-					agent {
-						dockerfile {
-							filename 'linux-build.dockerfile'
-							label 'master'
-							dir 'ci/containers'
-							additionalBuildArgs "--format docker"
-							args '--network host'
-						} // docker
-					} // agent
-					steps {
-						sh 'npm ci'
-						sh 'npm run build-packages'
-						sh 'node webapp.js release'
+		} // stage check github
+		stage('Build webapp') {
+			agent {
+				dockerfile {
+					filename 'linux-build.dockerfile'
+					label 'master'
+					dir 'ci/containers'
+					additionalBuildArgs "--format docker"
+					args '--network host'
+				} // docker
+			} // agent
+			steps {
+				sh 'npm ci'
+				sh 'npm run build-packages'
+				sh 'node webapp.js release'
 
-						// excluding web-specific and mobile specific parts which we don't need in desktop
-						stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
-					}
-				}
-
-				stage('Native modules') {
-					agent {
-						label 'win-native'
-					}
-					steps {
-						bat "npm ci"
-
-						bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
-						stash includes: 'native-cache/**/*', name: 'native_modules'
-					}
-				}
+				// excluding web-specific and mobile specific parts which we don't need in desktop
+				stash includes: 'build/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'
 			}
-		}
-
+		} // stage build webapp
 		stage('Build desktop clients') {
 			parallel {
 				stage('Windows') {
-					environment {
-						PATH = "${env.NODE_PATH}:${env.PATH}"
-					}
-					agent {
-						label 'win-cross-compile'
-					}
-					steps {
-						initBuildArea()
+				    when { expression { return params.WINDOWS } }
+				    stages {
+						stage('Native modules') {
+							agent {
+								label 'win-native'
+							}
+							steps {
+								bat "npm ci"
 
-						// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
-						// so they will be picked up by our rollup plugin
-						unstash 'native_modules'
-
-						// add DEBUG for electron-builder because it tends to not let us know about things failing
-						withCredentials([string(credentialsId: 'YUBI_28989236_PIN', variable: 'PW')]) {
-							sh '''
-							export YUBI_PIN=${PW};
-							DEBUG=electron-builder node desktop --existing --platform win '''
+								bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+								stash includes: 'native-cache/**/*', name: 'native_modules'
+							}
 						}
+				    	stage("Client") {
+							environment {
+								PATH = "${env.NODE_PATH}:${env.PATH}"
+							}
+							agent {
+								label 'win-cross-compile'
+							}
+							steps {
+								initBuildArea()
 
-						dir('artifacts') {
-							stash includes: 'desktop-test/*', name:'win_installer_test'
-							stash includes: 'desktop/*', name:'win_installer'
-						}
-					}
-                }
+								// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
+								// so they will be picked up by our rollup plugin
+								unstash 'native_modules'
+
+								// add DEBUG for electron-builder because it tends to not let us know about things failing
+								withCredentials([string(credentialsId: 'YUBI_28989236_PIN', variable: 'PW')]) {
+									sh '''
+									export YUBI_PIN=${PW};
+									DEBUG=electron-builder node desktop --existing --platform win '''
+								}
+
+								dir('artifacts') {
+									stash includes: 'desktop-test/*', name:'win_installer_test'
+									stash includes: 'desktop/*', name:'win_installer'
+								}
+							} // steps
+				    	} // stage client
+				    } // stages
+                } // stage windows
 
                 stage('Mac') {
+				    when { expression { return params.MAC } }
 					environment {
 						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
 					}
@@ -117,24 +138,25 @@ pipeline {
 						]) {
 							sh 'security unlock-keychain -p $FASTLANE_KEYCHAIN_PASSWORD'
 							script {
-								def stage = params.RELEASE ? 'release' : 'prod'
+								def stage = params.UPLOAD ? 'release' : 'prod'
 								sh '''
 								export APPLEID=${APPLEIDVAR};
 								export APPLEIDPASS=${APPLEIDPASSVAR};
 								export APPLETEAMID=${APPLETEAMIDVAR};
 								node desktop --existing --architecture universal --platform mac ''' + "${stage}"
 								dir('artifacts') {
-									if (params.RELEASE) {
+									if (params.UPLOAD) {
 										stash includes: 'desktop-test/*', name:'mac_installer_test'
 									}
 									stash includes: 'desktop/*', name:'mac_installer'
 								}
 							}
-						}
-					}
-				}
+						} // withCredentials
+					} // steps
+				} // stage mac
 
 				stage('Linux') {
+				    when { expression { return params.LINUX } }
 					agent {
 						dockerfile {
 							filename 'linux-build.dockerfile'
@@ -153,13 +175,12 @@ pipeline {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'
 							stash includes: 'desktop/*', name:'linux_installer'
 						}
-					}
-				}
-			}
-		}
+					} // steps
+				} // stage linux
+			} // stages
+		} // stage build desktop clients
 
-		stage('Preparation for build deb and publish') {
-			when { expression { return params.RELEASE } }
+		stage('Preparation for sign clients and upload to Nexus') {
 			agent {
 				label 'master'
 			}
@@ -170,8 +191,8 @@ pipeline {
 				}
 			}
 		}
-		stage('Build deb and publish') {
-			when { expression { return params.RELEASE } }
+		stage('Sign clients and upload to Nexus') {
+			when { expression { return params.UPLOAD } }
 			agent {
 				dockerfile {
 					filename 'linux-build.dockerfile'
@@ -181,99 +202,120 @@ pipeline {
 					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
 				} // docker
 		    }
-		    environment { PATH = "${env.NODE_PATH}:${env.PATH}" }
-			steps {
-				sh 'npm ci'
-				sh 'npm run build-packages'
-				sh 'rm -rf ./build/*'
+		    environment {
+                PATH = "${env.NODE_PATH}:${env.PATH}"
+            }
+		    stages {
+                stage('Preparation for sign and upload') {
+                    steps {
+                        sh 'npm ci'
+                        sh 'npm run build-packages'
+                    }
+                }
+                stage('Sign and upload') {
+                    parallel {
+                        stage('Windows') {
+                            when { expression { return params.WINDOWS } }
+                            steps {
+                                dir('build') {
+                                    unstash 'win_installer'
+                                    unstash 'win_installer_test'
+                                }
 
-				dir('build') {
-					unstash 'linux_installer'
-					unstash 'mac_installer'
-					unstash 'win_installer'
-					unstash 'linux_installer_test'
-					unstash 'mac_installer_test'
-					unstash 'win_installer_test'
-				}
+                                withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+                                    sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+                                }
 
-				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
-				}
+								uploadWindowsArtifacts()
+                            }
+                        } // stage windows
+                        stage('Mac') {
+                            when { expression { return params.MAC } }
+                            steps {
+                                 dir('build') {
+                                     unstash 'mac_installer'
+                                     unstash 'mac_installer_test'
+                                 }
 
-				sh 'node buildSrc/publish.js desktop'
+                                withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+                                    sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+                                }
 
-				script { // create release draft
-					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
-					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
-					def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
+								uploadMacArtifacts()
+                            }
+                        } // stage mac
+                        stage('Linux') {
+                            when { expression { return params.LINUX } }
+                            steps {
+                                dir('build') {
+                                    unstash 'linux_installer'
+                                    unstash 'linux_installer_test'
+                                }
 
-					writeFile file: "notes.txt", text: params.releaseNotes
-					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page for desktop') {
-						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
-																   --tag 'tutanota-desktop-release-${VERSION}' \
-																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
-																   --uploadFile '${WORKSPACE}/${desktopWin}' \
-																   --uploadFile '${WORKSPACE}/${desktopMac}' \
-																   --notes notes.txt"""
-						} // withCredentials
-					} // catchError
-					sh "rm notes.txt"
-				} // script release draft
+                                withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+                                    sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+                                }
 
-				script { // upload to nexus
-					def util = load "ci/jenkins-lib/util.groovy"
-
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-linux-test",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
-							fileExtension: 'AppImage'
-					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-win-test",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-win.exe",
-							fileExtension: 'exe'
-					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-mac-test",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-mac.dmg",
-							fileExtension: 'dmg'
-					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-linux",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
-							fileExtension: 'AppImage'
-					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-win",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-win.exe",
-							fileExtension: 'exe'
-					)
-					util.publishToNexus(
-							groupId: "app",
-							artifactId: "desktop-mac",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-mac.dmg",
-							fileExtension: 'dmg'
-					)
-				} // script upload to nexus
-
-			} // steps
-		} // stage build deb & publish
+								uploadLinuxArtifacts()
+                            }
+                        } // stage linux
+                    } // parallel
+                } // stage sign and upload
+            } // stages
+		} // stage sign clients and upload to Nexus
 	} // stages
 } // pipeline
 
-void initBuildArea() {
+def uploadWindowsArtifacts() {
+    script {
+   		def artifactsMap = load "ci/jenkins-lib/desktop-artifacts-map.groovy"
+   		def windowsFiles = artifactsMap.filesPathAndExt().windows
+
+        uploadArtifacts("desktop-win-test", windowsFiles.staging)
+        uploadArtifacts("desktop-win", windowsFiles.prod)
+    }
+}
+
+def uploadMacArtifacts() {
+    script {
+   		def artifactsMap = load "ci/jenkins-lib/desktop-artifacts-map.groovy"
+   		def macFiles = artifactsMap.filesPathAndExt().mac
+
+        uploadArtifacts("desktop-mac-test", macFiles.staging)
+        uploadArtifacts("desktop-mac", macFiles.prod)
+    }
+}
+
+def uploadLinuxArtifacts() {
+    script {
+   		def artifactsMap = load "ci/jenkins-lib/desktop-artifacts-map.groovy"
+   		def linuxFiles = artifactsMap.filesPathAndExt().linux
+
+        uploadArtifacts("desktop-linux-test", linuxFiles.staging)
+        uploadArtifacts("desktop-linux", linuxFiles.prod)
+	}
+}
+
+def uploadArtifacts(artifactId, filesPathAndExt) {
+	def util = load "ci/jenkins-lib/util.groovy"
+
+	for (String[] file in filesPathAndExt) {
+		if (!fileExists(file[0])) {
+			currentBuild.result = 'ABORTED'
+			error("Unable to find file ${file[0]}")
+		}
+
+        util.publishToNexus(
+                groupId: "app",
+                artifactId: artifactId,
+                version: "${VERSION}",
+                assetFilePath: "${WORKSPACE}/${file[0]}",
+                fileExtension: file[1]
+        )
+	}
+}
+
+def initBuildArea() {
 	sh 'node -v'
 	sh 'npm -v'
     sh 'npm ci'
