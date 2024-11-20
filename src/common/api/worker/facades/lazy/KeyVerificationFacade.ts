@@ -142,7 +142,7 @@ export class KeyVerificationFacade {
 	/**
 	 * Returns a hashed concatenation of the given public keys.
 	 */
-	public async getPublicKeyHash(publicKeyGetOut: PublicKeyGetOut): Promise<string> {
+	public getPublicKeyHash(publicKeyGetOut: PublicKeyGetOut): string {
 		const atLeastOneFilledArray = (...arrays: (Uint8Array | null)[]) => {
 			for (let current of arrays) {
 				if (current != null) {
@@ -189,7 +189,7 @@ export class KeyVerificationFacade {
 
 		const hash = uint8ArrayToHex(sha256Hash(assertNotNull(publicKeysConcatenation)))
 
-		return Promise.resolve(hash)
+		return hash
 	}
 
 	/**
