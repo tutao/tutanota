@@ -1,10 +1,10 @@
 #import <Foundation/Foundation.h>
 #import "TUTErrorFactory.h"
 
-NSString *const TUT_ERROR_DOMAIN = @"de.tutao.tutanota";
-NSString *const TUT_CRYPTO_ERROR = @"de.tutao.tutanota.TutCrypto";
-NSString *const TUT_FILEVIEWER_ERROR = @"de.tutao.tutanota.TutFileViewer";
-NSString *const TUT_NETWORK_ERROR = @"de.tutao.tutanota.network";
+NSString *const TUT_ERROR_DOMAIN = @"de.tutao.tutashared";
+NSString *const TUT_CRYPTO_ERROR = @"de.tutao.tutashared.TutCrypto";
+NSString *const TUT_FILEVIEWER_ERROR = @"de.tutao.tutashared.TutFileViewer";
+NSString *const TUT_NETWORK_ERROR = @"de.tutao.tutashared.network";
 
 @implementation TUTErrorFactory
 

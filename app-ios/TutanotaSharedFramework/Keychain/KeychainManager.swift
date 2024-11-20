@@ -6,8 +6,8 @@ import LocalAuthentication
 #endif
 
 private let TAG = "de.tutao.tutanota.notificationkey."
-private let KEY_PERMANENTLY_INVALIDATED_ERROR_DOMAIN = "de.tutao.tutanota.KeyPermanentlyInvalidatedError"
-private let CREDENTIAL_AUTHENTICATION_ERROR_DOMAIN = "de.tutao.tutanota.CredentialAuthenticationError"
+private let KEY_PERMANENTLY_INVALIDATED_ERROR_DOMAIN = "de.tutao.tutashared.KeyPermanentlyInvalidatedError"
+private let CREDENTIAL_AUTHENTICATION_ERROR_DOMAIN = "de.tutao.tutashared.CredentialAuthenticationError"
 
 class KeyPermanentlyInvalidatedError: TutanotaError {
 	init(underlyingError: Error) { super.init(message: underlyingError.localizedDescription, underlyingError: underlyingError) }
