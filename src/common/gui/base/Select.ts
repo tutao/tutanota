@@ -8,11 +8,11 @@ import { type PosRect, showDropdown } from "./Dropdown.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { Icon, IconSize } from "./Icon.js"
 import { ButtonColor, getColors } from "./Button.js"
-import { Icons } from "./icons/Icons.js"
 import { AriaRole } from "../AriaUtils.js"
 import Stream from "mithril/stream"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils.js"
 import { theme } from "../theme.js"
+import { BootIcons } from "./icons/BootIcons.js"
 
 export interface SelectOption<T> {
 	// Here we declare everything that is important to use at the select option
@@ -130,7 +130,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		},
 	}: Vnode<SelectAttributes<U, T>, this>) {
 		return m(
-			"button.tutaui-select-trigger.clickable",
+			"button.tutaui-select-trigger.clickable.flash",
 			{
 				id,
 				class: this.resolveClasses(classes, disabled, expanded),
@@ -157,12 +157,12 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 				selected != null ? renderDisplay(selected) : this.renderPlaceholder(placeholder),
 				noIcon !== true
 					? m(Icon, {
-							icon: this.isExpanded ? Icons.ChevronCollapse : Icons.ChevronExpand,
+							icon: BootIcons.Expand,
 							container: "div",
-							class: "fit-content",
+							class: `fit-content transition-transform`,
 							size: IconSize.Medium,
 							style: {
-								color: iconColor ?? getColors(ButtonColor.Content).button,
+								fill: iconColor ?? getColors(ButtonColor.Content).button,
 							},
 					  })
 					: null,

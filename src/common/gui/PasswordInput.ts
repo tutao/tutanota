@@ -14,6 +14,7 @@ export interface PasswordInputAttributes {
 	password: string
 	strength: number
 	oninput: (newValue: string) => unknown
+	showStrength?: boolean
 }
 
 export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
@@ -21,15 +22,19 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 
 	view(vnode: Vnode<PasswordInputAttributes, this>): Children {
 		return m(".flex.flex-grow.full-width.justify-between.items-center.gap-vpad-s", [
-			m("div", {
-				style: {
-					width: px(size.icon_size_medium),
-					height: px(size.icon_size_medium),
-					border: `1px solid ${theme.content_button}`,
-					borderRadius: "50%",
-					background: `conic-gradient(from .25turn, ${theme.content_button} ${scaleToVisualPasswordStrength(vnode.attrs.strength)}%, transparent 0%)`,
-				},
-			}),
+			vnode.attrs.showStrength
+				? m("div", {
+						style: {
+							width: px(size.icon_size_medium),
+							height: px(size.icon_size_medium),
+							border: `1px solid ${theme.content_button}`,
+							borderRadius: "50%",
+							background: `conic-gradient(from .25turn, ${theme.content_button} ${scaleToVisualPasswordStrength(
+								vnode.attrs.strength,
+							)}%, transparent 0%)`,
+						},
+				  })
+				: null,
 			m(SingleLineTextField, {
 				classes: ["flex-grow"],
 				ariaLabel: vnode.attrs.ariaLabel,
