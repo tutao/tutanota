@@ -145,7 +145,7 @@ const ErrorNameToType = {
 	"android.content.ActivityNotFoundException": FileOpenError,
 	"de.tutao.tutanota.TutFileViewer": FileOpenError,
 	NSURLErrorDomain: ConnectionError,
-	"de.tutao.tutanota.CredentialAuthenticationException": CredentialAuthenticationError,
+	"de.tutao.tutashared.CredentialAuthenticationException": CredentialAuthenticationError,
 	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutanota.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutanota.CredentialAuthenticationError": CredentialAuthenticationError,
