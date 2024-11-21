@@ -53,4 +53,14 @@ interface MobileSystemFacade {
 	suspend fun openMailApp(
 		query: String,
 	): Unit
+	/**
+	 * Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.
+	 */
+	suspend fun getInstallationDate(
+	): String
+	/**
+	 * Requests the system in-app rating dialog to be displayed
+	 */
+	suspend fun requestInAppRating(
+	): Unit
 }

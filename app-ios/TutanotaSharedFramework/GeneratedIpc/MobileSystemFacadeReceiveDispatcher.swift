@@ -66,6 +66,14 @@ public class MobileSystemFacadeReceiveDispatcher {
 				query
 			)
 			return "null"
+		case "getInstallationDate":
+			let result = try await self.facade.getInstallationDate(
+			)
+			return toJson(result)
+		case "requestInAppRating":
+			try await self.facade.requestInAppRating(
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

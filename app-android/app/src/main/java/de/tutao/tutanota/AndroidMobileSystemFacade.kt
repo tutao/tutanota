@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import de.tutao.tutashared.SystemUtils
+
 
 class AndroidMobileSystemFacade(
 	private val fileFacade: AndroidFileFacade,
@@ -167,5 +169,9 @@ class AndroidMobileSystemFacade(
 
 	override suspend fun openMailApp(query: String) {
 		Log.e(TAG, "Trying to open Tuta Mail from Tuta Mail")
+	}
+
+	override suspend fun getInstallationDate(): String {
+		return SystemUtils.getInstallationDate(activity.packageManager, activity.packageName)
 	}
 }

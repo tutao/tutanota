@@ -1,5 +1,6 @@
 import Contacts
 import Foundation
+import StoreKit
 import TutanotaSharedFramework
 
 private let APP_LOCK_METHOD = "AppLockMethod"
@@ -78,4 +79,17 @@ class IosMobileSystemFacade: MobileSystemFacade {
 	}
 
 	func openMailApp(_ query: String) async throws { TUTSLog("Tried to open Mail App from Mail App") }
+	func getInstallationDate() async throws -> String {
+		let documentsURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+		let creationDate = try FileManager.default.attributesOfItem(atPath: documentsURL.path)[FileAttributeKey.creationDate] as! Date
+		let creationTimeInMilliseconds = Int(creationDate.timeIntervalSince1970 * 1000)
+		return String(creationTimeInMilliseconds)
+	}
+	func requestInAppRating() async throws {
+		// TODO: Replace `SKStoreReviewController.requestReview()` with StoreKit's/SwiftUI's `requestReview()`
+	    // as `SKStoreReviewController.requestReview()` will be removed in iOS 19 (release roughly September 2025)
+	    // This will require migrating from UIKit to Swift UI
+		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
+		await SKStoreReviewController.requestReview(in: windowScene)
+	}
 }

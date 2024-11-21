@@ -40,4 +40,14 @@ export interface MobileSystemFacade {
 	getSupportedAppLockMethods(): Promise<ReadonlyArray<AppLockMethod>>
 
 	openMailApp(query: string): Promise<void>
+
+	/**
+	 * Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.
+	 */
+	getInstallationDate(): Promise<string>
+
+	/**
+	 * Requests the system in-app rating dialog to be displayed
+	 */
+	requestInAppRating(): Promise<void>
 }

@@ -50,4 +50,14 @@ public protocol MobileSystemFacade {
 	func openMailApp(
 		_ query: String
 	) async throws -> Void
+	/**
+	 * Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.
+	 */
+	func getInstallationDate(
+	) async throws -> String
+	/**
+	 * Requests the system in-app rating dialog to be displayed
+	 */
+	func requestInAppRating(
+	) async throws -> Void
 }

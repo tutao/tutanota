@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import de.tutao.tutashared.CredentialAuthenticationException
+import de.tutao.tutashared.SystemUtils
 import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.credentials.AuthenticationPrompt
 import de.tutao.tutashared.data.AppDatabase
@@ -194,5 +195,9 @@ class AndroidMobileSystemFacade(
 			Log.d(TAG, e.toString())
 			tryToLaunchStore()
 		}
+	}
+
+	override suspend fun getInstallationDate(): String {
+		return SystemUtils.getInstallationDate(activity.packageManager, activity.packageName)
 	}
 }

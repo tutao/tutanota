@@ -21,6 +21,10 @@ import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePay
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
+import { getRatingAllowed, RatingCheckResult } from "../ratings/InAppRatingUtils.js"
+import { showAppRatingDialog } from "../ratings/InAppRatingDialog.js"
+import { deviceConfig } from "../misc/DeviceConfig.js"
+import { isIOSApp } from "../api/common/Env.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -76,6 +80,14 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				orderConfirmationStage?.complete()
 
 				return this.close(data, this.dom)
+			})
+			.then(async () => {
+				const ratingCheckResult = await getRatingAllowed(new Date(), deviceConfig, isIOSApp())
+				if (ratingCheckResult === RatingCheckResult.RATING_ALLOWED) {
+					setTimeout(async () => {
+						void showAppRatingDialog()
+					}, 2000)
+				}
 			})
 			.catch(
 				ofClass(PreconditionFailedError, (e) => {

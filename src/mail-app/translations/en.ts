@@ -1831,6 +1831,12 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"ratingHowAreWeDoing_title": "How are we doing?",
+		"ratingExplanation_msg": "Whether you love us or feel we could be doing better, let us know!",
+		"ratingLoveIt_label": "Love it!",
+		"dontAskAgain_label": "Don't ask again",
+		"ratingNeedsWork_label": "Needs work",
+		"notNow_label": "Not now"
 	}
 }

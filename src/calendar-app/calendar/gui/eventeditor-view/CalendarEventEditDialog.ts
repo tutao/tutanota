@@ -28,6 +28,8 @@ import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 
+import { handleRatingByEvent } from "../../../../common/ratings/InAppRatingDialog.js"
+
 const enum ConfirmationResult {
 	Cancel,
 	Continue,
@@ -151,6 +153,8 @@ export async function showNewCalendarEventEditDialog(model: CalendarEventModel):
 			if (result === EventSaveResult.Saved) {
 				finished = true
 				finish()
+
+				await handleRatingByEvent()
 			}
 		} catch (e) {
 			if (e instanceof UserError) {

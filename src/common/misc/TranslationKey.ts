@@ -1816,3 +1816,8 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "ratingHowAreWeDoing_title"
+	| "ratingExplanation_msg"
+	| "ratingLoveIt_label"
+	| "ratingNeedsWork_label"
+	| "notNow_label"

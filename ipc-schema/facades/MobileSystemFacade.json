@@ -80,6 +80,16 @@
 				}
 			],
 			"ret": "void"
+		},
+		"getInstallationDate": {
+			"doc": "Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.",
+			"arg": [],
+			"ret": "string"
+		},
+		"requestInAppRating": {
+			"doc": "Requests the system in-app rating dialog to be displayed",
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }

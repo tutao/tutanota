@@ -65,6 +65,22 @@ interface ConfigObject {
 	isCredentialsMigratedToNative: boolean
 	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
 	clientOnlyCalendars: Map<Id, ClientOnlyCalendarsInfo>
+
+	/**
+	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
+	 */
+	events: Array<number>
+
+	/**
+	 * The last date on which the user was prompted to rate the app as a timestamp.
+	 */
+	lastRatingPromptedDate?: number
+
+	/**
+	 * The date of the earliest possible next date from which another rating can be requested from the user.
+	 * This is only for the case the user does not want to rate right now or completely opts out of the in-app ratings.
+	 */
+	retryRatingPromptAfter?: number
 }
 
 /**
@@ -125,6 +141,9 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 			clientOnlyCalendars: loadedConfig.clientOnlyCalendars ? new Map(typedEntries(loadedConfig.clientOnlyCalendars)) : new Map(),
+			events: loadedConfig.events ?? [],
+			lastRatingPromptedDate: loadedConfig.lastRatingPromptedDate ?? null,
+			retryRatingPromptAfter: loadedConfig.retryRatingPromptAfter ?? null,
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -413,6 +432,69 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	updateClientOnlyCalendars(calendarId: Id, clientOnlyCalendarConfig: ClientOnlyCalendarsInfo): void {
 		this.config.clientOnlyCalendars.set(calendarId, clientOnlyCalendarConfig)
 		this.writeToStorage()
+	}
+
+	public writeEvents(events: Date[]): void {
+		this.config.events = events.map((date) => date.getTime())
+		this.writeToStorage()
+	}
+
+	/**
+	 * Gets a list of dates on which a certain event has occurred. Could be email sent, replied, contact created etc.
+	 *
+	 * Only present on iOS.
+	 */
+	public getEvents(): Date[] {
+		return (this.config.events ?? []).flatMap((timestamp) => {
+			try {
+				return new Date(timestamp)
+			} catch (e) {
+				return []
+			}
+		})
+	}
+
+	public setLastRatingPromptedDate(date: Date): void {
+		this.config.lastRatingPromptedDate = date.getTime()
+		this.writeToStorage()
+	}
+
+	/**
+	 * Gets the last date on which the user was prompted to rate the app.
+	 */
+	public getLastRatingPromptedDate(): Date | null {
+		if (this.config.lastRatingPromptedDate == null) {
+			return null
+		}
+
+		try {
+			return new Date(this.config.lastRatingPromptedDate)
+		} catch (e) {
+			return null
+		}
+	}
+
+	/**
+	 * Sets the date of the earliest possible next date from which another rating can be requested from the user.
+	 */
+	public setRetryRatingPromptAfter(date: Date): void {
+		this.config.retryRatingPromptAfter = date.getTime()
+		this.writeToStorage()
+	}
+
+	/**
+	 * Gets the date of the earliest possible next date from which another rating can be requested from the user.
+	 */
+	public getRetryRatingPromptAfter(): Date | null {
+		if (this.config.retryRatingPromptAfter == null) {
+			return null
+		}
+
+		try {
+			return new Date(this.config.retryRatingPromptAfter)
+		} catch (e) {
+			return null
+		}
 	}
 }
 

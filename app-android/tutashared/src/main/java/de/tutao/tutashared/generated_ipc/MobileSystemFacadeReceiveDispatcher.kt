@@ -80,6 +80,16 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"getInstallationDate" -> {
+				val result: String = this.facade.getInstallationDate(
+				)
+				return json.encodeToString(result)
+			}
+			"requestInAppRating" -> {
+				val result: Unit = this.facade.requestInAppRating(
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

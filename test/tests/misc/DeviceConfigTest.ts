@@ -106,6 +106,9 @@ o.spec("DeviceConfig", function () {
 				isSetupComplete: true,
 				lastExternalCalendarSync: {},
 				clientOnlyCalendars: new Map(),
+				events: [],
+				lastRatingPromptedDate: null,
+				retryRatingPromptAfter: null,
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

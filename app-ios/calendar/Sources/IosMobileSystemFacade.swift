@@ -1,4 +1,5 @@
 import Contacts
+import StoreKit
 import Foundation
 import TutanotaSharedFramework
 
@@ -92,5 +93,15 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		} else {
 			DispatchQueue.main.async { UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id922429609")!) }
 		}
+	}
+	func getInstallationDate() async throws -> String {
+		let documentsURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+		let creationDate = try FileManager.default.attributesOfItem(atPath: documentsURL.path)[FileAttributeKey.creationDate] as! Date
+		let creationTimeInMilliseconds = Int(creationDate.timeIntervalSince1970 * 1000)
+		return String(creationTimeInMilliseconds)
+	}
+	func requestInAppRating() async throws {
+		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
+		await SKStoreReviewController.requestReview(in: windowScene)
 	}
 }
