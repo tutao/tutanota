@@ -49,6 +49,8 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils.js"
 import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
+import { MailExportSettings } from "./MailExportSettings"
+import { MailExportController } from "../mail/model/MailExportController"
 
 assertMainOrNode()
 
@@ -70,6 +72,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
+	private mailExportController: MailExportController | null = null
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(mailLocator.logins.getUserController(), deviceConfig)
 
@@ -87,6 +90,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
+		mailLocator.mailExportController().then((controller) => {
+			this.mailExportController = controller
+			m.redraw()
+		})
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		mailLocator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
@@ -382,6 +389,14 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 									}),
 								),
 						  ],
+					m(".h4.mt-l", lang.get("exportMailbox_label")),
+					this.mailExportController
+						? m(MailExportSettings, {
+								mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
+								logins: mailLocator.logins,
+								mailExportController: this.mailExportController,
+						  })
+						: null,
 				],
 			),
 		]
