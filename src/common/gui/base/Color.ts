@@ -21,12 +21,20 @@ export function isValidCSSHexColor(colorCode: string): boolean {
 	return isValidColorCode(colorCode) && CSS.supports("color", colorCode)
 }
 
-export function isColorLight(c: string): boolean {
+export function getColorLuminance(c: string): number {
 	const { r, g, b } = hexToRgb(c)
 	// Counting the perceptive luminance
 	// human eye favors green color...
-	const a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255
-	return a < 0.5
+	return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+}
+
+export function isMonochrome(c: string): boolean {
+	const { r, g, b } = hexToRgb(c)
+	return r == g && g == b
+}
+
+export function isColorLight(c: string): boolean {
+	return getColorLuminance(c) > 0.5
 }
 
 export function normalizeHueAngle(hue: number): number {

@@ -10,6 +10,8 @@ import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children } from "mithril"
 import { TextField } from "../gui/base/TextField.js"
 import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { theme } from "../gui/theme"
+import { getColorLuminance, isMonochrome } from "../gui/base/Color"
 
 /**
  * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
@@ -142,12 +144,21 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => {
+				// The captcha is black-on-white, which will not look correct on anything where the background is not
+				// white. We can use CSS filters to fix this.
+				let captchaFilter = {}
+				if (theme.elevated_bg != null && isMonochrome(theme.elevated_bg)) {
+					captchaFilter = {
+						filter: `invert(${1.0 - getColorLuminance(theme.elevated_bg)}`,
+					}
+				}
 				return [
 					m(DialogHeaderBar, actionBarAttrs),
 					m(".plr-l.pb", [
-						m("img.mt-l", {
+						m("img.pt-ml.center-h.block", {
 							src: imageData,
 							alt: lang.get("captchaDisplay_label"),
+							style: captchaFilter,
 						}),
 						m(TextField, {
 							label: () => lang.get("captchaInput_label") + " (hh:mm)",
