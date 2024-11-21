@@ -221,6 +221,50 @@ export const typeModels = {
 		"app": "sys",
 		"version": "115"
 	},
+	"AdminGroupKeyRotationGetOut": {
+		"name": "AdminGroupKeyRotationGetOut",
+		"since": 115,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2513,
+		"rootId": "A3N5cwAJ0Q",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2514,
+				"since": 115,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"distributionKeys": {
+				"final": false,
+				"name": "distributionKeys",
+				"id": 2516,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "PubDistributionKey",
+				"dependency": null
+			},
+			"userGroupIdsMissingDistributionKeys": {
+				"final": false,
+				"name": "userGroupIdsMissingDistributionKeys",
+				"id": 2515,
+				"since": 115,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "Any",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "115"
+	},
 	"AdminGroupKeyRotationPostIn": {
 		"name": "AdminGroupKeyRotationPostIn",
 		"since": 101,
@@ -251,6 +295,16 @@ export const typeModels = {
 				"refType": "GroupKeyRotationData",
 				"dependency": null
 			},
+			"distribution": {
+				"final": false,
+				"name": "distribution",
+				"id": 2502,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "AdminGroupKeyDistributionElement",
+				"dependency": null
+			},
 			"userEncAdminPubKeyHashList": {
 				"final": false,
 				"name": "userEncAdminPubKeyHashList",
@@ -279,15 +333,15 @@ export const typeModels = {
 		"name": "AdminGroupKeyRotationPutIn",
 		"since": 115,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2498,
-		"rootId": "A3N5cwAJwg",
+		"id": 2503,
+		"rootId": "A3N5cwAJxw",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 2499,
+				"id": 2504,
 				"since": 115,
 				"type": "Number",
 				"cardinality": "One",
@@ -298,7 +352,7 @@ export const typeModels = {
 			"adminDistKeyPair": {
 				"final": false,
 				"name": "adminDistKeyPair",
-				"id": 2501,
+				"id": 2506,
 				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "One",
@@ -308,7 +362,7 @@ export const typeModels = {
 			"adminEncDistKeyHash": {
 				"final": false,
 				"name": "adminEncDistKeyHash",
-				"id": 2500,
+				"id": 2505,
 				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "One",

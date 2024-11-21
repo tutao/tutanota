@@ -37,6 +37,20 @@ export type AccountingInfo = {
 	appStoreSubscription: null | IdTuple;
 	invoiceInfo: null | Id;
 }
+export const AdminGroupKeyRotationGetOutTypeRef: TypeRef<AdminGroupKeyRotationGetOut> = new TypeRef("sys", "AdminGroupKeyRotationGetOut")
+
+export function createAdminGroupKeyRotationGetOut(values: StrippedEntity<AdminGroupKeyRotationGetOut>): AdminGroupKeyRotationGetOut {
+	return Object.assign(create(typeModels.AdminGroupKeyRotationGetOut, AdminGroupKeyRotationGetOutTypeRef), values)
+}
+
+export type AdminGroupKeyRotationGetOut = {
+	_type: TypeRef<AdminGroupKeyRotationGetOut>;
+
+	_format: NumberString;
+
+	distributionKeys: PubDistributionKey[];
+	userGroupIdsMissingDistributionKeys: Id[];
+}
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
 
 export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
@@ -49,6 +63,7 @@ export type AdminGroupKeyRotationPostIn = {
 	_format: NumberString;
 
 	adminGroupKeyData: GroupKeyRotationData;
+	distribution: AdminGroupKeyDistributionElement[];
 	userEncAdminPubKeyHashList: EncryptedKeyHash[];
 	userGroupKeyData: UserGroupKeyRotationData;
 }

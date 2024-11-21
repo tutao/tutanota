@@ -45,9 +45,27 @@ impl Entity for AccountingInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyRotationGetOut {
+	pub _format: i64,
+	pub distributionKeys: Vec<PubDistributionKey>,
+	pub userGroupIdsMissingDistributionKeys: Vec<GeneratedId>,
+}
+
+impl Entity for AdminGroupKeyRotationGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyRotationGetOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub adminGroupKeyData: GroupKeyRotationData,
+	pub distribution: Vec<AdminGroupKeyDistributionElement>,
 	pub userEncAdminPubKeyHashList: Vec<EncryptedKeyHash>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }

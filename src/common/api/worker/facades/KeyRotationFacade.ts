@@ -1,6 +1,5 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import {
-	AdminGroupKeyRotationPostIn,
 	createAdminGroupKeyRotationPostIn,
 	createAdminGroupKeyRotationPutIn,
 	createEncryptedKeyHash,
@@ -92,6 +91,7 @@ import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade, PublicKeys } from "../crypto/AsymmetricCryptoFacade.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 assertWorkerOrNode()
 
@@ -308,7 +308,8 @@ export class KeyRotationFacade {
 		const adminGroupMembership = getFirstOrThrow(getUserGroupMemberships(user, GroupType.Admin))
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
 		const adminKeyRotationData = await this.prepareKeyRotationForAdminGroup(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
-		return this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData)
+
+		return this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData.keyRotationData)
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
@@ -368,7 +369,7 @@ export class KeyRotationFacade {
 		currentUserGroupKey: VersionedKey,
 		currentAdminGroupKey: VersionedKey,
 		passphraseKey: Aes256Key,
-	): Promise<AdminGroupKeyRotationPostIn> {
+	) {
 		const adminGroupId = this.getTargetGroupId(keyRotation)
 		const userGroupMembership = user.userGroup
 		const userGroupId = userGroupMembership.group
@@ -426,7 +427,16 @@ export class KeyRotationFacade {
 			pubAdminGroupEncUserGroupKey: null,
 		})
 
-		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList })
+		return {
+			keyRotationData: createAdminGroupKeyRotationPostIn({
+				adminGroupKeyData,
+				userGroupKeyData,
+				userEncAdminPubKeyHashList,
+				distribution: []
+			}),
+			newAdminGroupKeys,
+			newUserGroupKeys,
+		}
 	}
 
 	private async generateEncryptedKeyHashes(
@@ -1017,6 +1027,69 @@ export class KeyRotationFacade {
 			}),
 		})
 		await this.serviceExecutor.put(AdminGroupKeyRotationService, putDistributionKeyPairsOnKeyRotation)
+	}
+
+	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
+		// first get all admin members to further extract their current
+		var { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.get(AdminGroupKeyRotationService, null);
+		if (userGroupIdsMissingDistributionKeys.length > 1) {
+			// we need to create a new distributionkeypair and upload it to the server
+			// TODO: integrate this with tutadb#1912
+			return
+		}
+
+		// we are the last one creating a distribution key
+		// meaning we need to perform the new admin group key distribution
+
+		var adminGroupId = this.getTargetGroupId(keyRotation)
+		// load admin current admin group key
+		var currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+		// verify authenticity
+		var verified = distributionKeys.every((distributionKey) => {
+			// reproduce hash
+			var computedKeyRotationHash = this.computeKeyRotationHash(distributionKey.userGroupId, distributionKey.pubDistributionKey)
+			var givenKeyDistributionHash = this.cryptoWrapper.aesDecrypt(currentAdminGroupKey.object, distributionKey.hash, true)
+			return arrayEquals(computedKeyRotationHash, givenKeyDistributionHash)
+		})
+		if (!verified) {
+			throw new TutanotaError("KeyRotationUnreproducibleHash", "One of the key rotation contains a unreproducible hash.")
+		}
+		// verified
+
+		// creation of a new admin group key
+		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
+		const adminKeyRotationData = await this.prepareKeyRotationForAdminGroup(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
+		const newSymAdminGroupKey = adminKeyRotationData.newAdminGroupKeys.symGroupKey
+
+		// type DataTransferObject = {
+		// 	performingAdminKeyRotationData: AdminGroupKeyRotationPostIn,
+		// 	distributedAdminGroupKey: DistributionEncAdminGroupKeyList
+		// }
+
+		const { symGroupKey, encryptedKeyPair } = adminKeyRotationData.newUserGroupKeys
+		const generatedPrivateEccKey = this.cryptoWrapper.aesDecrypt(symGroupKey.object, assertNotNull(encryptedKeyPair?.symEncPrivEccKey), true)
+
+		const distributedAdminGroupKey = distributionKeys.map((d) => {
+			this.asymmetricCryptoFacade.tutaCryptEncryptSymKey(
+				newSymAdminGroupKey.object,
+				{
+					version: 0,
+					object: d.pubDistributionKey,
+				},
+				{
+					version: symGroupKey.version,
+					object: {
+						publicKey: assertNotNull(encryptedKeyPair?.pubEccKey),
+						privateKey: generatedPrivateEccKey,
+					},
+				},
+			)
+		})
+	}
+
+	private computeKeyRotationHash(userGroupId: Id, pubDistributionKeys: PublicKeys): Uint8Array {
+		this.cryptoWrapper.sha256Hash(concat(/* ??? */))
+		return Uint8Array.of(1, 2, 3)
 	}
 }
 
