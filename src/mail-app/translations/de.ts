@@ -1820,6 +1820,11 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"confirmDeleteLabel_msg": "Möchtest du wirklich das Label \"{1}\" löschen?"
+		"confirmDeleteLabel_msg": "Möchtest du wirklich das Label \"{1}\" löschen?",
+		"exportMailbox_label": "",
+		"mailboxToExport_label": "",
+		"lastExportTime_Label": "",
+		"exportingEmails_label": "",
+		"mailsExported_label": "",
 	}
 }

@@ -1816,6 +1816,11 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"confirmDeleteLabel_msg": "Are you sure that you want to delete the label \"{1}\"?"
+		"confirmDeleteLabel_msg": "Are you sure that you want to delete the label \"{1}\"?",
+		"exportMailbox_label": "Export Mailbox",
+		"mailboxToExport_label": "Mailbox to Export",
+		"lastExportTime_Label": "Last export: {date}",
+		"exportingEmails_label": "Exporting emails: {count}",
+		"mailsExported_label": "Emails exported: {numbers}",
 	}
 }
