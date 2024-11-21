@@ -129,6 +129,7 @@ import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/g
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "./mail/import/MailImporter.js"
+import { MailExportController } from "./mail/model/MailExportController"
 
 assertMainOrNode()
 
@@ -1169,6 +1170,10 @@ class MailLocator {
 		const currentUser = this.logins.getUserController().user
 		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
 	}
+
+	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
+		return new MailExportController()
+	})
 
 	/**
 	 * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
