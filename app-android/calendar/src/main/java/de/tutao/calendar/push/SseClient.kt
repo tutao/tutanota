@@ -2,10 +2,9 @@ package de.tutao.calendar.push
 
 import android.util.Log
 import de.tutao.calendar.*
-import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
 import de.tutao.tutashared.base64ToBase64Url
+import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import okhttp3.*
@@ -135,6 +134,7 @@ class SseClient internal constructor(
 				)
 				sseListener.onStoppingReconnectionAttempts()
 			}
+
 			networkObserver.hasNetworkConnection() -> {
 				Log.e(
 					TAG,
@@ -143,6 +143,7 @@ class SseClient internal constructor(
 				)
 				reschedule(delay)
 			}
+
 			else -> {
 				Log.e(TAG, "network is not connected, do not reschedule ", exception)
 				sseListener.onStoppingReconnectionAttempts()
@@ -202,15 +203,15 @@ class SseClient internal constructor(
 
 	@Throws(IOException::class)
 	private fun openSseConnection(connectionData: ConnectionData): Response {
-		val requestBuilder = Request.Builder()
+		val request = Request.Builder()
 			.url(connectionData.url)
 			.method("GET", null)
 			.header("Content-Type", "application/json")
 			.header("Connection", "Keep-Alive")
 			.header("Accept", "text/event-stream")
-		addCommonHeadersWithSysModelVersion(requestBuilder)
+			.addSysVersionHeaders()
+			.build()
 
-		val req = requestBuilder.build()
 
 		val response = defaultClient
 			.newBuilder()
@@ -218,7 +219,7 @@ class SseClient internal constructor(
 			.writeTimeout(5, TimeUnit.SECONDS)
 			.readTimeout((timeoutInSeconds * 1.2).toLong(), TimeUnit.SECONDS)
 			.build()
-			.newCall(req)
+			.newCall(request)
 			.execute()
 		this.response.set(response)
 		return response

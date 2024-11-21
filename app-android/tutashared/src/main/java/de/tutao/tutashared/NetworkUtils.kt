@@ -18,16 +18,6 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-fun addCommonHeadersWithSysModelVersion(request: Request.Builder) {
-	request.header("v", BuildConfig.SYS_MODEL_VERSION)
-	request.header("cv", BuildConfig.VERSION_NAME)
-}
-
-fun addCommonHeadersWithTutanotaModelVersion(request: Request.Builder) {
-	request.header("v", BuildConfig.TUTANOTA_MODEL_VERSION)
-	request.header("cv", BuildConfig.VERSION_NAME)
-}
-
 class NetworkUtils {
 	companion object {
 		private const val TAG = "NU"

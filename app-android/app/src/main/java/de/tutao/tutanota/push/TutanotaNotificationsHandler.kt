@@ -7,7 +7,6 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutasdk.serializeMail
 import de.tutao.tutashared.SdkRestClient
-import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
@@ -139,18 +138,19 @@ class TutanotaNotificationsHandler(
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
 	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification? {
 		val url = makeAlarmNotificationUrl(sseInfo)
-		val requestBuilder = Request.Builder()
+		val request = Request.Builder()
 			.url(url)
 			.method("GET", null)
 			.header("Content-Type", "application/json")
 			.header("userIds", userId ?: "")
-		addCommonHeadersWithSysModelVersion(requestBuilder)
-		val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
-		if (lastProcessedNotificationId != null) {
-			requestBuilder.header("lastProcessedNotificationId", lastProcessedNotificationId)
-		}
-
-		var req = requestBuilder.build()
+			.addSysVersionHeaders()
+			.apply {
+				val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
+				if (lastProcessedNotificationId != null) {
+					header("lastProcessedNotificationId", lastProcessedNotificationId)
+				}
+			}
+			.build()
 
 		val response = defaultClient
 			.newBuilder()
@@ -158,7 +158,7 @@ class TutanotaNotificationsHandler(
 			.writeTimeout(20, TimeUnit.SECONDS)
 			.readTimeout(20, TimeUnit.SECONDS)
 			.build()
-			.newCall(req)
+			.newCall(request)
 			.execute()
 
 		val responseCode = response.code

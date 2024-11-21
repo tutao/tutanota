@@ -19,6 +19,7 @@ import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotific
 import { AppType } from "../../misc/ClientConstants.js"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
+// keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
 // keep in sync with app-ios/TutanotaSharedFramework/Utils/Utils.swift
 const MOBILE_SYS_MODEL_VERSION = 99
 

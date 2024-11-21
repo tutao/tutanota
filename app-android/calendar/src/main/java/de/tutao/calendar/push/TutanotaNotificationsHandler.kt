@@ -2,9 +2,9 @@ package de.tutao.calendar.push
 
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
+import de.tutao.calendar.BuildConfig
 import de.tutao.calendar.R
 import de.tutao.calendar.alarms.AlarmNotificationsManager
-import de.tutao.tutashared.addCommonHeadersWithSysModelVersion
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
@@ -130,18 +130,20 @@ class TutanotaNotificationsHandler(
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
 	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification? {
 		val url = makeAlarmNotificationUrl(sseInfo)
-		val requestBuilder = Request.Builder()
+		val request = Request.Builder()
 			.url(url)
 			.method("GET", null)
 			.header("Content-Type", "application/json")
 			.header("userIds", userId ?: "")
-		addCommonHeadersWithSysModelVersion(requestBuilder)
-		val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
-		if (lastProcessedNotificationId != null) {
-			requestBuilder.header("lastProcessedNotificationId", lastProcessedNotificationId)
-		}
+			.addSysVersionHeaders()
+			.apply {
+				val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
+				if (lastProcessedNotificationId != null) {
+					header("lastProcessedNotificationId", lastProcessedNotificationId)
+				}
+			}
+			.build()
 
-		var req = requestBuilder.build()
 
 		val response = defaultClient
 			.newBuilder()
@@ -149,7 +151,7 @@ class TutanotaNotificationsHandler(
 			.writeTimeout(20, TimeUnit.SECONDS)
 			.readTimeout(20, TimeUnit.SECONDS)
 			.build()
-			.newCall(req)
+			.newCall(request)
 			.execute()
 
 		val responseCode = response.code
@@ -256,5 +258,10 @@ class TutanotaNotificationsHandler(
 	companion object {
 		private const val TAG = "TutanotaNotifications"
 		private val MISSED_NOTIFICATION_TTL = TimeUnit.DAYS.toMillis(30)
+	}
+
+	private fun Request.Builder.addSysVersionHeaders() = apply {
+		header("v", BuildConfig.SYS_MODEL_VERSION)
+		header("cv", BuildConfig.VERSION_NAME)
 	}
 }
