@@ -130,7 +130,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		},
 	}: Vnode<SelectAttributes<U, T>, this>) {
 		return m(
-			"button.tutaui-select-trigger.clickable.flash",
+			"button.tutaui-select-trigger.clickable",
 			{
 				id,
 				class: this.resolveClasses(classes, disabled, expanded),
@@ -174,6 +174,8 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		const classList = [...classes]
 		if (disabled) {
 			classList.push("disabled", "click-disabled")
+		} else {
+			classList.push("flash")
 		}
 
 		if (expanded) {

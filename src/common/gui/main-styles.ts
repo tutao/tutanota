@@ -2757,7 +2757,7 @@ styles.registerStyle("main", () => {
 		},
 		".time-selection-grid": {
 			display: "grid",
-			"grid-template-columns": "1fr 3fr 1fr",
+			"grid-template-columns": "2fr 6fr 3fr",
 			"grid-gap": px(size.vpad_small),
 			"align-items": "center",
 		},
@@ -2810,6 +2810,9 @@ styles.registerStyle("main", () => {
 		},
 		".min-h-s": {
 			"min-height": px(size.vpad_xl * 4),
+		},
+		".border-content-message-bg": {
+			"border-color": theme.content_message_bg,
 		},
 	}
 })

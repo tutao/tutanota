@@ -109,7 +109,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						oninput: attrs.oninput,
 						onkeydown: attrs.onkeydown,
 						onfocus: attrs.onfocus,
-						classes: ["text-center", "tutaui-input-button-focus-fix", "noselect"],
+						classes: this.resolveInputClasses(attrs.variant),
 						style: {
 							padding: `${px(size.vpad_small)} 0`,
 						},
@@ -131,11 +131,20 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 		)
 	}
 
+	private resolveInputClasses(variant?: InputButtonVariant) {
+		const resolvedClasses = ["text-center", "noselect"]
+		if (variant === InputButtonVariant.OUTLINE && this.isFocused) {
+			resolvedClasses.push("tutaui-button-outline", "border-content-message-bg")
+		}
+
+		return resolvedClasses
+	}
+
 	private resolveContainerClasses(variant: InputButtonVariant = InputButtonVariant.OUTLINE, classes: Array<string> = [], disabled: boolean = false) {
 		const resolvedClasses = [...classes, "full-width"]
 
 		if (disabled) resolvedClasses.push("disabled", "click-disabled")
-		if (variant === InputButtonVariant.OUTLINE) {
+		if (variant === InputButtonVariant.OUTLINE && !this.isFocused) {
 			resolvedClasses.push("tutaui-button-outline")
 		}
 
