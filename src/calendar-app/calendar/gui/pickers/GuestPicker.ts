@@ -15,6 +15,7 @@ import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { Icon } from "../../../../common/gui/base/Icon.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
+import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 
 export interface GuestPickerAttrs {
 	ariaLabel: TranslationKey
@@ -160,6 +161,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 				e.redraw = false
 			},
 			onkeydown: (event: KeyboardEvent) => this.handleKeyDown(event, attrs),
+			type: TextFieldType.Text,
 		})
 	}
 

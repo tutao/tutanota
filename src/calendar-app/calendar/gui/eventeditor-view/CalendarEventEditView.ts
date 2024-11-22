@@ -13,7 +13,7 @@ import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/
 import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
-import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../common/gui/base/SingleLineTextField.js"
+import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { Select, SelectAttributes, SelectOption } from "../../../../common/gui/base/Select.js"
@@ -25,6 +25,7 @@ import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
 import type { CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
+import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -169,7 +170,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			},
 			m(SingleLineTextField, {
 				value: model.editModels.summary.content,
-				oninput: (newValue: string) => {
+				oninput: (newValue: any) => {
 					model.editModels.summary.content = newValue
 				},
 				ariaLabel: lang.get("title_placeholder"),
@@ -178,7 +179,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				style: {
 					fontSize: px(size.font_size_base * 1.25), // Overriding the component style
 				},
-			} satisfies SingleLineTextFieldAttrs),
+				type: TextFieldType.Text,
+			}),
 		)
 	}
 
@@ -413,6 +415,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 						icon: Icons.Pin,
 						color: getColors(ButtonColor.Content).button,
 					},
+					type: TextFieldType.Text,
 				}),
 			),
 		)
@@ -471,13 +474,14 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 	}
 
-	private renderRepeatRulesPage({ attrs: { model } }: Vnode<CalendarEventEditViewAttrs>) {
+	private renderRepeatRulesPage({ attrs: { model, navigationCallback } }: Vnode<CalendarEventEditViewAttrs>) {
 		const { whenModel } = model.editModels
 
 		return m(RepeatRuleEditor, {
 			model: whenModel,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
 			width: this.getPageWidth(),
+			backAction: () => navigationCallback(EditorPages.MAIN),
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
@@ -495,6 +499,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		if (targetPage === EditorPages.MAIN) {
 			this.allowRenderMainPage(true)
 			this.pagesWrapperDomElement.style.transform = "translateX(0px)"
+			this.pagesWrapperDomElement.style.webkitTransform = "translateX(0px)"
 			return
 		}
 
@@ -503,6 +508,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const pageWidth = this.getPageWidth()
 		const gapBetweenPages = Number(parentComputedStyle.gap.slice(0, -2))
 		this.pagesWrapperDomElement.style.transform = `translateX(-${pageWidth + gapBetweenPages}px)`
+		this.pagesWrapperDomElement.style.webkitTransform = `translateX(-${pageWidth + gapBetweenPages}px)`
 	}
 
 	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {
