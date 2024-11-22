@@ -177,25 +177,14 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 		])
 	}
 
-	private renderReminderOptions(option: RemindersSelectOption, showIcon: boolean, isDisplay: boolean) {
+	private renderReminderOptions(option: RemindersSelectOption, hasAlarms: boolean, isDisplay: boolean) {
 		return m(
 			"button.items-center.flex-grow",
 			{
 				tabIndex: isDisplay ? TabIndex.Programmatic : undefined,
-				class: `${isDisplay ? "gap-vpad-s flex" : "state-bg button-content dropdown-button pt-s pb-s"}`,
+				class: isDisplay ? `flex ${hasAlarms ? "text-fade" : ""}` : "state-bg button-content button-min-height dropdown-button pt-s pb-s",
 			},
-			[
-				showIcon
-					? m(Icon, {
-							icon: Icons.Add,
-							size: IconSize.Medium,
-							style: {
-								fill: getColors(ButtonColor.Content).button,
-							},
-					  })
-					: null,
-				option.text,
-			],
+			option.text,
 		)
 	}
 

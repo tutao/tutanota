@@ -89,7 +89,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const renderDivider = (index: number) => {
 			return index < guestItems.length - 1
 				? m(Divider, {
-						color: theme.content_message_bg,
+						color: theme.button_bubble_bg,
 						style: {
 							margin: `0 ${px((size.button_height - size.button_height_compact) / 2)} 0 ${px(size.vpad_small + size.icon_size_medium_large)}`,
 						},
@@ -178,8 +178,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const attendingOptions = createAttendingItems().filter((option) => option.selectable !== false)
 		const attendingStatus = attendingOptions.find((option) => option.value === status)
 
-		return m(".flex.flex-column", [
-			m(".small", { class: organizer == null ? "disabled" : "", style: { lineHeight: px(size.vpad_small) } }, lang.get("attending_label")),
+		return m(".flex.flex-column.pl-vpad-s.pr-vpad-s", [
 			m(Select<AttendingItem, CalendarAttendeeStatus>, {
 				onchange: (option) => {
 					if (option.selectable === false) return
@@ -191,7 +190,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				ariaLabel: lang.get("attending_label"),
 				renderOption: (option) =>
 					m(
-						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s",
+						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
 						{
 							class: option.selectable === false ? `no-hover` : "",
 							style: { color: option.value === status ? theme.content_button_selected : undefined },
@@ -231,9 +230,9 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const disabled = !editableOrganizer || !hasGuest
 		const selected = options.find((option) => option.address === address) ?? options[0]
 
-		return m(Card, [
-			m(".flex.flex-column.gap-vpad-s", [
-				m(".flex", [
+		return m(Card, { style: { padding: `0` } }, [
+			m(".flex.flex-column", [
+				m(".flex.pl-vpad-s.pr-vpad-s", [
 					m(Select<OrganizerSelectItem, string>, {
 						classes: ["flex-grow", "button-min-height"],
 						onchange: (option) => {
@@ -247,7 +246,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						ariaLabel: lang.get("organizer_label"),
 						renderOption: (option) =>
 							m(
-								"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s",
+								"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
 								{ style: { color: selected.address === option.address ? theme.content_button_selected : undefined } },
 								option.address,
 							),
@@ -280,7 +279,9 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						  })
 						: null,
 				]),
-				isMe && model.operation !== CalendarOperation.EditThis ? this.renderAttendeeStatus(whoModel, organizer) : null,
+				isMe && model.operation !== CalendarOperation.EditThis
+					? [m(Divider, { color: theme.button_bubble_bg }), this.renderAttendeeStatus(whoModel, organizer)]
+					: null,
 			]),
 		])
 	}
