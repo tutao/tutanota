@@ -65,6 +65,7 @@ export const enum AriaRole {
 	Menu = "Menu",
 	MenuItem = "menuitem",
 	Option = "option",
+	MenuItemCheckbox = "menuitemcheckbox",
 }
 
 /**

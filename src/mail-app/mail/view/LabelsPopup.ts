@@ -12,6 +12,7 @@ import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
+import { AriaRole } from "../../../common/gui/AriaUtils.js"
 
 /**
  * Popup that displays assigned labels and allows changing them
@@ -51,7 +52,7 @@ export class LabelsPopup implements ModalComponent {
 	}
 
 	view(): void | Children {
-		return m(".flex.col.elevated-bg.abs.dropdown-shadow.pt-s.border-radius", { tabindex: TabIndex.Programmatic }, [
+		return m(".flex.col.elevated-bg.abs.dropdown-shadow.pt-s.border-radius", { tabindex: TabIndex.Programmatic, role: AriaRole.Menu }, [
 			m(
 				".pb-s.scroll",
 				this.labels.map((labelState) => {
@@ -62,7 +63,9 @@ export class LabelsPopup implements ModalComponent {
 
 						{
 							"data-labelid": getElementId(label),
+							role: AriaRole.MenuItemCheckbox,
 							tabindex: TabIndex.Default,
+							"aria-checked": ariaCheckedForState(state),
 							onclick: () => this.toggleLabel(labelState),
 						},
 						[
@@ -190,5 +193,16 @@ export class LabelsPopup implements ModalComponent {
 		} else {
 			labelState.state = LabelState.NotApplied
 		}
+	}
+}
+
+function ariaCheckedForState(state: LabelState): string {
+	switch (state) {
+		case LabelState.Applied:
+			return "true"
+		case LabelState.AppliedToSome:
+			return "mixed"
+		case LabelState.NotApplied:
+			return "false"
 	}
 }
