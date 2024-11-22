@@ -113,7 +113,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						style: {
 							padding: `${px(size.vpad_small)} 0`,
 						},
-						type: TextFieldType.Text
+						type: TextFieldType.Text,
 					}),
 				]),
 				m(

@@ -1826,3 +1826,5 @@ export type TranslationKeyType =
 	| "year_label"
 	| "months_label"
 	| "repeatsEvery_label"
+	| "notAttending_label"
+	| "maybeAttending_label"

@@ -83,8 +83,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				style: {
 					zIndex: 1,
 					border: `2px solid ${theme.content_message_bg}`,
-					width: "-webkit-fill-available",
-					height: "-webkit-fill-available",
+					width: "auto",
+					height: "auto",
 					appearance: "none",
 					opacity: attrs.disabled ? 0.7 : 1.0,
 				},
@@ -196,7 +196,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 				e.redraw = false
 			},
-			type: TextFieldType.Text
+			type: TextFieldType.Text,
 		})
 	}
 
