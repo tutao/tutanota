@@ -24,6 +24,7 @@ import { exportMails } from "../export/Exporter.js"
 import { MailModel } from "../model/MailModel.js"
 import { LabelsPopup } from "./LabelsPopup.js"
 import { allInSameMailbox } from "../model/MailUtils"
+import { styles } from "../../../common/gui/styles"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -114,8 +115,12 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			title: "assignLabel_action",
 			icon: Icons.Label,
 			click: (_, dom) => {
-				const popup = new LabelsPopup(dom, dom.getBoundingClientRect(), 250, mailModel.getLabelStatesForMails(mails), (addedLabels, removedLabels) =>
-					mailModel.applyLabels(mails, addedLabels, removedLabels),
+				const popup = new LabelsPopup(
+					dom,
+					dom.getBoundingClientRect(),
+					styles.isDesktopLayout() ? 300 : 200,
+					mailModel.getLabelStatesForMails(mails),
+					(addedLabels, removedLabels) => mailModel.applyLabels(mails, addedLabels, removedLabels),
 				)
 				popup.show()
 			},

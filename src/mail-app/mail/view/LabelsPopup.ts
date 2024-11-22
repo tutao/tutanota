@@ -58,7 +58,7 @@ export class LabelsPopup implements ModalComponent {
 					const { label, state } = labelState
 					const color = theme.content_button
 					return m(
-						"label-item.flex.items-center.plr.state-bg.cursor-pointer",
+						".flex.items-center.plr.state-bg.cursor-pointer",
 
 						{
 							"data-labelid": getElementId(label),
@@ -73,7 +73,7 @@ export class LabelsPopup implements ModalComponent {
 									fill: getLabelColor(label.color),
 								},
 							}),
-							m(".button-height.flex.items-center.ml", { style: { color } }, label.name),
+							m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color } }, m(".text-ellipsis", label.name)),
 						],
 					)
 				}),

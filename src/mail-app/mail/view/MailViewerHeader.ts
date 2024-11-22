@@ -773,7 +773,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								const popup = new LabelsPopup(
 									dom,
 									dom.getBoundingClientRect(),
-									200,
+									styles.isDesktopLayout() ? 300 : 200,
 									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
 									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
 								)
