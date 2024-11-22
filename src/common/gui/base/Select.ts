@@ -276,6 +276,7 @@ class OptionListContainer implements ModalComponent {
 	private domContents: HTMLElement | null = null
 	private maxHeight: number | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
+	private children: Children[] = []
 
 	constructor(
 		private readonly items: Stream<Array<unknown>>,
@@ -286,6 +287,11 @@ class OptionListContainer implements ModalComponent {
 	) {
 		this.width = width
 		this.shortcuts = this.buildShortcuts
+
+		this.items.map((newItems) => {
+			this.children = []
+			this.children.push(newItems.length === 0 ? this.renderNoItem() : newItems.map((item) => this.buildFunction(item)))
+		})
 
 		this.view = () => {
 			return m(
@@ -338,7 +344,7 @@ class OptionListContainer implements ModalComponent {
 								this.domContents != null && target.scrollTop < 0 && target.scrollTop + this.domContents.offsetHeight > target.scrollHeight
 						},
 					},
-					this.items().length === 0 ? this.renderNoItem() : this.items().map((item) => this.buildFunction(item)),
+					this.children,
 				),
 			)
 		}
@@ -356,8 +362,8 @@ class OptionListContainer implements ModalComponent {
 		const contentHeight = Math.min(400 + size.vpad, children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad)
 
 		this.maxHeight = lowerSpace > upperSpace ? Math.min(contentHeight, lowerSpace) : Math.min(contentHeight, upperSpace)
-
-		this.domDropdown.style.height = px(this.maxHeight)
+		const newHeight = px(this.maxHeight)
+		if (this.domDropdown.style.height !== newHeight) this.domDropdown.style.height = newHeight
 	}
 
 	private renderNoItem(): Children {
