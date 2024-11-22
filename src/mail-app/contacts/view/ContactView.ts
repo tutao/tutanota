@@ -79,6 +79,7 @@ import { validateBirthdayOfContact } from "../../../common/contactsFunctionality
 import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
+import { client } from "../../../common/misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -505,6 +506,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				path: `/contact`,
 				onClick: () => this.viewSlider.focus(this.listColumn),
 				moreButton: this.createMoreButtonAttrs(),
+				alwaysShowMoreButton: client.isMobileDevice(),
 			} satisfies SidebarSectionRowAttrs),
 			m(
 				SidebarSection,
