@@ -1,9 +1,9 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import type { TextFieldType } from "./TextField.js"
+import { TextFieldType } from "./TextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
 
-export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
+export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<Component, "oncreate"> {
 	value: string | number
 	ariaLabel: string
 	disabled?: boolean
@@ -25,14 +25,19 @@ export interface SingleLineTextFieldAttrs extends Pick<Component, "oncreate"> {
 	onfocus?: (...args: unknown[]) => unknown
 	onblur?: (...args: unknown[]) => unknown
 	onkeydown?: (...args: unknown[]) => unknown
-	type?: TextFieldType
+	type: T
 	leadingIcon?: {
 		icon: AllIcons
 		color: string
 	}
 }
 
-type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLElement, "style"> & SingleLineTextFieldAttrs>
+export interface SingleLineNumberFieldAttrs<T extends TextFieldType> extends SingleLineTextFieldAttrs<T> {
+	max?: number
+	min?: number
+}
+
+export type InputAttrs<T extends TextFieldType> = T extends TextFieldType.Number ? SingleLineNumberFieldAttrs<T> : SingleLineTextFieldAttrs<T>
 
 /**
  * Simple single line input field component
@@ -52,14 +57,14 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
  *     }
  * }),
  */
-export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAttrs> {
+export class SingleLineTextField<T extends TextFieldType> implements ClassComponent<InputAttrs<T>> {
 	domInput!: HTMLInputElement
 
-	view({ attrs }: Vnode<SingleLineTextFieldAttrs, this>): Children | void | null {
+	view({ attrs }: Vnode<InputAttrs<T>, this>): Children | void | null {
 		return attrs.leadingIcon ? this.renderInputWithIcon(attrs) : this.renderInput(attrs)
 	}
 
-	private renderInputWithIcon(attrs: SingleLineTextFieldAttrs) {
+	private renderInputWithIcon(attrs: InputAttrs<T>) {
 		if (!attrs.leadingIcon) {
 			return
 		}
@@ -93,7 +98,7 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 		])
 	}
 
-	private renderInput(attrs: SingleLineTextFieldAttrs, inputPadding?: string) {
+	private renderInput(attrs: InputAttrs<T>, inputPadding?: string) {
 		return m("input.tutaui-text-field", {
 			type: attrs.type,
 			ariaLabel: attrs.ariaLabel,
@@ -110,7 +115,7 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 				}
 				attrs.oninput(this.domInput.value)
 			},
-			oncreate: (vnode: VnodeDOM<SingleLineTextFieldAttrs>) => {
+			oncreate: (vnode: VnodeDOM<InputAttrs<T>>) => {
 				this.domInput = vnode.dom as HTMLInputElement
 				if (attrs.oncreate) {
 					attrs.oncreate(vnode)
@@ -122,7 +127,17 @@ export class SingleLineTextField implements ClassComponent<SingleLineTextFieldAt
 				...(inputPadding ? { paddingLeft: inputPadding } : {}),
 				...attrs.style,
 			},
-		} satisfies HTMLElementWithAttrs)
+			...this.getInputProperties(attrs),
+		})
+	}
+
+	private getInputProperties(attrs: InputAttrs<T>): Pick<SingleLineNumberFieldAttrs<TextFieldType.Number>, "min" | "max"> | undefined {
+		if (attrs.type === TextFieldType.Number) {
+			const numberAttrs = attrs as SingleLineNumberFieldAttrs<TextFieldType.Number>
+			return { min: numberAttrs.min, max: numberAttrs.max }
+		}
+
+		return undefined
 	}
 
 	private resolveClasses(classes: Array<string> = [], disabled: boolean = false): string {

@@ -83,6 +83,12 @@ import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 
+export interface IntervalOption {
+	value: number
+	ariaValue: string
+	name: string
+}
+
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
 		title: label,
@@ -474,7 +480,7 @@ export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
 		},
 	]
 }
-export const createIntervalValues = (): SelectorItemList<number> => numberRange(1, 256).map((n) => ({ name: String(n), value: n }))
+export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).map((n) => ({ name: String(n), value: n, ariaValue: String(n) }))
 
 export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
 	if (value.value === 0) return lang.get("calendarReminderIntervalAtEventStart_label")

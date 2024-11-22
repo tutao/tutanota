@@ -60,7 +60,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			"li.flex.gap-vpad-s.cursor-pointer.full-width.flash",
+			"li.flex.gap-vpad.cursor-pointer.full-width.flash",
 			{
 				class: optionClass ?? "",
 				onclick: () => {
@@ -69,7 +69,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 				},
 			},
 			[
-				m("input[type=radio].m-0.big-radio.content-accent-content-button", {
+				m("input[type=radio].m-0.big-radio.content-accent-accent", {
 					/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
 					 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
 					 */
