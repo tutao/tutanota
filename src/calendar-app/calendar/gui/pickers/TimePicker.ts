@@ -16,6 +16,7 @@ export type TimePickerAttrs = {
 	timeFormat: TimeFormat
 	disabled?: boolean
 	ariaLabel: string
+	classes?: Array<string>
 }
 
 interface TimeOption {
@@ -100,6 +101,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			m(
 				".tutaui-button-outline",
 				{
+					class: attrs.classes?.join(" "),
 					style: {
 						zIndex: "2",
 						position: "inherit",
@@ -151,58 +153,50 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		return m(
 			"button.items-center.flex-grow",
 			{
-				class: "state-bg button-content dropdown-button pt-s pb-s",
+				class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
 			},
 			option.name,
 		)
 	}
 
 	private renderTimeSelectInput(attrs: TimePickerAttrs) {
-		return m(
-			".tutaui-button-outline.text-center",
-			{
-				style: {
-					borderColor: theme.content_message_bg,
-					padding: 0,
-				},
+		return m(SingleLineTextField, {
+			classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
+			value: this.value,
+			oninput: (val: string) => {
+				if (this.value === val) {
+					return
+				}
+
+				this.value = val
 			},
-			m(SingleLineTextField, {
-				value: this.value,
-				oninput: (val: string) => {
-					if (this.value === val) {
-						return
-					}
+			disabled: attrs.disabled,
+			ariaLabel: attrs.ariaLabel,
+			style: {
+				textAlign: "center",
+			},
+			onclick: (e: MouseEvent) => {
+				e.stopImmediatePropagation()
+				if (!this.isExpanded) {
+					;(e.target as HTMLElement).parentElement?.click()
+					this.isExpanded = true
+				}
+			},
+			onfocus: (event: FocusEvent) => {
+				this.focused = true
+				if (!this.isExpanded) {
+					;(event.target as HTMLElement).parentElement?.click()
+					this.isExpanded = true
+				}
+			},
+			onblur: (e: any) => {
+				if (this.focused) {
+					this.onSelected(attrs)
+				}
 
-					this.value = val
-				},
-				disabled: attrs.disabled,
-				ariaLabel: attrs.ariaLabel,
-				style: {
-					textAlign: "center",
-				},
-				onclick: (e: MouseEvent) => {
-					e.stopImmediatePropagation()
-					if (!this.isExpanded) {
-						;(e.target as HTMLElement).parentElement?.click()
-						this.isExpanded = true
-					}
-				},
-				onfocus: (event: FocusEvent) => {
-					this.focused = true
-					if (!this.isExpanded) {
-						;(event.target as HTMLElement).parentElement?.click()
-						this.isExpanded = true
-					}
-				},
-				onblur: (e: any) => {
-					if (this.focused) {
-						this.onSelected(attrs)
-					}
-
-					e.redraw = false
-				},
-			}),
-		)
+				e.redraw = false
+			},
+		})
 	}
 
 	private onSelected(attrs: TimePickerAttrs) {
