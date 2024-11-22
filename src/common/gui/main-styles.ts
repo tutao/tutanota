@@ -678,9 +678,6 @@ styles.registerStyle("main", () => {
 		".content-accent-accent": {
 			"accent-color": theme.content_accent,
 		},
-		".content-accent-content-button": {
-			"accent-color": theme.content_button,
-		},
 		".icon-accent svg": {
 			fill: theme.content_accent,
 		},
@@ -2401,6 +2398,7 @@ styles.registerStyle("main", () => {
 		".no-appearance input, .no-appearance input::-webkit-outer-spin-button, .no-appearance input::-webkit-inner-spin-button": {
 			"-webkit-appearance": "none",
 			"-moz-appearance": "textfield",
+			appearance: "none",
 		},
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
@@ -2813,6 +2811,10 @@ styles.registerStyle("main", () => {
 		},
 		".border-content-message-bg": {
 			"border-color": theme.content_message_bg,
+		},
+		".border-radius-bottom-0": {
+			"border-bottom-right-radius": px(0),
+			"border-bottom-left-radius": px(0),
 		},
 	}
 })

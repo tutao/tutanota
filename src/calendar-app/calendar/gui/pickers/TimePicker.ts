@@ -196,6 +196,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 				e.redraw = false
 			},
+			type: TextFieldType.Text
 		})
 	}
 
