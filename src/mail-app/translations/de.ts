@@ -1845,6 +1845,8 @@ export default {
 		"occurrencesCount_label": "Occurrences count",
 		"year_label": "Jahr",
 		"months_label": "Monate",
-		"repeatsEvery_label": "Wiederhole jedes"
+		"repeatsEvery_label": "Wiederhole jedes",
+		"notAttending_label": "Nicht teilnehmend",
+		"maybeAttending_label": "Vielleicht teilnehmend"
 	}
 }

@@ -53,6 +53,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt.box-content.fit-height", { style: { width: px(attrs.width) } }, [
 				this.renderOrganizer(attrs.model, organizer),
 				m(".flex.flex-column.gap-vpad-s", [
+					m("small.uppercase.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("guests_label")),
 					whoModel.canModifyGuests ? this.renderGuestsInput(whoModel, attrs.logins, attrs.recipientsSearch) : null,
 					this.renderSendUpdateCheckbox(attrs.model.editModels.whoModel),
 					this.renderGuestList(attrs, organizer),
@@ -86,39 +87,26 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 
 		const verticalPadding = guestItems.length > 0 ? size.vpad_small : 0
 
-		const renderDivider = (index: number) => {
-			return index < guestItems.length - 1
-				? m(Divider, {
-						color: theme.button_bubble_bg,
+		return guestItems.length === 0
+			? m(
+					Card,
+					{
+						classes: ["min-h-s flex flex-column gap-vpad-s"],
 						style: {
-							margin: `0 ${px((size.button_height - size.button_height_compact) / 2)} 0 ${px(size.vpad_small + size.icon_size_medium_large)}`,
+							padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.vpad_small : 0)} ${px(size.vpad_small)} ${px(
+								verticalPadding,
+							)}`,
 						},
-				  })
-				: null
-		}
-
-		return m(
-			Card,
-			{
-				classes: ["min-h-s flex flex-column gap-vpad-s"],
-				style: {
-					padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.vpad_small : 0)} ${px(size.vpad_small)} ${px(verticalPadding)}`,
-				},
-			},
-			[...guestItems.map((r, index) => [r(), renderDivider(index)]), this.renderNoGuests(guestItems.length === 0)],
-		)
-	}
-
-	private renderNoGuests(isEmpty: boolean) {
-		return isEmpty
-			? m(".flex.items-center.justify-center.min-h-s", [
-					m(IconMessageBox, {
-						message: "noEntries_msg",
-						icon: Icons.People,
-						color: theme.list_message_bg,
-					}),
-			  ])
-			: null
+					},
+					m(".flex.items-center.justify-center.min-h-s", [
+						m(IconMessageBox, {
+							message: "noEntries_msg",
+							icon: Icons.People,
+							color: theme.list_message_bg,
+						}),
+					]),
+			  )
+			: guestItems.map((r, index) => r())
 	}
 
 	private renderGuestsInput(whoModel: CalendarEventWhoModel, logins: LoginController, recipientsSearch: RecipientsSearchModel): Children {
@@ -230,58 +218,61 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const disabled = !editableOrganizer || !hasGuest
 		const selected = options.find((option) => option.address === address) ?? options[0]
 
-		return m(Card, { style: { padding: `0` } }, [
-			m(".flex.flex-column", [
-				m(".flex.pl-vpad-s.pr-vpad-s", [
-					m(Select<OrganizerSelectItem, string>, {
-						classes: ["flex-grow", "button-min-height"],
-						onchange: (option) => {
-							const organizer = whoModel.possibleOrganizers.find((organizer) => organizer.address === option.address)
-							if (organizer) {
-								whoModel.addAttendee(organizer.address, null)
-							}
-						},
-						selected,
-						disabled,
-						ariaLabel: lang.get("organizer_label"),
-						renderOption: (option) =>
-							m(
-								"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
-								{ style: { color: selected.address === option.address ? theme.content_button_selected : undefined } },
-								option.address,
-							),
-						renderDisplay: (option) => m("", option.name ? `${option.name} <${option.address}>` : option.address),
-						options: stream(
-							whoModel.possibleOrganizers.map((organizer) => {
-								return {
-									name: organizer.name,
-									address: organizer.address,
-									ariaValue: organizer.address,
-									value: organizer.address,
+		return m(".flex.col", [
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("organizer_label")),
+			m(Card, { style: { padding: `0` } }, [
+				m(".flex.flex-column", [
+					m(".flex.pl-vpad-s.pr-vpad-s", [
+						m(Select<OrganizerSelectItem, string>, {
+							classes: ["flex-grow", "button-min-height"],
+							onchange: (option) => {
+								const organizer = whoModel.possibleOrganizers.find((organizer) => organizer.address === option.address)
+								if (organizer) {
+									whoModel.addAttendee(organizer.address, null)
 								}
-							}),
-						),
-						noIcon: disabled,
-						expanded: true,
-					} satisfies SelectAttributes<OrganizerSelectItem, string>),
-					model.operation !== CalendarOperation.EditThis && organizer && !isMe
-						? m(IconButton, {
-								title: "sendMail_alt",
-								click: async () =>
-									(await import("../../../../mail-app/contacts/view/ContactView.js")).writeMail(
-										organizer,
-										lang.get("repliedToEventInvite_msg", {
-											"{event}": model.editModels.summary.content,
-										}),
-									),
-								size: ButtonSize.Compact,
-								icon: Icons.PencilSquare,
-						  })
+							},
+							selected,
+							disabled,
+							ariaLabel: lang.get("organizer_label"),
+							renderOption: (option) =>
+								m(
+									"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
+									{ style: { color: selected.address === option.address ? theme.content_button_selected : undefined } },
+									option.address,
+								),
+							renderDisplay: (option) => m("", option.name ? `${option.name} <${option.address}>` : option.address),
+							options: stream(
+								whoModel.possibleOrganizers.map((organizer) => {
+									return {
+										name: organizer.name,
+										address: organizer.address,
+										ariaValue: organizer.address,
+										value: organizer.address,
+									}
+								}),
+							),
+							noIcon: disabled,
+							expanded: true,
+						} satisfies SelectAttributes<OrganizerSelectItem, string>),
+						model.operation !== CalendarOperation.EditThis && organizer && !isMe
+							? m(IconButton, {
+									title: "sendMail_alt",
+									click: async () =>
+										(await import("../../../../mail-app/contacts/view/ContactView.js")).writeMail(
+											organizer,
+											lang.get("repliedToEventInvite_msg", {
+												"{event}": model.editModels.summary.content,
+											}),
+										),
+									size: ButtonSize.Compact,
+									icon: Icons.PencilSquare,
+							  })
+							: null,
+					]),
+					isMe && model.operation !== CalendarOperation.EditThis
+						? [m(Divider, { color: theme.button_bubble_bg }), this.renderAttendeeStatus(whoModel, organizer)]
 						: null,
 				]),
-				isMe && model.operation !== CalendarOperation.EditThis
-					? [m(Divider, { color: theme.button_bubble_bg }), this.renderAttendeeStatus(whoModel, organizer)]
-					: null,
 			]),
 		])
 	}
@@ -324,44 +315,69 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			})
 		}
 
-		return m(".flex.flex-column.items-center", [
-			m(".flex.items-center.flex-grow.full-width", [
-				this.renderStatusIcon(status),
-				m(".flex.flex-column.flex-grow.min-width-0", [
-					m(".small", { style: { lineHeight: px(size.vpad_small) } }, roleLabel),
-					m(".text-ellipsis", name.length > 0 ? `${name} ${address}` : address),
+		return m(
+			Card,
+			{
+				style: {
+					padding: `${px(size.vpad_small)} ${px(0)} ${px(size.vpad_small)} ${px(size.vpad_small)}`,
+				},
+			},
+			m(".flex.flex-column.items-center", [
+				m(".flex.items-center.flex-grow.full-width", [
+					this.renderStatusIcon(status),
+					m(".flex.flex-column.flex-grow.min-width-0", [
+						m(".small", { style: { lineHeight: px(size.vpad_small) } }, roleLabel),
+						m(".text-ellipsis", name.length > 0 ? `${name} ${address}` : address),
+					]),
+					rightContent,
 				]),
-				rightContent,
+				renderPasswordField
+					? [
+							m(
+								".flex.full-width",
+								{
+									style: {
+										padding: `0 0 ${px(size.vpad_xsm)} ${px(size.vpad_small + size.icon_size_medium_large)}`,
+									},
+								},
+								m(Divider, {
+									color: theme.button_bubble_bg,
+								}),
+							),
+							this.renderPasswordField(address, password, strength ?? 0, whoModel),
+					  ]
+					: null,
 			]),
-			renderPasswordField ? this.renderPasswordField(address, password, strength ?? 0, whoModel) : null,
-		])
+		)
 	}
 
 	private renderPasswordField(address: string, password: string, strength: number, whoModel: CalendarEventWhoModel): Children {
 		const label = lang.get("passwordFor_label", {
 			"{1}": address,
 		})
-		return m(".flex.flex-grow.full-width.justify-between.items-end", [
-			m(
-				".flex.flex-column.full-width",
-				{
-					style: {
-						paddingLeft: px(size.hpad_medium + size.vpad_small),
-						paddingRight: px((size.button_height - size.button_height_compact) / 2),
-					},
-				},
-				[
-					m(PasswordInput, {
-						ariaLabel: label,
-						password,
-						strength,
-						oninput: (newPassword) => {
-							whoModel.setPresharedPassword(address, newPassword)
+		return [
+			m(".flex.flex-grow.full-width.justify-between.items-end", [
+				m(
+					".flex.flex-column.full-width",
+					{
+						style: {
+							paddingLeft: px(size.hpad_medium + size.vpad_small),
+							paddingRight: px((size.button_height - size.button_height_compact) / 2),
 						},
-					}),
-				],
-			),
-		])
+					},
+					[
+						m(PasswordInput, {
+							ariaLabel: label,
+							password,
+							strength,
+							oninput: (newPassword) => {
+								whoModel.setPresharedPassword(address, newPassword)
+							},
+						}),
+					],
+				),
+			]),
+		]
 	}
 
 	private renderStatusIcon(status: CalendarAttendeeStatus): Children {
