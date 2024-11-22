@@ -1,6 +1,6 @@
-import m, { ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
+import m, { ClassComponent, Component, Vnode } from "mithril"
 import { theme } from "../theme.js"
-import { SingleLineTextField, SingleLineTextFieldAttrs } from "./SingleLineTextField.js"
+import { SingleLineTextField } from "./SingleLineTextField.js"
 import { px, size } from "../size.js"
 import { TextFieldType } from "./TextField.js"
 import { TabIndex } from "../../api/common/TutanotaConstants.js"
@@ -98,7 +98,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 							}
 							attrs.onblur?.()
 						},
-						oncreate: (vnode: VnodeDOM<SingleLineTextFieldAttrs>) => {
+						oncreate: (vnode) => {
 							this.inputDOM = vnode.dom as HTMLInputElement
 							this.inputDOM.style.display = "none"
 
@@ -113,8 +113,8 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						style: {
 							padding: `${px(size.vpad_small)} 0`,
 						},
-						type: attrs.type,
-					} satisfies SingleLineTextFieldAttrs & Omit<Component, "view">),
+						type: TextFieldType.Text
+					}),
 				]),
 				m(
 					"span.tutaui-text-field",
