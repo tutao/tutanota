@@ -5,7 +5,7 @@ use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct PersistenceResourcePostReturn {
 	pub _format: i64,
 	pub generatedId: Option<GeneratedId>,

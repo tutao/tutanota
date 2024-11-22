@@ -5,7 +5,7 @@ use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobAccessTokenPostIn {
 	pub _format: i64,
 	pub archiveDataType: Option<i64>,
@@ -23,7 +23,7 @@ impl Entity for BlobAccessTokenPostIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobAccessTokenPostOut {
 	pub _format: i64,
 	pub blobAccessInfo: BlobServerAccessInfo,
@@ -39,7 +39,7 @@ impl Entity for BlobAccessTokenPostOut {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobArchiveRef {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -58,7 +58,7 @@ impl Entity for BlobArchiveRef {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobGetIn {
 	pub _format: i64,
 	pub archiveId: GeneratedId,
@@ -76,7 +76,7 @@ impl Entity for BlobGetIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobId {
 	pub _id: Option<CustomId>,
 	pub blobId: GeneratedId,
@@ -92,7 +92,7 @@ impl Entity for BlobId {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobPostOut {
 	pub _format: i64,
 	pub blobReferenceToken: Option<String>,
@@ -109,7 +109,7 @@ impl Entity for BlobPostOut {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobReadData {
 	pub _id: Option<CustomId>,
 	pub archiveId: GeneratedId,
@@ -127,7 +127,7 @@ impl Entity for BlobReadData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobReferenceDeleteIn {
 	pub _format: i64,
 	pub archiveDataType: i64,
@@ -146,7 +146,7 @@ impl Entity for BlobReferenceDeleteIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobReferencePutIn {
 	pub _format: i64,
 	pub archiveDataType: i64,
@@ -165,7 +165,7 @@ impl Entity for BlobReferencePutIn {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobServerAccessInfo {
 	pub _id: Option<CustomId>,
 	pub blobAccessToken: String,
@@ -183,7 +183,7 @@ impl Entity for BlobServerAccessInfo {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobServerUrl {
 	pub _id: Option<CustomId>,
 	pub url: String,
@@ -199,7 +199,7 @@ impl Entity for BlobServerUrl {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobWriteData {
 	pub _id: Option<CustomId>,
 	pub archiveOwnerGroup: GeneratedId,
@@ -215,7 +215,7 @@ impl Entity for BlobWriteData {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct InstanceId {
 	pub _id: Option<CustomId>,
 	pub instanceId: Option<GeneratedId>,
