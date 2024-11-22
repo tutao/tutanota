@@ -93,8 +93,8 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						style: {
 							zIndex: 1,
 							border: `2px solid ${theme.content_message_bg}`,
-							width: "-webkit-fill-available",
-							height: "-webkit-fill-available",
+							width: "auto",
+							height: "auto",
 							padding: 0,
 							appearance: "none",
 							opacity: disabled ? 0.7 : 1.0,

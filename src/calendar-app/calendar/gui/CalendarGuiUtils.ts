@@ -503,19 +503,19 @@ export interface AttendingItem extends SelectOption<CalendarAttendeeStatus> {
 
 export const createAttendingItems = (): AttendingItem[] => [
 	{
-		name: lang.get("yes_label"),
+		name: lang.get("attending_label"),
 		value: CalendarAttendeeStatus.ACCEPTED,
-		ariaValue: lang.get("yes_label"),
+		ariaValue: lang.get("attending_label"),
 	},
 	{
-		name: lang.get("maybe_label"),
+		name: lang.get("maybeAttending_label"),
 		value: CalendarAttendeeStatus.TENTATIVE,
-		ariaValue: lang.get("maybe_label"),
+		ariaValue: lang.get("maybeAttending_label"),
 	},
 	{
-		name: lang.get("no_label"),
+		name: lang.get("notAttending_label"),
 		value: CalendarAttendeeStatus.DECLINED,
-		ariaValue: lang.get("no_label"),
+		ariaValue: lang.get("notAttending_label"),
 	},
 	{
 		name: lang.get("pending_label"),
@@ -804,8 +804,8 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
 	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
 	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
-	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleEmpty,
-	[CalendarAttendeeStatus.ADDED]: Icons.CircleEmpty,
+	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleHelp,
+	[CalendarAttendeeStatus.ADDED]: Icons.CircleHelp,
 })
 export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
 	return userSettingsGroupRoot.groupSettings.reduce((acc, { group, color }) => {
