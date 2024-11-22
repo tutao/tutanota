@@ -5,7 +5,7 @@ use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerAccountPosting {
 	pub _id: Option<CustomId>,
 	pub amount: i64,
@@ -26,7 +26,7 @@ impl Entity for CustomerAccountPosting {
 }
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerAccountReturn {
 	pub _format: i64,
 	pub _ownerGroup: Option<GeneratedId>,

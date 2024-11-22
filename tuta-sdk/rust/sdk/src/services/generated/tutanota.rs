@@ -22,6 +22,9 @@ use crate::entities::generated::tutanota::GroupInvitationPostData;
 use crate::entities::generated::tutanota::GroupInvitationPostReturn;
 use crate::entities::generated::tutanota::GroupInvitationPutData;
 use crate::entities::generated::tutanota::GroupInvitationDeleteData;
+use crate::entities::generated::tutanota::ImportMailPostIn;
+use crate::entities::generated::tutanota::ImportMailPostOut;
+use crate::entities::generated::tutanota::ImportMailGetIn;
 use crate::entities::generated::tutanota::ListUnsubscribeData;
 use crate::entities::generated::tutanota::CreateMailFolderData;
 use crate::entities::generated::tutanota::CreateMailFolderReturn;
@@ -101,6 +104,13 @@ crate::service_impl!(declare, GroupInvitationService, "tutanota/groupinvitations
 crate::service_impl!(POST, GroupInvitationService, GroupInvitationPostData, GroupInvitationPostReturn);
 crate::service_impl!(PUT, GroupInvitationService, GroupInvitationPutData, ());
 crate::service_impl!(DELETE, GroupInvitationService, GroupInvitationDeleteData, ());
+
+
+pub struct ImportMailService;
+
+crate::service_impl!(declare, ImportMailService, "tutanota/importmailservice", 79);
+crate::service_impl!(POST, ImportMailService, ImportMailPostIn, ImportMailPostOut);
+crate::service_impl!(GET, ImportMailService, ImportMailGetIn, ());
 
 
 pub struct ListUnsubscribeService;
