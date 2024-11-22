@@ -77,7 +77,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 				  })
 		const secondRow = option.value.type === "recipient" ? option.value.value.address : option.value.value.name
 		return m(
-			".pt-s.pb-s.click.content-hover",
+			".pt-s.pb-s.click.content-hover.button-min-height",
 			{
 				class: selected ? "content-accent-fg row-selected icon-accent" : "",
 				style: {

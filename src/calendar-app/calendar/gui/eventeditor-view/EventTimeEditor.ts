@@ -28,11 +28,11 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		const { attrs } = vnode
 		const { startOfTheWeekOffset, editModel, timeFormat, disabled } = attrs
 
-		const amPm = timeFormat === TimeFormat.TWELVE_HOURS
+		const appClasses = isApp() ? ["smaller"] : []
 
 		return m(".flex", [
-			m(".flex.col.flex-grow.gap-vpad-s-15", [
-				m(".flex.gap-vpad-s.items-center", [
+			m(".flex.col.flex-grow.gap-vpad-s", [
+				m(".flex.gap-vpad-s.items-center.pr-vpad-s", [
 					m(Icon, {
 						icon: Icons.Time,
 						style: {
@@ -53,13 +53,14 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						lang.get("allDay_label"),
 					),
 				]),
-				m(".flex.col.full-width.flex-grow.gap-vpad-s-15", { style: { paddingLeft: px(size.icon_size_large + size.vpad_small) } }, [
-					m(Divider, { color: theme.content_message_bg }),
-					m(".time-selection-grid", [
+				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_size_large + size.vpad_small) } }, [
+					m(Divider, { color: theme.button_bubble_bg }),
+					m(".time-selection-grid.pr-vpad-s", [
 						m("", lang.get("dateFrom_label")),
 						m(
 							`${isApp() ? "" : ".pl-vpad-l"}`,
 							m(DatePicker, {
+								classes: appClasses,
 								date: attrs.editModel.startDate,
 								onDateSelected: (date) => date && (editModel.startDate = date),
 								startOfTheWeekOffset,
@@ -71,6 +72,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						m(
 							"",
 							m(TimePicker, {
+								classes: appClasses,
 								time: editModel.startTime,
 								onTimeSelected: (time) => (editModel.startTime = time),
 								timeFormat,
@@ -82,6 +84,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						m(
 							`${isApp() ? "" : ".pl-vpad-l"}`,
 							m(DatePicker, {
+								classes: appClasses,
 								date: attrs.editModel.endDate,
 								onDateSelected: (date) => date && (editModel.endDate = date),
 								startOfTheWeekOffset,
@@ -93,6 +96,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						m(
 							"",
 							m(TimePicker, {
+								classes: appClasses,
 								time: editModel.endTime,
 								onTimeSelected: (time) => (editModel.endTime = time),
 								timeFormat,

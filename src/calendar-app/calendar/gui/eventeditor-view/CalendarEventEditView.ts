@@ -207,8 +207,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
+		const padding = px(size.vpad_small)
 		return m(
 			Card,
+			{ style: { padding: `${padding} 0 ${padding} ${padding}` } },
 			m(EventTimeEditor, {
 				editModel: attrs.model.editModels.whenModel,
 				timeFormat: this.timeFormat,
@@ -338,18 +340,22 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
-		return m(".flex.items-center.gap-vpad-s.flex-grow", { class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-s pb-s"}` }, [
-			m("div", {
-				style: {
-					width: px(size.hpad_large),
-					height: px(size.hpad_large),
-					borderRadius: "50%",
-					backgroundColor: option.color,
-					marginInline: px(size.vpad_xsm / 2),
-				},
-			}),
-			m("span", { style: { color: isSelected ? theme.content_button_selected : undefined } }, option.name),
-		])
+		return m(
+			".flex.items-center.gap-vpad-s.flex-grow",
+			{ class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-s pb-s button-min-height"}` },
+			[
+				m("div", {
+					style: {
+						width: px(size.hpad_large),
+						height: px(size.hpad_large),
+						borderRadius: "50%",
+						backgroundColor: option.color,
+						marginInline: px(size.vpad_xsm / 2),
+					},
+				}),
+				m("span", { style: { color: isSelected ? theme.content_button_selected : undefined } }, option.name),
+			],
+		)
 	}
 
 	private renderRemindersEditor(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
@@ -359,7 +365,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(
 			Card,
 			{ classes: ["button-min-height", "flex", "items-center"] },
-			m(".flex.gap-vpad-s.items-center.flex-grow", [
+			m(".flex.gap-vpad-s.items-start.flex-grow", [
 				m(
 					".flex",
 					{
