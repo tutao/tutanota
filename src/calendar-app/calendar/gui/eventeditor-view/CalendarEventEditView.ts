@@ -26,6 +26,7 @@ import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
 import type { CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -73,7 +74,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private pagesWrapperDomElement!: HTMLElement
 	private allowRenderMainPage: stream<boolean> = stream(true)
 	private dialogHeight: number | null = null
-	private pageStreamListener: stream<void> | null
+	private pageWidth: number = -1
+	private translate = 0
 
 	constructor(vnode: Vnode<CalendarEventEditViewAttrs>) {
 		this.timeFormat = vnode.attrs.timeFormat
@@ -87,12 +89,24 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		this.pages.set(EditorPages.REPEAT_RULES, this.renderRepeatRulesPage)
 		this.pages.set(EditorPages.GUESTS, this.renderGuestsPage)
-		this.pageStreamListener = vnode.attrs.currentPage.map((newPage) => {
-			this.transitionTo(newPage)
+
+		vnode.attrs.currentPage.map((page) => {
+			this.hasAnimationEnded = false
+
+			if (page === EditorPages.MAIN) {
+				this.allowRenderMainPage(true)
+				this.translate = 0
+			}
 		})
+
 		this.allowRenderMainPage.map((allowRendering) => {
 			return this.handleEditorStatus(allowRendering, vnode)
 		})
+	}
+
+	onremove(vnode: Vnode<CalendarEventEditViewAttrs>) {
+		vnode.attrs.currentPage.end(true)
+		this.allowRenderMainPage.end(true)
 	}
 
 	private handleEditorStatus(allowRendering: boolean, vnode: Vnode<CalendarEventEditViewAttrs>) {
@@ -108,25 +122,25 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		vnode.attrs.descriptionEditor.setEnabled(false)
 	}
 
-	onremove() {
-		this.pageStreamListener?.end(true)
-		this.pageStreamListener = null
-	}
-
 	oncreate(vnode: VnodeDOM<CalendarEventEditViewAttrs>): any {
 		this.pagesWrapperDomElement = vnode.dom as HTMLElement
 
 		this.pagesWrapperDomElement.addEventListener("transitionend", () => {
 			if (vnode.attrs.currentPage() !== EditorPages.MAIN) {
-				this.allowRenderMainPage(false)
+				setTimeout(() => {
+					this.allowRenderMainPage(false)
+				}, DefaultAnimationTime)
 				m.redraw()
 				return
 			}
 
 			this.transitionPage = vnode.attrs.currentPage()
 			this.hasAnimationEnded = true
-			this.allowRenderMainPage(true)
-			m.redraw()
+
+			setTimeout(() => {
+				this.allowRenderMainPage(true)
+				m.redraw()
+			}, DefaultAnimationTime)
 		})
 	}
 
@@ -136,10 +150,25 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			this.dialogHeight = dom.parentElement.clientHeight
 			;(vnode.dom as HTMLElement).style.height = px(this.dialogHeight)
 		}
+
+		if (this.pageWidth == -1 && dom.parentElement) {
+			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
+			// Twice the page width (Main Page + Guests/Repeat) plus the gap between pages (64px)
+			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.vpad_xxl)
+			m.redraw()
+		}
 	}
 
 	view(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
-		return m(".flex.gap-vpad-xxl.fit-content.transition-transform", [this.renderMainPage(vnode), this.renderPage(vnode)])
+		return m(
+			".flex.gap-vpad-xxl.fit-content.transition-transform",
+			{
+				style: {
+					transform: `translateX(${this.translate}px)`,
+				},
+			},
+			[this.renderMainPage(vnode), this.renderPage(vnode)],
+		)
 	}
 
 	private renderPage(vnode: Vnode<CalendarEventEditViewAttrs>) {
@@ -155,7 +184,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			recipientsSearch,
 			logins: locator.logins,
 			model,
-			width: this.getPageWidth(),
+			width: this.pageWidth,
 		})
 	}
 
@@ -240,7 +269,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					"button.flex.items-center.justify-between.flex-grow.flash",
 					{
 						onclick: (event: MouseEvent) => {
-							navigationCallback(EditorPages.REPEAT_RULES)
+							this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
 						},
 						disabled,
 						class: disabled ? "disabled cursor-disabled" : "",
@@ -260,6 +289,13 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 	}
 
+	private transitionTo(target: EditorPages, navigationCallback: (targetPage: EditorPages) => unknown) {
+		this.hasAnimationEnded = false
+		this.transitionPage = target
+		this.translate = -(this.pageWidth + size.vpad_xxl)
+		navigationCallback(target)
+	}
+
 	private renderGuestsNavButton({ navigationCallback, model }: CalendarEventEditViewAttrs): Children {
 		return m(
 			Card,
@@ -277,7 +313,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					"button.flex.items-center.justify-between.flex-grow.flash",
 					{
 						onclick: (event: MouseEvent) => {
-							navigationCallback(EditorPages.GUESTS)
+							this.transitionTo(EditorPages.GUESTS, navigationCallback)
 						},
 					},
 					[
@@ -452,8 +488,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					// We also don't want to do this for all dialogs because it could potentially cause other issues
 					transform: "translate(0)",
 					color: theme.button_bubble_fg,
-					width: px(this.getPageWidth()),
 					"pointer-events": `${this.allowRenderMainPage() ? "auto" : "none"}`,
+					width: px(this.pageWidth),
 				},
 			},
 			[
@@ -480,35 +516,9 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(RepeatRuleEditor, {
 			model: whenModel,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
-			width: this.getPageWidth(),
+			width: this.pageWidth,
 			backAction: () => navigationCallback(EditorPages.MAIN),
 		} satisfies RepeatRuleEditorAttrs)
-	}
-
-	private getPageWidth() {
-		if (!this.pagesWrapperDomElement) return 0
-		const parentComputedStyle = getComputedStyle(this.pagesWrapperDomElement.parentElement!)
-		return Number(parentComputedStyle.width.slice(0, -2)) - Number(parentComputedStyle.paddingLeft.slice(0, -2)) * 2
-	}
-
-	private transitionTo(targetPage: EditorPages) {
-		if (!this.pagesWrapperDomElement) return
-
-		this.hasAnimationEnded = false
-
-		if (targetPage === EditorPages.MAIN) {
-			this.allowRenderMainPage(true)
-			this.pagesWrapperDomElement.style.transform = "translateX(0px)"
-			this.pagesWrapperDomElement.style.webkitTransform = "translateX(0px)"
-			return
-		}
-
-		this.transitionPage = targetPage
-		const parentComputedStyle = getComputedStyle(this.pagesWrapperDomElement)
-		const pageWidth = this.getPageWidth()
-		const gapBetweenPages = Number(parentComputedStyle.gap.slice(0, -2))
-		this.pagesWrapperDomElement.style.transform = `translateX(-${pageWidth + gapBetweenPages}px)`
-		this.pagesWrapperDomElement.style.webkitTransform = `translateX(-${pageWidth + gapBetweenPages}px)`
 	}
 
 	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {

@@ -254,6 +254,12 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 							this.intervalExpanded = true
 						}
 					},
+					onblur: (event: FocusEvent) => {
+						if (isNaN(this.repeatInterval)) {
+							this.repeatInterval = this.numberValues[0].value
+							this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
+						}
+					},
 					style: {
 						textAlign: "center",
 					},
