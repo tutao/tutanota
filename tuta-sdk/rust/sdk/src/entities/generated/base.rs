@@ -1,3 +1,4 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
 use super::super::*;
 use crate::*;
@@ -10,6 +11,7 @@ pub struct PersistenceResourcePostReturn {
 	pub generatedId: Option<GeneratedId>,
 	pub permissionListId: GeneratedId,
 }
+
 impl Entity for PersistenceResourcePostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {

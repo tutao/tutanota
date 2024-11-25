@@ -5,6 +5,7 @@ use std::collections::HashMap;
 pub mod generator;
 pub mod service_executor;
 
+#[rustfmt::skip]
 pub mod generated;
 #[cfg(test)]
 pub mod test_services;

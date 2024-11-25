@@ -1,3 +1,4 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
 use super::super::*;
 use crate::*;
@@ -15,6 +16,7 @@ pub struct ApprovalMail {
 	pub text: String,
 	pub customer: Option<GeneratedId>,
 }
+
 impl Entity for ApprovalMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -31,6 +33,7 @@ pub struct CounterValue {
 	pub counterId: GeneratedId,
 	pub value: i64,
 }
+
 impl Entity for CounterValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -54,6 +57,7 @@ pub struct ErrorReportData {
 	pub userId: Option<String>,
 	pub userMessage: Option<String>,
 }
+
 impl Entity for ErrorReportData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -70,6 +74,7 @@ pub struct ErrorReportFile {
 	pub content: String,
 	pub name: String,
 }
+
 impl Entity for ErrorReportFile {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -87,6 +92,7 @@ pub struct ReadCounterData {
 	pub counterType: i64,
 	pub rowName: String,
 }
+
 impl Entity for ReadCounterData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -103,6 +109,7 @@ pub struct ReadCounterReturn {
 	pub value: Option<i64>,
 	pub counterValues: Vec<CounterValue>,
 }
+
 impl Entity for ReadCounterReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -119,6 +126,7 @@ pub struct ReportErrorIn {
 	pub data: ErrorReportData,
 	pub files: Vec<ErrorReportFile>,
 }
+
 impl Entity for ReportErrorIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -137,6 +145,7 @@ pub struct WriteCounterData {
 	pub row: String,
 	pub value: i64,
 }
+
 impl Entity for WriteCounterData {
 	fn type_ref() -> TypeRef {
 		TypeRef {

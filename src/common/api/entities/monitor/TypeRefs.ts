@@ -1,6 +1,6 @@
 import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
 
 
 export const ApprovalMailTypeRef: TypeRef<ApprovalMail> = new TypeRef("monitor", "ApprovalMail")
@@ -20,7 +20,7 @@ export type ApprovalMail = {
 	range: null | string;
 	text: string;
 
-	customer:  null | Id;
+	customer: null | Id;
 }
 export const CounterValueTypeRef: TypeRef<CounterValue> = new TypeRef("monitor", "CounterValue")
 

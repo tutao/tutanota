@@ -1,3 +1,4 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
 use super::super::*;
 use crate::*;
@@ -11,6 +12,7 @@ pub struct ApplyLabelServicePostIn {
 	pub mails: Vec<IdTupleGenerated>,
 	pub removedLabels: Vec<IdTupleGenerated>,
 }
+
 impl Entity for ApplyLabelServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -30,6 +32,7 @@ pub struct AttachmentKeyData {
 	pub fileSessionKey: Option<Vec<u8>>,
 	pub file: IdTupleGenerated,
 }
+
 impl Entity for AttachmentKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -47,6 +50,7 @@ pub struct Birthday {
 	pub month: i64,
 	pub year: Option<i64>,
 }
+
 impl Entity for Birthday {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -64,6 +68,7 @@ pub struct Body {
 	pub text: Option<String>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for Body {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -79,6 +84,7 @@ pub struct CalendarDeleteData {
 	pub _format: i64,
 	pub groupRootId: GeneratedId,
 }
+
 impl Entity for CalendarDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -116,6 +122,7 @@ pub struct CalendarEvent {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CalendarEvent {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -133,6 +140,7 @@ pub struct CalendarEventAttendee {
 	pub address: EncryptedMailAddress,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CalendarEventAttendee {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -148,6 +156,7 @@ pub struct CalendarEventIndexRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for CalendarEventIndexRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -167,6 +176,7 @@ pub struct CalendarEventUidIndex {
 	pub alteredInstances: Vec<IdTupleCustom>,
 	pub progenitor: Option<IdTupleCustom>,
 }
+
 impl Entity for CalendarEventUidIndex {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -191,6 +201,7 @@ pub struct CalendarEventUpdate {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CalendarEventUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -206,6 +217,7 @@ pub struct CalendarEventUpdateList {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for CalendarEventUpdateList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -231,6 +243,7 @@ pub struct CalendarGroupRoot {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CalendarGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -252,6 +265,7 @@ pub struct CalendarRepeatRule {
 	pub excludedDates: Vec<super::sys::DateWrapper>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CalendarRepeatRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -301,6 +315,7 @@ pub struct Contact {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for Contact {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -320,6 +335,7 @@ pub struct ContactAddress {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -339,6 +355,7 @@ pub struct ContactCustomDate {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactCustomDate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -363,6 +380,7 @@ pub struct ContactList {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -386,6 +404,7 @@ pub struct ContactListEntry {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactListEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -409,6 +428,7 @@ pub struct ContactListGroupRoot {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactListGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -428,6 +448,7 @@ pub struct ContactMailAddress {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactMailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -447,6 +468,7 @@ pub struct ContactMessengerHandle {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactMessengerHandle {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -466,6 +488,7 @@ pub struct ContactPhoneNumber {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactPhoneNumber {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -483,6 +506,7 @@ pub struct ContactPronouns {
 	pub pronouns: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactPronouns {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -502,6 +526,7 @@ pub struct ContactRelationship {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactRelationship {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -521,6 +546,7 @@ pub struct ContactSocialId {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactSocialId {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -540,6 +566,7 @@ pub struct ContactWebsite {
 	pub url: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ContactWebsite {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -561,6 +588,7 @@ pub struct ConversationEntry {
 	pub mail: Option<IdTupleGenerated>,
 	pub previous: Option<IdTupleGenerated>,
 }
+
 impl Entity for ConversationEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -581,6 +609,7 @@ pub struct CreateExternalUserGroupData {
 	pub internalUserGroupKeyVersion: i64,
 	pub mailAddress: String,
 }
+
 impl Entity for CreateExternalUserGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -598,6 +627,7 @@ pub struct CreateGroupPostReturn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CreateGroupPostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -620,6 +650,7 @@ pub struct CreateMailFolderData {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CreateMailFolderData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -637,6 +668,7 @@ pub struct CreateMailFolderReturn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CreateMailFolderReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -657,6 +689,7 @@ pub struct CreateMailGroupData {
 	pub mailEncMailboxSessionKey: Vec<u8>,
 	pub groupData: InternalGroupData,
 }
+
 impl Entity for CreateMailGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -692,6 +725,7 @@ pub struct CustomerAccountCreateData {
 	pub userData: UserAccountUserData,
 	pub userGroupData: InternalGroupData,
 }
+
 impl Entity for CustomerAccountCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -708,6 +742,7 @@ pub struct DefaultAlarmInfo {
 	pub trigger: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DefaultAlarmInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -724,6 +759,7 @@ pub struct DeleteGroupData {
 	pub restore: bool,
 	pub group: GeneratedId,
 }
+
 impl Entity for DeleteGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -740,6 +776,7 @@ pub struct DeleteMailData {
 	pub folder: Option<IdTupleGenerated>,
 	pub mails: Vec<IdTupleGenerated>,
 }
+
 impl Entity for DeleteMailData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -757,6 +794,7 @@ pub struct DeleteMailFolderData {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DeleteMailFolderData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -776,6 +814,7 @@ pub struct DraftAttachment {
 	pub existingFile: Option<IdTupleGenerated>,
 	pub newFile: Option<NewDraftAttachment>,
 }
+
 impl Entity for DraftAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -798,6 +837,7 @@ pub struct DraftCreateData {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DraftCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -813,6 +853,7 @@ pub struct DraftCreateReturn {
 	pub _format: i64,
 	pub draft: IdTupleGenerated,
 }
+
 impl Entity for DraftCreateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -841,6 +882,7 @@ pub struct DraftData {
 	pub toRecipients: Vec<DraftRecipient>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DraftData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -858,6 +900,7 @@ pub struct DraftRecipient {
 	pub name: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DraftRecipient {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -876,6 +919,7 @@ pub struct DraftUpdateData {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DraftUpdateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -893,6 +937,7 @@ pub struct DraftUpdateReturn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DraftUpdateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -918,6 +963,7 @@ pub struct EmailTemplate {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for EmailTemplate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -935,6 +981,7 @@ pub struct EmailTemplateContent {
 	pub text: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for EmailTemplateContent {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -953,6 +1000,7 @@ pub struct EncryptTutanotaPropertiesData {
 	pub symKeyVersion: i64,
 	pub properties: GeneratedId,
 }
+
 impl Entity for EncryptTutanotaPropertiesData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -970,6 +1018,7 @@ pub struct EncryptedMailAddress {
 	pub name: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for EncryptedMailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -987,6 +1036,7 @@ pub struct EntropyData {
 	pub userEncEntropy: Vec<u8>,
 	pub userKeyVersion: i64,
 }
+
 impl Entity for EntropyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1022,6 +1072,7 @@ pub struct ExternalUserData {
 	pub verifier: Vec<u8>,
 	pub userGroupData: CreateExternalUserGroupData,
 }
+
 impl Entity for ExternalUserData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1051,6 +1102,7 @@ pub struct TutanotaFile {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for TutanotaFile {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1074,6 +1126,7 @@ pub struct FileSystem {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for FileSystem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1089,6 +1142,7 @@ pub struct GroupInvitationDeleteData {
 	pub _format: i64,
 	pub receivedInvitation: IdTupleGenerated,
 }
+
 impl Entity for GroupInvitationDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1105,6 +1159,7 @@ pub struct GroupInvitationPostData {
 	pub internalKeyData: Vec<InternalRecipientKeyData>,
 	pub sharedGroupData: SharedGroupData,
 }
+
 impl Entity for GroupInvitationPostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1122,6 +1177,7 @@ pub struct GroupInvitationPostReturn {
 	pub invalidMailAddresses: Vec<MailAddress>,
 	pub invitedMailAddresses: Vec<MailAddress>,
 }
+
 impl Entity for GroupInvitationPostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1143,6 +1199,7 @@ pub struct GroupInvitationPutData {
 	pub userGroupKeyVersion: i64,
 	pub receivedInvitation: IdTupleGenerated,
 }
+
 impl Entity for GroupInvitationPutData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1163,6 +1220,7 @@ pub struct GroupSettings {
 	pub group: GeneratedId,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for GroupSettings {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1180,6 +1238,7 @@ pub struct Header {
 	pub headers: Option<String>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for Header {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1198,6 +1257,7 @@ pub struct ImapFolder {
 	pub uidvalidity: String,
 	pub syncInfo: GeneratedId,
 }
+
 impl Entity for ImapFolder {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1217,6 +1277,7 @@ pub struct ImapSyncConfiguration {
 	pub user: String,
 	pub imapSyncState: Option<GeneratedId>,
 }
+
 impl Entity for ImapSyncConfiguration {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1235,6 +1296,7 @@ pub struct ImapSyncState {
 	pub _permissions: GeneratedId,
 	pub folders: Vec<ImapFolder>,
 }
+
 impl Entity for ImapSyncState {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1254,6 +1316,7 @@ pub struct InboxRule {
 	pub targetFolder: IdTupleGenerated,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for InboxRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1287,6 +1350,7 @@ pub struct InternalGroupData {
 	pub pubRsaKey: Option<Vec<u8>>,
 	pub adminGroup: Option<GeneratedId>,
 }
+
 impl Entity for InternalGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1307,6 +1371,7 @@ pub struct InternalRecipientKeyData {
 	pub recipientKeyVersion: i64,
 	pub senderKeyVersion: Option<i64>,
 }
+
 impl Entity for InternalRecipientKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1332,6 +1397,7 @@ pub struct KnowledgeBaseEntry {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for KnowledgeBaseEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1348,6 +1414,7 @@ pub struct KnowledgeBaseEntryKeyword {
 	pub keyword: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for KnowledgeBaseEntryKeyword {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1365,6 +1432,7 @@ pub struct ListUnsubscribeData {
 	pub recipient: String,
 	pub mail: IdTupleGenerated,
 }
+
 impl Entity for ListUnsubscribeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1409,6 +1477,7 @@ pub struct Mail {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for Mail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1427,6 +1496,7 @@ pub struct MailAddress {
 	pub contact: Option<IdTupleGenerated>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1444,6 +1514,7 @@ pub struct MailAddressProperties {
 	pub senderName: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailAddressProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1459,6 +1530,7 @@ pub struct MailBag {
 	pub _id: Option<CustomId>,
 	pub mails: GeneratedId,
 }
+
 impl Entity for MailBag {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1489,6 +1561,7 @@ pub struct MailBox {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailBox {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1509,6 +1582,7 @@ pub struct MailDetails {
 	pub recipients: Recipients,
 	pub replyTos: Vec<EncryptedMailAddress>,
 }
+
 impl Entity for MailDetails {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1532,6 +1606,7 @@ pub struct MailDetailsBlob {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailDetailsBlob {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1555,6 +1630,7 @@ pub struct MailDetailsDraft {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailDetailsDraft {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1570,6 +1646,7 @@ pub struct MailDetailsDraftsRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for MailDetailsDraftsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1599,6 +1676,7 @@ pub struct MailFolder {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailFolder {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1614,6 +1692,7 @@ pub struct MailFolderRef {
 	pub _id: Option<CustomId>,
 	pub folders: GeneratedId,
 }
+
 impl Entity for MailFolderRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1632,6 +1711,7 @@ pub struct MailSetEntry {
 	pub _permissions: GeneratedId,
 	pub mail: IdTupleGenerated,
 }
+
 impl Entity for MailSetEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1655,6 +1735,7 @@ pub struct MailboxGroupRoot {
 	pub outOfOfficeNotificationRecipientList: Option<OutOfOfficeNotificationRecipientList>,
 	pub serverProperties: GeneratedId,
 }
+
 impl Entity for MailboxGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1679,6 +1760,7 @@ pub struct MailboxProperties {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MailboxProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1697,6 +1779,7 @@ pub struct MailboxServerProperties {
 	pub _permissions: GeneratedId,
 	pub whitelistProtectionEnabled: bool,
 }
+
 impl Entity for MailboxServerProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1712,6 +1795,7 @@ pub struct ManageLabelServiceDeleteIn {
 	pub _format: i64,
 	pub label: IdTupleGenerated,
 }
+
 impl Entity for ManageLabelServiceDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1729,6 +1813,7 @@ pub struct ManageLabelServiceLabelData {
 	pub name: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ManageLabelServiceLabelData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1750,6 +1835,7 @@ pub struct ManageLabelServicePostIn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ManageLabelServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1767,6 +1853,7 @@ pub struct MoveMailData {
 	pub sourceFolder: Option<IdTupleGenerated>,
 	pub targetFolder: IdTupleGenerated,
 }
+
 impl Entity for MoveMailData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1788,6 +1875,7 @@ pub struct NewDraftAttachment {
 	pub encMimeType: Vec<u8>,
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 }
+
 impl Entity for NewDraftAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1804,6 +1892,7 @@ pub struct NewsId {
 	pub newsItemId: GeneratedId,
 	pub newsItemName: String,
 }
+
 impl Entity for NewsId {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1819,6 +1908,7 @@ pub struct NewsIn {
 	pub _format: i64,
 	pub newsItemId: Option<GeneratedId>,
 }
+
 impl Entity for NewsIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1834,6 +1924,7 @@ pub struct NewsOut {
 	pub _format: i64,
 	pub newsItemIds: Vec<NewsId>,
 }
+
 impl Entity for NewsOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1853,6 +1944,7 @@ pub struct NotificationMail {
 	pub recipientName: String,
 	pub subject: String,
 }
+
 impl Entity for NotificationMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1874,6 +1966,7 @@ pub struct OutOfOfficeNotification {
 	pub startDate: Option<DateTime>,
 	pub notifications: Vec<OutOfOfficeNotificationMessage>,
 }
+
 impl Entity for OutOfOfficeNotification {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1892,6 +1985,7 @@ pub struct OutOfOfficeNotificationMessage {
 	#[serde(rename = "type")]
 	pub r#type: i64,
 }
+
 impl Entity for OutOfOfficeNotificationMessage {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1907,6 +2001,7 @@ pub struct OutOfOfficeNotificationRecipientList {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for OutOfOfficeNotificationRecipientList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1923,6 +2018,7 @@ pub struct PhishingMarkerWebsocketData {
 	pub lastId: GeneratedId,
 	pub markers: Vec<ReportedMailFieldMarker>,
 }
+
 impl Entity for PhishingMarkerWebsocketData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1938,6 +2034,7 @@ pub struct PhotosRef {
 	pub _id: Option<CustomId>,
 	pub files: GeneratedId,
 }
+
 impl Entity for PhotosRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1953,6 +2050,7 @@ pub struct ReceiveInfoServiceData {
 	pub _format: i64,
 	pub language: String,
 }
+
 impl Entity for ReceiveInfoServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1970,6 +2068,7 @@ pub struct Recipients {
 	pub ccRecipients: Vec<MailAddress>,
 	pub toRecipients: Vec<MailAddress>,
 }
+
 impl Entity for Recipients {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1989,6 +2088,7 @@ pub struct RemoteImapSyncInfo {
 	pub seen: bool,
 	pub message: IdTupleGenerated,
 }
+
 impl Entity for RemoteImapSyncInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2007,6 +2107,7 @@ pub struct ReportMailPostData {
 	pub reportType: i64,
 	pub mailId: IdTupleGenerated,
 }
+
 impl Entity for ReportMailPostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2023,6 +2124,7 @@ pub struct ReportedMailFieldMarker {
 	pub marker: String,
 	pub status: i64,
 }
+
 impl Entity for ReportedMailFieldMarker {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2051,6 +2153,7 @@ pub struct SecureExternalRecipientKeyData {
 	pub saltHash: Option<Vec<u8>>,
 	pub userGroupKeyVersion: i64,
 }
+
 impl Entity for SecureExternalRecipientKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2080,6 +2183,7 @@ pub struct SendDraftData {
 	pub secureExternalRecipientKeyData: Vec<SecureExternalRecipientKeyData>,
 	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
 }
+
 impl Entity for SendDraftData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2098,6 +2202,7 @@ pub struct SendDraftReturn {
 	pub notifications: Vec<NotificationMail>,
 	pub sentMail: IdTupleGenerated,
 }
+
 impl Entity for SendDraftReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2127,6 +2232,7 @@ pub struct SharedGroupData {
 	pub sharedGroupEncSharedGroupInfoKey: Vec<u8>,
 	pub sharedGroupKeyVersion: i64,
 }
+
 impl Entity for SharedGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2143,6 +2249,7 @@ pub struct SimpleMoveMailPostIn {
 	pub destinationSetType: i64,
 	pub mails: Vec<IdTupleGenerated>,
 }
+
 impl Entity for SimpleMoveMailPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2158,6 +2265,7 @@ pub struct SpamResults {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for SpamResults {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2173,6 +2281,7 @@ pub struct Subfiles {
 	pub _id: Option<CustomId>,
 	pub files: GeneratedId,
 }
+
 impl Entity for Subfiles {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2192,6 +2301,7 @@ pub struct SymEncInternalRecipientKeyData {
 	pub symKeyVersion: i64,
 	pub keyGroup: GeneratedId,
 }
+
 impl Entity for SymEncInternalRecipientKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2216,6 +2326,7 @@ pub struct TemplateGroupRoot {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for TemplateGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2231,6 +2342,7 @@ pub struct TranslationGetIn {
 	pub _format: i64,
 	pub lang: String,
 }
+
 impl Entity for TranslationGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2247,6 +2359,7 @@ pub struct TranslationGetOut {
 	pub giftCardSubject: String,
 	pub invitationSubject: String,
 }
+
 impl Entity for TranslationGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2284,6 +2397,7 @@ pub struct TutanotaProperties {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for TutanotaProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2300,6 +2414,7 @@ pub struct UnreadMailStatePostIn {
 	pub unread: bool,
 	pub mails: Vec<IdTupleGenerated>,
 }
+
 impl Entity for UnreadMailStatePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2316,6 +2431,7 @@ pub struct UpdateMailFolderData {
 	pub folder: IdTupleGenerated,
 	pub newParent: Option<IdTupleGenerated>,
 }
+
 impl Entity for UpdateMailFolderData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2333,6 +2449,7 @@ pub struct UserAccountCreateData {
 	pub userData: UserAccountUserData,
 	pub userGroupData: InternalGroupData,
 }
+
 impl Entity for UserAccountCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2388,6 +2505,7 @@ pub struct UserAccountUserData {
 	#[serde(with = "serde_bytes")]
 	pub verifier: Vec<u8>,
 }
+
 impl Entity for UserAccountUserData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2416,6 +2534,7 @@ pub struct UserAreaGroupData {
 	pub userKeyVersion: i64,
 	pub adminGroup: Option<GeneratedId>,
 }
+
 impl Entity for UserAreaGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2431,6 +2550,7 @@ pub struct UserAreaGroupDeleteData {
 	pub _format: i64,
 	pub group: GeneratedId,
 }
+
 impl Entity for UserAreaGroupDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2446,6 +2566,7 @@ pub struct UserAreaGroupPostData {
 	pub _format: i64,
 	pub groupData: UserAreaGroupData,
 }
+
 impl Entity for UserAreaGroupPostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2472,6 +2593,7 @@ pub struct UserSettingsGroupRoot {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for UserSettingsGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {

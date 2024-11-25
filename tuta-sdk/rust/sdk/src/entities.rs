@@ -9,6 +9,7 @@ pub use crate::IdTupleGenerated;
 use crate::TypeRef;
 
 pub mod entity_facade;
+#[rustfmt::skip]
 pub mod generated;
 
 /// `'static` on trait bound is fine here because Entity does not contain any non-static references.

@@ -63,6 +63,7 @@ pub struct ${typeName} {\n`
 
 	buf += "}"
 	buf += `
+
 impl Entity for ${typeName} {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -70,10 +71,9 @@ impl Entity for ${typeName} {
 			type_: "${typeName}",
 		}
 	}
-}
-`
+}`
 
-	return buf + "\n\n"
+	return buf
 }
 
 export function generateRustServiceDefinition(appName, appVersion, services) {
@@ -134,7 +134,7 @@ crate::service_impl!(declare, ${s.name}, "${appName}/${s.name.toLowerCase()}", $
 			return serviceDefinition
 		})
 		.join("\n")
-	return Array.from(imports).join("\n") + code
+	return "// @generated\n" + Array.from(imports).join("\n") + code
 }
 
 /**
@@ -143,9 +143,10 @@ crate::service_impl!(declare, ${s.name}, "${appName}/${s.name.toLowerCase()}", $
  */
 export function combineRustTypes(types) {
 	if (types.length === 0) return "\n"
-	return `#![allow(non_snake_case, unused_imports)]
-use crate::*;
+	return `// @generated
+#![allow(non_snake_case, unused_imports)]
 use super::super::*;
+use crate::*;
 use serde::{Deserialize, Serialize};
 
 ${types.join("\n\n")}
