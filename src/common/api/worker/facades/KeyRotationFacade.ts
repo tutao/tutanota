@@ -250,7 +250,7 @@ export class KeyRotationFacade {
 				switch (groupKeyRotationType) {
 					case GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount:
 						await this.createDistributionKeyPairIfNeeded(this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
-						console.log("Rotating the admin group with multiple members is not yet implemented")
+						await this.rotateMultipleAdminsGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
 						break
 					case GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount:
 					case GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount:
@@ -1030,21 +1030,22 @@ export class KeyRotationFacade {
 	}
 
 	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
-		// first get all admin members to further extract their current
+		// first get all admin members' available distribution keys
 		var { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.get(AdminGroupKeyRotationService, null);
 		if (userGroupIdsMissingDistributionKeys.length > 1) {
+			// not all admins have a distribution key yet, so we cannot rotate the admin group key
 			// we need to create a new distributionkeypair and upload it to the server
 			// TODO: integrate this with tutadb#1912
 			return
 		}
 
-		// we are the last one creating a distribution key
-		// meaning we need to perform the new admin group key distribution
+		// all other admin group members already have a distribution key
+		// we can perform the admin group key rotation
 
 		var adminGroupId = this.getTargetGroupId(keyRotation)
-		// load admin current admin group key
+		// load current admin group key
 		var currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
-		// verify authenticity
+		// verify authenticity of distribution keys
 		var verified = distributionKeys.every((distributionKey) => {
 			// reproduce hash
 			var computedKeyRotationHash = this.computeKeyRotationHash(distributionKey.userGroupId, distributionKey.pubDistributionKey)

@@ -214,50 +214,6 @@
 		"app": "sys",
 		"version": "115"
 	},
-	"AdminGroupKeyRotationGetOut": {
-		"name": "AdminGroupKeyRotationGetOut",
-		"since": 115,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2513,
-		"rootId": "A3N5cwAJ0Q",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 2514,
-				"since": 115,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"distributionKeys": {
-				"final": false,
-				"name": "distributionKeys",
-				"id": 2516,
-				"since": 115,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "PubDistributionKey",
-				"dependency": null
-			},
-			"userGroupIdsMissingDistributionKeys": {
-				"final": false,
-				"name": "userGroupIdsMissingDistributionKeys",
-				"id": 2515,
-				"since": 115,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "Any",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "115"
-	},
 	"AdminGroupKeyRotationPostIn": {
 		"name": "AdminGroupKeyRotationPostIn",
 		"since": 101,
@@ -288,16 +244,6 @@
 				"refType": "GroupKeyRotationData",
 				"dependency": null
 			},
-			"distribution": {
-				"final": false,
-				"name": "distribution",
-				"id": 2502,
-				"since": 115,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "AdminGroupKeyDistributionElement",
-				"dependency": null
-			},
 			"userEncAdminPubKeyHashList": {
 				"final": false,
 				"name": "userEncAdminPubKeyHashList",
@@ -316,50 +262,6 @@
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "UserGroupKeyRotationData",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "115"
-	},
-	"AdminGroupKeyRotationPutIn": {
-		"name": "AdminGroupKeyRotationPutIn",
-		"since": 115,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2503,
-		"rootId": "A3N5cwAJxw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 2504,
-				"since": 115,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"adminDistKeyPair": {
-				"final": false,
-				"name": "adminDistKeyPair",
-				"id": 2506,
-				"since": 115,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "KeyPair",
-				"dependency": null
-			},
-			"adminEncDistKeyHash": {
-				"final": false,
-				"name": "adminEncDistKeyHash",
-				"id": 2505,
-				"since": 115,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "EncryptedKeyHash",
 				"dependency": null
 			}
 		},
