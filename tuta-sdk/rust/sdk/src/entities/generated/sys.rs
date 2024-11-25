@@ -45,29 +45,10 @@ impl Entity for AccountingInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct AdminGroupKeyAuthenticationData {
-	pub _id: Option<CustomId>,
-	#[serde(with = "serde_bytes")]
-	pub authKeyEncAdminRotationHash: Vec<u8>,
-	pub version: i64,
-	pub userGroup: GeneratedId,
-}
-
-impl Entity for AdminGroupKeyAuthenticationData {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "AdminGroupKeyAuthenticationData",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
-	pub adminGroupKeyAuthenticationDataList: Vec<AdminGroupKeyAuthenticationData>,
 	pub adminGroupKeyData: GroupKeyRotationData,
+	pub userEncAdminPubKeyHashList: Vec<EncryptedKeyHash>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 
@@ -1330,6 +1311,26 @@ impl Entity for EmailSenderListElement {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct EncryptedKeyHash {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub encryptingKeyEncKeyHash: Vec<u8>,
+	pub encryptingKeyVersion: i64,
+	pub hashedKeyVersion: i64,
+	pub encryptingGroup: GeneratedId,
+}
+
+impl Entity for EncryptedKeyHash {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "EncryptedKeyHash",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct EntityEventBatch {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -2228,7 +2229,9 @@ pub struct KeyRotation {
 	pub _permissions: GeneratedId,
 	pub groupKeyRotationType: i64,
 	pub targetKeyVersion: i64,
-	pub adminGroupKeyAuthenticationData: Option<AdminGroupKeyAuthenticationData>,
+	pub adminDistKeyPair: Option<KeyPair>,
+	pub adminEncDistKeyHash: Option<EncryptedKeyHash>,
+	pub userEncAdminPubKeyHash: Option<EncryptedKeyHash>,
 }
 
 impl Entity for KeyRotation {

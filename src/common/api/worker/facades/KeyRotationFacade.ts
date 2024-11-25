@@ -1,9 +1,8 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import {
-	AdminGroupKeyAuthenticationData,
 	AdminGroupKeyRotationPostIn,
-	createAdminGroupKeyAuthenticationData,
 	createAdminGroupKeyRotationPostIn,
+	createEncryptedKeyHash,
 	createGroupKeyRotationData,
 	createGroupKeyRotationPostIn,
 	createGroupKeyUpdateData,
@@ -17,6 +16,7 @@ import {
 	createUserGroupKeyRotationData,
 	createUserGroupKeyRotationPostIn,
 	CustomerTypeRef,
+	EncryptedKeyHash,
 	Group,
 	GroupInfoTypeRef,
 	GroupKeyRotationData,
@@ -379,7 +379,7 @@ export class KeyRotationFacade {
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
 		const pubEccKey = assertNotNull(adminKeyPair.pubEccKey)
 		const pubKyberKey = assertNotNull(adminKeyPair.pubKyberKey)
-		const adminGroupKeyAuthenticationDataList = await this.generateEncryptedKeyHashes(
+		const userEncAdminPubKeyHashList = await this.generateEncryptedKeyHashes(
 			pubEccKey,
 			pubKyberKey,
 			newAdminGroupKeys.symGroupKey.version,
@@ -424,7 +424,7 @@ export class KeyRotationFacade {
 			pubAdminGroupEncUserGroupKey: null,
 		})
 
-		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, adminGroupKeyAuthenticationDataList })
+		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList })
 	}
 
 	private async generateEncryptedKeyHashes(
@@ -434,9 +434,9 @@ export class KeyRotationFacade {
 		adminGroupId: Id,
 		customerId: Id,
 		groupToExclude: Id,
-	): Promise<Array<AdminGroupKeyAuthenticationData>> {
+	): Promise<Array<EncryptedKeyHash>> {
 		const keyHash = this.generateKeyHash(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
-		const keyHashes: AdminGroupKeyAuthenticationData[] = []
+		const keyHashes: EncryptedKeyHash[] = []
 
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
@@ -447,10 +447,11 @@ export class KeyRotationFacade {
 			const userGroupKey = await gmf.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
 			const authKey = this.deriveRotationHashKey(userGroupInfo.group, userGroupKey)
 			const encryptedKeyHash = this.cryptoWrapper.aesEncrypt(authKey, keyHash)
-			const publicKeyHash = createAdminGroupKeyAuthenticationData({
-				userGroup: userGroupInfo.group,
-				authKeyEncAdminRotationHash: encryptedKeyHash,
-				version: String(adminGroupKeyVersion),
+			const publicKeyHash = createEncryptedKeyHash({
+				encryptingGroup: userGroupInfo.group,
+				encryptingKeyEncKeyHash: encryptedKeyHash,
+				hashedKeyVersion: String(adminGroupKeyVersion),
+				encryptingKeyVersion: String(userGroupKey.version),
 			})
 			keyHashes.push(publicKeyHash)
 		}
@@ -883,13 +884,18 @@ export class KeyRotationFacade {
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 		console.log(`KeyRotationFacade: rotate key for group: ${userGroupId}, groupKeyRotationType: ${userGroupKeyRotation.groupKeyRotationType}`)
 		// check hashes
-		if (userGroupKeyRotation.adminGroupKeyAuthenticationData == null) {
+		if (userGroupKeyRotation.userEncAdminPubKeyHash == null) {
 			throw new Error("The hash encrypted by admin is not present in the user group key rotation !")
 		}
-		const { version: adminGroupKeyVersion, authKeyEncAdminRotationHash } = userGroupKeyRotation.adminGroupKeyAuthenticationData
+		const { hashedKeyVersion: adminGroupKeyVersion, encryptingKeyEncKeyHash, encryptingKeyVersion } = userGroupKeyRotation.userEncAdminPubKeyHash
+		if (Number(encryptingKeyVersion) !== currentUserGroupKey.version) {
+			throw new Error(
+				`the encrypting key version in the userEncAdminPubKeyHash does not match hash: ${encryptingKeyVersion} current user group key:${currentUserGroupKey.version}`,
+			)
+		}
 
 		const authKey = this.deriveRotationHashKey(userGroupId, currentUserGroupKey)
-		const decryptedAdminHash = this.cryptoWrapper.aesDecrypt(authKey, authKeyEncAdminRotationHash, true)
+		const decryptedAdminHash = this.cryptoWrapper.aesDecrypt(authKey, encryptingKeyEncKeyHash, true)
 
 		const userGroup: Group = await this.entityClient.load(GroupTypeRef, userGroupId)
 

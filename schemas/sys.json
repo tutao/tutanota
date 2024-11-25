@@ -465,6 +465,46 @@
 					"info": "AddValue PlanConfiguration/unlimitedLabels/2494."
 				}
 			]
+		},
+		{
+			"version": 115,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "EncryptedKeyHash",
+					"info": "AddValue EncryptedKeyHash/encryptingKeyVersion/2495."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: userGroup -> encryptingGroup."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: version -> hashedKeyVersion."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: authKeyEncAdminRotationHash -> encryptingKeyEncKeyHash."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyRotation",
+					"info": "RenameAttribute KeyRotation: adminGroupKeyAuthenticationData -> userEncAdminPubKeyHash."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2496."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2497."
+				}
+			]
 		}
 	]
 }

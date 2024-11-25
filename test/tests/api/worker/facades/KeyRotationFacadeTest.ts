@@ -4,12 +4,12 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
-	AdminGroupKeyAuthenticationData,
-	AdminGroupKeyAuthenticationDataTypeRef,
 	AdminGroupKeyRotationPostIn,
 	createPublicKeyGetOut,
 	Customer,
 	CustomerTypeRef,
+	EncryptedKeyHash,
+	EncryptedKeyHashTypeRef,
 	Group,
 	GroupInfo,
 	GroupInfoTypeRef,
@@ -251,10 +251,11 @@ function prepareUserKeyRotation(
 			_id: [keyRotationsListId, userGroupId],
 			targetKeyVersion: String(Number(userGroup.groupKeyVersion) + 1),
 			groupKeyRotationType: GroupKeyRotationType.User,
-			adminGroupKeyAuthenticationData: createTestEntity(AdminGroupKeyAuthenticationDataTypeRef, {
-				authKeyEncAdminRotationHash: adminGeneratedHash,
-				version: "1",
-				userGroup: "userGroup",
+			userEncAdminPubKeyHash: createTestEntity(EncryptedKeyHashTypeRef, {
+				encryptingKeyEncKeyHash: adminGeneratedHash,
+				hashedKeyVersion: "1",
+				encryptingGroup: "userGroup",
+				encryptingKeyVersion: "0",
 			}),
 		}),
 		teamOrCustomerGroupKeyRotations: [],
@@ -927,13 +928,14 @@ o.spec("KeyRotationFacadeTest", function () {
 				const additionalUserGroupInfo = createTestEntity(GroupInfoTypeRef, { group: additionalUserGroupId })
 				when(entityClientMock.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([adminUserGroupInfo, additionalUserGroupInfo])
 				when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
-				when(keyLoaderFacadeMock.getCurrentSymGroupKey(additionalUserGroupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
+				let additionalUserGroupKey = { version: 0, object: groupKeyVersion0 }
+				when(keyLoaderFacadeMock.getCurrentSymGroupKey(additionalUserGroupId)).thenResolve(additionalUserGroupKey)
 				const cleartextHash = object<Uint8Array>()
 				when(cryptoWrapperMock.sha256Hash(anything())).thenReturn(cleartextHash)
 				const encHash = object<Uint8Array>()
 				when(cryptoWrapperMock.aesEncrypt(anything(), cleartextHash)).thenReturn(encHash)
 
-				when(groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(additionalUserGroupInfo.group)).thenResolve(object())
+				when(groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(additionalUserGroupInfo.group)).thenResolve(additionalUserGroupKey)
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
@@ -941,12 +943,13 @@ o.spec("KeyRotationFacadeTest", function () {
 					serviceExecutorMock.post(
 						AdminGroupKeyRotationService,
 						matchers.argThat((arg: AdminGroupKeyRotationPostIn) => {
-							o(arg.adminGroupKeyAuthenticationDataList).notEquals(null)
-							o(arg.adminGroupKeyAuthenticationDataList.length).equals(1)
-							const adminGroupKeyAuthenticationData: AdminGroupKeyAuthenticationData = arg.adminGroupKeyAuthenticationDataList[0]
-							o(adminGroupKeyAuthenticationData.userGroup).equals(additionalUserGroupId)
-							o(adminGroupKeyAuthenticationData.version).equals("1")
-							o(adminGroupKeyAuthenticationData.authKeyEncAdminRotationHash).equals(encHash)
+							o(arg.userEncAdminPubKeyHashList).notEquals(null)
+							o(arg.userEncAdminPubKeyHashList.length).equals(1)
+							const userEncAdminPubKeyHash: EncryptedKeyHash = arg.userEncAdminPubKeyHashList[0]
+							o(userEncAdminPubKeyHash.encryptingGroup).equals(additionalUserGroupId)
+							o(userEncAdminPubKeyHash.hashedKeyVersion).equals("1")
+							o(userEncAdminPubKeyHash.encryptingKeyEncKeyHash).equals(encHash)
+							o(userEncAdminPubKeyHash.encryptingKeyVersion).equals(String(additionalUserGroupKey.version))
 							return true
 						}),
 					),
@@ -1130,7 +1133,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						_id: [keyRotationsListId, userGroupId],
 						targetKeyVersion: String(Number(userGroup.groupKeyVersion) + 1),
 						groupKeyRotationType: GroupKeyRotationType.User,
-						adminGroupKeyAuthenticationData: null, // we set it to null so values are null and will make our code throw
+						userEncAdminPubKeyHash: null, // we set it to null so values are null and will make our code throw
 					}),
 					teamOrCustomerGroupKeyRotations: [],
 					userAreaGroupsKeyRotations: [],
