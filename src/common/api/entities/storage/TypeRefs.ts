@@ -1,8 +1,8 @@
 import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import {TypeRef} from "@tutao/tutanota-utils"
-import {typeModels} from "./TypeModels.js"
-import {Blob} from '../sys/TypeRefs.js'
-import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
+import { TypeRef } from "@tutao/tutanota-utils"
+import { typeModels } from "./TypeModels.js"
+import { Blob } from '../sys/TypeRefs.js'
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 
 export const BlobAccessTokenPostInTypeRef: TypeRef<BlobAccessTokenPostIn> = new TypeRef("storage", "BlobAccessTokenPostIn")
 
@@ -16,8 +16,8 @@ export type BlobAccessTokenPostIn = {
 	_format: NumberString;
 	archiveDataType: null | NumberString;
 
-	read:  null | BlobReadData;
-	write:  null | BlobWriteData;
+	read: null | BlobReadData;
+	write: null | BlobWriteData;
 }
 export const BlobAccessTokenPostOutTypeRef: TypeRef<BlobAccessTokenPostOut> = new TypeRef("storage", "BlobAccessTokenPostOut")
 

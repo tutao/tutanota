@@ -455,6 +455,16 @@
 					"info": "RemoveAssociation CustomerServerProperties/whitelistedDomains."
 				}
 			]
+		},
+		{
+			"version": 114,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "PlanConfiguration",
+					"info": "AddValue PlanConfiguration/unlimitedLabels/2494."
+				}
+			]
 		}
 	]
 }

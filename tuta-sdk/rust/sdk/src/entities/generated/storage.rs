@@ -1,3 +1,4 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
 use super::super::*;
 use crate::*;
@@ -11,6 +12,7 @@ pub struct BlobAccessTokenPostIn {
 	pub read: Option<BlobReadData>,
 	pub write: Option<BlobWriteData>,
 }
+
 impl Entity for BlobAccessTokenPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -26,6 +28,7 @@ pub struct BlobAccessTokenPostOut {
 	pub _format: i64,
 	pub blobAccessInfo: BlobServerAccessInfo,
 }
+
 impl Entity for BlobAccessTokenPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -44,6 +47,7 @@ pub struct BlobArchiveRef {
 	pub _permissions: GeneratedId,
 	pub archive: GeneratedId,
 }
+
 impl Entity for BlobArchiveRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -61,6 +65,7 @@ pub struct BlobGetIn {
 	pub blobId: Option<GeneratedId>,
 	pub blobIds: Vec<BlobId>,
 }
+
 impl Entity for BlobGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -76,6 +81,7 @@ pub struct BlobId {
 	pub _id: Option<CustomId>,
 	pub blobId: GeneratedId,
 }
+
 impl Entity for BlobId {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -91,6 +97,7 @@ pub struct BlobPostOut {
 	pub _format: i64,
 	pub blobReferenceToken: String,
 }
+
 impl Entity for BlobPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -108,6 +115,7 @@ pub struct BlobReadData {
 	pub instanceListId: Option<GeneratedId>,
 	pub instanceIds: Vec<InstanceId>,
 }
+
 impl Entity for BlobReadData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -126,6 +134,7 @@ pub struct BlobReferenceDeleteIn {
 	pub instanceListId: Option<GeneratedId>,
 	pub blobs: Vec<super::sys::Blob>,
 }
+
 impl Entity for BlobReferenceDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -144,6 +153,7 @@ pub struct BlobReferencePutIn {
 	pub instanceListId: Option<GeneratedId>,
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 }
+
 impl Entity for BlobReferencePutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -161,6 +171,7 @@ pub struct BlobServerAccessInfo {
 	pub expires: DateTime,
 	pub servers: Vec<BlobServerUrl>,
 }
+
 impl Entity for BlobServerAccessInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -176,6 +187,7 @@ pub struct BlobServerUrl {
 	pub _id: Option<CustomId>,
 	pub url: String,
 }
+
 impl Entity for BlobServerUrl {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -191,6 +203,7 @@ pub struct BlobWriteData {
 	pub _id: Option<CustomId>,
 	pub archiveOwnerGroup: GeneratedId,
 }
+
 impl Entity for BlobWriteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -206,6 +219,7 @@ pub struct InstanceId {
 	pub _id: Option<CustomId>,
 	pub instanceId: Option<GeneratedId>,
 }
+
 impl Entity for InstanceId {
 	fn type_ref() -> TypeRef {
 		TypeRef {

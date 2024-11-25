@@ -1,3 +1,4 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
 use super::super::*;
 use crate::*;
@@ -14,6 +15,7 @@ pub struct CustomerAccountPosting {
 	pub valueDate: DateTime,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CustomerAccountPosting {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -37,6 +39,7 @@ pub struct CustomerAccountReturn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CustomerAccountReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {

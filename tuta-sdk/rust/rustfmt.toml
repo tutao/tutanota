@@ -14,3 +14,5 @@ use_field_init_shorthand = true
 #reorder_impl_items = true
 #combine_control_expr = false
 #condense_wildcard_suffixes = true
+#format_generated_files = false
+#ignore = ["sdk/src/entities/generated", "sdk/src/services/generated"]

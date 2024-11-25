@@ -1,3 +1,4 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
 use super::super::*;
 use crate::*;
@@ -13,6 +14,7 @@ pub struct UsageTestAssignment {
 	pub variant: Option<i64>,
 	pub stages: Vec<UsageTestStage>,
 }
+
 impl Entity for UsageTestAssignment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -28,6 +30,7 @@ pub struct UsageTestAssignmentIn {
 	pub _format: i64,
 	pub testDeviceId: Option<GeneratedId>,
 }
+
 impl Entity for UsageTestAssignmentIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -44,6 +47,7 @@ pub struct UsageTestAssignmentOut {
 	pub testDeviceId: GeneratedId,
 	pub assignments: Vec<UsageTestAssignment>,
 }
+
 impl Entity for UsageTestAssignmentOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -62,6 +66,7 @@ pub struct UsageTestMetricConfig {
 	pub r#type: i64,
 	pub configValues: Vec<UsageTestMetricConfigValue>,
 }
+
 impl Entity for UsageTestMetricConfig {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -78,6 +83,7 @@ pub struct UsageTestMetricConfigValue {
 	pub key: String,
 	pub value: String,
 }
+
 impl Entity for UsageTestMetricConfigValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -94,6 +100,7 @@ pub struct UsageTestMetricData {
 	pub name: String,
 	pub value: String,
 }
+
 impl Entity for UsageTestMetricData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -112,6 +119,7 @@ pub struct UsageTestParticipationIn {
 	pub testId: GeneratedId,
 	pub metrics: Vec<UsageTestMetricData>,
 }
+
 impl Entity for UsageTestParticipationIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -130,6 +138,7 @@ pub struct UsageTestStage {
 	pub name: String,
 	pub metrics: Vec<UsageTestMetricConfig>,
 }
+
 impl Entity for UsageTestStage {
 	fn type_ref() -> TypeRef {
 		TypeRef {
