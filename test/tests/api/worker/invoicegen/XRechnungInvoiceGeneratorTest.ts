@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils.js"
 import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { extractCityName, extractPostalCode, XRechnungInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
-import fs from "fs"
+
 import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
 
 o.spec("XRechnungInvoiceGenerator", function () {
@@ -35,7 +35,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_jp_invoice_noVat_2.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_jp_invoice_noVat_2.xml", xml, { flag: "w" })
 	})
 
 	o("xrechnung generation for german paypal addVat 3_items", async function () {
@@ -78,7 +78,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_de_paypal_addVat_3.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_de_paypal_addVat_3.xml", xml, { flag: "w" })
 	})
 
 	o("xrechnung generation for german accountBalance vatIncludedHidden 1_items", async function () {
@@ -105,7 +105,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_de_accountBalance_includedVat_2.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_de_accountBalance_includedVat_2.xml", xml, { flag: "w" })
 	})
 
 	o("xrechnung generation for russia noVatReverse creditCard addVat 1_items", async function () {
@@ -132,7 +132,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_ru_creditCard_noVatReverseCharge_3.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_ru_creditCard_noVatReverseCharge_3.xml", xml, { flag: "w" })
 	})
 
 	o("xrechnung generation for credit note", async function () {
@@ -160,7 +160,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_credit.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_credit.xml", xml, { flag: "w" })
 	})
 
 	o("xrechnung generation for discount", async function () {
@@ -204,7 +204,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_discount.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_discount.xml", xml, { flag: "w" })
 	})
 
 	o("xrechnung generation for multi discount", async function () {
@@ -248,7 +248,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 		})
 		const gen = new XRechnungInvoiceGenerator(invoiceData, "1978197819801981931", "MyCustomerId", "test@tutao.de")
 		const xml = gen.generate()
-		fs.writeFileSync("/tmp/xtuta_multi_discount.xml", xml, { flag: "w" })
+		//fs.writeFileSync("/tmp/xtuta_multi_discount.xml", xml, { flag: "w" })
 	})
 
 	o("extractPostalCode", function () {

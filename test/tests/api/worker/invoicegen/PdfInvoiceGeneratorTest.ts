@@ -4,7 +4,6 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { InvoiceDataGetOutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { PdfInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/PdfInvoiceGenerator.js"
 import { object, when } from "testdouble"
-import fs from "fs"
 import { invoiceItemListMock } from "./invoiceTestUtils.js"
 import { PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
 
@@ -28,7 +27,7 @@ o.spec("PdfInvoiceGenerator", function () {
 
 		const gen = new PdfInvoiceGenerator(pdfWriter, invoiceData, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
-		fs.writeFileSync("/tmp/tuta_jp_invoice_noVat_3.pdf", pdf, { flag: "w" })
+		//fs.writeFileSync("/tmp/tuta_jp_invoice_noVat_3.pdf", pdf, { flag: "w" })
 	})
 
 	o("pdf generation for russian invoice vatReverseCharge 4_items", async function () {
@@ -43,7 +42,7 @@ o.spec("PdfInvoiceGenerator", function () {
 		})
 		const gen = new PdfInvoiceGenerator(pdfWriter, renderInvoice, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
-		fs.writeFileSync("/tmp/tuta_ru_invoice_vatReverse_4.pdf", pdf, { flag: "w" })
+		//fs.writeFileSync("/tmp/tuta_ru_invoice_vatReverse_4.pdf", pdf, { flag: "w" })
 	})
 
 	o("pdf rendering with 100 entries", async function () {
@@ -58,7 +57,7 @@ o.spec("PdfInvoiceGenerator", function () {
 
 		const gen = new PdfInvoiceGenerator(pdfWriter, invoiceData, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
-		fs.writeFileSync("/tmp/tuta_100_entries.pdf", pdf, { flag: "w" })
+		//fs.writeFileSync("/tmp/tuta_100_entries.pdf", pdf, { flag: "w" })
 	})
 
 	o("pdf rendering with max entries to be put on first page", async function () {
@@ -69,7 +68,7 @@ o.spec("PdfInvoiceGenerator", function () {
 		})
 		const gen = new PdfInvoiceGenerator(pdfWriter, renderInvoice, "1978197819801981931", "NiiNii")
 		const pdf = await gen.generate()
-		fs.writeFileSync("/tmp/tuta_max_single_page_test.pdf", pdf, { flag: "w" })
+		//fs.writeFileSync("/tmp/tuta_max_single_page_test.pdf", pdf, { flag: "w" })
 	})
 })
 
