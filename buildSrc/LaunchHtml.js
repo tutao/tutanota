@@ -58,7 +58,7 @@ export async function renderHtml(scripts, env) {
 	<meta itemprop="name" content="Turn ON Privacy">
 	<meta itemprop="description" content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">
 	<meta itemprop="image" content="https://tuta.com/images/share_image.png">
-	<meta name="apple-itunes-app" content="app-id=id922429609, affiliate-data=10lSfb">
+	<meta name="apple-itunes-app" content="app-id=922429609, app-argument=https://app.tuta.com">
 </head>
 <body style="background-color:transparent">
 <noscript>This site requires javascript to be enabled. Please activate it in the settings of your browser.</noscript>
