@@ -1,7 +1,7 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::element_value::ParsedEntity;
-use crate::entities::entity_facade::EntityFacade;
+use crate::entities::entity_facade::{EntityFacade, ID_FIELD};
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -74,7 +74,7 @@ impl CryptoEntityClient {
 			.resolve_session_key(&mut parsed_entity, type_model)
 			.await
 			.map_err(|error| {
-				let id = parsed_entity.get("_id");
+				let id = parsed_entity.get(ID_FIELD);
 				ApiCallError::InternalSdkError {
 					error_message: format!(
 						"Failed to resolve session key for entity '{}' with ID: {:?}; {}",
@@ -153,7 +153,7 @@ mod tests {
 	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
-	use crate::entities::entity_facade::EntityFacadeImpl;
+	use crate::entities::entity_facade::{EntityFacadeImpl, ID_FIELD};
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
@@ -188,7 +188,7 @@ mod tests {
 		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
 
 		let raw_mail_id = encrypted_mail
-			.get("_id")
+			.get(ID_FIELD)
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
@@ -218,6 +218,7 @@ mod tests {
 				Ok(Some(ResolvedSessionKey {
 					session_key: sk.clone(),
 					owner_enc_session_key: vec![1, 2, 3],
+					owner_key_version: 0i64,
 				}))
 			});
 

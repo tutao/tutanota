@@ -5,6 +5,7 @@ use rand::random;
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::entity_facade::ID_FIELD;
 use crate::entities::generated::sys::{
 	ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
 };
@@ -199,7 +200,7 @@ fn create_test_entity_dict_with_provider(
 				ValueType::Date => ElementValue::Date(Default::default()),
 				ValueType::Boolean => ElementValue::Bool(Default::default()),
 				ValueType::GeneratedId => {
-					if name == "_id"
+					if name == ID_FIELD
 						&& (model.element_type == ElementType::ListElement
 							|| model.element_type == ElementType::BlobElement)
 					{
@@ -212,12 +213,12 @@ fn create_test_entity_dict_with_provider(
 					}
 				},
 				ValueType::CustomId => {
-					if name == "_id" && (model.element_type == ElementType::ListElement) {
+					if name == ID_FIELD && (model.element_type == ElementType::ListElement) {
 						ElementValue::IdTupleCustomElementId(IdTupleCustom::new(
 							GeneratedId::test_random(),
 							CustomId::test_random(),
 						))
-					} else if name == "_id" && model.element_type == Aggregated {
+					} else if name == ID_FIELD && model.element_type == Aggregated {
 						ElementValue::IdCustomId(CustomId::test_random_aggregate())
 					} else {
 						ElementValue::IdCustomId(CustomId::test_random())
@@ -304,7 +305,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 						ValueType::Date => ElementValue::Date(Default::default()),
 						ValueType::Boolean => ElementValue::Bool(Default::default()),
 						ValueType::GeneratedId => {
-							if name == "_id"
+							if name == ID_FIELD
 								&& (model.element_type == ElementType::ListElement
 									|| model.element_type == ElementType::BlobElement)
 							{
@@ -317,7 +318,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 							}
 						},
 						ValueType::CustomId => {
-							if name == "_id"
+							if name == ID_FIELD
 								&& (model.element_type == ElementType::ListElement
 									|| model.element_type == ElementType::BlobElement)
 							{

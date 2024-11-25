@@ -19,6 +19,21 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+/// The name of the field that contains the session key encrypted
+/// by the owner group's key in an entity
+pub const OWNER_ENC_SESSION_KEY_FIELD: &str = "_ownerEncSessionKey";
+/// The name of the owner-encrypted session key version field in an entity
+pub const OWNER_KEY_VERSION_FIELD: &str = "_ownerKeyVersion";
+/// The name of the owner group field in an entity
+pub const OWNER_GROUP_FIELD: &str = "_ownerGroup";
+/// The name of the ID field in an entity
+pub const ID_FIELD: &str = "_id";
+/// The name of the permissions field in an entity
+pub const PERMISSIONS_FIELD: &str = "_permissions";
+/// The name of the format field in an entity
+pub const FORMAT_FIELD: &str = "_format";
+/// The name of the bucket key field in an entity
+pub const BUCKET_KEY_FIELD: &str = "bucketKey";
 pub const MAX_UNCOMPRESSED_INPUT_LZ4: usize = 0x7e000000;
 
 /// Provides high level functions to handle encryption/decryption of entities
@@ -187,11 +202,11 @@ impl EntityFacadeImpl {
 			encrypted.insert(key.to_string(), encrypted_value);
 		}
 
-		if type_model.element_type == ElementType::Aggregated && !encrypted.contains_key("_id") {
+		if type_model.element_type == ElementType::Aggregated && !encrypted.contains_key(ID_FIELD) {
 			let new_id = self.randomizer_facade.generate_random_array::<4>();
 
 			encrypted.insert(
-				String::from("_id"),
+				String::from(ID_FIELD),
 				ElementValue::String(BASE64_URL_SAFE_NO_PAD.encode(BASE64_STANDARD.encode(new_id))),
 			);
 		}
@@ -600,8 +615,12 @@ impl EntityFacade for EntityFacadeImpl {
 		let mut mapped_decrypted =
 			self.decrypt_and_map_inner(type_model, entity, &resolved_session_key.session_key)?;
 		mapped_decrypted.insert(
-			"_ownerEncSessionKey".to_owned(),
+			OWNER_ENC_SESSION_KEY_FIELD.to_owned(),
 			ElementValue::Bytes(resolved_session_key.owner_enc_session_key.clone()),
+		);
+		mapped_decrypted.insert(
+			OWNER_KEY_VERSION_FIELD.to_owned(),
+			ElementValue::Number(resolved_session_key.owner_key_version),
 		);
 		Ok(mapped_decrypted)
 	}
@@ -701,7 +720,9 @@ mod tests {
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
 	use crate::entities::entity_facade::{
-		EntityFacade, EntityFacadeImpl, MappedValue, MAX_UNCOMPRESSED_INPUT_LZ4,
+		EntityFacade, EntityFacadeImpl, MappedValue, BUCKET_KEY_FIELD, FORMAT_FIELD, ID_FIELD,
+		MAX_UNCOMPRESSED_INPUT_LZ4, OWNER_ENC_SESSION_KEY_FIELD, OWNER_GROUP_FIELD,
+		OWNER_KEY_VERSION_FIELD, PERMISSIONS_FIELD,
 	};
 	use crate::entities::generated::sys::CustomerAccountTerminationRequest;
 	use crate::entities::generated::tutanota::Mail;
@@ -737,6 +758,7 @@ mod tests {
 	fn test_decrypt_mail() {
 		let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(KNOWN_SK.as_slice()).unwrap());
 		let owner_enc_session_key = vec![0, 1, 2];
+		let owner_key_version = 0i64;
 		let type_model_provider = Arc::new(init_type_model_provider());
 		let raw_entity: RawEntity = make_json_entity();
 		let json_serializer = JsonSerializer::new(type_model_provider.clone());
@@ -760,6 +782,7 @@ mod tests {
 				ResolvedSessionKey {
 					session_key: sk,
 					owner_enc_session_key,
+					owner_key_version,
 				},
 			)
 			.unwrap();
@@ -1063,6 +1086,7 @@ mod tests {
 	fn encrypt_instance() {
 		let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(KNOWN_SK.as_slice()).unwrap());
 		let owner_enc_session_key = [0, 1, 2];
+		let owner_key_version = 0i64;
 
 		let deterministic_rng = DeterministicRng(20);
 		let iv = Iv::generate(&RandomizerFacade::from_core(deterministic_rng.clone()));
@@ -1120,6 +1144,7 @@ mod tests {
 					ResolvedSessionKey {
 						session_key: sk.clone(),
 						owner_enc_session_key: owner_enc_session_key.to_vec(),
+						owner_key_version,
 					},
 				)
 				.unwrap();
@@ -1130,9 +1155,14 @@ mod tests {
 
 			assert_eq!(
 				Some(&ElementValue::Bytes(owner_enc_session_key.to_vec())),
-				decrypted_mail.get("_ownerEncSessionKey"),
+				decrypted_mail.get(OWNER_ENC_SESSION_KEY_FIELD),
 			);
-			decrypted_mail.insert("_ownerEncSessionKey".to_string(), ElementValue::Null);
+			decrypted_mail.insert(OWNER_ENC_SESSION_KEY_FIELD.to_string(), ElementValue::Null);
+			assert_eq!(
+				Some(&ElementValue::Number(owner_key_version)),
+				decrypted_mail.get(OWNER_KEY_VERSION_FIELD),
+			);
+			decrypted_mail.insert(OWNER_KEY_VERSION_FIELD.to_string(), ElementValue::Null);
 
 			assert_eq!(
 				Some(ElementValue::Dict(HashMap::new())),
@@ -1164,10 +1194,10 @@ mod tests {
 
 		let dummy_date = DateTime::from_system_time(SystemTime::now());
 		let instance: RawEntity = collection! {
-				"_format" => JsonElement::String("0".to_string()),
-				"_id" => JsonElement::Array(vec![JsonElement::String("O1RT2Dj--3-0".to_string()); 2]),
-				"_ownerGroup" => JsonElement::Null,
-				"_permissions" => JsonElement::String("O2TT2Aj--2-1".to_string()),
+				FORMAT_FIELD => JsonElement::String("0".to_string()),
+				ID_FIELD => JsonElement::Array(vec![JsonElement::String("O1RT2Dj--3-0".to_string()); 2]),
+				OWNER_GROUP_FIELD => JsonElement::Null,
+				PERMISSIONS_FIELD => JsonElement::String("O2TT2Aj--2-1".to_string()),
 				"terminationDate" => JsonElement::String(dummy_date.as_millis().to_string()),
 				"terminationRequestDate" => JsonElement::String(dummy_date.as_millis().to_string()),
 				"customer" => JsonElement::String("customId".to_string()),
@@ -1316,13 +1346,13 @@ mod tests {
 	fn make_json_entity() -> RawEntity {
 		collection! {
 			"sentDate"=> JsonElement::Null,
-			"_ownerEncSessionKey"=> JsonElement::String(
+			OWNER_ENC_SESSION_KEY_FIELD=> JsonElement::String(
 				"AbK4PO4dConOew4jXt7UcmL9I73z1NA14EgbpBEw8J9ipgjD3i92SakgAv7SFXOE59VlWQ5dw3whqqSzkwoQavWWkDeJep1JzdP4ZyzNFMO7".to_string(),
 			),
 			"method"=> JsonElement::String(
 				"AROQNb+N33nEk9+C+fCuy0vPwMWzqDcnZP48St2Jm1obAvKux3xZwnq1mdqpZmcUQEUL3USwYoJ80Ef8gmqmFgk=".to_string(),
 			),
-			"bucketKey"=> JsonElement::Null,
+			BUCKET_KEY_FIELD=> JsonElement::Null,
 			"conversationEntry"=> JsonElement::Array(
 				vec![
 					JsonElement::String(
@@ -1333,7 +1363,7 @@ mod tests {
 					),
 				],
 			),
-			"_permissions"=> JsonElement::String(
+			PERMISSIONS_FIELD=> JsonElement::String(
 				"O1RT2Dj--g-0".to_string(),
 			),
 			"mailDetailsDraft"=> JsonElement::Null,
@@ -1343,7 +1373,7 @@ mod tests {
 						"map-free@tutanota.de".to_string(),
 					),
 					"contact"=> JsonElement::Null,
-					"_id"=> JsonElement::String(
+					ID_FIELD=> JsonElement::String(
 						"0y7Pgw".to_string(),
 					),
 					"name"=> JsonElement::String(
@@ -1360,7 +1390,7 @@ mod tests {
 			"state"=> JsonElement::String(
 				"2".to_string(),
 			),
-			"_ownerKeyVersion"=> JsonElement::String(
+			OWNER_KEY_VERSION_FIELD=> JsonElement::String(
 				"0".to_string(),
 			),
 			"replyTos"=> JsonElement::Array(
@@ -1376,7 +1406,7 @@ mod tests {
 					"address"=> JsonElement::String(
 						"bed-free@tutanota.de".to_string(),
 					),
-					"_id"=> JsonElement::String(
+					ID_FIELD=> JsonElement::String(
 						"yPeInQ".to_string(),
 					),
 					"name"=> JsonElement::String(
@@ -1392,7 +1422,7 @@ mod tests {
 			"attachments"=> JsonElement::Array(
 				vec![],
 			),
-			"_id"=> JsonElement::Array(
+			ID_FIELD=> JsonElement::Array(
 				vec![
 					JsonElement::String(
 						"O1RT1m6-0R-0".to_string(),
@@ -1409,7 +1439,7 @@ mod tests {
 			"receivedDate"=> JsonElement::String(
 				"1720612041643".to_string(),
 			),
-			"_ownerGroup"=> JsonElement::String(
+			OWNER_GROUP_FIELD=> JsonElement::String(
 				"O1RT1m4-0s-0".to_string(),
 			),
 			"replyType"=> JsonElement::String(
@@ -1418,7 +1448,7 @@ mod tests {
 			"phishingStatus"=> JsonElement::String(
 				"0".to_string(),
 			),
-			"_format"=> JsonElement::String(
+			FORMAT_FIELD=> JsonElement::String(
 				"0".to_string(),
 			),
 			"recipientCount"=> JsonElement::String(
