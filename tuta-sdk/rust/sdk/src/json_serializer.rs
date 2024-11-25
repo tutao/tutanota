@@ -6,6 +6,7 @@ use thiserror::Error;
 
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::entity_facade::ID_FIELD;
 use crate::json_element::{JsonElement, RawEntity};
 use crate::json_serializer::InstanceMapperError::InvalidValue;
 use crate::metamodel::{
@@ -492,7 +493,7 @@ impl JsonSerializer {
 			return Ok(JsonElement::Null);
 		}
 
-		if value_name == "_id" {
+		if value_name == ID_FIELD {
 			return match (
 				&model_value.value_type,
 				element_value,
@@ -615,7 +616,7 @@ impl JsonSerializer {
 		// Type models for ids are special.
 		// The actual type depends on the type of the Element.
 		// e.g. for ListElementType the GeneratedId actually means IdTuple.-
-		if value_name == "_id" {
+		if value_name == ID_FIELD {
 			return match (
 				&model_value.value_type,
 				json_value,

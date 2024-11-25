@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::entity_facade::ID_FIELD;
 use crate::id::id_tuple::{BaseIdType, IdTupleType, IdType};
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
@@ -142,7 +143,7 @@ impl EntityClient {
 		entity: ParsedEntity,
 		model_version: u32,
 	) -> Result<(), ApiCallError> {
-		let id = match &entity.get("_id").unwrap() {
+		let id = match &entity.get(ID_FIELD).unwrap() {
 			ElementValue::IdTupleGeneratedElementId(ref id_tuple) => id_tuple.to_string(),
 			ElementValue::IdTupleCustomElementId(ref id_tuple) => id_tuple.to_string(),
 			_ => panic!("id is not string or array"),
@@ -310,7 +311,7 @@ mod tests {
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: HashMap<String, ElementValue> = collection! {
-			"_id" => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
+			ID_FIELD => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
@@ -360,7 +361,7 @@ mod tests {
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: HashMap<String, ElementValue> = collection! {
-			"_id" => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
+			ID_FIELD => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
@@ -410,7 +411,7 @@ mod tests {
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: HashMap<String, ElementValue> = collection! {
-			"_id" => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
+			ID_FIELD => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
@@ -460,7 +461,7 @@ mod tests {
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: HashMap<String, ElementValue> = collection! {
-			"_id" => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
+			ID_FIELD => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
@@ -516,7 +517,7 @@ mod tests {
 			encrypted: true,
 			root_id: "",
 			values: str_map! {
-				"_id" => ModelValue {
+				ID_FIELD => ModelValue {
 						id: 1,
 						value_type: ValueType::GeneratedId,
 						cardinality: Cardinality::One,
@@ -546,7 +547,7 @@ mod tests {
 			encrypted: true,
 			root_id: "",
 			values: str_map! {
-				"_id" => ModelValue {
+				ID_FIELD => ModelValue {
 						id: 1,
 						value_type: ValueType::CustomId,
 						cardinality: Cardinality::One,

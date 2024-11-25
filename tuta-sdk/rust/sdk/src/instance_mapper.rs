@@ -1107,6 +1107,9 @@ impl Serializer for MapKeySerializer {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::entities::entity_facade::{
+		FORMAT_FIELD, ID_FIELD, OWNER_GROUP_FIELD, PERMISSIONS_FIELD,
+	};
 	use crate::entities::generated::sys::{Group, GroupInfo};
 	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
@@ -1179,12 +1182,12 @@ mod tests {
 
 	#[test]
 	fn test_de_error_wrong_type() {
-		let parsed_entity = [("_id".to_owned(), ElementValue::Number(2))].into();
+		let parsed_entity = [(ID_FIELD.to_owned(), ElementValue::Number(2))].into();
 		let mapper = InstanceMapper::new();
 		let group_result = mapper.parse_entity::<Group>(parsed_entity);
 		let err = group_result.unwrap_err();
 		assert!(
-			err.to_string().contains("_id"),
+			err.to_string().contains(ID_FIELD),
 			"error message should contain _id"
 		)
 	}
@@ -1192,7 +1195,7 @@ mod tests {
 	#[test]
 	fn test_de_error_missing_key() {
 		let parsed_entity = [(
-			"_id".to_owned(),
+			ID_FIELD.to_owned(),
 			ElementValue::IdGeneratedId(GeneratedId("id".to_owned())),
 		)]
 		.into();
@@ -1218,14 +1221,14 @@ mod tests {
 	fn test_de_out_of_office_notification() {
 		let parsed_entity: ParsedEntity = HashMap::from_iter(
 			[
-				("_format", ElementValue::Number(0)),
+				(FORMAT_FIELD, ElementValue::Number(0)),
 				(
-					"_id",
+					ID_FIELD,
 					ElementValue::IdGeneratedId(GeneratedId("id".to_owned())),
 				),
-				("_ownerGroup", ElementValue::Null),
+				(OWNER_GROUP_FIELD, ElementValue::Null),
 				(
-					"_permissions",
+					PERMISSIONS_FIELD,
 					ElementValue::IdGeneratedId(GeneratedId("permissions".to_owned())),
 				),
 				("enabled", ElementValue::Bool(true)),
@@ -1296,7 +1299,7 @@ mod tests {
 		};
 		let mapper = InstanceMapper::new();
 		let result = mapper.serialize_entity(group_root.clone()).unwrap();
-		assert_eq!(&ElementValue::Number(0), result.get("_format").unwrap());
+		assert_eq!(&ElementValue::Number(0), result.get(FORMAT_FIELD).unwrap());
 	}
 
 	#[test]
@@ -1308,7 +1311,7 @@ mod tests {
 			&group.groupInfo,
 			result.get("groupInfo").unwrap().assert_tuple_id_generated()
 		);
-		assert_eq!(&ElementValue::Number(0), result.get("_format").unwrap());
+		assert_eq!(&ElementValue::Number(0), result.get(FORMAT_FIELD).unwrap());
 		assert_eq!(
 			&ElementValue::Bytes(vec![1, 2, 3]),
 			result
@@ -1355,7 +1358,7 @@ mod tests {
 
 		assert_eq!(
 			ElementValue::IdTupleCustomElementId(_id),
-			*parsed_entity.get("_id").unwrap()
+			*parsed_entity.get(ID_FIELD).unwrap()
 		);
 		assert_eq!(
 			ElementValue::IdTupleCustomElementId(progenitor),
@@ -1390,7 +1393,7 @@ mod tests {
 
 		assert_eq!(
 			ElementValue::IdTupleGeneratedElementId(_id),
-			*parsed_entity.get("_id").unwrap()
+			*parsed_entity.get(ID_FIELD).unwrap()
 		);
 		assert_eq!(
 			ElementValue::Date(DateTime::from_millis(1533116004052)),
@@ -1416,7 +1419,10 @@ mod tests {
 		let serialized = mapper.serialize_entity(mail).unwrap();
 		assert_eq!(
 			&_id,
-			serialized.get("_id").unwrap().assert_tuple_id_generated()
+			serialized
+				.get(ID_FIELD)
+				.unwrap()
+				.assert_tuple_id_generated()
 		);
 		assert_eq!(
 			&mail_details_id,
@@ -1456,7 +1462,10 @@ mod tests {
 		let serialized = mapper.serialize_entity(mail_details_blob).unwrap();
 		assert_eq!(
 			&_id,
-			serialized.get("_id").unwrap().assert_tuple_id_generated()
+			serialized
+				.get(ID_FIELD)
+				.unwrap()
+				.assert_tuple_id_generated()
 		);
 
 		let deserialized: MailDetailsBlob = mapper.parse_entity(serialized).unwrap();

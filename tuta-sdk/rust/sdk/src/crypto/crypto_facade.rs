@@ -8,6 +8,10 @@ use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::PQError;
 use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::entity_facade::{
+	BUCKET_KEY_FIELD, ID_FIELD, OWNER_ENC_SESSION_KEY_FIELD, OWNER_GROUP_FIELD,
+	OWNER_KEY_VERSION_FIELD,
+};
 use crate::entities::generated::sys::BucketKey;
 use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
@@ -20,18 +24,6 @@ use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use std::sync::Arc;
-
-/// The name of the field that contains the session key encrypted
-/// by the owner group's key in an entity
-const OWNER_ENC_SESSION_FIELD: &str = "_ownerEncSessionKey";
-/// The name of the owner-encrypted session key version field in an entity
-const OWNER_KEY_VERSION_FIELD: &str = "_ownerKeyVersion";
-/// The name of the owner group field in an entity
-const OWNER_GROUP_FIELD: &str = "_ownerGroup";
-/// The name of the ID field in an entity
-const ID_FIELD: &str = "_id";
-/// The name of the bucket key field in an entity
-const BUCKET_KEY_FIELD: &str = "bucketKey";
 
 #[derive(uniffi::Object)]
 pub struct CryptoFacade {
@@ -47,6 +39,7 @@ pub struct CryptoFacade {
 pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
+	pub owner_key_version: i64,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -115,6 +108,7 @@ impl CryptoFacade {
 		Ok(Some(ResolvedSessionKey {
 			session_key,
 			owner_enc_session_key: owner_enc_session_key.clone(),
+			owner_key_version,
 		}))
 	}
 
@@ -196,17 +190,18 @@ impl CryptoFacade {
 		};
 
 		// TODO: authenticate
-		let versioned_key = self
+		let versioned_owner_group_key = self
 			.key_loader_facade
 			.get_current_sym_group_key(owner_group)
 			.await?;
 
-		let owner_enc_session_key = versioned_key
+		let owner_enc_session_key = versioned_owner_group_key
 			.object
 			.encrypt_key(&session_key, Iv::generate(&self.randomizer_facade));
 		Ok(ResolvedSessionKey {
 			session_key,
 			owner_enc_session_key,
+			owner_key_version: versioned_owner_group_key.version,
 		})
 	}
 }
@@ -252,7 +247,8 @@ impl<'a> EntityOwnerKeyData<'a> {
 			};
 		}
 
-		let owner_enc_session_key = get_nullable_field!(entity, OWNER_ENC_SESSION_FIELD, Bytes)?;
+		let owner_enc_session_key =
+			get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_FIELD, Bytes)?;
 		let owner_key_version =
 			get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.copied();
 		let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;

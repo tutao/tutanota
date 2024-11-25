@@ -661,6 +661,7 @@ mod tests {
 				.unwrap();
 		}
 		let owner_enc_session_key = [rand::random(); 32].to_vec();
+		let owner_key_version = 0i64;
 
 		rest_client
 			.expect_request_binary()
@@ -706,6 +707,7 @@ mod tests {
 				Ok(Some(ResolvedSessionKey {
 					session_key: session_key_clone.clone(),
 					owner_enc_session_key: owner_enc_session_key.clone(),
+					owner_key_version,
 				}))
 			});
 
