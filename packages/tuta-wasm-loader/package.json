@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tuta-wasm-loader",
-	"version": "252.241122.0",
+	"version": "253.241126.0",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
