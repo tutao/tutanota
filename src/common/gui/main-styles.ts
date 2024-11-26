@@ -2420,6 +2420,18 @@ styles.registerStyle("main", () => {
 			"font-size": px(size.font_size_base * 1.4),
 			"line-height": `${px(size.font_size_base * 1.4 + 2)} !important`,
 		},
+		".hidden-until-focus": {
+			position: "absolute",
+			left: "-9999px",
+			"z-index": "999",
+			opacity: "0",
+		},
+		".hidden-until-focus:focus": {
+			// position: "initial",
+			left: "50%",
+			transform: "translate(-50%)",
+			opacity: "1",
+		},
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			".main-view": {
 				top: 0,

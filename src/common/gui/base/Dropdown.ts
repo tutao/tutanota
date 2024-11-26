@@ -18,6 +18,7 @@ import { IconButtonAttrs } from "./IconButton.js"
 import { AllIcons } from "./Icon.js"
 import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
 import { AriaRole } from "../AriaUtils.js"
+import { BaseButton } from "./buttons/BaseButton"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -208,6 +209,16 @@ export class Dropdown implements ModalComponent {
 				}),
 			)
 		}
+		const closeBtn = () => {
+			return m(BaseButton, {
+				label: lang.get("close_alt"),
+				text: lang.get("close_alt"),
+				class: "hidden-until-focus content-accent-fg button-content",
+				onclick: () => {
+					this.onClose()
+				},
+			})
+		}
 
 		this.view = (): Children => {
 			return m(
@@ -224,7 +235,7 @@ export class Dropdown implements ModalComponent {
 						}
 					},
 				},
-				[inputField(), contents()],
+				[inputField(), contents(), closeBtn()],
 			)
 		}
 	}

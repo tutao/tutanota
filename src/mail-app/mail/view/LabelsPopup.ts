@@ -4,7 +4,7 @@ import { focusNext, focusPrevious, Shortcut } from "../../../common/misc/KeyMana
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton.js"
 import { PosRect, showDropdown } from "../../../common/gui/base/Dropdown.js"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { size } from "../../../common/gui/size.js"
+import { px, size } from "../../../common/gui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { theme } from "../../../common/gui/theme.js"
@@ -13,6 +13,7 @@ import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
 import { AriaRole } from "../../../common/gui/AriaUtils.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 /**
  * Popup that displays assigned labels and allows changing them
@@ -33,7 +34,9 @@ export class LabelsPopup implements ModalComponent {
 
 	async hideAnimation(): Promise<void> {}
 
-	onClose(): void {}
+	onClose(): void {
+		modal.remove(this)
+	}
 
 	shortcuts(): Shortcut[] {
 		return this.shortCuts
@@ -59,7 +62,7 @@ export class LabelsPopup implements ModalComponent {
 					const { label, state } = labelState
 					const color = theme.content_button
 					return m(
-						".flex.items-center.plr.state-bg.cursor-pointer",
+						"label-item.flex.items-center.plr.state-bg.cursor-pointer",
 
 						{
 							"data-labelid": getElementId(label),
@@ -89,6 +92,14 @@ export class LabelsPopup implements ModalComponent {
 					this.applyLabels()
 				},
 			} satisfies BaseButtonAttrs),
+			m(BaseButton, {
+				label: lang.get("close_alt"),
+				text: lang.get("close_alt"),
+				class: "hidden-until-focus content-accent-fg button-content",
+				onclick: () => {
+					modal.remove(this)
+				},
+			}),
 		])
 	}
 
