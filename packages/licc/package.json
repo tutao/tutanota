@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/licc",
-	"version": "253.241126.1",
+	"version": "253.241126.2",
 	"bin": {
 		"licc": "dist/cli.js"
 	},
@@ -21,7 +21,7 @@
 	},
 	"devDependencies": {
 		"typescript": "5.3.3",
-		"@tutao/tutanota-test-utils": "253.241126.1",
-		"@tutao/otest": "253.241126.1"
+		"@tutao/tutanota-test-utils": "253.241126.2",
+		"@tutao/otest": "253.241126.2"
 	}
 }
