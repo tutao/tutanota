@@ -7,78 +7,68 @@ on:
     branches:
       - dev-*
       - '*/dev'
+env:
+  emscripten_version: 3.1.59
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      - uses: "./.github/shared/setup"
+      - name: lint, formatting
+        run: |
+          npm run check
+      - name: check for FIXMEs
+        run: |
+          if grep "FIXME\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
+            echo 'FIXMEs in src';
+            exit 1;
+          else
+            echo 'No FIXMEs in src';
+          fi
 
-    permissions:
-      actions: none
-      checks: none
-      contents: read
-      deployments: none
-      id-token: none
-      issues: none
-      discussions: none
-      packages: none
-      pages: none
-      pull-requests: none
-      repository-projects: none
-      security-events: none
-      statuses: none
-    env:
-      emscripten_version: 3.1.59
-    strategy:
-      matrix:
-        node-version: [ 20.18.0 ]
 
+  test-node:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           submodules: 'true'
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 #v4.0.2
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-emscripten"
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-      - name: Get better-sqlite3 cached location
-        run: |
-          echo "better_sqlite3_path=$(node buildSrc/getNativeCacheLocation.js better-sqlite3)" >> $GITHUB_ENV
-      - name: try to use cached better-sqlite3
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 #v4.0.2
-        with:
-          path: ${{ env.better_sqlite3_path }}
-          key: ${{ env.better_sqlite3_path }}
-      - name: install packages
-        run: npm ci
-      - name: lint, formatting
-        run: |
-          npm run check
-      - name: get emscripten cached location
-        run: |
-          echo "emscripten_path=$(pwd)/emsdk" >> $GITHUB_ENV
-      - name: cache emscripten
-        id: cache-emscripten
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
-        with:
-          path: ${{ env.emscripten_path }}
-          key: emscripten-${{ env.emscripten_version }}
-      - name: install emscripten
-        if: steps.cache-emscripten.outputs.cache-hit != 'true'
-        run: |
-          git clone --branch ${{ env.emscripten_version }} https://github.com/emscripten-core/emsdk.git
-          cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
-          source ./emsdk_env.sh
-      - name: add emscripten to path
-        run: |
-          echo ${{ env.emscripten_path }}/upstream/bin >> $GITHUB_PATH
-          echo ${{ env.emscripten_path }}/upstream/emscripten >> $GITHUB_PATH
-      - name: run test in node
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: run tests
         run: |
           npm run build-packages
           npm run test-ci
+
+  test-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
       - name: install chrome
         id: setup-chrome
         uses: browser-actions/setup-chrome@97349de5c98094d4fc9412f31c524d7697115ad8 #v1.5.0
@@ -89,17 +79,33 @@ jobs:
         run: |
           echo Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}
           npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --enable-logging=stderr --headless=new --disable-gpu'
-      - name: build web app
+
+  build-webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: build webapp
         run: |
+          npm run build-packages
           node webapp --disable-minify
-      - name: build calendar web app
+
+  build-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: build webapp
         run: |
+          npm run build-packages
           node webapp --disable-minify --app calendar
-      - name: check for FIXMEs
-        run: |
-          if grep "FIXME\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
-            echo 'FIXMEs in src';
-            exit 1;
-          else
-            echo 'No FIXMEs in src';
-          fi
