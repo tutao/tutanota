@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { TextField, TextFieldType } from "./TextField.js"
+import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
 import { TranslationText } from "../../misc/LanguageViewModel"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
@@ -37,6 +37,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 				oninput: attrs.onInput,
 				helpLabel: attrs.helpLabel,
 				type: TextFieldType.Email,
+				autocompleteAs: Autocomplete.off,
 				injectionsLeft: () => {
 					return attrs.items.map((item, idx, items) => {
 						// We need overflow: hidden on both so that ellipsis on button works.
