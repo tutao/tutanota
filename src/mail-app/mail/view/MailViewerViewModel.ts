@@ -791,8 +791,12 @@ export class MailViewerViewModel {
 			if (mailboxDetails == null) {
 				return
 			}
-			// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
-			await this.loadAll(Promise.resolve(), { notify: false })
+
+			const isReloadNeeded = !this.sanitizeResult || this.mail.attachments.length !== this.attachments.length
+			if (isReloadNeeded) {
+				// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
+				await this.loadAll(Promise.resolve(), { notify: true })
+			}
 			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
 			editor.show()
 		}
