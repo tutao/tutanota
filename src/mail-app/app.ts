@@ -36,6 +36,7 @@ import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
+import { CacheMode } from "../common/api/worker/rest/EntityRestClient.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -138,6 +139,12 @@ import("./translations/en.js")
 				},
 				async onFullLoginSuccess() {
 					await mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
+
+					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
+					if (isOfflineStorageAvailable()) {
+						await mailLocator.logins.loadCustomizations(CacheMode.Bypass)
+						m.redraw()
+					}
 
 					if (mailLocator.mailModel.canManageLabels() && !mailLocator.logins.getUserController().props.defaultLabelCreated) {
 						const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()

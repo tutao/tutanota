@@ -2,7 +2,7 @@ import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../common/Env"
 import type { UserController, UserControllerInitData } from "./UserController"
-import { getWhitelabelCustomizations } from "../../../common/misc/WhitelabelCustomizations"
+import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import { NotFoundError } from "../common/error/RestError"
 import { client } from "../../misc/ClientDetector"
 import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
@@ -13,6 +13,7 @@ import { SessionType } from "../common/SessionType"
 import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
+import { CacheMode } from "../worker/rest/EntityRestClient.js"
 
 assertMainOrNodeBoot()
 
@@ -33,6 +34,7 @@ export type ResumeSessionResult = { type: "success" } | { type: "error"; reason:
 
 export class LoginController {
 	private userController: UserController | null = null
+	// they are FeatureType but we might not be aware of newer values for it, so it is not just FeatureType
 	private customizations: NumberString[] | null = null
 	private partialLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
@@ -211,15 +213,10 @@ export class LoginController {
 		return this.customizations != null ? this.customizations.indexOf(feature) !== -1 : false
 	}
 
-	loadCustomizations(): Promise<void> {
-		if (this.isInternalUserLoggedIn()) {
-			return this.getUserController()
-				.loadCustomer()
-				.then((customer) => {
-					this.customizations = customer.customizations.map((f) => f.feature)
-				})
-		} else {
-			return Promise.resolve()
+	async loadCustomizations(cacheMode: CacheMode = CacheMode.Cache): Promise<void> {
+		if (this.getUserController().isInternalUser()) {
+			const customer = await this.getUserController().loadCustomer(cacheMode)
+			this.customizations = customer.customizations.map((f) => f.feature)
 		}
 	}
 
