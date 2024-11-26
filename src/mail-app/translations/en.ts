@@ -237,6 +237,7 @@ export default {
 		"cancelSharedMailbox_label": "Cancel shared mailbox",
 		"cancelUserAccounts_label": "Cancel {1} user(s)",
 		"cancel_action": "Cancel",
+		"cannotAddAdminWhenMultiAdminKeyRotationScheduled_msg": "You are trying to add a new admin but we are currently waiting for all current admins to connect so we can finish upgrading the security of your account.",
 		"cannotEditEvent_msg": "You can only edit parts of this event.",
 		"cannotEditFullEvent_msg": "You can only edit parts of this event because it was not created in your calendar.",
 		"cannotEditNotOrganizer_msg": "You cannot edit this event because you are not its organizer.",

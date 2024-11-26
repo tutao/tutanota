@@ -220,6 +220,7 @@ export type TranslationKeyType =
 	| "cancelSharedMailbox_label"
 	| "cancelUserAccounts_label"
 	| "cancel_action"
+	| "cannotAddAdminWhenMultiAdminKeyRotationScheduled_msg"
 	| "cannotEditEvent_msg"
 	| "cannotEditFullEvent_msg"
 	| "cannotEditNotOrganizer_msg"
