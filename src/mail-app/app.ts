@@ -36,7 +36,7 @@ import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import { CacheMode } from "../common/api/worker/rest/EntityRestClient.js"
+import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -147,17 +147,26 @@ import("./translations/en.js")
 					}
 
 					if (mailLocator.mailModel.canManageLabels() && !mailLocator.logins.getUserController().props.defaultLabelCreated) {
-						const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()
+						const { TutanotaPropertiesTypeRef } = await import("../common/api/entities/tutanota/TypeRefs")
+						const reloadTutanotaProperties = await mailLocator.entityClient.loadRoot(
+							TutanotaPropertiesTypeRef,
+							mailLocator.logins.getUserController().user.userGroup.group,
+							{ cacheMode: CacheMode.Bypass },
+						)
 
-						mailLocator.mailFacade
-							.createLabel(assertNotNull(mailboxDetail[0].mailbox._ownerGroup), {
-								name: lang.get("importantLabel_label"),
-								color: "#FEDC59",
-							})
-							.then(() => {
-								mailLocator.logins.getUserController().props.defaultLabelCreated = true
-								mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
-							})
+						if (!reloadTutanotaProperties.defaultLabelCreated) {
+							const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()
+
+							mailLocator.mailFacade
+								.createLabel(assertNotNull(mailboxDetail[0].mailbox._ownerGroup), {
+									name: lang.get("importantLabel_label"),
+									color: "#FEDC59",
+								})
+								.then(() => {
+									mailLocator.logins.getUserController().props.defaultLabelCreated = true
+									mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
+								})
+						}
 					}
 				},
 			}

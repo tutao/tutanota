@@ -116,11 +116,11 @@ export class EntityClient {
 		return this._target.erase(instance)
 	}
 
-	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
+	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
 		const typeModel = await resolveTypeReference(typeRef)
 		const rootId = [groupId, typeModel.rootId] as const
-		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId)
-		return this.load<T>(typeRef, downcast(root.reference))
+		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId, opts)
+		return this.load<T>(typeRef, downcast(root.reference), opts)
 	}
 }
 
