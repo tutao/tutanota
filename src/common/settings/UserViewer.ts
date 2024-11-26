@@ -204,6 +204,9 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 								ofClass(PreconditionFailedError, (e) => {
 									if (e.data && e.data === "usergroup.pending-key-rotation") {
 										Dialog.message("makeAdminPendingUserGroupKeyRotationError_msg")
+									} else if (e.data === "multiadmingroup.pending-key-rotation") {
+										// when a multi admin key rotation is scheduled we do not want to introduce new members into the admin group
+										Dialog.message("cannotAddAdminWhenMultiAdminKeyRotationScheduled_msg")
 									} else {
 										throw e
 									}

@@ -243,6 +243,7 @@ export default {
 		"cancelSharedMailbox_label": "Abbestellung von geteilter Mailbox",
 		"cancelUserAccounts_label": "Abbestellung von {1} Benutzer",
 		"cancel_action": "Abbrechen",
+		"cannotAddAdminWhenMultiAdminKeyRotationScheduled_msg": "Du versuchst, einen neuen Admin hinzuzufügen, aber wir warten derzeit darauf, dass alle aktuellen Admins eine Verbindung herstellen, damit wir die Sicherheitsverbesserung deines Kontos abschließen können.",
 		"cannotEditEvent_msg": "Du kannst nur Teile dieses Ereignisses bearbeiten.",
 		"cannotEditFullEvent_msg": "Du kannst nur Teile dieses Termins bearbeiten, weil er nicht in deinem Kalender erstellt wurde.",
 		"cannotEditNotOrganizer_msg": "Du kannst diesen Termin nicht bearbeiten, da du nicht der Organisator bist.",
