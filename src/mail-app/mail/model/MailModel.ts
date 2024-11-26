@@ -34,7 +34,7 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 } from "../../../common/api/common/TutanotaConstants.js"
-import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -437,9 +437,12 @@ export class MailModel {
 	}
 
 	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
-		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
-		for (const mailChunk of mailChunks) {
-			await this.mailFacade.applyLabels(mailChunk, addedLabels, removedLabels)
+		const groupedByListIds = groupBy(mails, (mail) => listIdPart(mail._id))
+		for (const [_, groupedMails] of groupedByListIds) {
+			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, groupedMails)
+			for (const mailChunk of mailChunks) {
+				await this.mailFacade.applyLabels(mailChunk, addedLabels, removedLabels)
+			}
 		}
 	}
 
