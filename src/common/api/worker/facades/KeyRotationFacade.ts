@@ -466,6 +466,14 @@ export class KeyRotationFacade {
 		})
 	}
 
+	private deriveAdminDistAuthKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
+		return this.cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
+			key: adminGroupKey.object,
+			context: "multiAdminKeyRotationPubDistKeyHash",
+		})
+	}
+
 	private generateKeyHash(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
 		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
