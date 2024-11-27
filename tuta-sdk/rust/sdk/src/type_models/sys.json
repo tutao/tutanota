@@ -320,6 +320,50 @@
 		"app": "sys",
 		"version": "119"
 	},
+	"AdminGroupKeyRotationPutIn": {
+		"name": "AdminGroupKeyRotationPutIn",
+		"since": 115,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2498,
+		"rootId": "A3N5cwAJwg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2499,
+				"since": 115,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"adminDistKeyPair": {
+				"final": false,
+				"name": "adminDistKeyPair",
+				"id": 2501,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "KeyPair",
+				"dependency": null
+			},
+			"adminEncDistKeyHash": {
+				"final": false,
+				"name": "adminEncDistKeyHash",
+				"id": 2500,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "115"
+	},
 	"AdministratedGroup": {
 		"name": "AdministratedGroup",
 		"since": 27,

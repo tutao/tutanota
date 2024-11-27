@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.	
+// You should not use it directly, please use `resolveTypReference()` instead.
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -326,6 +326,50 @@ export const typeModels = {
 		},
 		"app": "sys",
 		"version": "119"
+	},
+	"AdminGroupKeyRotationPutIn": {
+		"name": "AdminGroupKeyRotationPutIn",
+		"since": 115,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2498,
+		"rootId": "A3N5cwAJwg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2499,
+				"since": 115,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"adminDistKeyPair": {
+				"final": false,
+				"name": "adminDistKeyPair",
+				"id": 2501,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "KeyPair",
+				"dependency": null
+			},
+			"adminEncDistKeyHash": {
+				"final": false,
+				"name": "adminEncDistKeyHash",
+				"id": 2500,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "115"
 	},
 	"AdministratedGroup": {
 		"name": "AdministratedGroup",
@@ -4457,6 +4501,67 @@ export const typeModels = {
 		"associations": {},
 		"app": "sys",
 		"version": "119"
+	},
+	"EncryptedKeyHash": {
+		"name": "EncryptedKeyHash",
+		"since": 111,
+		"type": "AGGREGATED_TYPE",
+		"id": 2477,
+		"rootId": "A3N5cwAJrQ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2478,
+				"since": 111,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encryptingKeyEncKeyHash": {
+				"final": false,
+				"name": "encryptingKeyEncKeyHash",
+				"id": 2481,
+				"since": 111,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encryptingKeyVersion": {
+				"final": false,
+				"name": "encryptingKeyVersion",
+				"id": 2504,
+				"since": 116,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"hashedKeyVersion": {
+				"final": false,
+				"name": "hashedKeyVersion",
+				"id": 2480,
+				"since": 111,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"encryptingGroup": {
+				"final": false,
+				"name": "encryptingGroup",
+				"id": 2479,
+				"since": 111,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "116"
 	},
 	"EntityEventBatch": {
 		"name": "EntityEventBatch",
