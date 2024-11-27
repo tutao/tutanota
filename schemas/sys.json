@@ -465,6 +465,61 @@
 					"info": "AddValue PlanConfiguration/unlimitedLabels/2494."
 				}
 			]
+		},
+		{
+			"version": 115,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "EncryptedKeyHash",
+					"info": "AddValue EncryptedKeyHash/encryptingKeyVersion/2495."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: userGroup -> encryptingGroup."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: version -> hashedKeyVersion."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: authKeyEncAdminRotationHash -> encryptingKeyEncKeyHash."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyRotation",
+					"info": "RenameAttribute KeyRotation: adminGroupKeyAuthenticationData -> userEncAdminPubKeyHash."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "KeyRotation",
+					"info": "AddValue KeyRotation/distEncAdminGroupSymKey/2496."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/userEncAdminSymKeyHash/AGGREGATION/2497."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2498."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2499."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "UserGroupKeyRotationData",
+					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2520."
+				}
+			]
 		}
 	]
 }

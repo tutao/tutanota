@@ -116,7 +116,7 @@ export class CryptoWrapper {
 		return sha256Hash(data)
 	}
 
-	deriveKeyWithHkdf({ key, salt, context }: { key: AesKey; salt: string; context: HkdfKeyDerivationDomains }) {
+	deriveKeyWithHkdf({ key, salt, context }: { key: AesKey; salt: string; context: HkdfKeyDerivationDomains }): Aes256Key {
 		return deriveKey({
 			salt,
 			key,
