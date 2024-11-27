@@ -1,4 +1,5 @@
 import { AdminGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { AdminGroupKeyRotationPutInTypeRef } from "./TypeRefs.js"
 import { AffiliatePartnerKpiServiceGetOutTypeRef } from "./TypeRefs.js"
 import { AlarmServicePostTypeRef } from "./TypeRefs.js"
 import { AppStoreSubscriptionGetInTypeRef } from "./TypeRefs.js"
@@ -97,7 +98,7 @@ export const AdminGroupKeyRotationService = Object.freeze({
 	name: "AdminGroupKeyRotationService",
 	get: null,
 	post: { data: AdminGroupKeyRotationPostInTypeRef, return: null },
-	put: null,
+	put: { data: AdminGroupKeyRotationPutInTypeRef, return: null },
 	delete: null,
 } as const)
 

@@ -1,9 +1,10 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import {
-	AdminGroupKeyAuthenticationData,
+	AdminGroupKeyDistributionElement,
 	AdminGroupKeyRotationPostIn,
-	createAdminGroupKeyAuthenticationData,
 	createAdminGroupKeyRotationPostIn,
+	createAdminGroupKeyRotationPutIn,
+	createEncryptedKeyHash,
 	createGroupKeyRotationData,
 	createGroupKeyRotationPostIn,
 	createGroupKeyUpdateData,
@@ -17,6 +18,7 @@ import {
 	createUserGroupKeyRotationData,
 	createUserGroupKeyRotationPostIn,
 	CustomerTypeRef,
+	EncryptedKeyHash,
 	Group,
 	GroupInfoTypeRef,
 	GroupKeyRotationData,
@@ -56,7 +58,7 @@ import {
 	promiseMap,
 	Versioned,
 } from "@tutao/tutanota-utils"
-import { customIdToUint8array, elementIdPart, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
+import { customIdToUint8array, elementIdPart, getElementId, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import {
 	Aes256Key,
@@ -248,6 +250,7 @@ export class KeyRotationFacade {
 				const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
 				switch (groupKeyRotationType) {
 					case GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount:
+						await this.createDistributionKeyPairIfNeeded(this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
 						console.log("Rotating the admin group with multiple members is not yet implemented")
 						break
 					case GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount:
@@ -379,7 +382,7 @@ export class KeyRotationFacade {
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
 		const pubEccKey = assertNotNull(adminKeyPair.pubEccKey)
 		const pubKyberKey = assertNotNull(adminKeyPair.pubKyberKey)
-		const adminGroupKeyAuthenticationDataList = await this.generateEncryptedKeyHashes(
+		const userEncAdminPubKeyHashList = await this.generateEncryptedKeyHashes(
 			pubEccKey,
 			pubKyberKey,
 			newAdminGroupKeys.symGroupKey.version,
@@ -387,6 +390,9 @@ export class KeyRotationFacade {
 			assertNotNull(user.customer),
 			userGroupId,
 		)
+
+		const distribution: AdminGroupKeyDistributionElement[] = []
+		const userEncAdminSymKeyHashList: EncryptedKeyHash[] = []
 
 		const newUserGroupKeys = await this.generateGroupKeys(userGroup)
 		const encryptedAdminKeys = await this.encryptGroupKeys(adminGroup, currentAdminGroupKey, newAdminGroupKeys, newAdminGroupKeys.symGroupKey)
@@ -422,9 +428,10 @@ export class KeyRotationFacade {
 			adminGroupKeyVersion: String(encryptedUserKeys.newAdminGroupKeyEncNewUserGroupKey.encryptingKeyVersion),
 			passphraseEncUserGroupKey: encryptedUserKeys.passphraseKeyEncNewUserGroupKey.key,
 			pubAdminGroupEncUserGroupKey: null,
+			userGroupEncAdminGroupKey: null,
 		})
 
-		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, adminGroupKeyAuthenticationDataList })
+		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList, distribution })
 	}
 
 	private async generateEncryptedKeyHashes(
@@ -434,9 +441,9 @@ export class KeyRotationFacade {
 		adminGroupId: Id,
 		customerId: Id,
 		groupToExclude: Id,
-	): Promise<Array<AdminGroupKeyAuthenticationData>> {
+	): Promise<Array<EncryptedKeyHash>> {
 		const keyHash = this.generateKeyHash(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
-		const keyHashes: AdminGroupKeyAuthenticationData[] = []
+		const keyHashes: EncryptedKeyHash[] = []
 
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
@@ -447,10 +454,11 @@ export class KeyRotationFacade {
 			const userGroupKey = await gmf.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
 			const authKey = this.deriveRotationHashKey(userGroupInfo.group, userGroupKey)
 			const encryptedKeyHash = this.cryptoWrapper.aesEncrypt(authKey, keyHash)
-			const publicKeyHash = createAdminGroupKeyAuthenticationData({
-				userGroup: userGroupInfo.group,
-				authKeyEncAdminRotationHash: encryptedKeyHash,
-				version: String(adminGroupKeyVersion),
+			const publicKeyHash = createEncryptedKeyHash({
+				encryptingGroup: userGroupInfo.group,
+				encryptingKeyEncKeyHash: encryptedKeyHash,
+				hashedKeyVersion: String(adminGroupKeyVersion),
+				encryptingKeyVersion: String(userGroupKey.version),
 			})
 			keyHashes.push(publicKeyHash)
 		}
@@ -466,6 +474,22 @@ export class KeyRotationFacade {
 		})
 	}
 
+	private deriveAdminGroupDistributionKeyPairKey(adminGroupId: string, currentAdminGroupKey: VersionedKey, pwKey: Aes256Key) {
+		return this.cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${currentAdminGroupKey.version}`,
+			key: pwKey,
+			context: "adminGroupDistributionKeyPairKey",
+		})
+	}
+
+	private deriveAdminDistAuthKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
+		return this.cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
+			key: adminGroupKey.object,
+			context: "multiAdminKeyRotationPubDistKeyHash",
+		})
+	}
+
 	private generateKeyHash(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
 		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
@@ -473,6 +497,12 @@ export class KeyRotationFacade {
 		const identifier = customIdToUint8array(adminGroupId) // also works for generated IDs
 		//Format:  versionbyte, pubEccKey, pubKyberKey, groupKeyVersion, identifier, identifierType
 		const hashData = concat(versionByte, pubEccKey, pubKyberKey, adminKeyVersion, identifier, identifierType)
+		return this.cryptoWrapper.sha256Hash(hashData)
+	}
+
+	private generatePubDistKeyHash(pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
+		const versionByte = Uint8Array.from([0])
+		const hashData = concat(versionByte, pubEccKey, pubKyberKey)
 		return this.cryptoWrapper.sha256Hash(hashData)
 	}
 
@@ -528,7 +558,7 @@ export class KeyRotationFacade {
 		const members = await this.entityClient.loadAll(GroupMemberTypeRef, targetGroup.members)
 		const ownMember = members.find((member) => member.user == user._id)
 		const otherMembers = members.filter((member) => member.user != user._id)
-		let currentGroupKey = await this.getCurrentGroupKey(targetGroupId, targetGroup)
+		let currentGroupKey = await this.getCurrentGroupKey(targetGroup)
 		const newGroupKeys = await this.generateGroupKeys(targetGroup)
 		const encryptedGroupKeys = await this.encryptGroupKeys(targetGroup, currentGroupKey, newGroupKeys, currentAdminGroupKey)
 
@@ -569,13 +599,13 @@ export class KeyRotationFacade {
 		})
 	}
 
-	private async getCurrentGroupKey(targetGroupId: string, targetGroup: Group): Promise<VersionedKey> {
+	private async getCurrentGroupKey(targetGroup: Group): Promise<VersionedKey> {
 		try {
-			return await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroupId)
+			return await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroup._id)
 		} catch (e) {
 			//if we cannot get/decrypt the group key via membership we try via adminEncGroupKey
 			const groupManagementFacade = await this.groupManagementFacade()
-			const currentKey = await groupManagementFacade.getGroupKeyViaAdminEncGKey(targetGroupId, Number(targetGroup.groupKeyVersion))
+			const currentKey = await groupManagementFacade.getGroupKeyViaAdminEncGKey(targetGroup._id, Number(targetGroup.groupKeyVersion))
 			return { object: currentKey, version: Number(targetGroup.groupKeyVersion) }
 		}
 	}
@@ -790,17 +820,21 @@ export class KeyRotationFacade {
 	 */
 	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedPqKeyPairs | null> {
 		if (groupToRotate.currentKeys) {
-			const newPqPairs = await this.pqFacade.generateKeyPairs()
-			return {
-				pubRsaKey: null,
-				symEncPrivRsaKey: null,
-				pubEccKey: newPqPairs.eccKeyPair.publicKey,
-				symEncPrivEccKey: this.cryptoWrapper.encryptEccKey(newSymmetricGroupKey, newPqPairs.eccKeyPair.privateKey),
-				pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
-				symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(newSymmetricGroupKey, newPqPairs.kyberKeyPair.privateKey),
-			}
+			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey)
 		} else {
 			return null
+		}
+	}
+
+	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedPqKeyPairs> {
+		const newPqPairs = await this.pqFacade.generateKeyPairs()
+		return {
+			pubRsaKey: null,
+			symEncPrivRsaKey: null,
+			pubEccKey: newPqPairs.eccKeyPair.publicKey,
+			symEncPrivEccKey: this.cryptoWrapper.encryptEccKey(symmmetricEncryptionKey, newPqPairs.eccKeyPair.privateKey),
+			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
+			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
 		}
 	}
 
@@ -869,13 +903,18 @@ export class KeyRotationFacade {
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 		console.log(`KeyRotationFacade: rotate key for group: ${userGroupId}, groupKeyRotationType: ${userGroupKeyRotation.groupKeyRotationType}`)
 		// check hashes
-		if (userGroupKeyRotation.adminGroupKeyAuthenticationData == null) {
+		if (userGroupKeyRotation.userEncAdminPubKeyHash == null) {
 			throw new Error("The hash encrypted by admin is not present in the user group key rotation !")
 		}
-		const { version: adminGroupKeyVersion, authKeyEncAdminRotationHash } = userGroupKeyRotation.adminGroupKeyAuthenticationData
+		const { hashedKeyVersion: adminGroupKeyVersion, encryptingKeyEncKeyHash, encryptingKeyVersion } = userGroupKeyRotation.userEncAdminPubKeyHash
+		if (Number(encryptingKeyVersion) !== currentUserGroupKey.version) {
+			throw new Error(
+				`the encrypting key version in the userEncAdminPubKeyHash does not match hash: ${encryptingKeyVersion} current user group key:${currentUserGroupKey.version}`,
+			)
+		}
 
 		const authKey = this.deriveRotationHashKey(userGroupId, currentUserGroupKey)
-		const decryptedAdminHash = this.cryptoWrapper.aesDecrypt(authKey, authKeyEncAdminRotationHash, true)
+		const decryptedAdminHash = this.cryptoWrapper.aesDecrypt(authKey, encryptingKeyEncKeyHash, true)
 
 		const userGroup: Group = await this.entityClient.load(GroupTypeRef, userGroupId)
 
@@ -923,6 +962,7 @@ export class KeyRotationFacade {
 			pubAdminGroupEncUserGroupKey,
 			adminGroupEncUserGroupKey: null,
 			recoverCodeData: recoverCodeData,
+			userGroupEncAdminGroupKey: null,
 		})
 
 		await this.serviceExecutor.post(UserGroupKeyRotationService, createUserGroupKeyRotationPostIn({ userGroupKeyData }))
@@ -958,6 +998,31 @@ export class KeyRotationFacade {
 			senderKeyVersion: pubEncSymKey.senderKeyVersion != null ? pubEncSymKey.senderKeyVersion.toString() : null,
 			recipientKeyVersion: pubEncSymKey.recipientKeyVersion.toString(),
 		})
+	}
+
+	private async createDistributionKeyPairIfNeeded(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation) {
+		if (multiAdminKeyRotation.adminDistKeyPair != null && multiAdminKeyRotation.adminEncDistKeyHash != null) {
+			return
+		}
+		let adminGroupId = getElementId(multiAdminKeyRotation)
+		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+		const adminDistKeyPairDistributionKey = this.deriveAdminGroupDistributionKeyPairKey(adminGroupId, currentAdminGroupKey, pwKey)
+		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
+
+		const pubDistKeyHash = this.generatePubDistKeyHash(adminDistributionKeyPair.pubEccKey, adminDistributionKeyPair.pubKyberKey)
+		const adminDistAuthKey = this.deriveAdminDistAuthKey(adminGroupId, this.userFacade.getUserGroupId(), currentAdminGroupKey)
+		const adminDistAuthEncDistKeyHash = this.cryptoWrapper.aesEncrypt(adminDistAuthKey, pubDistKeyHash)
+
+		const putDistributionKeyPairsOnKeyRotation = createAdminGroupKeyRotationPutIn({
+			adminDistKeyPair: assertNotNull(makeKeyPair(adminDistributionKeyPair)),
+			adminEncDistKeyHash: createEncryptedKeyHash({
+				encryptingKeyEncKeyHash: adminDistAuthEncDistKeyHash,
+				hashedKeyVersion: "0", // dummy value because this is only used for the rotation and does not have a version
+				encryptingGroup: adminGroupId,
+				encryptingKeyVersion: currentAdminGroupKey.version.toString(),
+			}),
+		})
+		await this.serviceExecutor.put(AdminGroupKeyRotationService, putDistributionKeyPairsOnKeyRotation)
 	}
 }
 
