@@ -1843,6 +1843,7 @@ export default {
 		"months_label": "Months",
 		"repeatsEvery_label": "Repeats every",
 		"notAttending_label": "Not attending",
-		"maybeAttending_label": "Maybe attending"
+		"maybeAttending_label": "Maybe attending",
+		"handleSubscriptionOnApp_msg": "Your subscribtion must be managed on {1}. Do you want to open it?"
 	}
 }

@@ -228,7 +228,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	private renderCyberMondayRibbon(): Children {
-		const text = isIOSApp() && !client.isCalendarApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
+		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
 		return m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { padding: px(3) } }, text))
 	}
 

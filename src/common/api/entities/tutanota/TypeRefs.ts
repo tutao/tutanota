@@ -560,6 +560,7 @@ export type CustomerAccountCreateData = {
 	accountGroupKeyVersion: NumberString;
 	adminEncAccountingInfoSessionKey: Uint8Array;
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
+	app: NumberString;
 	authToken: string;
 	code: string;
 	date: null | Date;

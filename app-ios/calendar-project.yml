@@ -30,7 +30,6 @@ targets:
         name: "build-calendar-app"
         type: "folder"
         buildPhase: "resources"
-      - path: "Plans.storekit"
     settings:
       base:
         PRODUCT_MODULE_NAME: "calendar"

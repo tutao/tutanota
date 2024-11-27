@@ -171,6 +171,33 @@ class AndroidMobileSystemFacade(
 		Log.e(TAG, "Trying to open Tuta Mail from Tuta Mail")
 	}
 
+	private fun tryToLaunchStore() {
+		try {
+			startActivity(
+				activity,
+				Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=de.tutao.calendar")),
+				null
+			)
+		} catch (e: Exception) {
+			Log.d(TAG, "Failed to launch store $e")
+		}
+	}
+
+	override suspend fun openCalendarApp(query: String) {
+		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
+
+		val intent = Intent()
+		intent.setAction(Intent.ACTION_EDIT)
+		intent.setData(Uri.parse("tutacalendar://interop?${decodedQuery}"))
+
+		try {
+			startActivity(activity, intent, null)
+		} catch (e: Exception) {
+			Log.d(TAG, e.toString())
+			tryToLaunchStore()
+		}
+	}
+
 	override suspend fun getInstallationDate(): String {
 		return SystemUtils.getInstallationDate(activity.packageManager, activity.packageName)
 	}

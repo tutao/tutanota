@@ -79,6 +79,18 @@ class IosMobileSystemFacade: MobileSystemFacade {
 	}
 
 	func openMailApp(_ query: String) async throws { TUTSLog("Tried to open Mail App from Mail App") }
+	func openCalendarApp(_ query: String) async throws {
+		guard let decodedQuery = String(data: Data(base64Encoded: query)!, encoding: .utf8) else {
+			throw TutanotaSharedFramework.TutanotaError(message: "Failed to decode query string during interop")
+		}
+		let url = "tutacalendar://interop?\(decodedQuery)"
+
+		if let url = URL(string: url), await UIApplication.shared.canOpenURL(url) {
+			DispatchQueue.main.async { UIApplication.shared.open(url) }
+		} else {
+			DispatchQueue.main.async { UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id6657977811")!) }
+		}
+	}
 	func getInstallationDate() async throws -> String {
 		let documentsURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
 		let creationDate = try FileManager.default.attributesOfItem(atPath: documentsURL.path)[FileAttributeKey.creationDate] as! Date

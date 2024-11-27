@@ -37,4 +37,7 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async handleFileImport(...args: Parameters<CommonNativeFacade["handleFileImport"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "handleFileImport", ...args])
 	}
+	async openSettings(...args: Parameters<CommonNativeFacade["openSettings"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "openSettings", ...args])
+	}
 }

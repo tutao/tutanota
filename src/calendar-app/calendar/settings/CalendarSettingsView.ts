@@ -215,9 +215,9 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				"adminSubscription_action",
 				() => BootIcons.Premium,
 				"subscription",
-				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null, locator.appStorePaymentPicker),
+				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
 				undefined,
-			).setIsVisibleHandler(() => !isIOSApp() || !this.logins.getUserController().isFreeAccount()),
+			),
 		)
 
 		this.subscriptionFolders.push(
@@ -279,7 +279,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders()]).then(() => {
 			// We have to wait for the folders to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
-			const stillAtDefaultUrl = m.route.get() === this.userFolders[0].url
+			const stillAtDefaultUrl =
+				m.route.get() === this.userFolders[0].url || (m.route.get() === this.targetRoute && this.selectedFolder.url !== this.targetRoute)
 			if (stillAtDefaultUrl) {
 				this.onNewUrl({ folder: this.targetFolder }, this.targetRoute)
 			}
@@ -381,6 +382,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 				// make sure the currentViewer is available
 				this._getCurrentViewer()
+				this.viewSlider.focus(this.settingsColumn)
 
 				m.redraw()
 			} else {

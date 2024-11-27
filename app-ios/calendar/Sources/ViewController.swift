@@ -5,6 +5,8 @@ import UIKit
 import UserNotifications
 import WebKit
 
+public let OPEN_SETTINGS = "settings"
+
 /// Main screen of the app.
 class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
 	private let themeManager: ThemeManager
@@ -233,6 +235,23 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		do { try await self.bridge.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
 			TUTSLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
+		}
+	}
+
+	private func getInteropInfo(url: URL) async -> URLQueryItem? {
+		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+
+		return components.queryItems?.first(where: { $0.name == OPEN_SETTINGS })
+	}
+
+	func handleInterop(_ url: URL) async throws {
+		guard let info = await getInteropInfo(url: url) else {
+			TUTSLog("unable to get interop info from url: \(url)")
+			return
+		}
+
+		if info.name == OPEN_SETTINGS {
+			do { try await self.bridge.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
 		}
 	}
 

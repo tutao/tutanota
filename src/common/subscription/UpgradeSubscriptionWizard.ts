@@ -30,7 +30,7 @@ import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./Pr
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
-import { Dialog, DialogType } from "../gui/base/Dialog.js"
+import { DialogType } from "../gui/base/Dialog.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -77,11 +77,6 @@ export type UpgradeSubscriptionData = {
 export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
-	if (isIOSApp() && !(await locator.appStorePaymentPicker.shouldEnableAppStorePayment())) {
-		Dialog.message("notAvailableInApp_msg")
-		return
-	}
-
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
 
 	const prices = priceDataProvider.getRawPricingData()
@@ -98,7 +93,7 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
 		},
 		paymentData: {
-			paymentMethod: getPaymentMethodType(accountingInfo) || (await getDefaultPaymentMethod(locator.appStorePaymentPicker)),
+			paymentMethod: getPaymentMethodType(accountingInfo) || (await getDefaultPaymentMethod()),
 			creditCardData: null,
 		},
 		price: "",
@@ -163,9 +158,8 @@ export async function loadSignupWizard(
 	let message: TranslationText | null
 	if (isIOSApp()) {
 		const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
-		const enableAppStoreSubscription = await locator.appStorePaymentPicker.shouldEnableAppStorePayment()
 		// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
-		if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription || !enableAppStoreSubscription) {
+		if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 			acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
 		}
 		message =
@@ -187,7 +181,7 @@ export async function loadSignupWizard(
 			vatNumber: "", // only for EU countries otherwise empty
 		},
 		paymentData: {
-			paymentMethod: await getDefaultPaymentMethod(locator.appStorePaymentPicker),
+			paymentMethod: await getDefaultPaymentMethod(),
 			creditCardData: null,
 		},
 		price: "",

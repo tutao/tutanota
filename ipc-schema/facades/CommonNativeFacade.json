@@ -104,6 +104,15 @@
 				}
 			],
 			"ret": "void"
+		},
+		"openSettings": {
+			"doc": "Open a specified path inside settings",
+			"arg": [
+				{
+					"path": "string"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

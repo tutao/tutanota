@@ -220,6 +220,38 @@ impl Entity for AlarmServicePost {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AppStoreSubscriptionGetIn {
+	pub _format: i64,
+	pub subscriptionId: String,
+}
+
+impl Entity for AppStoreSubscriptionGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AppStoreSubscriptionGetIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AppStoreSubscriptionGetOut {
+	pub _format: i64,
+	pub app: i64,
+}
+
+impl Entity for AppStoreSubscriptionGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AppStoreSubscriptionGetOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ArchiveRef {
 	pub _id: Option<CustomId>,
 	pub archiveId: GeneratedId,
@@ -3786,6 +3818,7 @@ impl Entity for SurveyData {
 pub struct SwitchAccountTypePostIn {
 	pub _format: i64,
 	pub accountType: i64,
+	pub app: Option<i64>,
 	pub customer: Option<GeneratedId>,
 	pub date: Option<DateTime>,
 	pub plan: i64,

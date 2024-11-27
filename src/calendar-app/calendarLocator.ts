@@ -95,7 +95,6 @@ import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/Cu
 import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
-import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
 import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
@@ -164,7 +163,6 @@ class CalendarLocator {
 	infoMessageHandler!: InfoMessageHandler
 	themeController!: ThemeController
 	Const!: Record<string, any>
-	appStorePaymentPicker!: AppStorePaymentPicker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -640,6 +638,8 @@ class CalendarLocator {
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
 			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
 			const openCalendarHandler = new OpenCalendarHandler(this.logins)
+			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
+			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -655,6 +655,7 @@ class CalendarLocator {
 					async (_userId: string, _address: string, _requestedPath: string | null) => {},
 					(userId) => openCalendarHandler.openCalendar(userId),
 					AppType.Calendar,
+					(path) => openSettingsHandler.openSettings(path),
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -733,7 +734,6 @@ class CalendarLocator {
 		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, () => {
 			throw new DbError("Calendar cannot search for contacts through db")
 		})
-		this.appStorePaymentPicker = new AppStorePaymentPicker()
 
 		// THEME
 		// We need it because we want to run tests in node and real HTMLSanitizer does not work there.

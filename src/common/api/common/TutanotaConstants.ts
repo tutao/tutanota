@@ -8,7 +8,6 @@ import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
@@ -306,8 +305,8 @@ export enum PaymentMethodType {
 	AppStore = "5",
 }
 
-export async function getDefaultPaymentMethod(appStorePaymentPicker: AppStorePaymentPicker): Promise<PaymentMethodType> {
-	if (isIOSApp() && (await appStorePaymentPicker.shouldEnableAppStorePayment())) {
+export async function getDefaultPaymentMethod(): Promise<PaymentMethodType> {
+	if (isIOSApp()) {
 		return PaymentMethodType.AppStore
 	}
 

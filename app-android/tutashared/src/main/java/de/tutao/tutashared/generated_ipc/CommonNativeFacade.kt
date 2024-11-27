@@ -66,4 +66,10 @@ interface CommonNativeFacade {
 	suspend fun handleFileImport(
 		filesUris: List<String>,
 	): Unit
+	/**
+	 * Open a specified path inside settings
+	 */
+	suspend fun openSettings(
+		path: String,
+	): Unit
 }

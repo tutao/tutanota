@@ -1847,6 +1847,7 @@ export default {
 		"months_label": "Monate",
 		"repeatsEvery_label": "Wiederhole jedes",
 		"notAttending_label": "Nicht teilnehmend",
-		"maybeAttending_label": "Vielleicht teilnehmend"
+		"maybeAttending_label": "Vielleicht teilnehmend",
+		"handleSubscriptionOnApp_msg": "Ihr Abonnement muss auf {1} verwaltet werden. Möchten Sie es öffnen?"
 	}
 }

@@ -129,4 +129,15 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	 public func openSettings(
+		_ path: String
+	) async throws -> Void
+		{
+		var args = [String]()
+		args.append(toJson(path))
+		let encodedFacadeName = toJson("CommonNativeFacade")
+		let encodedMethodName = toJson("openSettings")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 }

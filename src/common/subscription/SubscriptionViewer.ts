@@ -14,18 +14,25 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "../api/common/TutanotaConstants"
-import type { AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderProcessingAgreement, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import {
+	AccountingInfo,
 	AccountingInfoTypeRef,
+	Booking,
 	BookingTypeRef,
+	createAppStoreSubscriptionGetIn,
+	Customer,
+	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
+	GiftCard,
 	GiftCardTypeRef,
 	GroupInfoTypeRef,
+	OrderProcessingAgreement,
 	OrderProcessingAgreementTypeRef,
+	PlanConfiguration,
 	UserTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
@@ -72,13 +79,23 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
-import { AppStorePaymentPicker } from "../misc/AppStorePaymentPicker.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
+import { client } from "../misc/ClientDetector.js"
+import { AppStoreSubscriptionService } from "../api/entities/sys/Services.js"
+import { AppType } from "../misc/ClientConstants.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
+
+/*
+ * Identifies from which app the user subscribed from
+ */
+export enum SubscriptionApp {
+	Mail = "0",
+	Calendar = "1",
+}
 
 export class SubscriptionViewer implements UpdatableSettingsViewer {
 	readonly view: UpdatableSettingsViewer["view"]
@@ -107,11 +124,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _giftCards: Map<Id, GiftCard>
 	private _giftCardsExpanded: Stream<boolean>
 
-	constructor(
-		currentPlanType: PlanType,
-		private readonly mobilePaymentsFacade: MobilePaymentsFacade | null,
-		private readonly appStorePaymentPicker: AppStorePaymentPicker,
-	) {
+	constructor(currentPlanType: PlanType, private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
 		this.currentPlanType = currentPlanType
 		const isPremiumPredicate = () => locator.logins.getUserController().isPremiumAccount()
 
@@ -142,7 +155,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							: !this._isCancelled
 							? m(IconButton, {
 									title: "subscription_label",
-									click: () => this.onSubscriptionClick(),
+									click: async () => await this.onSubscriptionClick(),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
 							  })
@@ -255,7 +268,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.updateBookings()
 	}
 
-	private onSubscriptionClick() {
+	private async onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
 		if (isIOSApp() && (paymentMethod == null || paymentMethod == PaymentMethodType.AppStore)) {
@@ -267,7 +280,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			// If there's a running App Store subscription it must be managed through Apple.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
 			// Running subscription cannot be changed from other client, but it can still be managed through iOS app or when subscription expires.
-
 			return showManageThroughAppStoreDialog()
 		} else {
 			// other cases (not iOS app, not app store payment method, no running AppStore subscription, iOS but another payment method)
@@ -279,12 +291,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private async handleUpgradeSubscription() {
 		if (isIOSApp()) {
-			const shouldEnableiOSPayment = await this.appStorePaymentPicker.shouldEnableAppStorePayment()
-
-			if (!shouldEnableiOSPayment) {
-				return Dialog.message("notAvailableInApp_msg")
-			}
-
 			// We pass `null` because we expect no subscription when upgrading
 			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 
@@ -313,9 +319,16 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else {
 			return
 		}
+
 		const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(customer._id)))
 		const isAppStorePayment = getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore
 		const userStatus = customer.approvalStatus
+		const hasAnActiveSubscription = isAppStorePayment && accountingInfo.appStoreSubscription != null
+
+		if (hasAnActiveSubscription && !(await this.canManageAppStoreSubscriptionInApp(accountingInfo, appStoreSubscriptionOwnership))) {
+			return
+		}
+
 		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
 		//
 		// This prevents the user from accidentally changing a subscription that they don't own
@@ -379,6 +392,61 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				return showSwitchDialog(customer, this._customerInfo, accountingInfo, this._lastBooking, AvailablePlans, null)
 			}
 		}
+	}
+
+	private async canManageAppStoreSubscriptionInApp(accountingInfo: AccountingInfo, ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
+		if (!accountingInfo.appStoreSubscription) {
+			throw Error("Trying to manage an non-existing app store subscription")
+		}
+
+		if (ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
+			return true
+		}
+
+		const appStoreSubscriptionData = await locator.serviceExecutor.get(
+			AppStoreSubscriptionService,
+			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(accountingInfo.appStoreSubscription) }),
+		)
+
+		if (!appStoreSubscriptionData || appStoreSubscriptionData.app == null) {
+			throw new Error("Failed to determine subscription origin")
+		}
+
+		const isMailSubscription = appStoreSubscriptionData.app === SubscriptionApp.Mail
+
+		if (client.isCalendarApp() && isMailSubscription) {
+			return await this.handleAppOpen(SubscriptionApp.Mail)
+		} else if (!client.isCalendarApp() && !isMailSubscription) {
+			return await this.handleAppOpen(SubscriptionApp.Calendar)
+		}
+
+		return true
+	}
+
+	private async handleAppOpen(app: SubscriptionApp) {
+		const appName = app === SubscriptionApp.Calendar ? "Tuta Calendar" : "Tuta Mail"
+		const dialogResult = await Dialog.confirm(() => lang.get("handleSubscriptionOnApp_msg", { "{1}": appName }), "yes_label")
+		const query = stringToBase64(`settings=subscription`)
+
+		if (!dialogResult) {
+			return false
+		}
+
+		if (app === SubscriptionApp.Calendar) {
+			locator.systemFacade.openCalendarApp(query)
+		} else {
+			locator.systemFacade.openMailApp(query)
+		}
+
+		return false
+	}
+
+	private openAppDialogCallback(open: boolean, app: AppType.Mail | AppType.Calendar) {
+		if (!open) {
+			return
+		}
+
+		const appName = app === AppType.Mail ? "Tuta Mail" : "Tuta Calendar"
 	}
 
 	private showOrderAgreement(): boolean {

@@ -1828,3 +1828,4 @@ export type TranslationKeyType =
 	| "repeatsEvery_label"
 	| "notAttending_label"
 	| "maybeAttending_label"
+	| "handleSubscriptionOnApp_msg"

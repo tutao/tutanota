@@ -119,7 +119,6 @@ import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
-import { AppStorePaymentPicker } from "../common/misc/AppStorePaymentPicker.js"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
@@ -196,7 +195,6 @@ class MailLocator {
 	infoMessageHandler!: InfoMessageHandler
 	themeController!: ThemeController
 	Const!: Record<string, any>
-	appStorePaymentPicker!: AppStorePaymentPicker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -796,6 +794,8 @@ class MailLocator {
 			const openMailboxHandler = new OpenMailboxHandler(this.logins, this.mailModel, this.mailboxModel)
 			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
 			const openCalendarHandler = new OpenCalendarHandler(this.logins)
+			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
+			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, MAIL_PREFIX, async (currentRoute: string) => {
 				// If the first background column is focused in mail view (showing a folder), move to inbox.
@@ -830,6 +830,7 @@ class MailLocator {
 					(userId, address, requestedPath) => openMailboxHandler.openMailbox(userId, address, requestedPath),
 					(userId) => openCalendarHandler.openCalendar(userId),
 					AppType.Integrated,
+					(path) => openSettingsHandler.openSettings(path),
 				),
 				cryptoFacade,
 				calendarFacade,
@@ -916,7 +917,6 @@ class MailLocator {
 			},
 		)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-		this.appStorePaymentPicker = new AppStorePaymentPicker()
 
 		// THEME
 		// We need it because we want to run tests in node and real HTMLSanitizer does not work there.

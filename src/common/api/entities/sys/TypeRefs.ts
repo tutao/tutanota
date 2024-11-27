@@ -180,6 +180,30 @@ export type AlarmServicePost = {
 
 	alarmNotifications: AlarmNotification[];
 }
+export const AppStoreSubscriptionGetInTypeRef: TypeRef<AppStoreSubscriptionGetIn> = new TypeRef("sys", "AppStoreSubscriptionGetIn")
+
+export function createAppStoreSubscriptionGetIn(values: StrippedEntity<AppStoreSubscriptionGetIn>): AppStoreSubscriptionGetIn {
+	return Object.assign(create(typeModels.AppStoreSubscriptionGetIn, AppStoreSubscriptionGetInTypeRef), values)
+}
+
+export type AppStoreSubscriptionGetIn = {
+	_type: TypeRef<AppStoreSubscriptionGetIn>;
+
+	_format: NumberString;
+	subscriptionId: string;
+}
+export const AppStoreSubscriptionGetOutTypeRef: TypeRef<AppStoreSubscriptionGetOut> = new TypeRef("sys", "AppStoreSubscriptionGetOut")
+
+export function createAppStoreSubscriptionGetOut(values: StrippedEntity<AppStoreSubscriptionGetOut>): AppStoreSubscriptionGetOut {
+	return Object.assign(create(typeModels.AppStoreSubscriptionGetOut, AppStoreSubscriptionGetOutTypeRef), values)
+}
+
+export type AppStoreSubscriptionGetOut = {
+	_type: TypeRef<AppStoreSubscriptionGetOut>;
+
+	_format: NumberString;
+	app: NumberString;
+}
 export const ArchiveRefTypeRef: TypeRef<ArchiveRef> = new TypeRef("sys", "ArchiveRef")
 
 export function createArchiveRef(values: StrippedEntity<ArchiveRef>): ArchiveRef {
@@ -3033,6 +3057,7 @@ export type SwitchAccountTypePostIn = {
 
 	_format: NumberString;
 	accountType: NumberString;
+	app: null | NumberString;
 	customer: null | Id;
 	date: null | Date;
 	plan: NumberString;

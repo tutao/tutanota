@@ -50,4 +50,6 @@ export interface MobileSystemFacade {
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	requestInAppRating(): Promise<void>
+
+	openCalendarApp(query: string): Promise<void>
 }

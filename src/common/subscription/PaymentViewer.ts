@@ -138,12 +138,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
 		if (isIOSApp()) {
-			const shouldEnableiOSPayment = await locator.appStorePaymentPicker.shouldEnableAppStorePayment()
-			if (shouldEnableiOSPayment) {
-				return locator.mobilePaymentsFacade.showSubscriptionConfigView()
-			} else {
-				return Dialog.message("notAvailableInApp_msg")
-			}
+			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 		} else if (hasRunningAppStoreSubscription(this.accountingInfo)) {
 			return showManageThroughAppStoreDialog()
 		} else if (currentPaymentMethod == PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
@@ -220,7 +215,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			}),
 		)
 			.then((price) =>
-				getDefaultPaymentMethod(locator.appStorePaymentPicker).then((paymentMethod) => {
+				getDefaultPaymentMethod().then((paymentMethod) => {
 					return { price, paymentMethod }
 				}),
 			)

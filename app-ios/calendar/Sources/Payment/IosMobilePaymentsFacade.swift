@@ -39,7 +39,7 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		let products: [Product] = try await Product.products(for: plans)
 		var result = [String: TempMobilePlanPrice]()
 		for product in products {
-			let productName = String(product.id.split(separator: ".")[1])
+			let productName = String(product.id.split(separator: ".")[2])
 			var plan = result[productName] ?? TempMobilePlanPrice(monthlyPerMonth: nil, yearlyPerYear: nil, yearlyPerMonth: nil)
 
 			let unit = product.subscription!.subscriptionPeriod.unit
@@ -130,7 +130,7 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			default: fatalError("invalid plan (\(plan)) interval (\(interval))")
 			}
 
-		return "plans.\(plan).\(intervalString)"
+		return "plans.calendar.\(plan).\(intervalString)"
 	}
 
 	static func checkVerified<T>(_ result: VerificationResult<T>) -> T {
