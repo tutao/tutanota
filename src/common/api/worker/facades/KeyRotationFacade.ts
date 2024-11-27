@@ -484,6 +484,12 @@ export class KeyRotationFacade {
 		return this.cryptoWrapper.sha256Hash(hashData)
 	}
 
+	private generatePubDistKeyHash(pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
+		const versionByte = Uint8Array.from([0])
+		const hashData = concat(versionByte, pubEccKey, pubKyberKey)
+		return this.cryptoWrapper.sha256Hash(hashData)
+	}
+
 	private async prepareKeyRotationForAreaGroup(
 		keyRotation: KeyRotation,
 		currentUserGroupKey: VersionedKey,
