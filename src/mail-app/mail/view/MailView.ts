@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import type { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -70,6 +70,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
+import { LabelsPopup } from "./LabelsPopup"
 
 assertMainOrNode()
 
@@ -233,10 +234,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.viewSlider.focusedColumn = this.listColumn
 
 		const shortcuts = this.getShortcuts()
-
 		vnode.attrs.mailViewModel.init()
 
-		this.oncreate = () => {
+		this.oncreate = (vnode) => {
 			this.countersStream = mailLocator.mailModel.mailboxCounters.map(m.redraw)
 			keyManager.registerShortcuts(shortcuts)
 			this.cache.conversationViewPreference = deviceConfig.getConversationViewShowOnlySelectedMail()
@@ -474,6 +474,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "move_action",
 			},
 			{
+				key: Keys.L,
+				exec: () => {
+					this.labels()
+					return true
+				},
+				help: "labels_label",
+			},
+			{
 				key: Keys.U,
 				exec: () => {
 					this.mailViewModel.listModel && this.toggleUnreadMails(this.mailViewModel.listModel.getSelectedAsArray())
@@ -562,6 +570,30 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const selectedMails = mailList.getSelectedAsArray()
 
 		showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails)
+	}
+
+	/**
+	 *Shortcut Method to show Labels dropdown only when atleast one mail is selected.
+	 */
+	private labels() {
+		const mailList = this.mailViewModel.listModel
+		if (mailList == null) {
+			return
+		}
+
+		const selectedMails = mailList.getSelectedAsArray()
+		if (isEmpty(selectedMails)) {
+			return
+		}
+
+		const popup = new LabelsPopup(
+			document.activeElement as HTMLElement,
+			getMoveMailBounds(),
+			styles.isDesktopLayout() ? 300 : 200,
+			mailLocator.mailModel.getLabelStatesForMails(selectedMails),
+			(addedLabels, removedLabels) => mailLocator.mailModel.applyLabels(selectedMails, addedLabels, removedLabels),
+		)
+		popup.show()
 	}
 
 	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs) {
