@@ -5,6 +5,7 @@ import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	AdminGroupKeyRotationPostIn,
+	AdminGroupKeyRotationPutIn,
 	createPublicKeyGetOut,
 	Customer,
 	CustomerTypeRef,
@@ -66,7 +67,7 @@ import {
 	UserGroupKeyRotationService,
 } from "../../../../../src/common/api/entities/sys/Services.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { assertNotNull, findAllAndRemove, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade, RecoverData } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
@@ -873,6 +874,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						}),
 					),
 				)
+				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
@@ -917,7 +919,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
 						_id: [keyRotationsListId, adminGroupId],
 						targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
-						groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount,
+						groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount,
 					}),
 					teamOrCustomerGroupKeyRotations: [],
 					userAreaGroupsKeyRotations: [],
@@ -954,6 +956,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						}),
 					),
 				)
+				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
 				verify(
 					cryptoWrapperMock.deriveKeyWithHkdf(
@@ -964,6 +967,95 @@ o.spec("KeyRotationFacadeTest", function () {
 						}),
 					),
 				)
+			})
+
+			o.spec("AdminGroupKeyRotationMultipleAdminAccount", function () {
+				o("the distribution key pair is generated and uploaded", async function () {
+					keyRotationFacade.setPendingKeyRotations({
+						pwKey: PW_KEY,
+						adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+							_id: [keyRotationsListId, adminGroupId],
+							targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
+							groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount,
+						}),
+						teamOrCustomerGroupKeyRotations: [],
+						userAreaGroupsKeyRotations: [],
+					})
+
+					const adminDistKeyPairDistributionKey = object<Aes256Key>()
+					const adminDistAuthKey = object<Aes256Key>()
+					when(cryptoWrapperMock.deriveKeyWithHkdf(anything())).thenReturn(adminDistKeyPairDistributionKey, adminDistAuthKey)
+					const mockedDistKeyPair = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, adminDistKeyPairDistributionKey).get(
+						adminDistKeyPairDistributionKey,
+					)
+
+					const pubDistKeyHash = object<Uint8Array>()
+					when(
+						cryptoWrapperMock.sha256Hash(
+							concat(Uint8Array.from([0]), mockedDistKeyPair?.newKeyPairs.eccKeyPair.publicKey!, mockedDistKeyPair?.kyberPublicKeyBytes!),
+						),
+					).thenReturn(pubDistKeyHash)
+
+					const adminDistAuthEncDistKeyHash = object<Uint8Array>()
+					when(cryptoWrapperMock.aesEncrypt(adminDistAuthKey, pubDistKeyHash)).thenReturn(adminDistAuthEncDistKeyHash)
+
+					await keyRotationFacade.processPendingKeyRotation(user)
+
+					verify(
+						serviceExecutorMock.put(
+							AdminGroupKeyRotationService,
+							matchers.argThat((arg: AdminGroupKeyRotationPutIn) => {
+								o(arg.adminEncDistKeyHash.hashedKeyVersion).equals("0")
+								o(arg.adminEncDistKeyHash.encryptingKeyVersion).equals(CURRENT_ADMIN_GROUP_KEY.version.toString())
+								o(arg.adminEncDistKeyHash.encryptingGroup).equals(adminGroupId)
+								o(arg.adminEncDistKeyHash.encryptingKeyEncKeyHash).deepEquals(adminDistAuthEncDistKeyHash)
+
+								o(arg.adminDistKeyPair.pubRsaKey).equals(null)
+								o(arg.adminDistKeyPair.symEncPrivRsaKey).equals(null)
+								o(arg.adminDistKeyPair.pubEccKey!).deepEquals(mockedDistKeyPair?.newKeyPairs.eccKeyPair.publicKey!)
+								o(arg.adminDistKeyPair.symEncPrivEccKey).deepEquals(mockedDistKeyPair?.encryptedEccPrivKey!)
+								o(arg.adminDistKeyPair.pubKyberKey).deepEquals(mockedDistKeyPair?.kyberPublicKeyBytes!)
+								o(arg.adminDistKeyPair.symEncPrivKyberKey).deepEquals(mockedDistKeyPair?.encryptedKyberPrivKey!)
+								return true
+							}),
+						),
+					)
+					const keyDerivationCaptor = matchers.captor()
+					verify(cryptoWrapperMock.deriveKeyWithHkdf(keyDerivationCaptor.capture()))
+
+					const values = keyDerivationCaptor.values!
+					o(values.length).equals(2)
+					o(values[0]).deepEquals({
+						salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${CURRENT_ADMIN_GROUP_KEY.version}`,
+						key: PW_KEY,
+						context: "adminGroupDistributionKeyPairKey",
+					})
+					o(values[1]).deepEquals({
+						salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${CURRENT_ADMIN_GROUP_KEY.version}`,
+						key: CURRENT_ADMIN_GROUP_KEY.object,
+						context: "multiAdminKeyRotationPubDistKeyHash",
+					})
+				})
+
+				o("does not upload a distribution key pair if there is already one", async function () {
+					keyRotationFacade.setPendingKeyRotations({
+						pwKey: PW_KEY,
+						adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+							_id: [keyRotationsListId, adminGroupId],
+							targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
+							groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount,
+							adminEncDistKeyHash: createTestEntity(EncryptedKeyHashTypeRef),
+							adminDistKeyPair: createTestEntity(KeyPairTypeRef),
+							userEncAdminPubKeyHash: null,
+						}),
+						teamOrCustomerGroupKeyRotations: [],
+						userAreaGroupsKeyRotations: [],
+					})
+
+					await keyRotationFacade.processPendingKeyRotation(user)
+
+					verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
+				})
 			})
 		})
 

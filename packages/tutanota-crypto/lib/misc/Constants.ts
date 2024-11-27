@@ -5,4 +5,8 @@ export enum KeyLength {
 
 export type EntropySource = "mouse" | "touch" | "key" | "random" | "static" | "time" | "accel"
 
-export type HkdfKeyDerivationDomains = "userGroupKeyDistributionKey" | "adminGroupKeyRotationHash" | "multiAdminKeyRotationPubDistKeyHash"
+export type HkdfKeyDerivationDomains =
+	| "userGroupKeyDistributionKey"
+	| "adminGroupKeyRotationHash"
+	| "adminGroupDistributionKeyPairKey"
+	| "multiAdminKeyRotationPubDistKeyHash"
