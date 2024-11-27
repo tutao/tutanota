@@ -708,6 +708,7 @@ pub struct CustomerAccountCreateData {
 	pub adminEncAccountingInfoSessionKey: Vec<u8>,
 	#[serde(with = "serde_bytes")]
 	pub adminEncCustomerServerPropertiesSessionKey: Vec<u8>,
+	pub app: i64,
 	pub authToken: String,
 	pub code: String,
 	pub date: Option<DateTime>,

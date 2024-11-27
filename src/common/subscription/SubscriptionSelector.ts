@@ -259,7 +259,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
-		if (isIOSApp() && !client.isCalendarApp()) {
+		if (isIOSApp()) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				if (isCyberMonday && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {

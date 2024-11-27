@@ -74,6 +74,12 @@ public class MobileSystemFacadeReceiveDispatcher {
 			try await self.facade.requestInAppRating(
 			)
 			return "null"
+		case "openCalendarApp":
+			let query = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.openCalendarApp(
+				query
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

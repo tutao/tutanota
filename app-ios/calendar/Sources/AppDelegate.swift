@@ -2,6 +2,8 @@ import StoreKit
 import TutanotaSharedFramework
 import UIKit
 
+public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
+
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
 
@@ -101,6 +103,7 @@ import UIKit
 	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
 		switch url.scheme {
 		case CALENDAR_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
+		case TUTA_CALENDAR_INTEROP_SCHEME: Task { try! await self.viewController.handleInterop(url) }
 		case nil: TUTSLog("missing scheme!")
 		default: TUTSLog("unknown scheme? \(url.scheme!)")
 		}

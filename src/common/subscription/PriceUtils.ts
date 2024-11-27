@@ -11,7 +11,6 @@ import { UserError } from "../api/main/UserError.js"
 import { isIOSApp } from "../api/common/Env"
 import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../api/main/CommonLocator.js"
-import { client } from "../misc/ClientDetector"
 import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
 
 export const enum PaymentInterval {
@@ -141,7 +140,7 @@ export class PriceAndConfigProvider {
 			referralCode: referralCode,
 		})
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
-		if (isIOSApp() && !client.isCalendarApp()) {
+		if (isIOSApp()) {
 			this.mobilePrices = new Map()
 
 			const allPrices = await locator.mobilePaymentsFacade.getPlanPrices()
@@ -179,9 +178,7 @@ export class PriceAndConfigProvider {
 		const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 		const rawPrice = price.toString()
 
-		const supportsAppStorePayments = isIOSApp() && !client.isCalendarApp()
-
-		if (supportsAppStorePayments) {
+		if (isIOSApp()) {
 			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval, rawPrice, type)
 		} else {
 			const displayPrice = formatPrice(price, true)

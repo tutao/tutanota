@@ -51,6 +51,10 @@ export class CommonNativeFacadeReceiveDispatcher {
 				const filesUris: ReadonlyArray<string> = arg[0]
 				return this.facade.handleFileImport(filesUris)
 			}
+			case "openSettings": {
+				const path: string = arg[0]
+				return this.facade.openSettings(path)
+			}
 		}
 	}
 }

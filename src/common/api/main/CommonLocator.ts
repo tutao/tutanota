@@ -64,7 +64,6 @@ import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calend
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
 import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
-import { AppStorePaymentPicker } from "../../misc/AppStorePaymentPicker.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
@@ -165,7 +164,6 @@ export interface CommonLocator {
 	mobileContactsFacade: MobileContactsFacade
 	nativeCredentialsFacade: NativeCredentialsFacade
 	mobilePaymentsFacade: MobilePaymentsFacade
-	appStorePaymentPicker: AppStorePaymentPicker
 	deviceConfig: DeviceConfig
 }
 

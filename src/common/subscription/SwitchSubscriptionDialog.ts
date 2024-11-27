@@ -41,6 +41,8 @@ import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedip
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import { appStorePlanName, hasRunningAppStoreSubscription } from "./SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
+import { client } from "../misc/ClientDetector.js"
+import { SubscriptionApp } from "./SubscriptionViewer.js"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -311,6 +313,7 @@ async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: Cu
 		referralCode: null,
 		plan: PlanType.Free,
 		surveyData: surveyData,
+		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
 		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData)
@@ -371,6 +374,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			customer: customer._id,
 			specialPriceUserSingle: null,
 			surveyData: null,
+			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 
 		try {

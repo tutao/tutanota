@@ -1,6 +1,8 @@
 import { AdminGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
 import { AffiliatePartnerKpiServiceGetOutTypeRef } from "./TypeRefs.js"
 import { AlarmServicePostTypeRef } from "./TypeRefs.js"
+import { AppStoreSubscriptionGetInTypeRef } from "./TypeRefs.js"
+import { AppStoreSubscriptionGetOutTypeRef } from "./TypeRefs.js"
 import { AutoLoginDataGetTypeRef } from "./TypeRefs.js"
 import { AutoLoginDataReturnTypeRef } from "./TypeRefs.js"
 import { AutoLoginPostReturnTypeRef } from "./TypeRefs.js"
@@ -111,6 +113,15 @@ export const AlarmService = Object.freeze({
 	name: "AlarmService",
 	get: null,
 	post: { data: AlarmServicePostTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const AppStoreSubscriptionService = Object.freeze({
+	app: "sys",
+	name: "AppStoreSubscriptionService",
+	get: { data: AppStoreSubscriptionGetInTypeRef, return: AppStoreSubscriptionGetOutTypeRef },
+	post: null,
 	put: null,
 	delete: null,
 } as const)

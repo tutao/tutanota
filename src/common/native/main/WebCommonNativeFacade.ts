@@ -27,6 +27,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		readonly openMailBox: (userId: string, address: string, requestedPath: string | null) => Promise<void>,
 		readonly openCalendar: (userId: string) => Promise<void>,
 		private readonly appType: AppType,
+		readonly openSettings: (path: string) => Promise<void>,
 	) {}
 
 	async openContactEditor(contactId: string): Promise<void> {

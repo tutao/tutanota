@@ -81,6 +81,14 @@
 			],
 			"ret": "void"
 		},
+		"openCalendarApp": {
+			"arg": [
+				{
+					"query": "string"
+				}
+			],
+			"ret": "void"
+		},
 		"getInstallationDate": {
 			"doc": "Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.",
 			"arg": [],

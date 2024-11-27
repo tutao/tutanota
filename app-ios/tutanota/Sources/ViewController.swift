@@ -6,6 +6,7 @@ import UserNotifications
 import WebKit
 
 public let OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
+public let OPEN_SETTINGS = "settings"
 
 /// Main screen of the app.
 class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
@@ -226,9 +227,10 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		return readSharingInfo(infoLocation: infoLocation)
 	}
 
-	private func getInteropInfo(url: URL) async -> String? {
+	private func getInteropInfo(url: URL) async -> URLQueryItem? {
 		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
-		return components.queryItems?.first(where: { $0.name == OPEN_CONTACT_EDITOR_CONTACT_ID })?.value
+
+		return components.queryItems?.first(where: { $0.name == OPEN_CONTACT_EDITOR_CONTACT_ID || $0.name == OPEN_SETTINGS })
 	}
 
 	func handleShare(_ url: URL) async throws {
@@ -249,7 +251,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			return
 		}
 
-		do { try await self.bridge.commonNativeFacade.openContactEditor(info) } catch { TUTSLog("failed to open mail editor to share: \(error)") }
+		switch info.name {
+		case OPEN_CONTACT_EDITOR_CONTACT_ID:
+			do { try await self.bridge.commonNativeFacade.openContactEditor(info.value!) } catch { TUTSLog("failed to open contact editor: \(error)") }
+		case OPEN_SETTINGS: do { try await self.bridge.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
+		default: throw TutanotaError(message: "Invalid interop operation")
+		}
 	}
 
 	func handleOpenNotification(userId: String, address: String, mailId: (String, String)) {

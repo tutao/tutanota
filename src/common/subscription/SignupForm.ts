@@ -29,6 +29,8 @@ import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailA
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
+import { client } from "../misc/ClientDetector"
+import { SubscriptionApp } from "./SubscriptionViewer"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -263,13 +265,16 @@ function signup(
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
 			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
 				if (regDataId) {
-					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then((recoverCode) => {
-						return {
-							mailAddress,
-							password: pw,
-							recoverCode,
-						}
-					})
+					const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Calendar
+					return customerFacade
+						.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code, app)
+						.then((recoverCode) => {
+							return {
+								mailAddress,
+								password: pw,
+								recoverCode,
+							}
+						})
 				}
 			})
 		}),

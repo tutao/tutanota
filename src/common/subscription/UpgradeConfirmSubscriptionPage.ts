@@ -25,6 +25,8 @@ import { getRatingAllowed, RatingCheckResult } from "../ratings/InAppRatingUtils
 import { showAppRatingDialog } from "../ratings/InAppRatingDialog.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { isIOSApp } from "../api/common/Env.js"
+import { client } from "../misc/ClientDetector.js"
+import { SubscriptionApp } from "./SubscriptionViewer.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -59,6 +61,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			referralCode: data.referralCode,
 			specialPriceUserSingle: null,
 			surveyData: null,
+			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 		showProgressDialog(
 			"pleaseWait_msg",

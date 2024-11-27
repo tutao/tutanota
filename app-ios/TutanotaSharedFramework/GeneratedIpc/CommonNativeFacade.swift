@@ -63,4 +63,10 @@ public protocol CommonNativeFacade {
 	func handleFileImport(
 		_ filesUris: [String]
 	) async throws -> Void
+	/**
+	 * Open a specified path inside settings
+	 */
+	func openSettings(
+		_ path: String
+	) async throws -> Void
 }

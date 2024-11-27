@@ -170,7 +170,7 @@ class AndroidMobileSystemFacade(
 		}
 	}
 
-	fun tryToLaunchStore() {
+	private fun tryToLaunchStore() {
 		try {
 			startActivity(
 				activity,
@@ -195,6 +195,10 @@ class AndroidMobileSystemFacade(
 			Log.d(TAG, e.toString())
 			tryToLaunchStore()
 		}
+	}
+
+	override suspend fun openCalendarApp(query: String) {
+		Log.e(TAG, "Trying to open Tuta Calendar from Tuta Calendar")
 	}
 
 	override suspend fun getInstallationDate(): String {

@@ -70,6 +70,7 @@ import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
+import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 
 assertWorkerOrNode()
 
@@ -281,6 +282,7 @@ export class CustomerFacade {
 		password: string,
 		registrationCode: string,
 		currentLanguage: string,
+		app: SubscriptionApp,
 	): Promise<Hex> {
 		const userGroupKey = { object: aes256RandomKey(), version: 0 }
 		const adminGroupKey = { object: aes256RandomKey(), version: 0 }
@@ -369,6 +371,7 @@ export class CustomerFacade {
 			adminEncCustomerServerPropertiesSessionKey: adminEncCustomerServerPropertiesSessionKey.key,
 			userEncAccountGroupKey: new Uint8Array(0), // if we some day start passing the right key here, we'll also need to pass the right version
 			accountGroupKeyVersion: "0",
+			app,
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 		return recoverData.hexCode

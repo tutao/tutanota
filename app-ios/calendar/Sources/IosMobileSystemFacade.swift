@@ -104,4 +104,6 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
 		await SKStoreReviewController.requestReview(in: windowScene)
 	}
+
+	func openCalendarApp(_ query: String) async throws { TUTSLog("Tried to open Calendar App from Calendar App") }
 }

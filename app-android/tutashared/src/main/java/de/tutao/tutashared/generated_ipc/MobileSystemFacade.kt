@@ -53,6 +53,9 @@ interface MobileSystemFacade {
 	suspend fun openMailApp(
 		query: String,
 	): Unit
+	suspend fun openCalendarApp(
+		query: String,
+	): Unit
 	/**
 	 * Returns the date and time the app was installed as a string with milliseconds in UNIX epoch.
 	 */
