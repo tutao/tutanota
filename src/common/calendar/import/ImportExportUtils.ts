@@ -178,3 +178,25 @@ export const BYRULE_MAP = freezeMap(
 		["WKST", ByRule.WKST],
 	]),
 )
+
+export const enum WeekDaysJsValue {
+	SU,
+	MO,
+	TU,
+	WE,
+	TH,
+	FR,
+	SA,
+}
+
+export const BYRULE_WEEKDAYS_JS_VALUE = freezeMap(
+	new Map([
+		["SU", WeekDaysJsValue.SU],
+		["MO", WeekDaysJsValue.MO],
+		["TU", WeekDaysJsValue.TU],
+		["WE", WeekDaysJsValue.WE],
+		["TH", WeekDaysJsValue.TH],
+		["FR", WeekDaysJsValue.FR],
+		["SA", WeekDaysJsValue.SA],
+	]),
+)

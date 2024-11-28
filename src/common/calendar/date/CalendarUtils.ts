@@ -10,6 +10,7 @@ import {
 	getStartOfDay,
 	incrementDate,
 	insertIntoSortedArray,
+	isNotEmpty,
 	isNotNull,
 	isSameDayOfDate,
 	isValidDate,
@@ -37,7 +38,7 @@ import {
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import { createDateWrapper, DateWrapper, GroupInfo, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, GroupInfo, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
@@ -47,6 +48,7 @@ import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/Calend
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
+import { ByRule, BYRULE_MAP } from "../import/ImportExportUtils.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -165,6 +167,23 @@ export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 		.toJSDate()
 }
 
+export function incrementByAdvancedRepeatRule(date: Date, advancedRepeatRule: CalendarAdvancedRepeatRule, ianaTimeZone: string): Date {
+	// FIXME implement switch to handle different ByRules
+	switch (advancedRepeatRule.ruleType) {
+		case String(ByRule.BYDAY):
+			const interval = // FIXME Calculate the interval taking into account advancedRepeatRule.interval(in this case the next weekday) - date
+			return DateTime.fromJSDate(date, {
+				zone: ianaTimeZone,
+			}).
+				.plus({
+					days: interval,
+				})
+				.toJSDate()
+	}
+	return date
+}
+
+//FIXME Might be worth checking where this func is being used and start using the new function that considers advanced repeat rules
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, interval: number, ianaTimeZone: string): Date {
 	switch (repeatPeriod) {
 		case RepeatPeriod.DAILY:
@@ -659,12 +678,23 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
 	let calcEndTime = eventEndTime
 	let iteration = 1
 
+	const advancedRepeatRules = [...repeatRule.advancedRules]
+
 	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
 		assertDateIsValid(calcStartTime)
 		assertDateIsValid(calcEndTime)
 		yield { startTime: calcStartTime, endTime: calcEndTime }
 
-		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
+		if (isNotEmpty(advancedRepeatRules)) {
+			if (frequency === RepeatPeriod.WEEKLY) {
+				// FIXME order advancedRepeatRules considering weekstart order, should we considered the wkst from the event or from the user settings?
+			}
+			const byRule = advancedRepeatRules.shift()
+			calcStartTime = incrementByAdvancedRepeatRule(eventStartTime, byRule!, interval * iteration, repeatTimeZone)
+		} else {
+			calcStartTime = incrementByRepeatPeriod(eventStartTime, downcast(repeatRule.frequency), interval * iteration, repeatTimeZone)
+		}
+
 		calcEndTime = allDay
 			? incrementByRepeatPeriod(calcStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
 			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
