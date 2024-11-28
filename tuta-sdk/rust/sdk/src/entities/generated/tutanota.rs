@@ -6,6 +6,24 @@ use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct AdvancedRepeatRule {
+	pub _id: Option<CustomId>,
+	pub interval: String,
+	pub ruleType: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+
+impl Entity for AdvancedRepeatRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "AdvancedRepeatRule",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ApplyLabelServicePostIn {
 	pub _format: i64,
 	pub addedLabels: Vec<IdTupleGenerated>,
@@ -262,6 +280,7 @@ pub struct CalendarRepeatRule {
 	pub frequency: i64,
 	pub interval: i64,
 	pub timeZone: String,
+	pub advancedRules: Vec<AdvancedRepeatRule>,
 	pub excludedDates: Vec<super::sys::DateWrapper>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }

@@ -545,6 +545,16 @@
 					"info": "AddAssociation MailBox/mailImportStates/LIST_ASSOCIATION/1585."
 				}
 			]
+		},
+		{
+			"version": 80,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "CalendarRepeatRule",
+					"info": "AddAssociation CalendarRepeatRule/advancedRules/AGGREGATION/1590."
+				}
+			]
 		}
 	]
 }

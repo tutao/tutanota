@@ -325,6 +325,7 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 					endValue,
 					frequency,
 					interval,
+					advancedRules: [],
 			  }
 			: null,
 		user: "userId1",

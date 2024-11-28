@@ -2,6 +2,7 @@ import {
 	assert,
 	clone,
 	decodeBase64,
+	deepEqual,
 	downcast,
 	filterInt,
 	findAllAndRemove,
@@ -245,6 +246,7 @@ export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: nu
 		endValue: null,
 		endType: "0",
 		excludedDates: [],
+		advancedRules: [],
 	})
 }
 
@@ -979,7 +981,8 @@ export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarR
 			r1?.frequency === r2?.frequency &&
 			r1?.interval === r2?.interval &&
 			/** r1?.timeZone === r2?.timeZone && we're ignoring time zone because it's not an observable change. */
-			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []))
+			areExcludedDatesEqual(r1?.excludedDates ?? [], r2?.excludedDates ?? []) &&
+			deepEqual(r1?.advancedRules, r2?.advancedRules))
 	)
 }
 

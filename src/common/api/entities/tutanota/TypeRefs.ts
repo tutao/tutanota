@@ -7,6 +7,19 @@ import { StringWrapper } from '../sys/TypeRefs.js'
 import { BucketKey } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 
+export const AdvancedRepeatRuleTypeRef: TypeRef<AdvancedRepeatRule> = new TypeRef("tutanota", "AdvancedRepeatRule")
+
+export function createAdvancedRepeatRule(values: StrippedEntity<AdvancedRepeatRule>): AdvancedRepeatRule {
+	return Object.assign(create(typeModels.AdvancedRepeatRule, AdvancedRepeatRuleTypeRef), values)
+}
+
+export type AdvancedRepeatRule = {
+	_type: TypeRef<AdvancedRepeatRule>;
+
+	_id: Id;
+	interval: string;
+	ruleType: NumberString;
+}
 export const ApplyLabelServicePostInTypeRef: TypeRef<ApplyLabelServicePostIn> = new TypeRef("tutanota", "ApplyLabelServicePostIn")
 
 export function createApplyLabelServicePostIn(values: StrippedEntity<ApplyLabelServicePostIn>): ApplyLabelServicePostIn {
@@ -223,6 +236,7 @@ export type CalendarRepeatRule = {
 	interval: NumberString;
 	timeZone: string;
 
+	advancedRules: AdvancedRepeatRule[];
 	excludedDates: DateWrapper[];
 }
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")

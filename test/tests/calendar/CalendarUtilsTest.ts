@@ -28,7 +28,7 @@ import {
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
@@ -44,7 +44,7 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
-import { object, replace } from "testdouble"
+import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone, makeUserController } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/common/misc/parsing/ParserCombinator.js"
@@ -1529,6 +1529,7 @@ o.spec("calendar utils tests", function () {
 					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
 					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
 				],
+				advancedRules: [],
 			})
 			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
@@ -1558,6 +1559,7 @@ o.spec("calendar utils tests", function () {
 					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
 					createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-04T22:00:00Z") }),
 				],
+				advancedRules: [],
 			})
 			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
@@ -1591,6 +1593,7 @@ o.spec("calendar utils tests", function () {
 					// 2023-03-06T22:00:00Z not excluded
 					// 2023-03-07T22:00:00Z not excluded
 				],
+				advancedRules: [],
 			})
 			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
@@ -1683,6 +1686,7 @@ o.spec("calendar utils tests", function () {
 				),
 				timeZone: zone,
 				excludedDates: [],
+				advancedRules: [],
 			})
 			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-02T22:00:00Z"),
