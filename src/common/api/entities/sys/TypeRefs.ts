@@ -52,6 +52,20 @@ export type AdminGroupKeyRotationPostIn = {
 	userEncAdminPubKeyHashList: EncryptedKeyHash[];
 	userGroupKeyData: UserGroupKeyRotationData;
 }
+export const AdminGroupKeyRotationPutInTypeRef: TypeRef<AdminGroupKeyRotationPutIn> = new TypeRef("sys", "AdminGroupKeyRotationPutIn")
+
+export function createAdminGroupKeyRotationPutIn(values: StrippedEntity<AdminGroupKeyRotationPutIn>): AdminGroupKeyRotationPutIn {
+	return Object.assign(create(typeModels.AdminGroupKeyRotationPutIn, AdminGroupKeyRotationPutInTypeRef), values)
+}
+
+export type AdminGroupKeyRotationPutIn = {
+	_type: TypeRef<AdminGroupKeyRotationPutIn>;
+
+	_format: NumberString;
+
+	adminDistKeyPair: KeyPair;
+	adminEncDistKeyHash: EncryptedKeyHash;
+}
 export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
 
 export function createAdministratedGroup(values: StrippedEntity<AdministratedGroup>): AdministratedGroup {

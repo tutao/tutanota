@@ -63,6 +63,23 @@ impl Entity for AdminGroupKeyRotationPostIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyRotationPutIn {
+	pub _format: i64,
+	pub adminDistKeyPair: KeyPair,
+	pub adminEncDistKeyHash: EncryptedKeyHash,
+}
+
+impl Entity for AdminGroupKeyRotationPutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyRotationPutIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdministratedGroup {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
