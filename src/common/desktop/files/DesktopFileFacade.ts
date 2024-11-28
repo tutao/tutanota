@@ -13,18 +13,19 @@ import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
 import FsModule from "node:fs"
 import { Buffer } from "node:buffer"
-import type * as stream from "node:stream"
+import { default as stream } from "node:stream"
+import type { ReadableStream } from "node:stream/web"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import http from "node:http"
 import { log } from "../DesktopLog.js"
-import type { DesktopNetworkClient } from "../net/DesktopNetworkClient.js"
 import { WriteStream } from "fs-extra"
 import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys.js"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { TempFs } from "./TempFs.js"
+import { HttpMethod } from "../../api/common/EntityFunctions"
+import { FetchImpl } from "../net/NetAgent"
 import OpenDialogOptions = Electron.OpenDialogOptions
 
 const TAG = "[DesktopFileFacade]"
@@ -37,7 +38,7 @@ export class DesktopFileFacade implements FileFacade {
 		private readonly win: ApplicationWindow,
 		private readonly conf: DesktopConfig,
 		private readonly dateProvider: DateProvider,
-		private readonly net: DesktopNetworkClient,
+		private readonly fetch: FetchImpl,
 		private readonly electron: ElectronExports,
 		private readonly tfs: TempFs,
 		private readonly fs: FsExports,
@@ -55,30 +56,23 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async download(sourceUrl: string, fileName: string, headers: Record<string, string>): Promise<DownloadTaskResponse> {
-		// Propagate error in initial request if it occurs (I/O errors and such)
-		const response = await this.net.executeRequest(new URL(sourceUrl), {
-			method: "GET",
-			timeout: 20000,
-			headers,
-		})
-
-		// Must always be set for our types of requests
-		const statusCode = assertNotNull(response.statusCode)
+		const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers })
 		let encryptedFilePath
-		if (statusCode == 200) {
+		if (status == 200 && body != null) {
 			const downloadDirectory = await this.tfs.ensureEncryptedDir()
 			encryptedFilePath = path.join(downloadDirectory, fileName)
-			await this.pipeIntoFile(response, encryptedFilePath)
+			const readable: stream.Readable = bodyToReadable(body)
+			await this.pipeIntoFile(readable, encryptedFilePath)
 		} else {
 			encryptedFilePath = null
 		}
 
 		const result = {
-			statusCode: statusCode,
+			statusCode: status,
 			encryptedFileUri: encryptedFilePath,
-			errorId: getHttpHeader(response.headers, "error-id"),
-			precondition: getHttpHeader(response.headers, "precondition"),
-			suspensionTime: getHttpHeader(response.headers, "suspension-time") ?? getHttpHeader(response.headers, "retry-after"),
+			errorId: getHttpHeader(headersIncoming, "error-id"),
+			precondition: getHttpHeader(headersIncoming, "precondition"),
+			suspensionTime: getHttpHeader(headersIncoming, "suspension-time") ?? getHttpHeader(headersIncoming, "retry-after"),
 		}
 
 		log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
@@ -217,21 +211,22 @@ export class DesktopFileFacade implements FileFacade {
 		return chunkPaths
 	}
 
-	async upload(fileUri: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
+	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>): Promise<UploadTaskResponse> {
 		const fileStream = this.fs.createReadStream(fileUri)
 		const stat = await this.fs.promises.stat(fileUri)
 		headers["Content-Length"] = `${stat.size}`
-		const response = await this.net.executeRequest(new URL(targetUrl), { method, headers, timeout: 20000 }, fileStream)
+		const response = await this.fetch(targetUrl, { method, headers, body: fileStream })
 
 		let responseBody: Uint8Array
-		if (response.statusCode == 200 || response.statusCode == 201) {
-			responseBody = await readStreamToBuffer(response)
+		if ((response.status == 200 || response.status == 201) && response.body != null) {
+			const readable: stream.Readable = bodyToReadable(response.body)
+			responseBody = await readStreamToBuffer(readable)
 		} else {
 			// this is questionable, should probably change the type
 			responseBody = new Uint8Array([])
 		}
 		return {
-			statusCode: assertNotNull(response.statusCode),
+			statusCode: assertNotNull(response.status),
 			errorId: getHttpHeader(response.headers, "error-id"),
 			precondition: getHttpHeader(response.headers, "precondition"),
 			suspensionTime: getHttpHeader(response.headers, "suspension-time") ?? getHttpHeader(response.headers, "retry-after"),
@@ -335,14 +330,9 @@ export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8
 	})
 }
 
-function getHttpHeader(headers: http.IncomingHttpHeaders, name: string): string | null {
+function getHttpHeader(headers: Headers, name: string): string | null {
 	// All headers are in lowercase. Lowercase them just to be sure
-	const value = headers[name.toLowerCase()]
-	if (Array.isArray(value)) {
-		return value[0]
-	} else {
-		return value ?? null
-	}
+	return headers.get(name.toLowerCase())
 }
 
 function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<void> {
@@ -352,4 +342,9 @@ function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<voi
 		into.on("finish", resolve)
 		into.on("error", reject)
 	})
+}
+
+function bodyToReadable(body: ReadableStream<unknown>): stream.Readable {
+	// https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/65542
+	return stream.Readable.fromWeb(body)
 }

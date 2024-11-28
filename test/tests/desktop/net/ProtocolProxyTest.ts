@@ -3,6 +3,7 @@ import path from "node:path"
 import { OutgoingHttpHeader } from "node:http"
 import { func, matchers, object, verify, when } from "testdouble"
 import { doHandleProtocols, handleProtocols } from "../../../../src/common/desktop/net/ProtocolProxy.js"
+import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 
 o.spec("ProtocolProxy", function () {
 	let fetchMock
@@ -83,19 +84,19 @@ o.spec("ProtocolProxy", function () {
 			const request = {
 				arrayBuffer: () => Promise.resolve(new Uint8Array()),
 				method: "GET",
-				headers: {
+				headers: new Headers({
 					"some-header": "header-value",
-				},
+				}),
 				url: "http://no/where",
 				referrer: "",
 			}
 			const path: any = object()
 			const fs: any = object()
 			const responseSymbol = "abc"
-			when(fetchMock("http://no/where", matchers.anything())).thenResolve(responseSymbol)
+			when(fetchMock("http://no/where", matchers.anything())).thenResolve(new Response("abc"))
 			doHandleProtocols(ses, "none", fetchMock, path, fs)
 			const responseFromSubject = await captor.value(request)
-			o(responseFromSubject).deepEquals(responseSymbol)
+			o(await readResponse(responseFromSubject)).deepEquals(responseSymbol)
 		})
 	})
 
@@ -159,4 +160,9 @@ function headersToObject(headers: Headers): Record<string, OutgoingHttpHeader> {
 		returnObject[key] = value
 	})
 	return returnObject
+}
+
+async function readResponse(response: globalThis.Response): Promise<string> {
+	let result = await response.body!.getReader().read()
+	return utf8Uint8ArrayToString(result.value!)
 }

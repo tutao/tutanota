@@ -71,6 +71,7 @@ import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
+import { customFetch } from "./net/NetAgent"
 
 /**
  * Should be injected during build time.
@@ -269,7 +270,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, conf, window, dragIcons),
 			new DesktopExternalCalendarFacade(),
-			new DesktopFileFacade(window, conf, dateProvider, desktopNet, electron, tfs, fs),
+			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
