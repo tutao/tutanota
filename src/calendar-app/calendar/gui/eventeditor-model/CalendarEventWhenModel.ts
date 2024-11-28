@@ -268,6 +268,7 @@ export class CalendarEventWhenModel {
 						frequency: RepeatPeriod.DAILY,
 						excludedDates: [],
 						timeZone: "",
+						advancedRules: [],
 				  })
 			this.repeatRule.frequency = repeatPeriod
 		}
@@ -479,6 +480,7 @@ export class CalendarEventWhenModel {
 						endValue: null,
 						interval: "0",
 						frequency: "0",
+						advancedRules: [],
 					}),
 					...this.repeatRule,
 					timeZone: this.zone,

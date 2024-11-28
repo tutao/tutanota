@@ -1,11 +1,14 @@
 import { DAY_IN_MILLIS, filterInt, neverNull, Require } from "@tutao/tutanota-utils"
 import { DateTime, Duration, IANAZone } from "luxon"
-import type { CalendarEvent, EncryptedMailAddress } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarAdvancedRepeatRule,
+	CalendarEvent,
 	CalendarEventAttendee,
+	createCalendarAdvancedRepeatRule,
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
+	EncryptedMailAddress,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { DateWrapper, RepeatRule } from "../../../common/api/entities/sys/TypeRefs.js"
 import { createDateWrapper, createRepeatRule } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -30,6 +33,7 @@ import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse 
 import { AlarmInterval, AlarmIntervalUnit } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { BYRULE_MAP } from "../../../common/calendar/import/ImportExportUtils.js"
 
 function parseDateString(dateString: string): {
 	year: number
@@ -362,6 +366,7 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRu
 		}
 	}
 
+	console.log("RRULE => ", rruleValue)
 	const frequency = icalFrequencyToRepeatPeriod(rruleValue["FREQ"])
 	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], tzId) : null
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
@@ -374,13 +379,39 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRu
 		frequency: frequency,
 		excludedDates: [],
 		timeZone: "",
+		advancedRules: parseAdvancedRule(rruleValue),
 	})
+
+	console.log({ repeatRule })
 
 	if (typeof tzId === "string") {
 		repeatRule.timeZone = tzId
 	}
 
 	return repeatRule
+}
+
+export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvancedRepeatRule[] {
+	const advancedRepeatRules: CalendarAdvancedRepeatRule[] = []
+	for (const rruleKey in rrule) {
+		if (!BYRULE_MAP.has(rruleKey)) {
+			continue
+		}
+
+		for (const interval of rrule[rruleKey].split(",")) {
+			if (interval === "") {
+				continue
+			}
+
+			advancedRepeatRules.push(
+				createCalendarAdvancedRepeatRule({
+					ruleType: BYRULE_MAP.get(rruleKey)!.toString(), // Number
+					interval,
+				}),
+			)
+		}
+	}
+	return advancedRepeatRules
 }
 
 export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {

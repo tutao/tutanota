@@ -80,6 +80,24 @@ impl Entity for Body {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct CalendarAdvancedRepeatRule {
+	pub _id: Option<CustomId>,
+	pub interval: String,
+	pub ruleType: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+
+impl Entity for CalendarAdvancedRepeatRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "CalendarAdvancedRepeatRule",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarDeleteData {
 	pub _format: i64,
 	pub groupRootId: GeneratedId,
@@ -262,6 +280,7 @@ pub struct CalendarRepeatRule {
 	pub frequency: i64,
 	pub interval: i64,
 	pub timeZone: String,
+	pub advancedRules: Vec<CalendarAdvancedRepeatRule>,
 	pub excludedDates: Vec<super::sys::DateWrapper>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }

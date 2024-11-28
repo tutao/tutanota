@@ -96,25 +96,25 @@ use crate::entities::generated::sys::VersionData;
 use crate::entities::generated::sys::VersionReturn;
 pub struct AdminGroupKeyRotationService;
 
-crate::service_impl!(declare, AdminGroupKeyRotationService, "sys/admingroupkeyrotationservice", 114);
+crate::service_impl!(declare, AdminGroupKeyRotationService, "sys/admingroupkeyrotationservice", 115);
 crate::service_impl!(POST, AdminGroupKeyRotationService, AdminGroupKeyRotationPostIn, ());
 
 
 pub struct AffiliatePartnerKpiService;
 
-crate::service_impl!(declare, AffiliatePartnerKpiService, "sys/affiliatepartnerkpiservice", 114);
+crate::service_impl!(declare, AffiliatePartnerKpiService, "sys/affiliatepartnerkpiservice", 115);
 crate::service_impl!(GET, AffiliatePartnerKpiService, (), AffiliatePartnerKpiServiceGetOut);
 
 
 pub struct AlarmService;
 
-crate::service_impl!(declare, AlarmService, "sys/alarmservice", 114);
+crate::service_impl!(declare, AlarmService, "sys/alarmservice", 115);
 crate::service_impl!(POST, AlarmService, AlarmServicePost, ());
 
 
 pub struct AutoLoginService;
 
-crate::service_impl!(declare, AutoLoginService, "sys/autologinservice", 114);
+crate::service_impl!(declare, AutoLoginService, "sys/autologinservice", 115);
 crate::service_impl!(POST, AutoLoginService, AutoLoginDataReturn, AutoLoginPostReturn);
 crate::service_impl!(GET, AutoLoginService, AutoLoginDataGet, AutoLoginDataReturn);
 crate::service_impl!(DELETE, AutoLoginService, AutoLoginDataDelete, ());
@@ -122,7 +122,7 @@ crate::service_impl!(DELETE, AutoLoginService, AutoLoginDataDelete, ());
 
 pub struct BrandingDomainService;
 
-crate::service_impl!(declare, BrandingDomainService, "sys/brandingdomainservice", 114);
+crate::service_impl!(declare, BrandingDomainService, "sys/brandingdomainservice", 115);
 crate::service_impl!(POST, BrandingDomainService, BrandingDomainData, ());
 crate::service_impl!(GET, BrandingDomainService, (), BrandingDomainGetReturn);
 crate::service_impl!(PUT, BrandingDomainService, BrandingDomainData, ());
@@ -131,37 +131,37 @@ crate::service_impl!(DELETE, BrandingDomainService, BrandingDomainDeleteData, ()
 
 pub struct ChangeKdfService;
 
-crate::service_impl!(declare, ChangeKdfService, "sys/changekdfservice", 114);
+crate::service_impl!(declare, ChangeKdfService, "sys/changekdfservice", 115);
 crate::service_impl!(POST, ChangeKdfService, ChangeKdfPostIn, ());
 
 
 pub struct ChangePasswordService;
 
-crate::service_impl!(declare, ChangePasswordService, "sys/changepasswordservice", 114);
+crate::service_impl!(declare, ChangePasswordService, "sys/changepasswordservice", 115);
 crate::service_impl!(POST, ChangePasswordService, ChangePasswordPostIn, ());
 
 
 pub struct CloseSessionService;
 
-crate::service_impl!(declare, CloseSessionService, "sys/closesessionservice", 114);
+crate::service_impl!(declare, CloseSessionService, "sys/closesessionservice", 115);
 crate::service_impl!(POST, CloseSessionService, CloseSessionServicePost, ());
 
 
 pub struct CreateCustomerServerProperties;
 
-crate::service_impl!(declare, CreateCustomerServerProperties, "sys/createcustomerserverproperties", 114);
+crate::service_impl!(declare, CreateCustomerServerProperties, "sys/createcustomerserverproperties", 115);
 crate::service_impl!(POST, CreateCustomerServerProperties, CreateCustomerServerPropertiesData, CreateCustomerServerPropertiesReturn);
 
 
 pub struct CustomDomainCheckService;
 
-crate::service_impl!(declare, CustomDomainCheckService, "sys/customdomaincheckservice", 114);
+crate::service_impl!(declare, CustomDomainCheckService, "sys/customdomaincheckservice", 115);
 crate::service_impl!(GET, CustomDomainCheckService, CustomDomainCheckGetIn, CustomDomainCheckGetOut);
 
 
 pub struct CustomDomainService;
 
-crate::service_impl!(declare, CustomDomainService, "sys/customdomainservice", 114);
+crate::service_impl!(declare, CustomDomainService, "sys/customdomainservice", 115);
 crate::service_impl!(POST, CustomDomainService, CustomDomainData, CustomDomainReturn);
 crate::service_impl!(PUT, CustomDomainService, CustomDomainData, ());
 crate::service_impl!(DELETE, CustomDomainService, CustomDomainData, ());
@@ -169,50 +169,50 @@ crate::service_impl!(DELETE, CustomDomainService, CustomDomainData, ());
 
 pub struct CustomerAccountTerminationService;
 
-crate::service_impl!(declare, CustomerAccountTerminationService, "sys/customeraccountterminationservice", 114);
+crate::service_impl!(declare, CustomerAccountTerminationService, "sys/customeraccountterminationservice", 115);
 crate::service_impl!(POST, CustomerAccountTerminationService, CustomerAccountTerminationPostIn, CustomerAccountTerminationPostOut);
 
 
 pub struct CustomerPublicKeyService;
 
-crate::service_impl!(declare, CustomerPublicKeyService, "sys/customerpublickeyservice", 114);
+crate::service_impl!(declare, CustomerPublicKeyService, "sys/customerpublickeyservice", 115);
 crate::service_impl!(GET, CustomerPublicKeyService, (), PublicKeyGetOut);
 
 
 pub struct CustomerService;
 
-crate::service_impl!(declare, CustomerService, "sys/customerservice", 114);
+crate::service_impl!(declare, CustomerService, "sys/customerservice", 115);
 crate::service_impl!(DELETE, CustomerService, DeleteCustomerData, ());
 
 
 pub struct DebitService;
 
-crate::service_impl!(declare, DebitService, "sys/debitservice", 114);
+crate::service_impl!(declare, DebitService, "sys/debitservice", 115);
 crate::service_impl!(PUT, DebitService, DebitServicePutData, ());
 
 
 pub struct DomainMailAddressAvailabilityService;
 
-crate::service_impl!(declare, DomainMailAddressAvailabilityService, "sys/domainmailaddressavailabilityservice", 114);
+crate::service_impl!(declare, DomainMailAddressAvailabilityService, "sys/domainmailaddressavailabilityservice", 115);
 crate::service_impl!(GET, DomainMailAddressAvailabilityService, DomainMailAddressAvailabilityData, DomainMailAddressAvailabilityReturn);
 
 
 pub struct ExternalPropertiesService;
 
-crate::service_impl!(declare, ExternalPropertiesService, "sys/externalpropertiesservice", 114);
+crate::service_impl!(declare, ExternalPropertiesService, "sys/externalpropertiesservice", 115);
 crate::service_impl!(GET, ExternalPropertiesService, (), ExternalPropertiesReturn);
 
 
 pub struct GiftCardRedeemService;
 
-crate::service_impl!(declare, GiftCardRedeemService, "sys/giftcardredeemservice", 114);
+crate::service_impl!(declare, GiftCardRedeemService, "sys/giftcardredeemservice", 115);
 crate::service_impl!(POST, GiftCardRedeemService, GiftCardRedeemData, ());
 crate::service_impl!(GET, GiftCardRedeemService, GiftCardRedeemData, GiftCardRedeemGetReturn);
 
 
 pub struct GiftCardService;
 
-crate::service_impl!(declare, GiftCardService, "sys/giftcardservice", 114);
+crate::service_impl!(declare, GiftCardService, "sys/giftcardservice", 115);
 crate::service_impl!(POST, GiftCardService, GiftCardCreateData, GiftCardCreateReturn);
 crate::service_impl!(GET, GiftCardService, (), GiftCardGetReturn);
 crate::service_impl!(DELETE, GiftCardService, GiftCardDeleteData, ());
@@ -220,37 +220,37 @@ crate::service_impl!(DELETE, GiftCardService, GiftCardDeleteData, ());
 
 pub struct GroupKeyRotationInfoService;
 
-crate::service_impl!(declare, GroupKeyRotationInfoService, "sys/groupkeyrotationinfoservice", 114);
+crate::service_impl!(declare, GroupKeyRotationInfoService, "sys/groupkeyrotationinfoservice", 115);
 crate::service_impl!(GET, GroupKeyRotationInfoService, (), GroupKeyRotationInfoGetOut);
 
 
 pub struct GroupKeyRotationService;
 
-crate::service_impl!(declare, GroupKeyRotationService, "sys/groupkeyrotationservice", 114);
+crate::service_impl!(declare, GroupKeyRotationService, "sys/groupkeyrotationservice", 115);
 crate::service_impl!(POST, GroupKeyRotationService, GroupKeyRotationPostIn, ());
 
 
 pub struct InvoiceDataService;
 
-crate::service_impl!(declare, InvoiceDataService, "sys/invoicedataservice", 114);
+crate::service_impl!(declare, InvoiceDataService, "sys/invoicedataservice", 115);
 crate::service_impl!(GET, InvoiceDataService, InvoiceDataGetIn, InvoiceDataGetOut);
 
 
 pub struct LocalAdminRemovalService;
 
-crate::service_impl!(declare, LocalAdminRemovalService, "sys/localadminremovalservice", 114);
+crate::service_impl!(declare, LocalAdminRemovalService, "sys/localadminremovalservice", 115);
 crate::service_impl!(POST, LocalAdminRemovalService, LocalAdminRemovalPostIn, ());
 
 
 pub struct LocationService;
 
-crate::service_impl!(declare, LocationService, "sys/locationservice", 114);
+crate::service_impl!(declare, LocationService, "sys/locationservice", 115);
 crate::service_impl!(GET, LocationService, (), LocationServiceGetReturn);
 
 
 pub struct MailAddressAliasService;
 
-crate::service_impl!(declare, MailAddressAliasService, "sys/mailaddressaliasservice", 114);
+crate::service_impl!(declare, MailAddressAliasService, "sys/mailaddressaliasservice", 115);
 crate::service_impl!(POST, MailAddressAliasService, MailAddressAliasServiceData, ());
 crate::service_impl!(GET, MailAddressAliasService, MailAddressAliasGetIn, MailAddressAliasServiceReturn);
 crate::service_impl!(DELETE, MailAddressAliasService, MailAddressAliasServiceDataDelete, ());
@@ -258,7 +258,7 @@ crate::service_impl!(DELETE, MailAddressAliasService, MailAddressAliasServiceDat
 
 pub struct MembershipService;
 
-crate::service_impl!(declare, MembershipService, "sys/membershipservice", 114);
+crate::service_impl!(declare, MembershipService, "sys/membershipservice", 115);
 crate::service_impl!(POST, MembershipService, MembershipAddData, ());
 crate::service_impl!(PUT, MembershipService, MembershipPutIn, ());
 crate::service_impl!(DELETE, MembershipService, MembershipRemoveData, ());
@@ -266,13 +266,13 @@ crate::service_impl!(DELETE, MembershipService, MembershipRemoveData, ());
 
 pub struct MultipleMailAddressAvailabilityService;
 
-crate::service_impl!(declare, MultipleMailAddressAvailabilityService, "sys/multiplemailaddressavailabilityservice", 114);
+crate::service_impl!(declare, MultipleMailAddressAvailabilityService, "sys/multiplemailaddressavailabilityservice", 115);
 crate::service_impl!(GET, MultipleMailAddressAvailabilityService, MultipleMailAddressAvailabilityData, MultipleMailAddressAvailabilityReturn);
 
 
 pub struct PaymentDataService;
 
-crate::service_impl!(declare, PaymentDataService, "sys/paymentdataservice", 114);
+crate::service_impl!(declare, PaymentDataService, "sys/paymentdataservice", 115);
 crate::service_impl!(POST, PaymentDataService, PaymentDataServicePostData, ());
 crate::service_impl!(GET, PaymentDataService, PaymentDataServiceGetData, PaymentDataServiceGetReturn);
 crate::service_impl!(PUT, PaymentDataService, PaymentDataServicePutData, PaymentDataServicePutReturn);
@@ -280,71 +280,71 @@ crate::service_impl!(PUT, PaymentDataService, PaymentDataServicePutData, Payment
 
 pub struct PlanService;
 
-crate::service_impl!(declare, PlanService, "sys/planservice", 114);
+crate::service_impl!(declare, PlanService, "sys/planservice", 115);
 crate::service_impl!(GET, PlanService, (), PlanServiceGetOut);
 
 
 pub struct PriceService;
 
-crate::service_impl!(declare, PriceService, "sys/priceservice", 114);
+crate::service_impl!(declare, PriceService, "sys/priceservice", 115);
 crate::service_impl!(GET, PriceService, PriceServiceData, PriceServiceReturn);
 
 
 pub struct PublicKeyService;
 
-crate::service_impl!(declare, PublicKeyService, "sys/publickeyservice", 114);
+crate::service_impl!(declare, PublicKeyService, "sys/publickeyservice", 115);
 crate::service_impl!(GET, PublicKeyService, PublicKeyGetIn, PublicKeyGetOut);
 crate::service_impl!(PUT, PublicKeyService, PublicKeyPutIn, ());
 
 
 pub struct ReferralCodeService;
 
-crate::service_impl!(declare, ReferralCodeService, "sys/referralcodeservice", 114);
+crate::service_impl!(declare, ReferralCodeService, "sys/referralcodeservice", 115);
 crate::service_impl!(POST, ReferralCodeService, ReferralCodePostIn, ReferralCodePostOut);
 crate::service_impl!(GET, ReferralCodeService, ReferralCodeGetIn, ());
 
 
 pub struct RegistrationCaptchaService;
 
-crate::service_impl!(declare, RegistrationCaptchaService, "sys/registrationcaptchaservice", 114);
+crate::service_impl!(declare, RegistrationCaptchaService, "sys/registrationcaptchaservice", 115);
 crate::service_impl!(POST, RegistrationCaptchaService, RegistrationCaptchaServiceData, ());
 crate::service_impl!(GET, RegistrationCaptchaService, RegistrationCaptchaServiceGetData, RegistrationCaptchaServiceReturn);
 
 
 pub struct RegistrationService;
 
-crate::service_impl!(declare, RegistrationService, "sys/registrationservice", 114);
+crate::service_impl!(declare, RegistrationService, "sys/registrationservice", 115);
 crate::service_impl!(POST, RegistrationService, RegistrationServiceData, RegistrationReturn);
 crate::service_impl!(GET, RegistrationService, (), RegistrationServiceData);
 
 
 pub struct ResetFactorsService;
 
-crate::service_impl!(declare, ResetFactorsService, "sys/resetfactorsservice", 114);
+crate::service_impl!(declare, ResetFactorsService, "sys/resetfactorsservice", 115);
 crate::service_impl!(DELETE, ResetFactorsService, ResetFactorsDeleteData, ());
 
 
 pub struct ResetPasswordService;
 
-crate::service_impl!(declare, ResetPasswordService, "sys/resetpasswordservice", 114);
+crate::service_impl!(declare, ResetPasswordService, "sys/resetpasswordservice", 115);
 crate::service_impl!(POST, ResetPasswordService, ResetPasswordPostIn, ());
 
 
 pub struct SaltService;
 
-crate::service_impl!(declare, SaltService, "sys/saltservice", 114);
+crate::service_impl!(declare, SaltService, "sys/saltservice", 115);
 crate::service_impl!(GET, SaltService, SaltData, SaltReturn);
 
 
 pub struct SecondFactorAuthAllowedService;
 
-crate::service_impl!(declare, SecondFactorAuthAllowedService, "sys/secondfactorauthallowedservice", 114);
+crate::service_impl!(declare, SecondFactorAuthAllowedService, "sys/secondfactorauthallowedservice", 115);
 crate::service_impl!(GET, SecondFactorAuthAllowedService, (), SecondFactorAuthAllowedReturn);
 
 
 pub struct SecondFactorAuthService;
 
-crate::service_impl!(declare, SecondFactorAuthService, "sys/secondfactorauthservice", 114);
+crate::service_impl!(declare, SecondFactorAuthService, "sys/secondfactorauthservice", 115);
 crate::service_impl!(POST, SecondFactorAuthService, SecondFactorAuthData, ());
 crate::service_impl!(GET, SecondFactorAuthService, SecondFactorAuthGetData, SecondFactorAuthGetReturn);
 crate::service_impl!(DELETE, SecondFactorAuthService, SecondFactorAuthDeleteData, ());
@@ -352,65 +352,65 @@ crate::service_impl!(DELETE, SecondFactorAuthService, SecondFactorAuthDeleteData
 
 pub struct SessionService;
 
-crate::service_impl!(declare, SessionService, "sys/sessionservice", 114);
+crate::service_impl!(declare, SessionService, "sys/sessionservice", 115);
 crate::service_impl!(POST, SessionService, CreateSessionData, CreateSessionReturn);
 
 
 pub struct SignOrderProcessingAgreementService;
 
-crate::service_impl!(declare, SignOrderProcessingAgreementService, "sys/signorderprocessingagreementservice", 114);
+crate::service_impl!(declare, SignOrderProcessingAgreementService, "sys/signorderprocessingagreementservice", 115);
 crate::service_impl!(POST, SignOrderProcessingAgreementService, SignOrderProcessingAgreementData, ());
 
 
 pub struct SwitchAccountTypeService;
 
-crate::service_impl!(declare, SwitchAccountTypeService, "sys/switchaccounttypeservice", 114);
+crate::service_impl!(declare, SwitchAccountTypeService, "sys/switchaccounttypeservice", 115);
 crate::service_impl!(POST, SwitchAccountTypeService, SwitchAccountTypePostIn, ());
 
 
 pub struct SystemKeysService;
 
-crate::service_impl!(declare, SystemKeysService, "sys/systemkeysservice", 114);
+crate::service_impl!(declare, SystemKeysService, "sys/systemkeysservice", 115);
 crate::service_impl!(GET, SystemKeysService, (), SystemKeysReturn);
 
 
 pub struct TakeOverDeletedAddressService;
 
-crate::service_impl!(declare, TakeOverDeletedAddressService, "sys/takeoverdeletedaddressservice", 114);
+crate::service_impl!(declare, TakeOverDeletedAddressService, "sys/takeoverdeletedaddressservice", 115);
 crate::service_impl!(POST, TakeOverDeletedAddressService, TakeOverDeletedAddressData, ());
 
 
 pub struct UpdatePermissionKeyService;
 
-crate::service_impl!(declare, UpdatePermissionKeyService, "sys/updatepermissionkeyservice", 114);
+crate::service_impl!(declare, UpdatePermissionKeyService, "sys/updatepermissionkeyservice", 115);
 crate::service_impl!(POST, UpdatePermissionKeyService, UpdatePermissionKeyData, ());
 
 
 pub struct UpdateSessionKeysService;
 
-crate::service_impl!(declare, UpdateSessionKeysService, "sys/updatesessionkeysservice", 114);
+crate::service_impl!(declare, UpdateSessionKeysService, "sys/updatesessionkeysservice", 115);
 crate::service_impl!(POST, UpdateSessionKeysService, UpdateSessionKeysPostIn, ());
 
 
 pub struct UpgradePriceService;
 
-crate::service_impl!(declare, UpgradePriceService, "sys/upgradepriceservice", 114);
+crate::service_impl!(declare, UpgradePriceService, "sys/upgradepriceservice", 115);
 crate::service_impl!(GET, UpgradePriceService, UpgradePriceServiceData, UpgradePriceServiceReturn);
 
 
 pub struct UserGroupKeyRotationService;
 
-crate::service_impl!(declare, UserGroupKeyRotationService, "sys/usergroupkeyrotationservice", 114);
+crate::service_impl!(declare, UserGroupKeyRotationService, "sys/usergroupkeyrotationservice", 115);
 crate::service_impl!(POST, UserGroupKeyRotationService, UserGroupKeyRotationPostIn, ());
 
 
 pub struct UserService;
 
-crate::service_impl!(declare, UserService, "sys/userservice", 114);
+crate::service_impl!(declare, UserService, "sys/userservice", 115);
 crate::service_impl!(DELETE, UserService, UserDataDelete, ());
 
 
 pub struct VersionService;
 
-crate::service_impl!(declare, VersionService, "sys/versionservice", 114);
+crate::service_impl!(declare, VersionService, "sys/versionservice", 115);
 crate::service_impl!(GET, VersionService, VersionData, VersionReturn);

@@ -682,6 +682,24 @@ impl Entity for BucketPermission {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct CalendarAdvancedRepeatRule {
+	pub _id: Option<CustomId>,
+	pub interval: String,
+	pub ruleType: i64,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+
+impl Entity for CalendarAdvancedRepeatRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "CalendarAdvancedRepeatRule",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventRef {
 	pub _id: Option<CustomId>,
 	pub elementId: CustomId,
@@ -3367,6 +3385,7 @@ pub struct RepeatRule {
 	pub frequency: i64,
 	pub interval: i64,
 	pub timeZone: String,
+	pub advancedRules: Vec<CalendarAdvancedRepeatRule>,
 	pub excludedDates: Vec<DateWrapper>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }

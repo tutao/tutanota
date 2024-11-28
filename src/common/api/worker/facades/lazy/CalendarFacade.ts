@@ -601,6 +601,7 @@ function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepea
 		interval: calendarRepeatRule.interval,
 		timeZone: calendarRepeatRule.timeZone,
 		excludedDates: calendarRepeatRule.excludedDates.map(({ date }) => createDateWrapper({ date })),
+		advancedRules: [],
 	})
 }
 

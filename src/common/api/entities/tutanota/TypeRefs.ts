@@ -63,6 +63,19 @@ export type Body = {
 	compressedText: null | string;
 	text: null | string;
 }
+export const CalendarAdvancedRepeatRuleTypeRef: TypeRef<CalendarAdvancedRepeatRule> = new TypeRef("tutanota", "CalendarAdvancedRepeatRule")
+
+export function createCalendarAdvancedRepeatRule(values: StrippedEntity<CalendarAdvancedRepeatRule>): CalendarAdvancedRepeatRule {
+	return Object.assign(create(typeModels.CalendarAdvancedRepeatRule, CalendarAdvancedRepeatRuleTypeRef), values)
+}
+
+export type CalendarAdvancedRepeatRule = {
+	_type: TypeRef<CalendarAdvancedRepeatRule>;
+
+	_id: Id;
+	interval: string;
+	ruleType: NumberString;
+}
 export const CalendarDeleteDataTypeRef: TypeRef<CalendarDeleteData> = new TypeRef("tutanota", "CalendarDeleteData")
 
 export function createCalendarDeleteData(values: StrippedEntity<CalendarDeleteData>): CalendarDeleteData {
@@ -222,6 +235,7 @@ export type CalendarRepeatRule = {
 	interval: NumberString;
 	timeZone: string;
 
+	advancedRules: CalendarAdvancedRepeatRule[];
 	excludedDates: DateWrapper[];
 }
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")

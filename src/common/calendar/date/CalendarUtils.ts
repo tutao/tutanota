@@ -245,6 +245,7 @@ export function createRepeatRuleWithValues(frequency: RepeatPeriod, interval: nu
 		endValue: null,
 		endType: "0",
 		excludedDates: [],
+		advancedRules: [],
 	})
 }
 

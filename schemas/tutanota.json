@@ -530,6 +530,16 @@
 					"info": "AddValue TutanotaProperties/defaultLabelCreated/1510."
 				}
 			]
+		},
+		{
+			"version": 78,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "CalendarRepeatRule",
+					"info": "AddAssociation CalendarRepeatRule/advancedRules/AGGREGATION/1515."
+				}
+			]
 		}
 	]
 }

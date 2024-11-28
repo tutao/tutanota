@@ -2,7 +2,7 @@ import { CalendarEvent, CalendarGroupRoot } from "../../api/entities/tutanota/Ty
 import type { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { ParsedCalendarData, ParsedEvent } from "./CalendarImporter.js"
-import { getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
+import { freezeMap, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
@@ -152,3 +152,29 @@ export function checkURLString(url: string): TranslationKey | URL {
 export function hasValidProtocol(url: URL, validProtocols: string[]) {
 	return validProtocols.includes(url.protocol)
 }
+
+export const enum ByRule {
+	BYMINUTE,
+	BYHOUR,
+	BYDAY,
+	BYMONTHDAY,
+	BYYEARDAY,
+	BYWEEKNO,
+	BYMONTH,
+	BYSETPOS,
+	WKST,
+}
+
+export const BYRULE_MAP = freezeMap(
+	new Map([
+		["BYMINUTE", ByRule.BYMINUTE],
+		["BYHOUR", ByRule.BYHOUR],
+		["BYDAY", ByRule.BYDAY],
+		["BYMONTHDAY", ByRule.BYMONTHDAY],
+		["BYYEARDAY", ByRule.BYYEARDAY],
+		["BYWEEKNO", ByRule.BYWEEKNO],
+		["BYMONTH", ByRule.BYMONTH],
+		["BYSETPOS", ByRule.BYSETPOS],
+		["WKST", ByRule.WKST],
+	]),
+)
