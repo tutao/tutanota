@@ -465,6 +465,16 @@
 					"info": "AddValue PlanConfiguration/unlimitedLabels/2494."
 				}
 			]
+		},
+		{
+			"version": 118,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "RepeatRule",
+					"info": "AddAssociation RepeatRule/advancedRules/AGGREGATION/2525."
+				}
+			]
 		}
 	]
 }

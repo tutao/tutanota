@@ -567,6 +567,19 @@ export type BucketPermission = {
 
 	group: Id;
 }
+export const CalendarAdvancedRepeatRuleTypeRef: TypeRef<CalendarAdvancedRepeatRule> = new TypeRef("sys", "CalendarAdvancedRepeatRule")
+
+export function createCalendarAdvancedRepeatRule(values: StrippedEntity<CalendarAdvancedRepeatRule>): CalendarAdvancedRepeatRule {
+	return Object.assign(create(typeModels.CalendarAdvancedRepeatRule, CalendarAdvancedRepeatRuleTypeRef), values)
+}
+
+export type CalendarAdvancedRepeatRule = {
+	_type: TypeRef<CalendarAdvancedRepeatRule>;
+
+	_id: Id;
+	interval: string;
+	ruleType: NumberString;
+}
 export const CalendarEventRefTypeRef: TypeRef<CalendarEventRef> = new TypeRef("sys", "CalendarEventRef")
 
 export function createCalendarEventRef(values: StrippedEntity<CalendarEventRef>): CalendarEventRef {
@@ -2730,6 +2743,7 @@ export type RepeatRule = {
 	interval: NumberString;
 	timeZone: string;
 
+	advancedRules: CalendarAdvancedRepeatRule[];
 	excludedDates: DateWrapper[];
 }
 export const ResetFactorsDeleteDataTypeRef: TypeRef<ResetFactorsDeleteData> = new TypeRef("sys", "ResetFactorsDeleteData")
