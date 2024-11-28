@@ -1,9 +1,11 @@
+// @generated
 #![allow(unused_imports, dead_code, unused_variables)]
 use crate::ApiCallError;
 use crate::entities::Entity;
 use crate::services::{PostService, GetService, PutService, DeleteService, Service, Executor, ExtraServiceParams};
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
+use crate::entities::generated::tutanota::ApplyLabelServicePostIn;
 use crate::entities::generated::tutanota::UserAreaGroupPostData;
 use crate::entities::generated::tutanota::CreateGroupPostReturn;
 use crate::entities::generated::tutanota::CalendarDeleteData;
@@ -28,6 +30,8 @@ use crate::entities::generated::tutanota::DeleteMailFolderData;
 use crate::entities::generated::tutanota::CreateMailGroupData;
 use crate::entities::generated::tutanota::DeleteGroupData;
 use crate::entities::generated::tutanota::DeleteMailData;
+use crate::entities::generated::tutanota::ManageLabelServicePostIn;
+use crate::entities::generated::tutanota::ManageLabelServiceDeleteIn;
 use crate::entities::generated::tutanota::MoveMailData;
 use crate::entities::generated::tutanota::NewsIn;
 use crate::entities::generated::tutanota::NewsOut;
@@ -40,6 +44,12 @@ use crate::entities::generated::tutanota::TranslationGetIn;
 use crate::entities::generated::tutanota::TranslationGetOut;
 use crate::entities::generated::tutanota::UnreadMailStatePostIn;
 use crate::entities::generated::tutanota::UserAccountCreateData;
+pub struct ApplyLabelService;
+
+crate::service_impl!(declare, ApplyLabelService, "tutanota/applylabelservice", 77);
+crate::service_impl!(POST, ApplyLabelService, ApplyLabelServicePostIn, ());
+
+
 pub struct CalendarService;
 
 crate::service_impl!(declare, CalendarService, "tutanota/calendarservice", 77);
@@ -118,6 +128,13 @@ pub struct MailService;
 
 crate::service_impl!(declare, MailService, "tutanota/mailservice", 77);
 crate::service_impl!(DELETE, MailService, DeleteMailData, ());
+
+
+pub struct ManageLabelService;
+
+crate::service_impl!(declare, ManageLabelService, "tutanota/managelabelservice", 77);
+crate::service_impl!(POST, ManageLabelService, ManageLabelServicePostIn, ());
+crate::service_impl!(DELETE, ManageLabelService, ManageLabelServiceDeleteIn, ());
 
 
 pub struct MoveMailService;

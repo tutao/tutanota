@@ -1,6 +1,7 @@
+// @generated
 #![allow(non_snake_case, unused_imports)]
-use crate::*;
 use super::super::*;
+use crate::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
@@ -32,6 +33,7 @@ pub struct AccountingInfo {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for AccountingInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -41,17 +43,33 @@ impl Entity for AccountingInfo {
 	}
 }
 
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyRotationGetOut {
+	pub _format: i64,
+	pub distributionKeys: Vec<PubDistributionKey>,
+	pub userGroupIdsMissingDistributionKeys: Vec<GeneratedId>,
+}
 
-
+impl Entity for AdminGroupKeyRotationGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyRotationGetOut",
+		}
+	}
+}
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub adminGroupKeyData: GroupKeyRotationData,
+	pub distribution: Vec<AdminGroupKeyDistributionElement>,
 	pub userEncAdminPubKeyHashList: Vec<EncryptedKeyHash>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
+
 impl Entity for AdminGroupKeyRotationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -61,8 +79,22 @@ impl Entity for AdminGroupKeyRotationPostIn {
 	}
 }
 
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyRotationPutIn {
+	pub _format: i64,
+	pub adminDistKeyPair: KeyPair,
+	pub adminEncDistKeyHash: EncryptedKeyHash,
+}
 
-
+impl Entity for AdminGroupKeyRotationPutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyRotationPutIn",
+		}
+	}
+}
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -75,6 +107,7 @@ pub struct AdministratedGroup {
 	pub groupInfo: IdTupleGenerated,
 	pub localAdminGroup: GeneratedId,
 }
+
 impl Entity for AdministratedGroup {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -84,15 +117,13 @@ impl Entity for AdministratedGroup {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdministratedGroupsRef {
 	pub _id: Option<CustomId>,
 	pub items: GeneratedId,
 }
+
 impl Entity for AdministratedGroupsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -101,9 +132,6 @@ impl Entity for AdministratedGroupsRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -116,6 +144,7 @@ pub struct AffiliatePartnerKpiMonthSummary {
 	pub totalFree: i64,
 	pub totalPaid: i64,
 }
+
 impl Entity for AffiliatePartnerKpiMonthSummary {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -124,9 +153,6 @@ impl Entity for AffiliatePartnerKpiMonthSummary {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -137,6 +163,7 @@ pub struct AffiliatePartnerKpiServiceGetOut {
 	pub promotionId: String,
 	pub kpis: Vec<AffiliatePartnerKpiMonthSummary>,
 }
+
 impl Entity for AffiliatePartnerKpiServiceGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -145,9 +172,6 @@ impl Entity for AffiliatePartnerKpiServiceGetOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -158,6 +182,7 @@ pub struct AlarmInfo {
 	pub calendarRef: CalendarEventRef,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for AlarmInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -166,9 +191,6 @@ impl Entity for AlarmInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -184,6 +206,7 @@ pub struct AlarmNotification {
 	pub user: GeneratedId,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for AlarmNotification {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -193,9 +216,6 @@ impl Entity for AlarmNotification {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AlarmServicePost {
@@ -204,6 +224,7 @@ pub struct AlarmServicePost {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for AlarmServicePost {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -213,15 +234,13 @@ impl Entity for AlarmServicePost {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ArchiveRef {
 	pub _id: Option<CustomId>,
 	pub archiveId: GeneratedId,
 }
+
 impl Entity for ArchiveRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -230,9 +249,6 @@ impl Entity for ArchiveRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -243,6 +259,7 @@ pub struct ArchiveType {
 	#[serde(rename = "type")]
 	pub r#type: TypeInfo,
 }
+
 impl Entity for ArchiveType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -251,9 +268,6 @@ impl Entity for ArchiveType {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -275,6 +289,7 @@ pub struct AuditLogEntry {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for AuditLogEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -284,15 +299,13 @@ impl Entity for AuditLogEntry {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AuditLogRef {
 	pub _id: Option<CustomId>,
 	pub items: GeneratedId,
 }
+
 impl Entity for AuditLogRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -301,9 +314,6 @@ impl Entity for AuditLogRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -314,6 +324,7 @@ pub struct AuthenticatedDevice {
 	pub deviceKey: Vec<u8>,
 	pub deviceToken: String,
 }
+
 impl Entity for AuthenticatedDevice {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -322,9 +333,6 @@ impl Entity for AuthenticatedDevice {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -335,6 +343,7 @@ pub struct Authentication {
 	pub externalAuthToken: Option<String>,
 	pub userId: GeneratedId,
 }
+
 impl Entity for Authentication {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -344,15 +353,13 @@ impl Entity for Authentication {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AutoLoginDataDelete {
 	pub _format: i64,
 	pub deviceToken: String,
 }
+
 impl Entity for AutoLoginDataDelete {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -362,9 +369,6 @@ impl Entity for AutoLoginDataDelete {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AutoLoginDataGet {
@@ -372,6 +376,7 @@ pub struct AutoLoginDataGet {
 	pub deviceToken: String,
 	pub userId: GeneratedId,
 }
+
 impl Entity for AutoLoginDataGet {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -381,9 +386,6 @@ impl Entity for AutoLoginDataGet {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AutoLoginDataReturn {
@@ -391,6 +393,7 @@ pub struct AutoLoginDataReturn {
 	#[serde(with = "serde_bytes")]
 	pub deviceKey: Vec<u8>,
 }
+
 impl Entity for AutoLoginDataReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -400,15 +403,13 @@ impl Entity for AutoLoginDataReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AutoLoginPostReturn {
 	pub _format: i64,
 	pub deviceToken: String,
 }
+
 impl Entity for AutoLoginPostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -418,9 +419,6 @@ impl Entity for AutoLoginPostReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Blob {
@@ -429,6 +427,7 @@ pub struct Blob {
 	pub blobId: GeneratedId,
 	pub size: i64,
 }
+
 impl Entity for Blob {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -438,15 +437,13 @@ impl Entity for Blob {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobReferenceTokenWrapper {
 	pub _id: Option<CustomId>,
 	pub blobReferenceToken: String,
 }
+
 impl Entity for BlobReferenceTokenWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -455,9 +452,6 @@ impl Entity for BlobReferenceTokenWrapper {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -475,6 +469,7 @@ pub struct Booking {
 	pub paymentMonths: i64,
 	pub items: Vec<BookingItem>,
 }
+
 impl Entity for Booking {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -483,9 +478,6 @@ impl Entity for Booking {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -499,6 +491,7 @@ pub struct BookingItem {
 	pub priceType: i64,
 	pub totalInvoicedCount: i64,
 }
+
 impl Entity for BookingItem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -508,15 +501,13 @@ impl Entity for BookingItem {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BookingsRef {
 	pub _id: Option<CustomId>,
 	pub items: GeneratedId,
 }
+
 impl Entity for BookingsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -526,15 +517,13 @@ impl Entity for BookingsRef {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BootstrapFeature {
 	pub _id: Option<CustomId>,
 	pub feature: i64,
 }
+
 impl Entity for BootstrapFeature {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -544,9 +533,6 @@ impl Entity for BootstrapFeature {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Braintree3ds2Request {
@@ -555,6 +541,7 @@ pub struct Braintree3ds2Request {
 	pub clientToken: String,
 	pub nonce: String,
 }
+
 impl Entity for Braintree3ds2Request {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -564,9 +551,6 @@ impl Entity for Braintree3ds2Request {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Braintree3ds2Response {
@@ -574,6 +558,7 @@ pub struct Braintree3ds2Response {
 	pub clientToken: String,
 	pub nonce: String,
 }
+
 impl Entity for Braintree3ds2Response {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -582,9 +567,6 @@ impl Entity for Braintree3ds2Response {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -600,6 +582,7 @@ pub struct BrandingDomainData {
 	pub systemAdminPubKeyVersion: i64,
 	pub systemAdminPublicProtocolVersion: i64,
 }
+
 impl Entity for BrandingDomainData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -609,15 +592,13 @@ impl Entity for BrandingDomainData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BrandingDomainDeleteData {
 	pub _format: i64,
 	pub domain: String,
 }
+
 impl Entity for BrandingDomainDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -627,15 +608,13 @@ impl Entity for BrandingDomainDeleteData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BrandingDomainGetReturn {
 	pub _format: i64,
 	pub certificateInfo: Option<CertificateInfo>,
 }
+
 impl Entity for BrandingDomainGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -645,15 +624,13 @@ impl Entity for BrandingDomainGetReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Bucket {
 	pub _id: Option<CustomId>,
 	pub bucketPermissions: GeneratedId,
 }
+
 impl Entity for Bucket {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -662,9 +639,6 @@ impl Entity for Bucket {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -680,6 +654,7 @@ pub struct BucketKey {
 	pub bucketEncSessionKeys: Vec<InstanceSessionKey>,
 	pub keyGroup: Option<GeneratedId>,
 }
+
 impl Entity for BucketKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -688,9 +663,6 @@ impl Entity for BucketKey {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -714,6 +686,7 @@ pub struct BucketPermission {
 	pub r#type: i64,
 	pub group: GeneratedId,
 }
+
 impl Entity for BucketPermission {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -723,9 +696,6 @@ impl Entity for BucketPermission {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CalendarEventRef {
@@ -733,6 +703,7 @@ pub struct CalendarEventRef {
 	pub elementId: CustomId,
 	pub listId: GeneratedId,
 }
+
 impl Entity for CalendarEventRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -741,9 +712,6 @@ impl Entity for CalendarEventRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -755,6 +723,7 @@ pub struct CertificateInfo {
 	pub r#type: i64,
 	pub certificate: Option<GeneratedId>,
 }
+
 impl Entity for CertificateInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -763,9 +732,6 @@ impl Entity for CertificateInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -776,6 +742,7 @@ pub struct Challenge {
 	pub otp: Option<OtpChallenge>,
 	pub u2f: Option<U2fChallenge>,
 }
+
 impl Entity for Challenge {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -784,9 +751,6 @@ impl Entity for Challenge {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -803,6 +767,7 @@ pub struct ChangeKdfPostIn {
 	#[serde(with = "serde_bytes")]
 	pub verifier: Vec<u8>,
 }
+
 impl Entity for ChangeKdfPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -811,9 +776,6 @@ impl Entity for ChangeKdfPostIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -833,6 +795,7 @@ pub struct ChangePasswordPostIn {
 	#[serde(with = "serde_bytes")]
 	pub verifier: Vec<u8>,
 }
+
 impl Entity for ChangePasswordPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -842,9 +805,6 @@ impl Entity for ChangePasswordPostIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Chat {
@@ -853,6 +813,7 @@ pub struct Chat {
 	pub sender: GeneratedId,
 	pub text: String,
 }
+
 impl Entity for Chat {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -862,9 +823,6 @@ impl Entity for Chat {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CloseSessionServicePost {
@@ -872,6 +830,7 @@ pub struct CloseSessionServicePost {
 	pub accessToken: String,
 	pub sessionId: IdTupleCustom,
 }
+
 impl Entity for CloseSessionServicePost {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -881,9 +840,6 @@ impl Entity for CloseSessionServicePost {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateCustomerServerPropertiesData {
@@ -892,6 +848,7 @@ pub struct CreateCustomerServerPropertiesData {
 	pub adminGroupEncSessionKey: Vec<u8>,
 	pub adminGroupKeyVersion: i64,
 }
+
 impl Entity for CreateCustomerServerPropertiesData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -901,15 +858,13 @@ impl Entity for CreateCustomerServerPropertiesData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateCustomerServerPropertiesReturn {
 	pub _format: i64,
 	pub id: GeneratedId,
 }
+
 impl Entity for CreateCustomerServerPropertiesReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -918,9 +873,6 @@ impl Entity for CreateCustomerServerPropertiesReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -935,6 +887,7 @@ pub struct CreateSessionData {
 	pub recoverCodeVerifier: Option<String>,
 	pub user: Option<GeneratedId>,
 }
+
 impl Entity for CreateSessionData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -944,9 +897,6 @@ impl Entity for CreateSessionData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CreateSessionReturn {
@@ -955,6 +905,7 @@ pub struct CreateSessionReturn {
 	pub challenges: Vec<Challenge>,
 	pub user: GeneratedId,
 }
+
 impl Entity for CreateSessionReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -963,9 +914,6 @@ impl Entity for CreateSessionReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -978,6 +926,7 @@ pub struct CreditCard {
 	pub number: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CreditCard {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -987,9 +936,6 @@ impl Entity for CreditCard {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomDomainCheckGetIn {
@@ -997,6 +943,7 @@ pub struct CustomDomainCheckGetIn {
 	pub domain: String,
 	pub customer: Option<GeneratedId>,
 }
+
 impl Entity for CustomDomainCheckGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1005,9 +952,6 @@ impl Entity for CustomDomainCheckGetIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1018,6 +962,7 @@ pub struct CustomDomainCheckGetOut {
 	pub missingRecords: Vec<DnsRecord>,
 	pub requiredRecords: Vec<DnsRecord>,
 }
+
 impl Entity for CustomDomainCheckGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1027,9 +972,6 @@ impl Entity for CustomDomainCheckGetOut {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomDomainData {
@@ -1037,6 +979,7 @@ pub struct CustomDomainData {
 	pub domain: String,
 	pub catchAllMailGroup: Option<GeneratedId>,
 }
+
 impl Entity for CustomDomainData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1046,9 +989,6 @@ impl Entity for CustomDomainData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomDomainReturn {
@@ -1056,6 +996,7 @@ pub struct CustomDomainReturn {
 	pub validationResult: i64,
 	pub invalidDnsRecords: Vec<StringWrapper>,
 }
+
 impl Entity for CustomDomainReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1064,9 +1005,6 @@ impl Entity for CustomDomainReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1098,6 +1036,7 @@ pub struct Customer {
 	pub whitelabelChildren: Option<WhitelabelChildrenRef>,
 	pub whitelabelParent: Option<WhitelabelParent>,
 }
+
 impl Entity for Customer {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1107,9 +1046,6 @@ impl Entity for Customer {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountTerminationPostIn {
@@ -1117,6 +1053,7 @@ pub struct CustomerAccountTerminationPostIn {
 	pub terminationDate: Option<DateTime>,
 	pub surveyData: Option<SurveyData>,
 }
+
 impl Entity for CustomerAccountTerminationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1126,15 +1063,13 @@ impl Entity for CustomerAccountTerminationPostIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CustomerAccountTerminationPostOut {
 	pub _format: i64,
 	pub terminationRequest: IdTupleGenerated,
 }
+
 impl Entity for CustomerAccountTerminationPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1143,9 +1078,6 @@ impl Entity for CustomerAccountTerminationPostOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1158,6 +1090,7 @@ pub struct CustomerAccountTerminationRequest {
 	pub terminationRequestDate: DateTime,
 	pub customer: GeneratedId,
 }
+
 impl Entity for CustomerAccountTerminationRequest {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1166,9 +1099,6 @@ impl Entity for CustomerAccountTerminationRequest {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1206,6 +1136,7 @@ pub struct CustomerInfo {
 	pub takeoverCustomer: Option<GeneratedId>,
 	pub terminationRequest: Option<IdTupleGenerated>,
 }
+
 impl Entity for CustomerInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1214,9 +1145,6 @@ impl Entity for CustomerInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1232,6 +1160,7 @@ pub struct CustomerProperties {
 	pub notificationMailTemplates: Vec<NotificationMailTemplate>,
 	pub smallLogo: Option<File>,
 }
+
 impl Entity for CustomerProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1240,9 +1169,6 @@ impl Entity for CustomerProperties {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1262,6 +1188,7 @@ pub struct CustomerServerProperties {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for CustomerServerProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1271,9 +1198,6 @@ impl Entity for CustomerServerProperties {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DateWrapper {
@@ -1281,6 +1205,7 @@ pub struct DateWrapper {
 	pub date: DateTime,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for DateWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1290,15 +1215,13 @@ impl Entity for DateWrapper {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DebitServicePutData {
 	pub _format: i64,
 	pub invoice: Option<IdTupleGenerated>,
 }
+
 impl Entity for DebitServicePutData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1307,9 +1230,6 @@ impl Entity for DebitServicePutData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1323,6 +1243,7 @@ pub struct DeleteCustomerData {
 	pub customer: GeneratedId,
 	pub surveyData: Option<SurveyData>,
 }
+
 impl Entity for DeleteCustomerData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1331,9 +1252,6 @@ impl Entity for DeleteCustomerData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1344,6 +1262,7 @@ pub struct DnsRecord {
 	pub r#type: i64,
 	pub value: String,
 }
+
 impl Entity for DnsRecord {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1352,9 +1271,6 @@ impl Entity for DnsRecord {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1365,6 +1281,7 @@ pub struct DomainInfo {
 	pub catchAllMailGroup: Option<GeneratedId>,
 	pub whitelabelConfig: Option<GeneratedId>,
 }
+
 impl Entity for DomainInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1374,15 +1291,13 @@ impl Entity for DomainInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DomainMailAddressAvailabilityData {
 	pub _format: i64,
 	pub mailAddress: String,
 }
+
 impl Entity for DomainMailAddressAvailabilityData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1392,15 +1307,13 @@ impl Entity for DomainMailAddressAvailabilityData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct DomainMailAddressAvailabilityReturn {
 	pub _format: i64,
 	pub available: bool,
 }
+
 impl Entity for DomainMailAddressAvailabilityReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1409,9 +1322,6 @@ impl Entity for DomainMailAddressAvailabilityReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1424,6 +1334,7 @@ pub struct EmailSenderListElement {
 	pub value: String,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for EmailSenderListElement {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1432,9 +1343,6 @@ impl Entity for EmailSenderListElement {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1446,6 +1354,7 @@ pub struct EncryptedKeyHash {
 	pub hashedKeyVersion: i64,
 	pub encryptingGroup: GeneratedId,
 }
+
 impl Entity for EncryptedKeyHash {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1454,9 +1363,6 @@ impl Entity for EncryptedKeyHash {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1467,6 +1373,7 @@ pub struct EntityEventBatch {
 	pub _permissions: GeneratedId,
 	pub events: Vec<EntityUpdate>,
 }
+
 impl Entity for EntityEventBatch {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1475,9 +1382,6 @@ impl Entity for EntityEventBatch {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1490,6 +1394,7 @@ pub struct EntityUpdate {
 	#[serde(rename = "type")]
 	pub r#type: String,
 }
+
 impl Entity for EntityUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1499,9 +1404,6 @@ impl Entity for EntityUpdate {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SysException {
@@ -1510,6 +1412,7 @@ pub struct SysException {
 	#[serde(rename = "type")]
 	pub r#type: String,
 }
+
 impl Entity for SysException {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1518,9 +1421,6 @@ impl Entity for SysException {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1531,6 +1431,7 @@ pub struct ExternalPropertiesReturn {
 	pub bigLogo: Option<File>,
 	pub smallLogo: Option<File>,
 }
+
 impl Entity for ExternalPropertiesReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1539,9 +1440,6 @@ impl Entity for ExternalPropertiesReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1553,6 +1451,7 @@ pub struct ExternalUserReference {
 	pub user: GeneratedId,
 	pub userGroup: GeneratedId,
 }
+
 impl Entity for ExternalUserReference {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1562,15 +1461,13 @@ impl Entity for ExternalUserReference {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct Feature {
 	pub _id: Option<CustomId>,
 	pub feature: i64,
 }
+
 impl Entity for Feature {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1579,9 +1476,6 @@ impl Entity for Feature {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1592,6 +1486,7 @@ pub struct File {
 	pub mimeType: String,
 	pub name: String,
 }
+
 impl Entity for File {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1601,15 +1496,13 @@ impl Entity for File {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GeneratedIdWrapper {
 	pub _id: Option<CustomId>,
 	pub value: GeneratedId,
 }
+
 impl Entity for GeneratedIdWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1618,9 +1511,6 @@ impl Entity for GeneratedIdWrapper {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1640,6 +1530,7 @@ pub struct GiftCard {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for GiftCard {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1648,9 +1539,6 @@ impl Entity for GiftCard {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1666,6 +1554,7 @@ pub struct GiftCardCreateData {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for GiftCardCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1675,15 +1564,13 @@ impl Entity for GiftCardCreateData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardCreateReturn {
 	pub _format: i64,
 	pub giftCard: IdTupleGenerated,
 }
+
 impl Entity for GiftCardCreateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1693,15 +1580,13 @@ impl Entity for GiftCardCreateReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardDeleteData {
 	pub _format: i64,
 	pub giftCard: IdTupleGenerated,
 }
+
 impl Entity for GiftCardDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1711,9 +1596,6 @@ impl Entity for GiftCardDeleteData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardGetReturn {
@@ -1722,6 +1604,7 @@ pub struct GiftCardGetReturn {
 	pub period: i64,
 	pub options: Vec<GiftCardOption>,
 }
+
 impl Entity for GiftCardGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1731,15 +1614,13 @@ impl Entity for GiftCardGetReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardOption {
 	pub _id: Option<CustomId>,
 	pub value: i64,
 }
+
 impl Entity for GiftCardOption {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1748,9 +1629,6 @@ impl Entity for GiftCardOption {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1761,6 +1639,7 @@ pub struct GiftCardRedeemData {
 	pub keyHash: Vec<u8>,
 	pub giftCardInfo: GeneratedId,
 }
+
 impl Entity for GiftCardRedeemData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1769,9 +1648,6 @@ impl Entity for GiftCardRedeemData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1783,6 +1659,7 @@ pub struct GiftCardRedeemGetReturn {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for GiftCardRedeemGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1792,15 +1669,13 @@ impl Entity for GiftCardRedeemGetReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GiftCardsRef {
 	pub _id: Option<CustomId>,
 	pub items: GeneratedId,
 }
+
 impl Entity for GiftCardsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1809,9 +1684,6 @@ impl Entity for GiftCardsRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1841,6 +1713,7 @@ pub struct Group {
 	pub storageCounter: Option<GeneratedId>,
 	pub user: Option<GeneratedId>,
 }
+
 impl Entity for Group {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1849,9 +1722,6 @@ impl Entity for Group {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1876,6 +1746,7 @@ pub struct GroupInfo {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for GroupInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1884,9 +1755,6 @@ impl Entity for GroupInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1904,6 +1772,7 @@ pub struct GroupKey {
 	pub keyPair: Option<KeyPair>,
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
 }
+
 impl Entity for GroupKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1912,9 +1781,6 @@ impl Entity for GroupKey {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1931,6 +1797,7 @@ pub struct GroupKeyRotationData {
 	pub groupMembershipUpdateData: Vec<GroupMembershipUpdateData>,
 	pub keyPair: Option<KeyPair>,
 }
+
 impl Entity for GroupKeyRotationData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1940,9 +1807,6 @@ impl Entity for GroupKeyRotationData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupKeyRotationInfoGetOut {
@@ -1950,6 +1814,7 @@ pub struct GroupKeyRotationInfoGetOut {
 	pub userOrAdminGroupKeyRotationScheduled: bool,
 	pub groupKeyUpdates: Vec<IdTupleGenerated>,
 }
+
 impl Entity for GroupKeyRotationInfoGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1959,15 +1824,13 @@ impl Entity for GroupKeyRotationInfoGetOut {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupKeyRotationPostIn {
 	pub _format: i64,
 	pub groupKeyUpdates: Vec<GroupKeyRotationData>,
 }
+
 impl Entity for GroupKeyRotationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -1976,9 +1839,6 @@ impl Entity for GroupKeyRotationPostIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -1997,6 +1857,7 @@ pub struct GroupKeyUpdate {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for GroupKeyUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2005,9 +1866,6 @@ impl Entity for GroupKeyUpdate {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2020,6 +1878,7 @@ pub struct GroupKeyUpdateData {
 	pub sessionKeyEncGroupKeyVersion: i64,
 	pub pubEncBucketKeyData: PubEncKeyData,
 }
+
 impl Entity for GroupKeyUpdateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2029,15 +1888,13 @@ impl Entity for GroupKeyUpdateData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupKeyUpdatesRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for GroupKeyUpdatesRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2047,15 +1904,13 @@ impl Entity for GroupKeyUpdatesRef {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct GroupKeysRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for GroupKeysRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2064,9 +1919,6 @@ impl Entity for GroupKeysRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2080,6 +1932,7 @@ pub struct GroupMember {
 	pub user: GeneratedId,
 	pub userGroupInfo: IdTupleGenerated,
 }
+
 impl Entity for GroupMember {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2088,9 +1941,6 @@ impl Entity for GroupMember {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2107,6 +1957,7 @@ pub struct GroupMembership {
 	pub groupInfo: IdTupleGenerated,
 	pub groupMember: IdTupleGenerated,
 }
+
 impl Entity for GroupMembership {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2115,9 +1966,6 @@ impl Entity for GroupMembership {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2129,6 +1977,7 @@ pub struct GroupMembershipKeyData {
 	pub symKeyVersion: i64,
 	pub group: GeneratedId,
 }
+
 impl Entity for GroupMembershipKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2137,9 +1986,6 @@ impl Entity for GroupMembershipKeyData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2150,6 +1996,7 @@ pub struct GroupMembershipUpdateData {
 	pub userKeyVersion: i64,
 	pub userId: GeneratedId,
 }
+
 impl Entity for GroupMembershipUpdateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2158,9 +2005,6 @@ impl Entity for GroupMembershipUpdateData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2173,6 +2017,7 @@ pub struct GroupRoot {
 	pub externalUserAreaGroupInfos: Option<UserAreaGroups>,
 	pub externalUserReferences: GeneratedId,
 }
+
 impl Entity for GroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2182,9 +2027,6 @@ impl Entity for GroupRoot {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct IdTupleWrapper {
@@ -2192,6 +2034,7 @@ pub struct IdTupleWrapper {
 	pub listElementId: GeneratedId,
 	pub listId: GeneratedId,
 }
+
 impl Entity for IdTupleWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2200,9 +2043,6 @@ impl Entity for IdTupleWrapper {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2217,6 +2057,7 @@ pub struct InstanceSessionKey {
 	pub symKeyVersion: i64,
 	pub typeInfo: TypeInfo,
 }
+
 impl Entity for InstanceSessionKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2225,9 +2066,6 @@ impl Entity for InstanceSessionKey {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2259,6 +2097,7 @@ pub struct Invoice {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for Invoice {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2268,15 +2107,13 @@ impl Entity for Invoice {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InvoiceDataGetIn {
 	pub _format: i64,
 	pub invoiceNumber: String,
 }
+
 impl Entity for InvoiceDataGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2285,9 +2122,6 @@ impl Entity for InvoiceDataGetIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2307,6 +2141,7 @@ pub struct InvoiceDataGetOut {
 	pub vatType: i64,
 	pub items: Vec<InvoiceDataItem>,
 }
+
 impl Entity for InvoiceDataGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2315,9 +2150,6 @@ impl Entity for InvoiceDataGetOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2330,6 +2162,7 @@ pub struct InvoiceDataItem {
 	pub startDate: Option<DateTime>,
 	pub totalPrice: i64,
 }
+
 impl Entity for InvoiceDataItem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2338,9 +2171,6 @@ impl Entity for InvoiceDataItem {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2364,6 +2194,7 @@ pub struct InvoiceInfo {
 	pub invoices: GeneratedId,
 	pub paymentErrorInfo: Option<PaymentErrorInfo>,
 }
+
 impl Entity for InvoiceInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2372,9 +2203,6 @@ impl Entity for InvoiceInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2390,6 +2218,7 @@ pub struct InvoiceItem {
 	pub r#type: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for InvoiceItem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2398,9 +2227,6 @@ impl Entity for InvoiceItem {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2419,6 +2245,7 @@ pub struct KeyPair {
 	#[serde(with = "serde_bytes")]
 	pub symEncPrivRsaKey: Option<Vec<u8>>,
 }
+
 impl Entity for KeyPair {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2427,9 +2254,6 @@ impl Entity for KeyPair {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2444,6 +2268,7 @@ pub struct KeyRotation {
 	pub adminEncDistKeyHash: Option<EncryptedKeyHash>,
 	pub userEncAdminPubKeyHash: Option<EncryptedKeyHash>,
 }
+
 impl Entity for KeyRotation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2453,15 +2278,13 @@ impl Entity for KeyRotation {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct KeyRotationsRef {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for KeyRotationsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2470,9 +2293,6 @@ impl Entity for KeyRotationsRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2484,6 +2304,7 @@ pub struct LocalAdminGroupReplacementData {
 	pub groupKeyVersion: i64,
 	pub groupId: GeneratedId,
 }
+
 impl Entity for LocalAdminGroupReplacementData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2493,15 +2314,13 @@ impl Entity for LocalAdminGroupReplacementData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct LocalAdminRemovalPostIn {
 	pub _format: i64,
 	pub groupUpdates: Vec<LocalAdminGroupReplacementData>,
 }
+
 impl Entity for LocalAdminRemovalPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2511,15 +2330,13 @@ impl Entity for LocalAdminRemovalPostIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct LocationServiceGetReturn {
 	pub _format: i64,
 	pub country: String,
 }
+
 impl Entity for LocationServiceGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2528,9 +2345,6 @@ impl Entity for LocationServiceGetReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2541,6 +2355,7 @@ pub struct Login {
 	pub _permissions: GeneratedId,
 	pub time: DateTime,
 }
+
 impl Entity for Login {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2550,9 +2365,6 @@ impl Entity for Login {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressAlias {
@@ -2560,6 +2372,7 @@ pub struct MailAddressAlias {
 	pub enabled: bool,
 	pub mailAddress: String,
 }
+
 impl Entity for MailAddressAlias {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2569,15 +2382,13 @@ impl Entity for MailAddressAlias {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressAliasGetIn {
 	pub _format: i64,
 	pub targetGroup: GeneratedId,
 }
+
 impl Entity for MailAddressAliasGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2587,9 +2398,6 @@ impl Entity for MailAddressAliasGetIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressAliasServiceData {
@@ -2597,6 +2405,7 @@ pub struct MailAddressAliasServiceData {
 	pub mailAddress: String,
 	pub group: GeneratedId,
 }
+
 impl Entity for MailAddressAliasServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2606,9 +2415,6 @@ impl Entity for MailAddressAliasServiceData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressAliasServiceDataDelete {
@@ -2617,6 +2423,7 @@ pub struct MailAddressAliasServiceDataDelete {
 	pub restore: bool,
 	pub group: GeneratedId,
 }
+
 impl Entity for MailAddressAliasServiceDataDelete {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2625,9 +2432,6 @@ impl Entity for MailAddressAliasServiceDataDelete {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2638,6 +2442,7 @@ pub struct MailAddressAliasServiceReturn {
 	pub totalAliases: i64,
 	pub usedAliases: i64,
 }
+
 impl Entity for MailAddressAliasServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2647,9 +2452,6 @@ impl Entity for MailAddressAliasServiceReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailAddressAvailability {
@@ -2657,6 +2459,7 @@ pub struct MailAddressAvailability {
 	pub available: bool,
 	pub mailAddress: String,
 }
+
 impl Entity for MailAddressAvailability {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2665,9 +2468,6 @@ impl Entity for MailAddressAvailability {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2678,6 +2478,7 @@ pub struct MailAddressToGroup {
 	pub _permissions: GeneratedId,
 	pub internalGroup: Option<GeneratedId>,
 }
+
 impl Entity for MailAddressToGroup {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2686,9 +2487,6 @@ impl Entity for MailAddressToGroup {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2701,6 +2499,7 @@ pub struct MembershipAddData {
 	pub group: GeneratedId,
 	pub user: GeneratedId,
 }
+
 impl Entity for MembershipAddData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2710,15 +2509,13 @@ impl Entity for MembershipAddData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MembershipPutIn {
 	pub _format: i64,
 	pub groupKeyUpdates: Vec<GroupMembershipKeyData>,
 }
+
 impl Entity for MembershipPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2728,9 +2525,6 @@ impl Entity for MembershipPutIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MembershipRemoveData {
@@ -2738,6 +2532,7 @@ pub struct MembershipRemoveData {
 	pub group: GeneratedId,
 	pub user: GeneratedId,
 }
+
 impl Entity for MembershipRemoveData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2746,9 +2541,6 @@ impl Entity for MembershipRemoveData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2768,6 +2560,7 @@ pub struct MissedNotification {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for MissedNotification {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2777,15 +2570,13 @@ impl Entity for MissedNotification {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MultipleMailAddressAvailabilityData {
 	pub _format: i64,
 	pub mailAddresses: Vec<StringWrapper>,
 }
+
 impl Entity for MultipleMailAddressAvailabilityData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2795,15 +2586,13 @@ impl Entity for MultipleMailAddressAvailabilityData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MultipleMailAddressAvailabilityReturn {
 	pub _format: i64,
 	pub availabilities: Vec<MailAddressAvailability>,
 }
+
 impl Entity for MultipleMailAddressAvailabilityReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2813,9 +2602,6 @@ impl Entity for MultipleMailAddressAvailabilityReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NotificationInfo {
@@ -2824,6 +2610,7 @@ pub struct NotificationInfo {
 	pub userId: GeneratedId,
 	pub mailId: Option<IdTupleWrapper>,
 }
+
 impl Entity for NotificationInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2833,9 +2620,6 @@ impl Entity for NotificationInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NotificationMailTemplate {
@@ -2844,6 +2628,7 @@ pub struct NotificationMailTemplate {
 	pub language: String,
 	pub subject: String,
 }
+
 impl Entity for NotificationMailTemplate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2853,9 +2638,6 @@ impl Entity for NotificationMailTemplate {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct NotificationSessionKey {
@@ -2864,6 +2646,7 @@ pub struct NotificationSessionKey {
 	pub pushIdentifierSessionEncSessionKey: Vec<u8>,
 	pub pushIdentifier: IdTupleGenerated,
 }
+
 impl Entity for NotificationSessionKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2872,9 +2655,6 @@ impl Entity for NotificationSessionKey {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2894,6 +2674,7 @@ pub struct OrderProcessingAgreement {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for OrderProcessingAgreement {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2903,15 +2684,13 @@ impl Entity for OrderProcessingAgreement {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct OtpChallenge {
 	pub _id: Option<CustomId>,
 	pub secondFactors: Vec<IdTupleGenerated>,
 }
+
 impl Entity for OtpChallenge {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2921,15 +2700,13 @@ impl Entity for OtpChallenge {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PaymentDataServiceGetData {
 	pub _format: i64,
 	pub clientType: Option<i64>,
 }
+
 impl Entity for PaymentDataServiceGetData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2939,15 +2716,13 @@ impl Entity for PaymentDataServiceGetData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PaymentDataServiceGetReturn {
 	pub _format: i64,
 	pub loginUrl: String,
 }
+
 impl Entity for PaymentDataServiceGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2957,15 +2732,13 @@ impl Entity for PaymentDataServiceGetReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PaymentDataServicePostData {
 	pub _format: i64,
 	pub braintree3dsResponse: Braintree3ds2Response,
 }
+
 impl Entity for PaymentDataServicePostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -2974,9 +2747,6 @@ impl Entity for PaymentDataServicePostData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -2995,6 +2765,7 @@ pub struct PaymentDataServicePutData {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for PaymentDataServicePutData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3004,9 +2775,6 @@ impl Entity for PaymentDataServicePutData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PaymentDataServicePutReturn {
@@ -3014,6 +2782,7 @@ pub struct PaymentDataServicePutReturn {
 	pub result: i64,
 	pub braintree3dsRequest: Option<Braintree3ds2Request>,
 }
+
 impl Entity for PaymentDataServicePutReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3023,9 +2792,6 @@ impl Entity for PaymentDataServicePutReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PaymentErrorInfo {
@@ -3034,6 +2800,7 @@ pub struct PaymentErrorInfo {
 	pub errorTime: DateTime,
 	pub thirdPartyErrorId: String,
 }
+
 impl Entity for PaymentErrorInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3042,9 +2809,6 @@ impl Entity for PaymentErrorInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3069,6 +2833,7 @@ pub struct Permission {
 	pub bucket: Option<Bucket>,
 	pub group: Option<GeneratedId>,
 }
+
 impl Entity for Permission {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3077,9 +2842,6 @@ impl Entity for Permission {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3097,6 +2859,7 @@ pub struct PlanConfiguration {
 	pub unlimitedLabels: bool,
 	pub whitelabel: bool,
 }
+
 impl Entity for PlanConfiguration {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3105,9 +2868,6 @@ impl Entity for PlanConfiguration {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3127,6 +2887,7 @@ pub struct PlanPrices {
 	pub whitelabel: bool,
 	pub planConfiguration: PlanConfiguration,
 }
+
 impl Entity for PlanPrices {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3136,15 +2897,13 @@ impl Entity for PlanPrices {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PlanServiceGetOut {
 	pub _format: i64,
 	pub config: PlanConfiguration,
 }
+
 impl Entity for PlanServiceGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3153,9 +2912,6 @@ impl Entity for PlanServiceGetOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3166,6 +2922,7 @@ pub struct PriceData {
 	pub taxIncluded: bool,
 	pub items: Vec<PriceItemData>,
 }
+
 impl Entity for PriceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3174,9 +2931,6 @@ impl Entity for PriceData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3187,6 +2941,7 @@ pub struct PriceItemData {
 	pub price: i64,
 	pub singleType: bool,
 }
+
 impl Entity for PriceItemData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3195,9 +2950,6 @@ impl Entity for PriceItemData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3210,6 +2962,7 @@ pub struct PriceRequestData {
 	pub paymentInterval: Option<i64>,
 	pub reactivate: bool,
 }
+
 impl Entity for PriceRequestData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3219,9 +2972,6 @@ impl Entity for PriceRequestData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PriceServiceData {
@@ -3229,6 +2979,7 @@ pub struct PriceServiceData {
 	pub date: Option<DateTime>,
 	pub priceRequest: Option<PriceRequestData>,
 }
+
 impl Entity for PriceServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3237,9 +2988,6 @@ impl Entity for PriceServiceData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3251,6 +2999,7 @@ pub struct PriceServiceReturn {
 	pub currentPriceThisPeriod: Option<PriceData>,
 	pub futurePriceNextPeriod: Option<PriceData>,
 }
+
 impl Entity for PriceServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3259,9 +3008,6 @@ impl Entity for PriceServiceReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3275,6 +3021,7 @@ pub struct PubEncKeyData {
 	pub recipientKeyVersion: i64,
 	pub senderKeyVersion: Option<i64>,
 }
+
 impl Entity for PubEncKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3284,9 +3031,6 @@ impl Entity for PubEncKeyData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PublicKeyGetIn {
@@ -3295,6 +3039,7 @@ pub struct PublicKeyGetIn {
 	pub identifierType: i64,
 	pub version: Option<i64>,
 }
+
 impl Entity for PublicKeyGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3303,9 +3048,6 @@ impl Entity for PublicKeyGetIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3319,6 +3061,7 @@ pub struct PublicKeyGetOut {
 	#[serde(with = "serde_bytes")]
 	pub pubRsaKey: Option<Vec<u8>>,
 }
+
 impl Entity for PublicKeyGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3327,9 +3070,6 @@ impl Entity for PublicKeyGetOut {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3341,6 +3081,7 @@ pub struct PublicKeyPutIn {
 	pub symEncPrivEccKey: Vec<u8>,
 	pub keyGroup: GeneratedId,
 }
+
 impl Entity for PublicKeyPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3349,9 +3090,6 @@ impl Entity for PublicKeyPutIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3376,6 +3114,7 @@ pub struct PushIdentifier {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for PushIdentifier {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3385,15 +3124,13 @@ impl Entity for PushIdentifier {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PushIdentifierList {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for PushIdentifierList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3402,9 +3139,6 @@ impl Entity for PushIdentifierList {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3430,6 +3164,7 @@ pub struct ReceivedGroupInvitation {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for ReceivedGroupInvitation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3438,9 +3173,6 @@ impl Entity for ReceivedGroupInvitation {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3457,6 +3189,7 @@ pub struct RecoverCode {
 	#[serde(with = "serde_bytes")]
 	pub verifier: Vec<u8>,
 }
+
 impl Entity for RecoverCode {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3465,9 +3198,6 @@ impl Entity for RecoverCode {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3481,6 +3211,7 @@ pub struct RecoverCodeData {
 	pub userEncRecoveryCode: Vec<u8>,
 	pub userKeyVersion: i64,
 }
+
 impl Entity for RecoverCodeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3490,15 +3221,13 @@ impl Entity for RecoverCodeData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReferralCodeGetIn {
 	pub _format: i64,
 	pub referralCode: GeneratedId,
 }
+
 impl Entity for ReferralCodeGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3508,14 +3237,12 @@ impl Entity for ReferralCodeGetIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReferralCodePostIn {
 	pub _format: i64,
 }
+
 impl Entity for ReferralCodePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3525,15 +3252,13 @@ impl Entity for ReferralCodePostIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ReferralCodePostOut {
 	pub _format: i64,
 	pub referralCode: GeneratedId,
 }
+
 impl Entity for ReferralCodePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3543,9 +3268,6 @@ impl Entity for ReferralCodePostOut {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RegistrationCaptchaServiceData {
@@ -3553,6 +3275,7 @@ pub struct RegistrationCaptchaServiceData {
 	pub response: String,
 	pub token: String,
 }
+
 impl Entity for RegistrationCaptchaServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3561,9 +3284,6 @@ impl Entity for RegistrationCaptchaServiceData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3575,6 +3295,7 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub signupToken: Option<String>,
 	pub token: Option<String>,
 }
+
 impl Entity for RegistrationCaptchaServiceGetData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3584,9 +3305,6 @@ impl Entity for RegistrationCaptchaServiceGetData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RegistrationCaptchaServiceReturn {
@@ -3595,6 +3313,7 @@ pub struct RegistrationCaptchaServiceReturn {
 	pub challenge: Option<Vec<u8>>,
 	pub token: String,
 }
+
 impl Entity for RegistrationCaptchaServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3604,15 +3323,13 @@ impl Entity for RegistrationCaptchaServiceReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RegistrationReturn {
 	pub _format: i64,
 	pub authToken: String,
 }
+
 impl Entity for RegistrationReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3622,9 +3339,6 @@ impl Entity for RegistrationReturn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RegistrationServiceData {
@@ -3633,6 +3347,7 @@ pub struct RegistrationServiceData {
 	pub starterDomain: String,
 	pub state: i64,
 }
+
 impl Entity for RegistrationServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3641,9 +3356,6 @@ impl Entity for RegistrationServiceData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3658,6 +3370,7 @@ pub struct RejectedSender {
 	pub senderIp: String,
 	pub senderMailAddress: String,
 }
+
 impl Entity for RejectedSender {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3667,15 +3380,13 @@ impl Entity for RejectedSender {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct RejectedSendersRef {
 	pub _id: Option<CustomId>,
 	pub items: GeneratedId,
 }
+
 impl Entity for RejectedSendersRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3684,9 +3395,6 @@ impl Entity for RejectedSendersRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3700,6 +3408,7 @@ pub struct RepeatRule {
 	pub excludedDates: Vec<DateWrapper>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for RepeatRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3709,9 +3418,6 @@ impl Entity for RepeatRule {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct ResetFactorsDeleteData {
@@ -3720,6 +3426,7 @@ pub struct ResetFactorsDeleteData {
 	pub mailAddress: String,
 	pub recoverCodeVerifier: String,
 }
+
 impl Entity for ResetFactorsDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3728,9 +3435,6 @@ impl Entity for ResetFactorsDeleteData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3746,6 +3450,7 @@ pub struct ResetPasswordPostIn {
 	pub verifier: Vec<u8>,
 	pub user: GeneratedId,
 }
+
 impl Entity for ResetPasswordPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3754,9 +3459,6 @@ impl Entity for ResetPasswordPostIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3767,6 +3469,7 @@ pub struct RootInstance {
 	pub _permissions: GeneratedId,
 	pub reference: GeneratedId,
 }
+
 impl Entity for RootInstance {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3776,15 +3479,13 @@ impl Entity for RootInstance {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SaltData {
 	pub _format: i64,
 	pub mailAddress: String,
 }
+
 impl Entity for SaltData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3794,9 +3495,6 @@ impl Entity for SaltData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SaltReturn {
@@ -3805,6 +3503,7 @@ pub struct SaltReturn {
 	#[serde(with = "serde_bytes")]
 	pub salt: Vec<u8>,
 }
+
 impl Entity for SaltReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3813,9 +3512,6 @@ impl Entity for SaltReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3831,6 +3527,7 @@ pub struct SecondFactor {
 	pub r#type: i64,
 	pub u2f: Option<U2fRegisteredDevice>,
 }
+
 impl Entity for SecondFactor {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3840,15 +3537,13 @@ impl Entity for SecondFactor {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactorAuthAllowedReturn {
 	pub _format: i64,
 	pub allowed: bool,
 }
+
 impl Entity for SecondFactorAuthAllowedReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3857,9 +3552,6 @@ impl Entity for SecondFactorAuthAllowedReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3872,6 +3564,7 @@ pub struct SecondFactorAuthData {
 	pub u2f: Option<U2fResponseData>,
 	pub webauthn: Option<WebauthnResponseData>,
 }
+
 impl Entity for SecondFactorAuthData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3881,15 +3574,13 @@ impl Entity for SecondFactorAuthData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactorAuthDeleteData {
 	pub _format: i64,
 	pub session: IdTupleCustom,
 }
+
 impl Entity for SecondFactorAuthDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3899,15 +3590,13 @@ impl Entity for SecondFactorAuthDeleteData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactorAuthGetData {
 	pub _format: i64,
 	pub accessToken: String,
 }
+
 impl Entity for SecondFactorAuthGetData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3917,15 +3606,13 @@ impl Entity for SecondFactorAuthGetData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SecondFactorAuthGetReturn {
 	pub _format: i64,
 	pub secondFactorPending: bool,
 }
+
 impl Entity for SecondFactorAuthGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3934,9 +3621,6 @@ impl Entity for SecondFactorAuthGetReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3950,6 +3634,7 @@ pub struct SecondFactorAuthentication {
 	pub service: String,
 	pub verifyCount: i64,
 }
+
 impl Entity for SecondFactorAuthentication {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3958,9 +3643,6 @@ impl Entity for SecondFactorAuthentication {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -3971,6 +3653,7 @@ pub struct SendRegistrationCodeData {
 	pub language: String,
 	pub mobilePhoneNumber: String,
 }
+
 impl Entity for SendRegistrationCodeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3980,15 +3663,13 @@ impl Entity for SendRegistrationCodeData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SendRegistrationCodeReturn {
 	pub _format: i64,
 	pub authToken: String,
 }
+
 impl Entity for SendRegistrationCodeReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -3997,9 +3678,6 @@ impl Entity for SendRegistrationCodeReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4013,6 +3691,7 @@ pub struct SentGroupInvitation {
 	pub receivedInvitation: Option<IdTupleGenerated>,
 	pub sharedGroup: GeneratedId,
 }
+
 impl Entity for SentGroupInvitation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4021,9 +3700,6 @@ impl Entity for SentGroupInvitation {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4047,6 +3723,7 @@ pub struct Session {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for Session {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4056,9 +3733,6 @@ impl Entity for Session {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SignOrderProcessingAgreementData {
@@ -4066,6 +3740,7 @@ pub struct SignOrderProcessingAgreementData {
 	pub customerAddress: String,
 	pub version: String,
 }
+
 impl Entity for SignOrderProcessingAgreementData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4075,9 +3750,6 @@ impl Entity for SignOrderProcessingAgreementData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct SseConnectData {
@@ -4085,6 +3757,7 @@ pub struct SseConnectData {
 	pub identifier: String,
 	pub userIds: Vec<GeneratedIdWrapper>,
 }
+
 impl Entity for SseConnectData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4094,9 +3767,6 @@ impl Entity for SseConnectData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct StringConfigValue {
@@ -4104,6 +3774,7 @@ pub struct StringConfigValue {
 	pub name: String,
 	pub value: String,
 }
+
 impl Entity for StringConfigValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4113,15 +3784,13 @@ impl Entity for StringConfigValue {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct StringWrapper {
 	pub _id: Option<CustomId>,
 	pub value: String,
 }
+
 impl Entity for StringWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4130,9 +3799,6 @@ impl Entity for StringWrapper {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4143,6 +3809,7 @@ pub struct SurveyData {
 	pub reason: i64,
 	pub version: i64,
 }
+
 impl Entity for SurveyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4151,9 +3818,6 @@ impl Entity for SurveyData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4167,6 +3831,7 @@ pub struct SwitchAccountTypePostIn {
 	pub referralCode: Option<GeneratedId>,
 	pub surveyData: Option<SurveyData>,
 }
+
 impl Entity for SwitchAccountTypePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4175,9 +3840,6 @@ impl Entity for SwitchAccountTypePostIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4199,6 +3861,7 @@ pub struct SystemKeysReturn {
 	pub freeGroup: Option<GeneratedId>,
 	pub premiumGroup: Option<GeneratedId>,
 }
+
 impl Entity for SystemKeysReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4207,9 +3870,6 @@ impl Entity for SystemKeysReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4220,6 +3880,7 @@ pub struct TakeOverDeletedAddressData {
 	pub recoverCodeVerifier: Option<String>,
 	pub targetAccountMailAddress: String,
 }
+
 impl Entity for TakeOverDeletedAddressData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4229,9 +3890,6 @@ impl Entity for TakeOverDeletedAddressData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TypeInfo {
@@ -4239,6 +3897,7 @@ pub struct TypeInfo {
 	pub application: String,
 	pub typeId: i64,
 }
+
 impl Entity for TypeInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4248,9 +3907,6 @@ impl Entity for TypeInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct U2fChallenge {
@@ -4259,6 +3915,7 @@ pub struct U2fChallenge {
 	pub challenge: Vec<u8>,
 	pub keys: Vec<U2fKey>,
 }
+
 impl Entity for U2fChallenge {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4267,9 +3924,6 @@ impl Entity for U2fChallenge {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4280,6 +3934,7 @@ pub struct U2fKey {
 	pub keyHandle: Vec<u8>,
 	pub secondFactor: IdTupleGenerated,
 }
+
 impl Entity for U2fKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4288,9 +3943,6 @@ impl Entity for U2fKey {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4304,6 +3956,7 @@ pub struct U2fRegisteredDevice {
 	#[serde(with = "serde_bytes")]
 	pub publicKey: Vec<u8>,
 }
+
 impl Entity for U2fRegisteredDevice {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4313,9 +3966,6 @@ impl Entity for U2fRegisteredDevice {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct U2fResponseData {
@@ -4324,6 +3974,7 @@ pub struct U2fResponseData {
 	pub keyHandle: String,
 	pub signatureData: String,
 }
+
 impl Entity for U2fResponseData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4332,9 +3983,6 @@ impl Entity for U2fResponseData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4346,6 +3994,7 @@ pub struct UpdatePermissionKeyData {
 	pub bucketPermission: IdTupleGenerated,
 	pub permission: IdTupleGenerated,
 }
+
 impl Entity for UpdatePermissionKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4355,15 +4004,13 @@ impl Entity for UpdatePermissionKeyData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UpdateSessionKeysPostIn {
 	pub _format: i64,
 	pub ownerEncSessionKeys: Vec<InstanceSessionKey>,
 }
+
 impl Entity for UpdateSessionKeysPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4373,9 +4020,6 @@ impl Entity for UpdateSessionKeysPostIn {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UpgradePriceServiceData {
@@ -4384,6 +4028,7 @@ pub struct UpgradePriceServiceData {
 	pub date: Option<DateTime>,
 	pub referralCode: Option<GeneratedId>,
 }
+
 impl Entity for UpgradePriceServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4392,9 +4037,6 @@ impl Entity for UpgradePriceServiceData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4416,6 +4058,7 @@ pub struct UpgradePriceServiceReturn {
 	pub teamsPrices: PlanPrices,
 	pub unlimitedPrices: PlanPrices,
 }
+
 impl Entity for UpgradePriceServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4424,9 +4067,6 @@ impl Entity for UpgradePriceServiceReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4455,6 +4095,7 @@ pub struct User {
 	pub successfulLogins: GeneratedId,
 	pub userGroup: GroupMembership,
 }
+
 impl Entity for User {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4463,9 +4104,6 @@ impl Entity for User {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4481,6 +4119,7 @@ pub struct UserAlarmInfo {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for UserAlarmInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4490,15 +4129,13 @@ impl Entity for UserAlarmInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAlarmInfoListType {
 	pub _id: Option<CustomId>,
 	pub alarms: GeneratedId,
 }
+
 impl Entity for UserAlarmInfoListType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4508,15 +4145,13 @@ impl Entity for UserAlarmInfoListType {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAreaGroups {
 	pub _id: Option<CustomId>,
 	pub list: GeneratedId,
 }
+
 impl Entity for UserAreaGroups {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4526,9 +4161,6 @@ impl Entity for UserAreaGroups {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserAuthentication {
@@ -4537,6 +4169,7 @@ pub struct UserAuthentication {
 	pub secondFactors: GeneratedId,
 	pub sessions: GeneratedId,
 }
+
 impl Entity for UserAuthentication {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4546,9 +4179,6 @@ impl Entity for UserAuthentication {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserDataDelete {
@@ -4557,6 +4187,7 @@ pub struct UserDataDelete {
 	pub restore: bool,
 	pub user: GeneratedId,
 }
+
 impl Entity for UserDataDelete {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4565,9 +4196,6 @@ impl Entity for UserDataDelete {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4580,6 +4208,7 @@ pub struct UserExternalAuthInfo {
 	pub latestSaltHash: Option<Vec<u8>>,
 	pub variableAuthInfo: GeneratedId,
 }
+
 impl Entity for UserExternalAuthInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4588,9 +4217,6 @@ impl Entity for UserExternalAuthInfo {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4603,6 +4229,7 @@ pub struct UserGroupKeyDistribution {
 	pub distributionEncUserGroupKey: Vec<u8>,
 	pub userGroupKeyVersion: i64,
 }
+
 impl Entity for UserGroupKeyDistribution {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4611,9 +4238,6 @@ impl Entity for UserGroupKeyDistribution {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4636,6 +4260,7 @@ pub struct UserGroupKeyRotationData {
 	pub pubAdminGroupEncUserGroupKey: Option<PubEncKeyData>,
 	pub recoverCodeData: Option<RecoverCodeData>,
 }
+
 impl Entity for UserGroupKeyRotationData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4645,15 +4270,13 @@ impl Entity for UserGroupKeyRotationData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
+
 impl Entity for UserGroupKeyRotationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4662,9 +4285,6 @@ impl Entity for UserGroupKeyRotationPostIn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4677,6 +4297,7 @@ pub struct UserGroupRoot {
 	pub invitations: GeneratedId,
 	pub keyRotations: Option<KeyRotationsRef>,
 }
+
 impl Entity for UserGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4685,9 +4306,6 @@ impl Entity for UserGroupRoot {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4705,6 +4323,7 @@ pub struct VariableExternalAuthInfo {
 	pub loggedInVerifier: Option<Vec<u8>>,
 	pub sentCount: i64,
 }
+
 impl Entity for VariableExternalAuthInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4714,9 +4333,6 @@ impl Entity for VariableExternalAuthInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct VerifyRegistrationCodeData {
@@ -4724,6 +4340,7 @@ pub struct VerifyRegistrationCodeData {
 	pub authToken: String,
 	pub code: String,
 }
+
 impl Entity for VerifyRegistrationCodeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4732,9 +4349,6 @@ impl Entity for VerifyRegistrationCodeData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4746,6 +4360,7 @@ pub struct Version {
 	pub author: GeneratedId,
 	pub authorGroupInfo: IdTupleGenerated,
 }
+
 impl Entity for Version {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4754,9 +4369,6 @@ impl Entity for Version {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4767,6 +4379,7 @@ pub struct VersionData {
 	pub listId: Option<GeneratedId>,
 	pub typeId: i64,
 }
+
 impl Entity for VersionData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4775,9 +4388,6 @@ impl Entity for VersionData {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4797,6 +4407,7 @@ pub struct VersionInfo {
 	pub author: GeneratedId,
 	pub authorGroupInfo: IdTupleGenerated,
 }
+
 impl Entity for VersionInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4806,15 +4417,13 @@ impl Entity for VersionInfo {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct VersionReturn {
 	pub _format: i64,
 	pub versions: Vec<Version>,
 }
+
 impl Entity for VersionReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4823,9 +4432,6 @@ impl Entity for VersionReturn {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4840,6 +4446,7 @@ pub struct WebauthnResponseData {
 	#[serde(with = "serde_bytes")]
 	pub signature: Vec<u8>,
 }
+
 impl Entity for WebauthnResponseData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4849,9 +4456,6 @@ impl Entity for WebauthnResponseData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WebsocketCounterData {
@@ -4859,6 +4463,7 @@ pub struct WebsocketCounterData {
 	pub mailGroup: GeneratedId,
 	pub counterValues: Vec<WebsocketCounterValue>,
 }
+
 impl Entity for WebsocketCounterData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4868,9 +4473,6 @@ impl Entity for WebsocketCounterData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WebsocketCounterValue {
@@ -4878,6 +4480,7 @@ pub struct WebsocketCounterValue {
 	pub count: i64,
 	pub counterId: GeneratedId,
 }
+
 impl Entity for WebsocketCounterValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4887,9 +4490,6 @@ impl Entity for WebsocketCounterValue {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WebsocketEntityData {
@@ -4898,6 +4498,7 @@ pub struct WebsocketEntityData {
 	pub eventBatchOwner: GeneratedId,
 	pub eventBatch: Vec<EntityUpdate>,
 }
+
 impl Entity for WebsocketEntityData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4907,15 +4508,13 @@ impl Entity for WebsocketEntityData {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WebsocketLeaderStatus {
 	pub _format: i64,
 	pub leaderStatus: bool,
 }
+
 impl Entity for WebsocketLeaderStatus {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4924,9 +4523,6 @@ impl Entity for WebsocketLeaderStatus {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4946,6 +4542,7 @@ pub struct WhitelabelChild {
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
+
 impl Entity for WhitelabelChild {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4955,15 +4552,13 @@ impl Entity for WhitelabelChild {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WhitelabelChildrenRef {
 	pub _id: Option<CustomId>,
 	pub items: GeneratedId,
 }
+
 impl Entity for WhitelabelChildrenRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -4972,9 +4567,6 @@ impl Entity for WhitelabelChildrenRef {
 		}
 	}
 }
-
-
-
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -4993,6 +4585,7 @@ pub struct WhitelabelConfig {
 	pub certificateInfo: Option<CertificateInfo>,
 	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
 }
+
 impl Entity for WhitelabelConfig {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -5002,9 +4595,6 @@ impl Entity for WhitelabelConfig {
 	}
 }
 
-
-
-
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct WhitelabelParent {
@@ -5012,6 +4602,7 @@ pub struct WhitelabelParent {
 	pub customer: GeneratedId,
 	pub whitelabelChildInParent: IdTupleGenerated,
 }
+
 impl Entity for WhitelabelParent {
 	fn type_ref() -> TypeRef {
 		TypeRef {
@@ -5020,6 +4611,3 @@ impl Entity for WhitelabelParent {
 		}
 	}
 }
-
-
-

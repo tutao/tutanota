@@ -1,4 +1,58 @@
 {
+	"ApplyLabelServicePostIn": {
+		"name": "ApplyLabelServicePostIn",
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1504,
+		"rootId": "CHR1dGFub3RhAAXg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1505,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"addedLabels": {
+				"final": false,
+				"name": "addedLabels",
+				"id": 1507,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refType": "MailFolder",
+				"dependency": null
+			},
+			"mails": {
+				"final": false,
+				"name": "mails",
+				"id": 1506,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refType": "Mail",
+				"dependency": null
+			},
+			"removedLabels": {
+				"final": false,
+				"name": "removedLabels",
+				"id": 1508,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refType": "MailFolder",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "77"
+	},
 	"AttachmentKeyData": {
 		"name": "AttachmentKeyData",
 		"since": 11,
@@ -5795,6 +5849,142 @@
 			}
 		},
 		"associations": {},
+		"app": "tutanota",
+		"version": "77"
+	},
+	"ManageLabelServiceDeleteIn": {
+		"name": "ManageLabelServiceDeleteIn",
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1500,
+		"rootId": "CHR1dGFub3RhAAXc",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1501,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"label": {
+				"final": false,
+				"name": "label",
+				"id": 1502,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refType": "MailFolder",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "77"
+	},
+	"ManageLabelServiceLabelData": {
+		"name": "ManageLabelServiceLabelData",
+		"since": 77,
+		"type": "AGGREGATED_TYPE",
+		"id": 1480,
+		"rootId": "CHR1dGFub3RhAAXI",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1481,
+				"since": 77,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"color": {
+				"final": false,
+				"name": "color",
+				"id": 1483,
+				"since": 77,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"name": {
+				"final": false,
+				"name": "name",
+				"id": 1482,
+				"since": 77,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "77"
+	},
+	"ManageLabelServicePostIn": {
+		"name": "ManageLabelServicePostIn",
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1484,
+		"rootId": "CHR1dGFub3RhAAXM",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1485,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncSessionKey": {
+				"final": false,
+				"name": "ownerEncSessionKey",
+				"id": 1486,
+				"since": 77,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerGroup": {
+				"final": false,
+				"name": "ownerGroup",
+				"id": 1488,
+				"since": 77,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1487,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"data": {
+				"final": false,
+				"name": "data",
+				"id": 1489,
+				"since": 77,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "ManageLabelServiceLabelData",
+				"dependency": null
+			}
+		},
 		"app": "tutanota",
 		"version": "77"
 	},

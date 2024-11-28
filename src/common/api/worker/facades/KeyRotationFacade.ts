@@ -432,7 +432,7 @@ export class KeyRotationFacade {
 				adminGroupKeyData,
 				userGroupKeyData,
 				userEncAdminPubKeyHashList,
-				distribution: []
+				distribution: [],
 			}),
 			newAdminGroupKeys,
 			newUserGroupKeys,
@@ -1031,7 +1031,7 @@ export class KeyRotationFacade {
 
 	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
 		// first get all admin members' available distribution keys
-		var { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.get(AdminGroupKeyRotationService, null);
+		var { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.get(AdminGroupKeyRotationService, null)
 		if (userGroupIdsMissingDistributionKeys.length > 1) {
 			// not all admins have a distribution key yet, so we cannot rotate the admin group key
 			// we need to create a new distributionkeypair and upload it to the server
@@ -1040,8 +1040,13 @@ export class KeyRotationFacade {
 		}
 
 		// all other admin group members already have a distribution key
-		// we can perform the admin group key rotation
+		const shouldPerformRotation = userGroupIdsMissingDistributionKeys.length === 1 && isSameId(userGroupIdsMissingDistributionKeys[0], user.userGroup.group)
+		if (!shouldPerformRotation) {
+			// the last to do the admin group key rotation is not this user since the missing distribution keys is not theirs
+			return
+		}
 
+		// we can perform the admin group key rotation
 		var adminGroupId = this.getTargetGroupId(keyRotation)
 		// load current admin group key
 		var currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
@@ -1086,6 +1091,8 @@ export class KeyRotationFacade {
 				},
 			)
 		})
+
+		this.serviceExecutor.post()
 	}
 
 	private computeKeyRotationHash(userGroupId: Id, pubDistributionKeys: PublicKeys): Uint8Array {
