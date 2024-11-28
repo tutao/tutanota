@@ -154,15 +154,15 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
 }
 
 export const enum ByRule {
-	BYMINUTE,
-	BYHOUR,
-	BYDAY,
-	BYMONTHDAY,
-	BYYEARDAY,
-	BYWEEKNO,
-	BYMONTH,
-	BYSETPOS,
-	WKST,
+	BYMINUTE = "0",
+	BYHOUR = "1",
+	BYDAY = "2",
+	BYMONTHDAY = "3",
+	BYYEARDAY = "4",
+	BYWEEKNO = "5",
+	BYMONTH = "6",
+	BYSETPOS = "7",
+	WKST = "8",
 }
 
 export const BYRULE_MAP = freezeMap(
@@ -176,5 +176,27 @@ export const BYRULE_MAP = freezeMap(
 		["BYMONTH", ByRule.BYMONTH],
 		["BYSETPOS", ByRule.BYSETPOS],
 		["WKST", ByRule.WKST],
+	]),
+)
+
+export const enum WeekDaysJsValue {
+	SU,
+	MO,
+	TU,
+	WE,
+	TH,
+	FR,
+	SA,
+}
+
+export const BYRULE_WEEKDAYS_JS_VALUE = freezeMap(
+	new Map([
+		["SU", WeekDaysJsValue.SU],
+		["MO", WeekDaysJsValue.MO],
+		["TU", WeekDaysJsValue.TU],
+		["WE", WeekDaysJsValue.WE],
+		["TH", WeekDaysJsValue.TH],
+		["FR", WeekDaysJsValue.FR],
+		["SA", WeekDaysJsValue.SA],
 	]),
 )
