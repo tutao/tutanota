@@ -1,4 +1,4 @@
-use crate::rest_client::RestClientError;
+use crate::bindings::rest_client::RestClientError;
 
 /// wrapper around hyper::Uri that saves some unwrapping
 pub struct Uri(hyper::Uri);

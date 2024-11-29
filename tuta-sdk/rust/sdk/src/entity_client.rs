@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
+use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
+use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::ID_FIELD;
 use crate::id::id_tuple::{BaseIdType, IdTupleType, IdType};
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
 use crate::metamodel::{ElementType, TypeModel};
-use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
 use crate::GeneratedId;
@@ -153,6 +154,7 @@ impl EntityClient {
 		let mut options = RestClientOptions {
 			body: Some(body),
 			headers: self.auth_headers_provider.provide_headers(model_version),
+			suspension_behavior: Some(SuspensionBehavior::Suspend),
 		};
 		options
 			.headers
@@ -198,6 +200,7 @@ impl EntityClient {
 		let options = RestClientOptions {
 			body: None,
 			headers: self.auth_headers_provider.provide_headers(model_version),
+			suspension_behavior: Some(SuspensionBehavior::Suspend),
 		};
 		let response = self
 			.rest_client
@@ -267,9 +270,9 @@ mod tests {
 	use std::collections::HashMap;
 
 	use super::*;
+	use crate::bindings::rest_client::{MockRestClient, RestResponse};
 	use crate::entities::Entity;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
-	use crate::rest_client::{MockRestClient, RestResponse};
 	use crate::CustomId;
 	use crate::{collection, str_map, IdTupleCustom, IdTupleGenerated};
 	use mockall::predicate::{always, eq};

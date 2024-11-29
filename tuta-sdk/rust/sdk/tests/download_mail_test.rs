@@ -1,12 +1,11 @@
-mod test_rest_client;
-
+#[cfg(test)]
 mod tests {
-	use crate::test_rest_client::TestRestClient;
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
 	use std::sync::Arc;
+	use tutasdk::bindings::rest_client::{HttpMethod, RestClient};
+	use tutasdk::bindings::test_rest_client::TestRestClient;
 	use tutasdk::login::{CredentialType, Credentials};
-	use tutasdk::rest_client::{HttpMethod, RestClient};
 	use tutasdk::GeneratedId;
 	use tutasdk::{IdTupleGenerated, Sdk};
 
@@ -46,12 +45,19 @@ mod tests {
 	fn make_rest_client() -> Arc<dyn RestClient> {
 		let mut client = TestRestClient::default();
 
-		client.insert_response("http://localhost:9000/rest/sys/Session/O1qC702-1J-0/3u3i8Lr9_7TnDDdAVw7w3TypTD2k1L00vIUTMF0SIPY", HttpMethod::GET, 200, Some(include_bytes!("download_mail_test/session.json")));
+		client.insert_response(
+			"http://localhost:9000/rest/sys/Session/O1qC702-1J-0/3u3i8Lr9_7TnDDdAVw7w3TypTD2k1L00vIUTMF0SIPY",
+							   HttpMethod::GET,
+							   200,
+							   None,
+							   Some(include_bytes!("download_mail_test/session.json"))
+		);
 
 		client.insert_response(
 			"http://localhost:9000/rest/sys/User/O1qC700----0",
 			HttpMethod::GET,
 			200,
+			None,
 			Some(include_bytes!("download_mail_test/session.json")),
 		);
 
@@ -59,6 +65,7 @@ mod tests {
 			"http://localhost:9000/rest/sys/User/O1qC700----0",
 			HttpMethod::GET,
 			200,
+			None,
 			Some(include_bytes!("download_mail_test/user.json")),
 		);
 
@@ -66,6 +73,7 @@ mod tests {
 			"http://localhost:9000/rest/tutanota/Mail/O1qC705-17-0/O1qC7an--3-0",
 			HttpMethod::GET,
 			200,
+			None,
 			Some(include_bytes!("download_mail_test/mail.json")),
 		);
 

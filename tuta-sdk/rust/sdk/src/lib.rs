@@ -48,8 +48,8 @@ use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelPro
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use rest_client::RestClient;
-use rest_client::RestClientError;
+use bindings::rest_client::RestClient;
+use bindings::rest_client::RestClientError;
 
 pub mod crypto;
 mod crypto_entity_client;
@@ -69,11 +69,11 @@ pub mod login;
 mod mail_facade;
 mod metamodel;
 
+pub mod bindings;
 mod blobs;
 mod id;
 #[cfg(feature = "net")]
 pub mod net;
-pub mod rest_client;
 mod rest_error;
 pub mod services;
 mod simple_crypto;
@@ -83,6 +83,7 @@ mod typed_entity_client;
 mod user_facade;
 mod util;
 
+use crate::bindings::suspendable_rest_client::SuspendableRestClient;
 pub use id::custom_id::CustomId;
 pub use id::generated_id::GeneratedId;
 pub use id::id_tuple::IdTupleCustom;
@@ -156,7 +157,7 @@ pub struct Sdk {
 #[uniffi::export]
 impl Sdk {
 	#[uniffi::constructor]
-	pub fn new(base_url: String, rest_client: Arc<dyn RestClient>) -> Sdk {
+	pub fn new(base_url: String, raw_rest_client: Arc<dyn RestClient>) -> Sdk {
 		logging::init_logger();
 		log::debug!("Initializing SDK...");
 
@@ -164,6 +165,8 @@ impl Sdk {
 		// TODO validate parameters
 		let instance_mapper = Arc::new(InstanceMapper::new());
 		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
+		let date_provider = Arc::new(SystemDateProvider);
+		let rest_client = Arc::new(SuspendableRestClient::new(raw_rest_client, date_provider));
 
 		Sdk {
 			type_model_provider,

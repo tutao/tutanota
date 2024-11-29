@@ -124,7 +124,7 @@ macro_rules! service_impl {
                     // mapping () input to `Nothing`
                     let res = x.do_request::<Self, $crate::__service_input_type!($input_type)>(
                         $crate::__service_input_value!(data, $input_type),
-                        $crate::rest_client::HttpMethod::$method_name,
+                        $crate::bindings::rest_client::HttpMethod::$method_name,
                         params
                     ).await?;
                     // this might call handle_response or not depending on our output type

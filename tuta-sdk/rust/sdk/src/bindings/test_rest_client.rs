@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use tutasdk::rest_client::{
+use crate::bindings::rest_client::{
 	HttpMethod, RestClient, RestClientError, RestClientOptions, RestResponse,
 };
+use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct TestRestClient {
-	pub responses: HashMap<TestRestRequest, RestResponse>,
+	responses: HashMap<TestRestRequest, RestResponse>,
 }
 
 impl TestRestClient {
@@ -14,6 +14,7 @@ impl TestRestClient {
 		url: &str,
 		method: HttpMethod,
 		status: u32,
+		headers: Option<HashMap<String, String>>,
 		response_body: Option<&[u8]>,
 	) {
 		self.responses.insert(
@@ -23,7 +24,7 @@ impl TestRestClient {
 			},
 			RestResponse {
 				status,
-				headers: HashMap::new(),
+				headers: headers.unwrap_or_default(),
 				body: response_body.map(|v| v.to_vec()),
 			},
 		);

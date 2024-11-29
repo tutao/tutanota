@@ -1,3 +1,4 @@
+use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -14,6 +15,7 @@ pub enum HttpMethod {
 pub struct RestClientOptions {
 	pub headers: HashMap<String, String>,
 	pub body: Option<Vec<u8>>,
+	pub suspension_behavior: Option<SuspensionBehavior>,
 }
 
 /// An error thrown by the `RestClient` (the injected HTTP client Kotlin/Swift/JavaScript)
@@ -31,6 +33,8 @@ pub enum RestClientError {
 	InvalidResponse,
 	#[error("failed tls setup")]
 	FailedTlsSetup,
+	#[error("suspended")]
+	Suspended,
 }
 
 /// Provides a Rust SDK level interface for performing REST requests

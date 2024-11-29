@@ -1,3 +1,4 @@
+use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::entities::entity_facade::EntityFacade;
@@ -6,7 +7,6 @@ use crate::instance_mapper::InstanceMapper;
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
 use crate::metamodel::TypeModel;
-use crate::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::rest_error::HttpError;
 use crate::services::hidden::Executor;
 use crate::services::{
@@ -261,7 +261,15 @@ impl Executor for ServiceExecutor {
 
 		let response = self
 			.rest_client
-			.request_binary(url, method, RestClientOptions { body, headers })
+			.request_binary(
+				url,
+				method,
+				RestClientOptions {
+					body,
+					headers,
+					suspension_behavior: extra_service_params.suspension_behavior,
+				},
+			)
 			.await?;
 		let precondition = response.headers.get("precondition");
 		match response.status {
@@ -343,6 +351,7 @@ impl Executor for ServiceExecutor {
 
 #[cfg(test)]
 mod tests {
+	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestResponse};
 	#[mockall_double::double]
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
@@ -354,7 +363,6 @@ mod tests {
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
-	use crate::rest_client::{HttpMethod, MockRestClient, RestResponse};
 	use crate::services::service_executor::ResolvingServiceExecutor;
 	use crate::services::test_services::{
 		HelloEncInput, HelloEncOutput, HelloEncryptedService, HelloUnEncInput, HelloUnEncOutput,

@@ -3,5 +3,5 @@
 use crate::ApiCallError;
 use crate::entities::Entity;
 use crate::services::{PostService, GetService, PutService, DeleteService, Service, Executor, ExtraServiceParams};
-use crate::rest_client::HttpMethod;
+use crate::bindings::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;

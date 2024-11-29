@@ -1,3 +1,7 @@
+use crate::bindings::rest_client::HttpMethod::POST;
+use crate::bindings::rest_client::RestClient;
+use crate::bindings::rest_client::{RestClientOptions, RestResponse};
+use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 use crate::blobs::blob_access_token_cache::BlobWriteTokenKey;
 #[cfg_attr(test, mockall_double::double)]
 use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
@@ -10,9 +14,6 @@ use crate::entities::Entity;
 use crate::instance_mapper::InstanceMapper;
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
-use crate::rest_client::HttpMethod::POST;
-use crate::rest_client::RestClient;
-use crate::rest_client::{RestClientOptions, RestResponse};
 use crate::rest_error::HttpError;
 use crate::tutanota_constants::{ArchiveDataType, MAX_BLOB_SIZE_BYTES};
 use crate::type_model_provider::init_type_model_provider;
@@ -129,6 +130,7 @@ impl BlobFacade {
 					RestClientOptions {
 						headers: Default::default(),
 						body: Some(encrypted_chunk.clone()),
+						suspension_behavior: Some(SuspensionBehavior::Suspend),
 					},
 				)
 				.await;
@@ -253,15 +255,15 @@ where
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::bindings::rest_client::MockRestClient;
+	use crate::bindings::rest_client::RestClientOptions;
+	use crate::bindings::rest_client::RestResponse;
 	use crate::blobs::blob_access_token_facade::MockBlobAccessTokenFacade;
 	use crate::crypto::randomizer_facade::test_util::DeterministicRng;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::generated::storage::BlobPostOut;
 	use crate::entities::generated::storage::{BlobServerAccessInfo, BlobServerUrl};
 	use crate::entities::generated::sys::BlobReferenceTokenWrapper;
-	use crate::rest_client::MockRestClient;
-	use crate::rest_client::RestClientOptions;
-	use crate::rest_client::RestResponse;
 	use crate::tutanota_constants::ArchiveDataType;
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::create_test_entity;

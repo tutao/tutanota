@@ -1,7 +1,9 @@
+use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 use crate::crypto::key::GenericAesKey;
 use crate::services::hidden::Executor;
 use crate::ApiCallError;
 use std::collections::HashMap;
+
 pub mod generator;
 pub mod service_executor;
 
@@ -69,11 +71,6 @@ pub trait DeleteService: Service {
 	) -> Result<Self::Output, ApiCallError>;
 }
 
-pub enum SuspensionBehavior {
-	Suspend,
-	Throw,
-}
-
 #[derive(Default)]
 pub struct ExtraServiceParams {
 	pub query_params: Option<HashMap<String, String>>,
@@ -85,8 +82,8 @@ pub struct ExtraServiceParams {
 }
 
 mod hidden {
+	use crate::bindings::rest_client::HttpMethod;
 	use crate::entities::Entity;
-	use crate::rest_client::HttpMethod;
 	use crate::services::{ExtraServiceParams, Service};
 	use crate::{ApiCallError, TypeRef};
 	use serde::{Deserialize, Serialize, Serializer};

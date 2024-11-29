@@ -1,7 +1,7 @@
-use crate::net::vec_body::{VecBody, VecBuf};
-use crate::rest_client::{
+use crate::bindings::rest_client::{
 	HttpMethod, RestClient, RestClientError, RestClientOptions, RestResponse,
 };
+use crate::net::vec_body::{VecBody, VecBuf};
 use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
 use hyper::http::HeaderValue;
@@ -40,7 +40,7 @@ impl RestClient for NativeRestClient {
 		method: HttpMethod,
 		options: RestClientOptions,
 	) -> Result<RestResponse, RestClientError> {
-		let RestClientOptions { headers, body } = options;
+		let RestClientOptions { headers, body, .. } = options;
 		let uri = super::uri::Uri::try_from(url.as_str())?;
 
 		let req = Request::builder()
@@ -68,7 +68,7 @@ impl RestClient for NativeRestClient {
 			.client
 			.request(req)
 			.await
-			.map_err(|_| RestClientError::NetworkError)?;
+			.map_err(|_e| RestClientError::NetworkError)?;
 
 		let response_body = read_body(&mut res).await?;
 
