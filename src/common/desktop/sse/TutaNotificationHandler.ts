@@ -2,7 +2,6 @@ import type { WindowManager } from "../DesktopWindowManager"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
 import { DesktopNotifier, NotificationResult } from "../DesktopNotifier"
 import { LanguageViewModel } from "../../misc/LanguageViewModel"
-import { Agent, fetch as undiciFetch } from "undici"
 import { IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
@@ -16,6 +15,7 @@ import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
+import { FetchImpl } from "../net/NetAgent"
 
 const TAG = "[notifications]"
 
@@ -30,7 +30,7 @@ export class TutaNotificationHandler {
 		private readonly alarmScheduler: NativeAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly lang: LanguageViewModel,
-		private readonly fetch: typeof undiciFetch,
+		private readonly fetch: FetchImpl,
 		private readonly appVersion: string,
 	) {}
 
@@ -99,10 +99,7 @@ export class TutaNotificationHandler {
 		}
 
 		try {
-			const response = await this.fetch(url, {
-				headers: headers,
-				dispatcher: new Agent({ connectTimeout: 20000 }),
-			})
+			const response = await this.fetch(url, { headers })
 			if (!response.ok) {
 				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}

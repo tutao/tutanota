@@ -4,6 +4,8 @@ import { Agent, fetch as undiciFetch } from "undici"
 export type UndiciResponse = Response
 export type UndiciRequestInit = RequestInit
 export type UndiciHeadersInit = HeadersInit
+export type FetchResult = Awaited<ReturnType<FetchImpl>>
+export type FetchImpl = (target: string | URL, init?: UndiciRequestInit) => Promise<UndiciResponse>
 
 /** How long the socket should stay open without any data sent over it. See IDLE_TIMEOUT_MS in tutadb. */
 const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 1000 + 1000
@@ -20,9 +22,6 @@ const agent = new Agent({
 	// this is needed to address issues in some cases where IPv6 does not really work
 	autoSelectFamily: true,
 })
-
-export type FetchResult = Awaited<ReturnType<FetchImpl>>
-export type FetchImpl = (target: string | URL, init?: UndiciRequestInit) => Promise<UndiciResponse>
 
 export const customFetch: FetchImpl = async (target: string | URL, init?: UndiciRequestInit): Promise<UndiciResponse> => {
 	if (init?.body != null) {

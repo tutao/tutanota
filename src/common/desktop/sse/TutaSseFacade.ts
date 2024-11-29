@@ -1,7 +1,6 @@
 import { SseClient, SseEventHandler } from "./SseClient.js"
 import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
-import { Agent, fetch as undiciFetch } from "undici"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
 import { assertNotNull, base64ToBase64Url, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
@@ -11,6 +10,7 @@ import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNo
 import { SseStorage } from "./SseStorage.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
+import { FetchImpl } from "../net/NetAgent"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -26,7 +26,7 @@ export class TutaSseFacade implements SseEventHandler {
 		private readonly sseClient: SseClient,
 		private readonly crypto: DesktopNativeCryptoFacade,
 		private readonly appVersion: string,
-		private readonly fetch: typeof undiciFetch,
+		private readonly fetch: FetchImpl,
 		private readonly date: DateProvider,
 	) {
 		sseClient.setEventListener(this)
@@ -139,7 +139,7 @@ export class TutaSseFacade implements SseEventHandler {
 			headers["lastProcessedNotificationId"] = lastProcessedId
 		}
 
-		const res = await this.fetch(url, { headers, dispatcher: new Agent({ connectTimeout: 20000 }) })
+		const res = await this.fetch(url, { headers })
 
 		if (!res.ok) {
 			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
