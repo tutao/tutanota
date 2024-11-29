@@ -6,21 +6,100 @@
 	"methods": {
 		"mailToMsg": {
 			"doc": "Convert mail to .msg format.",
-			"arg": [{ "bundle": "MailBundle" }, { "fileName": "string" }],
+			"arg": [
+				{
+					"bundle": "MailBundle"
+				},
+				{
+					"fileName": "string"
+				}
+			],
 			"ret": "DataFile"
 		},
 		"saveToExportDir": {
-			"arg": [{ "file": "DataFile" }],
+			"arg": [
+				{
+					"file": "DataFile"
+				}
+			],
 			"ret": "void"
 		},
 		"startNativeDrag": {
 			"doc": "Sets specified fileNames as the current 'drag' items.",
-			"arg": [{ "fileNames": "List<string>" }],
+			"arg": [
+				{
+					"fileNames": "List<string>"
+				}
+			],
 			"ret": "void"
 		},
 		"checkFileExistsInExportDir": {
-			"arg": [{ "fileName": "string" }],
+			"arg": [
+				{
+					"fileName": "string"
+				}
+			],
 			"ret": "boolean"
+		},
+		"getMailboxExportState": {
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
+			"ret": "MailboxExportState?"
+		},
+		"endMailboxExport": {
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"startMailboxExport": {
+			"doc": "Pick a directory for storing the export data and persist the export state",
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"mailboxId": "string"
+				},
+				{
+					"mailBagId": "string"
+				},
+				{
+					"mailId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"saveMailboxExport": {
+			"doc": "Save current state of the export and write export data to the export directory",
+			"arg": [
+				{
+					"bundle": "MailBundle"
+				},
+				{
+					"userId": "string"
+				},
+				{
+					"mailBagId": "string"
+				},
+				{
+					"mailId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"clearExportState": {
+			"arg": [{ "userId": "string" }],
+			"ret": "void"
+		},
+		"openExportDirectory": {
+			"arg": [{ "userId": "string" }],
+			"ret": "void"
 		}
 	}
 }

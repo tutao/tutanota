@@ -50,7 +50,7 @@ import { mailLocator } from "../mailLocator.js"
 import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils.js"
 import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 import { MailExportSettings } from "./MailExportSettings"
-import { MailExportController } from "../mail/model/MailExportController"
+import { MailExportController } from "../native/main/MailExportController.js"
 
 assertMainOrNode()
 

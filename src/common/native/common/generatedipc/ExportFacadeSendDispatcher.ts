@@ -19,4 +19,22 @@ export class ExportFacadeSendDispatcher implements ExportFacade {
 	async checkFileExistsInExportDir(...args: Parameters<ExportFacade["checkFileExistsInExportDir"]>) {
 		return this.transport.invokeNative("ipc", ["ExportFacade", "checkFileExistsInExportDir", ...args])
 	}
+	async getMailboxExportState(...args: Parameters<ExportFacade["getMailboxExportState"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "getMailboxExportState", ...args])
+	}
+	async endMailboxExport(...args: Parameters<ExportFacade["endMailboxExport"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "endMailboxExport", ...args])
+	}
+	async startMailboxExport(...args: Parameters<ExportFacade["startMailboxExport"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "startMailboxExport", ...args])
+	}
+	async saveMailboxExport(...args: Parameters<ExportFacade["saveMailboxExport"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "saveMailboxExport", ...args])
+	}
+	async clearExportState(...args: Parameters<ExportFacade["clearExportState"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "clearExportState", ...args])
+	}
+	async openExportDirectory(...args: Parameters<ExportFacade["openExportDirectory"]>) {
+		return this.transport.invokeNative("ipc", ["ExportFacade", "openExportDirectory", ...args])
+	}
 }

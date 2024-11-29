@@ -20,6 +20,7 @@ export enum DesktopConfigKey {
 	appPassSalt = "appPassSalt",
 	webConfigLocation = "webConfigLocation",
 	extendedNotificationMode = "extendedNotificationMode",
+	mailboxExportState = "mailboxExportState",
 }
 
 export enum DesktopConfigEncKey {

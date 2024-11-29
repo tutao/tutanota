@@ -40,6 +40,7 @@ import { ExposedEventBus, MainInterface, WorkerRandomizer } from "../../../commo
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { BulkMailLoader } from "../index/BulkMailLoader.js"
 
 assertWorkerOrNode()
 
@@ -75,6 +76,7 @@ export interface WorkerInterface {
 	readonly entropyFacade: EntropyFacade
 	readonly workerFacade: WorkerFacade
 	readonly contactFacade: ContactFacade
+	readonly bulkMailLoader: BulkMailLoader
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -255,6 +257,9 @@ export class WorkerImpl implements NativeInterface {
 
 			async contactFacade() {
 				return locator.contactFacade()
+			},
+			async bulkMailLoader() {
+				return locator.bulkMailLoader()
 			},
 		}
 	}

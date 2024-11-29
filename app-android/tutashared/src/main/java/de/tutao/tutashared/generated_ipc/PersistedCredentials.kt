@@ -3,7 +3,8 @@
 
 package de.tutao.tutashared.ipc
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 
 /**
