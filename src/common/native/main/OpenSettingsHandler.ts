@@ -9,12 +9,6 @@ export class OpenSettingsHandler {
 
 	async openSettings(path: string): Promise<void> {
 		await this.logins.waitForFullLogin()
-
-		console.log("Trying to open settings page", path)
-		if (this.logins.isUserLoggedIn()) {
-			m.route.set(`/settings/${path}`)
-		} else {
-			m.route.set(`/login?noAutoLogin=false&userId=${this.logins.getUserController().user._id}&requestedPath=${encodeURIComponent(`/settings/${path}`)}`)
-		}
+		m.route.set(`/settings/:folder`, { folder: path })
 	}
 }

@@ -85,6 +85,7 @@ import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { client } from "../misc/ClientDetector.js"
 import { AppStoreSubscriptionService } from "../api/entities/sys/Services.js"
 import { AppType } from "../misc/ClientConstants.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -155,7 +156,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							: !this._isCancelled
 							? m(IconButton, {
 									title: "subscription_label",
-									click: async () => await this.onSubscriptionClick(),
+									click: () => this.onSubscriptionClick(),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
 							  })
@@ -268,7 +269,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.updateBookings()
 	}
 
-	private async onSubscriptionClick() {
+	private onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
 		if (isIOSApp() && (paymentMethod == null || paymentMethod == PaymentMethodType.AppStore)) {
@@ -395,21 +396,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private async canManageAppStoreSubscriptionInApp(accountingInfo: AccountingInfo, ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
-		if (!accountingInfo.appStoreSubscription) {
-			throw Error("Trying to manage an non-existing app store subscription")
-		}
-
 		if (ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
 			return true
 		}
 
 		const appStoreSubscriptionData = await locator.serviceExecutor.get(
 			AppStoreSubscriptionService,
-			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(accountingInfo.appStoreSubscription) }),
+			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
 		)
 
 		if (!appStoreSubscriptionData || appStoreSubscriptionData.app == null) {
-			throw new Error("Failed to determine subscription origin")
+			throw new ProgrammingError("Failed to determine subscription origin")
 		}
 
 		const isMailSubscription = appStoreSubscriptionData.app === SubscriptionApp.Mail

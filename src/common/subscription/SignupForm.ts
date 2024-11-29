@@ -265,7 +265,7 @@ function signup(
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
 			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
 				if (regDataId) {
-					const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Calendar
+					const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 					return customerFacade
 						.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code, app)
 						.then((recoverCode) => {
