@@ -1,0 +1,7 @@
+{
+	"name": "MailboxExportState",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/common/desktop/export/MailboxExportPersistence.js"
+	}
+}

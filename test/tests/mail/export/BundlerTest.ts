@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { makeMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
+import { downloadMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 import {
 	BodyTypeRef,
 	FileTypeRef,
@@ -122,7 +122,7 @@ o.spec("Bundler", function () {
 			Promise.resolve(attachments),
 		)
 
-		const bundle = await makeMailBundle(mail, mailFacadeMock, entityClientMock, fileControllerMock, sanitizerMock, cryptoMock)
+		const bundle = await downloadMailBundle(mail, mailFacadeMock, entityClientMock, fileControllerMock, sanitizerMock, cryptoMock)
 		verify(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachments.map((a) => `file ${a.name}`) as any))
 
 		o(bundle).deepEquals({

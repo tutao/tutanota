@@ -150,7 +150,7 @@ export class Indexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		browserData: BrowserData,
 		defaultEntityRestCache: DefaultEntityRestCache,
-		mailFacade: MailFacade,
+		makeMailIndexer: (core: IndexerCore, db: Db) => MailIndexer,
 	) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
@@ -165,8 +165,7 @@ export class Indexer {
 		this._entityRestClient = entityRestClient
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
-		const dateProvider = new LocalTimeDateProvider()
-		this._mail = new MailIndexer(this._core, this.db, this.infoMessageHandler, entityRestClient, defaultEntityRestCache, dateProvider, mailFacade)
+		this._mail = makeMailIndexer(this._core, this.db)
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
 		this._realtimeEventQueue = new EventQueue("indexer_realtime", false, (nextElement: QueuedBatch) => {
@@ -194,9 +193,6 @@ export class Indexer {
 		}
 
 		try {
-			if (cacheInfo?.isPersistent) {
-				this._mail.setIsUsingOfflineCache(cacheInfo.isPersistent)
-			}
 			await this.db.dbFacade.open(this.getDbId(user))
 			const metaData = await getIndexerMetaData(this.db.dbFacade, MetaDataOS)
 			if (metaData == null) {

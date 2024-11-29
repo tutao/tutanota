@@ -40,6 +40,7 @@ import { ExternalCalendarFacade } from "../common/generatedipc/ExternalCalendarF
 import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/ExternalCalendarFacadeSendDispatcher.js"
 import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
 import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
+import { ExportFacade } from "../common/generatedipc/ExportFacade.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -60,6 +61,7 @@ export type DesktopInterfaces = {
 	desktopSystemFacade: DesktopSystemFacade
 	nativeMailImportFacade: NativeMailImportFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
+	exportFacade: ExportFacade
 }
 
 /**
@@ -118,5 +120,6 @@ export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInt
 		desktopSystemFacade: new DesktopSystemFacadeSendDispatcher(native),
 		nativeMailImportFacade: new NativeMailImportFacadeSendDispatcher(native),
 		interWindowEventSender: new InterWindowEventFacadeSendDispatcher(native),
+		exportFacade: new ExportFacadeSendDispatcher(native),
 	}
 }

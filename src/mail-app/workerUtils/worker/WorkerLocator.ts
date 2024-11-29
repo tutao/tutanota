@@ -86,6 +86,9 @@ import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
+import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
+import { BulkMailLoader } from "../index/BulkMailLoader.js"
 
 assertWorkerOrNode()
 
@@ -143,6 +146,7 @@ export type WorkerLocatorType = {
 	workerFacade: WorkerFacade
 	sqlCipherFacade: SqlCipherFacade
 	pdfWriter: lazyAsync<PdfWriter>
+	bulkMailLoader: lazyAsync<BulkMailLoader>
 
 	// used to cache between resets
 	_worker: WorkerImpl
@@ -226,9 +230,38 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new CacheManagementFacade(locator.user, locator.cachingEntityClient, assertNotNull(cache))
 	})
 
+	/** Slightly annoying two-stage init: first import bulk loader, then we can have a factory for it. */
+	const prepareBulkLoaderFactory = async () => {
+		const { BulkMailLoader } = await import("../index/BulkMailLoader.js")
+		return () => {
+			// On platforms with offline cache we just use cache as we are not bounded by memory.
+			if (isOfflineStorageAvailable()) {
+				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient, null)
+			} else {
+				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
+				const cacheStorage = new EphemeralCacheStorage()
+				return new BulkMailLoader(
+					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage)),
+					new EntityClient(entityRestClient),
+					cacheStorage,
+				)
+			}
+		}
+	}
+	locator.bulkMailLoader = async () => {
+		const factory = await prepareBulkLoaderFactory()
+		return factory()
+	}
+
 	locator.indexer = lazyMemoized(async () => {
 		const { Indexer } = await import("../index/Indexer.js")
-		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, await locator.mail())
+		const { MailIndexer } = await import("../index/MailIndexer.js")
+		const mailFacade = await locator.mail()
+		const bulkLoaderFactory = await prepareBulkLoaderFactory()
+		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, (core, db) => {
+			const dateProvider = new LocalTimeDateProvider()
+			return new MailIndexer(core, db, mainInterface.infoMessageHandler, bulkLoaderFactory, locator.cachingEntityClient, dateProvider, mailFacade)
+		})
 	})
 
 	if (isIOSApp() || isAndroidApp()) {

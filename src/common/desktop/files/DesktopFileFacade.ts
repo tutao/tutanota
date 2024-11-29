@@ -239,6 +239,12 @@ export class DesktopFileFacade implements FileFacade {
 		return await this.tfs.writeToDisk(file.data, "decrypted")
 	}
 
+	async writeDataFileToDirectory(file: DataFile, directory: string): Promise<string> {
+		const filePath = path.join(directory, file.name)
+		await this.fs.promises.writeFile(filePath, file.data)
+		return filePath
+	}
+
 	// this is used to read unencrypted data from arbitrary locations
 	async readDataFile(uriOrPath: FileUri): Promise<DataFile | null> {
 		try {

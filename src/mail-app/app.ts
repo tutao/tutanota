@@ -186,6 +186,18 @@ import("./translations/en.js")
 			)
 		}
 
+		if (isDesktop()) {
+			mailLocator.logins.addPostLoginAction(async () => {
+				return {
+					onPartialLoginSuccess: async () => {},
+					onFullLoginSuccess: async () => {
+						const controller = await mailLocator.mailExportController()
+						controller.resumeIfNeeded()
+					},
+				}
+			})
+		}
+
 		styles.init(mailLocator.themeController)
 
 		const contactViewResolver = makeViewResolver<
