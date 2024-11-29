@@ -155,16 +155,16 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 	return DateTime.fromJSDate(date, {
 		zone: ianaTimeZone,
 	})
-		.minus(diff)
-		.toJSDate()
+				   .minus(diff)
+				   .toJSDate()
 }
 
 /** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
 export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 	return DateTime.fromJSDate(utcDate, { zone: "utc" })
-		.setZone(zone, { keepLocalTime: true })
-		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-		.toJSDate()
+				   .setZone(zone, { keepLocalTime: true })
+				   .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+				   .toJSDate()
 }
 
 export function incrementByAdvancedRepeatRule(date: Date, advancedRepeatRule: CalendarAdvancedRepeatRule, ianaTimeZone: string): Date {
@@ -175,12 +175,45 @@ export function incrementByAdvancedRepeatRule(date: Date, advancedRepeatRule: Ca
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			}).
-				.plus({
-					days: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   days: interval,
+						   })
+						   .toJSDate()
 	}
 	return date
+}
+
+function* incrementAndGenerateByDayRule(date: Date, rule: ByRule, value: string) {
+
+}
+
+//FIXME I want to try using recursive functions, but no clear way to do it yet
+function* generateAdvancedRules(date: Date, max: Date, rules: CalendarAdvancedRepeatRule[], zone: string) {
+	const parsedRules = new Map<ByRule, CalendarAdvancedRepeatRule[]>
+	let byRulesIndex = new Map<ByRule, undefined | number>
+
+	for (const rule of rules) {
+		const ruleList = parsedRules.get(rule.ruleType as ByRule) ?? []
+		parsedRules.set(rule.ruleType as ByRule, [...ruleList, rule])
+	}
+
+	for (const rule of BYRULE_MAP.values()) {
+		byRulesIndex.set(rule, undefined)
+	}
+
+	const luxonDate = DateTime.fromJSDate(date, { zone })
+
+	if (parsedRules.has(ByRule.BYMINUTE)) {
+		const index = byRulesIndex.get(ByRule.BYMINUTE) ?? 0
+		const rr = parsedRules.get(ByRule.BYMINUTE) ?? []
+
+		luxonDate.set({ minute: Number.parseInt(rr[index].interval) })
+		byRulesIndex.set(ByRule.BYMINUTE, index + 1)
+
+		yield luxonDate
+	}
+
+
 }
 
 //FIXME Might be worth checking where this func is being used and start using the new function that considers advanced repeat rules
@@ -190,37 +223,37 @@ export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, 
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					days: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   days: interval,
+						   })
+						   .toJSDate()
 
 		case RepeatPeriod.WEEKLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					weeks: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   weeks: interval,
+						   })
+						   .toJSDate()
 
 		case RepeatPeriod.MONTHLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					months: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   months: interval,
+						   })
+						   .toJSDate()
 
 		case RepeatPeriod.ANNUALLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					years: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   years: interval,
+						   })
+						   .toJSDate()
 
 		default:
 			throw new Error("Unknown repeat period")
