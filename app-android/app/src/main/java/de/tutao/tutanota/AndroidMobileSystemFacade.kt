@@ -4,9 +4,9 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
-import android.content.Intent.EXTRA_REFERRER
 import android.net.Uri
 import android.provider.Settings
+import android.util.Base64
 import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import de.tutao.tutashared.CredentialAuthenticationException
+import de.tutao.tutashared.SystemUtils
 import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.credentials.AuthenticationPrompt
 import de.tutao.tutashared.data.AppDatabase
@@ -23,7 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
-import de.tutao.tutashared.SystemUtils
+import java.nio.charset.Charset
 
 
 class AndroidMobileSystemFacade(
@@ -37,6 +38,8 @@ class AndroidMobileSystemFacade(
 	companion object {
 		private const val TAG = "SystemFacade"
 		const val APP_LOCK_METHOD = "AppLockMethod"
+		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
+		const val TUTA_INTENT_INTEROP_DATA = "TUTA_INTEROP_DATA"
 	}
 
 	override suspend fun openLink(uri: String): Boolean {
@@ -188,11 +191,13 @@ class AndroidMobileSystemFacade(
 
 	override suspend fun openCalendarApp(query: String) {
 		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
+		val targetPackageId = activity.getString(R.string.package_name).replace("calendar", "tutanota")
 
 		val intent = Intent()
+		intent.setPackage(targetPackageId)
 		intent.setAction(Intent.ACTION_EDIT)
-		intent.putExtra(EXTRA_REFERRER, BuildConfig.APPLICATION_ID)
-		intent.setData(Uri.parse("tutacalendar://interop?${decodedQuery}"))
+		intent.putExtra(TUTA_INTENT_ACTION, "interop")
+		intent.setData(Uri.parse("tutacalendar://interop?$decodedQuery"))
 
 		try {
 			startActivityForResult(activity, intent, 0, null)

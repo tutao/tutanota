@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
-import android.content.Intent.EXTRA_REFERRER
 import android.net.Uri
 import android.provider.Settings
 import android.util.Base64
@@ -34,12 +33,13 @@ class AndroidMobileSystemFacade(
 	private val activity: MainActivity,
 	private val db: AppDatabase,
 ) : MobileSystemFacade {
-
 	private val authenticationPrompt = AuthenticationPrompt()
 
 	companion object {
 		private const val TAG = "SystemFacade"
 		const val APP_LOCK_METHOD = "AppLockMethod"
+		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
+		const val TUTA_INTENT_INTEROP_DATA = "TUTA_INTEROP_DATA"
 	}
 
 	override suspend fun openLink(uri: String): Boolean {
@@ -187,11 +187,13 @@ class AndroidMobileSystemFacade(
 
 	override suspend fun openMailApp(query: String) {
 		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
+		val targetPackageId = activity.getString(R.string.package_name).replace("calendar", "tutanota")
 
 		val intent = Intent()
+		intent.setPackage(targetPackageId)
 		intent.setAction(Intent.ACTION_EDIT)
-		intent.putExtra(EXTRA_REFERRER, BuildConfig.APPLICATION_ID)
-		intent.setData(Uri.parse("tutamail://interop?${decodedQuery}"))
+		intent.putExtra(TUTA_INTENT_ACTION, "interop")
+		intent.setData(Uri.parse("tutamail://interop?$decodedQuery"))
 
 		try {
 			startActivityForResult(activity, intent, 0, null)
