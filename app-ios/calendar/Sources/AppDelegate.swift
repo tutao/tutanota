@@ -103,7 +103,13 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
 		switch url.scheme {
 		case CALENDAR_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
-		case TUTA_CALENDAR_INTEROP_SCHEME: Task { try! await self.viewController.handleInterop(url) }
+		case TUTA_CALENDAR_INTEROP_SCHEME:
+			Task {
+				guard let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication] else { return }
+				if String(describing: sourceApp).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
+
+				TUTSLog("Tried to open Mail App from an unknown source!")
+			}
 		case nil: TUTSLog("missing scheme!")
 		default: TUTSLog("unknown scheme? \(url.scheme!)")
 		}

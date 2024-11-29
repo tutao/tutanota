@@ -8,6 +8,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.Intent.EXTRA_REFERRER
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -454,7 +455,11 @@ class MainActivity : FragmentActivity() {
 		}
 
 		if (data != null && data.toString().startsWith("tutamail://") && data.host == "interop") {
-			openContactEditor(data)
+			val caller = intent.getStringExtra(EXTRA_REFERRER)
+
+			if (caller?.startsWith("de.tutao") == true) {
+				openContactEditor(data)
+			}
 		}
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {

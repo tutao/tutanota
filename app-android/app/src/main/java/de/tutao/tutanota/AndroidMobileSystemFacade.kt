@@ -4,11 +4,13 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
+import android.content.Intent.EXTRA_REFERRER
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
@@ -173,9 +175,10 @@ class AndroidMobileSystemFacade(
 
 	private fun tryToLaunchStore() {
 		try {
+			val packageId = activity.getString(R.string.package_name).replace("tutanota", "calendar")
 			startActivity(
 				activity,
-				Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=de.tutao.calendar")),
+				Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageId")),
 				null
 			)
 		} catch (e: Exception) {
@@ -188,10 +191,11 @@ class AndroidMobileSystemFacade(
 
 		val intent = Intent()
 		intent.setAction(Intent.ACTION_EDIT)
+		intent.putExtra(EXTRA_REFERRER, BuildConfig.APPLICATION_ID)
 		intent.setData(Uri.parse("tutacalendar://interop?${decodedQuery}"))
 
 		try {
-			startActivity(activity, intent, null)
+			startActivityForResult(activity, intent, 0, null)
 		} catch (e: Exception) {
 			Log.d(TAG, e.toString())
 			tryToLaunchStore()
