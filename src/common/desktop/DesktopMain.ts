@@ -41,7 +41,7 @@ import { ApplicationWindow } from "./ApplicationWindow.js"
 import { DesktopCommonSystemFacade } from "./DesktopCommonSystemFacade.js"
 import { DesktopGlobalDispatcher } from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import { DesktopDesktopSystemFacade } from "./DesktopDesktopSystemFacade.js"
-import { DesktopExportFacade } from "./DesktopExportFacade.js"
+import { DesktopExportFacade } from "./export/DesktopExportFacade.js"
 import { DesktopFileFacade } from "./files/DesktopFileFacade.js"
 import { DesktopSearchTextInAppFacade } from "./DesktopSearchTextInAppFacade.js"
 import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
@@ -73,6 +73,7 @@ import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
 import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
+import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 
 mp()
 
@@ -261,10 +262,11 @@ async function createComponents(): Promise<Components> {
 		const logger: Logger = global.logger
 		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
 		const sqlCipherFacade = new PerWindowSqlCipherFacade(offlineDbRefCounter)
+		const mailboxExportPersistence = new MailboxExportPersistence(conf)
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
-			new DesktopExportFacade(tfs, conf, window, dragIcons),
+			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider),
 			new DesktopExternalCalendarFacade(),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs),
 			new DesktopInterWindowEventFacade(window, wm),

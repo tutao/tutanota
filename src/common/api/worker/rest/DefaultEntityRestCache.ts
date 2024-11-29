@@ -166,7 +166,7 @@ export interface ExposedCacheStorage {
 	 * the exposed interface is intentionally more narrow than the internal cacheStorage because
 	 * we must maintain the integrity of our list ranges.
 	 * */
-	deleteIfExists<T extends ElementEntity>(typeRef: TypeRef<T>, listId: null, id: Id): Promise<void>
+	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
 	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>

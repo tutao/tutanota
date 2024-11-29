@@ -1,15 +1,12 @@
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
-	Mail,
 	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
-	MailFolder,
-	MailFolderTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
 import Stream from "mithril/stream"
@@ -17,14 +14,14 @@ import stream from "mithril/stream"
 import { EventController } from "../api/main/EventController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { assertNotNull, lazyMemoized, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { FeatureType, MailSetKind, OperationType } from "../api/common/TutanotaConstants.js"
+import { assertNotNull, lazyMemoized, ofClass } from "@tutao/tutanota-utils"
+import { OperationType } from "../api/common/TutanotaConstants.js"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { FolderSystem } from "../api/common/mail/FolderSystem.js"
+import { isSameId } from "../api/common/utils/EntityUtils.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -114,6 +111,11 @@ export class MailboxModel {
 				})
 			})
 		}
+	}
+
+	async getMailboxDetailByMailboxId(mailboxId: Id): Promise<MailboxDetail | null> {
+		const allDetails = await this.getMailboxDetails()
+		return allDetails.find((detail) => isSameId(detail.mailbox._id, mailboxId)) ?? null
 	}
 
 	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {

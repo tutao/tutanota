@@ -16,9 +16,9 @@ import { getLetId, haveSameId } from "../../../common/api/common/utils/EntityUti
 import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
-import { generateExportFileName, generateMailFile, getMailExportMode } from "../export/Exporter"
+import { generateMailFile, getMailExportMode } from "../export/Exporter"
 import { deduplicateFilenames } from "../../../common/api/common/utils/FileUtils"
-import { makeMailBundle } from "../export/Bundler"
+import { downloadMailBundle } from "../export/Bundler"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
@@ -35,6 +35,7 @@ import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
+import { generateExportFileName } from "../export/emlUtils.js"
 
 assertMainOrNode()
 
@@ -282,7 +283,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
 					const { htmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
-					const bundle = await makeMailBundle(
+					const bundle = await downloadMailBundle(
 						mail,
 						locator.mailFacade,
 						locator.entityClient,

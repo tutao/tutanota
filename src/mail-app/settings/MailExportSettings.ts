@@ -10,7 +10,7 @@ import { mailLocator } from "../mailLocator"
 import { first } from "@tutao/tutanota-utils"
 import { LoginController } from "../../common/api/main/LoginController"
 import { Button, ButtonType } from "../../common/gui/base/Button"
-import { MailExportController } from "../mail/model/MailExportController"
+import { MailExportController } from "../native/main/MailExportController.js"
 import { formatDate } from "../../common/misc/Formatter"
 import Stream from "mithril/stream"
 
@@ -52,73 +52,97 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				dropdownWidth: 300,
 				disabled: state.type === "exporting",
 			} satisfies DropDownSelectorAttrs<MailboxDetail>),
-			state.type === "exporting"
-				? [
-						m(".flex-space-between.items-center.mt.mb-s", [
-							m(".flex-grow.mr", [
-								m(
-									"small.noselect",
-									lang.get("exportingEmails_label", {
-										"{count}": state.exportedMails,
-									}),
-								),
-								m(
-									".rel.full-width.mt-s",
-									{
-										style: {
-											"background-color": theme.content_border,
-											height: px(2),
-										},
-									},
-									m(ProgressBar, { progress: state.progress }),
-								),
-							]),
-							m(Button, {
-								label: "cancel_action",
-								type: ButtonType.Secondary,
-								click: () => {
-									vnode.attrs.mailExportController.cancelExport()
-								},
-							}),
-						]),
-				  ]
-				: state.type === "idle"
-				? [
-						m(".flex-space-between.items-center.mt.mb-s", [
+			this.renderState(vnode.attrs.mailExportController),
+		]
+	}
+
+	private renderState(controller: MailExportController): Children {
+		const state = controller.state()
+		switch (state.type) {
+			case "exporting":
+				return [
+					m(".flex-space-between.items-center.mt.mb-s", [
+						m(".flex-grow.mr", [
 							m(
 								"small.noselect",
-								state.lastExport
-									? lang.get("lastExportTime_Label", {
-											"{date}": formatDate(state.lastExport),
-									  })
-									: null,
-							),
-							m(Button, {
-								label: "export_action",
-								click: () => {
-									if (this.selectedMailbox) {
-										vnode.attrs.mailExportController.startExport(this.selectedMailbox)
-									}
-								},
-								type: ButtonType.Secondary,
-							}),
-						]),
-				  ]
-				: [
-						m(".flex-space-between.items-center.mt.mb-s", [
-							m(
-								"small.noselect",
-								lang.get("mailsExported_label", {
-									"{numbers}": state.exportedMails,
+								lang.get("exportingEmails_label", {
+									"{count}": state.exportedMails,
 								}),
 							),
-							m(Button, {
-								label: "open_action",
-								click: () => {},
-								type: ButtonType.Secondary,
-							}),
+							m(
+								".rel.full-width.mt-s",
+								{
+									style: {
+										"background-color": theme.content_border,
+										height: px(2),
+									},
+								},
+								m(ProgressBar, { progress: state.progress }),
+							),
 						]),
-				  ],
-		]
+						m(Button, {
+							label: "cancel_action",
+							type: ButtonType.Secondary,
+							click: () => {
+								controller.cancelExport()
+							},
+						}),
+					]),
+				]
+			case "idle":
+				return [
+					m(".flex-space-between.items-center.mt.mb-s", [
+						m(
+							"small.noselect",
+							controller.lastExport
+								? lang.get("lastExportTime_Label", {
+										"{date}": formatDate(controller.lastExport),
+								  })
+								: null,
+						),
+						m(Button, {
+							label: "export_action",
+							click: () => {
+								if (this.selectedMailbox) {
+									controller.startExport(this.selectedMailbox)
+								}
+							},
+							type: ButtonType.Secondary,
+						}),
+					]),
+				]
+			case "error":
+				return [
+					m(".flex-space-between.items-center.mt.mb-s", [
+						m("small.noselect", state.message),
+						m(Button, {
+							label: "retry_action",
+							click: () => {
+								controller.cancelExport()
+								if (this.selectedMailbox) {
+									controller.startExport(this.selectedMailbox)
+								}
+							},
+							type: ButtonType.Secondary,
+						}),
+					]),
+				]
+			case "finished":
+				return [
+					m(".flex-space-between.items-center.mt.mb-s", [
+						m("small.noselect", lang.get("exportFinished_label")),
+						m(Button, {
+							label: "open_action",
+							click: () => this.onOpenClicked(controller),
+							type: ButtonType.Secondary,
+						}),
+					]),
+				]
+		}
+	}
+
+	private async onOpenClicked(controller: MailExportController) {
+		await controller.openExportDirectory()
+		await controller.cancelExport()
 	}
 }

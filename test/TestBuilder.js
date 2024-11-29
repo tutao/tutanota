@@ -79,6 +79,7 @@ export async function runTestBuild({ clean, fast = false }) {
 				"events",
 				"util",
 				"string_decoder",
+				"crypto", // oxmsg needs it
 			],
 			plugins: [
 				preludeEnvPlugin(localEnv),

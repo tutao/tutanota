@@ -63,7 +63,7 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { CLIENT_ONLY_CALENDARS, Const, DEFAULT_CLIENT_ONLY_CALENDAR_COLORS, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { CLIENT_ONLY_CALENDARS, Const, DEFAULT_CLIENT_ONLY_CALENDAR_COLORS, FeatureType, GroupType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
@@ -129,7 +129,9 @@ import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/g
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "./mail/import/MailImporter.js"
-import { MailExportController } from "./mail/model/MailExportController"
+import type { MailExportController } from "./native/main/MailExportController.js"
+import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.js"
+import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 
 assertMainOrNode()
 
@@ -175,6 +177,7 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	exportFacade!: ExportFacade
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -187,6 +190,7 @@ class MailLocator {
 	infoMessageHandler!: InfoMessageHandler
 	themeController!: ThemeController
 	Const!: Record<string, any>
+	bulkMailLoader!: BulkMailLoader
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -616,6 +620,9 @@ class MailLocator {
 						await mailLocator.nativeContactsSyncManager().disableSync(userId, login)
 					}
 					await mailLocator.indexerFacade.deleteIndex(userId)
+					if (isDesktop()) {
+						await mailLocator.exportFacade.clearExportState(userId)
+					}
 			  })
 	}
 
@@ -714,6 +721,7 @@ class MailLocator {
 			workerFacade,
 			sqlCipherFacade,
 			contactFacade,
+			bulkMailLoader,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -745,6 +753,7 @@ class MailLocator {
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
+		this.bulkMailLoader = bulkMailLoader
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
 		this.mailModel = new MailModel(
@@ -842,6 +851,7 @@ class MailLocator {
 						desktopInterfaces.nativeMailImportFacade,
 						openSettingsHandler,
 					)
+					this.exportFacade = desktopInterfaces.exportFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
@@ -1164,15 +1174,10 @@ class MailLocator {
 		return new AddNotificationEmailDialog(this.logins, this.entityClient)
 	}
 
-	// For testing argon2 migration after login. The production server will reject this request.
-	// This can be removed when we enable the migration.
-	async changeToBycrypt(passphrase: string): Promise<unknown> {
-		const currentUser = this.logins.getUserController().user
-		return this.loginFacade.migrateKdfType(KdfType.Bcrypt, passphrase, currentUser)
-	}
-
 	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
-		return new MailExportController()
+		const { htmlSanitizer } = await import("../common/misc/HtmlSanitizer")
+		const { MailExportController } = await import("./native/main/MailExportController.js")
+		return new MailExportController(this.bulkMailLoader, htmlSanitizer, this.exportFacade, this.logins, this.fileController, this.mailboxModel)
 	})
 
 	/**
