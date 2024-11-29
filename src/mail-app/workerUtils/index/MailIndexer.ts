@@ -1,7 +1,6 @@
 import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants"
 import type { File as TutanotaFile, Mail, MailBox, MailDetails, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	FileTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
@@ -11,7 +10,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
-import { assertNotNull, first, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, first, isNotNull, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import {
 	elementIdPart,
 	isSameId,
@@ -20,7 +19,6 @@ import {
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
 	listIdPart,
-	timestampToGeneratedId,
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	_createNewIndexUpdate,
@@ -34,14 +32,10 @@ import { Db, GroupData, IndexingErrorReason, IndexUpdate, SearchIndexEntry } fro
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
-import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
 import type { EntityUpdate, GroupMembership, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { EntityRestClient, OwnerEncSessionKeyProvider } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
-import type { SomeEntity } from "../../../common/api/common/EntityTypes.js"
-import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
@@ -49,11 +43,11 @@ import { containsEventOfType, EntityUpdateData } from "../../../common/api/commo
 import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
-
 import { isDraft } from "../../mail/model/MailChecks.js"
+import { BulkMailLoader } from "./BulkMailLoader.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-const ENTITY_INDEXER_CHUNK = 20
+
 export const MAIL_INDEXER_CHUNK = 100
 const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 // one day
 
@@ -66,9 +60,6 @@ export class MailIndexer {
 	_indexingCancelled: boolean
 	_core: IndexerCore
 	_db: Db
-	_entityRestClient: EntityRestClient
-	_defaultCachingEntityRestClient: DefaultEntityRestCache
-	_defaultCachingEntity: EntityClient
 	_dateProvider: DateProvider
 
 	private isUsingOfflineCache = false
@@ -77,20 +68,17 @@ export class MailIndexer {
 		core: IndexerCore,
 		db: Db,
 		private readonly infoMessageHandler: InfoMessageHandler,
-		entityRestClient: EntityRestClient,
-		defaultCachingRestClient: DefaultEntityRestCache,
+		private readonly bulkLoaderFactory: () => BulkMailLoader,
+		private readonly entityClient: EntityClient,
 		dateProvider: DateProvider,
 		private readonly mailFacade: MailFacade,
 	) {
 		this._core = core
 		this._db = db
-		this._defaultCachingEntityRestClient = defaultCachingRestClient
-		this._defaultCachingEntity = new EntityClient(defaultCachingRestClient)
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this.mailIndexingEnabled = false
 		this.mailboxIndexingPromise = Promise.resolve()
 		this._indexingCancelled = false
-		this._entityRestClient = entityRestClient
 		this._dateProvider = dateProvider
 	}
 
@@ -153,7 +141,7 @@ export class MailIndexer {
 		mail: Mail
 		keyToIndexEntries: Map<string, SearchIndexEntry[]>
 	} | null> {
-		return this._defaultCachingEntity
+		return this.entityClient
 			.load(MailTypeRef, [event.instanceListId, event.instanceId])
 			.then(async (mail) => {
 				let mailDetails: MailDetails
@@ -161,7 +149,7 @@ export class MailIndexer {
 					// Will be always there, if it was not updated yet, it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
-					mailDetails = await this._defaultCachingEntity
+					mailDetails = await this.entityClient
 						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => ({
 							key: mailOwnerEncSessionKey,
 							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
@@ -177,7 +165,7 @@ export class MailIndexer {
 					// Will be always there, if it was not updated yet it will still be set by CryptoFacade
 					const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 					const mailDetailsBlobId = neverNull(mail.mailDetails)
-					mailDetails = await this._defaultCachingEntity
+					mailDetails = await this.entityClient
 						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => ({
 							key: mailOwnerEncSessionKey,
 							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
@@ -318,8 +306,8 @@ export class MailIndexer {
 
 			for (let mailGroupMembership of memberships) {
 				let mailGroupId = mailGroupMembership.group
-				const mailboxGroupRoot = await this._defaultCachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
-				const mailbox = await this._defaultCachingEntity.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+				const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
 
 				const transaction = await this._db.dbFacade.createTransaction(true, [GroupDataOS])
 				const groupData = await transaction.get(GroupDataOS, mailGroupId)
@@ -401,7 +389,7 @@ export class MailIndexer {
 
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
-		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient, this.isUsingOfflineCache)
+		const indexLoader = this.bulkLoaderFactory()
 
 		return promiseMap(mailBoxes, (mBoxData) => {
 			return this._loadMailListIds(mBoxData.mbox).then((mailListIds) => {
@@ -423,7 +411,7 @@ export class MailIndexer {
 		timeRange: TimeRange,
 		indexUpdate: IndexUpdate,
 		progress: ProgressMonitor,
-		indexLoader: IndexLoader,
+		indexLoader: BulkMailLoader,
 	): Promise<void> {
 		const [rangeStart, rangeEnd] = timeRange
 		let batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
@@ -481,7 +469,7 @@ export class MailIndexer {
 		mboxDataList: Array<MboxIndexData>,
 		timeRange: TimeRange,
 		indexUpdate: IndexUpdate,
-		indexLoader: IndexLoader,
+		indexLoader: BulkMailLoader,
 	): Promise<void> {
 		const startTimeLoad = getPerformanceTimestamp()
 		return promiseMap(
@@ -491,7 +479,7 @@ export class MailIndexer {
 					mboxData.mailListIds.slice(),
 					async (listId) => {
 						// We use caching here because we may load same emails twice
-						const { elements: mails, loadedCompletely } = await indexLoader.loadMailsWithCache(listId, timeRange)
+						const { elements: mails, loadedCompletely } = await indexLoader.loadMailsInRangeWithCache(listId, timeRange)
 						// If we loaded mail list completely, don't try to load from it anymore
 						if (loadedCompletely) {
 							mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
@@ -515,7 +503,7 @@ export class MailIndexer {
 		})
 	}
 
-	async _processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<number> {
+	async _processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: BulkMailLoader): Promise<number> {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
 		const mailsWithMailDetails = await indexLoader.loadMailDetails(mailsWithoutErros)
@@ -580,17 +568,17 @@ export class MailIndexer {
 		if (isMailsetMigrated) {
 			return [mailbox.currentMailBag!, ...mailbox.archivedMailBags].map((mailbag) => mailbag.mails)
 		} else {
-			const folders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.folders).folders)
+			const folders = await this.entityClient.loadAll(MailFolderTypeRef, neverNull(mailbox.folders).folders)
 			return folders.map((f) => f.mails)
 		}
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
-		return this._defaultCachingEntity
+		return this.entityClient
 			.load(MailboxGroupRootTypeRef, mailGroup.group)
-			.then((mailGroupRoot) => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			.then((mailGroupRoot) => this.entityClient.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 			.then((mbox) => {
-				return this._defaultCachingEntity
+				return this.entityClient
 					.loadAll(MailFolderTypeRef, neverNull(mbox.folders).folders)
 					.then((folders) => neverNull(folders.find((folder) => folder.folderType === MailSetKind.SPAM)))
 			})
@@ -620,7 +608,7 @@ export class MailIndexer {
 					})
 				}
 			} else if (event.operation === OperationType.UPDATE) {
-				return this._defaultCachingEntity
+				return this.entityClient
 					.load(MailTypeRef, [event.instanceListId, event.instanceId])
 					.then((mail) => {
 						if (mail.state === MailState.DRAFT) {
@@ -677,141 +665,4 @@ type MboxIndexData = {
 	mailListIds: Array<Id>
 	newestTimestamp: number
 	ownerGroup: Id
-}
-
-type MailWithMailDetails = {
-	mail: Mail
-	mailDetails: MailDetails
-}
-
-class IndexLoader {
-	private readonly entityCache: DefaultEntityRestCache
-	// modified in tests
-	_entity: EntityClient
-	private readonly cachingEntity: EntityClient
-
-	constructor(restClient: EntityRestClient, cachingEntityClient: DefaultEntityRestCache, private isUsingOfflineCache: boolean) {
-		if (isUsingOfflineCache) {
-			this.entityCache = cachingEntityClient
-			this._entity = new EntityClient(cachingEntityClient)
-		} else {
-			cachingEntityClient = new DefaultEntityRestCache(restClient, new EphemeralCacheStorage())
-			this._entity = new EntityClient(restClient)
-		}
-		this.entityCache = cachingEntityClient
-		this.cachingEntity = new EntityClient(this.entityCache)
-	}
-
-	loadMailsWithCache(
-		mailListId: Id,
-		[rangeStart, rangeEnd]: TimeRange,
-	): Promise<{
-		elements: Array<Mail>
-		loadedCompletely: boolean
-	}> {
-		return this.cachingEntity.loadReverseRangeBetween(
-			MailTypeRef,
-			mailListId,
-			timestampToGeneratedId(rangeStart),
-			timestampToGeneratedId(rangeEnd),
-			MAIL_INDEXER_CHUNK,
-		)
-	}
-
-	async removeFromCache(id: IdTuple): Promise<void> {
-		if (!this.isUsingOfflineCache) {
-			return this.entityCache.deleteFromCacheIfExists(MailTypeRef, listIdPart(id), elementIdPart(id))
-		}
-	}
-
-	async loadMailDetails(mails: Mail[]): Promise<MailWithMailDetails[]> {
-		const result: Array<MailWithMailDetails> = []
-		// mailDetails stored as blob
-		let mailDetailsBlobMails = mails.filter((m) => !isDraft(m))
-		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
-			mailDetailsBlobMails,
-			(m) => assertNotNull(m.mailDetails)[0],
-			(m) => neverNull(m.mailDetails)[1],
-		)
-		for (let [listId, ids] of listIdToMailDetailsBlobIds) {
-			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
-				return {
-					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
-				}
-			}
-			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider)
-			result.push(
-				...mailDetailsBlobs.map((mailDetailsBlob) => {
-					const mail = assertNotNull(mailDetailsBlobMails.find((m) => isSameId(m.mailDetails, mailDetailsBlob._id)))
-					return { mail, mailDetails: mailDetailsBlob.details }
-				}),
-			)
-		}
-		// mailDetails stored in db (draft)
-		let mailDetailsDraftMails = mails.filter((m) => isDraft(m))
-		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
-			mailDetailsDraftMails,
-			(m) => assertNotNull(m.mailDetailsDraft)[0],
-			(m) => neverNull(m.mailDetailsDraft)[1],
-		)
-		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
-			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
-				return {
-					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
-				}
-			}
-			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider)
-			result.push(
-				...mailDetailsDrafts.map((draftDetails) => {
-					const mail = assertNotNull(mailDetailsDraftMails.find((m) => isSameId(m.mailDetailsDraft, draftDetails._id)))
-					return { mail, mailDetails: draftDetails.details }
-				}),
-			)
-		}
-		return result
-	}
-
-	async loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
-		const attachmentIds: IdTuple[] = []
-		for (const mail of mails) {
-			attachmentIds.push(...mail.attachments)
-		}
-		const filesByList = groupBy(attachmentIds, (a) => a[0])
-		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
-		for (const [listId, fileIds] of filesByList.entries()) {
-			fileLoadingPromises.push(
-				this.loadInChunks(
-					FileTypeRef,
-					listId,
-					fileIds.map((f) => f[1]),
-				),
-			)
-		}
-		// if (this._indexingCancelled) throw new CancelledError("cancelled indexing in loading attachments")
-		const filesResults = await Promise.all(fileLoadingPromises)
-		return filesResults.flat()
-	}
-
-	private async loadInChunks<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		listId: Id | null,
-		ids: Id[],
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-	): Promise<T[]> {
-		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
-		const entityResults = await promiseMap(
-			byChunk,
-			(chunk) => {
-				return chunk.length > 0 ? this._entity.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider) : Promise.resolve([])
-			},
-			{
-				concurrency: 2,
-			},
-		)
-		return entityResults.flat()
-	}
 }

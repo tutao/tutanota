@@ -166,7 +166,7 @@ export interface ExposedCacheStorage {
 	 * the exposed interface is intentionally more narrow than the internal cacheStorage because
 	 * we must maintain the integrity of our list ranges.
 	 * */
-	deleteIfExists<T extends ElementEntity>(typeRef: TypeRef<T>, listId: null, id: Id): Promise<void>
+	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
