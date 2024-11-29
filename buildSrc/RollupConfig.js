@@ -173,7 +173,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (
 		isIn("src/calendar-app/calendar/export") ||
 		isIn("src/common/misc/DateParser") ||
-		isIn("src/common/misc/CyberMondayUtils") ||
 		isIn("src/calendar-app/calendar/model") ||
 		isIn("src/calendar-app/calendar/gui") ||
 		isIn("src/common/calendar/import")

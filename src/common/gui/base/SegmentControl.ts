@@ -10,13 +10,12 @@ export type SegmentControlAttrs<T> = {
 	onValueSelected: (_: T) => unknown
 	items: SegmentControlItem<T>[]
 	itemMaxWidth?: number
-	shouldApplyCyberMonday?: boolean
 	class?: string
 }
 
 export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 	view(vnode: Vnode<SegmentControlAttrs<T>>): Children {
-		const { shouldApplyCyberMonday, selectedValue, items, itemMaxWidth } = vnode.attrs
+		const { selectedValue, items, itemMaxWidth } = vnode.attrs
 
 		return [
 			m(
@@ -28,11 +27,7 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 				items.map((item) =>
 					m(
 						"button.segmentControlItem.flex.center-horizontally.center-vertically.text-ellipsis.small" +
-							(item.value === selectedValue
-								? `.segmentControl-border-active${shouldApplyCyberMonday ? "-cyber-monday" : ""}.content-accent-fg${
-										shouldApplyCyberMonday ? "-cyber-monday" : ""
-								  }`
-								: ".segmentControl-border"),
+							(item.value === selectedValue ? `.segmentControl-border-active.content-accent-fg` : ".segmentControl-border"),
 						{
 							style: {
 								flex: "0 1 " + (typeof itemMaxWidth !== "undefined" ? px(itemMaxWidth) : px(120)),

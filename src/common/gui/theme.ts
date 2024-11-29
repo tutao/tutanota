@@ -22,7 +22,6 @@ export type Theme = {
 	button_bubble_bg: string
 	button_bubble_fg: string
 	content_bg: string
-	content_bg_cyber_monday: string
 	content_fg: string
 	content_button: string
 	content_button_selected: string
@@ -30,9 +29,7 @@ export type Theme = {
 	content_button_icon_selected: string
 	content_button_icon_bg?: string
 	content_accent: string
-	content_accent_cyber_monday: string
 	content_border: string
-	content_border_cyber_monday: string
 	content_message_bg: string
 	header_bg: string
 	header_box_shadow_bg: string

@@ -20,7 +20,6 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { downcast, lazy, NBSP } from "@tutao/tutanota-utils"
 import {
 	AvailablePlanType,
-	Const,
 	HighlightedPlans,
 	LegacyPlans,
 	NewBusinessPlans,
@@ -32,8 +31,6 @@ import { px } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { client } from "../misc/ClientDetector"
-import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
-import { theme } from "../gui/theme.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -95,13 +92,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 	}
 
-	private renderHeadline(
-		msg: TranslationText | null,
-		currentPlanType: PlanType | null,
-		priceInfoTextId: TranslationKey | null,
-		isBusiness: boolean,
-		isCyberMonday: boolean,
-	): Children {
+	private renderHeadline(msg: TranslationText | null, currentPlanType: PlanType | null, priceInfoTextId: TranslationKey | null): Children {
 		const wrapInDiv = (text: string, style?: Record<string, any>) => {
 			return m(".b.center", { style }, text)
 		}
@@ -114,10 +105,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		if (priceInfoTextId && lang.exists(priceInfoTextId)) {
 			return wrapInDiv(lang.get(priceInfoTextId))
-		}
-
-		if (isCyberMonday && !isBusiness) {
-			return wrapInDiv(lang.get("pricing.cyber_monday_msg"), { width: "230px", margin: "1em auto 0 auto" })
 		}
 	}
 
@@ -139,35 +126,22 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
 		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
 
-		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
-
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (options.businessUse()) {
 			plans = [PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
 		} else {
 			if (inMobileView) {
-				if (isCyberMonday) {
-					plans = [PlanType.Legend, PlanType.Revolutionary, PlanType.Free]
-				} else {
-					plans = [PlanType.Revolutionary, PlanType.Legend, PlanType.Free]
-				}
+				plans = [PlanType.Revolutionary, PlanType.Legend, PlanType.Free]
 			} else {
-				if (isCyberMonday) {
-					plans = [PlanType.Free, PlanType.Legend, PlanType.Revolutionary]
-				} else {
-					plans = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
-				}
+				plans = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
 			}
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 		}
 
-		const shouldShowFirstYearDiscountNotice = !isIOSApp() && isCyberMonday && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly
-
 		additionalInfo = m(".flex.flex-column.items-center", [
 			featureExpander.All, // global feature expander
 			m(".smaller.mb.center", subscriptionPeriodInfoMsg),
-			shouldShowFirstYearDiscountNotice && m(".smaller.mb.center", `* ${lang.get("pricing.legendAsterisk_msg")}`),
 		])
 
 		const buyBoxesViewPlacement = plans
@@ -175,8 +149,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			.map((personalPlan, i) => {
 				// only show category title for the leftmost item
 				return [
-					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan, isCyberMonday),
-					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander, isCyberMonday),
+					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan),
+					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander),
 				]
 			})
 
@@ -188,7 +162,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						items: BusinessUseItems,
 				  })
 				: null,
-			this.renderHeadline(msg, currentPlanType, priceInfoTextId, options.businessUse(), isCyberMonday),
+			this.renderHeadline(msg, currentPlanType, priceInfoTextId),
 			m(
 				".flex.center-horizontally.wrap",
 				{
@@ -206,7 +180,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		])
 	}
 
-	private renderBuyOptionBox(attrs: SubscriptionSelectorAttr, inMobileView: boolean, planType: AvailablePlanType, isCyberMonday: boolean): Children {
+	private renderBuyOptionBox(attrs: SubscriptionSelectorAttr, inMobileView: boolean, planType: AvailablePlanType): Children {
 		return m(
 			"",
 			{
@@ -214,7 +188,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					width: attrs.boxWidth ? px(attrs.boxWidth) : px(230),
 				},
 			},
-			m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, inMobileView, isCyberMonday)),
+			m(BuyOptionBox, this.createBuyOptionBoxAttr(attrs, planType, inMobileView)),
 		)
 	}
 
@@ -223,34 +197,24 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		renderCategoryTitle: boolean,
 		planType: AvailablePlanType,
 		featureExpander: Record<ExpanderTargets, Children>,
-		isCyberMonday: boolean, // change to isDiscountForAnyPlanAvailable when removing the cyber monday implementation
 	): Children {
 		return m(
 			"",
 			{
 				style: { width: attrs.boxWidth ? px(attrs.boxWidth) : px(230) },
 			},
-			m(BuyOptionDetails, this.createBuyOptionBoxDetailsAttr(attrs, planType, renderCategoryTitle, isCyberMonday)),
+			m(BuyOptionDetails, this.createBuyOptionBoxDetailsAttr(attrs, planType, renderCategoryTitle)),
 			featureExpander[planType],
 		)
 	}
 
-	private createBuyOptionBoxAttr(
-		selectorAttrs: SubscriptionSelectorAttr,
-		targetSubscription: AvailablePlanType,
-		mobile: boolean,
-		isCyberMonday: boolean,
-	): BuyOptionBoxAttr {
+	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: AvailablePlanType, mobile: boolean): BuyOptionBoxAttr {
 		const { priceAndConfigProvider } = selectorAttrs
 
 		// we highlight the center box if this is a signup or the current subscription type is Free
 		const interval = selectorAttrs.options.paymentInterval()
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
 		const isHighlighted = (() => {
-			if (isCyberMonday) {
-				return targetSubscription === PlanType.Legend
-			}
-
 			return upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
 		})()
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
@@ -262,24 +226,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		if (isIOSApp() && !client.isCalendarApp()) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
-				if (isCyberMonday && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
-					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
-					priceStr = revolutionaryPrice?.yearlyPerMonth ?? NBSP
-					// if there is a discount for this plan we show the original price as reference
-					referencePriceStr = prices?.yearlyPerMonth
-				} else {
-					switch (interval) {
-						case PaymentInterval.Monthly:
-							priceStr = prices.monthlyPerMonth
-							break
-						case PaymentInterval.Yearly:
-							priceStr = prices.yearlyPerMonth
-							if (!isCyberMonday) {
-								// if there is no discount for any plan then we show the monthly price as reference
-								referencePriceStr = prices.monthlyPerMonth
-							}
-							break
-					}
+				switch (interval) {
+					case PaymentInterval.Monthly:
+						priceStr = prices.monthlyPerMonth
+						break
+					case PaymentInterval.Yearly:
+						priceStr = prices.yearlyPerMonth
+						referencePriceStr = prices.monthlyPerMonth
+						break
 				}
 			} else {
 				priceStr = NBSP
@@ -291,7 +245,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			if (referencePrice > subscriptionPrice) {
 				// if there is a discount for this plan we show the original price as reference
 				referencePriceStr = formatMonthlyPrice(referencePrice, interval)
-			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !isCyberMonday) {
+			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0) {
 				// if there is no discount for any plan then we show the monthly price as reference
 				const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(
 					PaymentInterval.Monthly,
@@ -302,9 +256,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			}
 		}
 
-		// If we are on the cyber monday campaign, we want to let the user know the discount is just for the first year.
-		const asteriskOrEmptyString = !isIOSApp() && isCyberMonday && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly ? "*" : ""
-
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
 			actionButton:
@@ -313,7 +264,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: priceStr,
 			referencePrice: referencePriceStr,
-			priceHint: () => `${getPriceHint(subscriptionPrice, interval, multiuser)}${asteriskOrEmptyString}`,
+			priceHint: () => `${getPriceHint(subscriptionPrice, interval, multiuser)}`,
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -334,7 +285,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		selectorAttrs: SubscriptionSelectorAttr,
 		targetSubscription: AvailablePlanType,
 		renderCategoryTitle: boolean,
-		isCyberMonday: boolean,
 	): BuyOptionDetailsAttr {
 		const { featureListProvider } = selectorAttrs
 		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
@@ -344,14 +294,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			})
 			.filter((fc): fc is BuyOptionDetailsAttr["categories"][0] => fc != null)
 
-		const isLegend = targetSubscription === PlanType.Legend
-		const isYearly = selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
-
 		return {
 			categories: categoriesToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			renderCategoryTitle,
-			iconStyle: isCyberMonday && isYearly && isLegend ? { fill: theme.content_accent_cyber_monday } : undefined,
 		}
 	}
 
@@ -442,7 +388,7 @@ function localizeFeatureCategory(
 	attrs: SubscriptionSelectorAttr,
 ): BuyOptionDetailsAttr["categories"][0] | null {
 	const title = tryGetTranslation(category.title)
-	const features = downcast<{ text: string; toolTip?: m.Child; key: string; antiFeature?: boolean | undefined; omit: boolean; heart: boolean }[]>(
+	const features = downcast<{ text: string; toolTip?: m.Child; key: string; antiFeature: boolean | undefined; omit: boolean; heart: boolean }[]>(
 		category.features.map((f) => localizeFeatureListItem(f, targetSubscription, attrs)).filter((it) => it != null),
 	)
 	return { title, key: category.title, features, featureCount: category.featureCount }

@@ -5,16 +5,13 @@ import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { AvailablePlanType, Const, PlanType } from "../api/common/TutanotaConstants"
+import { AvailablePlanType } from "../api/common/TutanotaConstants"
 import { PaymentInterval } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
-import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
-import { client } from "../misc/ClientDetector"
-import { isIOSApp } from "../api/common/Env"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -145,10 +142,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const { attrs } = vnode
 
-		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
-		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
-		const shouldApplyCyberMondayDesign = isLegendPlan && isCyberMonday && isYearly
 
 		return m(
 			".fg-black",
@@ -161,7 +155,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			},
 			[
 				m(
-					".buyOptionBox" + (attrs.highlighted ? (shouldApplyCyberMondayDesign ? ".highlighted.cyberMonday" : ".highlighted") : ""),
+					".buyOptionBox" + (attrs.highlighted ? ".highlighted" : ""),
 					{
 						style: {
 							display: "flex",
@@ -172,12 +166,12 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						},
 					},
 					[
-						shouldApplyCyberMondayDesign ? this.renderCyberMondayRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
+						this.renderBonusMonthsRibbon(attrs.bonusMonths),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
 						m(".small.text-center", attrs.priceHint ? lang.getMaybeLazy(attrs.priceHint) : lang.get("emptyString_msg")),
 						m(".small.text-center.pb-ml", lang.getMaybeLazy(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, shouldApplyCyberMondayDesign),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval),
 						attrs.actionButton
 							? m(
 									".button-min-height",
@@ -227,12 +221,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, text))
 	}
 
-	private renderCyberMondayRibbon(): Children {
-		const text = isIOSApp() && !client.isCalendarApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
-		return m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { padding: px(3) } }, text))
-	}
-
-	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null, shouldApplyCyberMonday: boolean): Children {
+	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null): Children {
 		const paymentIntervalItems = [
 			{ name: lang.get("pricing.yearly_label"), value: PaymentInterval.Yearly },
 			{ name: lang.get("pricing.monthly_label"), value: PaymentInterval.Monthly },
@@ -245,7 +234,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						paymentInterval?.(v)
 						m.redraw()
 					},
-					shouldApplyCyberMonday,
 			  })
 			: null
 	}

@@ -1,6 +1,6 @@
 import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
-import { assertNotNull, downcast, NBSP, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
@@ -12,7 +12,6 @@ import { isIOSApp } from "../api/common/Env"
 import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../api/main/CommonLocator.js"
 import { client } from "../misc/ClientDetector"
-import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
 
 export const enum PaymentInterval {
 	Monthly = 1,
@@ -197,18 +196,10 @@ export class PriceAndConfigProvider {
 			throw new Error(`no such iOS plan ${planName}`)
 		}
 
-		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
-
 		switch (paymentInterval) {
 			case PaymentInterval.Monthly:
 				return { displayPrice: applePrices.monthlyPerMonth, rawPrice }
 			case PaymentInterval.Yearly:
-				if (isCyberMonday && subscription === PlanType.Legend && type === UpgradePriceType.PlanActualPrice) {
-					const revolutionaryYearlyPerYear = this.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())?.yearlyPerYear ?? NBSP
-
-					return { displayPrice: revolutionaryYearlyPerYear, rawPrice }
-				}
-
 				return { displayPrice: applePrices.yearlyPerYear, rawPrice }
 		}
 	}
