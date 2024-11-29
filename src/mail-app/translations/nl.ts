@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2024-11-14T17:14:38Z",
+	"updated_at": "2024-11-27T15:42:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -927,6 +927,7 @@ export default {
 		"mailName_label": "Naam afzender",
 		"mailPartsNotLoaded_msg": "Sommige delen van dit email zijn wegens een verloren verbinding niet geladen.",
 		"mailServer_label": "E-mailserver",
+		"mailsExported_label": "Geëxporteerde e-mails: {numbers}",
 		"mailViewerRecipients_label": "Naar:",
 		"mailView_action": "Naar de e-mailweergave wisselen",
 		"makeAdminPendingUserGroupKeyRotationError_msg": "De gebruiker kan momenteel geen beheerder worden. Vraag de gebruiker om uit te loggen met al zijn apparaten en dan opnieuw in te loggen. Probeer het daarna opnieuw.",
@@ -1225,6 +1226,7 @@ export default {
 		"pricing.currentPlan_label": "Huidig abonnement",
 		"pricing.custom_title": "Eigen merk",
 		"pricing.custom_tooltip": "Whitelabel Tuta met uw eigen merk door het aanpassen van de logo's en kleuren van de Tuta web-, mobiele- en desktopclients",
+		"pricing.cyberMonday_label": "Bespaar 62%",
 		"pricing.cyber_monday_msg": "Ontvang het eerste jaar het beste abonnement voor minder!",
 		"pricing.cyber_monday_select_action": "Ontvang de deal!",
 		"pricing.encryptedCalendar_label": "Volledig versleutelde agenda",

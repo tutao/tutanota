@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2024-11-27T00:42:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -515,6 +515,7 @@ export default {
 		"done_action": "Готово",
 		"doNotAskAgain_label": "Больше не спрашивать для этого файла",
 		"downloadCompleted_msg": "Загрузка завершена",
+		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"download_action": "Скачать",
 		"draftNotSavedConnectionLost_msg": "Черновик не сохранен (потеряно соединение).",
 		"draftNotSaved_msg": "Черновик не сохранён.",
@@ -812,6 +813,7 @@ export default {
 		"keywords_label": "Ключевые слова",
 		"knowledgebase_label": "База знаний",
 		"knownCredentials_label": "Сохранённые аккаунты",
+		"labelLimitExceeded_msg": "В бесплатный тарифный план включено только 3 ярлыка. Чтобы перейти на бесплатный тарифный план, удалите ярлыки.",
 		"labels_label": "Ярлыки",
 		"languageAfrikaans_label": "Африкаанс",
 		"languageAlbanianref_label": "Албанский",
@@ -1239,6 +1241,8 @@ export default {
 		"pricing.currentPlan_label": "Текущая подписка",
 		"pricing.custom_title": "Пользовательский брендинг",
 		"pricing.custom_tooltip": "Tuta Whitelabel с вашим собственным брендом, определенными логотипами и цветами веб-, мобильных и настольных клиентов Tuta.",
+		"pricing.cyberMonday_label": "Сэкономьте 62%",
+		"pricing.cyber_monday_select_action": "Получите выгодное предложение!",
 		"pricing.encryptedCalendar_label": "Полностью зашифрованный календарь",
 		"pricing.encryptedCalendar_tooltip": "Все данные в ваших календарях Tuta зашифрованы, даже уведомления отправляются на ваше устройство в зашифрованном виде.",
 		"pricing.encryptedContacts_label": "Зашифрованная адресная книга",
