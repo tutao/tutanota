@@ -8,7 +8,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
-import android.content.Intent.EXTRA_REFERRER
+import android.content.Intent.ACTION_EDIT
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -454,12 +454,14 @@ class MainActivity : FragmentActivity() {
 			return@launch
 		}
 
-		if (data != null && data.toString().startsWith("tutamail://") && data.host == "interop") {
-			val caller = intent.getStringExtra(EXTRA_REFERRER)
+		val isInteropCall = intent.action == ACTION_EDIT && intent.getStringExtra(TUTA_INTENT_ACTION) == "interop"
+		val isTrustedCaller = callingPackage == BuildConfig.APPLICATION_ID.replace(
+			"tutanota",
+			"calendar"
+		)
 
-			if (caller?.startsWith("de.tutao") == true) {
-				openContactEditor(data)
-			}
+		if (data != null && isInteropCall && isTrustedCaller) {
+			openContactEditor(data)
 		}
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
@@ -809,6 +811,8 @@ class MainActivity : FragmentActivity() {
 		const val OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
 		const val OPEN_USER_MAILBOX_MAILID_KEY = "mailId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
+		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
+
 		private const val TAG = "MainActivity"
 		private var requestId = 0
 
