@@ -149,7 +149,11 @@ export class InboxRuleHandler {
  * export only for testing
  */
 export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
-	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule)).then((v) => v ?? null)
+	//sorting inboxRules in ascending order to prioritize the rules
+	return asyncFind(
+		rules.sort(({ type: a }, { type: b }) => +a - +b),
+		(rule) => checkInboxRule(mailFacade, mail, rule),
+	).then((v) => v ?? null)
 }
 
 async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
