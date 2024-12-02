@@ -8,7 +8,8 @@ import { DateProvider } from "../../common/DateProvider.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AuthDataProvider } from "./UserFacade.js"
 import { SomeEntity } from "../../common/EntityTypes.js"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { isEmpty, TypeRef } from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -83,6 +84,43 @@ export class BlobAccessTokenFacade {
 	}
 
 	/**
+	 * Requests a token that grants read access to all blobs that are referenced by the given instances.
+	 * A user must be owner of the instance but must not be owner of the archive were the blobs are stored in.
+	 * @param archiveDataType specify the data type
+	 * @param referencingInstances the instances that references the blobs
+	 * @throws ProgrammingError if instances are not part of the same list or blobs are not part of the same archive.
+	 */
+	async requestReadTokenMultipleBlobs(
+		archiveDataType: ArchiveDataType,
+		referencingInstances: readonly BlobReferencingInstance[],
+	): Promise<BlobServerAccessInfo> {
+		if (isEmpty(referencingInstances)) {
+			throw new ProgrammingError("Must pass at least one referencing instance")
+		}
+		const instanceListId = referencingInstances[0].listId
+		if (!referencingInstances.every((instance) => instance.listId === instanceListId)) {
+			throw new ProgrammingError("All referencing instances must be part of the same list")
+		}
+		const requestNewToken = async () => {
+			const archiveId = this.getArchiveId(referencingInstances)
+			const instanceIds = referencingInstances.map(({ elementId }) => createInstanceId({ instanceId: elementId }))
+			const tokenRequest = createBlobAccessTokenPostIn({
+				archiveDataType,
+				read: createBlobReadData({
+					archiveId,
+					instanceListId,
+					instanceIds,
+				}),
+				write: null,
+			})
+			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			return blobAccessInfo
+		}
+		// Does not cache them. We could put them in the cache for each of the referencing instances, but we need to change how the cache works to do that.
+		return requestNewToken()
+	}
+
+	/**
 	 * Requests a token that grants read access to all blobs that are referenced by the given instance.
 	 * A user must be owner of the instance but must not be owner of the archive were the blobs are stored in.
 	 * @param archiveDataType specify the data type
@@ -90,7 +128,7 @@ export class BlobAccessTokenFacade {
 	 */
 	async requestReadTokenBlobs(archiveDataType: ArchiveDataType, referencingInstance: BlobReferencingInstance): Promise<BlobServerAccessInfo> {
 		const requestNewToken = async () => {
-			const archiveId = this.getArchiveId(referencingInstance.blobs)
+			const archiveId = this.getArchiveId([referencingInstance])
 			const instanceListId = referencingInstance.listId
 			const instanceId = referencingInstance.elementId
 			const instanceIds = [createInstanceId({ instanceId })]
@@ -146,15 +184,24 @@ export class BlobAccessTokenFacade {
 		this.readArchiveCache.evict(archiveId)
 	}
 
-	private getArchiveId(blobs: Blob[]) {
-		if (blobs.length == 0) {
-			throw new Error("must pass blobs")
+	private getArchiveId(referencingInstances: readonly BlobReferencingInstance[]): Id {
+		if (isEmpty(referencingInstances)) {
+			throw new ProgrammingError("Must pass at least one referencing instance")
 		}
-		let archiveIds = new Set(blobs.map((b) => b.archiveId))
+		const archiveIds = new Set<Id>()
+		for (const referencingInstance of referencingInstances) {
+			if (isEmpty(referencingInstance.blobs)) {
+				throw new ProgrammingError("must pass blobs")
+			}
+			for (const blob of referencingInstance.blobs) {
+				archiveIds.add(blob.archiveId)
+			}
+		}
+
 		if (archiveIds.size != 1) {
 			throw new Error(`only one archive id allowed, but was ${archiveIds}`)
 		}
-		return blobs[0].archiveId
+		return referencingInstances[0].blobs[0].archiveId
 	}
 
 	/**
