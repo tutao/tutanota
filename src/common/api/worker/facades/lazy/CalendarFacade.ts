@@ -156,14 +156,14 @@ export class CalendarFacade {
 
 		// Generate events occurrences per calendar to avoid calendars flashing in the screen
 		for (const calendar of calendars) {
-			this.generateEventOccurences(newEvents, calendar.short, month, zone, true)
-			this.generateEventOccurences(newEvents, calendar.long, month, zone, false)
+			this.generateEventOccurrences(newEvents, calendar.short, month, zone, true)
+			this.generateEventOccurrences(newEvents, calendar.long, month, zone, false)
 		}
 
 		return newEvents
 	}
 
-	private generateEventOccurences(
+	private generateEventOccurrences(
 		eventMap: Map<number, CalendarEvent[]>,
 		events: CalendarEvent[],
 		range: CalendarTimeRange,
