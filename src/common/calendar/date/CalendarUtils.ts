@@ -12,7 +12,6 @@ import {
 	getStartOfDay,
 	incrementDate,
 	insertIntoSortedArray,
-	isNotEmpty,
 	isNotNull,
 	isSameDayOfDate,
 	isValidDate,
@@ -29,7 +28,7 @@ import {
 	TimeFormat,
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
-import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone } from "luxon"
+import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, WeekdayNumbers } from "luxon"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -158,42 +157,268 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 	return DateTime.fromJSDate(date, {
 		zone: ianaTimeZone,
 	})
-				   .minus(diff)
-				   .toJSDate()
+		.minus(diff)
+		.toJSDate()
 }
 
 /** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
 export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 	return DateTime.fromJSDate(utcDate, { zone: "utc" })
-				   .setZone(zone, { keepLocalTime: true })
-				   .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-				   .toJSDate()
+		.setZone(zone, { keepLocalTime: true })
+		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+		.toJSDate()
 }
 
-export function incrementByAdvancedRepeatRule(date: Date, advancedRepeatRule: CalendarAdvancedRepeatRule, ianaTimeZone: string): Date {
-	// FIXME implement switch to handle different ByRules
-	switch (advancedRepeatRule.ruleType) {
-		case String(ByRule.BYDAY):
-			const interval = // FIXME Calculate the interval taking into account advancedRepeatRule.interval(in this case the next weekday) - date
-			return DateTime.fromJSDate(date, {
-				zone: ianaTimeZone,
-			}).
-						   .plus({
-							   days: interval,
-						   })
-						   .toJSDate()
+const WEEKDAY_TO_NUMBER = {
+	SU: 1,
+	MO: 2,
+	TU: 3,
+	WE: 4,
+	TH: 5,
+	FR: 6,
+	SA: 7,
+} as Record<string, WeekdayNumbers>
+
+function applyMinuteRules(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]): DateTime[] {
+	if (parsedRules.length === 0) {
+		return dates
 	}
-	return date
+
+	const newDates: DateTime[] = []
+	for (const date of dates) {
+		for (const rule of parsedRules) {
+			newDates.push(
+				date.set({
+					//FIXME Check if rule accepts negative values
+					minute: Number.parseInt(rule.interval),
+				}),
+			)
+		}
+	}
+
+	return newDates
 }
 
-function* incrementAndGenerateByDayRule(date: Date, rule: ByRule, value: string) {
+function applyHourRules(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+	if (parsedRules.length === 0) {
+		return dates
+	}
 
+	const newDates: DateTime[] = []
+	for (const date of dates) {
+		for (const rule of parsedRules) {
+			newDates.push(
+				date.set({
+					hour: Number.parseInt(rule.interval),
+				}),
+			)
+		}
+	}
+
+	return newDates
+}
+
+function applyByDayRules(
+	dates: DateTime[],
+	parsedRules: CalendarAdvancedRepeatRule[],
+	frequency: RepeatPeriod,
+	validMonths: number[],
+	wkst: WeekdayNumbers,
+	hasWeekNo?: boolean,
+) {
+	if (parsedRules.length === 0) {
+		return dates
+	}
+
+	const ruleRegex = /^([-+]?\d{0,3})([a-zA-Z]{2})?$/g
+
+	const newDates: DateTime[] = []
+	for (const rule of parsedRules) {
+		for (const date of dates) {
+			if (!date.isValid) {
+				console.warn("Invalid date", date)
+				continue
+			}
+			const parsedRuleValue = rule.interval.match(ruleRegex)
+
+			if (!parsedRuleValue) {
+				console.error(`Invalid interval ${rule.interval}`)
+				continue
+			}
+
+			const targetWeekDay = parsedRuleValue[2] !== "" ? WEEKDAY_TO_NUMBER[parsedRuleValue[2]] : null
+			const leadingValue = parsedRuleValue[1] !== "" ? Number.parseInt(parsedRuleValue[1]) : null
+
+			if (frequency === RepeatPeriod.WEEKLY) {
+				if (!targetWeekDay) {
+					continue
+				}
+				const dt = date.set({ weekday: targetWeekDay })
+				const intervalStart = date.set({ weekday: wkst })
+				if (dt.toMillis() > intervalStart.plus({ week: 1 }).toMillis()) {
+					// Do nothing
+				} else if (dt.toMillis() < intervalStart.toMillis()) {
+					newDates.push(intervalStart.plus({ week: 1 }))
+				} else {
+					newDates.push(dt)
+				}
+			} else if (frequency === RepeatPeriod.MONTHLY) {
+				if (!targetWeekDay) {
+					continue
+				}
+
+				const weekChange = leadingValue ?? 0
+				const stopCondition = date.plus({ month: 1 }).set({ day: 1 })
+
+				if (weekChange != 0) {
+					const absWeeks = weekChange > 0 ? weekChange : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChange) + 1
+					const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
+
+					if (dt.toMillis() >= date.toMillis() && dt.toMillis() < stopCondition.toMillis()) {
+						newDates.push(dt)
+					}
+				} else {
+					let currentDate = date
+					while (currentDate < stopCondition) {
+						const dt = currentDate.set({ weekday: targetWeekDay })
+						if (dt.toMillis() >= date.toMillis()) {
+							if (validMonths.length > 0 && validMonths.includes(dt.month)) {
+								newDates.push(dt)
+							}
+						}
+						currentDate = dt.plus({ week: 1 })
+					}
+				}
+			} else if (frequency === RepeatPeriod.ANNUALLY) {
+				const weekChange = leadingValue ?? 0
+				if (hasWeekNo && weekChange > 0) {
+					console.warn("Invalid repeat rule, can't use BYWEEKNO with Week Offset on BYDAY")
+					continue
+				}
+
+				if (weekChange != 0 && !hasWeekNo) {
+					if (!targetWeekDay) {
+						continue
+					}
+
+					const absWeeks = weekChange > 0 ? weekChange : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChange) + 1
+					const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
+					if (dt.toMillis() >= date.toMillis()) {
+						newDates.push(dt)
+					}
+				} else if (hasWeekNo) {
+					// Handle WKST
+					if (!targetWeekDay) {
+						continue
+					}
+					const dt = date.set({ weekday: targetWeekDay })
+					const intervalStart = date.set({ weekday: wkst })
+					if (dt.toMillis() > intervalStart.plus({ week: 1 }).toMillis()) {
+						// Do nothing
+					} else if (dt.toMillis() < intervalStart.toMillis()) {
+						newDates.push(intervalStart.plus({ week: 1 }))
+					} else {
+						newDates.push(dt)
+					}
+				} else if (!hasWeekNo && weekChange === 0) {
+					if (!targetWeekDay) {
+						continue
+					}
+
+					const stopCondition = date.plus({ year: 1 })
+					let currentDate = date.set({ weekday: targetWeekDay })
+
+					if (currentDate.toMillis() >= date.toMillis()) {
+						newDates.push(currentDate)
+					}
+
+					currentDate = currentDate.plus({ week: 1 })
+
+					while (currentDate.toMillis() < stopCondition.toMillis()) {
+						newDates.push(currentDate)
+						currentDate = currentDate.plus({ week: 1 })
+					}
+				} else {
+					if (!targetWeekDay && weekChange > 0) {
+						const dt = date.set({ day: 1, month: 1 }).plus({ day: weekChange })
+						if (dt.toMillis() < date.toMillis()) {
+							newDates.push(dt.plus({ year: 1 }))
+						} else {
+							newDates.push(dt)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return newDates
+}
+
+function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], maxDate: Date) {
+	if (parsedRules.length === 0) {
+		return dates
+	}
+
+	const newDates: DateTime[] = []
+	for (const rule of parsedRules) {
+		console.log({ dates, rule })
+		for (const date of dates) {
+			if (!date.isValid) {
+				console.warn("Invalid date", date)
+				continue
+			}
+
+			const targetMonth = Number.parseInt(rule.interval)
+
+			if (date.month === targetMonth) {
+				newDates.push(date)
+			}
+		}
+	}
+
+	return newDates
+}
+
+function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], validMonths: number[]): DateTime[] {
+	if (parsedRules.length === 0) {
+		return dates
+	}
+
+	const newDates: DateTime[] = []
+	for (const rule of parsedRules) {
+		for (const date of dates) {
+			if (!date.isValid) {
+				console.warn("Invalid date", date)
+				continue
+			}
+
+			const parsedWeekNumber = Number.parseInt(rule.interval)
+			let newDt: DateTime
+			if (parsedWeekNumber < 0) {
+				newDt = date.set({ weekNumber: date.weeksInWeekYear - parsedWeekNumber })
+			} else {
+				newDt = date.set({ weekNumber: parsedWeekNumber })
+			}
+
+			// Check if we didn't mess with any BYMONTH rule
+			if (validMonths.length > 0 && !validMonths.includes(newDt.month)) {
+				continue
+			}
+
+			if (!newDates.some((dt) => dt.toMillis() === newDt.toMillis())) {
+				newDates.push(newDt)
+			}
+		}
+	}
+
+	return newDates
 }
 
 //FIXME I want to try using recursive functions, but no clear way to do it yet
-function* generateAdvancedRules(date: Date, max: Date, rules: CalendarAdvancedRepeatRule[], zone: string) {
-	const parsedRules = new Map<ByRule, CalendarAdvancedRepeatRule[]>
-	let byRulesIndex = new Map<ByRule, undefined | number>
+function* generateAdvancedRules(date: Date, max: Date, rules: CalendarAdvancedRepeatRule[], repeatPeriods: RepeatPeriod[], zone: string) {
+	const parsedRules = new Map<ByRule, CalendarAdvancedRepeatRule[]>()
+	let byRulesIndex = new Map<ByRule, undefined | number>()
 
 	for (const rule of rules) {
 		const ruleList = parsedRules.get(rule.ruleType as ByRule) ?? []
@@ -215,8 +440,6 @@ function* generateAdvancedRules(date: Date, max: Date, rules: CalendarAdvancedRe
 
 		yield luxonDate
 	}
-
-
 }
 
 //FIXME Might be worth checking where this func is being used and start using the new function that considers advanced repeat rules
@@ -226,37 +449,37 @@ export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, 
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-						   .plus({
-							   days: interval,
-						   })
-						   .toJSDate()
+				.plus({
+					days: interval,
+				})
+				.toJSDate()
 
 		case RepeatPeriod.WEEKLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-						   .plus({
-							   weeks: interval,
-						   })
-						   .toJSDate()
+				.plus({
+					weeks: interval,
+				})
+				.toJSDate()
 
 		case RepeatPeriod.MONTHLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-						   .plus({
-							   months: interval,
-						   })
-						   .toJSDate()
+				.plus({
+					months: interval,
+				})
+				.toJSDate()
 
 		case RepeatPeriod.ANNUALLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-						   .plus({
-							   years: interval,
-						   })
-						   .toJSDate()
+				.plus({
+					years: interval,
+				})
+				.toJSDate()
 
 		default:
 			throw new Error("Unknown repeat period")
@@ -529,8 +752,8 @@ export function addDaysForRecurringEvent(
 	const exclusions = allDay
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
-
-	for (const { startTime, endTime } of generateEventOccurrences(event, timeZone)) {
+	const generatedEvents = generateEventOccurrences(event, timeZone, new Date(range.end))
+	for (const { startTime, endTime } of generatedEvents) {
 		if (startTime.getTime() > range.end) break
 		if (endTime.getTime() < range.start) continue
 		if (isExcludedDate(startTime, exclusions)) {
@@ -613,7 +836,7 @@ export function generateCalendarInstancesInRange(
 		nextCandidate: CalendarEvent
 	}> = progenitors
 		.map((p) => {
-			const generator = generateEventOccurrences(p, timeZone)
+			const generator = generateEventOccurrences(p, timeZone, new Date(range.end))
 			const excludedDates = p.repeatRule?.excludedDates ?? []
 			const nextCandidate = getNextCandidate(p, generator, excludedDates)
 			if (nextCandidate == null) return null
@@ -676,8 +899,9 @@ export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boo
  * terminates once the end condition of the repeat rule is hit.
  * @param event the event to iterate occurrences on.
  * @param timeZone
+ * @param maxDate
  */
-function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Generator<{ startTime: Date; endTime: Date }> {
+function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDate: Date): Generator<{ startTime: Date; endTime: Date }> {
 	const { repeatRule } = event
 
 	if (repeatRule == null) {
@@ -711,29 +935,29 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
 
 	let calcStartTime = eventStartTime
 	const calcDuration = allDay ? getDiffIn24hIntervals(eventStartTime, eventEndTime, timeZone) : eventEndTime.getTime() - eventStartTime.getTime()
-	let calcEndTime = eventEndTime
 	let iteration = 1
 
-	const advancedRepeatRules = [...repeatRule.advancedRules]
-
 	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
-		assertDateIsValid(calcStartTime)
-		assertDateIsValid(calcEndTime)
-		yield { startTime: calcStartTime, endTime: calcEndTime }
+		if (frequency === RepeatPeriod.DAILY) {
+			const events = applyByMonth(
+				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
+				repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH),
+				maxDate,
+			)
 
-		if (isNotEmpty(advancedRepeatRules)) {
-			if (frequency === RepeatPeriod.WEEKLY) {
-				// FIXME order advancedRepeatRules considering weekstart order, should we considered the wkst from the event or from the user settings?
+			for (const event of events) {
+				const newStartTime = event.toJSDate()
+				const newEndTime = allDay
+					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
+					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
+
+				assertDateIsValid(newStartTime)
+				assertDateIsValid(newEndTime)
+				yield { startTime: newStartTime, endTime: newEndTime }
 			}
-			const byRule = advancedRepeatRules.shift()
-			calcStartTime = incrementByAdvancedRepeatRule(eventStartTime, byRule!, interval * iteration, repeatTimeZone)
-		} else {
-			calcStartTime = incrementByRepeatPeriod(eventStartTime, downcast(repeatRule.frequency), interval * iteration, repeatTimeZone)
 		}
 
-		calcEndTime = allDay
-			? incrementByRepeatPeriod(calcStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
+		calcStartTime = incrementByRepeatPeriod(eventStartTime, downcast(repeatRule.frequency), interval * iteration, repeatTimeZone)
 		iteration++
 	}
 }
@@ -771,8 +995,19 @@ export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, altered
 		// in our model, we have an extra exclusion for each altered instance. this code
 		// assumes that this invariant is upheld here and does not match each recurrenceId
 		// against an exclusion, but only tallies them up.
+
+		// The only two possible endTypes here are EndType === Count || EndType === Date
+		let maxDate: Date
+		if (endType === EndType.Count) {
+			maxDate = new Date(progenitor.startTime.getTime() * Number(endValue ?? 1))
+		} else {
+			const millis = endValue && Number(endValue) > 0 ? endValue : progenitor.startTime.getTime()
+			maxDate = new Date(millis)
+		}
+
 		let occurrencesFound = alteredInstances.length
-		for (const { startTime } of generateEventOccurrences(progenitor, getTimeZone())) {
+
+		for (const { startTime } of generateEventOccurrences(progenitor, getTimeZone(), maxDate)) {
 			const startTimestamp = startTime.getTime()
 			while (i < excludedTimestamps.length && startTimestamp > excludedTimestamps[i]) {
 				// exclusions are sorted
