@@ -747,7 +747,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 				try {
 					// loadMultiple is only called to cache the elements and check which ones return errors
-					const returnedInstances = await this._loadMultiple(typeRef, instanceListId, idsInCacheRange, undefined, { cacheMode: CacheMode.Bypass })
+					const returnedInstances = await this._loadMultiple(typeRef, instanceListId, idsInCacheRange, undefined, { cacheMode: CacheMode.WriteOnly })
 					//We do not want to pass updates that caused an error
 					if (returnedInstances.length !== idsInCacheRange.length) {
 						const returnedIds = returnedInstances.map((instance) => getElementId(instance))
