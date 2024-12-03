@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-11-28T11:39:19Z",
+	"updated_at": "2024-12-02T11:39:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -513,6 +513,7 @@ export default {
 		"domain_label": "Domain",
 		"done_action": "Fertig",
 		"doNotAskAgain_label": "Nicht noch einmal fragen",
+		"dontAskAgain_label": "Nicht mehr fragen",
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
@@ -1059,6 +1060,7 @@ export default {
 		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
 		"notificationTargets_label": "Ziele für Benachrichtigungen",
 		"noTitle_label": "<Kein Titel>",
+		"notNow_label": "Später",
 		"notSigned_msg": "Nicht unterschrieben.",
 		"noUpdateAvailable_msg": "Keine neue Version verfügbar.",
 		"noValidMembersToAdd_msg": "Du administrierst keine Benutzer, welche noch nicht in dieser Gruppe sind.",
@@ -1340,6 +1342,7 @@ export default {
 		"quit_action": "Beenden",
 		"ratingExplanation_msg": "Ob du Tuta liebst oder meinst, wir könnten etwas verbessern, lass es uns wissen!",
 		"ratingHowAreWeDoing_title": "Wie gefällt dir Tuta?",
+		"ratingLoveIt_label": "Ich liebe es!",
 		"ratingNeedsWork_label": "Braucht Arbeit",
 		"readResponse_action": "Antwort lesen",
 		"reallySubmitContent_msg": "Möchtest du die eingegebenen Daten wirklich an eine externe Seite senden?",

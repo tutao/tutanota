@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-11-26T16:54:57Z",
+	"updated_at": "2024-11-29T12:20:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -721,6 +721,7 @@ export default {
 		"importContactsError_msg": "{amount} de {total} contactos no se pudieron importar.",
 		"importContacts_label": "Importar contactos",
 		"importContacts_msg": "Importar contactos desde la agenda de tu teléfono para tenerlos disponibles en todos tus dispositivos.",
+		"importedMailsWillBeDeleted_label": "Se eliminarán todos los correos importados",
 		"importEndNotAfterStartInEvent_msg": "{amount} de {total} eventos no tienen su fecha de inicio antes de su fecha de finalización y no se importarán.",
 		"importEventExistingUid_msg": "{amount} de {total} eventos ya existen y no se sobrescriben. Continuando con los eventos restantes…",
 		"importEventsError_msg": "{amount} de {total} eventos no se pudieron importar.",
@@ -1337,6 +1338,9 @@ export default {
 		"quitDNSSetup_msg": "Por favor, configura todos los registros DNS como se indica. De lo contrario, no podrás usar tu dominio personalizado con Tuta.",
 		"quitSetup_title": "¿Salir de la configuración?",
 		"quit_action": "Salir",
+		"ratingExplanation_msg": "Tanto si te encanta Tuta como si crees que podríamos mejorar, ¡háznoslo saber!",
+		"ratingHowAreWeDoing_title": "¿Qué te parece Tuta?",
+		"ratingNeedsWork_label": "Necesita trabajo",
 		"readResponse_action": "Leer respuesta",
 		"reallySubmitContent_msg": "¿Quiere realmente enviar los datos introducidos a un sitio externo?",
 		"receiveCalendarNotifications_label": "Recibir notificaciones de eventos del calendario",

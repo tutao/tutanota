@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-11-28T11:39:19Z",
+	"updated_at": "2024-12-02T11:39:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -509,6 +509,7 @@ export default {
 		"domain_label": "Domain",
 		"done_action": "Done",
 		"doNotAskAgain_label": "Don't ask again for this file",
+		"dontAskAgain_label": "Don't ask again",
 		"downloadCompleted_msg": "Download completed",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
@@ -1055,6 +1056,7 @@ export default {
 		"notificationSync_msg": "Synchronizing notifications",
 		"notificationTargets_label": "Notification targets",
 		"noTitle_label": "<No title>",
+		"notNow_label": "Not now",
 		"notSigned_msg": "Not signed.",
 		"noUpdateAvailable_msg": "No Update found.",
 		"noValidMembersToAdd_msg": "You are not administrating any users that are not already a member of this group.",
@@ -1336,6 +1338,7 @@ export default {
 		"quit_action": "Quit",
 		"ratingExplanation_msg": "Whether you love Tuta or feel we could improve, let us know!",
 		"ratingHowAreWeDoing_title": "How do you like Tuta?",
+		"ratingLoveIt_label": "Love it!",
 		"ratingNeedsWork_label": "Needs work",
 		"readResponse_action": "Read response",
 		"reallySubmitContent_msg": "Do you really want to send the entered data to an external site?",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-11-28T14:08:38Z",
+	"updated_at": "2024-12-03T09:30:25Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -509,6 +509,7 @@ export default {
 		"domain_label": "Domain",
 		"done_action": "Végrehajtva",
 		"doNotAskAgain_label": "Ne kérdezze újra ennél a fájlnál.",
+		"dontAskAgain_label": "Ne kérdezze újra!",
 		"downloadCompleted_msg": "A letöltés befejeződött.",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
@@ -1055,6 +1056,7 @@ export default {
 		"notificationSync_msg": "Szinkronizációs értesítések",
 		"notificationTargets_label": "Értesítési célok",
 		"noTitle_label": "<Nincs cím>",
+		"notNow_label": "Most nem.",
 		"notSigned_msg": "Nincs aláírva.",
 		"noUpdateAvailable_msg": "Nincs újabb frissítés.",
 		"noValidMembersToAdd_msg": "Nem kezelhet felhasználókat, mivel már nem tagja ennek a csoportnak!",
@@ -1336,6 +1338,7 @@ export default {
 		"quit_action": "Kilépés",
 		"ratingExplanation_msg": "Akár szereted a Tutát, akár úgy érzed, hogy javíthatnánk rajta, tudasd velünk!",
 		"ratingHowAreWeDoing_title": "Hogy tetszik a Tuta?",
+		"ratingLoveIt_label": "Imádja!",
 		"ratingNeedsWork_label": "Munkára szorul",
 		"readResponse_action": "Válasz olvasása",
 		"reallySubmitContent_msg": "Valóban el akarja küldeni a megadott adatokat egy külső oldalnak?",

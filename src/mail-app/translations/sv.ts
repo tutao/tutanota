@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-11-28T12:52:05Z",
+	"updated_at": "2024-12-02T14:44:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -509,6 +509,7 @@ export default {
 		"domain_label": "Domännamn",
 		"done_action": "Klart",
 		"doNotAskAgain_label": "Fråga inte igen efter den här filen",
+		"dontAskAgain_label": "Fråga inte igen",
 		"downloadCompleted_msg": "Nedladdningen slutförd",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
@@ -1055,6 +1056,7 @@ export default {
 		"notificationSync_msg": "Synkroniseringsnotiser",
 		"notificationTargets_label": "Destination för avisering",
 		"noTitle_label": "<Ingen titel>",
+		"notNow_label": "Inte nu",
 		"notSigned_msg": "Inte signerad.",
 		"noUpdateAvailable_msg": "Ingen uppdatering hittades.",
 		"noValidMembersToAdd_msg": "Du administrerar inga användare som inte redan är medlemmar i den här gruppen.",
@@ -1336,6 +1338,7 @@ export default {
 		"quit_action": "Avsluta",
 		"ratingExplanation_msg": "Oavsett om du älskar Tuta eller tycker att vi kan bli bättre låt oss få veta det!",
 		"ratingHowAreWeDoing_title": "Vad tycker du om Tuta?",
+		"ratingLoveIt_label": "Älskar den!",
 		"ratingNeedsWork_label": "Behöver förbättras",
 		"readResponse_action": "Läs svar",
 		"reallySubmitContent_msg": "Vill du verkligen skicka inmatade data till en extern plats?",

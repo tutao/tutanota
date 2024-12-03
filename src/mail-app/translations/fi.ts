@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-11-28T18:28:59Z",
+	"updated_at": "2024-12-02T14:16:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -509,6 +509,7 @@ export default {
 		"domain_label": "Verkkotunnus",
 		"done_action": "Valmis",
 		"doNotAskAgain_label": "Älä kysy uudestaan tämän tiedoston kohdalla",
+		"dontAskAgain_label": "Älä kysy enää",
 		"downloadCompleted_msg": "Lataus valmis",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
@@ -1055,6 +1056,7 @@ export default {
 		"notificationSync_msg": "Ilmoituksia synkronoidaan",
 		"notificationTargets_label": "Ilmoituskohteet",
 		"noTitle_label": "<Ei otsikkoa>",
+		"notNow_label": "Ei nyt",
 		"notSigned_msg": "Et ole kirjautunut sisään.",
 		"noUpdateAvailable_msg": "Päivitystä ei löytynyt.",
 		"noValidMembersToAdd_msg": "Et hallinnoi käyttäjiä, jotka eivät olisi jo tässä ryhmässä.",
@@ -1336,6 +1338,7 @@ export default {
 		"quit_action": "Poistu",
 		"ratingExplanation_msg": "Kerro meille, jos pidät Tutasta tai jos sinusta meillä on parannettavaa!",
 		"ratingHowAreWeDoing_title": "Mitä mieltä olet Tutasta?",
+		"ratingLoveIt_label": "Rakastan sitä!",
 		"ratingNeedsWork_label": "On parannettavaa",
 		"readResponse_action": "Lue vastaus",
 		"reallySubmitContent_msg": "Haluatko lähettää annetut tiedot ulkopuoliselle sivustolle?",
