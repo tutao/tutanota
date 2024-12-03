@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.
+// You should not use it directly, please use `resolveTypReference()` instead.	
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -14078,6 +14078,49 @@ export const typeModels = {
 			}
 		},
 		"associations": {},
+		"app": "sys",
+		"version": "117"
+	},
+	"VerifierToken": {
+		"name": "VerifierToken",
+		"since": 117,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2513,
+		"rootId": "A3N5cwAJ0Q",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2514,
+				"since": 117,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"expireDate": {
+				"final": false,
+				"name": "expireDate",
+				"id": 2515,
+				"since": 117,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"userId": {
+				"final": false,
+				"name": "userId",
+				"id": 2516,
+				"since": 117,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "User",
+				"dependency": null
+			}
+		},
 		"app": "sys",
 		"version": "117"
 	},

@@ -4330,6 +4330,23 @@ impl Entity for VariableExternalAuthInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct VerifierToken {
+	pub _format: i64,
+	pub expireDate: DateTime,
+	pub userId: GeneratedId,
+}
+
+impl Entity for VerifierToken {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "VerifierToken",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct VerifierTokenServiceIn {
 	pub _format: i64,
 	#[serde(with = "serde_bytes")]

@@ -1309,6 +1309,178 @@ impl Entity for ImapSyncState {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportAttachment {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncFileSessionKey: Vec<u8>,
+	pub ownerFileKeyVersion: i64,
+	pub existingAttachmentFile: Option<IdTupleGenerated>,
+	pub newAttachment: Option<NewImportAttachment>,
+}
+
+impl Entity for ImportAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportAttachment",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailData {
+	pub _format: i64,
+	pub compressedBodyText: String,
+	pub compressedHeaders: String,
+	pub confidential: bool,
+	pub date: DateTime,
+	pub differentEnvelopeSender: Option<String>,
+	pub inReplyTo: Option<String>,
+	pub messageId: Option<String>,
+	pub method: i64,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerKeyVersion: i64,
+	pub phishingStatus: i64,
+	pub replyType: i64,
+	pub state: i64,
+	pub subject: String,
+	pub unread: bool,
+	pub importedAttachments: Vec<ImportAttachment>,
+	pub recipients: Recipients,
+	pub references: Vec<ImportMailDataMailReference>,
+	pub replyTos: Vec<EncryptedMailAddress>,
+	pub sender: MailAddress,
+	pub _errors: Option<Errors>,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+
+impl Entity for ImportMailData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailDataMailReference {
+	pub _id: Option<CustomId>,
+	pub reference: String,
+}
+
+impl Entity for ImportMailDataMailReference {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailDataMailReference",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailGetIn {
+	pub _format: i64,
+}
+
+impl Entity for ImportMailGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailGetIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailPostIn {
+	pub _format: i64,
+	pub newImportedMailSetName: String,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerGroup: GeneratedId,
+	pub ownerKeyVersion: i64,
+	pub encImports: Vec<super::sys::StringWrapper>,
+	pub mailState: IdTupleGenerated,
+	pub targetMailFolder: IdTupleGenerated,
+	pub _errors: Option<Errors>,
+	pub _finalIvs: HashMap<String, FinalIv>,
+}
+
+impl Entity for ImportMailPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailPostIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailPostOut {
+	pub _format: i64,
+	pub mailState: IdTupleGenerated,
+}
+
+impl Entity for ImportMailPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailPostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportMailState {
+	pub _format: i64,
+	pub _id: Option<IdTupleGenerated>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub failedMails: i64,
+	pub status: i64,
+	pub successfulMails: i64,
+	pub importedMails: GeneratedId,
+	pub targetFolder: IdTupleGenerated,
+}
+
+impl Entity for ImportMailState {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportMailState",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct ImportedMail {
+	pub _format: i64,
+	pub _id: Option<IdTupleGenerated>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub mailSetEntry: IdTupleCustom,
+}
+
+impl Entity for ImportedMail {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportedMail",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InboxRule {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "type")]
@@ -1661,6 +1833,39 @@ impl Entity for MailDetailsDraftsRef {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct MailExportToken {
+	pub _format: i64,
+	pub expirationDate: DateTime,
+	pub user: GeneratedId,
+}
+
+impl Entity for MailExportToken {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "MailExportToken",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct MailExportTokenServicePostOut {
+	pub _format: i64,
+	pub mailExportToken: String,
+}
+
+impl Entity for MailExportTokenServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "MailExportTokenServicePostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailFolder {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -1884,6 +2089,32 @@ impl Entity for NewDraftAttachment {
 		TypeRef {
 			app: "tutanota",
 			type_: "NewDraftAttachment",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct NewImportAttachment {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub encCid: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub encFileHash: Option<Vec<u8>>,
+	#[serde(with = "serde_bytes")]
+	pub encFileName: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub encMimeType: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub ownerEncFileHashSessionKey: Option<Vec<u8>>,
+	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
+}
+
+impl Entity for NewImportAttachment {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "NewImportAttachment",
 		}
 	}
 }

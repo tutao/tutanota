@@ -3460,6 +3460,20 @@ export type VariableExternalAuthInfo = {
 	loggedInVerifier: null | Uint8Array;
 	sentCount: NumberString;
 }
+export const VerifierTokenTypeRef: TypeRef<VerifierToken> = new TypeRef("sys", "VerifierToken")
+
+export function createVerifierToken(values: StrippedEntity<VerifierToken>): VerifierToken {
+	return Object.assign(create(typeModels.VerifierToken, VerifierTokenTypeRef), values)
+}
+
+export type VerifierToken = {
+	_type: TypeRef<VerifierToken>;
+
+	_format: NumberString;
+	expireDate: Date;
+
+	userId: Id;
+}
 export const VerifierTokenServiceInTypeRef: TypeRef<VerifierTokenServiceIn> = new TypeRef("sys", "VerifierTokenServiceIn")
 
 export function createVerifierTokenServiceIn(values: StrippedEntity<VerifierTokenServiceIn>): VerifierTokenServiceIn {
