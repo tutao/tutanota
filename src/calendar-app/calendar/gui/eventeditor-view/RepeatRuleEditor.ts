@@ -193,8 +193,6 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 		if (interval && !isNaN(interval)) {
 			whenModel.repeatInterval = interval
-		} else {
-			this.repeatInterval = whenModel.repeatInterval
 		}
 
 		if (intervalFrequency) {
@@ -215,6 +213,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			},
 			onclose: () => {
 				this.intervalExpanded = false
+				this.intervalOptions(this.numberValues)
 			},
 			selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
 			ariaLabel: lang.get("repeatsEvery_label"),
@@ -228,7 +227,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					classes: ["border-radius-bottom-0"],
 					value: isNaN(this.repeatInterval) ? "" : this.repeatInterval.toString(),
 					oninput: (val: string) => {
-						if (this.repeatInterval === Number(val)) {
+						if (val !== "" && this.repeatInterval === Number(val)) {
 							return
 						}
 
@@ -256,6 +255,9 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					},
 					onblur: (event: FocusEvent) => {
 						if (isNaN(this.repeatInterval)) {
+							this.repeatInterval = this.numberValues[0].value
+							this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
+						} else if (this.repeatInterval === 0) {
 							this.repeatInterval = this.numberValues[0].value
 							this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
 						}
@@ -287,13 +289,15 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				}
 
 				this.repeatOccurrences = newValue.value
+				attrs.model.repeatEndOccurrences = newValue.value
 			},
 			onclose: () => {
 				this.occurrencesExpanded = false
+				this.occurrencesOptions(this.numberValues)
 			},
 			selected: { value: this.repeatOccurrences, name: this.repeatOccurrences.toString(), ariaValue: this.repeatOccurrences.toString() },
 			ariaLabel: lang.get("occurrencesCount_label"),
-			options: this.intervalOptions,
+			options: this.occurrencesOptions,
 			noIcon: true,
 			expanded: true,
 			tabIndex: Number(TabIndex.Programmatic),
@@ -303,11 +307,18 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					classes: ["tutaui-button-outline", "text-center", "border-content-message-bg"],
 					value: isNaN(this.repeatOccurrences) ? "" : this.repeatOccurrences.toString(),
 					oninput: (val: string) => {
-						if (this.repeatOccurrences === Number(val)) {
+						if (val !== "" && this.repeatOccurrences === Number(val)) {
 							return
 						}
 
 						this.repeatOccurrences = val === "" ? NaN : Number(val)
+
+						if (!isNaN(this.repeatOccurrences)) {
+							this.occurrencesOptions(this.numberValues.filter((opt) => opt.value.toString().startsWith(val)))
+							attrs.model.repeatEndOccurrences = this.repeatOccurrences
+						} else {
+							this.occurrencesOptions(this.numberValues)
+						}
 					},
 					ariaLabel: lang.get("occurrencesCount_label"),
 					style: {
@@ -324,6 +335,15 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						if (!this.occurrencesExpanded) {
 							;(event.target as HTMLElement).parentElement?.click()
 							this.occurrencesExpanded = true
+						}
+					},
+					onblur: (event: FocusEvent) => {
+						if (isNaN(this.repeatOccurrences)) {
+							this.repeatOccurrences = this.numberValues[0].value
+							attrs.model.repeatEndOccurrences = this.repeatOccurrences
+						} else if (this.repeatOccurrences === 0) {
+							this.repeatOccurrences = this.numberValues[0].value
+							attrs.model.repeatEndOccurrences = this.repeatOccurrences
 						}
 					},
 					max: 256,
