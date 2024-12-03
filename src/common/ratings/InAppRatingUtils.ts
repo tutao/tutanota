@@ -1,5 +1,5 @@
 import { DeviceConfig } from "../misc/DeviceConfig.js"
-import { DateTime } from "../../../libs/luxon.js"
+import { DateTime } from "luxon"
 import { locator } from "../api/main/CommonLocator.js"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
