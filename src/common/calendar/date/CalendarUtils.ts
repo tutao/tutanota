@@ -352,22 +352,24 @@ function applyByDayRules(
 	return newDates
 }
 
-function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], maxDate: Date) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
 
 	const newDates: DateTime[] = []
 	for (const rule of parsedRules) {
+		console.log({ dates, rule })
 		for (const date of dates) {
 			if (!date.isValid) {
 				console.warn("Invalid date", date)
 				continue
 			}
 
-			const newDt = date.set({ month: Number.parseInt(rule.interval) })
-			if (!newDates.some((dt) => dt.toMillis() === newDt.toMillis())) {
-				newDates.push(newDt)
+			const targetMonth = Number.parseInt(rule.interval)
+
+			if (date.month === targetMonth) {
+				newDates.push(date)
 			}
 		}
 	}
@@ -747,8 +749,8 @@ export function addDaysForRecurringEvent(
 	const exclusions = allDay
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
-
-	for (const { startTime, endTime } of generateEventOccurrences(event, timeZone)) {
+	const generatedEvents = generateEventOccurrences(event, timeZone, new Date(range.end))
+	for (const { startTime, endTime } of generatedEvents) {
 		if (startTime.getTime() > range.end) break
 		if (endTime.getTime() < range.start) continue
 		if (isExcludedDate(startTime, exclusions)) {
@@ -831,7 +833,7 @@ export function generateCalendarInstancesInRange(
 		nextCandidate: CalendarEvent
 	}> = progenitors
 		.map((p) => {
-			const generator = generateEventOccurrences(p, timeZone)
+			const generator = generateEventOccurrences(p, timeZone, new Date(range.end))
 			const excludedDates = p.repeatRule?.excludedDates ?? []
 			const nextCandidate = getNextCandidate(p, generator, excludedDates)
 			if (nextCandidate == null) return null
@@ -894,8 +896,9 @@ export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boo
  * terminates once the end condition of the repeat rule is hit.
  * @param event the event to iterate occurrences on.
  * @param timeZone
+ * @param maxDate
  */
-function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Generator<{ startTime: Date; endTime: Date }> {
+function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDate: Date): Generator<{ startTime: Date; endTime: Date }> {
 	const { repeatRule } = event
 
 	if (repeatRule == null) {
@@ -929,48 +932,29 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string): Gene
 
 	let calcStartTime = eventStartTime
 	const calcDuration = allDay ? getDiffIn24hIntervals(eventStartTime, eventEndTime, timeZone) : eventEndTime.getTime() - eventStartTime.getTime()
-	let calcEndTime = eventEndTime
 	let iteration = 1
 
-	// assertDateIsValid(calcStartTime)
-	// assertDateIsValid(calcEndTime)
-	// yield { startTime: calcStartTime, endTime: calcEndTime }
-
 	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
-		// assertDateIsValid(calcStartTime)
-		// assertDateIsValid(calcEndTime)
-		// yield { startTime: calcStartTime, endTime: calcEndTime }
-
 		if (frequency === RepeatPeriod.DAILY) {
-			for (const event of applyByMonth(
+			const events = applyByMonth(
 				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
 				repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH),
-			)) {
+				maxDate,
+			)
+
+			for (const event of events) {
 				const newStartTime = event.toJSDate()
 				const newEndTime = allDay
 					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
 					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
 
-				assertDateIsValid(calcStartTime)
-				assertDateIsValid(calcEndTime)
+				assertDateIsValid(newStartTime)
+				assertDateIsValid(newEndTime)
 				yield { startTime: newStartTime, endTime: newEndTime }
 			}
 		}
 
-		// if (isNotEmpty(advancedRepeatRules)) {
-		// 	if (frequency === RepeatPeriod.WEEKLY) {
-		// 		// FIXME order advancedRepeatRules considering weekstart order, should we considered the wkst from the event or from the user settings?
-		// 	}
-		// 	const byRule = advancedRepeatRules.shift()
-		// 	calcStartTime = incrementByAdvancedRepeatRule(eventStartTime, byRule!, interval * iteration, repeatTimeZone)
-		// } else {
-		// 	calcStartTime = incrementByRepeatPeriod(eventStartTime, downcast(repeatRule.frequency), interval * iteration, repeatTimeZone)
-		// }
-
 		calcStartTime = incrementByRepeatPeriod(eventStartTime, downcast(repeatRule.frequency), interval * iteration, repeatTimeZone)
-		calcEndTime = allDay
-			? incrementByRepeatPeriod(calcStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
 		iteration++
 	}
 }
@@ -1008,8 +992,19 @@ export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, altered
 		// in our model, we have an extra exclusion for each altered instance. this code
 		// assumes that this invariant is upheld here and does not match each recurrenceId
 		// against an exclusion, but only tallies them up.
+
+		// The only two possible endTypes here are EndType === Count || EndType === Date
+		let maxDate: Date
+		if (endType === EndType.Count) {
+			maxDate = new Date(progenitor.startTime.getTime() * Number(endValue ?? 1))
+		} else {
+			const millis = endValue && Number(endValue) > 0 ? endValue : progenitor.startTime.getTime()
+			maxDate = new Date(millis)
+		}
+
 		let occurrencesFound = alteredInstances.length
-		for (const { startTime } of generateEventOccurrences(progenitor, getTimeZone())) {
+
+		for (const { startTime } of generateEventOccurrences(progenitor, getTimeZone(), maxDate)) {
 			const startTimestamp = startTime.getTime()
 			while (i < excludedTimestamps.length && startTimestamp > excludedTimestamps[i]) {
 				// exclusions are sorted
