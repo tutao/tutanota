@@ -1302,6 +1302,18 @@ export type MailDetailsDraftsRef = {
 
 	list: Id;
 }
+export const MailExportTokenServicePostOutTypeRef: TypeRef<MailExportTokenServicePostOut> = new TypeRef("tutanota", "MailExportTokenServicePostOut")
+
+export function createMailExportTokenServicePostOut(values: StrippedEntity<MailExportTokenServicePostOut>): MailExportTokenServicePostOut {
+	return Object.assign(create(typeModels.MailExportTokenServicePostOut, MailExportTokenServicePostOutTypeRef), values)
+}
+
+export type MailExportTokenServicePostOut = {
+	_type: TypeRef<MailExportTokenServicePostOut>;
+
+	_format: NumberString;
+	mailExportToken: string;
+}
 export const MailFolderTypeRef: TypeRef<MailFolder> = new TypeRef("tutanota", "MailFolder")
 
 export function createMailFolder(values: StrippedEntity<MailFolder>): MailFolder {

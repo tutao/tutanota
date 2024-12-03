@@ -1658,6 +1658,22 @@ impl Entity for MailDetailsDraftsRef {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct MailExportTokenServicePostOut {
+	pub _format: i64,
+	pub mailExportToken: String,
+}
+
+impl Entity for MailExportTokenServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "MailExportTokenServicePostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct MailFolder {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
