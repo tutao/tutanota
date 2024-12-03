@@ -200,4 +200,8 @@ class AndroidMobileSystemFacade(
 	override suspend fun getInstallationDate(): String {
 		return SystemUtils.getInstallationDate(activity.packageManager, activity.packageName)
 	}
+
+	override suspend fun requestInAppRating() {
+		TODO("Not yet implemented")
+	}
 }
