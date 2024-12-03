@@ -1,7 +1,9 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
+use crate::crypto::key::GenericAesKey;
 use crate::element_value::ParsedEntity;
 use crate::entities::entity_facade::{EntityFacade, ID_FIELD};
+use crate::entities::generated::base::PersistenceResourcePostReturn;
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -10,7 +12,7 @@ use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::TypeModel;
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
@@ -39,6 +41,99 @@ impl CryptoEntityClient {
 
 	pub fn get_crypto_facade(&self) -> &Arc<CryptoFacade> {
 		&self.crypto_facade
+	}
+
+	pub fn serialize_entity<Instance>(
+		&self,
+		instance: Instance,
+		key: Option<&GenericAesKey>,
+	) -> Result<ParsedEntity, ApiCallError>
+	where
+		Instance: Entity + Serialize,
+	{
+		let type_ref = &Instance::type_ref();
+		let type_model = self
+			.entity_client
+			.type_model_provider
+			.resolve_type_ref(type_ref)
+			.ok_or_else(|| {
+				ApiCallError::internal(format!(
+					"failed to find type model for type ref of instance {type_ref}"
+				))
+			})?;
+		let parsed_instance = self
+			.instance_mapper
+			.serialize_entity(instance)
+			.map_err(|_e| {
+				ApiCallError::internal(format!("failed to serialize instance {type_ref}"))
+			})?;
+		if type_model.is_encrypted() {
+			let key = key
+				.ok_or_else(|| ApiCallError::internal(format!("No key to encrypt: {type_ref}")))?;
+			self.entity_facade
+				.encrypt_and_map(type_model, &parsed_instance, key)
+				.map_err(Into::into)
+		} else {
+			Ok(parsed_instance)
+		}
+	}
+
+	pub async fn create_instance<Instance: Entity + Serialize>(
+		&self,
+		instance: Instance,
+		session_key: Option<&GenericAesKey>,
+	) -> Result<PersistenceResourcePostReturn, ApiCallError> {
+		let parsed_entity = self.serialize_entity(instance, session_key)?;
+		self.entity_client
+			.create_instance(&Instance::type_ref(), parsed_entity, &self.instance_mapper)
+			.await
+	}
+
+	pub async fn update_instance<Instance: Entity + Serialize>(
+		&self,
+		instance: Instance,
+	) -> Result<(), ApiCallError> {
+		let type_ref = Instance::type_ref();
+		let parsed_entity = self
+			.instance_mapper
+			.serialize_entity(instance)
+			.map_err(|e| ApiCallError::internal_with_err(e, type_ref.to_string().as_str()))?;
+		let type_model = self
+			.entity_client
+			.type_model_provider
+			.resolve_type_ref(&type_ref)
+			.ok_or_else(|| {
+				ApiCallError::internal(format!(
+					"failed to find type model for type ref of instance {type_ref}"
+				))
+			})?;
+
+		let parsed_instance = if type_model.is_encrypted() {
+			let session_key = self
+				.crypto_facade
+				.resolve_session_key(&parsed_entity, &type_model)
+				.await
+				.map_err(|e| {
+					ApiCallError::internal_with_err(
+						e,
+						format!("While updating: {type_ref}").as_str(),
+					)
+				})?
+				.ok_or_else(|| {
+					ApiCallError::internal(format!("No session key before updating: {type_ref}"))
+				})?;
+			self.entity_facade.encrypt_and_map(
+				type_model,
+				&parsed_entity,
+				&session_key.session_key,
+			)?
+		} else {
+			parsed_entity
+		};
+
+		self.entity_client
+			.update_instance(&type_ref, parsed_instance)
+			.await
 	}
 
 	pub async fn load<T: Entity + Deserialize<'static>, ID: IdType>(

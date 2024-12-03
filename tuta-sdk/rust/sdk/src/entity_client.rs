@@ -25,8 +25,7 @@ pub struct EntityClient {
 	base_url: String,
 	auth_headers_provider: Arc<HeadersProvider>,
 	json_serializer: Arc<JsonSerializer>,
-	type_model_provider: Arc<TypeModelProvider>,
-	entity_facade: Arc<dyn EntityFacade>,
+	pub(crate) type_model_provider: Arc<TypeModelProvider>,
 }
 
 impl EntityClient {
@@ -37,10 +36,8 @@ impl EntityClient {
 		base_url: String,
 		auth_headers_provider: Arc<HeadersProvider>,
 		type_model_provider: Arc<TypeModelProvider>,
-		entity_facade: Arc<dyn EntityFacade>,
 	) -> Self {
 		EntityClient {
-			entity_facade,
 			rest_client,
 			json_serializer,
 			base_url,
@@ -256,7 +253,6 @@ impl EntityClient {
 		type_ref: &TypeRef,
 		parsed_entity: ParsedEntity,
 	) -> Result<(), ApiCallError> {
-		println!("some mail probably: {:?}", parsed_entity);
 		let response = self
 			.post_instance_changes(parsed_entity, type_ref, HttpMethod::PUT)
 			.await?;
@@ -329,7 +325,6 @@ mockall::mock! {
 			base_url: String,
 			auth_headers_provider: Arc<HeadersProvider>,
 			type_model_provider: Arc<TypeModelProvider>,
-			entity_facade: Arc<dyn EntityFacade>
 		) -> Self;
 		pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;
 		pub async fn load<Id: IdType>(
@@ -452,7 +447,6 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
-			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client
@@ -507,7 +501,6 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
-			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client
@@ -617,7 +610,6 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
-			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client

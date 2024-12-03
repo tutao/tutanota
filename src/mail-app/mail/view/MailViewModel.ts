@@ -604,7 +604,7 @@ export class MailViewModel {
 
 		if (needsRedrawAsImportStateChanged) {
 			// will do initial loading if this is the mailFolder in active view
-			mailSetEntries.clear()
+			//mailSetEntries.clear()
 			listModel.resetLoadingState()
 			await listModel.loadInitial()
 		}

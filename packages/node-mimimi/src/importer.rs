@@ -15,7 +15,7 @@ use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::StringWrapper;
 use tutasdk::entities::generated::tutanota::{
-	ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn, ImportMailState,
+	ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn,
 	NewImportAttachment,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
@@ -74,7 +74,7 @@ pub struct ImportState {
 
 struct Importer {
 	local_import_state: ImportState,
-	remote_import_state: ImportMailState,
+	remote_import_state: entities::generated::tutanota::ImportMailState,
 	logged_in_sdk: Arc<LoggedInSdk>,
 	target_owner_group: GeneratedId,
 	mail_group_key: VersionedAesKey,

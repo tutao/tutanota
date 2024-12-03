@@ -199,7 +199,6 @@ impl Sdk {
 			self.base_url.clone(),
 			auth_headers_provider.clone(),
 			self.type_model_provider.clone(),
-			entity_facade.clone(),
 		));
 		let typed_entity_client: Arc<TypedEntityClient> = Arc::new(TypedEntityClient::new(
 			entity_client.clone(),
@@ -407,13 +406,13 @@ impl LoggedInSdk {
 
 	pub async fn get_current_sym_group_key(
 		&self,
-		user_group_id: &GeneratedId,
+		group_id: &GeneratedId,
 	) -> Result<VersionedAesKey, ApiCallError> {
 		self.crypto_entity_client
 			.get_crypto_facade()
 			.get_key_loader_facade()
 			.as_ref()
-			.get_current_sym_group_key(user_group_id)
+			.get_current_sym_group_key(group_id)
 			.await
 			.map_err(|err| ApiCallError::internal(format!("KeyLoadError: {err:?}")))
 	}
@@ -444,7 +443,9 @@ impl LoggedInSdk {
 	where
 		Instance: Entity + Serialize,
 	{
-		let parsed_entity = self.serialize_entity(instance, key)?;
+		let parsed_entity = self
+			.crypto_entity_client
+			.serialize_entity(instance, Some(key))?;
 		let raw_entity = self
 			.json_serializer
 			.serialize(&Instance::type_ref(), parsed_entity)?;
@@ -454,39 +455,6 @@ impl LoggedInSdk {
 				Instance::type_ref()
 			))
 		})
-	}
-
-	pub fn serialize_entity<Instance>(
-		&self,
-		instance: Instance,
-		key: &GenericAesKey,
-	) -> Result<ParsedEntity, ApiCallError>
-	where
-		Instance: Entity + Serialize,
-	{
-		let type_ref = &Instance::type_ref();
-		let type_model = self
-			.type_model_provider
-			.resolve_type_ref(type_ref)
-			.ok_or_else(|| {
-				ApiCallError::internal(format!(
-					"failed to find type model for type ref of instance {}",
-					type_ref
-				))
-			})?;
-		let parsed_instance = self
-			.instance_mapper
-			.serialize_entity(instance)
-			.map_err(|_e| {
-				ApiCallError::internal(format!("failed to serialize instance {}", type_ref))
-			})?;
-		if type_model.is_encrypted() {
-			self.entity_facade
-				.encrypt_and_map(type_model, &parsed_instance, key)
-				.map_err(Into::into)
-		} else {
-			Ok(parsed_instance)
-		}
 	}
 }
 
