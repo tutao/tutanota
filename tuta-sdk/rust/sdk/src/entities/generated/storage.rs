@@ -170,6 +170,7 @@ pub struct BlobServerAccessInfo {
 	pub _id: Option<CustomId>,
 	pub blobAccessToken: String,
 	pub expires: DateTime,
+	pub tokenKind: i64,
 	pub servers: Vec<BlobServerUrl>,
 }
 

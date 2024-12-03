@@ -89,6 +89,7 @@ import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/Asymme
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
+import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 
 assertWorkerOrNode()
 
@@ -146,6 +147,7 @@ export type WorkerLocatorType = {
 	workerFacade: WorkerFacade
 	sqlCipherFacade: SqlCipherFacade
 	pdfWriter: lazyAsync<PdfWriter>
+	mailExport: lazyAsync<MailExportFacade>
 	bulkMailLoader: lazyAsync<BulkMailLoader>
 
 	// used to cache between resets
@@ -524,6 +526,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
 		return new ContactFacade(new EntityClient(locator.cache))
+	})
+	locator.mailExport = lazyMemoized(async () => {
+		const { MailExportFacade } = await import("../../../common/api/worker/facades/lazy/MailExportFacade.js")
+		return new MailExportFacade(locator.serviceExecutor, locator.cachingEntityClient)
 	})
 }
 

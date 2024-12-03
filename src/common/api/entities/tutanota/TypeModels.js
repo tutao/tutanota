@@ -45,7 +45,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ApplyLabelServicePostIn": {
 		"name": "ApplyLabelServicePostIn",
@@ -99,7 +99,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"AttachmentKeyData": {
 		"name": "AttachmentKeyData",
@@ -151,7 +151,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Birthday": {
 		"name": "Birthday",
@@ -201,7 +201,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Body": {
 		"name": "Body",
@@ -242,7 +242,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarDeleteData": {
 		"name": "CalendarDeleteData",
@@ -276,7 +276,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarEvent": {
 		"name": "CalendarEvent",
@@ -475,7 +475,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarEventAttendee": {
 		"name": "CalendarEventAttendee",
@@ -518,7 +518,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarEventIndexRef": {
 		"name": "CalendarEventIndexRef",
@@ -552,7 +552,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarEventUidIndex": {
 		"name": "CalendarEventUidIndex",
@@ -623,7 +623,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarEventUpdate": {
 		"name": "CalendarEventUpdate",
@@ -711,7 +711,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarEventUpdateList": {
 		"name": "CalendarEventUpdateList",
@@ -745,7 +745,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarGroupRoot": {
 		"name": "CalendarGroupRoot",
@@ -844,7 +844,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CalendarRepeatRule": {
 		"name": "CalendarRepeatRule",
@@ -933,7 +933,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Contact": {
 		"name": "Contact",
@@ -1256,7 +1256,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactAddress": {
 		"name": "ContactAddress",
@@ -1306,7 +1306,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactCustomDate": {
 		"name": "ContactCustomDate",
@@ -1356,7 +1356,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactList": {
 		"name": "ContactList",
@@ -1445,7 +1445,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactListEntry": {
 		"name": "ContactListEntry",
@@ -1522,7 +1522,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactListGroupRoot": {
 		"name": "ContactListGroupRoot",
@@ -1601,7 +1601,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactMailAddress": {
 		"name": "ContactMailAddress",
@@ -1651,7 +1651,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactMessengerHandle": {
 		"name": "ContactMessengerHandle",
@@ -1701,7 +1701,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactPhoneNumber": {
 		"name": "ContactPhoneNumber",
@@ -1751,7 +1751,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactPronouns": {
 		"name": "ContactPronouns",
@@ -1792,7 +1792,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactRelationship": {
 		"name": "ContactRelationship",
@@ -1842,7 +1842,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactSocialId": {
 		"name": "ContactSocialId",
@@ -1892,7 +1892,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ContactWebsite": {
 		"name": "ContactWebsite",
@@ -1942,7 +1942,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ConversationEntry": {
 		"name": "ConversationEntry",
@@ -2031,7 +2031,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CreateExternalUserGroupData": {
 		"name": "CreateExternalUserGroupData",
@@ -2090,7 +2090,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CreateGroupPostReturn": {
 		"name": "CreateGroupPostReturn",
@@ -2124,7 +2124,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CreateMailFolderData": {
 		"name": "CreateMailFolderData",
@@ -2194,7 +2194,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CreateMailFolderReturn": {
 		"name": "CreateMailFolderReturn",
@@ -2228,7 +2228,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CreateMailGroupData": {
 		"name": "CreateMailGroupData",
@@ -2289,7 +2289,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"CustomerAccountCreateData": {
 		"name": "CustomerAccountCreateData",
@@ -2470,7 +2470,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DefaultAlarmInfo": {
 		"name": "DefaultAlarmInfo",
@@ -2502,7 +2502,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DeleteGroupData": {
 		"name": "DeleteGroupData",
@@ -2545,7 +2545,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DeleteMailData": {
 		"name": "DeleteMailData",
@@ -2589,7 +2589,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DeleteMailFolderData": {
 		"name": "DeleteMailFolderData",
@@ -2623,7 +2623,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftAttachment": {
 		"name": "DraftAttachment",
@@ -2685,7 +2685,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftCreateData": {
 		"name": "DraftCreateData",
@@ -2755,7 +2755,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftCreateReturn": {
 		"name": "DraftCreateReturn",
@@ -2789,7 +2789,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftData": {
 		"name": "DraftData",
@@ -2936,7 +2936,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftRecipient": {
 		"name": "DraftRecipient",
@@ -2977,7 +2977,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftUpdateData": {
 		"name": "DraftUpdateData",
@@ -3021,7 +3021,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"DraftUpdateReturn": {
 		"name": "DraftUpdateReturn",
@@ -3055,7 +3055,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"EmailTemplate": {
 		"name": "EmailTemplate",
@@ -3152,7 +3152,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"EmailTemplateContent": {
 		"name": "EmailTemplateContent",
@@ -3193,7 +3193,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"EncryptTutanotaPropertiesData": {
 		"name": "EncryptTutanotaPropertiesData",
@@ -3245,7 +3245,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"EncryptedMailAddress": {
 		"name": "EncryptedMailAddress",
@@ -3286,7 +3286,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"EntropyData": {
 		"name": "EntropyData",
@@ -3327,7 +3327,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ExternalUserData": {
 		"name": "ExternalUserData",
@@ -3460,7 +3460,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"File": {
 		"name": "File",
@@ -3595,7 +3595,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"FileSystem": {
 		"name": "FileSystem",
@@ -3674,7 +3674,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"GroupInvitationDeleteData": {
 		"name": "GroupInvitationDeleteData",
@@ -3708,7 +3708,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"GroupInvitationPostData": {
 		"name": "GroupInvitationPostData",
@@ -3752,7 +3752,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"GroupInvitationPostReturn": {
 		"name": "GroupInvitationPostReturn",
@@ -3806,7 +3806,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"GroupInvitationPutData": {
 		"name": "GroupInvitationPutData",
@@ -3876,7 +3876,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"GroupSettings": {
 		"name": "GroupSettings",
@@ -3947,7 +3947,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Header": {
 		"name": "Header",
@@ -3988,7 +3988,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImapFolder": {
 		"name": "ImapFolder",
@@ -4049,7 +4049,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImapSyncConfiguration": {
 		"name": "ImapSyncConfiguration",
@@ -4119,7 +4119,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImapSyncState": {
 		"name": "ImapSyncState",
@@ -4180,7 +4180,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportAttachment": {
 		"name": "ImportAttachment",
@@ -4242,7 +4242,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailData": {
 		"name": "ImportMailData",
@@ -4451,7 +4451,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailDataMailReference": {
 		"name": "ImportMailDataMailReference",
@@ -4483,7 +4483,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailGetIn": {
 		"name": "ImportMailGetIn",
@@ -4562,7 +4562,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailGetOut": {
 		"name": "ImportMailGetOut",
@@ -4596,7 +4596,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailPostIn": {
 		"name": "ImportMailPostIn",
@@ -4640,7 +4640,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailPostOut": {
 		"name": "ImportMailPostOut",
@@ -4663,7 +4663,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportMailState": {
 		"name": "ImportMailState",
@@ -4770,7 +4770,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ImportedMail": {
 		"name": "ImportedMail",
@@ -4831,7 +4831,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"InboxRule": {
 		"name": "InboxRule",
@@ -4883,7 +4883,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"InternalGroupData": {
 		"name": "InternalGroupData",
@@ -5007,7 +5007,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"InternalRecipientKeyData": {
 		"name": "InternalRecipientKeyData",
@@ -5075,7 +5075,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"KnowledgeBaseEntry": {
 		"name": "KnowledgeBaseEntry",
@@ -5172,7 +5172,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"KnowledgeBaseEntryKeyword": {
 		"name": "KnowledgeBaseEntryKeyword",
@@ -5204,7 +5204,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ListUnsubscribeData": {
 		"name": "ListUnsubscribeData",
@@ -5256,7 +5256,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Mail": {
 		"name": "Mail",
@@ -5531,7 +5531,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailAddress": {
 		"name": "MailAddress",
@@ -5583,7 +5583,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailAddressProperties": {
 		"name": "MailAddressProperties",
@@ -5624,7 +5624,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailBag": {
 		"name": "MailBag",
@@ -5658,7 +5658,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailBox": {
 		"name": "MailBox",
@@ -5826,7 +5826,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailDetails": {
 		"name": "MailDetails",
@@ -5908,7 +5908,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailDetailsBlob": {
 		"name": "MailDetailsBlob",
@@ -5987,7 +5987,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailDetailsDraft": {
 		"name": "MailDetailsDraft",
@@ -6066,7 +6066,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailDetailsDraftsRef": {
 		"name": "MailDetailsDraftsRef",
@@ -6100,7 +6100,39 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
+	},
+	"MailExportTokenServicePostOut": {
+		"name": "MailExportTokenServicePostOut",
+		"since": 81,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1605,
+		"rootId": "CHR1dGFub3RhAAZF",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1606,
+				"since": 81,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailExportToken": {
+				"final": false,
+				"name": "mailExportToken",
+				"id": 1607,
+				"since": 81,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "81"
 	},
 	"MailFolder": {
 		"name": "MailFolder",
@@ -6235,7 +6267,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailFolderRef": {
 		"name": "MailFolderRef",
@@ -6269,7 +6301,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailSetEntry": {
 		"name": "MailSetEntry",
@@ -6330,7 +6362,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailboxGroupRoot": {
 		"name": "MailboxGroupRoot",
@@ -6441,7 +6473,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailboxProperties": {
 		"name": "MailboxProperties",
@@ -6529,7 +6561,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MailboxServerProperties": {
 		"name": "MailboxServerProperties",
@@ -6588,7 +6620,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ManageLabelServiceDeleteIn": {
 		"name": "ManageLabelServiceDeleteIn",
@@ -6622,7 +6654,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ManageLabelServiceLabelData": {
 		"name": "ManageLabelServiceLabelData",
@@ -6663,7 +6695,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ManageLabelServicePostIn": {
 		"name": "ManageLabelServicePostIn",
@@ -6724,7 +6756,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"MoveMailData": {
 		"name": "MoveMailData",
@@ -6778,7 +6810,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"NewDraftAttachment": {
 		"name": "NewDraftAttachment",
@@ -6839,7 +6871,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"NewImportAttachment": {
 		"name": "NewImportAttachment",
@@ -6918,7 +6950,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"NewsId": {
 		"name": "NewsId",
@@ -6959,7 +6991,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"NewsIn": {
 		"name": "NewsIn",
@@ -6991,7 +7023,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"NewsOut": {
 		"name": "NewsOut",
@@ -7025,7 +7057,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"NotificationMail": {
 		"name": "NotificationMail",
@@ -7093,7 +7125,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"OutOfOfficeNotification": {
 		"name": "OutOfOfficeNotification",
@@ -7181,7 +7213,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"OutOfOfficeNotificationMessage": {
 		"name": "OutOfOfficeNotificationMessage",
@@ -7231,7 +7263,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"OutOfOfficeNotificationRecipientList": {
 		"name": "OutOfOfficeNotificationRecipientList",
@@ -7265,7 +7297,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"PhishingMarkerWebsocketData": {
 		"name": "PhishingMarkerWebsocketData",
@@ -7308,7 +7340,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"PhotosRef": {
 		"name": "PhotosRef",
@@ -7342,7 +7374,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ReceiveInfoServiceData": {
 		"name": "ReceiveInfoServiceData",
@@ -7374,7 +7406,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Recipients": {
 		"name": "Recipients",
@@ -7428,7 +7460,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"RemoteImapSyncInfo": {
 		"name": "RemoteImapSyncInfo",
@@ -7498,7 +7530,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ReportMailPostData": {
 		"name": "ReportMailPostData",
@@ -7550,7 +7582,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"ReportedMailFieldMarker": {
 		"name": "ReportedMailFieldMarker",
@@ -7591,7 +7623,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SecureExternalRecipientKeyData": {
 		"name": "SecureExternalRecipientKeyData",
@@ -7695,7 +7727,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SendDraftData": {
 		"name": "SendDraftData",
@@ -7832,7 +7864,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SendDraftReturn": {
 		"name": "SendDraftReturn",
@@ -7894,7 +7926,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SharedGroupData": {
 		"name": "SharedGroupData",
@@ -7998,7 +8030,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SimpleMoveMailPostIn": {
 		"name": "SimpleMoveMailPostIn",
@@ -8041,7 +8073,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SpamResults": {
 		"name": "SpamResults",
@@ -8075,7 +8107,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"Subfiles": {
 		"name": "Subfiles",
@@ -8109,7 +8141,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"SymEncInternalRecipientKeyData": {
 		"name": "SymEncInternalRecipientKeyData",
@@ -8170,7 +8202,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"TemplateGroupRoot": {
 		"name": "TemplateGroupRoot",
@@ -8259,7 +8291,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"TranslationGetIn": {
 		"name": "TranslationGetIn",
@@ -8291,7 +8323,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"TranslationGetOut": {
 		"name": "TranslationGetOut",
@@ -8332,7 +8364,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"TutanotaProperties": {
 		"name": "TutanotaProperties",
@@ -8530,7 +8562,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UnreadMailStatePostIn": {
 		"name": "UnreadMailStatePostIn",
@@ -8573,7 +8605,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UpdateMailFolderData": {
 		"name": "UpdateMailFolderData",
@@ -8617,7 +8649,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UserAccountCreateData": {
 		"name": "UserAccountCreateData",
@@ -8670,7 +8702,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UserAccountUserData": {
 		"name": "UserAccountUserData",
@@ -8891,7 +8923,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UserAreaGroupData": {
 		"name": "UserAreaGroupData",
@@ -8997,7 +9029,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UserAreaGroupDeleteData": {
 		"name": "UserAreaGroupDeleteData",
@@ -9031,7 +9063,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UserAreaGroupPostData": {
 		"name": "UserAreaGroupPostData",
@@ -9065,7 +9097,7 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	},
 	"UserSettingsGroupRoot": {
 		"name": "UserSettingsGroupRoot",
@@ -9171,6 +9203,6 @@ export const typeModels = {
 			}
 		},
 		"app": "tutanota",
-		"version": "80"
+		"version": "81"
 	}
 }
