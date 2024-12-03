@@ -213,7 +213,7 @@ export class LoginController {
 		return this.customizations != null ? this.customizations.indexOf(feature) !== -1 : false
 	}
 
-	async loadCustomizations(cacheMode: CacheMode = CacheMode.Cache): Promise<void> {
+	async loadCustomizations(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<void> {
 		if (this.getUserController().isInternalUser()) {
 			const customer = await this.getUserController().loadCustomer(cacheMode)
 			this.customizations = customer.customizations.map((f) => f.feature)

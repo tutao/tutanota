@@ -58,27 +58,29 @@ export interface EntityRestClientEraseOptions {
  * Use {@link getCacheModeBehavior} to programmatically check the behavior of the cache mode.
  */
 export const enum CacheMode {
-	/** Prefer cached value if it's there or fall back to network. */
-	Cache,
+	/** Prefer cached value if it's there, or fall back to network and write it to cache. */
+	ReadAndWrite,
+
 	/**
-	 * Prefer the value from network, do not fetch from cache. The entity will still be cached upon loading.
+	 * Always retrieve from the network, but still save to cache.
 	 *
-	 * NOTE: This cannot be used for ranged requests.
+	 * NOTE: This cannot be used with ranged requests.
 	 */
-	Bypass,
-	/** Prefer cached value, but in case of a cache miss, retrieve the value from network but don't write it to cache. */
+	WriteOnly,
+
+	/** Prefer cached value, but in case of a cache miss, retrieve the value from network without writing it to cache. */
 	ReadOnly,
 }
 
 /**
  * Get the behavior of the cache mode for the options
- * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.Cache})
+ * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
 export function getCacheModeBehavior(cacheMode: CacheMode | undefined): { readsFromCache: boolean; writesToCache: boolean } {
-	switch (cacheMode ?? CacheMode.Cache) {
-		case CacheMode.Cache:
+	switch (cacheMode ?? CacheMode.ReadAndWrite) {
+		case CacheMode.ReadAndWrite:
 			return { readsFromCache: true, writesToCache: true }
-		case CacheMode.Bypass:
+		case CacheMode.WriteOnly:
 			return { readsFromCache: false, writesToCache: true }
 		case CacheMode.ReadOnly:
 			return { readsFromCache: true, writesToCache: false }
@@ -90,7 +92,7 @@ export interface EntityRestClientLoadOptions {
 	extraHeaders?: Dict
 	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
 	ownerKeyProvider?: OwnerKeyProvider
-	/** Defaults to {@link CacheMode.Cache }*/
+	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode?: CacheMode
 }
 

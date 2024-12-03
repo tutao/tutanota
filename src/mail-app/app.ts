@@ -142,7 +142,7 @@ import("./translations/en.js")
 
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
 					if (isOfflineStorageAvailable()) {
-						await mailLocator.logins.loadCustomizations(CacheMode.Bypass)
+						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
 						m.redraw()
 					}
 
@@ -151,7 +151,7 @@ import("./translations/en.js")
 						const reloadTutanotaProperties = await mailLocator.entityClient.loadRoot(
 							TutanotaPropertiesTypeRef,
 							mailLocator.logins.getUserController().user.userGroup.group,
-							{ cacheMode: CacheMode.Bypass },
+							{ cacheMode: CacheMode.WriteOnly },
 						)
 
 						if (!reloadTutanotaProperties.defaultLabelCreated) {
