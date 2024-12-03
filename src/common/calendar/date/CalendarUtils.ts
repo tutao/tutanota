@@ -168,13 +168,13 @@ export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 }
 
 const WEEKDAY_TO_NUMBER = {
-	SU: 1,
-	MO: 2,
-	TU: 3,
-	WE: 4,
-	TH: 5,
-	FR: 6,
-	SA: 7,
+	MO: 1,
+	TU: 2,
+	WE: 3,
+	TH: 4,
+	FR: 5,
+	SA: 6,
+	SU: 7,
 } as Record<string, WeekdayNumbers>
 
 function applyMinuteRules(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]): DateTime[] {
@@ -237,7 +237,7 @@ function applyByDayRules(
 				console.warn("Invalid date", date)
 				continue
 			}
-			const parsedRuleValue = rule.interval.match(ruleRegex)
+			const parsedRuleValue = Array.from(rule.interval.matchAll(ruleRegex)).flat()
 
 			if (!parsedRuleValue) {
 				console.error(`Invalid interval ${rule.interval}`)
@@ -251,13 +251,18 @@ function applyByDayRules(
 				if (!targetWeekDay) {
 					continue
 				}
-				const dt = date.set({ weekday: targetWeekDay })
+
+				let dt = date.set({ weekday: targetWeekDay })
 				const intervalStart = date.set({ weekday: wkst })
 				if (dt.toMillis() > intervalStart.plus({ week: 1 }).toMillis()) {
 					// Do nothing
+					continue
 				} else if (dt.toMillis() < intervalStart.toMillis()) {
-					newDates.push(intervalStart.plus({ week: 1 }))
-				} else {
+					dt = dt.plus({ week: 1 })
+				}
+
+				debugger
+				if (validMonths.length === 0 || validMonths.includes(dt.month)) {
 					newDates.push(dt)
 				}
 			} else if (frequency === RepeatPeriod.MONTHLY) {
@@ -353,14 +358,13 @@ function applyByDayRules(
 	return newDates
 }
 
-function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], maxDate: Date) {
+function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], maxDate: Date, repeatPeriod: RepeatPeriod) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
 
 	const newDates: DateTime[] = []
 	for (const rule of parsedRules) {
-		console.log({ dates, rule })
 		for (const date of dates) {
 			if (!date.isValid) {
 				console.warn("Invalid date", date)
@@ -368,6 +372,19 @@ function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 			}
 
 			const targetMonth = Number.parseInt(rule.interval)
+
+			if (repeatPeriod === RepeatPeriod.WEEKLY) {
+				const weekStart = date.set({ weekday: 1 })
+				const weekEnd = date.set({ weekday: 7 })
+
+				if (weekStart.year === weekEnd.year && weekStart.month < weekEnd.month && (weekEnd.month === targetMonth || weekStart.month === targetMonth)) {
+					newDates.push(date)
+					continue
+				} else if (weekStart.year < weekEnd.year && (weekEnd.month === targetMonth || weekStart.month === targetMonth)) {
+					newDates.push(date)
+					continue
+				}
+			}
 
 			if (date.month === targetMonth) {
 				newDates.push(date)
@@ -941,9 +958,40 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
 				repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH),
 				maxDate,
+				RepeatPeriod.DAILY,
 			)
 
 			for (const event of events) {
+				const newStartTime = event.toJSDate()
+				const newEndTime = allDay
+					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
+					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
+
+				assertDateIsValid(newStartTime)
+				assertDateIsValid(newEndTime)
+				yield { startTime: newStartTime, endTime: newEndTime }
+			}
+		} else if (frequency === RepeatPeriod.WEEKLY) {
+			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
+			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
+			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
+
+			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.WEEKLY)
+
+			const events = applyByDayRules(
+				monthAppliedEvents,
+				repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY),
+				RepeatPeriod.WEEKLY,
+				validMonths,
+				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+			)
+
+			for (const event of events) {
+				// An Edge date allowed by BYMONTH, we shouldn't accept it
+				if (validMonths.length > 0 && !validMonths.includes(event.month)) {
+					continue
+				}
+
 				const newStartTime = event.toJSDate()
 				const newEndTime = allDay
 					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
