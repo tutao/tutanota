@@ -1743,22 +1743,22 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				when(client.load(ContactTypeRef, contactId, anything())).thenResolve(contactOnTheServer)
 				const cache = new DefaultEntityRestCache(client, storage)
 
-				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.Bypass })
+				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				o(cacheBypassed1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.load(ContactTypeRef, contactId, anything()), { times: 1 })
 
-				const cacheBypassed2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.Bypass })
+				const cacheBypassed2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				o(cacheBypassed2).deepEquals(contactOnTheServer)
 				// Since we're bypassing it, it should still be loaded remotely (but still cached)
 				verify(client.load(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.Cache })
+				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
 				o(cached).deepEquals(contactOnTheServer)
 				// We aren't bypassing it with Cache, so it should just use the cache
 				verify(client.load(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cacheBypassed3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.Bypass })
+				const cacheBypassed3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				o(cacheBypassed3).deepEquals(contactOnTheServer)
 				// Bypassing again; should be loaded remotely
 				verify(client.load(ContactTypeRef, contactId, anything()), { times: 3 })
@@ -1787,18 +1787,22 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				const cache = new DefaultEntityRestCache(client, storage)
 
-				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, { cacheMode: CacheMode.Bypass })
+				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+					cacheMode: CacheMode.WriteOnly,
+				})
 				o(cacheBypassed1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 1 })
 
-				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, { cacheMode: CacheMode.Bypass })
+				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+					cacheMode: CacheMode.WriteOnly,
+				})
 				o(cacheBypassed2).deepEquals([contactAOnTheServer])
 				// Still bypassing
 				verify(client.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 2 })
 
 				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
-					cacheMode: CacheMode.Cache,
+					cacheMode: CacheMode.ReadAndWrite,
 				})
 				o(true).equals(cached.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cached.some((b) => deepEqual(b, contactBOnTheServer)))
@@ -1807,7 +1811,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				verify(client.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), { times: 1 })
 
 				const cacheBypassed3 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
-					cacheMode: CacheMode.Bypass,
+					cacheMode: CacheMode.WriteOnly,
 				})
 				o(cacheBypassed3).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Bypassed again
@@ -1839,7 +1843,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// It wasn't cached before, so it should be loaded remotely again
 				verify(client.load(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.Cache })
+				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
 				o(cached).deepEquals(contactOnTheServer)
 				// Again, it wasn't cached before, so it should be loaded remotely again
 				verify(client.load(ContactTypeRef, contactId, anything()), { times: 3 })
@@ -1876,7 +1880,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 1 })
 
-				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, { cacheMode: CacheMode.Cache })
+				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, { cacheMode: CacheMode.ReadAndWrite })
 				o(cached).deepEquals([contactAOnTheServer])
 				// Wasn't written earlier; should be written now
 				verify(client.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 2 })
@@ -1913,7 +1917,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
-				const cached = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.Cache })
+				const cached = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
 				o(cached).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Wasn't saved before
 				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 2 })
@@ -1950,7 +1954,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// Fresh cache
 				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
-				const cached = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.Cache })
+				const cached = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
 				o(cached).deepEquals([contactBOnTheServer])
 				// Was saved before now
 				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 2 })

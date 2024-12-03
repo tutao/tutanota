@@ -111,7 +111,7 @@ export class UserController {
 		return isInternalUser(this.user)
 	}
 
-	loadCustomer(cacheMode: CacheMode = CacheMode.Cache): Promise<Customer> {
+	loadCustomer(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<Customer> {
 		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { cacheMode })
 	}
 
