@@ -1,6 +1,6 @@
 import Contacts
-import StoreKit
 import Foundation
+import StoreKit
 import TutanotaSharedFramework
 
 private let APP_LOCK_METHOD = "AppLockMethod"

@@ -87,8 +87,8 @@ class IosMobileSystemFacade: MobileSystemFacade {
 	}
 	func requestInAppRating() async throws {
 		// TODO: Replace `SKStoreReviewController.requestReview()` with StoreKit's/SwiftUI's `requestReview()`
-	    // as `SKStoreReviewController.requestReview()` will be removed in iOS 19 (release roughly September 2025)
-	    // This will require migrating from UIKit to Swift UI
+		// as `SKStoreReviewController.requestReview()` will be removed in iOS 19 (release roughly September 2025)
+		// This will require migrating from UIKit to Swift UI
 		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
 		await SKStoreReviewController.requestReview(in: windowScene)
 	}
