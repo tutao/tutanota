@@ -45,10 +45,30 @@ impl Entity for AccountingInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyDistributionElement {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub distEncAdminGroupKey: Vec<u8>,
+	pub userGroupId: GeneratedId,
+}
+
+impl Entity for AdminGroupKeyDistributionElement {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyDistributionElement",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub adminGroupKeyData: GroupKeyRotationData,
+	pub distribution: Vec<AdminGroupKeyDistributionElement>,
 	pub userEncAdminPubKeyHashList: Vec<EncryptedKeyHash>,
+	pub userEncAdminSymKeyHashList: Vec<EncryptedKeyHash>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 
@@ -2244,11 +2264,14 @@ pub struct KeyRotation {
 	pub _id: Option<IdTupleGenerated>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub distEncAdminGroupSymKey: Option<Vec<u8>>,
 	pub groupKeyRotationType: i64,
 	pub targetKeyVersion: i64,
 	pub adminDistKeyPair: Option<KeyPair>,
 	pub adminEncDistKeyHash: Option<EncryptedKeyHash>,
 	pub userEncAdminPubKeyHash: Option<EncryptedKeyHash>,
+	pub userEncAdminSymKeyHash: Option<EncryptedKeyHash>,
 }
 
 impl Entity for KeyRotation {

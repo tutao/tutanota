@@ -495,14 +495,24 @@
 					"info": "RenameAttribute KeyRotation: adminGroupKeyAuthenticationData -> userEncAdminPubKeyHash."
 				},
 				{
-					"name": "AddAssociation",
+					"name": "AddValue",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2496."
+					"info": "AddValue KeyRotation/distEncAdminGroupSymKey/2496."
 				},
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2497."
+					"info": "AddAssociation KeyRotation/userEncAdminSymKeyHash/AGGREGATION/2497."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2498."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2499."
 				}
 			]
 		}

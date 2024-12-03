@@ -1,5 +1,6 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import {
+	AdminGroupKeyDistributionElement,
 	AdminGroupKeyRotationPostIn,
 	createAdminGroupKeyRotationPostIn,
 	createAdminGroupKeyRotationPutIn,
@@ -390,6 +391,9 @@ export class KeyRotationFacade {
 			userGroupId,
 		)
 
+		const distribution: AdminGroupKeyDistributionElement[] = []
+		const userEncAdminSymKeyHashList: EncryptedKeyHash[] = []
+
 		const newUserGroupKeys = await this.generateGroupKeys(userGroup)
 		const encryptedAdminKeys = await this.encryptGroupKeys(adminGroup, currentAdminGroupKey, newAdminGroupKeys, newAdminGroupKeys.symGroupKey)
 		const encryptedUserKeys = await this.encryptUserGroupKey(userGroup, currentUserGroupKey, newUserGroupKeys, passphraseKey, newAdminGroupKeys, user)
@@ -426,7 +430,7 @@ export class KeyRotationFacade {
 			pubAdminGroupEncUserGroupKey: null,
 		})
 
-		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList })
+		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList, distribution, userEncAdminSymKeyHashList })
 	}
 
 	private async generateEncryptedKeyHashes(

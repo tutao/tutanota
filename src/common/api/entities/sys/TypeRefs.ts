@@ -37,6 +37,20 @@ export type AccountingInfo = {
 	appStoreSubscription: null | IdTuple;
 	invoiceInfo: null | Id;
 }
+export const AdminGroupKeyDistributionElementTypeRef: TypeRef<AdminGroupKeyDistributionElement> = new TypeRef("sys", "AdminGroupKeyDistributionElement")
+
+export function createAdminGroupKeyDistributionElement(values: StrippedEntity<AdminGroupKeyDistributionElement>): AdminGroupKeyDistributionElement {
+	return Object.assign(create(typeModels.AdminGroupKeyDistributionElement, AdminGroupKeyDistributionElementTypeRef), values)
+}
+
+export type AdminGroupKeyDistributionElement = {
+	_type: TypeRef<AdminGroupKeyDistributionElement>;
+
+	_id: Id;
+	distEncAdminGroupKey: Uint8Array;
+
+	userGroupId: Id;
+}
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
 
 export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
@@ -49,7 +63,9 @@ export type AdminGroupKeyRotationPostIn = {
 	_format: NumberString;
 
 	adminGroupKeyData: GroupKeyRotationData;
+	distribution: AdminGroupKeyDistributionElement[];
 	userEncAdminPubKeyHashList: EncryptedKeyHash[];
+	userEncAdminSymKeyHashList: EncryptedKeyHash[];
 	userGroupKeyData: UserGroupKeyRotationData;
 }
 export const AdminGroupKeyRotationPutInTypeRef: TypeRef<AdminGroupKeyRotationPutIn> = new TypeRef("sys", "AdminGroupKeyRotationPutIn")
@@ -1808,12 +1824,14 @@ export type KeyRotation = {
 	_id: IdTuple;
 	_ownerGroup: null | Id;
 	_permissions: Id;
+	distEncAdminGroupSymKey: null | Uint8Array;
 	groupKeyRotationType: NumberString;
 	targetKeyVersion: NumberString;
 
 	adminDistKeyPair: null | KeyPair;
 	adminEncDistKeyHash: null | EncryptedKeyHash;
 	userEncAdminPubKeyHash: null | EncryptedKeyHash;
+	userEncAdminSymKeyHash: null | EncryptedKeyHash;
 }
 export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", "KeyRotationsRef")
 

@@ -221,6 +221,49 @@ export const typeModels = {
 		"app": "sys",
 		"version": "115"
 	},
+	"AdminGroupKeyDistributionElement": {
+		"name": "AdminGroupKeyDistributionElement",
+		"since": 115,
+		"type": "AGGREGATED_TYPE",
+		"id": 2500,
+		"rootId": "A3N5cwAJxA",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2501,
+				"since": 115,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"distEncAdminGroupKey": {
+				"final": false,
+				"name": "distEncAdminGroupKey",
+				"id": 2503,
+				"since": 115,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"userGroupId": {
+				"final": false,
+				"name": "userGroupId",
+				"id": 2502,
+				"since": 115,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "115"
+	},
 	"AdminGroupKeyRotationPostIn": {
 		"name": "AdminGroupKeyRotationPostIn",
 		"since": 101,
@@ -251,11 +294,31 @@ export const typeModels = {
 				"refType": "GroupKeyRotationData",
 				"dependency": null
 			},
+			"distribution": {
+				"final": false,
+				"name": "distribution",
+				"id": 2505,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "AdminGroupKeyDistributionElement",
+				"dependency": null
+			},
 			"userEncAdminPubKeyHashList": {
 				"final": false,
 				"name": "userEncAdminPubKeyHashList",
 				"id": 2483,
 				"since": 111,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
+			"userEncAdminSymKeyHashList": {
+				"final": false,
+				"name": "userEncAdminSymKeyHashList",
+				"id": 2504,
+				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refType": "EncryptedKeyHash",
@@ -279,15 +342,15 @@ export const typeModels = {
 		"name": "AdminGroupKeyRotationPutIn",
 		"since": 115,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2498,
-		"rootId": "A3N5cwAJwg",
+		"id": 2506,
+		"rootId": "A3N5cwAJyg",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 2499,
+				"id": 2507,
 				"since": 115,
 				"type": "Number",
 				"cardinality": "One",
@@ -298,7 +361,7 @@ export const typeModels = {
 			"adminDistKeyPair": {
 				"final": false,
 				"name": "adminDistKeyPair",
-				"id": 2501,
+				"id": 2509,
 				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "One",
@@ -308,7 +371,7 @@ export const typeModels = {
 			"adminEncDistKeyHash": {
 				"final": false,
 				"name": "adminEncDistKeyHash",
-				"id": 2500,
+				"id": 2508,
 				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "One",
@@ -7548,6 +7611,15 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
+			"distEncAdminGroupSymKey": {
+				"final": false,
+				"name": "distEncAdminGroupSymKey",
+				"id": 2496,
+				"since": 115,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
 			"groupKeyRotationType": {
 				"final": true,
 				"name": "groupKeyRotationType",
@@ -7571,7 +7643,7 @@ export const typeModels = {
 			"adminDistKeyPair": {
 				"final": false,
 				"name": "adminDistKeyPair",
-				"id": 2497,
+				"id": 2499,
 				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
@@ -7581,7 +7653,7 @@ export const typeModels = {
 			"adminEncDistKeyHash": {
 				"final": false,
 				"name": "adminEncDistKeyHash",
-				"id": 2496,
+				"id": 2498,
 				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
@@ -7593,6 +7665,16 @@ export const typeModels = {
 				"name": "userEncAdminPubKeyHash",
 				"id": 2482,
 				"since": 111,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
+			"userEncAdminSymKeyHash": {
+				"final": false,
+				"name": "userEncAdminSymKeyHash",
+				"id": 2497,
+				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refType": "EncryptedKeyHash",
