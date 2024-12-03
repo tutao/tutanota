@@ -10,6 +10,7 @@ use base64::Engine;
 use napi::bindgen_prelude::Error as NapiError;
 use napi::Env;
 use std::sync::{Arc, Mutex};
+use tutasdk::crypto::aes;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
@@ -19,7 +20,6 @@ use tutasdk::entities::generated::tutanota::{
 	NewImportAttachment,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
-use tutasdk::entities::Entity;
 use tutasdk::login::Credentials;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::rest_error::ImportFailureReason;
@@ -27,7 +27,7 @@ use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
 use tutasdk::services::generated::tutanota::ImportMailService;
 use tutasdk::services::ExtraServiceParams;
 use tutasdk::tutanota_constants::ArchiveDataType;
-use tutasdk::{rest_error::HttpError, ApiCallError, CustomId, GeneratedId};
+use tutasdk::{entities, rest_error::HttpError, ApiCallError, CustomId, GeneratedId};
 use tutasdk::{IdTupleGenerated, LoggedInSdk, Sdk};
 
 pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
@@ -145,16 +145,74 @@ impl Importer {
 		))),
 	};
 
-	pub async fn continue_import(&mut self) -> Result<ImportState, ()> {
-		let source_iterator = ImportSourceIterator {
-			source: Arc::clone(&self.import_source),
+	fn make_random_aggregate_id(&self) -> CustomId {
+		let new_id_bytes = self.randomizer_facade.generate_random_array::<4>();
+		let new_id_string = BASE64_URL_SAFE_NO_PAD.encode(new_id_bytes);
+		CustomId(new_id_string)
+	}
+
+	async fn initialize_remote_state(&mut self) -> Result<(), ()> {
+		let mailbox = self
+			.logged_in_sdk
+			.mail_facade()
+			.load_user_mailbox()
+			.await
+			.map_err(|e| {
+				eprintln!("Can not load user mailbox: {e:?}");
+				()
+			})?;
+		let session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(&self.randomizer_facade));
+		let owner_enc_session_key = self
+			.mail_group_key
+			.encrypt_key(&session_key, Iv::generate(&self.randomizer_facade));
+
+		let mut import_state_id =
+			IdTupleGenerated::new(mailbox.mailImportStates.clone(), GeneratedId::min_id());
+		let mut import_state_for_upload = entities::generated::tutanota::ImportMailState {
+			_format: 0,
+			_id: Some(import_state_id.clone()),
+			_ownerEncSessionKey: Some(owner_enc_session_key.object),
+			_ownerGroup: mailbox._ownerGroup.clone(),
+			_ownerKeyVersion: Some(owner_enc_session_key.version),
+			_permissions: Default::default(),
+			status: ImportStatus::NotInitialized as i64,
+			targetFolder: self.target_mail_folder.clone(),
+			_errors: None,
+			_finalIvs: Default::default(),
 		};
-		let _ = self.import_all_mail(source_iterator).await;
 
-		self.remote_import_state.status = ImportStatus::Finished as i64;
-		self.update_import_state_on_server().await?;
+		let create_data = self
+			.logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.create_instance(import_state_for_upload.clone(), Some(&session_key))
+			.await
+			.map_err(|e| {
+				eprintln!("While trying to create remote instance: {e:?}");
+				()
+			})?;
+		import_state_id.element_id = create_data.generatedId.ok_or_else(|| {
+			eprintln!("Server did not returned elementListId for state.");
+			()
+		})?;
 
-		Ok(self.local_import_state.clone())
+		import_state_for_upload._permissions = create_data.permissionListId;
+		import_state_for_upload._id = Some(import_state_id);
+		self.remote_import_state = import_state_for_upload;
+
+		Ok(())
+	}
+
+	async fn update_import_state_on_server(&self) -> Result<(), ()> {
+		self.logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.update_instance(self.remote_import_state.clone())
+			.await
+			.map_err(|e| {
+				eprintln!("error while uptaring import state in server: {e:?}");
+				()
+			})
 	}
 
 	/// once we get the ImportableMail from either of source,
@@ -188,8 +246,8 @@ impl Importer {
 			},
 		}
 
-		self.remote_import_state.status = ImportStatus::NotInitialized as i64;
-		self.update_import_state_on_server().await?;
+		// notify server new import have started
+		self.initialize_remote_state().await?;
 
 		const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 5;
 		let import_mail_data_and_attachments = importable_mails.map(|mut m| {
@@ -306,7 +364,7 @@ impl Importer {
 						self.logged_in_sdk
 							.serialize_instance_to_json(imd, &key)
 							.map(|value| StringWrapper {
-								_id: Some(make_random_aggregate_id(&self.randomizer_facade)),
+								_id: Some(self.make_random_aggregate_id()),
 								value,
 							})
 					})
@@ -389,6 +447,10 @@ impl Importer {
 				self.update_import_state_on_server().await?;
 			}
 		}
+
+		self.remote_import_state.status = ImportStatus::Finished as i64;
+		self.update_import_state_on_server().await?;
+
 		new_state.status = if new_state.status == ImportStatus::Postponed {
 			ImportStatus::Postponed
 		} else {
@@ -398,25 +460,17 @@ impl Importer {
 		self.local_import_state = new_state;
 		Ok(mails)
 	}
-
-	async fn update_import_state_on_server(&self) -> Result<(), ()> {
-		// if self.remote_import_state._id.is_none() {
-		//     todo!()
-		// } else {
-		//     self.logged_in_sdk
-		//         .update_remote_entity(self.remote_import_state.clone())
-		//         .await
-		//         .map_err(|_e| ())
-		// }
-		Ok(())
-	}
 }
 
-fn make_random_aggregate_id(random: &RandomizerFacade) -> CustomId {
-	let new_id_bytes = random.generate_random_array::<4>();
-	let new_id_string = BASE64_URL_SAFE_NO_PAD.encode(new_id_bytes);
-	let new_id = tutasdk::CustomId(new_id_string);
-	new_id
+impl Importer {
+	pub async fn continue_import(&mut self) -> Result<ImportState, ()> {
+		let source_iterator = ImportSourceIterator {
+			source: Arc::clone(&self.import_source),
+		};
+		let _ = self.import_all_mail(source_iterator).await;
+
+		Ok(self.local_import_state.clone())
+	}
 }
 
 impl ImporterApi {
@@ -430,24 +484,17 @@ impl ImporterApi {
 		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
 		let local_import_state = ImportState::default();
 
-		let session_key_for_import_state = GenericAesKey::Aes256(
-			tutasdk::crypto::aes::Aes256Key::generate(&randomizer_facade),
-		);
-		let owner_enc_sk_for_import_state = mail_group_key.encrypt_key(
-			&session_key_for_import_state,
-			Iv::generate(&randomizer_facade),
-		);
-		let remote_import_state = tutasdk::entities::generated::tutanota::ImportMailState {
-			targetFolder: target_mail_folder.clone(),
-			status: ImportStatus::NotInitialized as i64,
-			_ownerEncSessionKey: Some(owner_enc_sk_for_import_state.object),
-			_ownerKeyVersion: Some(owner_enc_sk_for_import_state.version),
-			_ownerGroup: Some(target_owner_group.clone()),
+		let remote_import_state = entities::generated::tutanota::ImportMailState {
+			_format: Default::default(),
+			_id: Default::default(),
+			_ownerEncSessionKey: Default::default(),
+			_ownerGroup: Default::default(),
+			_ownerKeyVersion: Default::default(),
 			_permissions: Default::default(),
-			_errors: None,
-			_format: 0,
+			status: Default::default(),
+			targetFolder: IdTupleGenerated::new(Default::default(), Default::default()),
+			_errors: Default::default(),
 			_finalIvs: Default::default(),
-			_id: None,
 		};
 
 		Importer {
@@ -719,6 +766,10 @@ mod tests {
 			}),
 			import_res
 		);
+		assert_eq!(
+			importer.remote_import_state.status,
+			ImportStatus::Finished as i64
+		);
 	}
 
 	#[tokio::test]
@@ -736,6 +787,10 @@ mod tests {
 			}),
 			import_res
 		);
+		assert_eq!(
+			importer.remote_import_state.status,
+			ImportStatus::Finished as i64
+		);
 	}
 
 	#[tokio::test]
@@ -749,6 +804,10 @@ mod tests {
 				imported_mails: 1,
 			}),
 			import_res
+		);
+		assert_eq!(
+			importer.remote_import_state.status,
+			ImportStatus::Finished as i64
 		);
 	}
 
@@ -764,6 +823,10 @@ mod tests {
 				imported_mails: 1,
 			}),
 			import_res
+		);
+		assert_eq!(
+			importer.remote_import_state.status,
+			ImportStatus::Finished as i64
 		);
 	}
 }

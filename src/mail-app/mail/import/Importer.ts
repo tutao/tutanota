@@ -1,6 +1,5 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { createImportMailState, ImportMailStateTypeRef, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
-import { ImportStatus } from "../../../common/api/common/TutanotaConstants"
+import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
@@ -33,24 +32,12 @@ export class Importer {
 	async importFromFiles(targetFolder: MailFolder, mailboxDetail: MailboxDetail, filePaths: Array<string>) {
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const ownerGroup = assertNotNull(targetFolder._ownerGroup)
-		let importMailState = createImportMailState({
-			_ownerGroup: ownerGroup,
-			status: ImportStatus.NotInitialized.toString(),
-			targetFolder: targetFolder._id,
-		})
+
 		const userId = this.loginController.getUserController().userId
 		const unencryptedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(userId)
 
 		if (unencryptedCredentials) {
-			const mailImportStatesListId = mailboxDetail.mailbox.mailImportStates
-			let importMailStateId: IdTuple = [mailImportStatesListId, await this.entityClient.setup(mailImportStatesListId, importMailState)]
-			importMailState = await this.entityClient.load(ImportMailStateTypeRef, importMailStateId)
-
-			let result = await this.nativeMailImportFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
-			console.log("finished import", result)
-
-			importMailState.status = ImportStatus.Finished
-			await this.entityClient.update(importMailState)
+			await this.nativeMailImportFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
 		}
 	}
 }

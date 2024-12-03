@@ -43,14 +43,11 @@ impl CryptoEntityClient {
 		&self.crypto_facade
 	}
 
-	pub fn serialize_entity<Instance>(
+	pub fn serialize_entity<Instance: Entity + Serialize>(
 		&self,
 		instance: Instance,
 		key: Option<&GenericAesKey>,
-	) -> Result<ParsedEntity, ApiCallError>
-	where
-		Instance: Entity + Serialize,
-	{
+	) -> Result<ParsedEntity, ApiCallError> {
 		let type_ref = &Instance::type_ref();
 		let type_model = self
 			.entity_client
