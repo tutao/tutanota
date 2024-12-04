@@ -797,24 +797,7 @@ class MailLocator {
 			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, MAIL_PREFIX, async (currentRoute: string) => {
-				// If the first background column is focused in mail view (showing a folder), move to inbox.
-				// If in inbox already, quit
-				const parts = currentRoute.split("/").filter((part) => part !== "")
-
-				if (parts.length > 1) {
-					const selectedMailListId = parts[1]
-					const [mailboxDetail] = await this.mailboxModel.getMailboxDetails()
-					const folders = await this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
-					const inboxFolderId = getElementId(assertSystemFolderOfType(folders, MailSetKind.INBOX))
-
-					if (inboxFolderId !== selectedMailListId) {
-						return MAIL_PREFIX + "/" + inboxFolderId
-					}
-				}
-
-				return null
-			})
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
