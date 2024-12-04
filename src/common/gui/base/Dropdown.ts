@@ -135,7 +135,7 @@ export class Dropdown implements ModalComponent {
 		const inputField = () => {
 			return this.isFilterable
 				? m(
-						"input.input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height",
+						"input.input.dropdown-bar.elevated-bg.doNotClose.button-height.button-min-height.pr-s",
 						{
 							placeholder: lang.get("typeToFilter_label"),
 							oncreate: (vnode) => {
@@ -147,9 +147,6 @@ export class Dropdown implements ModalComponent {
 							},
 							style: {
 								paddingLeft: px(size.hpad_large * 2),
-								paddingRight: px(size.hpad_small),
-								width: px(this.width - size.hpad_large),
-								height: px(size.button_height),
 							},
 						},
 						this.filterString,
@@ -162,9 +159,8 @@ export class Dropdown implements ModalComponent {
 			// We need to set the height to the height of the parent which already has the calculated and measured height, otherwise this element might
 			// overflow the parent (the overall dropdown container) when there's not enough vertical space to display all items
 			return m(
-				".dropdown-content.scroll.height-100p",
+				".dropdown-content.scroll",
 				{
-					class: this.isFilterable ? "abs" : "",
 					role: AriaRole.Menu,
 					tabindex: TabIndex.Programmatic,
 					oncreate: (vnode) => {
@@ -215,7 +211,7 @@ export class Dropdown implements ModalComponent {
 
 		this.view = (): Children => {
 			return m(
-				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow.fit-content",
+				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow.fit-content.flex-column.flex-start",
 				{
 					oncreate: (vnode) => {
 						this.domDropdown = vnode.dom as HTMLElement
