@@ -1,11 +1,11 @@
-use crate::logging::logger::{LogLevel, LogMessage, Logger};
+use crate::logging::logger::{LogMessage, Logger};
 use log::{Level, LevelFilter, Log, Metadata, Record};
 use napi::Env;
 use std::sync::OnceLock;
 
 const TAG: &str = file!();
 
-static INSTANCE: OnceLock<Console> = OnceLock::new();
+pub static GLOBAL_CONSOLE: OnceLock<Console> = OnceLock::new();
 
 /// A way for the rust code to log messages to the main applications log files
 /// without having to deal with obtaining a reference to console each time.
@@ -42,13 +42,13 @@ impl Console {
 		let (tx, rx) = std::sync::mpsc::channel::<LogMessage>();
 		let console = Console { tx };
 		let logger = Logger::new(rx);
-		let Ok(()) = INSTANCE.set(console) else {
+		let Ok(()) = GLOBAL_CONSOLE.set(console) else {
 			// some other thread already initialized the cell, we don't need to set up the logger.
 			return;
 		};
 
 		// this may be the instance set by another thread, but that's okay.
-		let console = INSTANCE.get().expect("not initialized");
+		let console = GLOBAL_CONSOLE.get().expect("not initialized");
 		let maybe_async_task = env.spawn(logger);
 		match maybe_async_task {
 			Ok(_) => console.log(

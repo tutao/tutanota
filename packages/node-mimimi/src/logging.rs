@@ -1,4 +1,2 @@
-pub(crate) mod console;
-mod logger;
-
-pub use crate::logging::console::Console;
+pub(super) mod console;
+pub(super) mod logger;

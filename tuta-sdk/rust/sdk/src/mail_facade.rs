@@ -155,7 +155,7 @@ impl MailFacade {
 		&self,
 		mail_address: &str,
 	) -> Result<GeneratedId, ApiCallError> {
-		let logged_in_user: Arc<User> = self.user_facade.get_user();
+		let logged_in_user = self.user_facade.get_user();
 		let mail_group_memberships = logged_in_user
 			.memberships
 			.iter()

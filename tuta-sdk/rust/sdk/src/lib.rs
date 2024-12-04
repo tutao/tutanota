@@ -421,6 +421,10 @@ impl LoggedInSdk {
 		self.user_facade.get_user_group_id()
 	}
 
+	pub fn get_user_id(&self) -> Option<GeneratedId> {
+		self.user_facade.get_user()._id.clone()
+	}
+
 	pub async fn request_blob_facade_write_token(
 		&self,
 		archive_data_type: ArchiveDataType,

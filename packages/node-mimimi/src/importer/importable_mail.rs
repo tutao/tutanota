@@ -1,16 +1,20 @@
+use crate::importer::ImportEssential;
 use crate::tuta_imap::client::types::ImapMail;
-use base64::Engine;
 use extend_mail_parser::MakeString;
 use mail_parser::decoders::base64::base64_decode;
 use mail_parser::decoders::quoted_printable::quoted_printable_decode;
 use mail_parser::{Address, ContentType, MessagePart, MessagePartId, MimeHeaders, PartType};
 use regex::Regex;
 use std::borrow::Cow;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use tutasdk::crypto::aes;
+use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::date::DateTime;
 use tutasdk::entities::generated::tutanota::{
-	EncryptedMailAddress, ImportMailData, ImportMailDataMailReference, MailAddress, Recipients,
+	EncryptedMailAddress, ImportAttachment, ImportMailData, ImportMailDataMailReference,
+	MailAddress, NewImportAttachment, Recipients,
 };
+use tutasdk::tutanota_constants::ArchiveDataType;
 
 pub mod extend_mail_parser;
 mod plain_text_to_html_converter;
@@ -54,22 +58,84 @@ pub(super) enum ReplyType {
 }
 
 #[cfg_attr(test, derive(PartialEq, Debug, Clone))]
-pub(super) struct ImportableMailAttachment {
+pub struct ImportableMailAttachment {
 	pub filename: String,
 	pub content_id: Option<String>,
 	pub content_type: String,
 	pub content: Vec<u8>,
 }
 
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub(super) enum BodyText {
-	Html(String),
-	Plain(String),
+impl ImportableMailAttachment {
+	pub async fn make_import_attachment_data(
+		self,
+		essentials: &ImportEssential,
+	) -> ImportAttachment {
+		let session_key_for_file =
+			GenericAesKey::Aes256(aes::Aes256Key::generate(&essentials.randomizer_facade));
+		let owner_enc_file_session_key = essentials.mail_group_key.encrypt_key(
+			&session_key_for_file,
+			aes::Iv::generate(&essentials.randomizer_facade),
+		);
+
+		let reference_tokens = essentials
+			.logged_in_sdk
+			.blob_facade()
+			.encrypt_and_upload(
+				ArchiveDataType::Attachments,
+				&essentials.target_owner_group,
+				&session_key_for_file,
+				&self.content,
+			)
+			.await
+			.unwrap();
+
+		// todo: do we need to upload the ivs and how?
+		let enc_file_name = session_key_for_file
+			.encrypt_data(
+				self.filename.as_ref(),
+				aes::Iv::generate(&essentials.randomizer_facade),
+			)
+			.unwrap();
+		let enc_mime_type = session_key_for_file
+			.encrypt_data(
+				self.content_type.as_ref(),
+				aes::Iv::generate(&essentials.randomizer_facade),
+			)
+			.unwrap();
+
+		let enc_cid = match self.content_id {
+			Some(cid) => Some(
+				session_key_for_file
+					.encrypt_data(
+						cid.as_bytes(),
+						aes::Iv::generate(&essentials.randomizer_facade),
+					)
+					.unwrap(),
+			),
+			None => None,
+		};
+
+		ImportAttachment {
+			_id: None,
+			ownerEncFileSessionKey: owner_enc_file_session_key.object,
+			ownerFileKeyVersion: owner_enc_file_session_key.version,
+			existingAttachmentFile: None,
+			newAttachment: Some(NewImportAttachment {
+				_id: None,
+				encCid: enc_cid,
+				encFileHash: None,
+				encFileName: enc_file_name,
+				encMimeType: enc_mime_type,
+				ownerEncFileHashSessionKey: None,
+				referenceTokens: reference_tokens,
+			}),
+		}
+	}
 }
 
 #[derive(Default, PartialEq)]
 #[cfg_attr(test, derive(Debug))]
-pub(super) struct MailContact {
+pub struct MailContact {
 	pub mail_address: String,
 	pub name: String,
 }
@@ -285,7 +351,7 @@ impl ImportableMail {
 	// .1 list of attachment found
 	fn process_all_parts(
 		parsed_message: &mail_parser::Message,
-	) -> Result<(String, Vec<ImportableMailAttachment>), MailParseError> {
+	) -> (String, Vec<ImportableMailAttachment>) {
 		let mut email_body_as_html = String::new();
 		let mut attachments = Vec::with_capacity(parsed_message.attachments.len());
 
@@ -358,7 +424,7 @@ impl ImportableMail {
 			}
 		}
 
-		Ok((email_body_as_html, attachments))
+		(email_body_as_html, attachments)
 	}
 
 	fn is_plain_text(part: &MessagePart) -> bool {
@@ -468,24 +534,25 @@ impl ImportableMail {
 			},
 			Address::Group(group_senders) => group_senders
 				.into_iter()
-				.map(|group| group.addresses.as_slice())
-				.flatten()
-				.into_iter()
+				.flat_map(|group| group.addresses.as_slice())
 				.map(MailContact::from)
 				.collect(),
 		}
 	}
-}
 
-impl ImportableMail {
-	pub fn into_instance(
-		self: Self,
-		ownerEncSessionKey: Vec<u8>,
-		ownerKeyVersion: i64,
+	pub fn take_out_attachments(&mut self) -> Vec<ImportableMailAttachment> {
+		let mut attachments = Vec::with_capacity(self.attachments.len());
+		attachments.append(&mut self.attachments);
+		attachments
+	}
+
+	pub fn make_import_mail_data(
+		self,
+		owner_enc_sk: Vec<u8>,
+		owner_enc_sk_version: i64,
 	) -> ImportMailData {
-		#![allow(non_snake_case)]
 		let ImportableMail {
-			headers_string: headers,
+			headers_string,
 			subject,
 			html_body_text,
 			different_envelope_sender,
@@ -503,7 +570,7 @@ impl ImportableMail {
 			message_id,
 			in_reply_to,
 			references,
-			attachments: _attachments,
+			attachments: _,
 		} = self;
 
 		let reply_tos = reply_to_addresses
@@ -529,12 +596,16 @@ impl ImportableMail {
 			})
 			.collect();
 
+		// if no date is provided, use UNIX_EPOCH (01.01.1970) as fallback
+		// this makes it more obvious to user that this mail date was not right
+		let date = date.unwrap_or_default();
+
 		ImportMailData {
 			_format: 0,
-			ownerEncSessionKey,
-			ownerKeyVersion,
-			_finalIvs: HashMap::new(),
-			compressedHeaders: headers,
+			ownerEncSessionKey: owner_enc_sk,
+			ownerKeyVersion: owner_enc_sk_version,
+			_finalIvs: Default::default(),
+			compressedHeaders: headers_string,
 			subject,
 			compressedBodyText: html_body_text,
 			differentEnvelopeSender: different_envelope_sender,
@@ -554,8 +625,7 @@ impl ImportableMail {
 			method: ical_type as i64,
 			phishingStatus: if is_phishing { 1 } else { 0 },
 			replyType: reply_type as i64,
-			// if no date is provided, use UNIX_EPOCH (01.01.1970) as fallback
-			date: date.unwrap_or_default(),
+			date,
 			state: mail_state as i64,
 			messageId: message_id,
 			inReplyTo: in_reply_to,
@@ -595,21 +665,12 @@ impl TryFrom<ImapMail> for ImportableMail {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MailParseError {
-	InconsistentParts(&'static str),
-	NoSentDate,
-	NoRecipient,
-	NoFrom,
-	InvalidDate,
-	InvalidHtmlBody,
-	InvalidTextBody,
 	InvalidMimeMessage,
-	EmptyMailAddress,
-	Unknown(String),
 }
 
 /// allow to convert from parsed message
-impl<'x> TryFrom<&mail_parser::Message<'x>> for ImportableMail {
-	type Error = MailParseError;
+impl TryFrom<&mail_parser::Message<'_>> for ImportableMail {
+	type Error = ();
 
 	fn try_from(parsed_message: &mail_parser::Message) -> Result<Self, Self::Error> {
 		let subject = parsed_message.subject().unwrap_or_default().to_string();
@@ -699,12 +760,12 @@ impl<'x> TryFrom<&mail_parser::Message<'x>> for ImportableMail {
 		let references = match parsed_message.references() {
 			mail_parser::HeaderValue::Text(reference) => Vec::from([reference.to_string()]),
 			mail_parser::HeaderValue::TextList(references) => {
-				references.into_iter().map(Cow::to_string).collect()
+				references.iter().map(Cow::to_string).collect()
 			},
 			_ => Vec::new(),
 		};
 
-		let (html_body_text, attachments) = ImportableMail::process_all_parts(parsed_message)?;
+		let (html_body_text, attachments) = ImportableMail::process_all_parts(parsed_message);
 
 		Ok(Self {
 			headers_string,

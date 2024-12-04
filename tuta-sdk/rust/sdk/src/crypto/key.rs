@@ -1,7 +1,6 @@
 use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::util::{ArrayCastingError, Versioned};
 use crate::ApiCallError;
 use std::fmt::{Debug, Formatter};
@@ -154,6 +153,13 @@ impl GenericAesKey {
 		match self {
 			Self::Aes128(n) => n.as_bytes(),
 			Self::Aes256(n) => n.as_bytes(),
+		}
+	}
+
+	pub fn get_inner(self) -> Vec<u8> {
+		match self {
+			Self::Aes128(k) => k.get_inner().to_vec(),
+			Self::Aes256(k) => k.get_inner().to_vec(),
 		}
 	}
 }

@@ -1,40 +1,64 @@
-use crate::importer::file_reader::import_client::{FileImport, FileIterationError};
-use crate::importer::imap_reader::import_client::{ImapImport, ImapIterationError};
-use crate::importer::imap_reader::ImapImportConfig;
-use crate::importer::importable_mail::ImportableMail;
-use crate::logging::Console;
-use crate::reduce_to_chunks::reduce_to_chunks;
-use crate::tuta::credentials::TutaCredentials;
+use crate::reduce_to_chunks::UnitImport;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
-use napi::bindgen_prelude::Error as NapiError;
-use napi::Env;
-use std::sync::{Arc, Mutex};
+use file_reader::{FileImport, FileIterationError};
+use imap_reader::ImapImportConfig;
+use imap_reader::{ImapImport, ImapIterationError};
+use importable_mail::ImportableMail;
+use std::sync::Arc;
+use std::time::{Duration, SystemTime};
 use tutasdk::crypto::aes;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::StringWrapper;
 use tutasdk::entities::generated::tutanota::{
-	ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn,
-	NewImportAttachment,
+	ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
-use tutasdk::login::Credentials;
-use tutasdk::net::native_rest_client::NativeRestClient;
-use tutasdk::rest_error::ImportFailureReason;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
+use tutasdk::rest_error::{HttpError, ImportFailureReason};
 use tutasdk::services::generated::tutanota::ImportMailService;
 use tutasdk::services::ExtraServiceParams;
 use tutasdk::tutanota_constants::ArchiveDataType;
-use tutasdk::{entities, rest_error::HttpError, ApiCallError, CustomId, GeneratedId};
-use tutasdk::{IdTupleGenerated, LoggedInSdk, Sdk};
-
-pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
+use tutasdk::{ApiCallError, CustomId, GeneratedId};
+use tutasdk::{IdTupleGenerated, LoggedInSdk};
 
 pub mod file_reader;
 pub mod imap_reader;
-mod importable_mail;
+pub mod importable_mail;
+
+pub const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 5;
+
+#[derive(Debug)]
+pub enum ImportError {
+	SdkError {
+		// action we were trying to perform on sdk
+		action: &'static str,
+		// actual error sdk returned
+		error: ApiCallError,
+	},
+	/// login feature is not available for this user
+	NoImportFeature,
+	/// Blob responded with empty server url list
+	EmptyBlobServerList,
+	/// Server did not return any element id for the newly posted import state
+	NoElementIdForState,
+	/// Can not create Native Rest client
+	NoNativeRestClient(std::io::Error),
+	/// Can not create valid credential from given raw input
+	CredentialValidationError(()),
+	/// Error when trying to resume the session passed from client
+	LoginError(tutasdk::login::LoginError),
+	/// Error while iterating through import source
+	IterationError(IterationError),
+}
+
+#[derive(Debug)]
+pub enum IterationError {
+	Imap(ImapIterationError),
+	File(FileIterationError),
+}
 
 #[derive(Clone, PartialEq)]
 pub enum ImportParams {
@@ -57,30 +81,32 @@ pub enum ImportParams {
 #[repr(u8)]
 pub enum ImportStatus {
 	#[default]
-	NotInitialized = 0,
+	Started = 0,
 	Paused = 1,
 	Running = 2,
 	Postponed = 3,
-	Finished = 4,
+	Canceled = 4,
+	Finished = 5,
 }
 
-#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
-#[derive(PartialEq, Clone, Default)]
-#[cfg_attr(test, derive(Debug))]
-pub struct ImportState {
-	pub status: ImportStatus,
-	pub imported_mails: u32,
-}
-
-struct Importer {
-	local_import_state: ImportState,
-	remote_import_state: entities::generated::tutanota::ImportMailState,
+pub struct ImportEssential {
 	logged_in_sdk: Arc<LoggedInSdk>,
 	target_owner_group: GeneratedId,
 	mail_group_key: VersionedAesKey,
-	target_mail_folder: IdTupleGenerated,
-	import_source: Arc<Mutex<ImportSource>>,
+	target_mailset: IdTupleGenerated,
 	randomizer_facade: RandomizerFacade,
+}
+
+pub struct ImportState {
+	last_server_update: SystemTime,
+	pub remote_state: ImportMailState,
+	pub imported_mail_ids: Vec<IdTupleGenerated>,
+}
+
+pub struct Importer {
+	essentials: ImportEssential,
+	state: ImportState,
+	source: ImportSource,
 }
 
 pub enum ImportSource {
@@ -88,31 +114,11 @@ pub enum ImportSource {
 	LocalFile { fs_email_client: FileImport },
 }
 
-/// Wrapper for `Importer` to be used from napi-rs interface
-#[cfg_attr(feature = "javascript", napi_derive::napi)]
-pub struct ImporterApi {
-	inner: Arc<NapiTokioMutex<Importer>>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum IterationError {
-	Imap(ImapIterationError),
-	File(FileIterationError),
-}
-
-struct ImportSourceIterator {
-	// it would be nice to not need the mutex, but when the importer continues the import,
-	// it mutates its own state and also calls mutating functions on the source. solving this
-	// probably requires a bigger restructure of the code (it's very OOP atm)
-	source: Arc<Mutex<ImportSource>>,
-}
-
-impl Iterator for ImportSourceIterator {
+impl Iterator for ImportSource {
 	type Item = ImportableMail;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let mut source = self.source.lock().unwrap();
-		let next_importable_mail = match &mut *source {
+		let next_importable_mail = match self {
 			// the other way (converting fs_source to an async_iterator) would be nicer, but that's a nightly feature
 			ImportSource::RemoteImap { imap_import_client } => imap_import_client
 				.fetch_next_mail()
@@ -138,513 +144,429 @@ impl Iterator for ImportSourceIterator {
 	}
 }
 
+pub type ImportableMailsButcher<Source> =
+	super::reduce_to_chunks::Butcher<{ MAX_REQUEST_SIZE }, UnitImport, Source>;
 impl Importer {
-	const IMPORT_DISABLED: ApiCallError = ApiCallError::ServerResponseError {
-		source: HttpError::PreconditionFailedError(Some(ImportFailure(
-			ImportFailureReason::ImportDisabled,
-		))),
-	};
-
-	fn make_random_aggregate_id(&self) -> CustomId {
-		let new_id_bytes = self.randomizer_facade.generate_random_array::<4>();
+	fn make_random_aggregate_id(randomizer_facade: &RandomizerFacade) -> CustomId {
+		let new_id_bytes = randomizer_facade.generate_random_array::<4>();
 		let new_id_string = BASE64_URL_SAFE_NO_PAD.encode(new_id_bytes);
 		CustomId(new_id_string)
 	}
 
-	async fn initialize_remote_state(&mut self) -> Result<(), ()> {
+	pub fn get_remote_state(&self) -> &ImportMailState {
+		&self.state.remote_state
+	}
+
+	async fn initialize_remote_state(&mut self) -> Result<(), ImportError> {
 		let mailbox = self
+			.essentials
 			.logged_in_sdk
 			.mail_facade()
 			.load_user_mailbox()
 			.await
-			.map_err(|e| {
-				eprintln!("Can not load user mailbox: {e:?}");
-				()
-			})?;
-		let session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(&self.randomizer_facade));
-		let owner_enc_session_key = self
-			.mail_group_key
-			.encrypt_key(&session_key, Iv::generate(&self.randomizer_facade));
+			.map_err(|e| ImportError::sdk("loading mailbox", e))?;
+		let session_key =
+			GenericAesKey::Aes256(aes::Aes256Key::generate(&self.essentials.randomizer_facade));
+		let owner_enc_session_key = self.essentials.mail_group_key.encrypt_key(
+			&session_key,
+			Iv::generate(&self.essentials.randomizer_facade),
+		);
 
 		let mut import_state_id =
 			IdTupleGenerated::new(mailbox.mailImportStates.clone(), GeneratedId::min_id());
-		let mut import_state_for_upload = entities::generated::tutanota::ImportMailState {
+		let mut import_state_for_upload = ImportMailState {
 			_format: 0,
 			_id: Some(import_state_id.clone()),
 			_ownerEncSessionKey: Some(owner_enc_session_key.object),
 			_ownerGroup: mailbox._ownerGroup.clone(),
 			_ownerKeyVersion: Some(owner_enc_session_key.version),
 			_permissions: Default::default(),
-			status: ImportStatus::NotInitialized as i64,
-			targetFolder: self.target_mail_folder.clone(),
+			status: ImportStatus::Started as i64,
+			failedMails: 0,
+			successfulMails: 0,
+			targetFolder: self.essentials.target_mailset.clone(),
 			_errors: None,
 			_finalIvs: Default::default(),
 		};
 
 		let create_data = self
+			.essentials
 			.logged_in_sdk
 			.mail_facade()
 			.get_crypto_entity_client()
 			.create_instance(import_state_for_upload.clone(), Some(&session_key))
 			.await
-			.map_err(|e| {
-				eprintln!("While trying to create remote instance: {e:?}");
-				()
-			})?;
-		import_state_id.element_id = create_data.generatedId.ok_or_else(|| {
-			eprintln!("Server did not returned elementListId for state.");
-			()
-		})?;
+			.map_err(|e| ImportError::sdk("creating remote import state", e))?;
+
+		import_state_id.element_id = create_data
+			.generatedId
+			.ok_or(ImportError::NoElementIdForState)?;
 
 		import_state_for_upload._permissions = create_data.permissionListId;
 		import_state_for_upload._id = Some(import_state_id);
-		self.remote_import_state = import_state_for_upload;
+		self.state.remote_state = import_state_for_upload;
+		self.state.last_server_update = SystemTime::now();
 
 		Ok(())
 	}
 
-	async fn update_import_state_on_server(&self) -> Result<(), ()> {
-		self.logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.update_instance(self.remote_import_state.clone())
-			.await
-			.map_err(|e| {
-				eprintln!("error while uptaring import state in server: {e:?}");
-				()
-			})
-	}
-
 	/// once we get the ImportableMail from either of source,
 	/// continue to the uploading counterpart
-	async fn import_all_mail<Iter>(
-		&mut self,
-		importable_mails: Iter,
-	) -> Result<Vec<IdTupleGenerated>, ()>
-	where
-		Iter: Iterator<Item = ImportableMail> + Send + 'static,
-	{
-		// check if importing is allowed before preparing the import
-		let import_mail_get_in = ImportMailGetIn { _format: 0 };
-		let response = self
-			.logged_in_sdk
-			.get_service_executor()
-			.get::<ImportMailService>(import_mail_get_in, ExtraServiceParams::default())
-			.await;
-
-		match response {
-			// importing is enabled
-			Ok(mut imported_post_out) => {},
-
-			Err(err) if err == Self::IMPORT_DISABLED => {
-				eprintln!("!!!!!!!!!!!!!!! {:?}", err);
-				todo!() // propagate to TS and show dialog
-			},
-
-			Err(_) => {
-				return Err(()); // how to handle this?
-			},
-		}
-
-		// notify server new import have started
+	async fn import_all_mail(&mut self) -> Result<(), ImportError> {
+		self.essentials.verify_import_feature_is_enabled().await?;
 		self.initialize_remote_state().await?;
 
-		const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 5;
-		let import_mail_data_and_attachments = importable_mails.map(|mut m| {
-			let mut attachments = Vec::with_capacity(m.attachments.len());
-			attachments.append(&mut m.attachments);
+		let Self {
+			essentials: import_essentials,
+			state: import_state,
+			source: import_source,
+		} = self;
 
-			let new_mail_aes_256_key = GenericAesKey::from_bytes(
-				self.randomizer_facade
-					.generate_random_array::<{ tutasdk::crypto::aes::AES_256_KEY_SIZE }>()
-					.as_slice(),
-			)
-			.unwrap();
-
-			let owner_enc_session_key = self
-				.mail_group_key
-				.encrypt_key(&new_mail_aes_256_key, Iv::generate(&self.randomizer_facade));
-
-			(
-				m.into_instance(owner_enc_session_key.object, owner_enc_session_key.version),
-				new_mail_aes_256_key,
-				attachments,
+		let mapped_import_source = import_source.into_iter().map(|importable_mail| {
+			UnitImport::create_from_importable_mail(
+				&import_essentials.randomizer_facade,
+				&import_essentials.mail_group_key,
+				importable_mail,
 			)
 		});
-		let import_chunks = reduce_to_chunks(
-			import_mail_data_and_attachments,
-			MAX_REQUEST_SIZE,
-			Box::new(|(imd, key, attachment)| estimate_json_size(imd)),
-		);
+		let chunked_mails_provider =
+			ImportableMailsButcher::new(mapped_import_source, |unit_import| {
+				estimate_json_size(&unit_import.import_mail_data)
+			});
 
-		let mut mails: Vec<IdTupleGenerated> = Vec::new();
-		let mut new_state = ImportState {
-			status: ImportStatus::Running,
-			imported_mails: 0,
-		};
+		for maybe_importable_chunk in chunked_mails_provider {
+			import_state.change_status(ImportStatus::Running);
+			import_state
+				.update_import_state_on_server(&import_essentials.logged_in_sdk)
+				.await?;
 
-		for (chunk_index, import_chunk) in import_chunks.enumerate() {
-			let import_len = import_chunk.len();
+			let importable_post_data = match maybe_importable_chunk {
+				Ok(importable_chunk) => {
+					let importable_serialized_chunk = import_essentials
+						.make_serialized_chunk(importable_chunk)
+						.await;
 
-			let mut imports_with_attachments: Vec<(ImportMailData, GenericAesKey)> = Vec::new();
-			for (import_mail_data, key, importable_mail_attachments) in import_chunk.into_iter() {
-				let mut import_mail_data = import_mail_data;
-				let mut import_attachments = Vec::new();
-				for importable_mail_attachment in importable_mail_attachments {
-					let session_key_for_file = GenericAesKey::from_bytes(
-						self.randomizer_facade
-							.generate_random_array::<{ tutasdk::crypto::aes::AES_256_KEY_SIZE }>()
-							.as_slice(),
-					)
-					.unwrap();
-					let owner_enc_file_session_key = self
-						.mail_group_key
-						.encrypt_key(&session_key_for_file, Iv::generate(&self.randomizer_facade));
+					match importable_serialized_chunk {
+						Ok(chunk) => chunk,
+						Err(e) => {
+							eprintln!("FIXMEE!!");
+							// what to do now?
+							continue;
+						},
+					}
+				},
 
-					let reference_tokens = self
-						.logged_in_sdk
-						.blob_facade()
-						.encrypt_and_upload(
-							ArchiveDataType::Attachments,
-							&self.target_owner_group,
-							&session_key_for_file,
-							&importable_mail_attachment.content,
-						)
-						.await
-						.unwrap();
-
-					// todo: do we need to upload the ivs and how?
-					let enc_file_name = session_key_for_file
-						.encrypt_data(
-							importable_mail_attachment.filename.as_ref(),
-							Iv::generate(&self.randomizer_facade),
-						)
-						.unwrap();
-					let enc_mime_type = session_key_for_file
-						.encrypt_data(
-							importable_mail_attachment.content_type.as_ref(),
-							Iv::generate(&self.randomizer_facade),
-						)
-						.unwrap();
-					let enc_cid: Option<Vec<u8>> = match importable_mail_attachment.content_id {
-						Some(cid) => Some(
-							session_key_for_file
-								.encrypt_data(cid.as_bytes(), Iv::generate(&self.randomizer_facade))
-								.unwrap(),
-						),
-						None => None,
-					};
-
-					let import_attachment = ImportAttachment {
-						_id: None,
-						ownerEncFileSessionKey: owner_enc_file_session_key.object,
-						ownerFileKeyVersion: owner_enc_file_session_key.version,
-						existingAttachmentFile: None,
-						newAttachment: Some(NewImportAttachment {
-							_id: None,
-							encCid: enc_cid,
-							encFileHash: None,
-							encFileName: enc_file_name,
-							encMimeType: enc_mime_type,
-							ownerEncFileHashSessionKey: None,
-							referenceTokens: reference_tokens,
-						}),
-					};
-
-					import_attachments.push(import_attachment);
-				}
-				import_mail_data.importedAttachments = import_attachments;
-				imports_with_attachments.push((import_mail_data, key));
-			}
-
-			let maybe_serialized_imports: Result<Vec<StringWrapper>, ApiCallError> =
-				imports_with_attachments
-					.into_iter()
-					.map(|(imd, key)| {
-						self.logged_in_sdk
-							.serialize_instance_to_json(imd, &key)
-							.map(|value| StringWrapper {
-								_id: Some(self.make_random_aggregate_id()),
-								value,
-							})
-					})
-					.collect();
-
-			let serialized_imports = maybe_serialized_imports.map_err(|e| ())?;
-
-			let session_key_for_import_post = GenericAesKey::Aes256(
-				tutasdk::crypto::aes::Aes256Key::generate(&self.randomizer_facade),
-			);
-			let owner_enc_sk_for_import_post = self.mail_group_key.encrypt_key(
-				&session_key_for_import_post,
-				Iv::generate(&self.randomizer_facade),
-			);
-			let import_mail_post_in = ImportMailPostIn {
-				ownerGroup: self.target_owner_group.clone(),
-				encImports: serialized_imports,
-				targetMailFolder: self.target_mail_folder.clone(),
-				ownerKeyVersion: owner_enc_sk_for_import_post.version,
-				ownerEncSessionKey: owner_enc_sk_for_import_post.object,
-				newImportedMailSetName: "@internal-imported-mailset".to_string(),
-				_finalIvs: Default::default(),
-				_format: 0,
-				_errors: None,
+				Err(too_big_chunk) => {
+					// what to do?
+					// for now move to next chunk
+					eprintln!("FIXMEE!!");
+					continue;
+				},
 			};
 
-			// distribute load accross the cluster. should be switched to read token (once it is implemented on the
-			// BlobFacade) and use ArchiveDataType::MailDetails to target one of the nodes that actually stores the
-			// data
-			let blob_service_access_info = self
-				.logged_in_sdk
-				.request_blob_facade_write_token(ArchiveDataType::Attachments)
-				.await
-				.map_err(|e| ())?;
-
-			let server_to_upload = blob_service_access_info
-				.servers
-				.last()
-				.map(|s| s.url.to_string());
-
-			let response = self
-				.logged_in_sdk
-				.get_service_executor()
-				.post::<ImportMailService>(
-					import_mail_post_in,
-					ExtraServiceParams {
-						base_url: server_to_upload,
-						session_key: Some(session_key_for_import_post),
-						..Default::default()
-					},
-				)
+			let response = import_essentials
+				.make_import_service_call(importable_post_data)
 				.await;
-
 			match response {
 				// this import has been success,
 				Ok(mut imported_post_out) => {
-					mails.append(&mut imported_post_out.mails);
-					new_state = ImportState {
-						status: ImportStatus::Running,
-						imported_mails: self
-							.local_import_state
-							.imported_mails
-							.saturating_add(u32::try_from(import_len).unwrap_or(u32::MAX)),
-					};
+					import_state.add_imported_mails_count(imported_post_out.mails.len());
+					import_state
+						.imported_mail_ids
+						.append(&mut imported_post_out.mails);
 				},
 
 				Err(err) => {
 					// todo: save the ImportableMails to some fail list,
 					// since, in this iteration the source will not give these mail again,
-					new_state = ImportState {
-						status: ImportStatus::Postponed,
-						imported_mails: self.local_import_state.imported_mails,
-					};
+					todo!()
 				},
-			}
-
-			// update server every twice post request
-			if chunk_index % 2 == 0 {
-				self.remote_import_state.status = ImportStatus::Running as i64;
-				self.update_import_state_on_server().await?;
 			}
 		}
 
-		self.remote_import_state.status = ImportStatus::Finished as i64;
-		self.update_import_state_on_server().await?;
+		import_state.change_status(ImportStatus::Finished);
+		import_state
+			.update_import_state_on_server(&import_essentials.logged_in_sdk)
+			.await?;
 
-		new_state.status = if new_state.status == ImportStatus::Postponed {
-			ImportStatus::Postponed
-		} else {
-			ImportStatus::Finished
+		Ok(())
+	}
+}
+
+impl ImportEssential {
+	const IMPORT_DISABLED_ERR: ApiCallError = ApiCallError::ServerResponseError {
+		source: HttpError::PreconditionFailedError(Some(ImportFailure(
+			ImportFailureReason::ImportDisabled,
+		))),
+	};
+
+	async fn make_serialized_chunk(
+		&self,
+		importable_chunk: Vec<UnitImport>,
+	) -> Result<(ImportMailPostIn, GenericAesKey), ApiCallError> {
+		let mut serialized_imports = Vec::with_capacity(importable_chunk.len());
+
+		for mut chunk in importable_chunk {
+			// make sure importedAttachments is empty before pushing anything
+			chunk.import_mail_data.importedAttachments =
+				Vec::with_capacity(chunk.attachments.len());
+
+			for attachment in chunk.attachments {
+				let importable_attachment = attachment.make_import_attachment_data(self);
+				chunk
+					.import_mail_data
+					.importedAttachments
+					.push(importable_attachment.await);
+			}
+
+			let serialized_import = self
+				.logged_in_sdk
+				.serialize_instance_to_json(chunk.import_mail_data, &chunk.session_key)?;
+			let wrapped_import_data = StringWrapper {
+				_id: Some(Importer::make_random_aggregate_id(&self.randomizer_facade)),
+				value: serialized_import,
+			};
+
+			serialized_imports.push(wrapped_import_data);
+		}
+
+		let session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(&self.randomizer_facade));
+		let owner_enc_sk_for_import_post = self
+			.mail_group_key
+			.encrypt_key(&session_key, Iv::generate(&self.randomizer_facade));
+
+		let post_in = ImportMailPostIn {
+			ownerGroup: self.target_owner_group.clone(),
+			encImports: serialized_imports,
+			targetMailFolder: self.target_mailset.clone(),
+			ownerKeyVersion: owner_enc_sk_for_import_post.version,
+			ownerEncSessionKey: owner_enc_sk_for_import_post.object,
+			newImportedMailSetName: "@internal-imported-mailset".to_string(),
+			_finalIvs: Default::default(),
+			_format: 0,
+			_errors: None,
 		};
 
-		self.local_import_state = new_state;
-		Ok(mails)
+		Ok((post_in, session_key))
+	}
+
+	// check if importing is allowed before preparing the import
+	async fn verify_import_feature_is_enabled(&self) -> Result<(), ImportError> {
+		let import_mail_get_in = ImportMailGetIn { _format: 0 };
+		let response = self
+			.logged_in_sdk
+			.get_service_executor()
+			// todo: instead of trying to GET ImportMailService, better to see the feature enabled for this user,
+			// so we don't have new service just for this
+			.get::<ImportMailService>(import_mail_get_in, ExtraServiceParams::default())
+			.await;
+
+		match response {
+			Ok(_) => Ok(()),
+			Err(err) if err == Self::IMPORT_DISABLED_ERR => Err(ImportError::NoImportFeature),
+			Err(e) => Err(ImportError::sdk(
+				"importService::get to check for import feature",
+				e,
+			)),
+		}
+	}
+
+	// distribute load across the cluster. should be switched to read token (once it is implemented on the
+	// BlobFacade) and use ArchiveDataType::MailDetails to target one of the nodes that actually stores the
+	// data
+	async fn get_server_url_to_upload(&self) -> Result<String, ImportError> {
+		self.logged_in_sdk
+			.request_blob_facade_write_token(ArchiveDataType::Attachments)
+			.await
+			.map_err(|e| ImportError::sdk("request blob write token", e))?
+			.servers
+			.last()
+			.map(|s| s.url.to_string())
+			.ok_or(ImportError::EmptyBlobServerList)
+	}
+
+	async fn make_import_service_call(
+		&self,
+		import_mail_data: (ImportMailPostIn, GenericAesKey),
+	) -> Result<ImportMailPostOut, ImportError> {
+		let server_to_upload = self.get_server_url_to_upload().await?;
+		let (import_mail_post_in, session_key_for_import_post) = import_mail_data;
+
+		self.logged_in_sdk
+			.get_service_executor()
+			.post::<ImportMailService>(
+				import_mail_post_in,
+				ExtraServiceParams {
+					base_url: Some(server_to_upload),
+					session_key: Some(session_key_for_import_post),
+					..Default::default()
+				},
+			)
+			.await
+			.map_err(|e| ImportError::sdk("calling ImportMailService", e))
+	}
+}
+
+impl ImportState {
+	async fn update_import_state_on_server(
+		&mut self,
+		logged_in_sdk: &LoggedInSdk,
+	) -> Result<(), ImportError> {
+		if self.last_server_update.elapsed().unwrap_or_default() > Duration::from_secs(6) {
+			logged_in_sdk
+				.mail_facade()
+				.get_crypto_entity_client()
+				.update_instance(self.remote_state.clone())
+				.await
+				.map(|_| self.last_server_update = SystemTime::now())
+				.map_err(|e| ImportError::sdk("update remote import state", e))
+		} else {
+			Ok(())
+		}
+	}
+
+	fn change_status(&mut self, status: ImportStatus) {
+		self.remote_state.status = status as i64;
+	}
+
+	fn add_imported_mails_count(&mut self, newly_imported_mails_count: usize) {
+		self.remote_state.successfulMails = self
+			.remote_state
+			.successfulMails
+			.saturating_add(newly_imported_mails_count.try_into().unwrap_or_default());
+	}
+
+	fn add_failed_mails_count(&mut self, newly_failed_mails_count: usize) {
+		self.remote_state.successfulMails = self
+			.remote_state
+			.successfulMails
+			.saturating_add(newly_failed_mails_count.try_into().unwrap_or_default());
 	}
 }
 
 impl Importer {
-	pub async fn continue_import(&mut self) -> Result<ImportState, ()> {
-		let source_iterator = ImportSourceIterator {
-			source: Arc::clone(&self.import_source),
-		};
-		let _ = self.import_all_mail(source_iterator).await;
-
-		Ok(self.local_import_state.clone())
-	}
-}
-
-impl ImporterApi {
-	fn create_new_importer(
+	pub async fn create_imap_importer(
 		logged_in_sdk: Arc<LoggedInSdk>,
 		target_owner_group: GeneratedId,
-		mail_group_key: VersionedAesKey,
-		target_mail_folder: IdTupleGenerated,
-		import_source: Arc<Mutex<ImportSource>>,
-	) -> Importer {
-		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
-		let local_import_state = ImportState::default();
-
-		let remote_import_state = entities::generated::tutanota::ImportMailState {
-			_format: Default::default(),
-			_id: Default::default(),
-			_ownerEncSessionKey: Default::default(),
-			_ownerGroup: Default::default(),
-			_ownerKeyVersion: Default::default(),
-			_permissions: Default::default(),
-			status: Default::default(),
-			targetFolder: IdTupleGenerated::new(Default::default(), Default::default()),
-			_errors: Default::default(),
-			_finalIvs: Default::default(),
+		target_mailset: IdTupleGenerated,
+		imap_config: ImapImportConfig,
+	) -> Option<Importer> {
+		let import_source = ImportSource::RemoteImap {
+			imap_import_client: ImapImport::new(imap_config),
 		};
+		let mail_group_key = logged_in_sdk
+			.get_current_sym_group_key(&target_owner_group)
+			.await
+			.ok()?;
 
-		Importer {
+		Some(Importer::new(
 			logged_in_sdk,
-			target_owner_group,
-			target_mail_folder,
-			import_source,
-			local_import_state,
-			remote_import_state,
-			randomizer_facade,
 			mail_group_key,
-		}
+			target_mailset,
+			import_source,
+			target_owner_group,
+		))
+	}
+
+	pub async fn create_file_importer(
+		logged_in_sdk: Arc<LoggedInSdk>,
+		target_owner_group: GeneratedId,
+		target_mailset: IdTupleGenerated,
+		source_paths: Vec<String>,
+	) -> Result<Importer, ImportError> {
+		let fs_email_client = FileImport::new(source_paths)
+			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
+		let import_source = ImportSource::LocalFile { fs_email_client };
+		let mail_group_key = logged_in_sdk
+			.get_current_sym_group_key(&target_owner_group)
+			.await
+			.map_err(|err| {
+				ImportError::sdk("trying to get mail group key for target owner group", err)
+			})?;
+
+		Ok(Importer::new(
+			logged_in_sdk,
+			mail_group_key,
+			target_mailset,
+			import_source,
+			target_owner_group,
+		))
 	}
 
 	pub fn new(
 		logged_in_sdk: Arc<LoggedInSdk>,
-		target_owner_group: GeneratedId,
 		mail_group_key: VersionedAesKey,
-		target_mail_folder: IdTupleGenerated,
-		import_source: Arc<Mutex<ImportSource>>,
+		target_mailset: IdTupleGenerated,
+		import_source: ImportSource,
+		target_owner_group: GeneratedId,
 	) -> Self {
+		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
 		Self {
-			inner: Arc::new(NapiTokioMutex::new(Self::create_new_importer(
+			state: ImportState {
+				last_server_update: SystemTime::now(),
+				remote_state: ImportMailState {
+					_format: Default::default(),
+					_id: Default::default(),
+					_ownerEncSessionKey: Default::default(),
+					_ownerGroup: Default::default(),
+					_ownerKeyVersion: Default::default(),
+					_permissions: Default::default(),
+					status: Default::default(),
+					failedMails: Default::default(),
+					successfulMails: Default::default(),
+					targetFolder: IdTupleGenerated::new(Default::default(), Default::default()),
+					_errors: Default::default(),
+					_finalIvs: Default::default(),
+				},
+				imported_mail_ids: vec![],
+			},
+			source: import_source,
+			essentials: ImportEssential {
 				logged_in_sdk,
 				target_owner_group,
 				mail_group_key,
-				target_mail_folder,
-				import_source,
-			))),
+				target_mailset,
+				randomizer_facade,
+			},
 		}
 	}
 
-	pub async fn continue_import_inner(&mut self) -> Result<ImportState, ()> {
-		self.inner.lock().await.continue_import().await
+	pub async fn continue_import(&mut self) -> Result<(), ImportError> {
+		let _ = self.import_all_mail().await;
+
+		Ok(())
 	}
 
-	pub async fn delete_import_inner(&mut self) -> Result<ImportState, ()> {
+	pub async fn pause_import(&mut self) -> Result<(), ImportError> {
 		todo!()
 	}
 
-	pub async fn pause_import_inner(&mut self) -> Result<ImportState, ()> {
+	pub async fn cancel_import(&mut self) -> Result<(), ImportError> {
 		todo!()
-	}
-
-	pub async fn create_file_importer_inner(
-		tuta_credentials: TutaCredentials,
-		target_owner_group: String,
-		target_mail_folder: (String, String),
-		source_paths: Vec<String>,
-	) -> napi::Result<ImporterApi> {
-		let target_owner_group = GeneratedId(target_owner_group);
-		let target_mailset = IdTupleGenerated::new(
-			GeneratedId(target_mail_folder.0),
-			GeneratedId(target_mail_folder.1),
-		);
-		let logged_in_sdk_future = Self::create_sdk(tuta_credentials);
-
-		let fs_email_client = FileImport::new(source_paths)
-			.map_err(|_e| NapiError::from_reason("Cannot create file import"))?;
-		let import_source = Arc::new(Mutex::new(ImportSource::LocalFile { fs_email_client }));
-		let logged_in_sdk = logged_in_sdk_future
-			.await
-			.map_err(|_e| NapiError::from_reason("Cannot create logged in sdk"))?;
-		let mail_group_key = logged_in_sdk
-			.get_current_sym_group_key(&target_owner_group)
-			.await
-			.map_err(|_e| NapiError::from_reason("Cannot get mail group key from sdk"))?;
-
-		Ok(ImporterApi::new(
-			logged_in_sdk,
-			target_owner_group,
-			mail_group_key,
-			target_mailset,
-			import_source,
-		))
-	}
-
-	async fn create_sdk(tuta_credentials: TutaCredentials) -> Result<Arc<LoggedInSdk>, String> {
-		let rest_client = Arc::new(
-			NativeRestClient::try_new()
-				.map_err(|e| format!("Cannot build native rest client: {e}"))?,
-		);
-
-		let logged_in_sdk = {
-			let sdk = Sdk::new(tuta_credentials.api_url.clone(), rest_client);
-
-			let sdk_credentials: Credentials = tuta_credentials
-				.clone()
-				.try_into()
-				.map_err(|_| "Cannot convert to valid credentials".to_string())?;
-			sdk.login(sdk_credentials)
-				.await
-				.map_err(|e| format!("Cannot login to sdk. Error: {:?}", e))?
-		};
-
-		Ok(logged_in_sdk)
 	}
 }
 
-// Wrapper for napi
-#[cfg(feature = "javascript")]
-#[napi_derive::napi]
-impl ImporterApi {
-	// once Self::continue_import return custom error,
-	// do the error conversion here, or in <From> trait
-	fn error_conversion<E>(_err: E) -> napi::Error {
-		todo!()
+impl ImportError {
+	pub fn sdk(action: &'static str, error: ApiCallError) -> Self {
+		Self::SdkError { action, error }
 	}
+}
 
-	#[napi]
-	pub async unsafe fn continue_import(&mut self) -> napi::Result<ImportState> {
-		self.continue_import_inner()
-			.await
-			.map_err(Self::error_conversion)
-	}
+impl From<ImportError> for napi::Error {
+	fn from(import_err: ImportError) -> Self {
+		log::error!("Unhandled error: {import_err:?}");
 
-	#[napi]
-	pub async unsafe fn delete_import(&mut self) -> napi::Result<ImportState> {
-		self.delete_import_inner()
-			.await
-			.map_err(Self::error_conversion)
-	}
-
-	#[napi]
-	pub async unsafe fn pause_import(&mut self) -> napi::Result<ImportState> {
-		self.pause_import_inner()
-			.await
-			.map_err(Self::error_conversion)
-	}
-
-	#[napi]
-	pub async fn create_file_importer(
-		tuta_credentials: TutaCredentials,
-		target_owner_group: String,
-		target_mail_folder: (String, String),
-		source_paths: Vec<String>,
-	) -> napi::Result<ImporterApi> {
-		Self::create_file_importer_inner(
-			tuta_credentials,
-			target_owner_group,
-			target_mail_folder,
-			source_paths,
-		)
-		.await
-	}
-
-	#[napi]
-	pub fn init_log(env: Env) {
-		// this is in a separate fn because Env isn't Send, so can't be used in async fn.
-		Console::init(env);
+		napi::Error::from_reason(match import_err {
+			ImportError::SdkError { .. } => "SdkError",
+			ImportError::NoImportFeature => "NoImportFeature",
+			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
+				"Malformed server response"
+			},
+			ImportError::NoNativeRestClient(_) | ImportError::IterationError(_) => "IoError",
+			ImportError::CredentialValidationError(_) | ImportError::LoginError(_) => {
+				"Not a valid login"
+			},
+		})
 	}
 }
 
@@ -697,7 +619,6 @@ mod tests {
 		.await
 		.unwrap();
 
-		let import_source = Arc::new(Mutex::new(import_source));
 		let target_mail_folder = get_test_import_folder_id(&logged_in_sdk, MailSetKind::Archive)
 			.await
 			._id
@@ -713,12 +634,12 @@ mod tests {
 			.await
 			.unwrap();
 
-		ImporterApi::create_new_importer(
+		Importer::new(
 			logged_in_sdk,
-			target_owner_group,
 			mail_group_key,
 			target_mail_folder,
 			import_source,
+			target_owner_group,
 		)
 	}
 
@@ -743,8 +664,17 @@ mod tests {
 	}
 
 	pub async fn init_file_importer(source_paths: Vec<String>) -> Importer {
+		let files = source_paths
+			.into_iter()
+			.map(|file_name| {
+				format!(
+					"{}/tests/resources/testmail/{file_name}",
+					env!("CARGO_MANIFEST_DIR")
+				)
+			})
+			.collect();
 		let import_source = ImportSource::LocalFile {
-			fs_email_client: FileImport::new(source_paths).unwrap(),
+			fs_email_client: FileImport::new(files).unwrap(),
 		};
 		init_importer(import_source).await
 	}
@@ -758,18 +688,12 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_first.as_str());
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
-		let import_res = importer.continue_import().await.map_err(|_| ());
-		assert_eq!(
-			Ok(ImportState {
-				status: ImportStatus::Finished,
-				imported_mails: 2,
-			}),
-			import_res
-		);
-		assert_eq!(
-			importer.remote_import_state.status,
-			ImportStatus::Finished as i64
-		);
+		importer.continue_import().await.map_err(|_| ()).unwrap();
+		let remote_state = importer.get_remote_state();
+
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 2);
 	}
 
 	#[tokio::test]
@@ -779,54 +703,33 @@ mod tests {
 		let email = sample_email("Single email".to_string());
 		greenmail.store_mail("sug@example.org", email.as_str());
 
-		let import_res = importer.continue_import().await.map_err(|_| ());
-		assert_eq!(
-			Ok(ImportState {
-				status: ImportStatus::Finished,
-				imported_mails: 1,
-			}),
-			import_res
-		);
-		assert_eq!(
-			importer.remote_import_state.status,
-			ImportStatus::Finished as i64
-		);
+		importer.continue_import().await.map_err(|_| ()).unwrap();
+		let remote_state = importer.get_remote_state();
+
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
 	}
 
 	#[tokio::test]
 	async fn can_import_single_eml_file_without_attachment() {
-		let mut importer = init_file_importer(vec!["./test/sample.eml".to_string()]).await;
+		let mut importer = init_file_importer(vec!["sample.eml".to_string()]).await;
+		importer.continue_import().await.map_err(|_| ()).unwrap();
+		let remote_state = importer.get_remote_state();
 
-		let import_res = importer.continue_import().await.map_err(|_| ());
-		assert_eq!(
-			Ok(ImportState {
-				status: ImportStatus::Finished,
-				imported_mails: 1,
-			}),
-			import_res
-		);
-		assert_eq!(
-			importer.remote_import_state.status,
-			ImportStatus::Finished as i64
-		);
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
 	}
 
 	#[tokio::test]
 	async fn can_import_single_eml_file_with_attachment() {
-		let mut importer =
-			init_file_importer(vec!["./test/attachment_sample.eml".to_string()]).await;
+		let mut importer = init_file_importer(vec!["attachment_sample.eml".to_string()]).await;
+		importer.continue_import().await.map_err(|_| ()).unwrap();
+		let remote_state = importer.get_remote_state();
 
-		let import_res = importer.continue_import().await.map_err(|_| ());
-		assert_eq!(
-			Ok(ImportState {
-				status: ImportStatus::Finished,
-				imported_mails: 1,
-			}),
-			import_res
-		);
-		assert_eq!(
-			importer.remote_import_state.status,
-			ImportStatus::Finished as i64
-		);
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
 	}
 }

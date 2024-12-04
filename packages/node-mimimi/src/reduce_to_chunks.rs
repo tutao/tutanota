@@ -1,117 +1,150 @@
+use crate::importer::importable_mail::{ImportableMail, ImportableMailAttachment};
 use std::iter::Peekable;
-use std::ops::Deref;
+use tutasdk::crypto::aes;
+use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
+use tutasdk::crypto::randomizer_facade::RandomizerFacade;
+use tutasdk::entities::generated::tutanota::ImportMailData;
 
-struct ChunkingIterator<Inner, Element>
-where
-	Inner: Iterator + Send,
-	Element: Send,
-{
-	inner: Peekable<Inner>,
-	max_size: usize,
-	sizer: Box<dyn Fn(&Element) -> usize + Send>,
+pub struct UnitImport {
+	pub import_mail_data: ImportMailData,
+	pub attachments: Vec<ImportableMailAttachment>,
+	pub session_key: GenericAesKey,
 }
 
-impl<Inner, Element> Iterator for ChunkingIterator<Inner, Element>
-where
-	Inner: Iterator<Item = Element> + Send,
-	Element: Send,
-{
-	type Item = Vec<Element>;
-	fn next(&mut self) -> Option<Self::Item> {
-		let seq = &mut self.inner;
-		let mut element = seq.peek()?;
+impl UnitImport {
+	pub fn create_from_importable_mail(
+		randomizer_facade: &RandomizerFacade,
+		mail_group_key: &VersionedAesKey,
+		mut importable_mail: ImportableMail,
+	) -> Self {
+		let session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(randomizer_facade));
+		let owner_enc_session_key =
+			mail_group_key.encrypt_key(&session_key, aes::Iv::generate(randomizer_facade));
 
-		let mut chunk: Vec<Element> = Vec::new();
-		let mut current_chunk_size = 0_usize;
-		loop {
-			let element_size = self.sizer.deref()(element);
-			if element_size > self.max_size {
-				// this element is too big for one chunk. we might just ignore that and make a
-				// one-element chunk that fails to upload, or we stop iteration here.
-				// this discards any elements already in the chunk
-				return None;
-			}
-			let new_chunk_size = current_chunk_size.saturating_add(element_size);
-			if new_chunk_size > self.max_size {
-				// chunk is full - this element goes into the next chunk.
-				// because we used peek() it'll still be available for the next call to this function.
-				return Some(chunk);
-			} else {
-				current_chunk_size = new_chunk_size;
-				chunk.push(
-					seq.next()
-						.expect("got None from next even though peek() gave Some"),
-				);
-				element = match seq.peek() {
-					None => break,
-					Some(e) => e,
-				};
-			}
+		let attachments = importable_mail.take_out_attachments();
+		let import_mail_data = importable_mail
+			.make_import_mail_data(owner_enc_session_key.object, owner_enc_session_key.version);
+
+		UnitImport {
+			import_mail_data,
+			attachments,
+			session_key,
 		}
-		Some(chunk)
 	}
 }
-/// split a given vector of elements into a vector of chunks not exceeding max_size, where the
-/// chunks size is calculated by summing up the elements sizes as given by the sizer function.
-///
-/// the number of chunks is not guaranteed to be optimal.
-pub fn reduce_to_chunks<'element, Element: 'element + Send>(
-	seq: impl Iterator<Item = Element> + Send,
-	max_size: usize,
-	sizer: Box<dyn Send + Fn(&Element) -> usize>,
-) -> impl Iterator<Item = Vec<Element>> + Send {
-	ChunkingIterator {
-		inner: seq.peekable(),
-		max_size,
-		sizer,
+
+pub struct Butcher<
+	// Butcher will gurantee every chunk is equal or less than this limit
+	const CHUNK_LIMIT: usize,
+	// type of element which is to be chunked
+	ResolvingElement,
+	// streamer for all the ResolvingElement till end
+	Source: Iterator<Item = ResolvingElement>,
+> {
+	// Butcher will try to adjust every element into one chunk,
+	// but if CHUNK_LIMIT is surpassed, it should put the element back in same position it was before,
+	// hence, we should be able to peek one element ahead
+	provider: Peekable<Source>,
+
+	// given a ResolvingElement, estimate it's size
+	sizer: fn(&ResolvingElement) -> usize,
+}
+
+impl<const CL: usize, Re, Src: Iterator<Item = Re>> Butcher<CL, Re, Src> {
+	pub fn new(source: Src, sizer: fn(&Re) -> usize) -> Self {
+		Self {
+			provider: source.peekable(),
+			sizer,
+		}
+	}
+}
+
+impl<const CHUNK_LIMIT: usize, ResolvingElement, Source> Iterator
+	for Butcher<CHUNK_LIMIT, ResolvingElement, Source>
+where
+	Source: Iterator<Item = ResolvingElement>,
+{
+	type Item = Result<Vec<ResolvingElement>, ResolvingElement>;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		let Self { provider, sizer } = self;
+		let mut imports_in_this_chunk = Vec::new();
+
+		let mut cumulative_import_size: usize = 0;
+		while let Some(next_element_to_include) = provider.peek() {
+			cumulative_import_size =
+				cumulative_import_size.saturating_add(sizer(next_element_to_include));
+
+			if cumulative_import_size <= CHUNK_LIMIT {
+				let next_element_to_include =
+					provider.next().expect("was peekable item must be there");
+				imports_in_this_chunk.push(next_element_to_include);
+			} else {
+				break;
+			}
+		}
+
+		let item = if imports_in_this_chunk.is_empty() {
+			let too_big_import = self.provider.next()?;
+			// not a single item was added to chunk,
+			// because single chunk was too big, return as-is as failure,
+			Err(too_big_import)
+		} else {
+			Ok(imports_in_this_chunk)
+		};
+		Some(item)
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::reduce_to_chunks::reduce_to_chunks;
+	use super::*;
+
+	fn run_butcher<const L: usize>(data: Vec<usize>) -> Vec<Result<Vec<usize>, usize>> {
+		Butcher::<L, usize, std::vec::IntoIter<usize>>::new(data.into_iter(), usize::clone)
+			.into_iter()
+			.collect()
+	}
 
 	#[test]
-	fn reduce_to_chunks_simple() {
+	fn should_optimize_for_maximum_chunk() {
 		assert_eq!(
-			vec![vec![1, 2, 3], vec![4], vec![5], vec![6]],
-			reduce_to_chunks::<usize>(
-				vec![1, 2, 3, 4, 5, 6].into_iter(),
-				6,
-				Box::new(|item| { *item })
-			)
-			.collect::<Vec<Vec<usize>>>()
+			run_butcher::<6>(vec![1, 2, 3, 4, 5, 6]),
+			vec![Ok(vec![1, 2, 3]), Ok(vec![4]), Ok(vec![5]), Ok(vec![6])]
 		);
 	}
 
 	#[test]
-	fn reduce_to_chunks_no_split() {
+	fn should_err_on_too_big_of_chunk() {
 		assert_eq!(
-			vec![vec![1, 2, 3, 4, 5, 6],],
-			reduce_to_chunks::<usize>(
-				vec![1, 2, 3, 4, 5, 6].into_iter(),
-				21,
-				Box::new(|item| { *item })
-			)
-			.collect::<Vec<Vec<usize>>>()
+			run_butcher::<6>(vec![0, 2, 10, 1, 2, 3]),
+			vec![Ok(vec![0, 2]), Err(10), Ok(vec![1, 2, 3])]
 		);
 	}
 
 	#[test]
-	fn reduce_to_chunks_empty() {
+	fn element_with_maximum_size_is_accepted() {
 		assert_eq!(
-			Vec::<Vec<usize>>::new(),
-			reduce_to_chunks::<usize>(vec![].into_iter(), 0, Box::new(|item| { *item }))
-				.collect::<Vec<Vec<usize>>>()
+			run_butcher::<5>(vec![5, 5, 1, 4, 1]),
+			vec![Ok(vec![5]), Ok(vec![5]), Ok(vec![1, 4]), Ok(vec![1])]
 		);
 	}
 
 	#[test]
-	fn split_too_big() {
+	fn should_greedy_chunk() {
 		assert_eq!(
-			Vec::<Vec<usize>>::new(),
-			reduce_to_chunks::<usize>(vec![1, 10, 11].into_iter(), 2, Box::new(|item| { *item }))
-				.collect::<Vec<Vec<usize>>>()
+			run_butcher::<10_000>(vec![2; 5_000]),
+			vec![Ok(vec![2; 5_000])]
 		);
+	}
+
+	#[test]
+	fn should_accept_empty_source() {
+		assert_eq!(run_butcher::<10>(vec![]), vec![]);
+	}
+
+	#[test]
+	fn should_accept_all_big_source() {
+		assert_eq!(run_butcher::<5>(vec![6; 10]), vec![Err(6); 10]);
 	}
 }

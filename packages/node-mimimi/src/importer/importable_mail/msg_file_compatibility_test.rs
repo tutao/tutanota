@@ -10,7 +10,10 @@ use tutasdk::date::DateTime;
 
 #[test]
 fn mime_tools_test_messages() {
-	const DATA_DIR: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/mimetools-testmsgs");
+	const DATA_DIR: &'static str = concat!(
+		env!("CARGO_MANIFEST_DIR"),
+		"/tests/resources/mimetools-testmsgs"
+	);
 	let source_message_paths = std::fs::read_dir(DATA_DIR)
 		.unwrap()
 		.map(Result::unwrap)

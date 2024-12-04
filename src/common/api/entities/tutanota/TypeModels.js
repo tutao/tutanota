@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.
+// You should not use it directly, please use `resolveTypReference()` instead.	
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -4676,94 +4676,6 @@ export const typeModels = {
 		},
 		"app": "tutanota",
 		"version": "79"
-	},
-	"ImportMailState": {
-		"name": "ImportMailState",
-		"since": 78,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1565,
-		"rootId": "CHR1dGFub3RhAAYd",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1569,
-				"since": 78,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1567,
-				"since": 78,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1571,
-				"since": 78,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1570,
-				"since": 78,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1572,
-				"since": 78,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1568,
-				"since": 78,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"status": {
-				"final": false,
-				"name": "status",
-				"id": 1573,
-				"since": 78,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"targetFolder": {
-				"final": true,
-				"name": "targetFolder",
-				"id": 1574,
-				"since": 78,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "78"
 	},
 	"InboxRule": {
 		"name": "InboxRule",

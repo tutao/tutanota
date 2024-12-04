@@ -3,7 +3,6 @@
 import { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
 import { PersistedCredentials } from "./PersistedCredentials.js"
 import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
-
 /**
  * Operations for credential encryption operations using OS keychain.
  */

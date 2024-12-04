@@ -1,4 +1,4 @@
-use crate::tuta_imap::utils::BufReadExtension;
+use crate::BufReadExtension;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
 use rustls::{ClientConfig, ClientConnection, DigitallySignedStruct, Error, SignatureScheme};
@@ -51,7 +51,7 @@ impl TlsStream {
 		Ok(line_until_crlf)
 	}
 
-	pub fn read_exact(&mut self, target: &mut Vec<u8>) -> std::io::Result<()> {
+	pub fn read_exact(&mut self, target: &mut [u8]) -> std::io::Result<()> {
 		self.buffer_controller.read_exact(target)
 	}
 }

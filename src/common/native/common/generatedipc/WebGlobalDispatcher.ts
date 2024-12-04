@@ -14,7 +14,6 @@ export class WebGlobalDispatcher {
 	private readonly desktopFacade: DesktopFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
 	private readonly mobileFacade: MobileFacadeReceiveDispatcher
-
 	constructor(
 		commonNativeFacade: CommonNativeFacade,
 		desktopFacade: DesktopFacade,

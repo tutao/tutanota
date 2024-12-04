@@ -46,7 +46,7 @@
 					"filePaths": "List<string>"
 				}
 			],
-			"ret": "string"
+			"ret": "void"
 		}
 	}
 }
