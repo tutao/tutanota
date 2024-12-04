@@ -23,12 +23,7 @@ export class WebMobileFacade implements MobileFacade {
 
 	private isAppVisible: stream<boolean> = stream(false)
 
-	constructor(
-		private readonly connectivityModel: WebsocketConnectivityModel,
-		private readonly mailboxModel: MailboxModel,
-		private readonly baseViewPrefix: string,
-		private readonly mailBackNewRoute?: (currentRoute: string) => Promise<string | null>,
-	) {}
+	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly baseViewPrefix: string) {}
 
 	public getIsAppVisible(): stream<boolean> {
 		return this.isAppVisible
@@ -84,15 +79,6 @@ export class WebMobileFacade implements MobileFacade {
 				// go back to mail or calendar from other paths
 				m.route.set(this.baseViewPrefix)
 				return true
-			} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
-				if (currentRoute.startsWith(MAIL_PREFIX) && this.mailBackNewRoute) {
-					const newRoute = await this.mailBackNewRoute(currentRoute)
-					if (newRoute) {
-						m.route.set(newRoute)
-						return true
-					}
-				}
-				return false
 			} else {
 				return false
 			}

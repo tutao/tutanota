@@ -640,7 +640,7 @@ class CalendarLocator {
 			const openCalendarHandler = new OpenCalendarHandler(this.logins)
 			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, this.mailboxModel, CALENDAR_PREFIX)
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
