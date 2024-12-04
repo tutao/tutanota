@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import type { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -407,8 +407,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (listModel && listModel.state.inMultiselect) {
 			listModel.selectNone()
 			return true
+		} else if (this.viewSlider.isFirstBackgroundColumnFocused()) {
+			const folder = this.mailViewModel.getFolder()
+			if (folder == null || getMailFolderType(folder) !== MailSetKind.INBOX) {
+				this.mailViewModel.switchToFolder(MailSetKind.INBOX)
+				return true
+			} else {
+				return false
+			}
+		} else {
+			return false
 		}
-		return false
 	}
 
 	private renderHeaderRightView(): Children {
