@@ -401,6 +401,42 @@ function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 	return newDates
 }
 
+function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+	if (parsedRules.length === 0) {
+		return dates
+	}
+
+	const newDates: DateTime[] = []
+	for (const rule of parsedRules) {
+		for (const date of dates) {
+			if (!date.isValid) {
+				console.warn("Invalid event date", date)
+				continue
+			}
+
+			const targetDay = Number.parseInt(rule.interval)
+
+			if (Number.isNaN(targetDay)) {
+				console.warn("Invalid BYMONTHDAY rule for date", date)
+				continue
+			}
+
+			if (targetDay >= 0) {
+				newDates.push(date.set({ day: targetDay }))
+				continue
+			}
+
+			const daysDiff = date.daysInMonth! - Math.abs(targetDay)
+
+			if (daysDiff > 0) {
+				newDates.push(date.set({ day: daysDiff }))
+			}
+		}
+	}
+
+	return newDates
+}
+
 function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], validMonths: number[]): DateTime[] {
 	if (parsedRules.length === 0) {
 		return dates
@@ -984,13 +1020,14 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 		} else if (frequency === RepeatPeriod.MONTHLY) {
 			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
 			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
+			const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
 			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
 			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
 
 			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.MONTHLY)
-
+			const monthDayAppliedEvents = applyByMonthDay(monthAppliedEvents, byMonthDayRules)
 			const events = applyByDayRules(
-				monthAppliedEvents,
+				monthDayAppliedEvents,
 				byDayRules,
 				RepeatPeriod.MONTHLY,
 				validMonths,
