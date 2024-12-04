@@ -23,11 +23,16 @@ import { ImportMailState, ImportMailStateTypeRef } from "../../common/api/entiti
 import { GENERATED_MAX_ID, isSameId } from "../../common/api/common/utils/EntityUtils"
 import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
+import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
+import { UserController } from "../../common/api/main/UserController.js"
 
+/**
+ * Settings viewer for Import
+ * This Viewer includes its own ViewModel logic because of its small size
+ */
 export class ImportViewer implements UpdatableSettingsViewer {
 	private mailboxModel: MailboxModel
 	private mailModel: MailModel
-
 	private mailboxDetail: MailboxDetail | null = null
 	private selectedTargetFolder: IndentedFolder | undefined
 	private fileApp: NativeFileApp | null
@@ -35,19 +40,28 @@ export class ImportViewer implements UpdatableSettingsViewer {
 	private expanded: boolean = false
 	private entityClient: EntityClient
 	private importMailStates: Array<ImportMailState> = []
-
 	private indentedFolders: Array<IndentedFolder> = []
+	private userController: UserController
 
-	constructor(mailboxModel: MailboxModel, mailModel: MailModel, fileApp: NativeFileApp | null, mailImporter: Importer, entityClient: EntityClient) {
+	constructor(
+		mailboxModel: MailboxModel,
+		mailModel: MailModel,
+		fileApp: NativeFileApp | null,
+		mailImporter: Importer,
+		entityClient: EntityClient,
+		userController: UserController,
+	) {
 		this.mailboxModel = mailboxModel
 		this.mailModel = mailModel
 		this.fileApp = fileApp
 		this.mailImporter = mailImporter
 		this.entityClient = entityClient
+		this.userController = userController
 	}
 
 	async oninit(): Promise<void> {
-		if (isDesktop()) {
+		if (isDesktop() || !this.userController.isFreeAccount()) {
+			this.mailboxDetail = await this.getFirstMailBoxDetails()
 			this.indentedFolders = await this.getIndentedFolders()
 			this.selectedTargetFolder = this.indentedFolders.find((f) => getMailFolderType(f.folder) === MailSetKind.INBOX)
 			if (this.mailboxDetail) {
@@ -66,8 +80,19 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
+	/**
+	 * Gets the first mailbox details (aka the first, main mailbox)
+	 * @private
+	 */
+	private async getFirstMailBoxDetails() {
+		return first(await this.mailboxModel.getMailboxDetails())
+	}
+
+	/**
+	 * Gets all folders in the currently set mailbox
+	 * @private
+	 */
 	private async getIndentedFolders(): Promise<Array<IndentedFolder>> {
-		this.mailboxDetail = first(await this.mailboxModel.getMailboxDetails())
 		if (this.mailboxDetail) {
 			const groupId = this.mailboxDetail.mailGroup._id
 			const folderSystem = this.mailModel.getFolderSystemByGroupId(groupId)
@@ -78,7 +103,42 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		throw new Error("Init went wrong")
 	}
 
-	private getRecentImportsTableLines(): Array<TableLineAttrs> {
+	private async onFolderDropdownSelect(dom: HTMLElement) {
+		if (this.userController.isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+			return
+		}
+		this.mailboxDetail = await this.getFirstMailBoxDetails()
+		const folderInfos = await this.getIndentedFolders()
+		await showMailFolderDropdown(dom.getBoundingClientRect(), folderInfos as FolderInfo[], (folder) => {
+			this.selectedTargetFolder = folder
+			console.log(this.selectedTargetFolder)
+			m.redraw()
+		})
+	}
+
+	private async onImportButtonClick(dom: HTMLElement) {
+		if (this.userController.isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+			return
+		}
+		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
+
+		if (this.selectedTargetFolder && this.mailboxDetail) {
+			await this.mailImporter.importFromFiles(
+				this.selectedTargetFolder.folder,
+				this.mailboxDetail,
+				filePaths.map((fp) => fp.location),
+			)
+		}
+	}
+
+	/**
+	 * Parses the importMailStates into displayable table lines.
+	 * Returns array of the parsed table lines
+	 * @private
+	 */
+	private parseRecentImportsToTableLines(): Array<TableLineAttrs> {
 		if (isEmpty(this.indentedFolders)) {
 			return []
 		}
@@ -98,21 +158,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		return m(
 			".fill-absolute.scroll.plr-l.pb-xl",
 			m(".h4.mt-l", "Email import"),
-			isDesktop()
-				? [this.renderImportControls(), this.renderImportInfoText(), this.renderRecentImports()]
-				: [
-						m(
-							".pb.mt-l",
-							m("img.height-100p", {
-								src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/main.png`,
-								alt: "",
-								rel: "noreferrer",
-								loading: "lazy",
-								decoding: "async",
-							}),
-						),
-						this.renderNoImportOnWebText(),
-				  ],
+			isDesktop() ? [this.renderImportControls(), this.renderImportInfoText(), this.renderRecentImports()] : [this.renderNoImportOnWebText()],
 		)
 	}
 
@@ -128,7 +174,6 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					},
 				}),
 			]),
-
 			m(
 				ExpanderPanel,
 				{
@@ -138,7 +183,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					columnHeading: [() => "Import Instance", "state_label"],
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 					showActionButtonColumn: true,
-					lines: this.getRecentImportsTableLines(),
+					lines: this.parseRecentImportsToTableLines(),
 				}),
 			),
 		]
@@ -150,6 +195,16 @@ export class ImportViewer implements UpdatableSettingsViewer {
 
 	private renderNoImportOnWebText() {
 		return [
+			m(
+				".pb.mt-l",
+				m("img.height-100p", {
+					src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/main.png`,
+					alt: "",
+					rel: "noreferrer",
+					loading: "lazy",
+					decoding: "async",
+				}),
+			),
 			m(
 				"p",
 				"Please download our desktop client to get started with the Email Import." + " ",
@@ -172,49 +227,28 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					title: "move_action",
 					icon: Icons.Folder,
 					size: ButtonSize.Compact,
-					click: async (e, dom) => {
-						const folderInfos = await this.getIndentedFolders()
-						await showMailFolderDropdown(dom.getBoundingClientRect(), folderInfos as FolderInfo[], (folder) => {
-							this.selectedTargetFolder = folder
-							console.log(this.selectedTargetFolder)
-							m.redraw()
-						})
-					},
+					click: async (_, dom) => await this.onFolderDropdownSelect(dom),
 				}),
 		}
 
 		return [
 			m(TextField, importSelectionAttrs),
 			m(
-				".flex.center-horizontally.center-vertically.col.mt-l",
-				m(
-					".pb",
-					{
-						style: {
-							width: "200px",
-						},
-					},
-					m(LoginButton, {
-						class: "text-ellipsis",
-						label: () => "Select files to import",
-						onclick: async (e, dom) => {
-							const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
-
-							if (this.selectedTargetFolder && this.mailboxDetail) {
-								await this.mailImporter.importFromFiles(
-									this.selectedTargetFolder.folder,
-									this.mailboxDetail,
-									filePaths.map((fp) => fp.location),
-								)
-							}
-						},
-					}),
-				),
+				".flex.center-horizontally.center-vertically.col.mt-l.pb",
+				m(LoginButton, {
+					class: "text-ellipsis max-width-200",
+					label: () => "Select files to import",
+					onclick: async (_, dom) => await this.onImportButtonClick(dom),
+				}),
 			),
 		]
 	}
 }
 
+/**
+ * Parses mail ImportStatus into its corresponding translated label
+ * @param state
+ */
 export function getMailImportStatusName(state: ImportStatus): TranslationText {
 	switch (state) {
 		case ImportStatus.Finished:
