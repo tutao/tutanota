@@ -70,7 +70,7 @@ mod mail_facade;
 mod metamodel;
 
 pub mod bindings;
-mod blobs;
+pub mod blobs;
 mod id;
 #[cfg(feature = "net")]
 pub mod net;

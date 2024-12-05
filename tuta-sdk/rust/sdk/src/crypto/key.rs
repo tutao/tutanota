@@ -58,7 +58,7 @@ impl Debug for AsymmetricKeyPair {
 	}
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum GenericAesKey {
 	Aes128(Aes128Key),
 	Aes256(Aes256Key),

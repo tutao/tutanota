@@ -38,6 +38,17 @@ impl GeneratedId {
 		// ideally should return a ref to a static id
 		GeneratedId("zzzzzzzzzzzz".to_owned())
 	}
+
+	#[cfg(test)]
+	#[must_use]
+	pub fn unencoded_max_id_bytes() -> [u8; GENERATED_ID_BYTES_LENGTH] {
+		[255; GENERATED_ID_BYTES_LENGTH]
+	}
+	#[cfg(test)]
+	#[must_use]
+	pub fn unencoded_min_id_bytes() -> [u8; GENERATED_ID_BYTES_LENGTH] {
+		[0; GENERATED_ID_BYTES_LENGTH]
+	}
 }
 
 impl From<GeneratedId> for String {

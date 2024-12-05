@@ -2,6 +2,10 @@ use crate::bindings::rest_client::HttpMethod::POST;
 use crate::bindings::rest_client::RestClient;
 use crate::bindings::rest_client::{RestClientOptions, RestResponse};
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
+use crate::blobs::binary_blob_wrapper_serializer::{
+	serialize_new_blobs_in_binary_chunks, KeyedNewBlobWrapper, NewBlobWrapper,
+	MAX_NUMBER_OF_BLOBS_IN_BINARY,
+};
 use crate::blobs::blob_access_token_cache::BlobWriteTokenKey;
 #[cfg_attr(test, mockall_double::double)]
 use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
@@ -15,12 +19,15 @@ use crate::instance_mapper::InstanceMapper;
 use crate::json_element::RawEntity;
 use crate::json_serializer::JsonSerializer;
 use crate::rest_error::HttpError;
-use crate::tutanota_constants::{ArchiveDataType, MAX_BLOB_SIZE_BYTES};
+use crate::tutanota_constants::{
+	ArchiveDataType, MAX_BLOB_SERVICE_BYTES, MAX_UNENCRYPTED_BLOB_SIZE_BYTES,
+};
 use crate::type_model_provider::init_type_model_provider;
 use crate::GeneratedId;
 use crate::{crypto, ApiCallError, HeadersProvider};
 use base64::Engine;
 use crypto::sha256;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 const BLOB_SERVICE_REST_PATH: &str = "/rest/storage/blobservice";
@@ -34,13 +41,19 @@ pub struct BlobFacade {
 	instance_mapper: Arc<InstanceMapper>,
 	json_serializer: Arc<JsonSerializer>,
 }
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct FileData {
+	pub session_key: GenericAesKey,
+	pub data: Vec<u8>,
+}
+
 impl BlobFacade {
 	pub(crate) fn new(
 		blob_access_token_facade: BlobAccessTokenFacade,
 		rest_client: Arc<dyn RestClient>,
 		randomizer_facade: RandomizerFacade,
 		auth_headers_provider: Arc<HeadersProvider>,
-
 		instance_mapper: Arc<InstanceMapper>,
 		json_serializer: Arc<JsonSerializer>,
 	) -> Self {
@@ -54,22 +67,53 @@ impl BlobFacade {
 		}
 	}
 
-	pub async fn encrypt_and_upload(
+	/// Encrypt and upload multiple file_data (i.e. files) in minimum amount of requests to
+	/// the BlobService. Multiple blobs are serialized into one or more binary chunk(s) using
+	/// {@link serialize_new_blobs_in_binary_chunks} and uploaded in less requests.
+	/// * A single request may not exceed 10MiB in **request size**
+	/// * A single blob (multiple concatenating blobs represent a single file) may not exceed 10MiB in size
+	///
+	/// @Returns: list of BlobReferenceTokenWrapper per FileData
+	///
+	/// Note: This method should completely replace {@link encrypt_and_upload_single} in the future.
+	///
+	/// Examples: "encrypt and upload multiple attachments"
+	///
+	/// Example 1: [a1: 9MiB, a2: 2MiB, a3: 3MiB] -> [[a1: token1], [a2: token1], [a3: token1]]
+	/// * request 1: [a1: 9MiB] -> [a1: token1]
+	/// * request 2: [a2: 2MiB, a3: 3MiB] -> [a2: token1, a3: token1]
+	///
+	/// Example 2: [a1: 13MiB, a2: 2MiB, a3: 3MiB] -> [[a1: token1, a1: token2], [a2:token1], [a3:token1]]
+	/// * request 1: [a1.1: 10MiB] -> [a1:token1]
+	/// * request 2: [a1.2: 3MiB, a2: 2MiB, a3: 3MiB] -> [a1: token2, a2:token1, a3:token1]
+	///
+	pub async fn encrypt_and_upload_multiple(
 		&self,
 		archive_data_type: ArchiveDataType,
 		owner_group_id: &GeneratedId,
-		session_key: &GenericAesKey,
-		blob_data: Vec<u8>,
-	) -> Result<Vec<BlobReferenceTokenWrapper>, ApiCallError> {
-		let chunks = blob_data.chunks(MAX_BLOB_SIZE_BYTES);
-		let mut blob_reference_token_wrappers: Vec<BlobReferenceTokenWrapper> =
-			Vec::with_capacity(chunks.len());
+		file_data: Vec<&FileData>,
+	) -> Result<Vec<Vec<BlobReferenceTokenWrapper>>, ApiCallError> {
+		let mut session_key_to_reference_tokens: HashMap<
+			&GenericAesKey,
+			Vec<BlobReferenceTokenWrapper>,
+		> = HashMap::from_iter(
+			file_data
+				.iter()
+				.map(|wrapper| (&wrapper.session_key, vec![])),
+		);
 
-		for chunk in chunks {
-			let wrapper_result = self
-				.encrypt_and_upload_chunk(archive_data_type, owner_group_id, session_key, chunk)
+		let keyed_new_blob_wrappers = self.encrypt_multiple_file_data(file_data.as_slice())?;
+		let serialized_binaries = serialize_new_blobs_in_binary_chunks(
+			keyed_new_blob_wrappers,
+			MAX_BLOB_SERVICE_BYTES,
+			MAX_NUMBER_OF_BLOBS_IN_BINARY,
+		);
+		for serialized_binary in serialized_binaries {
+			let binary_slice = serialized_binary.binary.as_slice();
+			let result = self
+				.upload_multiple_blobs(archive_data_type, owner_group_id, binary_slice)
 				.await;
-			let wrapper = match wrapper_result {
+			let blob_reference_tokens = match result {
 				// token was probably expired, we're getting a new one and try again.
 				Err(ApiCallError::ServerResponseError {
 					source: HttpError::NotAuthorizedError,
@@ -79,30 +123,74 @@ impl BlobFacade {
 							owner_group_id,
 							archive_data_type,
 						));
-					self.encrypt_and_upload_chunk(
-						archive_data_type,
-						owner_group_id,
-						session_key,
-						chunk,
-					)
-					.await?
+					self.upload_multiple_blobs(archive_data_type, owner_group_id, binary_slice)
+						.await?
 				},
 				Err(err) => return Err(err),
-				Ok(wrapper) => wrapper,
+				Ok(tokens) => tokens,
 			};
-			blob_reference_token_wrappers.push(wrapper)
+
+			for it in serialized_binary
+				.session_keys
+				.iter()
+				.zip(blob_reference_tokens.into_iter())
+			{
+				let (session_key, reference_token) = it;
+				let vec = session_key_to_reference_tokens
+					.get_mut(session_key)
+					.expect("file session key is missing");
+				vec.push(reference_token);
+			}
 		}
 
-		Ok(blob_reference_token_wrappers)
+		let mut reference_tokens_per_file_data: Vec<Vec<BlobReferenceTokenWrapper>> =
+			Vec::with_capacity(session_key_to_reference_tokens.len());
+
+		// We need to return our token vectors in the same order we got the file_data
+		for file_datum in file_data {
+			let session_key = &file_datum.session_key;
+			let reference_tokens = session_key_to_reference_tokens
+				.remove(&session_key)
+				.expect("file session key is missing when sorting reference tokens");
+			reference_tokens_per_file_data.push(reference_tokens);
+		}
+
+		Ok(reference_tokens_per_file_data)
 	}
 
-	async fn encrypt_and_upload_chunk(
+	pub fn encrypt_multiple_file_data(
+		&self,
+		file_data: &[&FileData],
+	) -> Result<Vec<KeyedNewBlobWrapper>, ApiCallError> {
+		let mut keyed_new_blob_wrappers = Vec::new();
+		for file_datum in file_data {
+			let data_chunks = file_datum.data.chunks(MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
+			for chunk in data_chunks {
+				let encrypted_chunk = file_datum
+					.session_key
+					.encrypt_data(chunk, Iv::generate(&self.randomizer_facade))
+					.map_err(|e| ApiCallError::internal_with_err(e, "Cannot encrypt chunk"))?;
+				let short_hash: Vec<u8> = sha256(&encrypted_chunk).into_iter().take(6).collect();
+
+				keyed_new_blob_wrappers.push(KeyedNewBlobWrapper {
+					session_key: file_datum.session_key.clone(),
+					new_blob_wrapper: NewBlobWrapper {
+						hash: short_hash,
+						data: encrypted_chunk,
+					},
+				})
+			}
+		}
+
+		Ok(keyed_new_blob_wrappers)
+	}
+
+	async fn upload_multiple_blobs(
 		&self,
 		archive_data_type: ArchiveDataType,
 		owner_group_id: &GeneratedId,
-		session_key: &GenericAesKey,
-		chunk: &[u8],
-	) -> Result<BlobReferenceTokenWrapper, ApiCallError> {
+		serialized_binary: &[u8],
+	) -> Result<Vec<BlobReferenceTokenWrapper>, ApiCallError> {
 		let BlobServerAccessInfo {
 			servers,
 			blobAccessToken: blob_access_token,
@@ -112,10 +200,7 @@ impl BlobFacade {
 			.request_write_token(archive_data_type, owner_group_id)
 			.await?;
 
-		let encrypted_chunk = session_key
-			.encrypt_data(chunk, Iv::generate(&self.randomizer_facade))
-			.map_err(|_e| ApiCallError::internal(String::from("failed to encrypt chunk")))?;
-		let query_params = self.create_query_params(&encrypted_chunk, blob_access_token);
+		let query_params = self.create_query_params_multiple_blobs(blob_access_token);
 		let encoded_query_params = encode_query_params(query_params);
 
 		for server in &servers {
@@ -129,7 +214,7 @@ impl BlobFacade {
 					POST,
 					RestClientOptions {
 						headers: Default::default(),
-						body: Some(encrypted_chunk.clone()),
+						body: Some(serialized_binary.to_vec()),
 						suspension_behavior: Some(SuspensionBehavior::Suspend),
 					},
 				)
@@ -141,7 +226,7 @@ impl BlobFacade {
 					body,
 					..
 				}) => {
-					return self.handle_post_response(body);
+					return self.handle_post_response_multiple(body);
 				},
 				Ok(RestResponse { status, .. }) => {
 					match HttpError::from_http_response(status, None) {
@@ -174,7 +259,175 @@ impl BlobFacade {
 		})
 	}
 
-	fn handle_post_response(
+	fn handle_post_response_multiple(
+		&self,
+		body: Option<Vec<u8>>,
+	) -> Result<Vec<BlobReferenceTokenWrapper>, ApiCallError> {
+		let response_bytes = body.expect("no body");
+		let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice())
+			.map_err(|e| ApiCallError::internal_with_err(e, "Failed to serialize instance"))?;
+		let output_type_ref = &BlobPostOut::type_ref();
+		let parsed_entity = self
+			.json_serializer
+			.parse(output_type_ref, response_entity)?;
+
+		let blob_post_out = self
+			.instance_mapper
+			.parse_entity::<BlobPostOut>(parsed_entity)
+			.map_err(|error| {
+				ApiCallError::internal_with_err(
+					error,
+					"Failed to parse unencrypted entity into proper types",
+				)
+			})?;
+		Ok(blob_post_out.blobReferenceTokens)
+	}
+
+	fn create_query_params_multiple_blobs(
+		&self,
+		blob_access_token: String,
+	) -> Vec<(String, String)> {
+		let model_version = init_type_model_provider()
+			.resolve_type_ref(&BlobGetIn::type_ref())
+			.expect("no type model for BlobGetIn?")
+			.version;
+		let model_version = model_version
+			.parse()
+			.expect("could not parse model version");
+		let mut query_params: Vec<(String, String)> =
+			vec![("blobAccessToken".into(), blob_access_token)];
+		let auth_headers = self.auth_headers_provider.provide_headers(model_version);
+		query_params.extend(auth_headers);
+		query_params
+	}
+
+	async fn encrypt_and_upload_blob_single_legacy(
+		&self,
+		archive_data_type: ArchiveDataType,
+		owner_group_id: &GeneratedId,
+		session_key: &GenericAesKey,
+		chunk: &[u8],
+	) -> Result<BlobReferenceTokenWrapper, ApiCallError> {
+		let BlobServerAccessInfo {
+			servers,
+			blobAccessToken: blob_access_token,
+			..
+		} = self
+			.blob_access_token_facade
+			.request_write_token(archive_data_type, owner_group_id)
+			.await?;
+
+		let encrypted_chunk = session_key
+			.encrypt_data(chunk, Iv::generate(&self.randomizer_facade))
+			.map_err(|_e| ApiCallError::internal(String::from("failed to encrypt chunk")))?;
+		let query_params =
+			self.create_query_params_single_blob_legacy(&encrypted_chunk, blob_access_token);
+		let encoded_query_params = encode_query_params(query_params);
+
+		for server in &servers {
+			let maybe_response = self
+				.rest_client
+				.request_binary(
+					format!(
+						"{}{}{}",
+						server.url, BLOB_SERVICE_REST_PATH, encoded_query_params
+					),
+					POST,
+					RestClientOptions {
+						headers: Default::default(),
+						body: Some(encrypted_chunk.clone()),
+						suspension_behavior: Some(SuspensionBehavior::Suspend),
+					},
+				)
+				.await;
+
+			match maybe_response {
+				Ok(RestResponse {
+					status: 200 | 201,
+					body,
+					..
+				}) => {
+					return self.handle_post_response_single_legacy(body);
+				},
+				Ok(RestResponse { status, .. }) => {
+					match HttpError::from_http_response(status, None) {
+						// token was expired, we should evict & retry on this server.
+						// in these cases, we want to try the next server
+						Ok(
+							HttpError::ConnectionError
+							| HttpError::InternalServerError
+							| HttpError::NotFoundError,
+						) => continue,
+						// other http codes we're not going to bother trying the next server for
+						Ok(error) => return Err(error.into()),
+						// this case is for unknown http codes and should not happen
+						Err(error) => return Err(error),
+					}
+				},
+				// actual network error, we didn't get a response
+				Err(error) => return Err(error.into()),
+			}
+		}
+
+		let formatted_servers_list = servers
+			.into_iter()
+			.map(|blob_server_url| blob_server_url.url)
+			.collect::<Vec<_>>()
+			.join(", ");
+
+		Err(ApiCallError::InternalSdkError {
+			error_message: format!("no servers to invoke: {}", formatted_servers_list),
+		})
+	}
+
+	pub async fn encrypt_and_upload_single_legacy(
+		&self,
+		archive_data_type: ArchiveDataType,
+		owner_group_id: &GeneratedId,
+		session_key: &GenericAesKey,
+		data: Vec<u8>,
+	) -> Result<Vec<BlobReferenceTokenWrapper>, ApiCallError> {
+		let blobs = data.chunks(MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
+		let mut blob_reference_token_wrappers: Vec<BlobReferenceTokenWrapper> =
+			Vec::with_capacity(blobs.len());
+
+		for blob in blobs {
+			let wrapper_result = self
+				.encrypt_and_upload_blob_single_legacy(
+					archive_data_type,
+					owner_group_id,
+					session_key,
+					blob,
+				)
+				.await;
+			let wrapper = match wrapper_result {
+				// token was probably expired, we're getting a new one and try again.
+				Err(ApiCallError::ServerResponseError {
+					source: HttpError::NotAuthorizedError,
+				}) => {
+					self.blob_access_token_facade
+						.evict_access_token(&BlobWriteTokenKey::new(
+							owner_group_id,
+							archive_data_type,
+						));
+					self.encrypt_and_upload_blob_single_legacy(
+						archive_data_type,
+						owner_group_id,
+						session_key,
+						blob,
+					)
+					.await?
+				},
+				Err(err) => return Err(err),
+				Ok(wrapper) => wrapper,
+			};
+			blob_reference_token_wrappers.push(wrapper)
+		}
+
+		Ok(blob_reference_token_wrappers)
+	}
+
+	fn handle_post_response_single_legacy(
 		&self,
 		body: Option<Vec<u8>>,
 	) -> Result<BlobReferenceTokenWrapper, ApiCallError> {
@@ -197,11 +450,13 @@ impl BlobFacade {
 			})?;
 		Ok(BlobReferenceTokenWrapper {
 			_id: None,
-			blobReferenceToken: blob_post_out.blobReferenceToken,
+			blobReferenceToken: blob_post_out
+				.blobReferenceToken
+				.expect("missing blob reference token for blob post single"),
 		})
 	}
 
-	fn create_query_params(
+	fn create_query_params_single_blob_legacy(
 		&self,
 		encrypted_chunk: &[u8],
 		blob_access_token: String,
@@ -258,6 +513,7 @@ mod tests {
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::bindings::rest_client::RestClientOptions;
 	use crate::bindings::rest_client::RestResponse;
+	use crate::blobs::binary_blob_wrapper_serializer::deserialize_new_blobs;
 	use crate::blobs::blob_access_token_facade::MockBlobAccessTokenFacade;
 	use crate::crypto::randomizer_facade::test_util::DeterministicRng;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
@@ -265,7 +521,7 @@ mod tests {
 	use crate::entities::generated::storage::{BlobServerAccessInfo, BlobServerUrl};
 	use crate::entities::generated::sys::BlobReferenceTokenWrapper;
 	use crate::tutanota_constants::ArchiveDataType;
-	use crate::type_model_provider::init_type_model_provider;
+	use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 	use crate::util::test_utils::create_test_entity;
 	use crate::CustomId;
 	use crate::GeneratedId;
@@ -278,8 +534,9 @@ mod tests {
 	use std::collections::HashMap;
 	use std::sync::Arc;
 
-	#[tokio::test]
-	async fn encrypt_and_upload_single_blob() {
+	fn make_blob_access_token_facade_mock(
+		owner_group_id: &GeneratedId,
+	) -> MockBlobAccessTokenFacade {
 		let blob_access_info = BlobServerAccessInfo {
 			blobAccessToken: "123".to_string(),
 			servers: Vec::from([BlobServerUrl {
@@ -288,16 +545,6 @@ mod tests {
 			}]),
 			..create_test_entity()
 		};
-		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
-		let blob_data: Vec<u8> = Vec::from([1, 2, 3]);
-		let type_model_provider = Arc::new(init_type_model_provider());
-		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(20));
-		let session_key = GenericAesKey::from_bytes(
-			randomizer_facade
-				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
-				.as_slice(),
-		)
-		.unwrap();
 		let mut blob_access_token_facade = MockBlobAccessTokenFacade::default();
 		blob_access_token_facade
 			.expect_request_write_token()
@@ -306,16 +553,15 @@ mod tests {
 				predicate::eq(owner_group_id.clone()),
 			)
 			.return_const(Ok(blob_access_info));
-		let mut rest_client = MockRestClient::default();
-		let blob_data_matcher = blob_data.clone();
-		let session_key_matcher = session_key.clone();
+		blob_access_token_facade
+	}
 
-		let expected_reference_tokens = vec![BlobReferenceTokenWrapper {
-			blobReferenceToken: "blobRefToken".to_string(),
-			_id: Some(CustomId("hello_aggregate".to_owned())),
-		}];
+	fn make_blob_service_response(
+		expected_reference_tokens: &Vec<BlobReferenceTokenWrapper>,
+		type_model_provider: &Arc<TypeModelProvider>,
+	) -> Vec<u8> {
 		let blob_service_response = BlobPostOut {
-			blobReferenceToken: expected_reference_tokens[0].blobReferenceToken.clone(),
+			blobReferenceTokens: expected_reference_tokens.clone(),
 			..create_test_entity()
 		};
 		let parsed = InstanceMapper::new()
@@ -324,30 +570,110 @@ mod tests {
 		let raw = JsonSerializer::new(type_model_provider.clone())
 			.serialize(&BlobPostOut::type_ref(), parsed)
 			.unwrap();
+		serde_json::to_vec::<RawEntity>(&raw).unwrap()
+	}
 
-		let binary: Vec<u8> = serde_json::to_vec::<RawEntity>(&raw).unwrap();
+	fn make_session_key(randomizer_facade: RandomizerFacade) -> GenericAesKey {
+		GenericAesKey::from_bytes(
+			randomizer_facade
+				.generate_random_array::<{ crypto::aes::AES_256_KEY_SIZE }>()
+				.as_slice(),
+		)
+		.unwrap()
+	}
 
+	/// Four attachments which can be easily concatenated into view request efficiently,
+	/// leading to a total of 1 requests to the BlobService
+	/// [a1: 2 KiB, a2: 2 MiB, a3: 2 KiB, a4: 2 KiB] ->
+	/// * request 1: [a1: 2 KiB, a2: 2 MiB, a3: 2 KiB, a4: 2 KiB] -> [a1:token1, a2:token1, a3:token1, a4:token1]
+	#[tokio::test]
+	async fn encrypt_and_upload_multiple_attachments() {
+		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
+
+		let first_attachment: Vec<u8> = vec![0; 2048];
+		let second_attachment: Vec<u8> = vec![0; 2 * 1024 * 1024];
+		let third_attachment: Vec<u8> = vec![0; 2048];
+		let fourth_attachment: Vec<u8> = vec![0; 2048];
+
+		let randomizer_facade1 = RandomizerFacade::from_core(DeterministicRng(1));
+		let randomizer_facade2 = RandomizerFacade::from_core(DeterministicRng(2));
+		let randomizer_facade3 = RandomizerFacade::from_core(DeterministicRng(3));
+		let randomizer_facade4 = RandomizerFacade::from_core(DeterministicRng(4));
+
+		let session_key_first_attachment = make_session_key(randomizer_facade1);
+		let session_key_second_attachment = make_session_key(randomizer_facade2);
+		let session_key_third_attachment = make_session_key(randomizer_facade3);
+		let session_key_fourth_attachment = make_session_key(randomizer_facade4);
+
+		let file_data1 = FileData {
+			session_key: session_key_first_attachment,
+			data: first_attachment,
+		};
+		let file_data2 = FileData {
+			session_key: session_key_second_attachment,
+			data: second_attachment,
+		};
+		let file_data3 = FileData {
+			session_key: session_key_third_attachment,
+			data: third_attachment,
+		};
+		let file_data4 = FileData {
+			session_key: session_key_fourth_attachment,
+			data: fourth_attachment,
+		};
+		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3, &file_data4];
+
+		let first_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "first_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let second_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "first_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let third_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "third_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let fourth_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "second_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+
+		let expected_reference_tokens = vec![
+			first_attachment_token.clone(),
+			second_attachment_token.clone(),
+			third_attachment_token.clone(),
+			fourth_attachment_token.clone(),
+		];
+
+		let type_model_provider = Arc::new(init_type_model_provider());
+		let response_binary =
+			make_blob_service_response(&expected_reference_tokens, &type_model_provider);
+
+		let mut rest_client = MockRestClient::default();
 		rest_client
 			.expect_request_binary()
+			.times(1)
 			.withf(move |path, method, options| {
-				let RestClientOptions { body, .. } = options;
-				let decrypted_body = body.clone().unwrap();
-				let decrypted_body = session_key_matcher
-					.decrypt_data(decrypted_body.as_slice())
-					.unwrap();
 				let uri = path.parse::<Uri>().unwrap();
 				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
 				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
-				assert_eq!(blob_data_matcher, decrypted_body);
 				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				assert_eq!(new_blob_wrappers.len(), 4);
 				true
 			})
 			.return_const(Ok(RestResponse {
 				status: 200,
 				headers: HashMap::new(),
-				body: Some(binary),
+				body: Some(response_binary),
 			}));
 
+		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(42));
 		let blob_facade = BlobFacade {
 			blob_access_token_facade,
 			rest_client: Arc::new(rest_client),
@@ -358,7 +684,448 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload(
+			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+			.await
+			.unwrap();
+		assert_eq!(
+			vec![first_attachment_token],
+			reference_tokens.get(0).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![second_attachment_token],
+			reference_tokens.get(1).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![third_attachment_token],
+			reference_tokens.get(2).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![fourth_attachment_token],
+			reference_tokens.get(3).unwrap().to_vec()
+		);
+	}
+
+	/// Four attachments (including one large) which can be easily concatenated into view request efficiently,
+	/// leading to a total of 2 requests to the BlobService
+	/// [a1: 12 MiB, a2: 2 MiB, a3: 2 MiB, a4: 2 MiB] ->
+	/// * request 1: [a1.1: 10MiB] -> [a1:token1]
+	/// * request 2: [a1.2: 2MiB, a2: 2 MiB, a3: 2 MiB, a4: 2 MiB] -> [a1:token2, a2:token1, a3:token1, a4:token1]
+	#[tokio::test]
+	async fn encrypt_and_upload_multiple_attachments_including_one_large() {
+		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
+
+		let first_attachment: Vec<u8> = vec![0; 12 * 1024 * 1024];
+		let second_attachment: Vec<u8> = vec![0; 2 * 1024 * 1024];
+		let third_attachment: Vec<u8> = vec![0; 2 * 1024 * 1024];
+		let fourth_attachment: Vec<u8> = vec![0; 1 * 1024 * 1024];
+
+		let randomizer_facade1 = RandomizerFacade::from_core(DeterministicRng(1));
+		let randomizer_facade2 = RandomizerFacade::from_core(DeterministicRng(2));
+		let randomizer_facade3 = RandomizerFacade::from_core(DeterministicRng(3));
+		let randomizer_facade4 = RandomizerFacade::from_core(DeterministicRng(4));
+
+		let session_key_first_attachment = make_session_key(randomizer_facade1);
+		let session_key_second_attachment = make_session_key(randomizer_facade2);
+		let session_key_third_attachment = make_session_key(randomizer_facade3);
+		let session_key_fourth_attachment = make_session_key(randomizer_facade4);
+
+		let file_data1 = FileData {
+			session_key: session_key_first_attachment,
+			data: first_attachment,
+		};
+		let file_data2 = FileData {
+			session_key: session_key_second_attachment,
+			data: second_attachment,
+		};
+		let file_data3 = FileData {
+			session_key: session_key_third_attachment,
+			data: third_attachment,
+		};
+		let file_data4 = FileData {
+			session_key: session_key_fourth_attachment,
+			data: fourth_attachment,
+		};
+		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3, &file_data4];
+
+		let first_attachment_first_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "first_attachment_token1".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let first_attachment_second_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "first_attachment_token2".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let second_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "second_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let third_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "third_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let fourth_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "fourth_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+
+		let expected_reference_tokens1 = vec![first_attachment_first_token.clone()];
+		let expected_reference_tokens2 = vec![
+			first_attachment_second_token.clone(),
+			second_attachment_token.clone(),
+			third_attachment_token.clone(),
+			fourth_attachment_token.clone(),
+		];
+
+		let type_model_provider = Arc::new(init_type_model_provider());
+		let binary1: Vec<u8> =
+			make_blob_service_response(&expected_reference_tokens1, &type_model_provider);
+		let binary2: Vec<u8> =
+			make_blob_service_response(&expected_reference_tokens2, &type_model_provider);
+
+		let mut rest_client = MockRestClient::default();
+		// first request
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				if new_blob_wrappers.len() == 1 {
+					true
+				} else {
+					false
+				}
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary1),
+			}));
+
+		// second request
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				if new_blob_wrappers.len() == 4 {
+					true
+				} else {
+					false
+				}
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary2),
+			}));
+
+		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(42));
+		let blob_facade = BlobFacade {
+			blob_access_token_facade,
+			rest_client: Arc::new(rest_client),
+			randomizer_facade: randomizer_facade.clone(),
+			auth_headers_provider: Arc::new(HeadersProvider { access_token: None }),
+			instance_mapper: Arc::new(InstanceMapper::new()),
+			json_serializer: Arc::new(JsonSerializer::new(type_model_provider)),
+		};
+
+		let reference_tokens = blob_facade
+			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+			.await
+			.unwrap();
+		assert_eq!(
+			vec![first_attachment_first_token, first_attachment_second_token],
+			reference_tokens.get(0).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![second_attachment_token,],
+			reference_tokens.get(1).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![third_attachment_token,],
+			reference_tokens.get(2).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![fourth_attachment_token,],
+			reference_tokens.get(3).unwrap().to_vec()
+		);
+	}
+
+	/// Three attachments which **cannot** be easily concatenated into view request efficiently,
+	/// leading to a total of 4 requests to the BlobService
+	/// [a1: 14 MiB, a2: 9 MiB, a3: 2 MiB] ->
+	/// * request 1: [a1.1: 10MiB] -> [a1:token1]
+	/// * request 2: [a1.2: 4MiB] -> [a1:token2]
+	/// * request 3: [a2: 9MiB] -> [a2:token1]
+	/// * request 4: [a3: 2MiB] -> [a3:token1]
+	#[tokio::test]
+	async fn encrypt_and_upload_multiple_attachments_worst_case() {
+		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
+
+		let first_attachment: Vec<u8> = vec![0; 14 * 1024 * 1024];
+		let second_attachment: Vec<u8> = vec![0; 9 * 1024 * 1024];
+		let third_attachment: Vec<u8> = vec![0; 2 * 1024 * 1024];
+
+		let randomizer_facade1 = RandomizerFacade::from_core(DeterministicRng(1));
+		let randomizer_facade2 = RandomizerFacade::from_core(DeterministicRng(2));
+		let randomizer_facade3 = RandomizerFacade::from_core(DeterministicRng(3));
+
+		let session_key_first_attachment = make_session_key(randomizer_facade1);
+		let session_key_second_attachment = make_session_key(randomizer_facade2);
+		let session_key_third_attachment = make_session_key(randomizer_facade3);
+
+		let file_data1 = FileData {
+			session_key: session_key_first_attachment,
+			data: first_attachment.clone(),
+		};
+		let file_data2 = FileData {
+			session_key: session_key_second_attachment,
+			data: second_attachment.clone(),
+		};
+		let file_data3 = FileData {
+			session_key: session_key_third_attachment,
+			data: third_attachment.clone(),
+		};
+
+		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3];
+
+		let first_attachment_first_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "first_attachment_token1".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let first_attachment_second_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "first_attachment_token2".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let second_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "second_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+		let third_attachment_token = BlobReferenceTokenWrapper {
+			blobReferenceToken: "third_attachment_token".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		};
+
+		// expected reference tokens for requests 1,2,3 and 4
+		let expected_reference_tokens1 = vec![first_attachment_first_token.clone()];
+		let expected_reference_tokens2 = vec![first_attachment_second_token.clone()];
+		let expected_reference_tokens3 = vec![second_attachment_token.clone()];
+		let expected_reference_tokens4 = vec![third_attachment_token.clone()];
+
+		let type_model_provider = Arc::new(init_type_model_provider());
+		let binary1: Vec<u8> =
+			make_blob_service_response(&expected_reference_tokens1, &type_model_provider);
+		let binary2: Vec<u8> =
+			make_blob_service_response(&expected_reference_tokens2, &type_model_provider);
+		let binary3: Vec<u8> =
+			make_blob_service_response(&expected_reference_tokens3, &type_model_provider);
+		let binary4: Vec<u8> =
+			make_blob_service_response(&expected_reference_tokens4, &type_model_provider);
+
+		let mut rest_client = MockRestClient::default();
+
+		// first request
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				// account for 65 byte encryption overhead per blob
+				if new_blob_wrappers.get(0).unwrap().data.len()
+					== MAX_UNENCRYPTED_BLOB_SIZE_BYTES + 65
+				{
+					true
+				} else {
+					false
+				}
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary1),
+			}));
+
+		// second request (first attachment second part)
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				// account for 65 byte encryption overhead per blob
+				if new_blob_wrappers.get(0).unwrap().data.len() == 4 * 1024 * 1024 + 65 {
+					true
+				} else {
+					false
+				}
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary2),
+			}));
+
+		// third request (second attachment)
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				// account for 65 byte encryption overhead per blob
+				if new_blob_wrappers.get(0).unwrap().data.len() == second_attachment.len() + 65 {
+					true
+				} else {
+					false
+				}
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary3),
+			}));
+
+		// fourth request (third attachment)
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let body = body.clone().unwrap();
+				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
+				// account for 65 byte encryption overhead per blob
+				if new_blob_wrappers.get(0).unwrap().data.len() == third_attachment.len() + 65 {
+					true
+				} else {
+					false
+				}
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary4),
+			}));
+
+		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(42));
+		let blob_facade = BlobFacade {
+			blob_access_token_facade,
+			rest_client: Arc::new(rest_client),
+			randomizer_facade: randomizer_facade.clone(),
+			auth_headers_provider: Arc::new(HeadersProvider { access_token: None }),
+			instance_mapper: Arc::new(InstanceMapper::new()),
+			json_serializer: Arc::new(JsonSerializer::new(type_model_provider)),
+		};
+
+		let reference_tokens = blob_facade
+			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+			.await
+			.unwrap();
+		assert_eq!(
+			vec![first_attachment_first_token, first_attachment_second_token],
+			reference_tokens.get(0).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![second_attachment_token,],
+			reference_tokens.get(1).unwrap().to_vec()
+		);
+		assert_eq!(
+			vec![third_attachment_token,],
+			reference_tokens.get(2).unwrap().to_vec()
+		);
+	}
+
+	#[tokio::test]
+	async fn encrypt_and_upload_single_blob_legacy() {
+		let owner_group_id = GeneratedId(String::from("ownerGroupId"));
+		let blob_access_token_facade = make_blob_access_token_facade_mock(&owner_group_id);
+
+		let blob_data: Vec<u8> = Vec::from([1, 2, 3]);
+		let randomizer_facade1 = RandomizerFacade::from_core(DeterministicRng(1));
+		let session_key = make_session_key(randomizer_facade1);
+
+		let blob_data_matcher = blob_data.clone();
+		let session_key_matcher = session_key.clone();
+
+		let expected_reference_tokens = vec![BlobReferenceTokenWrapper {
+			blobReferenceToken: "blobRefToken".to_string(),
+			_id: Some(CustomId("hello_aggregate".to_owned())),
+		}];
+
+		let type_model_provider = Arc::new(init_type_model_provider());
+		let blob_service_response = BlobPostOut {
+			blobReferenceToken: Some(expected_reference_tokens[0].blobReferenceToken.clone()),
+			..create_test_entity()
+		};
+		let parsed = InstanceMapper::new()
+			.serialize_entity(blob_service_response)
+			.unwrap();
+		let raw = JsonSerializer::new(type_model_provider.clone())
+			.serialize(&BlobPostOut::type_ref(), parsed)
+			.unwrap();
+		let binary: Vec<u8> = serde_json::to_vec::<RawEntity>(&raw).unwrap();
+
+		let mut rest_client = MockRestClient::default();
+		rest_client
+			.expect_request_binary()
+			.withf(move |path, method, options| {
+				let uri = path.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert_eq!(BLOB_SERVICE_REST_PATH, uri.path_and_query().unwrap().path());
+				assert_eq!(&POST, method);
+				let RestClientOptions { body, .. } = options;
+				let decrypted_body = body.clone().unwrap();
+				let decrypted_body = session_key_matcher
+					.decrypt_data(decrypted_body.as_slice())
+					.unwrap();
+				assert_eq!(blob_data_matcher, decrypted_body);
+				true
+			})
+			.return_const(Ok(RestResponse {
+				status: 200,
+				headers: HashMap::new(),
+				body: Some(binary),
+			}));
+
+		let randomizer_facade = RandomizerFacade::from_core(DeterministicRng(42));
+		let blob_facade = BlobFacade {
+			blob_access_token_facade,
+			rest_client: Arc::new(rest_client),
+			randomizer_facade: randomizer_facade.clone(),
+			auth_headers_provider: Arc::new(HeadersProvider { access_token: None }),
+			instance_mapper: Arc::new(InstanceMapper::new()),
+			json_serializer: Arc::new(JsonSerializer::new(type_model_provider)),
+		};
+
+		let reference_tokens = blob_facade
+			.encrypt_and_upload_single_legacy(
 				ArchiveDataType::Attachments,
 				&owner_group_id,
 				&session_key,

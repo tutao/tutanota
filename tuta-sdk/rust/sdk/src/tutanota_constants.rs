@@ -30,7 +30,12 @@ impl ArchiveDataType {
 		}
 	}
 }
-pub const MAX_BLOB_SIZE_BYTES: usize = 1024 * 1024 * 10;
+
+pub const BLOB_ENCRYPTION_OVERHEAD_BYTES: usize = 256;
+pub const MAX_UNENCRYPTED_BLOB_SIZE_BYTES: usize = 1024 * 1024 * 10;
+pub const MAX_BLOB_SIZE_BYTES: usize =
+	MAX_UNENCRYPTED_BLOB_SIZE_BYTES + BLOB_ENCRYPTION_OVERHEAD_BYTES;
+pub const MAX_BLOB_SERVICE_BYTES: usize = MAX_BLOB_SIZE_BYTES;
 
 /// Denotes if an entity was authenticated successfully.
 ///

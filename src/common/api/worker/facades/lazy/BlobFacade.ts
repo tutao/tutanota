@@ -241,6 +241,11 @@ export class BlobFacade {
 		const responseTypeModel = await resolveTypeReference(BlobPostOutTypeRef)
 		const instance = JSON.parse(jsonData)
 		const { blobReferenceToken } = await this.instanceMapper.decryptAndMapToInstance<BlobPostOut>(responseTypeModel, instance, null)
+		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
+		// post single always has a valid blobRefernceToken with cardinality one.
+		if (blobReferenceToken == null) {
+			throw new ProgrammingError("empty blobReferenceToken not allowed for post single blob")
+		}
 		return createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 

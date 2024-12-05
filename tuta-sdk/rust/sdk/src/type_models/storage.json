@@ -50,7 +50,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobAccessTokenPostOut": {
 		"name": "BlobAccessTokenPostOut",
@@ -84,7 +84,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobArchiveRef": {
 		"name": "BlobArchiveRef",
@@ -145,7 +145,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobGetIn": {
 		"name": "BlobGetIn",
@@ -197,7 +197,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobId": {
 		"name": "BlobId",
@@ -229,7 +229,7 @@
 		},
 		"associations": {},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobPostOut": {
 		"name": "BlobPostOut",
@@ -255,13 +255,24 @@
 				"id": 127,
 				"since": 4,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
-		"associations": {},
+		"associations": {
+			"blobReferenceTokens": {
+				"final": true,
+				"name": "blobReferenceTokens",
+				"id": 208,
+				"since": 10,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "BlobReferenceTokenWrapper",
+				"dependency": "sys"
+			}
+		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobReadData": {
 		"name": "BlobReadData",
@@ -313,7 +324,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobReferenceDeleteIn": {
 		"name": "BlobReferenceDeleteIn",
@@ -374,7 +385,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobReferencePutIn": {
 		"name": "BlobReferencePutIn",
@@ -435,7 +446,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobServerAccessInfo": {
 		"name": "BlobServerAccessInfo",
@@ -487,7 +498,7 @@
 			}
 		},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobServerUrl": {
 		"name": "BlobServerUrl",
@@ -519,7 +530,7 @@
 		},
 		"associations": {},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"BlobWriteData": {
 		"name": "BlobWriteData",
@@ -551,7 +562,7 @@
 		},
 		"associations": {},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	},
 	"InstanceId": {
 		"name": "InstanceId",
@@ -583,6 +594,6 @@
 		},
 		"associations": {},
 		"app": "storage",
-		"version": "9"
+		"version": "10"
 	}
 }

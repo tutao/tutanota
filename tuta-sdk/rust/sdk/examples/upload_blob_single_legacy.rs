@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	.unwrap();
 	let result = logged_in_sdk
 		.blob_facade()
-		.encrypt_and_upload(
+		.encrypt_and_upload_single_legacy(
 			ArchiveDataType::Attachments,
 			&owner_group_id,
 			&new_aes_256_key,

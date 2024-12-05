@@ -95,7 +95,8 @@ impl Entity for BlobId {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct BlobPostOut {
 	pub _format: i64,
-	pub blobReferenceToken: String,
+	pub blobReferenceToken: Option<String>,
+	pub blobReferenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 }
 
 impl Entity for BlobPostOut {
