@@ -250,6 +250,16 @@ export const typeModels = {
 			}
 		},
 		"associations": {
+			"userEncAdminSymKeyHash": {
+				"final": false,
+				"name": "userEncAdminSymKeyHash",
+				"id": 2504,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
 			"userGroupId": {
 				"final": false,
 				"name": "userGroupId",
@@ -309,16 +319,6 @@ export const typeModels = {
 				"name": "userEncAdminPubKeyHashList",
 				"id": 2483,
 				"since": 111,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "EncryptedKeyHash",
-				"dependency": null
-			},
-			"userEncAdminSymKeyHashList": {
-				"final": false,
-				"name": "userEncAdminSymKeyHashList",
-				"id": 2504,
-				"since": 115,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refType": "EncryptedKeyHash",
@@ -13878,6 +13878,15 @@ export const typeModels = {
 				"since": 101,
 				"type": "Bytes",
 				"cardinality": "One",
+				"encrypted": false
+			},
+			"userGroupEncAdminGroupKey": {
+				"final": false,
+				"name": "userGroupEncAdminGroupKey",
+				"id": 2520,
+				"since": 115,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"userGroupEncPreviousGroupKey": {

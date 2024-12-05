@@ -428,9 +428,10 @@ export class KeyRotationFacade {
 			adminGroupKeyVersion: String(encryptedUserKeys.newAdminGroupKeyEncNewUserGroupKey.encryptingKeyVersion),
 			passphraseEncUserGroupKey: encryptedUserKeys.passphraseKeyEncNewUserGroupKey.key,
 			pubAdminGroupEncUserGroupKey: null,
+			userGroupEncAdminGroupKey: null,
 		})
 
-		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList, distribution, userEncAdminSymKeyHashList })
+		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList, distribution })
 	}
 
 	private async generateEncryptedKeyHashes(
@@ -961,6 +962,7 @@ export class KeyRotationFacade {
 			pubAdminGroupEncUserGroupKey,
 			adminGroupEncUserGroupKey: null,
 			recoverCodeData: recoverCodeData,
+			userGroupEncAdminGroupKey: null,
 		})
 
 		await this.serviceExecutor.post(UserGroupKeyRotationService, createUserGroupKeyRotationPostIn({ userGroupKeyData }))

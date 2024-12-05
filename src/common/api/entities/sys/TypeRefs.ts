@@ -49,6 +49,7 @@ export type AdminGroupKeyDistributionElement = {
 	_id: Id;
 	distEncAdminGroupKey: Uint8Array;
 
+	userEncAdminSymKeyHash: EncryptedKeyHash;
 	userGroupId: Id;
 }
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
@@ -65,7 +66,6 @@ export type AdminGroupKeyRotationPostIn = {
 	adminGroupKeyData: GroupKeyRotationData;
 	distribution: AdminGroupKeyDistributionElement[];
 	userEncAdminPubKeyHashList: EncryptedKeyHash[];
-	userEncAdminSymKeyHashList: EncryptedKeyHash[];
 	userGroupKeyData: UserGroupKeyRotationData;
 }
 export const AdminGroupKeyRotationPutInTypeRef: TypeRef<AdminGroupKeyRotationPutIn> = new TypeRef("sys", "AdminGroupKeyRotationPutIn")
@@ -3411,6 +3411,7 @@ export type UserGroupKeyRotationData = {
 	authVerifier: Uint8Array;
 	distributionKeyEncUserGroupKey: Uint8Array;
 	passphraseEncUserGroupKey: Uint8Array;
+	userGroupEncAdminGroupKey: null | Uint8Array;
 	userGroupEncPreviousGroupKey: Uint8Array;
 	userGroupKeyVersion: NumberString;
 

@@ -49,6 +49,7 @@ pub struct AdminGroupKeyDistributionElement {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
 	pub distEncAdminGroupKey: Vec<u8>,
+	pub userEncAdminSymKeyHash: EncryptedKeyHash,
 	pub userGroupId: GeneratedId,
 }
 
@@ -68,7 +69,6 @@ pub struct AdminGroupKeyRotationPostIn {
 	pub adminGroupKeyData: GroupKeyRotationData,
 	pub distribution: Vec<AdminGroupKeyDistributionElement>,
 	pub userEncAdminPubKeyHashList: Vec<EncryptedKeyHash>,
-	pub userEncAdminSymKeyHashList: Vec<EncryptedKeyHash>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 
@@ -4257,6 +4257,8 @@ pub struct UserGroupKeyRotationData {
 	pub distributionKeyEncUserGroupKey: Vec<u8>,
 	#[serde(with = "serde_bytes")]
 	pub passphraseEncUserGroupKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub userGroupEncAdminGroupKey: Option<Vec<u8>>,
 	#[serde(with = "serde_bytes")]
 	pub userGroupEncPreviousGroupKey: Vec<u8>,
 	pub userGroupKeyVersion: i64,

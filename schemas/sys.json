@@ -513,6 +513,11 @@
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
 					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2499."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "UserGroupKeyRotationData",
+					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2520."
 				}
 			]
 		}
