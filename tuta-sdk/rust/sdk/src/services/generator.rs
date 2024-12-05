@@ -66,15 +66,14 @@ macro_rules! __service_handle_response {
 /// // but respond with `NewsOut`
 /// service_impl!(GET, NewsService, (), NewsOut);
 /// ```
-///
-// we don't want to generate the rust code for services from the JS directly because it's harder to maintain and
-// largely unreadable.
-//
-// since services can either take an arg or not and return something or not, we need a trampoline implementation
-// for each service that can decode and return the response or just return Ok(()) immediately after receiving a 200.
-// this trampoline is implemented in the last branch below.
 #[macro_export]
 macro_rules! service_impl {
+        // we don't want to generate the rust code for services from the JS directly because it's harder to maintain and
+        // largely unreadable.
+        //
+        // since services can either take an arg or not and return something or not, we need a trampoline implementation
+        // for each service that can decode and return the response or just return Ok(()) immediately after receiving a 200.
+        // this trampoline is implemented in the last branch below.
         (declare, $service_name: ty, $service_path: expr, $service_version: expr) => {
             // mark the type as Service
             // This implementation is required to be able to implement any HTTP method
