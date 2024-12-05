@@ -214,13 +214,13 @@ struct ElementValueDeserializer<'s> {
 	value: ElementValue,
 }
 
-impl<'s> ElementValueDeserializer<'s> {
+impl ElementValueDeserializer<'_> {
 	fn wrong_type_err(&self, expected: &str) -> DeError {
 		DeError::wrong_type(self.key, &self.value, expected)
 	}
 }
 
-impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
+impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 	type Error = DeError;
 
 	serde::forward_to_deserialize_any! {
@@ -277,12 +277,12 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
 	where
 		V: Visitor<'de>,
 	{
-		return match self.value {
+		match self.value {
 			ElementValue::String(str) => visitor.visit_string(str),
 			ElementValue::IdGeneratedId(GeneratedId(id))
 			| ElementValue::IdCustomId(CustomId(id)) => visitor.visit_string(id),
 			_ => Err(self.wrong_type_err("string")),
-		};
+		}
 	}
 
 	fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -432,7 +432,7 @@ impl<'de, 's> Deserializer<'de> for ElementValueDeserializer<'s> {
 	}
 }
 
-impl<'de, 's> EnumAccess<'de> for ElementValueDeserializer<'s> {
+impl<'de> EnumAccess<'de> for ElementValueDeserializer<'_> {
 	type Error = DeError;
 	type Variant = Self;
 
@@ -446,7 +446,7 @@ impl<'de, 's> EnumAccess<'de> for ElementValueDeserializer<'s> {
 	}
 }
 
-impl<'de, 's> VariantAccess<'de> for ElementValueDeserializer<'s> {
+impl<'de> VariantAccess<'de> for ElementValueDeserializer<'_> {
 	type Error = DeError;
 
 	fn unit_variant(self) -> Result<(), Self::Error> {
@@ -512,7 +512,7 @@ where
 	}
 }
 
-impl<'de, 's, I> de::SeqAccess<'de> for ArrayDeserializer<'s, I>
+impl<'de, I> de::SeqAccess<'de> for ArrayDeserializer<'_, I>
 where
 	I: Iterator<Item = ElementValue>,
 {
