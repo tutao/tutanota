@@ -97,6 +97,8 @@ export class MailViewModel {
 	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
 	private listStreamSubscription: Stream<unknown> | null = null
 	private conversationPref: boolean = false
+	/** A slightly hacky marker to avoid concurrent URL updates. */
+	private currentShowTargetMarker: {} = {}
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -133,8 +135,13 @@ export class MailViewModel {
 	}
 
 	async showMailWithMailSetId(mailsetId?: Id, mailId?: Id): Promise<void> {
+		const showMailMarker = {}
+		this.currentShowTargetMarker = showMailMarker
 		if (mailsetId) {
 			const mailset = await this.mailModel.getMailSetById(mailsetId)
+			if (showMailMarker !== this.currentShowTargetMarker) {
+				return
+			}
 			if (mailset) {
 				return this.showMail(mailset, mailId)
 			}
@@ -192,6 +199,7 @@ export class MailViewModel {
 		) {
 			return
 		}
+
 		console.log(TAG, "showMail", folder?._id, mailId)
 
 		// important: to set it early enough because setting listId will trigger URL update.
@@ -506,6 +514,7 @@ export class MailViewModel {
 		// Otherwise, if we have a single selected email then that should be in the URL.
 		const mailId = this.loadingTargetId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
 		const stickyMail = this.stickyMailId
+
 		if (mailId != null) {
 			this.router.routeTo(
 				"/mail/:folderId/:mailId",
@@ -716,11 +725,19 @@ export class MailViewModel {
 	}
 
 	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {
+		const state = {}
+		this.currentShowTargetMarker = state
 		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
+		if (this.currentShowTargetMarker !== state) {
+			return
+		}
 		if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
 			return
 		}
 		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+		if (this.currentShowTargetMarker !== state) {
+			return
+		}
 		const folder = assertSystemFolderOfType(folders, folderType)
 		await this.showMail(folder, this.mailFolderElementIdToSelectedMailId.get(getElementId(folder)))
 	}
