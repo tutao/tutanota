@@ -17,6 +17,8 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { client } from "../../misc/ClientDetector.js"
 import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
 import { isColorLight } from "./Color.js"
+import QRCode from "qrcode-svg"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -246,4 +248,13 @@ export function getContactTitle(contact: Contact) {
 
 export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
+}
+
+/**
+ * Generates a sanitised QR Code in SVG form
+ * @return the SVG element of the generated QR code as a `string`
+ */
+export function generateQRCode(options: QRCode.Options): string {
+	const svg = new QRCode(options).svg()
+	return htmlSanitizer.sanitizeSVG(svg).html
 }

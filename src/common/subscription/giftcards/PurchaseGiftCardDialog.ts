@@ -116,7 +116,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 		const { model, onGiftCardPurchased } = vnode.attrs
 		return [
 			m(
-				".flex.center-horizontally.wrap",
+				".flex.center-horizontally.wrap.pt-ml",
 				{
 					style: {
 						"column-gap": px(BOX_MARGIN),
@@ -154,29 +154,18 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 					})
 				}),
 			),
-			m(
-				".flex-center",
+			m(".flex-column.flex-center.center-h.width-min-content", [
 				m(GiftCardMessageEditorField, {
 					message: model.message,
 					onMessageChanged: (message) => (model.message = message),
 				}),
-			),
-			m(
-				".flex-center",
-				m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
-					m(
-						".pt",
-						renderAcceptGiftCardTermsCheckbox(model.confirmed, (checked) => (model.confirmed = checked)),
-					),
-					m(
-						".mt-l.mb-l",
-						m(LoginButton, {
-							label: "buy_action",
-							onclick: () => this.onBuyButtonPressed(model, onGiftCardPurchased).catch(ofClass(UserError, showUserError)),
-						}),
-					),
-				]),
-			),
+				renderAcceptGiftCardTermsCheckbox(model.confirmed, (checked) => (model.confirmed = checked), "pt-l"),
+				m(LoginButton, {
+					label: "buy_action",
+					class: "mt-l mb-l",
+					onclick: () => this.onBuyButtonPressed(model, onGiftCardPurchased).catch(ofClass(UserError, showUserError)),
+				}),
+			]),
 		]
 	}
 

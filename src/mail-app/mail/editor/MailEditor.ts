@@ -1248,12 +1248,11 @@ export async function writeInviteMail(referralLink: string) {
 
 /**
  * Create and show a new mail editor with an invite message
- * @param link: the link to the giftcard
- * @param svg: an SVGElement that is the DOM node of the rendered gift card
+ * @param link the link to the giftcard
  * @param mailboxDetails
  * @returns {*}
  */
-export async function writeGiftCardMail(link: string, svg: SVGElement, mailboxDetails?: MailboxDetail) {
+export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDetail) {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const bodyText = lang
 		.get("defaultShareGiftCardBody_msg", {

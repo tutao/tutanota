@@ -4,13 +4,12 @@ import { validateWebauthnDisplayName, WebauthnClient } from "../../../misc/2fa/w
 import { TotpSecret } from "@tutao/tutanota-crypto"
 import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
 import { isApp } from "../../../api/common/Env.js"
-import { htmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import { LanguageViewModel, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { SecondFactorType } from "../../../api/common/TutanotaConstants.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
-import QRCode from "qrcode-svg"
 import { LoginFacade } from "../../../api/worker/facades/LoginFacade.js"
 import { UserError } from "../../../api/main/UserError.js"
+import { generateQRCode } from "../../../gui/base/GuiUtils.js"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -62,21 +61,17 @@ export class SecondFactorEditModel {
 		this.setDefaultNameIfNeeded()
 		this.otpInfo = new LazyLoaded(async () => {
 			const url = await this.getOtpAuthUrl(this.totpKeys.readableKey)
-			let totpQRCodeSvg
 
-			if (!isApp()) {
-				let qrcodeGenerator = new QRCode({
-					height: 150,
-					width: 150,
-					content: url,
-					padding: 2,
-					// We don't want <xml> around the content, we actually enforce <svg> namespace, and we want it to be parsed as such.
-					xmlDeclaration: false,
-				})
-				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg()).html
-			} else {
-				totpQRCodeSvg = null
-			}
+			const totpQRCodeSvg = isApp()
+				? null
+				: generateQRCode({
+						height: 150,
+						width: 150,
+						content: url,
+						padding: 2,
+						// We don't want <xml> around the content, we actually enforce <svg> namespace, and we want it to be parsed as such.
+						xmlDeclaration: false,
+				  })
 
 			return {
 				qrCodeSvg: totpQRCodeSvg,

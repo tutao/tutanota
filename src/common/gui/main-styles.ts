@@ -172,6 +172,9 @@ styles.registerStyle("main", () => {
 		".smaller": {
 			"font-size": px(size.font_size_smaller),
 		},
+		".normal-font-size": {
+			"font-size": px(size.font_size_base),
+		},
 		".b": {
 			"font-weight": "bold",
 		},
@@ -1751,6 +1754,9 @@ styles.registerStyle("main", () => {
 		".login": {
 			width: "100%",
 			"border-radius": px(size.border_radius),
+		},
+		".small-login-button": {
+			width: "260px",
 		},
 		".button-content": {
 			height: px(size.button_height),

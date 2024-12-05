@@ -80,18 +80,11 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			locator.logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(
 				".flex-center.full-width.pt-l.mb-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "next_action",
-						onclick: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
-					}),
-				),
+				m(LoginButton, {
+					label: "next_action",
+					class: "small-login-button",
+					onclick: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
+				}),
 			),
 		])
 	}
