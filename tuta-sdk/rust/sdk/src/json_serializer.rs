@@ -339,7 +339,8 @@ impl JsonSerializer {
 						field: association_name.to_owned(),
 					})?;
 			let association_type_ref = TypeRef {
-				app: type_ref.app,
+				// aggregates can be imported across app (e.g. SystemModel, etc.)
+				app: association_type.dependency.unwrap_or(type_ref.app),
 				type_: association_type.ref_type,
 			};
 			match (
