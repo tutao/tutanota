@@ -39,19 +39,12 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 						renderCheckResult(a.data.domainStatus),
 						m(
 							".flex-center.full-width.pt-l.mb-l",
-							m(
-								"",
-								{
-									style: {
-										width: "260px",
-									},
-								},
-								m(LoginButton, {
-									label: "finish_action",
-									// We check if all DNS records are set correctly and let the user confirm before leaving if not
-									onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
-								}),
-							),
+							m(LoginButton, {
+								label: "finish_action",
+								class: "small-login-button",
+								// We check if all DNS records are set correctly and let the user confirm before leaving if not
+								onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
+							}),
 						),
 				  ])
 				: m("", [

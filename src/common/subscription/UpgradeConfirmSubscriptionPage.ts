@@ -187,18 +187,11 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			),
 			m(
 				".flex-center.full-width.pt-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "buy_action",
-						onclick: () => this.upgrade(attrs.data),
-					}),
-				),
+				m(LoginButton, {
+					label: "buy_action",
+					class: "small-login-button",
+					onclick: () => this.upgrade(attrs.data),
+				}),
 			),
 		]
 	}

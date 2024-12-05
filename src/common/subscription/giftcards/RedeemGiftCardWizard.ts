@@ -199,44 +199,30 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 			m(
 				".flex-center.full-width.pt-l",
 				m(
-					"",
+					".pt-l", // Needed to center SVG
 					{
 						style: {
 							width: "480px",
 						},
 					},
-					m(".pt-l", renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null, a.data.message)),
+					renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null, a.data.message),
 				),
 			),
 			m(
 				".flex-center.full-width.pt-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "existingAccount_label",
-						onclick: () => nextPage(GetCredentialsMethod.Login),
-					}),
-				),
+				m(LoginButton, {
+					label: "existingAccount_label",
+					class: "small-login-button",
+					onclick: () => nextPage(GetCredentialsMethod.Login),
+				}),
 			),
 			m(
 				".flex-center.full-width.pt-l.pb",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "register_label",
-						onclick: () => nextPage(GetCredentialsMethod.Signup),
-					}),
-				),
+				m(LoginButton, {
+					label: "register_label",
+					class: "small-login-button",
+					onclick: () => nextPage(GetCredentialsMethod.Signup),
+				}),
 			),
 		]
 	}
@@ -420,29 +406,22 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 			),
 			m(
 				".flex-center.full-width.pt-s.pb",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "redeem_label",
-						onclick: () => {
-							if (!this.confirmed) {
-								Dialog.message("termsAcceptedNeutral_msg")
-								return
-							}
+				m(LoginButton, {
+					label: "redeem_label",
+					class: "small-login-button",
+					onclick: () => {
+						if (!this.confirmed) {
+							Dialog.message("termsAcceptedNeutral_msg")
+							return
+						}
 
-							model
-								.redeemGiftCard(this.country)
-								.then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
-								.catch(ofClass(UserError, showUserError))
-								.catch(ofClass(CancelledError, noOp))
-						},
-					}),
-				),
+						model
+							.redeemGiftCard(this.country)
+							.then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
+							.catch(ofClass(UserError, showUserError))
+							.catch(ofClass(CancelledError, noOp))
+					},
+				}),
 			),
 		])
 	}

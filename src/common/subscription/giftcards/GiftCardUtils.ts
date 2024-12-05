@@ -1,5 +1,4 @@
-import m, { ChildArray, Children, VnodeDOM } from "mithril"
-import QRCode from "qrcode-svg"
+import m, { Children } from "mithril"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { CustomerInfo, GiftCard } from "../../api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, GiftCardTypeRef } from "../../api/entities/sys/TypeRefs.js"
@@ -8,18 +7,18 @@ import { lang, TranslationText } from "../../misc/LanguageViewModel"
 import { UserError } from "../../api/main/UserError"
 import { Dialog } from "../../gui/base/Dialog"
 import { ButtonType } from "../../gui/base/Button.js"
-import { htmlSanitizer } from "../../misc/HtmlSanitizer"
-import { px } from "../../gui/size"
-import { theme } from "../../gui/theme"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { isAndroidApp, isApp } from "../../api/common/Env"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { Keys } from "../../api/common/TutanotaConstants"
-import { formatPrice } from "../PriceUtils"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
 import { IconButton } from "../../gui/base/IconButton.js"
+import { formatPrice } from "../PriceUtils.js"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { urlEncodeHtmlTags } from "../../misc/Formatter.js"
+import QRCode from "qrcode-svg"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",
@@ -67,11 +66,8 @@ export async function generateGiftCardLink(giftCard: GiftCard): Promise<string> 
 
 export function showGiftCardToShare(giftCard: GiftCard) {
 	generateGiftCardLink(giftCard).then((link) => {
-		let dialog: Dialog
-		let infoMessage = "emptyString_msg"
-		let message = giftCard.message
-		let giftCardDomElement: SVGElement
-		dialog = Dialog.largeDialog(
+		let infoMessage: TranslationText = "emptyString_msg"
+		const dialog: Dialog = Dialog.largeDialog(
 			{
 				right: [
 					{
@@ -83,83 +79,70 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 				middle: () => lang.get("giftCard_label"),
 			},
 			{
-				view: () =>
-					m("", [
-						m(".flex-center.full-width.pt.pb", [
-							m(
-								"",
-								{
-									style: {
-										width: "480px",
-									},
+				view: () => [
+					m(
+						".flex-center.full-width.pt.pb",
+						m(
+							".pt-l", // Needed to center SVG
+							{
+								style: {
+									width: "480px",
 								},
-								m(
-									".pt-l",
-									{
-										oncreate: (vnode) => {
-											const children = vnode.children as ChildArray
-											const domChild = children[0] as VnodeDOM<unknown>
-											giftCardDomElement = domChild.dom as SVGElement
-										},
+							},
+							renderGiftCardSvg(parseFloat(giftCard.value), link, giftCard.message),
+						),
+					),
+					m(".flex-center", [
+						m(IconButton, {
+							click: () => {
+								dialog.close()
+								setTimeout(
+									() => import("../../../mail-app/mail/editor/MailEditor").then((editor) => editor.writeGiftCardMail(link)),
+									DefaultAnimationTime,
+								)
+							},
+							title: "shareViaEmail_action",
+							icon: BootIcons.Mail,
+						}),
+						isAndroidApp()
+							? m(IconButton, {
+									click: () => {
+										locator.systemFacade.shareText(
+											lang.get("nativeShareGiftCard_msg", {
+												"{link}": link,
+											}),
+											lang.get("nativeShareGiftCard_label"),
+										)
 									},
-									renderGiftCardSvg(parseFloat(giftCard.value), link, message),
-								),
-							),
-						]),
-						m(".flex-center", [
-							m(IconButton, {
-								click: () => {
-									dialog.close()
-									setTimeout(
-										() =>
-											import("../../../mail-app/mail/editor/MailEditor").then((editor) =>
-												editor.writeGiftCardMail(link, giftCardDomElement),
-											),
-										DefaultAnimationTime,
-									)
-								},
-								title: "shareViaEmail_action",
-								icon: BootIcons.Mail,
-							}),
-							isAndroidApp()
-								? m(IconButton, {
-										click: () => {
-											locator.systemFacade.shareText(
-												lang.get("nativeShareGiftCard_msg", {
-													"{link}": link,
-												}),
-												lang.get("nativeShareGiftCard_label"),
-											)
-										},
-										title: "share_action",
-										icon: BootIcons.Share,
-								  })
-								: m(IconButton, {
-										click: () => {
-											copyToClipboard(link)
-												.then(() => {
-													infoMessage = "giftCardCopied_msg"
-												})
-												.catch(() => {
-													infoMessage = "copyLinkError_msg"
-												})
-										},
-										title: "copyToClipboard_action",
-										icon: Icons.Clipboard,
-								  }),
-							!isApp()
-								? m(IconButton, {
-										click: () => {
-											infoMessage = "emptyString_msg"
-											window.print()
-										},
-										title: "print_action",
-										icon: Icons.Print,
-								  })
-								: null,
-						]),
-						m(".flex-center", m("small.noprint", lang.getMaybeLazy(infoMessage as TranslationText))),
+									title: "share_action",
+									icon: BootIcons.Share,
+							  })
+							: m(IconButton, {
+									click: () => {
+										copyToClipboard(link)
+											.then(() => {
+												infoMessage = "giftCardCopied_msg"
+											})
+											.catch(() => {
+												infoMessage = "copyLinkError_msg"
+											})
+									},
+									title: "copyToClipboard_action",
+									icon: Icons.Clipboard,
+							  }),
+						!isApp()
+							? m(IconButton, {
+									click: () => {
+										infoMessage = "emptyString_msg"
+										window.print()
+									},
+									title: "print_action",
+									icon: Icons.Print,
+							  })
+							: null,
 					]),
+					m(".flex-center", m("small.noprint", lang.getMaybeLazy(infoMessage))),
+				],
 			},
 		)
 			.addShortcut({
@@ -171,158 +154,172 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 	})
 }
 
-export function renderGiftCardSvg(price: number, link: string | null, message: string): Children {
-	let qrCode: string | null = null
-	const qrCodeSize = 80
+// Used to get gift-card.svg when `renderGiftCardSvg()` is called and cache it.
+const giftCardSVGGetter = new (class GiftCardSVGGetter {
+	private static giftCardSvg: string | null = null
+	private static giftCardNoQrSvg: string | null = null
 
-	if (link) {
-		let qrcodeGenerator = new QRCode({
-			height: qrCodeSize,
-			width: qrCodeSize,
-			content: link,
-			background: theme.content_accent,
-			color: theme.content_bg,
-			xmlDeclaration: false,
-			container: "none",
-		})
-		const svg = qrcodeGenerator.svg()
-		qrCode = htmlSanitizer.sanitizeSVG(svg).html
+	// Returns a cached `gift-card.svg` or downloads it if online. Returns a placeholder if offline.
+	getWithQr(): string {
+		if (GiftCardSVGGetter.giftCardSvg == null) {
+			GiftCardSVGGetter.downloadSVG("gift-card", (rawSVG) => {
+				GiftCardSVGGetter.giftCardSvg = rawSVG
+				m.redraw() // Rerender any calling views that use the SVG
+			})
+			return GiftCardSVGGetter.getPlaceHolder("<rect id='qr-code' width='80' height='80' x='0' y='70'></rect>")
+		}
+		return GiftCardSVGGetter.giftCardSvg
 	}
 
-	const formattedPrice = formatPrice(price, true)
-	const baseHeight = 220
-	const height = link ? baseHeight + qrCodeSize : baseHeight + 5 // a bit of padding if there's no qrcode
+	// Returns a cached `gift-card-no-qr.svg` or downloads it if online. Returns a placeholder if offline.
+	getNoQr(): string {
+		if (GiftCardSVGGetter.giftCardNoQrSvg == null) {
+			GiftCardSVGGetter.downloadSVG("gift-card-no-qr", (rawSVG) => {
+				GiftCardSVGGetter.giftCardNoQrSvg = rawSVG
+				m.redraw()
+			})
+			return GiftCardSVGGetter.getPlaceHolder()
+		}
+		return GiftCardSVGGetter.giftCardNoQrSvg
+	}
 
-	const width = 240
-	const borderRadius = 20
-	// Do not change this value. Needs to remain consistent with the SVG path data
-	const logoPathWidth = 153
-	const logoWidth = 180
-	const topBottomPadding = 20
-	const logoScale = logoWidth / logoPathWidth
-	const messageBoxTop = 80
-	const messageBoxHeight = 75
-	const qrCodeTopPadding = 10
-	const qrCodeTop = messageBoxTop + messageBoxHeight + qrCodeTopPadding
-	const giftCardLabelTopOffset = 45
-
-	const centered = (elementWidth: number, totalWidth = width) => totalWidth / 2 - elementWidth / 2
-
-	const squiggleStart = 117
-	const qrCodePadding = 5
-	const qrCodeLeft = 32
-	const priceY = 35
-	return m(
-		"svg",
-		{
-			style: {
-				color: theme.elevated_bg,
-				maxWidth: "960px",
-				minwidth: "480px",
-				"border-radius": px(borderRadius),
-				filter: "drop-shadow(10px 10px 10px #00000088)",
+	// Downloads an SVG from the images folder without returning a promise via using a callback
+	private static downloadSVG(fileName: string, onComplete: (rawSVG: string) => void) {
+		fetch(`${window.tutao.appState.prefixWithoutFile}/images/${fileName}.svg`).then(
+			async (res) => {
+				onComplete(await res.text())
 			},
-			xmlns: "http://www.w3.org/2000/svg",
-			viewBox: `0 0 ${width} ${height}`,
-		},
-		[
-			m("rect", {
-				width: "100%",
-				height: "100%",
-				style: {
-					fill: theme.content_accent,
-					"-webkit-print-color-adjust": "exact",
-					"color-adjust": "exact",
-				},
-			}),
-			m(
-				"g",
-				{
-					transform: `translate(${centered(logoWidth)}, ${topBottomPadding}) scale(${logoScale})`,
-				},
-				[
-					m("path", {
-						/* tutanota logo text */
-						fill: theme.elevated_bg,
-						d: "M9.332 1.767H0V0h20.585v1.767h-9.333V28.42h-1.92zM20.086 22.89V8.257h1.843v14.402c0 3.073 1.344 4.57 4.417 4.57 2.803 0 5.146-1.459 7.642-3.84V8.257h1.844V28.42h-1.846v-3.341c-2.227 2.112-4.839 3.764-7.796 3.764-4.186 0-6.106-2.305-6.106-5.953zm23.85 1.037V9.908h-3.534V8.257h3.533V.922h1.844v7.335h5.261v1.652h-5.261v13.748c0 2.151.73 3.38 3.264 3.38.768 0 1.536-.077 2.112-.268v1.728c-.652.115-1.42.192-2.265.192-3.342 0-4.955-1.344-4.955-4.762zm11.136-.154c0-3.84 3.264-6.721 13.865-8.488v-1.229c0-3.072-1.614-4.608-4.379-4.608-3.341 0-5.569 1.305-7.835 3.341l-1.075-1.152c2.497-2.304 5.07-3.802 8.948-3.802 4.187 0 6.184 2.38 6.184 6.106v9.486c0 2.458.154 3.956.576 4.993h-1.96a9.82 9.82 0 01-.46-2.996c-2.459 2.113-5.147 3.342-8.181 3.342-3.687 0-5.684-1.92-5.684-4.993zm13.864-.154v-6.951c-9.831 1.728-12.02 4.147-12.02 6.99 0 2.265 1.497 3.494 3.993 3.494 2.996 0 5.723-1.305 8.027-3.533zm8.143 4.801V8.142h3.34v3.033c1.768-1.728 4.302-3.456 7.605-3.456 3.88 0 5.991 2.227 5.991 6.068v14.632h-3.302V14.517c0-2.688-1.152-3.955-3.726-3.955-2.419 0-4.455 1.267-6.567 3.264V28.42zm21.775-10.14c0-6.989 4.455-10.56 9.448-10.56 4.954 0 9.41 3.571 9.41 10.56 0 6.952-4.456 10.562-9.41 10.562-4.955 0-9.448-3.61-9.448-10.561zm15.516 0c0-4.224-2.036-7.719-6.068-7.719-3.88 0-6.107 3.15-6.107 7.72 0 4.301 1.997 7.758 6.107 7.758 3.84 0 6.068-3.111 6.068-7.758zm9.83 5.224V10.869h-3.532V8.142h3.533V.922h3.303v7.22h5.261v2.727h-5.262v11.906c0 2.15.692 3.226 3.15 3.226.73 0 1.536-.116 2.074-.27v2.728c-.577.115-1.844.23-2.88.23-4.264 0-5.646-1.651-5.646-5.185zm12.137.115c0-4.11 3.495-7.028 13.557-8.45v-.92c0-2.536-1.344-3.764-3.84-3.764-3.073 0-5.339 1.344-7.336 3.072l-1.728-2.074c2.342-2.15 5.377-3.764 9.41-3.764 4.838 0 6.758 2.535 6.758 6.76v8.948c0 2.458.154 3.956.577 4.993h-3.38c-.269-.845-.46-1.652-.46-2.804-2.267 2.113-4.801 3.111-7.836 3.111-3.495 0-5.722-1.843-5.722-5.108zm13.557-.46v-5.684c-7.72 1.229-10.293 3.11-10.293 5.645 0 1.959 1.306 2.996 3.418 2.996 2.689 0 4.993-1.114 6.875-2.958z",
-					}),
-					m(
-						"text",
-						{
-							/* translation of "gift card" */
-							"text-anchor": "end",
-							x: logoPathWidth,
-							y: giftCardLabelTopOffset,
-							fill: theme.elevated_bg,
-						},
-						lang.get("giftCard_label"),
-					),
-				],
-			),
-			m(
-				"foreignObject",
-				{
-					x: centered(logoPathWidth),
-					y: messageBoxTop,
-					width: logoPathWidth,
-					height: messageBoxHeight,
-				},
-				m(
-					"p.text-preline.text-break.color-adjust-exact.monospace.text-center",
-					{
-						xmlns: "http://www.w3.org/1999/xhtml",
-						style: {
-							margin: 0,
-							fontSize: ".6rem",
-							color: theme.elevated_bg,
-							"font-family": "monospace",
-						},
-					},
-					message,
-				),
-			),
-			m(
-				"text",
-				{
-					/* price */
-					"text-anchor": "start",
-					x: qrCodeLeft,
-					y: height - priceY,
-					fill: theme.elevated_bg,
-					"font-size": "1.6rem",
-				},
-				formattedPrice,
-			),
-			m("text", {
-				/* valid in */
-				"text-anchor": "start",
-				x: qrCodeLeft,
-				y: height - topBottomPadding - 5,
-				fill: theme.elevated_bg,
-				"font-size": ".4rem",
-			}),
-			qrCode
-				? m(
-						"g",
-						{
-							transform: `translate(${qrCodeLeft - qrCodePadding} ${qrCodeTop})`,
-						},
-						m.trust(qrCode),
-				  )
-				: null,
-			m("path", {
-				fill: theme.elevated_bg,
-				transform: `translate(${squiggleStart} ${height - 80})`,
-				d: "M74.483 0s8.728 1.406 8.713 4.992c0 .12-.011.237-.029.357-.612 3.86-13.283 3.762-18.682 4.23-5.394.459-20.04.149-23.739 6.625a1.996 1.996 0 00-.28.97c-.043 5.903 30.74 9.897 32.5 22.778.06.422.088.844.088 1.262-.025 13.047-27.86 24.602-61.907 38.193C7.43 80.891 3.78 82.585 0 83.896h127.618v-28.16c-3.2-8.982-9.027-17.293-19.193-22.564C87.613 22.37 55.084 20.366 53.693 16.204c-.06-.177-.09-.35-.085-.516.03-2.846 8.905-3.51 14.734-3.802 6.162-.302 15.481-1.135 16.622-5.56.056-.213.08-.422.08-.624C85.075 1.582 74.484 0 74.484 0z",
-			}),
-		],
-	)
+			() => {},
+		)
+	}
+
+	// Renders the placeholder gift card, optionally with extra HTML
+	private static getPlaceHolder(extraElements: string = ""): string {
+		return `
+			<svg width='480' height='600'>
+				<text id='card-label' x='0' y='20'></text>
+				<text id='message' x='0' y='40' fill='#fff'></text>
+				<text id='price' x='0' y='60'></text>
+				${extraElements}
+			</svg>`
+	}
+})()
+
+export function renderGiftCardSvg(price: number, link: string | null, message: string): Children {
+	const svg = link == null ? giftCardSVGGetter.getNoQr() : giftCardSVGGetter.getWithQr()
+	const svgDocument: Document = new DOMParser().parseFromString(svg, "image/svg+xml")
+
+	// Generate and replace the qrcode placeholder a QR Code to the link if provided
+	if (link != null) {
+		const qrCodeElement = getGiftCardElement(svgDocument, "qr-code")
+		const qrCodeWidth = getNumberAttribute(qrCodeElement, "width")
+		const qrCodeHeight = getNumberAttribute(qrCodeElement, "height")
+		const qrCodeXPosition = getNumberAttribute(qrCodeElement, "x")
+		const qrCodeYPosition = getNumberAttribute(qrCodeElement, "y")
+		qrCodeElement.outerHTML = renderQRCode(qrCodeXPosition, qrCodeYPosition, qrCodeWidth, qrCodeHeight, link)
+	}
+
+	const labelElement = getGiftCardElement(svgDocument, "card-label")
+	labelElement.textContent = lang.get("giftCard_label").toUpperCase()
+
+	const priceElement = getGiftCardElement(svgDocument, "price")
+	priceElement.textContent = formatPrice(price, false).replace(/\s+/g, "") + "€"
+	// Append the € symbol manually because in one particular language the € sign is being translated into "EUR" using `formatPrice` method
+
+	// SVG text elements do not have word wrap, so we use an HTML `p` element to avoid word wrapping via JS ourselves
+	// It would be nice to have this decoupled from the current design of the gift card
+	const messageElement = getGiftCardElement(svgDocument, "message")
+	const messageColor = getAttribute(messageElement, "fill")
+	messageElement.outerHTML = renderMessage(19, 61, 108, 70, messageColor, message)
+
+	return m.trust(svgDocument.documentElement.outerHTML)
 }
 
-export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (checked: boolean) => void): Children {
+// Gets an attribute of an element that has a type of number
+function getNumberAttribute(element: Element, attributeName: string): number {
+	const raw = element.getAttribute(attributeName)
+	if (raw == null) {
+		throw new Error(`Error while rendering gift card: missing attribute ${attributeName} from ${element.id}`)
+	}
+	return Number(raw)
+}
+
+function getAttribute(element: Element, attributeName: string): string {
+	const raw = element.getAttribute(attributeName)
+	if (raw == null) {
+		throw new Error(`Error while rendering gift card: missing attribute ${attributeName} from ${element.id}`)
+	}
+	return raw
+}
+
+// Gets one of the standard gift card elements from an SVG.
+function getGiftCardElement(svgDocument: Document, id: "price" | "qr-code" | "message" | "card-label"): SVGElement {
+	const element = svgDocument.getElementById(id) as SVGElement | null
+	if (element == null) {
+		throw new Error(`Error while rendering gift card: missing element ${id}`)
+	}
+	return element
+}
+
+/**
+ * Renders a text with word wrapping in an SVG element. (0,0) is the top left.
+ * @param x The position of the element on the X Axis.
+ * @param y The position of the element on the Y Axis.
+ * @param width The width of the text element.
+ * @param height The height of the text element.
+ * @param color The fill colour of the text element.
+ * @param message The text to be displayed in the element.
+ */
+function renderMessage(x: number, y: number, width: number, height: number, color: string, message: string): string {
+	const cleanMessage: string = htmlSanitizer.sanitizeHTML(urlEncodeHtmlTags(message)).html
+
+	const lineBreaks = cleanMessage.split(/\r\n|\r|\n/).length
+	const charLength = cleanMessage.length
+
+	const fontSizePx = lineBreaks > 4 || charLength > 80 ? "6px" : "7px"
+
+	return `
+		<foreignObject x="${x}" y="${y}" width="${width}" height="${height}" fill="${color}">
+			<p xmlns="http://www.w3.org/1999/xhtml"
+			   class="text-preline text-break color-adjust-exact monospace"
+			   style="font-size: ${fontSizePx}; color: ${color}; margin: auto 0 0 0">
+				${cleanMessage}
+			</p>
+		</foreignObject>`
+}
+
+/**
+ * Generates a black-on-white QR Code in SVG form
+ * @param x The position on the X Axis of the QR Code. 0 is the far left.
+ * @param y The position on the Y Axis of the QR Code. 0 is the top.
+ * @param link The link that the generated QR code will lead to when scanned
+ * @param height The height in pixels of the resulting QR code
+ * @param width The width in pixels of the resulting QR code
+ * @return the SVG element of the generated QR code as a `string`
+ */
+function renderQRCode(x: number, y: number, width: number, height: number, link: string): string {
+	const svg = new QRCode({
+		height,
+		width,
+		content: link,
+		background: "#ffffff",
+		color: "#000000",
+		xmlDeclaration: false,
+		container: "none",
+		padding: 0,
+		join: true,
+		pretty: false,
+	}).svg()
+	const qrCode = htmlSanitizer.sanitizeSVG(svg).html
+
+	return `<svg x="${x}" y="${y}" width="${width}" height="${height}">${qrCode}</svg>`
+}
+
+export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (checked: boolean) => void, classes?: string): Children {
 	return m(Checkbox, {
 		checked,
 		onChecked,
+		class: classes,
 		label: () => [lang.get("termsAndConditions_label"), m("div", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION))],
 	})
 }
