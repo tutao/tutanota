@@ -10,8 +10,8 @@ export function renderFingerprintAsQrCode(selfMailAddress: string, selfFingerpri
 	const payload: KeyVerificationQrPayload = { mailAddress: selfMailAddress, fingerprint: selfFingerprint }
 
 	const qrCode = new QRCode({
-		height: 150,
-		width: 150,
+		height: 240,
+		width: 240,
 		content: JSON.stringify(payload),
 		padding: 0,
 		xmlDeclaration: false,
