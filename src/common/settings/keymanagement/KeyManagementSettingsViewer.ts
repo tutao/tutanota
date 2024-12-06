@@ -7,12 +7,11 @@ import { lang } from "../../misc/LanguageViewModel"
 import { IconButton } from "../../gui/base/IconButton"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
-import { KeyVerificationProcessDialog } from "./KeyVerificationProcessDialog"
 import { KeyVerificationDetails, KeyVerificationFacade, MailAddress } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { KeyVerificationProcessModel } from "./KeyVerificationProcessModel"
 import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./FingerprintRenderers"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector"
 import { KeyVerificationMethodOptions, KeyVerificationMethodType } from "../../api/common/TutanotaConstants"
+import { showKeyVerificationWizard } from "./KeyVerificationWizard"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	mailAddress: string | null
@@ -105,7 +104,9 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					lang.get("keyManagement.verifyMailAddress_action"),
 					m(IconButton, {
 						title: "keyManagement.verifyMailAddress_action",
-						click: () => this._showVerificationDialog(obj),
+						click: async () => {
+							await showKeyVerificationWizard(this.keyVerificationFacade, () => obj.reload())
+						},
 						icon: Icons.Add,
 						size: ButtonSize.Compact,
 					}),
@@ -128,11 +129,5 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m("p", [m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))]),
 			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 		]
-	}
-
-	async _showVerificationDialog(parent: KeyManagementSettingsViewer) {
-		const model = new KeyVerificationProcessModel()
-		const dialog = new KeyVerificationProcessDialog(this.keyVerificationFacade, model, () => parent.reload())
-		dialog.show()
 	}
 }
