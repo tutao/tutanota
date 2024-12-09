@@ -1,4 +1,4 @@
-import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, StateCallbackResponse, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
@@ -57,16 +57,15 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-		const importState = await fileImporter.startImport(this.shouldPause, this.shouldStop)
+		const importState = await fileImporter.startImport(this.stateCallback)
 
 		return importState.failedMailsCount === 0 ? "importSuccessful" : "importFailure"
 	}
 
-	shouldPause(): boolean {
-		return false
-	}
-
-	shouldStop(): boolean {
-		return false
+	stateCallback(): StateCallbackResponse {
+		return {
+			shouldStop: false,
+			shouldPause: false,
+		}
 	}
 }
