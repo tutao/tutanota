@@ -97,6 +97,14 @@ pub enum ImportStatus {
 	Finished = 5,
 }
 
+/// when state callback function is called after every chunk of import,
+/// javascript handle is expected to respond with this struct
+#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
+pub struct StateCallbackResponse {
+	pub should_stop: bool,
+	pub should_pause: bool,
+}
+
 pub struct ImportEssential {
 	logged_in_sdk: Arc<LoggedInSdk>,
 	target_owner_group: GeneratedId,
@@ -526,16 +534,24 @@ impl ImportState {
 		logged_in_sdk: &LoggedInSdk,
 	) -> Result<(), ImportError> {
 		if self.last_server_update.elapsed().unwrap_or_default() > Duration::from_secs(6) {
-			logged_in_sdk
-				.mail_facade()
-				.get_crypto_entity_client()
-				.update_instance(self.remote_state.clone())
+			self.update_import_state_on_server_unchecked(logged_in_sdk)
 				.await
-				.map(|_| self.last_server_update = SystemTime::now())
-				.map_err(|e| ImportError::sdk("update remote import state", e))
 		} else {
 			Ok(())
 		}
+	}
+
+	async fn update_import_state_on_server_unchecked(
+		&mut self,
+		logged_in_sdk: &LoggedInSdk,
+	) -> Result<(), ImportError> {
+		logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.update_instance(self.remote_state.clone())
+			.await
+			.map(|_| self.last_server_update = SystemTime::now())
+			.map_err(|e| ImportError::sdk("update remote import state", e))
 	}
 
 	fn change_status(&mut self, status: ImportStatus) {
@@ -730,21 +746,20 @@ impl Importer {
 		Ok(())
 	}
 
-	pub async fn start_stateful_import<ShouldPauseResolver, ShouldStopResolver, Err>(
+	pub async fn start_stateful_import<CallbackHandle, Err>(
 		&mut self,
-		should_pause_provider: impl Fn() -> ShouldPauseResolver,
-		should_cancel_provider: impl Fn() -> ShouldStopResolver,
+		callback_handle: impl Fn() -> CallbackHandle,
 	) -> Result<(), Err>
 	where
-		ShouldStopResolver: Future<Output = Result<bool, Err>>,
-		ShouldPauseResolver: Future<Output = Result<bool, Err>>,
+		CallbackHandle: Future<Output = Result<StateCallbackResponse, Err>>,
 		Err: From<ImportError>,
 	{
 		while self.get_remote_state().status != ImportStatus::Finished as i64 {
-			if should_pause_provider().await? {
+			let callback_response = callback_handle().await?;
+			if callback_response.should_pause {
 				self.state.change_status(ImportStatus::Paused);
 				break;
-			} else if should_cancel_provider().await? {
+			} else if callback_response.should_stop {
 				self.state.change_status(ImportStatus::Canceled);
 				break;
 			}
@@ -756,22 +771,10 @@ impl Importer {
 		}
 
 		self.state
-			.update_import_state_on_server(&self.essentials.logged_in_sdk)
+			.update_import_state_on_server_unchecked(&self.essentials.logged_in_sdk)
 			.await?;
 
 		Ok(())
-	}
-
-	pub async fn pause_import(&mut self) -> Result<(), ImportError> {
-		self.state.change_status(ImportStatus::Paused);
-		self.state
-			.update_import_state_on_server(&self.essentials.logged_in_sdk)
-			.await?;
-		Ok(())
-	}
-
-	pub async fn cancel_import(&mut self) -> Result<(), ImportError> {
-		todo!()
 	}
 }
 
@@ -825,16 +828,14 @@ mod tests {
 		assert_eq!(Err(()), no_neg_status);
 	}
 
-	pub async fn resolve_to_true() -> Result<bool, ImportError> {
-		Ok(true)
-	}
-	pub async fn resolve_to_false() -> Result<bool, ImportError> {
-		Ok(false)
-	}
-
 	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
 		importer
-			.start_stateful_import(resolve_to_false, resolve_to_false)
+			.start_stateful_import(|| async {
+				Ok(StateCallbackResponse {
+					should_pause: false,
+					should_stop: false,
+				})
+			})
 			.await
 	}
 
@@ -1001,12 +1002,17 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn will_check_pause_provider_and_stop_if_true() {
+	async fn should_pause_if_true_response() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 
-		let resolve_to_panic = || async { panic!("should have called pause provider first") };
+		let callback_resolver = || async {
+			Result::<_, ImportError>::Ok(StateCallbackResponse {
+				should_stop: false,
+				should_pause: true,
+			})
+		};
 		importer
-			.start_stateful_import(resolve_to_true, resolve_to_panic)
+			.start_stateful_import(callback_resolver)
 			.await
 			.unwrap();
 		let remote_state = importer.get_remote_state();
@@ -1016,11 +1022,17 @@ mod tests {
 		assert_eq!(remote_state.successfulMails, 0);
 	}
 	#[tokio::test]
-	async fn will_check_stop_provider_and_stop_if_true() {
+	async fn should_stop_if_true_response() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 
+		let callback_resolver = || async {
+			Result::<_, ImportError>::Ok(StateCallbackResponse {
+				should_stop: true,
+				should_pause: false,
+			})
+		};
 		importer
-			.start_stateful_import(resolve_to_false, resolve_to_true)
+			.start_stateful_import(callback_resolver)
 			.await
 			.unwrap();
 		let remote_state = importer.get_remote_state();

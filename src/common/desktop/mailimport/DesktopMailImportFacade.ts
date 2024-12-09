@@ -1,4 +1,4 @@
-import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, StateCallbackResponse, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
@@ -43,11 +43,10 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		await fileImporter.continueImport()
 	}
 
-	shouldPause(): boolean {
-		return false
-	}
-
-	shouldStop(): boolean {
-		return false
+	stateCallback(): StateCallbackResponse {
+		return {
+			shouldStop: false,
+			shouldPause: false,
+		}
 	}
 }

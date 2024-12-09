@@ -1,4 +1,4 @@
-use super::importer::{ImportError, ImportStatus, Importer};
+use super::importer::{ImportError, ImportStatus, Importer, StateCallbackResponse};
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
 use std::sync::Arc;
@@ -81,30 +81,16 @@ impl ImporterApi {
 	#[napi]
 	pub async unsafe fn start_import(
 		&mut self,
-		should_pause_import: StateCallback,
-		should_cancel_import: StateCallback,
+		callback_handle: StateCallback,
 	) -> napi::Result<ExportedImportMailState> {
-		let should_pause_import = || should_pause_import.call_async::<bool>(());
-		let should_stop_import = || should_cancel_import.call_async::<bool>(());
+		let callback_handle_provider = || callback_handle.call_async::<StateCallbackResponse>(());
 
 		let mut importer = self.inner.lock().await;
 		importer
-			.start_stateful_import(should_pause_import, should_stop_import)
+			.start_stateful_import(callback_handle_provider)
 			.await?;
 
 		Ok(importer.get_remote_state().clone().into())
-	}
-
-	#[napi]
-	pub async unsafe fn delete_import(&mut self) -> napi::Result<()> {
-		self.inner.lock().await.cancel_import().await?;
-		Ok(())
-	}
-
-	#[napi]
-	pub async unsafe fn pause_import(&mut self) -> napi::Result<()> {
-		self.inner.lock().await.pause_import().await?;
-		Ok(())
 	}
 
 	#[napi]
