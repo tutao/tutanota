@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-12-02T20:08:19Z",
+	"updated_at": "2024-12-09T12:43:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -604,6 +604,7 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Lütfen tüm sorular için bir cevap seçin.",
 		"experienceSamplingThankYou_msg": "Katılımınız için teşekkür ederiz!",
 		"expiredLink_msg": "Üzgünüz, bu bağlantı artık geçerli değil. Şu anda geçerli olan bağlantıyı içeren yeni bir bildirim e-postası almış olmalısınız. Önceki bağlantılar güvenlik nedeniyle devre dışı bırakılmıştır.",
+		"exportFinished_label": "Dışa aktarma tamamlandı",
 		"exportingEmails_label": "E-postalar dışa aktarılıyor: {count}",
 		"exportMailbox_label": "Posta Kutusunu Dışa Aktar",
 		"exportUsers_action": "Kullanıcıları dışa aktar",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-12-03T09:30:25Z",
+	"updated_at": "2024-12-09T12:43:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -600,6 +600,7 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Kérjük, minden kérdésre válasszon választ!",
 		"experienceSamplingThankYou_msg": "Köszönjük a részvételét!",
 		"expiredLink_msg": "Sajnálom, ez a hivatkozás már nem érvényes. Kapnia kellett egy értesítést, mely az érvényes hivatkozást tartalmazza. A korábbi hivatkozások biztonsági okokból kikapcsolásra kerültek.",
+		"exportFinished_label": "Exportálás befejezve",
 		"exportingEmails_label": "E-mailek exportálása: {count}",
 		"exportMailbox_label": "Postafiók exportálása",
 		"exportUsers_action": "Felhasználók exportálása.",
@@ -1188,7 +1189,7 @@ export default {
 		"priceChangeValidFrom_label": "Az árváltozás ekkortól lép hatályba: {1}.",
 		"priceFirstYear_label": "Az első év ára",
 		"priceForCurrentAccountingPeriod_label": "Az időarányos ár az aktuális előfizetési időszakra {1}.",
-		"priceForNextYear_label": "Az ár a következő évre",
+		"priceForNextYear_label": "Az ár a jövő évtől",
 		"priceFrom_label": "Az ár {date} -től kezdve",
 		"priceTill_label": "Ár eddig: {date}",
 		"price_label": "Ár",

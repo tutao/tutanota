@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-12-02T14:16:05Z",
+	"updated_at": "2024-12-09T12:43:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -600,6 +600,7 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Valitse vastaus kaikkiin kysymyksiin.",
 		"experienceSamplingThankYou_msg": "Kiitos osallistumisestasi!",
 		"expiredLink_msg": "Linkki ei ole enää voimassa. Sinulle on lähetetty uusi ilmoitusviesti, jossa on voimassa oleva linkki. Edelliset linkit on poistettu käytöstä turvallisuussyistä.",
+		"exportFinished_label": "Vienti on valmis",
 		"exportingEmails_label": "Sähköposteja viedään: {count}",
 		"exportMailbox_label": "Vie postilaatikko",
 		"exportUsers_action": "Vie käyttäjiä",
@@ -1188,7 +1189,7 @@ export default {
 		"priceChangeValidFrom_label": "Hinnanmuutos tulee voimaan {1}.",
 		"priceFirstYear_label": "Ensimmäisen vuoden hinta",
 		"priceForCurrentAccountingPeriod_label": "Suhteellinen hinta nykyiselle tilausjaksolle on {1}.",
-		"priceForNextYear_label": "Hinta seuraavalle vuodelle",
+		"priceForNextYear_label": "Hinta seuraavasta vuodesta",
 		"priceFrom_label": "Hinta {date} alkaen",
 		"priceTill_label": "Hinta {date} asti",
 		"price_label": "Hinta",

@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2024-12-02T19:54:34Z",
+	"updated_at": "2024-12-09T12:43:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -606,6 +606,7 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Wybierz odpowiedź dla wszystkich zapytań.",
 		"experienceSamplingThankYou_msg": "Dziękujemy za udział!",
 		"expiredLink_msg": "Przepraszamy, ten link nie jest aktualny. Otrzymasz nową wiadomość e-mail z aktualnym linkiem. Poprzednie linki zostały dezaktywowane ze względów bezpieczeństwa.",
+		"exportFinished_label": "Zakończono eksportowanie",
 		"exportingEmails_label": "Eksportowanie wiadomości e-mail: {count}",
 		"exportMailbox_label": "Eksportuj skrzynkę pocztową",
 		"exportUsers_action": "Eksportuj użytkowników",
@@ -1193,7 +1194,7 @@ export default {
 		"priceChangeValidFrom_label": "Zmiana cen nastąpi od {1}.",
 		"priceFirstYear_label": "Cena za pierwszy rok",
 		"priceForCurrentAccountingPeriod_label": "Proporcjonalna cena za aktualny okres rozliczniowy wynosi {1}.",
-		"priceForNextYear_label": "Cena w przyszłym roku",
+		"priceForNextYear_label": "Cena od przyszłego roku",
 		"priceFrom_label": "Cena z dnia {date}",
 		"priceTill_label": "Cena do {date}",
 		"price_label": "Cena",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-12-02T14:44:50Z",
+	"updated_at": "2024-12-09T12:43:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -600,6 +600,7 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Välj ett svar för respektive fråga.",
 		"experienceSamplingThankYou_msg": "Tack för ditt deltagande!",
 		"expiredLink_msg": "Den här länken inte längre giltig. Du bör ha fått ett nytt aviseringsmeddelande med den nu gällande länken. Tidigare länkar avaktiveras av säkerhetsskäl.",
+		"exportFinished_label": "Exporten slutförd",
 		"exportingEmails_label": "Exporterar mejl: {count}",
 		"exportMailbox_label": "Exportera brevlåda",
 		"exportUsers_action": "Exportera användare",
@@ -1188,7 +1189,7 @@ export default {
 		"priceChangeValidFrom_label": "Prisförändring träder i kraft den {1}.",
 		"priceFirstYear_label": "Pris för första året",
 		"priceForCurrentAccountingPeriod_label": "Proportionellt pris för aktuell abonnemangssperiod är {1}.",
-		"priceForNextYear_label": "Pris för nästa år",
+		"priceForNextYear_label": "Pris från nästa år",
 		"priceFrom_label": "Pris från {date}",
 		"priceTill_label": "Pris till {date}",
 		"price_label": "Pris",
