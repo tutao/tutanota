@@ -5,6 +5,7 @@ async fn can_import_multiple_emls() {
 	use tutao_node_mimimi::importer::ImportError;
 	use tutao_node_mimimi::importer::ImportStatus;
 	use tutao_node_mimimi::importer::Importer;
+	use tutao_node_mimimi::importer::StateCallbackResponse;
 	use tutasdk::folder_system::MailSetKind;
 	use tutasdk::net::native_rest_client::NativeRestClient;
 	use tutasdk::Sdk;
@@ -51,9 +52,14 @@ async fn can_import_multiple_emls() {
 	.await
 	.unwrap();
 
-	let resolve_to_false = || async { Result::<_, ImportError>::Ok(false) };
+	let default_resolver = || async {
+		Result::<_, ImportError>::Ok(StateCallbackResponse {
+			should_pause: false,
+			should_stop: false,
+		})
+	};
 	importer
-		.start_stateful_import(resolve_to_false, resolve_to_false)
+		.start_stateful_import(default_resolver)
 		.await
 		.expect("Cannot complete import");
 	let import_state = importer.get_remote_state();
