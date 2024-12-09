@@ -1,6 +1,4 @@
 use super::importer::{ImportError, ImportStatus, Importer};
-use napi::bindgen_prelude::ToNapiValue;
-use napi::threadsafe_function::ErrorStrategy::ErrorStrategy;
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
 use std::sync::Arc;
@@ -9,17 +7,19 @@ use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
 
+pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
+
 /// Since ImportMailState is generated and dos not implement napi::ToNapiValue,
 /// create a wrapper
-#[cfg_attr(feature = "javascript", napi_derive::napi)]
-#[cfg_attr(not(feature = "javascript"), derive(Clone))]
+#[napi_derive::napi]
 pub struct ExportedImportMailState {
 	pub status: ImportStatus,
 	pub imported_mails_count: i64,
 	pub failed_mails_count: i64,
 }
 
-pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
+/// Javascript function to check for state change
+type StateCallback = ThreadsafeFunction<(), napi::threadsafe_function::ErrorStrategy::Fatal>;
 
 #[napi_derive::napi]
 pub struct ImporterApi {
@@ -76,36 +76,21 @@ impl ImporterApi {
 	}
 }
 
-/*
-// let napi_env: napi::sys::napi_env__ = *self.env.raw();
-// napi::bindgen_prelude::execute_tokio_future(
-// 	self.env.raw(),
-// 	async move {
-// 		let env: Env = todo!();
-// 		// let should_stop_provider = should_stop_provider.borrow_back(&env)?;
-// 		//
-// 		// let mut importer = locked_importer.lock().await;
-// 		// while importer.get_remote_state().status != ImportStatus::Finished as i64 {
-// 		// 	importer.continue_import().await?;
-// 		//
-// 		// 	// after every import check if client state changed in such a way that we should not import any further
-// 		// }
-// 		Ok(())
-// 	},
-// 	|e, v| napi::bindgen_prelude::ToNapiValue::to_napi_value(e, v),
-// )?;
- */
 #[napi_derive::napi]
 impl ImporterApi {
 	#[napi]
-	pub async unsafe fn continue_import(
+	pub async unsafe fn start_import(
 		&mut self,
-		should_stop_import: ThreadsafeFunction<(), napi::threadsafe_function::ErrorStrategy::Fatal>,
+		should_pause_import: StateCallback,
+		should_cancel_import: StateCallback,
 	) -> napi::Result<ExportedImportMailState> {
-		let should_stop_import = || should_stop_import.call_async::<bool>(());
+		let should_pause_import = || should_pause_import.call_async::<bool>(());
+		let should_stop_import = || should_cancel_import.call_async::<bool>(());
 
 		let mut importer = self.inner.lock().await;
-		importer.start_pausable_import(should_stop_import).await?;
+		importer
+			.start_stateful_import(should_pause_import, should_stop_import)
+			.await?;
 
 		Ok(importer.get_remote_state().clone().into())
 	}

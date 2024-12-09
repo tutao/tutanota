@@ -51,8 +51,9 @@ async fn can_import_multiple_emls() {
 	.await
 	.unwrap();
 
+	let resolve_to_false = || async { Result::<_, ImportError>::Ok(false) };
 	importer
-		.start_pausable_import(|| async { Result::<_, ImportError>::Ok(false) })
+		.start_stateful_import(resolve_to_false, resolve_to_false)
 		.await
 		.expect("Cannot complete import");
 	let import_state = importer.get_remote_state();

@@ -42,4 +42,12 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
 		await fileImporter.continueImport()
 	}
+
+	shouldPause(): boolean {
+		return false
+	}
+
+	shouldStop(): boolean {
+		return false
+	}
 }
