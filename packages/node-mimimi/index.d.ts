@@ -7,17 +7,19 @@
  * current state of the imap_reader import for this tuta account
  * requires an initialized SDK!
  */
-export const enum ImportState {
+export const enum ImportStatus {
 	NotInitialized = 0,
 	Paused = 1,
 	Running = 2,
 	Postponed = 3,
 	Finished = 4,
 }
-export interface ImportStatus {
-	state: ImportState
+
+export interface ImportState {
+	state: ImportStatus
 	importedMails: number
 }
+
 /** Passed in from js-side, will be validated before being converted to proper tuta sdk credentials. */
 export interface TutaCredentials {
 	apiUrl: string
@@ -28,15 +30,20 @@ export interface TutaCredentials {
 	encryptedPassphraseKey: Array<number>
 	credentialType: TutaCredentialType
 }
+
 export const enum TutaCredentialType {
 	Internal = 0,
 	External = 1,
 }
+
 /** Wrapper for `Importer` to be used from napi-rs interface */
 export declare class ImporterApi {
-	continueImport(): Promise<ImportStatus>
-	deleteImport(): Promise<ImportStatus>
-	pauseImport(): Promise<ImportStatus>
+	continueImport(): Promise<ImportState>
+
+	deleteImport(): Promise<ImportState>
+
+	pauseImport(): Promise<ImportState>
+
 	static createFileImporter(
 		tutaCredentials: TutaCredentials,
 		targetOwnerGroup: string,

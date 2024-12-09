@@ -1,4 +1,4 @@
-use crate::reduce_to_chunks::{ChunkedImportItem, UnitImport};
+use crate::reduce_to_chunks::UnitImport;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use file_reader::{FileImport, FileIterationError};
@@ -526,6 +526,17 @@ impl Importer {
 	pub async fn cancel_import(&mut self) -> Result<(), ImportError> {
 		todo!()
 	}
+
+	// run importer until all the source is consumed, handy for test
+	// this tactic is not used in production as we should be able to pause
+	// in middle of import process at any time
+	#[cfg(test)]
+	pub async fn import_all_of_source(&mut self) -> Result<(), ImportError> {
+		while self.get_remote_state().status != ImportStatus::Finished as i64 {
+			self.continue_import().await?;
+		}
+		Ok(())
+	}
 }
 
 impl ImportError {
@@ -534,23 +545,18 @@ impl ImportError {
 	}
 }
 
-impl From<ImportError> for napi::Error {
-	fn from(import_err: ImportError) -> Self {
-		log::error!("Unhandled error: {import_err:?}");
-
-		napi::Error::from_reason(match import_err {
-			ImportError::SdkError { .. } => "SdkError",
-			ImportError::NoImportFeature => "NoImportFeature",
-			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
-				"Malformed server response"
-			},
-			ImportError::NoNativeRestClient(_)
-			| ImportError::IterationError(_)
-			| ImportError::TooBigChunk => "IoError",
-			ImportError::CredentialValidationError(_) | ImportError::LoginError(_) => {
-				"Not a valid login"
-			},
-		})
+impl TryFrom<i64> for ImportStatus {
+	type Error = ();
+	fn try_from(status: i64) -> Result<Self, Self::Error> {
+		let index: usize = status.try_into().map_err(|_| ())?;
+		Ok([
+			ImportStatus::Started,
+			ImportStatus::Paused,
+			ImportStatus::Running,
+			ImportStatus::Postponed,
+			ImportStatus::Canceled,
+			ImportStatus::Finished,
+		][index])
 	}
 }
 
@@ -564,6 +570,21 @@ mod tests {
 	use tutasdk::folder_system::MailSetKind;
 	use tutasdk::net::native_rest_client::NativeRestClient;
 	use tutasdk::Sdk;
+
+	#[test]
+	fn import_status_conversion_is_in_sync() {
+		const VARIANT_COUNT: i64 = 5;
+		for status_index in 0..VARIANT_COUNT {
+			let converted_status_index = status_index.try_into().map(|s: ImportStatus| s as i64);
+			assert_eq!(Ok(status_index), converted_status_index);
+		}
+
+		let no_new_status: Result<ImportStatus, ()> = (VARIANT_COUNT + 1).try_into();
+		assert_eq!(Err(()), no_new_status);
+
+		let no_neg_status: Result<ImportStatus, ()> = (-1_i64).try_into();
+		assert_eq!(Err(()), no_neg_status);
+	}
 
 	const IMPORTED_MAIL_ADDRESS: &str = "map-premium@tutanota.de";
 
@@ -672,7 +693,11 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_first.as_str());
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
-		importer.continue_import().await.map_err(|_| ()).unwrap();
+		importer
+			.import_all_of_source()
+			.await
+			.map_err(|_| ())
+			.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -687,7 +712,11 @@ mod tests {
 		let email = sample_email("Single email".to_string());
 		greenmail.store_mail("sug@example.org", email.as_str());
 
-		importer.continue_import().await.map_err(|_| ()).unwrap();
+		importer
+			.import_all_of_source()
+			.await
+			.map_err(|_| ())
+			.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -698,7 +727,11 @@ mod tests {
 	#[tokio::test]
 	async fn can_import_single_eml_file_without_attachment() {
 		let mut importer = init_file_importer(vec!["sample.eml".to_string()]).await;
-		importer.continue_import().await.map_err(|_| ()).unwrap();
+		importer
+			.import_all_of_source()
+			.await
+			.map_err(|_| ())
+			.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -709,7 +742,11 @@ mod tests {
 	#[tokio::test]
 	async fn can_import_single_eml_file_with_attachment() {
 		let mut importer = init_file_importer(vec!["attachment_sample.eml".to_string()]).await;
-		importer.continue_import().await.map_err(|_| ()).unwrap();
+		importer
+			.import_all_of_source()
+			.await
+			.map_err(|_| ())
+			.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);

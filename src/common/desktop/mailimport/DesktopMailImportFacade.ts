@@ -1,4 +1,4 @@
-import { ImporterApi, TutaCredentials, TutaCredentialType } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
@@ -13,8 +13,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		try {
 			const tutaCredentials: TutaCredentials = {
 				accessToken: unencryptedTutaCredentials?.accessToken,
-				credentialType:
-					unencryptedTutaCredentials.credentialInfo.type == CredentialType.Internal ? TutaCredentialType.Internal : TutaCredentialType.External,
+				isInternalCredential: unencryptedTutaCredentials.credentialInfo.type === CredentialType.Internal,
 				encryptedPassphraseKey: unencryptedTutaCredentials.encryptedPassphraseKey ? Array.from(unencryptedTutaCredentials.encryptedPassphraseKey) : [],
 				login: unencryptedTutaCredentials.credentialInfo.login,
 				userId: unencryptedTutaCredentials.credentialInfo.userId,
@@ -48,7 +47,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	): Promise<string> {
 		const tutaCredentials: TutaCredentials = {
 			accessToken: unencTutaCredentials?.accessToken,
-			credentialType: unencTutaCredentials.credentialInfo.type == CredentialType.Internal ? TutaCredentialType.Internal : TutaCredentialType.External,
+			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
 			encryptedPassphraseKey: unencTutaCredentials.encryptedPassphraseKey ? Array.from(unencTutaCredentials.encryptedPassphraseKey) : [],
 			login: unencTutaCredentials.credentialInfo.login,
 			userId: unencTutaCredentials.credentialInfo.userId,
@@ -58,7 +57,10 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-		const importStatus = await fileImporter.continueImport()
-		return importStatus ? "importSuccessful" : "importFailure"
+		const importState = await fileImporter.continueImport(() => {
+			return true
+		})
+
+		return importState.failedMailsCount === 0 ? "importSuccessful" : "importFailure"
 	}
 }
