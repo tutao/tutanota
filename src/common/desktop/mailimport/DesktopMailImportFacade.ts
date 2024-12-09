@@ -30,13 +30,14 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	): Promise<void> {
 		const tutaCredentials: TutaCredentials = {
 			accessToken: unencTutaCredentials?.accessToken,
+			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
 			encryptedPassphraseKey: unencTutaCredentials.encryptedPassphraseKey ? Array.from(unencTutaCredentials.encryptedPassphraseKey) : [],
 			login: unencTutaCredentials.credentialInfo.login,
 			userId: unencTutaCredentials.credentialInfo.userId,
 			apiUrl: apiUrl,
 			clientVersion: env.versionNumber,
-			isInternalCredential: unencTutaCredentials.credentialInfo.type == CredentialType.Internal,
 		}
+
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
 		await fileImporter.continueImport()

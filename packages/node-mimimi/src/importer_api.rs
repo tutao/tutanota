@@ -1,9 +1,23 @@
-use super::importer::{ImportError, Importer};
+use super::importer::{ImportError, ImportStatus, Importer};
+use napi::bindgen_prelude::ToNapiValue;
+use napi::threadsafe_function::ErrorStrategy::ErrorStrategy;
+use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
 use std::sync::Arc;
+use tutasdk::entities::generated::tutanota::ImportMailState;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
+
+/// Since ImportMailState is generated and dos not implement napi::ToNapiValue,
+/// create a wrapper
+#[cfg_attr(feature = "javascript", napi_derive::napi)]
+#[cfg_attr(not(feature = "javascript"), derive(Clone))]
+pub struct ExportedImportMailState {
+	pub status: ImportStatus,
+	pub imported_mails_count: i64,
+	pub failed_mails_count: i64,
+}
 
 pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
 
@@ -62,12 +76,44 @@ impl ImporterApi {
 	}
 }
 
+/*
+// let napi_env: napi::sys::napi_env__ = *self.env.raw();
+// napi::bindgen_prelude::execute_tokio_future(
+// 	self.env.raw(),
+// 	async move {
+// 		let env: Env = todo!();
+// 		// let should_stop_provider = should_stop_provider.borrow_back(&env)?;
+// 		//
+// 		// let mut importer = locked_importer.lock().await;
+// 		// while importer.get_remote_state().status != ImportStatus::Finished as i64 {
+// 		// 	importer.continue_import().await?;
+// 		//
+// 		// 	// after every import check if client state changed in such a way that we should not import any further
+// 		// }
+// 		Ok(())
+// 	},
+// 	|e, v| napi::bindgen_prelude::ToNapiValue::to_napi_value(e, v),
+// )?;
+ */
 #[napi_derive::napi]
 impl ImporterApi {
 	#[napi]
-	pub async unsafe fn continue_import(&mut self) -> napi::Result<()> {
-		self.inner.lock().await.continue_import().await?;
-		Ok(())
+	pub async unsafe fn continue_import(
+		&mut self,
+		should_stop_import: ThreadsafeFunction<(), napi::threadsafe_function::ErrorStrategy::Fatal>,
+	) -> napi::Result<ExportedImportMailState> {
+		let locked_inner = Arc::clone(&self.inner);
+		let mut importer = locked_inner.lock().await;
+		while importer.get_remote_state().status != ImportStatus::Finished as i64 {
+			importer.continue_import().await?;
+
+			let should_stop_import = should_stop_import.call_async::<bool>(()).await?;
+			if should_stop_import {
+				break;
+			}
+		}
+
+		Ok(importer.get_remote_state().clone().into())
 	}
 
 	#[napi]
@@ -129,6 +175,39 @@ impl TryFrom<TutaCredentials> for Credentials {
 			access_token: tuta_credentials.access_token,
 			encrypted_passphrase_key: tuta_credentials.encrypted_passphrase_key.clone().to_vec(),
 			credential_type,
+		})
+	}
+}
+
+impl From<ImportMailState> for ExportedImportMailState {
+	fn from(import_mail_state: ImportMailState) -> Self {
+		Self {
+			status: import_mail_state
+				.status
+				.try_into()
+				.expect("Unexpected ImportStatus Code"),
+			imported_mails_count: 0,
+			failed_mails_count: 0,
+		}
+	}
+}
+
+impl From<ImportError> for napi::Error {
+	fn from(import_err: ImportError) -> Self {
+		log::error!("Unhandled error: {import_err:?}");
+
+		napi::Error::from_reason(match import_err {
+			ImportError::SdkError { .. } => "SdkError",
+			ImportError::NoImportFeature => "NoImportFeature",
+			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
+				"Malformed server response"
+			},
+			ImportError::NoNativeRestClient(_)
+			| ImportError::IterationError(_)
+			| ImportError::TooBigChunk => "IoError",
+			ImportError::CredentialValidationError(_) | ImportError::LoginError(_) => {
+				"Not a valid login"
+			},
 		})
 	}
 }
