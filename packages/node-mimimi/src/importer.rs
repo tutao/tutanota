@@ -8,6 +8,7 @@ use file_reader::{FileImport, FileIterationError};
 use imap_reader::ImapImportConfig;
 use imap_reader::{ImapImport, ImapIterationError};
 use importable_mail::ImportableMail;
+use std::future::Future;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tutasdk::blobs::blob_facade::FileData;
@@ -680,7 +681,7 @@ impl Importer {
 		}
 	}
 
-	pub async fn continue_import(&mut self) -> Result<(), ImportError> {
+	pub async fn import_next_chunk(&mut self) -> Result<(), ImportError> {
 		let Self {
 			essentials: import_essentials,
 			state: import_state,
@@ -726,8 +727,32 @@ impl Importer {
 			},
 		}
 
+		Ok(())
+	}
+
+	pub async fn start_pausable_import<ShouldStopResolver, Err>(
+		&mut self,
+		should_pause_provider: impl Fn() -> ShouldStopResolver,
+	) -> Result<(), Err>
+	where
+		ShouldStopResolver: Future<Output = Result<bool, Err>>,
+		Err: From<ImportError>,
+	{
+		while self.get_remote_state().status != ImportStatus::Finished as i64 {
+			let should_stop_import = should_pause_provider().await?;
+			if should_stop_import {
+				self.state.change_status(ImportStatus::Paused);
+				break;
+			}
+
+			self.import_next_chunk().await?;
+			self.state
+				.update_import_state_on_server(&self.essentials.logged_in_sdk)
+				.await?;
+		}
+
 		self.state
-			.update_import_state_on_server(&import_essentials.logged_in_sdk)
+			.update_import_state_on_server(&self.essentials.logged_in_sdk)
 			.await?;
 
 		Ok(())
@@ -744,17 +769,6 @@ impl Importer {
 	pub async fn cancel_import(&mut self) -> Result<(), ImportError> {
 		todo!()
 	}
-
-	// run importer until all the source is consumed, handy for test
-	// this tactic is not used in production as we should be able to pause
-	// in middle of import process at any time
-	#[cfg(test)]
-	pub async fn import_all_of_source(&mut self) -> Result<(), ImportError> {
-		while self.get_remote_state().status != ImportStatus::Finished as i64 {
-			self.continue_import().await?;
-		}
-		Ok(())
-	}
 }
 
 impl ImportError {
@@ -767,14 +781,15 @@ impl TryFrom<i64> for ImportStatus {
 	type Error = ();
 	fn try_from(status: i64) -> Result<Self, Self::Error> {
 		let index: usize = status.try_into().map_err(|_| ())?;
-		Ok([
+		const ALL_IMPORT_STATUS: [ImportStatus; 6] = [
 			ImportStatus::Started,
 			ImportStatus::Paused,
 			ImportStatus::Running,
 			ImportStatus::Postponed,
 			ImportStatus::Canceled,
 			ImportStatus::Finished,
-		][index])
+		];
+		ALL_IMPORT_STATUS.get(index).cloned().ok_or(())
 	}
 }
 
@@ -886,7 +901,7 @@ mod tests {
 		(init_importer(import_source).await, greenmail)
 	}
 
-	pub async fn init_file_importer(source_paths: Vec<String>) -> Importer {
+	pub async fn init_file_importer(source_paths: Vec<&str>) -> Importer {
 		let files = source_paths
 			.into_iter()
 			.map(|file_name| {
@@ -902,6 +917,10 @@ mod tests {
 		init_importer(import_source).await
 	}
 
+	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
+		importer.start_pausable_import(|| async { Ok(false) }).await
+	}
+
 	#[tokio::test]
 	pub async fn import_multiple_from_imap_default_folder() {
 		let (mut importer, greenmail) = init_imap_importer().await;
@@ -911,8 +930,7 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_first.as_str());
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
-		importer
-			.import_all_of_source()
+		import_all_of_source(&mut importer)
 			.await
 			.map_err(|_| ())
 			.unwrap();
@@ -930,8 +948,7 @@ mod tests {
 		let email = sample_email("Single email".to_string());
 		greenmail.store_mail("sug@example.org", email.as_str());
 
-		importer
-			.import_all_of_source()
+		import_all_of_source(&mut importer)
 			.await
 			.map_err(|_| ())
 			.unwrap();
@@ -944,9 +961,8 @@ mod tests {
 
 	#[tokio::test]
 	async fn can_import_single_eml_file_without_attachment() {
-		let mut importer = init_file_importer(vec!["sample.eml".to_string()]).await;
-		importer
-			.import_all_of_source()
+		let mut importer = init_file_importer(vec!["sample.eml"]).await;
+		import_all_of_source(&mut importer)
 			.await
 			.map_err(|_| ())
 			.unwrap();
@@ -959,9 +975,8 @@ mod tests {
 
 	#[tokio::test]
 	async fn can_import_single_eml_file_with_attachment() {
-		let mut importer = init_file_importer(vec!["attachment_sample.eml".to_string()]).await;
-		importer
-			.import_all_of_source()
+		let mut importer = init_file_importer(vec!["attachment_sample.eml"]).await;
+		import_all_of_source(&mut importer)
 			.await
 			.map_err(|_| ())
 			.unwrap();
@@ -970,5 +985,20 @@ mod tests {
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
+	}
+
+	#[tokio::test]
+	async fn will_check_pause_provider_and_stop_if_true() {
+		let mut importer = init_file_importer(vec!["sample.eml"]).await;
+
+		importer
+			.start_pausable_import(|| async { Result::<_, ImportError>::Ok(true) })
+			.await
+			.unwrap();
+		let remote_state = importer.get_remote_state();
+
+		assert_eq!(remote_state.status, ImportStatus::Paused as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 0);
 	}
 }

@@ -102,16 +102,10 @@ impl ImporterApi {
 		&mut self,
 		should_stop_import: ThreadsafeFunction<(), napi::threadsafe_function::ErrorStrategy::Fatal>,
 	) -> napi::Result<ExportedImportMailState> {
-		let locked_inner = Arc::clone(&self.inner);
-		let mut importer = locked_inner.lock().await;
-		while importer.get_remote_state().status != ImportStatus::Finished as i64 {
-			importer.continue_import().await?;
+		let should_stop_import = || should_stop_import.call_async::<bool>(());
 
-			let should_stop_import = should_stop_import.call_async::<bool>(()).await?;
-			if should_stop_import {
-				break;
-			}
-		}
+		let mut importer = self.inner.lock().await;
+		importer.start_pausable_import(should_stop_import).await?;
 
 		Ok(importer.get_remote_state().clone().into())
 	}
