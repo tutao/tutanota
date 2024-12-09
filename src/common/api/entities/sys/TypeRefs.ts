@@ -1,4 +1,4 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { typeModels } from "./TypeModels.js"
 
@@ -52,6 +52,20 @@ export type AdminGroupKeyDistributionElement = {
 	userEncAdminSymKeyHash: EncryptedKeyHash;
 	userGroupId: Id;
 }
+export const AdminGroupKeyRotationGetOutTypeRef: TypeRef<AdminGroupKeyRotationGetOut> = new TypeRef("sys", "AdminGroupKeyRotationGetOut")
+
+export function createAdminGroupKeyRotationGetOut(values: StrippedEntity<AdminGroupKeyRotationGetOut>): AdminGroupKeyRotationGetOut {
+	return Object.assign(create(typeModels.AdminGroupKeyRotationGetOut, AdminGroupKeyRotationGetOutTypeRef), values)
+}
+
+export type AdminGroupKeyRotationGetOut = {
+	_type: TypeRef<AdminGroupKeyRotationGetOut>;
+
+	_format: NumberString;
+
+	distributionKeys: PubDistributionKey[];
+	userGroupIdsMissingDistributionKeys: Id[];
+}
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
 
 export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
@@ -81,6 +95,23 @@ export type AdminGroupKeyRotationPutIn = {
 
 	adminDistKeyPair: KeyPair;
 	adminEncDistKeyHash: EncryptedKeyHash;
+}
+export const AdminMembershipUpdateDataTypeRef: TypeRef<AdminMembershipUpdateData> = new TypeRef("sys", "AdminMembershipUpdateData")
+
+export function createAdminMembershipUpdateData(values: StrippedEntity<AdminMembershipUpdateData>): AdminMembershipUpdateData {
+	return Object.assign(create(typeModels.AdminMembershipUpdateData, AdminMembershipUpdateDataTypeRef), values)
+}
+
+export type AdminMembershipUpdateData = {
+	_type: TypeRef<AdminMembershipUpdateData>;
+
+	_id: Id;
+	adminGroupKeyVersion: NumberString;
+	userEncAdminGroupKey: Uint8Array;
+	userGroupKeyVersion: NumberString;
+
+	adminGroup: Id;
+	userGroup: Id;
 }
 export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
 
@@ -2463,6 +2494,22 @@ export type PriceServiceReturn = {
 	currentPriceThisPeriod: null | PriceData;
 	futurePriceNextPeriod: null | PriceData;
 }
+export const PubDistributionKeyTypeRef: TypeRef<PubDistributionKey> = new TypeRef("sys", "PubDistributionKey")
+
+export function createPubDistributionKey(values: StrippedEntity<PubDistributionKey>): PubDistributionKey {
+	return Object.assign(create(typeModels.PubDistributionKey, PubDistributionKeyTypeRef), values)
+}
+
+export type PubDistributionKey = {
+	_type: TypeRef<PubDistributionKey>;
+
+	_id: Id;
+	authEncPubKeyHash: Uint8Array;
+	pubEccKey: Uint8Array;
+	pubKyberKey: Uint8Array;
+
+	userGroupId: Id;
+}
 export const PubEncKeyDataTypeRef: TypeRef<PubEncKeyData> = new TypeRef("sys", "PubEncKeyData")
 
 export function createPubEncKeyData(values: StrippedEntity<PubEncKeyData>): PubEncKeyData {
@@ -3470,6 +3517,7 @@ export type UserGroupKeyRotationPostIn = {
 
 	_format: NumberString;
 
+	adminMembershipUpdateData: null | AdminMembershipUpdateData;
 	userGroupKeyData: UserGroupKeyRotationData;
 }
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")
