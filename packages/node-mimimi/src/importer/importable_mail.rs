@@ -10,11 +10,11 @@ use std::collections::HashSet;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::date::DateTime;
+use tutasdk::entities::generated::sys::BlobReferenceTokenWrapper;
 use tutasdk::entities::generated::tutanota::{
 	EncryptedMailAddress, ImportAttachment, ImportMailData, ImportMailDataMailReference,
 	MailAddress, NewImportAttachment, Recipients,
 };
-use tutasdk::tutanota_constants::ArchiveDataType;
 
 pub mod extend_mail_parser;
 mod plain_text_to_html_converter;
@@ -59,53 +59,66 @@ pub(super) enum ReplyType {
 
 #[cfg_attr(test, derive(PartialEq, Debug, Clone))]
 pub struct ImportableMailAttachment {
+	pub meta_data: ImportableMailAttachmentMetaData,
+	pub content: Vec<u8>,
+}
+
+#[cfg_attr(test, derive(PartialEq, Debug, Clone))]
+pub struct ImportableMailAttachmentMetaData {
 	pub filename: String,
 	pub content_id: Option<String>,
 	pub content_type: String,
+}
+
+#[cfg_attr(test, derive(PartialEq, Debug, Clone))]
+pub struct KeyedImportableMailAttachment {
+	pub attachment_session_key: GenericAesKey,
+	pub meta_data: ImportableMailAttachmentMetaData,
 	pub content: Vec<u8>,
 }
 
 impl ImportableMailAttachment {
-	pub async fn make_import_attachment_data(
+	pub fn make_keyed_importable_mail_attachment(
 		self,
 		essentials: &ImportEssential,
-	) -> ImportAttachment {
-		let session_key_for_file =
+	) -> KeyedImportableMailAttachment {
+		let attachment_session_key =
 			GenericAesKey::Aes256(aes::Aes256Key::generate(&essentials.randomizer_facade));
+		KeyedImportableMailAttachment {
+			attachment_session_key,
+			meta_data: self.meta_data,
+			content: self.content,
+		}
+	}
+}
+
+impl ImportableMailAttachmentMetaData {
+	pub fn make_import_attachment_data(
+		self,
+		essentials: &ImportEssential,
+		file_session_key: &GenericAesKey,
+		reference_tokens: Vec<BlobReferenceTokenWrapper>,
+	) -> ImportAttachment {
 		let owner_enc_file_session_key = essentials.mail_group_key.encrypt_key(
-			&session_key_for_file,
+			&file_session_key,
 			aes::Iv::generate(&essentials.randomizer_facade),
 		);
 
-		let reference_tokens = essentials
-			.logged_in_sdk
-			.blob_facade()
-			.encrypt_and_upload(
-				ArchiveDataType::Attachments,
-				&essentials.target_owner_group,
-				&session_key_for_file,
-				&self.content,
-			)
-			.await
-			.unwrap();
-
-		// todo: do we need to upload the ivs and how?
-		let enc_file_name = session_key_for_file
+		let enc_file_name = file_session_key
 			.encrypt_data(
 				self.filename.as_ref(),
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
-		let enc_mime_type = session_key_for_file
+		let enc_mime_type = file_session_key
 			.encrypt_data(
 				self.content_type.as_ref(),
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
-
 		let enc_cid = match self.content_id {
 			Some(cid) => Some(
-				session_key_for_file
+				file_session_key
 					.encrypt_data(
 						cid.as_bytes(),
 						aes::Iv::generate(&essentials.randomizer_facade),
@@ -306,9 +319,11 @@ impl ImportableMail {
 
 		let content = content.to_vec();
 		let attachment = ImportableMailAttachment {
-			filename,
-			content_type,
-			content_id,
+			meta_data: ImportableMailAttachmentMetaData {
+				filename,
+				content_id,
+				content_type,
+			},
 			content,
 		};
 
@@ -337,10 +352,12 @@ impl ImportableMail {
 		let filename = Self::get_filename(parent_part, message_subject.unwrap_or("unknown"));
 
 		let attachment = ImportableMailAttachment {
-			filename,
-			content_type,
+			meta_data: ImportableMailAttachmentMetaData {
+				filename,
+				content_id,
+				content_type,
+			},
 			content,
-			content_id,
 		};
 		attachments.push(attachment);
 	}

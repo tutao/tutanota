@@ -1,7 +1,9 @@
 //! keep in sync with MimeToolsTestMessages.java
 
 use crate::importer::importable_mail::plain_text_to_html_converter::plain_text_to_html;
-use crate::importer::importable_mail::{ImportableMail, ImportableMailAttachment, MailContact};
+use crate::importer::importable_mail::{
+	ImportableMail, ImportableMailAttachment, ImportableMailAttachmentMetaData, MailContact,
+};
 use mail_parser::decoders::base64::base64_decode;
 use serde::Deserialize;
 use std::collections::HashSet;
@@ -101,11 +103,12 @@ fn mime_tools_test_messages() {
 			// and in expected message we only have mime-type;charset
 			// we can make sure the first part ( i.e mime-type;charset ) is same
 			assert!(a
+				.meta_data
 				.content_type
 				.to_ascii_lowercase()
-				.starts_with(b.content_type.to_ascii_lowercase().as_str()));
-			a.content_type.clear();
-			b.content_type.clear();
+				.starts_with(b.meta_data.content_type.to_ascii_lowercase().as_str()));
+			a.meta_data.content_type.clear();
+			b.meta_data.content_type.clear();
 
 			// assert_eq!(
 			// 	String::from_utf8_lossy(a.content.as_slice()),
@@ -143,24 +146,26 @@ impl From<ExpectedMessage> for ImportableMail {
 				.attached_files
 				.into_iter()
 				.map(|f| ImportableMailAttachment {
-					filename: f.name,
-					content_id: if f.content_id.is_empty() {
-						None
-					} else {
-						Some(f.content_id)
-					},
-					content_type: {
-						let mut content_type = String::new();
+					meta_data: ImportableMailAttachmentMetaData {
+						filename: f.name,
+						content_id: if f.content_id.is_empty() {
+							None
+						} else {
+							Some(f.content_id)
+						},
+						content_type: {
+							let mut content_type = String::new();
 
-						if !f.mime_type.is_empty() {
-							content_type.push_str(f.mime_type.as_str());
-						}
-						if let Some(charset) = f.charset {
-							content_type.push_str(";");
-							content_type.push_str(&format!("charset=\"{charset}\""));
-						}
+							if !f.mime_type.is_empty() {
+								content_type.push_str(f.mime_type.as_str());
+							}
+							if let Some(charset) = f.charset {
+								content_type.push_str(";");
+								content_type.push_str(&format!("charset=\"{charset}\""));
+							}
 
-						content_type
+							content_type
+						},
 					},
 					content: base64_decode(f.data.as_bytes()).unwrap(),
 				})

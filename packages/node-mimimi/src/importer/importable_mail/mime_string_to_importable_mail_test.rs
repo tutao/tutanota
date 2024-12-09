@@ -515,26 +515,29 @@ c2Vjb25kIGF0dGFjaG1lbnQ=
 	assert_eq!(m.attachments.len(), 3);
 	let [a1, a2, a3] = m.attachments.try_into().unwrap();
 
-	assert_eq!("a1.txt", a1.filename);
+	assert_eq!("a1.txt", a1.meta_data.filename);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(a1.content.to_vec()).unwrap()
 	);
-	assert_eq!("application/octet-stream", a1.content_type);
+	assert_eq!("application/octet-stream", a1.meta_data.content_type);
 
-	assert_eq!("a2.pdf", a2.filename);
+	assert_eq!("a2.pdf", a2.meta_data.filename);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"c2Vjb25kIGF0dGFjaG1lbnQ=").unwrap()).unwrap(),
 		String::from_utf8(a2.content.to_vec()).unwrap()
 	);
-	assert_eq!("application/pdf", a2.content_type);
+	assert_eq!("application/pdf", a2.meta_data.content_type);
 
-	assert_eq!("withoutContentType.pdf", a3.filename);
+	assert_eq!("withoutContentType.pdf", a3.meta_data.filename);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"c2Vjb25kIGF0dGFjaG1lbnQ=").unwrap()).unwrap(),
 		String::from_utf8(a3.content.to_vec()).unwrap()
 	);
-	assert_eq!(r#"text/plain;charset="us-ascii""#, a3.content_type);
+	assert_eq!(
+		r#"text/plain;charset="us-ascii""#,
+		a3.meta_data.content_type
+	);
 }
 
 #[test]
@@ -563,13 +566,13 @@ Zmlyc3QgYXR0YWNobWVudA==
 	assert_eq!(1, m.attachments.len());
 	let a1 = &m.attachments[0];
 
-	assert_eq!("a1.png", a1.filename);
+	assert_eq!("a1.png", a1.meta_data.filename);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(a1.content.to_vec()).unwrap()
 	);
-	assert_eq!("application/octet-stream", a1.content_type);
-	assert_eq!(Some("123@tutanota.de".to_string()), a1.content_id);
+	assert_eq!("application/octet-stream", a1.meta_data.content_type);
+	assert_eq!(Some("123@tutanota.de".to_string()), a1.meta_data.content_id);
 }
 
 #[test]
@@ -610,7 +613,10 @@ Zmlyc3QgYXR0YWNobWVudA==
 
 	assert_eq!(1, attached.attachments.len());
 	let indirect_attachment = attached.attachments.first().unwrap();
-	assert_eq!("indirectly_attached.txt", indirect_attachment.filename);
+	assert_eq!(
+		"indirectly_attached.txt",
+		indirect_attachment.meta_data.filename
+	);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(indirect_attachment.content.to_vec()).unwrap()
@@ -645,7 +651,7 @@ Abc, die Katze lief im Schnee ! äöü?ß !
 
 	assert_eq!(1, m.attachments.len());
 	let a1 = &m.attachments[0];
-	assert_eq!("a1.txt", a1.filename);
+	assert_eq!("a1.txt", a1.meta_data.filename);
 	assert_eq!(
 		"Abc, die Katze lief im Schnee ! äöü?ß !\n",
 		String::from_utf8(a1.content.clone()).unwrap()
@@ -679,7 +685,7 @@ Content-Disposition: attachment; filename=a1.html;
 
 	assert_eq!(m.attachments.len(), 1);
 	let a1 = &m.attachments[0];
-	assert_eq!(a1.filename, "a1.html");
+	assert_eq!(a1.meta_data.filename, "a1.html");
 	assert_eq!(
 		String::from_utf8(a1.content.to_vec()).unwrap(),
 		"<html><body><b><small>Hello äöüß</small></b><br></body></html>"
@@ -833,7 +839,7 @@ Abc, die Katze lief im Schnee ! äöü?ß ! "#;
 
 	assert_eq!(m.attachments.len(), 1);
 	let a1 = &m.attachments[0];
-	assert_eq!(a1.filename, "a1.txt");
+	assert_eq!(a1.meta_data.filename, "a1.txt");
 	assert_eq!(
 		String::from_utf8(a1.content.to_vec()).unwrap(),
 		"Abc, die Katze lief im Schnee ! äöü?ß ! "
@@ -856,7 +862,7 @@ Abc, die Katze lief im Schnee ! äöü?ß ! "#;
 	assert_eq!(m.to_addresses, vec![("B", "b@tutanota.de").into()]);
 	assert_eq!(Some(DateTime::from_millis(1730991244000)), m.date);
 	assert_eq!(1, m.attachments.len());
-	assert_eq!("aöi.pdf", &m.attachments[0].filename);
+	assert_eq!("aöi.pdf", &m.attachments[0].meta_data.filename);
 }
 
 #[test]
@@ -877,7 +883,10 @@ Zmlyc3QgYXR0YWNobWVudA=="#;
 
 	assert_eq!(1, m.attachments.len());
 	let indirect_attachment = &m.attachments[0];
-	assert_eq!("indirectly_attached.txt", indirect_attachment.filename);
+	assert_eq!(
+		"indirectly_attached.txt",
+		indirect_attachment.meta_data.filename
+	);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(indirect_attachment.content.to_vec()).unwrap()
@@ -902,7 +911,7 @@ Zmlyc3QgYXR0YWNobWVudA=="#;
 
 	assert_eq!(1, m.attachments.len());
 	let indirect_attachment = &m.attachments[0];
-	assert_eq!("äöß€.txt", indirect_attachment.filename);
+	assert_eq!("äöß€.txt", indirect_attachment.meta_data.filename);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(indirect_attachment.content.to_vec()).unwrap()
@@ -975,10 +984,10 @@ Message
 	let m = parse_mail(msg);
 
 	let attachment = &m.attachments[0];
-	assert_eq!("withoutContentType.pdf", attachment.filename);
+	assert_eq!("withoutContentType.pdf", attachment.meta_data.filename);
 	assert_eq!(
 		"text/plain;charset=\"us-ascii\";name=\"discardThisName.pdf\"",
-		attachment.content_type
+		attachment.meta_data.content_type
 	);
 }
 
@@ -1042,7 +1051,7 @@ Content-Type: text/calendar; charset="UTF-8"; method=REQUEST
 	assert_eq!(m.from_addresses, vec![("A", "a@tutanota.de").into()]);
 	assert_eq!(
 		"text/calendar;charset=\"UTF-8\";method=\"REQUEST\"",
-		&m.attachments[0].content_type
+		&m.attachments[0].meta_data.content_type
 	);
 }
 
@@ -1061,7 +1070,7 @@ Content-Type: text/calendar; charset="UTF-8"; method=request;
 	assert_eq!(m.from_addresses, vec![("A", "a@tutanota.de").into()]);
 	assert_eq!(
 		"text/calendar;charset=\"UTF-8\";method=\"request\"",
-		&m.attachments[0].content_type
+		&m.attachments[0].meta_data.content_type
 	);
 }
 
