@@ -2,6 +2,7 @@
 #[tokio::test]
 async fn can_import_multiple_emls() {
 	use std::sync::Arc;
+	use tutao_node_mimimi::importer::ImportError;
 	use tutao_node_mimimi::importer::ImportStatus;
 	use tutao_node_mimimi::importer::Importer;
 	use tutasdk::folder_system::MailSetKind;
@@ -51,7 +52,7 @@ async fn can_import_multiple_emls() {
 	.unwrap();
 
 	importer
-		.import_all_of_source()
+		.start_pausable_import(|| async { Result::<_, ImportError>::Ok(false) })
 		.await
 		.expect("Cannot complete import");
 	let import_state = importer.get_remote_state();
