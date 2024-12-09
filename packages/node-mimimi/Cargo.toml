@@ -37,7 +37,6 @@ features = ["serde", "starttls", "ext_id", "ext_metadata"]
 
 [build-dependencies]
 napi-build = { version = "2.1.3" }
-rustls = { version = "0.23.13", features = ["std", "ring"] }
 
 [dev-dependencies]
 base64 = "0.22.1"
