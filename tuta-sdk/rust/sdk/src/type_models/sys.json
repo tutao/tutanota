@@ -267,6 +267,50 @@
 		"app": "sys",
 		"version": "115"
 	},
+	"AdminGroupKeyRotationGetOut": {
+		"name": "AdminGroupKeyRotationGetOut",
+		"since": 115,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2516,
+		"rootId": "A3N5cwAJ1A",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2517,
+				"since": 115,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"distributionKeys": {
+				"final": false,
+				"name": "distributionKeys",
+				"id": 2519,
+				"since": 115,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "PubDistributionKey",
+				"dependency": null
+			},
+			"userGroupIdsMissingDistributionKeys": {
+				"final": false,
+				"name": "userGroupIdsMissingDistributionKeys",
+				"id": 2518,
+				"since": 115,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "Any",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "115"
+	},
 	"AdminGroupKeyRotationPostIn": {
 		"name": "AdminGroupKeyRotationPostIn",
 		"since": 101,
@@ -9918,6 +9962,67 @@
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refType": "PriceData",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "115"
+	},
+	"PubDistributionKey": {
+		"name": "PubDistributionKey",
+		"since": 115,
+		"type": "AGGREGATED_TYPE",
+		"id": 2510,
+		"rootId": "A3N5cwAJzg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2511,
+				"since": 115,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"authEncPubKeyHash": {
+				"final": false,
+				"name": "authEncPubKeyHash",
+				"id": 2513,
+				"since": 115,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pubEccKey": {
+				"final": true,
+				"name": "pubEccKey",
+				"id": 2514,
+				"since": 115,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pubKyberKey": {
+				"final": true,
+				"name": "pubKyberKey",
+				"id": 2515,
+				"since": 115,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"userGroupId": {
+				"final": false,
+				"name": "userGroupId",
+				"id": 2512,
+				"since": 115,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
 				"dependency": null
 			}
 		},

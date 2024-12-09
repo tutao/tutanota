@@ -6,6 +6,7 @@ use crate::services::{PostService, GetService, PutService, DeleteService, Servic
 use crate::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
 use crate::entities::generated::sys::AdminGroupKeyRotationPostIn;
+use crate::entities::generated::sys::AdminGroupKeyRotationGetOut;
 use crate::entities::generated::sys::AdminGroupKeyRotationPutIn;
 use crate::entities::generated::sys::AffiliatePartnerKpiServiceGetOut;
 use crate::entities::generated::sys::AlarmServicePost;
@@ -99,6 +100,7 @@ pub struct AdminGroupKeyRotationService;
 
 crate::service_impl!(declare, AdminGroupKeyRotationService, "sys/admingroupkeyrotationservice", 115);
 crate::service_impl!(POST, AdminGroupKeyRotationService, AdminGroupKeyRotationPostIn, ());
+crate::service_impl!(GET, AdminGroupKeyRotationService, (), AdminGroupKeyRotationGetOut);
 crate::service_impl!(PUT, AdminGroupKeyRotationService, AdminGroupKeyRotationPutIn, ());
 
 

@@ -64,6 +64,23 @@ impl Entity for AdminGroupKeyDistributionElement {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyRotationGetOut {
+	pub _format: i64,
+	pub distributionKeys: Vec<PubDistributionKey>,
+	pub userGroupIdsMissingDistributionKeys: Vec<GeneratedId>,
+}
+
+impl Entity for AdminGroupKeyRotationGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyRotationGetOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub adminGroupKeyData: GroupKeyRotationData,
@@ -3010,6 +3027,28 @@ impl Entity for PriceServiceReturn {
 		TypeRef {
 			app: "sys",
 			type_: "PriceServiceReturn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct PubDistributionKey {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub authEncPubKeyHash: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub pubEccKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub pubKyberKey: Vec<u8>,
+	pub userGroupId: GeneratedId,
+}
+
+impl Entity for PubDistributionKey {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "PubDistributionKey",
 		}
 	}
 }

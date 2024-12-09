@@ -52,6 +52,20 @@ export type AdminGroupKeyDistributionElement = {
 	userEncAdminSymKeyHash: EncryptedKeyHash;
 	userGroupId: Id;
 }
+export const AdminGroupKeyRotationGetOutTypeRef: TypeRef<AdminGroupKeyRotationGetOut> = new TypeRef("sys", "AdminGroupKeyRotationGetOut")
+
+export function createAdminGroupKeyRotationGetOut(values: StrippedEntity<AdminGroupKeyRotationGetOut>): AdminGroupKeyRotationGetOut {
+	return Object.assign(create(typeModels.AdminGroupKeyRotationGetOut, AdminGroupKeyRotationGetOutTypeRef), values)
+}
+
+export type AdminGroupKeyRotationGetOut = {
+	_type: TypeRef<AdminGroupKeyRotationGetOut>;
+
+	_format: NumberString;
+
+	distributionKeys: PubDistributionKey[];
+	userGroupIdsMissingDistributionKeys: Id[];
+}
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", "AdminGroupKeyRotationPostIn")
 
 export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
@@ -2425,6 +2439,22 @@ export type PriceServiceReturn = {
 	currentPriceNextPeriod: null | PriceData;
 	currentPriceThisPeriod: null | PriceData;
 	futurePriceNextPeriod: null | PriceData;
+}
+export const PubDistributionKeyTypeRef: TypeRef<PubDistributionKey> = new TypeRef("sys", "PubDistributionKey")
+
+export function createPubDistributionKey(values: StrippedEntity<PubDistributionKey>): PubDistributionKey {
+	return Object.assign(create(typeModels.PubDistributionKey, PubDistributionKeyTypeRef), values)
+}
+
+export type PubDistributionKey = {
+	_type: TypeRef<PubDistributionKey>;
+
+	_id: Id;
+	authEncPubKeyHash: Uint8Array;
+	pubEccKey: Uint8Array;
+	pubKyberKey: Uint8Array;
+
+	userGroupId: Id;
 }
 export const PubEncKeyDataTypeRef: TypeRef<PubEncKeyData> = new TypeRef("sys", "PubEncKeyData")
 
