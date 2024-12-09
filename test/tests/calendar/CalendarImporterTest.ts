@@ -1384,14 +1384,16 @@ END:VCALENDAR`
 	})
 	o.spec("sortOutParsedEvents", function () {
 		o("repeated progenitors are skipped", function () {
-			const progenitor1 = createTestEntity(CalendarEventTypeRef, { uid: "hello", startTime: getDateInZone("2023-01-02T13:00") }) as Require<
-				"uid",
-				CalendarEvent
-			>
-			const progenitor2 = createTestEntity(CalendarEventTypeRef, { uid: "hello", startTime: getDateInZone("2023-01-01T13:00") }) as Require<
-				"uid",
-				CalendarEvent
-			>
+			const progenitor1 = createTestEntity(CalendarEventTypeRef, {
+				uid: "hello",
+				startTime: getDateInZone("2023-01-02T13:00"),
+				endTime: getDateInZone("2023-01-02T13:05"),
+			}) as Require<"uid", CalendarEvent>
+			const progenitor2 = createTestEntity(CalendarEventTypeRef, {
+				uid: "hello",
+				startTime: getDateInZone("2023-01-01T13:00"),
+				endTime: getDateInZone("2023-01-01T13:05"),
+			}) as Require<"uid", CalendarEvent>
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
 					{ event: progenitor1, alarms: [] },
@@ -1411,11 +1413,13 @@ END:VCALENDAR`
 			const progenitor = createTestEntity(CalendarEventTypeRef, {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T13:00"),
+				endTime: getDateInZone("2023-01-02T13:05"),
 				repeatRule: createTestEntity(RepeatRuleTypeRef),
 			}) as Require<"uid", CalendarEvent>
 			const altered = createTestEntity(CalendarEventTypeRef, {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T14:00"),
+				endTime: getDateInZone("2023-01-02T14:05"),
 				recurrenceId: getDateInZone("2023-01-02T13:00"),
 			}) as Require<"uid", CalendarEvent>
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(

@@ -9,10 +9,11 @@ import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
-import { Entity, TypeModel } from "../../src/common/api/common/EntityTypes.js"
+import { Entity, ModelValue, TypeModel } from "../../src/common/api/common/EntityTypes.js"
 import { create } from "../../src/common/api/common/utils/EntityUtils.js"
 import { typeModels } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
+import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -153,9 +154,44 @@ function resolveTypeReference(typeRef: TypeRef<any>): TypeModel {
 	}
 }
 
+// copy of the _getDefaultValue but with Date(0) being default date so that the tests are deterministic
+function getDefaultTestValue(valueName: string, value: ModelValue): any {
+	if (valueName === "_format") {
+		return "0"
+	} else if (valueName === "_id") {
+		return null // aggregate ids are set in the worker, list ids must be set explicitely and element ids are created on the server
+	} else if (valueName === "_permissions") {
+		return null
+	} else if (value.cardinality === Cardinality.ZeroOrOne) {
+		return null
+	} else {
+		switch (value.type) {
+			case ValueType.Bytes:
+				return new Uint8Array(0)
+
+			case ValueType.Date:
+				return new Date(0)
+
+			case ValueType.Number:
+				return "0"
+
+			case ValueType.String:
+				return ""
+
+			case ValueType.Boolean:
+				return false
+
+			case ValueType.CustomId:
+			case ValueType.GeneratedId:
+				return null
+			// we have to use null although the value must be set to something different
+		}
+	}
+}
+
 export function createTestEntity<T extends Entity>(typeRef: TypeRef<T>, values?: Partial<T>): T {
 	const typeModel = resolveTypeReference(typeRef as TypeRef<any>)
-	const entity = create(typeModel, typeRef)
+	const entity = create(typeModel, typeRef, getDefaultTestValue)
 	if (values) {
 		return Object.assign(entity, values)
 	} else {
