@@ -27,7 +27,7 @@ import {
 	TimeFormat,
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
-import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, WeekdayNumbers } from "luxon"
+import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -391,6 +391,12 @@ function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 					newDates.push(date)
 					continue
 				}
+			} else if (repeatPeriod === RepeatPeriod.ANNUALLY) {
+				const dt = date.set({ month: targetMonth })
+				const yearOffset: number = date.year === dt.year && date.month > dt.month ? 1 : 0
+
+				newDates.push(date.set({ month: targetMonth }).plus({ year: yearOffset }))
+				continue
 			}
 
 			if (date.month === targetMonth) {
@@ -438,7 +444,7 @@ function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatR
 	return newDates
 }
 
-function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], validMonths: number[]): DateTime[] {
+function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], wkst: WeekdayNumbers): DateTime[] {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -453,24 +459,66 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 
 			const parsedWeekNumber = Number.parseInt(rule.interval)
 			let newDt: DateTime
+
 			if (parsedWeekNumber < 0) {
-				newDt = date.set({ weekNumber: date.weeksInWeekYear - parsedWeekNumber })
+				newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) }).set({ weekday: wkst })
+				for (let i = 0; i < 7; i++) {
+					newDates.push(newDt.plus({ day: i }))
+				}
 			} else {
-				newDt = date.set({ weekNumber: parsedWeekNumber })
-			}
+				newDt = date.set({ weekNumber: parsedWeekNumber }).set({ weekday: wkst })
 
-			// Check if we didn't mess with any BYMONTH rule
-			if (validMonths.length > 0 && !validMonths.includes(newDt.month)) {
-				continue
-			}
-
-			if (!newDates.some((dt) => dt.toMillis() === newDt.toMillis())) {
-				newDates.push(newDt)
+				for (let i = 0; i < 7; i++) {
+					newDates.push(newDt.plus({ day: i }))
+				}
 			}
 		}
 	}
 
 	return newDates
+}
+
+function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+	if (parsedRules.length === 0) {
+		return dates
+	}
+
+	const newDates: DateTime[] = []
+	for (const rule of parsedRules) {
+		for (const date of dates) {
+			if (!date.isValid) {
+				console.warn("Invalid date", date)
+				continue
+			}
+
+			const targetDay = Number.parseInt(rule.interval)
+
+			let dt: DateTime
+			if (targetDay < 0) {
+				dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(targetDay) })
+			} else {
+				dt = date.set({ day: 1, month: 1 }).plus({ day: targetDay - 1 })
+			}
+
+			const yearOffset = dt.toMillis() < date.toMillis() ? 1 : 0
+			dt = dt.plus({ year: yearOffset })
+
+			newDates.push(dt)
+		}
+	}
+
+	return newDates
+}
+
+/*
+ * Order generated events by date, avoiding an early stop and filter out events that doesn't respect BYMONTH rule
+ * @param dates Generated DateTime objects from BYRULEs
+ * @param validMonths List of months allowed by BYMONTH rules, should be empty in case no BYMONTH is specified
+ */
+function finishByRules(dates: DateTime[], validMonths: MonthNumbers[]) {
+	const cleanDates = validMonths.length > 0 ? dates.filter((dt) => validMonths.includes(dt.month as MonthNumbers)) : dates
+
+	return cleanDates.sort((a, b) => a.toMillis() - b.toMillis())
 }
 
 //FIXME Might be worth checking where this func is being used and start using the new function that considers advanced repeat rules
@@ -966,9 +1014,19 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 
 	let calcStartTime = eventStartTime
 	const calcDuration = allDay ? getDiffIn24hIntervals(eventStartTime, eventEndTime, timeZone) : eventEndTime.getTime() - eventStartTime.getTime()
+	let calcEndTime = eventEndTime
 	let iteration = 1
 
+	assertDateIsValid(calcStartTime)
+	assertDateIsValid(calcEndTime)
+	yield { startTime: calcStartTime, endTime: calcEndTime }
+
 	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
+		// We reached our range end, no need to continue generating/evaluating events
+		if (calcStartTime.getTime() > maxDate.getTime()) {
+			break
+		}
+
 		if (frequency === RepeatPeriod.DAILY) {
 			const events = applyByMonth(
 				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
@@ -995,20 +1053,18 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 
 			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.WEEKLY)
 
-			const events = applyByDayRules(
-				monthAppliedEvents,
-				byDayRules,
-				RepeatPeriod.WEEKLY,
-				validMonths,
-				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+			const events = finishByRules(
+				applyByDayRules(
+					monthAppliedEvents,
+					byDayRules,
+					RepeatPeriod.WEEKLY,
+					validMonths,
+					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+				),
+				validMonths as MonthNumbers[],
 			)
 
 			for (const event of events) {
-				// An Edge date allowed by BYMONTH, we shouldn't accept it
-				if (validMonths.length > 0 && !validMonths.includes(event.month)) {
-					continue
-				}
-
 				const newStartTime = event.toJSDate()
 				const newEndTime = allDay
 					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
@@ -1027,20 +1083,60 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 
 			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.MONTHLY)
 			const monthDayAppliedEvents = applyByMonthDay(monthAppliedEvents, byMonthDayRules)
-			const events = applyByDayRules(
-				monthDayAppliedEvents,
-				byDayRules,
-				RepeatPeriod.MONTHLY,
-				validMonths,
-				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+
+			const events = finishByRules(
+				applyByDayRules(
+					monthDayAppliedEvents,
+					byDayRules,
+					RepeatPeriod.MONTHLY,
+					validMonths,
+					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+				),
+				validMonths as MonthNumbers[],
 			)
 
 			for (const event of events) {
-				// An Edge date allowed by BYMONTH, we shouldn't accept it
-				if (validMonths.length > 0 && !validMonths.includes(event.month)) {
-					continue
-				}
+				const newStartTime = event.toJSDate()
+				const newEndTime = allDay
+					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
+					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
 
+				assertDateIsValid(newStartTime)
+				assertDateIsValid(newEndTime)
+				yield { startTime: newStartTime, endTime: newEndTime }
+			}
+		} else if (frequency === RepeatPeriod.ANNUALLY) {
+			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
+			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
+			const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
+			const byYearDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYYEARDAY)
+			const byWeekNoRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYWEEKNO)
+			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
+			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
+
+			const monthAppliedEvents = applyByMonth(
+				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
+				byMonthRules,
+				maxDate,
+				RepeatPeriod.ANNUALLY,
+			)
+
+			const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules)
+			const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
+
+			const events = finishByRules(
+				applyByDayRules(
+					monthDayAppliedEvents,
+					byDayRules,
+					RepeatPeriod.ANNUALLY,
+					validMonths,
+					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+				),
+				validMonths as MonthNumbers[],
+			)
+
+			for (const event of events) {
 				const newStartTime = event.toJSDate()
 				const newEndTime = allDay
 					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
