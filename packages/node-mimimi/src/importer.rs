@@ -730,18 +730,22 @@ impl Importer {
 		Ok(())
 	}
 
-	pub async fn start_pausable_import<ShouldStopResolver, Err>(
+	pub async fn start_stateful_import<ShouldPauseResolver, ShouldStopResolver, Err>(
 		&mut self,
-		should_pause_provider: impl Fn() -> ShouldStopResolver,
+		should_pause_provider: impl Fn() -> ShouldPauseResolver,
+		should_cancel_provider: impl Fn() -> ShouldStopResolver,
 	) -> Result<(), Err>
 	where
 		ShouldStopResolver: Future<Output = Result<bool, Err>>,
+		ShouldPauseResolver: Future<Output = Result<bool, Err>>,
 		Err: From<ImportError>,
 	{
 		while self.get_remote_state().status != ImportStatus::Finished as i64 {
-			let should_stop_import = should_pause_provider().await?;
-			if should_stop_import {
+			if should_pause_provider().await? {
 				self.state.change_status(ImportStatus::Paused);
+				break;
+			} else if should_cancel_provider().await? {
+				self.state.change_status(ImportStatus::Canceled);
 				break;
 			}
 
@@ -804,6 +808,8 @@ mod tests {
 	use tutasdk::net::native_rest_client::NativeRestClient;
 	use tutasdk::Sdk;
 
+	const IMPORTED_MAIL_ADDRESS: &str = "map-premium@tutanota.de";
+
 	#[test]
 	fn import_status_conversion_is_in_sync() {
 		const VARIANT_COUNT: i64 = 5;
@@ -819,7 +825,18 @@ mod tests {
 		assert_eq!(Err(()), no_neg_status);
 	}
 
-	const IMPORTED_MAIL_ADDRESS: &str = "map-premium@tutanota.de";
+	pub async fn resolve_to_true() -> Result<bool, ImportError> {
+		Ok(true)
+	}
+	pub async fn resolve_to_false() -> Result<bool, ImportError> {
+		Ok(false)
+	}
+
+	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
+		importer
+			.start_stateful_import(resolve_to_false, resolve_to_false)
+			.await
+	}
 
 	fn sample_email(subject: String) -> String {
 		let email = MessageBuilder::new()
@@ -917,10 +934,6 @@ mod tests {
 		init_importer(import_source).await
 	}
 
-	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
-		importer.start_pausable_import(|| async { Ok(false) }).await
-	}
-
 	#[tokio::test]
 	pub async fn import_multiple_from_imap_default_folder() {
 		let (mut importer, greenmail) = init_imap_importer().await;
@@ -991,13 +1004,28 @@ mod tests {
 	async fn will_check_pause_provider_and_stop_if_true() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 
+		let resolve_to_panic = || async { panic!("should have called pause provider first") };
 		importer
-			.start_pausable_import(|| async { Result::<_, ImportError>::Ok(true) })
+			.start_stateful_import(resolve_to_true, resolve_to_panic)
 			.await
 			.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Paused as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 0);
+	}
+	#[tokio::test]
+	async fn will_check_stop_provider_and_stop_if_true() {
+		let mut importer = init_file_importer(vec!["sample.eml"]).await;
+
+		importer
+			.start_stateful_import(resolve_to_false, resolve_to_true)
+			.await
+			.unwrap();
+		let remote_state = importer.get_remote_state();
+
+		assert_eq!(remote_state.status, ImportStatus::Canceled as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 0);
 	}
