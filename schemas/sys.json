@@ -467,12 +467,12 @@
 			]
 		},
 		{
-			"version": 115,
+			"version": 116,
 			"changes": [
 				{
 					"name": "AddValue",
 					"sourceType": "EncryptedKeyHash",
-					"info": "AddValue EncryptedKeyHash/encryptingKeyVersion/2495."
+					"info": "AddValue EncryptedKeyHash/encryptingKeyVersion/2504."
 				},
 				{
 					"name": "RenameAttribute",
@@ -497,27 +497,27 @@
 				{
 					"name": "AddValue",
 					"sourceType": "KeyRotation",
-					"info": "AddValue KeyRotation/distEncAdminGroupSymKey/2496."
+					"info": "AddValue KeyRotation/distEncAdminGroupSymKey/2505."
 				},
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/userEncAdminSymKeyHash/AGGREGATION/2497."
+					"info": "AddAssociation KeyRotation/userEncAdminSymKeyHash/AGGREGATION/2506."
 				},
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2498."
+					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2507."
 				},
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2499."
+					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2508."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "UserGroupKeyRotationData",
-					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2520."
+					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2537."
 				}
 			]
 		}
