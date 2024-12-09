@@ -1,4 +1,4 @@
-import { addParamsToUrl, isSuspensionResponse, RestClient } from "../../rest/RestClient.js"
+import { addParamsToUrl, isSuspensionResponse, RestClient, SuspensionBehavior } from "../../rest/RestClient.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { clear, concat, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
@@ -19,13 +19,21 @@ import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn } from "../../../entities/storage/TypeRefs.js"
 import { AuthDataProvider } from "../UserFacade.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
-import { BlobAccessTokenFacade, BlobReferencingInstance } from "../BlobAccessTokenFacade.js"
+import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { SomeEntity } from "../../../common/EntityTypes.js"
 import { encryptBytes } from "../../crypto/CryptoWrapper.js"
+import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
+
+export interface BlobLoadOptions {
+	extraHeaders?: Dict
+	suspensionBehavior?: SuspensionBehavior
+	/** override origin for the request */
+	baseUrl?: string
+}
 
 /**
  * The BlobFacade uploads and downloads blobs to/from the blob store.
@@ -100,11 +108,15 @@ export class BlobFacade {
 	 * @param referencingInstance that directly references the blobs
 	 * @returns Uint8Array unencrypted binary data
 	 */
-	async downloadAndDecrypt(archiveDataType: ArchiveDataType, referencingInstance: BlobReferencingInstance): Promise<Uint8Array> {
+	async downloadAndDecrypt(
+		archiveDataType: ArchiveDataType,
+		referencingInstance: BlobReferencingInstance,
+		blobLoadOptions: BlobLoadOptions = {},
+	): Promise<Uint8Array> {
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 		const doBlobRequest = async () => {
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance)
-			return promiseMap(referencingInstance.blobs, (blob) => this.downloadAndDecryptChunk(blob, blobServerAccessInfo, sessionKey))
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
+			return promiseMap(referencingInstance.blobs, (blob) => this.downloadAndDecryptChunk(blob, blobServerAccessInfo, sessionKey, blobLoadOptions))
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
@@ -135,7 +147,7 @@ export class BlobFacade {
 		const decryptedChunkFileUris: FileUri[] = []
 		const doBlobRequest = async () => {
 			clear(decryptedChunkFileUris) // ensure that the decrypted file uris are emtpy in case we retry because of NotAuthorized error
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance)
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
 			return promiseMap(referencingInstance.blobs, async (blob) => {
 				decryptedChunkFileUris.push(await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey))
 			}).catch(async (e: Error) => {
@@ -249,7 +261,12 @@ export class BlobFacade {
 		return createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 
-	private async downloadAndDecryptChunk(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<Uint8Array> {
+	private async downloadAndDecryptChunk(
+		blob: Blob,
+		blobServerAccessInfo: BlobServerAccessInfo,
+		sessionKey: AesKey,
+		blobLoadOptions: BlobLoadOptions,
+	): Promise<Uint8Array> {
 		const { archiveId, blobId } = blob
 		const getData = createBlobGetIn({
 			archiveId,
@@ -269,6 +286,8 @@ export class BlobFacade {
 					responseType: MediaType.Binary,
 					baseUrl: serverUrl,
 					noCORS: true,
+					headers: blobLoadOptions.extraHeaders,
+					suspensionBehavior: blobLoadOptions.suspensionBehavior,
 				})
 				return aesDecrypt(sessionKey, data)
 			},

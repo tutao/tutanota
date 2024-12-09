@@ -147,8 +147,8 @@ export type WorkerLocatorType = {
 	workerFacade: WorkerFacade
 	sqlCipherFacade: SqlCipherFacade
 	pdfWriter: lazyAsync<PdfWriter>
-	mailExport: lazyAsync<MailExportFacade>
 	bulkMailLoader: lazyAsync<BulkMailLoader>
+	mailExportFacade: lazyAsync<MailExportFacade>
 
 	// used to cache between resets
 	_worker: WorkerImpl
@@ -527,9 +527,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
 		return new ContactFacade(new EntityClient(locator.cache))
 	})
-	locator.mailExport = lazyMemoized(async () => {
+	locator.mailExportFacade = lazyMemoized(async () => {
 		const { MailExportFacade } = await import("../../../common/api/worker/facades/lazy/MailExportFacade.js")
-		return new MailExportFacade(locator.serviceExecutor, locator.cachingEntityClient)
+		const { MailExportTokenFacade } = await import("../../../common/api/worker/facades/lazy/MailExportTokenFacade.js")
+		const mailExportTokenFacade = new MailExportTokenFacade(locator.serviceExecutor)
+		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto)
 	})
 }
 

@@ -1,32 +1,17 @@
 import { ArchiveDataType } from "../../common/TutanotaConstants"
 import { assertWorkerOrNode } from "../../common/Env"
 import { BlobAccessTokenService } from "../../entities/storage/Services"
-import { Blob } from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
 import { DateProvider } from "../../common/DateProvider.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AuthDataProvider } from "./UserFacade.js"
-import { SomeEntity } from "../../common/EntityTypes.js"
 import { isEmpty, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { BlobLoadOptions } from "./lazy/BlobFacade.js"
+import { BlobReferencingInstance } from "../../common/utils/BlobUtils.js"
 
 assertWorkerOrNode()
-
-/**
- * Common interface for instances that are referencing blobs. Main purpose is to have a proper way to access the attribute for the Blob aggregated type
- * because the name of the attribute can be different for each instance.
- *
- */
-export type BlobReferencingInstance = {
-	elementId: Id
-
-	listId: Id | null
-
-	blobs: Blob[]
-
-	entity: SomeEntity
-}
 
 /**
  * The BlobAccessTokenFacade requests blobAccessTokens from the BlobAccessTokenService to get or post to the BlobService (binary blobs)
@@ -126,7 +111,11 @@ export class BlobAccessTokenFacade {
 	 * @param archiveDataType specify the data type
 	 * @param referencingInstance the instance that references the blobs
 	 */
-	async requestReadTokenBlobs(archiveDataType: ArchiveDataType, referencingInstance: BlobReferencingInstance): Promise<BlobServerAccessInfo> {
+	async requestReadTokenBlobs(
+		archiveDataType: ArchiveDataType,
+		referencingInstance: BlobReferencingInstance,
+		blobLoadOptions: BlobLoadOptions,
+	): Promise<BlobServerAccessInfo> {
 		const requestNewToken = async () => {
 			const archiveId = this.getArchiveId([referencingInstance])
 			const instanceListId = referencingInstance.listId
@@ -141,7 +130,7 @@ export class BlobAccessTokenFacade {
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)
 			return blobAccessInfo
 		}
 		return this.readBlobCache.getToken(referencingInstance.elementId, requestNewToken)

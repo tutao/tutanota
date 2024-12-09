@@ -13,6 +13,7 @@ import { BulkMailLoader } from "../../workerUtils/index/BulkMailLoader.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade.js"
 
 export type MailExportState =
 	| { type: "idle" }
@@ -37,11 +38,10 @@ export class MailExportController {
 	}
 
 	constructor(
-		private readonly loader: BulkMailLoader,
+		private readonly mailExportFacade: MailExportFacade,
 		private readonly sanitizer: HtmlSanitizer,
 		private readonly exportFacade: ExportFacade,
 		private readonly logins: LoginController,
-		private readonly fileController: FileController,
 		private readonly mailboxModel: MailboxModel,
 	) {}
 
@@ -145,13 +145,13 @@ export class MailExportController {
 		let currentStartId = startId
 		while (true) {
 			try {
-				const downloadedMails = await this.loader.loadFixedNumberOfMailsWithCache(mailBag.mails, currentStartId)
+				const downloadedMails = await this.mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, currentStartId)
 				if (downloadedMails.length === 0) {
 					break
 				}
 
-				const downloadedMailDetails = await this.loader.loadMailDetails(downloadedMails)
-				const attachmentInfo = await this.loader.loadAttachments(downloadedMails)
+				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails)
+				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails)
 				for (const { mail, mailDetails } of downloadedMailDetails) {
 					if (this._state().type !== "exporting") {
 						return
@@ -159,14 +159,7 @@ export class MailExportController {
 					const mailAttachmentInfo = mail.attachments
 						.map((attachmentId) => attachmentInfo.find((attachment) => isSameId(attachment._id, attachmentId)))
 						.filter(isNotNull)
-					// TODO: do enforceSessionKeyUpdateIfNeeded like in Bundler when we move this to the worker
-					// TODO: download attachments for efficiently.
-					//  - download multiple blobs at once if possible
-					//  - use file references instead of data files (introduce a similar type to MailBundle or change MailBundle)
-					const nullableAttachments = await promiseMap(mailAttachmentInfo, (attachment) =>
-						this.fileController.getAsDataFile(attachment).catch(ofClass(NotFoundError, () => null)),
-					)
-					const attachments = nullableAttachments.filter(isNotNull)
+					const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo)
 					const { makeMailBundle } = await import("../../mail/export/Bundler.js")
 					const mailBundle = makeMailBundle(this.sanitizer, mail, mailDetails, attachments)
 

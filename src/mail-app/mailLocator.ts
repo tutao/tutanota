@@ -131,6 +131,7 @@ import { ContactSuggestion } from "../common/native/common/generatedipc/ContactS
 import type { MailExportController } from "./native/main/MailExportController.js"
 import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.js"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
+import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 
 assertMainOrNode()
 
@@ -190,6 +191,7 @@ class MailLocator {
 	themeController!: ThemeController
 	Const!: Record<string, any>
 	bulkMailLoader!: BulkMailLoader
+	mailExportFacade!: MailExportFacade
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -712,6 +714,7 @@ class MailLocator {
 			sqlCipherFacade,
 			contactFacade,
 			bulkMailLoader,
+			mailExportFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -744,6 +747,7 @@ class MailLocator {
 		this.entropyFacade = entropyFacade
 		this.workerFacade = workerFacade
 		this.bulkMailLoader = bulkMailLoader
+		this.mailExportFacade = mailExportFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
 		this.mailModel = new MailModel(
@@ -1147,7 +1151,7 @@ class MailLocator {
 	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
 		const { htmlSanitizer } = await import("../common/misc/HtmlSanitizer")
 		const { MailExportController } = await import("./native/main/MailExportController.js")
-		return new MailExportController(this.bulkMailLoader, htmlSanitizer, this.exportFacade, this.logins, this.fileController, this.mailboxModel)
+		return new MailExportController(this.mailExportFacade, htmlSanitizer, this.exportFacade, this.logins, this.mailboxModel)
 	})
 
 	/**

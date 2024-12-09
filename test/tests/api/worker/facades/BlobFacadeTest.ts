@@ -6,13 +6,8 @@ import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.j
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import {
-	BlobReferenceTokenWrapperTypeRef,
-	BlobTypeRef,
-	createBlob,
-	createBlobReferenceTokenWrapper,
-} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { createFile, File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
@@ -23,20 +18,14 @@ import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/Crypto
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import {
-	BlobPostOutTypeRef,
-	BlobServerAccessInfoTypeRef,
-	BlobServerUrlTypeRef,
-	createBlobPostOut,
-	createBlobServerAccessInfo,
-	createBlobServerUrl,
-} from "../../../../../src/common/api/entities/storage/TypeRefs.js"
+import { BlobPostOutTypeRef, BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import type { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
-import { BlobAccessTokenFacade, BlobReferencingInstance } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
+import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import { elementIdPart, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 
 const { anything, captor } = matchers
 
@@ -179,7 +168,7 @@ o.spec("BlobFacade test", function () {
 				blobAccessToken: "123",
 				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
 			})
-			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything())).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
@@ -208,7 +197,7 @@ o.spec("BlobFacade test", function () {
 				blobAccessToken: "123",
 				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
-			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything())).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
 			when(blobAccessTokenFacade.createQueryParams(anything(), anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
 			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
@@ -254,7 +243,7 @@ o.spec("BlobFacade test", function () {
 				blobAccessToken: "123",
 				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
-			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything())).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
 			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": true }
 			const encryptedFileUri = "encryptedUri"
