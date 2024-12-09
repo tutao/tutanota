@@ -59,12 +59,18 @@ impl<const CL: usize, Re, Src: Iterator<Item = Re>> Butcher<CL, Re, Src> {
 	}
 }
 
+/// Iterating over Butcher, will resolve to this item.
+/// Ok: collection of element that is guaranteed to be within CHUNK_LIMIT
+/// Err: single element which was already larger than CHUNK_LIMIT, hence can not even make a single chunk
+pub(super) type ChunkedImportItem<ResolvingElement> =
+	Result<Vec<ResolvingElement>, ResolvingElement>;
+
 impl<const CHUNK_LIMIT: usize, ResolvingElement, Source> Iterator
 	for Butcher<CHUNK_LIMIT, ResolvingElement, Source>
 where
 	Source: Iterator<Item = ResolvingElement>,
 {
-	type Item = Result<Vec<ResolvingElement>, ResolvingElement>;
+	type Item = ChunkedImportItem<ResolvingElement>;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		let Self { provider, sizer } = self;

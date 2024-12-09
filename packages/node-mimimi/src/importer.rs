@@ -1,4 +1,4 @@
-use crate::reduce_to_chunks::UnitImport;
+use crate::reduce_to_chunks::{ChunkedImportItem, UnitImport};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use file_reader::{FileImport, FileIterationError};
@@ -52,6 +52,8 @@ pub enum ImportError {
 	LoginError(tutasdk::login::LoginError),
 	/// Error while iterating through import source
 	IterationError(IterationError),
+	/// Some mail was too big
+	TooBigChunk,
 }
 
 #[derive(Debug)]
@@ -209,101 +211,13 @@ impl Importer {
 
 		Ok(())
 	}
-
-	/// once we get the ImportableMail from either of source,
-	/// continue to the uploading counterpart
-	async fn import_all_mail(&mut self) -> Result<(), ImportError> {
-		self.essentials.verify_import_feature_is_enabled().await?;
-		self.initialize_remote_state().await?;
-
-		let Self {
-			essentials: import_essentials,
-			state: import_state,
-			source: import_source,
-		} = self;
-
-		let mapped_import_source = import_source.into_iter().map(|importable_mail| {
-			UnitImport::create_from_importable_mail(
-				&import_essentials.randomizer_facade,
-				&import_essentials.mail_group_key,
-				importable_mail,
-			)
-		});
-		let chunked_mails_provider =
-			ImportableMailsButcher::new(mapped_import_source, |unit_import| {
-				estimate_json_size(&unit_import.import_mail_data)
-			});
-
-		for maybe_importable_chunk in chunked_mails_provider {
-			import_state.change_status(ImportStatus::Running);
-			import_state
-				.update_import_state_on_server(&import_essentials.logged_in_sdk)
-				.await?;
-
-			let importable_post_data = match maybe_importable_chunk {
-				Ok(importable_chunk) => {
-					let importable_serialized_chunk = import_essentials
-						.make_serialized_chunk(importable_chunk)
-						.await;
-
-					match importable_serialized_chunk {
-						Ok(chunk) => chunk,
-						Err(e) => {
-							eprintln!("FIXMEE!!");
-							// what to do now?
-							continue;
-						},
-					}
-				},
-
-				Err(too_big_chunk) => {
-					// what to do?
-					// for now move to next chunk
-					eprintln!("FIXMEE!!");
-					continue;
-				},
-			};
-
-			let response = import_essentials
-				.make_import_service_call(importable_post_data)
-				.await;
-			match response {
-				// this import has been success,
-				Ok(mut imported_post_out) => {
-					import_state.add_imported_mails_count(imported_post_out.mails.len());
-					import_state
-						.imported_mail_ids
-						.append(&mut imported_post_out.mails);
-				},
-
-				Err(err) => {
-					// todo: save the ImportableMails to some fail list,
-					// since, in this iteration the source will not give these mail again,
-					todo!()
-				},
-			}
-		}
-
-		import_state.change_status(ImportStatus::Finished);
-		import_state
-			.update_import_state_on_server(&import_essentials.logged_in_sdk)
-			.await?;
-
-		Ok(())
-	}
 }
 
 impl ImportEssential {
-	const IMPORT_DISABLED_ERR: ApiCallError = ApiCallError::ServerResponseError {
-		source: HttpError::PreconditionFailedError(Some(ImportFailure(
-			ImportFailureReason::ImportDisabled,
-		))),
-	};
-
 	async fn make_serialized_chunk(
 		&self,
 		importable_chunk: Vec<UnitImport>,
-	) -> Result<(ImportMailPostIn, GenericAesKey), ApiCallError> {
+	) -> Result<(ImportMailPostIn, GenericAesKey), ImportError> {
 		let mut serialized_imports = Vec::with_capacity(importable_chunk.len());
 
 		for mut chunk in importable_chunk {
@@ -321,7 +235,8 @@ impl ImportEssential {
 
 			let serialized_import = self
 				.logged_in_sdk
-				.serialize_instance_to_json(chunk.import_mail_data, &chunk.session_key)?;
+				.serialize_instance_to_json(chunk.import_mail_data, &chunk.session_key)
+				.map_err(|e| ImportError::sdk("serializing instance to json", e))?;
 			let wrapped_import_data = StringWrapper {
 				_id: Some(Importer::make_random_aggregate_id(&self.randomizer_facade)),
 				value: serialized_import,
@@ -348,27 +263,6 @@ impl ImportEssential {
 		};
 
 		Ok((post_in, session_key))
-	}
-
-	// check if importing is allowed before preparing the import
-	async fn verify_import_feature_is_enabled(&self) -> Result<(), ImportError> {
-		let import_mail_get_in = ImportMailGetIn { _format: 0 };
-		let response = self
-			.logged_in_sdk
-			.get_service_executor()
-			// todo: instead of trying to GET ImportMailService, better to see the feature enabled for this user,
-			// so we don't have new service just for this
-			.get::<ImportMailService>(import_mail_get_in, ExtraServiceParams::default())
-			.await;
-
-		match response {
-			Ok(_) => Ok(()),
-			Err(err) if err == Self::IMPORT_DISABLED_ERR => Err(ImportError::NoImportFeature),
-			Err(e) => Err(ImportError::sdk(
-				"importService::get to check for import feature",
-				e,
-			)),
-		}
 	}
 
 	// distribute load across the cluster. should be switched to read token (once it is implemented on the
@@ -445,27 +339,59 @@ impl ImportState {
 }
 
 impl Importer {
+	const IMPORT_DISABLED_ERR: ApiCallError = ApiCallError::ServerResponseError {
+		source: HttpError::PreconditionFailedError(Some(ImportFailure(
+			ImportFailureReason::ImportDisabled,
+		))),
+	};
+
+	pub async fn verify_import_feature_enabled(
+		logged_in_sdk: &LoggedInSdk,
+	) -> Result<(), ImportError> {
+		let import_mail_get_in = ImportMailGetIn { _format: 0 };
+		let response = logged_in_sdk
+			.get_service_executor()
+			// todo: instead of trying to GET ImportMailService, better to see the feature enabled for this user,
+			// so we don't have new service just for this
+			.get::<ImportMailService>(import_mail_get_in, ExtraServiceParams::default())
+			.await;
+
+		match response {
+			Ok(_) => Ok(()),
+			Err(err) if err == Self::IMPORT_DISABLED_ERR => Err(ImportError::NoImportFeature),
+			Err(e) => Err(ImportError::sdk(
+				"importService::get to check for import feature",
+				e,
+			)),
+		}
+	}
+
 	pub async fn create_imap_importer(
 		logged_in_sdk: Arc<LoggedInSdk>,
 		target_owner_group: GeneratedId,
 		target_mailset: IdTupleGenerated,
 		imap_config: ImapImportConfig,
-	) -> Option<Importer> {
+	) -> Result<Importer, ImportError> {
+		Self::verify_import_feature_enabled(logged_in_sdk.as_ref()).await?;
+
 		let import_source = ImportSource::RemoteImap {
 			imap_import_client: ImapImport::new(imap_config),
 		};
 		let mail_group_key = logged_in_sdk
 			.get_current_sym_group_key(&target_owner_group)
 			.await
-			.ok()?;
+			.map_err(|e| ImportError::sdk("getting current_sym_group for imap import", e))?;
 
-		Some(Importer::new(
+		let mut importer = Importer::new(
 			logged_in_sdk,
 			mail_group_key,
 			target_mailset,
 			import_source,
 			target_owner_group,
-		))
+		);
+
+		importer.initialize_remote_state().await?;
+		Ok(importer)
 	}
 
 	pub async fn create_file_importer(
@@ -474,6 +400,8 @@ impl Importer {
 		target_mailset: IdTupleGenerated,
 		source_paths: Vec<String>,
 	) -> Result<Importer, ImportError> {
+		Self::verify_import_feature_enabled(logged_in_sdk.as_ref()).await?;
+
 		let fs_email_client = FileImport::new(source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
 		let import_source = ImportSource::LocalFile { fs_email_client };
@@ -484,13 +412,16 @@ impl Importer {
 				ImportError::sdk("trying to get mail group key for target owner group", err)
 			})?;
 
-		Ok(Importer::new(
+		let mut importer = Importer::new(
 			logged_in_sdk,
 			mail_group_key,
 			target_mailset,
 			import_source,
 			target_owner_group,
-		))
+		);
+
+		importer.initialize_remote_state().await?;
+		Ok(importer)
 	}
 
 	pub fn new(
@@ -532,13 +463,64 @@ impl Importer {
 	}
 
 	pub async fn continue_import(&mut self) -> Result<(), ImportError> {
-		let _ = self.import_all_mail().await;
+		let Self {
+			essentials: import_essentials,
+			state: import_state,
+			source: import_source,
+		} = self;
+
+		let mapped_import_source = import_source.into_iter().map(|importable_mail| {
+			UnitImport::create_from_importable_mail(
+				&import_essentials.randomizer_facade,
+				&import_essentials.mail_group_key,
+				importable_mail,
+			)
+		});
+		let mut chunked_mails_provider =
+			ImportableMailsButcher::new(mapped_import_source, |unit_import| {
+				estimate_json_size(&unit_import.import_mail_data)
+			});
+
+		match chunked_mails_provider.next() {
+			// everything have been finished
+			None => {
+				import_state.change_status(ImportStatus::Finished);
+			},
+
+			// this chunk was too big to import
+			Some(Err(too_big_chunk)) => Err(ImportError::TooBigChunk)?,
+
+			// these chunks can be imported in single request
+			Some(Ok(chunked_import_data)) => {
+				let importable_post_data = import_essentials
+					.make_serialized_chunk(chunked_import_data)
+					.await?;
+
+				let mut import_mails_post_out = import_essentials
+					.make_import_service_call(importable_post_data)
+					.await?;
+
+				import_state.change_status(ImportStatus::Running);
+				import_state.add_imported_mails_count(import_mails_post_out.mails.len());
+				import_state
+					.imported_mail_ids
+					.append(&mut import_mails_post_out.mails);
+			},
+		}
+
+		self.state
+			.update_import_state_on_server(&import_essentials.logged_in_sdk)
+			.await?;
 
 		Ok(())
 	}
 
 	pub async fn pause_import(&mut self) -> Result<(), ImportError> {
-		todo!()
+		self.state.change_status(ImportStatus::Paused);
+		self.state
+			.update_import_state_on_server(&self.essentials.logged_in_sdk)
+			.await?;
+		Ok(())
 	}
 
 	pub async fn cancel_import(&mut self) -> Result<(), ImportError> {
@@ -562,7 +544,9 @@ impl From<ImportError> for napi::Error {
 			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
 				"Malformed server response"
 			},
-			ImportError::NoNativeRestClient(_) | ImportError::IterationError(_) => "IoError",
+			ImportError::NoNativeRestClient(_)
+			| ImportError::IterationError(_)
+			| ImportError::TooBigChunk => "IoError",
 			ImportError::CredentialValidationError(_) | ImportError::LoginError(_) => {
 				"Not a valid login"
 			},
