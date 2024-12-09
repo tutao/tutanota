@@ -1,161 +1,89 @@
 import o from "@tutao/otest"
-import { matchers, object, verify, when } from "testdouble"
-import { MAIL_EXPORT_TOKEN_HEADER, MailExportFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportFacade"
-import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
-import { createMailExportTokenServicePostOut, Mail, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { CacheMode, EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient"
-import { MailExportTokenService } from "../../../../../src/common/api/entities/tutanota/Services"
-import { AccessExpiredError, TooManyRequestsError } from "../../../../../src/common/api/common/error/RestError"
-import { createTestEntity } from "../../../TestUtils"
+import { MAIL_EXPORT_TOKEN_HEADER, MailExportFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportFacade.js"
+import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"
+import { BulkMailLoader } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
+import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { object, when } from "testdouble"
+import { createTestEntity } from "../../../TestUtils.js"
+import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ArchiveDataType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { createReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils"
 
 o.spec("MailExportFacade", () => {
-	let serviceExecutor!: IServiceExecutor
-	let entityClient!: EntityClient
+	const token = "my token"
+	const tokenHeaders = { [MAIL_EXPORT_TOKEN_HEADER]: token }
+	const mail1 = createTestEntity(MailTypeRef)
+	const mail2 = createTestEntity(MailTypeRef)
+	const details1 = createTestEntity(MailDetailsTypeRef)
+	const details2 = createTestEntity(MailDetailsTypeRef)
+
 	let facade!: MailExportFacade
+	let tokenFacade!: MailExportTokenFacade
+	let bulkMailLoader!: BulkMailLoader
+	let blobFacade!: BlobFacade
+	let cryptoFacade!: CryptoFacade
 
 	o.beforeEach(() => {
-		serviceExecutor = object()
-		entityClient = object()
-		facade = new MailExportFacade(serviceExecutor, entityClient)
+		tokenFacade = {
+			loadWithToken: (req) => req(token),
+		} as Partial<MailExportTokenFacade> as MailExportTokenFacade
+		bulkMailLoader = object()
+		blobFacade = object()
+		cryptoFacade = object()
+		facade = new MailExportFacade(tokenFacade, bulkMailLoader, blobFacade, cryptoFacade)
 	})
 
-	o.spec("loading", () => {
-		const mailId = ["some mail list", "some mail id"] as IdTuple
-		const validToken = "my token"
-		const expiredToken = "my expired token"
-		const testMail = createTestEntity<Mail>(MailTypeRef, {
-			subject: "hellooooooo",
-		})
+	o.test("loadFixedNumberOfMailsWithCache", async () => {
+		when(bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", { extraHeaders: tokenHeaders })).thenResolve([mail1, mail2])
 
-		const hasValidToken = (a: EntityRestClientLoadOptions) => {
-			return a.cacheMode === CacheMode.ReadOnly && a.extraHeaders![MAIL_EXPORT_TOKEN_HEADER] === validToken
-		}
-		const hasExpiredToken = (a: EntityRestClientLoadOptions) => {
-			return a.cacheMode === CacheMode.ReadOnly && a.extraHeaders![MAIL_EXPORT_TOKEN_HEADER] === expiredToken
-		}
+		const result = await facade.loadFixedNumberOfMailsWithCache("mailListId", "startId")
 
-		o.beforeEach(() => {
-			when(serviceExecutor.post(MailExportTokenService, null)).thenResolve(createMailExportTokenServicePostOut({ mailExportToken: validToken }))
+		o(result).deepEquals([mail1, mail2])
+	})
 
-			when(entityClient.load(matchers.anything(), matchers.anything(), matchers.argThat(hasValidToken))).thenResolve(testMail)
-			when(
-				entityClient.loadMultiple(matchers.anything(), matchers.anything(), matchers.anything(), undefined, matchers.argThat(hasValidToken)),
-			).thenResolve([testMail])
-			when(
-				entityClient.loadRange(
-					matchers.anything(),
-					matchers.anything(),
-					matchers.anything(),
-					matchers.anything(),
-					matchers.anything(),
-					matchers.argThat(hasValidToken),
-				),
-			).thenResolve([testMail])
+	o.test("loadMailDetails", async () => {
+		const expected = [
+			{ mail: mail1, mailDetails: details1 },
+			{ mail: mail2, mailDetails: details2 },
+		]
+		when(bulkMailLoader.loadMailDetails([mail1, mail2], { extraHeaders: tokenHeaders })).thenResolve(expected)
 
-			when(entityClient.load(matchers.anything(), matchers.anything(), matchers.argThat(hasExpiredToken))).thenReject(
-				new AccessExpiredError("oh no load :("),
-			)
-			when(
-				entityClient.loadMultiple(matchers.anything(), matchers.anything(), matchers.anything(), undefined, matchers.argThat(hasExpiredToken)),
-			).thenReject(new AccessExpiredError("oh no loadMultiple :("))
-			when(
-				entityClient.loadRange(
-					matchers.anything(),
-					matchers.anything(),
-					matchers.anything(),
-					matchers.anything(),
-					matchers.anything(),
-					matchers.argThat(hasExpiredToken),
-				),
-			).thenReject(new AccessExpiredError("oh no loadRange :("))
-		})
+		const result = await facade.loadMailDetails([mail1, mail2])
 
-		o.spec("new export", () => {
-			o.test("load", async () => {
-				const mail = await facade.load(MailTypeRef, mailId)
-				verify(entityClient.load(MailTypeRef, mailId, matchers.argThat(hasValidToken)))
-				o(mail).deepEquals(testMail)
-			})
-			o.test("loadMultiple", async () => {
-				const mails = await facade.loadMultiple(MailTypeRef, "some mail list", ["some mail id"])
-				verify(entityClient.loadMultiple(MailTypeRef, "some mail list", ["some mail id"], undefined, matchers.argThat(hasValidToken)))
-				o(mails).deepEquals([testMail])
-			})
-			o.test("loadRange", async () => {
-				const mails = await facade.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true)
-				verify(entityClient.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true, matchers.argThat(hasValidToken)))
-				o(mails).deepEquals([testMail])
-			})
-		})
+		o(result).deepEquals(expected)
+	})
 
-		o.spec("reuse token", () => {
-			o.beforeEach(() => {
-				facade._setCurrentExportToken(validToken)
-			})
-			o.test("load", async () => {
-				const mail = await facade.load(MailTypeRef, mailId)
-				verify(entityClient.load(MailTypeRef, mailId, matchers.argThat(hasValidToken)))
-				o(mail).deepEquals(testMail)
-			})
-			o.test("loadMultiple", async () => {
-				const mails = await facade.loadMultiple(MailTypeRef, "some mail list", ["some mail id"])
-				verify(entityClient.loadMultiple(MailTypeRef, "some mail list", ["some mail id"], undefined, matchers.argThat(hasValidToken)))
-				o(mails).deepEquals([testMail])
-			})
-			o.test("loadRange", async () => {
-				const mails = await facade.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true)
-				verify(entityClient.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true, matchers.argThat(hasValidToken)))
-				o(mails).deepEquals([testMail])
-			})
-		})
+	o.test("loadAttachments", async () => {
+		const expected = [createTestEntity(FileTypeRef), createTestEntity(FileTypeRef)]
+		when(bulkMailLoader.loadAttachments([mail1, mail2], { extraHeaders: tokenHeaders })).thenResolve(expected)
 
-		o.spec("re-request token on expiry", () => {
-			o.beforeEach(() => {
-				facade._setCurrentExportToken(expiredToken)
-			})
-			o.test("load", async () => {
-				const mail = await facade.load(MailTypeRef, mailId)
-				verify(entityClient.load(MailTypeRef, mailId, matchers.argThat(hasExpiredToken)))
-				verify(entityClient.load(MailTypeRef, mailId, matchers.argThat(hasValidToken)))
-				o(facade._getCurrentExportToken()).equals(validToken)
-				o(mail).deepEquals(testMail)
-			})
-			o.test("loadMultiple", async () => {
-				const mails = await facade.loadMultiple(MailTypeRef, "some mail list", ["some mail id"])
-				verify(entityClient.loadMultiple(MailTypeRef, "some mail list", ["some mail id"], undefined, matchers.argThat(hasExpiredToken)))
-				verify(entityClient.loadMultiple(MailTypeRef, "some mail list", ["some mail id"], undefined, matchers.argThat(hasValidToken)))
-				o(facade._getCurrentExportToken()).equals(validToken)
-				o(mails).deepEquals([testMail])
-			})
-			o.test("loadRange", async () => {
-				const mails = await facade.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true)
-				verify(entityClient.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true, matchers.argThat(hasExpiredToken)))
-				verify(entityClient.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true, matchers.argThat(hasValidToken)))
-				o(facade._getCurrentExportToken()).equals(validToken)
-				o(mails).deepEquals([testMail])
-			})
-		})
+		const result = await facade.loadAttachments([mail1, mail2])
 
-		o.spec("left uninitialized if unable to request tokens", () => {
-			o.beforeEach(() => {
-				when(serviceExecutor.post(MailExportTokenService, null)).thenReject(new TooManyRequestsError("no more tokens :("))
-			})
-			o.test("load", async () => {
-				await o(() => facade.load(MailTypeRef, mailId)).asyncThrows(TooManyRequestsError)
-				verify(entityClient.load(MailTypeRef, mailId, matchers.argThat(hasValidToken)), { times: 0 })
-				o(facade._getCurrentExportToken()).equals(null)
-			})
-			o.test("loadMultiple", async () => {
-				await o(() => facade.loadMultiple(MailTypeRef, "some mail list", ["some mail id"])).asyncThrows(TooManyRequestsError)
-				verify(entityClient.loadMultiple(MailTypeRef, "some mail list", ["some mail id"], undefined, matchers.argThat(hasValidToken)), { times: 0 })
-				o(facade._getCurrentExportToken()).equals(null)
-			})
-			o.test("loadRange", async () => {
-				await o(() => facade.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true)).asyncThrows(TooManyRequestsError)
-				verify(entityClient.loadRange(MailTypeRef, "some mail list", "some mail id", 10, true, matchers.argThat(hasValidToken)), { times: 0 })
-				o(facade._getCurrentExportToken()).equals(null)
-			})
-		})
+		o(result).deepEquals(expected)
+	})
+
+	o.test("loadAttachmentData", async () => {
+		const dataByteMail1 = new Uint8Array([1, 2, 3])
+		const dataByteMail2 = new Uint8Array([4, 5, 6])
+		const mailAttachments = [
+			createTestEntity(FileTypeRef, { name: "mail1", mimeType: "img/png", cid: "12345", _id: ["attachment", "id1"] }),
+			createTestEntity(FileTypeRef, { name: "mail2", mimeType: "pdf", cid: "12345", _id: ["attachment", "id2"] }),
+		]
+
+		when(cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail1, mailAttachments)).thenResolve(mailAttachments)
+		when(
+			blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(mailAttachments[0]), { extraHeaders: tokenHeaders }),
+		).thenResolve(dataByteMail1)
+		when(
+			blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(mailAttachments[1]), { extraHeaders: tokenHeaders }),
+		).thenResolve(dataByteMail2)
+
+		const result = await facade.loadAttachmentData(mail1, mailAttachments)
+
+		o(result).deepEquals([
+			{ _type: "DataFile", name: "mail1", mimeType: "img/png", data: dataByteMail1, cid: "12345", size: 3, id: ["attachment", "id1"] },
+			{ _type: "DataFile", name: "mail2", mimeType: "pdf", data: dataByteMail2, cid: "12345", size: 3, id: ["attachment", "id2"] },
+		])
 	})
 })

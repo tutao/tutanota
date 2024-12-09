@@ -4,7 +4,6 @@ import { matchers, object, verify, when } from "testdouble"
 import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "../../../../src/common/native/common/generatedipc/ExportFacade.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { FileController } from "../../../../src/common/file/FileController.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { createTestEntity } from "../../TestUtils.js"
 import {
@@ -26,16 +25,15 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
 import { makeMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 import { MailboxExportState } from "../../../../src/common/desktop/export/MailboxExportPersistence.js"
-import { BulkMailLoader } from "../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
+import { MailExportFacade } from "../../../../src/common/api/worker/facades/lazy/MailExportFacade.js"
 
 o.spec("MailExportController", function () {
 	const userId = "userId"
 
 	let controller: MailExportController
-	let loader: BulkMailLoader
+	let mailExportFacade: MailExportFacade
 	let exportFacade: ExportFacade
 	let logins: LoginController
-	let fileController: FileController
 	let mailboxModel: MailboxModel
 	let mailboxDetail: MailboxDetail
 	let userController: UserController
@@ -55,15 +53,14 @@ o.spec("MailExportController", function () {
 			mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 			mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 		}
-		loader = object()
+		mailExportFacade = object()
 		exportFacade = object()
 		logins = object()
 		when(logins.getUserController()).thenReturn(userController)
-		fileController = object()
 		mailboxModel = object()
 		when(mailboxModel.getMailboxDetailByMailboxId(mailboxDetail.mailbox._id)).thenResolve(mailboxDetail)
 
-		controller = new MailExportController(loader, sanitizer, exportFacade, logins, fileController, mailboxModel)
+		controller = new MailExportController(mailExportFacade, sanitizer, exportFacade, logins, mailboxModel)
 	})
 
 	function prepareMailData(mailBag: MailBag, startId: Id) {
@@ -86,10 +83,10 @@ o.spec("MailExportController", function () {
 		})
 		const attachmentData = new Uint8Array([1, 2, 3])
 		const dataFile = createDataFile("test", "application/octet-stream", attachmentData)
-		when(loader.loadFixedNumberOfMailsWithCache(mailBag.mails, startId)).thenResolve([mail])
-		when(loader.loadMailDetails([mail])).thenResolve([{ mail, mailDetails }])
-		when(loader.loadAttachments([mail])).thenResolve([attachmentInfo])
-		when(fileController.getAsDataFile(attachmentInfo)).thenResolve(dataFile)
+		when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, startId)).thenResolve([mail])
+		when(mailExportFacade.loadMailDetails([mail])).thenResolve([{ mail, mailDetails }])
+		when(mailExportFacade.loadAttachments([mail])).thenResolve([attachmentInfo])
+		when(mailExportFacade.loadAttachmentData(mail, [attachmentInfo])).thenResolve([dataFile])
 
 		const mailBundle = makeMailBundle(sanitizer, mail, mailDetails, [dataFile])
 		return { mail, mailBundle, mailDetails }
@@ -106,7 +103,7 @@ o.spec("MailExportController", function () {
 		o.test("it runs the export", async function () {
 			const mailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
 			const { mail, mailBundle } = prepareMailData(mailBag, GENERATED_MAX_ID)
-			when(loader.loadFixedNumberOfMailsWithCache(mailBag.mails, getElementId(mail))).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, getElementId(mail))).thenResolve([])
 
 			await controller.startExport(mailboxDetail)
 
@@ -136,7 +133,7 @@ o.spec("MailExportController", function () {
 				exportDirectoryPath: "directory",
 			}
 			when(exportFacade.getMailboxExportState(userId)).thenResolve(persistedState)
-			when(loader.loadFixedNumberOfMailsWithCache(mailBag.mails, getElementId(mail))).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, getElementId(mail))).thenResolve([])
 
 			await controller.resumeIfNeeded()
 
@@ -157,7 +154,7 @@ o.spec("MailExportController", function () {
 			const mailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
 			const { mail: mail1 } = prepareMailData(mailBag, GENERATED_MAX_ID)
 			const { mail: mail2, mailBundle: mailBundle2 } = prepareMailData(mailBag, getElementId(mail1))
-			when(loader.loadFixedNumberOfMailsWithCache(mailBag.mails, getElementId(mail2))).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, getElementId(mail2))).thenResolve([])
 
 			await controller.startExport(mailboxDetail)
 
@@ -168,13 +165,13 @@ o.spec("MailExportController", function () {
 		o.test("it loops over mail bags", async function () {
 			const currentMailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
 			const { mail: mail1, mailBundle: mailBundle1 } = prepareMailData(currentMailBag, GENERATED_MAX_ID)
-			when(loader.loadFixedNumberOfMailsWithCache(currentMailBag.mails, getElementId(mail1))).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(currentMailBag.mails, getElementId(mail1))).thenResolve([])
 			const archivedMailBag1 = mailboxDetail.mailbox.archivedMailBags[0]
 			const { mail: mail2, mailBundle: mailBundle2 } = prepareMailData(archivedMailBag1, GENERATED_MAX_ID)
-			when(loader.loadFixedNumberOfMailsWithCache(archivedMailBag1.mails, getElementId(mail2))).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(archivedMailBag1.mails, getElementId(mail2))).thenResolve([])
 			const archivedMailBag2 = mailboxDetail.mailbox.archivedMailBags[1]
 			const { mail: mail3, mailBundle: mailBundle3 } = prepareMailData(archivedMailBag2, GENERATED_MAX_ID)
-			when(loader.loadFixedNumberOfMailsWithCache(archivedMailBag2.mails, getElementId(mail3))).thenResolve([])
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(archivedMailBag2.mails, getElementId(mail3))).thenResolve([])
 
 			await controller.startExport(mailboxDetail)
 

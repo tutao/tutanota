@@ -780,9 +780,9 @@ export class CryptoFacade {
 	 * @param mainInstance the instance that has the bucketKey
 	 * @param childInstances the files that belong to the mainInstance
 	 */
-	async enforceSessionKeyUpdateIfNeeded(mainInstance: Record<string, any>, childInstances: File[]): Promise<File[]> {
+	async enforceSessionKeyUpdateIfNeeded(mainInstance: Record<string, any>, childInstances: readonly File[]): Promise<File[]> {
 		if (!childInstances.some((f) => f._ownerEncSessionKey == null)) {
-			return childInstances
+			return childInstances.slice()
 		}
 		const typeModel = await resolveTypeReference(mainInstance._type)
 		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null)

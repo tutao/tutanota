@@ -8,8 +8,9 @@ import { CancelledError } from "../api/common/error/CancelledError"
 import type { NativeFileApp } from "../native/common/FileApp.js"
 import { ArchiveDataType } from "../api/common/TutanotaConstants"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { createReferencingInstance, FileController, ProgressObserver, zipDataFiles } from "./FileController.js"
+import { FileController, ProgressObserver, zipDataFiles } from "./FileController.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
 
 assertMainOrNode()
 

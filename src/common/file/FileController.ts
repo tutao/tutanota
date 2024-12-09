@@ -15,13 +15,12 @@ import Stream from "mithril/stream"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { ConnectionError } from "../api/common/error/RestError.js"
-import { elementIdPart, listIdPart } from "../api/common/utils/EntityUtils.js"
-import { BlobReferencingInstance } from "../api/worker/facades/BlobAccessTokenFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
+import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -304,15 +303,6 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 export async function downloadAndDecryptDataFile(file: TutanotaFile, blobFacade: BlobFacade): Promise<DataFile> {
 	const bytes = await blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(file))
 	return convertToDataFile(file, bytes)
-}
-
-export function createReferencingInstance(tutanotaFile: TutanotaFile): BlobReferencingInstance {
-	return {
-		blobs: tutanotaFile.blobs,
-		elementId: elementIdPart(tutanotaFile._id),
-		listId: listIdPart(tutanotaFile._id),
-		entity: tutanotaFile,
-	}
 }
 
 export async function guiDownload(downloadPromise: Promise<void>, progress?: stream<number>): Promise<void> {
