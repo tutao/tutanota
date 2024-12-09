@@ -66,7 +66,7 @@ macro_rules! __service_handle_response {
 /// // but respond with `NewsOut`
 /// service_impl!(GET, NewsService, (), NewsOut);
 /// ```
-
+///
 // we don't want to generate the rust code for services from the JS directly because it's harder to maintain and
 // largely unreadable.
 //
