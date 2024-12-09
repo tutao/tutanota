@@ -64,6 +64,23 @@ impl Entity for AdminGroupKeyDistributionElement {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminGroupKeyRotationGetOut {
+	pub _format: i64,
+	pub distributionKeys: Vec<PubDistributionKey>,
+	pub userGroupIdsMissingDistributionKeys: Vec<GeneratedId>,
+}
+
+impl Entity for AdminGroupKeyRotationGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminGroupKeyRotationGetOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub adminGroupKeyData: GroupKeyRotationData,
@@ -94,6 +111,27 @@ impl Entity for AdminGroupKeyRotationPutIn {
 		TypeRef {
 			app: "sys",
 			type_: "AdminGroupKeyRotationPutIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct AdminMembershipUpdateData {
+	pub _id: Option<CustomId>,
+	pub adminGroupKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub userEncAdminGroupKey: Vec<u8>,
+	pub userGroupKeyVersion: i64,
+	pub adminGroup: GeneratedId,
+	pub userGroup: GeneratedId,
+}
+
+impl Entity for AdminMembershipUpdateData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "AdminMembershipUpdateData",
 		}
 	}
 }
@@ -3048,6 +3086,28 @@ impl Entity for PriceServiceReturn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+pub struct PubDistributionKey {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub authEncPubKeyHash: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub pubEccKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub pubKyberKey: Vec<u8>,
+	pub userGroupId: GeneratedId,
+}
+
+impl Entity for PubDistributionKey {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "PubDistributionKey",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PubEncKeyData {
 	pub _id: Option<CustomId>,
 	pub protocolVersion: i64,
@@ -4314,6 +4374,7 @@ impl Entity for UserGroupKeyRotationData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserGroupKeyRotationPostIn {
 	pub _format: i64,
+	pub adminMembershipUpdateData: Option<AdminMembershipUpdateData>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 

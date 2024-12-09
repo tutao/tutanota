@@ -1,9 +1,10 @@
 import o from "@tutao/otest"
-import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
+import { KeyRotationFacade, MultiAdminGroupKeyAdminActionPath } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
+	AdminGroupKeyRotationGetOutTypeRef,
 	AdminGroupKeyRotationPostIn,
 	AdminGroupKeyRotationPutIn,
 	createPublicKeyGetOut,
@@ -26,6 +27,7 @@ import {
 	KeyRotation,
 	KeyRotationsRefTypeRef,
 	KeyRotationTypeRef,
+	PubDistributionKeyTypeRef,
 	PublicKeyGetIn,
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
@@ -77,7 +79,9 @@ import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
 import { assertThrows, mockAttribute, spy } from "@tutao/tutanota-test-utils"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
-import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, convertToVersionedPublicKeys, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
@@ -999,6 +1003,12 @@ o.spec("KeyRotationFacadeTest", function () {
 					const adminDistAuthEncDistKeyHash = object<Uint8Array>()
 					when(cryptoWrapperMock.aesEncrypt(adminDistAuthKey, pubDistKeyHash)).thenReturn(adminDistAuthEncDistKeyHash)
 
+					const distributionKeys = []
+					const userGroupIdsMissingDistributionKeys = ["missing"]
+					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+					)
+
 					await keyRotationFacade.processPendingKeyRotation(user)
 
 					verify(
@@ -1052,9 +1062,186 @@ o.spec("KeyRotationFacadeTest", function () {
 						userAreaGroupsKeyRotations: [],
 					})
 
+					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId })]
+					const userGroupIdsMissingDistributionKeys = ["missing"]
+					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+					)
+
 					await keyRotationFacade.processPendingKeyRotation(user)
 
 					verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
+				})
+
+				o("distributes new admin group key to other admins", async function () {
+					const targetAdminKeyVersion = String(Number(adminGroup.groupKeyVersion) + 1)
+					keyRotationFacade.setPendingKeyRotations({
+						pwKey: PW_KEY,
+						adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+							_id: [keyRotationsListId, adminGroupId],
+							targetKeyVersion: targetAdminKeyVersion,
+							groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount,
+							adminEncDistKeyHash: createTestEntity(EncryptedKeyHashTypeRef),
+							adminDistKeyPair: createTestEntity(KeyPairTypeRef),
+							userEncAdminPubKeyHash: null,
+						}),
+						teamOrCustomerGroupKeyRotations: [],
+						userAreaGroupsKeyRotations: [],
+					})
+
+					const otherAdmin = "otherAdmin"
+					const distributionKeys = [
+						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin }),
+						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: user.userGroup.group }),
+					]
+					const userGroupIdsMissingDistributionKeys = []
+					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+					)
+
+					const encryptedAdminGroupKeyForThisAdmin = object<PubEncSymKey>()
+					encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes = object<Uint8Array>()
+					when(asymmetricCryptoFacade.tutaCryptEncryptSymKey(anything(), anything(), anything())).thenResolve(encryptedAdminGroupKeyForThisAdmin)
+
+					const currentAdminGroupKey: VersionedKey = {
+						object: object<AesKey>(),
+						version: 12,
+					}
+					when(keyLoaderFacadeMock.getCurrentSymGroupKey(anything())).thenResolve(currentAdminGroupKey)
+
+					const encryptedHash = object<Uint8Array>()
+					when(cryptoWrapperMock.aesEncrypt(anything(), anything())).thenReturn(encryptedHash)
+
+					await keyRotationFacade.processPendingKeyRotation(user)
+
+					verify(
+						serviceExecutorMock.post(
+							AdminGroupKeyRotationService,
+							matchers.argThat((arg: AdminGroupKeyRotationPostIn) => {
+								// verify that for admin performing rotation we make sure the new membership
+								// was encrypted with the new admingroupkey AND for its usergroupid
+
+								o(arg.adminGroupKeyData.groupMembershipUpdateData.length).equals(1)
+								o(arg.adminGroupKeyData.groupMembershipUpdateData[0].userId).equals(userId)
+								o(arg.adminGroupKeyData.groupMembershipUpdateData[0].userEncGroupKey).deepEquals(
+									new Uint8Array(NEW_USER_GROUP_KEY.object.concat(NEW_ADMIN_GROUP_KEY.object)),
+								)
+
+								o(arg.distribution.length).equals(1) // this checks that we don't distribute to ourselves
+								const distributionElement = arg.distribution[0]
+								o(distributionElement.userGroupId).equals(otherAdmin) // this checks that we don't distribute to ourselves
+								o(distributionElement.distEncAdminGroupKey).equals(encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes)
+								o(distributionElement.userEncAdminSymKeyHash.encryptingGroup).equals(adminGroupId)
+								o(distributionElement.userEncAdminSymKeyHash.hashedKeyVersion).equals(targetAdminKeyVersion)
+								o(distributionElement.userEncAdminSymKeyHash.encryptingKeyVersion).equals(String(currentAdminGroupKey.version))
+								o(distributionElement.userEncAdminSymKeyHash.encryptingKeyEncKeyHash).equals(encryptedHash)
+								return true
+							}),
+						),
+					)
+				})
+
+				o("should abort key rotation if one of the hashes has been encrypted with an unvalid key", async function () {
+					const targetAdminKeyVersion = String(Number(adminGroup.groupKeyVersion) + 1)
+					keyRotationFacade.setPendingKeyRotations({
+						pwKey: PW_KEY,
+						adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+							_id: [keyRotationsListId, adminGroupId],
+							targetKeyVersion: targetAdminKeyVersion,
+							groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount,
+							adminEncDistKeyHash: createTestEntity(EncryptedKeyHashTypeRef),
+							adminDistKeyPair: createTestEntity(KeyPairTypeRef),
+							userEncAdminPubKeyHash: null,
+						}),
+						teamOrCustomerGroupKeyRotations: [],
+						userAreaGroupsKeyRotations: [],
+					})
+
+					const otherAdmin = "otherAdmin"
+					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin })]
+					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
+					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+					)
+
+					const currentAdminGroupKey: VersionedKey = {
+						object: object<AesKey>(),
+						version: 12,
+					}
+
+					when(keyLoaderFacadeMock.getCurrentSymGroupKey(anything())).thenResolve(currentAdminGroupKey)
+					when(cryptoWrapperMock.aesDecrypt(anything(), anything(), anything())).thenThrow(new CryptoError("unable to decrypt"))
+					await assertThrows(CryptoError, async () => await keyRotationFacade.processPendingKeyRotation(user))
+				})
+
+				o("should abort key rotation if one of the hashes doesn't match", async function () {
+					const targetAdminKeyVersion = String(Number(adminGroup.groupKeyVersion) + 1)
+					keyRotationFacade.setPendingKeyRotations({
+						pwKey: PW_KEY,
+						adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
+							_id: [keyRotationsListId, adminGroupId],
+							targetKeyVersion: targetAdminKeyVersion,
+							groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount,
+							adminEncDistKeyHash: createTestEntity(EncryptedKeyHashTypeRef),
+							adminDistKeyPair: createTestEntity(KeyPairTypeRef),
+							userEncAdminPubKeyHash: null,
+						}),
+						teamOrCustomerGroupKeyRotations: [],
+						userAreaGroupsKeyRotations: [],
+					})
+
+					const otherAdmin = "otherAdmin"
+					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin })]
+					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
+					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+					)
+
+					const currentAdminGroupKey: VersionedKey = {
+						object: object<AesKey>(),
+						version: 12,
+					}
+
+					when(keyLoaderFacadeMock.getCurrentSymGroupKey(anything())).thenResolve(currentAdminGroupKey)
+
+					// mock return of client computed hash when reproducing the encrypted one given by the server rotations
+					const generatedClientHash = new Uint8Array([0])
+					when(cryptoWrapperMock.sha256Hash(anything())).thenReturn(generatedClientHash)
+					const givenServerHash = new Uint8Array([0, 1])
+					when(cryptoWrapperMock.aesDecrypt(anything(), anything(), anything())).thenReturn(givenServerHash)
+
+					await assertThrows(TutanotaError, async () => await keyRotationFacade.processPendingKeyRotation(user))
+				})
+			})
+
+			o.spec("shouldAdminWaitCreateOrDistribute", function () {
+				o("should wait for the others admins", function () {
+					const missingDistributionKeys = ["stillMissingAnotherAdmin"]
+					const distributionKeys = [
+						// I have my distribution key
+						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: user.userGroup.group }),
+						// and another too
+						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: "otherAdmin" }),
+					]
+					const nextPathOfAction = keyRotationFacade.decideMultiAdminGroupKeyRotationNextPathOfAction(missingDistributionKeys, user, distributionKeys)
+
+					o(nextPathOfAction).equals(MultiAdminGroupKeyAdminActionPath.WAIT_FOR_OTHER_ADMINS)
+				})
+
+				o("should create their distribution keys", function () {
+					const missingDistributionKeys = [user.userGroup.group, "someOtherAdminToo"]
+					const distributionKeys = []
+					const nextPathOfAction = keyRotationFacade.decideMultiAdminGroupKeyRotationNextPathOfAction(missingDistributionKeys, user, distributionKeys)
+
+					o(nextPathOfAction).equals(MultiAdminGroupKeyAdminActionPath.CREATE_DISTRIBUTION_KEYS)
+				})
+
+				o("should perform the admin group key rotation", function () {
+					const missingDistributionKeys = [user.userGroup.group]
+					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: "otherAdmin" })]
+					const nextPathOfAction = keyRotationFacade.decideMultiAdminGroupKeyRotationNextPathOfAction(missingDistributionKeys, user, distributionKeys)
+
+					o(nextPathOfAction).equals(MultiAdminGroupKeyAdminActionPath.PERFORM_KEY_ROTATION)
 				})
 			})
 		})

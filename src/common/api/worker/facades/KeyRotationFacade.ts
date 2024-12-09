@@ -1,7 +1,7 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import {
 	AdminGroupKeyDistributionElement,
-	AdminGroupKeyRotationPostIn,
+	createAdminGroupKeyDistributionElement,
 	createAdminGroupKeyRotationPostIn,
 	createAdminGroupKeyRotationPutIn,
 	createEncryptedKeyHash,
@@ -33,6 +33,7 @@ import {
 	KeyPair,
 	KeyRotation,
 	KeyRotationTypeRef,
+	PubDistributionKey,
 	PubEncKeyData,
 	PublicKeyGetOut,
 	RecoverCodeData,
@@ -65,6 +66,7 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
+	EccKeyPair,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
 	KEY_LENGTH_BYTES_AES_256,
@@ -93,8 +95,16 @@ import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade, PublicKeys } from "../crypto/AsymmetricCryptoFacade.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 assertWorkerOrNode()
+
+export enum MultiAdminGroupKeyAdminActionPath {
+	WAIT_FOR_OTHER_ADMINS,
+	CREATE_DISTRIBUTION_KEYS,
+	PERFORM_KEY_ROTATION,
+	IMPOSSIBLE_STATE,
+}
 
 /**
  * Type to keep a pending key rotation and the password key in memory as long as the key rotation has not been processed.
@@ -199,7 +209,7 @@ export class KeyRotationFacade {
 			}
 		} catch (e) {
 			if (e instanceof LockedError) {
-				// we catch here so that we also catch errors in the finally block
+				// we catch here so that we also catch errors in the `finally` block
 				console.log("error when processing key rotation or group key update", e)
 			} else {
 				throw e
@@ -250,12 +260,11 @@ export class KeyRotationFacade {
 				const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
 				switch (groupKeyRotationType) {
 					case GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount:
-						await this.createDistributionKeyPairIfNeeded(this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
-						console.log("Rotating the admin group with multiple members is not yet implemented")
+						await this.rotateMultipleAdminsGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
 						break
 					case GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount:
 					case GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount:
-						await this.rotateAdminGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
+						await this.rotateSingleAdminGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
 						break
 					case GroupKeyRotationType.User:
 						await this.rotateUserGroupKey(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
@@ -300,7 +309,7 @@ export class KeyRotationFacade {
 	/**
 	 * @VisibleForTesting
 	 */
-	async rotateAdminGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
+	async rotateSingleAdminGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
 		if (hasNonQuantumSafeKeys(passphraseKey)) {
 			console.log("Not allowed to rotate admin group keys with a bcrypt password key")
 			return
@@ -308,8 +317,9 @@ export class KeyRotationFacade {
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 		const adminGroupMembership = getFirstOrThrow(getUserGroupMemberships(user, GroupType.Admin))
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
-		const adminKeyRotationData = await this.prepareKeyRotationForAdminGroup(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
-		return this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData)
+		const adminKeyRotationData = await this.prepareKeyRotationForSingleAdmin(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
+
+		return this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData.keyRotationData)
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
@@ -363,13 +373,13 @@ export class KeyRotationFacade {
 		return groupKeyUpdates
 	}
 
-	private async prepareKeyRotationForAdminGroup(
+	private async prepareKeyRotationForSingleAdmin(
 		keyRotation: KeyRotation,
 		user: User,
 		currentUserGroupKey: VersionedKey,
 		currentAdminGroupKey: VersionedKey,
 		passphraseKey: Aes256Key,
-	): Promise<AdminGroupKeyRotationPostIn> {
+	) {
 		const adminGroupId = this.getTargetGroupId(keyRotation)
 		const userGroupMembership = user.userGroup
 		const userGroupId = userGroupMembership.group
@@ -390,9 +400,6 @@ export class KeyRotationFacade {
 			assertNotNull(user.customer),
 			userGroupId,
 		)
-
-		const distribution: AdminGroupKeyDistributionElement[] = []
-		const userEncAdminSymKeyHashList: EncryptedKeyHash[] = []
 
 		const newUserGroupKeys = await this.generateGroupKeys(userGroup)
 		const encryptedAdminKeys = await this.encryptGroupKeys(adminGroup, currentAdminGroupKey, newAdminGroupKeys, newAdminGroupKeys.symGroupKey)
@@ -431,7 +438,16 @@ export class KeyRotationFacade {
 			userGroupEncAdminGroupKey: null,
 		})
 
-		return createAdminGroupKeyRotationPostIn({ adminGroupKeyData, userGroupKeyData, userEncAdminPubKeyHashList, distribution })
+		return {
+			keyRotationData: createAdminGroupKeyRotationPostIn({
+				adminGroupKeyData,
+				userGroupKeyData,
+				userEncAdminPubKeyHashList,
+				distribution: [],
+			}),
+			newAdminGroupKeys,
+			newUserGroupKeys,
+		}
 	}
 
 	private async generateEncryptedKeyHashes(
@@ -442,7 +458,7 @@ export class KeyRotationFacade {
 		customerId: Id,
 		groupToExclude: Id,
 	): Promise<Array<EncryptedKeyHash>> {
-		const keyHash = this.generateKeyHash(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
+		const keyHash = this.generateAdminPubKeyHash(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
 		const keyHashes: EncryptedKeyHash[] = []
 
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
@@ -475,6 +491,7 @@ export class KeyRotationFacade {
 	}
 
 	private deriveAdminGroupDistributionKeyPairKey(adminGroupId: string, currentAdminGroupKey: VersionedKey, pwKey: Aes256Key) {
+		// when creating new distribution keys we encrypt the private keys with this derivation from the password key
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${currentAdminGroupKey.version}`,
 			key: pwKey,
@@ -482,7 +499,9 @@ export class KeyRotationFacade {
 		})
 	}
 
-	private deriveAdminDistAuthKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
+	private deriveAdminPubDistAuthKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
+		// when distributing the public key that will be used to encrypt the new admin group key
+		// we authenticate that it comes from another admin with the current admin group key
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
 			key: adminGroupKey.object,
@@ -490,12 +509,21 @@ export class KeyRotationFacade {
 		})
 	}
 
-	private generateKeyHash(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
+	private deriveCurrentAdminSymKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
+		// when distributing the new admin group key to other admins we encrypt its hash with the current admin group key
+		return this.cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
+			key: adminGroupKey.object,
+			context: "multiAdminKeyRotationNewAdminSymKeyHash",
+		})
+	}
+
+	private generateAdminPubKeyHash(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
 		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
 		const identifierType = Uint8Array.from([Number(PublicKeyIdentifierType.GROUP_ID)])
 		const identifier = customIdToUint8array(adminGroupId) // also works for generated IDs
-		//Format:  versionbyte, pubEccKey, pubKyberKey, groupKeyVersion, identifier, identifierType
+		//Format:  versionByte, pubEccKey, pubKyberKey, groupKeyVersion, identifier, identifierType
 		const hashData = concat(versionByte, pubEccKey, pubKyberKey, adminKeyVersion, identifier, identifierType)
 		return this.cryptoWrapper.sha256Hash(hashData)
 	}
@@ -503,6 +531,12 @@ export class KeyRotationFacade {
 	private generatePubDistKeyHash(pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
 		const hashData = concat(versionByte, pubEccKey, pubKyberKey)
+		return this.cryptoWrapper.sha256Hash(hashData)
+	}
+
+	private generateAdminSymKeyHash(adminSymKey: VersionedKey) {
+		const versionByte = Uint8Array.from([0])
+		const hashData = concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
 		return this.cryptoWrapper.sha256Hash(hashData)
 	}
 
@@ -524,7 +558,7 @@ export class KeyRotationFacade {
 		const groupKeyUpdatesForMembers = await this.createGroupKeyUpdatesForMembers(targetGroup, newGroupKeys.symGroupKey)
 
 		const groupKeyRotationData = createGroupKeyRotationData({
-			adminGroupEncGroupKey: null, // for user area groups we do not have an adminGroupEncGroupKey so we set it always to null.
+			adminGroupEncGroupKey: null, // for user area groups we do not have an adminGroupEncGroupKey, so we set it always to null.
 			adminGroupKeyVersion: null,
 			group: targetGroupId,
 			groupKeyVersion: String(newGroupKeys.symGroupKey.version),
@@ -933,7 +967,7 @@ export class KeyRotationFacade {
 		if (pubKyberKey == null) {
 			throw new Error("tried to generate a keyhash when rotating but received an empty public kyber key!")
 		}
-		const clientGeneratedKeyHash = this.generateKeyHash(Number(adminGroupKeyVersion), adminGroupId, pubEccKey, pubKyberKey)
+		const clientGeneratedKeyHash = this.generateAdminPubKeyHash(Number(adminGroupKeyVersion), adminGroupId, pubEccKey, pubKyberKey)
 		// at this point the decrypted admin key hash MUST equal the one that we generated for this key rotation
 		if (!arrayEquals(decryptedAdminHash, clientGeneratedKeyHash)) {
 			throw new Error("mismatch between client generated hash and encrypted admin hash, aborting rotation")
@@ -965,7 +999,13 @@ export class KeyRotationFacade {
 			userGroupEncAdminGroupKey: null,
 		})
 
-		await this.serviceExecutor.post(UserGroupKeyRotationService, createUserGroupKeyRotationPostIn({ userGroupKeyData }))
+		await this.serviceExecutor.post(
+			UserGroupKeyRotationService,
+			createUserGroupKeyRotationPostIn({
+				userGroupKeyData,
+				adminMembershipUpdateData: null,
+			}),
+		)
 	}
 
 	private async encryptUserGroupKeyForAdmin(
@@ -1000,17 +1040,14 @@ export class KeyRotationFacade {
 		})
 	}
 
-	private async createDistributionKeyPairIfNeeded(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation) {
-		if (multiAdminKeyRotation.adminDistKeyPair != null && multiAdminKeyRotation.adminEncDistKeyHash != null) {
-			return
-		}
+	private async createDistributionKeyPair(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation) {
 		let adminGroupId = getElementId(multiAdminKeyRotation)
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 		const adminDistKeyPairDistributionKey = this.deriveAdminGroupDistributionKeyPairKey(adminGroupId, currentAdminGroupKey, pwKey)
 		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
 
 		const pubDistKeyHash = this.generatePubDistKeyHash(adminDistributionKeyPair.pubEccKey, adminDistributionKeyPair.pubKyberKey)
-		const adminDistAuthKey = this.deriveAdminDistAuthKey(adminGroupId, this.userFacade.getUserGroupId(), currentAdminGroupKey)
+		const adminDistAuthKey = this.deriveAdminPubDistAuthKey(adminGroupId, this.userFacade.getUserGroupId(), currentAdminGroupKey)
 		const adminDistAuthEncDistKeyHash = this.cryptoWrapper.aesEncrypt(adminDistAuthKey, pubDistKeyHash)
 
 		const putDistributionKeyPairsOnKeyRotation = createAdminGroupKeyRotationPutIn({
@@ -1023,6 +1060,141 @@ export class KeyRotationFacade {
 			}),
 		})
 		await this.serviceExecutor.put(AdminGroupKeyRotationService, putDistributionKeyPairsOnKeyRotation)
+	}
+
+	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
+		// first get all admin members' available distribution keys
+		const { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.get(AdminGroupKeyRotationService, null)
+
+		switch (this.decideMultiAdminGroupKeyRotationNextPathOfAction(userGroupIdsMissingDistributionKeys, user, distributionKeys)) {
+			case MultiAdminGroupKeyAdminActionPath.WAIT_FOR_OTHER_ADMINS:
+				break
+			case MultiAdminGroupKeyAdminActionPath.CREATE_DISTRIBUTION_KEYS:
+				await this.createDistributionKeyPair(passphraseKey, keyRotation)
+				break
+			case MultiAdminGroupKeyAdminActionPath.PERFORM_KEY_ROTATION:
+				await this.performMultiAdminKeyRotation(keyRotation, user, passphraseKey, distributionKeys)
+				break
+			case MultiAdminGroupKeyAdminActionPath.IMPOSSIBLE_STATE:
+				throw new TutanotaError(
+					"MultiAdminGroupKeyAdminActionPathImpossibleStateMetError",
+					"Impossible state met while performing multi admin key rotation",
+				)
+		}
+	}
+
+	private async performMultiAdminKeyRotation(keyRotation: KeyRotation, user: User, passphraseKey: number[], distributionKeys: PubDistributionKey[]) {
+		const adminGroupId = this.getTargetGroupId(keyRotation)
+
+		// load current admin group key
+		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
+
+		// creation of a new admin group key
+		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
+		const { keyRotationData, newAdminGroupKeys, newUserGroupKeys } = await this.prepareKeyRotationForSingleAdmin(
+			keyRotation,
+			user,
+			currentUserGroupKey,
+			currentAdminGroupKey,
+			passphraseKey,
+		)
+		const newSymAdminGroupKey = newAdminGroupKeys.symGroupKey
+
+		const { symGroupKey: symUserGroupKey, encryptedKeyPair: encryptedUserKeyPair } = newUserGroupKeys
+		const generatedPrivateEccKey = this.cryptoWrapper.aesDecrypt(symUserGroupKey.object, assertNotNull(encryptedUserKeyPair?.symEncPrivEccKey), true)
+		const generatedPublicEccKey = assertNotNull(encryptedUserKeyPair?.pubEccKey)
+		const generatedEccKeyPair: Versioned<EccKeyPair> = {
+			version: symUserGroupKey.version,
+			object: {
+				privateKey: generatedPrivateEccKey,
+				publicKey: generatedPublicEccKey,
+			},
+		}
+
+		// distribution for all other admins using their distribution keys
+		for (const distributionKey of distributionKeys) {
+			// we do not distribute for ourselves
+			if (isSameId(distributionKey.userGroupId, user.userGroup.group)) continue
+			// verify authenticity of this distribution key
+			// reproduce hash
+			const computedDistributionKeyHash = this.generatePubDistKeyHash(distributionKey.pubEccKey, distributionKey.pubKyberKey)
+			const adminDistAuthKey = this.deriveAdminPubDistAuthKey(adminGroupId, distributionKey.userGroupId, currentAdminGroupKey)
+			const givenKeyDistributionHash = this.cryptoWrapper.aesDecrypt(adminDistAuthKey, distributionKey.authEncPubKeyHash, true)
+			const verified = arrayEquals(computedDistributionKeyHash, givenKeyDistributionHash)
+			if (!verified) {
+				throw new TutanotaError("KeyRotationUnreproducibleHash", "One of the key rotation contains a unreproducible hash.")
+			}
+			// verified
+
+			const recipientPublicDistKeys: Versioned<PublicKeys> = {
+				version: 0,
+				object: {
+					pubRsaKey: null,
+					pubEccKey: distributionKey.pubEccKey,
+					pubKyberKey: distributionKey.pubKyberKey,
+				},
+			}
+			const encryptedAdminGroupKeyForThisAdmin = await this.asymmetricCryptoFacade.tutaCryptEncryptSymKey(
+				newSymAdminGroupKey.object,
+				recipientPublicDistKeys,
+				generatedEccKeyPair,
+			)
+
+			const computedNewAdminSymKeyHash = this.generateAdminSymKeyHash(newSymAdminGroupKey)
+			const currentAdminSymDerivedKey = this.deriveCurrentAdminSymKey(adminGroupId, distributionKey.userGroupId, currentAdminGroupKey)
+
+			const thisAdminDistributionElement: AdminGroupKeyDistributionElement = createAdminGroupKeyDistributionElement({
+				userGroupId: distributionKey.userGroupId,
+				distEncAdminGroupKey: encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes,
+				userEncAdminSymKeyHash: createEncryptedKeyHash({
+					encryptingGroup: adminGroupId,
+					hashedKeyVersion: String(newSymAdminGroupKey.version),
+					encryptingKeyVersion: String(currentAdminGroupKey.version),
+					encryptingKeyEncKeyHash: this.cryptoWrapper.aesEncrypt(currentAdminSymDerivedKey, computedNewAdminSymKeyHash),
+				}),
+			})
+
+			keyRotationData.distribution.push(thisAdminDistributionElement)
+		}
+
+		// call service
+		await this.serviceExecutor.post(AdminGroupKeyRotationService, keyRotationData)
+	}
+
+	/**
+	 * Context: multi admin group key rotation
+	 *
+	 * This utility function determines the action a given admin must take in a multi admin group key rotation scenario
+	 * This action can be one of these three
+	 * - the admin should wait for the other to create their distribution keys
+	 * - the admin should create their distribution keys
+	 * - the admin should perform the key rotation and distribute the new keys to other admins
+	 *
+	 * @param userGroupIdsMissingDistributionKeys all admin member ids that currently don't have distribution keys
+	 * @param adminUser the current logged-in admin user
+	 * @param distributionKeys the distribution keys already created (include the admins user keys)
+	 *
+	 */
+	public decideMultiAdminGroupKeyRotationNextPathOfAction(
+		userGroupIdsMissingDistributionKeys: Id[],
+		adminUser: User,
+		distributionKeys: PubDistributionKey[],
+	): MultiAdminGroupKeyAdminActionPath {
+		const everyoneHasDistributionKeys = userGroupIdsMissingDistributionKeys.length === 0
+		const everyoneElseHasDistributionKeysButMe =
+			userGroupIdsMissingDistributionKeys.length === 1 && isSameId(userGroupIdsMissingDistributionKeys[0], adminUser.userGroup.group)
+		const iHaveDistributionKeys = distributionKeys.some((dk) => isSameId(dk.userGroupId, adminUser.userGroup.group))
+
+		// check order is important
+		if (everyoneElseHasDistributionKeysButMe || everyoneHasDistributionKeys) {
+			return MultiAdminGroupKeyAdminActionPath.PERFORM_KEY_ROTATION
+		} else if (!everyoneHasDistributionKeys && iHaveDistributionKeys) {
+			return MultiAdminGroupKeyAdminActionPath.WAIT_FOR_OTHER_ADMINS
+		} else if (!everyoneElseHasDistributionKeysButMe && !iHaveDistributionKeys) {
+			return MultiAdminGroupKeyAdminActionPath.CREATE_DISTRIBUTION_KEYS
+		} else {
+			return MultiAdminGroupKeyAdminActionPath.IMPOSSIBLE_STATE
+		}
 	}
 }
 
