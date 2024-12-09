@@ -51,7 +51,7 @@ async fn can_import_multiple_emls() {
 	.unwrap();
 
 	importer
-		.continue_import()
+		.import_all_of_source()
 		.await
 		.expect("Cannot complete import");
 	let import_state = importer.get_remote_state();
