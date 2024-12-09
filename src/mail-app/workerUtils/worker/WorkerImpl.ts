@@ -264,7 +264,7 @@ export class WorkerImpl implements NativeInterface {
 				return locator.bulkMailLoader()
 			},
 			async mailExportFacade() {
-				return locator.mailExport()
+				return locator.mailExportFacade()
 			},
 		}
 	}

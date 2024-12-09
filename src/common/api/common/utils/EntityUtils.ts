@@ -255,14 +255,14 @@ export function customIdToString(customId: string): string {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)))
 }
 
-export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
+export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>, createDefaultValue: (name: string, value: ModelValue) => any = _getDefaultValue): T {
 	let i: Record<string, any> = {
 		_type: typeRef,
 	}
 
 	for (let valueName of Object.keys(typeModel.values)) {
 		let value = typeModel.values[valueName]
-		i[valueName] = _getDefaultValue(valueName, value)
+		i[valueName] = createDefaultValue(valueName, value)
 	}
 
 	for (let associationName of Object.keys(typeModel.associations)) {
