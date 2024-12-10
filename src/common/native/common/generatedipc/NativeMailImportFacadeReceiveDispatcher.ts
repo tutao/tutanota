@@ -5,7 +5,6 @@ import { NativeMailImportFacade } from "./NativeMailImportFacade.js"
 
 export class NativeMailImportFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeMailImportFacade) {}
-
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "setupImapImport": {
