@@ -19,18 +19,16 @@ use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
 use tutasdk::entities::generated::tutanota::{
-	ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut,
-	ImportMailState,
+	ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
 use tutasdk::rest_error::{HttpError, ImportFailureReason};
+use tutasdk::services::generated::tutanota::ImportMailService;
 use tutasdk::services::ExtraServiceParams;
 use tutasdk::tutanota_constants::ArchiveDataType;
 use tutasdk::{ApiCallError, CustomId, GeneratedId};
 use tutasdk::{IdTupleGenerated, LoggedInSdk};
-use tutasdk::entities::generated::tutanota::{ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState};
-use tutasdk::services::generated::tutanota::ImportMailService;
 
 pub mod file_reader;
 pub mod imap_reader;
@@ -94,9 +92,8 @@ pub enum ImportStatus {
 	Started = 0,
 	Paused = 1,
 	Running = 2,
-	Postponed = 3,
-	Canceled = 4,
-	Finished = 5,
+	Canceled = 3,
+	Finished = 4,
 }
 
 /// when state callback function is called after every chunk of import,
@@ -104,7 +101,6 @@ pub enum ImportStatus {
 #[cfg_attr(feature = "javascript", napi_derive::napi(object))]
 pub struct StateCallbackResponse {
 	pub should_stop: bool,
-	pub should_pause: bool,
 }
 
 pub struct ImportEssential {
@@ -199,7 +195,7 @@ impl Importer {
 			_ownerGroup: Some(mailbox._ownerGroup.unwrap()),
 			_ownerEncSessionKey: Some(owner_enc_session_key.object),
 			_ownerKeyVersion: Some(owner_enc_session_key.version),
-			status: ImportStatus::Started as i64,
+			status: ImportStatus::Running as i64,
 			successfulMails: 0,
 			failedMails: 0,
 			targetFolder: self.essentials.target_mailset.clone(),
@@ -322,6 +318,12 @@ impl Importer {
 }
 
 impl ImportEssential {
+	const IMPORT_DISABLED_ERR: ApiCallError = ApiCallError::ServerResponseError {
+		source: HttpError::PreconditionFailedError(Some(ImportFailure(
+			ImportFailureReason::ImportDisabled,
+		))),
+	};
+
 	async fn make_serialized_chunk(
 		&self,
 		importable_chunk: Vec<UnitImport>,
@@ -526,7 +528,13 @@ impl ImportEssential {
 				},
 			)
 			.await
-			.map_err(|e| ImportError::sdk("calling ImportMailService", e))
+			.map_err(|e| {
+				if e == Self::IMPORT_DISABLED_ERR {
+					ImportError::NoImportFeature
+				} else {
+					ImportError::sdk("calling ImportMailService", e)
+				}
+			})
 	}
 }
 
@@ -536,14 +544,14 @@ impl ImportState {
 		logged_in_sdk: &LoggedInSdk,
 	) -> Result<(), ImportError> {
 		if self.last_server_update.elapsed().unwrap_or_default() > Duration::from_secs(6) {
-			self.update_import_state_on_server_unchecked(logged_in_sdk)
+			self.force_update_import_state_on_server(logged_in_sdk)
 				.await
 		} else {
 			Ok(())
 		}
 	}
 
-	async fn update_import_state_on_server_unchecked(
+	async fn force_update_import_state_on_server(
 		&mut self,
 		logged_in_sdk: &LoggedInSdk,
 	) -> Result<(), ImportError> {
@@ -562,11 +570,13 @@ impl ImportState {
 		self.remote_state.status = status as i64;
 	}
 
-	fn add_imported_mails_count(&mut self, newly_imported_mails_count: usize) {
+	fn add_newly_imported_mails(&mut self, mut newly_imported_mails: Vec<IdTupleGenerated>) {
 		self.remote_state.successfulMails = self
 			.remote_state
 			.successfulMails
-			.saturating_add(newly_imported_mails_count.try_into().unwrap_or_default());
+			.saturating_add(newly_imported_mails.len().try_into().unwrap_or_default());
+
+		self.imported_mail_ids.append(&mut newly_imported_mails);
 	}
 
 	fn add_failed_mails_count(&mut self, newly_failed_mails_count: usize) {
@@ -578,41 +588,12 @@ impl ImportState {
 }
 
 impl Importer {
-	const IMPORT_DISABLED_ERR: ApiCallError = ApiCallError::ServerResponseError {
-		source: HttpError::PreconditionFailedError(Some(ImportFailure(
-			ImportFailureReason::ImportDisabled,
-		))),
-	};
-
-	pub async fn verify_import_feature_enabled(
-		logged_in_sdk: &LoggedInSdk,
-	) -> Result<(), ImportError> {
-		let import_mail_get_in = ImportMailGetIn { _format: 0 };
-		let response = logged_in_sdk
-			.get_service_executor()
-			// todo: instead of trying to GET ImportMailService, better to see the feature enabled for this user,
-			// so we don't have new service just for this
-			.get::<ImportMailService>(import_mail_get_in, ExtraServiceParams::default())
-			.await;
-
-		match response {
-			Ok(_) => Ok(()),
-			Err(err) if err == Self::IMPORT_DISABLED_ERR => Err(ImportError::NoImportFeature),
-			Err(e) => Err(ImportError::sdk(
-				"importService::get to check for import feature",
-				e,
-			)),
-		}
-	}
-
 	pub async fn create_imap_importer(
 		logged_in_sdk: Arc<LoggedInSdk>,
 		target_owner_group: GeneratedId,
 		target_mailset: IdTupleGenerated,
 		imap_config: ImapImportConfig,
 	) -> Result<Importer, ImportError> {
-		Self::verify_import_feature_enabled(logged_in_sdk.as_ref()).await?;
-
 		let import_source = ImportSource::RemoteImap {
 			imap_import_client: ImapImport::new(imap_config),
 		};
@@ -621,7 +602,7 @@ impl Importer {
 			.await
 			.map_err(|e| ImportError::sdk("getting current_sym_group for imap import", e))?;
 
-		let mut importer = Importer::new(
+		let importer = Importer::new(
 			logged_in_sdk,
 			mail_group_key,
 			target_mailset,
@@ -629,7 +610,6 @@ impl Importer {
 			target_owner_group,
 		);
 
-		importer.initialize_remote_state().await?;
 		Ok(importer)
 	}
 
@@ -639,8 +619,6 @@ impl Importer {
 		target_mailset: IdTupleGenerated,
 		source_paths: Vec<String>,
 	) -> Result<Importer, ImportError> {
-		Self::verify_import_feature_enabled(logged_in_sdk.as_ref()).await?;
-
 		let fs_email_client = FileImport::new(source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
 		let import_source = ImportSource::LocalFile { fs_email_client };
@@ -651,7 +629,7 @@ impl Importer {
 				ImportError::sdk("trying to get mail group key for target owner group", err)
 			})?;
 
-		let mut importer = Importer::new(
+		let importer = Importer::new(
 			logged_in_sdk,
 			mail_group_key,
 			target_mailset,
@@ -659,7 +637,6 @@ impl Importer {
 			target_owner_group,
 		);
 
-		importer.initialize_remote_state().await?;
 		Ok(importer)
 	}
 
@@ -740,10 +717,7 @@ impl Importer {
 					.await?;
 
 				import_state.change_status(ImportStatus::Running);
-				import_state.add_imported_mails_count(import_mails_post_out.mails.len());
-				import_state
-					.imported_mail_ids
-					.append(&mut import_mails_post_out.mails);
+				import_state.add_newly_imported_mails(import_mails_post_out.mails);
 			},
 		}
 
@@ -761,23 +735,23 @@ impl Importer {
 		self.initialize_remote_state().await?;
 
 		while self.get_remote_state().status != ImportStatus::Finished as i64 {
+			self.state.change_status(ImportStatus::Running);
+
 			let callback_response = callback_handle().await?;
-			if callback_response.should_pause {
-				self.state.change_status(ImportStatus::Paused);
-				break;
-			} else if callback_response.should_stop {
+			if callback_response.should_stop {
 				self.state.change_status(ImportStatus::Canceled);
 				break;
 			}
 
 			self.import_next_chunk().await?;
+
 			self.state
 				.update_import_state_on_server(&self.essentials.logged_in_sdk)
 				.await?;
 		}
 
 		self.state
-			.update_import_state_on_server_unchecked(&self.essentials.logged_in_sdk)
+			.force_update_import_state_on_server(&self.essentials.logged_in_sdk)
 			.await?;
 
 		Ok(())
@@ -805,12 +779,7 @@ mod tests {
 
 	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
 		importer
-			.start_stateful_import(|| async {
-				Ok(StateCallbackResponse {
-					should_pause: false,
-					should_stop: false,
-				})
-			})
+			.start_stateful_import(|| async { Ok(StateCallbackResponse { should_stop: false }) })
 			.await
 	}
 
@@ -965,35 +934,11 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn should_pause_if_true_response() {
-		let mut importer = init_file_importer(vec!["sample.eml"]).await;
-
-		let callback_resolver = || async {
-			Result::<_, ImportError>::Ok(StateCallbackResponse {
-				should_stop: false,
-				should_pause: true,
-			})
-		};
-		importer
-			.start_stateful_import(callback_resolver)
-			.await
-			.unwrap();
-		let remote_state = importer.get_remote_state();
-
-		assert_eq!(remote_state.status, ImportStatus::Paused as i64);
-		assert_eq!(remote_state.failedMails, 0);
-		assert_eq!(remote_state.successfulMails, 0);
-	}
-	#[tokio::test]
 	async fn should_stop_if_true_response() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 
-		let callback_resolver = || async {
-			Result::<_, ImportError>::Ok(StateCallbackResponse {
-				should_stop: true,
-				should_pause: false,
-			})
-		};
+		let callback_resolver =
+			|| async { Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: true }) };
 		importer
 			.start_stateful_import(callback_resolver)
 			.await

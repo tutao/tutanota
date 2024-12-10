@@ -43,14 +43,15 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-		const importState = await fileImporter.startImport(() => {
+
+		await fileImporter.startImport(() => {
 			return {
 				shouldStop: this.shouldStopImport,
 				shouldPause: false,
 			}
 		})
 
-		return importState.failedMailsCount === 0 ? "importSuccessful" : "importFailure"
+		return "importSuccessful"
 	}
 
 	async stopImport(): Promise<void> {

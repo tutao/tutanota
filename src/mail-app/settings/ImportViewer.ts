@@ -1,6 +1,6 @@
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import m, { Children } from "mithril"
-import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { IconButton } from "../../common/gui/base/IconButton"
 import { Icons } from "../../common/gui/base/icons/Icons"
@@ -20,7 +20,7 @@ import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { ColumnWidth, Table, type TableLineAttrs } from "../../common/gui/base/Table"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { ImportMailState, ImportMailStateTypeRef } from "../../common/api/entities/tutanota/TypeRefs"
-import { GENERATED_MAX_ID, isSameId } from "../../common/api/common/utils/EntityUtils"
+import { elementIdPart, GENERATED_MAX_ID, isSameId } from "../../common/api/common/utils/EntityUtils"
 import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
@@ -39,9 +39,10 @@ export class ImportViewer implements UpdatableSettingsViewer {
 	private mailImporter: Importer
 	private expanded: boolean = false
 	private entityClient: EntityClient
-	private importMailStates: Array<ImportMailState> = []
+	private importMailStates: Map<Id, ImportMailState> = new Map()
 	private indentedFolders: Array<IndentedFolder> = []
 	private userController: UserController
+	private startedCancellation: Set<Id> = new Set()
 
 	constructor(
 		mailboxModel: MailboxModel,
@@ -65,18 +66,28 @@ export class ImportViewer implements UpdatableSettingsViewer {
 			this.indentedFolders = await this.getIndentedFolders()
 			this.selectedTargetFolder = this.indentedFolders.find((f) => getMailFolderType(f.folder) === MailSetKind.INBOX)
 			if (this.mailboxDetail) {
-				this.importMailStates = await this.entityClient.loadRange(
+				const importMailStatesCollection = await this.entityClient.loadRange(
 					ImportMailStateTypeRef,
 					this.mailboxDetail.mailbox.mailImportStates,
 					GENERATED_MAX_ID,
 					10,
 					true,
 				)
+				for (const importState of importMailStatesCollection) {
+					this.importMailStates.set(elementIdPart(importState._id), importState)
+				}
 			}
 		}
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+				this.importMailStates.set(update.instanceId, updatedState)
+				this.startedCancellation.delete(update.instanceId)
+			}
+		}
 		m.redraw()
 	}
 
@@ -122,8 +133,8 @@ export class ImportViewer implements UpdatableSettingsViewer {
 			showNotAvailableForFreeDialog()
 			return
 		}
-		this.expanded = true
 		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
+		this.expanded = true
 
 		if (this.selectedTargetFolder && this.mailboxDetail) {
 			await this.mailImporter.importFromFiles(
@@ -142,28 +153,34 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		if (isEmpty(this.indentedFolders)) {
 			return []
 		}
-		return this.importMailStates.map((im) => {
+		return Array.from(this.importMailStates.values()).map((im) => {
 			const targetFolderId = im.targetFolder
 			const displayTargetFolder = this.indentedFolders.find((f) => isSameId(f.folder._id, targetFolderId))
 			return {
 				cells: () => [
 					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
 					{
-						main: `${lang.getMaybeLazy(getMailImportStatusName(im.status as ImportStatus))} Successful: ${im.successfulMails} Failed: ${
-							im.failedMails
-						}`,
+						main: `${lang.getMaybeLazy(this.makeStatusRowForImport(im))}`,
 					},
 				],
 				actionButtonAttrs:
-					im.status === ImportStatus.Running
+					im.status === ImportStatus.Started || im.status === ImportStatus.Running
 						? {
 								icon: Icons.Cancel,
 								title: () => "Cancel import",
-								click: () => this.mailImporter.stopImport(),
+								click: () => {
+									this.startedCancellation.add(elementIdPart(im._id))
+									this.mailImporter.stopImport()
+								},
 						  }
 						: null,
 			}
 		})
+	}
+
+	makeStatusRowForImport(importState: ImportMailState): TranslationText {
+		let status = this.startedCancellation.has(elementIdPart(importState._id)) ? "Canceling.." : getMailImportStatusName(importState.status as ImportStatus)
+		return () => `${status} | Imported: ${importState.successfulMails} | Failed: ${importState.failedMails}`
 	}
 
 	view(): Children {
@@ -193,7 +210,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 				},
 				m(Table, {
 					columnHeading: [() => "Import Instance", "state_label"],
-					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
+					columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],
 					showActionButtonColumn: true,
 					lines: this.parseRecentImportsToTableLines(),
 				}),
@@ -252,19 +269,19 @@ export class ImportViewer implements UpdatableSettingsViewer {
  * Parses mail ImportStatus into its corresponding translated label
  * @param state
  */
-export function getMailImportStatusName(state: ImportStatus): TranslationText {
+export function getMailImportStatusName(state: ImportStatus): String {
 	switch (state) {
-		case ImportStatus.Finished:
-			return () => "Finished"
-		case ImportStatus.NotInitialized:
-			return () => "Not started"
+		case ImportStatus.Started:
+			return "Started"
 		case ImportStatus.Paused:
-			return () => "Paused"
+			return "Paused"
 		case ImportStatus.Running:
-			return () => "Running" + "..."
-		case ImportStatus.Postponed:
-			return () => "Postponed"
+			return "Running..."
+		case ImportStatus.Canceled:
+			return "Canceled"
+		case ImportStatus.Finished:
+			return "Finished"
 		default:
-			return () => "Unknown"
+			return "Unknown"
 	}
 }
