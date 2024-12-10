@@ -3,21 +3,21 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailBag } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
-import { assertNotNull, delay, isNotNull, lastThrow, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, isNotNull, lastThrow } from "@tutao/tutanota-utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "../../../common/native/common/generatedipc/ExportFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { FileController } from "../../../common/file/FileController.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
-import { BulkMailLoader } from "../../workerUtils/index/BulkMailLoader.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade.js"
+import { Scheduler } from "../../../common/api/common/utils/Scheduler"
+import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
 
 export type MailExportState =
 	| { type: "idle" }
 	| { type: "exporting"; mailboxDetail: MailboxDetail; progress: number; exportedMails: number }
+	| { type: "locked" }
 	| { type: "error"; message: string }
 	| {
 			type: "finished"
@@ -43,6 +43,7 @@ export class MailExportController {
 		private readonly exportFacade: ExportFacade,
 		private readonly logins: LoginController,
 		private readonly mailboxModel: MailboxModel,
+		private readonly scheduler: Scheduler,
 	) {}
 
 	get state(): Stream<MailExportState> {
@@ -66,6 +67,9 @@ export class MailExportController {
 			if (e instanceof CancelledError) {
 				console.log("Export start cancelled")
 				return
+			} else if (e instanceof ExportError && e.data === ExportErrorReason.LockedForUser) {
+				this._state({ type: "locked" })
+				return
 			} else {
 				throw e
 			}
@@ -88,7 +92,12 @@ export class MailExportController {
 					await this.cancelExport()
 					return
 				}
-				this._state({ type: "exporting", mailboxDetail: mailboxDetail, progress: 0, exportedMails: exportState.exportedMails })
+				this._state({
+					type: "exporting",
+					mailboxDetail: mailboxDetail,
+					progress: 0,
+					exportedMails: exportState.exportedMails,
+				})
 				await this.resumeExport(mailboxDetail, exportState.mailBagId, exportState.mailId)
 			} else if (exportState.type === "finished") {
 				const mailboxDetail = await this.mailboxModel.getMailboxDetailByMailboxId(exportState.mailboxId)
@@ -98,6 +107,9 @@ export class MailExportController {
 					return
 				}
 				this._state({ type: "finished", mailboxDetail: mailboxDetail })
+			} else if (exportState.type === "locked") {
+				this._state({ type: "locked" })
+				this.scheduler.scheduleAfter(() => this.resumeIfNeeded(), 1000 * 60 * 5) // 5 min
 			}
 		}
 	}

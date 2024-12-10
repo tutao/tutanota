@@ -1877,3 +1877,4 @@ export type TranslationKeyType =
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"
 	| "localAdminGroups_label"
+	| "exportRunningElsewhere_label"

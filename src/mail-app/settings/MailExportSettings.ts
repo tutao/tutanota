@@ -138,6 +138,12 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 						}),
 					]),
 				]
+			case "locked":
+				return [
+					m(".flex-space-between.items-center.mt.mb-s.button-height", [
+						m("small.noselect", `${lang.get("exportRunningElsewhere_label")} ${lang.get("pleaseWait_msg")}`),
+					]),
+				]
 		}
 	}
 

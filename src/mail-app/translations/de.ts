@@ -1897,5 +1897,6 @@ export default {
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"localAdminGroups_label": "Local admin groups",
+		"exportRunningElsewhere_label": "Export may be running in another window."
 	}
 }
