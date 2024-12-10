@@ -17,6 +17,7 @@ use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
+
 use tutasdk::entities::generated::tutanota::{
 	ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut,
 	ImportMailState,
@@ -194,15 +195,15 @@ impl Importer {
 		let mut import_state_for_upload = ImportMailState {
 			_format: 0,
 			_id: Some(import_state_id.clone()),
+			_permissions: mailbox._permissions,
+			_ownerGroup: Some(mailbox._ownerGroup.unwrap()),
 			_ownerEncSessionKey: Some(owner_enc_session_key.object),
-			_ownerGroup: mailbox._ownerGroup.clone(),
 			_ownerKeyVersion: Some(owner_enc_session_key.version),
-			_permissions: Default::default(),
 			status: ImportStatus::Started as i64,
-			failedMails: 0,
 			successfulMails: 0,
+			failedMails: 0,
 			targetFolder: self.essentials.target_mailset.clone(),
-			_errors: None,
+			_errors: Some(Default::default()),
 			_finalIvs: Default::default(),
 		};
 
@@ -551,8 +552,10 @@ impl ImportState {
 			.get_crypto_entity_client()
 			.update_instance(self.remote_state.clone())
 			.await
-			.map(|_| self.last_server_update = SystemTime::now())
-			.map_err(|e| ImportError::sdk("update remote import state", e))
+			.map_err(|e| ImportError::sdk("update remote import state", e))?;
+
+		self.last_server_update = SystemTime::now();
+		Ok(())
 	}
 
 	fn change_status(&mut self, status: ImportStatus) {
@@ -755,6 +758,8 @@ impl Importer {
 		CallbackHandle: Future<Output = Result<StateCallbackResponse, Err>>,
 		Err: From<ImportError>,
 	{
+		self.initialize_remote_state().await?;
+
 		while self.get_remote_state().status != ImportStatus::Finished as i64 {
 			let callback_response = callback_handle().await?;
 			if callback_response.should_pause {
@@ -785,22 +790,6 @@ impl ImportError {
 	}
 }
 
-impl TryFrom<i64> for ImportStatus {
-	type Error = ();
-	fn try_from(status: i64) -> Result<Self, Self::Error> {
-		let index: usize = status.try_into().map_err(|_| ())?;
-		const ALL_IMPORT_STATUS: [ImportStatus; 6] = [
-			ImportStatus::Started,
-			ImportStatus::Paused,
-			ImportStatus::Running,
-			ImportStatus::Postponed,
-			ImportStatus::Canceled,
-			ImportStatus::Finished,
-		];
-		ALL_IMPORT_STATUS.get(index).cloned().ok_or(())
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -813,21 +802,6 @@ mod tests {
 	use tutasdk::Sdk;
 
 	const IMPORTED_MAIL_ADDRESS: &str = "map-premium@tutanota.de";
-
-	#[test]
-	fn import_status_conversion_is_in_sync() {
-		const VARIANT_COUNT: i64 = 5;
-		for status_index in 0..VARIANT_COUNT {
-			let converted_status_index = status_index.try_into().map(|s: ImportStatus| s as i64);
-			assert_eq!(Ok(status_index), converted_status_index);
-		}
-
-		let no_new_status: Result<ImportStatus, ()> = (VARIANT_COUNT + 1).try_into();
-		assert_eq!(Err(()), no_new_status);
-
-		let no_neg_status: Result<ImportStatus, ()> = (-1_i64).try_into();
-		assert_eq!(Err(()), no_neg_status);
-	}
 
 	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
 		importer
@@ -945,10 +919,7 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_first.as_str());
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
-		import_all_of_source(&mut importer)
-			.await
-			.map_err(|_| ())
-			.unwrap();
+		import_all_of_source(&mut importer).await.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -963,10 +934,7 @@ mod tests {
 		let email = sample_email("Single email".to_string());
 		greenmail.store_mail("sug@example.org", email.as_str());
 
-		import_all_of_source(&mut importer)
-			.await
-			.map_err(|_| ())
-			.unwrap();
+		import_all_of_source(&mut importer).await.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -977,10 +945,7 @@ mod tests {
 	#[tokio::test]
 	async fn can_import_single_eml_file_without_attachment() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
-		import_all_of_source(&mut importer)
-			.await
-			.map_err(|_| ())
-			.unwrap();
+		import_all_of_source(&mut importer).await.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -991,10 +956,7 @@ mod tests {
 	#[tokio::test]
 	async fn can_import_single_eml_file_with_attachment() {
 		let mut importer = init_file_importer(vec!["attachment_sample.eml"]).await;
-		import_all_of_source(&mut importer)
-			.await
-			.map_err(|_| ())
-			.unwrap();
+		import_all_of_source(&mut importer).await.unwrap();
 		let remote_state = importer.get_remote_state();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);

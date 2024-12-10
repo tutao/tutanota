@@ -84,7 +84,14 @@ async fn can_create_remote_instance() {
 		.as_ref()
 		.unwrap()
 		.clone();
-	assert_eq!(expected_mail_import_state, mail_import_state)
+	assert_eq!(expected_mail_import_state, mail_import_state);
+
+	mail_import_state.successfulMails += 1;
+	mail_import_state.status += 1;
+	crypto_entity_client
+		.update_instance(mail_import_state.clone())
+		.await
+		.unwrap();
 }
 
 #[tokio::test]
