@@ -35,7 +35,7 @@ import path from "node:path"
 import { DesktopContextMenu } from "./DesktopContextMenu.js"
 import { DesktopNativePushFacade } from "./sse/DesktopNativePushFacade.js"
 import { NativeCredentialsFacade } from "../native/common/generatedipc/NativeCredentialsFacade.js"
-import { DispatcherFactory, FacadeHandler, RemoteBridge } from "./ipc/RemoteBridge.js"
+import { DispatcherFactory, FacadeHandler, RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { DesktopSettingsFacade } from "./config/DesktopSettingsFacade.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { DesktopCommonSystemFacade } from "./DesktopCommonSystemFacade.js"
@@ -74,6 +74,7 @@ import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFaca
 import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
+import { DesktopExportLock } from "./export/DesktopExportLock"
 
 mp()
 
@@ -209,6 +210,8 @@ async function createComponents(): Promise<Components> {
 		manageDownloadsForSession(session, dictUrl)
 	})
 
+	const desktopExportLock = new DesktopExportLock()
+
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
@@ -263,10 +266,17 @@ async function createComponents(): Promise<Components> {
 		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
 		const sqlCipherFacade = new PerWindowSqlCipherFacade(offlineDbRefCounter)
 		const mailboxExportPersistence = new MailboxExportPersistence(conf)
+		const windowCleanup: WindowCleanup = {
+			async onCleanup(userId: Id): Promise<void> {
+				desktopExportLock.unlock(userId)
+				log.debug(TAG, `closing offline db for userId ${userId}`)
+				await sqlCipherFacade.closeDb()
+			},
+		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
-			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider),
+			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
 			new DesktopExternalCalendarFacade(),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs),
 			new DesktopInterWindowEventFacade(window, wm),
@@ -280,7 +290,7 @@ async function createComponents(): Promise<Components> {
 			themeFacade,
 			new DesktopWebauthnFacade(window, webDialogController),
 		)
-		return { desktopCommonSystemFacade, sqlCipherFacade, dispatcher }
+		return { desktopCommonSystemFacade, windowCleanup, dispatcher }
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {

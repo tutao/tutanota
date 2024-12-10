@@ -54,6 +54,7 @@ import { ParserError } from "../../../misc/parsing/ParserCombinator.js"
 import { ContactStoreError } from "../error/ContactStoreError.js"
 import { MobilePaymentError } from "../error/MobilePaymentError"
 import { MailImportError } from "../error/MailImportError.js"
+import { ExportError } from "../error/ExportError"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -124,6 +125,7 @@ const ErrorNameToType = {
 	DeviceStorageUnavailableError,
 	MailBodyTooLargeError,
 	ImportError,
+	ExportError,
 	WebauthnError,
 	SuspensionError,
 	LoginIncompleteError,

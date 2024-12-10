@@ -17,6 +17,10 @@ export type MailboxExportState =
 			mailboxId: Id
 			exportDirectoryPath: string
 	  }
+	| {
+			type: "locked"
+			userId: Id
+	  }
 
 export class MailboxExportPersistence {
 	constructor(private readonly conf: DesktopConfig) {}

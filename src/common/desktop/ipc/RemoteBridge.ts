@@ -8,13 +8,12 @@ import { DesktopFacadeSendDispatcher } from "../../native/common/generatedipc/De
 import { CommonNativeFacadeSendDispatcher } from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { PerWindowSqlCipherFacade } from "../db/PerWindowSqlCipherFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
 	commonNativeFacade: CommonNativeFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
-	sqlCipherFacade: PerWindowSqlCipherFacade
+	windowCleanup: WindowCleanup
 }
 
 const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
@@ -24,18 +23,26 @@ const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
 
 export type DispatcherFactory = (window: ApplicationWindow) => {
 	desktopCommonSystemFacade: DesktopCommonSystemFacade
-	sqlCipherFacade: PerWindowSqlCipherFacade
 	dispatcher: DesktopGlobalDispatcher
+	windowCleanup: WindowCleanup
 }
 export type FacadeHandler = (message: Request<"facade">) => Promise<any>
 export type FacadeHandlerFactory = (window: ApplicationWindow) => FacadeHandler
+
+/**
+ * An action that is invoked when the window is detached from a
+ * user session e.g. when it's closed or reloaded.
+ */
+export interface WindowCleanup {
+	onCleanup(userId: Id): Promise<void>
+}
 
 export class RemoteBridge {
 	constructor(private readonly dispatcherFactory: DispatcherFactory, private readonly facadeHandlerFactory: FacadeHandlerFactory) {}
 
 	createBridge(window: ApplicationWindow): SendingFacades {
 		const webContents = window._browserWindow.webContents
-		const { desktopCommonSystemFacade, sqlCipherFacade, dispatcher } = this.dispatcherFactory(window)
+		const { desktopCommonSystemFacade, windowCleanup, dispatcher } = this.dispatcherFactory(window)
 		const facadeHandler = this.facadeHandlerFactory(window)
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcConfig)
@@ -60,7 +67,7 @@ export class RemoteBridge {
 			desktopFacade: new DesktopFacadeSendDispatcher(nativeInterface),
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
-			sqlCipherFacade,
+			windowCleanup,
 		}
 	}
 

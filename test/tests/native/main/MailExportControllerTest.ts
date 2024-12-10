@@ -5,7 +5,7 @@ import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "../../../../src/common/native/common/generatedipc/ExportFacade.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
-import { createTestEntity } from "../../TestUtils.js"
+import { createTestEntity, SchedulerMock } from "../../TestUtils.js"
 import {
 	BodyTypeRef,
 	FileTypeRef,
@@ -26,6 +26,8 @@ import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
 import { makeMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 import { MailboxExportState } from "../../../../src/common/desktop/export/MailboxExportPersistence.js"
 import { MailExportFacade } from "../../../../src/common/api/worker/facades/lazy/MailExportFacade.js"
+import { spy } from "@tutao/tutanota-test-utils"
+import { ExportError, ExportErrorReason } from "../../../../src/common/api/common/error/ExportError"
 
 o.spec("MailExportController", function () {
 	const userId = "userId"
@@ -37,6 +39,7 @@ o.spec("MailExportController", function () {
 	let mailboxModel: MailboxModel
 	let mailboxDetail: MailboxDetail
 	let userController: UserController
+	let scheduler: SchedulerMock
 
 	const sanitizer = {
 		sanitizeHTML: (text, _) => ({ html: text, blockedExternalContent: 0, inlineImageCids: [], links: [] }),
@@ -59,8 +62,9 @@ o.spec("MailExportController", function () {
 		when(logins.getUserController()).thenReturn(userController)
 		mailboxModel = object()
 		when(mailboxModel.getMailboxDetailByMailboxId(mailboxDetail.mailbox._id)).thenResolve(mailboxDetail)
+		scheduler = new SchedulerMock()
 
-		controller = new MailExportController(mailExportFacade, sanitizer, exportFacade, logins, mailboxModel)
+		controller = new MailExportController(mailExportFacade, sanitizer, exportFacade, logins, mailboxModel, scheduler)
 	})
 
 	function prepareMailData(mailBag: MailBag, startId: Id) {
@@ -109,6 +113,14 @@ o.spec("MailExportController", function () {
 
 			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail)))
 		})
+
+		o.test("it sets state to locked when a LockedForUser ExportError is thrown", async function () {
+			when(
+				exportFacade.startMailboxExport(userId, mailboxDetail.mailbox._id, assertNotNull(mailboxDetail.mailbox.currentMailBag).mails, GENERATED_MAX_ID),
+			).thenReject(new ExportError("message", ExportErrorReason.LockedForUser))
+			await controller.startExport(mailboxDetail)
+			o(controller.state().type).equals("locked")
+		})
 	})
 
 	o.spec("resumeIfNeeded", function () {
@@ -138,6 +150,17 @@ o.spec("MailExportController", function () {
 			await controller.resumeIfNeeded()
 
 			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail)))
+		})
+
+		o.test("when the exportFacade returns a locked state, the state is set to locked and retry is scheduled", async function () {
+			when(exportFacade.getMailboxExportState(userId)).thenResolve({ type: "locked", userId })
+			scheduler.scheduleAfter = spy()
+
+			await controller.resumeIfNeeded()
+
+			o(scheduler.scheduleAfter.callCount).equals(1)
+			o(scheduler.scheduleAfter.args[1]).equals(1000 * 60 * 5) // 5 min
+			o(controller.state().type).equals("locked")
 		})
 	})
 

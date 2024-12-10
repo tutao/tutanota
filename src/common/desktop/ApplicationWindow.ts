@@ -15,7 +15,7 @@ import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { DesktopFacade } from "../native/common/generatedipc/DesktopFacade.js"
 import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade.js"
-import { RemoteBridge } from "./ipc/RemoteBridge.js"
+import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
@@ -47,11 +47,12 @@ const VIRTUAL_APP_URL_BASE = "asset://app"
 const VIRTUAL_APP_URL = VIRTUAL_APP_URL_BASE + "/index-desktop.html"
 
 export class ApplicationWindow {
+	// these depend on window and are initialized later
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
-	private _sqlCipherFacade!: PerWindowSqlCipherFacade
 	private _desktopMailImportFacade!: DesktopMailImportFacade
+	private windowCleanup!: WindowCleanup
 
 	_browserWindow!: BrowserWindow
 
@@ -198,7 +199,7 @@ export class ApplicationWindow {
 		this._desktopFacade = sendingFacades.desktopFacade
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
-		this._sqlCipherFacade = sendingFacades.sqlCipherFacade
+		this.windowCleanup = sendingFacades.windowCleanup
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {
@@ -317,7 +318,7 @@ export class ApplicationWindow {
 
 		this._browserWindow
 			.on("closed", async () => {
-				await this.closeDb()
+				await this.cleanup()
 			})
 			.on("focus", () => this.localShortcut.enableAll(this._browserWindow))
 			.on("blur", (_: FocusEvent) => this.localShortcut.disableAll(this._browserWindow))
@@ -395,7 +396,7 @@ export class ApplicationWindow {
 	}
 
 	async reload(queryParams: Record<string, string | boolean>) {
-		await this.closeDb()
+		await this.cleanup()
 		// try to do this asap as to not get the window destroyed on us
 		this.remoteBridge.unsubscribe(this._browserWindow.webContents.ipc)
 		this.userId = null
@@ -404,10 +405,9 @@ export class ApplicationWindow {
 		await this._browserWindow.loadURL(url)
 	}
 
-	private async closeDb() {
+	private async cleanup() {
 		if (this.userId) {
-			log.debug(TAG, `closing offline db for userId ${this.userId}`)
-			await this._sqlCipherFacade.closeDb()
+			await this.windowCleanup.onCleanup(this.userId)
 		}
 	}
 
