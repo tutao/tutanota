@@ -9,6 +9,7 @@ use num_enum::TryFromPrimitive;
 pub enum PublicKeyIdentifierType {
 	MailAddress = 0, // the default to retrieve public keys. identify the group by mail address.
 	GroupId = 1,     // e.g. needed if a user's needs the admin groups public key. identify by groupId.
+	KeyRotationId = 2, // used for distribution key pairs during multi admin key rotation.
 }
 #[repr(i64)]
 pub enum GroupType {
