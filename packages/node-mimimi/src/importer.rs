@@ -24,11 +24,12 @@ use tutasdk::entities::generated::tutanota::{
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
 use tutasdk::rest_error::{HttpError, ImportFailureReason};
-use tutasdk::services::generated::tutanota::ImportMailService;
 use tutasdk::services::ExtraServiceParams;
 use tutasdk::tutanota_constants::ArchiveDataType;
 use tutasdk::{ApiCallError, CustomId, GeneratedId};
 use tutasdk::{IdTupleGenerated, LoggedInSdk};
+use tutasdk::entities::generated::tutanota::{ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState};
+use tutasdk::services::generated::tutanota::ImportMailService;
 
 pub mod file_reader;
 pub mod imap_reader;

@@ -40,4 +40,8 @@ export class Importer {
 			await this.nativeMailImportFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
 		}
 	}
+
+	async stopImport(): Promise<void> {
+		await this.nativeMailImportFacade.stopImport()
+	}
 }

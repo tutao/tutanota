@@ -5,25 +5,7 @@
 	"receivers": ["desktop"],
 	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
 	"methods": {
-		"setupImapImport": {
-			"doc": "Initializing an IMAP import.",
-			"arg": [
-				{
-					"apiUrl": "string"
-				},
-				{
-					"unencryptedTutaCredentials": "UnencryptedCredentials"
-				}
-			],
-			"ret": "void"
-		},
-		"startImapImport": {
-			"doc": "Start an IMAP import.",
-			"arg": [],
-			"ret": "void"
-		},
-		"stopImapImport": {
-			"doc": "Stop a running IMAP import.",
+		"stopImport": {
 			"arg": [],
 			"ret": "void"
 		},

@@ -66,18 +66,18 @@ public class MobileSystemFacadeReceiveDispatcher {
 				query
 			)
 			return "null"
+		case "openCalendarApp":
+			let query = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.openCalendarApp(
+				query
+			)
+			return "null"
 		case "getInstallationDate":
 			let result = try await self.facade.getInstallationDate(
 			)
 			return toJson(result)
 		case "requestInAppRating":
 			try await self.facade.requestInAppRating(
-			)
-			return "null"
-		case "openCalendarApp":
-			let query = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			try await self.facade.openCalendarApp(
-				query
 			)
 			return "null"
 		default:

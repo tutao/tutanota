@@ -1,4 +1,5 @@
 use std::borrow::Borrow;
+use std::sync::Arc;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
@@ -38,7 +39,7 @@ async fn can_create_remote_instance() {
 
 	let session_key = GenericAesKey::Aes256(Aes256Key::generate(&randomizer));
 	let mail_group_key = logged_in_sdk
-		.get_current_sym_group_key(mailbox._ownerGroup.unwrap())
+		.get_current_sym_group_key(mailbox._ownerGroup.as_ref().unwrap())
 		.await
 		.unwrap();
 
@@ -53,13 +54,15 @@ async fn can_create_remote_instance() {
 			element_id: Default::default(),
 		}),
 		_permissions: mailbox._permissions,
-		_ownerGroup: Some(mailbox_owner_group),
+		_ownerGroup: Some(mailbox._ownerGroup.unwrap()),
 		_ownerEncSessionKey: Some(owner_enc_session_key.object),
 		_ownerKeyVersion: Some(owner_enc_session_key.version),
 		status: 1,
+		successfulMails: 0,
 		targetFolder: inbox_mailset._id.as_ref().unwrap().clone(),
 		_errors: Some(Default::default()),
 		_finalIvs: Default::default(),
+		failedMails: 0,
 	};
 
 	let response = crypto_entity_client

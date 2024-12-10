@@ -35,6 +35,8 @@ import { tutanota77 } from "./migrations/tutanota-v77.js"
 import { sys114 } from "./migrations/sys-v114.js"
 import { offline2 } from "./migrations/offline2.js"
 import { sys115 } from "./migrations/sys-v115.js"
+import { tutanota78 } from "./migrations/tutanota-v78"
+import { tutanota79 } from "./migrations/tutanota-v79"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -82,6 +84,8 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys114,
 	offline2,
 	sys115,
+	tutanota78,
+	tutanota79,
 ]
 
 const CURRENT_OFFLINE_VERSION = 2
