@@ -79,6 +79,11 @@ impl ImporterApi {
 #[napi_derive::napi]
 impl ImporterApi {
 	#[napi]
+	pub async fn get_current_state(&self) -> ExportedImportMailState {
+		todo!()
+	}
+
+	#[napi]
 	pub async unsafe fn start_import(
 		&mut self,
 		callback_handle: StateCallback,

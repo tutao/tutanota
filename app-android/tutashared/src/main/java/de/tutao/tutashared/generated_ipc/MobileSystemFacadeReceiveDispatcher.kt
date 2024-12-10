@@ -11,7 +11,7 @@ class MobileSystemFacadeReceiveDispatcher(
 	private val json: Json,
 	private val facade: MobileSystemFacade,
 ) {
-
+	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"goToSettings" -> {
@@ -80,6 +80,13 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"openCalendarApp" -> {
+				val query: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.openCalendarApp(
+					query,
+				)
+				return json.encodeToString(result)
+			}
 			"getInstallationDate" -> {
 				val result: String = this.facade.getInstallationDate(
 				)
@@ -87,13 +94,6 @@ class MobileSystemFacadeReceiveDispatcher(
 			}
 			"requestInAppRating" -> {
 				val result: Unit = this.facade.requestInAppRating(
-				)
-				return json.encodeToString(result)
-			}
-			"openCalendarApp" -> {
-				val query: String = json.decodeFromString(arg[0])
-				val result: Unit = this.facade.openCalendarApp(
-					query,
 				)
 				return json.encodeToString(result)
 			}

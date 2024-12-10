@@ -1,10 +1,13 @@
-import { ImporterApi, StateCallbackResponse, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
+import * as console from "node:console"
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
+	private shouldStop: boolean = false
+
 	constructor(private readonly win: ApplicationWindow) {
 		ImporterApi.initLog()
 	}
@@ -40,13 +43,12 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-		await fileImporter.continueImport()
+		const importState = await fileImporter.startImport(async () => {
+			return { shouldStop: this.shouldStop, shouldPause: false }
+		})
 	}
 
-	stateCallback(): StateCallbackResponse {
-		return {
-			shouldStop: false,
-			shouldPause: false,
-		}
+	async stopImport(): Promise<void> {
+		this.shouldStop = true
 	}
 }

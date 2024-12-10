@@ -25,6 +25,7 @@ import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
 import { UserController } from "../../common/api/main/UserController.js"
+import { attachDropdown } from "../../common/gui/base/Dropdown"
 
 /**
  * Settings viewer for Import
@@ -150,6 +151,24 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
 					{ main: lang.getMaybeLazy(getMailImportStatusName(im.status as ImportStatus)) },
 				],
+
+				actionButtonAttrs: attachDropdown({
+					mainButtonAttrs: {
+						title: "edit_action",
+						icon: Icons.More,
+						size: ButtonSize.Compact,
+					},
+					showDropdown: () => true,
+					width: 250,
+					childAttrs: () => [
+						{
+							label: () => "test",
+							click: () => {
+								console.log("test2")
+							},
+						},
+					],
+				}),
 			}
 		})
 	}
