@@ -36,11 +36,11 @@ export class Importer {
 	async importFromFiles(targetFolder: MailFolder, filePaths: Array<string>) {
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const ownerGroup = assertNotNull(targetFolder._ownerGroup)
-
 		const userId = this.loginController.getUserController().userId
 		const unencryptedCredentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(userId)
 
 		if (unencryptedCredentials) {
+			console.log("started native facade import")
 			await this.nativeMailImportFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
 		}
 	}

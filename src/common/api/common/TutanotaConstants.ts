@@ -1247,9 +1247,9 @@ export const DEFAULT_CLIENT_ONLY_CALENDAR_COLORS: Map<Id, string> = new Map([[CL
 
 // keep in sync with importer.rs
 export const enum ImportStatus {
-	NotInitialized = "0",
+	Started = "0",
 	Paused = "1",
 	Running = "2",
-	Postponed = "3",
+	Canceled = "3",
 	Finished = "4",
 }
