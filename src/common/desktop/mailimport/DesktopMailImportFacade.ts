@@ -3,10 +3,9 @@ import { UnencryptedCredentials } from "../../native/common/generatedipc/Unencry
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
-import * as console from "node:console"
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
-	private shouldStop: boolean = false
+	private shouldStopImport: boolean = false
 
 	constructor(private readonly win: ApplicationWindow) {
 		ImporterApi.initLog()
@@ -31,6 +30,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		targetFolderId: IdTuple,
 		filePaths: Array<string>,
 	): Promise<void> {
+		this.shouldStopImport = false
 		const tutaCredentials: TutaCredentials = {
 			accessToken: unencTutaCredentials?.accessToken,
 			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
@@ -43,14 +43,17 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-		await fileImporter.startImport(() => {
-			return { shouldStop: this.shouldStop, shouldPause: false }
+		const importState = await fileImporter.startImport(() => {
+			return {
+				shouldStop: this.shouldStopImport,
+				shouldPause: false,
+			}
 		})
 
-		return "importSuccessful"
+		return importState.failedMailsCount === 0 ? "importSuccessful" : "importFailure"
 	}
 
 	async stopImport(): Promise<void> {
-		this.shouldStop = true
+		this.shouldStopImport = true
 	}
 }

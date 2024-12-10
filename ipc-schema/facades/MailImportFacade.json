@@ -6,6 +6,7 @@
 	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
 	"methods": {
 		"stopImport": {
+			"doc": "Stop a running import.",
 			"arg": [],
 			"ret": "void"
 		},
