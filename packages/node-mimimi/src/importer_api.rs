@@ -2,7 +2,6 @@ use super::importer::{ImportError, ImportStatus, Importer, StateCallbackResponse
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
 use std::sync::Arc;
-use tutasdk::entities::generated::tutanota::ImportMailState;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
@@ -87,7 +86,7 @@ impl ImporterApi {
 	pub async unsafe fn start_import(
 		&mut self,
 		callback_handle: StateCallback,
-	) -> napi::Result<ExportedImportMailState> {
+	) -> napi::Result<()> {
 		let callback_handle_provider = || callback_handle.call_async::<StateCallbackResponse>(());
 
 		let mut importer = self.inner.lock().await;
@@ -95,7 +94,7 @@ impl ImporterApi {
 			.start_stateful_import(callback_handle_provider)
 			.await?;
 
-		Ok(importer.get_remote_state().clone().into())
+		Ok(())
 	}
 
 	#[napi]
@@ -146,19 +145,6 @@ impl TryFrom<TutaCredentials> for Credentials {
 			encrypted_passphrase_key: tuta_credentials.encrypted_passphrase_key.clone().to_vec(),
 			credential_type,
 		})
-	}
-}
-
-impl From<ImportMailState> for ExportedImportMailState {
-	fn from(import_mail_state: ImportMailState) -> Self {
-		Self {
-			status: import_mail_state
-				.status
-				.try_into()
-				.expect("Unexpected ImportStatus Code"),
-			imported_mails_count: 0,
-			failed_mails_count: 0,
-		}
 	}
 }
 
