@@ -1,3 +1,4 @@
+use crate::importer::importable_mail::{AttachmentUploadData, ImportableMailAttachment};
 use crate::reduce_to_chunks::UnitImport;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -7,13 +8,14 @@ use imap_reader::{ImapImport, ImapIterationError};
 use importable_mail::ImportableMail;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
+use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::StringWrapper;
 use tutasdk::entities::generated::tutanota::{
-	ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
+	ImportAttachment, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
@@ -311,13 +313,41 @@ impl ImportEssential {
 			chunk.import_mail_data.importedAttachments =
 				Vec::with_capacity(chunk.attachments.len());
 
-			for attachment in chunk.attachments {
-				let importable_attachment = attachment.make_import_attachment_data(self);
-				chunk
-					.import_mail_data
-					.importedAttachments
-					.push(importable_attachment.await);
-			}
+			let attachments_file_data: Vec<(&FileData, ImportableMailAttachment)> = chunk
+				.attachments
+				.into_iter()
+				.map(|attachment| &attachment.make_attachment_upload_data(self))
+				.collect();
+
+			let reference_tokens = self
+				.logged_in_sdk
+				.blob_facade()
+				.encrypt_and_upload_multiple(
+					ArchiveDataType::Attachments,
+					&self.target_owner_group,
+					attachments_file_data,
+				)
+				.await?;
+
+			let import_attachments: Vec<ImportAttachment> = chunk
+				.attachments
+				.into_iter()
+				.zip(attachments_file_data.iter().zip(reference_tokens))
+				.map(|(&mut importable_mail, (file_data, reference_tokens))| {
+					importable_mail.make_import_attachment_data(
+						self,
+						&file_data.session_key,
+						reference_tokens,
+					)
+				})
+				.collect();
+
+			// import_attachments: Vec<ImportAttachment> = attachments_file_data.iter().zip(reference_tokens.iter()).map(|(fd, rt) chunk.make_import_attachment_data());
+
+			chunk
+				.import_mail_data
+				.importedAttachments
+				.push(importable_attachment.await);
 
 			let serialized_import = self
 				.logged_in_sdk

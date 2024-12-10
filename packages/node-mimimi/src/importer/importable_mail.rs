@@ -7,9 +7,14 @@ use mail_parser::{Address, ContentType, MessagePart, MessagePartId, MimeHeaders,
 use regex::Regex;
 use std::borrow::Cow;
 use std::collections::HashSet;
+use std::fs::File;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::key::GenericAesKey;
+use tutasdk::{CustomId, GeneratedId, IdTupleGenerated};
+use tutasdk::blobs::blob_facade::FileData;
+use tutasdk::crypto::crypto_facade::SessionKeyResolutionError;
 use tutasdk::date::DateTime;
+use tutasdk::entities::generated::sys::BlobReferenceTokenWrapper;
 use tutasdk::entities::generated::tutanota::{
 	EncryptedMailAddress, ImportAttachment, ImportMailData, ImportMailDataMailReference,
 	MailAddress, NewImportAttachment, Recipients,
@@ -65,47 +70,48 @@ pub struct ImportableMailAttachment {
 	pub content: Vec<u8>,
 }
 
+pub struct AttachmentUploadData {
+	owner_group_id: &GeneratedId,
+	archive_data_type: ArchiveDataType,
+	file_data: Vec<FileData>
+}
+
 impl ImportableMailAttachment {
+
+	pub fn make_attachment_upload_data(self, essentials: &ImportEssential) -> FileData {
+		let file_session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(&essentials.randomizer_facade));
+		FileData{
+			session_key: file_session_key,
+			data: self.content.clone(),
+		}
+	}
+	
 	pub async fn make_import_attachment_data(
 		self,
 		essentials: &ImportEssential,
+		file_session_key: &GenericAesKey,
+		reference_tokens: Vec<BlobReferenceTokenWrapper>,
 	) -> ImportAttachment {
-		let session_key_for_file =
-			GenericAesKey::Aes256(aes::Aes256Key::generate(&essentials.randomizer_facade));
 		let owner_enc_file_session_key = essentials.mail_group_key.encrypt_key(
-			&session_key_for_file,
+			&file_session_key,
 			aes::Iv::generate(&essentials.randomizer_facade),
 		);
-
-		let reference_tokens = essentials
-			.logged_in_sdk
-			.blob_facade()
-			.encrypt_and_upload_single_legacy(
-				ArchiveDataType::Attachments,
-				&essentials.target_owner_group,
-				&session_key_for_file,
-				&self.content,
-			)
-			.await
-			.unwrap();
-
-		// todo: do we need to upload the ivs and how?
-		let enc_file_name = session_key_for_file
+		
+		let enc_file_name = file_session_key
 			.encrypt_data(
 				self.filename.as_ref(),
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
-		let enc_mime_type = session_key_for_file
+		let enc_mime_type = file_session_key
 			.encrypt_data(
 				self.content_type.as_ref(),
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
-
 		let enc_cid = match self.content_id {
 			Some(cid) => Some(
-				session_key_for_file
+				file_session_key
 					.encrypt_data(
 						cid.as_bytes(),
 						aes::Iv::generate(&essentials.randomizer_facade),
