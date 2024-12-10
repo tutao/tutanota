@@ -308,48 +308,48 @@ impl ImportEssential {
         let mut serialized_imports = Vec::with_capacity(importable_chunk.len());
 
         for mut chunk in importable_chunk {
-            // make sure importedAttachments is empty before pushing anything
-            chunk.import_mail_data.importedAttachments = Vec::with_capacity(chunk.attachments.len());
+            if chunk.attachments.len() > 0 {
+                let keyed_attachments: Vec<KeyedImportableMailAttachment> = chunk.attachments
+                    .into_iter()
+                    .map(|attachment| attachment.make_keyed_importable_mail_attachment(self))
+                    .collect();
 
-            let keyed_attachments: Vec<KeyedImportableMailAttachment> = chunk.attachments
-                .into_iter()
-                .map(|attachment| attachment.make_keyed_importable_mail_attachment(self))
-                .collect();
+                let (attachments_file_data, attachments_meta_data): (Vec<FileData>, Vec<ImportableMailAttachmentMetaData>) = keyed_attachments
+                    .into_iter()
+                    .map(|keyed_attachment| {
+                        let file_datum = FileData {
+                            session_key: keyed_attachment.attachment_session_key,
+                            data: keyed_attachment.content,
+                        };
+                        (file_datum, keyed_attachment.meta_data)
+                    })
+                    .unzip();
 
-            let (attachments_file_data, attachments_meta_data): (Vec<FileData>, Vec<ImportableMailAttachmentMetaData>) = keyed_attachments
-                .into_iter()
-                .map(|keyed_attachment| {
-                    let file_datum = FileData {
-                        session_key: keyed_attachment.attachment_session_key,
-                        data: keyed_attachment.content,
-                    };
-                    (file_datum, keyed_attachment.meta_data)
-                })
-                .unzip();
+                let attachments_file_data_refs = attachments_file_data.iter().collect();
 
-            let attachments_file_data_refs = attachments_file_data.iter()
-                .map(|a| a)
-                .collect();
+                let reference_token_vectors = self
+                    .logged_in_sdk
+                    .blob_facade()
+                    .encrypt_and_upload_multiple(
+                        ArchiveDataType::Attachments,
+                        &self.target_owner_group,
+                        attachments_file_data_refs,
+                    )
+                    .await?;
 
-            let reference_token_vectors = self
-                .logged_in_sdk
-                .blob_facade()
-                .encrypt_and_upload_multiple(
-                    ArchiveDataType::Attachments,
-                    &self.target_owner_group,
-                    attachments_file_data_refs,
-                )
-                .await?;
+                let import_attachments = attachments_file_data
+                    .into_iter()
+                    .zip(attachments_meta_data.into_iter().zip(reference_token_vectors))
+                    .map(|(file_datum, (meta_data, reference_tokens))| {
+                        meta_data.make_import_attachment_data(self, &file_datum.session_key, reference_tokens)
+                    })
+                    .collect();
 
-            let import_attachments = attachments_file_data
-                .into_iter()
-                .zip(attachments_meta_data.into_iter().zip(reference_token_vectors))
-                .map(|(file_datum, (meta_data, reference_tokens))| {
-                    meta_data.make_import_attachment_data(self, &file_datum.session_key, reference_tokens)
-                })
-                .collect();
-
-            chunk.import_mail_data.importedAttachments = import_attachments;
+                chunk.import_mail_data.importedAttachments = import_attachments;
+            } else {
+                // no attachments in this chunk and set an empty list
+                chunk.import_mail_data.importedAttachments = vec![]
+            }
 
             let serialized_import = self
                 .logged_in_sdk
