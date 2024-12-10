@@ -47,8 +47,7 @@ impl Entity for AccountingInfo {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AdminGroupKeyDistributionElement {
 	pub _id: Option<CustomId>,
-	#[serde(with = "serde_bytes")]
-	pub distEncAdminGroupKey: Vec<u8>,
+	pub distEncAdminGroupKey: PubEncKeyData,
 	pub userEncAdminSymKeyHash: EncryptedKeyHash,
 	pub userGroupId: GeneratedId,
 }
@@ -111,27 +110,6 @@ impl Entity for AdminGroupKeyRotationPutIn {
 		TypeRef {
 			app: "sys",
 			type_: "AdminGroupKeyRotationPutIn",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct AdminMembershipUpdateData {
-	pub _id: Option<CustomId>,
-	pub adminGroupKeyVersion: i64,
-	#[serde(with = "serde_bytes")]
-	pub userEncAdminGroupKey: Vec<u8>,
-	pub userGroupKeyVersion: i64,
-	pub adminGroup: GeneratedId,
-	pub userGroup: GeneratedId,
-}
-
-impl Entity for AdminMembershipUpdateData {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "AdminMembershipUpdateData",
 		}
 	}
 }
@@ -2334,12 +2312,11 @@ pub struct KeyRotation {
 	pub _id: Option<IdTupleGenerated>,
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
-	#[serde(with = "serde_bytes")]
-	pub distEncAdminGroupSymKey: Option<Vec<u8>>,
 	pub groupKeyRotationType: i64,
 	pub targetKeyVersion: i64,
 	pub adminDistKeyPair: Option<KeyPair>,
 	pub adminEncDistKeyHash: Option<EncryptedKeyHash>,
+	pub distEncAdminGroupSymKey: Option<PubEncKeyData>,
 	pub userEncAdminPubKeyHash: Option<EncryptedKeyHash>,
 	pub userEncAdminSymKeyHash: Option<EncryptedKeyHash>,
 }
@@ -3116,6 +3093,8 @@ pub struct PubEncKeyData {
 	pub recipientIdentifier: String,
 	pub recipientIdentifierType: i64,
 	pub recipientKeyVersion: i64,
+	pub senderIdentifier: Option<String>,
+	pub senderIdentifierType: Option<i64>,
 	pub senderKeyVersion: Option<i64>,
 }
 
@@ -4374,7 +4353,6 @@ impl Entity for UserGroupKeyRotationData {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct UserGroupKeyRotationPostIn {
 	pub _format: i64,
-	pub adminMembershipUpdateData: Option<AdminMembershipUpdateData>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 

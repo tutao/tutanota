@@ -238,18 +238,19 @@ export const typeModels = {
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
-			},
+			}
+		},
+		"associations": {
 			"distEncAdminGroupKey": {
 				"final": false,
 				"name": "distEncAdminGroupKey",
 				"id": 2512,
 				"since": 116,
-				"type": "Bytes",
+				"type": "AGGREGATION",
 				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
+				"refType": "PubEncKeyData",
+				"dependency": null
+			},
 			"userEncAdminSymKeyHash": {
 				"final": false,
 				"name": "userEncAdminSymKeyHash",
@@ -420,77 +421,6 @@ export const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "EncryptedKeyHash",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "116"
-	},
-	"AdminMembershipUpdateData": {
-		"name": "AdminMembershipUpdateData",
-		"since": 116,
-		"type": "AGGREGATED_TYPE",
-		"id": 2529,
-		"rootId": "A3N5cwAJ4Q",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 2530,
-				"since": 116,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminGroupKeyVersion": {
-				"final": false,
-				"name": "adminGroupKeyVersion",
-				"id": 2533,
-				"since": 116,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userEncAdminGroupKey": {
-				"final": false,
-				"name": "userEncAdminGroupKey",
-				"id": 2531,
-				"since": 116,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userGroupKeyVersion": {
-				"final": false,
-				"name": "userGroupKeyVersion",
-				"id": 2532,
-				"since": 116,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"adminGroup": {
-				"final": false,
-				"name": "adminGroup",
-				"id": 2535,
-				"since": 116,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			},
-			"userGroup": {
-				"final": false,
-				"name": "userGroup",
-				"id": 2534,
-				"since": 116,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
 				"dependency": null
 			}
 		},
@@ -7851,15 +7781,6 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"distEncAdminGroupSymKey": {
-				"final": false,
-				"name": "distEncAdminGroupSymKey",
-				"id": 2505,
-				"since": 116,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
 			"groupKeyRotationType": {
 				"final": true,
 				"name": "groupKeyRotationType",
@@ -7898,6 +7819,16 @@ export const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
+			"distEncAdminGroupSymKey": {
+				"final": false,
+				"name": "distEncAdminGroupSymKey",
+				"id": 2505,
+				"since": 116,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "PubEncKeyData",
 				"dependency": null
 			},
 			"userEncAdminPubKeyHash": {
@@ -10293,6 +10224,24 @@ export const typeModels = {
 				"since": 102,
 				"type": "Number",
 				"cardinality": "One",
+				"encrypted": false
+			},
+			"senderIdentifier": {
+				"final": true,
+				"name": "senderIdentifier",
+				"id": 2530,
+				"since": 116,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"senderIdentifierType": {
+				"final": true,
+				"name": "senderIdentifierType",
+				"id": 2531,
+				"since": 116,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"senderKeyVersion": {
@@ -14193,7 +14142,7 @@ export const typeModels = {
 			"userGroupEncAdminGroupKey": {
 				"final": false,
 				"name": "userGroupEncAdminGroupKey",
-				"id": 2537,
+				"id": 2529,
 				"since": 116,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
@@ -14283,16 +14232,6 @@ export const typeModels = {
 			}
 		},
 		"associations": {
-			"adminMembershipUpdateData": {
-				"final": false,
-				"name": "adminMembershipUpdateData",
-				"id": 2536,
-				"since": 116,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "AdminMembershipUpdateData",
-				"dependency": null
-			},
 			"userGroupKeyData": {
 				"final": false,
 				"name": "userGroupKeyData",

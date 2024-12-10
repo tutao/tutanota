@@ -655,6 +655,8 @@ mod tests {
 				recipientIdentifierType: recipient_identifier_type as i64,
 				recipientKeyVersion: 0,
 				senderKeyVersion: Some(sender_key_version),
+				senderIdentifier: Some(sender_identifier.clone()),
+				senderIdentifierType: Some(sender_identifier_type.clone() as i64),
 			};
 
 			let result = asymmetric_crypto_facade
@@ -704,6 +706,8 @@ mod tests {
 				recipientKeyVersion: 0,
 				protocolVersion: CryptoProtocolVersion::Rsa as i64,
 				senderKeyVersion: None,
+				senderIdentifier: Some(sender_identifier.clone()),
+				senderIdentifierType: Some(sender_identifier_type.clone() as i64),
 			};
 
 			let result = asymmetric_crypto_facade
