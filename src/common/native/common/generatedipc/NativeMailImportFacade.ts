@@ -5,6 +5,9 @@ import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
  * Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.
  */
 export interface NativeMailImportFacade {
+	/**
+	 * Stop a running import.
+	 */
 	stopImport(): Promise<void>
 
 	/**

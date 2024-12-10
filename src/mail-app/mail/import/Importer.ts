@@ -1,6 +1,5 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
-import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
@@ -29,7 +28,12 @@ export class Importer {
 		this.entityClient = entityClient
 	}
 
-	async importFromFiles(targetFolder: MailFolder, mailboxDetail: MailboxDetail, filePaths: Array<string>) {
+	/**
+	 * High-level call to the import facade to start an email import
+	 * @param targetFolder The folder in which to import mails into
+	 * @param filePaths The file paths to the eml/mbox files that are to be imported
+	 */
+	async importFromFiles(targetFolder: MailFolder, filePaths: Array<string>) {
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const ownerGroup = assertNotNull(targetFolder._ownerGroup)
 
@@ -41,7 +45,10 @@ export class Importer {
 		}
 	}
 
-	async stopImport(): Promise<void> {
+	/**
+	 * Delegates to the import facade that the import should be stopped once the currently imported mail is processed
+	 */
+	async stopImport() {
 		await this.nativeMailImportFacade.stopImport()
 	}
 }
