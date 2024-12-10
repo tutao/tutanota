@@ -1,16 +1,24 @@
-import type { CalendarAttendeeStatus, CalendarMethod } from "../../../common/api/common/TutanotaConstants"
-import { assertEnumValue, EndType, RepeatPeriod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, downcast, incrementDate, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import {
+	assertEnumValue,
+	CalendarAttendeeStatus,
+	CalendarMethod,
+	EndType,
+	RepeatPeriod,
+	reverse,
+	SECOND_MS,
+} from "../../../common/api/common/TutanotaConstants"
+import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../../common/api/common/DataFile"
-import type { DateWrapper, RepeatRule, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
+import type { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { DateTime } from "luxon"
 import { getLetId } from "../../../common/api/common/utils/EntityUtils"
 import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController.js"
+import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
 export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
@@ -99,6 +107,24 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat("END:VEVENT")
 }
 
+function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[]): string {
+	let advancedRepeatRules = ""
+
+	if (isNotEmpty(advancedRules)) {
+		const BYRULES = new Map<string, string>()
+		const byRuleValueToKey = reverse(ByRule)
+		advancedRules.forEach((r) => {
+			const type = byRuleValueToKey[r.ruleType as ByRule]
+			BYRULES.set(type, BYRULES.get(type) ? `${BYRULES.get(type)},${r.interval}` : r.interval)
+		})
+		BYRULES.forEach((interval, type) => {
+			advancedRepeatRules += `;${type.toUpperCase()}=${interval}`
+		})
+	}
+
+	return advancedRepeatRules
+}
+
 /** importer internals exported for testing */
 export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
 	if (repeatRule) {
@@ -136,9 +162,11 @@ export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent
 		}
 
 		const excludedDates = serializeExcludedDates(repeatRule.excludedDates, repeatRule.timeZone)
+		const advancedRepeatRules = serializeAdvancedRepeatRules(repeatRule.advancedRules)
+
 		return [
 			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` + `;INTERVAL=${repeatRule.interval}` + endType,
-		].concat(excludedDates)
+		].concat(advancedRepeatRules, excludedDates)
 	} else {
 		return []
 	}
