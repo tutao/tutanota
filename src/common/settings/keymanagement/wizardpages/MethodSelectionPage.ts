@@ -3,6 +3,8 @@ import { KeyVerificationWizardData } from "../KeyVerificationWizard"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
+import { RadioSelector, type RadioSelectorAttrs, RadioSelectorOption } from "../../../gui/base/RadioSelector"
+import { TranslationText } from "../../../misc/LanguageViewModel"
 
 export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardData> {
 	private dom: HTMLElement | null = null
@@ -12,6 +14,16 @@ export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardDat
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<KeyVerificationWizardData>>): Children {
+		const makeOption = (name: TranslationText, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
+			name,
+			value,
+		})
+
+		const options = [
+			makeOption(() => "Text", KeyVerificationMethodType.text), // TODO: translate
+			makeOption(() => "QR code", KeyVerificationMethodType.qr), // TODO: translate
+		] as const
+
 		return [
 			m(
 				"p",
@@ -19,22 +31,19 @@ export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardDat
 				"guide the user to some resources that might help them pick the right method. ",
 				"We could also display a cute little graphic. Test test 123 blah blah blah.",
 			), // TODO: translate
+			m(RadioSelector, {
+				name: () => "Select a verification method",
+				options,
+				selectedOption: vnode.attrs.data.method,
+				onOptionSelected: (methodType: KeyVerificationMethodType) => {
+					vnode.attrs.data.method = methodType
+				},
+			} satisfies RadioSelectorAttrs<KeyVerificationMethodType>),
 			m(
 				".pb",
 				m(LoginButton, {
-					label: () => "Text", // TODO: translate
+					label: "next_action",
 					onclick: () => {
-						vnode.attrs.data.method = KeyVerificationMethodType.text
-						emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE)
-					},
-				}),
-			),
-			m(
-				".pb",
-				m(LoginButton, {
-					label: () => "QR code", // TODO: translate
-					onclick: () => {
-						vnode.attrs.data.method = KeyVerificationMethodType.qr
 						emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE)
 					},
 				}),
