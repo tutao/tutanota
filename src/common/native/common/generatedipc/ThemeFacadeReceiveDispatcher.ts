@@ -4,7 +4,6 @@ import { ThemeFacade } from "./ThemeFacade.js"
 
 export class ThemeFacadeReceiveDispatcher {
 	constructor(private readonly facade: ThemeFacade) {}
-
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "getThemes": {

@@ -1,41 +1,14 @@
-import { ImporterApi, StateCallbackResponse, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
+	private shouldStopImport: boolean = false
+
 	constructor(private readonly win: ApplicationWindow) {
 		ImporterApi.initLog()
-	}
-
-	async setupImapImport(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials): Promise<void> {
-		try {
-			const tutaCredentials: TutaCredentials = {
-				accessToken: unencryptedTutaCredentials?.accessToken,
-				isInternalCredential: unencryptedTutaCredentials.credentialInfo.type === CredentialType.Internal,
-				encryptedPassphraseKey: unencryptedTutaCredentials.encryptedPassphraseKey ? Array.from(unencryptedTutaCredentials.encryptedPassphraseKey) : [],
-				login: unencryptedTutaCredentials.credentialInfo.login,
-				userId: unencryptedTutaCredentials.credentialInfo.userId,
-				apiUrl: apiUrl,
-				clientVersion: env.versionNumber,
-			}
-
-			//const importCredentials = ImportCredentials.setup(tutaCredentials, imapCredentials)
-			//const importerObj = await importCredentials.login()
-
-			//console.log(importerObj)
-		} catch (e) {
-			console.log(e)
-		}
-	}
-
-	startImapImport(): Promise<void> {
-		throw new Error("Method not implemented.")
-	}
-
-	stopImapImport(): Promise<void> {
-		throw new Error("Method not implemented.")
 	}
 
 	async importFromFiles(
@@ -45,6 +18,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		targetFolderId: IdTuple,
 		filePaths: Array<string>,
 	): Promise<string> {
+		this.shouldStopImport = false
 		const tutaCredentials: TutaCredentials = {
 			accessToken: unencTutaCredentials?.accessToken,
 			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
@@ -57,15 +31,17 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-		const importState = await fileImporter.startImport(this.stateCallback)
+		const importState = await fileImporter.startImport(() => {
+			return {
+				shouldStop: this.shouldStopImport,
+				shouldPause: false,
+			}
+		})
 
 		return importState.failedMailsCount === 0 ? "importSuccessful" : "importFailure"
 	}
 
-	stateCallback(): StateCallbackResponse {
-		return {
-			shouldStop: false,
-			shouldPause: false,
-		}
+	async stopImport(): Promise<void> {
+		this.shouldStopImport = true
 	}
 }

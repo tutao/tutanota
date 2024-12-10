@@ -122,12 +122,12 @@ export class ImportViewer implements UpdatableSettingsViewer {
 			showNotAvailableForFreeDialog()
 			return
 		}
+		this.expanded = true
 		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
 
 		if (this.selectedTargetFolder && this.mailboxDetail) {
 			await this.mailImporter.importFromFiles(
 				this.selectedTargetFolder.folder,
-				this.mailboxDetail,
 				filePaths.map((fp) => fp.location),
 			)
 		}
@@ -148,8 +148,20 @@ export class ImportViewer implements UpdatableSettingsViewer {
 			return {
 				cells: () => [
 					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
-					{ main: lang.getMaybeLazy(getMailImportStatusName(im.status as ImportStatus)) },
+					{
+						main: `${lang.getMaybeLazy(getMailImportStatusName(im.status as ImportStatus))} Successful: ${im.successfulMails} Failed: ${
+							im.failedMails
+						}`,
+					},
 				],
+				actionButtonAttrs:
+					im.status === ImportStatus.Running
+						? {
+								icon: Icons.Cancel,
+								title: () => "Cancel import",
+								click: () => this.mailImporter.stopImport(),
+						  }
+						: null,
 			}
 		})
 	}
@@ -195,16 +207,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 
 	private renderNoImportOnWebText() {
 		return [
-			m(
-				".pb.mt-l",
-				m("img.height-100p", {
-					src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/main.png`,
-					alt: "",
-					rel: "noreferrer",
-					loading: "lazy",
-					decoding: "async",
-				}),
-			),
+			// TODO: Download links for the Tuta desktop
 			m(
 				"p",
 				"Please download our desktop client to get started with the Email Import." + " ",
@@ -258,7 +261,7 @@ export function getMailImportStatusName(state: ImportStatus): TranslationText {
 		case ImportStatus.Paused:
 			return () => "Paused"
 		case ImportStatus.Running:
-			return () => "Running"
+			return () => "Running" + "..."
 		case ImportStatus.Postponed:
 			return () => "Postponed"
 		default:

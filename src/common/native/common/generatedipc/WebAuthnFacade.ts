@@ -4,7 +4,6 @@ import { WebAuthnRegistrationChallenge } from "./WebAuthnRegistrationChallenge.j
 import { WebAuthnRegistrationResult } from "./WebAuthnRegistrationResult.js"
 import { WebAuthnSignChallenge } from "./WebAuthnSignChallenge.js"
 import { WebAuthnSignResult } from "./WebAuthnSignResult.js"
-
 /**
  * implementation of the WebAuthn protocol
  */

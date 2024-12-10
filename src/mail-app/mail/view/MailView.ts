@@ -765,7 +765,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		} else if (mailFolder._ownerGroup && this.mailImporter) {
 			await this.mailImporter.importFromFiles(
 				mailFolder,
-				mailboxDetail,
 				dropData.files.map((file) => window.nativeApp.getPathForFile(file)),
 			)
 		}

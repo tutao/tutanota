@@ -4,7 +4,6 @@ import { MobileFacade } from "./MobileFacade.js"
 
 export class MobileFacadeReceiveDispatcher {
 	constructor(private readonly facade: MobileFacade) {}
-
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "handleBackPress": {

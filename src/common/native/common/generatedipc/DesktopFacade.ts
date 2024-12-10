@@ -3,7 +3,6 @@
 import { ElectronResult } from "./ElectronResult.js"
 import { ErrorInfo } from "./ErrorInfo.js"
 import { NativeShortcut } from "./NativeShortcut.js"
-
 export interface DesktopFacade {
 	print(): Promise<void>
 
