@@ -11,6 +11,15 @@ import type { PQKeyPairs } from "./PQKeyPairs.js"
 
 export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaEccKeyPairs
 
+export type AbstractEncryptedKeyPair = {
+	pubEccKey: null | Uint8Array
+	pubKyberKey: null | Uint8Array
+	pubRsaKey: null | Uint8Array
+	symEncPrivEccKey: null | Uint8Array
+	symEncPrivKyberKey: null | Uint8Array
+	symEncPrivRsaKey: null | Uint8Array
+}
+
 export type EncryptedPqKeyPairs = {
 	pubEccKey: Uint8Array
 	pubKyberKey: Uint8Array
@@ -36,6 +45,17 @@ export type EncryptedRsaEccKeyPairs = {
 	symEncPrivEccKey: Uint8Array
 	symEncPrivKyberKey: null
 	symEncPrivRsaKey: Uint8Array
+}
+
+export function isEncryptedPqKeyPairs(keyPair: AbstractEncryptedKeyPair): keyPair is EncryptedPqKeyPairs {
+	return (
+		keyPair.pubEccKey != null &&
+		keyPair.pubKyberKey != null &&
+		keyPair.symEncPrivEccKey != null &&
+		keyPair.symEncPrivKyberKey != null &&
+		keyPair.pubRsaKey == null &&
+		keyPair.symEncPrivRsaKey == null
+	)
 }
 
 export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {

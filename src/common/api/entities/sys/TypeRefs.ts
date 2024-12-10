@@ -1,4 +1,4 @@
-import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { typeModels } from "./TypeModels.js"
 
@@ -47,8 +47,8 @@ export type AdminGroupKeyDistributionElement = {
 	_type: TypeRef<AdminGroupKeyDistributionElement>;
 
 	_id: Id;
-	distEncAdminGroupKey: Uint8Array;
 
+	distEncAdminGroupKey: PubEncKeyData;
 	userEncAdminSymKeyHash: EncryptedKeyHash;
 	userGroupId: Id;
 }
@@ -95,23 +95,6 @@ export type AdminGroupKeyRotationPutIn = {
 
 	adminDistKeyPair: KeyPair;
 	adminEncDistKeyHash: EncryptedKeyHash;
-}
-export const AdminMembershipUpdateDataTypeRef: TypeRef<AdminMembershipUpdateData> = new TypeRef("sys", "AdminMembershipUpdateData")
-
-export function createAdminMembershipUpdateData(values: StrippedEntity<AdminMembershipUpdateData>): AdminMembershipUpdateData {
-	return Object.assign(create(typeModels.AdminMembershipUpdateData, AdminMembershipUpdateDataTypeRef), values)
-}
-
-export type AdminMembershipUpdateData = {
-	_type: TypeRef<AdminMembershipUpdateData>;
-
-	_id: Id;
-	adminGroupKeyVersion: NumberString;
-	userEncAdminGroupKey: Uint8Array;
-	userGroupKeyVersion: NumberString;
-
-	adminGroup: Id;
-	userGroup: Id;
 }
 export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
 
@@ -1892,12 +1875,12 @@ export type KeyRotation = {
 	_id: IdTuple;
 	_ownerGroup: null | Id;
 	_permissions: Id;
-	distEncAdminGroupSymKey: null | Uint8Array;
 	groupKeyRotationType: NumberString;
 	targetKeyVersion: NumberString;
 
 	adminDistKeyPair: null | KeyPair;
 	adminEncDistKeyHash: null | EncryptedKeyHash;
+	distEncAdminGroupSymKey: null | PubEncKeyData;
 	userEncAdminPubKeyHash: null | EncryptedKeyHash;
 	userEncAdminSymKeyHash: null | EncryptedKeyHash;
 }
@@ -2525,6 +2508,8 @@ export type PubEncKeyData = {
 	recipientIdentifier: string;
 	recipientIdentifierType: NumberString;
 	recipientKeyVersion: NumberString;
+	senderIdentifier: null | string;
+	senderIdentifierType: null | NumberString;
 	senderKeyVersion: null | NumberString;
 }
 export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", "PublicKeyGetIn")
@@ -3517,7 +3502,6 @@ export type UserGroupKeyRotationPostIn = {
 
 	_format: NumberString;
 
-	adminMembershipUpdateData: null | AdminMembershipUpdateData;
 	userGroupKeyData: UserGroupKeyRotationData;
 }
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")

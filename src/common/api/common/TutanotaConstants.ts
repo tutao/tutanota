@@ -1232,6 +1232,7 @@ export const DEFAULT_ERROR = "defaultError"
 export enum PublicKeyIdentifierType {
 	MAIL_ADDRESS = "0",
 	GROUP_ID = "1",
+	KEY_ROTATION_ID = "2",
 }
 
 export enum BlobAccessTokenKind {
