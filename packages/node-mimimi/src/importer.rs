@@ -13,9 +13,8 @@ use tutasdk::crypto::aes;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
-use tutasdk::entities::generated::sys::StringWrapper;
-use tutasdk::entities::generated::tutanota::{ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
-};
+use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
+use tutasdk::entities::generated::tutanota::{ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState};
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
 use tutasdk::rest_error::{HttpError, ImportFailureReason};
@@ -29,7 +28,7 @@ pub mod file_reader;
 pub mod imap_reader;
 pub mod importable_mail;
 
-pub const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 5;
+pub const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 12;
 
 #[derive(Debug)]
 pub enum ImportError {
@@ -230,9 +229,12 @@ impl Importer {
                 importable_mail,
             )
         });
+
         let chunked_mails_provider =
             ImportableMailsButcher::new(mapped_import_source, |unit_import| {
-                estimate_json_size(&unit_import.import_mail_data)
+                let size = estimate_json_size(&unit_import.import_mail_data);
+                //println!("some import import mail data size {size}");
+                size
             });
 
         for maybe_importable_chunk in chunked_mails_provider {
@@ -243,6 +245,13 @@ impl Importer {
 
             let importable_post_data = match maybe_importable_chunk {
                 Ok(importable_chunk) => {
+                    let mail_count = importable_chunk.len();
+                    let size = importable_chunk.iter().fold(0, |acc, i|
+                        acc + estimate_json_size(&i.import_mail_data),
+                    );
+                    println!("some import chunk size {size}");
+                    println!("some import mailcount size {mail_count}");
+
                     let importable_serialized_chunk = import_essentials
                         .make_serialized_chunk(importable_chunk)
                         .await;
@@ -307,9 +316,15 @@ impl ImportEssential {
     ) -> Result<(ImportMailPostIn, GenericAesKey), ApiCallError> {
         let mut serialized_imports = Vec::with_capacity(importable_chunk.len());
 
-        for mut chunk in importable_chunk {
-            if chunk.attachments.len() > 0 {
-                let keyed_attachments: Vec<KeyedImportableMailAttachment> = chunk.attachments
+        let mut upload_data_per_mail: Vec<(Vec<FileData>, Vec<ImportableMailAttachmentMetaData>)> = Vec::with_capacity(importable_chunk.len());
+        let attachments_count_per_mail = importable_chunk.iter()
+            .map(|mail| mail.attachments.len())
+            .collect();
+
+        // aggregate attachment data from multiple mails to upload in fewer request to the BlobService
+        for mut mail in importable_chunk {
+            if mail.attachments.len() > 0 {
+                let keyed_attachments: Vec<KeyedImportableMailAttachment> = mail.attachments
                     .into_iter()
                     .map(|attachment| attachment.make_keyed_importable_mail_attachment(self))
                     .collect();
@@ -325,40 +340,68 @@ impl ImportEssential {
                     })
                     .unzip();
 
-                let attachments_file_data_refs = attachments_file_data.iter().collect();
-
-                let reference_token_vectors = self
-                    .logged_in_sdk
-                    .blob_facade()
-                    .encrypt_and_upload_multiple(
-                        ArchiveDataType::Attachments,
-                        &self.target_owner_group,
-                        attachments_file_data_refs,
-                    )
-                    .await?;
-
-                let import_attachments = attachments_file_data
-                    .into_iter()
-                    .zip(attachments_meta_data.into_iter().zip(reference_token_vectors))
-                    .map(|(file_datum, (meta_data, reference_tokens))| {
-                        meta_data.make_import_attachment_data(self, &file_datum.session_key, reference_tokens)
-                    })
-                    .collect();
-
-                chunk.import_mail_data.importedAttachments = import_attachments;
-            } else {
-                // no attachments in this chunk and set an empty list
-                chunk.import_mail_data.importedAttachments = vec![]
+                upload_data_per_mail.push((attachments_file_data, attachments_meta_data))
             }
+        }
+
+        let (attachments_file_data_per_mail, attachments_meta_data_per_mail): (Vec<Vec<&FileData>>, Vec<Vec<ImportableMailAttachmentMetaData>>) = upload_data_per_mail.iter().unzip();
+        let attachments_file_data_flattened = attachments_file_data_per_mail.iter()
+            .flatten()
+            .collect();
+
+        let attachments_file_data_all_refs: Vec<&FileData> = attachments_file_data_flattened.iter().collect();
+
+        let count = attachments_file_data_all_refs.len();
+        println!("attachments_file_data_refs {count}");
+
+        // upload all attachments in this chunk in one call to the blob_facade
+        // the blob_facade chunks them into efficient request to the BlobService
+        let mut reference_tokens_per_attachment_flattened = self
+            .logged_in_sdk
+            .blob_facade()
+            .encrypt_and_upload_multiple(
+                ArchiveDataType::Attachments,
+                &self.target_owner_group,
+                attachments_file_data_all_refs,
+            )
+            .await?;
+
+        // reference mails and received reference tokens again, by using the attachments count per mail
+        let mut all_reference_tokens_per_mail: Vec<Vec<Vec<BlobReferenceTokenWrapper>>> = Vec::new();
+        for attachments_count in attachments_count_per_mail {
+            if attachments_count == 0 {
+                all_reference_tokens_per_mail.push(vec![]);
+            } else {
+                let reference_tokens_per_mail = reference_tokens_per_attachment_flattened
+                    .drain(0..attachments_count)
+                    .collect();
+                all_reference_tokens_per_mail.push(reference_tokens_per_mail);
+            }
+        }
+
+        let import_attachments_per_mail: Vec<Vec<ImportAttachment>> = attachments_file_data_per_mail.into_iter()
+            .zip(attachments_meta_data_per_mail.into_iter().zip(all_reference_tokens_per_mail))
+            .map(|(file_data, (meta_data, reference_tokens_vectors))| {
+                let import_attachments_for_one_mail = file_data.into_iter()
+                    .zip(meta_data.into_iter().zip(reference_tokens_vectors))
+                    .map(|(file_datum, (meta_datum, reference_tokens))| {
+                        meta_datum.make_import_attachment_data(self, &file_datum.session_key, reference_tokens)
+                    }).collect();
+                import_attachments_for_one_mail
+            })
+            .collect();
+
+        // serialize multiple import_mail_data into on request to the ImportMailService
+        for (mut mail, import_attachments) in importable_chunk.into_iter().zip(import_attachments_per_mail) {
+            mail.import_mail_data.importedAttachments = import_attachments;
 
             let serialized_import = self
                 .logged_in_sdk
-                .serialize_instance_to_json(chunk.import_mail_data, &chunk.session_key)?;
+                .serialize_instance_to_json(mail.import_mail_data, &mail.session_key)?;
             let wrapped_import_data = StringWrapper {
                 _id: Some(Importer::make_random_aggregate_id(&self.randomizer_facade)),
                 value: serialized_import,
             };
-
             serialized_imports.push(wrapped_import_data);
         }
 
