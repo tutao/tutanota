@@ -1853,5 +1853,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
+		"exportRunningElsewhere_label": "Export may be running in another window."
 	}
 }

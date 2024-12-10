@@ -20,6 +20,8 @@ import { MailboxExportPersistence, MailboxExportState } from "./MailboxExportPer
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { formatSortableDate } from "@tutao/tutanota-utils"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
+import { ExportError, ExportErrorReason } from "../../api/common/error/ExportError"
+import { DesktopExportLock, LockResult } from "./DesktopExportLock"
 
 const EXPORT_DIR = "export"
 
@@ -33,6 +35,7 @@ export class DesktopExportFacade implements ExportFacade {
 		private readonly mailboxExportPersistence: MailboxExportPersistence,
 		private readonly fs: typeof FsModule,
 		private readonly dateProvider: DateProvider,
+		private readonly desktopExportLock: DesktopExportLock,
 	) {}
 
 	async checkFileExistsInExportDir(fileName: string): Promise<boolean> {
@@ -84,9 +87,12 @@ export class DesktopExportFacade implements ExportFacade {
 	}
 
 	async startMailboxExport(userId: string, mailboxId: string, mailBagId: string, mailId: string): Promise<void> {
+		if (this.desktopExportLock.acquireLock(userId) === LockResult.AlreadyLocked) {
+			throw new ExportError(`Export is locked for user: ${userId}`, ExportErrorReason.LockedForUser)
+		}
 		const previousExportState = await this.mailboxExportPersistence.getStateForUser(userId)
 		if (previousExportState != null && previousExportState.type !== "finished") {
-			throw new Error("Export is already running for this user")
+			throw new ExportError(`Export is already running for user: ${userId}`, ExportErrorReason.RunningForUser)
 		}
 		const directory = await this.electron.dialog
 			.showOpenDialog(this.window._browserWindow, {
@@ -94,6 +100,7 @@ export class DesktopExportFacade implements ExportFacade {
 			})
 			.then(({ filePaths }) => filePaths[0] ?? null)
 		if (directory == null) {
+			this.desktopExportLock.unlock(userId)
 			throw new CancelledError("Directory picking canceled")
 		}
 		const folderName = `TutaExport-${formatSortableDate(new Date(this.dateProvider.now()))}`
@@ -134,20 +141,30 @@ export class DesktopExportFacade implements ExportFacade {
 	}
 
 	async getMailboxExportState(userId: string): Promise<MailboxExportState | null> {
-		return await this.mailboxExportPersistence.getStateForUser(userId)
+		const state = await this.mailboxExportPersistence.getStateForUser(userId)
+		if (state && state.type === "running") {
+			if (this.desktopExportLock.acquireLock(userId) === LockResult.AlreadyLocked) {
+				return {
+					type: "locked",
+					userId,
+				}
+			}
+		}
+		return state
 	}
 
 	async endMailboxExport(userId: string): Promise<void> {
 		const previousExportState = await this.mailboxExportPersistence.getStateForUser(userId)
-		if (previousExportState == null) {
+		if (previousExportState && previousExportState.type === "running") {
+			await this.mailboxExportPersistence.setStateForUser({
+				type: "finished",
+				userId,
+				exportDirectoryPath: previousExportState.exportDirectoryPath,
+				mailboxId: previousExportState.mailboxId,
+			})
+		} else {
 			throw new ProgrammingError("An Export was not previously running")
 		}
-		await this.mailboxExportPersistence.setStateForUser({
-			type: "finished",
-			userId,
-			exportDirectoryPath: previousExportState.exportDirectoryPath,
-			mailboxId: previousExportState.mailboxId,
-		})
 	}
 
 	async saveMailboxExport(bundle: MailBundle, userId: string, mailBagId: string, mailId: string): Promise<void> {
@@ -180,6 +197,7 @@ export class DesktopExportFacade implements ExportFacade {
 
 	async clearExportState(userId: string): Promise<void> {
 		await this.mailboxExportPersistence.clearStateForUser(userId)
+		this.desktopExportLock.unlock(userId)
 	}
 
 	async openExportDirectory(userId: string): Promise<void> {

@@ -1849,5 +1849,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"exportRunningElsewhere_label": "Export may be running in another window."
 	}
 }
