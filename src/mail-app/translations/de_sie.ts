@@ -1837,5 +1837,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"exportFinished_label": "Export finished",
+		"exportRunningElsewhere_label": "Export may be running in another window."
 	}
 }

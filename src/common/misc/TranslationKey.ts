@@ -1817,3 +1817,4 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "exportFinished_label"
+	| "exportRunningElsewhere_label"

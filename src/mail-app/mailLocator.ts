@@ -1176,7 +1176,7 @@ class MailLocator {
 	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
 		const { htmlSanitizer } = await import("../common/misc/HtmlSanitizer")
 		const { MailExportController } = await import("./native/main/MailExportController.js")
-		return new MailExportController(this.mailExportFacade, htmlSanitizer, this.exportFacade, this.logins, this.mailboxModel)
+		return new MailExportController(this.mailExportFacade, htmlSanitizer, this.exportFacade, this.logins, this.mailboxModel, await this.scheduler())
 	})
 
 	/**
