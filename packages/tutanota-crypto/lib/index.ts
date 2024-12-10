@@ -45,10 +45,12 @@ export {
 } from "./hashes/Argon2id/Argon2id.js"
 export { KeyLength, EntropySource, HkdfKeyDerivationDomains } from "./misc/Constants.js"
 export {
+	AbstractEncryptedKeyPair,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
 	EncryptedRsaKeyPairs,
 	EncryptedRsaEccKeyPairs,
+	isEncryptedPqKeyPairs,
 	encryptKey,
 	decryptKey,
 	encryptRsaKey,
