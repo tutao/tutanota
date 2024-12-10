@@ -153,7 +153,7 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
 	return validProtocols.includes(url.protocol)
 }
 
-export const enum ByRule {
+export enum ByRule {
 	BYMINUTE = "0",
 	BYHOUR = "1",
 	BYDAY = "2",
