@@ -2,6 +2,7 @@ use super::importer::{ImportError, ImportStatus, Importer, StateCallbackResponse
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
 use std::sync::Arc;
+use tutasdk::entities::generated::tutanota::ImportMailState;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
@@ -12,9 +13,10 @@ pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
 /// create a wrapper
 #[napi_derive::napi]
 pub struct ExportedImportMailState {
-	pub status: ImportStatus,
+	pub status: i64,
 	pub imported_mails_count: i64,
 	pub failed_mails_count: i64,
+	pub remote_state_element_id: Option<String>,
 }
 
 /// Javascript function to check for state change
@@ -77,6 +79,11 @@ impl ImporterApi {
 
 #[napi_derive::napi]
 impl ImporterApi {
+	#[napi]
+	pub async unsafe fn get_import_state(&mut self) -> ExportedImportMailState {
+		self.inner.lock().await.get_remote_state().into()
+	}
+
 	#[napi]
 	pub async unsafe fn start_import(
 		&mut self,
@@ -150,9 +157,9 @@ impl From<ImportError> for napi::Error {
 		napi::Error::from_reason(match import_err {
 			ImportError::SdkError { .. } => "SdkError",
 			ImportError::NoImportFeature => "NoImportFeature",
-			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
-				"Malformed server response"
-			},
+			ImportError::EmptyBlobServerList
+			| ImportError::NoElementIdForState
+			| ImportError::MismatchedImportCount { .. } => "Malformed server response",
 			ImportError::NoNativeRestClient(_)
 			| ImportError::IterationError(_)
 			| ImportError::TooBigChunk => "IoError",
@@ -160,5 +167,19 @@ impl From<ImportError> for napi::Error {
 				"Not a valid login"
 			},
 		})
+	}
+}
+
+impl From<&ImportMailState> for ExportedImportMailState {
+	fn from(import_mail_state: &ImportMailState) -> Self {
+		Self {
+			imported_mails_count: import_mail_state.successfulMails,
+			failed_mails_count: import_mail_state.failedMails,
+			status: import_mail_state.status,
+			remote_state_element_id: import_mail_state
+				._id
+				.as_ref()
+				.map(|id| id.element_id.0.clone()),
+		}
 	}
 }

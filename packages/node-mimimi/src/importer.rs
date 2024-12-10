@@ -60,6 +60,8 @@ pub enum ImportError {
 	IterationError(IterationError),
 	/// Some mail was too big
 	TooBigChunk,
+	/// number of mails we expected to be imported vs number of mails server had written is not same
+	MismatchedImportCount { expected: usize, imported: usize },
 }
 
 #[derive(Debug)]
@@ -580,9 +582,9 @@ impl ImportState {
 	}
 
 	fn add_failed_mails_count(&mut self, newly_failed_mails_count: usize) {
-		self.remote_state.successfulMails = self
+		self.remote_state.failedMails = self
 			.remote_state
-			.successfulMails
+			.failedMails
 			.saturating_add(newly_failed_mails_count.try_into().unwrap_or_default());
 	}
 }
@@ -704,20 +706,41 @@ impl Importer {
 			},
 
 			// this chunk was too big to import
-			Some(Err(too_big_chunk)) => Err(ImportError::TooBigChunk)?,
+			Some(Err(too_big_chunk)) => {
+				import_state.add_failed_mails_count(1);
+				Err(ImportError::TooBigChunk)?
+			},
 
 			// these chunks can be imported in single request
 			Some(Ok(chunked_import_data)) => {
+				let expected_imported_mails_count = chunked_import_data.len();
+
 				let importable_post_data = import_essentials
 					.make_serialized_chunk(chunked_import_data)
-					.await?;
+					.await
+					.map_err(|e| {
+						import_state.add_failed_mails_count(expected_imported_mails_count);
+						e
+					})?;
 
-				let mut import_mails_post_out = import_essentials
+				let import_mails_post_out = import_essentials
 					.make_import_service_call(importable_post_data)
-					.await?;
+					.await
+					.map_err(|e| {
+						import_state.add_failed_mails_count(expected_imported_mails_count);
+						e
+					})?;
 
-				import_state.change_status(ImportStatus::Running);
+				let imported_mails_count = import_mails_post_out.mails.len();
 				import_state.add_newly_imported_mails(import_mails_post_out.mails);
+
+				// make sure what we uploaded and what we got are same
+				if imported_mails_count != expected_imported_mails_count {
+					Err(ImportError::MismatchedImportCount {
+						expected: expected_imported_mails_count,
+						imported: imported_mails_count,
+					})?
+				}
 			},
 		}
 
