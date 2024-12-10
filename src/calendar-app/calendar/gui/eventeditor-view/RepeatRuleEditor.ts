@@ -9,11 +9,12 @@ import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptio
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { RadioGroup, RadioGroupAttrs, RadioGroupOption } from "../../../../common/gui/base/RadioGroup.js"
-import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
+import { InputMode, SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { theme } from "../../../../common/gui/theme.js"
+import { isApp } from "../../../../common/api/common/Env.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -220,12 +221,14 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			options: this.intervalOptions,
 			noIcon: true,
 			expanded: true,
-			tabIndex: Number(TabIndex.Programmatic),
+			tabIndex: isApp() ? Number(TabIndex.Default) : Number(TabIndex.Programmatic),
 			classes: ["no-appearance"],
 			renderDisplay: () =>
 				m(SingleLineTextField, {
 					classes: ["border-radius-bottom-0"],
 					value: isNaN(this.repeatInterval) ? "" : this.repeatInterval.toString(),
+					inputMode: isApp() ? InputMode.NONE : InputMode.TEXT,
+					readonly: isApp(),
 					oninput: (val: string) => {
 						if (val !== "" && this.repeatInterval === Number(val)) {
 							return
@@ -300,12 +303,14 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			options: this.occurrencesOptions,
 			noIcon: true,
 			expanded: true,
-			tabIndex: Number(TabIndex.Programmatic),
+			tabIndex: isApp() ? Number(TabIndex.Default) : Number(TabIndex.Programmatic),
 			classes: ["no-appearance"],
 			renderDisplay: () =>
 				m(SingleLineTextField, {
 					classes: ["tutaui-button-outline", "text-center", "border-content-message-bg"],
 					value: isNaN(this.repeatOccurrences) ? "" : this.repeatOccurrences.toString(),
+					inputMode: isApp() ? InputMode.NONE : InputMode.TEXT,
+					readonly: isApp(),
 					oninput: (val: string) => {
 						if (val !== "" && this.repeatOccurrences === Number(val)) {
 							return

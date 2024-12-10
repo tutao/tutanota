@@ -3,6 +3,12 @@ import { TextFieldType } from "./TextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
 
+export enum InputMode {
+	NONE = "none",
+	NUMERIC = "numeric",
+	TEXT = "text",
+}
+
 export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<Component, "oncreate"> {
 	value: string | number
 	ariaLabel: string
@@ -30,6 +36,8 @@ export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<
 		icon: AllIcons
 		color: string
 	}
+	inputMode?: InputMode
+	readonly?: boolean
 }
 
 export interface SingleLineNumberFieldAttrs<T extends TextFieldType> extends SingleLineTextFieldAttrs<T> {
@@ -126,6 +134,9 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 				...(inputPadding ? { paddingLeft: inputPadding } : {}),
 				...attrs.style,
 			},
+			type: attrs.inputMode === InputMode.NONE ? undefined : attrs.type,
+			inputMode: attrs.inputMode,
+			readonly: attrs.readonly,
 			...this.getInputProperties(attrs),
 		})
 	}
