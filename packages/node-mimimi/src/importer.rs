@@ -19,7 +19,8 @@ use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
 use tutasdk::entities::generated::tutanota::{
-	ImportAttachment, ImportMailData, ImportMailPostIn, ImportMailPostOut, ImportMailState,
+	ImportAttachment, ImportMailData, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut,
+	ImportMailState,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
@@ -425,6 +426,8 @@ impl ImportEssential {
 		&self,
 		import_mail_data: (ImportMailPostIn, GenericAesKey),
 	) -> Result<ImportMailPostOut, ImportError> {
+		self.verify_import_feature_enabled().await?;
+
 		let server_to_upload = self.get_server_url_to_upload().await?;
 		let (import_mail_post_in, session_key_for_import_post) = import_mail_data;
 
@@ -437,6 +440,23 @@ impl ImportEssential {
 					session_key: Some(session_key_for_import_post),
 					..Default::default()
 				},
+			)
+			.await
+			.map_err(|e| {
+				if e == Self::IMPORT_DISABLED_ERR {
+					ImportError::NoImportFeature
+				} else {
+					ImportError::sdk("calling ImportMailService", e)
+				}
+			})
+	}
+
+	pub async fn verify_import_feature_enabled(&self) -> Result<(), ImportError> {
+		self.logged_in_sdk
+			.get_service_executor()
+			.get::<ImportMailService>(
+				ImportMailGetIn { _format: 0 },
+				ExtraServiceParams::default(),
 			)
 			.await
 			.map_err(|e| {
