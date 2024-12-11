@@ -1447,7 +1447,7 @@ pub struct ImportMailState {
 	pub failedMails: i64,
 	pub status: i64,
 	pub successfulMails: i64,
-	pub importedSetEntrys: Vec<IdTupleCustom>,
+	pub importedMails: GeneratedId,
 	pub targetFolder: IdTupleGenerated,
 }
 
@@ -1456,6 +1456,25 @@ impl Entity for ImportMailState {
 		TypeRef {
 			app: "tutanota",
 			type_: "ImportMailState",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImportedMail {
+	pub _format: i64,
+	pub _id: Option<IdTupleGenerated>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub mailSetEntry: IdTupleCustom,
+}
+
+impl Entity for ImportedMail {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ImportedMail",
 		}
 	}
 }
@@ -1711,7 +1730,6 @@ pub struct MailBox {
 	pub importedAttachments: GeneratedId,
 	pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
 	pub mailImportStates: GeneratedId,
-	pub perImportStateEntries: GeneratedId,
 	pub receivedAttachments: GeneratedId,
 	pub sentAttachments: GeneratedId,
 	pub spamResults: Option<SpamResults>,

@@ -2,6 +2,7 @@ import { ListModel } from "../../../common/misc/ListModel.js"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
+	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
 	Mail,
 	MailBox,
@@ -566,7 +567,7 @@ export class MailViewModel {
 			return this.entityEventsReceivedForLegacy(updates)
 		}
 
-		let needsRedrawAsImportStateChanged = false
+		let loadImportedMailsPromise = null
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				// In case labels change trigger a list redraw.
@@ -593,20 +594,20 @@ export class MailViewModel {
 				if (mailWasInThisFolder) {
 					await listModel.entityEventReceived(update.instanceListId, update.instanceId, OperationType.UPDATE)
 				}
-			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-				const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-				const targetMailSet = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
-				await this.cacheStorage.deleteWholeList(MailSetEntryTypeRef, targetMailSet.entries)
-
-				needsRedrawAsImportStateChanged = needsRedrawAsImportStateChanged || (this._folder != null && isSameId(targetMailSet._id, this._folder._id))
+			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update) && update.operation == OperationType.UPDATE) {
+				this.processImportedMails(update)
 			}
 		}
+	}
 
-		if (needsRedrawAsImportStateChanged) {
-			// will do initial loading if this is the mailFolder in active view
-			//mailSetEntries.clear()
-			listModel.resetLoadingState()
-			await listModel.loadInitial()
+	private async processImportedMails(update: EntityUpdateData) {
+		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+		let importedMails = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+		for (const importedMail of importedMails) {
+			let importedMailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, importedMail.mailSetEntry)
+			this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
+			let importedMailId = importedMailSetEntry.mail
+			await this.listModel?.entityEventReceived(listIdPart(importedMailId), elementIdPart(importedMailId), OperationType.CREATE)
 		}
 	}
 
