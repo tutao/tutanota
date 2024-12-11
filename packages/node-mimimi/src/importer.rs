@@ -19,7 +19,7 @@ use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
 use tutasdk::entities::generated::tutanota::{
-	ImportMailPostIn, ImportMailPostOut, ImportMailState,
+	ImportAttachment, ImportMailData, ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
@@ -225,98 +225,6 @@ impl Importer {
 
 		Ok(())
 	}
-
-	/// once we get the ImportableMail from either of source,
-	/// continue to the uploading counterpart
-	async fn import_all_mail(&mut self) -> Result<(), ImportError> {
-		self.essentials.verify_import_feature_is_enabled().await?;
-		self.initialize_remote_state().await?;
-
-		let Self {
-			essentials: import_essentials,
-			state: import_state,
-			source: import_source,
-		} = self;
-
-		let mapped_import_source = import_source.into_iter().map(|importable_mail| {
-			UnitImport::create_from_importable_mail(
-				&import_essentials.randomizer_facade,
-				&import_essentials.mail_group_key,
-				importable_mail,
-			)
-		});
-
-		let chunked_mails_provider =
-			ImportableMailsButcher::new(mapped_import_source, |unit_import| {
-				let size = estimate_json_size(&unit_import.import_mail_data);
-				//println!("some import import mail data size {size}");
-				size
-			});
-
-		for maybe_importable_chunk in chunked_mails_provider {
-			import_state.change_status(ImportStatus::Running);
-			import_state
-				.update_import_state_on_server(&import_essentials.logged_in_sdk)
-				.await?;
-
-			let importable_post_data = match maybe_importable_chunk {
-				Ok(importable_chunk) => {
-					let mail_count = importable_chunk.len();
-					let size = importable_chunk
-						.iter()
-						.fold(0, |acc, i| acc + estimate_json_size(&i.import_mail_data));
-					println!("some import chunk size {size}");
-					println!("some import mailcount size {mail_count}");
-
-					let importable_serialized_chunk = import_essentials
-						.make_serialized_chunk(importable_chunk)
-						.await;
-
-					match importable_serialized_chunk {
-						Ok(chunk) => chunk,
-						Err(_e) => {
-							eprintln!("FIXMEE!!");
-							// what to do now?
-							continue;
-						},
-					}
-				},
-
-				Err(_too_big_chunk) => {
-					// what to do?
-					// for now move to next chunk
-					eprintln!("FIXMEE!!");
-					continue;
-				},
-			};
-
-			let response = import_essentials
-				.make_import_service_call(importable_post_data)
-				.await;
-			match response {
-				// this import has been success,
-				Ok(mut imported_post_out) => {
-					import_state.add_imported_mails_count(imported_post_out.mails.len());
-					import_state
-						.imported_mail_ids
-						.append(&mut imported_post_out.mails);
-				},
-
-				Err(_err) => {
-					// todo: save the ImportableMails to some fail list,
-					// since, in this iteration the source will not give these mail again,
-					todo!()
-				},
-			}
-		}
-
-		import_state.change_status(ImportStatus::Finished);
-		import_state
-			.update_import_state_on_server(&import_essentials.logged_in_sdk)
-			.await?;
-
-		Ok(())
-	}
 }
 
 impl ImportEssential {
@@ -382,8 +290,7 @@ impl ImportEssential {
 
 		let attachments_file_data_flattened_refs: Vec<&FileData> =
 			attachments_file_data_per_mail.iter().flatten().collect();
-		let count = attachments_file_data_flattened_refs.len();
-		println!("attachments_file_data_refs {count}");
+
 		if attachments_file_data_flattened_refs.len() > 0 {
 			// upload all attachments in this chunk in one call to the blob_facade
 			// the blob_facade chunks them into efficient request to the BlobService
@@ -395,7 +302,8 @@ impl ImportEssential {
 					&self.target_owner_group,
 					attachments_file_data_flattened_refs,
 				)
-				.await?;
+				.await
+				.map_err(|e| ImportError::sdk("uploading multiple attachments", e))?;
 
 			// reference mails and received reference tokens again, by using the attachments count per mail
 			let mut all_reference_tokens_per_mail: Vec<Vec<Vec<BlobReferenceTokenWrapper>>> =
@@ -452,7 +360,8 @@ impl ImportEssential {
 
 				let serialized_import = self
 					.logged_in_sdk
-					.serialize_instance_to_json(import_mail_data, &session_key)?;
+					.serialize_instance_to_json(import_mail_data, &session_key)
+					.map_err(|e| ImportError::sdk("serializing import_mail_data to json", e))?;
 				let wrapped_import_data = StringWrapper {
 					_id: Some(Importer::make_random_aggregate_id(&self.randomizer_facade)),
 					value: serialized_import,
@@ -469,7 +378,7 @@ impl ImportEssential {
 				let serialized_import = self
 					.logged_in_sdk
 					.serialize_instance_to_json(import_mail_data, &session_key)
-				.map_err(|e| ImportError::sdk("serializing instance to json", e))?;
+					.map_err(|e| ImportError::sdk("serializing instance to json", e))?;
 				let wrapped_import_data = StringWrapper {
 					_id: Some(Importer::make_random_aggregate_id(&self.randomizer_facade)),
 					value: serialized_import,

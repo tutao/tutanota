@@ -11,18 +11,6 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		ImporterApi.initLog()
 	}
 
-	async setupImapImport(apiUrl: string, unencTutaCredentials: UnencryptedCredentials): Promise<void> {
-		// not yet implemented
-	}
-
-	startImapImport(): Promise<void> {
-		throw new Error("Method not implemented.")
-	}
-
-	stopImapImport(): Promise<void> {
-		throw new Error("Method not implemented.")
-	}
-
 	async importFromFiles(
 		apiUrl: string,
 		unencTutaCredentials: UnencryptedCredentials,
@@ -50,8 +38,6 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 				shouldPause: false,
 			}
 		})
-
-		return "importSuccessful"
 	}
 
 	async stopImport(): Promise<void> {
