@@ -1148,8 +1148,24 @@ export type ImportMailState = {
 	status: NumberString;
 	successfulMails: NumberString;
 
-	importedSetEntrys: IdTuple[];
+	importedMails: Id;
 	targetFolder: IdTuple;
+}
+export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", "ImportedMail")
+
+export function createImportedMail(values: StrippedEntity<ImportedMail>): ImportedMail {
+	return Object.assign(create(typeModels.ImportedMail, ImportedMailTypeRef), values)
+}
+
+export type ImportedMail = {
+	_type: TypeRef<ImportedMail>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+
+	mailSetEntry: IdTuple;
 }
 export const InboxRuleTypeRef: TypeRef<InboxRule> = new TypeRef("tutanota", "InboxRule")
 
@@ -1358,7 +1374,6 @@ export type MailBox = {
 	importedAttachments: Id;
 	mailDetailsDrafts: null | MailDetailsDraftsRef;
 	mailImportStates: Id;
-	perImportStateEntries: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
 	spamResults: null | SpamResults;
