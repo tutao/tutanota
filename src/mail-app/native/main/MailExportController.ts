@@ -3,7 +3,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { MailBag } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
-import { assertNotNull, delay, isNotNull, lastThrow } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "@tutao/tutanota-utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "../../../common/native/common/generatedipc/ExportFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -11,6 +11,8 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError.
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade.js"
+import type { TranslationText } from "../../../common/misc/LanguageViewModel"
+import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
 
@@ -18,7 +20,7 @@ export type MailExportState =
 	| { type: "idle" }
 	| { type: "exporting"; mailboxDetail: MailboxDetail; progress: number; exportedMails: number }
 	| { type: "locked" }
-	| { type: "error"; message: string }
+	| { type: "error"; message: TranslationText }
 	| {
 			type: "finished"
 			mailboxDetail: MailboxDetail
@@ -98,6 +100,7 @@ export class MailExportController {
 					progress: 0,
 					exportedMails: exportState.exportedMails,
 				})
+				this._lastExport = new Date()
 				await this.resumeExport(mailboxDetail, exportState.mailBagId, exportState.mailId)
 			} else if (exportState.type === "finished") {
 				const mailboxDetail = await this.mailboxModel.getMailboxDetailByMailboxId(exportState.mailboxId)
@@ -138,9 +141,10 @@ export class MailExportController {
 	}
 
 	private async runExport(mailboxDetail: MailboxDetail, mailBags: MailBag[], mailId: Id) {
+		const startTime = assertNotNull(this._lastExport)
 		for (const mailBag of mailBags) {
 			await this.exportMailBag(mailBag, mailId)
-			if (this._state().type !== "exporting") {
+			if (this._state().type !== "exporting" || this._lastExport !== startTime) {
 				return
 			}
 		}
@@ -183,7 +187,7 @@ export class MailExportController {
 						await this.exportFacade.saveMailboxExport(mailBundle, this.userId, mailBag._id, getElementId(mail))
 					} catch (e) {
 						if (e instanceof FileOpenError) {
-							this._state({ type: "error", message: e.message })
+							this._state({ type: "error", message: () => e.message })
 							return
 						} else {
 							throw e
@@ -200,10 +204,18 @@ export class MailExportController {
 				if (isOfflineError(e)) {
 					console.log(TAG, "Offline, will retry later")
 					await delay(1000 * 60) // 1 min
-					console.log(TAG, "Trying to continue with export")
+				} else if (e instanceof SuspensionError) {
+					const timeToWait = Math.max(filterInt(assertNotNull(e.data)), 1)
+					console.log(TAG, `Pausing for ${Math.floor(timeToWait / 1000 + 0.5)} seconds`)
+					const currentExportTime = this._lastExport
+					await delay(timeToWait)
+					if (this._state().type !== "exporting" || this._lastExport !== currentExportTime) {
+						return
+					}
 				} else {
 					throw e
 				}
+				console.log(TAG, "Trying to continue with export")
 			}
 		}
 	}
