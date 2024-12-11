@@ -1,6 +1,6 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
@@ -34,6 +34,9 @@ export class Importer {
 	 * @param filePaths The file paths to the eml/mbox files that are to be imported
 	 */
 	async importFromFiles(targetFolder: MailFolder, filePaths: Array<string>) {
+		if (isEmpty(filePaths)) {
+			return
+		}
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const ownerGroup = assertNotNull(targetFolder._ownerGroup)
 		const userId = this.loginController.getUserController().userId

@@ -11,7 +11,7 @@ import { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/Mail
 import { MailModel } from "../mail/model/MailModel"
 import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
 import { FolderInfo, getFolderName, getIndentedFolderNameForDropdown } from "../mail/model/MailUtils"
-import { getMailFolderType, ImportStatus, MailSetKind } from "../../common/api/common/TutanotaConstants"
+import { getMailFolderType, ImportStatus, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationText } from "../../common/misc/LanguageViewModel"
 import { Importer } from "../mail/import/Importer"
@@ -130,7 +130,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 
 	private async onImportButtonClick(dom: HTMLElement) {
 		if (this.userController.isFreeAccount()) {
-			showNotAvailableForFreeDialog()
+			showNotAvailableForFreeDialog([PlanType.Legend, PlanType.Unlimited])
 			return
 		}
 		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
@@ -158,10 +158,11 @@ export class ImportViewer implements UpdatableSettingsViewer {
 			const displayTargetFolder = this.indentedFolders.find((f) => isSameId(f.folder._id, targetFolderId))
 			return {
 				cells: () => [
-					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
 					{
 						main: `${lang.getMaybeLazy(this.makeStatusRowForImport(im))}`,
+						info: [`Imported: ${im.successfulMails}`, `Failed: ${im.failedMails}`],
 					},
+					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
 				],
 				actionButtonAttrs:
 					im.status === ImportStatus.Started || im.status === ImportStatus.Running
@@ -178,9 +179,9 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	makeStatusRowForImport(importState: ImportMailState): TranslationText {
+	private makeStatusRowForImport(importState: ImportMailState): TranslationText {
 		let status = this.startedCancellation.has(elementIdPart(importState._id)) ? "Canceling.." : getMailImportStatusName(importState.status as ImportStatus)
-		return () => `${status} | Imported: ${importState.successfulMails} | Failed: ${importState.failedMails}`
+		return () => `${status}`
 	}
 
 	view(): Children {

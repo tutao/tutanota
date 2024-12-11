@@ -23,7 +23,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
-import { LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
+import { first, LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
@@ -133,21 +133,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => new NotificationSettingsViewer(),
 				undefined,
 			),
-			new SettingsFolder(
-				"import_action",
-				() => Icons.Download,
-				"import",
-				() =>
-					new ImportViewer(
-						mailLocator.mailboxModel,
-						mailLocator.mailModel,
-						isDesktop() ? mailLocator.fileApp : null,
-						mailLocator.mailImporter,
-						mailLocator.entityClient,
-						mailLocator.logins.getUserController(),
-					),
-				undefined,
-			),
 		]
 
 		if (isDesktop()) {
@@ -167,6 +152,28 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				),
 			)
 		}
+
+		mailLocator.mailboxModel.getMailboxDetails().then((mailboxes) => {
+			if (first(mailboxes)?.mailbox.currentMailBag != null) {
+				this._userFolders.push(
+					new SettingsFolder(
+						"import_action",
+						() => Icons.Download,
+						"import",
+						() =>
+							new ImportViewer(
+								mailLocator.mailboxModel,
+								mailLocator.mailModel,
+								isDesktop() ? mailLocator.fileApp : null,
+								mailLocator.mailImporter,
+								mailLocator.entityClient,
+								mailLocator.logins.getUserController(),
+							),
+						undefined,
+					),
+				)
+			}
+		})
 
 		this._adminFolders = []
 		this._templateFolders = []
