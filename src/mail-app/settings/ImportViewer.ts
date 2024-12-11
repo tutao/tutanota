@@ -37,7 +37,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 	private selectedTargetFolder: IndentedFolder | undefined
 	private fileApp: NativeFileApp | null
 	private mailImporter: Importer
-	private expanded: boolean = false
+	private expanded: boolean = true
 	private entityClient: EntityClient
 	private importMailStates: Map<Id, ImportMailState> = new Map()
 	private indentedFolders: Array<IndentedFolder> = []
