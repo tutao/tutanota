@@ -8,12 +8,14 @@ import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
 import jsQR from "jsqr"
 import { KeyVerificationQrPayload } from "../KeyVerificationQrPayload"
 import { MalformedQrPayloadError } from "../../../api/common/error/MalformedQrPayloadError"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
-import { Dialog } from "../../../gui/base/Dialog"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
+import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
+import { KeyVerificationWizardPage } from "../KeyVerificationWizardPage"
 
 export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardData> {
 	private dom: HTMLElement | null = null
+
+	private disableNextButton: boolean = true
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
 		this.dom = vnode.dom as HTMLElement
@@ -24,9 +26,27 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 		const verificationMethod = attrs.data.method
 
 		if (verificationMethod === KeyVerificationMethodType.text) {
-			return this.renderTextMethod(attrs)
+			return m(
+				KeyVerificationWizardPage,
+				{
+					nextButtonLabel: () => "Mark as verified" /* TODO: translate */,
+					disableNextButton: this.disableNextButton,
+					beforeNextPageHook: async () => {
+						await attrs.data.keyVerificationFacade.addToPool(vnode.attrs.data.mailAddress, vnode.attrs.data.fingerprint)
+						await attrs.data.reloadParent()
+						return true
+					},
+				},
+				this.renderTextMethod(attrs),
+			)
 		} else if (verificationMethod === KeyVerificationMethodType.qr) {
-			return this.renderQrMethod(attrs)
+			return m(
+				KeyVerificationWizardPage,
+				{
+					hideNextButton: true,
+				},
+				this.renderQrMethod(attrs),
+			)
 		} else {
 			return "This should not happen. Please report."
 		}
@@ -37,48 +57,59 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 			".pb",
 			m("p", m("span", "This is some introduction text explaining how to use the ", m("span.b", "text method. "), "It can also be a few lines longer.")),
 			m(TextField, {
+				class: "mb",
 				label: "mailAddress_label",
 				value: attrs.data.mailAddress,
 				type: TextFieldType.Email,
-				oninput: (newValue) => (attrs.data.mailAddress = newValue),
-			}),
-			m(TextField, {
-				class: "pb",
-				label: "keyManagement.fingerprint_label",
-				value: attrs.data.fingerprint,
-				type: TextFieldType.Email,
-				oninput: (newValue) => (attrs.data.fingerprint = newValue),
-			}),
-			m(LoginButton, {
-				label: () => "Verify", // TODO: translate
-				onclick: async () => {
-					const validationError: TranslationKey | null = this.validateInputs(attrs.data)
-					if (validationError) {
-						await Dialog.message(validationError)
-					} else {
-						await attrs.data.keyVerificationFacade.addToPool(attrs.data.mailAddress, attrs.data.fingerprint)
-						attrs.data.result = KeyVerificationResultType.SUCCESS
-						emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+				oninput: async (newValue) => {
+					console.log("text input, new value: ", newValue)
+					attrs.data.mailAddress = newValue
+
+					let invalidMailAddress = true
+
+					if (this.validateMailAddress(attrs.data.mailAddress) == null) {
+						try {
+							attrs.data.fingerprint = await attrs.data.keyVerificationFacade.getPublicKeyHashFromServer(attrs.data.mailAddress)
+							invalidMailAddress = false
+						} catch (e) {
+							invalidMailAddress = true
+						}
 					}
+
+					if (invalidMailAddress) {
+						this.disableNextButton = true
+						attrs.data.fingerprint = ""
+					} else {
+						this.disableNextButton = false
+					}
+
+					m.redraw()
 				},
 			}),
+			m(MonospaceTextDisplay, {
+				text: attrs.data.fingerprint,
+				placeholder: "Email address not valid", // TODO: translate
+				chunkSize: 4,
+			}),
+			/*
+			m(LoginButton, {
+				label: () => "Mark as verified", // TODO: translate
+				onclick: async () => {
+					emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+				},
+				disabled: !this.enableTextButton,
+			}), */
 		)
 	}
 
-	private validateInputs(data: KeyVerificationWizardData): TranslationKey | null {
+	private validateMailAddress(mailAddress: string): TranslationKey | null {
 		/* TODO:
 		Properly validate mail address. Only Tuta domains are reasonable for this problem space
 		so only those should be considered valid. */
 
 		// validate email address (syntactically)
-		if (getCleanedMailAddress(data.mailAddress) == null) {
+		if (getCleanedMailAddress(mailAddress) == null) {
 			return "mailAddressInvalid_msg"
-		}
-
-		// validate fingerprint (syntactically): it's expected to be a 64-char hex digest
-		const fingerprintRegex = /^[0-9a-f]{64}$/
-		if (!fingerprintRegex.test(data.fingerprint)) {
-			return "keyManagement.invalidFingerprint_msg"
 		}
 
 		return null // null means OK
@@ -147,7 +178,7 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 							attrs.data.mailAddress = payload.mailAddress
 							attrs.data.fingerprint = payload.fingerprint
 
-							await attrs.data.keyVerificationFacade.addToPool(attrs.data.mailAddress, attrs.data.fingerprint)
+							//await attrs.data.keyVerificationFacade.addToPool(attrs.data.mailAddress, attrs.data.fingerprint)
 							attrs.data.result = KeyVerificationResultType.SUCCESS
 						} catch (e) {
 							if (e instanceof SyntaxError || e instanceof MalformedQrPayloadError) {

@@ -1,10 +1,10 @@
-import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog"
+import { WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog"
 import { KeyVerificationWizardData } from "../KeyVerificationWizard"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
-import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { RadioSelector, type RadioSelectorAttrs, RadioSelectorOption } from "../../../gui/base/RadioSelector"
 import { TranslationText } from "../../../misc/LanguageViewModel"
+import { KeyVerificationWizardPage } from "../KeyVerificationWizardPage"
 
 export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardData> {
 	private dom: HTMLElement | null = null
@@ -24,7 +24,9 @@ export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardDat
 			makeOption(() => "QR code", KeyVerificationMethodType.qr), // TODO: translate
 		] as const
 
-		return [
+		return m(
+			KeyVerificationWizardPage,
+			{},
 			m(
 				"p",
 				"This would be a good place to explain how this process works and ",
@@ -39,16 +41,7 @@ export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardDat
 					vnode.attrs.data.method = methodType
 				},
 			} satisfies RadioSelectorAttrs<KeyVerificationMethodType>),
-			m(
-				".pb",
-				m(LoginButton, {
-					label: "next_action",
-					onclick: () => {
-						emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE)
-					},
-				}),
-			),
-		]
+		)
 	}
 }
 
