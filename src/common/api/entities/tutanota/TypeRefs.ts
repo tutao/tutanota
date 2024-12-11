@@ -1115,6 +1115,7 @@ export type ImportMailPostIn = {
 	ownerKeyVersion: NumberString;
 
 	encImports: StringWrapper[];
+	mailState: IdTuple;
 	targetMailFolder: IdTuple;
 }
 export const ImportMailPostOutTypeRef: TypeRef<ImportMailPostOut> = new TypeRef("tutanota", "ImportMailPostOut")
@@ -1128,7 +1129,7 @@ export type ImportMailPostOut = {
 
 	_format: NumberString;
 
-	mails: IdTuple[];
+	mailState: IdTuple;
 }
 export const ImportMailStateTypeRef: TypeRef<ImportMailState> = new TypeRef("tutanota", "ImportMailState")
 
@@ -1138,18 +1139,16 @@ export function createImportMailState(values: StrippedEntity<ImportMailState>): 
 
 export type ImportMailState = {
 	_type: TypeRef<ImportMailState>;
-	_errors: Object;
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
-	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
 	failedMails: NumberString;
 	status: NumberString;
 	successfulMails: NumberString;
 
+	importedSetEntrys: IdTuple[];
 	targetFolder: IdTuple;
 }
 export const InboxRuleTypeRef: TypeRef<InboxRule> = new TypeRef("tutanota", "InboxRule")
@@ -1359,6 +1358,7 @@ export type MailBox = {
 	importedAttachments: Id;
 	mailDetailsDrafts: null | MailDetailsDraftsRef;
 	mailImportStates: Id;
+	perImportStateEntries: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
 	spamResults: null | SpamResults;

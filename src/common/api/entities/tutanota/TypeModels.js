@@ -4438,15 +4438,15 @@ export const typeModels = {
 		"name": "ImportMailGetIn",
 		"since": 79,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1563,
-		"rootId": "CHR1dGFub3RhAAYb",
+		"id": 1575,
+		"rootId": "CHR1dGFub3RhAAYn",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1564,
+				"id": 1576,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
@@ -4461,15 +4461,15 @@ export const typeModels = {
 		"name": "ImportMailPostIn",
 		"since": 79,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1552,
-		"rootId": "CHR1dGFub3RhAAYQ",
+		"id": 1563,
+		"rootId": "CHR1dGFub3RhAAYb",
 		"versioned": false,
 		"encrypted": true,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1553,
+				"id": 1564,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
@@ -4478,7 +4478,7 @@ export const typeModels = {
 			"newImportedMailSetName": {
 				"final": true,
 				"name": "newImportedMailSetName",
-				"id": 1557,
+				"id": 1568,
 				"since": 79,
 				"type": "String",
 				"cardinality": "One",
@@ -4487,7 +4487,7 @@ export const typeModels = {
 			"ownerEncSessionKey": {
 				"final": true,
 				"name": "ownerEncSessionKey",
-				"id": 1556,
+				"id": 1567,
 				"since": 79,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -4496,7 +4496,7 @@ export const typeModels = {
 			"ownerGroup": {
 				"final": false,
 				"name": "ownerGroup",
-				"id": 1554,
+				"id": 1565,
 				"since": 79,
 				"type": "GeneratedId",
 				"cardinality": "One",
@@ -4505,7 +4505,7 @@ export const typeModels = {
 			"ownerKeyVersion": {
 				"final": true,
 				"name": "ownerKeyVersion",
-				"id": 1555,
+				"id": 1566,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
@@ -4516,17 +4516,27 @@ export const typeModels = {
 			"encImports": {
 				"final": false,
 				"name": "encImports",
-				"id": 1559,
+				"id": 1571,
 				"since": 79,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refType": "StringWrapper",
 				"dependency": "sys"
 			},
+			"mailState": {
+				"final": true,
+				"name": "mailState",
+				"id": 1570,
+				"since": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refType": "ImportMailState",
+				"dependency": null
+			},
 			"targetMailFolder": {
 				"final": true,
 				"name": "targetMailFolder",
-				"id": 1558,
+				"id": 1569,
 				"since": 79,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
@@ -4541,15 +4551,15 @@ export const typeModels = {
 		"name": "ImportMailPostOut",
 		"since": 79,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1560,
-		"rootId": "CHR1dGFub3RhAAYY",
+		"id": 1572,
+		"rootId": "CHR1dGFub3RhAAYk",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1561,
+				"id": 1573,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
@@ -4557,14 +4567,14 @@ export const typeModels = {
 			}
 		},
 		"associations": {
-			"mails": {
-				"final": false,
-				"name": "mails",
-				"id": 1562,
+			"mailState": {
+				"final": true,
+				"name": "mailState",
+				"id": 1574,
 				"since": 79,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "Mail",
+				"cardinality": "One",
+				"refType": "ImportMailState",
 				"dependency": null
 			}
 		},
@@ -4575,15 +4585,15 @@ export const typeModels = {
 		"name": "ImportMailState",
 		"since": 79,
 		"type": "LIST_ELEMENT_TYPE",
-		"id": 1566,
-		"rootId": "CHR1dGFub3RhAAYe",
+		"id": 1552,
+		"rootId": "CHR1dGFub3RhAAYQ",
 		"versioned": false,
-		"encrypted": true,
+		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1570,
+				"id": 1556,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
@@ -4592,43 +4602,25 @@ export const typeModels = {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1568,
+				"id": 1554,
 				"since": 79,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1572,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
 			"_ownerGroup": {
 				"final": true,
 				"name": "_ownerGroup",
-				"id": 1571,
+				"id": 1557,
 				"since": 79,
 				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1573,
-				"since": 79,
-				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"_permissions": {
 				"final": true,
 				"name": "_permissions",
-				"id": 1569,
+				"id": 1555,
 				"since": 79,
 				"type": "GeneratedId",
 				"cardinality": "One",
@@ -4637,36 +4629,46 @@ export const typeModels = {
 			"failedMails": {
 				"final": false,
 				"name": "failedMails",
-				"id": 1576,
+				"id": 1560,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"status": {
 				"final": false,
 				"name": "status",
-				"id": 1574,
+				"id": 1558,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"successfulMails": {
 				"final": false,
 				"name": "successfulMails",
-				"id": 1575,
+				"id": 1559,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
+			"importedSetEntrys": {
+				"final": true,
+				"name": "importedSetEntrys",
+				"id": 1561,
+				"since": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
+				"cardinality": "Any",
+				"refType": "MailSetEntry",
+				"dependency": null
+			},
 			"targetFolder": {
 				"final": true,
 				"name": "targetFolder",
-				"id": 1577,
+				"id": 1562,
 				"since": 79,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
@@ -5636,6 +5638,16 @@ export const typeModels = {
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
 				"refType": "ImportMailState",
+				"dependency": null
+			},
+			"perImportStateEntries": {
+				"final": true,
+				"name": "perImportStateEntries",
+				"id": 1579,
+				"since": 79,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "MailSetEntry",
 				"dependency": null
 			},
 			"receivedAttachments": {
