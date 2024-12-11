@@ -17,29 +17,58 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 	private disableNextButton: boolean = true
 
+	qrVideo: HTMLVideoElement | null = null
+	qrMediaStream: MediaStream | null = null
+	qrWaitingForVideo: boolean = true
+	qrStopScanning: boolean = false
+
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
 		this.dom = vnode.dom as HTMLElement
+
+		this.startupVideo()
+	}
+
+	onremove(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
+		this.cleanupVideo()
+	}
+
+	private startupVideo() {
+		this.qrStopScanning = false
+	}
+
+	private cleanupVideo() {
+		this.qrStopScanning = true
+
+		this.qrVideo?.pause()
+
+		if (this.qrMediaStream != null) {
+			for (const stream of this.qrMediaStream.getTracks()) {
+				stream.stop()
+			}
+		}
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<KeyVerificationWizardData>>): Children {
 		const attrs: MethodExecutionPageAttrs = vnode.attrs as MethodExecutionPageAttrs
-		const verificationMethod = attrs.data.method
 
-		if (verificationMethod === KeyVerificationMethodType.text) {
+		const { method, mailAddress, fingerprint } = attrs.data
+		const { keyVerificationFacade, reloadParent } = attrs.data
+
+		if (method === KeyVerificationMethodType.text) {
 			return m(
 				KeyVerificationWizardPage,
 				{
 					nextButtonLabel: () => "Mark as verified" /* TODO: translate */,
 					disableNextButton: this.disableNextButton,
 					beforeNextPageHook: async () => {
-						await attrs.data.keyVerificationFacade.addToPool(vnode.attrs.data.mailAddress, vnode.attrs.data.fingerprint)
-						await attrs.data.reloadParent()
+						await keyVerificationFacade.addToPool(mailAddress, fingerprint)
+						await reloadParent()
 						return true
 					},
 				},
 				this.renderTextMethod(attrs),
 			)
-		} else if (verificationMethod === KeyVerificationMethodType.qr) {
+		} else if (method === KeyVerificationMethodType.qr) {
 			return m(
 				KeyVerificationWizardPage,
 				{
@@ -53,6 +82,8 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 	}
 
 	private renderTextMethod(attrs: MethodExecutionPageAttrs): Children {
+		const { keyVerificationFacade } = attrs.data
+
 		return m(
 			".pb",
 			m("p", m("span", "This is some introduction text explaining how to use the ", m("span.b", "text method. "), "It can also be a few lines longer.")),
@@ -69,7 +100,7 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 					if (this.validateMailAddress(attrs.data.mailAddress) == null) {
 						try {
-							attrs.data.fingerprint = await attrs.data.keyVerificationFacade.getPublicKeyHashFromServer(attrs.data.mailAddress)
+							attrs.data.fingerprint = await keyVerificationFacade.getPublicKeyHashFromServer(attrs.data.mailAddress)
 							invalidMailAddress = false
 						} catch (e) {
 							invalidMailAddress = true
@@ -91,14 +122,6 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 				placeholder: "Email address not valid", // TODO: translate
 				chunkSize: 4,
 			}),
-			/*
-			m(LoginButton, {
-				label: () => "Mark as verified", // TODO: translate
-				onclick: async () => {
-					emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
-				},
-				disabled: !this.enableTextButton,
-			}), */
 		)
 	}
 
@@ -118,7 +141,7 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 	private renderQrMethod(attrs: MethodExecutionPageAttrs): Children {
 		const video = m("video", {
 			oncreate: async (videoNode) => {
-				attrs.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
+				this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
 				await this.runQrScanner(attrs)
 			},
 			style: { display: "block", "max-width": "100%" },
@@ -129,16 +152,16 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 				"p",
 				m("span", "This is some introduction text explaining how to use the ", m("span.b", "QR code method. "), "It can also be a few lines longer."),
 			),
-			attrs.qrWaitingForVideo ? m(".center", lang.get("keyManagement.waitingForVideo_msg")) : m(""),
+			this.qrWaitingForVideo ? m(".center", lang.get("keyManagement.waitingForVideo_msg")) : m(""),
 			m(".mt.mb.border-radius", { style: { overflow: "clip" } }, video),
 		]
 	}
 
 	private async runQrScanner(attrs: MethodExecutionPageAttrs) {
-		attrs.qrMediaStream = await navigator.mediaDevices.getUserMedia({ video: true })
-		const video = assertNotNull(attrs.qrVideo)
+		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({ video: true })
+		const video = assertNotNull(this.qrVideo)
 
-		video.srcObject = attrs.qrMediaStream
+		video.srcObject = this.qrMediaStream
 		await video.play()
 
 		const canvas = document.createElement("canvas")
@@ -146,74 +169,68 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 		const thisScanner = Date.now()
 
-		const runScannerTick = async () => {
-			console.log("[scanner tick]", thisScanner)
-			if (video.readyState === video.HAVE_ENOUGH_DATA) {
-				if (attrs.qrWaitingForVideo) {
-					attrs.qrWaitingForVideo = false
-					m.redraw()
-				}
+		requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, attrs))
+	}
 
-				// These are the logical dimensions of the camera's video stream.
-				// They are unrelated to the size of the video element.
-				canvas.height = video.videoHeight
-				canvas.width = video.videoWidth
+	private async runQrScannerTick(video: HTMLVideoElement, canvas: HTMLCanvasElement, context2d: CanvasRenderingContext2D, attrs: MethodExecutionPageAttrs) {
+		if (video.readyState === video.HAVE_ENOUGH_DATA) {
+			if (this.qrWaitingForVideo) {
+				this.qrWaitingForVideo = false
+				m.redraw()
+			}
 
-				// Fetch image from video stream by painting onto a canvas and reading from it
-				context2d.drawImage(video, 0, 0, canvas.width, canvas.height)
-				const imageData = context2d.getImageData(0, 0, canvas.width, canvas.height)
+			// These are the logical dimensions of the camera's video stream.
+			// They are unrelated to the size of the video element.
+			canvas.height = video.videoHeight
+			canvas.width = video.videoWidth
 
-				if (imageData) {
-					const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" })
-					if (code) {
-						// at this point, a QR code has been detected and decoded
+			// Fetch image from video stream by painting onto a canvas and reading from it
+			context2d.drawImage(video, 0, 0, canvas.width, canvas.height)
+			const imageData = context2d.getImageData(0, 0, canvas.width, canvas.height)
 
-						let payload: KeyVerificationQrPayload
-						try {
-							payload = JSON.parse(code.data) as KeyVerificationQrPayload
-							if (payload.mailAddress == null || payload.fingerprint == null) {
-								throw new MalformedQrPayloadError("")
-							}
+			if (imageData) {
+				const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" })
+				if (code) {
+					// at this point, a QR code has been detected and decoded
 
-							attrs.data.mailAddress = payload.mailAddress
-							attrs.data.fingerprint = payload.fingerprint
-
-							//await attrs.data.keyVerificationFacade.addToPool(attrs.data.mailAddress, attrs.data.fingerprint)
-							attrs.data.result = KeyVerificationResultType.SUCCESS
-						} catch (e) {
-							if (e instanceof SyntaxError || e instanceof MalformedQrPayloadError) {
-								// SyntaxError: JSON.parse failed
-								// MalformedQrPayloadError: malformed payload
-								// throw new UserError("keyManagement.invalidQrCode_msg")
-								attrs.data.result = KeyVerificationResultType.FAIL_QR
-							} else {
-								throw e
-							}
-						} finally {
-							// attrs.cleanup()
-							await attrs.data.reloadParent()
-							emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE)
+					let payload: KeyVerificationQrPayload
+					try {
+						payload = JSON.parse(code.data) as KeyVerificationQrPayload
+						if (payload.mailAddress == null || payload.fingerprint == null) {
+							throw new MalformedQrPayloadError("")
 						}
+
+						attrs.data.mailAddress = payload.mailAddress
+						attrs.data.fingerprint = payload.fingerprint
+
+						//await attrs.data.keyVerificationFacade.addToPool(attrs.data.mailAddress, attrs.data.fingerprint)
+						attrs.data.result = KeyVerificationResultType.QR_OK
+					} catch (e) {
+						if (e instanceof SyntaxError || e instanceof MalformedQrPayloadError) {
+							// SyntaxError: JSON.parse failed
+							// MalformedQrPayloadError: malformed payload
+							// throw new UserError("keyManagement.invalidQrCode_msg")
+							attrs.data.result = KeyVerificationResultType.QR_FAIL
+						} else {
+							throw e
+						}
+					} finally {
+						// attrs.cleanup()
+						await attrs.data.reloadParent()
+						emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE)
 					}
 				}
 			}
-
-			if (!attrs.qrStopScanning) {
-				requestAnimationFrame(runScannerTick)
-			}
 		}
 
-		requestAnimationFrame(runScannerTick)
+		if (!this.qrStopScanning) {
+			requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, attrs))
+		}
 	}
 }
 
 export class MethodExecutionPageAttrs implements WizardPageAttrs<KeyVerificationWizardData> {
 	data: KeyVerificationWizardData
-
-	qrVideo: HTMLVideoElement | null = null
-	qrMediaStream: MediaStream | null = null
-	qrWaitingForVideo: boolean = true
-	qrStopScanning: boolean = false
 
 	constructor(data: KeyVerificationWizardData) {
 		this.data = data
@@ -229,41 +246,15 @@ export class MethodExecutionPageAttrs implements WizardPageAttrs<KeyVerification
 		}
 	}
 
+	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		return Promise.resolve(true)
+	}
+
 	isEnabled(): boolean {
 		return true
 	}
 
 	isSkipAvailable(): boolean {
 		return false
-	}
-
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		return Promise.resolve(true)
-	}
-
-	async loadAction(): Promise<boolean> {
-		this.startup()
-		return true
-	}
-
-	async unloadAction(): Promise<boolean> {
-		this.cleanup()
-		return true
-	}
-
-	private startup() {
-		this.qrStopScanning = false
-	}
-
-	private cleanup() {
-		this.qrStopScanning = true
-
-		this.qrVideo?.pause()
-
-		if (this.qrMediaStream != null) {
-			for (const stream of this.qrMediaStream.getTracks()) {
-				stream.stop()
-			}
-		}
 	}
 }

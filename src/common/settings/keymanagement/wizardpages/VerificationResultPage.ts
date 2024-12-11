@@ -1,21 +1,16 @@
 import { WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog"
 import { KeyVerificationWizardData } from "../KeyVerificationWizard"
-import m, { Children, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Vnode } from "mithril"
 import { KeyVerificationMethodType, KeyVerificationResultType } from "../../../api/common/TutanotaConstants"
 import { lang } from "../../../misc/LanguageViewModel"
 import { KeyVerificationWizardPage } from "../KeyVerificationWizardPage"
 
 export class VerificationResultPage implements WizardPageN<KeyVerificationWizardData> {
-	private dom: HTMLElement | null = null
-	private contactFingerprint: string | null = null
-
-	oncreate(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
-		this.dom = vnode.dom as HTMLElement
-	}
-
 	view(vnode: Vnode<WizardPageAttrs<KeyVerificationWizardData>>): Children {
-		if (vnode.attrs.data.method === KeyVerificationMethodType.text) {
-			const contactFingerprint = vnode.attrs.data.fingerprint
+		const { method, mailAddress, fingerprint, result } = vnode.attrs.data
+		const { keyVerificationFacade, reloadParent } = vnode.attrs.data
+
+		if (method === KeyVerificationMethodType.text) {
 			return m(
 				KeyVerificationWizardPage,
 				{ nextButtonLabel: "finish_action" },
@@ -23,22 +18,19 @@ export class VerificationResultPage implements WizardPageN<KeyVerificationWizard
 					"p",
 					"The following contact has been verified:", // TODO: translate
 				),
-				m("p.b.center", vnode.attrs.data.mailAddress),
+				m("p.b.center", mailAddress),
 				m("hr"),
-				m(".small.text-break.monospace", contactFingerprint),
+				m(".small.text-break.monospace", fingerprint),
 			)
-		} else if (vnode.attrs.data.method === KeyVerificationMethodType.qr) {
-			const result = vnode.attrs.data.result
-			const contactFingerprint = vnode.attrs.data.fingerprint
-
-			if (result === KeyVerificationResultType.SUCCESS) {
+		} else if (method === KeyVerificationMethodType.qr) {
+			if (result === KeyVerificationResultType.QR_OK) {
 				return m(
 					KeyVerificationWizardPage,
 					{
 						nextButtonLabel: () => "Mark as verified" /* TODO: translate */,
 						beforeNextPageHook: async () => {
-							await vnode.attrs.data.keyVerificationFacade.addToPool(vnode.attrs.data.mailAddress, vnode.attrs.data.fingerprint)
-							await vnode.attrs.data.reloadParent()
+							await keyVerificationFacade.addToPool(mailAddress, fingerprint)
+							await reloadParent()
 							return true
 						},
 					},
@@ -46,11 +38,11 @@ export class VerificationResultPage implements WizardPageN<KeyVerificationWizard
 						"p",
 						'Press "Mark as verified" to confirm that you trust:', // TODO: translate
 					),
-					m("p.b.center", vnode.attrs.data.mailAddress),
+					m("p.b.center", mailAddress),
 					m("hr"),
-					m(".small.text-break.monospace", contactFingerprint),
+					m(".small.text-break.monospace", fingerprint),
 				)
-			} else if (result === KeyVerificationResultType.FAIL_QR) {
+			} else if (result === KeyVerificationResultType.QR_FAIL) {
 				return m(KeyVerificationWizardPage, { nextButtonLabel: "finish_action" }, m("p", lang.get("keyManagement.invalidQrCode_msg")))
 			}
 		}
@@ -60,17 +52,16 @@ export class VerificationResultPage implements WizardPageN<KeyVerificationWizard
 export class VerificationResultPageAttrs implements WizardPageAttrs<KeyVerificationWizardData> {
 	data: KeyVerificationWizardData
 
-	// The process is done. We explicitly do not want the user to go back.
-	//readonly preventGoBack?: boolean = true
-
 	constructor(data: KeyVerificationWizardData) {
 		this.data = data
 	}
 
 	headerTitle(): string {
-		if (this.data.method === KeyVerificationMethodType.text) {
+		const { method } = this.data
+
+		if (method === KeyVerificationMethodType.text) {
 			return "Text-based verification" // TODO: translate
-		} else if (this.data.method === KeyVerificationMethodType.qr) {
+		} else if (method === KeyVerificationMethodType.qr) {
 			return "QR-code verification" // TODO: translate
 		} else {
 			return ""

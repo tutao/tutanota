@@ -496,9 +496,8 @@ export enum KeyVerificationMethodType {
 }
 
 export const enum KeyVerificationResultType {
-	SUCCESS = "0",
-	FAIL_TEXT = "1",
-	FAIL_QR = "2",
+	QR_OK = "0",
+	QR_FAIL = "1",
 }
 
 // TODO: DRY! There is a similar object in KeyVerificationProcessModel.
