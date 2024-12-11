@@ -534,7 +534,10 @@ c2Vjb25kIGF0dGFjaG1lbnQ=
 		String::from_utf8(base64_decode(b"c2Vjb25kIGF0dGFjaG1lbnQ=").unwrap()).unwrap(),
 		String::from_utf8(a3.content.to_vec()).unwrap()
 	);
-	assert_eq!(r#"text/plain;charset="us-ascii""#, a3.meta_data.content_type);
+	assert_eq!(
+		r#"text/plain;charset="us-ascii""#,
+		a3.meta_data.content_type
+	);
 }
 
 #[test]
@@ -610,7 +613,10 @@ Zmlyc3QgYXR0YWNobWVudA==
 
 	assert_eq!(1, attached.attachments.len());
 	let indirect_attachment = attached.attachments.first().unwrap();
-	assert_eq!("indirectly_attached.txt", indirect_attachment.meta_data.filename);
+	assert_eq!(
+		"indirectly_attached.txt",
+		indirect_attachment.meta_data.filename
+	);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(indirect_attachment.content.to_vec()).unwrap()
@@ -877,7 +883,10 @@ Zmlyc3QgYXR0YWNobWVudA=="#;
 
 	assert_eq!(1, m.attachments.len());
 	let indirect_attachment = &m.attachments[0];
-	assert_eq!("indirectly_attached.txt", indirect_attachment.meta_data.filename);
+	assert_eq!(
+		"indirectly_attached.txt",
+		indirect_attachment.meta_data.filename
+	);
 	assert_eq!(
 		String::from_utf8(base64_decode(b"Zmlyc3QgYXR0YWNobWVudA==").unwrap()).unwrap(),
 		String::from_utf8(indirect_attachment.content.to_vec()).unwrap()

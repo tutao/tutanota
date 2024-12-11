@@ -1,7 +1,9 @@
 //! keep in sync with MimeToolsTestMessages.java
 
 use crate::importer::importable_mail::plain_text_to_html_converter::plain_text_to_html;
-use crate::importer::importable_mail::{ImportableMail, ImportableMailAttachment, ImportableMailAttachmentMetaData, MailContact};
+use crate::importer::importable_mail::{
+	ImportableMail, ImportableMailAttachment, ImportableMailAttachmentMetaData, MailContact,
+};
 use mail_parser::decoders::base64::base64_decode;
 use serde::Deserialize;
 use std::collections::HashSet;
@@ -101,7 +103,8 @@ fn mime_tools_test_messages() {
 			// and in expected message we only have mime-type;charset
 			// we can make sure the first part ( i.e mime-type;charset ) is same
 			assert!(a
-				.meta_data.content_type
+				.meta_data
+				.content_type
 				.to_ascii_lowercase()
 				.starts_with(b.meta_data.content_type.to_ascii_lowercase().as_str()));
 			a.meta_data.content_type.clear();
