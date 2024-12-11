@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isApp } from "../../common/api/common/Env"
+import { assertMainOrNode, isApp, isDesktop } from "../../common/api/common/Env"
 import { lang } from "../../common/misc/LanguageViewModel"
 import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -90,10 +90,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
-		mailLocator.mailExportController().then((controller) => {
-			this.mailExportController = controller
-			m.redraw()
-		})
+		if (isDesktop()) {
+			// export is only available on desktop
+			mailLocator.mailExportController().then((controller) => {
+				this.mailExportController = controller
+				m.redraw()
+			})
+		}
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		mailLocator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
@@ -389,14 +392,14 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 									}),
 								),
 						  ],
-					m(".h4.mt-l", lang.get("exportMailbox_label")),
-					this.mailExportController
-						? m(MailExportSettings, {
-								mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
-								logins: mailLocator.logins,
-								mailExportController: this.mailExportController,
-						  })
-						: null,
+					this.mailExportController && [
+						m(".h4.mt-l", lang.get("exportMailbox_label")),
+						m(MailExportSettings, {
+							mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
+							logins: mailLocator.logins,
+							mailExportController: this.mailExportController,
+						}),
+					],
 				],
 			),
 		]
