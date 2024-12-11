@@ -475,18 +475,23 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 
 			const parsedWeekNumber = Number.parseInt(rule.interval)
 			let newDt: DateTime
-
 			if (parsedWeekNumber < 0) {
-				newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) }).set({ weekday: wkst })
-				for (let i = 0; i < 7; i++) {
-					newDates.push(newDt.plus({ day: i }))
-				}
+				newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1 })
+				console.log("Negative weeknumber ", { parsedWeekNumber, newDt })
 			} else {
-				newDt = date.set({ weekNumber: parsedWeekNumber }).set({ weekday: wkst })
+				newDt = date.set({ weekNumber: parsedWeekNumber })
+				console.log("Postive weeknumber ", { parsedWeekNumber, newDt })
+			}
 
-				for (let i = 0; i < 7; i++) {
-					newDates.push(newDt.plus({ day: i }))
+			const yearOffset = newDt.toMillis() < date.toMillis() ? 1 : 0
+			newDt = newDt.plus({ year: yearOffset }).set({ weekday: wkst })
+			for (let i = 0; i < 7; i++) {
+				const finalDate = newDt.plus({ day: i })
+				if (finalDate.year > newDt.year) {
+					break
 				}
+				console.log("add: ", { date: finalDate })
+				newDates.push(finalDate)
 			}
 		}
 	}
