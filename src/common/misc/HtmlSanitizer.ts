@@ -1,8 +1,8 @@
-import DOMPurify, { Config, DOMPurifyI, HookEvent } from "dompurify"
 import { ReplacementImage } from "../gui/base/icons/Icons"
 import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DataFile } from "../api/common/DataFile"
 import { encodeSVG } from "../gui/base/GuiUtils.js"
+import DOMPurify, { Config } from "dompurify"
 
 /** Data url for an SVG image that will be shown in place of external content. */
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = encodeSVG(ReplacementImage)
@@ -47,7 +47,7 @@ export type SanitizedHTML = {
 	links: Array<HTMLElement>
 }
 
-type SanitizeConfig = SanitizeConfigExtra & DOMPurify.Config
+type SanitizeConfig = SanitizeConfigExtra & Config
 
 export type Link = HTMLElement
 
@@ -91,19 +91,19 @@ const FORBID_TAGS = Object.freeze([
 /** restricts the allowed protocols to some standard ones + our tutatemplate protocol that allows the knowledge base to link to email templates. */
 const ALLOWED_URI_REGEXP = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
 
-const HTML_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
+const HTML_CONFIG: Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
 	ALLOWED_URI_REGEXP,
 } as const)
-const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
+const SVG_CONFIG: Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
 	NAMESPACE: "http://www.w3.org/2000/svg",
 } as const)
-const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = Object.freeze({
+const FRAGMENT_CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
@@ -118,7 +118,7 @@ export class HtmlSanitizer {
 	private externalContent!: number
 	private inlineImageCids!: Array<string>
 	private links!: Array<Link>
-	private purifier!: DOMPurifyI
+	private purifier!: typeof DOMPurify
 
 	constructor() {
 		if (DOMPurify.isSupported) {
@@ -221,7 +221,7 @@ export class HtmlSanitizer {
 		return Object.assign({}, config, DEFAULT_CONFIG_EXTRA, configExtra)
 	}
 
-	private afterSanitizeAttributes(currentNode: Element, data: HookEvent, config: Config) {
+	private afterSanitizeAttributes(currentNode: Element, data: null, config: Config) {
 		const typedConfig = config as SanitizeConfig
 		// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 		// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js

@@ -514,7 +514,7 @@ o.spec(
 			let result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
 				blockExternalContent: true,
 			})
-			o(result.blockedExternalContent).equals(0)
+			o(result.blockedExternalContent).equals(1)
 			o(result.html).equals("<div></div>")
 			result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
 				blockExternalContent: false,
