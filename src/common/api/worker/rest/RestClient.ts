@@ -127,7 +127,12 @@ export class RestClient {
 						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
 
 						if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
-							reject(new SuspensionError(`blocked for ${suspensionTime}, not suspending`))
+							reject(
+								new SuspensionError(
+									`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
+									suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
+								),
+							)
 						} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
 							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
 
