@@ -92,6 +92,10 @@ where
 
 		let item = if imports_in_this_chunk.is_empty() {
 			let too_big_import = self.provider.next()?;
+			eprintln!(
+				"Max limit: {CHUNK_LIMIT}. our size: {}",
+				sizer(&too_big_import)
+			);
 			// not a single item was added to chunk,
 			// because single chunk was too big, return as-is as failure,
 			Err(too_big_import)

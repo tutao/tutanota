@@ -1406,6 +1406,7 @@ pub struct ImportMailPostIn {
 	pub ownerGroup: GeneratedId,
 	pub ownerKeyVersion: i64,
 	pub encImports: Vec<super::sys::StringWrapper>,
+	pub mailState: IdTupleGenerated,
 	pub targetMailFolder: IdTupleGenerated,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -1424,7 +1425,7 @@ impl Entity for ImportMailPostIn {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportMailPostOut {
 	pub _format: i64,
-	pub mails: Vec<IdTupleGenerated>,
+	pub mailState: IdTupleGenerated,
 }
 
 impl Entity for ImportMailPostOut {
@@ -1441,17 +1442,13 @@ impl Entity for ImportMailPostOut {
 pub struct ImportMailState {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	pub _ownerGroup: Option<GeneratedId>,
-	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: GeneratedId,
 	pub failedMails: i64,
 	pub status: i64,
 	pub successfulMails: i64,
+	pub importedSetEntrys: Vec<IdTupleCustom>,
 	pub targetFolder: IdTupleGenerated,
-	pub _errors: Option<Errors>,
-	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ImportMailState {
@@ -1714,6 +1711,7 @@ pub struct MailBox {
 	pub importedAttachments: GeneratedId,
 	pub mailDetailsDrafts: Option<MailDetailsDraftsRef>,
 	pub mailImportStates: GeneratedId,
+	pub perImportStateEntries: GeneratedId,
 	pub receivedAttachments: GeneratedId,
 	pub sentAttachments: GeneratedId,
 	pub spamResults: Option<SpamResults>,

@@ -10,7 +10,6 @@ use imap_reader::{ImapImport, ImapIterationError};
 use importable_mail::ImportableMail;
 use std::future::Future;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
 use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::aes::Iv;
@@ -35,7 +34,10 @@ pub mod file_reader;
 pub mod imap_reader;
 pub mod importable_mail;
 
+#[cfg(not(test))]
 pub const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 8;
+#[cfg(test)]
+pub const MAX_REQUEST_SIZE: usize = 1024 * 5;
 
 #[derive(Debug)]
 pub enum ImportError {
@@ -61,8 +63,6 @@ pub enum ImportError {
 	IterationError(IterationError),
 	/// Some mail was too big
 	TooBigChunk,
-	/// number of mails we expected to be imported vs number of mails server had written is not same
-	MismatchedImportCount { expected: usize, imported: usize },
 }
 
 #[derive(Debug)]
@@ -112,17 +112,11 @@ pub struct ImportEssential {
 	mail_group_key: VersionedAesKey,
 	target_mailset: IdTupleGenerated,
 	randomizer_facade: RandomizerFacade,
-}
-
-pub struct ImportState {
-	last_server_update: SystemTime,
-	pub remote_state: ImportMailState,
-	pub imported_mail_ids: Vec<IdTupleGenerated>,
+	remote_state: IdTupleGenerated,
 }
 
 pub struct Importer {
-	essentials: ImportEssential,
-	state: ImportState,
+	pub essentials: ImportEssential,
 	source: ImportSource,
 }
 
@@ -168,63 +162,6 @@ impl Importer {
 		let new_id_bytes = randomizer_facade.generate_random_array::<4>();
 		let new_id_string = BASE64_URL_SAFE_NO_PAD.encode(new_id_bytes);
 		CustomId(new_id_string)
-	}
-
-	pub fn get_remote_state(&self) -> &ImportMailState {
-		&self.state.remote_state
-	}
-
-	async fn initialize_remote_state(&mut self) -> Result<(), ImportError> {
-		let mailbox = self
-			.essentials
-			.logged_in_sdk
-			.mail_facade()
-			.load_user_mailbox()
-			.await
-			.map_err(|e| ImportError::sdk("loading mailbox", e))?;
-		let session_key =
-			GenericAesKey::Aes256(aes::Aes256Key::generate(&self.essentials.randomizer_facade));
-		let owner_enc_session_key = self.essentials.mail_group_key.encrypt_key(
-			&session_key,
-			Iv::generate(&self.essentials.randomizer_facade),
-		);
-
-		let mut import_state_id =
-			IdTupleGenerated::new(mailbox.mailImportStates.clone(), GeneratedId::min_id());
-		let mut import_state_for_upload = ImportMailState {
-			_format: 0,
-			_id: Some(import_state_id.clone()),
-			_permissions: mailbox._permissions,
-			_ownerGroup: Some(mailbox._ownerGroup.unwrap()),
-			_ownerEncSessionKey: Some(owner_enc_session_key.object),
-			_ownerKeyVersion: Some(owner_enc_session_key.version),
-			status: ImportStatus::Running as i64,
-			successfulMails: 0,
-			failedMails: 0,
-			targetFolder: self.essentials.target_mailset.clone(),
-			_errors: Some(Default::default()),
-			_finalIvs: Default::default(),
-		};
-
-		let create_data = self
-			.essentials
-			.logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.create_instance(import_state_for_upload.clone(), Some(&session_key))
-			.await
-			.map_err(|e| ImportError::sdk("creating remote import state", e))?;
-
-		import_state_id.element_id = create_data
-			.generatedId
-			.ok_or(ImportError::NoElementIdForState)?;
-
-		import_state_for_upload._permissions = create_data.permissionListId;
-		import_state_for_upload._id = Some(import_state_id);
-		self.state.remote_state = import_state_for_upload;
-		self.state.last_server_update = SystemTime::now();
-
-		Ok(())
 	}
 }
 
@@ -400,6 +337,7 @@ impl ImportEssential {
 			ownerKeyVersion: owner_enc_sk_for_import_post.version,
 			ownerEncSessionKey: owner_enc_sk_for_import_post.object,
 			newImportedMailSetName: "@internal-imported-mailset".to_string(),
+			mailState: self.remote_state.clone(),
 			_finalIvs: Default::default(),
 			_format: 0,
 			_errors: None,
@@ -467,54 +405,38 @@ impl ImportEssential {
 				}
 			})
 	}
-}
 
-impl ImportState {
-	async fn update_import_state_on_server(
+	async fn mark_remote_final_state(
 		&mut self,
-		logged_in_sdk: &LoggedInSdk,
+		final_state: ImportStatus,
 	) -> Result<(), ImportError> {
-		if self.last_server_update.elapsed().unwrap_or_default() > Duration::from_secs(6) {
-			self.force_update_import_state_on_server(logged_in_sdk)
-				.await
-		} else {
-			Ok(())
-		}
-	}
+		assert!(
+			final_state == ImportStatus::Finished || final_state == ImportStatus::Canceled,
+			"only cancel and finished should be final state"
+		);
 
-	async fn force_update_import_state_on_server(
-		&mut self,
-		logged_in_sdk: &LoggedInSdk,
-	) -> Result<(), ImportError> {
-		logged_in_sdk
+		let mut import_state = self
+			.load_current_import_state()
+			.await
+			.map_err(|e| ImportError::sdk("loading importState before Finished", e))?;
+		import_state.status = final_state as i64;
+
+		self.logged_in_sdk
 			.mail_facade()
 			.get_crypto_entity_client()
-			.update_instance(self.remote_state.clone())
+			.update_instance(import_state)
 			.await
 			.map_err(|e| ImportError::sdk("update remote import state", e))?;
 
-		self.last_server_update = SystemTime::now();
 		Ok(())
 	}
 
-	fn change_status(&mut self, status: ImportStatus) {
-		self.remote_state.status = status as i64;
-	}
-
-	fn add_newly_imported_mails(&mut self, mut newly_imported_mails: Vec<IdTupleGenerated>) {
-		self.remote_state.successfulMails = self
-			.remote_state
-			.successfulMails
-			.saturating_add(newly_imported_mails.len().try_into().unwrap_or_default());
-
-		self.imported_mail_ids.append(&mut newly_imported_mails);
-	}
-
-	fn add_failed_mails_count(&mut self, newly_failed_mails_count: usize) {
-		self.remote_state.failedMails = self
-			.remote_state
-			.failedMails
-			.saturating_add(newly_failed_mails_count.try_into().unwrap_or_default());
+	pub async fn load_current_import_state(&self) -> Result<ImportMailState, ApiCallError> {
+		self.logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.load::<ImportMailState, _>(&self.remote_state)
+			.await
 	}
 }
 
@@ -580,26 +502,10 @@ impl Importer {
 	) -> Self {
 		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
 		Self {
-			state: ImportState {
-				last_server_update: SystemTime::now(),
-				remote_state: ImportMailState {
-					_format: Default::default(),
-					_id: Default::default(),
-					_ownerEncSessionKey: Default::default(),
-					_ownerGroup: Default::default(),
-					_ownerKeyVersion: Default::default(),
-					_permissions: Default::default(),
-					status: Default::default(),
-					failedMails: Default::default(),
-					successfulMails: Default::default(),
-					targetFolder: IdTupleGenerated::new(Default::default(), Default::default()),
-					_errors: Default::default(),
-					_finalIvs: Default::default(),
-				},
-				imported_mail_ids: vec![],
-			},
 			source: import_source,
 			essentials: ImportEssential {
+				remote_state: IdTupleGenerated::new(GeneratedId::min_id(), GeneratedId::min_id()),
+
 				logged_in_sdk,
 				target_owner_group,
 				mail_group_key,
@@ -609,10 +515,9 @@ impl Importer {
 		}
 	}
 
-	pub async fn import_next_chunk(&mut self) -> Result<(), ImportError> {
+	pub async fn import_next_chunk(&mut self) -> Result<ImportStatus, ImportError> {
 		let Self {
 			essentials: import_essentials,
-			state: import_state,
 			source: import_source,
 		} = self;
 
@@ -630,50 +535,26 @@ impl Importer {
 
 		match chunked_mails_provider.next() {
 			// everything have been finished
-			None => {
-				import_state.change_status(ImportStatus::Finished);
-			},
+			None => Ok(ImportStatus::Finished),
 
 			// this chunk was too big to import
-			Some(Err(too_big_chunk)) => {
-				import_state.add_failed_mails_count(1);
-				Err(ImportError::TooBigChunk)?
-			},
+			Some(Err(too_big_chunk)) => Err(ImportError::TooBigChunk)?,
 
 			// these chunks can be imported in single request
 			Some(Ok(chunked_import_data)) => {
-				let expected_imported_mails_count = chunked_import_data.len();
-
 				let importable_post_data = import_essentials
 					.make_serialized_chunk(chunked_import_data)
-					.await
-					.map_err(|e| {
-						import_state.add_failed_mails_count(expected_imported_mails_count);
-						e
-					})?;
+					.await?;
 
 				let import_mails_post_out = import_essentials
 					.make_import_service_call(importable_post_data)
-					.await
-					.map_err(|e| {
-						import_state.add_failed_mails_count(expected_imported_mails_count);
-						e
-					})?;
+					.await?;
 
-				let imported_mails_count = import_mails_post_out.mails.len();
-				import_state.add_newly_imported_mails(import_mails_post_out.mails);
+				import_essentials.remote_state = import_mails_post_out.mailState;
 
-				// make sure what we uploaded and what we got are same
-				if imported_mails_count != expected_imported_mails_count {
-					Err(ImportError::MismatchedImportCount {
-						expected: expected_imported_mails_count,
-						imported: imported_mails_count,
-					})?
-				}
+				Ok(ImportStatus::Running)
 			},
 		}
-
-		Ok(())
 	}
 
 	pub async fn start_stateful_import<CallbackHandle, Err>(
@@ -684,27 +565,24 @@ impl Importer {
 		CallbackHandle: Future<Output = Result<StateCallbackResponse, Err>>,
 		Err: From<ImportError>,
 	{
-		self.initialize_remote_state().await?;
-
-		while self.get_remote_state().status != ImportStatus::Finished as i64 {
-			self.state.change_status(ImportStatus::Running);
+		loop {
+			let new_status = self.import_next_chunk().await?;
 
 			let callback_response = callback_handle().await?;
 			if callback_response.should_stop {
-				self.state.change_status(ImportStatus::Canceled);
+				self.essentials
+					.mark_remote_final_state(ImportStatus::Canceled)
+					.await?;
 				break;
 			}
 
-			self.import_next_chunk().await?;
-
-			self.state
-				.update_import_state_on_server(&self.essentials.logged_in_sdk)
-				.await?;
+			if new_status == ImportStatus::Finished {
+				self.essentials
+					.mark_remote_final_state(ImportStatus::Finished)
+					.await?;
+				break;
+			}
 		}
-
-		self.state
-			.force_update_import_state_on_server(&self.essentials.logged_in_sdk)
-			.await?;
 
 		Ok(())
 	}
@@ -841,7 +719,11 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.get_remote_state();
+		let remote_state = importer
+			.essentials
+			.load_current_import_state()
+			.await
+			.unwrap();
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
@@ -856,8 +738,11 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email.as_str());
 
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.get_remote_state();
-
+		let remote_state = importer
+			.essentials
+			.load_current_import_state()
+			.await
+			.unwrap();
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
@@ -867,8 +752,11 @@ mod tests {
 	async fn can_import_single_eml_file_without_attachment() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.get_remote_state();
-
+		let remote_state = importer
+			.essentials
+			.load_current_import_state()
+			.await
+			.unwrap();
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
@@ -878,8 +766,11 @@ mod tests {
 	async fn can_import_single_eml_file_with_attachment() {
 		let mut importer = init_file_importer(vec!["attachment_sample.eml"]).await;
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.get_remote_state();
-
+		let remote_state = importer
+			.essentials
+			.load_current_import_state()
+			.await
+			.unwrap();
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
@@ -887,7 +778,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn should_stop_if_true_response() {
-		let mut importer = init_file_importer(vec!["sample.eml"]).await;
+		let mut importer = init_file_importer(vec!["sample.eml"; 3]).await;
 
 		let callback_resolver =
 			|| async { Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: true }) };
@@ -895,10 +786,19 @@ mod tests {
 			.start_stateful_import(callback_resolver)
 			.await
 			.unwrap();
-		let remote_state = importer.get_remote_state();
+		let remote_state = importer
+			.essentials
+			.load_current_import_state()
+			.await
+			.unwrap();
 
 		assert_eq!(remote_state.status, ImportStatus::Canceled as i64);
 		assert_eq!(remote_state.failedMails, 0);
-		assert_eq!(remote_state.successfulMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
+	}
+
+	#[test]
+	fn max_request_size_in_test_is_different() {
+		assert_eq!(1024 * 5, MAX_REQUEST_SIZE);
 	}
 }

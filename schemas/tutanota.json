@@ -543,6 +543,11 @@
 					"name": "AddAssociation",
 					"sourceType": "MailBox",
 					"info": "AddAssociation MailBox/mailImportStates/LIST_ASSOCIATION/1578."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailBox",
+					"info": "AddAssociation MailBox/perImportStateEntries/LIST_ASSOCIATION/1579."
 				}
 			]
 		}
