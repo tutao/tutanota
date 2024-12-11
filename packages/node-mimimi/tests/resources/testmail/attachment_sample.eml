@@ -14,7 +14,19 @@ HBvcnRpbmcmcmRxdW87IHRvIGZvY3VzIGp1c3Qgb24gdGhlICZsZHF1bztpbXBvcnRpbm
 cmcmRxdW87LDwvcD48cD5idXQgdGhlbiBJIHRob3VnaHQsIHdoeSBub3QgZG8gYm90aD8
 gJiN4MjYzQTs8L3A+PC9odG1sPg==
 --festivus
-Content-Type: image/gif; name="TestFile.gif";
+Content-Type: image/gif; name="TestFile1.gif";
+Content-Transfer-Encoding: Base64
+Content-Disposition: attachment
+
+R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
+--festivus
+Content-Type: image/gif; name="TestFile2.gif";
+Content-Transfer-Encoding: Base64
+Content-Disposition: attachment
+
+R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
+--festivus
+Content-Type: image/gif; name="TestFile3.gif";
 Content-Transfer-Encoding: Base64
 Content-Disposition: attachment
 
