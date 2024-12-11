@@ -26,6 +26,7 @@ import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
 import { makeMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 import { MailboxExportState } from "../../../../src/common/desktop/export/MailboxExportPersistence.js"
 import { MailExportFacade } from "../../../../src/common/api/worker/facades/lazy/MailExportFacade.js"
+import { SuspensionError } from "../../../../src/common/api/common/error/SuspensionError"
 import { spy } from "@tutao/tutanota-test-utils"
 import { ExportError, ExportErrorReason } from "../../../../src/common/api/common/error/ExportError"
 
@@ -202,6 +203,23 @@ o.spec("MailExportController", function () {
 			verify(exportFacade.saveMailboxExport(mailBundle2, userId, archivedMailBag1._id, getElementId(mail2)))
 			verify(exportFacade.saveMailboxExport(mailBundle3, userId, archivedMailBag2._id, getElementId(mail3)))
 			verify(exportFacade.endMailboxExport(userId))
+		})
+	})
+
+	o.spec("handle errors", function () {
+		o.test("SuspensionError", async () => {
+			let wasThrown = false
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything())).thenDo(() => {
+				if (wasThrown) {
+					return Promise.resolve([])
+				} else {
+					wasThrown = true
+					return Promise.reject(new SuspensionError(":(", "10"))
+				}
+			})
+			await controller.startExport(mailboxDetail)
+			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything()), { times: 3 + 1 })
+			o(wasThrown).equals(true)
 		})
 	})
 })

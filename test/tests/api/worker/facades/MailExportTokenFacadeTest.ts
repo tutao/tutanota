@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { func, object, when } from "testdouble"
+import { func, matchers, object, when } from "testdouble"
 import { createMailExportTokenServicePostOut } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { MailExportTokenService } from "../../../../../src/common/api/entities/tutanota/Services"
 import { AccessExpiredError, TooManyRequestsError } from "../../../../../src/common/api/common/error/RestError"
@@ -23,7 +23,9 @@ o.spec("MailExportTokenFacade", () => {
 			const expected = "result"
 			const cb = func<(token: string) => Promise<string>>()
 			when(cb(validToken)).thenResolve(expected)
-			when(serviceExecutor.post(MailExportTokenService, null)).thenResolve(createMailExportTokenServicePostOut({ mailExportToken: validToken }))
+			when(serviceExecutor.post(MailExportTokenService, null, matchers.anything())).thenResolve(
+				createMailExportTokenServicePostOut({ mailExportToken: validToken }),
+			)
 
 			const result = await facade.loadWithToken(cb)
 
@@ -47,7 +49,9 @@ o.spec("MailExportTokenFacade", () => {
 			when(cb(validToken)).thenResolve(expected)
 			when(cb(expiredToken)).thenReject(new AccessExpiredError("token expired"))
 			facade._setCurrentExportToken(expiredToken)
-			when(serviceExecutor.post(MailExportTokenService, null)).thenResolve(createMailExportTokenServicePostOut({ mailExportToken: validToken }))
+			when(serviceExecutor.post(MailExportTokenService, null, matchers.anything())).thenResolve(
+				createMailExportTokenServicePostOut({ mailExportToken: validToken }),
+			)
 
 			const result = await facade.loadWithToken(cb)
 
@@ -57,7 +61,7 @@ o.spec("MailExportTokenFacade", () => {
 		o.test("when requesting token fails none are stored", async () => {
 			const cb = func<(token: string) => Promise<string>>()
 			when(cb(expiredToken)).thenReject(new AccessExpiredError("token expired"))
-			when(serviceExecutor.post(MailExportTokenService, null)).thenReject(new TooManyRequestsError("no more tokens :("))
+			when(serviceExecutor.post(MailExportTokenService, null, matchers.anything())).thenReject(new TooManyRequestsError("no more tokens :("))
 
 			await o(() => facade.loadWithToken(cb)).asyncThrows(TooManyRequestsError)
 
