@@ -164,19 +164,19 @@ impl BlobFacade {
 	) -> Result<Vec<KeyedNewBlobWrapper>, ApiCallError> {
 		let mut keyed_new_blob_wrappers = Vec::new();
 		for file_datum in file_data {
-			let data_chunks = file_datum.data.chunks(MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
-			for chunk in data_chunks {
-				let encrypted_chunk = file_datum
+			let blobs = chunk_data(file_datum.data.as_slice(), MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
+			for blob in blobs {
+				let encrypted_blob = file_datum
 					.session_key
-					.encrypt_data(chunk, Iv::generate(&self.randomizer_facade))
-					.map_err(|e| ApiCallError::internal_with_err(e, "Cannot encrypt chunk"))?;
-				let short_hash: Vec<u8> = sha256(&encrypted_chunk).into_iter().take(6).collect();
+					.encrypt_data(blob, Iv::generate(&self.randomizer_facade))
+					.map_err(|e| ApiCallError::internal_with_err(e, "Cannot encrypt blob"))?;
+				let short_hash: Vec<u8> = sha256(&encrypted_blob).into_iter().take(6).collect();
 
 				keyed_new_blob_wrappers.push(KeyedNewBlobWrapper {
 					session_key: file_datum.session_key.clone(),
 					new_blob_wrapper: NewBlobWrapper {
 						hash: short_hash,
-						data: encrypted_chunk,
+						data: encrypted_blob,
 					},
 				})
 			}
@@ -306,7 +306,7 @@ impl BlobFacade {
 		archive_data_type: ArchiveDataType,
 		owner_group_id: &GeneratedId,
 		session_key: &GenericAesKey,
-		chunk: &[u8],
+		blob: &[u8],
 	) -> Result<BlobReferenceTokenWrapper, ApiCallError> {
 		let BlobServerAccessInfo {
 			servers,
@@ -317,11 +317,11 @@ impl BlobFacade {
 			.request_write_token(archive_data_type, owner_group_id)
 			.await?;
 
-		let encrypted_chunk = session_key
-			.encrypt_data(chunk, Iv::generate(&self.randomizer_facade))
-			.map_err(|_e| ApiCallError::internal(String::from("failed to encrypt chunk")))?;
+		let encrypted_blob = session_key
+			.encrypt_data(blob, Iv::generate(&self.randomizer_facade))
+			.map_err(|_e| ApiCallError::internal(String::from("failed to encrypt blob")))?;
 		let query_params =
-			self.create_query_params_single_blob_legacy(&encrypted_chunk, blob_access_token);
+			self.create_query_params_single_blob_legacy(&encrypted_blob, blob_access_token);
 		let encoded_query_params = encode_query_params(query_params);
 
 		for server in &servers {
@@ -335,7 +335,7 @@ impl BlobFacade {
 					POST,
 					RestClientOptions {
 						headers: Default::default(),
-						body: Some(encrypted_chunk.clone()),
+						body: Some(encrypted_blob.clone()),
 						suspension_behavior: Some(SuspensionBehavior::Suspend),
 					},
 				)
@@ -387,7 +387,7 @@ impl BlobFacade {
 		session_key: &GenericAesKey,
 		data: Vec<u8>,
 	) -> Result<Vec<BlobReferenceTokenWrapper>, ApiCallError> {
-		let blobs = data.chunks(MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
+		let blobs = chunk_data(&data, MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
 		let mut blob_reference_token_wrappers: Vec<BlobReferenceTokenWrapper> =
 			Vec::with_capacity(blobs.len());
 
@@ -458,10 +458,10 @@ impl BlobFacade {
 
 	fn create_query_params_single_blob_legacy(
 		&self,
-		encrypted_chunk: &[u8],
+		encrypted_blob: &[u8],
 		blob_access_token: String,
 	) -> Vec<(String, String)> {
-		let short_hash: Vec<u8> = sha256(encrypted_chunk).into_iter().take(6).collect();
+		let short_hash: Vec<u8> = sha256(encrypted_blob).into_iter().take(6).collect();
 		let blob_hash_b64 = base64::prelude::BASE64_STANDARD.encode(short_hash.as_slice());
 		let model_version = init_type_model_provider()
 			.resolve_type_ref(&BlobGetIn::type_ref())
@@ -504,6 +504,20 @@ where
 		String::new()
 	} else {
 		format!("?{}", pairs.join("&"))
+	}
+}
+
+/// The ".chunks" function returns an empty iterator if the data length
+/// is zero, we prefer an iterator with one empty element.
+fn chunk_data<'slice>(
+	data: &'slice [u8],
+	chunk_size: usize,
+) -> Box<dyn ExactSizeIterator<Item = &'slice [u8]> + 'slice> {
+	if data.is_empty() {
+		let empty_slice = &data[..0];
+		Box::new(vec![empty_slice].into_iter())
+	} else {
+		Box::new(data.chunks(chunk_size))
 	}
 }
 
@@ -1172,5 +1186,21 @@ mod tests {
 			"",
 			encode_query_params(HashMap::default() as HashMap<String, &[u8]>)
 		)
+	}
+
+	#[test]
+	fn chunk_data_works() {
+		const CHUNK_SIZE: usize = 1024;
+		assert_eq!(1, chunk_data(&vec![], CHUNK_SIZE).len());
+		assert_eq!(1, chunk_data(&vec![1u8; 100], CHUNK_SIZE).len());
+		assert_eq!(1, chunk_data(&vec![0u8; CHUNK_SIZE], CHUNK_SIZE).len());
+		assert_eq!(2, chunk_data(&vec![5u8; CHUNK_SIZE + 1], CHUNK_SIZE).len());
+		assert_eq!(
+			3,
+			chunk_data(&vec![3u8; CHUNK_SIZE * 2 + 1], CHUNK_SIZE).len()
+		);
+		assert_eq!(1, chunk_data(&vec![0u8; 105], CHUNK_SIZE).len());
+		assert_eq!(1, chunk_data(&vec![0u8; 2], CHUNK_SIZE).len());
+		assert_eq!(1, chunk_data(&vec![0u8; 1], CHUNK_SIZE).len());
 	}
 }
