@@ -224,6 +224,7 @@ function applyByDayRules(
 	validMonths: number[],
 	wkst: WeekdayNumbers,
 	hasWeekNo?: boolean,
+	monthDays?: number[],
 ) {
 	if (parsedRules.length === 0) {
 		return dates
@@ -277,29 +278,51 @@ function applyByDayRules(
 					continue
 				}
 
+				const allowedDays: number[] = []
 				const weekChange = leadingValue ?? 0
 				const stopCondition = date.plus({ month: 1 }).set({ day: 1 })
 				const baseDate = date.set({ day: 1 })
 
-				if (weekChange != 0) {
-					const absWeeks = weekChange > 0 ? weekChange : Math.ceil(baseDate.daysInMonth! / 7) - Math.abs(weekChange)
-					let dt = baseDate.set({ day: 1 })
-
-					while (dt.weekday != targetWeekDay) {
-						dt = dt.plus({ day: 1 })
+				for (const allowedDay of monthDays ?? []) {
+					if (allowedDay > 0) {
+						allowedDays.push(allowedDay)
+						continue
 					}
 
-					dt = dt.plus({ week: absWeeks - 1 })
+					const day = baseDate.daysInMonth! - Math.abs(allowedDay) + 1
+					allowedDays.push(day)
+				}
 
-					if (dt.toMillis() >= baseDate.toMillis() && dt.toMillis() < stopCondition.toMillis()) {
+				const isAllowedInMonthDayRule = (day: number) => {
+					return allowedDays.length === 0 ? true : allowedDays.includes(day)
+				}
+
+				if (weekChange != 0) {
+					let dt = baseDate.set({ day: 1 })
+
+					if (weekChange < 0) {
+						dt = dt
+							.set({ day: dt.daysInMonth })
+							.set({ weekday: targetWeekDay })
+							.minus({ week: Math.abs(weekChange) - 1 })
+					} else {
+						while (dt.weekday != targetWeekDay) {
+							dt = dt.plus({ day: 1 })
+						}
+						dt = dt.plus({ week: weekChange - 1 })
+					}
+
+					if (dt.toMillis() >= baseDate.toMillis() && dt.toMillis() < stopCondition.toMillis() && isAllowedInMonthDayRule(dt.day)) {
 						newDates.push(dt)
 					}
 				} else {
 					let currentDate = baseDate
 					while (currentDate < stopCondition) {
 						const dt = currentDate.set({ weekday: targetWeekDay })
-						if (dt.toMillis() >= baseDate.toMillis()) {
+						if (dt.toMillis() >= baseDate.toMillis() && isAllowedInMonthDayRule(dt.day)) {
 							if (validMonths.length > 0 && validMonths.includes(dt.month)) {
+								newDates.push(dt)
+							} else if (validMonths.length === 0) {
 								newDates.push(dt)
 							}
 						}
@@ -475,19 +498,30 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 			}
 
 			const parsedWeekNumber = Number.parseInt(rule.interval)
-			let newDt: DateTime
-
+			let newDt: DateTime = date
+			let weekNumber
 			if (parsedWeekNumber < 0) {
-				newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) }).set({ weekday: wkst })
-				for (let i = 0; i < 7; i++) {
-					newDates.push(newDt.plus({ day: i }))
-				}
+				weekNumber = date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1
+				// I don't get why when I don't set this here it doesn't work for only YEARLY!!!
+				// But if I set here and re-set the week later, it works????
+				// Also, it starts expanding for next week when the offset is -50?
+				// Is that a problem for negative only?
+				// newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1 })
+				console.log("Negative weeknumber ", { parsedWeekNumber, newDt })
 			} else {
-				newDt = date.set({ weekNumber: parsedWeekNumber }).set({ weekday: wkst })
+				newDt = date.set({ weekNumber: parsedWeekNumber })
+				weekNumber = parsedWeekNumber
+				console.log("Postive weeknumber ", { parsedWeekNumber, newDt })
+			}
 
-				for (let i = 0; i < 7; i++) {
-					newDates.push(newDt.plus({ day: i }))
+			const yearOffset = newDt.toMillis() < date.toMillis() ? 1 : 0
+			newDt = newDt.plus({ year: yearOffset }).set({ weekNumber }).set({ weekday: wkst })
+			for (let i = 0; i < 7; i++) {
+				const finalDate = newDt.plus({ day: i })
+				if (finalDate.year > newDt.year) {
+					break
 				}
+				newDates.push(finalDate)
 			}
 		}
 	}
@@ -1179,8 +1213,11 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 					RepeatPeriod.MONTHLY,
 					validMonths,
 					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+					false,
+					byMonthDayRules.map((rule) => Number.parseInt(rule.interval)),
 				),
 				validMonths as MonthNumbers[],
+				eventStartTime,
 			)
 
 			for (const event of events) {
@@ -1209,7 +1246,11 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				RepeatPeriod.ANNUALLY,
 			)
 
-			const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+			const weekNoAppliedEvents = applyWeekNo(
+				monthAppliedEvents,
+				byWeekNoRules,
+				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+			)
 			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules)
 			const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
 
@@ -1223,7 +1264,6 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				),
 				validMonths as MonthNumbers[],
 			)
-
 			for (const event of events) {
 				const newStartTime = event.toJSDate()
 				const newEndTime = allDay
