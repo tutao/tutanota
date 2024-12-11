@@ -210,7 +210,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					expanded: this.expanded,
 				},
 				m(Table, {
-					columnHeading: [() => "Import Instance", "state_label"],
+					columnHeading: ["state_label", "inboxRuleTargetFolder_label"],
 					columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],
 					showActionButtonColumn: true,
 					lines: this.parseRecentImportsToTableLines(),
@@ -220,7 +220,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderImportInfoText() {
-		return [m(".small", "You can import EML or MBOX files. Further import options will be release in 2025.")]
+		return [m(".small", "You can import EML or MBOX files.")]
 	}
 
 	private renderNoImportOnWebText() {
