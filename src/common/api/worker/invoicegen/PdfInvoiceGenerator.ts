@@ -8,7 +8,7 @@ const enum VatType {
 	ADD_VAT = "1",
 	VAT_INCLUDED_SHOWN = "2",
 	VAT_INCLUDED_HIDDEN = "3",
-	NO_VAT_REVERSE_CHARGE = "4",
+	NO_VAT_CHARGE_TUTAO = "4",
 }
 
 const enum InvoiceType {
@@ -223,7 +223,8 @@ export class PdfInvoiceGenerator {
 			"",
 			"",
 			InvoiceTexts[this.languageCode].grandTotal,
-			this.formatInvoiceCurrency(this.invoice.grandTotal),
+			// in case of NO_VAT_CHARGE_TUTAO we must not show the VAT in the invoice, but we pay the taxes ourselves, so they need to be existing on the invoice
+			this.formatInvoiceCurrency(this.invoice.vatType == VatType.NO_VAT_CHARGE_TUTAO ? this.invoice.subTotal : this.invoice.grandTotal),
 		])
 	}
 
@@ -239,7 +240,6 @@ export class PdfInvoiceGenerator {
 			case VatType.VAT_INCLUDED_SHOWN:
 				break
 			case VatType.NO_VAT:
-			case VatType.NO_VAT_REVERSE_CHARGE:
 				if (this.invoice.vatIdNumber != null) {
 					this.doc
 						.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber1)
@@ -251,6 +251,19 @@ export class PdfInvoiceGenerator {
 						.addText(`${this.invoice.vatIdNumber}`)
 				} else {
 					this.doc.addText(InvoiceTexts[this.languageCode].netPricesNoVatInGermany)
+				}
+				break
+			case VatType.NO_VAT_CHARGE_TUTAO:
+				this.doc
+					.addText(InvoiceTexts[this.languageCode].reverseChargeAffiliate)
+					.addLineBreak()
+					.addText(InvoiceTexts[this.languageCode].reverseChargeVatIdNumber2)
+				if (this.invoice.vatIdNumber != null) {
+					this.doc
+						.addLineBreak()
+						.addText(`${InvoiceTexts[this.languageCode].yourVatId} `)
+						.changeFont(PDF_FONTS.BOLD, 11)
+						.addText(`${this.invoice.vatIdNumber}`)
 				}
 				break
 			case VatType.VAT_INCLUDED_HIDDEN:

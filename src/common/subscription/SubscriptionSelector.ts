@@ -264,19 +264,19 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			if (prices != null) {
 				if (isCyberMonday && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
 					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
-					priceStr = revolutionaryPrice?.yearlyPerMonth ?? NBSP
+					priceStr = revolutionaryPrice?.displayYearlyPerMonth ?? NBSP
 					// if there is a discount for this plan we show the original price as reference
-					referencePriceStr = prices?.yearlyPerMonth
+					referencePriceStr = prices?.displayYearlyPerMonth
 				} else {
 					switch (interval) {
 						case PaymentInterval.Monthly:
-							priceStr = prices.monthlyPerMonth
+							priceStr = prices.displayMonthlyPerMonth
 							break
 						case PaymentInterval.Yearly:
-							priceStr = prices.yearlyPerMonth
+							priceStr = prices.displayYearlyPerMonth
 							if (!isCyberMonday) {
 								// if there is no discount for any plan then we show the monthly price as reference
-								referencePriceStr = prices.monthlyPerMonth
+								referencePriceStr = prices.displayMonthlyPerMonth
 							}
 							break
 					}

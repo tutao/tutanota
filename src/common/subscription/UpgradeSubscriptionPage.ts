@@ -127,8 +127,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				// Confirmation of free/business dialog (click on ok)
 				this.__signupFreeTest?.getStage(1).complete()
 				data.type = PlanType.Free
-				data.price = "0"
-				data.priceNextYear = "0"
+				data.price = null
+				data.nextYearPrice = null
 				this.showNextPage()
 			}
 		})
@@ -207,12 +207,10 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		data.type = planType
 		const { planPrices, options } = data
 		try {
-			// `data.price` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
-			const subscriptionPrice = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
-			data.price = subscriptionPrice.rawPrice
-			data.displayPrice = subscriptionPrice.displayPrice
-			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice).displayPrice
-			data.priceNextYear = data.price !== nextYear ? nextYear : null
+			// `data.price.rawPrice` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
+			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
+			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice)
+			data.nextYearPrice = data.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 		} catch (e) {
 			console.error(e)
 			Dialog.message("appStoreNotAvailable_msg")
