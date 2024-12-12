@@ -112,15 +112,11 @@ export function esbuildWasmLoader(options: PluginOptions) {
 						path: args.path.replaceAll("wasm-fallback:", ""),
 						namespace: "wasm-fallback",
 					}
-				}
-
-				const lib = findLib(normalizedOptions, args.path)
-
-				await generateWasm(lib.command, lib)
-
-				return {
-					path: path.join("wasm", args.path),
-					namespace: "wasm-loader",
+				} else {
+					return {
+						path: path.join("wasm", args.path),
+						namespace: "wasm-loader",
+					}
 				}
 			})
 
@@ -133,6 +129,13 @@ export function esbuildWasmLoader(options: PluginOptions) {
 					}
 				})
 			}
+
+			build.onLoad({ filter: /\.wasm$/ }, async (args): Promise<OnLoadResult | undefined> => {
+				const lib = findLib(normalizedOptions, path.basename(args.path))
+				await generateWasm(lib.command, lib)
+				// don't try to read the wasm since we use wasm-loader or wasm-fallback to use the wasm
+				return undefined
+			})
 
 			build.onLoad({ filter: /.*/, namespace: "wasm-loader" }, async (args): Promise<OnLoadResult> => {
 				return {
