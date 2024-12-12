@@ -702,7 +702,9 @@ export class Indexer {
 						return this._processUserEntityEvents(value)
 					}
 
-					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
+					const typeInfoToIndex =
+						isSameTypeRef(ImportMailStateTypeRef, key) || isSameTypeRef(MailTypeRef, key) ? typeRefToTypeInfo(MailTypeRef) : typeRefToTypeInfo(key)
+					const indexUpdate = _createNewIndexUpdate(typeInfoToIndex)
 
 					if (isSameTypeRef(MailTypeRef, key)) {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)

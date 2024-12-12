@@ -614,29 +614,34 @@ export class MailIndexer {
 			})
 	}
 
-	processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	async processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return promiseMap(events, (event) => {
-			if (event.operation === OperationType.DELETE) {
-				// do nothing, just the importState was deleted, not any mail imported content itself
-			} else if (event.operation === OperationType.UPDATE) {
-				this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId]).then((mailIds) =>
-					promiseMap(mailIds, (mailId) => this.processNewMail(mailId)),
+		await promiseMap(events, async (event) => {
+			// we can only process update event,
+			// and we don't have to look for delete
+			if (event.operation === OperationType.UPDATE) {
+				let mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId])
+				return await promiseMap(mailIds, (mailId) =>
+					this.processNewMail(mailId).then((result) => {
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						}
+					}),
 				)
 			}
-		}).then(noOp)
+		})
 	}
 
 	async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
 		const importMailState = await this._defaultCachingEntity.load(ImportMailStateTypeRef, importStateId)
 		let importedMailEntries = await this._defaultCachingEntity.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 		let importedMailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
-		// we only care about the entries that are supposed to be indexed, i.e. mails with a receivedDate newer than currentIndexTimestamp
-		let dateRangeFilterdMailSetEntryIds = importedMailEntries
+		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp
+		let dateRangeFilteredMailSetEntryIds = importedMailEntries
 			.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
 			.filter((importedEntry) => deconstructMailSetEntryId(importedEntry).receiveDate.getTime() >= this.currentIndexTimestamp)
 		return this._defaultCachingEntity
-			.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, dateRangeFilterdMailSetEntryIds)
+			.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, dateRangeFilteredMailSetEntryIds)
 			.then((entries) => entries.map((entry) => entry.mail))
 	}
 
