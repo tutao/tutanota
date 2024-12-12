@@ -139,6 +139,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
 		if (isIOSApp()) {
+			// Paid users trying to change payment method on iOS with an active subscription
+			if (currentPaymentMethod !== PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
+				return Dialog.message(() => lang.get("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+			}
+
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 		} else if (hasRunningAppStoreSubscription(this.accountingInfo)) {
 			return showManageThroughAppStoreDialog()
