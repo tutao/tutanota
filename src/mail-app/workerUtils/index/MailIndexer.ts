@@ -631,12 +631,12 @@ export class MailIndexer {
 		const importMailState = await this._defaultCachingEntity.load(ImportMailStateTypeRef, importStateId)
 		let importedMailEntries = await this._defaultCachingEntity.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 		let importedMailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
-		// we only care about the entries that are supposed to be indexed, i.e. mails with a receivedDate newer than currentIndexTimestamp
-		let dateRangeFilterdMailSetEntryIds = importedMailEntries
+		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp
+		let dateRangeFilteredMailSetEntryIds = importedMailEntries
 			.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
 			.filter((importedEntry) => deconstructMailSetEntryId(importedEntry).receiveDate.getTime() >= this.currentIndexTimestamp)
 		return this._defaultCachingEntity
-			.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, dateRangeFilterdMailSetEntryIds)
+			.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, dateRangeFilteredMailSetEntryIds)
 			.then((entries) => entries.map((entry) => entry.mail))
 	}
 
