@@ -1112,6 +1112,12 @@ o.spec("KeyRotationFacadeTest", function () {
 					const encryptedHash = object<Uint8Array>()
 					when(cryptoWrapperMock.aesEncrypt(anything(), anything())).thenReturn(encryptedHash)
 
+					const otherAdminUserGroupKey: VersionedKey = {
+						object: object<AesKey>(),
+						version: 12,
+					}
+					when(groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(otherAdmin)).thenResolve(otherAdminUserGroupKey)
+
 					await keyRotationFacade.processPendingKeyRotation(user)
 
 					verify(

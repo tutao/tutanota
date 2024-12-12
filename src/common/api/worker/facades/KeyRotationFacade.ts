@@ -63,6 +63,7 @@ import { customIdToUint8array, elementIdPart, getElementId, isSameId, listIdPart
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import {
 	Aes256Key,
+	aes256RandomKey,
 	AesKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
@@ -468,7 +469,7 @@ export class KeyRotationFacade {
 			if (isSameId(userGroupInfo.group, groupToExclude)) continue
 			let gmf = await this.groupManagementFacade()
 			const userGroupKey = await gmf.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
-			const authKey = this.deriveRotationHashKey(userGroupInfo.group, userGroupKey)
+			const authKey = this.deriveTargetUserGroupKeyAuthKeyForNewAdminPubKeyHash(userGroupInfo.group, userGroupKey)
 			const encryptedKeyHash = this.cryptoWrapper.aesEncrypt(authKey, keyHash)
 			const publicKeyHash = createEncryptedKeyHash({
 				encryptingGroup: userGroupInfo.group,
@@ -482,7 +483,16 @@ export class KeyRotationFacade {
 		return keyHashes
 	}
 
-	private deriveRotationHashKey(userGroupId: Id, userGroupKey: VersionedKey) {
+	private deriveAdminGroupDistributionKeyPairKey(adminGroupId: string, currentAdminGroupKey: VersionedKey, pwKey: Aes256Key) {
+		// when creating new distribution keys we encrypt the private keys with this derivation from the password key
+		return this.cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${currentAdminGroupKey.version}`,
+			key: pwKey,
+			context: "adminGroupDistributionKeyPairKey",
+		})
+	}
+
+	private deriveTargetUserGroupKeyAuthKeyForNewAdminPubKeyHash(userGroupId: Id, userGroupKey: VersionedKey) {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: userGroupId,
 			key: userGroupKey.object,
@@ -490,12 +500,17 @@ export class KeyRotationFacade {
 		})
 	}
 
-	private deriveAdminGroupDistributionKeyPairKey(adminGroupId: string, currentAdminGroupKey: VersionedKey, pwKey: Aes256Key) {
-		// when creating new distribution keys we encrypt the private keys with this derivation from the password key
+	private deriveTargetUserGroupKeyAuthKeyForNewAdminSymKeyHash(
+		adminGroupId: Id,
+		userGroupId: Id,
+		userGroupKey: VersionedKey,
+		adminGroupKeyVersion: number,
+	): Aes256Key {
+		// when distributing the new admin group key to other admins we encrypt its hash with the targetUserGroupKeyAuthKey (derived from the recipients user group key)
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${currentAdminGroupKey.version}`,
-			key: pwKey,
-			context: "adminGroupDistributionKeyPairKey",
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, userGroupKeyVersion: ${userGroupKey.version}, adminGroupKeyVersion: ${adminGroupKeyVersion}`,
+			key: userGroupKey.object,
+			context: "multiAdminKeyRotationNewAdminSymKeyHash",
 		})
 	}
 
@@ -506,15 +521,6 @@ export class KeyRotationFacade {
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
 			key: adminGroupKey.object,
 			context: "multiAdminKeyRotationPubDistKeyHash",
-		})
-	}
-
-	private deriveCurrentAdminSymKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
-		// when distributing the new admin group key to other admins we encrypt its hash with the current admin group key
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
-			key: adminGroupKey.object,
-			context: "multiAdminKeyRotationNewAdminSymKeyHash",
 		})
 	}
 
@@ -947,7 +953,7 @@ export class KeyRotationFacade {
 			)
 		}
 
-		const authKey = this.deriveRotationHashKey(userGroupId, currentUserGroupKey)
+		const authKey = this.deriveTargetUserGroupKeyAuthKeyForNewAdminPubKeyHash(userGroupId, currentUserGroupKey)
 		const decryptedAdminHash = this.cryptoWrapper.aesDecrypt(authKey, encryptingKeyEncKeyHash, true)
 
 		const userGroup: Group = await this.entityClient.load(GroupTypeRef, userGroupId)
@@ -1141,7 +1147,16 @@ export class KeyRotationFacade {
 			)
 
 			const computedNewAdminSymKeyHash = this.generateAdminSymKeyHash(newSymAdminGroupKey)
-			const currentAdminSymDerivedKey = this.deriveCurrentAdminSymKey(adminGroupId, distributionKey.userGroupId, currentAdminGroupKey)
+
+			const groupManagementFacade = await this.groupManagementFacade()
+			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(distributionKey.userGroupId)
+			const targetUserGroupKeyAuthKey = this.deriveTargetUserGroupKeyAuthKeyForNewAdminSymKeyHash(
+				adminGroupId,
+				distributionKey.userGroupId,
+				targetUserGroupKey,
+				currentAdminGroupKey.version,
+			)
+			const targetUserGroupKeyAuthEncAdminSymKeyHash = this.cryptoWrapper.aesEncrypt(targetUserGroupKeyAuthKey, computedNewAdminSymKeyHash)
 
 			const thisAdminDistributionElement: AdminGroupKeyDistributionElement = createAdminGroupKeyDistributionElement({
 				userGroupId: distributionKey.userGroupId,
@@ -1150,7 +1165,7 @@ export class KeyRotationFacade {
 					encryptingGroup: adminGroupId,
 					hashedKeyVersion: String(newSymAdminGroupKey.version),
 					encryptingKeyVersion: String(currentAdminGroupKey.version),
-					encryptingKeyEncKeyHash: this.cryptoWrapper.aesEncrypt(currentAdminSymDerivedKey, computedNewAdminSymKeyHash),
+					encryptingKeyEncKeyHash: targetUserGroupKeyAuthEncAdminSymKeyHash,
 				}),
 			})
 
