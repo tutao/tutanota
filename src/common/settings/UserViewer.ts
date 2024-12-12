@@ -192,8 +192,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					Dialog.message("userAccountDeactivated_msg")
 				} else if (this.isItMe()) {
 					Dialog.message("removeOwnAdminFlagInfo_msg")
-				} else if (this.userGroupInfo.localAdmin != null) {
-					Dialog.message("assignAdminRightsToLocallyAdministratedUserError_msg")
 				} else {
 					showProgressDialog(
 						"pleaseWait_msg",

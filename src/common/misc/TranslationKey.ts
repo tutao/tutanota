@@ -1798,7 +1798,6 @@ export type TranslationKeyType =
 	| "unsubscribe_action"
 	| "unsuccessfulDrop_msg"
 	| "until_label"
-	| "updateAdminshipGlobalAdmin_msg"
 	| "updateAllCalendarEvents_action"
 	| "updateAvailable_label"
 	| "updateFound_label"
