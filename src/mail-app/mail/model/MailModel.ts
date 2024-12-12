@@ -15,8 +15,11 @@ import {
 	partition,
 	promiseMap,
 	splitInChunks,
+	TypeRef,
 } from "@tutao/tutanota-utils"
 import {
+	ImportedMailTypeRef,
+	ImportMailStateTypeRef,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -37,7 +40,7 @@ import {
 import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
-import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
+import { createEntityUpdate, WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"

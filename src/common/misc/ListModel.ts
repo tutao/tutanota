@@ -99,12 +99,6 @@ export class ListModel<ElementType extends ListElement> {
 		this.stateStream,
 	)
 
-	resetLoadingState() {
-		this.loadState = "created"
-		this.loading = Promise.resolve()
-		this.updateState(this.defaultRawStateStream)
-	}
-
 	private updateState(newStatePart: Partial<PrivateListState<ElementType>>) {
 		this.rawStateStream({ ...this.rawState, ...newStatePart })
 	}
