@@ -410,120 +410,6 @@
 		"app": "sys",
 		"version": "118"
 	},
-	"AdministratedGroup": {
-		"name": "AdministratedGroup",
-		"since": 27,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1294,
-		"rootId": "A3N5cwAFDg",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1298,
-				"since": 27,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1296,
-				"since": 27,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1299,
-				"since": 27,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1297,
-				"since": 27,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"groupType": {
-				"final": true,
-				"name": "groupType",
-				"id": 1300,
-				"since": 27,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"groupInfo": {
-				"final": false,
-				"name": "groupInfo",
-				"id": 1301,
-				"since": 27,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "GroupInfo",
-				"dependency": null
-			},
-			"localAdminGroup": {
-				"final": false,
-				"name": "localAdminGroup",
-				"id": 1302,
-				"since": 27,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "118"
-	},
-	"AdministratedGroupsRef": {
-		"name": "AdministratedGroupsRef",
-		"since": 27,
-		"type": "AGGREGATED_TYPE",
-		"id": 1303,
-		"rootId": "A3N5cwAFFw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1304,
-				"since": 27,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"items": {
-				"final": true,
-				"name": "items",
-				"id": 1305,
-				"since": 27,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "AdministratedGroup",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "118"
-	},
 	"AffiliatePartnerKpiMonthSummary": {
 		"name": "AffiliatePartnerKpiMonthSummary",
 		"since": 110,
@@ -5499,16 +5385,6 @@
 				"refType": "Group",
 				"dependency": null
 			},
-			"administratedGroups": {
-				"final": true,
-				"name": "administratedGroups",
-				"id": 1306,
-				"since": 27,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "AdministratedGroupsRef",
-				"dependency": null
-			},
 			"archives": {
 				"final": true,
 				"name": "archives",
@@ -5739,16 +5615,6 @@
 				"since": 1,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			},
-			"localAdmin": {
-				"final": true,
-				"name": "localAdmin",
-				"id": 1287,
-				"since": 27,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "ZeroOrOne",
 				"refType": "Group",
 				"dependency": null
 			},
@@ -7795,101 +7661,6 @@
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
 				"refType": "KeyRotation",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "118"
-	},
-	"LocalAdminGroupReplacementData": {
-		"name": "LocalAdminGroupReplacementData",
-		"since": 113,
-		"type": "AGGREGATED_TYPE",
-		"id": 2484,
-		"rootId": "A3N5cwAJtA",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 2485,
-				"since": 113,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminGroupEncGKey": {
-				"final": false,
-				"name": "adminGroupEncGKey",
-				"id": 2487,
-				"since": 113,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminGroupKeyVersion": {
-				"final": false,
-				"name": "adminGroupKeyVersion",
-				"id": 2489,
-				"since": 113,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"groupKeyVersion": {
-				"final": false,
-				"name": "groupKeyVersion",
-				"id": 2488,
-				"since": 113,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"groupId": {
-				"final": false,
-				"name": "groupId",
-				"id": 2486,
-				"since": 113,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "118"
-	},
-	"LocalAdminRemovalPostIn": {
-		"name": "LocalAdminRemovalPostIn",
-		"since": 113,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2490,
-		"rootId": "A3N5cwAJug",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 2491,
-				"since": 113,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"groupUpdates": {
-				"final": false,
-				"name": "groupUpdates",
-				"id": 2492,
-				"since": 113,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "LocalAdminGroupReplacementData",
 				"dependency": null
 			}
 		},

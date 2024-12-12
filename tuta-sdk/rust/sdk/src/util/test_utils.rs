@@ -40,7 +40,6 @@ pub fn generate_random_group(
 		_ownerGroup: None,
 		_permissions: GeneratedId::test_random(),
 		groupInfo: IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
-		administratedGroups: None,
 		archives: vec![ArchiveType {
 			_id: Some(CustomId::test_random()),
 			active: ArchiveRef {

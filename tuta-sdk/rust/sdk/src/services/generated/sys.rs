@@ -46,7 +46,6 @@ use crate::entities::generated::sys::GroupKeyRotationInfoGetOut;
 use crate::entities::generated::sys::GroupKeyRotationPostIn;
 use crate::entities::generated::sys::InvoiceDataGetIn;
 use crate::entities::generated::sys::InvoiceDataGetOut;
-use crate::entities::generated::sys::LocalAdminRemovalPostIn;
 use crate::entities::generated::sys::LocationServiceGetReturn;
 use crate::entities::generated::sys::MailAddressAliasServiceData;
 use crate::entities::generated::sys::MailAddressAliasGetIn;
@@ -248,12 +247,6 @@ pub struct InvoiceDataService;
 
 crate::service_impl!(declare, InvoiceDataService, "sys/invoicedataservice", 118);
 crate::service_impl!(GET, InvoiceDataService, InvoiceDataGetIn, InvoiceDataGetOut);
-
-
-pub struct LocalAdminRemovalService;
-
-crate::service_impl!(declare, LocalAdminRemovalService, "sys/localadminremovalservice", 118);
-crate::service_impl!(POST, LocalAdminRemovalService, LocalAdminRemovalPostIn, ());
 
 
 pub struct LocationService;

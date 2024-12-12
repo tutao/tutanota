@@ -470,6 +470,16 @@
 			"version": 118,
 			"changes": [
 				{
+					"name": "RemoveAssociation",
+					"sourceType": "Group",
+					"info": "RemoveAssociation Group/administratedGroups."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "GroupInfo",
+					"info": "RemoveAssociation GroupInfo/localAdmin."
+				},
+				{
 					"name": "AddValue",
 					"sourceType": "KeyMac",
 					"info": "AddValue KeyMac/taggingKeyVersion/2521."

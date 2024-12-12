@@ -195,8 +195,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					Dialog.message("userAccountDeactivated_msg")
 				} else if (this.isItMe()) {
 					Dialog.message("removeOwnAdminFlagInfo_msg")
-				} else if (this.userGroupInfo.localAdmin != null) {
-					Dialog.message("assignAdminRightsToLocallyAdministratedUserError_msg")
 				} else {
 					showProgressDialog(
 						"pleaseWait_msg",
@@ -407,7 +405,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			) {
 				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
 				await this.updateUsedStorageAndAdminFlag()
-				this.administratedBy = this.userGroupInfo.localAdmin
 				m.redraw()
 			} else if (
 				isUpdateForTypeRef(UserTypeRef, update) &&
