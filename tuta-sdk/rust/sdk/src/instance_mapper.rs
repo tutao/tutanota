@@ -1387,7 +1387,6 @@ mod tests {
 			mailAddress: None,
 			name: "encName".to_owned(),
 			group: GeneratedId::test_random(),
-			localAdmin: None,
 			mailAddressAliases: vec![],
 			_errors: Default::default(),
 			_finalIvs: Default::default(),
