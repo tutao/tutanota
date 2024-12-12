@@ -249,7 +249,12 @@ function applyByDayRules(
 			const targetWeekDay = parsedRuleValue[2] !== "" ? WEEKDAY_TO_NUMBER[parsedRuleValue[2]] : null
 			const leadingValue = parsedRuleValue[1] !== "" ? Number.parseInt(parsedRuleValue[1]) : null
 
-			if (frequency === RepeatPeriod.WEEKLY) {
+			if (frequency === RepeatPeriod.DAILY) {
+				if (date.weekday !== targetWeekDay) {
+					continue
+				}
+				newDates.push(date)
+			} else if (frequency === RepeatPeriod.WEEKLY) {
 				if (!targetWeekDay) {
 					continue
 				}
@@ -410,7 +415,7 @@ function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 	return newDates
 }
 
-function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], isDailyEvent: boolean = false) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -422,7 +427,6 @@ function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatR
 				console.warn("Invalid event date", date)
 				continue
 			}
-
 			const targetDay = Number.parseInt(rule.interval)
 
 			if (Number.isNaN(targetDay)) {
@@ -430,15 +434,26 @@ function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatR
 				continue
 			}
 
-			if (targetDay >= 0) {
-				newDates.push(date.set({ day: targetDay }))
-				continue
-			}
+			if (isDailyEvent) {
+				if (targetDay > 0 && date.day === targetDay) {
+					newDates.push(date)
+				} else if (targetDay < 0) {
+					const daysDiff = date.daysInMonth! - Math.abs(targetDay) + 1
 
-			const daysDiff = date.daysInMonth! - Math.abs(targetDay)
-
-			if (daysDiff > 0) {
-				newDates.push(date.set({ day: daysDiff }))
+					if (daysDiff > 0 && daysDiff === date.day) {
+						newDates.push(date)
+					}
+				}
+			} else {
+				// Monthly or Yearly
+				if (targetDay >= 0) {
+					newDates.push(date.set({ day: targetDay }))
+					continue
+				}
+				const daysDiff = date.daysInMonth! - Math.abs(targetDay) + 1
+				if (daysDiff > 0) {
+					newDates.push(date.set({ day: daysDiff }))
+				}
 			}
 		}
 	}
@@ -523,7 +538,6 @@ function finishByRules(dates: DateTime[], validMonths: MonthNumbers[]) {
 	return cleanDates.sort((a, b) => a.toMillis() - b.toMillis())
 }
 
-//FIXME Might be worth checking where this func is being used and start using the new function that considers advanced repeat rules
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, interval: number, ianaTimeZone: string): Date {
 	switch (repeatPeriod) {
 		case RepeatPeriod.DAILY:
@@ -1030,11 +1044,16 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 		}
 
 		if (frequency === RepeatPeriod.DAILY) {
-			const events = applyByMonth(
-				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
-				repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH),
-				maxDate,
-				RepeatPeriod.DAILY,
+			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
+			const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
+			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
+			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
+
+			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.DAILY)
+			const monthDayAppliedEvents = applyByMonthDay(monthAppliedEvents, byMonthDayRules, true)
+			const events = finishByRules(
+				applyByDayRules(monthDayAppliedEvents, byDayRules, RepeatPeriod.DAILY, validMonths, WEEKDAY_TO_NUMBER.MO),
+				validMonths as MonthNumbers[],
 			)
 
 			for (const event of events) {
