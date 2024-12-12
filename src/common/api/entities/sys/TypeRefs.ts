@@ -95,37 +95,6 @@ export type AdminGroupKeyRotationPutIn = {
 	adminDistKeyPair: KeyPair;
 	distKeyMac: KeyMac;
 }
-export const AdministratedGroupTypeRef: TypeRef<AdministratedGroup> = new TypeRef("sys", "AdministratedGroup")
-
-export function createAdministratedGroup(values: StrippedEntity<AdministratedGroup>): AdministratedGroup {
-	return Object.assign(create(typeModels.AdministratedGroup, AdministratedGroupTypeRef), values)
-}
-
-export type AdministratedGroup = {
-	_type: TypeRef<AdministratedGroup>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	groupType: NumberString;
-
-	groupInfo: IdTuple;
-	localAdminGroup: Id;
-}
-export const AdministratedGroupsRefTypeRef: TypeRef<AdministratedGroupsRef> = new TypeRef("sys", "AdministratedGroupsRef")
-
-export function createAdministratedGroupsRef(values: StrippedEntity<AdministratedGroupsRef>): AdministratedGroupsRef {
-	return Object.assign(create(typeModels.AdministratedGroupsRef, AdministratedGroupsRefTypeRef), values)
-}
-
-export type AdministratedGroupsRef = {
-	_type: TypeRef<AdministratedGroupsRef>;
-
-	_id: Id;
-
-	items: Id;
-}
 export const AffiliatePartnerKpiMonthSummaryTypeRef: TypeRef<AffiliatePartnerKpiMonthSummary> = new TypeRef("sys", "AffiliatePartnerKpiMonthSummary")
 
 export function createAffiliatePartnerKpiMonthSummary(values: StrippedEntity<AffiliatePartnerKpiMonthSummary>): AffiliatePartnerKpiMonthSummary {
@@ -1403,7 +1372,6 @@ export type Group = {
 	type: NumberString;
 
 	admin: null | Id;
-	administratedGroups: null | AdministratedGroupsRef;
 	archives: ArchiveType[];
 	currentKeys: null | KeyPair;
 	customer: null | Id;
@@ -1439,7 +1407,6 @@ export type GroupInfo = {
 	name: string;
 
 	group: Id;
-	localAdmin: null | Id;
 	mailAddressAliases: MailAddressAlias[];
 }
 export const GroupKeyTypeRef: TypeRef<GroupKey> = new TypeRef("sys", "GroupKey")
@@ -1894,35 +1861,6 @@ export type KeyRotationsRef = {
 	_id: Id;
 
 	list: Id;
-}
-export const LocalAdminGroupReplacementDataTypeRef: TypeRef<LocalAdminGroupReplacementData> = new TypeRef("sys", "LocalAdminGroupReplacementData")
-
-export function createLocalAdminGroupReplacementData(values: StrippedEntity<LocalAdminGroupReplacementData>): LocalAdminGroupReplacementData {
-	return Object.assign(create(typeModels.LocalAdminGroupReplacementData, LocalAdminGroupReplacementDataTypeRef), values)
-}
-
-export type LocalAdminGroupReplacementData = {
-	_type: TypeRef<LocalAdminGroupReplacementData>;
-
-	_id: Id;
-	adminGroupEncGKey: Uint8Array;
-	adminGroupKeyVersion: NumberString;
-	groupKeyVersion: NumberString;
-
-	groupId: Id;
-}
-export const LocalAdminRemovalPostInTypeRef: TypeRef<LocalAdminRemovalPostIn> = new TypeRef("sys", "LocalAdminRemovalPostIn")
-
-export function createLocalAdminRemovalPostIn(values: StrippedEntity<LocalAdminRemovalPostIn>): LocalAdminRemovalPostIn {
-	return Object.assign(create(typeModels.LocalAdminRemovalPostIn, LocalAdminRemovalPostInTypeRef), values)
-}
-
-export type LocalAdminRemovalPostIn = {
-	_type: TypeRef<LocalAdminRemovalPostIn>;
-
-	_format: NumberString;
-
-	groupUpdates: LocalAdminGroupReplacementData[];
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 
