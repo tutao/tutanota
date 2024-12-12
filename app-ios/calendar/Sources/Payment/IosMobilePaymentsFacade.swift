@@ -27,39 +27,64 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		return currentResult
 	}
 
-	public func getPlanPrices() async throws -> [MobilePlanPrice] {
-		struct TempMobilePlanPrice {
-			var monthlyPerMonth: String?
-			var yearlyPerYear: String?
-			var yearlyPerMonth: String?
-		}
-		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
-			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
-		}
-		let products: [Product] = try await Product.products(for: plans)
-		var result = [String: TempMobilePlanPrice]()
-		for product in products {
-			let productName = String(product.id.split(separator: ".")[2])
-			var plan = result[productName] ?? TempMobilePlanPrice(monthlyPerMonth: nil, yearlyPerYear: nil, yearlyPerMonth: nil)
+  public func getPlanPrices() async throws -> [MobilePlanPrice] {
+	  // TODO: Handle promotions (first year discount etc.)
+	  struct TempMobilePlanPrice {
+		  var rawMonthlyPerMonth: String?
+		  var rawYearlyPerYear: String?
+		  var rawYearlyPerMonth: String?
+		  var displayMonthlyPerMonth: String?
+		  var displayYearlyPerYear: String?
+		  var displayYearlyPerMonth: String?
+	  }
+	  let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
+		  [self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
+	  }
+	  let products: [Product] = try await Product.products(for: plans)
+	  var result = [String: TempMobilePlanPrice]()
+	  for product in products {
+		  let productName = String(product.id.split(separator: ".")[2])
+		  var plan =
+			  result[productName]
+			  ?? TempMobilePlanPrice(
+				  rawMonthlyPerMonth: nil,
+				  rawYearlyPerYear: nil,
+				  rawYearlyPerMonth: nil,
+				  displayMonthlyPerMonth: nil,
+				  displayYearlyPerYear: nil,
+				  displayYearlyPerMonth: nil
+			  )
 
-			let unit = product.subscription!.subscriptionPeriod.unit
-			switch unit {
-			case .year:
-				let formatStyle = product.priceFormatStyle
-				let priceDivided = product.price / 12
-				let yearlyPerMonthPrice = priceDivided.formatted(formatStyle)
-				let yearlyPerYearPrice = product.displayPrice
-				plan.yearlyPerYear = yearlyPerYearPrice
-				plan.yearlyPerMonth = yearlyPerMonthPrice
-			case .month: plan.monthlyPerMonth = product.displayPrice
-			default: fatalError("unexpected subscription period unit \(unit)")
-			}
-			result[productName] = plan
-		}
-		return result.map { name, prices in
-			MobilePlanPrice(name: name, monthlyPerMonth: prices.monthlyPerMonth!, yearlyPerYear: prices.yearlyPerYear!, yearlyPerMonth: prices.yearlyPerMonth!)
-		}
-	}
+		  let unit = product.subscription!.subscriptionPeriod.unit
+		  switch unit {
+		  case .year:
+			  let formatStyle = product.priceFormatStyle
+			  let priceDivided = product.price / 12
+			  let yearlyPerMonthPrice = priceDivided.formatted(formatStyle)
+			  let yearlyPerYearPrice = product.displayPrice
+			  plan.rawYearlyPerYear = String(describing: product.price)
+			  plan.rawYearlyPerMonth = String(describing: priceDivided)
+			  plan.displayYearlyPerYear = yearlyPerYearPrice
+			  plan.displayYearlyPerMonth = yearlyPerMonthPrice
+		  case .month:
+			  plan.rawMonthlyPerMonth = String(describing: product.price)
+			  plan.displayMonthlyPerMonth = product.displayPrice
+		  default: fatalError("unexpected subscription period unit \(unit)")
+		  }
+		  result[productName] = plan
+	  }
+	  return result.map { name, prices in
+		  MobilePlanPrice(
+			  name: name,
+			  rawMonthlyPerMonth: prices.rawMonthlyPerMonth!,
+			  rawYearlyPerYear: prices.rawYearlyPerYear!,
+			  rawYearlyPerMonth: prices.rawYearlyPerMonth!,
+			  displayMonthlyPerMonth: prices.displayMonthlyPerMonth!,
+			  displayYearlyPerYear: prices.displayYearlyPerYear!,
+			  displayYearlyPerMonth: prices.displayYearlyPerMonth!
+		  )
+	  }
+  }
 	public func showSubscriptionConfigView() async throws {
 		let window = await UIApplication.shared.connectedScenes.first
 		try await AppStore.showManageSubscriptions(in: window as! UIWindowScene)

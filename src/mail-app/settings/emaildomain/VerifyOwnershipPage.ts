@@ -50,18 +50,11 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 			createDnsRecordTable([vnode.attrs.data.expectedVerificationRecord]),
 			m(
 				".flex-center.full-width.pt-l.mb-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "next_action",
-						onclick: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
-					}),
-				),
+				m(LoginButton, {
+					label: "next_action",
+					class: "small-login-button",
+					onclick: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
+				}),
 			),
 		]
 	}

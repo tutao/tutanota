@@ -10,6 +10,7 @@ export type CheckboxAttrs = {
 	label: lazy<string | Children>
 	checked: boolean
 	onChecked: (value: boolean) => unknown
+	class?: string
 	helpLabel?: TranslationKey | lazy<string>
 	disabled?: boolean
 }
@@ -24,13 +25,14 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		const a = vnode.attrs
 		const helpLabelText = a.helpLabel ? lang.getMaybeLazy(a.helpLabel) : ""
 		const helpLabel = a.helpLabel ? m(`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`, helpLabelText) : []
+		const userClasses = a.class == null ? "" : " " + a.class
 		return m(
 			`.pt`,
 			{
 				role: "checkbox",
 				"aria-checked": String(a.checked),
 				"aria-disabled": String(a.disabled),
-				class: getOperatingClasses(a.disabled, "click flash"),
+				class: getOperatingClasses(a.disabled, "click flash") + userClasses,
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
 						this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()

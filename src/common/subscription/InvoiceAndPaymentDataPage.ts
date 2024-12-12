@@ -159,7 +159,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								a.data.paymentData,
 								null,
 								a.data.upgradeType === UpgradeType.Signup,
-								a.data.price,
+								neverNull(a.data.price?.rawPrice),
 								neverNull(a.data.accountingInfo),
 							).then((success) => {
 								if (success) {
@@ -209,18 +209,11 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 						]),
 						m(
 							".flex-center.full-width.pt-l",
-							m(
-								"",
-								{
-									style: {
-										width: "260px",
-									},
-								},
-								m(LoginButton, {
-									label: "next_action",
-									onclick: onNextClick,
-								}),
-							),
+							m(LoginButton, {
+								label: "next_action",
+								class: "small-login-button",
+								onclick: onNextClick,
+							}),
 						),
 				  ]
 				: null,

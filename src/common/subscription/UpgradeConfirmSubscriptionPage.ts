@@ -168,8 +168,8 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					isReadOnly: true,
 				}),
 				m(TextField, {
-					label: isYearly ? "priceFirstYear_label" : "price_label",
-					value: buildPriceString(attrs.data.displayPrice, attrs.data.options),
+					label: isYearly && attrs.data.nextYearPrice ? "priceFirstYear_label" : "price_label",
+					value: buildPriceString(attrs.data.price?.displayPrice ?? "0", attrs.data.options),
 					isReadOnly: true,
 				}),
 				this.renderPriceNextYear(attrs),
@@ -187,27 +187,20 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			),
 			m(
 				".flex-center.full-width.pt-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(LoginButton, {
-						label: "buy_action",
-						onclick: () => this.upgrade(attrs.data),
-					}),
-				),
+				m(LoginButton, {
+					label: "buy_action",
+					class: "small-login-button",
+					onclick: () => this.upgrade(attrs.data),
+				}),
 			),
 		]
 	}
 
 	private renderPriceNextYear(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
-		return attrs.data.priceNextYear
+		return attrs.data.nextYearPrice
 			? m(TextField, {
 					label: "priceForNextYear_label",
-					value: buildPriceString(attrs.data.priceNextYear, attrs.data.options),
+					value: buildPriceString(attrs.data.nextYearPrice.displayPrice, attrs.data.options),
 					isReadOnly: true,
 			  })
 			: null

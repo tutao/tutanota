@@ -8,6 +8,7 @@ import { getContentButtonIconBackground, getElevatedBackground, getNavigationMen
 import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -35,6 +36,7 @@ const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
 
 const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
+	const lightTheme = locator.themeController.getBaseTheme("light")
 	return {
 		"#link-tt": isElectronClient()
 			? {
@@ -169,6 +171,9 @@ styles.registerStyle("main", () => {
 		},
 		".smaller": {
 			"font-size": px(size.font_size_smaller),
+		},
+		".normal-font-size": {
+			"font-size": px(size.font_size_base),
 		},
 		".b": {
 			"font-weight": "bold",
@@ -1750,6 +1755,9 @@ styles.registerStyle("main", () => {
 			width: "100%",
 			"border-radius": px(size.border_radius),
 		},
+		".small-login-button": {
+			width: "260px",
+		},
 		".button-content": {
 			height: px(size.button_height),
 			"min-width": px(size.button_height),
@@ -2506,6 +2514,8 @@ styles.registerStyle("main", () => {
 			"html, body": {
 				position: "initial",
 				overflow: "visible !important",
+				color: lightTheme.content_fg,
+				"background-color": `${lightTheme.content_bg} !important`,
 			},
 			// overwrite position "fixed" otherwise only one page will be printed.
 			".header-nav": {

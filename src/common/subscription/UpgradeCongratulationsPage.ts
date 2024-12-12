@@ -38,30 +38,23 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 				: null,
 			m(
 				".flex-center.full-width.pt-l",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
+				m(LoginButton, {
+					label: "ok_action",
+					class: "small-login-button",
+					onclick: () => {
+						if (attrs.data.type === PlanType.Free) {
+							const recoveryConfirmationStageFree = this.__signupFreeTest?.getStage(5)
+
+							recoveryConfirmationStageFree?.setMetric({
+								name: "switchedFromPaid",
+								value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
+							})
+							recoveryConfirmationStageFree?.complete()
+						}
+
+						this.close(attrs.data, this.dom)
 					},
-					m(LoginButton, {
-						label: "ok_action",
-						onclick: () => {
-							if (attrs.data.type === PlanType.Free) {
-								const recoveryConfirmationStageFree = this.__signupFreeTest?.getStage(5)
-
-								recoveryConfirmationStageFree?.setMetric({
-									name: "switchedFromPaid",
-									value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
-								})
-								recoveryConfirmationStageFree?.complete()
-							}
-
-							this.close(attrs.data, this.dom)
-						},
-					}),
-				),
+				}),
 			),
 		]
 	}

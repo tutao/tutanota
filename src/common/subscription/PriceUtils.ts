@@ -121,7 +121,7 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 export type SubscriptionPrice = {
 	// The locale formatted price of a description in the local currency on iOS and in Euro elsewhere
 	displayPrice: string
-	// The raw price in Euro as a float
+	// The raw price in the local currency on iOS and in Euro elsewhere as a float
 	rawPrice: string
 }
 
@@ -173,7 +173,9 @@ export class PriceAndConfigProvider {
 			: this.getMonthlySubscriptionPrice(subscription, type)
 	}
 
-	// Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
+	/**
+	 * Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
+	 */
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): SubscriptionPrice {
 		const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 		const rawPrice = price.toString()
@@ -181,8 +183,8 @@ export class PriceAndConfigProvider {
 		if (isIOSApp()) {
 			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval, rawPrice, type)
 		} else {
-			const displayPrice = formatPrice(price, true)
-			return { displayPrice, rawPrice }
+			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
+			return { displayPrice: formatPrice(price, true), rawPrice: price.toString() }
 		}
 	}
 
@@ -198,15 +200,9 @@ export class PriceAndConfigProvider {
 
 		switch (paymentInterval) {
 			case PaymentInterval.Monthly:
-				return { displayPrice: applePrices.monthlyPerMonth, rawPrice }
+				return { displayPrice: applePrices.displayMonthlyPerMonth, rawPrice: applePrices.rawMonthlyPerMonth }
 			case PaymentInterval.Yearly:
-				if (isCyberMonday && subscription === PlanType.Legend && type === UpgradePriceType.PlanActualPrice) {
-					const revolutionaryYearlyPerYear = this.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())?.yearlyPerYear ?? NBSP
-
-					return { displayPrice: revolutionaryYearlyPerYear, rawPrice }
-				}
-
-				return { displayPrice: applePrices.yearlyPerYear, rawPrice }
+				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear }
 		}
 	}
 
