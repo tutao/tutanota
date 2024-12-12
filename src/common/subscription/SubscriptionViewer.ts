@@ -591,19 +591,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private async updateGroupsField(): Promise<void> {
-		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
-		const localAdminText = localAdminCount + " " + lang.get(localAdminCount === 1 ? "localAdminGroup_label" : "localAdminGroups_label")
-		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
+		const sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
+		// Plural forms and number placement inside the string should be handled by the translation framework, but this is what we got now.
 		const sharedMailText = sharedMailCount + " " + lang.get(sharedMailCount === 1 ? "sharedMailbox_label" : "sharedMailboxes_label")
-
-		if (localAdminCount === 0) {
-			// also show the shared mailboxes text if no groups exists at all
-			this._groupsFieldValue(sharedMailText)
-		} else if (localAdminCount > 0 && sharedMailCount > 0) {
-			this._groupsFieldValue(sharedMailText + ", " + localAdminText)
-		} else {
-			this._groupsFieldValue(localAdminText)
-		}
+		this._groupsFieldValue(sharedMailText)
 	}
 
 	private async updateWhitelabelField(planConfig: PlanConfiguration): Promise<void> {

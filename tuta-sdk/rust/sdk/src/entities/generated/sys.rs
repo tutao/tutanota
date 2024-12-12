@@ -116,43 +116,6 @@ impl Entity for AdminGroupKeyRotationPutIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct AdministratedGroup {
-	pub _format: i64,
-	pub _id: Option<IdTupleGenerated>,
-	pub _ownerGroup: Option<GeneratedId>,
-	pub _permissions: GeneratedId,
-	pub groupType: i64,
-	pub groupInfo: IdTupleGenerated,
-	pub localAdminGroup: GeneratedId,
-}
-
-impl Entity for AdministratedGroup {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "AdministratedGroup",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct AdministratedGroupsRef {
-	pub _id: Option<CustomId>,
-	pub items: GeneratedId,
-}
-
-impl Entity for AdministratedGroupsRef {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "AdministratedGroupsRef",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct AffiliatePartnerKpiMonthSummary {
 	pub _id: Option<CustomId>,
 	pub commission: i64,
@@ -1751,7 +1714,6 @@ pub struct Group {
 	#[serde(rename = "type")]
 	pub r#type: i64,
 	pub admin: Option<GeneratedId>,
-	pub administratedGroups: Option<AdministratedGroupsRef>,
 	pub archives: Vec<ArchiveType>,
 	pub currentKeys: Option<KeyPair>,
 	pub customer: Option<GeneratedId>,
@@ -1791,7 +1753,6 @@ pub struct GroupInfo {
 	pub mailAddress: Option<String>,
 	pub name: String,
 	pub group: GeneratedId,
-	pub localAdmin: Option<GeneratedId>,
 	pub mailAddressAliases: Vec<MailAddressAlias>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -2342,42 +2303,6 @@ impl Entity for KeyRotationsRef {
 		TypeRef {
 			app: "sys",
 			type_: "KeyRotationsRef",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct LocalAdminGroupReplacementData {
-	pub _id: Option<CustomId>,
-	#[serde(with = "serde_bytes")]
-	pub adminGroupEncGKey: Vec<u8>,
-	pub adminGroupKeyVersion: i64,
-	pub groupKeyVersion: i64,
-	pub groupId: GeneratedId,
-}
-
-impl Entity for LocalAdminGroupReplacementData {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "LocalAdminGroupReplacementData",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct LocalAdminRemovalPostIn {
-	pub _format: i64,
-	pub groupUpdates: Vec<LocalAdminGroupReplacementData>,
-}
-
-impl Entity for LocalAdminRemovalPostIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "LocalAdminRemovalPostIn",
 		}
 	}
 }
