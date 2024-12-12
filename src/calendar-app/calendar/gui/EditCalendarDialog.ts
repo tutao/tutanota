@@ -14,6 +14,7 @@ import type { CalendarModel } from "../model/CalendarModel.js"
 import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
+import { generateRandomColor } from "./CalendarGuiUtils.js"
 
 export type CalendarProperties = {
 	name: string
@@ -125,7 +126,11 @@ export function showCreateEditCalendarDialog({
 	isNewCalendar = true,
 	calendarModel,
 }: CreateEditDialogAttrs) {
-	if (color !== "") color = "#" + color
+	if (color !== "") {
+		color = "#" + color
+	} else if (isNewCalendar && isExternalCalendarType(calendarType)) {
+		color = generateRandomColor()
+	}
 
 	const nameStream = stream(name)
 	const colorStream = stream(color)

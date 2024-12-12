@@ -63,7 +63,14 @@ import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvi
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
+import {
+	calendarNavConfiguration,
+	calendarWeek,
+	daysHaveEvents,
+	generateRandomColor,
+	shouldDefaultToAmPmTimeFormat,
+	showDeletePopup,
+} from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"

@@ -70,7 +70,7 @@ import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent }
 import { CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
-import { isValidColorCode } from "../../../common/gui/base/Color.js"
+import { hslToHex, isColorLight, isValidColorCode, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
@@ -82,6 +82,8 @@ import { UserController } from "../../../common/api/main/UserController.js"
 import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
+import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
+import { theme } from "../../../common/gui/theme.js"
 
 export interface IntervalOption {
 	value: number
@@ -972,8 +974,9 @@ export function getDisplayEventTitle(title: string): string {
 
 export type ColorString = string
 
-export function generateRandomColor(withHashtag: boolean = false): ColorString {
-	return (withHashtag ? "#" : "") + Math.random().toString(16).slice(-6)
+export function generateRandomColor(): ColorString {
+	const model = new ColorPickerModel(!isColorLight(theme.content_bg))
+	return hslToHex(model.getColor(Math.floor(Math.random() * MAX_HUE_ANGLE), 2))
 }
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
