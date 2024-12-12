@@ -20,7 +20,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 		const content = vnode.children
 		if (hideIfEmpty && content == false) return null // Using loose equality to check if children has any contents
 		return m(
-			".sidebar-section.mb",
+			".sidebar-section",
 			{
 				style: {
 					color: theme.navigation_button,
