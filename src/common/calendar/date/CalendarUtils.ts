@@ -250,11 +250,13 @@ function applyByDayRules(
 			const leadingValue = parsedRuleValue[1] !== "" ? Number.parseInt(parsedRuleValue[1]) : null
 
 			if (frequency === RepeatPeriod.DAILY) {
+				// BYMONTH => BYMONTHDAY => BYDAY
 				if (date.weekday !== targetWeekDay) {
 					continue
 				}
 				newDates.push(date)
 			} else if (frequency === RepeatPeriod.WEEKLY) {
+				// BYMONTH => BYDAY(expand)
 				if (!targetWeekDay) {
 					continue
 				}
@@ -532,8 +534,12 @@ function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
  * @param dates Generated DateTime objects from BYRULEs
  * @param validMonths List of months allowed by BYMONTH rules, should be empty in case no BYMONTH is specified
  */
-function finishByRules(dates: DateTime[], validMonths: MonthNumbers[]) {
-	const cleanDates = validMonths.length > 0 ? dates.filter((dt) => validMonths.includes(dt.month as MonthNumbers)) : dates
+function finishByRules(dates: DateTime[], validMonths: MonthNumbers[], progenitorStartDate?: Date) {
+	let cleanDates = validMonths.length > 0 ? dates.filter((dt) => validMonths.includes(dt.month as MonthNumbers)) : dates
+
+	if (progenitorStartDate) {
+		cleanDates = cleanDates.filter((dt) => dt.toMillis() >= progenitorStartDate.getTime())
+	}
 
 	return cleanDates.sort((a, b) => a.toMillis() - b.toMillis())
 }
@@ -1083,6 +1089,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
 				),
 				validMonths as MonthNumbers[],
+				eventStartTime,
 			)
 
 			for (const event of events) {
