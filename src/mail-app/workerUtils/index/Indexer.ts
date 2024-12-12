@@ -40,7 +40,7 @@ import { _createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, type
 import type { Db, GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { ContactList, ContactListTypeRef, ContactTypeRef, ImportMailStateTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import type { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
@@ -688,6 +688,8 @@ export class Indexer {
 						getFromMap(all, ContactTypeRef, () => []).push(update)
 					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
 						getFromMap(all, UserTypeRef, () => []).push(update)
+					} else if (isSameTypeRefByAttr(ImportMailStateTypeRef, update.application, update.type)) {
+						getFromMap(all, ImportMailStateTypeRef, () => []).push(update)
 					}
 
 					return all
@@ -706,6 +708,8 @@ export class Indexer {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)
 					} else if (isSameTypeRef(ContactTypeRef, key)) {
 						promise = this._contact.processEntityEvents(value, groupId, batchId, indexUpdate)
+					} else if (isSameTypeRef(ImportMailStateTypeRef, key)) {
+						promise = this._mail.processImportStateEntityEvents(value, groupId, batchId, indexUpdate)
 					}
 
 					return promise

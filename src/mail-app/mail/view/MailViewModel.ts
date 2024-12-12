@@ -29,7 +29,7 @@ import {
 	debounce,
 	first,
 	groupByAndMap,
-	isNotNull,
+	isNotNull, last,
 	lastThrow,
 	lazyMemoized,
 	mapWith,
@@ -38,6 +38,7 @@ import {
 	memoizedWithHiddenArgument,
 	ofClass,
 	promiseFilter,
+	promiseMap,
 } from "@tutao/tutanota-utils"
 import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -602,12 +603,22 @@ export class MailViewModel {
 
 	private async processImportedMails(update: EntityUpdateData) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-		let importedMails = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
-		for (const importedMail of importedMails) {
-			let importedMailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, importedMail.mailSetEntry)
-			this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
-			let importedMailId = importedMailSetEntry.mail
-			await this.listModel?.entityEventReceived(listIdPart(importedMailId), elementIdPart(importedMailId), OperationType.CREATE)
+		let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+		let importedMailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
+		let importedMailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+
+		let loadMailListIds = this.listModel?.getUnfilteredAsArray()
+		if(loadMailListIds) {
+			let loadedUntil = last(loadMailListIds)
+			if (loadedUntil?.receivedDate
+
+			let importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, importedMailSetEntryIds)
+
+			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
+				this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
+				let importedMailId = importedMailSetEntry.mail
+				this.listModel?.entityEventReceived(listIdPart(importedMailId), elementIdPart(importedMailId), OperationType.CREATE)
+			})
 		}
 	}
 
