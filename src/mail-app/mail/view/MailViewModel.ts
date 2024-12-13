@@ -610,13 +610,13 @@ export class MailViewModel {
 		let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 		const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
 
-		// we only want to load and display mails that are newer than the currently loaded mail range
 		let loadMailListIds = this.listModel?.getUnfilteredAsArray()
 		if (loadMailListIds) {
 			let lastLoadedMailTimestamp = last(loadMailListIds)?.receivedDate.getTime() ?? 0
 			if (lastLoadedMailTimestamp) {
 				let dateRangeFilteredMailSetEntryIds = importedMailEntries
 					.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+					// we only want to load and display mails that are newer than the currently loaded mail range
 					.filter((importedEntry) => deconstructMailSetEntryId(importedEntry).receiveDate.getTime() >= lastLoadedMailTimestamp)
 
 				const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
