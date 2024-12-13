@@ -1,7 +1,7 @@
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog"
 import { KeyVerificationWizardData } from "../KeyVerificationWizard"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { KeyVerificationMethodType, KeyVerificationResultType } from "../../../api/common/TutanotaConstants"
+import { KeyVerificationMethodType, KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
 import { TextField, TextFieldType } from "../../../gui/base/TextField"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
@@ -61,7 +61,7 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 					nextButtonLabel: () => "Mark as verified" /* TODO: translate */,
 					disableNextButton: this.disableNextButton,
 					beforeNextPageHook: async () => {
-						await keyVerificationFacade.addToPool(mailAddress, fingerprint)
+						await keyVerificationFacade.trust(mailAddress, fingerprint)
 						await reloadParent()
 						return true
 					},
@@ -100,7 +100,9 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 					if (this.validateMailAddress(attrs.data.mailAddress) == null) {
 						try {
-							attrs.data.fingerprint = await keyVerificationFacade.getPublicKeyHashFromServer(attrs.data.mailAddress)
+							attrs.data.fingerprint = assertNotNull(
+								await keyVerificationFacade.getFingerprint(attrs.data.mailAddress, KeyVerificationSourceOfTruth.PublicKeyService),
+							)
 							invalidMailAddress = false
 						} catch (e) {
 							invalidMailAddress = true

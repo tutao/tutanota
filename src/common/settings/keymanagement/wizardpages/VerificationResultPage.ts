@@ -29,7 +29,7 @@ export class VerificationResultPage implements WizardPageN<KeyVerificationWizard
 					{
 						nextButtonLabel: () => "Mark as verified" /* TODO: translate */,
 						beforeNextPageHook: async () => {
-							await keyVerificationFacade.addToPool(mailAddress, fingerprint)
+							await keyVerificationFacade.trust(mailAddress, fingerprint)
 							await reloadParent()
 							return true
 						},

@@ -20,6 +20,7 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
+	KeyVerificationSourceOfTruth,
 	PermissionType,
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
@@ -701,8 +702,15 @@ export class CryptoFacade {
 
 			// Check if recipient is still verified for recipientMailAddress
 			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-			if (await keyVerificationFacade.poolContains(recipientMailAddress)) {
-				if (!(await keyVerificationFacade.publicKeyMatchesPinnedPublicKey(recipientMailAddress, publicKeyGetOut))) {
+			if (await keyVerificationFacade.isTrusted(recipientMailAddress)) {
+				const expectedRecipientFingerprint = keyVerificationFacade.calculateFingerprint(publicKeyGetOut)
+				if (
+					!(await keyVerificationFacade.confirmFingerprint(
+						recipientMailAddress,
+						expectedRecipientFingerprint,
+						KeyVerificationSourceOfTruth.LocalTrusted,
+					))
+				) {
 					throw new UnverifiedRecipientError(recipientMailAddress)
 				}
 			}

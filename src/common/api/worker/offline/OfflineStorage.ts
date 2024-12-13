@@ -89,7 +89,7 @@ export const TableDefinitions = Object.freeze({
 	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
 	blob_element_entities:
 		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-	verification_pool: "mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, PRIMARY KEY (mailAddress)",
+	trusted_identities: "mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, PRIMARY KEY (mailAddress)",
 } as const)
 
 type Range = { lower: Id; upper: Id }

@@ -9,6 +9,7 @@ import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationSourceOfTruth } from "../common/TutanotaConstants"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -231,7 +232,16 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	private async resolveVerification(mailAddress: string): Promise<boolean> {
-		const verified = await this.keyVerificationFacade.isVerified(mailAddress)
-		return Promise.resolve(verified)
+		const storedFingerprint = await this.keyVerificationFacade.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.LocalTrusted)
+		if (storedFingerprint == null) {
+			// address is considered "not verified" when not a member of the pool
+			// TODO: differentiate return value by
+			// - Identity IS trusted AND verified
+			// - Identity IS trusted BUT NOT verified
+			// - Identity IS NOT trusted
+			return false
+		}
+		const verified = this.keyVerificationFacade.confirmFingerprint(mailAddress, storedFingerprint, KeyVerificationSourceOfTruth.PublicKeyService)
+		return verified
 	}
 }

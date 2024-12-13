@@ -10,26 +10,26 @@ import { ButtonSize } from "../../gui/base/ButtonSize"
 import { KeyVerificationDetails, KeyVerificationFacade, MailAddress } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./FingerprintRenderers"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector"
-import { KeyVerificationMethodOptions, KeyVerificationMethodType } from "../../api/common/TutanotaConstants"
+import { KeyVerificationMethodOptions, KeyVerificationMethodType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 import { showKeyVerificationWizard } from "./KeyVerificationWizard"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	mailAddress: string | null
 	publicKeyHash: string | null
-	verificationPool: Map<MailAddress, KeyVerificationDetails>
+	trustedIdentities: Map<MailAddress, KeyVerificationDetails>
 	selectedFingerprintRenderMethod: KeyVerificationMethodType = KeyVerificationMethodType.text
 
 	constructor(private readonly keyVerificationFacade: KeyVerificationFacade, private readonly userController: UserController) {
 		this.mailAddress = null
 		this.publicKeyHash = null
-		this.verificationPool = new Map<MailAddress, KeyVerificationDetails>()
+		this.trustedIdentities = new Map<MailAddress, KeyVerificationDetails>()
 		this.view = this.view.bind(this)
 	}
 
 	async init() {
 		this.mailAddress = assertNotNull(this.userController.userGroupInfo.mailAddress)
-		this.publicKeyHash = await this.keyVerificationFacade.getPublicKeyHashFromServer(this.mailAddress)
-		this.verificationPool = await this.keyVerificationFacade.getPool()
+		this.publicKeyHash = await this.keyVerificationFacade.getFingerprint(this.mailAddress, KeyVerificationSourceOfTruth.PublicKeyService)
+		this.trustedIdentities = await this.keyVerificationFacade.getTrustedIdentities()
 
 		m.redraw()
 	}
@@ -40,7 +40,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async reload() {
-		this.verificationPool = await this.keyVerificationFacade.getPool()
+		this.trustedIdentities = await this.keyVerificationFacade.getTrustedIdentities()
 		m.redraw()
 	}
 
@@ -54,7 +54,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const selfMailAddress = assertNotNull(this.mailAddress)
 		const selfFingerprint = assertNotNull(this.publicKeyHash)
 
-		const addressRows = Array.from(this.verificationPool.entries()).map(([mailAddress, details]: [string, KeyVerificationDetails]) => {
+		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, details]: [string, KeyVerificationDetails]) => {
 			return [
 				m(".flex.items-center.selectable", [
 					m("span.b.text-break.selectable", mailAddress),
@@ -63,7 +63,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					m(IconButton, {
 						title: "keyManagement.verifyMailAddress_action",
 						click: async () => {
-							await this.keyVerificationFacade.removeFromPool(mailAddress)
+							await this.keyVerificationFacade.untrust(mailAddress)
 							await obj.reload()
 						},
 						icon: Icons.Trash,

@@ -20,7 +20,13 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import {
+	asCryptoProtoocolVersion,
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	KeyVerificationSourceOfTruth,
+	PublicKeyIdentifierType,
+} from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -92,9 +98,11 @@ export class AsymmetricCryptoFacade {
 			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		}
 
-		// Compare against pinned key (if possible)
-		if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS && (await keyVerificationFacade.poolContains(identifier.identifier))) {
-			if (!(await keyVerificationFacade.publicKeyMatchesPinnedPublicKey(identifier.identifier, publicKeyGetOut))) {
+		// Compare against trusted identity (if possible)
+		if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS && (await keyVerificationFacade.isTrusted(identifier.identifier))) {
+			const expectedFingerprint = keyVerificationFacade.calculateFingerprint(publicKeyGetOut)
+
+			if (!(await keyVerificationFacade.confirmFingerprint(identifier.identifier, expectedFingerprint, KeyVerificationSourceOfTruth.LocalTrusted))) {
 				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			}
 		}

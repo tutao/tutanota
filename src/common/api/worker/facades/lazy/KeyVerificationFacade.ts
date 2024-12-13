@@ -1,6 +1,6 @@
 import { assertWorkerOrNode } from "../../../common/Env"
 import { createPublicKeyGetIn, PublicKeyGetOut } from "../../../entities/sys/TypeRefs"
-import { PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
+import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { PublicKeyService } from "../../../entities/sys/Services"
 import { assertNotNull, concat, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { sha256Hash } from "@tutao/tutanota-crypto"
@@ -32,117 +32,133 @@ export class KeyVerificationFacade {
 	}
 
 	/**
-	 * Determines whether the expected fingerprint matches the fingerprint returned by
-	 * the public key service for the given mail address.
+	 * Returns all trusted identities, including fresh information if they are still valid.
+	 * TODO: Does this scale?
 	 */
-	async confirmFingerprint(mailAddress: string, expectedFingerprint: string): Promise<boolean> {
-		try {
-			const serverFingerprint = await this.getPublicKeyHashFromServer(mailAddress)
-			return Promise.resolve(serverFingerprint === expectedFingerprint)
-		} catch (e) {
-			if (e instanceof NotFoundError) {
-				// TODO: It might be better if NotFoundError resulted in a visible user message.
-				return Promise.resolve(false)
-			} else {
-				throw e
-			}
-		}
-	}
+	async getTrustedIdentities(): Promise<Map<MailAddress, KeyVerificationDetails>> {
+		const result = await this.sqlCipherFacade.all(`SELECT * FROM trusted_identities`, [])
 
-	/**
-	 * Returns all pinned/trusted keys, including fresh information if they are still valid.
-	 */
-	async getPool(): Promise<Map<MailAddress, KeyVerificationDetails>> {
-		const result = await this.sqlCipherFacade.all(`SELECT * FROM verification_pool`, [])
-
-		const pool = new Map<MailAddress, KeyVerificationDetails>()
+		const identities = new Map<MailAddress, KeyVerificationDetails>()
 		for (let [_, { mailAddress, fingerprint }] of result.entries()) {
 			const mailAddressStr = mailAddress.value as string
 			const fingerprintStr = fingerprint.value as string
 
-			pool.set(mailAddressStr, {
+			identities.set(mailAddressStr, {
 				fingerprint: fingerprintStr,
-				verified: await this.confirmFingerprint(mailAddressStr, fingerprintStr),
+				verified: await this.confirmFingerprint(mailAddressStr, fingerprintStr, KeyVerificationSourceOfTruth.PublicKeyService),
 			})
 		}
 
-		return Promise.resolve(pool)
+		return identities
 	}
 
 	/**
-	 * Adds a trusted key to the database.
+	 * Adds an identity to the trust database.
 	 */
-	async addToPool(mailAddress: string, fingerprint: string) {
+	async trust(mailAddress: string, fingerprint: string) {
 		/* Insert or update mailAddress / fingerprint */
-		const { query, params } = sql`INSERT INTO verification_pool (mailAddress, fingerprint) VALUES (${mailAddress}, ${fingerprint})
-                                      ON CONFLICT(mailAddress) DO UPDATE
-                                      SET mailAddress=excluded.mailAddress, fingerprint=excluded.fingerprint`
+		const { query, params } = sql`
+			INSERT INTO trusted_identities (mailAddress, fingerprint)
+			VALUES (${mailAddress}, ${fingerprint})
+			ON CONFLICT(mailAddress) DO UPDATE SET mailAddress=excluded.mailAddress, fingerprint=excluded.fingerprint`
 		await this.sqlCipherFacade.run(query, params)
-
-		return Promise.resolve()
 	}
 
 	/**
-	 * Removes a key from the database.
+	 * Removes an identity from the trust database.
 	 */
-	async removeFromPool(mailAddress: string) {
-		const { query, params } = sql`DELETE FROM verification_pool WHERE mailAddress = ${mailAddress}`
+	async untrust(mailAddress: string) {
+		const { query, params } = sql`DELETE FROM trusted_identities WHERE mailAddress = ${mailAddress}`
 		await this.sqlCipherFacade.run(query, params)
-
-		return Promise.resolve()
 	}
 
 	/**
-	 * Returns the fingerprint stored in the database for a given mail address.
+	 * Determines whether the trust database contains an entry for a given mail address.
 	 */
-	async getStoredFingerprint(mailAddress: string): Promise<string | null> {
-		const { query, params } = sql`SELECT fingerprint FROM verification_pool WHERE mailAddress = ${mailAddress}`
+	async isTrusted(mailAddress: string): Promise<boolean> {
+		const { query, params } = sql`SELECT * FROM trusted_identities WHERE mailAddress = ${mailAddress}`
 		const result = await this.sqlCipherFacade.get(query, params)
+		return result !== null
+	}
 
-		if (result == null) {
-			return Promise.resolve(null)
+	/**
+	 * Returns the fingerprint for a given mail address.
+	 *
+	 * @param mailAddress
+	 * @param sourceOfTruth whether to retrieve the fingerprint from local/trusted storage or the public key service
+	 */
+	async getFingerprint(mailAddress: string, sourceOfTruth: KeyVerificationSourceOfTruth): Promise<string | null> {
+		if (sourceOfTruth === KeyVerificationSourceOfTruth.LocalTrusted) {
+			const { query, params } = sql`SELECT fingerprint FROM trusted_identities WHERE mailAddress = ${mailAddress}`
+			const result = await this.sqlCipherFacade.get(query, params)
+
+			if (result == null) {
+				return null
+			} else {
+				// TODO: Find a safer way than `result.fingerprint.value as string`
+				return result.fingerprint.value as string
+			}
+		} else if (sourceOfTruth === KeyVerificationSourceOfTruth.PublicKeyService) {
+			const keyData = createPublicKeyGetIn({
+				identifier: mailAddress,
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+
+				// Fetch the latest version
+				version: null,
+			})
+
+			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+			return this.calculateFingerprint(publicKeyGetOut)
 		} else {
-			// TODO: Find a safer way than `result.fingerprint.value as string`
-			return Promise.resolve(result.fingerprint.value as string)
+			// We should never run into this condition.
+			assertNotNull(null)
+
+			// make TypeScript happy
+			return null
 		}
 	}
 
 	/**
-	 * Determines whether the stored fingerprint still matches the one
-	 * returned by the public key service for a given mail address.
+	 * Determines whether the expected fingerprint matches the one returned by a source.
+	 *
+	 * @param mailAddress
+	 * @param expectedFingerprint
+	 * @param sourceOfTruth whether to confirm the fingerprint with local/trusted storage or the public key service
 	 */
-	async isVerified(mailAddress: string): Promise<boolean> {
-		const storedFingerprint = await this.getStoredFingerprint(mailAddress)
-		if (storedFingerprint == null) {
-			// address is considered "not verified" when not a member of the pool
-			return Promise.resolve(false)
+	async confirmFingerprint(mailAddress: string, expectedFingerprint: string, sourceOfTruth: KeyVerificationSourceOfTruth): Promise<boolean> {
+		if (sourceOfTruth === KeyVerificationSourceOfTruth.LocalTrusted) {
+			const trustedFingerprint = await this.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.LocalTrusted)
+			return trustedFingerprint === expectedFingerprint
+		} else if (sourceOfTruth === KeyVerificationSourceOfTruth.PublicKeyService) {
+			try {
+				const serverFingerprint = await this.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.PublicKeyService)
+				return serverFingerprint === expectedFingerprint
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+					// TODO: It might be better if NotFoundError resulted in a visible user message.
+					return false
+				} else {
+					throw e
+				}
+			}
+
+			// TODO: differentiate return value by
+			// - Identity IS trusted AND verified
+			// - Identity IS trusted BUT NOT verified
+			// - Identity IS NOT trusted
+		} else {
+			// We should never run into this condition.
+			assertNotNull(null)
+
+			// make TypeScript happy
+			return false
 		}
-
-		return Promise.resolve(this.confirmFingerprint(mailAddress, storedFingerprint))
-	}
-
-	/**
-	 * Determines whether the stored fingerprint of a given mail address matches the one calculated
-	 * from a given PublicKeyGetOut structure.
-	 */
-	async publicKeyMatchesPinnedPublicKey(mailAddress: string, publicKeyGetOut: PublicKeyGetOut): Promise<boolean> {
-		// TODO: check if this behaviour really is correct
-		return (await this.getPublicKeyHash(publicKeyGetOut)) === (await this.getStoredFingerprint(mailAddress))
-	}
-
-	/**
-	 * Determines whether the database contains an entry for a given mail address.
-	 */
-	async poolContains(mailAddress: string): Promise<boolean> {
-		const { query, params } = sql`SELECT * FROM verification_pool WHERE mailAddress = ${mailAddress}`
-		const result = await this.sqlCipherFacade.get(query, params)
-		return Promise.resolve(result !== null)
 	}
 
 	/**
 	 * Returns a hashed concatenation of the given public keys.
 	 */
-	public getPublicKeyHash(publicKeyGetOut: PublicKeyGetOut): string {
+	public calculateFingerprint(publicKeyGetOut: PublicKeyGetOut): string {
 		const atLeastOneFilledArray = (...arrays: (Uint8Array | null)[]) => {
 			for (let current of arrays) {
 				if (current != null) {
@@ -188,23 +204,6 @@ export class KeyVerificationFacade {
 		)
 
 		const hash = uint8ArrayToHex(sha256Hash(assertNotNull(publicKeysConcatenation)))
-
 		return hash
-	}
-
-	/**
-	 * Returns a hashed concatenation of public keys associated with a given mail address.
-	 */
-	public async getPublicKeyHashFromServer(mailAddress: string): Promise<string> {
-		const keyData = createPublicKeyGetIn({
-			identifier: mailAddress,
-			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-
-			// Fetch the latest version
-			version: null,
-		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-
-		return this.getPublicKeyHash(publicKeyGetOut)
 	}
 }
