@@ -135,7 +135,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			),
 			new SettingsFolder(
 				"keyManagement_label",
-				() => BootIcons.Progress,
+				() => Icons.Key,
 				"keymanagement",
 				() => {
 					var settingsViewer = new KeyManagementSettingsViewer(locator.keyVerificationFacade, locator.logins.getUserController())
