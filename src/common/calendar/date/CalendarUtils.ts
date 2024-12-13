@@ -497,23 +497,29 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 			}
 
 			const parsedWeekNumber = Number.parseInt(rule.interval)
-			let newDt: DateTime
+			let newDt: DateTime = date
+			let weekNumber
 			if (parsedWeekNumber < 0) {
-				newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1 })
+				weekNumber = date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1
+				// I don't get why when I don't set this here it doesn't work for only YEARLY!!!
+				// But if I set here and re-set the week later, it works????
+				// Also, it starts expanding for next week when the offset is -50?
+				// Is that a problem for negative only?
+				// newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1 })
 				console.log("Negative weeknumber ", { parsedWeekNumber, newDt })
 			} else {
 				newDt = date.set({ weekNumber: parsedWeekNumber })
+				weekNumber = parsedWeekNumber
 				console.log("Postive weeknumber ", { parsedWeekNumber, newDt })
 			}
 
 			const yearOffset = newDt.toMillis() < date.toMillis() ? 1 : 0
-			newDt = newDt.plus({ year: yearOffset }).set({ weekday: wkst })
+			newDt = newDt.plus({ year: yearOffset }).set({ weekNumber }).set({ weekday: wkst })
 			for (let i = 0; i < 7; i++) {
 				const finalDate = newDt.plus({ day: i })
 				if (finalDate.year > newDt.year) {
 					break
 				}
-				console.log("add: ", { date: finalDate })
 				newDates.push(finalDate)
 			}
 		}
@@ -1239,7 +1245,11 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				RepeatPeriod.ANNUALLY,
 			)
 
-			const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+			const weekNoAppliedEvents = applyWeekNo(
+				monthAppliedEvents,
+				byWeekNoRules,
+				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+			)
 			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules)
 			const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
 
@@ -1253,7 +1263,6 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				),
 				validMonths as MonthNumbers[],
 			)
-
 			for (const event of events) {
 				const newStartTime = event.toJSDate()
 				const newEndTime = allDay
