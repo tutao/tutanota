@@ -53,7 +53,7 @@ async fn can_import_multiple_emls() {
 	.unwrap();
 
 	let default_resolver =
-		|| async { Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: false }) };
+		|_| async { Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: false }) };
 	importer
 		.start_stateful_import(default_resolver)
 		.await

@@ -1,6 +1,9 @@
-use super::importer::{ImportError, ImportStatus, Importer, StateCallbackResponse};
+use super::importer::{
+	ImportError, ImportStatus, Importer, LocalImportState, StateCallbackResponse,
+};
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
+use napi_derive::napi;
 use std::sync::Arc;
 use tutasdk::entities::generated::tutanota::ImportMailState;
 use tutasdk::login::{CredentialType, Credentials};
@@ -10,7 +13,8 @@ use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
 pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
 
 /// Javascript function to check for state change
-type StateCallback = ThreadsafeFunction<(), napi::threadsafe_function::ErrorStrategy::Fatal>;
+type StateCallback =
+	ThreadsafeFunction<LocalImportState, napi::threadsafe_function::ErrorStrategy::Fatal>;
 
 #[napi_derive::napi]
 pub struct ImporterApi {
@@ -74,7 +78,9 @@ impl ImporterApi {
 		&mut self,
 		callback_handle: StateCallback,
 	) -> napi::Result<()> {
-		let callback_handle_provider = || callback_handle.call_async::<StateCallbackResponse>(());
+		let callback_handle_provider = |local_state: LocalImportState| {
+			callback_handle.call_async::<StateCallbackResponse>(local_state)
+		};
 
 		let mut importer = self.inner.lock().await;
 		importer
@@ -152,5 +158,13 @@ impl From<ImportError> for napi::Error {
 				"Not a valid login"
 			},
 		})
+	}
+}
+
+#[napi_derive::napi]
+impl LocalImportState {
+	#[napi(constructor)]
+	pub fn new() -> Self {
+		LocalImportState::default()
 	}
 }

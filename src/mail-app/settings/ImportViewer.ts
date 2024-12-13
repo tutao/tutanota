@@ -76,6 +76,8 @@ export class ImportViewer implements UpdatableSettingsViewer {
 				for (const importState of importMailStatesCollection) {
 					this.importMailStates.set(elementIdPart(importState._id), importState)
 				}
+
+				const localMailStatesCollection = this.mailImporter.getLocalStateAsRemote()
 			}
 		}
 	}
@@ -123,7 +125,6 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		const folderInfos = await this.getIndentedFolders()
 		await showMailFolderDropdown(dom.getBoundingClientRect(), folderInfos as FolderInfo[], (folder) => {
 			this.selectedTargetFolder = folder
-			console.log(this.selectedTargetFolder)
 			m.redraw()
 		})
 	}
@@ -156,6 +157,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 		return Array.from(this.importMailStates.values()).map((im) => {
 			const targetFolderId = im.targetFolder
 			const displayTargetFolder = this.indentedFolders.find((f) => isSameId(f.folder._id, targetFolderId))
+
 			return {
 				cells: () => [
 					{
@@ -165,7 +167,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
 				],
 				actionButtonAttrs:
-					im.status === ImportStatus.Started || im.status === ImportStatus.Running
+					im.status === ImportStatus.Running
 						? {
 								icon: Icons.Cancel,
 								title: () => "Cancel import",
@@ -272,17 +274,11 @@ export class ImportViewer implements UpdatableSettingsViewer {
  */
 export function getMailImportStatusName(state: ImportStatus): String {
 	switch (state) {
-		case ImportStatus.Started:
-			return "Started"
-		case ImportStatus.Paused:
-			return "Paused"
 		case ImportStatus.Running:
 			return "Running..."
 		case ImportStatus.Canceled:
 			return "Canceled"
 		case ImportStatus.Finished:
 			return "Finished"
-		default:
-			return "Unknown"
 	}
 }
