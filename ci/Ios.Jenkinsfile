@@ -75,6 +75,7 @@ pipeline {
 					when { expression { return params.STAGING } }
 					environment {
 						PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+						EM_CACHE="${env.HOME}/emcache"
 					}
 					agent {
 						label 'mac-intel'
@@ -97,6 +98,7 @@ pipeline {
 					when { expression { return params.PROD } }
 					environment {
 						PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+						EM_CACHE="${env.HOME}/emcache"
 					}
 					agent {
 						label 'mac-intel'
