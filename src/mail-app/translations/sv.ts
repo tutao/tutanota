@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-12-09T14:34:40Z",
+	"updated_at": "2024-12-12T15:39:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -603,6 +603,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Välj ett svar för respektive fråga.",
 		"experienceSamplingThankYou_msg": "Tack för ditt deltagande!",
 		"expiredLink_msg": "Den här länken inte längre giltig. Du bör ha fått ett nytt aviseringsmeddelande med den nu gällande länken. Tidigare länkar avaktiveras av säkerhetsskäl.",
+		"exportErrorServiceUnavailable_label": "Exporten är tillfälligt inte tillgänglig; försök igen senare.",
+		"exportErrorTooManyRequests_label": "För många exporter har nyligen begärts",
 		"exportFinished_label": "Exporten slutförd",
 		"exportingEmails_label": "Exporterar mejl: {count}",
 		"exportMailbox_label": "Exportera brevlåda",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2024-12-09T17:30:49Z",
+	"updated_at": "2024-12-12T16:41:00Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -602,6 +602,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "請為所有問題選擇答案。",
 		"experienceSamplingThankYou_msg": "謝謝您的參與！",
 		"expiredLink_msg": "抱歉，此連結已失效。您應已收到一封新的通知電郵，內含目前正確的連結。基於安全理由，過往的連結已停用。",
+		"exportErrorServiceUnavailable_label": "匯出暫時無法使用；請稍後再試。",
+		"exportErrorTooManyRequests_label": "最近要求太多匯出",
 		"exportFinished_label": "匯出完成",
 		"exportingEmails_label": "匯出電郵中：{count}",
 		"exportMailbox_label": "匯出郵箱",
