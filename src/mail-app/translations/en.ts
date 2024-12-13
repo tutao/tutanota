@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-12-09T13:28:44Z",
+	"updated_at": "2024-12-13T10:50:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -603,6 +603,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Please select an answer for all questions.",
 		"experienceSamplingThankYou_msg": "Thank you for your participation!",
 		"expiredLink_msg": "Sorry, this link is not valid anymore. You should have received a new notification email with the currently valid link. Previous links are deactivated for security reasons.",
+		"exportErrorServiceUnavailable_label": "Exporting is temporarily unavailable; please try again later.",
+		"exportErrorTooManyRequests_label": "Too many exports were requested recently",
 		"exportFinished_label": "Export completed",
 		"exportingEmails_label": "Exporting emails: {count}",
 		"exportMailbox_label": "Export Mailbox",
@@ -1141,8 +1143,8 @@ export default {
 		"passwordValid_msg": "Password ok.",
 		"passwordWrongInvalid_msg": "Your password is wrong.",
 		"password_label": "Password",
-		"paste_action": "Paste",
 		"pasteWithoutFormatting_action": "Paste without formatting",
+		"paste_action": "Paste",
 		"pathAlreadyExists_msg": "This path already exists.",
 		"payCardContactBankError_msg": "Sorry, the payment transaction was rejected by your bank. Please make sure that your credit card details are correct or contact your bank.",
 		"payCardExpiredError_msg": "Sorry, the credit card has expired. Please update your payment details.",

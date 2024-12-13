@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2024-12-09T13:28:44Z",
+	"updated_at": "2024-12-13T10:51:20Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -607,6 +607,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Bitte wählen Sie eine Antwort für jede der Fragen.",
 		"experienceSamplingThankYou_msg": "Vielen Dank für Ihre Teilnahme!",
 		"expiredLink_msg": "Leider ist dieser Link nicht mehr gültig. Sie haben eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link bekommen. Vorhergehende Links werden aus Sicherheitsgründen deaktiviert.",
+		"exportErrorServiceUnavailable_label": "Exportieren ist derzeit nicht möglich; bitte versuchen Sie es später noch einmal.",
+		"exportErrorTooManyRequests_label": "Kürzlich wurden zu viele Exports beantragt",
 		"exportFinished_label": "Export beendet",
 		"exportingEmails_label": "E-Mails werden exportiert:  {count}",
 		"exportMailbox_label": "Mailbox exportieren",
@@ -1145,8 +1147,8 @@ export default {
 		"passwordValid_msg": "Passwort ok.",
 		"passwordWrongInvalid_msg": "Das Passwort ist falsch.",
 		"password_label": "Passwort",
-		"paste_action": "Einfügen",
 		"pasteWithoutFormatting_action": "Einfügen ohne Formatierung",
+		"paste_action": "Einfügen",
 		"pathAlreadyExists_msg": "Dieser Pfad existiert bereits.",
 		"payCardContactBankError_msg": "Leider wurde die Zahlung von Ihrer Bank abgelehnt. Bitte prüfen Sie, dass die Kreditkartendaten korrekt sind, oder kontaktieren Sie Ihre Bank.",
 		"payCardExpiredError_msg": "Leider ist die Kreditkarte abgelaufen. Bitte aktualisieren Sie Ihre Zahlungsdaten.",

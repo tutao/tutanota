@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-12-09T17:53:39Z",
+	"updated_at": "2024-12-13T10:52:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -607,6 +607,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Selecciona una respuesta para todas las preguntas.",
 		"experienceSamplingThankYou_msg": "¡Gracias por tu participación!",
 		"expiredLink_msg": "Lo sentimos, el enlace ya no es válido. Debes haber recibido un nuevo correo con el nuevo enlace válido. Los enlaces previos se han deshabilitado por motivos de seguridad.",
+		"exportErrorServiceUnavailable_label": "La exportación no está disponible temporalmente; vuelve a intentarlo más tarde.",
+		"exportErrorTooManyRequests_label": "Recientemente se han solicitado demasiadas exportaciones",
 		"exportFinished_label": "Exportación completada",
 		"exportingEmails_label": "Exportando emails: {count}",
 		"exportMailbox_label": "Exportar buzón",
@@ -1145,6 +1147,7 @@ export default {
 		"passwordValid_msg": "Contraseña correcta.",
 		"passwordWrongInvalid_msg": "Tu contraseña es incorrecta.",
 		"password_label": "Contraseña",
+		"pasteWithoutFormatting_action": "Pegar sin formato",
 		"paste_action": "Pegar",
 		"pathAlreadyExists_msg": "Ya existe esta ruta.",
 		"payCardContactBankError_msg": "La transacción de pago fue rechazada por tu banco. Asegúrate de que los detalles de tu tarjeta son correctos o, ponte en contacto con tu banco.",
