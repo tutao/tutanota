@@ -56,7 +56,7 @@ import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel
 import { styles } from "../../../common/gui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { FileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
+import { fileListToArray, FileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { Shortcut } from "../../../common/misc/KeyManager"
@@ -67,7 +67,7 @@ import { getContactDisplayName } from "../../../common/contactsFunctionality/Con
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 
 import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
-import { fileListToArray, readLocalFiles } from "../../../common/file/FileController"
+import { readLocalFiles } from "../../../common/file/FileController"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ToggleButton, ToggleButtonAttrs } from "../../../common/gui/base/buttons/ToggleButton.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"

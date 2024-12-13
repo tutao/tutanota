@@ -14,7 +14,7 @@ import { isKeyPressed } from "../../misc/KeyManager"
 import { DropData, DropHandler, DropType } from "./GuiUtils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { stateBgHover } from "../builtinThemes.js"
-import { fileListToArray } from "../../file/FileController"
+import { fileListToArray } from "../../api/common/utils/FileUtils.js"
 
 assertMainOrNode()
 export type NavButtonAttrs = {

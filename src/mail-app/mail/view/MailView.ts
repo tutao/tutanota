@@ -24,7 +24,7 @@ import { getElementId, isSameId } from "../../../common/api/common/utils/EntityU
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import Stream from "mithril/stream"
-import { fileListToArray, readLocalFiles } from "../../../common/file/FileController.js"
+import { readLocalFiles } from "../../../common/file/FileController.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
@@ -69,6 +69,7 @@ import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { Importer } from "../import/Importer"
+import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 
 assertMainOrNode()
 
