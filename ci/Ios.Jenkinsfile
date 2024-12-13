@@ -161,8 +161,8 @@ def stubClientDirectory() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
-        sh "mkdir build-calendar-app"
-    	sh "mkdir build"
+        sh "mkdir -p build-calendar-app"
+    	sh "mkdir -p build"
 	}
 }
 
@@ -189,6 +189,7 @@ def generateXCodeProject(String projectPath, String spec) {
 // Runs xcodegen on all of our project specs
 def generateXCodeProjects() {
 	generateXCodeProject("app-ios", "mail-project")
+	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
 }
 

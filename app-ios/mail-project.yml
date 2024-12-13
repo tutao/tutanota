@@ -64,8 +64,6 @@ targets:
           PRODUCT_NAME: "Tuta D"
         Release Staging:
           PRODUCT_NAME: "Tuta Test"
-          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.tutanota.test"
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.tutanota.test 1716556941"
         Release Production:
           PRODUCT_NAME: "Tuta Mail"
       groups:
