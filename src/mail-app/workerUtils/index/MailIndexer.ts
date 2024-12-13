@@ -614,17 +614,23 @@ export class MailIndexer {
 			})
 	}
 
-	processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	async processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return promiseMap(events, (event) => {
-			if (event.operation === OperationType.DELETE) {
-				// do nothing, just the importState was deleted, not any mail imported content itself
-			} else if (event.operation === OperationType.UPDATE) {
+		await promiseMap(events, (event) => {
+			// we can only process update event,
+			// and we don't have to look for delete
+			if (event.operation === OperationType.UPDATE) {
 				this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId]).then((mailIds) =>
-					promiseMap(mailIds, (mailId) => this.processNewMail(mailId)),
+					promiseMap(mailIds, (mailId) =>
+						this.processNewMail(mailId).then((result) => {
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							}
+						}),
+					),
 				)
 			}
-		}).then(noOp)
+		})
 	}
 
 	async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {

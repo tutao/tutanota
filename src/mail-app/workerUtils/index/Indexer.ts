@@ -40,7 +40,14 @@ import { _createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, type
 import type { Db, GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { ContactList, ContactListTypeRef, ContactTypeRef, ImportMailStateTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import {
+	ContactList,
+	ContactListTypeRef,
+	ContactTypeRef,
+	ImportMailStateTypeRef,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import type { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
@@ -702,7 +709,9 @@ export class Indexer {
 						return this._processUserEntityEvents(value)
 					}
 
-					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
+					const typeInfoToIndex =
+						isSameTypeRef(MailSetEntryTypeRef, key) || isSameTypeRef(MailTypeRef, key) ? typeRefToTypeInfo(MailTypeRef) : typeRefToTypeInfo(key)
+					const indexUpdate = _createNewIndexUpdate(typeInfoToIndex)
 
 					if (isSameTypeRef(MailTypeRef, key)) {
 						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)
