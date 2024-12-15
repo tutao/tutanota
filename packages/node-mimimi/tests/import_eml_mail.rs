@@ -48,6 +48,7 @@ async fn can_import_multiple_emls() {
 		mailbox._ownerGroup.unwrap(),
 		target_mailset,
 		file_paths,
+		None,
 	)
 	.await
 	.unwrap();

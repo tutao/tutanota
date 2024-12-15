@@ -30,7 +30,7 @@ import {
 	debounce,
 	first,
 	groupByAndMap,
-	isEmpty,
+	isNotEmpty,
 	isNotNull,
 	last,
 	lastThrow,
@@ -627,7 +627,7 @@ export class MailViewModel {
 
 			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, dateRangeFilteredMailSetEntryIds)
-			if (!isEmpty(importedMailSetEntries)) {
+			if (isNotEmpty(importedMailSetEntries)) {
 				const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
 				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
 					if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)

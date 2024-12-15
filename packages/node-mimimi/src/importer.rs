@@ -8,7 +8,9 @@ use file_reader::{FileImport, FileIterationError};
 use imap_reader::ImapImportConfig;
 use imap_reader::{ImapImport, ImapIterationError};
 use importable_mail::ImportableMail;
+use std::fs;
 use std::future::Future;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
@@ -46,7 +48,7 @@ pub enum ImportError {
 		// actual error sdk returned
 		error: ApiCallError,
 	},
-	/// login feature is not available for this user
+	/// import feature is not available for this user
 	NoImportFeature,
 	/// Blob responded with empty server url list
 	EmptyBlobServerList,
@@ -64,6 +66,9 @@ pub enum ImportError {
 	TooBigChunk,
 	/// Different stateId was returned by server for same session of import
 	InconsistentStateId,
+	/// Error that occured when deleting a file
+	FileDeletionError(std::io::Error, PathBuf),
+	IOError(std::io::Error),
 }
 
 #[derive(Debug)]
@@ -433,6 +438,7 @@ impl Importer {
 			target_mailset,
 			import_source,
 			target_owner_group,
+			None,
 		);
 
 		Ok(importer)
@@ -442,7 +448,8 @@ impl Importer {
 		logged_in_sdk: Arc<LoggedInSdk>,
 		target_owner_group: GeneratedId,
 		target_mailset: IdTupleGenerated,
-		source_paths: Vec<String>,
+		source_paths: Vec<PathBuf>,
+		import_mail_state_id: Option<IdTupleGenerated>,
 	) -> Result<Importer, ImportError> {
 		let fs_email_client = FileImport::new(source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
@@ -458,6 +465,7 @@ impl Importer {
 			target_mailset,
 			import_source,
 			target_owner_group,
+			import_mail_state_id,
 		);
 
 		Ok(importer)
@@ -469,6 +477,7 @@ impl Importer {
 		target_mailset: IdTupleGenerated,
 		import_source: ImportSource,
 		target_owner_group: GeneratedId,
+		remote_state: Option<IdTupleGenerated>,
 	) -> Self {
 		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
 		Self {
@@ -520,14 +529,19 @@ impl Importer {
 			self.essentials.remote_state_list_id.clone(),
 			GeneratedId(self.state.remote_state_id.clone()),
 		);
-		self.essentials
-			.logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.load::<ImportMailState, _>(&remote_state_id)
-			.await
+		Self::load_import_state(&self.essentials.logged_in_sdk, &remote_state_id).await
 	}
 
+	pub async fn load_import_state(
+		logged_in_sdk: &LoggedInSdk,
+		id: &IdTupleGenerated,
+	) -> Result<ImportMailState, ApiCallError> {
+		logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.load::<ImportMailState, _>(id)
+			.await
+	}
 	async fn mark_remote_final_state(
 		&mut self,
 		final_state: ImportStatus,
@@ -593,6 +607,11 @@ impl Importer {
 					.try_into()
 					.expect("item count in single chunk will never exceed i64::max");
 
+				let eml_file_paths: Vec<Option<PathBuf>> = chunked_import_data
+					.iter()
+					.map(|id| id.keyed_import_mail_data.eml_file_path.clone())
+					.collect();
+
 				let unit_import_data = import_essentials
 					.upload_attachments_for_chunk(chunked_import_data)
 					.await
@@ -625,6 +644,11 @@ impl Importer {
 					import_mails_post_out.mailState,
 				)?;
 				import_state.success_count += import_count_in_this_chunk;
+				for eml_file_path_option in eml_file_paths {
+					if let Some(eml_file_path) = eml_file_path_option {
+						fs::remove_file(&eml_file_path).map_err(|e|ImportError::FileDeletionError(e, eml_file_path))?;
+					}
+				}
 
 				Ok(())
 			},
@@ -670,6 +694,7 @@ mod tests {
 	use crate::importer::imap_reader::{ImapCredentials, LoginMechanism};
 	use crate::tuta_imap::testing::GreenMailTestServer;
 	use mail_builder::MessageBuilder;
+	use std::sync::Mutex;
 	use tutasdk::entities::generated::tutanota::MailFolder;
 	use tutasdk::folder_system::MailSetKind;
 	use tutasdk::net::native_rest_client::NativeRestClient;
@@ -677,6 +702,14 @@ mod tests {
 
 	const IMPORTED_MAIL_ADDRESS: &str = "map-premium@tutanota.de";
 
+	fn get_test_id() -> u32 {
+		static TEST_COUNTER: Mutex<u32> = Mutex::new(0);
+		let mut old_count_guard = TEST_COUNTER.lock().expect("Mutex poisoned");
+		let new_count = old_count_guard.checked_add(1).unwrap();
+		*old_count_guard = new_count;
+		drop(old_count_guard);
+		new_count
+	}
 	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
 		importer
 			.start_stateful_import(|_| async { Ok(StateCallbackResponse { should_stop: false }) })
@@ -757,6 +790,7 @@ mod tests {
 			target_mail_folder,
 			import_source,
 			target_owner_group,
+			None,
 		)
 	}
 
@@ -784,14 +818,17 @@ mod tests {
 		let files = source_paths
 			.into_iter()
 			.map(|file_name| {
-				format!(
+				PathBuf::from(format!(
 					"{}/tests/resources/testmail/{file_name}",
 					env!("CARGO_MANIFEST_DIR")
-				)
+				))
 			})
 			.collect();
+		let target_folder = format!("/tmp/import_test_{}", get_test_id()).into();
+		let source_paths = FileImport::prepare_import(target_folder, files).unwrap();
+
 		let import_source = ImportSource::LocalFile {
-			fs_email_client: FileImport::new(files).unwrap(),
+			fs_email_client: FileImport::new(source_paths).unwrap(),
 		};
 		init_importer(import_source).await
 	}

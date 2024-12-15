@@ -277,7 +277,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
-			new DesktopMailImportFacade(window),
+			new DesktopMailImportFacade(window, electron.app.getPath("userData")),
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,

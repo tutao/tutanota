@@ -8,9 +8,11 @@ import { MailImportFacade } from "../../native/common/generatedipc/MailImportFac
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
 	private stoppedImportQueues: Map<Id, boolean> = new Map()
+	private configDirectory: string
 
-	constructor(private readonly win: ApplicationWindow) {
+	constructor(private readonly win: ApplicationWindow, configDirectory: string) {
 		ImporterApi.initLog()
+		this.configDirectory = configDirectory
 	}
 
 	async importFromFiles(
@@ -31,7 +33,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		}
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
-		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
+		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
 		await fileImporter.startImport((localState: LocalImportState) => {
 			return DesktopMailImportFacade.importStateCallback(this.win.mailImportFacade, this.stoppedImportQueues, localState)
 		})
