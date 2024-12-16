@@ -575,12 +575,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	 */
 	private labels() {
 		const mailList = this.mailViewModel.listModel
-		if (mailList == null) {
+		if (mailList == null || !mailLocator.mailModel.canAssignLabels()) {
 			return
 		}
-
+		const labels = mailLocator.mailModel.getLabelStatesForMails(mailList.getSelectedAsArray())
 		const selectedMails = mailList.getSelectedAsArray()
-		if (isEmpty(selectedMails)) {
+
+		if (isEmpty(labels) || isEmpty(selectedMails)) {
 			return
 		}
 
