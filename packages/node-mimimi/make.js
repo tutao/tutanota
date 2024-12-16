@@ -1,11 +1,13 @@
 import { Argument, program } from "commander"
-import { $ } from "zx"
+import { $, cd } from "zx"
+import path from "node:path"
 
 await program
 	.usage("[options] [win|linux|darwin|native]")
 	.addArgument(new Argument("platform").choices(["win", "linux", "darwin", "native"]).default("native").argOptional())
 	.option("-c, --clean", "clean build artifacts")
 	.option("-r, --release", "run a release build")
+	.option("--greenmail", "also run the greenmail build")
 	.action(run)
 	.parseAsync(process.argv)
 
@@ -24,11 +26,17 @@ function getTarget(platform) {
 	}
 }
 
-async function run(platform, { clean, release }) {
+async function run(platform, { clean, release, greenmail }) {
 	if (clean) {
 		await $`rm -r -f ./build`
 		await $`rm -r -f ./target`
 		await $`rm -r -f ./dist`
+	}
+
+	if (greenmail) {
+		cd(path.join(import.meta.url, "java"))
+		await $`/opt/gradle-8.5/bin/gradle jar`
+		cd("..")
 	}
 
 	const target = getTarget(platform)
