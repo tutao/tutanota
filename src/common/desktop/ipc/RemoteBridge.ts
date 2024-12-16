@@ -9,11 +9,14 @@ import { CommonNativeFacadeSendDispatcher } from "../../native/common/generatedi
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { PerWindowSqlCipherFacade } from "../db/PerWindowSqlCipherFacade.js"
+import { MailImportFacadeSendDispatcher } from "../../native/common/generatedipc/MailImportFacadeSendDispatcher.js"
+import { MailImportFacade } from "../../native/common/generatedipc/MailImportFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
 	commonNativeFacade: CommonNativeFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
+	mailImportFacade: MailImportFacade
 	sqlCipherFacade: PerWindowSqlCipherFacade
 }
 
@@ -60,6 +63,7 @@ export class RemoteBridge {
 			desktopFacade: new DesktopFacadeSendDispatcher(nativeInterface),
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
+			mailImportFacade: new MailImportFacadeSendDispatcher(nativeInterface),
 			sqlCipherFacade,
 		}
 	}

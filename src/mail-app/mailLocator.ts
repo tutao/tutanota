@@ -849,13 +849,7 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
-					this.mailImporter = new Importer(
-						desktopInterfaces.mailImportFacade,
-						this.credentialsProvider,
-						this.domainConfigProvider(),
-						this.logins,
-						this.entityClient,
-					)
+					this.mailImporter = new Importer(desktopInterfaces.mailImportFacade, this.credentialsProvider, this.domainConfigProvider(), this.logins)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")

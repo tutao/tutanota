@@ -20,6 +20,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../native/common/generated
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
 import HandlerDetails = Electron.HandlerDetails
+import { MailImportFacade } from "../native/common/generatedipc/MailImportFacade.js"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -47,6 +48,7 @@ const VIRTUAL_APP_URL_BASE = "asset://app"
 const VIRTUAL_APP_URL = VIRTUAL_APP_URL_BASE + "/index-desktop.html"
 
 export class ApplicationWindow {
+	private _mailImportFacade!: MailImportFacade
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -176,6 +178,10 @@ export class ApplicationWindow {
 		this.electron.Menu.setApplicationMenu(null)
 	}
 
+	get mailImportFacade(): MailImportFacade {
+		return this._mailImportFacade
+	}
+
 	get desktopFacade(): DesktopFacade {
 		return this._desktopFacade
 	}
@@ -193,6 +199,7 @@ export class ApplicationWindow {
 		this._desktopFacade = sendingFacades.desktopFacade
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
+		this._mailImportFacade = sendingFacades.mailImportFacade
 		this._sqlCipherFacade = sendingFacades.sqlCipherFacade
 	}
 

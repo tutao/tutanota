@@ -1,0 +1,11 @@
+{
+	"name": "LocalImportState",
+	"type": "struct",
+	"doc": "State of import tracked locally",
+	"fields": {
+		"remoteStateElementId": "string",
+		"failedCount": "number",
+		"successCount": "number",
+		"currentStatus": "number"
+	}
+}

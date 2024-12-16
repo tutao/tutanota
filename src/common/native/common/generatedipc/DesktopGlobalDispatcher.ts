@@ -12,12 +12,12 @@ import { FileFacade } from "./FileFacade.js"
 import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
-import { NativeMailImportFacade } from "./NativeMailImportFacade.js"
-import { NativeMailImportFacadeReceiveDispatcher } from "./NativeMailImportFacadeReceiveDispatcher.js"
 import { NativeCredentialsFacade } from "./NativeCredentialsFacade.js"
 import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
 import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
 import { NativeCryptoFacadeReceiveDispatcher } from "./NativeCryptoFacadeReceiveDispatcher.js"
+import { NativeMailImportFacade } from "./NativeMailImportFacade.js"
+import { NativeMailImportFacadeReceiveDispatcher } from "./NativeMailImportFacadeReceiveDispatcher.js"
 import { NativePushFacade } from "./NativePushFacade.js"
 import { NativePushFacadeReceiveDispatcher } from "./NativePushFacadeReceiveDispatcher.js"
 import { SearchTextInAppFacade } from "./SearchTextInAppFacade.js"
@@ -38,9 +38,9 @@ export class DesktopGlobalDispatcher {
 	private readonly externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private readonly fileFacade: FileFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
-	private readonly nativeMailImportFacade: NativeMailImportFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
+	private readonly nativeMailImportFacade: NativeMailImportFacadeReceiveDispatcher
 	private readonly nativePushFacade: NativePushFacadeReceiveDispatcher
 	private readonly searchTextInAppFacade: SearchTextInAppFacadeReceiveDispatcher
 	private readonly settingsFacade: SettingsFacadeReceiveDispatcher
@@ -54,9 +54,9 @@ export class DesktopGlobalDispatcher {
 		externalCalendarFacade: ExternalCalendarFacade,
 		fileFacade: FileFacade,
 		interWindowEventFacade: InterWindowEventFacade,
-		nativeMailImportFacade: NativeMailImportFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		nativeCryptoFacade: NativeCryptoFacade,
+		nativeMailImportFacade: NativeMailImportFacade,
 		nativePushFacade: NativePushFacade,
 		searchTextInAppFacade: SearchTextInAppFacade,
 		settingsFacade: SettingsFacade,
@@ -70,9 +70,9 @@ export class DesktopGlobalDispatcher {
 		this.externalCalendarFacade = new ExternalCalendarFacadeReceiveDispatcher(externalCalendarFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
-		this.nativeMailImportFacade = new NativeMailImportFacadeReceiveDispatcher(nativeMailImportFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
+		this.nativeMailImportFacade = new NativeMailImportFacadeReceiveDispatcher(nativeMailImportFacade)
 		this.nativePushFacade = new NativePushFacadeReceiveDispatcher(nativePushFacade)
 		this.searchTextInAppFacade = new SearchTextInAppFacadeReceiveDispatcher(searchTextInAppFacade)
 		this.settingsFacade = new SettingsFacadeReceiveDispatcher(settingsFacade)
@@ -95,12 +95,12 @@ export class DesktopGlobalDispatcher {
 				return this.fileFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":
 				return this.interWindowEventFacade.dispatch(methodName, args)
-			case "NativeMailImportFacade":
-				return this.nativeMailImportFacade.dispatch(methodName, args)
 			case "NativeCredentialsFacade":
 				return this.nativeCredentialsFacade.dispatch(methodName, args)
 			case "NativeCryptoFacade":
 				return this.nativeCryptoFacade.dispatch(methodName, args)
+			case "NativeMailImportFacade":
+				return this.nativeMailImportFacade.dispatch(methodName, args)
 			case "NativePushFacade":
 				return this.nativePushFacade.dispatch(methodName, args)
 			case "SearchTextInAppFacade":

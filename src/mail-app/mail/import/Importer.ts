@@ -4,7 +4,6 @@ import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
-import { EntityClient } from "../../../common/api/common/EntityClient"
 import { LoginController } from "../../../common/api/main/LoginController"
 
 export class Importer {
@@ -12,20 +11,17 @@ export class Importer {
 	private credentialsProvider: CredentialsProvider
 	private domainConfigProvider: DomainConfigProvider
 	private loginController: LoginController
-	private entityClient: EntityClient
 
 	constructor(
 		nativeMailImportFacade: NativeMailImportFacade,
 		credentialsProvider: CredentialsProvider,
 		domainConfigProvider: DomainConfigProvider,
 		loginController: LoginController,
-		entityClient: EntityClient,
 	) {
 		this.nativeMailImportFacade = nativeMailImportFacade
 		this.credentialsProvider = credentialsProvider
 		this.domainConfigProvider = domainConfigProvider
 		this.loginController = loginController
-		this.entityClient = entityClient
 	}
 
 	/**
@@ -54,12 +50,4 @@ export class Importer {
 	async stopImport() {
 		await this.nativeMailImportFacade.stopImport()
 	}
-
-	// getLocalStateAsRemote(): Map<Id, ImportMailState> {
-	// 	if (this.nativeMailImportFacade instanceof DesktopMailImportFacade) {
-	// 		return this.nativeMailImportFacade.localImportState
-	// 	} else {
-	// 		return new Map()
-	// 	}
-	// }
 }

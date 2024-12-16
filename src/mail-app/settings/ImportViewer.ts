@@ -25,12 +25,15 @@ import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
 import { UserController } from "../../common/api/main/UserController.js"
+import { MailImportFacade } from "../../common/native/common/generatedipc/MailImportFacade.js"
+import Id from "../translations/id.js"
+import { LocalImportState } from "../../common/native/common/generatedipc/LocalImportState.js"
 
 /**
  * Settings viewer for Import
  * This Viewer includes its own ViewModel logic because of its small size
  */
-export class ImportViewer implements UpdatableSettingsViewer {
+export class ImportViewer implements UpdatableSettingsViewer, MailImportFacade {
 	private mailboxModel: MailboxModel
 	private mailModel: MailModel
 	private mailboxDetail: MailboxDetail | null = null
@@ -76,8 +79,6 @@ export class ImportViewer implements UpdatableSettingsViewer {
 				for (const importState of importMailStatesCollection) {
 					this.importMailStates.set(elementIdPart(importState._id), importState)
 				}
-
-				// const localMailStatesCollection = this.mailImporter.getLocalStateAsRemote()
 			}
 		}
 	}
@@ -87,6 +88,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
 				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 				this.importMailStates.set(update.instanceId, updatedState)
+
 				this.startedCancellation.delete(update.instanceId)
 			}
 		}
@@ -265,6 +267,20 @@ export class ImportViewer implements UpdatableSettingsViewer {
 				}),
 			),
 		]
+	}
+
+	async onNewLocalImportMailState(localImportState: LocalImportState): Promise<void> {
+		const currentState = this.importMailStates.get(localImportState.remoteStateElementId)
+		if (currentState && currentState.status == ImportStatus.Running) {
+			currentState.status = localImportState.currentStatus.toString()
+			currentState.successfulMails = localImportState.successCount.toString()
+			currentState.failedMails = localImportState.failedCount.toString()
+			m.redraw()
+		} else {
+			// We have not received the create event yet or the import has already been finished/canceled.
+			// We can not show any state until we get first entity event from the server announcing the
+			// ImportMailState elementId used as key in the importMailStates map.
+		}
 	}
 }
 

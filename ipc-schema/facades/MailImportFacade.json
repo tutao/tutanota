@@ -1,32 +1,15 @@
 {
-	"name": "NativeMailImportFacade",
+	"name": "MailImportFacade",
 	"type": "facade",
-	"senders": ["web"],
-	"receivers": ["desktop"],
-	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
+	"senders": ["desktop"],
+	"receivers": ["web"],
+	"doc": "Facade implemented by the web rendering thread, receiving state events for the mail import.",
 	"methods": {
-		"stopImport": {
-			"doc": "Stop a running import.",
-			"arg": [],
-			"ret": "void"
-		},
-		"importFromFiles": {
-			"doc": "Import multiple mails from .eml or .mbox files.",
+		"onNewLocalImportMailState": {
+			"doc": "received new locally tracked state",
 			"arg": [
 				{
-					"apiUrl": "string"
-				},
-				{
-					"unencryptedTutaCredentials": "UnencryptedCredentials"
-				},
-				{
-					"targetOwnerGroup": "string"
-				},
-				{
-					"targetFolder": "List<string>"
-				},
-				{
-					"filePaths": "List<string>"
+					"localImportState": "LocalImportState"
 				}
 			],
 			"ret": "void"
