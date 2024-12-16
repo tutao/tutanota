@@ -528,7 +528,7 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 	return newDates
 }
 
-function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], evaluateSameWeek: boolean, evaluateSameMonth: boolean) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -545,13 +545,17 @@ function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 
 			let dt: DateTime
 			if (targetDay < 0) {
-				dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(targetDay) })
+				dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(targetDay) - 1 })
 			} else {
 				dt = date.set({ day: 1, month: 1 }).plus({ day: targetDay - 1 })
 			}
 
 			const yearOffset = dt.toMillis() < date.toMillis() ? 1 : 0
 			dt = dt.plus({ year: yearOffset })
+
+			if ((evaluateSameWeek && date.weekNumber !== dt.weekNumber) || (evaluateSameMonth && date.month !== dt.month)) {
+				continue
+			}
 
 			newDates.push(dt)
 		}
@@ -1245,12 +1249,8 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				RepeatPeriod.ANNUALLY,
 			)
 
-			const weekNoAppliedEvents = applyWeekNo(
-				monthAppliedEvents,
-				byWeekNoRules,
-				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
-			)
-			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules)
+			const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
 			const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
 
 			const events = finishByRules(
