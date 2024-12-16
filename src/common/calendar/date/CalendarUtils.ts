@@ -469,12 +469,19 @@ function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatR
 			} else {
 				// Monthly or Yearly
 				if (targetDay >= 0) {
-					newDates.push(date.set({ day: targetDay }))
+					const dt = date.set({ day: targetDay })
+					if (targetDay <= date.daysInMonth!) {
+						newDates.push(dt)
+					}
 					continue
 				}
+
 				const daysDiff = date.daysInMonth! - Math.abs(targetDay) + 1
 				if (daysDiff > 0) {
-					newDates.push(date.set({ day: daysDiff }))
+					const dt = date.set({ day: daysDiff })
+					if (daysDiff <= date.daysInMonth!) {
+						newDates.push(dt)
+					}
 				}
 			}
 		}
