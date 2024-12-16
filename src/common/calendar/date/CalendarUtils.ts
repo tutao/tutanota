@@ -335,15 +335,26 @@ function applyByDayRules(
 					continue
 				}
 
-				if (weekChange != 0 && !hasWeekNo) {
+				if (weekChange !== 0 && !hasWeekNo) {
 					if (!targetWeekDay) {
-						continue
-					}
-
-					const absWeeks = weekChange > 0 ? weekChange : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChange) + 1
-					const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
-					if (dt.toMillis() >= date.toMillis()) {
-						newDates.push(dt)
+						let dt: DateTime
+						if (weekChange > 0) {
+							dt = date.set({ day: 1, month: 1 }).plus({ day: weekChange - 1 })
+						} else {
+							console.log({ weekChange, day: Math.abs(weekChange) - 1 })
+							dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(weekChange) - 1 })
+						}
+						if (dt.toMillis() < date.toMillis()) {
+							newDates.push(dt.plus({ year: 1 }))
+						} else {
+							newDates.push(dt)
+						}
+					} else {
+						const absWeeks = weekChange > 0 ? weekChange : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChange) + 1
+						const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
+						if (dt.toMillis() >= date.toMillis()) {
+							newDates.push(dt)
+						}
 					}
 				} else if (hasWeekNo) {
 					// Handle WKST
@@ -364,10 +375,10 @@ function applyByDayRules(
 						continue
 					}
 
-					const stopCondition = date.plus({ year: 1 })
-					let currentDate = date.set({ weekday: targetWeekDay })
+					const stopCondition = date.set({ day: 1 }).plus({ month: 1 })
+					let currentDate = date.set({ day: 1, weekday: targetWeekDay })
 
-					if (currentDate.toMillis() >= date.toMillis()) {
+					if (currentDate.toMillis() >= date.set({ day: 1 }).toMillis()) {
 						newDates.push(currentDate)
 					}
 
@@ -377,18 +388,30 @@ function applyByDayRules(
 						newDates.push(currentDate)
 						currentDate = currentDate.plus({ week: 1 })
 					}
-				} else {
-					if (!targetWeekDay && weekChange > 0) {
-						const dt = date.set({ day: 1, month: 1 }).plus({ day: weekChange })
-						if (dt.toMillis() < date.toMillis()) {
-							newDates.push(dt.plus({ year: 1 }))
-						} else {
-							newDates.push(dt)
-						}
-					}
 				}
 			}
 		}
+	}
+
+	const allowedMonthDays: number[] = []
+	if (frequency === RepeatPeriod.ANNUALLY) {
+		for (const date of newDates) {
+			for (const allowedDay of monthDays ?? []) {
+				if (allowedDay > 0) {
+					allowedMonthDays.push(allowedDay)
+					continue
+				}
+
+				const day = date.daysInMonth! - Math.abs(allowedDay) + 1
+				allowedMonthDays.push(day)
+			}
+		}
+
+		const isAllowedInMonthDayRule = (day: number) => {
+			return allowedMonthDays.length === 0 ? true : allowedMonthDays.includes(day)
+		}
+
+
 	}
 
 	return newDates
@@ -1269,6 +1292,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
 				),
 				validMonths as MonthNumbers[],
+				eventStartTime,
 			)
 			for (const event of events) {
 				const newStartTime = event.toJSDate()
