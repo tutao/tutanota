@@ -7,7 +7,11 @@
 	"methods": {
 		"stopImport": {
 			"doc": "Stop a running import.",
-			"arg": [],
+			"arg": [
+				{
+					"importStateId": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"importFromFiles": {

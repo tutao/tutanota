@@ -62,6 +62,8 @@ pub enum ImportError {
 	IterationError(IterationError),
 	/// Some mail was too big
 	TooBigChunk,
+	/// Different stateId was returned by server for same session of import
+	InconsistentStateId,
 }
 
 #[derive(Debug)]
@@ -103,11 +105,10 @@ pub struct StateCallbackResponse {
 	pub should_stop: bool,
 }
 
-#[cfg_attr(feature = "javascript", napi_derive::napi(constructor))]
+#[cfg_attr(feature = "javascript", napi_derive::napi)]
 #[derive(Clone)]
 pub struct LocalImportState {
-	pub remote_state_list_id: String,
-	pub remote_state_element_id: String,
+	pub remote_state_id: String,
 
 	pub failed_count: i64,
 	pub success_count: i64,
@@ -120,6 +121,7 @@ pub struct ImportEssential {
 	mail_group_key: VersionedAesKey,
 	target_mailset: IdTupleGenerated,
 	randomizer_facade: RandomizerFacade,
+	remote_state_list_id: GeneratedId,
 }
 
 pub struct Importer {
@@ -183,7 +185,7 @@ impl ImportEssential {
 	async fn upload_attachments_for_chunk(
 		&self,
 		importable_chunk: Vec<AttachmentUploadData>,
-	) -> Result<(Vec<KeyedImportMailData>), ImportError> {
+	) -> Result<Vec<KeyedImportMailData>, ImportError> {
 		let mut upload_data_per_mail: Vec<(Vec<FileData>, Vec<ImportableMailAttachmentMetaData>)> =
 			Vec::with_capacity(importable_chunk.len());
 		let attachments_count_per_mail: Vec<usize> = importable_chunk
@@ -305,7 +307,7 @@ impl ImportEssential {
 
 	async fn make_serialized_chunk(
 		&self,
-		remote_state_id: IdTupleGenerated,
+		remote_state_id: GeneratedId,
 		importable_chunk: Vec<KeyedImportMailData>,
 	) -> Result<(ImportMailPostIn, GenericAesKey), ImportError> {
 		let mut serialized_imports = Vec::with_capacity(importable_chunk.len());
@@ -334,7 +336,7 @@ impl ImportEssential {
 			ownerKeyVersion: owner_enc_sk_for_import_post.version,
 			ownerEncSessionKey: owner_enc_sk_for_import_post.object,
 			newImportedMailSetName: "@internal-imported-mailset".to_string(),
-			mailState: remote_state_id,
+			mailState: IdTupleGenerated::new(self.remote_state_list_id.clone(), remote_state_id),
 			_finalIvs: Default::default(),
 			_format: 0,
 			_errors: None,
@@ -405,77 +407,8 @@ impl ImportEssential {
 }
 
 impl LocalImportState {
-	async fn mark_remote_final_state(
-		&mut self,
-		logged_in_sdk: &LoggedInSdk,
-		final_state: ImportStatus,
-	) -> Result<(), ImportError> {
-		assert!(
-			final_state == ImportStatus::Finished || final_state == ImportStatus::Canceled,
-			"only cancel and finished should be final state"
-		);
-
-		let mut import_state = self
-			.load_current_import_state(logged_in_sdk)
-			.await
-			.map_err(|e| ImportError::sdk("loading importState before Finished", e))?;
-		import_state.status = final_state as i64;
-
-		logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.update_instance(import_state)
-			.await
-			.map_err(|e| ImportError::sdk("update remote import state", e))?;
-
-		Ok(())
-	}
-
-	pub async fn load_current_import_state(
-		&self,
-		logged_in_sdk: &LoggedInSdk,
-	) -> Result<ImportMailState, ApiCallError> {
-		let remote_state_id = IdTupleGenerated::new(
-			GeneratedId(self.remote_state_list_id.clone()),
-			GeneratedId(self.remote_state_element_id.clone()),
-		);
-		logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.load::<ImportMailState, _>(&remote_state_id)
-			.await
-	}
-
 	fn change_status(&mut self, new_status: ImportStatus) {
 		self.current_status = new_status;
-	}
-
-	// assign remote state id, with assertion that it can only be set once to non-min IdTupleGenerated
-	fn set_remote_state_id(&mut self, remote_state_id: IdTupleGenerated) {
-		if self.remote_state_list_id.as_str() == GeneratedId::min_id().as_str()
-			|| self.remote_state_element_id.as_str() == GeneratedId::min_id().as_str()
-		{
-			assert_ne!(
-				remote_state_id,
-				IdTupleGenerated::new(GeneratedId::min_id(), GeneratedId::min_id()),
-				"Remote state is already initialized. can not rollback to uninitialized state"
-			);
-			self.remote_state_list_id = remote_state_id.list_id.0;
-			self.remote_state_element_id = remote_state_id.element_id.0;
-		} else {
-			assert!(
-				remote_state_id.list_id.as_str() == self.remote_state_list_id.as_str()
-					&& remote_state_id.element_id.as_str() == self.remote_state_element_id.as_str(),
-				"remote state id should not have changed"
-			);
-		}
-	}
-
-	fn get_remote_state_id(&self) -> IdTupleGenerated {
-		IdTupleGenerated::new(
-			GeneratedId(self.remote_state_list_id.clone()),
-			GeneratedId(self.remote_state_element_id.clone()),
-		)
 	}
 }
 
@@ -517,9 +450,7 @@ impl Importer {
 		let mail_group_key = logged_in_sdk
 			.get_current_sym_group_key(&target_owner_group)
 			.await
-			.map_err(|err| {
-				ImportError::sdk("trying to get mail group key for target owner group", err)
-			})?;
+			.map_err(|e| ImportError::sdk("getting current_sym_group for imap import", e))?;
 
 		let importer = Importer::new(
 			logged_in_sdk,
@@ -548,9 +479,79 @@ impl Importer {
 				mail_group_key,
 				target_mailset,
 				randomizer_facade,
+				remote_state_list_id: GeneratedId::min_id(),
 			},
-			state: LocalImportState::default(),
+			state: LocalImportState {
+				remote_state_id: GeneratedId::min_id().0,
+				failed_count: 0,
+				success_count: 0,
+				current_status: Default::default(),
+			},
 		}
+	}
+
+	fn update_remote_state_id(
+		essentials: &mut ImportEssential,
+		local_state: &mut LocalImportState,
+		state_id: IdTupleGenerated,
+	) -> Result<(), ImportError> {
+		let min_id = GeneratedId::min_id();
+
+		if essentials.remote_state_list_id == min_id
+			&& local_state.remote_state_id == min_id.as_str()
+		{
+			essentials.remote_state_list_id = state_id.list_id;
+			local_state.remote_state_id = state_id.element_id.0;
+			return Ok(());
+		}
+
+		// once id is set, it should always be same
+		if state_id.list_id != essentials.remote_state_list_id
+			|| state_id.element_id.as_str() != local_state.remote_state_id.as_str()
+		{
+			return Err(ImportError::InconsistentStateId);
+		}
+
+		Ok(())
+	}
+
+	pub async fn load_current_import_state(&self) -> Result<ImportMailState, ApiCallError> {
+		let remote_state_id = IdTupleGenerated::new(
+			self.essentials.remote_state_list_id.clone(),
+			GeneratedId(self.state.remote_state_id.clone()),
+		);
+		self.essentials
+			.logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.load::<ImportMailState, _>(&remote_state_id)
+			.await
+	}
+
+	async fn mark_remote_final_state(
+		&mut self,
+		final_state: ImportStatus,
+	) -> Result<(), ImportError> {
+		assert!(
+			final_state == ImportStatus::Finished || final_state == ImportStatus::Canceled,
+			"only cancel and finished should be final state"
+		);
+
+		let mut import_state = self
+			.load_current_import_state()
+			.await
+			.map_err(|e| ImportError::sdk("loading importState before Finished", e))?;
+		import_state.status = final_state as i64;
+
+		self.essentials
+			.logged_in_sdk
+			.mail_facade()
+			.get_crypto_entity_client()
+			.update_instance(import_state)
+			.await
+			.map_err(|e| ImportError::sdk("update remote import state", e))?;
+
+		Ok(())
 	}
 
 	pub async fn import_next_chunk(&mut self) -> Result<(), ImportError> {
@@ -600,7 +601,10 @@ impl Importer {
 						e
 					})?;
 				let importable_post_data = import_essentials
-					.make_serialized_chunk(import_state.get_remote_state_id(), unit_import_data)
+					.make_serialized_chunk(
+						GeneratedId(import_state.remote_state_id.clone()),
+						unit_import_data,
+					)
 					.await
 					.map_err(|e| {
 						import_state.failed_count += import_count_in_this_chunk;
@@ -615,7 +619,11 @@ impl Importer {
 						e
 					})?;
 
-				import_state.set_remote_state_id(import_mails_post_out.mailState);
+				Self::update_remote_state_id(
+					import_essentials,
+					import_state,
+					import_mails_post_out.mailState,
+				)?;
 				import_state.success_count += import_count_in_this_chunk;
 
 				Ok(())
@@ -635,17 +643,13 @@ impl Importer {
 			self.import_next_chunk().await?;
 
 			if self.state.current_status == ImportStatus::Finished {
-				self.state
-					.mark_remote_final_state(&self.essentials.logged_in_sdk, ImportStatus::Finished)
-					.await?;
+				self.mark_remote_final_state(ImportStatus::Finished).await?;
 				break;
 			}
 
 			let callback_response = callback_handle(self.state.clone()).await?;
 			if callback_response.should_stop {
-				self.state
-					.mark_remote_final_state(&self.essentials.logged_in_sdk, ImportStatus::Canceled)
-					.await?;
+				self.mark_remote_final_state(ImportStatus::Canceled).await?;
 				break;
 			}
 		}
@@ -657,18 +661,6 @@ impl Importer {
 impl ImportError {
 	pub fn sdk(action: &'static str, error: ApiCallError) -> Self {
 		Self::SdkError { action, error }
-	}
-}
-
-impl Default for LocalImportState {
-	fn default() -> Self {
-		Self {
-			remote_state_list_id: GeneratedId::min_id().0,
-			remote_state_element_id: GeneratedId::min_id().0,
-			failed_count: 0,
-			success_count: 0,
-			current_status: Default::default(),
-		}
 	}
 }
 
@@ -691,20 +683,20 @@ mod tests {
 			.await
 	}
 
-	fn assert_same_remote_and_local_state(
-		remote_state: &ImportMailState,
-		local_state: &LocalImportState,
-	) {
-		assert_eq!(remote_state.status, local_state.current_status as i64);
-		assert_eq!(remote_state.failedMails, local_state.failed_count);
-		assert_eq!(remote_state.successfulMails, local_state.success_count);
+	fn assert_same_remote_and_local_state(remote_state: &ImportMailState, importer: &Importer) {
+		assert_eq!(remote_state.status, importer.state.current_status as i64);
+		assert_eq!(remote_state.failedMails, importer.state.failed_count);
+		assert_eq!(remote_state.successfulMails, importer.state.success_count);
 		assert_eq!(
-			remote_state._id.as_ref(),
-			Some(&local_state.get_remote_state_id())
+			remote_state._id,
+			Some(IdTupleGenerated::new(
+				importer.essentials.remote_state_list_id.clone(),
+				GeneratedId(importer.state.remote_state_id.clone())
+			))
 		);
 		assert_ne!(
-			local_state.get_remote_state_id(),
-			LocalImportState::default().get_remote_state_id()
+			importer.state.remote_state_id,
+			GeneratedId::min_id().as_str()
 		);
 	}
 
@@ -814,12 +806,8 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer
-			.state
-			.load_current_import_state(&importer.essentials.logged_in_sdk)
-			.await
-			.unwrap();
-		assert_same_remote_and_local_state(&remote_state, &importer.state);
+		let remote_state = importer.load_current_import_state().await.unwrap();
+		assert_same_remote_and_local_state(&remote_state, &importer);
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
@@ -834,13 +822,9 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email.as_str());
 
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer
-			.state
-			.load_current_import_state(&importer.essentials.logged_in_sdk)
-			.await
-			.unwrap();
+		let remote_state = importer.load_current_import_state().await.unwrap();
 
-		assert_same_remote_and_local_state(&remote_state, &importer.state);
+		assert_same_remote_and_local_state(&remote_state, &importer);
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
@@ -850,13 +834,9 @@ mod tests {
 	async fn can_import_single_eml_file_without_attachment() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer
-			.state
-			.load_current_import_state(&importer.essentials.logged_in_sdk)
-			.await
-			.unwrap();
+		let remote_state = importer.load_current_import_state().await.unwrap();
 
-		assert_same_remote_and_local_state(&remote_state, &importer.state);
+		assert_same_remote_and_local_state(&remote_state, &importer);
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
@@ -866,13 +846,9 @@ mod tests {
 	async fn can_import_single_eml_file_with_attachment() {
 		let mut importer = init_file_importer(vec!["attachment_sample.eml"]).await;
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer
-			.state
-			.load_current_import_state(&importer.essentials.logged_in_sdk)
-			.await
-			.unwrap();
+		let remote_state = importer.load_current_import_state().await.unwrap();
 
-		assert_same_remote_and_local_state(&remote_state, &importer.state);
+		assert_same_remote_and_local_state(&remote_state, &importer);
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
 		assert_eq!(remote_state.failedMails, 0);
 		assert_eq!(remote_state.successfulMails, 1);
@@ -888,11 +864,7 @@ mod tests {
 			.start_stateful_import(callback_resolver)
 			.await
 			.unwrap();
-		let remote_state = importer
-			.state
-			.load_current_import_state(&importer.essentials.logged_in_sdk)
-			.await
-			.unwrap();
+		let remote_state = importer.load_current_import_state().await.unwrap();
 
 		assert_eq!(remote_state.status, ImportStatus::Canceled as i64);
 		assert_eq!(remote_state.failedMails, 0);

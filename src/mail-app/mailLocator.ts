@@ -138,7 +138,7 @@ import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/g
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
-import { Importer } from "./mail/import/Importer"
+import { MailImporter } from "./mail/import/Importer"
 
 assertMainOrNode()
 
@@ -184,7 +184,7 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
-	mailImporter!: Importer
+	mailImporter!: MailImporter
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -818,9 +818,12 @@ class MailLocator {
 				return null
 			})
 
+			this.mailImporter = new MailImporter(this.domainConfigProvider(), this.logins, this.mailboxModel, this.mailModel, this.entityClient)
+
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
+				this.mailImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,
@@ -840,6 +843,7 @@ class MailLocator {
 				this.logins,
 				AppType.Integrated,
 			)
+
 			this.credentialsProvider = await this.createCredentialsProvider()
 			if (isElectronClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
@@ -849,7 +853,8 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
-					this.mailImporter = new Importer(desktopInterfaces.mailImportFacade, this.credentialsProvider, this.domainConfigProvider(), this.logins)
+					this.mailImporter.nativeMailImportFacade = desktopInterfaces.nativeMailImportFacade
+					this.mailImporter.credentialsProvider = this.credentialsProvider
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")

@@ -7,123 +7,79 @@ import { Icons } from "../../common/gui/base/icons/Icons"
 import { TextField, type TextFieldAttrs } from "../../common/gui/base/TextField"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { showMailFolderDropdown } from "../mail/view/MailGuiUtils"
-import { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/MailboxModel"
-import { MailModel } from "../mail/model/MailModel"
-import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 import { FolderInfo, getFolderName, getIndentedFolderNameForDropdown } from "../mail/model/MailUtils"
 import { getMailFolderType, ImportStatus, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationText } from "../../common/misc/LanguageViewModel"
-import { Importer } from "../mail/import/Importer"
-import { NativeFileApp } from "../../common/native/common/FileApp"
+import { MailImporter } from "../mail/import/Importer"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { ColumnWidth, Table, type TableLineAttrs } from "../../common/gui/base/Table"
-import { EntityClient } from "../../common/api/common/EntityClient"
 import { ImportMailState, ImportMailStateTypeRef } from "../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, GENERATED_MAX_ID, isSameId } from "../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId, sortCompareById } from "../../common/api/common/utils/EntityUtils"
 import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
-import { UserController } from "../../common/api/main/UserController.js"
-import { MailImportFacade } from "../../common/native/common/generatedipc/MailImportFacade.js"
-import Id from "../translations/id.js"
-import { LocalImportState } from "../../common/native/common/generatedipc/LocalImportState.js"
+import { EntityClient } from "../../common/api/common/EntityClient.js"
+import { LoginController } from "../../common/api/main/LoginController.js"
+import { NativeFileApp } from "../../common/native/common/FileApp.js"
 
 /**
- * Settings viewer for Import
- * This Viewer includes its own ViewModel logic because of its small size
+ * Settings viewer for mail import.
  */
-export class ImportViewer implements UpdatableSettingsViewer, MailImportFacade {
-	private mailboxModel: MailboxModel
-	private mailModel: MailModel
-	private mailboxDetail: MailboxDetail | null = null
-	private selectedTargetFolder: IndentedFolder | undefined
-	private fileApp: NativeFileApp | null
-	private mailImporter: Importer
-	private expanded: boolean = true
-	private entityClient: EntityClient
-	private importMailStates: Map<Id, ImportMailState> = new Map()
+export class MailImportViewer implements UpdatableSettingsViewer {
 	private indentedFolders: Array<IndentedFolder> = []
-	private userController: UserController
-	private startedCancellation: Set<Id> = new Set()
 
-	constructor(
-		mailboxModel: MailboxModel,
-		mailModel: MailModel,
-		fileApp: NativeFileApp | null,
-		mailImporter: Importer,
-		entityClient: EntityClient,
-		userController: UserController,
-	) {
-		this.mailboxModel = mailboxModel
-		this.mailModel = mailModel
-		this.fileApp = fileApp
+	private selectedTargetFolder: IndentedFolder | undefined
+	private expanded: boolean = true
+
+	private mailImporter: MailImporter
+	private entityClient: EntityClient
+	private loginController: LoginController
+	private fileApp: NativeFileApp | null
+
+	constructor(mailImporter: MailImporter, entityClient: EntityClient, loginController: LoginController, fileApp: NativeFileApp | null) {
 		this.mailImporter = mailImporter
 		this.entityClient = entityClient
-		this.userController = userController
+		this.loginController = loginController
+		this.fileApp = fileApp
 	}
 
 	async oninit(): Promise<void> {
-		if (isDesktop() || !this.userController.isFreeAccount()) {
-			this.mailboxDetail = await this.getFirstMailBoxDetails()
-			this.indentedFolders = await this.getIndentedFolders()
-			this.selectedTargetFolder = this.indentedFolders.find((f) => getMailFolderType(f.folder) === MailSetKind.INBOX)
-			if (this.mailboxDetail) {
-				const importMailStatesCollection = await this.entityClient.loadRange(
-					ImportMailStateTypeRef,
-					this.mailboxDetail.mailbox.mailImportStates,
-					GENERATED_MAX_ID,
-					10,
-					true,
-				)
-				for (const importState of importMailStatesCollection) {
-					this.importMailStates.set(elementIdPart(importState._id), importState)
-				}
-			}
-		}
+		await this.mailImporter.init()
+		this.indentedFolders = await this.getIndentedFolders()
+		this.selectedTargetFolder = this.indentedFolders.find((f) => getMailFolderType(f.folder) === MailSetKind.INBOX)
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
 				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-				this.importMailStates.set(update.instanceId, updatedState)
-
-				this.startedCancellation.delete(update.instanceId)
+				this.mailImporter.updateImportMailState(update.instanceId, updatedState)
+				this.mailImporter.deleteStartedCancellation(update.instanceId)
 			}
 		}
 		m.redraw()
 	}
 
-	/**
-	 * Gets the first mailbox details (aka the first, main mailbox)
-	 * @private
-	 */
-	private async getFirstMailBoxDetails() {
-		return first(await this.mailboxModel.getMailboxDetails())
-	}
-
-	/**
-	 * Gets all folders in the currently set mailbox
-	 * @private
-	 */
 	private async getIndentedFolders(): Promise<Array<IndentedFolder>> {
-		if (this.mailboxDetail) {
-			const groupId = this.mailboxDetail.mailGroup._id
-			const folderSystem = this.mailModel.getFolderSystemByGroupId(groupId)
+		let mailboxDetail = this.mailImporter.mailboxDetail
+		if (mailboxDetail) {
+			const groupId = mailboxDetail.mailGroup._id
+			const folderSystem = this.mailImporter.mailModel.getFolderSystemByGroupId(groupId)
 			if (folderSystem) {
 				return folderSystem.getIndentedList()
 			}
 		}
-		throw new Error("Init went wrong")
+		throw new Error("could not load indented folder list")
 	}
 
 	private async onFolderDropdownSelect(dom: HTMLElement) {
-		if (this.userController.isFreeAccount()) {
+		if (this.loginController.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog()
 			return
 		}
-		this.mailboxDetail = await this.getFirstMailBoxDetails()
+		await this.mailImporter.reloadMailboxDetails()
 		const folderInfos = await this.getIndentedFolders()
 		await showMailFolderDropdown(dom.getBoundingClientRect(), folderInfos as FolderInfo[], (folder) => {
 			this.selectedTargetFolder = folder
@@ -132,14 +88,13 @@ export class ImportViewer implements UpdatableSettingsViewer, MailImportFacade {
 	}
 
 	private async onImportButtonClick(dom: HTMLElement) {
-		if (this.userController.isFreeAccount()) {
+		if (this.loginController.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog([PlanType.Legend, PlanType.Unlimited])
 			return
 		}
 		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
 		this.expanded = true
-
-		if (this.selectedTargetFolder && this.mailboxDetail) {
+		if (this.selectedTargetFolder && this.mailImporter.mailboxDetail) {
 			await this.mailImporter.importFromFiles(
 				this.selectedTargetFolder.folder,
 				filePaths.map((fp) => fp.location),
@@ -150,41 +105,43 @@ export class ImportViewer implements UpdatableSettingsViewer, MailImportFacade {
 	/**
 	 * Parses the importMailStates into displayable table lines.
 	 * Returns array of the parsed table lines
-	 * @private
 	 */
 	private parseRecentImportsToTableLines(): Array<TableLineAttrs> {
 		if (isEmpty(this.indentedFolders)) {
 			return []
 		}
-		return Array.from(this.importMailStates.values()).map((im) => {
-			const targetFolderId = im.targetFolder
-			const displayTargetFolder = this.indentedFolders.find((f) => isSameId(f.folder._id, targetFolderId))
+		return Array.from(this.mailImporter.importMailStates.values())
+			.sort(sortCompareById)
+			.map((im) => {
+				const targetFolderId = im.targetFolder
+				const displayTargetFolder = this.indentedFolders.find((f) => isSameId(f.folder._id, targetFolderId))
 
-			return {
-				cells: () => [
-					{
-						main: `${lang.getMaybeLazy(this.makeStatusRowForImport(im))}`,
-						info: [`Imported: ${im.successfulMails}`, `Failed: ${im.failedMails}`],
-					},
-					{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
-				],
-				actionButtonAttrs:
-					im.status === ImportStatus.Running
-						? {
-								icon: Icons.Cancel,
-								title: () => "Cancel import",
-								click: () => {
-									this.startedCancellation.add(elementIdPart(im._id))
-									this.mailImporter.stopImport()
-								},
-						  }
-						: null,
-			}
-		})
+				return {
+					cells: () => [
+						{
+							main: `${lang.getMaybeLazy(this.makeStatusRowForImport(im))}`,
+							info: [`Imported: ${im.successfulMails}`, `Failed: ${im.failedMails}`],
+						},
+						{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
+					],
+					actionButtonAttrs:
+						im.status === ImportStatus.Running
+							? {
+									icon: Icons.Cancel,
+									title: () => "Cancel import",
+									click: () => {
+										this.mailImporter.stopImport(elementIdPart(im._id))
+									},
+							  }
+							: null,
+				}
+			})
 	}
 
 	private makeStatusRowForImport(importState: ImportMailState): TranslationText {
-		let status = this.startedCancellation.has(elementIdPart(importState._id)) ? "Canceling.." : getMailImportStatusName(importState.status as ImportStatus)
+		let status = this.mailImporter.startedCancellations.has(elementIdPart(importState._id))
+			? "Canceling.."
+			: getMailImportStatusName(importState.status as ImportStatus)
 		return () => `${status}`
 	}
 
@@ -267,20 +224,6 @@ export class ImportViewer implements UpdatableSettingsViewer, MailImportFacade {
 				}),
 			),
 		]
-	}
-
-	async onNewLocalImportMailState(localImportState: LocalImportState): Promise<void> {
-		const currentState = this.importMailStates.get(localImportState.remoteStateElementId)
-		if (currentState && currentState.status == ImportStatus.Running) {
-			currentState.status = localImportState.currentStatus.toString()
-			currentState.successfulMails = localImportState.successCount.toString()
-			currentState.failedMails = localImportState.failedCount.toString()
-			m.redraw()
-		} else {
-			// We have not received the create event yet or the import has already been finished/canceled.
-			// We can not show any state until we get first entity event from the server announcing the
-			// ImportMailState elementId used as key in the importMailStates map.
-		}
 	}
 }
 

@@ -73,6 +73,7 @@ import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
 import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
+import { locator } from "../../mail-app/workerUtils/worker/WorkerLocator.js"
 
 mp()
 
@@ -274,9 +275,9 @@ async function createComponents(): Promise<Components> {
 			new DesktopExternalCalendarFacade(),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs),
 			new DesktopInterWindowEventFacade(window, wm),
-			new DesktopMailImportFacade(window),
 			nativeCredentialsFacade,
 			desktopCrypto,
+			new DesktopMailImportFacade(window),
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,

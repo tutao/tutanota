@@ -8,7 +8,7 @@ export interface NativeMailImportFacade {
 	/**
 	 * Stop a running import.
 	 */
-	stopImport(): Promise<void>
+	stopImport(importStateId: string): Promise<void>
 
 	/**
 	 * Import multiple mails from .eml or .mbox files.

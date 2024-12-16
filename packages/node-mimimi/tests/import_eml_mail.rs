@@ -58,11 +58,7 @@ async fn can_import_multiple_emls() {
 		.start_stateful_import(default_resolver)
 		.await
 		.expect("Cannot complete import");
-	let remote_state = importer
-		.essentials
-		.load_current_import_state()
-		.await
-		.unwrap();
+	let remote_state = importer.load_current_import_state().await.unwrap();
 	assert_eq!(ImportStatus::Finished as i64, remote_state.status);
 	assert_eq!(14, remote_state.successfulMails);
 	assert_eq!(0, remote_state.failedMails);
@@ -70,7 +66,7 @@ async fn can_import_multiple_emls() {
 
 #[cfg(feature = "javascript")]
 #[test]
-#[ignore]
+#[ignore = "need re-run without javascript feature"]
 fn can_import_multiple_emls() {
 	panic!("This test should be run without javascript feature")
 }

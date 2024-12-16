@@ -1,6 +1,7 @@
 use super::importer::{
 	ImportError, ImportStatus, Importer, LocalImportState, StateCallbackResponse,
 };
+use napi::bindgen_prelude::Promise;
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
 use napi_derive::napi;
@@ -78,8 +79,14 @@ impl ImporterApi {
 		&mut self,
 		callback_handle: StateCallback,
 	) -> napi::Result<()> {
-		let callback_handle_provider = |local_state: LocalImportState| {
-			callback_handle.call_async::<StateCallbackResponse>(local_state)
+		let callback_handle_provider = |local_state: LocalImportState| async {
+			let res = callback_handle
+				.call_async::<Promise<StateCallbackResponse>>(local_state)
+				.await;
+			match res {
+				Ok(promise) => promise.await,
+				Err(e) => Err(e),
+			}
 		};
 
 		let mut importer = self.inner.lock().await;
@@ -148,9 +155,9 @@ impl From<ImportError> for napi::Error {
 		napi::Error::from_reason(match import_err {
 			ImportError::SdkError { .. } => "SdkError",
 			ImportError::NoImportFeature => "NoImportFeature",
-			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
-				"Malformed server response"
-			},
+			ImportError::EmptyBlobServerList
+			| ImportError::NoElementIdForState
+			| ImportError::InconsistentStateId => "Malformed server response",
 			ImportError::NoNativeRestClient(_)
 			| ImportError::IterationError(_)
 			| ImportError::TooBigChunk => "IoError",
@@ -158,13 +165,5 @@ impl From<ImportError> for napi::Error {
 				"Not a valid login"
 			},
 		})
-	}
-}
-
-#[napi_derive::napi]
-impl LocalImportState {
-	#[napi(constructor)]
-	pub fn new() -> Self {
-		LocalImportState::default()
 	}
 }

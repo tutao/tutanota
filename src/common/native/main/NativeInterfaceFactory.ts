@@ -40,6 +40,7 @@ import { ExternalCalendarFacade } from "../common/generatedipc/ExternalCalendarF
 import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/ExternalCalendarFacadeSendDispatcher.js"
 import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
 import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
+import { MailImportFacade } from "../common/generatedipc/MailImportFacade.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -58,7 +59,7 @@ export type DesktopInterfaces = {
 	searchTextFacade: SearchTextInAppFacade
 	desktopSettingsFacade: SettingsFacadeSendDispatcher
 	desktopSystemFacade: DesktopSystemFacade
-	mailImportFacade: NativeMailImportFacade
+	nativeMailImportFacade: NativeMailImportFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
 }
 
@@ -69,6 +70,7 @@ export type DesktopInterfaces = {
 export function createNativeInterfaces(
 	mobileFacade: WebMobileFacade,
 	desktopFacade: DesktopFacade,
+	mailImportFacade: MailImportFacade,
 	interWindowEventFacade: InterWindowEventFacade,
 	commonNativeFacade: CommonNativeFacade,
 	cryptoFacade: CryptoFacade,
@@ -81,7 +83,7 @@ export function createNativeInterfaces(
 		throw new ProgrammingError("Tried to make native interfaces in non-native")
 	}
 
-	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, mobileFacade)
+	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, mailImportFacade, mobileFacade)
 	const native = new NativeInterfaceMain(dispatcher)
 	const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 	const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade, app)
@@ -116,7 +118,7 @@ export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInt
 		searchTextFacade: new SearchTextInAppFacadeSendDispatcher(native),
 		desktopSettingsFacade: new SettingsFacadeSendDispatcher(native),
 		desktopSystemFacade: new DesktopSystemFacadeSendDispatcher(native),
-		mailImportFacade: new NativeMailImportFacadeSendDispatcher(native),
+		nativeMailImportFacade: new NativeMailImportFacadeSendDispatcher(native),
 		interWindowEventSender: new InterWindowEventFacadeSendDispatcher(native),
 	}
 }

@@ -1,11 +1,11 @@
 {
-	"name": "LocalImportState",
+	"name": "LocalImportMailState",
 	"type": "struct",
-	"doc": "State of import tracked locally",
+	"doc": "Local import mail state, to show progress during an mail import.",
 	"fields": {
-		"remoteStateElementId": "string",
-		"failedCount": "number",
-		"successCount": "number",
-		"currentStatus": "number"
+		"importMailStateElementId": "string",
+		"successfulMails": "number",
+		"failedMails": "number",
+		"status": "number"
 	}
 }

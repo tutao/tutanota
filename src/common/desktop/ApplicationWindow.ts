@@ -48,10 +48,10 @@ const VIRTUAL_APP_URL_BASE = "asset://app"
 const VIRTUAL_APP_URL = VIRTUAL_APP_URL_BASE + "/index-desktop.html"
 
 export class ApplicationWindow {
-	private _mailImportFacade!: MailImportFacade
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
+	private _mailImportFacade!: MailImportFacade
 	private _sqlCipherFacade!: PerWindowSqlCipherFacade
 
 	_browserWindow!: BrowserWindow

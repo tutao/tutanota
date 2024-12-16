@@ -8,7 +8,8 @@ export class NativeMailImportFacadeReceiveDispatcher {
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "stopImport": {
-				return this.facade.stopImport()
+				const importStateId: string = arg[0]
+				return this.facade.stopImport(importStateId)
 			}
 			case "importFromFiles": {
 				const apiUrl: string = arg[0]

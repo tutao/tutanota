@@ -3,13 +3,13 @@
 	"type": "facade",
 	"senders": ["desktop"],
 	"receivers": ["web"],
-	"doc": "Facade implemented by the web rendering thread, receiving state events for the mail import.",
+	"doc": "Facade implemented by the web worker, receiving events for the mail import.",
 	"methods": {
 		"onNewLocalImportMailState": {
-			"doc": "received new locally tracked state",
+			"doc": "new localImportMailState event",
 			"arg": [
 				{
-					"localImportState": "LocalImportState"
+					"localImportMailState": "LocalImportMailState"
 				}
 			],
 			"ret": "void"

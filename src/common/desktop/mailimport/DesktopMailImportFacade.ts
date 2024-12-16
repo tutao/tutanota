@@ -1,12 +1,13 @@
 import { ImporterApi, LocalImportState as LocalImportState, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
-import { ApplicationWindow } from "../ApplicationWindow.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
 import { GENERATED_MIN_ID } from "../../api/common/utils/EntityUtils.js"
+import { ApplicationWindow } from "../ApplicationWindow.js"
+import { MailImportFacade } from "../../native/common/generatedipc/MailImportFacade.js"
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
-	private shouldStopImport: boolean = false
+	private stoppedImportQueues: Map<Id, boolean> = new Map()
 
 	constructor(private readonly win: ApplicationWindow) {
 		ImporterApi.initLog()
@@ -31,27 +32,35 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 		const fileImporter = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths)
-
-		await fileImporter.startImport(this.importStateCallback)
+		await fileImporter.startImport((localState: LocalImportState) => {
+			return DesktopMailImportFacade.importStateCallback(this.win.mailImportFacade, this.stoppedImportQueues, localState)
+		})
 	}
 
-	importStateCallback(localState: LocalImportState) {
-		if (localState.remoteStateElementId != GENERATED_MIN_ID) {
-			this.win.mailImportFacade.onNewLocalImportMailState({
-				successCount: localState.successCount,
-				failedCount: localState.failedCount,
-				remoteStateElementId: localState.remoteStateElementId,
-				remoteStateListId: localState.remoteStateListId,
-				currentStatus: localState.currentStatus,
+	static async importStateCallback(mailImportFacade: MailImportFacade, stoppedImportQueues: Map<Id, boolean>, localState: LocalImportState) {
+		if (localState.remoteStateId == GENERATED_MIN_ID) {
+			return {
+				shouldStop: false,
+			}
+		} else {
+			console.log("swear this is defined")
+			await mailImportFacade.onNewLocalImportMailState({
+				importMailStateElementId: localState.remoteStateId,
+				successfulMails: localState.successCount,
+				failedMails: localState.failedCount,
+				status: localState.currentStatus,
 			})
-		}
 
-		return {
-			shouldStop: this.shouldStopImport,
+			const shouldStop = stoppedImportQueues.get(localState.remoteStateId) ?? false
+			stoppedImportQueues.delete(localState.remoteStateId)
+
+			return {
+				shouldStop: shouldStop,
+			}
 		}
 	}
 
-	async stopImport(): Promise<void> {
-		this.shouldStopImport = true
+	async stopImport(importMailStateElementId: Id): Promise<void> {
+		this.stoppedImportQueues.set(importMailStateElementId, true)
 	}
 }

@@ -30,6 +30,7 @@ import {
 	debounce,
 	first,
 	groupByAndMap,
+	isEmpty,
 	isNotNull,
 	last,
 	lastThrow,
@@ -626,15 +627,17 @@ export class MailViewModel {
 
 			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, dateRangeFilteredMailSetEntryIds)
-			const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
-			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
-				if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
-				return listModelOfImport.entityEventReceived(
-					listIdPart(importedMailSetEntry.mail),
-					elementIdPart(importedMailSetEntry.mail),
-					OperationType.CREATE,
-				)
-			})
+			if (!isEmpty(importedMailSetEntries)) {
+				const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
+				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
+					if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
+					return listModelOfImport.entityEventReceived(
+						listIdPart(importedMailSetEntry.mail),
+						elementIdPart(importedMailSetEntry.mail),
+						OperationType.CREATE,
+					)
+				})
+			}
 		}
 	}
 

@@ -68,7 +68,7 @@ import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
-import { Importer } from "../import/Importer"
+import { MailImporter } from "../import/Importer"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 
 assertMainOrNode()
@@ -83,7 +83,7 @@ export interface MailViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	cache: MailViewCache
 	header: AppHeaderAttrs
-	mailImporter: Importer | null
+	mailImporter: MailImporter | null
 	mailViewModel: MailViewModel
 }
 
@@ -95,7 +95,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
-	private readonly mailImporter: Importer | null
+	private readonly mailImporter: MailImporter | null
 	cache: MailViewCache
 	readonly oncreate: TopLevelView["oncreate"]
 	readonly onremove: TopLevelView["onremove"]
