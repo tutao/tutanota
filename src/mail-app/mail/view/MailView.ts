@@ -68,7 +68,7 @@ import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
-import { MailImporter } from "../import/Importer"
+import { MailImporter } from "../import/MailImporter.js"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 
 assertMainOrNode()

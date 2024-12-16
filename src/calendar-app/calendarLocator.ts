@@ -111,7 +111,7 @@ import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
-import { MailImporter } from "../mail-app/mail/import/Importer"
+import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 
 assertMainOrNode()
 

@@ -43,7 +43,6 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 				shouldStop: false,
 			}
 		} else {
-			console.log("swear this is defined")
 			await mailImportFacade.onNewLocalImportMailState({
 				importMailStateElementId: localState.remoteStateId,
 				successfulMails: localState.successCount,

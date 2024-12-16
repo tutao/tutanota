@@ -7,22 +7,23 @@ import { Icons } from "../../common/gui/base/icons/Icons"
 import { TextField, type TextFieldAttrs } from "../../common/gui/base/TextField"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { showMailFolderDropdown } from "../mail/view/MailGuiUtils"
-import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
 import { FolderInfo, getFolderName, getIndentedFolderNameForDropdown } from "../mail/model/MailUtils"
 import { getMailFolderType, ImportStatus, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationText } from "../../common/misc/LanguageViewModel"
-import { MailImporter } from "../mail/import/Importer"
+import { MailImporter } from "../mail/import/MailImporter.js"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { ColumnWidth, Table, type TableLineAttrs } from "../../common/gui/base/Table"
 import { ImportMailState, ImportMailStateTypeRef } from "../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, isSameId, sortCompareById } from "../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId, sortCompareById, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
 import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { NativeFileApp } from "../../common/native/common/FileApp.js"
+import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 
 /**
  * Settings viewer for mail import.
@@ -30,6 +31,7 @@ import { NativeFileApp } from "../../common/native/common/FileApp.js"
 export class MailImportViewer implements UpdatableSettingsViewer {
 	private indentedFolders: Array<IndentedFolder> = []
 
+	private mailboxDetail: MailboxDetail | null = null
 	private selectedTargetFolder: IndentedFolder | undefined
 	private expanded: boolean = true
 
@@ -46,7 +48,8 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 	}
 
 	async oninit(): Promise<void> {
-		await this.mailImporter.init()
+		await this.mailImporter.initImportMailStates()
+		this.mailboxDetail = first(await this.mailImporter.mailboxModel.getMailboxDetails())
 		this.indentedFolders = await this.getIndentedFolders()
 		this.selectedTargetFolder = this.indentedFolders.find((f) => getMailFolderType(f.folder) === MailSetKind.INBOX)
 	}
@@ -63,7 +66,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 	}
 
 	private async getIndentedFolders(): Promise<Array<IndentedFolder>> {
-		let mailboxDetail = this.mailImporter.mailboxDetail
+		let mailboxDetail = this.mailboxDetail
 		if (mailboxDetail) {
 			const groupId = mailboxDetail.mailGroup._id
 			const folderSystem = this.mailImporter.mailModel.getFolderSystemByGroupId(groupId)
@@ -79,7 +82,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			showNotAvailableForFreeDialog()
 			return
 		}
-		await this.mailImporter.reloadMailboxDetails()
+		this.mailboxDetail = first(await this.mailImporter.mailboxModel.getMailboxDetails())
 		const folderInfos = await this.getIndentedFolders()
 		await showMailFolderDropdown(dom.getBoundingClientRect(), folderInfos as FolderInfo[], (folder) => {
 			this.selectedTargetFolder = folder
@@ -94,7 +97,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 		}
 		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), undefined, true)
 		this.expanded = true
-		if (this.selectedTargetFolder && this.mailImporter.mailboxDetail) {
+		if (this.selectedTargetFolder && this.mailboxDetail) {
 			await this.mailImporter.importFromFiles(
 				this.selectedTargetFolder.folder,
 				filePaths.map((fp) => fp.location),
@@ -111,7 +114,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			return []
 		}
 		return Array.from(this.mailImporter.importMailStates.values())
-			.sort(sortCompareById)
+			.sort(sortCompareByReverseId)
 			.map((im) => {
 				const targetFolderId = im.targetFolder
 				const displayTargetFolder = this.indentedFolders.find((f) => isSameId(f.folder._id, targetFolderId))
@@ -140,7 +143,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 
 	private makeStatusRowForImport(importState: ImportMailState): TranslationText {
 		let status = this.mailImporter.startedCancellations.has(elementIdPart(importState._id))
-			? "Canceling.."
+			? "Canceling..."
 			: getMailImportStatusName(importState.status as ImportStatus)
 		return () => `${status}`
 	}
@@ -186,7 +189,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 
 	private renderNoImportOnWebText() {
 		return [
-			// TODO: Download links for the Tuta desktop
+			// FIXME: download links for the tuta desktop client
 			m(
 				"p",
 				"Please download our desktop client to get started with the Email Import." + " ",
@@ -227,11 +230,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 	}
 }
 
-/**
- * Parses mail ImportStatus into its corresponding translated label
- * @param state
- */
-export function getMailImportStatusName(state: ImportStatus): string {
+export function getMailImportStatusName(state: ImportStatus): string | TranslationText {
 	switch (state) {
 		case ImportStatus.Running:
 			return "Running..."

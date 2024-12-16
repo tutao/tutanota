@@ -68,7 +68,7 @@ import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
-import { MailImporter } from "../../../mail-app/mail/import/Importer"
+import { MailImporter } from "../../../mail-app/mail/import/MailImporter.js"
 
 export interface CommonLocator {
 	worker: WorkerClient

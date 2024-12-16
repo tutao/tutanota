@@ -138,7 +138,7 @@ import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/g
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
-import { MailImporter } from "./mail/import/Importer"
+import { MailImporter } from "./mail/import/MailImporter.js"
 
 assertMainOrNode()
 

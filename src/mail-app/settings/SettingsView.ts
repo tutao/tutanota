@@ -67,7 +67,7 @@ import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
-import { MailImportViewer } from "./ImportViewer"
+import { MailImportViewer } from "./MailImportViewer.js"
 import { mailLocator } from "../mailLocator"
 
 assertMainOrNode()
