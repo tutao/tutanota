@@ -21,7 +21,6 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		targetFolderId: IdTuple,
 		filePaths: Array<string>,
 	): Promise<void> {
-		this.shouldStopImport = false
 		const tutaCredentials: TutaCredentials = {
 			accessToken: unencTutaCredentials?.accessToken,
 			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
@@ -45,7 +44,6 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		return {
 			shouldStop: this.shouldStopImport,
-			shouldPause: false,
 		}
 	}
 

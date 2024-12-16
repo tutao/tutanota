@@ -77,7 +77,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
 					this.importMailStates.set(elementIdPart(importState._id), importState)
 				}
 
-				const localMailStatesCollection = this.mailImporter.getLocalStateAsRemote()
+				// const localMailStatesCollection = this.mailImporter.getLocalStateAsRemote()
 			}
 		}
 	}
@@ -272,7 +272,7 @@ export class ImportViewer implements UpdatableSettingsViewer {
  * Parses mail ImportStatus into its corresponding translated label
  * @param state
  */
-export function getMailImportStatusName(state: ImportStatus): String {
+export function getMailImportStatusName(state: ImportStatus): string {
 	switch (state) {
 		case ImportStatus.Running:
 			return "Running..."

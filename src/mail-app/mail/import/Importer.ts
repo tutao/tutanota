@@ -1,12 +1,11 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { ImportMailState, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { DesktopMailImportFacade } from "../../../common/desktop/mailimport/DesktopMailImportFacade.js"
 
 export class Importer {
 	private nativeMailImportFacade: NativeMailImportFacade
@@ -56,11 +55,11 @@ export class Importer {
 		await this.nativeMailImportFacade.stopImport()
 	}
 
-	getLocalStateAsRemote(): Map<Id, ImportMailState> {
-		if (this.nativeMailImportFacade instanceof DesktopMailImportFacade) {
-			return this.nativeMailImportFacade.localImportState
-		} else {
-			return new Map()
-		}
-	}
+	// getLocalStateAsRemote(): Map<Id, ImportMailState> {
+	// 	if (this.nativeMailImportFacade instanceof DesktopMailImportFacade) {
+	// 		return this.nativeMailImportFacade.localImportState
+	// 	} else {
+	// 		return new Map()
+	// 	}
+	// }
 }
