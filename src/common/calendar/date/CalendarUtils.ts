@@ -15,6 +15,7 @@ import {
 	isNotNull,
 	isSameDayOfDate,
 	isValidDate,
+	memoized,
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
@@ -225,6 +226,7 @@ function applyByDayRules(
 	wkst: WeekdayNumbers,
 	hasWeekNo?: boolean,
 	monthDays?: number[],
+	yearDays?: number[],
 ) {
 	if (parsedRules.length === 0) {
 		return dates
@@ -336,15 +338,26 @@ function applyByDayRules(
 					continue
 				}
 
-				if (weekChange != 0 && !hasWeekNo) {
+				if (weekChange !== 0 && !hasWeekNo) {
 					if (!targetWeekDay) {
-						continue
-					}
-
-					const absWeeks = weekChange > 0 ? weekChange : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChange) + 1
-					const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
-					if (dt.toMillis() >= date.toMillis()) {
-						newDates.push(dt)
+						let dt: DateTime
+						if (weekChange > 0) {
+							dt = date.set({ day: 1, month: 1 }).plus({ day: weekChange - 1 })
+						} else {
+							console.log({ weekChange, day: Math.abs(weekChange) - 1 })
+							dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(weekChange) - 1 })
+						}
+						if (dt.toMillis() < date.toMillis()) {
+							newDates.push(dt.plus({ year: 1 }))
+						} else {
+							newDates.push(dt)
+						}
+					} else {
+						const absWeeks = weekChange > 0 ? weekChange : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChange) + 1
+						const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
+						if (dt.toMillis() >= date.toMillis()) {
+							newDates.push(dt)
+						}
 					}
 				} else if (hasWeekNo) {
 					// Handle WKST
@@ -365,10 +378,10 @@ function applyByDayRules(
 						continue
 					}
 
-					const stopCondition = date.plus({ year: 1 })
-					let currentDate = date.set({ weekday: targetWeekDay })
+					const stopCondition = date.set({ day: 1 }).plus({ month: 1 })
+					let currentDate = date.set({ day: 1, weekday: targetWeekDay })
 
-					if (currentDate.toMillis() >= date.toMillis()) {
+					if (currentDate.toMillis() >= date.set({ day: 1 }).toMillis()) {
 						newDates.push(currentDate)
 					}
 
@@ -378,18 +391,44 @@ function applyByDayRules(
 						newDates.push(currentDate)
 						currentDate = currentDate.plus({ week: 1 })
 					}
-				} else {
-					if (!targetWeekDay && weekChange > 0) {
-						const dt = date.set({ day: 1, month: 1 }).plus({ day: weekChange })
-						if (dt.toMillis() < date.toMillis()) {
-							newDates.push(dt.plus({ year: 1 }))
-						} else {
-							newDates.push(dt)
-						}
-					}
 				}
 			}
 		}
+	}
+
+	if (frequency === RepeatPeriod.ANNUALLY) {
+		const getValidDaysInYear = memoized((year: number): number[] => {
+			const daysInYear = DateTime.fromObject({ year, month: 1, day: 1 }).daysInYear
+			const allowedDays: number[] = []
+			for (const allowedDay of yearDays ?? []) {
+				if (allowedDay > 0) {
+					allowedDays.push(allowedDay)
+					continue
+				}
+
+				const day = daysInYear - Math.abs(allowedDay) + 1
+			}
+
+			return allowedDays
+		})
+
+		const convertDateToDayOfYear = memoized((date: Date) => {
+			return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000
+		})
+
+		const isValidDay = (date: DateTime) => {
+			const validDays = getValidDaysInYear(date.year)
+
+			if (validDays.length === 0) {
+				return true
+			}
+
+			const dayInYear = convertDateToDayOfYear(date.toJSDate())
+
+			return validDays.includes(dayInYear)
+		}
+
+		return newDates.filter((date) => isValidDay(date))
 	}
 
 	return newDates
@@ -470,12 +509,19 @@ function applyByMonthDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatR
 			} else {
 				// Monthly or Yearly
 				if (targetDay >= 0) {
-					newDates.push(date.set({ day: targetDay }))
+					const dt = date.set({ day: targetDay })
+					if (targetDay <= date.daysInMonth!) {
+						newDates.push(dt)
+					}
 					continue
 				}
+
 				const daysDiff = date.daysInMonth! - Math.abs(targetDay) + 1
 				if (daysDiff > 0) {
-					newDates.push(date.set({ day: daysDiff }))
+					const dt = date.set({ day: daysDiff })
+					if (daysDiff <= date.daysInMonth!) {
+						newDates.push(dt)
+					}
 				}
 			}
 		}
@@ -529,7 +575,7 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 	return newDates
 }
 
-function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
+function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], evaluateSameWeek: boolean, evaluateSameMonth: boolean) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -546,13 +592,17 @@ function applyYearDay(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 
 			let dt: DateTime
 			if (targetDay < 0) {
-				dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(targetDay) })
+				dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(targetDay) - 1 })
 			} else {
 				dt = date.set({ day: 1, month: 1 }).plus({ day: targetDay - 1 })
 			}
 
 			const yearOffset = dt.toMillis() < date.toMillis() ? 1 : 0
 			dt = dt.plus({ year: yearOffset })
+
+			if ((evaluateSameWeek && date.weekNumber !== dt.weekNumber) || (evaluateSameMonth && date.month !== dt.month)) {
+				continue
+			}
 
 			newDates.push(dt)
 		}
@@ -1238,7 +1288,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 			const byWeekNoRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYWEEKNO)
 			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
 			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
-
+			const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
 			const monthAppliedEvents = applyByMonth(
 				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
 				byMonthRules,
@@ -1246,12 +1296,8 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				RepeatPeriod.ANNUALLY,
 			)
 
-			const weekNoAppliedEvents = applyWeekNo(
-				monthAppliedEvents,
-				byWeekNoRules,
-				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
-			)
-			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules)
+			const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
 			const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
 
 			const events = finishByRules(
@@ -1261,8 +1307,12 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 					RepeatPeriod.ANNUALLY,
 					validMonths,
 					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+					byWeekNoRules.length > 0,
+					[],
+					validYearDays,
 				),
 				validMonths as MonthNumbers[],
+				eventStartTime,
 			)
 			for (const event of events) {
 				const newStartTime = event.toJSDate()
