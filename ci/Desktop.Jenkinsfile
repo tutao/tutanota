@@ -42,7 +42,7 @@ pipeline {
 							filename 'linux-build.dockerfile'
 							label 'master'
 							dir 'ci/containers'
-							additionalBuildArgs "--format docker"
+							additionalBuildArgs "--format docker --squash"
 							args '--network host'
 						} // docker
 					} // agent
