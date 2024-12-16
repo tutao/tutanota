@@ -106,7 +106,7 @@ pipeline {
 			} // stages
 		} // stage Google Play Store
 		stage("Github release notes") {
-			when { expression { return params.PROD && params.GITHUB_RELEASE } }
+			when { expression { return params.GITHUB_RELEASE } }
 			steps {
 				script {
 					downloadAndroidApp("android", PROD_FILE_PATH)
