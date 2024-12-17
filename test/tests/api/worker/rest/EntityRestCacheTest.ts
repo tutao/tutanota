@@ -712,8 +712,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
 					makeBatch([
-						createUpdate(MailTypeRef, "listId1", "id3", OperationType.DELETE),
-						createUpdate(MailTypeRef, "listId2", "id3", OperationType.CREATE),
+						createUpdate(MailTypeRef, "listId1", getElementId(mails[2]), OperationType.DELETE),
+						createUpdate(MailTypeRef, "listId2", getElementId(mails[2]), OperationType.CREATE),
 					]),
 				)
 
@@ -722,7 +722,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					throw new Error("This is not the mail you're looking for")
 				})
 				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
-				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, ["listId1", "id3"]))
+				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, ["listId1", getElementId(mails[2])]))
 				o(thrown.message).equals("This is not the mail you're looking for")
 				//load was called when we tried to load the moved mail when we tried to load the moved mail
 				o(load.callCount).equals(1)
@@ -744,9 +744,24 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			})
 
 			// list element notifications
-			o("list element create notifications are not put into cache", async function () {
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)]))
-			})
+
+			if (name === "offline") {
+				o("when the list is not cache, list element create notifications are still put into cache", async function () {
+					const mail = createMailInstance("listId1", "id1", "i am a mail")
+					const load = func<EntityRestClient["load"]>()
+					when(load(MailTypeRef, mail._id)).thenResolve(mail)
+					mockAttribute(entityRestClient, entityRestClient.load, load)
+
+					await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.CREATE)]))
+
+					o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).deepEquals(mail)
+				})
+			} else {
+				// With ephemeral cache we do not automatically download all mails because we don't need to.
+				o("when the list is not cached, mail create notifications are not put into cache", async function () {
+					await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)]))
+				})
+			}
 
 			o("list element update notifications are not put into cache", async function () {
 				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)]))
@@ -1152,6 +1167,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(loadRangeMock)
 		})
+
 		o("load list elements partly from server - range max to id2 loaded - loadMore", async function () {
 			let mail0 = createMailInstance("listId1", "id0", "subject0")
 			const cachedMails = await setupMailList(false, true)

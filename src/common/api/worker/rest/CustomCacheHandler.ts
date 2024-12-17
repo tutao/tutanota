@@ -1,18 +1,19 @@
 import { ListElementEntity } from "../../common/EntityTypes.js"
-import { CalendarEvent, CalendarEventTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
 import { freezeMap, getTypeId, TypeRef } from "@tutao/tutanota-utils"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { EntityUpdate } from "../../entities/sys/TypeRefs"
 
 /**
  * update when implementing custom cache handlers.
  * add new types to the union when implementing new
  * custom cache handlers.
  */
-type CustomCacheHandledType = never | CalendarEvent
+type CustomCacheHandledType = never | CalendarEvent | Mail
 
 /**
  * makes sure that any {ref<A>, handler<A>} pair passed to
@@ -34,7 +35,7 @@ type CustomCacheHandlerMapping = CustomCacheHandledType extends infer A
 export class CustomCacheHandlerMap {
 	private readonly handlers: ReadonlyMap<string, CustomCacheHandler<ListElementEntity>>
 
-	constructor(...args: Array<CustomCacheHandlerMapping>) {
+	constructor(...args: ReadonlyArray<CustomCacheHandlerMapping>) {
 		const handlers: Map<string, CustomCacheHandler<ListElementEntity>> = new Map()
 		for (const { ref, handler } of args) {
 			const key = getTypeId(ref)
@@ -48,11 +49,6 @@ export class CustomCacheHandlerMap {
 		// map is frozen after the constructor. constructor arg types are set up to uphold this invariant.
 		return this.handlers.get(typeId) as CustomCacheHandler<T> | undefined
 	}
-
-	has<T extends ListElementEntity>(typeRef: TypeRef<T>): boolean {
-		const typeId = getTypeId(typeRef)
-		return this.handlers.has(typeId)
-	}
 }
 
 /**
@@ -60,9 +56,11 @@ export class CustomCacheHandlerMap {
  * make sure to update CustomHandledType when implementing this for a new type.
  */
 export interface CustomCacheHandler<T extends ListElementEntity> {
-	loadRange(storage: ExposedCacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>
+	loadRange?: (storage: ExposedCacheStorage, listId: Id, start: Id, count: number, reverse: boolean) => Promise<T[]>
 
-	getElementIdsInCacheRange(storage: ExposedCacheStorage, listId: Id, ids: Array<Id>): Promise<Array<Id>>
+	getElementIdsInCacheRange?: (storage: ExposedCacheStorage, listId: Id, ids: Array<Id>) => Promise<Array<Id>>
+
+	shouldLoadOnCreateEvent?: (event: EntityUpdate) => Promise<boolean>
 }
 
 /**
@@ -123,5 +121,15 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 		} else {
 			return []
 		}
+	}
+}
+
+export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
+	async shouldLoadOnCreateEvent(): Promise<boolean> {
+		// New emails should be pre-cached.
+		//  - we need them to display the folder contents
+		//  - will very likely be loaded by indexer later
+		//  - we might have the instance in offline cache already because of notification process
+		return true
 	}
 }
