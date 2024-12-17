@@ -73,6 +73,7 @@ import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 
 assertWorkerOrNode()
 
@@ -236,6 +237,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		const { CounterFacade } = await import("../../../common/api/worker/facades/lazy/CounterFacade.js")
 		return new CounterFacade(locator.serviceExecutor)
 	})
+	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
@@ -248,6 +250,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await locator.cacheManagement(),
 			asymmetricCrypto,
 			cryptoWrapper,
+			keyAuthenticationFacade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -262,6 +265,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.share,
 		locator.groupManagement,
 		asymmetricCrypto,
+		keyAuthenticationFacade,
 	)
 
 	const loginListener: LoginListener = {

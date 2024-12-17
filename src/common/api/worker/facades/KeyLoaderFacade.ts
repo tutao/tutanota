@@ -121,7 +121,7 @@ export class KeyLoaderFacade {
 			} else {
 				const formerKeysList = assertNotNull(group.formerGroupKeys).list
 				// we load by the version and thus can be sure that we are able to decrypt this key
-				const formerGroupKey = await this.entityClient.load(GroupKeyTypeRef, [formerKeysList, stringToCustomId(String(currentGroupKey.version))])
+				const formerGroupKey = await this.loadFormerGroupKeyInstance(formerKeysList, currentGroupKey.version)
 				keyPair = formerGroupKey.keyPair
 			}
 		} else {
@@ -131,6 +131,10 @@ export class KeyLoaderFacade {
 			symGroupKey = symmetricGroupKey
 		}
 		return this.validateAndDecryptKeyPair(keyPair, keyPairGroupId, symGroupKey)
+	}
+
+	async loadFormerGroupKeyInstance(formerKeysList: string, version: number): Promise<GroupKey> {
+		return await this.entityClient.load(GroupKeyTypeRef, [formerKeysList, convertKeyVersionToCustomId(version)])
 	}
 
 	/**
@@ -157,7 +161,7 @@ export class KeyLoaderFacade {
 	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
 		const formerKeysList = assertNotNull(group.formerGroupKeys).list
 		// start id is not included in the result of the range request, so we need to start at current version.
-		const startId = stringToCustomId(String(currentGroupKey.version))
+		const startId = convertKeyVersionToCustomId(currentGroupKey.version)
 		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion
 
 		const formerKeys: GroupKey[] = await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
@@ -200,4 +204,8 @@ export class KeyLoaderFacade {
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
 		return decryptKeyPair(groupKey, keyPair as EncryptedKeyPairs)
 	}
+}
+
+function convertKeyVersionToCustomId(version: number) {
+	return stringToCustomId(String(version))
 }

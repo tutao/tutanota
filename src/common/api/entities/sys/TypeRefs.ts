@@ -1,4 +1,4 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { typeModels } from "./TypeModels.js"
 
@@ -49,7 +49,6 @@ export type AdminGroupKeyDistributionElement = {
 	_id: Id;
 
 	distEncAdminGroupKey: PubEncKeyData;
-	userEncAdminSymKeyHash: EncryptedKeyHash;
 	userGroupId: Id;
 }
 export const AdminGroupKeyRotationGetOutTypeRef: TypeRef<AdminGroupKeyRotationGetOut> = new TypeRef("sys", "AdminGroupKeyRotationGetOut")
@@ -1882,7 +1881,6 @@ export type KeyRotation = {
 	adminEncDistKeyHash: null | EncryptedKeyHash;
 	distEncAdminGroupSymKey: null | PubEncKeyData;
 	userEncAdminPubKeyHash: null | EncryptedKeyHash;
-	userEncAdminSymKeyHash: null | EncryptedKeyHash;
 }
 export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", "KeyRotationsRef")
 
@@ -2511,6 +2509,8 @@ export type PubEncKeyData = {
 	senderIdentifier: null | string;
 	senderIdentifierType: null | NumberString;
 	senderKeyVersion: null | NumberString;
+
+	symKeyTag: null | EncryptedKeyHash;
 }
 export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", "PublicKeyGetIn")
 
