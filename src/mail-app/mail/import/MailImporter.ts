@@ -21,13 +21,13 @@ export class MailImporter implements MailImportFacade {
 
 	private domainConfigProvider: DomainConfigProvider
 	private loginController: LoginController
+	public mailboxModel: MailboxModel
+	public mailModel: MailModel
 	private entityClient: EntityClient
 
-	public mailModel: MailModel
-	public mailboxModel: MailboxModel
-
-	public importMailStates: Map<Id, ImportMailState> = new Map()
-	public startedCancellations: Set<Id> = new Set<Id>()
+	private importMailStates: Map<Id, ImportMailState> = new Map()
+	public waitingForFirstEvent: boolean = false
+	public startedCancellation: boolean = false
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -67,12 +67,34 @@ export class MailImporter implements MailImportFacade {
 		m.redraw()
 	}
 
+	getAllImportMailStates(): Array<ImportMailState> {
+		return Array.from(this.importMailStates.values())
+	}
+
+	getNonRunningImportMailStates(): Array<ImportMailState> {
+		return this.getAllImportMailStates().filter((importMailState) => importMailState.status != ImportStatus.Running)
+	}
+
+	getRunningImportMailState(): ImportMailState | null {
+		for (let importMailState of this.importMailStates.values()) {
+			if (importMailState.status == ImportStatus.Running) {
+				return importMailState
+			}
+		}
+		return null
+	}
+
 	updateImportMailState(importMailStateElementId: Id, importMailState: ImportMailState) {
 		this.importMailStates.set(importMailStateElementId, importMailState)
 	}
 
-	deleteStartedCancellation(importMailStateElementId: Id) {
-		this.startedCancellations.delete(importMailStateElementId)
+	isMailImportRunning(): boolean {
+		for (let importMailState of this.importMailStates.values()) {
+			if (importMailState.status == ImportStatus.Running) {
+				return true
+			}
+		}
+		return false
 	}
 
 	/**
@@ -99,7 +121,6 @@ export class MailImporter implements MailImportFacade {
 	 */
 	async stopImport(importMailStateElementId: Id) {
 		if (this.nativeMailImportFacade) {
-			this.startedCancellations.add(importMailStateElementId)
 			await this.nativeMailImportFacade.stopImport(importMailStateElementId)
 		}
 	}
