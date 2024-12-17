@@ -114,7 +114,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 			case "error":
 				return [
 					m(".flex-space-between.items-center.mt.mb-s", [
-						m("small.noselect", lang.getMaybeLazy(state.message)),
+						m("small.noselect", state.message),
 						m(Button, {
 							label: "retry_action",
 							click: () => {

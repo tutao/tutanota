@@ -1,6 +1,6 @@
 import { addParamsToUrl, isSuspensionResponse, RestClient, SuspensionBehavior } from "../../rest/RestClient.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { clear, concat, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
+import { clear, concat, isEmpty, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/EntityFunctions.js"
@@ -122,6 +122,66 @@ export class BlobFacade {
 
 		const blobData = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 		return concat(...blobData)
+	}
+
+	/**
+	 * Downloads multiple blobs, decrypts and joins them to unencrypted binary data.
+	 *
+	 * @param archiveDataType
+	 * @param referencingInstances that directly references the blobs
+	 * @returns Uint8Array unencrypted binary data
+	 */
+	async downloadAndDecryptMultipleInstances(
+		archiveDataType: ArchiveDataType,
+		referencingInstances: BlobReferencingInstance[],
+		blobLoadOptions: BlobLoadOptions = {},
+	): Promise<Map<Id, Promise<Uint8Array>>> {
+		if (isEmpty(referencingInstances)) {
+			return new Map()
+		}
+		if (referencingInstances.length === 1) {
+			const downloaded = this.downloadAndDecrypt(archiveDataType, referencingInstances[0], blobLoadOptions)
+			return new Map([[referencingInstances[0].elementId, downloaded]])
+		}
+
+		// If a mail has multiple attachments, we cannot assume they are all on the same archive.
+		const allArchives: Map<Id, BlobReferencingInstance[]> = new Map()
+		for (const instance of referencingInstances) {
+			const archiveId = instance.blobs[0].archiveId
+			const archive = allArchives.get(archiveId) ?? []
+			archive.push(instance)
+			allArchives.set(archiveId, archive)
+		}
+
+		// file to data
+		const result: Map<Id, Promise<Uint8Array>> = new Map()
+
+		for (const [archive, instances] of allArchives.entries()) {
+			let latestAccessInfo: Promise<BlobServerAccessInfo> | null = null
+
+			for (const instance of instances) {
+				const sessionKey = await this.resolveSessionKey(instance.entity)
+
+				const doBlobRequest = async () => {
+					if (latestAccessInfo == null) {
+						latestAccessInfo = this.blobAccessTokenFacade.requestReadTokenMultipleInstances(ArchiveDataType.Attachments, instances, blobLoadOptions)
+					}
+					const accessInfoToUse = await latestAccessInfo
+					return promiseMap(instance.blobs, (blob) => this.downloadAndDecryptChunk(blob, accessInfoToUse, sessionKey, blobLoadOptions))
+				}
+				const doEvictToken = () => {
+					this.blobAccessTokenFacade.evictReadBlobsToken(instance)
+					latestAccessInfo = null
+				}
+				const request = doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+				result.set(
+					instance.elementId,
+					request.then((data) => concat(...data)),
+				)
+			}
+		}
+
+		return result
 	}
 
 	/**

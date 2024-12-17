@@ -1,4 +1,4 @@
-import { ArchiveDataType } from "../../common/TutanotaConstants"
+import { ArchiveDataType, BlobAccessTokenKind } from "../../common/TutanotaConstants"
 import { assertWorkerOrNode } from "../../common/Env"
 import { BlobAccessTokenService } from "../../entities/storage/Services"
 import { IServiceExecutor } from "../../common/ServiceRequest"
@@ -6,7 +6,7 @@ import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, 
 import { DateProvider } from "../../common/DateProvider.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AuthDataProvider } from "./UserFacade.js"
-import { isEmpty, TypeRef } from "@tutao/tutanota-utils"
+import { deduplicate, first, isEmpty, lazyMemoized, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { BlobLoadOptions } from "./lazy/BlobFacade.js"
 import { BlobReferencingInstance } from "../../common/utils/BlobUtils.js"
@@ -21,16 +21,14 @@ assertWorkerOrNode()
  */
 export class BlobAccessTokenFacade {
 	// cache for blob access tokens that are valid for the whole archive (key:<archiveId>)
-	private readonly readArchiveCache: BlobAccessTokenCache<string>
 	// cache for blob access tokens that are valid for blobs from a given instance were the user does not own the archive (key:<instanceElementId>).
-	private readonly readBlobCache: BlobAccessTokenCache<string>
+	private readonly readCache: BlobAccessTokenCache
 	// cache for upload requests are valid for the whole archive (key:<ownerGroup + archiveDataType>).
-	private readonly writeCache: BlobAccessTokenCache<string>
+	private readonly writeCache: BlobAccessTokenCache
 
 	constructor(private readonly serviceExecutor: IServiceExecutor, private readonly authDataProvider: AuthDataProvider, dateProvider: DateProvider) {
-		this.readArchiveCache = new BlobAccessTokenCache<Id>(dateProvider)
-		this.readBlobCache = new BlobAccessTokenCache<Id>(dateProvider)
-		this.writeCache = new BlobAccessTokenCache<string>(dateProvider)
+		this.readCache = new BlobAccessTokenCache(dateProvider)
+		this.writeCache = new BlobAccessTokenCache(dateProvider)
 	}
 
 	/**
@@ -51,7 +49,7 @@ export class BlobAccessTokenFacade {
 			return blobAccessInfo
 		}
 		const key = this.makeWriteCacheKey(ownerGroupId, archiveDataType)
-		return this.writeCache.getToken(key, requestNewToken)
+		return this.writeCache.getToken(key, [], requestNewToken)
 	}
 
 	private makeWriteCacheKey(ownerGroupId: string, archiveDataType: ArchiveDataType) {
@@ -65,19 +63,22 @@ export class BlobAccessTokenFacade {
 	 */
 	evictWriteToken(archiveDataType: ArchiveDataType, ownerGroupId: Id): void {
 		const key = this.makeWriteCacheKey(ownerGroupId, archiveDataType)
-		this.writeCache.evict(key)
+		this.writeCache.evictArchiveOrGroupKey(key)
 	}
 
 	/**
 	 * Requests a token that grants read access to all blobs that are referenced by the given instances.
-	 * A user must be owner of the instance but must not be owner of the archive were the blobs are stored in.
+	 * A user must be owner of the instance but must not be owner of the archive where the blobs are stored in.
+	 *
 	 * @param archiveDataType specify the data type
 	 * @param referencingInstances the instances that references the blobs
+	 * @param blobLoadOptions load options when loading blobs
 	 * @throws ProgrammingError if instances are not part of the same list or blobs are not part of the same archive.
 	 */
-	async requestReadTokenMultipleBlobs(
+	async requestReadTokenMultipleInstances(
 		archiveDataType: ArchiveDataType,
 		referencingInstances: readonly BlobReferencingInstance[],
+		blobLoadOptions: BlobLoadOptions,
 	): Promise<BlobServerAccessInfo> {
 		if (isEmpty(referencingInstances)) {
 			throw new ProgrammingError("Must pass at least one referencing instance")
@@ -86,8 +87,10 @@ export class BlobAccessTokenFacade {
 		if (!referencingInstances.every((instance) => instance.listId === instanceListId)) {
 			throw new ProgrammingError("All referencing instances must be part of the same list")
 		}
-		const requestNewToken = async () => {
-			const archiveId = this.getArchiveId(referencingInstances)
+
+		const archiveId = this.getArchiveId(referencingInstances)
+
+		const requestNewToken = lazyMemoized(async () => {
 			const instanceIds = referencingInstances.map(({ elementId }) => createInstanceId({ instanceId: elementId }))
 			const tokenRequest = createBlobAccessTokenPostIn({
 				archiveDataType,
@@ -98,11 +101,15 @@ export class BlobAccessTokenFacade {
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)
 			return blobAccessInfo
-		}
-		// Does not cache them. We could put them in the cache for each of the referencing instances, but we need to change how the cache works to do that.
-		return requestNewToken()
+		})
+
+		return this.readCache.getToken(
+			archiveId,
+			referencingInstances.map((instance) => instance.elementId),
+			requestNewToken,
+		)
 	}
 
 	/**
@@ -110,14 +117,15 @@ export class BlobAccessTokenFacade {
 	 * A user must be owner of the instance but must not be owner of the archive were the blobs are stored in.
 	 * @param archiveDataType specify the data type
 	 * @param referencingInstance the instance that references the blobs
+	 * @param blobLoadOptions load options when loading blobs
 	 */
 	async requestReadTokenBlobs(
 		archiveDataType: ArchiveDataType,
 		referencingInstance: BlobReferencingInstance,
 		blobLoadOptions: BlobLoadOptions,
 	): Promise<BlobServerAccessInfo> {
+		const archiveId = this.getArchiveId([referencingInstance])
 		const requestNewToken = async () => {
-			const archiveId = this.getArchiveId([referencingInstance])
 			const instanceListId = referencingInstance.listId
 			const instanceId = referencingInstance.elementId
 			const instanceIds = [createInstanceId({ instanceId })]
@@ -133,7 +141,7 @@ export class BlobAccessTokenFacade {
 			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)
 			return blobAccessInfo
 		}
-		return this.readBlobCache.getToken(referencingInstance.elementId, requestNewToken)
+		return this.readCache.getToken(archiveId, [referencingInstance.elementId], requestNewToken)
 	}
 
 	/**
@@ -141,7 +149,19 @@ export class BlobAccessTokenFacade {
 	 * @param referencingInstance
 	 */
 	evictReadBlobsToken(referencingInstance: BlobReferencingInstance): void {
-		this.readBlobCache.evict(referencingInstance.elementId)
+		this.readCache.evictInstanceId(referencingInstance.elementId)
+		const archiveId = this.getArchiveId([referencingInstance])
+		this.readCache.evictArchiveOrGroupKey(archiveId)
+	}
+
+	/**
+	 * Remove a given read blobs token from the cache.
+	 * @param referencingInstances
+	 */
+	evictReadBlobsTokenMultipleBlobs(referencingInstances: BlobReferencingInstance[]): void {
+		this.readCache.evictAll(referencingInstances.map((instance) => instance.elementId))
+		const archiveId = this.getArchiveId(referencingInstances)
+		this.readCache.evictArchiveOrGroupKey(archiveId)
 	}
 
 	/**
@@ -162,7 +182,7 @@ export class BlobAccessTokenFacade {
 			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
 			return blobAccessInfo
 		}
-		return this.readArchiveCache.getToken(archiveId, requestNewToken)
+		return this.readCache.getToken(archiveId, [], requestNewToken)
 	}
 
 	/**
@@ -170,7 +190,7 @@ export class BlobAccessTokenFacade {
 	 * @param archiveId
 	 */
 	evictArchiveToken(archiveId: Id): void {
-		this.readArchiveCache.evict(archiveId)
+		this.readCache.evictArchiveOrGroupKey(archiveId)
 	}
 
 	private getArchiveId(referencingInstances: readonly BlobReferencingInstance[]): Id {
@@ -221,27 +241,54 @@ function canBeUsedForAnotherRequest(blobServerAccessInfo: BlobServerAccessInfo, 
 	return blobServerAccessInfo.expires.getTime() > dateProvider.now()
 }
 
-class BlobAccessTokenCache<K> {
-	private cache: Map<K, BlobServerAccessInfo>
-	private dateProvider: DateProvider
+class BlobAccessTokenCache {
+	private readonly instanceMap: Map<Id, BlobServerAccessInfo> = new Map()
+	private readonly archiveMap: Map<Id, BlobServerAccessInfo> = new Map()
 
-	constructor(dateProvider: DateProvider) {
-		this.cache = new Map<K, BlobServerAccessInfo>()
-		this.dateProvider = dateProvider
-	}
+	constructor(private readonly dateProvider: DateProvider) {}
 
-	public async getToken(key: K, loader: () => Promise<BlobServerAccessInfo>): Promise<BlobServerAccessInfo> {
-		const cached = this.cache.get(key)
-		if (cached && canBeUsedForAnotherRequest(cached, this.dateProvider)) {
-			return cached
-		} else {
+	/**
+	 * Get a token from the cache or from {@param loader}.
+	 * First will try to use the token keyed by {@param archiveOrGroupKey}, otherwise it will try to find a token valid for all of {@param instanceIds}.
+	 */
+	public async getToken(
+		archiveOrGroupKey: Id | null,
+		instanceIds: readonly Id[],
+		loader: () => Promise<BlobServerAccessInfo>,
+	): Promise<BlobServerAccessInfo> {
+		const archiveToken = archiveOrGroupKey ? this.archiveMap.get(archiveOrGroupKey) : null
+		if (archiveToken != null && canBeUsedForAnotherRequest(archiveToken, this.dateProvider)) {
+			return archiveToken
+		}
+
+		const tokens = deduplicate(instanceIds.map((id) => this.instanceMap.get(id) ?? null))
+		const firstTokenFound = first(tokens)
+		if (tokens.length != 1 || firstTokenFound == null || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
 			const newToken = await loader()
-			this.cache.set(key, newToken)
+			if (archiveOrGroupKey != null && newToken.tokenKind === BlobAccessTokenKind.Archive) {
+				this.archiveMap.set(archiveOrGroupKey, newToken)
+			} else {
+				for (const id of instanceIds) {
+					this.instanceMap.set(id, newToken)
+				}
+			}
 			return newToken
+		} else {
+			return firstTokenFound
 		}
 	}
 
-	public evict(key: K): void {
-		this.cache.delete(key)
+	public evictInstanceId(id: Id): void {
+		this.evictAll([id])
+	}
+
+	public evictArchiveOrGroupKey(id: Id): void {
+		this.archiveMap.delete(id)
+	}
+
+	public evictAll(ids: Id[]): void {
+		for (const id of ids) {
+			this.instanceMap.delete(id)
+		}
 	}
 }

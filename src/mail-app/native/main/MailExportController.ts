@@ -11,16 +11,18 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError.
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade.js"
-import type { TranslationText } from "../../../common/misc/LanguageViewModel"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
+import { assertMainOrNode } from "../../../common/api/common/Env"
+
+assertMainOrNode()
 
 export type MailExportState =
 	| { type: "idle" }
 	| { type: "exporting"; mailboxDetail: MailboxDetail; progress: number; exportedMails: number }
 	| { type: "locked" }
-	| { type: "error"; message: TranslationText }
+	| { type: "error"; message: string }
 	| {
 			type: "finished"
 			mailboxDetail: MailboxDetail
@@ -168,6 +170,7 @@ export class MailExportController {
 
 				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails)
 				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails)
+
 				for (const { mail, mailDetails } of downloadedMailDetails) {
 					if (this._state().type !== "exporting") {
 						return
@@ -187,7 +190,7 @@ export class MailExportController {
 						await this.exportFacade.saveMailboxExport(mailBundle, this.userId, mailBag._id, getElementId(mail))
 					} catch (e) {
 						if (e instanceof FileOpenError) {
-							this._state({ type: "error", message: () => e.message })
+							this._state({ type: "error", message: e.message })
 							return
 						} else {
 							throw e
