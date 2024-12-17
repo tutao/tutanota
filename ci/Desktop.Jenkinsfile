@@ -102,7 +102,7 @@ pipeline {
 
                 stage('Mac') {
 					environment {
-						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+						PATH = "${env.NODE_MAC_PATH}:${env.RUST_MAC_PATH}:${env.PATH}"
 					}
 					agent {
 						label 'mac-m1'
