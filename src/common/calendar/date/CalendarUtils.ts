@@ -928,7 +928,16 @@ function bySetPosContainsEventOccurance(posRulesValues: string[], event: Calenda
 	}
 	const { repeatRule } = event
 	switch (repeatRule?.frequency) {
-		case RepeatPeriod.DAILY || RepeatPeriod.ANNUALLY:
+		case RepeatPeriod.DAILY:
+			if (
+				negativeValues.some((value) => Number(value) < -366) ||
+				positiveValues.some((value) => Number(value) > 366) ||
+				positiveValues.includes(eventCount.toString())
+			) {
+				return true
+			}
+			break
+		case RepeatPeriod.ANNUALLY:
 			if (
 				negativeValues.some((value) => Number(value) < -366) ||
 				positiveValues.some((value) => Number(value) > 366) ||
@@ -984,7 +993,7 @@ export function addDaysForRecurringEvent(
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
 	const generatedEvents = generateEventOccurrences(event, timeZone, new Date(range.end))
-	const allEvents: CalendarEvent[] = []
+	const allEvents: Map<number, CalendarEvent> = new Map()
 
 	for (const { startTime, endTime } of generatedEvents) {
 		if (startTime.getTime() > range.end) break
@@ -1001,7 +1010,7 @@ export function addDaysForRecurringEvent(
 				eventClone.startTime = new Date(startTime)
 				eventClone.endTime = new Date(endTime)
 			}
-			allEvents.push(eventClone)
+			allEvents.set(eventClone.startTime.getTime(), eventClone)
 		}
 	}
 
@@ -1009,9 +1018,9 @@ export function addDaysForRecurringEvent(
 	const setPosRulesValues = setPosRules.map((rule) => rule.interval)
 	const shouldApplySetPos = isNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
 	let eventCount = 0
-	console.log({ allEvents })
-	for (const event of allEvents) {
-		if (shouldApplySetPos && !bySetPosContainsEventOccurance(setPosRulesValues, event, ++eventCount, allEvents)) {
+	const events = Array.from(allEvents.values())
+	for (const event of events) {
+		if (shouldApplySetPos && !bySetPosContainsEventOccurance(setPosRulesValues, event, ++eventCount, events)) {
 			continue
 		}
 		addDaysForEventInstance(daysToEvents, event, range, timeZone)
