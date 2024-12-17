@@ -133,6 +133,7 @@ pub struct Importer {
 	pub state: LocalImportState,
 	pub essentials: ImportEssential,
 	source: ImportSource,
+	import_directory: PathBuf,
 }
 
 pub enum ImportSource {
@@ -423,6 +424,7 @@ impl Importer {
 		target_owner_group: GeneratedId,
 		target_mailset: IdTupleGenerated,
 		imap_config: ImapImportConfig,
+		import_directory: PathBuf,
 	) -> Result<Importer, ImportError> {
 		let import_source = ImportSource::RemoteImap {
 			imap_import_client: ImapImport::new(imap_config),
@@ -439,6 +441,7 @@ impl Importer {
 			import_source,
 			target_owner_group,
 			None,
+			import_directory,
 		);
 
 		Ok(importer)
@@ -450,6 +453,7 @@ impl Importer {
 		target_mailset: IdTupleGenerated,
 		source_paths: Vec<PathBuf>,
 		import_mail_state_id: Option<IdTupleGenerated>,
+		import_directory: PathBuf,
 	) -> Result<Importer, ImportError> {
 		let fs_email_client = FileImport::new(source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
@@ -466,6 +470,7 @@ impl Importer {
 			import_source,
 			target_owner_group,
 			import_mail_state_id,
+			import_directory,
 		);
 
 		Ok(importer)
@@ -478,6 +483,7 @@ impl Importer {
 		import_source: ImportSource,
 		target_owner_group: GeneratedId,
 		remote_state: Option<IdTupleGenerated>,
+		import_directory: PathBuf,
 	) -> Self {
 		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
 		Self {
@@ -496,6 +502,7 @@ impl Importer {
 				success_count: 0,
 				current_status: Default::default(),
 			},
+			import_directory,
 		}
 	}
 
@@ -503,14 +510,19 @@ impl Importer {
 		essentials: &mut ImportEssential,
 		local_state: &mut LocalImportState,
 		state_id: IdTupleGenerated,
+		import_directory: PathBuf,
 	) -> Result<(), ImportError> {
 		let min_id = GeneratedId::min_id();
 
 		if essentials.remote_state_list_id == min_id
 			&& local_state.remote_state_id == min_id.as_str()
 		{
+			let generated = state_id.clone();
 			essentials.remote_state_list_id = state_id.list_id;
 			local_state.remote_state_id = state_id.element_id.0;
+			let mut state_id_file = import_directory.clone();
+			state_id_file.push("import_mail_state");
+			fs::write(state_id_file, generated.to_string());
 			return Ok(());
 		}
 
@@ -573,6 +585,7 @@ impl Importer {
 			essentials: import_essentials,
 			source: import_source,
 			state: import_state,
+			import_directory,
 		} = self;
 
 		let attachment_upload_data = import_source.into_iter().map(|importable_mail| {
@@ -642,11 +655,13 @@ impl Importer {
 					import_essentials,
 					import_state,
 					import_mails_post_out.mailState,
+					import_directory.clone()
 				)?;
 				import_state.success_count += import_count_in_this_chunk;
 				for eml_file_path_option in eml_file_paths {
 					if let Some(eml_file_path) = eml_file_path_option {
-						fs::remove_file(&eml_file_path).map_err(|e|ImportError::FileDeletionError(e, eml_file_path))?;
+						fs::remove_file(&eml_file_path)
+							.map_err(|e| ImportError::FileDeletionError(e, eml_file_path))?;
 					}
 				}
 
@@ -791,6 +806,7 @@ mod tests {
 			import_source,
 			target_owner_group,
 			None,
+			PathBuf::from("/tmp/import-test"),
 		)
 	}
 

@@ -55,13 +55,10 @@ async fn can_create_remote_instance() {
 		}),
 		_permissions: mailbox._permissions,
 		_ownerGroup: Some(mailbox._ownerGroup.unwrap()),
-		_ownerEncSessionKey: Some(owner_enc_session_key.object),
-		_ownerKeyVersion: Some(owner_enc_session_key.version),
 		status: 1,
 		successfulMails: 0,
+		importedMails: Default::default(),
 		targetFolder: inbox_mailset._id.as_ref().unwrap().clone(),
-		_errors: Some(Default::default()),
-		_finalIvs: Default::default(),
 		failedMails: 0,
 	};
 
