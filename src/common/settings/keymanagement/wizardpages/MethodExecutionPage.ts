@@ -160,7 +160,8 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 	}
 
 	private async runQrScanner(attrs: MethodExecutionPageAttrs) {
-		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({ video: true })
+		// "environment" tells the web engine to prefer the rear camera if there are multiple
+		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
 		const video = assertNotNull(this.qrVideo)
 
 		video.srcObject = this.qrMediaStream
