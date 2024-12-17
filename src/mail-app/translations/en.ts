@@ -1849,6 +1849,20 @@ export default {
 		"emlOrMboxInSharingFiles_msg": "One or more mail files were detected. Would you like to import or attach them?",
 		"mailImportSelection_label": "Import or Attach?",
 		"accountWillBeDeactivatedIn6Month_label": "Your account will be deleted if you don't login for 6 months",
-		"accountWillHaveLessStorage_label": "Your account will only have 1GB of storage"
+		"accountWillHaveLessStorage_label": "Your account will only have 1GB of storage",
+		"mailImportSettings_label": "Email import",
+		"mailImportTargetFolder_label": "Target folder",
+		"mailImportStatusFinished_label": "Finished",
+		"mailImportStatusCanceled_label": "Canceled",
+		"mailImportStatusCancelling_label": "Cancelling",
+		"mailImportStatusPaused_label": "Paused",
+		"mailImportStatusRunning_label": "Running ...",
+		"mailImportStatusStarting_label" : "Starting ...",
+		"mailImportStateSuccessfulMails_label": " {successfulMails} emails successfully imported",
+		"mailImportStateFailedMails_label": "{failedMails} email(s) could not been imported",
+		"selectMailImportTargetFolder_action": "Select target folder",
+		"continueMailImport_action": "Continue mail import",
+		"pauseMailImport_action": "Pause mail import",
+		"cancelMailImport_action": "Cancel mail import"
 	}
 }

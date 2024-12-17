@@ -7,7 +7,6 @@ import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { AlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
@@ -27,6 +26,7 @@ import type { CalendarRepeatRule } from "../../../../common/api/entities/tutanot
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
+import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
