@@ -273,11 +273,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 							priceStr = prices.displayMonthlyPerMonth
 							break
 						case PaymentInterval.Yearly:
-							priceStr = prices.displayYearlyPerMonth
-							if (!isCyberMonday) {
-								// if there is no discount for any plan then we show the monthly price as reference
-								referencePriceStr = prices.displayMonthlyPerMonth
-							}
+							priceStr = prices.displayYearlyPerYear
 							break
 					}
 				}
