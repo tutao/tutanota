@@ -1,7 +1,5 @@
 import { File as TutanotaFile, Mail } from "../../../entities/tutanota/TypeRefs"
 import { assertWorkerOrNode } from "../../../common/Env"
-import { isNotNull, promiseMap } from "@tutao/tutanota-utils"
-import { NotFoundError } from "../../../common/error/RestError"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { convertToDataFile, DataFile } from "../../../common/DataFile.js"
 import { ArchiveDataType } from "../../../common/TutanotaConstants.js"
@@ -9,6 +7,9 @@ import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
+import { assertNotNull, isNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { NotFoundError } from "../../../common/error/RestError"
+import { elementIdPart } from "../../../common/utils/EntityUtils"
 
 assertWorkerOrNode()
 
@@ -46,14 +47,16 @@ export class MailExportFacade {
 
 	async loadAttachmentData(mail: Mail, attachments: readonly TutanotaFile[]): Promise<DataFile[]> {
 		const attachmentsWithKeys = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, attachments)
-		// TODO: download attachments efficiently.
-		//  - download multiple blobs at once if possible
-		//  - use file references instead of data files (introduce a similar type to MailBundle or change MailBundle)
-		const attachmentData = await promiseMap(attachmentsWithKeys, async (attachment) => {
+
+		const downloads = await this.mailExportTokenFacade.loadWithToken((token) => {
+			const referencingInstances = attachmentsWithKeys.map(createReferencingInstance)
+			return this.blobFacade.downloadAndDecryptMultipleInstances(ArchiveDataType.Attachments, referencingInstances, this.options(token))
+		})
+
+		const attachmentData = await promiseMap(downloads.entries(), async ([fileId, download]) => {
 			try {
-				const bytes = await this.mailExportTokenFacade.loadWithToken((token) =>
-					this.blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(attachment), this.options(token)),
-				)
+				const bytes = await download
+				const attachment = assertNotNull(attachmentsWithKeys.find((attachment) => elementIdPart(attachment._id) === fileId))
 				return convertToDataFile(attachment, bytes)
 			} catch (e) {
 				if (e instanceof NotFoundError) {
@@ -63,6 +66,7 @@ export class MailExportFacade {
 				}
 			}
 		})
+
 		return attachmentData.filter(isNotNull)
 	}
 
