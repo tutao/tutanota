@@ -226,9 +226,11 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 			}
 		}
 
-		if (!this.qrStopScanning) {
-			requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, attrs))
-		}
+		requestAnimationFrame(() => {
+			if (!this.qrStopScanning) {
+				this.runQrScannerTick(video, canvas, context2d, attrs)
+			}
+		})
 	}
 }
 
