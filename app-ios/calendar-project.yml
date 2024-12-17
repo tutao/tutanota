@@ -61,8 +61,6 @@ targets:
           PRODUCT_NAME: "Tuta CD"
         Release Staging:
           PRODUCT_NAME: "Tuta Calendar Test"
-          PROVISIONING_PROFILE_SPECIFIER: "match AdHoc de.tutao.calendar.test"
-          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc de.tutao.calendar.test 1724842804"
         Release Production:
           PRODUCT_NAME: "Tuta Calendar"
       groups:
