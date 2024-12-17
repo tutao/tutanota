@@ -502,32 +502,32 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/userEncAdminSymKeyHash/AGGREGATION/2523."
+					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2523."
 				},
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2524."
-				},
-				{
-					"name": "AddAssociation",
-					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2525."
+					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2524."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "UserGroupKeyRotationData",
-					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2546."
+					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2544."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "PubEncKeyData",
-					"info": "AddValue PubEncKeyData/senderIdentifier/2547."
+					"info": "AddValue PubEncKeyData/senderIdentifier/2545."
 				},
 				{
 					"name": "AddValue",
 					"sourceType": "PubEncKeyData",
-					"info": "AddValue PubEncKeyData/senderIdentifierType/2548."
+					"info": "AddValue PubEncKeyData/senderIdentifierType/2546."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "PubEncKeyData",
+					"info": "AddAssociation PubEncKeyData/symKeyTag/AGGREGATION/2547."
 				}
 			]
 		}

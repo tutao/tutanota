@@ -8,7 +8,7 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, freshVersioned, getFirstOrThrow, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, freshVersioned, getFirstOrThrow, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
 import {
 	AdministratedGroup,
 	AdministratedGroupTypeRef,
@@ -21,6 +21,7 @@ import {
 	GroupInfoTypeRef,
 	GroupTypeRef,
 	LocalAdminGroupReplacementData,
+	PubEncKeyData,
 	User,
 	UserTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
@@ -35,10 +36,12 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
-import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { isGlobalAdmin } from "../../../common/utils/UserUtils.js"
+import { KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 assertWorkerOrNode()
 
@@ -53,6 +56,7 @@ export class GroupManagementFacade {
 		private readonly cacheManagementFacade: CacheManagementFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -309,27 +313,97 @@ export class GroupManagementFacade {
 			// e.g. I am a member of the group that administrates group G and want to add a new member to G
 			const requiredAdminKeyVersion = Number(group.adminGroupKeyVersion ?? 0)
 			if (group.adminGroupEncGKey != null) {
-				return await this.decryptViaSymmetricAdminGKey(group, requiredAdminKeyVersion)
+				return await this.decryptViaSymmetricAdminGKey(
+					group,
+					{
+						key: group.adminGroupEncGKey,
+						encryptingKeyVersion: requiredAdminKeyVersion,
+					},
+					Number(group.groupKeyVersion),
+				)
 			} else {
-				return await this.decryptViaAsymmetricAdminGKey(group, requiredAdminKeyVersion)
+				// assume that the group is a userGroup. otherwise pubAdminGroupEncGKey cannot be set
+				return await this.decryptViaAsymmetricAdminGKey(group, assertNotNull(group.pubAdminGroupEncGKey))
 			}
 		}
 	}
 
-	private async decryptViaSymmetricAdminGKey(group: Group, requiredAdminKeyVersion: number): Promise<VersionedKey> {
-		const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), requiredAdminKeyVersion)
-		const decryptedKey = this.cryptoWrapper.decryptKey(requiredAdminGroupKey, assertNotNull(group.adminGroupEncGKey))
-		return { object: decryptedKey, version: Number(group.groupKeyVersion) }
+	private async decryptViaSymmetricAdminGKey(group: Group, encryptedGroupKey: VersionedEncryptedKey, encryptedKeyVersion: number): Promise<VersionedKey> {
+		const requiredAdminGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(group.admin), encryptedGroupKey.encryptingKeyVersion)
+		const decryptedKey = this.cryptoWrapper.decryptKey(requiredAdminGroupKey, encryptedGroupKey.key)
+		return { object: decryptedKey, version: encryptedKeyVersion }
 	}
 
-	private async decryptViaAsymmetricAdminGKey(group: Group, requiredAdminKeyVersion: number): Promise<VersionedKey> {
-		const requiredAdminGroupKeyPair = await this.keyLoaderFacade.loadKeypair(assertNotNull(group.admin), requiredAdminKeyVersion)
-		const pubEncKeyData = assertNotNull(group.pubAdminGroupEncGKey)
-		const decryptedKey = await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(requiredAdminGroupKeyPair, pubEncKeyData, {
-			identifier: group._id,
-			identifierType: PublicKeyIdentifierType.GROUP_ID,
-		})
-		return { object: decryptedKey.decryptedAesKey, version: Number(group.groupKeyVersion) }
+	/**
+	 * @param userGroup the group for which we are trying to get the key
+	 * @param pubAdminEncUserKeyData some version of the group key encrypted with some version of the public admin group key. This can be the current one from the group or one of the former group keys.
+	 * @private
+	 */
+	private async decryptViaAsymmetricAdminGKey(userGroup: Group, pubAdminEncUserKeyData: PubEncKeyData): Promise<VersionedKey> {
+		const requiredAdminGroupKeyPair = await this.keyLoaderFacade.loadKeypair(
+			assertNotNull(userGroup.admin),
+			Number(pubAdminEncUserKeyData.recipientKeyVersion),
+		)
+		const decryptedUserGroupKey = (
+			await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(requiredAdminGroupKeyPair, pubAdminEncUserKeyData, {
+				identifier: userGroup._id,
+				identifierType: PublicKeyIdentifierType.GROUP_ID,
+			})
+		).decryptedAesKey
+
+		// this function is called recursively. therefore we must not return the group key version from the group but from the pubAdminEncUserKeyData
+		const versionedDecryptedUserGroupKey = { object: decryptedUserGroupKey, version: Number(pubAdminEncUserKeyData.symKeyTag?.hashedKeyVersion) }
+
+		await this.verifyUserGroupKeyHash(pubAdminEncUserKeyData, userGroup, versionedDecryptedUserGroupKey)
+
+		return versionedDecryptedUserGroupKey
+	}
+
+	private async verifyUserGroupKeyHash(pubEncKeyData: PubEncKeyData, userGroup: Group, versionedDecryptedUserGroupKey: VersionedKey) {
+		const givenEncryptedUserGroupKeyHash = assertNotNull(pubEncKeyData.symKeyTag)
+
+		// The given hash is authenticated by the previous user group key, so we can get the version from there.
+		const previousUserGroupKeyVersion = Number(givenEncryptedUserGroupKeyHash.encryptingKeyVersion)
+
+		// get previous user group key: ag1 -> ag0 -> ug0
+		const formerGroupKeysListId = assertNotNull(userGroup.formerGroupKeys?.list)
+
+		const formerGroupKey = await this.keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeysListId, previousUserGroupKeyVersion)
+		let previousUserGroupKey: VersionedKey
+		if (formerGroupKey.adminGroupEncGKey != null) {
+			previousUserGroupKey = await this.decryptViaSymmetricAdminGKey(
+				userGroup,
+				{
+					key: formerGroupKey.adminGroupEncGKey,
+					encryptingKeyVersion: Number(formerGroupKey.adminGroupKeyVersion),
+				},
+				previousUserGroupKeyVersion,
+			)
+		} else if (formerGroupKey.pubAdminGroupEncGKey != null) {
+			const pubAdminEncGKeyAuthHash = assertNotNull(formerGroupKey.pubAdminGroupEncGKey.symKeyTag)
+			// recurse, but expect to hit the end _before_ version 0, which should always be symmetrically encrypted
+			if (pubAdminEncGKeyAuthHash.hashedKeyVersion === "0") {
+				throw new TutanotaError("UserGroupKeyNotTrustedError", "cannot establish trust on the user group key")
+			}
+			previousUserGroupKey = await this.decryptViaAsymmetricAdminGKey(userGroup, formerGroupKey.pubAdminGroupEncGKey)
+		} else {
+			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key")
+		}
+		const userRotationNewUserGroupKeyAuthKey = this.keyAuthenticationFacade.deriveUserRotationNewUserGroupKeyAuthKey(userGroup._id, previousUserGroupKey)
+
+		const givenUserGroupKeyHash = this.cryptoWrapper.aesDecrypt(
+			userRotationNewUserGroupKeyAuthKey,
+			givenEncryptedUserGroupKeyHash.encryptingKeyEncKeyHash,
+			true,
+		)
+
+		const generatedUserGroupKeyHash = this.keyAuthenticationFacade.generateNewUserGroupKeyHash(versionedDecryptedUserGroupKey)
+
+		const verified = arrayEquals(givenUserGroupKeyHash, generatedUserGroupKeyHash)
+
+		if (!verified) {
+			throw new TutanotaError("UserGroupKeyVerificationError", "Hashes do not match")
+		}
 	}
 
 	/**

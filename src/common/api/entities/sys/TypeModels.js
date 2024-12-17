@@ -225,15 +225,15 @@ export const typeModels = {
 		"name": "AdminGroupKeyDistributionElement",
 		"since": 118,
 		"type": "AGGREGATED_TYPE",
-		"id": 2526,
-		"rootId": "A3N5cwAJ3g",
+		"id": 2525,
+		"rootId": "A3N5cwAJ3Q",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 2527,
+				"id": 2526,
 				"since": 118,
 				"type": "CustomId",
 				"cardinality": "One",
@@ -244,27 +244,17 @@ export const typeModels = {
 			"distEncAdminGroupKey": {
 				"final": false,
 				"name": "distEncAdminGroupKey",
-				"id": 2529,
+				"id": 2528,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "PubEncKeyData",
 				"dependency": null
 			},
-			"userEncAdminSymKeyHash": {
-				"final": false,
-				"name": "userEncAdminSymKeyHash",
-				"id": 2530,
-				"since": 118,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "EncryptedKeyHash",
-				"dependency": null
-			},
 			"userGroupId": {
 				"final": false,
 				"name": "userGroupId",
-				"id": 2528,
+				"id": 2527,
 				"since": 118,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
@@ -279,15 +269,15 @@ export const typeModels = {
 		"name": "AdminGroupKeyRotationGetOut",
 		"since": 118,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2542,
-		"rootId": "A3N5cwAJ7g",
+		"id": 2540,
+		"rootId": "A3N5cwAJ7A",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 2543,
+				"id": 2541,
 				"since": 118,
 				"type": "Number",
 				"cardinality": "One",
@@ -298,7 +288,7 @@ export const typeModels = {
 			"distributionKeys": {
 				"final": false,
 				"name": "distributionKeys",
-				"id": 2545,
+				"id": 2543,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
@@ -308,7 +298,7 @@ export const typeModels = {
 			"userGroupIdsMissingDistributionKeys": {
 				"final": false,
 				"name": "userGroupIdsMissingDistributionKeys",
-				"id": 2544,
+				"id": 2542,
 				"since": 118,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "Any",
@@ -352,7 +342,7 @@ export const typeModels = {
 			"distribution": {
 				"final": false,
 				"name": "distribution",
-				"id": 2531,
+				"id": 2529,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
@@ -387,15 +377,15 @@ export const typeModels = {
 		"name": "AdminGroupKeyRotationPutIn",
 		"since": 118,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2532,
-		"rootId": "A3N5cwAJ5A",
+		"id": 2530,
+		"rootId": "A3N5cwAJ4g",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 2533,
+				"id": 2531,
 				"since": 118,
 				"type": "Number",
 				"cardinality": "One",
@@ -406,7 +396,7 @@ export const typeModels = {
 			"adminDistKeyPair": {
 				"final": false,
 				"name": "adminDistKeyPair",
-				"id": 2535,
+				"id": 2533,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "One",
@@ -416,7 +406,7 @@ export const typeModels = {
 			"adminEncDistKeyHash": {
 				"final": false,
 				"name": "adminEncDistKeyHash",
-				"id": 2534,
+				"id": 2532,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "One",
@@ -7743,7 +7733,7 @@ export const typeModels = {
 			"adminDistKeyPair": {
 				"final": false,
 				"name": "adminDistKeyPair",
-				"id": 2525,
+				"id": 2524,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
@@ -7753,7 +7743,7 @@ export const typeModels = {
 			"adminEncDistKeyHash": {
 				"final": false,
 				"name": "adminEncDistKeyHash",
-				"id": 2524,
+				"id": 2523,
 				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
@@ -7775,16 +7765,6 @@ export const typeModels = {
 				"name": "userEncAdminPubKeyHash",
 				"id": 2482,
 				"since": 111,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "EncryptedKeyHash",
-				"dependency": null
-			},
-			"userEncAdminSymKeyHash": {
-				"final": false,
-				"name": "userEncAdminSymKeyHash",
-				"id": 2523,
-				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refType": "EncryptedKeyHash",
@@ -10045,15 +10025,15 @@ export const typeModels = {
 		"name": "PubDistributionKey",
 		"since": 118,
 		"type": "AGGREGATED_TYPE",
-		"id": 2536,
-		"rootId": "A3N5cwAJ6A",
+		"id": 2534,
+		"rootId": "A3N5cwAJ5g",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 2537,
+				"id": 2535,
 				"since": 118,
 				"type": "CustomId",
 				"cardinality": "One",
@@ -10062,7 +10042,7 @@ export const typeModels = {
 			"authEncPubKeyHash": {
 				"final": false,
 				"name": "authEncPubKeyHash",
-				"id": 2539,
+				"id": 2537,
 				"since": 118,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -10071,7 +10051,7 @@ export const typeModels = {
 			"pubEccKey": {
 				"final": true,
 				"name": "pubEccKey",
-				"id": 2540,
+				"id": 2538,
 				"since": 118,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -10080,7 +10060,7 @@ export const typeModels = {
 			"pubKyberKey": {
 				"final": true,
 				"name": "pubKyberKey",
-				"id": 2541,
+				"id": 2539,
 				"since": 118,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -10091,7 +10071,7 @@ export const typeModels = {
 			"userGroupId": {
 				"final": false,
 				"name": "userGroupId",
-				"id": 2538,
+				"id": 2536,
 				"since": 118,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
@@ -10168,7 +10148,7 @@ export const typeModels = {
 			"senderIdentifier": {
 				"final": true,
 				"name": "senderIdentifier",
-				"id": 2547,
+				"id": 2545,
 				"since": 118,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
@@ -10177,7 +10157,7 @@ export const typeModels = {
 			"senderIdentifierType": {
 				"final": true,
 				"name": "senderIdentifierType",
-				"id": 2548,
+				"id": 2546,
 				"since": 118,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
@@ -10193,7 +10173,18 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
+		"associations": {
+			"symKeyTag": {
+				"final": false,
+				"name": "symKeyTag",
+				"id": 2547,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			}
+		},
 		"app": "sys",
 		"version": "118"
 	},
@@ -14081,7 +14072,7 @@ export const typeModels = {
 			"userGroupEncAdminGroupKey": {
 				"final": false,
 				"name": "userGroupEncAdminGroupKey",
-				"id": 2546,
+				"id": 2544,
 				"since": 118,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
