@@ -12,6 +12,7 @@ import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./Fingerprin
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector"
 import { KeyVerificationMethodOptions, KeyVerificationMethodType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 import { showKeyVerificationWizard } from "./KeyVerificationWizard"
+import { locator } from "../../api/main/CommonLocator"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	mailAddress: string | null
@@ -125,8 +126,19 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderForQrMethod(selfMailAddress: string, selfFingerprint: string): Children {
+		const currentTheme = locator.themeController.getCurrentTheme()
+		const isLightTheme = currentTheme.themeId === "light" || currentTheme.themeId === "light_secondary"
+
+		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))
+
 		return [
-			m("p", [m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))]),
+			m(
+				".pb.pt",
+				{ style: { display: "flex", "justify-content": "center" } },
+				// If the user is on a dark theme, we want to render a white border around the QR code to help the detection algorithm.
+				// We do not want any extra padding on light themes since it looks ugly.
+				isLightTheme ? m("", qrCodeGraphic) : m(".bg-white.border-radius-big", { style: { "line-height": "0", padding: "24px" } }, qrCodeGraphic),
+			),
 			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 		]
 	}
