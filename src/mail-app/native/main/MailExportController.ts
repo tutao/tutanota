@@ -15,6 +15,9 @@ import type { TranslationText } from "../../../common/misc/LanguageViewModel"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
+import { assertMainOrNode } from "../../../common/api/common/Env"
+
+assertMainOrNode()
 
 export type MailExportState =
 	| { type: "idle" }
@@ -168,6 +171,7 @@ export class MailExportController {
 
 				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails)
 				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails)
+
 				for (const { mail, mailDetails } of downloadedMailDetails) {
 					if (this._state().type !== "exporting") {
 						return

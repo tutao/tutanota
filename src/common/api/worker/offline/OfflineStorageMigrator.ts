@@ -34,8 +34,7 @@ import { sys112 } from "./migrations/sys-v112.js"
 import { tutanota77 } from "./migrations/tutanota-v77.js"
 import { sys114 } from "./migrations/sys-v114.js"
 import { offline2 } from "./migrations/offline2.js"
-import { sys115 } from "./migrations/sys-v115.js"
-import { sys116 } from "./migrations/sys-v116.js"
+import { storage11 } from "./migrations/storage-v11.js"
 import { tutanota79 } from "./migrations/tutanota-v79.js"
 
 export interface OfflineMigration {
@@ -83,9 +82,8 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	tutanota77,
 	sys114,
 	offline2,
-	sys115,
-	sys116,
 	tutanota79,
+	storage11,
 ]
 
 const CURRENT_OFFLINE_VERSION = 2

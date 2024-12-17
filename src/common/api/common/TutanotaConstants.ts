@@ -1232,6 +1232,11 @@ export enum PublicKeyIdentifierType {
 	GROUP_ID = "1",
 }
 
+export enum BlobAccessTokenKind {
+	Archive = "0",
+	Instances = "1",
+}
+
 export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierType {
 	if (Object.values(PublicKeyIdentifierType).includes(maybe as PublicKeyIdentifierType)) {
 		return maybe as PublicKeyIdentifierType

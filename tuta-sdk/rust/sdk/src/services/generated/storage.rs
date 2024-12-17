@@ -13,19 +13,19 @@ use crate::entities::generated::storage::BlobPostOut;
 use crate::entities::generated::storage::BlobGetIn;
 pub struct BlobAccessTokenService;
 
-crate::service_impl!(declare, BlobAccessTokenService, "storage/blobaccesstokenservice", 10);
+crate::service_impl!(declare, BlobAccessTokenService, "storage/blobaccesstokenservice", 11);
 crate::service_impl!(POST, BlobAccessTokenService, BlobAccessTokenPostIn, BlobAccessTokenPostOut);
 
 
 pub struct BlobReferenceService;
 
-crate::service_impl!(declare, BlobReferenceService, "storage/blobreferenceservice", 10);
+crate::service_impl!(declare, BlobReferenceService, "storage/blobreferenceservice", 11);
 crate::service_impl!(PUT, BlobReferenceService, BlobReferencePutIn, ());
 crate::service_impl!(DELETE, BlobReferenceService, BlobReferenceDeleteIn, ());
 
 
 pub struct BlobService;
 
-crate::service_impl!(declare, BlobService, "storage/blobservice", 10);
+crate::service_impl!(declare, BlobService, "storage/blobservice", 11);
 crate::service_impl!(POST, BlobService, (), BlobPostOut);
 crate::service_impl!(GET, BlobService, BlobGetIn, ());
