@@ -1201,137 +1201,42 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 			break
 		}
 
-		if (frequency === RepeatPeriod.DAILY) {
-			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
-			const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
-			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
-			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
+		const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
+		const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
+		const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
+		const byYearDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYYEARDAY)
+		const byWeekNoRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYWEEKNO)
+		const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
+		const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
+		const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
+		const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, frequency)
+		const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+		const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
+		const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
 
-			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.DAILY)
-			const monthDayAppliedEvents = applyByMonthDay(monthAppliedEvents, byMonthDayRules, true)
-			const events = finishByRules(
-				applyByDayRules(monthDayAppliedEvents, byDayRules, RepeatPeriod.DAILY, validMonths, WEEKDAY_TO_NUMBER.MO),
-				validMonths as MonthNumbers[],
-			)
+		const events = finishByRules(
+			applyByDayRules(
+				monthDayAppliedEvents,
+				byDayRules,
+				frequency,
+				validMonths,
+				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+				byWeekNoRules.length > 0,
+				validMonths,
+				validYearDays,
+			),
+			validMonths as MonthNumbers[],
+			eventStartTime,
+		)
+		for (const event of events) {
+			const newStartTime = event.toJSDate()
+			const newEndTime = allDay
+				? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
+				: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
 
-			for (const event of events) {
-				const newStartTime = event.toJSDate()
-				const newEndTime = allDay
-					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
-
-				assertDateIsValid(newStartTime)
-				assertDateIsValid(newEndTime)
-				yield { startTime: newStartTime, endTime: newEndTime }
-			}
-		} else if (frequency === RepeatPeriod.WEEKLY) {
-			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
-			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
-			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
-			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
-
-			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.WEEKLY)
-
-			const events = finishByRules(
-				applyByDayRules(
-					monthAppliedEvents,
-					byDayRules,
-					RepeatPeriod.WEEKLY,
-					validMonths,
-					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
-				),
-				validMonths as MonthNumbers[],
-				eventStartTime,
-			)
-
-			for (const event of events) {
-				const newStartTime = event.toJSDate()
-				const newEndTime = allDay
-					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
-
-				assertDateIsValid(newStartTime)
-				assertDateIsValid(newEndTime)
-				yield { startTime: newStartTime, endTime: newEndTime }
-			}
-		} else if (frequency === RepeatPeriod.MONTHLY) {
-			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
-			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
-			const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
-			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
-			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
-
-			const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, RepeatPeriod.MONTHLY)
-			const monthDayAppliedEvents = applyByMonthDay(monthAppliedEvents, byMonthDayRules)
-
-			const events = finishByRules(
-				applyByDayRules(
-					monthDayAppliedEvents,
-					byDayRules,
-					RepeatPeriod.MONTHLY,
-					validMonths,
-					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
-					false,
-					byMonthDayRules.map((rule) => Number.parseInt(rule.interval)),
-				),
-				validMonths as MonthNumbers[],
-				eventStartTime,
-			)
-
-			for (const event of events) {
-				const newStartTime = event.toJSDate()
-				const newEndTime = allDay
-					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
-
-				assertDateIsValid(newStartTime)
-				assertDateIsValid(newEndTime)
-				yield { startTime: newStartTime, endTime: newEndTime }
-			}
-		} else if (frequency === RepeatPeriod.ANNUALLY) {
-			const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
-			const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
-			const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
-			const byYearDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYYEARDAY)
-			const byWeekNoRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYWEEKNO)
-			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
-			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
-			const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
-			const monthAppliedEvents = applyByMonth(
-				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
-				byMonthRules,
-				maxDate,
-				RepeatPeriod.ANNUALLY,
-			)
-
-			const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
-			const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
-			const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
-
-			const events = finishByRules(
-				applyByDayRules(
-					monthDayAppliedEvents,
-					byDayRules,
-					RepeatPeriod.ANNUALLY,
-					validMonths,
-					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
-					byWeekNoRules.length > 0,
-					[],
-					validYearDays,
-				),
-				validMonths as MonthNumbers[],
-				eventStartTime,
-			)
-			for (const event of events) {
-				const newStartTime = event.toJSDate()
-				const newEndTime = allDay
-					? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-					: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
-
-				assertDateIsValid(newStartTime)
-				assertDateIsValid(newEndTime)
-				yield { startTime: newStartTime, endTime: newEndTime }
-			}
+			assertDateIsValid(newStartTime)
+			assertDateIsValid(newEndTime)
+			yield { startTime: newStartTime, endTime: newEndTime }
 		}
 
 		calcStartTime = incrementByRepeatPeriod(eventStartTime, downcast(repeatRule.frequency), interval * iteration, repeatTimeZone)
