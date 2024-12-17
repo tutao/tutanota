@@ -40,8 +40,7 @@ import {
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { ElementEntity } from "../../common/EntityTypes"
+import type { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -396,8 +395,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		if (this.storage.getCustomCacheHandlerMap(this.entityRestClient).has(typeRef)) {
-			return await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)!.loadRange(this.storage, listId, start, count, reverse)
+		const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+		if (customHandler && customHandler.loadRange) {
+			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
 		}
 
 		const typeModel = await resolveTypeReference(typeRef)
@@ -673,10 +673,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
-			const customHandlers = this.storage.getCustomCacheHandlerMap(this.entityRestClient)
-			const idsInCacheRange = customHandlers.has(typeRef)
-				? await customHandlers.get(typeRef)!.getElementIdsInCacheRange(this.storage, instanceListId, ids)
-				: await this.getElementIdsInCacheRange(typeRef, instanceListId, ids)
+			const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+			const idsInCacheRange =
+				customHandler && customHandler.getElementIdsInCacheRange
+					? await customHandler.getElementIdsInCacheRange(this.storage, instanceListId, ids)
+					: await this.getElementIdsInCacheRange(typeRef, instanceListId, ids)
 
 			if (idsInCacheRange.length === 0) {
 				postMultipleEventUpdates.push(updates)
@@ -772,23 +773,30 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.deleteIfExists(typeRef, deleteEvent.instanceListId, instanceId)
 				await this.updateListIdOfMailAndUpdateCache(mail, instanceListId, instanceId)
 				return update
-			} else if (await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId)) {
-				// No need to try to download something that's not there anymore
-				// We do not consult custom handlers here because they are only needed for list elements.
-				console.log("downloading create event for", getTypeId(typeRef), instanceListId, instanceId)
-				return this.entityRestClient
-					.load(typeRef, [instanceListId, instanceId])
-					.then((entity) => this.storage.put(entity))
-					.then(() => update)
-					.catch((e) => {
-						if (isExpectedErrorForSynchronization(e)) {
-							return null
-						} else {
-							throw e
-						}
-					})
 			} else {
-				return update
+				// If there is a custom handler we follow its decision.
+				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
+				const shouldLoad =
+					(await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
+					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
+				if (shouldLoad) {
+					// No need to try to download something that's not there anymore
+					// We do not consult custom handlers here because they are only needed for list elements.
+					console.log("downloading create event for", getTypeId(typeRef), instanceListId, instanceId)
+					return this.entityRestClient
+						.load(typeRef, [instanceListId, instanceId])
+						.then((entity) => this.storage.put(entity))
+						.then(() => update)
+						.catch((e) => {
+							if (isExpectedErrorForSynchronization(e)) {
+								return null
+							} else {
+								throw e
+							}
+						})
+				} else {
+					return update
+				}
 			}
 		} else {
 			return update
