@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2024-12-13T10:21:22Z",
+	"updated_at": "2024-12-16T08:44:19Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1143,6 +1143,7 @@ export default {
 		"passwordValid_msg": "Jelszó elfogadva.",
 		"passwordWrongInvalid_msg": "A jelszó nem megfelelő.",
 		"password_label": "Jelszó",
+		"pasteWithoutFormatting_action": "Beillesztés formázás nélkül",
 		"paste_action": "Beillesztés",
 		"pathAlreadyExists_msg": "Ez az elérési út már létezik.",
 		"payCardContactBankError_msg": "Sajnáljuk, a fizetési tranzakciót a bankja elutasította! Kérjük, legyen biztos a bankkártyája/hitelkártyája adatainak helyességében vagy lépjen kapcsolatba a bankjával!",

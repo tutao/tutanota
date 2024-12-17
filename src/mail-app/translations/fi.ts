@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-12-11T15:33:28Z",
+	"updated_at": "2024-12-15T21:35:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -603,6 +603,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Valitse vastaus kaikkiin kysymyksiin.",
 		"experienceSamplingThankYou_msg": "Kiitos osallistumisestasi!",
 		"expiredLink_msg": "Linkki ei ole enää voimassa. Sinulle on lähetetty uusi ilmoitusviesti, jossa on voimassa oleva linkki. Edelliset linkit on poistettu käytöstä turvallisuussyistä.",
+		"exportErrorServiceUnavailable_label": "Vientiä ei tällä hetkellä voi käyttää. Yritä myöhemmin uudelleen.",
+		"exportErrorTooManyRequests_label": "Liikaa vientiyrityksiä viime aikoina",
 		"exportFinished_label": "Vienti on valmis",
 		"exportingEmails_label": "Sähköposteja viedään: {count}",
 		"exportMailbox_label": "Vie postilaatikko",
@@ -1141,6 +1143,7 @@ export default {
 		"passwordValid_msg": "Salasana hyväksytty.",
 		"passwordWrongInvalid_msg": "Väärä salasana.",
 		"password_label": "Salasana",
+		"pasteWithoutFormatting_action": "Liitä ilman muotoilua",
 		"paste_action": "Liitä",
 		"pathAlreadyExists_msg": "Tämä polku on jo olemassa.",
 		"payCardContactBankError_msg": "Valitettavasti pankkisi hylkäsi maksutapahtuman. Varmista että luottokorttisi tiedot ovat oikein tai ota yhteyttä pankkiisi.",

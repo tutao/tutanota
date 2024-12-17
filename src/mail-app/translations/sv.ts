@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-12-12T15:39:13Z",
+	"updated_at": "2024-12-13T15:07:29Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1143,6 +1143,7 @@ export default {
 		"passwordValid_msg": "Lösenord ok.",
 		"passwordWrongInvalid_msg": "Ditt lösenord är fel.",
 		"password_label": "Lösenord",
+		"pasteWithoutFormatting_action": "Klistra in utan formatering",
 		"paste_action": "Klistra in",
 		"pathAlreadyExists_msg": "Den sökvägen finns redan.",
 		"payCardContactBankError_msg": "Betalningstransaktionen avvisades av din bank. Kontrollera att dina kreditkortsuppgifter är korrekta eller kontakta din bank.",

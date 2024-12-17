@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-12-11T00:12:06Z",
+	"updated_at": "2024-12-14T02:05:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -609,6 +609,8 @@ export default {
 		"experienceSamplingSelectAnswer_msg": "Пожалуйста, выберите ответ на все вопросы.",
 		"experienceSamplingThankYou_msg": "Благодарим вас за участие!",
 		"expiredLink_msg": "К сожалению, эта ссылка больше не действительна.  Вам должно было прийти новое уведом­ле­ние по электронной почте с актуальной ссылкой.  Предыдущие ссылки отключены ради безопасности.",
+		"exportErrorServiceUnavailable_label": "Экспорт временно недоступен; повторите попытку позже.",
+		"exportErrorTooManyRequests_label": "В последнее время было запрошено слишком много экспорта",
 		"exportFinished_label": "Экспорт завершен",
 		"exportingEmails_label": "Экспорт электронных писем: {count}",
 		"exportMailbox_label": "Экспорт почтового ящика",
@@ -1147,6 +1149,7 @@ export default {
 		"passwordValid_msg": "Пароль сгодится.",
 		"passwordWrongInvalid_msg": "Пароль не тот.",
 		"password_label": "Пароль",
+		"pasteWithoutFormatting_action": "Вставить без форматирования",
 		"paste_action": "Вставить",
 		"pathAlreadyExists_msg": "Этот пусть уже существует.",
 		"payCardContactBankError_msg": "Извините, транзакция оплаты была отклонена вашим банком. Пожалуйста, убедитесь, что вы указали верные данные или свяжитесь с вашим банком.",

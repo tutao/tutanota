@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-12-12T13:04:19Z",
+	"updated_at": "2024-12-13T13:35:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1147,6 +1147,7 @@ export default {
 		"passwordValid_msg": "Şifre uygun.",
 		"passwordWrongInvalid_msg": "Şifreniz hatalı.",
 		"password_label": "Şifre",
+		"pasteWithoutFormatting_action": "Biçimlendirme olmadan yapıştır",
 		"paste_action": "Yapıştır",
 		"pathAlreadyExists_msg": "Bu yol zaten mevcut.",
 		"payCardContactBankError_msg": "Üzgünüz, ödeme işlemi bankanız tarafından reddedildi. Lütfen kredi kartı bilgilerinizin doğru olduğundan emin olun veya bankanızla iletişime geçin.",
