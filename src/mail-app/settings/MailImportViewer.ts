@@ -22,8 +22,6 @@ import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDia
 import { EntityClient } from "../../common/api/common/EntityClient.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { NativeFileApp } from "../../common/native/common/FileApp.js"
-import { theme } from "../../common/gui/theme.js"
-import { px } from "../../common/gui/size.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 
 /**
@@ -58,13 +56,16 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		let runningImport = isDesktop() ? this.mailImporter.getRunningImportMailState() : null
+		const haveSomeImport = runningImport != null && !this.mailImporter.waitingForFirstEvent
+		const waitingForSomeImport = runningImport == null && this.mailImporter.waitingForFirstEvent
+
 		return m(
 			".fill-absolute.scroll.plr-l.pb-xl",
 			m(".h4.mt-l", lang.get("mailImportSettings_label")),
 			isDesktop()
 				? [
-						!runningImport ? this.renderNonRunningMailImportControls() : null,
-						runningImport ? this.renderMailImportStatusCard() : null,
+						this.renderNonRunningMailImportControls(),
+						haveSomeImport || waitingForSomeImport ? this.renderImportMailStatus(runningImport) : null,
 						this.renderRecentImports(),
 				  ]
 				: [this.renderNoImportOnWebText()],
@@ -204,6 +205,10 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderNonRunningMailImportControls() {
+		let runningImport = isDesktop() ? this.mailImporter.getRunningImportMailState() : null
+		const haveSomeImport = runningImport != null && !this.mailImporter.waitingForFirstEvent
+		const waitingForSomeImport = runningImport == null && this.mailImporter.waitingForFirstEvent
+
 		return [
 			this.renderTargetFolderControls(),
 			m(
@@ -211,7 +216,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 				m(LoginButton, {
 					class: "text-ellipsis max-width-200",
 					label: () => "Select files to import",
-					disabled: this.mailImporter.waitingForFirstEvent,
+					disabled: haveSomeImport || waitingForSomeImport,
 					onclick: async (_, dom) => await this.onImportButtonClick(dom),
 				}),
 			),
@@ -223,83 +228,77 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 		return [m(".small", "You can import EML or MBOX files.")]
 	}
 
-	private renderImportMailStatus(runningImport: ImportMailState) {
-		const startingMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "continueMailImport_action",
-			icon: Icons.Mobile,
-			click: () => null,
-			size: ButtonSize.Normal,
-		}
+	private renderImportMailStatus(runningImport: ImportMailState | null) {
+		let buttonControls = []
+		let statusLabels = []
 
-		const continueMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "continueMailImport_action",
-			icon: Icons.Play,
-			click: () => null,
-			size: ButtonSize.Normal,
-		}
+		let importStatus: ImportStatus
+		if (this.mailImporter.startedCancellation) importStatus = ImportStatus.Cancelling
+		else if (this.mailImporter.waitingForFirstEvent) importStatus = ImportStatus.Starting
+		else if (runningImport) importStatus = runningImport.status as ImportStatus
+		else importStatus = ImportStatus.Running
 
-		const pauseMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "pauseMailImport_action",
-			icon: Icons.Pause,
-			click: () => null,
-			size: ButtonSize.Normal,
-		}
+		if (runningImport) {
+			const importMailsCountLabel = m(
+				".h5",
+				lang.get("mailImportStateSuccessfulMails_label", {
+					"{successfulMails}": runningImport.successfulMails,
+					"{failedMails}": runningImport.successfulMails,
+				}),
+			)
+			const failedMailsCountLabel = m(
+				".h5",
+				lang.get("mailImportStateFailedMails_label", {
+					"{failedMails}": runningImport.failedMails,
+				}),
+			)
 
-		const cancelMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "cancelMailImport_action",
-			icon: Icons.Cancel,
-			click: () => {
-				this.mailImporter.startedCancellation = true
-				this.mailImporter.stopImport(elementIdPart(runningImport._id))
-			},
-			size: ButtonSize.Normal,
-		}
+			statusLabels.push(importMailsCountLabel)
+			if (Number(runningImport.failedMails) > 0) {
+				statusLabels.push(failedMailsCountLabel)
+			}
 
-		return [
-			m("center.mb-s.text-center", [
-				m(".h4.mb-s", this.getReadableImportMailStatus(runningImport.status as ImportStatus)),
-				m(
-					".h5",
-					lang.get("mailImportStateSuccessfulMails_label", {
-						"{successfulMails}": runningImport.successfulMails,
-						"{failedMails}": runningImport.successfulMails,
-					}),
-				),
-				Number(runningImport.failedMails) != 0
-					? m(
-							".h5",
-							lang.get("mailImportStateFailedMails_label", {
-								"{failedMails}": runningImport.failedMails,
-							}),
-					  )
-					: null,
-			]),
-			m("center", [
-				//this.mailImportState().state != ImportState.RUNNING ? m(IconButton, continueMailImportIconButtonAttrs) : null,
-				runningImport.status == ImportStatus.Running ? m(IconButton, pauseMailImportIconButtonAttrs) : null,
-				runningImport.status == ImportStatus.Running ? m(IconButton, cancelMailImportIconButtonAttrs) : null,
-			]),
-		]
-	}
+			if (importStatus == ImportStatus.Running) {
+				const pauseMailImportIconButtonAttrs: IconButtonAttrs = {
+					title: "pauseMailImport_action",
+					icon: Icons.Pause,
+					click: () => {},
+					size: ButtonSize.Normal,
+				}
 
-	private renderMailImportStatusCard() {
-		let runningImport = this.mailImporter.getRunningImportMailState()
-		return [
-			this.renderTargetFolderControls(),
-			m(
-				".border-radius-big",
-				{
-					style: {
-						border: `2px solid ${theme.content_accent}`,
-						backgroundColor: theme.content_bg,
-						marginTop: px(16),
-						marginBottom: px(16),
-						padding: px(16),
+				const cancelMailImportIconButtonAttrs: IconButtonAttrs = {
+					title: "cancelMailImport_action",
+					icon: Icons.Cancel,
+					click: () => {
+						this.mailImporter.startedCancellation = true
+						m.redraw()
+						this.mailImporter.stopImport(elementIdPart(runningImport._id))
 					},
-				},
-				[runningImport && !this.mailImporter.waitingForFirstEvent ? this.renderImportMailStatus(runningImport) : this.renderImportMailStatus()],
-			),
-		]
+					size: ButtonSize.Normal,
+				}
+				buttonControls.push(m(IconButton, pauseMailImportIconButtonAttrs))
+				buttonControls.push(m(IconButton, cancelMailImportIconButtonAttrs))
+			} else if (true /* todo: only when in Paused/Interreptured state*/) {
+				const continueMailImportIconButtonAttrs: IconButtonAttrs = {
+					title: "continueMailImport_action",
+					icon: Icons.Play,
+					click: () => {},
+					size: ButtonSize.Normal,
+				}
+				buttonControls.push(m(IconButton, continueMailImportIconButtonAttrs))
+			}
+		} else {
+			const startingMailImportIconButtonAttrs: IconButtonAttrs = {
+				title: "continueMailImport_action",
+				icon: Icons.Sync,
+				click: () => {},
+				size: ButtonSize.Normal,
+			}
+
+			buttonControls.push(m(IconButton, startingMailImportIconButtonAttrs))
+		}
+
+		return [m("center.mb-s.text-center", [m(".h4.mb-s", this.getReadableImportMailStatus(importStatus)), ...statusLabels]), m("center", [buttonControls])]
 	}
 
 	private getReadableImportMailStatus(importStatus: ImportStatus): string {
