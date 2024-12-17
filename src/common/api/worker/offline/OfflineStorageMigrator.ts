@@ -36,6 +36,7 @@ import { sys114 } from "./migrations/sys-v114.js"
 import { offline2 } from "./migrations/offline2.js"
 import { sys115 } from "./migrations/sys-v115.js"
 import { sys116 } from "./migrations/sys-v116.js"
+import { sys117 } from "./migrations/sys-v117.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -84,6 +85,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	offline2,
 	sys115,
 	sys116,
+	sys117,
 ]
 
 const CURRENT_OFFLINE_VERSION = 2

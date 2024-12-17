@@ -138,8 +138,6 @@ import("./translations/en.js")
 					await mailLocator.mailModel.init()
 				},
 				async onFullLoginSuccess() {
-					await mailLocator.groupManagementFacade.migrateLocalAdminsToGlobalAdmins()
-
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
 					if (isOfflineStorageAvailable()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.Bypass)

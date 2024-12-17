@@ -530,6 +530,21 @@
 					"info": "AddValue PubEncKeyData/senderIdentifierType/2531."
 				}
 			]
+		},
+		{
+			"version": 117,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Group",
+					"info": "RemoveAssociation Group/administratedGroups."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "GroupInfo",
+					"info": "RemoveAssociation GroupInfo/localAdmin."
+				}
+			]
 		}
 	]
 }

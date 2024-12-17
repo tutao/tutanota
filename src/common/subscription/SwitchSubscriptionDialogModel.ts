@@ -43,16 +43,14 @@ export class SwitchSubscriptionDialogModel {
 		if (LegacyPlans.includes(this.planType)) {
 			const userItem = this.lastBooking.items.find((item) => item.featureType === BookingItemFeatureType.LegacyUsers)
 			const sharedMailItem = this.lastBooking.items.find((item) => item.featureType === BookingItemFeatureType.SharedMailGroup)
-			const localAdminItem = this.lastBooking.items.find((item) => item.featureType === BookingItemFeatureType.LocalAdminGroup)
 
 			// A user that has PlanType.Premium will always have LegacyUsers booked.
 			const userCount = Number(userItem?.currentCount)
 
 			// These may be booked but not always.
 			const sharedMailCount = sharedMailItem ? Number(sharedMailItem.currentCount) : 0
-			const localAdminCount = localAdminItem ? Number(localAdminItem.currentCount) : 0
 
-			return userCount + sharedMailCount + localAdminCount > 1
+			return userCount + sharedMailCount > 1
 		}
 
 		return false
