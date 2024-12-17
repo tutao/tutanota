@@ -48,7 +48,6 @@ impl Entity for AccountingInfo {
 pub struct AdminGroupKeyDistributionElement {
 	pub _id: Option<CustomId>,
 	pub distEncAdminGroupKey: PubEncKeyData,
-	pub userEncAdminSymKeyHash: EncryptedKeyHash,
 	pub userGroupId: GeneratedId,
 }
 
@@ -2336,7 +2335,6 @@ pub struct KeyRotation {
 	pub adminEncDistKeyHash: Option<EncryptedKeyHash>,
 	pub distEncAdminGroupSymKey: Option<PubEncKeyData>,
 	pub userEncAdminPubKeyHash: Option<EncryptedKeyHash>,
-	pub userEncAdminSymKeyHash: Option<EncryptedKeyHash>,
 }
 
 impl Entity for KeyRotation {
@@ -3114,6 +3112,7 @@ pub struct PubEncKeyData {
 	pub senderIdentifier: Option<String>,
 	pub senderIdentifierType: Option<i64>,
 	pub senderKeyVersion: Option<i64>,
+	pub symKeyTag: Option<EncryptedKeyHash>,
 }
 
 impl Entity for PubEncKeyData {

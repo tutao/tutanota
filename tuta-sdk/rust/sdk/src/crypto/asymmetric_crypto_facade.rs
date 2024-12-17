@@ -658,6 +658,7 @@ mod tests {
 				senderKeyVersion: Some(sender_key_version),
 				senderIdentifier: Some(sender_identifier.clone()),
 				senderIdentifierType: Some(sender_identifier_type.clone() as i64),
+				symKeyTag: None,
 			};
 
 			let result = asymmetric_crypto_facade
@@ -709,6 +710,7 @@ mod tests {
 				senderKeyVersion: None,
 				senderIdentifier: Some(sender_identifier.clone()),
 				senderIdentifierType: Some(sender_identifier_type.clone() as i64),
+				symKeyTag: None,
 			};
 
 			let result = asymmetric_crypto_facade

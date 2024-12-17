@@ -11,3 +11,4 @@ export type HkdfKeyDerivationDomains =
 	| "adminGroupDistributionKeyPairKey"
 	| "multiAdminKeyRotationPubDistKeyHash"
 	| "multiAdminKeyRotationNewAdminSymKeyHash"
+	| "multiUserKeyRotationNewUserSymKeyHash"

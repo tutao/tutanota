@@ -86,6 +86,7 @@ import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
@@ -302,6 +303,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { CounterFacade } = await import("../../../common/api/worker/facades/lazy/CounterFacade.js")
 		return new CounterFacade(locator.serviceExecutor)
 	})
+	const keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
@@ -314,6 +316,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.cacheManagement(),
 			locator.asymmetricCrypto,
 			locator.cryptoWrapper,
+			keyAuthenticationFacade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -328,6 +331,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.share,
 		locator.groupManagement,
 		locator.asymmetricCrypto,
+		keyAuthenticationFacade,
 	)
 
 	const loginListener: LoginListener = {
