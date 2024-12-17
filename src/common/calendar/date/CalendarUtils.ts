@@ -14,6 +14,7 @@ import {
 	isNotNull,
 	isSameDayOfDate,
 	isValidDate,
+	memoized,
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
@@ -224,6 +225,7 @@ function applyByDayRules(
 	wkst: WeekdayNumbers,
 	hasWeekNo?: boolean,
 	monthDays?: number[],
+	yearDays?: number[],
 ) {
 	if (parsedRules.length === 0) {
 		return dates
@@ -393,25 +395,39 @@ function applyByDayRules(
 		}
 	}
 
-	const allowedMonthDays: number[] = []
 	if (frequency === RepeatPeriod.ANNUALLY) {
-		for (const date of newDates) {
-			for (const allowedDay of monthDays ?? []) {
+		const getValidDaysInYear = memoized((year: number): number[] => {
+			const daysInYear = DateTime.fromObject({ year, month: 1, day: 1 }).daysInYear
+			const allowedDays: number[] = []
+			for (const allowedDay of yearDays ?? []) {
 				if (allowedDay > 0) {
-					allowedMonthDays.push(allowedDay)
+					allowedDays.push(allowedDay)
 					continue
 				}
 
-				const day = date.daysInMonth! - Math.abs(allowedDay) + 1
-				allowedMonthDays.push(day)
+				const day = daysInYear - Math.abs(allowedDay) + 1
 			}
+
+			return allowedDays
+		})
+
+		const convertDateToDayOfYear = memoized((date: Date) => {
+			return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000
+		})
+
+		const isValidDay = (date: DateTime) => {
+			const validDays = getValidDaysInYear(date.year)
+
+			if (validDays.length === 0) {
+				return true
+			}
+
+			const dayInYear = convertDateToDayOfYear(date.toJSDate())
+
+			return validDays.includes(dayInYear)
 		}
 
-		const isAllowedInMonthDayRule = (day: number) => {
-			return allowedMonthDays.length === 0 ? true : allowedMonthDays.includes(day)
-		}
-
-
+		return newDates.filter((date) => isValidDay(date))
 	}
 
 	return newDates
@@ -1271,7 +1287,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 			const byWeekNoRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYWEEKNO)
 			const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
 			const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
-
+			const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
 			const monthAppliedEvents = applyByMonth(
 				[DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })],
 				byMonthRules,
@@ -1290,6 +1306,9 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 					RepeatPeriod.ANNUALLY,
 					validMonths,
 					weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+					byWeekNoRules.length > 0,
+					[],
+					validYearDays,
 				),
 				validMonths as MonthNumbers[],
 				eventStartTime,
