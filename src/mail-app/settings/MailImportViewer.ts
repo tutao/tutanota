@@ -57,16 +57,16 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		let runningImport = this.mailImporter.getRunningImportMailState()
+		let runningImport = isDesktop() ? this.mailImporter.getRunningImportMailState() : null
 		return m(
 			".fill-absolute.scroll.plr-l.pb-xl",
 			m(".h4.mt-l", lang.get("mailImportSettings_label")),
 			isDesktop()
 				? [
-					!runningImport ? this.renderNonRunningMailImportControls() : null,
-					runningImport ? this.renderRunningMailImportStatusCard(runningImport) : null,
-					this.renderRecentImports()
-				]
+						!runningImport ? this.renderNonRunningMailImportControls() : null,
+						runningImport ? this.renderMailImportStatusCard() : null,
+						this.renderRecentImports(),
+				  ]
 				: [this.renderNoImportOnWebText()],
 		)
 	}
@@ -124,22 +124,22 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			return []
 		}
 		return this.mailImporter
-				   .getNonRunningImportMailStates()
-				   .sort(sortCompareByReverseId)
-				   .map((im) => {
-					   const targetFolderId = im.targetFolder
-					   const displayTargetFolder = this.indentedFoldersForMailbox.find((f) => isSameId(f.folder._id, targetFolderId))
+			.getNonRunningImportMailStates()
+			.sort(sortCompareByReverseId)
+			.map((im) => {
+				const targetFolderId = im.targetFolder
+				const displayTargetFolder = this.indentedFoldersForMailbox.find((f) => isSameId(f.folder._id, targetFolderId))
 
-					   return {
-						   cells: () => [
-							   {
-								   main: `${lang.get(getImportMailStatusTranslationKey(im.status as ImportStatus))}`,
-								   info: [`Imported: ${im.successfulMails}`, `Failed: ${im.failedMails}`],
-							   },
-							   { main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
-						   ],
-					   }
-				   })
+				return {
+					cells: () => [
+						{
+							main: `${lang.get(getImportMailStatusTranslationKey(im.status as ImportStatus))}`,
+							info: [`Imported: ${im.successfulMails}`, `Failed: ${im.failedMails}`],
+						},
+						{ main: displayTargetFolder ? getFolderName(displayTargetFolder.folder) : "folder deleted" },
+					],
+				}
+			})
 	}
 
 	private renderRecentImports() {
@@ -191,16 +191,16 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			isReadOnly: true,
 			disabled: isImportRunning,
 			injectionsRight: () =>
-				!isImportRunning ? m(IconButton, {
-					title: "selectMailImportTargetFolder_action",
-					icon: Icons.Folder,
-					size: ButtonSize.Compact,
-					click: async (_, dom) => await this.onFolderDropdownSelect(dom),
-				}) : null,
+				!isImportRunning
+					? m(IconButton, {
+							title: "selectMailImportTargetFolder_action",
+							icon: Icons.Folder,
+							size: ButtonSize.Compact,
+							click: async (_, dom) => await this.onFolderDropdownSelect(dom),
+					  })
+					: null,
 		}
-		return [
-			m(TextField, importSelectionAttrs),
-		]
+		return [m(TextField, importSelectionAttrs)]
 	}
 
 	private renderNonRunningMailImportControls() {
@@ -215,9 +215,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 					onclick: async (_, dom) => await this.onImportButtonClick(dom),
 				}),
 			),
-			m(".flex-end",
-				this.renderImportInfoText()
-			)
+			m(".flex-end", this.renderImportInfoText()),
 		]
 	}
 
@@ -251,35 +249,35 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			title: "cancelMailImport_action",
 			icon: Icons.Cancel,
 			click: () => {
-				this.mailImporter.startedCancellation = true;
+				this.mailImporter.startedCancellation = true
 				this.mailImporter.stopImport(elementIdPart(runningImport._id))
 			},
 			size: ButtonSize.Normal,
 		}
 
-		return [m("center.mb-s.text-center", [
-			m(
-				".h4.mb-s",
-				this.getReadableImportMailStatus(runningImport.status as ImportStatus),
-			),
-			m(
-				".h5",
-				lang.get("mailImportStateSuccessfulMails_label", {
-					"{successfulMails}": runningImport.successfulMails,
-					"{failedMails}": runningImport.successfulMails,
-				}),
-			),
-			Number(runningImport.failedMails) != 0 ? m(
-				".h5",
-				lang.get("mailImportStateFailedMails_label", {
-					"{failedMails}": runningImport.failedMails,
-				}),
-			) : null,
-		]),
+		return [
+			m("center.mb-s.text-center", [
+				m(".h4.mb-s", this.getReadableImportMailStatus(runningImport.status as ImportStatus)),
+				m(
+					".h5",
+					lang.get("mailImportStateSuccessfulMails_label", {
+						"{successfulMails}": runningImport.successfulMails,
+						"{failedMails}": runningImport.successfulMails,
+					}),
+				),
+				Number(runningImport.failedMails) != 0
+					? m(
+							".h5",
+							lang.get("mailImportStateFailedMails_label", {
+								"{failedMails}": runningImport.failedMails,
+							}),
+					  )
+					: null,
+			]),
 			m("center", [
 				//this.mailImportState().state != ImportState.RUNNING ? m(IconButton, continueMailImportIconButtonAttrs) : null,
 				runningImport.status == ImportStatus.Running ? m(IconButton, pauseMailImportIconButtonAttrs) : null,
-				runningImport.status == ImportStatus.Running ? m(IconButton, cancelMailImportIconButtonAttrs) : null
+				runningImport.status == ImportStatus.Running ? m(IconButton, cancelMailImportIconButtonAttrs) : null,
 			]),
 		]
 	}
@@ -288,7 +286,8 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 		let runningImport = this.mailImporter.getRunningImportMailState()
 		return [
 			this.renderTargetFolderControls(),
-			m(".border-radius-big",
+			m(
+				".border-radius-big",
 				{
 					style: {
 						border: `2px solid ${theme.content_accent}`,
@@ -298,13 +297,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 						padding: px(16),
 					},
 				},
-				[
-					runningImport && !this.mailImporter.waitingForFirstEvent ? this.renderImportMailStatus(runningImport) :
-						this.renderImportMailStatus(
-							{
-
-							}: ImportMailState
-						)
+				[runningImport && !this.mailImporter.waitingForFirstEvent ? this.renderImportMailStatus(runningImport) : this.renderImportMailStatus()],
 			),
 		]
 	}
