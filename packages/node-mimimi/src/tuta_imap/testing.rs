@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub mod jvm_singeleton;
 pub mod utils;
 
-pub const GREENMAIL_TEST_SERVER_JAR: &str = env!("GREENMAIL_TEST_SERVER_JAR");
+pub const GREENMAIL_TEST_SERVER_JAR: &str = "java/build/libs/greenmail-test-server.jar";
 pub const IMAPS_STARTING_PORT: i32 = 3993;
 
 pub struct GreenMailTestServer {
