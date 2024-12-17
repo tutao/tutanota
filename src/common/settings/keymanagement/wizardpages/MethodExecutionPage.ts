@@ -141,7 +141,7 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 	}
 
 	private renderQrMethod(attrs: MethodExecutionPageAttrs): Children {
-		const video = m("video", {
+		const video = m("video[autoplay][muted][playsinline]", {
 			oncreate: async (videoNode) => {
 				this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
 				await this.runQrScanner(attrs)
