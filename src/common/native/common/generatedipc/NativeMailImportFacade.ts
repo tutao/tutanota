@@ -25,4 +25,9 @@ export interface NativeMailImportFacade {
 	 * @returns the mail import state id of the import that might be resumed
 	 */
 	getResumableImportStateId(): Promise<IdTuple>
+
+	/**
+	 * resumes the import for a previously paused import
+	 */
+	resumeImport(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, importStateId: IdTuple): Promise<void>
 }

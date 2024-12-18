@@ -697,7 +697,7 @@ impl Importer {
 		Ok(())
 	}
 
-	pub(super) fn get_resumable_import_state_id(
+	pub(super) async fn get_resumable_import_state_id(
 		config_directory: String,
 	) -> Result<ImportMailStateId, ImportError> {
 		let import_directory_path: PathBuf =

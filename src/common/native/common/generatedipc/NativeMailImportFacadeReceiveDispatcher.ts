@@ -22,6 +22,12 @@ export class NativeMailImportFacadeReceiveDispatcher {
 			case "getResumableImportStateId": {
 				return this.facade.getResumableImportStateId()
 			}
+			case "resumeImport": {
+				const apiUrl: string = arg[0]
+				const unencryptedTutaCredentials: UnencryptedCredentials = arg[1]
+				const importStateId: IdTuple = arg[2]
+				return this.facade.resumeImport(apiUrl, unencryptedTutaCredentials, importStateId)
+			}
 		}
 	}
 }

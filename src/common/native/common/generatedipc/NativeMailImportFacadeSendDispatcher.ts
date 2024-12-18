@@ -16,4 +16,7 @@ export class NativeMailImportFacadeSendDispatcher implements NativeMailImportFac
 	async getResumableImportStateId(...args: Parameters<NativeMailImportFacade["getResumableImportStateId"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "getResumableImportStateId", ...args])
 	}
+	async resumeImport(...args: Parameters<NativeMailImportFacade["resumeImport"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "resumeImport", ...args])
+	}
 }

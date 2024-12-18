@@ -2,7 +2,7 @@ import { ImporterApi, LocalImportState as LocalImportState, TutaCredentials } fr
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
-import { GENERATED_MIN_ID } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, GENERATED_MIN_ID, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { MailImportFacade } from "../../native/common/generatedipc/MailImportFacade.js"
 
@@ -66,7 +66,30 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	}
 
 	async getResumableImportStateId(): Promise<IdTuple> {
-		let id = await ImporterApi.getResumableImportStateId(this.configDirectory)
+		const resumableImportStateIdPromise = ImporterApi.getResumableImportStateId(this.configDirectory)
+		let id = await resumableImportStateIdPromise
 		return [id.listId, id.elementId]
+	}
+
+	async resumeImport(apiUrl: string, unencTutaCredentials: UnencryptedCredentials, importStateId: IdTuple): Promise<void> {
+		let importMailStateId = {
+			listId: listIdPart(importStateId),
+			elementId: elementIdPart(importStateId),
+		}
+
+		const tutaCredentials: TutaCredentials = {
+			accessToken: unencTutaCredentials?.accessToken,
+			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
+			encryptedPassphraseKey: unencTutaCredentials.encryptedPassphraseKey ? Array.from(unencTutaCredentials.encryptedPassphraseKey) : [],
+			login: unencTutaCredentials.credentialInfo.login,
+			userId: unencTutaCredentials.credentialInfo.userId,
+			apiUrl: apiUrl,
+			clientVersion: env.versionNumber,
+		}
+
+		const fileImporter = await ImporterApi.resumeFileImport(tutaCredentials, importMailStateId, this.configDirectory)
+		await fileImporter.startImport((localState: LocalImportState) => {
+			return DesktopMailImportFacade.importStateCallback(this.win.mailImportFacade, this.stoppedImportQueues, localState)
+		})
 	}
 }

@@ -282,7 +282,9 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 				const continueMailImportIconButtonAttrs: IconButtonAttrs = {
 					title: "continueMailImport_action",
 					icon: Icons.Play,
-					click: () => {},
+					click: () => {
+						this.mailImporter.resumeImport()
+					},
 					size: ButtonSize.Normal,
 				}
 				buttonControls.push(m(IconButton, continueMailImportIconButtonAttrs))

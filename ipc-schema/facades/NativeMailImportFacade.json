@@ -39,6 +39,21 @@
 			"doc": "@returns the mail import state id of the import that might be resumed",
 			"arg": [],
 			"ret": "IdTuple"
+		},
+		"resumeImport": {
+			"doc": "resumes the import for a previously paused import",
+			"arg": [
+				{
+					"apiUrl": "string"
+				},
+				{
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				},
+				{
+					"importStateId": "IdTuple"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

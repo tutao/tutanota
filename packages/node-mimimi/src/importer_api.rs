@@ -176,10 +176,10 @@ impl ImporterApi {
 	}
 
 	#[napi]
-	pub fn get_resumable_import_state_id(
+	pub async fn get_resumable_import_state_id(
 		config_directory: String,
 	) -> napi::Result<ImportMailStateId> {
-		Importer::get_resumable_import_state_id(config_directory).map_err(Into::into)
+		Importer::get_resumable_import_state_id(config_directory).await.map_err(Into::into)
 	}
 	
 	#[napi]
@@ -261,7 +261,7 @@ impl From<ImportError> for napi::Error {
 			ImportError::SdkError { .. } => "SdkError".to_string(),
 			ImportError::NoImportFeature => "NoImportFeature".to_string(),
 			ImportError::EmptyBlobServerList
-			| ImportError::NoElementIdForState
+			| ImportError::NoElementIdForState => "NoElementIdForState".to_string(),
 			| ImportError::InconsistentStateId => "Malformed server response".to_string(),
 			ImportError::NoNativeRestClient(_)
 			| ImportError::IterationError(_)

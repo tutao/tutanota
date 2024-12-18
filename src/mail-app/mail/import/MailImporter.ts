@@ -9,7 +9,7 @@ import { MailImportFacade } from "../../../common/native/common/generatedipc/Mai
 import { ImportStatus } from "../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
 import Id from "../../translations/id.js"
-import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
@@ -28,7 +28,7 @@ export class MailImporter implements MailImportFacade {
 	private importMailStates: Map<Id, ImportMailState> = new Map()
 	public waitingForFirstEvent: boolean = false
 	public startedCancellation: boolean = false
-	public importMailStateId: IdTuple | null = null
+	private importMailStateId: IdTuple | null = null
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -46,8 +46,15 @@ export class MailImporter implements MailImportFacade {
 
 	async initImportMailStates(): Promise<void> {
 		if (this.nativeMailImportFacade) {
-			let resumableId = await this.nativeMailImportFacade.getResumableImportStateId()
-			this.importMailStateId = resumableId
+			try {
+				this.importMailStateId = await this.nativeMailImportFacade.getResumableImportStateId()
+			} catch (e) {
+				if (e instanceof Error && e.message === "NoElementIdForState") {
+					console.log("nothing to resume")
+				} else {
+					throw e
+				}
+			}
 			let mailboxDetail = first(await this.mailboxModel.getMailboxDetails())
 			if (mailboxDetail) {
 				const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
@@ -69,7 +76,7 @@ export class MailImporter implements MailImportFacade {
 
 	getRunningImportMailState(): ImportMailState | null {
 		for (let importMailState of this.importMailStates.values()) {
-			if (importMailState.status == ImportStatus.Running) {
+			if (importMailState.status == ImportStatus.Running || isSameId(importMailState._id, this.importMailStateId)) {
 				return importMailState
 			}
 		}
@@ -114,6 +121,22 @@ export class MailImporter implements MailImportFacade {
 	async stopImport(importMailStateElementId: Id) {
 		if (this.nativeMailImportFacade) {
 			await this.nativeMailImportFacade.stopImport(importMailStateElementId)
+		}
+	}
+
+	/**
+	 * Stop a currently ongoing import, identified by the corresponding importMailStateElementId.
+	 */
+	async resumeImport() {
+		const id = this.importMailStateId
+		if (id) {
+			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+			const userId = this.loginController.getUserController().userId
+			const unencryptedCredentials = await this.credentialsProvider!.getDecryptedCredentialsByUserId(userId)
+			if (unencryptedCredentials && this.nativeMailImportFacade) {
+				console.log("resuming mail import...")
+				await this.nativeMailImportFacade.resumeImport(apiUrl, unencryptedCredentials, id)
+			}
 		}
 	}
 
