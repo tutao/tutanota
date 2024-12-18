@@ -30,6 +30,11 @@ export class ProgressMonitor implements IProgressMonitor {
 		this.updater(this.percentage())
 	}
 
+	totalWorkDone(totalAmount: number) {
+		this.workCompleted = totalAmount
+		this.updater(this.percentage())
+	}
+
 	percentage(): number {
 		const result = (100 * this.workCompleted) / this.totalWork
 		return Math.min(100, result)

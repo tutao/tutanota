@@ -5,7 +5,9 @@
  */
 export interface LocalImportMailState {
 	readonly importMailStateElementId: string
+	readonly status: number
+	readonly start_timestamp: number
+	readonly totalMails: number
 	readonly successfulMails: number
 	readonly failedMails: number
-	readonly status: number
 }

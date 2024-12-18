@@ -5,7 +5,7 @@ use crate::importer::file_reader::FileImport;
 use crate::importer::ImportError::SdkError;
 use log::{logger, Log};
 use napi::bindgen_prelude::Promise;
-use napi::threadsafe_function::ThreadsafeFunction;
+use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::Env;
 use napi_derive::napi;
 use std::fs;
@@ -90,6 +90,11 @@ impl ImporterApi {
 		&mut self,
 		callback_handle: StateCallback,
 	) -> napi::Result<()> {
+		callback_handle.call(
+			LocalImportState::new(),
+			ThreadsafeFunctionCallMode::Blocking,
+		);
+
 		let callback_handle_provider = |local_state: LocalImportState| async {
 			let res = callback_handle
 				.call_async::<Promise<StateCallbackResponse>>(local_state)
@@ -141,9 +146,7 @@ impl ImporterApi {
 	}
 
 	#[napi]
-	pub fn get_resumable_import_state_id(
-		config_directory: String,
-	) -> napi::Result<String> {
+	pub fn get_resumable_import_state_id(config_directory: String) -> napi::Result<String> {
 		let state_file_path: PathBuf = [config_directory.clone(), "import_mail_state".to_string()]
 			.iter()
 			.collect();
@@ -153,13 +156,11 @@ impl ImporterApi {
 				if (id_vec.len() == 2) {
 					let id: IdTupleGenerated = id_tuple.try_into().unwrap();
 					Ok(id.to_string())
-				} else {	
+				} else {
 					Err(ImportError::NoElementIdForState.into())
 				}
-			}
-			Err(_) => {
-				Err(ImportError::NoElementIdForState.into())
-			}
+			},
+			Err(_) => Err(ImportError::NoElementIdForState.into()),
 		}
 	}
 	#[napi]
@@ -170,42 +171,44 @@ impl ImporterApi {
 	) -> napi::Result<ImporterApi> {
 		let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
 		// let import_state_id = IdTupleGenerated::try_from(import_mail_state_id)
-		let import_mail_state_id = &IdTupleGenerated::new(import_mail_state_id_tuple.0.into(), import_mail_state_id_tuple.1.into());
-		let import_state =
-					Importer::load_import_state(&logged_in_sdk, import_mail_state_id)
-						.await
-						.map_err(|e| ImportError::sdk("load_import_state", e))?;
+		let import_mail_state_id = &IdTupleGenerated::new(
+			import_mail_state_id_tuple.0.into(),
+			import_mail_state_id_tuple.1.into(),
+		);
+		let import_state = Importer::load_import_state(&logged_in_sdk, import_mail_state_id)
+			.await
+			.map_err(|e| ImportError::sdk("load_import_state", e))?;
 
-				let target_mailset = import_state.targetFolder;
-				let target_owner_group = import_state
-					._ownerGroup
-					.expect("import state should have ownerGroup");
+		let target_mailset = import_state.targetFolder;
+		let target_owner_group = import_state
+			._ownerGroup
+			.expect("import state should have ownerGroup");
 
-				let import_directory: PathBuf =
-					[config_directory, "current_import".into()].iter().collect();
+		let import_directory: PathBuf =
+			[config_directory, "current_import".into()].iter().collect();
 
-				let dir_entries = fs::read_dir(&import_directory)?;
-				let mut source_paths: Vec<PathBuf> = vec![];
-				for dir_entry in dir_entries {
-					match dir_entry {
-						Ok(dir_entry) => {
-							source_paths.push(dir_entry.path());
-						},
-						Err(err) => {
-							Err(ImportError::IOError(err))?;
-						},
-					}
-				}
+		let dir_entries = fs::read_dir(&import_directory)?;
+		let mut source_paths: Vec<PathBuf> = vec![];
+		for dir_entry in dir_entries {
+			match dir_entry {
+				Ok(dir_entry) => {
+					source_paths.push(dir_entry.path());
+				},
+				Err(err) => {
+					Err(ImportError::IOError(err))?;
+				},
+			}
+		}
 
-				Self::create_file_importer_inner(
-					logged_in_sdk,
-					target_owner_group.as_str().to_string(),
-					target_mailset,
-					source_paths,
-					import_state._id,
-					import_directory,
-				)
-				.await
+		Self::create_file_importer_inner(
+			logged_in_sdk,
+			target_owner_group.as_str().to_string(),
+			target_mailset,
+			source_paths,
+			import_state._id,
+			import_directory,
+		)
+		.await
 	}
 
 	#[napi]

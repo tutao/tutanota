@@ -1854,3 +1854,4 @@ export type TranslationKeyType =
 	| "pauseMailImport_action"
 	| "cancelMailImport_action"
 	| "mailImportStatusStarting_label"
+	| "mailImportHistory_label"

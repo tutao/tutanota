@@ -1851,7 +1851,7 @@ export default {
 		"accountWillBeDeactivatedIn6Month_label": "Your account will be deleted if you don't login for 6 months",
 		"accountWillHaveLessStorage_label": "Your account will only have 1GB of storage",
 		"mailImportSettings_label": "Email import",
-		"mailImportTargetFolder_label": "Target folder",
+		"mailImportTargetFolder_label": "Import into folder",
 		"mailImportStatusFinished_label": "Finished",
 		"mailImportStatusCanceled_label": "Canceled",
 		"mailImportStatusCancelling_label": "Cancelling",
@@ -1863,6 +1863,7 @@ export default {
 		"selectMailImportTargetFolder_action": "Select target folder",
 		"continueMailImport_action": "Continue mail import",
 		"pauseMailImport_action": "Pause mail import",
-		"cancelMailImport_action": "Cancel mail import"
+		"cancelMailImport_action": "Cancel mail import",
+		"mailImportHistory_label": "Import history"
 	}
 }
