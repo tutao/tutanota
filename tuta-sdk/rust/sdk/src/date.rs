@@ -4,6 +4,7 @@ pub(crate) mod date_provider;
 #[cfg(not(test))]
 pub(crate) mod date_provider;
 mod date_time;
+mod event_recurrence;
 
 pub use date_provider::DateProvider;
 pub use date_time::DateTime;
