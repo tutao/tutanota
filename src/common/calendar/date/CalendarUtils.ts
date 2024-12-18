@@ -1210,8 +1210,17 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 		const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
 		const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
 		const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, frequency)
-		const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
-		const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
+
+		// RFC explicit says to not apply when freq != Annually
+		const weekNoAppliedEvents =
+			frequency === RepeatPeriod.ANNUALLY
+				? applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+				: monthAppliedEvents
+		const yearDayAppliedEvents =
+			frequency === RepeatPeriod.ANNUALLY
+				? applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
+				: weekNoAppliedEvents
+
 		const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
 
 		const events = finishByRules(
