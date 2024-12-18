@@ -43,6 +43,7 @@ http-body-util = { version = "0.1.2", optional = true }
 hyper-rustls = { version = "0.27.3", features = ["ring", "http2"], optional = true }
 rustls = { version = "*", optional = true }
 form_urlencoded = "1"
+time = { version = "0.3.37", features = ["serde", "macros"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_log = "0.1.3"
