@@ -9,7 +9,7 @@ import { MailImportFacade } from "../../../common/native/common/generatedipc/Mai
 import { ImportStatus } from "../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
 import Id from "../../translations/id.js"
-import { elementIdPart, GENERATED_MAX_ID } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
@@ -46,22 +46,9 @@ export class MailImporter implements MailImportFacade {
 	async initImportMailStates(): Promise<void> {
 		let mailboxDetail = first(await this.mailboxModel.getMailboxDetails())
 		if (mailboxDetail) {
-			const importMailStatesCollection = await this.entityClient.loadRange(
-				ImportMailStateTypeRef,
-				mailboxDetail.mailbox.mailImportStates,
-				GENERATED_MAX_ID,
-				10,
-				true,
-			)
+			const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
 			for (const importMailState of importMailStatesCollection) {
-				let importMailStateElementId = elementIdPart(importMailState._id)
-				if (this.importMailStates.has(importMailStateElementId)) {
-					if (this.importMailStates.get(importMailStateElementId)?.status != ImportStatus.Running) {
-						this.updateImportMailState(importMailStateElementId, importMailState)
-					}
-				} else {
-					this.updateImportMailState(importMailStateElementId, importMailState)
-				}
+				this.updateImportMailState(elementIdPart(importMailState._id), importMailState)
 			}
 		}
 		m.redraw()
@@ -131,7 +118,7 @@ export class MailImporter implements MailImportFacade {
 	 * @param localImportMailState
 	 */
 	async onNewLocalImportMailState(localImportMailState: LocalImportMailState): Promise<void> {
-		const currentState = this.importMailStates.get(localImportMailState.importMailStateElementId)
+		let currentState = this.importMailStates.get(localImportMailState.importMailStateElementId) ?? null
 		if (currentState && currentState.status == ImportStatus.Running) {
 			currentState.status = localImportMailState.status.toString()
 			currentState.successfulMails = localImportMailState.successfulMails.toString()
