@@ -92,7 +92,7 @@ export class EntropyCollector {
 	}
 
 	private addPerformanceTimingValues() {
-		if (!this.window.performance) return
+		if (!this.window.performance?.getEntries) return
 		const entries = this.window.performance.getEntries()
 		let added: number[] = []
 		for (const entry of entries.map((e) => e.toJSON())) {

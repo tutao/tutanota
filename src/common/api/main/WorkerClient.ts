@@ -62,13 +62,16 @@ export class WorkerClient {
 			const WorkerImpl = globalThis.testWorker
 			const workerImpl = new WorkerImpl(this, true)
 			await workerImpl.init(client.browserData())
-			workerImpl._queue._transport = {
+			workerImpl._dispatcher.transport = {
 				postMessage: (msg: any) => this._dispatcher.handleMessage(msg),
 			}
 			this._dispatcher = new MessageDispatcher(
 				{
 					postMessage: function (msg: any) {
 						workerImpl._queue.handleMessage(msg)
+					},
+					setMessageHandler(handler: (message: any) => unknown): void {
+						return
 					},
 				} as Transport<WorkerRequestType, MainRequestType>,
 				this.queueCommands(locator),

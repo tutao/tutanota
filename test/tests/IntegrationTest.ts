@@ -15,6 +15,7 @@ import { neverNull } from "@tutao/tutanota-utils"
 import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
 import { SessionType } from "../../src/common/api/common/SessionType.js"
+import { object } from "testdouble"
 
 function loadFolders(folderListId: Id): Promise<MailFolder[]> {
 	return locator.cachingEntityClient.loadAll(MailFolderTypeRef, folderListId)
@@ -35,7 +36,7 @@ o.spec("integration test", function () {
 	o("login, read mails, update contact", async function () {
 		env.staticUrl = "http://localhost:9000"
 		env.versionNumber
-		initLocator(null as any, browserDataStub)
+		initLocator(object(), browserDataStub)
 		o.timeout(20000)
 		await locator.login.createSession("map-free@tutanota.de", "map", "Linux node", SessionType.Temporary, null)
 		const folders = await loadMailboxSystemFolders()

@@ -838,8 +838,9 @@ class MailLocator {
 			}
 		}
 		if (this.webAuthn == null) {
+			const credentials: CredentialsContainer = isTest() ? ({} as CredentialsContainer) : navigator.credentials
 			this.webAuthn = new WebauthnClient(
-				new BrowserWebauthn(navigator.credentials, this.domainConfigProvider().getCurrentDomainConfig()),
+				new BrowserWebauthn(credentials, this.domainConfigProvider().getCurrentDomainConfig()),
 				this.domainConfigProvider(),
 				isApp(),
 			)
