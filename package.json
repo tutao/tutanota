@@ -90,7 +90,7 @@
 		"eslint": "8.57.0",
 		"eslint-config-prettier": "9.1.0",
 		"eslint-plugin-unicorn": "55.0.0",
-		"express": "4.21.0",
+		"express": "4.21.2",
 		"fs-extra": "11.2.0",
 		"full-icu": "1.5.0",
 		"js-yaml": "4.1.0",
