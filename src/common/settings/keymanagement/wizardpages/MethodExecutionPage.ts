@@ -144,7 +144,16 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 		const video = m("video[autoplay][muted][playsinline]", {
 			oncreate: async (videoNode) => {
 				this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
-				await this.runQrScanner(attrs)
+				try {
+					await this.runQrScanner(attrs)
+				} catch (e) {
+					if (e instanceof DOMException && e.name === "AbortError") {
+						// Operation cancelled by user. Nothing we can really do about it.
+						this.cleanupVideo()
+					} else {
+						throw e
+					}
+				}
 			},
 			style: { display: "block", "max-width": "100%" },
 		})
