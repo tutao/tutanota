@@ -20,7 +20,7 @@ import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { Button, ButtonType } from "../../common/gui/base/Button.js"
 import { DropDownSelector, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
-import { ProgressBar } from "../../common/gui/base/ProgressBar.js"
+import { ProgressBar, ProgressType } from "../../common/gui/base/ProgressBar.js"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js"
 import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.js"
 import { LocalImportMailState } from "../../common/native/common/generatedipc/LocalImportMailState.js"
@@ -160,13 +160,13 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 
 	private renderImportMailStatus(activeImport: LocalImportMailState) {
 		const successfulMailsCountLabel = m(
-			".p",
+			".flex-start.p",
 			lang.get("mailImportStateSuccessfulMails_label", {
 				"{successfulMails}": activeImport.successfulMails,
 			}),
 		)
 		const failedMailsCountLabel = m(
-			".p",
+			".flex-start.p",
 			lang.get("mailImportStateFailedMails_label", {
 				"{failedMails}": activeImport.failedMails,
 			}),
@@ -210,13 +210,13 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 		}
 
 		return [
-			m(".flex-start.row", [m(".h5", getReadableImportMailStatus(importStatus)), statusLabels]),
-			[m(".flex-start.rel.full-width", this.renderMailImportProgressBar()), m(".flex-end", [buttonControls])],
+			m(".mt-s", [m(".flex-start.h5", getReadableImportMailStatus(importStatus)), statusLabels]),
+			[m(".flex-space-between.rel.nav-bg.full-width", this.renderMailImportProgressBar(), ...buttonControls)],
 		]
 	}
 
 	private renderMailImportProgressBar() {
-		return m(".rel.header-bg.full-width", m(ProgressBar, { progress: this.mailImporter.getProgress() }))
+		return m(".mt-s.rel.full-width", m(ProgressBar, { progress: this.mailImporter.getProgress(), type: ProgressType.Large }))
 	}
 
 	private renderMailImportHistory() {

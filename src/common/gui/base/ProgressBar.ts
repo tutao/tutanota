@@ -1,7 +1,13 @@
 import m, { Component, Vnode } from "mithril"
 
+export enum ProgressType {
+	Small,
+	Large,
+}
+
 export type ProgressBarAttrs = {
 	progress: number
+	type?: ProgressType
 }
 
 export const PROGRESS_DONE = 1
@@ -50,7 +56,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 				left: 0,
 				transition: "width 500ms",
 				width: a.progress * 100 + "%",
-				height: "2px",
+				height: a.type == ProgressType.Large ? "100%" : "2px",
 			},
 		})
 	}

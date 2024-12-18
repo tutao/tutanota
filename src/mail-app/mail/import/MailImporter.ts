@@ -8,12 +8,13 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { MailImportFacade } from "../../../common/native/common/generatedipc/MailImportFacade.js"
 import m from "mithril"
 import Id from "../../translations/id.js"
-import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LocalImportMailState } from "../../../common/native/common/generatedipc/LocalImportMailState.js"
 import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
+import { PROGRESS_DONE } from "../../../common/gui/base/ProgressBar.js"
 
 export class MailImporter implements MailImportFacade {
 	public nativeMailImportFacade: NativeMailImportFacade | null = null
@@ -29,8 +30,9 @@ export class MailImporter implements MailImportFacade {
 
 	private progressMonitor: ProgressMonitor | null = null
 	private activeImport: LocalImportMailState | null = null
-	private progress: number = 0
+	private progress: number = PROGRESS_DONE
 	private importMailStateId: IdTuple | null = null
+	private progressEstimation: TimeoutID
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -97,9 +99,34 @@ export class MailImporter implements MailImportFacade {
 		const userId = this.loginController.getUserController().userId
 		const unencryptedCredentials = await this.credentialsProvider!.getDecryptedCredentialsByUserId(userId)
 		if (unencryptedCredentials && this.nativeMailImportFacade) {
-			console.log("starting mail import...")
-			await this.nativeMailImportFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+			this.startProgressEstimation()
+			this.nativeMailImportFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
 		}
+		m.redraw()
+	}
+
+	private startProgressEstimation() {
+		let estimatedMails = 1000
+		this.progressMonitor = new ProgressMonitor(estimatedMails, (newProgress) => {
+			this.progress = newProgress / 100
+			m.redraw()
+		})
+		this.progressEstimation = setInterval(() => {
+			let now = Date.now()
+			let completedMails = this.progressMonitor?.workCompleted
+			if (completedMails) {
+				let durationSinceStartSeconds = (now - (this.activeImport?.start_timestamp ?? 1000)) / 1000
+				let completedMailsEstimation = Math.min(completedMails * (1 / durationSinceStartSeconds), 5)
+				this.progressMonitor?.workDone(completedMailsEstimation)
+			} else {
+				this.progressMonitor?.workDone(5)
+			}
+			m.redraw()
+		}, 500)
+	}
+
+	private stopProgressEstimation() {
+		clearInterval(this.progressEstimation)
 	}
 
 	/**
@@ -138,7 +165,10 @@ export class MailImporter implements MailImportFacade {
 				this.progress = newProgress / 100
 				m.redraw()
 			})
-		} else if (localImportMailState.status == ImportStatus.Running || localImportMailState.status == ImportStatus.Finishing) {
+		} else if (localImportMailState.status == ImportStatus.Running) {
+			this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
+		} else if (localImportMailState.status == ImportStatus.Finishing) {
+			this.stopProgressEstimation()
 			this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
 		}
 
