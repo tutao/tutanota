@@ -12,6 +12,7 @@ use std::fs;
 use std::future::Future;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::aes::Iv;
@@ -99,14 +100,19 @@ pub enum ImportParams {
 #[repr(u8)]
 pub enum ImportStatus {
 	#[default]
-	Running = 0,
-	Canceled = 1,
-	Finished = 2,
+	Starting = 0,
+	Running = 1,
+	Paused = 2,
+	Canceling = 3,
+	Canceled = 4,
+	Finishing = 5,
+	Finished = 6,
 }
 
 /// when state callback function is called after every chunk of import,
 /// javascript handle is expected to respond with this struct
 #[cfg_attr(feature = "javascript", napi_derive::napi(object))]
+#[derive(Debug)]
 pub struct StateCallbackResponse {
 	pub should_stop: bool,
 }
@@ -115,10 +121,11 @@ pub struct StateCallbackResponse {
 #[derive(Clone)]
 pub struct LocalImportState {
 	pub remote_state_id: String,
-
-	pub failed_count: i64,
-	pub success_count: i64,
 	pub current_status: ImportStatus,
+	pub start_timestamp: i64,
+	pub total_count: i64,
+	pub success_count: i64,
+	pub failed_count: i64,
 }
 
 pub struct ImportEssential {
@@ -487,6 +494,7 @@ impl Importer {
 		import_directory: PathBuf,
 	) -> Self {
 		let randomizer_facade = RandomizerFacade::from_core(rand::rngs::OsRng);
+
 		Self {
 			source: import_source,
 			essentials: ImportEssential {
@@ -497,12 +505,7 @@ impl Importer {
 				randomizer_facade,
 				remote_state_list_id: GeneratedId::min_id(),
 			},
-			state: LocalImportState {
-				remote_state_id: GeneratedId::min_id().0,
-				failed_count: 0,
-				success_count: 0,
-				current_status: Default::default(),
-			},
+			state: LocalImportState::new(),
 			import_directory,
 		}
 	}
@@ -523,7 +526,7 @@ impl Importer {
 			local_state.remote_state_id = state_id.element_id.0;
 			let mut state_id_file = import_directory.clone();
 			state_id_file.push("import_mail_state");
-			fs::write(state_id_file, generated.to_string());
+			fs::write(state_id_file, generated.to_string()).unwrap();
 			return Ok(());
 		}
 
@@ -537,12 +540,11 @@ impl Importer {
 		Ok(())
 	}
 
-	pub async fn load_current_import_state(&self) -> Result<ImportMailState, ApiCallError> {
-		let remote_state_id = IdTupleGenerated::new(
+	pub fn get_remote_state_id(&self) -> IdTupleGenerated {
+		IdTupleGenerated::new(
 			self.essentials.remote_state_list_id.clone(),
 			GeneratedId(self.state.remote_state_id.clone()),
-		);
-		Self::load_import_state(&self.essentials.logged_in_sdk, &remote_state_id).await
+		)
 	}
 
 	pub async fn load_import_state(
@@ -557,26 +559,31 @@ impl Importer {
 	}
 	async fn mark_remote_final_state(
 		&mut self,
-		final_state: ImportStatus,
+		final_status: ImportStatus,
 	) -> Result<(), ImportError> {
 		assert!(
-			final_state == ImportStatus::Finished || final_state == ImportStatus::Canceled,
+			final_status == ImportStatus::Finished || final_status == ImportStatus::Canceled,
 			"only cancel and finished should be final state"
 		);
 
-		let mut import_state = self
-			.load_current_import_state()
+		// we reached final state before making first call, was either empty mails or was cancelled before making first post call
+		if self.state.remote_state_id != GeneratedId::min_id().as_str() {
+			let mut import_state = Self::load_import_state(
+				&self.essentials.logged_in_sdk,
+				&self.get_remote_state_id(),
+			)
 			.await
 			.map_err(|e| ImportError::sdk("loading importState before Finished", e))?;
-		import_state.status = final_state as i64;
+			import_state.status = final_status as i64;
 
-		self.essentials
-			.logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.update_instance(import_state)
-			.await
-			.map_err(|e| ImportError::sdk("update remote import state", e))?;
+			self.essentials
+				.logged_in_sdk
+				.mail_facade()
+				.get_crypto_entity_client()
+				.update_instance(import_state)
+				.await
+				.map_err(|e| ImportError::sdk("update remote import state", e))?;
+		}
 
 		Ok(())
 	}
@@ -604,7 +611,7 @@ impl Importer {
 		match chunked_mails_provider.next() {
 			// everything have been finished
 			None => {
-				self.state.change_status(ImportStatus::Finished);
+				self.state.change_status(ImportStatus::Finishing);
 				Ok(())
 			},
 
@@ -679,14 +686,14 @@ impl Importer {
 		CallbackHandle: Future<Output = Result<StateCallbackResponse, Err>>,
 		Err: From<ImportError>,
 	{
+		self.state.change_status(ImportStatus::Running);
 		loop {
 			self.import_next_chunk().await?;
 
-			if self.state.current_status == ImportStatus::Finished {
+			if self.state.current_status == ImportStatus::Finishing {
 				self.mark_remote_final_state(ImportStatus::Finished).await?;
 				break;
 			}
-
 			let callback_response = callback_handle(self.state.clone()).await?;
 			if callback_response.should_stop {
 				self.mark_remote_final_state(ImportStatus::Canceled).await?;
@@ -733,6 +740,24 @@ impl Importer {
 impl ImportError {
 	pub fn sdk(action: &'static str, error: ApiCallError) -> Self {
 		Self::SdkError { action, error }
+	}
+}
+
+impl LocalImportState {
+	pub fn new() -> Self {
+		Self {
+			remote_state_id: GeneratedId::min_id().0,
+			current_status: Default::default(),
+			start_timestamp: SystemTime::now()
+				.duration_since(UNIX_EPOCH)
+				.unwrap_or_default()
+				.as_millis()
+				.try_into()
+				.unwrap_or_default(),
+			total_count: 10_000,
+			success_count: 0,
+			failed_count: 0,
+		}
 	}
 }
 
@@ -892,7 +917,12 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email_second.as_str());
 
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.load_current_import_state().await.unwrap();
+		let remote_state = Importer::load_import_state(
+			&importer.essentials.logged_in_sdk,
+			&importer.get_remote_state_id(),
+		)
+		.await
+		.unwrap();
 		assert_same_remote_and_local_state(&remote_state, &importer);
 
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -908,7 +938,12 @@ mod tests {
 		greenmail.store_mail("sug@example.org", email.as_str());
 
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.load_current_import_state().await.unwrap();
+		let remote_state = Importer::load_import_state(
+			&importer.essentials.logged_in_sdk,
+			&importer.get_remote_state_id(),
+		)
+		.await
+		.unwrap();
 
 		assert_same_remote_and_local_state(&remote_state, &importer);
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -920,7 +955,12 @@ mod tests {
 	async fn can_import_single_eml_file_without_attachment() {
 		let mut importer = init_file_importer(vec!["sample.eml"]).await;
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.load_current_import_state().await.unwrap();
+		let remote_state = Importer::load_import_state(
+			&importer.essentials.logged_in_sdk,
+			&importer.get_remote_state_id(),
+		)
+		.await
+		.unwrap();
 
 		assert_same_remote_and_local_state(&remote_state, &importer);
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -932,7 +972,12 @@ mod tests {
 	async fn can_import_single_eml_file_with_attachment() {
 		let mut importer = init_file_importer(vec!["attachment_sample.eml"]).await;
 		import_all_of_source(&mut importer).await.unwrap();
-		let remote_state = importer.load_current_import_state().await.unwrap();
+		let remote_state = Importer::load_import_state(
+			&importer.essentials.logged_in_sdk,
+			&importer.get_remote_state_id(),
+		)
+		.await
+		.unwrap();
 
 		assert_same_remote_and_local_state(&remote_state, &importer);
 		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
@@ -944,13 +989,19 @@ mod tests {
 	async fn should_stop_if_true_response() {
 		let mut importer = init_file_importer(vec!["sample.eml"; 3]).await;
 
-		let callback_resolver =
-			|_| async { Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: true }) };
+		let callback_resolver = |_| async {
+			Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: false })
+		};
 		importer
 			.start_stateful_import(callback_resolver)
 			.await
 			.unwrap();
-		let remote_state = importer.load_current_import_state().await.unwrap();
+		let remote_state = Importer::load_import_state(
+			&importer.essentials.logged_in_sdk,
+			&importer.get_remote_state_id(),
+		)
+		.await
+		.unwrap();
 
 		assert_eq!(remote_state.status, ImportStatus::Canceled as i64);
 		assert_eq!(remote_state.failedMails, 0);

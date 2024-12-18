@@ -3,7 +3,7 @@ use crate::importer::file_reader::FileImport;
 use crate::importer::ImportError::SdkError;
 use log::{logger, Log};
 use napi::bindgen_prelude::Promise;
-use napi::threadsafe_function::ThreadsafeFunction;
+use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::Env;
 use napi_derive::napi;
 use std::fs;
@@ -125,6 +125,11 @@ impl ImporterApi {
 		&mut self,
 		callback_handle: StateCallback,
 	) -> napi::Result<()> {
+		callback_handle.call(
+			LocalImportState::new(),
+			ThreadsafeFunctionCallMode::Blocking,
+		);
+
 		let callback_handle_provider = |local_state: LocalImportState| async {
 			let res = callback_handle
 				.call_async::<Promise<StateCallbackResponse>>(local_state)
@@ -181,7 +186,7 @@ impl ImporterApi {
 	) -> napi::Result<ImportMailStateId> {
 		Importer::get_resumable_import_state_id(config_directory).await.map_err(Into::into)
 	}
-	
+
 	#[napi]
 	pub async fn resume_file_import(
 		tuta_credentials: TutaCredentials,
@@ -291,6 +296,6 @@ mod tests {
 		let after_conversion = id_tuple.to_string().try_into();
 		assert_eq!(Ok(id_tuple), after_conversion)
 	}
-	
+
 
 }

@@ -6,7 +6,6 @@ import { CredentialsProvider } from "../../../common/misc/credentials/Credential
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { MailImportFacade } from "../../../common/native/common/generatedipc/MailImportFacade.js"
-import { ImportStatus } from "../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
 import Id from "../../translations/id.js"
 import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
@@ -14,6 +13,7 @@ import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LocalImportMailState } from "../../../common/native/common/generatedipc/LocalImportMailState.js"
+import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 
 export class MailImporter implements MailImportFacade {
 	public nativeMailImportFacade: NativeMailImportFacade | null = null
@@ -25,9 +25,11 @@ export class MailImporter implements MailImportFacade {
 	public mailModel: MailModel
 	private entityClient: EntityClient
 
-	private importMailStates: Map<Id, ImportMailState> = new Map()
-	public waitingForFirstEvent: boolean = false
-	public startedCancellation: boolean = false
+	private finalisedImportStates: Map<Id, ImportMailState> = new Map()
+
+	private progressMonitor: ProgressMonitor | null = null
+	private activeImport: LocalImportMailState | null = null
+	private progress: number = 0
 	private importMailStateId: IdTuple | null = null
 
 	constructor(
@@ -59,41 +61,26 @@ export class MailImporter implements MailImportFacade {
 			if (mailboxDetail) {
 				const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
 				for (const importMailState of importMailStatesCollection) {
-					this.updateImportMailState(elementIdPart(importMailState._id), importMailState)
+					let importMailStateElementId = elementIdPart(importMailState._id)
+					if (this.finalisedImportStates.has(importMailStateElementId)) {
+						if (this.finalisedImportStates.get(importMailStateElementId)?.status != ImportStatus.Running.toString()) {
+							this.updateFinalisedImport(importMailStateElementId, importMailState)
+						}
+					} else {
+						this.updateFinalisedImport(importMailStateElementId, importMailState)
+					}
 				}
 			}
+			m.redraw()
 		}
-		m.redraw()
 	}
 
-	getAllImportMailStates(): Array<ImportMailState> {
-		return Array.from(this.importMailStates.values())
+	getFinalisedImports(): Array<ImportMailState> {
+		return Array.from(this.finalisedImportStates.values())
 	}
 
-	getNonRunningImportMailStates(): Array<ImportMailState> {
-		return this.getAllImportMailStates().filter((importMailState) => importMailState.status != ImportStatus.Running)
-	}
-
-	getRunningImportMailState(): ImportMailState | null {
-		for (let importMailState of this.importMailStates.values()) {
-			if (importMailState.status == ImportStatus.Running || isSameId(importMailState._id, this.importMailStateId)) {
-				return importMailState
-			}
-		}
-		return null
-	}
-
-	updateImportMailState(importMailStateElementId: Id, importMailState: ImportMailState) {
-		this.importMailStates.set(importMailStateElementId, importMailState)
-	}
-
-	isMailImportRunning(): boolean {
-		for (let importMailState of this.importMailStates.values()) {
-			if (importMailState.status == ImportStatus.Running) {
-				return true
-			}
-		}
-		return false
+	updateFinalisedImport(importMailStateElementId: Id, importMailState: ImportMailState) {
+		this.finalisedImportStates.set(importMailStateElementId, importMailState)
 	}
 
 	/**
@@ -146,17 +133,46 @@ export class MailImporter implements MailImportFacade {
 	 * @param localImportMailState
 	 */
 	async onNewLocalImportMailState(localImportMailState: LocalImportMailState): Promise<void> {
-		let currentState = this.importMailStates.get(localImportMailState.importMailStateElementId) ?? null
-		if (currentState && currentState.status == ImportStatus.Running) {
-			currentState.status = localImportMailState.status.toString()
-			currentState.successfulMails = localImportMailState.successfulMails.toString()
-			currentState.failedMails = localImportMailState.failedMails.toString()
-			this.updateImportMailState(elementIdPart(currentState._id), currentState)
-			m.redraw()
-		} else {
-			// We have not received the create event yet or the import has already been finished/canceled.
-			// We can not show any state until we get first entity event from the server announcing the
-			// ImportMailState elementId used as key in the importMailStates map.
+		if (localImportMailState.status == ImportStatus.Starting) {
+			this.progressMonitor = new ProgressMonitor(localImportMailState.totalMails, (newProgress) => {
+				this.progress = newProgress / 100
+				m.redraw()
+			})
+		} else if (localImportMailState.status == ImportStatus.Running || localImportMailState.status == ImportStatus.Finishing) {
+			this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
+		}
+
+		this.activeImport = localImportMailState
+		m.redraw()
+	}
+
+	removeActiveImport(importId: Id) {
+		if (this.activeImport && this.activeImport.importMailStateElementId == importId) {
+			this.activeImport = null
+			this.progressMonitor?.completed()
+			this.progress = 0
 		}
 	}
+
+	getActiveImport() {
+		return this.activeImport
+	}
+
+	getProgress() {
+		return this.progress
+	}
+}
+
+export const enum ImportStatus {
+	Starting = 0,
+	Running = 1,
+	Paused = 2,
+	Canceling = 3,
+	Canceled = 4,
+	Finishing = 5,
+	Finished = 6,
+}
+
+export function isFinalisedImportStatus(importStatus: ImportStatus) {
+	return importStatus == ImportStatus.Finished || importStatus == ImportStatus.Canceled
 }

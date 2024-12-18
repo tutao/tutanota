@@ -153,13 +153,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			)
 		}
 
+		//FIXME mailImporter not available on web
+
 		mailLocator.mailboxModel.getMailboxDetails().then((mailboxes) => {
 			if (first(mailboxes)?.mailbox.currentMailBag != null) {
 				this._userFolders.push(
 					new SettingsFolder(
-						"import_action",
-						() => Icons.Download,
-						"import",
+						"mailImportSettings_label",
+						() => Icons.Import,
+						"mailImport",
 						() => {
 							return new MailImportViewer(
 								mailLocator.mailImporter,

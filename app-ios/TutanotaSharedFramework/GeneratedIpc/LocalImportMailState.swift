@@ -7,17 +7,23 @@
 public struct LocalImportMailState : Codable {
 	public init(
 		importMailStateElementId: String,
+		status: Int,
+		start_timestamp: Int,
+		totalMails: Int,
 		successfulMails: Int,
-		failedMails: Int,
-		status: Int
+		failedMails: Int
 	) {
 		self.importMailStateElementId = importMailStateElementId
+		self.status = status
+		self.start_timestamp = start_timestamp
+		self.totalMails = totalMails
 		self.successfulMails = successfulMails
 		self.failedMails = failedMails
-		self.status = status
 	}
 	public let importMailStateElementId: String
+	public let status: Int
+	public let start_timestamp: Int
+	public let totalMails: Int
 	public let successfulMails: Int
 	public let failedMails: Int
-	public let status: Int
 }
