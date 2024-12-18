@@ -37,7 +37,6 @@ export async function getInstalledModuleVersion(module, log) {
 		}
 		json = JSON.parse(stdout.toString().trim())
 	}
-
 	const version = findVersion(json, module)
 	if (version == null) {
 		throw new Error(`Could not find version of ${module}`)
@@ -45,20 +44,27 @@ export async function getInstalledModuleVersion(module, log) {
 	return version
 }
 
-// Unfortunately `npm list` is garbage and instead of just giving you the info about package it will give you some subtree with the thing you are looking for
-// buried deep beneath. So we try to find it manually by descending into each dependency.
-// This surfaces in admin client when keytar is not our direct dependency but rather through the tutanota-3
+/**
+ *  Unfortunately `npm list` is garbage and instead of just giving you the info about package it will give you some subtree with the thing you are looking for
+ * buried deep beneath. So we try to find it manually by descending into each dependency.
+ *  This surfaces in admin client when keytar is not our direct dependency but rather through the tutanota-3
+ *
+ * @param {*} dependencies a json object containing all dependencies as installed
+ * @param {*} nodeModule the name of the module we want the version for
+ * @returns {string} the version string of the dependency
+ */
 function findVersion({ dependencies }, nodeModule) {
-	if (dependencies[nodeModule]) {
-		return dependencies[nodeModule].version
-	} else {
-		for (const [name, dep] of Object.entries(dependencies)) {
-			if ("dependencies" in dep) {
-				const found = findVersion(dep, nodeModule)
-				if (found) {
-					return found
-				}
-			}
-		}
+	const candidates = Object.entries(dependencies)
+		.filter(([name, _]) => !name.startsWith("@types"))
+		.filter(([name, _]) => name.endsWith(nodeModule))
+
+	if (candidates.length > 1) {
+		throw new Error(`Could not find version of ${nodeModule} because of multiple candidates: ${JSON.stringify(candidates)}`)
 	}
+
+	if (candidates.length < 1) {
+		return null
+	}
+
+	return candidates[0][1].version
 }

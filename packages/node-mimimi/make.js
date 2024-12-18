@@ -14,13 +14,14 @@ await program
 function getTarget(platform) {
 	switch (platform) {
 		case "win":
-			return "--target=x86_64-pc-windows-msvc"
+		case "win32":
+			return ["--target=x86_64-pc-windows-msvc"]
 		case "linux":
-			return "--target=x86_64-unknown-linux-gnu"
+			return ["--target=x86_64-unknown-linux-gnu"]
 		case "darwin":
-			return "--target=x86_64-apple-darwin"
+			return ["--target=x86_64-apple-darwin", "--target=aarch64-apple-darwin"]
 		case "native":
-			return ""
+			return getTarget(process.platform)
 		default:
 			throw new Error(`unknown platform ${platform}`)
 	}
@@ -39,7 +40,10 @@ async function run(platform, { clean, release, greenmail }) {
 		cd("..")
 	}
 
-	const target = getTarget(platform)
+	const targets = getTarget(platform)
+
 	const releaseFlag = release ? "--release" : ""
-	await $`napi build dist --platform --js binding.cjs --dts binding.d.cts ${target} ${releaseFlag} --features javascript`
+	for (const target of targets) {
+		await $`napi build dist --platform --js binding.cjs  --dts binding.d.cts ${target} ${releaseFlag} --features javascript`
+	}
 }

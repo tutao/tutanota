@@ -1,8 +1,8 @@
-import { getNativeLibModulePath } from "./nativeLibraryProvider.js"
 import fs from "fs-extra"
 import path from "node:path"
 import { dependencyMap } from "./RollupConfig.js"
 import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
+import { getNativeLibModulePaths } from "./nativeLibraryProvider.js"
 
 /**
  * Little plugin that obtains compiled better-sqlite3, copies it to dstPath and sets the path to nativeBindingPath.
@@ -21,7 +21,7 @@ export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, pl
 			options.define["buildOptions.sqliteNativePath"] = `"${nativeLibPath}"`
 
 			build.onStart(async () => {
-				const modulePath = await getNativeLibModulePath({
+				const modulePaths = await getNativeLibModulePaths({
 					nodeModule: "better-sqlite3",
 					environment,
 					rootDir: process.cwd(),
@@ -31,7 +31,7 @@ export function sqliteNativePlugin({ environment, dstPath, nativeBindingPath, pl
 					copyTarget: "better_sqlite3",
 				})
 				await fs.promises.mkdir(path.dirname(dstPath), { recursive: true })
-				await fs.promises.copyFile(modulePath, dstPath)
+				await fs.promises.copyFile(modulePaths[process.arch], dstPath)
 			})
 		},
 	}
