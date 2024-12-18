@@ -7,10 +7,13 @@ interface NativeInterface {
 }
 export class NativeMailImportFacadeSendDispatcher implements NativeMailImportFacade {
 	constructor(private readonly transport: NativeInterface) {}
+	async importFromFiles(...args: Parameters<NativeMailImportFacade["importFromFiles"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "importFromFiles", ...args])
+	}
 	async stopImport(...args: Parameters<NativeMailImportFacade["stopImport"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "stopImport", ...args])
 	}
-	async importFromFiles(...args: Parameters<NativeMailImportFacade["importFromFiles"]>) {
-		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "importFromFiles", ...args])
+	async getResumableImportStateId(...args: Parameters<NativeMailImportFacade["getResumableImportStateId"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "getResumableImportStateId", ...args])
 	}
 }

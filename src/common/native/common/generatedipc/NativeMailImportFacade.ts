@@ -6,11 +6,6 @@ import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
  */
 export interface NativeMailImportFacade {
 	/**
-	 * Stop a running import.
-	 */
-	stopImport(importStateId: string): Promise<void>
-
-	/**
 	 * Import multiple mails from .eml or .mbox files.
 	 */
 	importFromFiles(
@@ -20,4 +15,14 @@ export interface NativeMailImportFacade {
 		targetFolder: ReadonlyArray<string>,
 		filePaths: ReadonlyArray<string>,
 	): Promise<void>
+
+	/**
+	 * Stop a running import.
+	 */
+	stopImport(importStateId: string): Promise<void>
+
+	/**
+	 * @returns the mail import state id of the import that might be resumed
+	 */
+	getResumableImportStateId(): Promise<IdTuple>
 }

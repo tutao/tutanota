@@ -64,4 +64,9 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	async stopImport(importMailStateElementId: Id): Promise<void> {
 		this.stoppedImportQueues.set(importMailStateElementId, true)
 	}
+
+	async getResumableImportStateId(): Promise<IdTuple> {
+		let id = await ImporterApi.getResumableImportStateId(this.configDirectory)
+		return [id.listId, id.elementId]
+	}
 }

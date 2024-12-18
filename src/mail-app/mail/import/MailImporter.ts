@@ -28,6 +28,7 @@ export class MailImporter implements MailImportFacade {
 	private importMailStates: Map<Id, ImportMailState> = new Map()
 	public waitingForFirstEvent: boolean = false
 	public startedCancellation: boolean = false
+	public importMailStateId: IdTuple | null = null
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -44,11 +45,15 @@ export class MailImporter implements MailImportFacade {
 	}
 
 	async initImportMailStates(): Promise<void> {
-		let mailboxDetail = first(await this.mailboxModel.getMailboxDetails())
-		if (mailboxDetail) {
-			const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
-			for (const importMailState of importMailStatesCollection) {
-				this.updateImportMailState(elementIdPart(importMailState._id), importMailState)
+		if (this.nativeMailImportFacade) {
+			let resumableId = await this.nativeMailImportFacade.getResumableImportStateId()
+			this.importMailStateId = resumableId
+			let mailboxDetail = first(await this.mailboxModel.getMailboxDetails())
+			if (mailboxDetail) {
+				const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
+				for (const importMailState of importMailStatesCollection) {
+					this.updateImportMailState(elementIdPart(importMailState._id), importMailState)
+				}
 			}
 		}
 		m.redraw()

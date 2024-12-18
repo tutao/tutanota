@@ -5,15 +5,6 @@
 	"receivers": ["desktop"],
 	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
 	"methods": {
-		"stopImport": {
-			"doc": "Stop a running import.",
-			"arg": [
-				{
-					"importStateId": "string"
-				}
-			],
-			"ret": "void"
-		},
 		"importFromFiles": {
 			"doc": "Import multiple mails from .eml or .mbox files.",
 			"arg": [
@@ -34,6 +25,20 @@
 				}
 			],
 			"ret": "void"
+		},
+		"stopImport": {
+			"doc": "Stop a running import.",
+			"arg": [
+				{
+					"importStateId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"getResumableImportStateId": {
+			"doc": "@returns the mail import state id of the import that might be resumed",
+			"arg": [],
+			"ret": "IdTuple"
 		}
 	}
 }

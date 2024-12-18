@@ -1246,9 +1246,9 @@ export const CLIENT_ONLY_CALENDARS: Map<Id, TranslationKey> = new Map([[CLIENT_O
 export const DEFAULT_CLIENT_ONLY_CALENDAR_COLORS: Map<Id, string> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "FF9933"]])
 
 export const enum ImportStatus {
-	Starting = "-2",
-	Cancelling = "-1",
-	Running = "0",
-	Canceled = "1",
-	Finished = "2",
+	Starting = "0",
+	Cancelling = "1",
+	Running = "2",
+	Canceled = "3",
+	Finished = "4",
 }

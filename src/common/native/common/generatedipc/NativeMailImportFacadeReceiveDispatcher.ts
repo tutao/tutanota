@@ -7,10 +7,6 @@ export class NativeMailImportFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeMailImportFacade) {}
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
-			case "stopImport": {
-				const importStateId: string = arg[0]
-				return this.facade.stopImport(importStateId)
-			}
 			case "importFromFiles": {
 				const apiUrl: string = arg[0]
 				const unencryptedTutaCredentials: UnencryptedCredentials = arg[1]
@@ -18,6 +14,13 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				const targetFolder: ReadonlyArray<string> = arg[3]
 				const filePaths: ReadonlyArray<string> = arg[4]
 				return this.facade.importFromFiles(apiUrl, unencryptedTutaCredentials, targetOwnerGroup, targetFolder, filePaths)
+			}
+			case "stopImport": {
+				const importStateId: string = arg[0]
+				return this.facade.stopImport(importStateId)
+			}
+			case "getResumableImportStateId": {
+				return this.facade.getResumableImportStateId()
 			}
 		}
 	}

@@ -201,6 +201,8 @@ function renderTypescriptType(parsed: ParsedType): RenderedType {
 			return { externals: [], name: maybeNullable("Uint8Array", nullable) }
 		case "void":
 			return { externals: [], name: maybeNullable("void", nullable) }
+		case "IdTuple":
+			return { externals: [], name: maybeNullable("IdTuple", nullable) }
 		default:
 			return { externals: [baseName], name: maybeNullable(baseName, nullable) }
 	}
