@@ -227,7 +227,6 @@ function applyByDayRules(
 	validMonths: number[],
 	wkst: WeekdayNumbers,
 	hasWeekNo?: boolean,
-	monthDays?: number[],
 	yearDays?: number[],
 ) {
 	if (parsedRules.length === 0) {
@@ -287,7 +286,7 @@ function applyByDayRules(
 				const stopCondition = date.plus({ month: 1 }).set({ day: 1 })
 				const baseDate = date.set({ day: 1 })
 
-				for (const allowedDay of monthDays ?? []) {
+				for (const allowedDay of validMonths) {
 					if (allowedDay > 0) {
 						allowedDays.push(allowedDay)
 						continue
@@ -436,7 +435,7 @@ function applyByDayRules(
 	return newDates
 }
 
-function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], maxDate: Date, repeatPeriod: RepeatPeriod) {
+function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[], repeatPeriod: RepeatPeriod) {
 	if (parsedRules.length === 0) {
 		return dates
 	}
@@ -466,7 +465,7 @@ function applyByMonth(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule
 				const dt = date.set({ month: targetMonth })
 				const yearOffset: number = date.year === dt.year && date.month > dt.month ? 1 : 0
 
-				newDates.push(date.set({ month: targetMonth }).plus({ year: yearOffset }))
+				newDates.push(dt.plus({ year: yearOffset }))
 				continue
 			}
 
@@ -1212,7 +1211,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 		const weekStartRule = repeatRule.advancedRules.find((rule) => rule.ruleType === ByRule.WKST)?.interval
 		const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
 		const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
-		const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, maxDate, frequency)
+		const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, frequency)
 		const weekNoAppliedEvents = applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
 		const yearDayAppliedEvents = applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
 		const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
@@ -1225,7 +1224,6 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				validMonths,
 				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
 				byWeekNoRules.length > 0,
-				validMonths,
 				validYearDays,
 			),
 			validMonths as MonthNumbers[],
