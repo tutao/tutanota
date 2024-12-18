@@ -19,6 +19,7 @@ use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
+use crate::importer_api::ImportMailStateId;
 use tutasdk::entities::generated::tutanota::{
 	ImportAttachment, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
@@ -655,7 +656,7 @@ impl Importer {
 					import_essentials,
 					import_state,
 					import_mails_post_out.mailState,
-					import_directory.clone()
+					import_directory.clone(),
 				)?;
 				import_state.success_count += import_count_in_this_chunk;
 				for eml_file_path_option in eml_file_paths {
@@ -694,6 +695,38 @@ impl Importer {
 		}
 
 		Ok(())
+	}
+
+	pub(super) fn get_resumable_import_state_id(
+		config_directory: String,
+	) -> Result<ImportMailStateId, ImportError> {
+		let import_directory_path: PathBuf =
+			[config_directory.clone(), "current_import".to_string()]
+				.iter()
+				.collect();
+		let mut state_file_path = import_directory_path.clone();
+		state_file_path.push("import_mail_state");
+
+		match fs::read_to_string(&state_file_path) {
+			Ok(id_tuple) => {
+				let mut id_vec: Vec<String> = id_tuple.split("/").map(String::from).collect();
+				if (id_vec.len() == 2) {
+					let id: IdTupleGenerated = id_tuple.try_into().unwrap();
+					Ok(ImportMailStateId::from(id))
+				} else {
+					Self::delete_import_dir(&import_directory_path)
+				}
+			},
+
+			Err(_) => Self::delete_import_dir(&import_directory_path),
+		}
+	}
+
+	fn delete_import_dir(
+		import_directory_path: &PathBuf,
+	) -> Result<ImportMailStateId, ImportError> {
+		fs::remove_dir_all(&import_directory_path).map_err(|e| ImportError::NoElementIdForState)?;
+		Err(ImportError::NoElementIdForState.into())
 	}
 }
 
@@ -927,5 +960,60 @@ mod tests {
 	#[test]
 	fn max_request_size_in_test_is_different() {
 		assert_eq!(1024 * 5, MAX_REQUEST_SIZE);
+	}
+
+	#[test]
+	fn get_resumable_state_id_should_delete_import_folder_if_no_state_id() {
+		let import_dir =
+			PathBuf::from("/tmp/get_resumable_state_id_should_delete_import_folder_if_no_state_id/current_import");
+		let tear_down = CleanDir { dir: import_dir.parent().unwrap().to_path_buf()};
+		
+		if !import_dir.exists() {
+			fs::create_dir_all(&import_dir).unwrap();
+		}
+		let config_dir = import_dir.parent().unwrap().to_path_buf();
+		let result = Importer::get_resumable_import_state_id(config_dir.display().to_string());
+		assert!(matches!(result, Err(ImportError::NoElementIdForState)));
+		assert!(!import_dir.exists());
+	}
+
+	#[test]
+	fn get_resumable_state_id_should_delete_import_folder_does_not_exist() {
+		let import_dir =
+			PathBuf::from("/tmp/get_resumable_state_id_should_delete_import_folder_does_not_exist/current_import");
+		let config_dir = import_dir.parent().unwrap().to_path_buf();
+		let result = Importer::get_resumable_import_state_id(config_dir.display().to_string());
+		assert!(matches!(result, Err(ImportError::NoElementIdForState)));
+		assert!(!import_dir.exists());
+	}
+
+	#[test]
+	fn get_resumable_state_id_invalid_content() {
+		let import_dir =
+			PathBuf::from("/tmp/get_resumable_state_id_invalid_content/current_import");
+
+		let tear_down = CleanDir { dir: import_dir.parent().unwrap().to_path_buf()};
+
+		let config_dir = import_dir.parent().unwrap().to_path_buf();
+		if !import_dir.exists() {
+			fs::create_dir_all(&import_dir).unwrap();
+		}
+		let mut state_id_file_path = import_dir.clone();
+		state_id_file_path.push("import_mail_state");
+		let invalid_id = "blah";
+		fs::write(&state_id_file_path, invalid_id).unwrap();
+		
+		let result = Importer::get_resumable_import_state_id(config_dir.display().to_string());
+		assert!(matches!(result, Err(ImportError::NoElementIdForState)));
+		assert!(!import_dir.exists());
+	}
+	
+	struct CleanDir {
+		dir: PathBuf
+	}
+	impl Drop for CleanDir {
+		fn drop(&mut self) {
+			fs::remove_dir_all(&self.dir).unwrap();
+		}
 	}
 }

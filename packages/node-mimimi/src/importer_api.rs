@@ -1,6 +1,4 @@
-use super::importer::{
-	ImportError, ImportStatus, Importer, IterationError, LocalImportState, StateCallbackResponse,
-};
+use super::importer::{ImportError, ImportStatus, Importer, IterationError, LocalImportState, StateCallbackResponse};
 use crate::importer::file_reader::FileImport;
 use crate::importer::ImportError::SdkError;
 use log::{logger, Log};
@@ -16,6 +14,7 @@ use std::thread::current;
 use tutasdk::entities::generated::tutanota::ImportMailState;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::net::native_rest_client::NativeRestClient;
+use tutasdk::tutanota_constants::GroupType::Mail;
 use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
 
 pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
@@ -41,6 +40,42 @@ pub struct TutaCredentials {
 	// FIXME Buffer type causes TutaCredentials to not being able to share between threads safely
 	pub encrypted_passphrase_key: Vec<u8>,
 	pub is_internal_credential: bool,
+}
+
+// We need this type because IdTupleGenerated cannot be converted to a napi value.
+#[napi_derive::napi(object)]
+#[cfg_attr(test, derive(Debug))]
+pub struct ImportMailStateId {
+	pub list_id: String,
+	pub element_id: String,
+}
+
+impl From<IdTupleGenerated> for ImportMailStateId {
+	fn from(
+		IdTupleGenerated {
+			list_id,
+			element_id,
+		}: IdTupleGenerated,
+	) -> Self {
+		Self {
+			list_id: list_id.to_string(),
+			element_id: element_id.to_string(),
+		}
+	}
+}
+
+impl From<ImportMailStateId> for IdTupleGenerated {
+	fn from(
+		ImportMailStateId {
+			list_id,
+			element_id,
+		}: ImportMailStateId,
+	) -> Self {
+		Self {
+			list_id: GeneratedId::from(list_id),
+			element_id: GeneratedId::from(element_id),
+		}
+	}
 }
 
 impl ImporterApi {
@@ -143,69 +178,52 @@ impl ImporterApi {
 	#[napi]
 	pub fn get_resumable_import_state_id(
 		config_directory: String,
-	) -> napi::Result<String> {
-		let state_file_path: PathBuf = [config_directory.clone(), "import_mail_state".to_string()]
-			.iter()
-			.collect();
-		match fs::read_to_string(&state_file_path) {
-			Ok(id_tuple) => {
-				let mut id_vec: Vec<String> = id_tuple.split("/").map(String::from).collect();
-				if (id_vec.len() == 2) {
-					let id: IdTupleGenerated = id_tuple.try_into().unwrap();
-					Ok(id.to_string())
-				} else {	
-					Err(ImportError::NoElementIdForState.into())
-				}
-			}
-			Err(_) => {
-				Err(ImportError::NoElementIdForState.into())
-			}
-		}
+	) -> napi::Result<ImportMailStateId> {
+		Importer::get_resumable_import_state_id(config_directory).map_err(Into::into)
 	}
+	
 	#[napi]
 	pub async fn resume_file_import(
 		tuta_credentials: TutaCredentials,
-		import_mail_state_id_tuple: (String, String), // FIXME change type to string as returned from get_resumable_import_state_id
+		mail_state_id: ImportMailStateId,
 		config_directory: String,
 	) -> napi::Result<ImporterApi> {
 		let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
-		// let import_state_id = IdTupleGenerated::try_from(import_mail_state_id)
-		let import_mail_state_id = &IdTupleGenerated::new(import_mail_state_id_tuple.0.into(), import_mail_state_id_tuple.1.into());
-		let import_state =
-					Importer::load_import_state(&logged_in_sdk, import_mail_state_id)
-						.await
-						.map_err(|e| ImportError::sdk("load_import_state", e))?;
+		let import_mail_state_id = IdTupleGenerated::from(mail_state_id);
+		let import_state = Importer::load_import_state(&logged_in_sdk, &import_mail_state_id)
+			.await
+			.map_err(|e| ImportError::sdk("load_import_state", e))?;
 
-				let target_mailset = import_state.targetFolder;
-				let target_owner_group = import_state
-					._ownerGroup
-					.expect("import state should have ownerGroup");
+		let target_mailset = import_state.targetFolder;
+		let target_owner_group = import_state
+			._ownerGroup
+			.expect("import state should have ownerGroup");
 
-				let import_directory: PathBuf =
-					[config_directory, "current_import".into()].iter().collect();
+		let import_directory: PathBuf =
+			[config_directory, "current_import".into()].iter().collect();
 
-				let dir_entries = fs::read_dir(&import_directory)?;
-				let mut source_paths: Vec<PathBuf> = vec![];
-				for dir_entry in dir_entries {
-					match dir_entry {
-						Ok(dir_entry) => {
-							source_paths.push(dir_entry.path());
-						},
-						Err(err) => {
-							Err(ImportError::IOError(err))?;
-						},
-					}
-				}
+		let dir_entries = fs::read_dir(&import_directory)?;
+		let mut source_paths: Vec<PathBuf> = vec![];
+		for dir_entry in dir_entries {
+			match dir_entry {
+				Ok(dir_entry) => {
+					source_paths.push(dir_entry.path());
+				},
+				Err(err) => {
+					Err(ImportError::IOError(err))?;
+				},
+			}
+		}
 
-				Self::create_file_importer_inner(
-					logged_in_sdk,
-					target_owner_group.as_str().to_string(),
-					target_mailset,
-					source_paths,
-					import_state._id,
-					import_directory,
-				)
-				.await
+		Self::create_file_importer_inner(
+			logged_in_sdk,
+			target_owner_group.as_str().to_string(),
+			target_mailset,
+			source_paths,
+			import_state._id,
+			import_directory,
+		)
+		.await
 	}
 
 	#[napi]
@@ -261,6 +279,7 @@ impl From<ImportError> for napi::Error {
 
 #[cfg(test)]
 mod tests {
+
 	use tutasdk::{GeneratedId, IdTupleGenerated};
 
 	#[test]
@@ -272,4 +291,6 @@ mod tests {
 		let after_conversion = id_tuple.to_string().try_into();
 		assert_eq!(Ok(id_tuple), after_conversion)
 	}
+	
+
 }
