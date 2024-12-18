@@ -13,6 +13,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDown
 import { KeyVerificationMethodOptions, KeyVerificationMethodType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 import { showKeyVerificationWizard } from "./KeyVerificationWizard"
 import { locator } from "../../api/main/CommonLocator"
+import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	mailAddress: string | null
@@ -71,7 +72,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 						size: ButtonSize.Compact,
 					}),
 				]),
-				m(".small.text-break.monospace.selectable", details.fingerprint),
+				m(MonospaceTextDisplay, { text: details.fingerprint, chunkSize: 4, classes: ".small.mb", border: false }),
 			]
 		})
 
@@ -120,7 +121,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderForTextMethod(selfMailAddress: string, selfFingerprint: string): Children {
 		return [
-			m("p", [m(".b.text-break.monospace.selectable", renderFingerprintAsText(selfFingerprint))]),
+			m(MonospaceTextDisplay, { text: renderFingerprintAsText(selfFingerprint), chunkSize: 4, classes: ".b.mt.mb.center" }),
 			m(".small.text-break", lang.get("keyManagement.publicKeyFingerprintTextInfo_msg")),
 		]
 	}
