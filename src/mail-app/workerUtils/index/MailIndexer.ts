@@ -61,7 +61,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { isDraft } from "../../mail/model/MailChecks.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-const ENTITY_INDEXER_CHUNK = 20
+const ENTITY_INDEXER_CHUNK = 50
 export const MAIL_INDEXER_CHUNK = 100
 const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 // one day
 
@@ -403,7 +403,13 @@ export class MailIndexer {
 		}
 	}
 
-	_indexMailLists(mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }>, oldestTimestamp: number): Promise<void> {
+	_indexMailLists(
+		mailBoxes: Array<{
+			mbox: MailBox
+			newestTimestamp: number
+		}>,
+		oldestTimestamp: number,
+	): Promise<void> {
 		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
 		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
 			this.infoMessageHandler.onSearchIndexStateUpdate({
@@ -621,6 +627,9 @@ export class MailIndexer {
 			// and we don't have to look for delete
 			if (event.operation === OperationType.UPDATE) {
 				let mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId])
+
+				await this.preloadMails(mailIds)
+
 				return await promiseMap(mailIds, (mailId) =>
 					this.processNewMail(mailId).then((result) => {
 						if (result) {
@@ -630,6 +639,31 @@ export class MailIndexer {
 				)
 			}
 		})
+	}
+
+	/**
+	 * We preload all mails and mail details into the cache in order to prevent loading mails one by one
+	 * after importing lots of mails...
+	 */
+	private async preloadMails(mailIds: IdTuple[]) {
+		const mailsByList = groupBy(mailIds, (m) => listIdPart(m))
+		let mailDetailsIds = []
+		let mailDetailsDraftIds = []
+		let mails: Array<Mail> = []
+		for (const [listId, mailIds] of mailsByList.entries()) {
+			const mailElementIds = mailIds.map((m) => elementIdPart(m))
+			mails = mails.concat(await this._defaultCachingEntity.loadMultiple(MailTypeRef, listId, mailElementIds))
+			for (const mail of mails) {
+				if (mail.mailDetails) {
+					mailDetailsIds.push(mail)
+				} else if (mail.mailDetailsDraft) {
+					mailDetailsDraftIds.push(mail)
+				}
+			}
+		}
+		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient, true)
+		await indexLoader.loadMailDetails(mails)
+		await indexLoader.loadAttachments(mails)
 	}
 
 	async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
