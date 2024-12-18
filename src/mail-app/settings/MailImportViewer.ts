@@ -10,7 +10,7 @@ import { FolderSystem, IndentedFolder } from "../../common/api/common/mail/Folde
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { ImportStatus, isFinalisedImportStatus, MailImporter } from "../mail/import/MailImporter.js"
 import { ImportMailStateTypeRef, MailFolder } from "../../common/api/entities/tutanota/TypeRefs"
-import { isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
 import { isDesktop } from "../../common/api/common/Env"
 import { ExternalLink } from "../../common/gui/base/ExternalLink"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
@@ -75,7 +75,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
 				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 				if (isFinalisedImportStatus(parseInt(updatedState.status))) {
-					this.mailImporter.removeActiveImport(update.instanceId)
+					this.mailImporter.removeActiveImport(updatedState._id)
 					this.mailImporter.updateFinalisedImport(update.instanceId, updatedState)
 					m.redraw()
 				}
@@ -174,7 +174,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 		const continueMailImportIconButtonAttrs: IconButtonAttrs = {
 			title: "continueMailImport_action",
 			icon: Icons.Play,
-			click: () => {},
+			click: () => this.mailImporter.resumeImport(),
 			size: ButtonSize.Normal,
 		}
 		const pauseMailImportIconButtonAttrs: IconButtonAttrs = {
@@ -187,7 +187,7 @@ export class MailImportViewer implements UpdatableSettingsViewer {
 			title: "cancelMailImport_action",
 			icon: Icons.Cancel,
 			click: () => {
-				this.mailImporter.stopImport(activeImport.importMailStateElementId)
+				this.mailImporter.stopImport(elementIdPart(activeImport.remoteStateId))
 			},
 			size: ButtonSize.Normal,
 		}

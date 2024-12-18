@@ -1,4 +1,6 @@
-use super::importer::{ImportError, ImportStatus, Importer, IterationError, LocalImportState, StateCallbackResponse};
+use super::importer::{
+	ImportError, ImportStatus, Importer, IterationError, LocalImportState, StateCallbackResponse,
+};
 use crate::importer::file_reader::FileImport;
 use crate::importer::ImportError::SdkError;
 use log::{logger, Log};
@@ -45,6 +47,7 @@ pub struct TutaCredentials {
 // We need this type because IdTupleGenerated cannot be converted to a napi value.
 #[napi_derive::napi(object)]
 #[cfg_attr(test, derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub struct ImportMailStateId {
 	pub list_id: String,
 	pub element_id: String,
@@ -184,7 +187,9 @@ impl ImporterApi {
 	pub async fn get_resumable_import_state_id(
 		config_directory: String,
 	) -> napi::Result<ImportMailStateId> {
-		Importer::get_resumable_import_state_id(config_directory).await.map_err(Into::into)
+		Importer::get_resumable_import_state_id(config_directory)
+			.await
+			.map_err(Into::into)
 	}
 
 	#[napi]
@@ -194,8 +199,7 @@ impl ImporterApi {
 		config_directory: String,
 	) -> napi::Result<ImporterApi> {
 		let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
-		let import_mail_state_id = IdTupleGenerated::from(mail_state_id);
-		let import_state = Importer::load_import_state(&logged_in_sdk, &import_mail_state_id)
+		let import_state = Importer::load_import_state(&logged_in_sdk, mail_state_id)
 			.await
 			.map_err(|e| ImportError::sdk("load_import_state", e))?;
 
@@ -265,9 +269,10 @@ impl From<ImportError> for napi::Error {
 		napi::Error::from_reason(match import_err {
 			ImportError::SdkError { .. } => "SdkError".to_string(),
 			ImportError::NoImportFeature => "NoImportFeature".to_string(),
-			ImportError::EmptyBlobServerList
-			| ImportError::NoElementIdForState => "NoElementIdForState".to_string(),
-			| ImportError::InconsistentStateId => "Malformed server response".to_string(),
+			ImportError::EmptyBlobServerList | ImportError::NoElementIdForState => {
+				"NoElementIdForState".to_string()
+			},
+			ImportError::InconsistentStateId => "Malformed server response".to_string(),
 			ImportError::NoNativeRestClient(_)
 			| ImportError::IterationError(_)
 			| ImportError::TooBigChunk => "IoError".to_string(),
@@ -284,7 +289,6 @@ impl From<ImportError> for napi::Error {
 
 #[cfg(test)]
 mod tests {
-
 	use tutasdk::{GeneratedId, IdTupleGenerated};
 
 	#[test]
@@ -296,6 +300,4 @@ mod tests {
 		let after_conversion = id_tuple.to_string().try_into();
 		assert_eq!(Ok(id_tuple), after_conversion)
 	}
-
-
 }

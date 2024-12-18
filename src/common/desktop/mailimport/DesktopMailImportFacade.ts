@@ -41,7 +41,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 	static async importStateCallback(mailImportFacade: MailImportFacade, stoppedImportQueues: Map<Id, boolean>, localState: LocalImportState) {
 		await mailImportFacade.onNewLocalImportMailState({
-			importMailStateElementId: localState.remoteStateId,
+			remoteStateId: [localState.remoteStateId.listId, localState.remoteStateId.elementId],
 			status: localState.currentStatus,
 			start_timestamp: localState.startTimestamp,
 			totalMails: localState.totalCount,
@@ -49,8 +49,8 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			failedMails: localState.failedCount,
 		})
 
-		const shouldStop = stoppedImportQueues.get(localState.remoteStateId) ?? false
-		stoppedImportQueues.delete(localState.remoteStateId)
+		const shouldStop = stoppedImportQueues.get(localState.remoteStateId.elementId) ?? false
+		stoppedImportQueues.delete(localState.remoteStateId.elementId)
 
 		return {
 			shouldStop: shouldStop,

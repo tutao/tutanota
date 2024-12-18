@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class LocalImportMailState(
-	val importMailStateElementId: String,
+	val remoteStateId: IdTuple,
 	val status: Int,
 	val start_timestamp: Int,
 	val totalMails: Int,

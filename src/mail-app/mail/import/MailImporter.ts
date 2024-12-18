@@ -8,7 +8,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { MailImportFacade } from "../../../common/native/common/generatedipc/MailImportFacade.js"
 import m from "mithril"
 import Id from "../../translations/id.js"
-import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, generatedIdToTimestamp, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
@@ -31,7 +31,6 @@ export class MailImporter implements MailImportFacade {
 	private progressMonitor: ProgressMonitor | null = null
 	private activeImport: LocalImportMailState | null = null
 	private progress: number = PROGRESS_DONE
-	private importMailStateId: IdTuple | null = null
 	private progressEstimation: TimeoutID
 
 	constructor(
@@ -50,8 +49,9 @@ export class MailImporter implements MailImportFacade {
 
 	async initImportMailStates(): Promise<void> {
 		if (this.nativeMailImportFacade) {
+			let resumableImportMailStateId: IdTuple | null = null
 			try {
-				this.importMailStateId = await this.nativeMailImportFacade.getResumableImportStateId()
+				resumableImportMailStateId = await this.nativeMailImportFacade.getResumableImportStateId()
 			} catch (e) {
 				if (e instanceof Error && e.message === "NoElementIdForState") {
 					console.log("nothing to resume")
@@ -63,6 +63,10 @@ export class MailImporter implements MailImportFacade {
 			if (mailboxDetail) {
 				const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
 				for (const importMailState of importMailStatesCollection) {
+					if (isSameId(importMailState._id, resumableImportMailStateId)) {
+						importMailState.status = ImportStatus.Paused.toString()
+						this.activeImport = remoteStateAsLocal(importMailState)
+					}
 					let importMailStateElementId = elementIdPart(importMailState._id)
 					if (this.finalisedImportStates.has(importMailStateElementId)) {
 						if (this.finalisedImportStates.get(importMailStateElementId)?.status != ImportStatus.Running.toString()) {
@@ -132,6 +136,8 @@ export class MailImporter implements MailImportFacade {
 	/**
 	 * Stop a currently ongoing import, identified by the corresponding importMailStateElementId.
 	 */
+
+	// todo: take idtuple
 	async stopImport(importMailStateElementId: Id) {
 		if (this.nativeMailImportFacade) {
 			await this.nativeMailImportFacade.stopImport(importMailStateElementId)
@@ -142,14 +148,13 @@ export class MailImporter implements MailImportFacade {
 	 * Stop a currently ongoing import, identified by the corresponding importMailStateElementId.
 	 */
 	async resumeImport() {
-		const id = this.importMailStateId
-		if (id) {
+		if (this.activeImport) {
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = await this.credentialsProvider!.getDecryptedCredentialsByUserId(userId)
 			if (unencryptedCredentials && this.nativeMailImportFacade) {
 				console.log("resuming mail import...")
-				await this.nativeMailImportFacade.resumeImport(apiUrl, unencryptedCredentials, id)
+				await this.nativeMailImportFacade.resumeImport(apiUrl, unencryptedCredentials, this.activeImport.remoteStateId)
 			}
 		}
 	}
@@ -176,8 +181,8 @@ export class MailImporter implements MailImportFacade {
 		m.redraw()
 	}
 
-	removeActiveImport(importId: Id) {
-		if (this.activeImport && this.activeImport.importMailStateElementId == importId) {
+	removeActiveImport(importId: IdTuple) {
+		if (this.activeImport && isSameId(this.activeImport.remoteStateId, importId)) {
 			this.activeImport = null
 			this.progressMonitor?.completed()
 			this.progress = 0
@@ -190,6 +195,17 @@ export class MailImporter implements MailImportFacade {
 
 	getProgress() {
 		return this.progress
+	}
+}
+
+function remoteStateAsLocal(remoteState: ImportMailState): LocalImportMailState {
+	return {
+		failedMails: parseInt(remoteState.failedMails),
+		remoteStateId: remoteState._id,
+		start_timestamp: generatedIdToTimestamp(elementIdPart(remoteState._id)),
+		status: parseInt(remoteState.status),
+		successfulMails: parseInt(remoteState.successfulMails),
+		totalMails: 10000,
 	}
 }
 
