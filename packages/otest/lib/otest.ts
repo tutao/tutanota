@@ -146,7 +146,12 @@ class OTest {
 		}
 
 		for (const before of spec.before) {
-			await before()
+			try {
+				await before()
+			} catch (e) {
+				console.error("Spec before() failed!", newPathSerialized, e)
+				throw e
+			}
 		}
 
 		const specMatches = filter === "" || spec.name.includes(filter)
@@ -179,7 +184,12 @@ class OTest {
 		}
 
 		for (const after of spec.after) {
-			await after()
+			try {
+				await after()
+			} catch (e) {
+				console.error("Spec after() failed!", newPathSerialized, e)
+				throw e
+			}
 		}
 
 		return result
