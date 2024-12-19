@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { BLOB_SERVICE_REST_PATH, BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
+import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
@@ -12,7 +12,7 @@ import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/Servi
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
-import { arrayEquals, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/common/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
@@ -161,7 +161,8 @@ o.spec("BlobFacade test", function () {
 		o("downloadAndDecrypt", async function () {
 			const sessionKey = aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
-			file.blobs.push(createTestEntity(BlobTypeRef))
+			const blobId = "--------0s--"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId, size: String(65) }))
 			const encryptedBlobData = aesEncrypt(sessionKey, blobData, generateIV(), true, true)
 
 			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
@@ -176,16 +177,79 @@ o.spec("BlobFacade test", function () {
 			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": true }
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(encryptedBlobData)
+			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
+			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
+			const blobResponse = concat(
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId)),
+				// blob hash
+				new Uint8Array([1, 2, 3, 4, 5, 6]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData,
+			)
+			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file))
 
-			o(arrayEquals(decryptedData, blobData)).equals(true)("decrypted data")
+			o(decryptedData).deepEquals(blobData)("decrypted data is equal")
 			const optionsCaptor = captor()
 			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, optionsCaptor.capture()))
 			o(optionsCaptor.value.baseUrl).equals("someBaseUrl")
 			o(optionsCaptor.value.queryParams.blobAccessToken).deepEquals(blobAccessInfo.blobAccessToken)
 			o(optionsCaptor.value.body).deepEquals(JSON.stringify(requestBody))
+		})
+
+		o("downloadAndDecrypt multiple", async function () {
+			const sessionKey = aes256RandomKey()
+			const blobData1 = new Uint8Array([1, 2, 3])
+			const blobId1 = "--------0s-1"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+
+			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
+			const blobId2 = "--------0s-2"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+
+			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+			})
+			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({
+				baseUrl: "someBaseUrl",
+				blobAccessToken: blobAccessInfo.blobAccessToken,
+			})
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			const requestBody = { "request-body": true }
+			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
+			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
+			const blobResponse = concat(
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId1)),
+				// blob hash
+				new Uint8Array([1, 2, 3, 4, 5, 6]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData1,
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId2)),
+				// blob hash
+				new Uint8Array([6, 5, 4, 3, 2, 1]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData2,
+			)
+			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+
+			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file))
+
+			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
 		})
 
 		o("downloadAndDecryptNative", async function () {
@@ -264,6 +328,74 @@ o.spec("BlobFacade test", function () {
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
+		})
+	})
+
+	o.spec("parseMultipleBlobsResponse", function () {
+		o.test("parses two blobs", function () {
+			// Blob id OETv4XP----0 hash [3, -112, 88, -58, -14, -64] bytes [1, 2, 3]
+			// Blob id OETv4XS----0 hash [113, -110, 56, 92, 60, 6] bytes [1, 2, 3, 4, 5, 6]
+			const binaryData = new Int8Array([
+				// blob id 1 [0-8]
+				100, -9, -69, 22, 38, -128, 0, 0, 1,
+				// blob hash 1 [9-14]
+				3, -112, 88, -58, -14, -64,
+				// blob size 1 [15-18]
+				0, 0, 0, 3,
+				// blob data 1 [19-21]
+				1, 2, 3,
+				// blob id 2
+				100, -9, -69, 22, 39, 64, 0, 0, 1,
+				// blob hash 2
+				113, -110, 56, 92, 60, 6,
+				// blob size 2
+				0, 0, 0, 6,
+				// blob data 2
+				1, 2, 3, 4, 5, 6,
+			])
+
+			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
+			o(result).deepEquals(
+				new Map([
+					["OETv4XP----0", new Uint8Array([1, 2, 3])],
+					["OETv4XS----0", new Uint8Array([1, 2, 3, 4, 5, 6])],
+				]),
+			)
+		})
+
+		o.test("parses one blob", function () {
+			// Blob id OETv4XP----0 hash [3, -112, 88, -58, -14, -64] bytes [1, 2, 3]
+			const binaryData = new Int8Array([
+				// blob id 1 [0-8]
+				100, -9, -69, 22, 38, -128, 0, 0, 1,
+				// blob hash 1 [9-14]
+				3, -112, 88, -58, -14, -64,
+				// blob size 1 [15-18]
+				0, 0, 0, 3,
+				// blob data 1 [19-21]
+				1, 2, 3,
+			])
+
+			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
+			o(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array([1, 2, 3])]]))
+		})
+
+		o.test("parses blob with big size", function () {
+			// Blob id OETv4XP----0 hash [3, -112, 88, -58, -14, -64] bytes [1, 2, 3]
+			const blobDataNumbers = Array(384).fill(1)
+			const binaryData = new Int8Array(
+				[
+					// blob id 1 [0-8]
+					100, -9, -69, 22, 38, -128, 0, 0, 1,
+					// blob hash 1 [9-14]
+					3, -112, 88, -58, -14, -64,
+					// blob size 1 [15-18] 384
+					0, 0, 1, 128,
+				].concat(blobDataNumbers),
+			)
+
+			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
+			o(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array(blobDataNumbers)]]))
 		})
 	})
 })
