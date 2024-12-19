@@ -1,6 +1,4 @@
-use super::importer::{
-	ImportError, ImportStatus, Importer, IterationError, LocalImportState, StateCallbackResponse,
-};
+use super::importer::{ImportError, ImportMailStateId, ImportStatus, Importer, IterationError, LocalImportState, StateCallbackResponse};
 use crate::importer::file_reader::FileImport;
 use crate::importer::ImportError::SdkError;
 use log::{logger, Log};
@@ -42,43 +40,6 @@ pub struct TutaCredentials {
 	// FIXME Buffer type causes TutaCredentials to not being able to share between threads safely
 	pub encrypted_passphrase_key: Vec<u8>,
 	pub is_internal_credential: bool,
-}
-
-// We need this type because IdTupleGenerated cannot be converted to a napi value.
-#[napi_derive::napi(object)]
-#[cfg_attr(test, derive(Debug))]
-#[derive(Clone, PartialEq)]
-pub struct ImportMailStateId {
-	pub list_id: String,
-	pub element_id: String,
-}
-
-impl From<IdTupleGenerated> for ImportMailStateId {
-	fn from(
-		IdTupleGenerated {
-			list_id,
-			element_id,
-		}: IdTupleGenerated,
-	) -> Self {
-		Self {
-			list_id: list_id.to_string(),
-			element_id: element_id.to_string(),
-		}
-	}
-}
-
-impl From<ImportMailStateId> for IdTupleGenerated {
-	fn from(
-		ImportMailStateId {
-			list_id,
-			element_id,
-		}: ImportMailStateId,
-	) -> Self {
-		Self {
-			list_id: GeneratedId::from(list_id),
-			element_id: GeneratedId::from(element_id),
-		}
-	}
 }
 
 impl ImporterApi {

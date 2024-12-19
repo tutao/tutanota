@@ -53,13 +53,21 @@ async fn can_import_multiple_emls() {
 	.await
 	.unwrap();
 
-	let default_resolver =
-		|_| async { Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: false }) };
+	let default_resolver = |_| async {
+		Result::<_, ImportError>::Ok(StateCallbackResponse {
+			action: ImportProgressAction::Continue,
+		})
+	};
 	importer
 		.start_stateful_import(default_resolver)
 		.await
 		.expect("Cannot complete import");
-	let remote_state = importer.get_remote_state_id().await.unwrap();
+	let remote_state = Importer::load_import_state(
+		&importer.essentials.logged_in_sdk,
+		importer.state.remote_state_id.clone(),
+	)
+	.await
+	.unwrap();
 	assert_eq!(ImportStatus::Finished as i64, remote_state.status);
 	assert_eq!(14, remote_state.successfulMails);
 	assert_eq!(0, remote_state.failedMails);

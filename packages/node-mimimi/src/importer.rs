@@ -20,7 +20,6 @@ use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
-use crate::importer_api::ImportMailStateId;
 use tutasdk::entities::generated::tutanota::{
 	ImportAttachment, ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
@@ -42,6 +41,42 @@ pub const MAX_REQUEST_SIZE: usize = 1024 * 1024 * 8;
 #[cfg(test)]
 pub const MAX_REQUEST_SIZE: usize = 1024 * 5;
 
+// We need this type because IdTupleGenerated cannot be converted to a napi value.
+#[cfg_attr(feature = "javascript", napi_derive::napi(object))]
+#[cfg_attr(test, derive(Debug))]
+#[derive(Clone, PartialEq)]
+pub struct ImportMailStateId {
+	pub list_id: String,
+	pub element_id: String,
+}
+
+impl From<IdTupleGenerated> for ImportMailStateId {
+	fn from(
+		IdTupleGenerated {
+			list_id,
+			element_id,
+		}: IdTupleGenerated,
+	) -> Self {
+		Self {
+			list_id: list_id.to_string(),
+			element_id: element_id.to_string(),
+		}
+	}
+}
+
+impl From<ImportMailStateId> for IdTupleGenerated {
+	fn from(
+		ImportMailStateId {
+			list_id,
+			element_id,
+		}: ImportMailStateId,
+	) -> Self {
+		Self {
+			list_id: GeneratedId::from(list_id),
+			element_id: GeneratedId::from(element_id),
+		}
+	}
+}
 #[derive(Debug)]
 pub enum ImportError {
 	SdkError {
@@ -109,12 +144,24 @@ pub enum ImportStatus {
 	Finished = 6,
 }
 
+/// A running import can be stopped or paused
+#[cfg_attr(feature = "javascript", napi_derive::napi)]
+#[cfg_attr(not(feature = "javascript"), derive(Clone))]
+#[derive(PartialEq)]
+#[cfg_attr(test, derive(Debug))]
+#[repr(u8)]
+pub enum ImportProgressAction {
+	Continue = 0,
+	Pause = 1,
+	Stop = 2,
+}
+
 /// when state callback function is called after every chunk of import,
 /// javascript handle is expected to respond with this struct
 #[cfg_attr(feature = "javascript", napi_derive::napi(object))]
-#[derive(Debug)]
+#[cfg_attr(test, derive(Debug))]
 pub struct StateCallbackResponse {
-	pub should_stop: bool,
+	pub action: ImportProgressAction,
 }
 
 #[cfg_attr(feature = "javascript", napi_derive::napi)]
@@ -129,7 +176,7 @@ pub struct LocalImportState {
 }
 
 pub struct ImportEssential {
-	logged_in_sdk: Arc<LoggedInSdk>,
+	pub logged_in_sdk: Arc<LoggedInSdk>,
 	target_owner_group: GeneratedId,
 	mail_group_key: VersionedAesKey,
 	target_mailset: IdTupleGenerated,
@@ -554,6 +601,7 @@ impl Importer {
 			final_status == ImportStatus::Finished || final_status == ImportStatus::Canceled,
 			"only cancel and finished should be final state"
 		);
+		Self::delete_import_dir(&self.import_directory)?;
 
 		// we reached final state before making first call, was either empty mails or was cancelled before making first post call
 		if self.state.remote_state_id
@@ -677,7 +725,7 @@ impl Importer {
 		Err: From<ImportError>,
 	{
 		self.state.change_status(ImportStatus::Running);
-		loop {
+		'import: loop {
 			self.import_next_chunk().await?;
 
 			if self.state.current_status == ImportStatus::Finishing {
@@ -685,9 +733,18 @@ impl Importer {
 				break;
 			}
 			let callback_response = callback_handle(self.state.clone()).await?;
-			if callback_response.should_stop {
-				self.mark_remote_final_state(ImportStatus::Canceled).await?;
-				break;
+			match callback_response.action {
+				ImportProgressAction::Pause => {
+					self.mark_remote_final_state(ImportStatus::Paused).await?;
+					break 'import;
+				},
+				ImportProgressAction::Stop => {
+					self.mark_remote_final_state(ImportStatus::Canceled).await?;
+					break 'import;	
+				},
+				ImportProgressAction::Continue => {
+					// just continue to loop/import
+				},
 			}
 		}
 
@@ -711,19 +768,20 @@ impl Importer {
 					let id: IdTupleGenerated = IdTupleGenerated::try_from(id_tuple).unwrap();
 					Ok(ImportMailStateId::from(id))
 				} else {
-					Self::delete_import_dir(&import_directory_path)
+					Err(ImportError::NoElementIdForState.into())
 				}
 			},
 
-			Err(_) => Self::delete_import_dir(&import_directory_path),
+			Err(_) => Err(ImportError::NoElementIdForState.into()),
 		}
 	}
 
-	fn delete_import_dir(
-		import_directory_path: &PathBuf,
-	) -> Result<ImportMailStateId, ImportError> {
-		fs::remove_dir_all(&import_directory_path).map_err(|e| ImportError::NoElementIdForState)?;
-		Err(ImportError::NoElementIdForState.into())
+	fn delete_import_dir(import_directory_path: &PathBuf) -> Result<(), ImportError> {
+		if (import_directory_path.exists()) {
+			fs::remove_dir_all(&import_directory_path)
+				.map_err(|e| ImportError::FileDeletionError(e, import_directory_path.clone()))?;
+		}
+		Ok(())
 	}
 }
 
@@ -776,7 +834,11 @@ mod tests {
 	}
 	pub async fn import_all_of_source(importer: &mut Importer) -> Result<(), ImportError> {
 		importer
-			.start_stateful_import(|_| async { Ok(StateCallbackResponse { should_stop: false }) })
+			.start_stateful_import(|_| async {
+				Ok(StateCallbackResponse {
+					action: ImportProgressAction::Continue,
+				})
+			})
 			.await
 	}
 
@@ -982,11 +1044,13 @@ mod tests {
 
 	#[tokio::test]
 	#[ignore = "present for jhm and sug"]
-	async fn should_stop_if_true_response() {
+	async fn should_stop_if_on_stop_action() {
 		let mut importer = init_file_importer(vec!["sample.eml"; 3]).await;
 
 		let callback_resolver = |_| async {
-			Result::<_, ImportError>::Ok(StateCallbackResponse { should_stop: false })
+			Result::<_, ImportError>::Ok(StateCallbackResponse {
+				action: ImportProgressAction::Stop,
+			})
 		};
 		importer
 			.start_stateful_import(callback_resolver)
