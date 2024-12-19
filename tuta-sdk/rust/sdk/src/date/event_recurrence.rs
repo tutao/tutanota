@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 use time::{Date, Duration, Month, PrimitiveDateTime, Weekday};
 use time::util::weeks_in_year;
@@ -254,7 +254,39 @@ impl<'a> EventRecurrence {
     }
 
     fn apply_year_day_rules(&self, dates: Vec<PrimitiveDateTime>, rules: &Vec<&ByRule>, evaluate_same_week: bool, evaluate_same_month: bool) -> Vec<PrimitiveDateTime> {
-        Vec::new()
+        if rules.len() == 0 {
+            return dates.clone();
+        }
+
+        let mut new_dates: Vec<PrimitiveDateTime> = Vec::new();
+
+        for &rule in rules {
+            for date in &dates {
+                let parsed_day = rule.interval.parse::<i64>().unwrap();
+
+                let mut new_date: PrimitiveDateTime;
+                if parsed_day.is_negative() {
+                    new_date = date.replace_month(Month::December).unwrap()
+                        .replace_day(31).unwrap()
+                        .sub(Duration::days((parsed_day.unsigned_abs() - 1) as i64));
+                } else {
+                    new_date = date.replace_month(Month::January).unwrap()
+                        .replace_day(1).unwrap()
+                        .add(Duration::days(parsed_day - 1));
+                }
+
+                let year_offset = if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() { 1 } else { 0 };
+                new_date = new_date.replace_year(new_date.year() + year_offset).unwrap();
+
+                if (evaluate_same_week && date.iso_week() != new_date.iso_week()) || (evaluate_same_month && date.month() != new_date.month()) {
+                    continue;
+                }
+
+                new_dates.push(new_date)
+            }
+        }
+
+        new_dates
     }
 
     fn apply_month_day_rules(&self, dates: Vec<PrimitiveDateTime>, rules: &Vec<&ByRule>) -> Vec<PrimitiveDateTime> {
@@ -515,5 +547,86 @@ mod tests {
                 interval: "5".to_string(),
             },
         ], Weekday::Monday), valid_dates);
+    }
+
+    #[test]
+    fn test_parse_year_day() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::February, 1).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_year_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYYEARDAY,
+                interval: "40".to_string(),
+            }
+        ], false, false), [
+                       date.replace_day(9).unwrap()
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_year_day_keep_week() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::February, 1).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_year_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYYEARDAY,
+                interval: "40".to_string(),
+            }
+        ], true, false), []);
+    }
+
+    #[test]
+    fn test_parse_year_day_keep_month() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 22).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_year_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYYEARDAY,
+                interval: "40".to_string(),
+            }
+        ], true, true), []);
+    }
+
+    #[test]
+    fn test_parse_out_of_year_year_day() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::February, 22).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_year_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYYEARDAY,
+                interval: "40".to_string(),
+            }
+        ], false, false), [
+                       date.replace_year(2026).unwrap().replace_day(9).unwrap()
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_negative_year_day() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::February, 22).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_year_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYYEARDAY,
+                interval: "-1".to_string(),
+            }
+        ], false, false), [
+                       date.replace_month(Month::December).unwrap().replace_day(31).unwrap()
+                   ]);
     }
 }
