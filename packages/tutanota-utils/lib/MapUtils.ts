@@ -41,3 +41,15 @@ export function deleteMapEntry<K, V>(map: ReadonlyMap<K, V>, key: K): Map<K, V> 
 	newMap.delete(key)
 	return newMap
 }
+
+/**
+ * Convert values of {@param map} using {@param mapper} like {@link Array.prototype.map},
+ */
+export function mapMap<K, V, R>(map: ReadonlyMap<K, V>, mapper: (value: V) => R): Map<K, R> {
+	const resultMap = new Map<K, R>()
+	for (const [key, oldValue] of map) {
+		const newValue = mapper(oldValue)
+		resultMap.set(key, newValue)
+	}
+	return resultMap
+}

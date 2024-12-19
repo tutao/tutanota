@@ -8,6 +8,7 @@ import {
 	getFirstOrThrow,
 	groupBy,
 	isEmpty,
+	mapMap,
 	neverNull,
 	promiseMap,
 	splitUint8ArrayInChunks,
@@ -26,7 +27,7 @@ import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { InstanceMapper } from "../../crypto/InstanceMapper.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
 import { FileReference } from "../../../common/utils/FileUtils.js"
-import { handleRestError } from "../../../common/error/RestError.js"
+import { handleRestError, NotFoundError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn, createBlobId } from "../../../entities/storage/TypeRefs.js"
@@ -153,59 +154,53 @@ export class BlobFacade {
 	}
 
 	/**
-	 * Downloads multiple blobs, decrypts and joins them to unencrypted binary data.
-	 *
-	 * @param archiveDataType
-	 * @param referencingInstances that directly references the blobs
-	 * @returns Uint8Array unencrypted binary data
+	 * Downloads blobs of all {@param referencingInstances}, decrypts them and joins them to unencrypted binaries.
+	 * If some blobs are not found the result will contain {@code null}.
+	 * @returns Map from instance id to the decrypted and concatenated contents of the referenced blobs
 	 */
-	async downloadAndDecryptMultipleInstances(
+	async downloadAndDecryptBlobsOfMultipleInstances(
 		archiveDataType: ArchiveDataType,
 		referencingInstances: BlobReferencingInstance[],
 		blobLoadOptions: BlobLoadOptions = {},
-	): Promise<Map<Id, Promise<Uint8Array>>> {
-		if (isEmpty(referencingInstances)) {
-			return new Map()
-		}
-		if (referencingInstances.length === 1) {
-			const downloaded = this.downloadAndDecrypt(archiveDataType, referencingInstances[0], blobLoadOptions)
-			return new Map([[referencingInstances[0].elementId, downloaded]])
-		}
-
+	): Promise<Map<Id, Uint8Array | null>> {
 		// If a mail has multiple attachments, we cannot assume they are all on the same archive.
-		const allArchives: Map<Id, BlobReferencingInstance[]> = new Map()
-		for (const instance of referencingInstances) {
-			const archiveId = instance.blobs[0].archiveId
-			const archive = allArchives.get(archiveId) ?? []
-			archive.push(instance)
-			allArchives.set(archiveId, archive)
-		}
+		// But all blobs of a single attachment should be in the same archive
+		const instancesByArchive = groupBy(referencingInstances, (instance) => getFirstOrThrow(instance.blobs).archiveId)
 
-		// file to data
-		const result: Map<Id, Promise<Uint8Array>> = new Map()
+		// instance id to data
+		const result: Map<Id, Uint8Array | null> = new Map()
 
-		for (const [archive, instances] of allArchives.entries()) {
-			let latestAccessInfo: Promise<BlobServerAccessInfo> | null = null
-
-			for (const instance of instances) {
-				const sessionKey = await this.resolveSessionKey(instance.entity)
-
-				const doBlobRequest = async () => {
-					if (latestAccessInfo == null) {
-						latestAccessInfo = this.blobAccessTokenFacade.requestReadTokenMultipleInstances(ArchiveDataType.Attachments, instances, blobLoadOptions)
-					}
-					const accessInfoToUse = await latestAccessInfo
-					return promiseMap(instance.blobs, (blob) => this.downloadAndDecryptChunk(blob, accessInfoToUse, sessionKey, blobLoadOptions))
-				}
-				const doEvictToken = () => {
+		for (const [_, instances] of instancesByArchive.entries()) {
+			// request a token for all instances of the archive
+			// download all blobs from all instances for this archive
+			const allBlobs = instances.flatMap((instance) => instance.blobs)
+			const doBlobRequest = async () => {
+				const accessInfo = await this.blobAccessTokenFacade.requestReadTokenMultipleInstances(archiveDataType, instances, blobLoadOptions)
+				return this.downloadBlobsOfOneArchive(allBlobs, accessInfo, blobLoadOptions)
+			}
+			const doEvictToken = () => {
+				for (const instance of instances) {
 					this.blobAccessTokenFacade.evictReadBlobsToken(instance)
-					latestAccessInfo = null
 				}
-				const request = doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-				result.set(
-					instance.elementId,
-					request.then((data) => concat(...data)),
-				)
+			}
+			const encryptedBlobsOfAllInstances = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+			// sort blobs by the instance
+			instanceLoop: for (const instance of instances) {
+				// get the key of the instance
+				const sessionKey = await this.resolveSessionKey(instance.entity)
+				// decrypt blobs of the instance and concatenate them
+				const decryptedChunks: Uint8Array[] = []
+				for (const blob of instance.blobs) {
+					const encryptedChunk = encryptedBlobsOfAllInstances.get(blob.blobId)
+					if (encryptedChunk == null) {
+						result.set(instance.elementId, null)
+						continue instanceLoop
+					}
+					decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
+				}
+				const decryptedData = concat(...decryptedChunks)
+				// return Map of instance id -> blob data
+				result.set(instance.elementId, decryptedData)
 			}
 		}
 
@@ -349,44 +344,23 @@ export class BlobFacade {
 		return createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 
-	private async downloadAndDecryptChunk(
-		blob: Blob,
-		blobServerAccessInfo: BlobServerAccessInfo,
-		sessionKey: AesKey,
-		blobLoadOptions: BlobLoadOptions,
-	): Promise<Uint8Array> {
-		const { archiveId, blobId } = blob
-		const getData = createBlobGetIn({
-			archiveId,
-			blobId,
-			blobIds: [],
-		})
-		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
-		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
-		const body = JSON.stringify(literalGetData)
-		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
-		return tryServers(
-			blobServerAccessInfo.servers,
-			async (serverUrl) => {
-				const data = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
-					queryParams: queryParams,
-					body,
-					responseType: MediaType.Binary,
-					baseUrl: serverUrl,
-					noCORS: true,
-					headers: blobLoadOptions.extraHeaders,
-					suspensionBehavior: blobLoadOptions.suspensionBehavior,
-				})
-				return aesDecrypt(sessionKey, data)
-			},
-			`can't download from server `,
-		)
-	}
-
 	private async downloadAndDecryptMultipleBlobsOfArchive(
 		blobs: readonly Blob[],
 		blobServerAccessInfo: BlobServerAccessInfo,
 		sessionKey: AesKey,
+		blobLoadOptions: BlobLoadOptions,
+	): Promise<Map<Id, Uint8Array>> {
+		const mapWithEncryptedBlobs = await this.downloadBlobsOfOneArchive(blobs, blobServerAccessInfo, blobLoadOptions)
+		return mapMap(mapWithEncryptedBlobs, (blob) => aesDecrypt(sessionKey, blob))
+	}
+
+	/**
+	 * Download blobs of a single archive in a single request
+	 * @return map from blob id to the data
+	 */
+	private async downloadBlobsOfOneArchive(
+		blobs: readonly Blob[],
+		blobServerAccessInfo: BlobServerAccessInfo,
 		blobLoadOptions: BlobLoadOptions,
 	): Promise<Map<Id, Uint8Array>> {
 		if (isEmpty(blobs)) {
@@ -420,13 +394,7 @@ export class BlobFacade {
 			},
 			`can't download from server `,
 		)
-		const mapWithEncryptedBlobs = parseMultipleBlobsResponse(concatBinaryData)
-		const mapWithDecryptedBlobs = new Map<Id, Uint8Array>()
-		for (const [blobId, encryptedData] of mapWithEncryptedBlobs) {
-			const decryptedData = aesDecrypt(sessionKey, encryptedData)
-			mapWithDecryptedBlobs.set(blobId, decryptedData)
-		}
-		return mapWithDecryptedBlobs
+		return parseMultipleBlobsResponse(concatBinaryData)
 	}
 
 	private async downloadAndDecryptChunkNative(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<FileUri> {
