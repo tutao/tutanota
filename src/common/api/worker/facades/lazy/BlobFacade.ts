@@ -1,6 +1,19 @@
 import { addParamsToUrl, isSuspensionResponse, RestClient, SuspensionBehavior } from "../../rest/RestClient.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { clear, concat, isEmpty, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	assertNonNull,
+	base64ToBase64Ext,
+	clear,
+	concat,
+	getFirstOrThrow,
+	groupBy,
+	isEmpty,
+	neverNull,
+	promiseMap,
+	splitUint8ArrayInChunks,
+	uint8ArrayToBase64,
+	uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../common/EntityFunctions.js"
@@ -16,7 +29,7 @@ import { FileReference } from "../../../common/utils/FileUtils.js"
 import { handleRestError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn } from "../../../entities/storage/TypeRefs.js"
+import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn, createBlobId } from "../../../entities/storage/TypeRefs.js"
 import { AuthDataProvider } from "../UserFacade.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
@@ -114,14 +127,29 @@ export class BlobFacade {
 		blobLoadOptions: BlobLoadOptions = {},
 	): Promise<Uint8Array> {
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
+		// Currently assumes that all the blobs of the instance are in the same archive.
+		// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
-			return promiseMap(referencingInstance.blobs, (blob) => this.downloadAndDecryptChunk(blob, blobServerAccessInfo, sessionKey, blobLoadOptions))
+			return this.downloadAndDecryptMultipleBlobsOfArchive(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions)
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
-		const blobData = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-		return concat(...blobData)
+		const blobChunks = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+		return this.concatenateBlobChunks(referencingInstance, blobChunks)
+	}
+
+	private concatenateBlobChunks(referencingInstance: BlobReferencingInstance, blobChunks: Map<Id, Uint8Array>) {
+		const resultSize = Array.from(blobChunks.values()).reduce((sum, blob) => blob.length + sum, 0)
+		const resultBuffer = new Uint8Array(resultSize)
+		let offset = 0
+		for (const blob of referencingInstance.blobs) {
+			const data = blobChunks.get(blob.blobId)
+			assertNonNull(data, `Server did not return blob for id : ${blob.blobId}`)
+			resultBuffer.set(data, offset)
+			offset += data.length
+		}
+		return resultBuffer
 	}
 
 	/**
@@ -355,6 +383,52 @@ export class BlobFacade {
 		)
 	}
 
+	private async downloadAndDecryptMultipleBlobsOfArchive(
+		blobs: readonly Blob[],
+		blobServerAccessInfo: BlobServerAccessInfo,
+		sessionKey: AesKey,
+		blobLoadOptions: BlobLoadOptions,
+	): Promise<Map<Id, Uint8Array>> {
+		if (isEmpty(blobs)) {
+			throw new ProgrammingError("Blobs are empty")
+		}
+		const archiveId = getFirstOrThrow(blobs).archiveId
+		if (blobs.some((blob) => blob.archiveId !== archiveId)) {
+			throw new ProgrammingError("Must only request blobs of the same archive together")
+		}
+		const getData = createBlobGetIn({
+			archiveId,
+			blobId: null,
+			blobIds: blobs.map(({ blobId }) => createBlobId({ blobId: blobId })),
+		})
+		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
+		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
+		const body = JSON.stringify(literalGetData)
+		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
+		const concatBinaryData = await tryServers(
+			blobServerAccessInfo.servers,
+			async (serverUrl) => {
+				return await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
+					queryParams: queryParams,
+					body,
+					responseType: MediaType.Binary,
+					baseUrl: serverUrl,
+					noCORS: true,
+					headers: blobLoadOptions.extraHeaders,
+					suspensionBehavior: blobLoadOptions.suspensionBehavior,
+				})
+			},
+			`can't download from server `,
+		)
+		const mapWithEncryptedBlobs = parseMultipleBlobsResponse(concatBinaryData)
+		const mapWithDecryptedBlobs = new Map<Id, Uint8Array>()
+		for (const [blobId, encryptedData] of mapWithEncryptedBlobs) {
+			const decryptedData = aesDecrypt(sessionKey, encryptedData)
+			mapWithDecryptedBlobs.set(blobId, decryptedData)
+		}
+		return mapWithDecryptedBlobs
+	}
+
 	private async downloadAndDecryptChunkNative(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<FileUri> {
 		const { archiveId, blobId } = blob
 		const getData = createBlobGetIn({
@@ -408,4 +482,27 @@ export class BlobFacade {
 			throw handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)
 		}
 	}
+}
+
+/**
+ * Deserializes a list of BlobWrappers that are in the following binary format
+ * element [ blobId ] [ blobHash ] [blobSize] [blob]     [ . . . ]    [ blobNId ] [ blobNHash ] [blobNSize] [blobN]
+ * bytes     9          6           4          blobSize                  9          6            4           blobSize
+ *
+ * @return a map from blobId to the binary data
+ */
+export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id, Uint8Array> {
+	let offset = 0
+	const dataView = new DataView(concatBinaryData.buffer)
+	const result = new Map<Id, Uint8Array>()
+	while (offset < concatBinaryData.length) {
+		const blobIdBytes = concatBinaryData.slice(offset, offset + 9)
+		const blobId = base64ToBase64Ext(uint8ArrayToBase64(blobIdBytes))
+
+		const blobSize = dataView.getInt32(offset + 15)
+		const contents = concatBinaryData.slice(offset + 19, offset + 19 + blobSize)
+		result.set(blobId, contents)
+		offset += 9 + 6 + 4 + blobSize
+	}
+	return result
 }
