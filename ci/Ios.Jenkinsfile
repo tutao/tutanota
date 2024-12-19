@@ -54,9 +54,7 @@ pipeline {
 			}
 			steps {
 				script {
-					stubClientDirectory()
 					generateXCodeProjects()
-					generateCalendarProject()
 					dir('app-ios') {
 						sh 'fastlane test'
 					}
@@ -157,7 +155,7 @@ pipeline {
 	} // stages
 } // pipeline
 
-def stubClientDirectory() {
+def ensureWebappDirectories() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
@@ -188,13 +186,13 @@ def generateXCodeProject(String projectPath, String spec) {
 
 // Runs xcodegen on all of our project specs
 def generateXCodeProjects() {
+	ensureWebappDirectories()
 	generateXCodeProject("app-ios", "mail-project")
+	// We don't technically need the calendar project but some Xcode tools are slightly upset if they don't find all
+	// projects referenced from a workspace.
+	sh 'mkdir -p build-calendar-app'
 	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
-}
-
-def generateCalendarProject() {
-	generateXCodeProject("app-ios", "calendar-project")
 }
 
 def uploadToNexus(String artifactId, String assetFileName, String fileExtension) {
