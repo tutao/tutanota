@@ -93,7 +93,7 @@ export {
 } from "./Encoding.js"
 export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding.js"
 export { LazyLoaded } from "./LazyLoaded.js"
-export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry } from "./MapUtils.js"
+export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry, mapMap } from "./MapUtils.js"
 export { pMap } from "./PromiseMap.js"
 export type { Mapper } from "./PromiseMap.js"
 export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils.js"

@@ -7,7 +7,7 @@ import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
-import { assertNotNull, isNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, isNotNull } from "@tutao/tutanota-utils"
 import { NotFoundError } from "../../../common/error/RestError"
 import { elementIdPart } from "../../../common/utils/EntityUtils"
 
@@ -50,14 +50,17 @@ export class MailExportFacade {
 
 		const downloads = await this.mailExportTokenFacade.loadWithToken((token) => {
 			const referencingInstances = attachmentsWithKeys.map(createReferencingInstance)
-			return this.blobFacade.downloadAndDecryptMultipleInstances(ArchiveDataType.Attachments, referencingInstances, this.options(token))
+			return this.blobFacade.downloadAndDecryptBlobsOfMultipleInstances(ArchiveDataType.Attachments, referencingInstances, this.options(token))
 		})
 
-		const attachmentData = await promiseMap(downloads.entries(), async ([fileId, download]) => {
+		const attachmentData = Array.from(downloads.entries()).map(([fileId, bytes]) => {
 			try {
-				const bytes = await download
-				const attachment = assertNotNull(attachmentsWithKeys.find((attachment) => elementIdPart(attachment._id) === fileId))
-				return convertToDataFile(attachment, bytes)
+				if (bytes == null) {
+					return null
+				} else {
+					const attachment = assertNotNull(attachmentsWithKeys.find((attachment) => elementIdPart(attachment._id) === fileId))
+					return convertToDataFile(attachment, bytes)
+				}
 			} catch (e) {
 				if (e instanceof NotFoundError) {
 					return null
