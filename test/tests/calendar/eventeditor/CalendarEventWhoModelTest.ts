@@ -281,6 +281,7 @@ o.spec("CalendarEventWhoModel", function () {
 					type: RecipientType.EXTERNAL,
 					contact: otherRecipient.contact,
 					status: CalendarAttendeeStatus.ADDED,
+					verified: false,
 				},
 			])("the single non-organizer guest is in guests array")
 			o(model.ownGuest).deepEquals(model.organizer)("the own guest is the organizer")
@@ -318,6 +319,7 @@ o.spec("CalendarEventWhoModel", function () {
 				type: RecipientType.INTERNAL,
 				status: CalendarAttendeeStatus.ACCEPTED,
 				contact: null,
+				verified: false,
 			})
 			const result = model.result
 			o(result.attendees.map((a) => a.address)).deepEquals([ownerAddress, otherAddress])
@@ -403,6 +405,7 @@ o.spec("CalendarEventWhoModel", function () {
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 					type: RecipientType.UNKNOWN,
 					contact: null,
+					verified: false,
 				},
 			])
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "", strength: 0 })("password is not set")
@@ -414,6 +417,7 @@ o.spec("CalendarEventWhoModel", function () {
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 					type: RecipientType.EXTERNAL,
 					contact: otherRecipient.contact,
+					verified: false,
 				},
 			])
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "otherPassword", strength: 1 })

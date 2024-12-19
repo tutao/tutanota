@@ -100,6 +100,7 @@ import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/res
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 const { captor, anything, argThat } = matchers
 
@@ -192,6 +193,7 @@ o.spec("CryptoFacadeTest", function () {
 	let crypto: CryptoFacade
 	let userFacade: UserFacade
 	let keyLoaderFacade: KeyLoaderFacade
+	let keyVerificationFacade: KeyVerificationFacade
 	let cache: DefaultEntityRestCache
 
 	o.before(function () {
@@ -207,6 +209,7 @@ o.spec("CryptoFacadeTest", function () {
 		entityClient = object()
 		asymmetricCryptoFacade = object()
 		ownerEncSessionKeysUpdateQueue = object()
+		keyVerificationFacade = object()
 		crypto = new CryptoFacade(
 			userFacade,
 			entityClient,
@@ -217,6 +220,7 @@ o.spec("CryptoFacadeTest", function () {
 			cache,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
+			async () => keyVerificationFacade,
 		)
 	})
 
@@ -620,6 +624,7 @@ o.spec("CryptoFacadeTest", function () {
 			cache,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
+			async () => keyVerificationFacade,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"
@@ -747,6 +752,7 @@ o.spec("CryptoFacadeTest", function () {
 			cache,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
+			async () => keyVerificationFacade,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"

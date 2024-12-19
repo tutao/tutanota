@@ -11,6 +11,7 @@ import { createNewContact, isTutaMailAddress } from "../../../src/common/mailFun
 export class ResolvableRecipientMock implements ResolvableRecipient {
 	public name: string
 	public type: RecipientType
+	public verified: boolean
 
 	private _resolved = false
 	private lazyResolve = new LazyLoaded<Recipient>(async () => {
@@ -27,6 +28,7 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 			name: this.name,
 			contact: this.contact,
 			type: this.type,
+			verified: false,
 		}
 	})
 
@@ -35,6 +37,7 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 		name: string | null,
 		public contact: Contact | null,
 		type: RecipientType | null,
+		verified: boolean,
 		/** non-tutanota addresses that should resolve to be INTERNAL */
 		private internalAddresses: string[],
 		/** contacts that should be resolved as though they were found by the contact model */

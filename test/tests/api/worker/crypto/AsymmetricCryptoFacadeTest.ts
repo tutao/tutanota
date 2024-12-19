@@ -32,6 +32,7 @@ import {
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation
@@ -39,6 +40,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 	let cryptoWrapper: CryptoWrapper
 	let serviceExecutor: IServiceExecutor
+	let keyVerificationFacade: KeyVerificationFacade
 
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 
@@ -48,7 +50,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		keyLoaderFacade = object()
 		cryptoWrapper = object()
 		serviceExecutor = object()
-		asymmetricCryptoFacade = new AsymmetricCryptoFacade(rsa, pqFacade, keyLoaderFacade, cryptoWrapper, serviceExecutor)
+		keyVerificationFacade = object()
+		asymmetricCryptoFacade = new AsymmetricCryptoFacade(rsa, pqFacade, keyLoaderFacade, cryptoWrapper, serviceExecutor, async () => keyVerificationFacade)
 	})
 
 	o.spec("authenticateSender", function () {

@@ -13,6 +13,7 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
+import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 o.spec("RecipientsModel", function () {
 	const contactListId = "contactListId"
@@ -27,6 +28,7 @@ o.spec("RecipientsModel", function () {
 	let loginControllerMock: LoginController
 	let mailFacadeMock: MailFacade
 	let entityClientMock: EntityClient
+	let keyVerificationFacadeMock: KeyVerificationFacade
 
 	let model: RecipientsModel
 
@@ -51,8 +53,9 @@ o.spec("RecipientsModel", function () {
 
 		mailFacadeMock = instance(MailFacade)
 		entityClientMock = instance(EntityClient)
+		keyVerificationFacadeMock = instance(KeyVerificationFacade)
 
-		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock)
+		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock, keyVerificationFacadeMock)
 	})
 
 	o("initializes with provided contact", function () {
@@ -177,7 +180,7 @@ o.spec("RecipientsModel", function () {
 
 		await model.resolve({ address: otherAddress, name: "Re Cipient" }, ResolveMode.Eager).whenResolved(handler).resolved()
 
-		verify(handler({ address: otherAddress, name: "Re Cipient", type: RecipientType.EXTERNAL, contact }))
+		verify(handler({ address: otherAddress, name: "Re Cipient", type: RecipientType.EXTERNAL, contact, verified: false }))
 	})
 })
 

@@ -826,7 +826,7 @@ export default {
 		"keyManagement_label": "Schlüsselverwaltung",
 		"keyManagement.fingerprint_label": "Fingerabdruck",
 		"keyManagement.invalidFingerprint_msg": "Dieser Fingerabdruck scheint nicht korrekt formatiert zu sein.",
-		"keyManagement.invalidQrcode_msg": "Der gescannte QR-Code ist fehlerhaft oder ungültig.",
+		"keyManagement.invalidQrCode_msg": "Der gescannte QR-Code ist fehlerhaft oder ungültig.",
 		"keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
 		"keyManagement.publicKeyFingerprintQrInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels, dargestellt als QR-Code.",
 		"keyManagement.publicKeyFingerprintTextInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels.",
