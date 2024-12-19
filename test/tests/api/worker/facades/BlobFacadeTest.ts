@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { RestClient, RestClientOptions } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
@@ -18,11 +18,11 @@ import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/Crypto
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { BlobPostOutTypeRef, BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
+import { BlobGetIn, BlobPostOutTypeRef, BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import type { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
-import { elementIdPart, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
@@ -50,6 +50,7 @@ o.spec("BlobFacade test", function () {
 	let cryptoFacadeMock: CryptoFacade
 	let dateProvider: DateProvider
 	let file: TutanotaFile
+	let anotherFile: TutanotaFile
 
 	o.beforeEach(function () {
 		authDataProvider = object<AuthDataProvider>()
@@ -65,6 +66,7 @@ o.spec("BlobFacade test", function () {
 		const mimeType = "text/plain"
 		const name = "fileName"
 		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
+		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
 
 		blobFacade = new BlobFacade(
 			authDataProvider,
@@ -328,6 +330,251 @@ o.spec("BlobFacade test", function () {
 			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
+		})
+	})
+
+	o.spec("downloadAndDecryptBlobsOfMultipleInstances", function () {
+		o.test("when passed multiple instances of the same archives it downloads and decrypts the data", async function () {
+			const sessionKey = aes256RandomKey()
+			const anothersessionKey = aes256RandomKey()
+			const blobData1 = new Uint8Array([1, 2, 3])
+			const blobId1 = "--------0s-1"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+
+			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
+			const blobId2 = "--------0s-2"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+
+			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
+			const blobId3 = "--------0s-3"
+			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
+
+			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+			})
+			when(
+				blobAccessTokenFacade.requestReadTokenMultipleInstances(
+					archiveDataType,
+					[wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)],
+					matchers.anything(),
+				),
+			).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({
+				baseUrl: "someBaseUrl",
+				blobAccessToken: blobAccessInfo.blobAccessToken,
+			})
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			const requestBody = { "request-body": true }
+			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
+			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
+			const blobResponse = concat(
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId1)),
+				// blob hash
+				new Uint8Array([1, 2, 3, 4, 5, 6]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData1,
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId2)),
+				// blob hash
+				new Uint8Array([6, 5, 4, 3, 2, 1]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData2,
+				//blodId
+				base64ToUint8Array(base64ExtToBase64(blobId3)),
+				// blob hash
+				new Uint8Array([7, 8, 9, 10, 11, 12]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData3,
+			)
+			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+
+			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
+
+			o(result).deepEquals(
+				new Map([
+					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(anotherFile), blobData3],
+				]),
+			)
+		})
+		o.test("when passed multiple instances of the different archives it downloads and decrypts the data", async function () {
+			const sessionKey = aes256RandomKey()
+			const anothersessionKey = aes256RandomKey()
+			const blobData1 = new Uint8Array([1, 2, 3])
+			const blobId1 = "--------0s-1"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId: "archiveId1" }))
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+
+			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
+			const blobId2 = "--------0s-2"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: "archiveId1" }))
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+
+			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
+			const blobId3 = "--------0s-3"
+			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65), archiveId: "archiveId2" }))
+			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
+
+			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+			})
+			when(blobAccessTokenFacade.requestReadTokenMultipleInstances(archiveDataType, [wrapTutanotaFile(file)], matchers.anything())).thenResolve(
+				blobAccessInfo,
+			)
+			when(blobAccessTokenFacade.requestReadTokenMultipleInstances(archiveDataType, [wrapTutanotaFile(anotherFile)], matchers.anything())).thenResolve(
+				blobAccessInfo,
+			)
+			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({
+				baseUrl: "someBaseUrl",
+				blobAccessToken: blobAccessInfo.blobAccessToken,
+			})
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			const requestBody1 = { body: 1 }
+			when(
+				instanceMapperMock.encryptAndMapToLiteral(
+					anything(),
+					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length == 2),
+					anything(),
+				),
+			).thenResolve(requestBody1)
+			const requestBody2 = { body: 2 }
+			when(
+				instanceMapperMock.encryptAndMapToLiteral(
+					anything(),
+					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length == 1),
+					anything(),
+				),
+			).thenResolve(requestBody2)
+			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
+			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
+			const blobResponse1 = concat(
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId1)),
+				// blob hash
+				new Uint8Array([1, 2, 3, 4, 5, 6]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData1,
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId2)),
+				// blob hash
+				new Uint8Array([6, 5, 4, 3, 2, 1]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData2,
+			)
+
+			const blobResponse2 = concat(
+				//blodId
+				base64ToUint8Array(base64ExtToBase64(blobId3)),
+				// blob hash
+				new Uint8Array([7, 8, 9, 10, 11, 12]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData3,
+			)
+			when(
+				restClientMock.request(
+					BLOB_SERVICE_REST_PATH,
+					HttpMethod.GET,
+					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === 1),
+				),
+			).thenResolve(blobResponse1)
+			when(
+				restClientMock.request(
+					BLOB_SERVICE_REST_PATH,
+					HttpMethod.GET,
+					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === 2),
+				),
+			).thenResolve(blobResponse2)
+
+			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
+
+			o(result).deepEquals(
+				new Map([
+					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(anotherFile), blobData3],
+				]),
+			)
+		})
+		o.test("when passed multiple instances of the same archives but one blob is missing it downloads and decrypts the rest", async function () {
+			const sessionKey = aes256RandomKey()
+			const anothersessionKey = aes256RandomKey()
+			const blobData1 = new Uint8Array([1, 2, 3])
+			const blobId1 = "--------0s-1"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+
+			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
+			const blobId2 = "--------0s-2"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+
+			const blobId3 = "--------0s-3"
+			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+
+			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+			})
+			when(
+				blobAccessTokenFacade.requestReadTokenMultipleInstances(
+					archiveDataType,
+					[wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)],
+					matchers.anything(),
+				),
+			).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({
+				baseUrl: "someBaseUrl",
+				blobAccessToken: blobAccessInfo.blobAccessToken,
+			})
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			const requestBody = { "request-body": true }
+			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
+			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
+			const blobResponse = concat(
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId1)),
+				// blob hash
+				new Uint8Array([1, 2, 3, 4, 5, 6]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData1,
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId2)),
+				// blob hash
+				new Uint8Array([6, 5, 4, 3, 2, 1]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData2,
+			)
+			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+
+			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
+
+			o(result).deepEquals(new Map([[getElementId(file), concat(blobData1, blobData2)]]))
 		})
 	})
 

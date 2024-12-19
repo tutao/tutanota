@@ -73,7 +73,7 @@ o.spec("MailExportFacade", () => {
 
 		when(cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail1, mailAttachments)).thenResolve(mailAttachments)
 		when(
-			blobFacade.downloadAndDecryptMultipleInstances(
+			blobFacade.downloadAndDecryptBlobsOfMultipleInstances(
 				ArchiveDataType.Attachments,
 				[createReferencingInstance(mailAttachments[0]), createReferencingInstance(mailAttachments[1])],
 				{
@@ -82,8 +82,8 @@ o.spec("MailExportFacade", () => {
 			),
 		).thenResolve(
 			new Map([
-				["id1", Promise.resolve(dataByteMail1)],
-				["id2", Promise.resolve(dataByteMail2)],
+				["id1", dataByteMail1],
+				["id2", dataByteMail2],
 			]),
 		)
 
