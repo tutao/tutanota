@@ -1223,7 +1223,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				? applyYearDay(weekNoAppliedEvents, byYearDayRules, byWeekNoRules.length > 0, byMonthRules.length > 0)
 				: weekNoAppliedEvents
 
-		const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules)
+		const monthDayAppliedEvents = applyByMonthDay(yearDayAppliedEvents, byMonthDayRules, frequency === RepeatPeriod.DAILY)
 
 		const events = finishByRules(
 			applyByDayRules(
