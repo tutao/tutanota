@@ -82,7 +82,7 @@ export class ViewColumn implements Component<Attrs> {
 			".view-column.fill-absolute",
 			{
 				...landmark,
-				"aria-hidden": this.isVisible || this.isInForeground ? "false" : "true",
+				inert: !this.isVisible && !this.isInForeground,
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement
 					this.domColumn.style.transform =
