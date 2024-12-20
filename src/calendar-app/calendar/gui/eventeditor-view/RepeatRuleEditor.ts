@@ -5,14 +5,13 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { EndType, RepeatPeriod, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
-import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, customFrequenciesOptions, IntervalOption } from "../CalendarGuiUtils.js"
+import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, IntervalOption } from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
-import { RadioGroup, RadioGroupAttrs, RadioGroupOption } from "../../../../common/gui/base/RadioGroup.js"
+import { RadioGroup, RadioGroupAttrs } from "../../../../common/gui/base/RadioGroup.js"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
-import { Divider } from "../../../../common/gui/Divider.js"
 import { theme } from "../../../../common/gui/theme.js"
 
 export type RepeatRuleEditorAttrs = {
@@ -22,7 +21,7 @@ export type RepeatRuleEditorAttrs = {
 	backAction: () => void
 }
 
-type RepeatRuleOption = RepeatPeriod | "CUSTOM" | null
+type RepeatRuleOption = RepeatPeriod | null
 
 export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
@@ -37,10 +36,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatOccurrences: number
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
-		if (attrs.model.repeatPeriod != null) {
-			this.repeatRuleType = this.getRepeatType(attrs.model.repeatPeriod, attrs.model.repeatInterval, attrs.model.repeatEndType)
-		}
-
+		this.repeatRuleType = attrs.model.repeatPeriod
 		this.intervalOptions(this.numberValues)
 		this.occurrencesOptions(this.numberValues)
 
@@ -48,63 +44,53 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		this.repeatOccurrences = attrs.model.repeatEndOccurrences
 	}
 
-	private getRepeatType(period: RepeatPeriod, interval: number, endTime: EndType) {
-		if (interval > 1 || endTime !== EndType.Never) {
-			return "CUSTOM"
-		}
-
-		return period
-	}
-
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
-		const customRuleOptions = customFrequenciesOptions.map((option) => ({
-			...option,
-			name: attrs.model.repeatInterval > 1 ? option.name.plural : option.name.singular,
-		})) as RadioGroupOption<RepeatPeriod>[]
-
 		return m(
 			".pb.pt.flex.col.gap-vpad.fit-height",
 			{
-				class: this.repeatRuleType === "CUSTOM" ? "box-content" : "",
+				class: this.repeatRuleType !== null ? "box-content" : "",
 				style: {
 					width: px(attrs.width),
 				},
 			},
 			[
-				m(
-					Card,
-					{
-						style: {
-							padding: `${size.vpad}px`,
+				m(".flex.col", [
+					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, "Frequency"),
+					m(
+						Card,
+						{
+							style: {
+								padding: `${size.vpad}px`,
+							},
 						},
-					},
-					m(RadioGroup, {
-						ariaLabel: "calendarRepeating_label",
-						name: "calendarRepeating_label",
-						options: createRepeatRuleOptions(),
-						selectedOption: this.repeatRuleType,
-						onOptionSelected: (option: RepeatRuleOption) => {
-							this.repeatRuleType = option
-							if (option === "CUSTOM") {
-								attrs.model.repeatPeriod = attrs.model.repeatPeriod ?? RepeatPeriod.DAILY
-							} else {
-								attrs.model.repeatInterval = 1
-								attrs.model.repeatEndType = EndType.Never
-								attrs.model.repeatPeriod = option as RepeatPeriod
-								attrs.backAction()
-							}
-						},
-						classes: ["cursor-pointer"],
-					} satisfies RadioGroupAttrs<RepeatRuleOption>),
-				),
-				this.renderFrequencyOptions(attrs, customRuleOptions),
+						m(RadioGroup, {
+							ariaLabel: "calendarRepeating_label",
+							name: "calendarRepeating_label",
+							options: createRepeatRuleOptions(),
+							selectedOption: this.repeatRuleType,
+							onOptionSelected: (option: RepeatRuleOption) => {
+								this.repeatRuleType = option
+								if (option === null) {
+									attrs.model.repeatInterval = 1
+									attrs.model.repeatEndType = EndType.Never
+									attrs.model.repeatPeriod = option
+									attrs.backAction()
+								} else {
+									this.updateCustomRule(attrs.model, { intervalFrequency: option as RepeatPeriod })
+								}
+							},
+							classes: ["cursor-pointer"],
+						} satisfies RadioGroupAttrs<RepeatRuleOption>),
+					),
+				]),
+				this.renderFrequencyOptions(attrs),
 				this.renderEndOptions(attrs),
 			],
 		)
 	}
 
 	private renderEndOptions(attrs: RepeatRuleEditorAttrs) {
-		if (this.repeatRuleType !== "CUSTOM") {
+		if (this.repeatRuleType === null) {
 			return null
 		}
 
@@ -135,8 +121,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		])
 	}
 
-	private renderFrequencyOptions(attrs: RepeatRuleEditorAttrs, customRuleOptions: RadioGroupOption<RepeatPeriod>[]) {
-		if (this.repeatRuleType !== "CUSTOM") {
+	private renderFrequencyOptions(attrs: RepeatRuleEditorAttrs) {
+		if (this.repeatRuleType === null) {
 			return null
 		}
 
@@ -150,20 +136,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					},
 					classes: ["flex", "col"],
 				},
-				[
-					this.renderIntervalPicker(attrs),
-					m(Divider, { color: theme.button_bubble_bg, style: { margin: `0 0 ${size.vpad}px` } }),
-					m(RadioGroup, {
-						ariaLabel: "intervalFrequency_label",
-						name: "intervalFrequency_label",
-						options: customRuleOptions,
-						selectedOption: attrs.model.repeatPeriod,
-						onOptionSelected: (option: RepeatPeriod) => {
-							this.updateCustomRule(attrs.model, { intervalFrequency: option })
-						},
-						classes: ["cursor-pointer", "capitalize", "pl-vpad-m", "pr-vpad-m"],
-					} satisfies RadioGroupAttrs<RepeatPeriod>),
-				],
+				[this.renderIntervalPicker(attrs)],
 			),
 		])
 	}

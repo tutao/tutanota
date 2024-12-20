@@ -399,7 +399,7 @@ export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod
 		},
 	]
 }
-export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | "CUSTOM" | null>> => {
+export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | null>> => {
 	return [
 		{
 			name: "calendarRepeatIntervalNoRepeat_label",
@@ -421,31 +421,8 @@ export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<Repeat
 			name: "calendarRepeatIntervalAnnually_label",
 			value: RepeatPeriod.ANNUALLY,
 		},
-		{
-			name: "custom_label",
-			value: "CUSTOM",
-		},
 	]
 }
-
-export const customFrequenciesOptions = [
-	{
-		name: { singular: "day_label", plural: "days_label" },
-		value: RepeatPeriod.DAILY,
-	},
-	{
-		name: { singular: "week_label", plural: "weeks_label" },
-		value: RepeatPeriod.WEEKLY,
-	},
-	{
-		name: { singular: "month_label", plural: "months_label" },
-		value: RepeatPeriod.MONTHLY,
-	},
-	{
-		name: { singular: "year_label", plural: "years_label" },
-		value: RepeatPeriod.ANNUALLY,
-	},
-]
 
 export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<EndType>> => {
 	return [
