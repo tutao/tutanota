@@ -70,6 +70,7 @@ import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.j
 import { DesktopMailImportSettingsViewer } from "./DesktopMailImportSettingsViewer.js"
 import { mailLocator } from "../mailLocator"
 import { WebMailImportSettingsViewer } from "./WebMailImportSettingsViewer.js"
+import { MailExportViewer } from "./MailExportViewer"
 
 assertMainOrNode()
 
@@ -173,6 +174,16 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				)
 			}
 		})
+
+		this._userFolders.push(
+			new SettingsFolder(
+				"mailExport_label",
+				() => Icons.Export,
+				"mailExport",
+				() => new MailExportViewer(),
+				undefined,
+			),
+		)
 
 		this._adminFolders = []
 		this._templateFolders = []

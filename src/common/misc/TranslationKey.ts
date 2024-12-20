@@ -1879,3 +1879,6 @@ export type TranslationKeyType =
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"
 	| "localAdminGroups_label"
 	| "exportRunningElsewhere_label"
+	| "mailExport_label"
+	| "downloadDesktopClient_label"
+	| "mailExportOnlyOnDesktop_label"
