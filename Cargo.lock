@@ -2356,6 +2356,7 @@ dependencies = [
  "pqcrypto-traits",
  "rand",
  "rand_core",
+ "regex",
  "rsa",
  "rustls",
  "serde",
