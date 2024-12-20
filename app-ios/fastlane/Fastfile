@@ -33,7 +33,7 @@ platform :ios do
 		build_app(
 			scheme: "tuta prod",
 			output_directory: "releases",
-			output_name: "tutanota-" + get_version_number(target: "tutanota"),
+			output_name: "tutanota-" + get_version_number(target: "tutanota", project: "tutanota.xcodeproj"),
 			include_symbols: true,
 			verbose: true
 		)
@@ -68,7 +68,7 @@ platform :ios do
 
 		clear_derived_data
 
-		ipa_name = "tutanota-" + get_version_number(target: "tutanota") + "-adhoc"
+		ipa_name = "tutanota-" + get_version_number(target: "tutanota", project: "tutanota.xcodeproj") + "-adhoc"
 		build_app(
 			scheme: "tuta prod",
 			output_directory: "releases",
@@ -98,7 +98,7 @@ platform :ios do
 		build_app(
 			scheme: "tuta staging",
 			output_directory: "releases",
-			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
+			output_name: "tutanota-" + get_version_number(target: "tutanota", project: "tutanota.xcodeproj") + "-test",
 			verbose: true
 		)
 	end
@@ -132,7 +132,7 @@ platform :ios do
 		build_app(
 			scheme: "tuta staging",
 			output_directory: "releases",
-			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-adhoc-test",
+			output_name: "tutanota-" + get_version_number(target: "tutanota", project: "tutanota.xcodeproj") + "-adhoc-test",
 			export_options: {
 				method: "ad-hoc"
 			},
@@ -262,7 +262,7 @@ platform :ios do
    		build_app(
    			scheme: "calendar staging",
    			output_directory: "releases",
-   			output_name: "calendar-" + get_version_number(target: "calendar") + "-adhoc-test",
+   			output_name: "calendar-" + get_version_number(target: "calendar", project: "calendar.xcodeproj")  + "-adhoc-test",
    			export_options: {
    				method: "ad-hoc"
    			},
@@ -287,7 +287,7 @@ platform :ios do
    		build_app(
    			scheme: "calendar staging",
    			output_directory: "releases",
-   			output_name: "calendar-" + get_version_number(target: "calendar") + "-test",
+   			output_name: "calendar-" + get_version_number(target: "calendar", project: "calendar.xcodeproj")  + "-test",
    			verbose: true
    		)
 
@@ -312,7 +312,7 @@ platform :ios do
 
    		clear_derived_data
 
-   		ipa_name = "calendar-" + get_version_number(target: "calendar") + "-adhoc"
+   		ipa_name = "calendar-" + get_version_number(target: "calendar", project: "calendar.xcodeproj")  + "-adhoc"
    		build_app(
    			scheme: "calendar prod",
    			output_directory: "releases",
@@ -341,7 +341,7 @@ platform :ios do
    		build_app(
    			scheme: "calendar prod",
    			output_directory: "releases",
-   			output_name: "calendar-" + get_version_number(target: "calendar"),
+   			output_name: "calendar-" + get_version_number(target: "calendar", project: "calendar.xcodeproj") ,
    			include_symbols: true,
    			verbose: true
    		)
