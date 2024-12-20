@@ -38,7 +38,7 @@ export class MailExportController {
 	private _state: Stream<MailExportState> = stream({ type: "idle" })
 	private _lastExport: Date | null = null
 	private servers?: BlobServerUrl[]
-	private serverCount: number = 0
+	private serverIndex: number = 0
 
 	get lastExport(): Date | null {
 		return this._lastExport
@@ -180,7 +180,7 @@ export class MailExportController {
 					const mailAttachmentInfo = mail.attachments
 						.map((attachmentId) => attachmentInfo.find((attachment) => isSameId(attachment._id, attachmentId)))
 						.filter(isNotNull)
-					const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo, this.getServerUrl())
+					const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo)
 					const { makeMailBundle } = await import("../../mail/export/Bundler.js")
 					const mailBundle = makeMailBundle(this.sanitizer, mail, mailDetails, attachments)
 
@@ -227,11 +227,11 @@ export class MailExportController {
 
 	private getServerUrl(): string {
 		if (this.servers) {
-			this.serverCount += 1
-			if (this.serverCount >= this.servers.length) {
-				this.serverCount = 0
+			this.serverIndex += 1
+			if (this.serverIndex >= this.servers.length) {
+				this.serverIndex = 0
 			}
-			return this.servers[this.serverCount].url
+			return this.servers[this.serverIndex].url
 		}
 		throw new Error("No servers")
 	}
