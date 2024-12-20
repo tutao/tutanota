@@ -57,13 +57,12 @@ export class MailExportFacade {
 		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadAttachments(mails, { baseUrl, ...this.options(token) }))
 	}
 
-	async loadAttachmentData(mail: Mail, attachments: readonly TutanotaFile[], baseUrl: string): Promise<DataFile[]> {
+	async loadAttachmentData(mail: Mail, attachments: readonly TutanotaFile[]): Promise<DataFile[]> {
 		const attachmentsWithKeys = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, attachments)
 
 		const downloads = await this.mailExportTokenFacade.loadWithToken((token) => {
 			const referencingInstances = attachmentsWithKeys.map(createReferencingInstance)
 			return this.blobFacade.downloadAndDecryptBlobsOfMultipleInstances(ArchiveDataType.Attachments, referencingInstances, {
-				baseUrl,
 				...this.options(token),
 			})
 		})
