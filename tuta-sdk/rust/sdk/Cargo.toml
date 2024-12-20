@@ -44,6 +44,7 @@ hyper-rustls = { version = "0.27.3", features = ["ring", "http2"], optional = tr
 rustls = { version = "*", optional = true }
 form_urlencoded = "1"
 time = { version = "0.3.37", features = ["serde", "macros"] }
+regex = "1.11.1"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_log = "0.1.3"

@@ -1,5 +1,6 @@
 use std::ops::{Add, Sub};
 
+use regex::Regex;
 use time::{Date, Duration, Month, PrimitiveDateTime, Weekday};
 use time::util::weeks_in_year;
 
@@ -91,8 +92,12 @@ trait MonthNumber {
     fn from_number(number: i8) -> Month;
 }
 
+trait WeekdayString {
+    fn from_short(short_weekday: &str);
+}
+
 impl MonthNumber for Month {
-    fn to_number(&self) -> i8 {
+    fn to_number(&self) -> u8 {
         match *self {
             Month::January => 1,
             Month::February => 2,
@@ -109,7 +114,7 @@ impl MonthNumber for Month {
         }
     }
 
-    fn from_number(number: i8) -> Month {
+    fn from_number(number: u8) -> Month {
         match number {
             1 => Month::January,
             2 => Month::February,
@@ -124,6 +129,21 @@ impl MonthNumber for Month {
             11 => Month::November,
             12 => Month::December,
             _ => panic!("Invalid Month {number}")
+        }
+    }
+}
+
+impl WeekdayString for Weekday {
+    fn from_short(short_weekday: &str) -> Weekday {
+        match short_weekday {
+            "MO" => Weekday::Monday,
+            "TU" => Weekday::Tuesday,
+            "WE" => Weekday::Wednesday,
+            "TH" => Weekday::Thursday,
+            "FR" => Weekday::Friday,
+            "SA" => Weekday::Saturday,
+            "SU" => Weekday::Sunday,
+            _ => panic!("Invalid Weekday {short_weekday}")
         }
     }
 }
@@ -156,7 +176,7 @@ impl<'a> EventRecurrence {
             None => Weekday::Monday
         };
 
-        let valid_months: Vec<i8> = by_month_rules.iter().clone().map(|&x| { x.interval.parse::<i8>().unwrap() }).collect();
+        let valid_months: Vec<u8> = by_month_rules.iter().clone().map(|&x| { x.interval.parse::<u8>().unwrap() }).collect();
         let valid_year_days: Vec<i8> = by_year_day_rules.iter().clone().map(|&x| { x.interval.parse::<i8>().unwrap() }).collect();
 
         let month_applied_events: Vec<PrimitiveDateTime> = self.apply_month_rules(&vec![date], &by_month_rules, &repeat_rule.frequency);
@@ -177,7 +197,7 @@ impl<'a> EventRecurrence {
 
         for &rule in rules {
             for date in dates {
-                let target_month: i8 = match rule.interval.parse::<i8>() {
+                let target_month: u8 = match rule.interval.parse::<u8>() {
                     Ok(month) => month,
                     _ => continue
                 };
@@ -355,11 +375,45 @@ impl<'a> EventRecurrence {
         new_dates
     }
 
-    fn apply_day_rules(&self, dates: Vec<PrimitiveDateTime>, rules: &Vec<&ByRule>, frequency: &RepeatPeriod, valid_months: Vec<i8>, week_start: Weekday, has_week_no: bool, valid_year_days: Vec<i8>) -> Vec<PrimitiveDateTime> {
+    fn apply_day_rules(&self, dates: Vec<PrimitiveDateTime>, rules: &Vec<&ByRule>, frequency: &RepeatPeriod, valid_months: Vec<u8>, week_start: Weekday, has_week_no: bool, valid_year_days: Vec<i8>) -> Vec<PrimitiveDateTime> {
+        if rules.len() == 0 {
+            return dates.clone();
+        }
+
+        let mut new_dates: Vec<PrimitiveDateTime> = Vec::new();
+        let regex = Regex::new(r"^([-+]?\d{0,3})([a-zA-Z]{2})?$").unwrap();
+
+        for &rule in rules {
+            for date in &dates {
+                let Some(parsed_rule) = regex.captures(rule.interval.as_str()) else { continue };
+                let target_week_day = parsed_rule.get(2);
+                let leading_value = parsed_rule.get(1);
+
+                if frequency == &RepeatPeriod::DAILY && target_week_day.is_some() && date.weekday() == Weekday::from_short(target_week_day.unwrap().as_str()) {
+                    new_dates.push(date.clone())
+                } else if frequency == &RepeatPeriod::WEEKLY && target_week_day.is_some() {
+                    let mut new_date = date.replace_date(Date::from_iso_week_date(date.year(), date.iso_week(), Weekday::from_short(target_week_day.unwrap().as_str())).unwrap());
+                    let interval_start = date.replace_date(Date::from_iso_week_date(date.year(), date.iso_week(), week_start).unwrap());
+
+                    if new_date.assume_utc().unix_timestamp() > interval_start.add(Duration::weeks(1)).assume_utc().unix_timestamp() {
+                        continue;
+                    } else if new_date.assume_utc().unix_timestamp() < interval_start.assume_utc().unix_timestamp() {
+                        new_date = new_date.add(Duration::weeks(1));
+                    }
+
+                    if valid_months.len() == 0 || valid_months.contains(&new_date.month().to_number()) {
+                        new_dates.push(new_date)
+                    }
+                } else if frequency == &RepeatPeriod::MONTHLY && target_week_day.is_some() {
+
+                }
+            }
+        }
+
         Vec::new()
     }
 
-    fn finish_rules(&self, dates: Vec<PrimitiveDateTime>, set_pos_rules: &Vec<&ByRule>, valid_months: Vec<i8>, event_start_time: i64) -> Vec<PrimitiveDateTime> {
+    fn finish_rules(&self, dates: Vec<PrimitiveDateTime>, set_pos_rules: &Vec<&ByRule>, valid_months: Vec<u8>, event_start_time: i64) -> Vec<PrimitiveDateTime> {
         Vec::new()
     }
 }
@@ -776,5 +830,253 @@ mod tests {
                 interval: "32".to_string(),
             },
         ], false), []);
+    }
+
+    #[test]
+    fn test_parse_by_day_daily() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "FR".to_string(),
+            }
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [date]);
+    }
+
+    #[test]
+    fn test_parse_by_day_daily_invalid() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 8).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "FR".to_string(),
+            }
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), []);
+    }
+
+    #[test]
+    fn test_parse_by_day_weekly() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 9).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "FR".to_string(),
+            },
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "SA".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date.replace_day(10).unwrap(),
+                       date.replace_day(11).unwrap()
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_monthly() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 6).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "MO".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date,
+                       date.replace_day(13).unwrap(),
+                       date.replace_day(20).unwrap(),
+                       date.replace_day(27).unwrap()
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_monthly_with_monthday() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 6).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "MO".to_string(),
+            },
+            &ByRule {
+                by_rule: ByRuleType::BYMONTHDAY,
+                interval: "7".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), []);
+    }
+
+    #[test]
+    fn test_parse_by_day_monthly_with_week() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "2MO".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date.replace_day(20).unwrap()
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_monthly_with_monthday_and_week() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 6).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "2MO".to_string(),
+            },
+            &ByRule {
+                by_rule: ByRuleType::BYMONTHDAY,
+                interval: "7".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), []);
+    }
+
+    #[test]
+    fn test_parse_by_day_yearly() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 6).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "MO".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date,
+                       date.replace_day(13).unwrap(),
+                       date.replace_day(20).unwrap(),
+                       date.replace_day(27).unwrap()
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_yearly_with_week() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "2MO".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date.replace_day(13).unwrap(),
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_yearly_with_ordinal_day() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "35".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date.replace_month(Month::February).unwrap().replace_day(9).unwrap(),
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_yearly_with_weekno() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "35".to_string(),
+            },
+            &ByRule {
+                by_rule: ByRuleType::BYWEEKNO,
+                interval: "6".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), [
+                       date.replace_month(Month::February).unwrap().replace_day(4).unwrap(),
+                   ]);
+    }
+
+    #[test]
+    fn test_parse_by_day_yearly_with_unmatch_weekno() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "35".to_string(),
+            },
+            &ByRule {
+                by_rule: ByRuleType::BYWEEKNO,
+                interval: "7".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), []);
+    }
+
+    #[test]
+    fn test_parse_by_day_yearly_with_invalid_rule() {
+        let time = Time::from_hms(13, 23, 00).unwrap();
+        let date = PrimitiveDateTime::new(Date::from_calendar_date(2025, Month::January, 10).unwrap(), time);
+
+        let event_recurrence = EventRecurrence {};
+        // Can be WEEKDAY + WEEK
+
+        assert_eq!(event_recurrence.apply_day_rules(vec![date], &vec![
+            &ByRule {
+                by_rule: ByRuleType::BYDAY,
+                interval: "2MO".to_string(),
+            },
+            &ByRule {
+                by_rule: ByRuleType::BYWEEKNO,
+                interval: "6".to_string(),
+            },
+        ], &RepeatPeriod::DAILY, vec![], Weekday::Monday, false, vec![]), []);
     }
 }
