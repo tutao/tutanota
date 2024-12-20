@@ -1,6 +1,8 @@
 use crate::crypto::aes::{AesEncryptError, Iv};
 use crate::crypto::ecc::{EccKeyPair, EccPublicKey};
-use crate::crypto::key::{AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError};
+use crate::crypto::key::{
+	AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError, VersionedAesKey,
+};
 use crate::crypto::kyber::{KyberKeyError, KyberPublicKey};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
@@ -9,7 +11,6 @@ use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::{PubEncKeyData, PublicKeyGetIn, PublicKeyPutIn};
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
-use crate::key_loader_facade::VersionedAesKey;
 use crate::services::generated::sys::PublicKeyService;
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::ServiceExecutor;

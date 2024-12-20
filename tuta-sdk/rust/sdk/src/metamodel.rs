@@ -54,6 +54,7 @@ impl ValueType {
 /// Associations (references and aggregations) have two dimensions: the type they reference and
 /// their cardinality.
 #[derive(Deserialize, PartialEq, Clone)]
+#[cfg_attr(test, derive(Debug))]
 pub enum Cardinality {
 	/// Optional
 	ZeroOrOne,
@@ -87,6 +88,7 @@ pub enum AssociationType {
 
 /// Description of the value (value field of Element)
 #[derive(Deserialize, Clone)]
+#[cfg_attr(test, derive(Debug))]
 pub struct ModelValue {
 	pub id: u64,
 	#[serde(rename = "type")]
