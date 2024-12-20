@@ -225,6 +225,7 @@ function applyByDayRules(
 	validMonths: number[],
 	wkst: WeekdayNumbers,
 	hasWeekNo?: boolean,
+	monthDays?: number[],
 	yearDays?: number[],
 ) {
 	if (parsedRules.length === 0) {
@@ -284,7 +285,7 @@ function applyByDayRules(
 				const stopCondition = date.plus({ month: 1 }).set({ day: 1 })
 				const baseDate = date.set({ day: 1 })
 
-				for (const allowedDay of validMonths) {
+				for (const allowedDay of monthDays ?? []) {
 					if (allowedDay > 0) {
 						allowedDays.push(allowedDay)
 						continue
@@ -299,7 +300,7 @@ function applyByDayRules(
 				}
 
 				if (weekChange != 0) {
-					let dt = baseDate.set({ day: 1 })
+					let dt = baseDate
 
 					if (weekChange < 0) {
 						dt = dt
@@ -332,7 +333,7 @@ function applyByDayRules(
 				}
 			} else if (frequency === RepeatPeriod.ANNUALLY) {
 				const weekChange = leadingValue ?? 0
-				if (hasWeekNo && weekChange > 0) {
+				if (hasWeekNo && weekChange !== 0) {
 					console.warn("Invalid repeat rule, can't use BYWEEKNO with Week Offset on BYDAY")
 					continue
 				}
@@ -343,7 +344,6 @@ function applyByDayRules(
 						if (weekChange > 0) {
 							dt = date.set({ day: 1, month: 1 }).plus({ day: weekChange - 1 })
 						} else {
-							console.log({ weekChange, day: Math.abs(weekChange) - 1 })
 							dt = date.set({ day: 31, month: 12 }).minus({ day: Math.abs(weekChange) - 1 })
 						}
 						if (dt.toMillis() < date.toMillis()) {
@@ -365,7 +365,7 @@ function applyByDayRules(
 					}
 					const dt = date.set({ weekday: targetWeekDay })
 					const intervalStart = date.set({ weekday: wkst })
-					if (dt.toMillis() > intervalStart.plus({ week: 1 }).toMillis()) {
+					if (dt.toMillis() > intervalStart.plus({ week: 1 }).toMillis() || dt.toMillis() < date.toMillis()) {
 						// Do nothing
 					} else if (dt.toMillis() < intervalStart.toMillis()) {
 						newDates.push(intervalStart.plus({ week: 1 }))
@@ -377,7 +377,7 @@ function applyByDayRules(
 						continue
 					}
 
-					const stopCondition = date.set({ day: 1 }).plus({ month: 1 })
+					const stopCondition = date.set({ day: 1 }).plus({ year: 1 })
 					let currentDate = date.set({ day: 1, weekday: targetWeekDay })
 
 					if (currentDate.toMillis() >= date.set({ day: 1 }).toMillis()) {
@@ -406,6 +406,7 @@ function applyByDayRules(
 				}
 
 				const day = daysInYear - Math.abs(allowedDay) + 1
+				allowedDays.push(day)
 			}
 
 			return allowedDays
@@ -1210,6 +1211,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 		const validMonths = byMonthRules.map((rule) => Number.parseInt(rule.interval))
 		const validYearDays = byYearDayRules.map((rule) => Number.parseInt(rule.interval))
 		const monthAppliedEvents = applyByMonth([DateTime.fromJSDate(calcStartTime, { zone: repeatTimeZone })], byMonthRules, frequency)
+		const validMonthDays = byMonthDayRules.map((rule) => Number.parseInt(rule.interval))
 
 		// RFC explicit says to not apply when freq != Annually
 		const weekNoAppliedEvents =
@@ -1231,6 +1233,7 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 				validMonths,
 				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
 				byWeekNoRules.length > 0,
+				validMonthDays,
 				validYearDays,
 			),
 			validMonths as MonthNumbers[],
