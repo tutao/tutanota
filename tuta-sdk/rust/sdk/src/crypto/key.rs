@@ -1,7 +1,7 @@
 use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
-use crate::util::ArrayCastingError;
+use crate::util::{ArrayCastingError, Versioned};
 use crate::ApiCallError;
 use std::fmt::{Debug, Formatter};
 use zeroize::Zeroizing;
@@ -155,6 +155,13 @@ impl GenericAesKey {
 			Self::Aes256(n) => n.as_bytes(),
 		}
 	}
+
+	pub fn get_inner(self) -> Vec<u8> {
+		match self {
+			Self::Aes128(k) => k.get_inner().to_vec(),
+			Self::Aes256(k) => k.get_inner().to_vec(),
+		}
+	}
 }
 
 impl From<Aes128Key> for GenericAesKey {
@@ -194,6 +201,16 @@ impl KeyLoadErrorSubtype for RSAKeyError {}
 
 /// Used to handle errors from the entity client
 impl KeyLoadErrorSubtype for ApiCallError {}
+
+pub type VersionedAesKey = Versioned<GenericAesKey>;
+
+impl Versioned<GenericAesKey> {
+	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Versioned<Vec<u8>> {
+		let encrypted_key = self.object.encrypt_key(key_to_encrypt, iv);
+		// todo: this looks like the vec<u8> has the version which is not true
+		Versioned::new(encrypted_key, self.version)
+	}
+}
 
 #[cfg(test)]
 mod tests {

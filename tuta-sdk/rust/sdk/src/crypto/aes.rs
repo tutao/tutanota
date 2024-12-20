@@ -64,6 +64,11 @@ macro_rules! aes_key {
 				&self.0
 			}
 
+			/// Get inner bytes
+			pub fn get_inner(self) -> [u8; $size] {
+				self.0
+			}
+
 			/// Load the key from bytes.
 			///
 			/// Returns Err if the key is not the correct size.
