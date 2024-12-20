@@ -1,18 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { theme } from "../../common/gui/theme"
-import { px } from "../../common/gui/size"
-import { ProgressBar } from "../../common/gui/base/ProgressBar"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { mailLocator } from "../mailLocator"
 import { first } from "@tutao/tutanota-utils"
 import { LoginController } from "../../common/api/main/LoginController"
-import { Button, ButtonType } from "../../common/gui/base/Button"
 import { MailExportController } from "../native/main/MailExportController.js"
-import { formatDate } from "../../common/misc/Formatter"
 import Stream from "mithril/stream"
+import { Button, ButtonType } from "../../common/gui/base/Button"
+import { formatDate } from "../../common/misc/Formatter"
+import { IconButton } from "../../common/gui/base/IconButton"
+import { Icons } from "../../common/gui/base/icons/Icons"
+import { ButtonSize } from "../../common/gui/base/ButtonSize"
 
 interface MailExportSettingsAttrs {
 	mailboxDetails: MailboxDetail[]
@@ -69,23 +69,14 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 									"{count}": state.exportedMails,
 								}),
 							),
-							m(
-								".rel.full-width.mt-s",
-								{
-									style: {
-										"background-color": theme.content_border,
-										height: px(2),
-									},
-								},
-								m(ProgressBar, { progress: state.progress }),
-							),
 						]),
-						m(Button, {
-							label: "cancel_action",
-							type: ButtonType.Secondary,
+						m(IconButton, {
+							title: "cancel_action",
+							icon: Icons.Cancel,
 							click: () => {
 								controller.cancelExport()
 							},
+							size: ButtonSize.Normal,
 						}),
 					]),
 				]

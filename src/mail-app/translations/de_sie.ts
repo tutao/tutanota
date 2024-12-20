@@ -1892,11 +1892,11 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
+		"exportRunningElsewhere_label": "Export may be running in another window.",
 		"vitor_alt": "Black-and white high-contrast image of a man (Vitor) sipping from a cup, knowing he is secure.",
 		// Put in temporarily, will be removed soon
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"localAdminGroups_label": "Local admin groups",
-		"exportRunningElsewhere_label": "Export may be running in another window."
 	}
 }
