@@ -10,11 +10,11 @@ import { create as createEnv, preludeEnvPlugin } from "./env.js"
 import cp from "node:child_process"
 import util from "node:util"
 import typescript from "@rollup/plugin-typescript"
-import { copyNativeModulePlugin, nativeBannerPlugin } from "./nativeLibraryRollupPlugin.js"
 import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import commonjs from "@rollup/plugin-commonjs"
+import { copyNativeModulePlugin, nativeSqlBannerPlugin } from "./nativeLibraryRollupPlugin.js"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -121,7 +121,11 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		input: [path.join(dirname, "src/common/desktop/DesktopMain.ts"), path.join(dirname, "src/common/desktop/sqlworker.ts")],
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
-		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"],
+		external: (id, parent, isResolved) => {
+			if (parent != null && parent.endsWith("node-mimimi/dist/binding.cjs")) return true
+			if (id.endsWith(".node")) return true
+			return ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"].includes(id)
+		},
 		preserveEntrySignatures: false,
 		plugins: [
 			copyNativeModulePlugin({
@@ -130,6 +134,13 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				platform,
 				architecture,
 				nodeModule: "better-sqlite3",
+			}),
+			copyNativeModulePlugin({
+				rootDir: projectRoot,
+				dstPath: "./build/desktop/",
+				platform,
+				architecture,
+				nodeModule: "@tutao/node-mimimi",
 			}),
 			typescript({
 				tsconfig: "tsconfig.json",
@@ -143,13 +154,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			commonjs(),
 			disableMinify ? undefined : terser(),
 			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs })),
-			nativeBannerPlugin({
-				// Relative to the source file from which the .node file is loaded.
-				// In our case it will be desktop/DesktopMain.js, which is located in the same directory.
-				// This depends on the changes we made in our own fork of better_sqlite3.
-				// It's okay to use forward slash here, it is passed to require which can deal with it.
-				"better-sqlite3": "./better-sqlite3.node",
-			}),
+			nativeSqlBannerPlugin(),
 		],
 	})
 	await mainBundle.write({ sourcemap: true, format: "commonjs", dir: outDir })
