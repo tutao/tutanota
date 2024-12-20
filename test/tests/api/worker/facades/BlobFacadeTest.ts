@@ -182,6 +182,8 @@ o.spec("BlobFacade test", function () {
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 1]),
 				// blob id
 				base64ToUint8Array(base64ExtToBase64(blobId)),
 				// blob hash
@@ -230,6 +232,8 @@ o.spec("BlobFacade test", function () {
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 2]),
 				// blob id
 				base64ToUint8Array(base64ExtToBase64(blobId1)),
 				// blob hash
@@ -374,6 +378,8 @@ o.spec("BlobFacade test", function () {
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 3]),
 				// blob id
 				base64ToUint8Array(base64ExtToBase64(blobId1)),
 				// blob hash
@@ -463,6 +469,8 @@ o.spec("BlobFacade test", function () {
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse1 = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 2]),
 				// blob id
 				base64ToUint8Array(base64ExtToBase64(blobId1)),
 				// blob hash
@@ -482,6 +490,8 @@ o.spec("BlobFacade test", function () {
 			)
 
 			const blobResponse2 = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 1]),
 				//blodId
 				base64ToUint8Array(base64ExtToBase64(blobId3)),
 				// blob hash
@@ -553,6 +563,8 @@ o.spec("BlobFacade test", function () {
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 2]),
 				// blob id
 				base64ToUint8Array(base64ExtToBase64(blobId1)),
 				// blob hash
@@ -583,13 +595,15 @@ o.spec("BlobFacade test", function () {
 			// Blob id OETv4XP----0 hash [3, -112, 88, -58, -14, -64] bytes [1, 2, 3]
 			// Blob id OETv4XS----0 hash [113, -110, 56, 92, 60, 6] bytes [1, 2, 3, 4, 5, 6]
 			const binaryData = new Int8Array([
-				// blob id 1 [0-8]
+				// number of blobs [0-3] 2
+				0, 0, 0, 2,
+				// blob id 1 [4-12]
 				100, -9, -69, 22, 38, -128, 0, 0, 1,
-				// blob hash 1 [9-14]
+				// blob hash 1 [13-18]
 				3, -112, 88, -58, -14, -64,
-				// blob size 1 [15-18]
+				// blob size 1 [19-22]
 				0, 0, 0, 3,
-				// blob data 1 [19-21]
+				// blob data 1 [23-25]
 				1, 2, 3,
 				// blob id 2
 				100, -9, -69, 22, 39, 64, 0, 0, 1,
@@ -613,13 +627,15 @@ o.spec("BlobFacade test", function () {
 		o.test("parses one blob", function () {
 			// Blob id OETv4XP----0 hash [3, -112, 88, -58, -14, -64] bytes [1, 2, 3]
 			const binaryData = new Int8Array([
-				// blob id 1 [0-8]
+				// number of blobs [0-3]
+				0, 0, 0, 1,
+				// blob id 1 [4-12]
 				100, -9, -69, 22, 38, -128, 0, 0, 1,
-				// blob hash 1 [9-14]
+				// blob hash 1 [13-18]
 				3, -112, 88, -58, -14, -64,
-				// blob size 1 [15-18]
+				// blob size 1 [19-22]
 				0, 0, 0, 3,
-				// blob data 1 [19-21]
+				// blob data 1 [23-25]
 				1, 2, 3,
 			])
 
@@ -632,11 +648,13 @@ o.spec("BlobFacade test", function () {
 			const blobDataNumbers = Array(384).fill(1)
 			const binaryData = new Int8Array(
 				[
-					// blob id 1 [0-8]
+					// number of blobs [0-3]
+					0, 0, 0, 1,
+					// blob id 1 [4-12]
 					100, -9, -69, 22, 38, -128, 0, 0, 1,
-					// blob hash 1 [9-14]
+					// blob hash 1 [13-18]
 					3, -112, 88, -58, -14, -64,
-					// blob size 1 [15-18] 384
+					// blob size 1 [19-22]
 					0, 0, 1, 128,
 				].concat(blobDataNumbers),
 			)
