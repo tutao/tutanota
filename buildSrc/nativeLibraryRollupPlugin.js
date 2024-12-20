@@ -1,26 +1,29 @@
 import fs from "node:fs"
 import path from "node:path"
-import { getNativeLibModulePath } from "./nativeLibraryProvider.js"
+import { getNativeLibModulePaths } from "./nativeLibraryProvider.js"
+import { normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.js"
 
 /** copy either a fresh build or a cached version of a native module for the platform client being built into the build directory.*/
 export function copyNativeModulePlugin({ rootDir, dstPath, platform, architecture, nodeModule }, log = console.log.bind(console)) {
 	return {
 		name: "copy-native-module-plugin",
 		async buildStart() {
-			const modulePath = await getNativeLibModulePath({
+			const modulePaths = await getNativeLibModulePaths({
 				nodeModule,
 				environment: "electron",
 				rootDir,
 				log,
 				platform,
 				architecture,
-				// because its name is used as a C identifier, the binary produced by better-sqlite3 is called better_sqlite3.node
-				copyTarget: nodeModule.replace("-", "_"),
+				copyTarget: normalizeCopyTarget(nodeModule),
 			})
-			const normalDst = path.join(path.normalize(dstPath), `${nodeModule}.node`)
-			const dstDir = path.dirname(normalDst)
-			await fs.promises.mkdir(dstDir, { recursive: true })
-			await fs.promises.copyFile(modulePath, normalDst)
+
+			for (const [architecture, modulePath] of Object.entries(modulePaths)) {
+				const normalDst = path.join(path.normalize(dstPath), `${removeNpmNamespacePrefix(nodeModule)}.${platform}-${architecture}.node`)
+				const dstDir = path.dirname(normalDst)
+				await fs.promises.mkdir(dstDir, { recursive: true })
+				await fs.promises.copyFile(modulePath, normalDst)
+			}
 		},
 	}
 }
@@ -35,14 +38,19 @@ export function copyNativeModulePlugin({ rootDir, dstPath, platform, architectur
  *
  * See DesktopMain.
  */
-export function nativeBannerPlugin(nativeBindingPaths, log = console.log.bind(console)) {
-	const sqlPath = nativeBindingPaths["better-sqlite3"]
+export function nativeSqlBannerPlugin(log = console.log.bind(console)) {
+	// th path is Relative to the source file from which the .node file is loaded.
+	// In our case it will be desktop/DesktopMain.js, which is located in the same directory.
+	// This depends on the changes we made in our own fork of better_sqlite3.
+	// It's okay to use forward slash here, it is passed to require which can deal with it.
 	return {
 		name: "native-banner-plugin",
 		banner() {
 			return `
 			globalThis.buildOptions = globalThis.buildOptions ?? {}
-			globalThis.buildOptions.sqliteNativePath = "${sqlPath}";
+			globalThis.buildOptions.sqliteNativePath = process.arch === "arm64"
+				? "./better-sqlite3." + process.platform + "-arm64.node"
+				: "./better-sqlite3." + process.platform + "-x64.node";
 			`
 		},
 	}
