@@ -14,6 +14,7 @@ async function runCommand(command: string, options: WasmGeneratorOptions) {
 			...process.env,
 			...options.env,
 		},
+		maxBuffer: Infinity,
 		cwd: options.workingDir ?? process.cwd(),
 	})
 	promise.child.stdout?.on("data", (data) => {
