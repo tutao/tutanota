@@ -1853,6 +1853,9 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"exportRunningElsewhere_label": "Export may be running in another window."
+		"exportRunningElsewhere_label": "Export may be running in another window.",
+		"mailExport_label": "Mail export",
+		"downloadDesktopClient_label": "Download desktop client",
+		"mailExportOnlyOnDesktop_label": "Email export is currently only available in our desktop client."
 	}
 }

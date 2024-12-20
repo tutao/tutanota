@@ -67,7 +67,7 @@ import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
-import { showAppRatingDialog } from "../../common/ratings/InAppRatingDialog.js"
+import { MailExportViewer } from "./MailExportViewer"
 
 assertMainOrNode()
 
@@ -151,6 +151,16 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				),
 			)
 		}
+
+		this._userFolders.push(
+			new SettingsFolder(
+				"mailExport_label",
+				() => Icons.Export,
+				"mailExport",
+				() => new MailExportViewer(),
+				undefined,
+			),
+		)
 
 		this._adminFolders = []
 		this._templateFolders = []

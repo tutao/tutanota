@@ -1849,6 +1849,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"exportRunningElsewhere_label": "Export may be running in another window."
+		"exportRunningElsewhere_label": "Export may be running in another window.",
+		"mailExport_label": "Mail export",
+		"downloadDesktopClient_label": "Download desktop client",
+		"mailExportOnlyOnDesktop_label": "Email export is currently only available in our desktop client."
 	}
 }

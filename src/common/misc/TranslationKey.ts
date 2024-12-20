@@ -1835,3 +1835,6 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "exportFinished_label"
 	| "exportRunningElsewhere_label"
+	| "mailExport_label"
+	| "downloadDesktopClient_label"
+	| "mailExportOnlyOnDesktop_label"

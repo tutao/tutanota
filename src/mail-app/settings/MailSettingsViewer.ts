@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isApp, isDesktop } from "../../common/api/common/Env"
+import { assertMainOrNode, isApp } from "../../common/api/common/Env"
 import { lang } from "../../common/misc/LanguageViewModel"
 import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -49,8 +49,6 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils.js"
 import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
-import { MailExportSettings } from "./MailExportSettings"
-import { MailExportController } from "../native/main/MailExportController.js"
 
 assertMainOrNode()
 
@@ -72,8 +70,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
-	private mailExportController: MailExportController | null = null
-
 	private offlineStorageSettings = new OfflineStorageSettingsModel(mailLocator.logins.getUserController(), deviceConfig)
 
 	constructor() {
@@ -90,13 +86,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
-		if (isDesktop()) {
-			// export is only available on desktop
-			mailLocator.mailExportController().then((controller) => {
-				this.mailExportController = controller
-				m.redraw()
-			})
-		}
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		mailLocator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
@@ -392,14 +381,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 									}),
 								),
 						  ],
-					this.mailExportController && [
-						m(".h4.mt-l", lang.get("exportMailbox_label")),
-						m(MailExportSettings, {
-							mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
-							logins: mailLocator.logins,
-							mailExportController: this.mailExportController,
-						}),
-					],
 				],
 			),
 		]
