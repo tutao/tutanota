@@ -19,6 +19,7 @@ async function generateWasm(command: string, options: WasmGeneratorOptions) {
 			...process.env,
 			...options.env,
 		},
+		maxBuffer: Infinity,
 		cwd: options.workingDir ?? process.cwd(),
 	})
 	promise.child.stdout?.on("data", (data) => {
@@ -37,6 +38,7 @@ async function generateWasmFallback(wasmFilePath: string, options: WasmGenerator
 			...process.env,
 			...options.env,
 		},
+		maxBuffer: Infinity,
 	})
 	return result.stdout
 }

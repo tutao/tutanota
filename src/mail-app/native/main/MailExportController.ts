@@ -15,6 +15,7 @@ import type { TranslationText } from "../../../common/misc/LanguageViewModel"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
+import { BlobServerUrl } from "../../../common/api/entities/storage/TypeRefs"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 
 assertMainOrNode()
@@ -37,6 +38,8 @@ const TAG = "MailboxExport"
 export class MailExportController {
 	private _state: Stream<MailExportState> = stream({ type: "idle" })
 	private _lastExport: Date | null = null
+	private servers?: BlobServerUrl[]
+	private serverCount: number = 0
 
 	get lastExport(): Date | null {
 		return this._lastExport
@@ -145,6 +148,7 @@ export class MailExportController {
 
 	private async runExport(mailboxDetail: MailboxDetail, mailBags: MailBag[], mailId: Id) {
 		const startTime = assertNotNull(this._lastExport)
+		this.servers = await this.mailExportFacade.getExportServers(mailboxDetail.mailGroup)
 		for (const mailBag of mailBags) {
 			await this.exportMailBag(mailBag, mailId)
 			if (this._state().type !== "exporting" || this._lastExport !== startTime) {
@@ -160,18 +164,16 @@ export class MailExportController {
 	}
 
 	private async exportMailBag(mailBag: MailBag, startId: Id): Promise<void> {
-		console.log(TAG, `Exporting mail bag: ${mailBag._id} ${startId}`)
 		let currentStartId = startId
 		while (true) {
 			try {
-				const downloadedMails = await this.mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, currentStartId)
+				const downloadedMails = await this.mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, currentStartId, this.getServerUrl())
 				if (downloadedMails.length === 0) {
 					break
 				}
 
 				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails)
-				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails)
-
+				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails, this.getServerUrl())
 				for (const { mail, mailDetails } of downloadedMailDetails) {
 					if (this._state().type !== "exporting") {
 						return
@@ -179,7 +181,7 @@ export class MailExportController {
 					const mailAttachmentInfo = mail.attachments
 						.map((attachmentId) => attachmentInfo.find((attachment) => isSameId(attachment._id, attachmentId)))
 						.filter(isNotNull)
-					const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo)
+					const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo, this.getServerUrl())
 					const { makeMailBundle } = await import("../../mail/export/Bundler.js")
 					const mailBundle = makeMailBundle(this.sanitizer, mail, mailDetails, attachments)
 
@@ -222,5 +224,16 @@ export class MailExportController {
 				console.log(TAG, "Trying to continue with export")
 			}
 		}
+	}
+
+	private getServerUrl(): string {
+		if (this.servers) {
+			this.serverCount += 1
+			if (this.serverCount >= this.servers.length) {
+				this.serverCount = 0
+			}
+			return this.servers[this.serverCount].url
+		}
+		throw new Error("No servers")
 	}
 }

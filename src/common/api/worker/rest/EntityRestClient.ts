@@ -94,6 +94,7 @@ export interface EntityRestClientLoadOptions {
 	ownerKeyProvider?: OwnerKeyProvider
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode?: CacheMode
+	baseUrl?: string
 }
 
 export interface OwnerEncSessionKeyProvider {
@@ -204,6 +205,7 @@ export class EntityRestClient implements EntityRestInterface {
 			queryParams,
 			headers,
 			responseType: MediaType.Json,
+			baseUrl: opts.baseUrl,
 		})
 		const entity = JSON.parse(json)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
@@ -258,6 +260,7 @@ export class EntityRestClient implements EntityRestInterface {
 			queryParams,
 			headers,
 			responseType: MediaType.Json,
+			baseUrl: opts.baseUrl,
 		})
 		return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 	}
@@ -285,6 +288,7 @@ export class EntityRestClient implements EntityRestInterface {
 					queryParams,
 					headers,
 					responseType: MediaType.Json,
+					baseUrl: opts.baseUrl,
 				})
 			}
 			return this._handleLoadMultipleResult(typeRef, JSON.parse(json), ownerEncSessionKeyProvider)
