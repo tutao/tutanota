@@ -1,12 +1,12 @@
 use crate::crypto::hkdf;
 use crate::crypto::key::GenericAesKey;
+use crate::crypto::key::VersionedAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
 use crate::entities::generated::sys::{GroupMembership, User};
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;
-use crate::key_loader_facade::VersionedAesKey;
 use crate::util::Versioned;
 use crate::ApiCallError;
 use crate::GeneratedId;
@@ -130,6 +130,21 @@ impl UserFacade {
 
 	pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey> {
 		self.key_cache.get_current_user_group_key()
+	}
+
+	pub fn get_membership_by_group_type(
+		&self,
+		group_type: GroupType,
+	) -> Result<GroupMembership, ApiCallError> {
+		let memberships = &self.get_user().memberships;
+		let group_type = group_type as i64;
+		memberships
+			.iter()
+			.find(|g| g.groupType == Some(group_type))
+			.map(|m| m.to_owned())
+			.ok_or_else(|| ApiCallError::InternalSdkError {
+				error_message: format!("No group with groupType {} found!", group_type),
+			})
 	}
 
 	#[allow(unused)]

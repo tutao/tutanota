@@ -23,6 +23,7 @@ use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use futures::FutureExt;
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
@@ -59,11 +60,16 @@ impl CryptoFacade {
 		}
 	}
 
+	#[must_use]
+	pub fn get_key_loader_facade(&self) -> &Arc<KeyLoaderFacade> {
+		&self.key_loader_facade
+	}
+
 	/// Returns the session key from `entity` and resolves the bucket key fields contained inside
 	/// if present
 	pub async fn resolve_session_key(
 		&self,
-		entity: &mut ParsedEntity,
+		entity: &ParsedEntity,
 		model: &TypeModel,
 	) -> Result<Option<ResolvedSessionKey>, SessionKeyResolutionError> {
 		if !model.marked_encrypted() {
@@ -85,7 +91,6 @@ impl CryptoFacade {
 				},
 			}
 		}
-
 		// Extract the session key data from the owner group of the entity
 		let EntityOwnerKeyData {
 			owner_enc_session_key: Some(owner_enc_session_key),
@@ -115,7 +120,7 @@ impl CryptoFacade {
 	/// Resolves the bucket key fields inside `entity` and returns the session key
 	async fn resolve_bucket_key(
 		&self,
-		entity: &mut ParsedEntity,
+		entity: &ParsedEntity,
 		model: &TypeModel,
 	) -> Result<ResolvedSessionKey, SessionKeyResolutionError> {
 		let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_FIELD) else {
@@ -300,7 +305,7 @@ mod test {
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::ecc::EccKeyPair;
-	use crate::crypto::key::GenericAesKey;
+	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::element_value::ParsedEntity;
@@ -308,7 +313,7 @@ mod test {
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
-	use crate::key_loader_facade::{MockKeyLoaderFacade, VersionedAesKey};
+	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
 	use crate::tutanota_constants::CryptoProtocolVersion;
 	use crate::type_model_provider::init_type_model_provider;
