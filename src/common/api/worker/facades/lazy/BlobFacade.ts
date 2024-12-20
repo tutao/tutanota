@@ -27,7 +27,7 @@ import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { InstanceMapper } from "../../crypto/InstanceMapper.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
 import { FileReference } from "../../../common/utils/FileUtils.js"
-import { handleRestError, NotFoundError } from "../../../common/error/RestError.js"
+import { handleRestError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn, createBlobId } from "../../../entities/storage/TypeRefs.js"
@@ -454,23 +454,34 @@ export class BlobFacade {
 
 /**
  * Deserializes a list of BlobWrappers that are in the following binary format
- * element [ blobId ] [ blobHash ] [blobSize] [blob]     [ . . . ]    [ blobNId ] [ blobNHash ] [blobNSize] [blobN]
- * bytes     9          6           4          blobSize                  9          6            4           blobSize
+ * element [ #blobs ] [ blobId ] [ blobHash ] [blobSize] [blob]     [ . . . ]    [ blobNId ] [ blobNHash ] [blobNSize] [blobN]
+ * bytes     4          9          6           4          blobSize                  9          6            4           blobSize
  *
  * @return a map from blobId to the binary data
  */
 export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id, Uint8Array> {
-	let offset = 0
 	const dataView = new DataView(concatBinaryData.buffer)
 	const result = new Map<Id, Uint8Array>()
+	const blobCount = dataView.getInt32(0)
+	if (blobCount <= 0) {
+		throw new Error(`Invalid blob count: ${blobCount}`)
+	}
+	let offset = 4
 	while (offset < concatBinaryData.length) {
 		const blobIdBytes = concatBinaryData.slice(offset, offset + 9)
 		const blobId = base64ToBase64Ext(uint8ArrayToBase64(blobIdBytes))
 
 		const blobSize = dataView.getInt32(offset + 15)
-		const contents = concatBinaryData.slice(offset + 19, offset + 19 + blobSize)
+		const dataStartOffset = offset + 19
+		if (blobSize < 0 || dataStartOffset + blobSize > concatBinaryData.length) {
+			throw new Error(`Invalid blob size: ${blobSize}. Remaining length: ${concatBinaryData.length - dataStartOffset}`)
+		}
+		const contents = concatBinaryData.slice(dataStartOffset, dataStartOffset + blobSize)
 		result.set(blobId, contents)
-		offset += 9 + 6 + 4 + blobSize
+		offset = dataStartOffset + blobSize
+	}
+	if (blobCount !== result.size) {
+		throw new Error(`Parsed wrong number of blobs: ${blobCount}. Expected: ${result.size}`)
 	}
 	return result
 }
