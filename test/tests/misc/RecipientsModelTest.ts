@@ -14,6 +14,8 @@ import { defer, delay } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { ServiceExecutor } from "../../../src/common/api/worker/rest/ServiceExecutor"
+import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
 
 o.spec("RecipientsModel", function () {
 	const contactListId = "contactListId"
@@ -29,6 +31,7 @@ o.spec("RecipientsModel", function () {
 	let mailFacadeMock: MailFacade
 	let entityClientMock: EntityClient
 	let keyVerificationFacadeMock: KeyVerificationFacade
+	let serviceExecutorMock: IServiceExecutor
 
 	let model: RecipientsModel
 
@@ -54,8 +57,9 @@ o.spec("RecipientsModel", function () {
 		mailFacadeMock = instance(MailFacade)
 		entityClientMock = instance(EntityClient)
 		keyVerificationFacadeMock = instance(KeyVerificationFacade)
+		serviceExecutorMock = instance(ServiceExecutor)
 
-		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock, keyVerificationFacadeMock)
+		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock, keyVerificationFacadeMock, serviceExecutorMock)
 	})
 
 	o("initializes with provided contact", function () {

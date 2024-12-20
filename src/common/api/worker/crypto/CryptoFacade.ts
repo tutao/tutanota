@@ -20,7 +20,6 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
-	KeyVerificationSourceOfTruth,
 	PermissionType,
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
@@ -74,7 +73,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "./AsymmetricCryptoFacade.js"
-import { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
 import { UnverifiedRecipientError } from "../../common/error/UnverifiedRecipientError"
 
 assertWorkerOrNode()
@@ -702,17 +701,8 @@ export class CryptoFacade {
 
 			// Check if recipient is still verified for recipientMailAddress
 			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-			if (await keyVerificationFacade.isTrusted(recipientMailAddress)) {
-				const expectedRecipientFingerprint = keyVerificationFacade.calculateFingerprint(publicKeyGetOut)
-				if (
-					!(await keyVerificationFacade.confirmFingerprint(
-						recipientMailAddress,
-						expectedRecipientFingerprint,
-						KeyVerificationSourceOfTruth.LocalTrusted,
-					))
-				) {
-					throw new UnverifiedRecipientError(recipientMailAddress)
-				}
+			if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKeyGetOut)) == KeyVerificationState.MISMATCH) {
+				throw new UnverifiedRecipientError(recipientMailAddress)
 			}
 
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL

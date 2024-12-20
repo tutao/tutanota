@@ -20,13 +20,7 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import {
-	asCryptoProtoocolVersion,
-	CryptoProtocolVersion,
-	EncryptionAuthStatus,
-	KeyVerificationSourceOfTruth,
-	PublicKeyIdentifierType,
-} from "../../common/TutanotaConstants.js"
+import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -34,7 +28,7 @@ import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicK
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
 
 assertWorkerOrNode()
 
@@ -99,10 +93,8 @@ export class AsymmetricCryptoFacade {
 		}
 
 		// Compare against trusted identity (if possible)
-		if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS && (await keyVerificationFacade.isTrusted(identifier.identifier))) {
-			const expectedFingerprint = keyVerificationFacade.calculateFingerprint(publicKeyGetOut)
-
-			if (!(await keyVerificationFacade.confirmFingerprint(identifier.identifier, expectedFingerprint, KeyVerificationSourceOfTruth.LocalTrusted))) {
+		if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
+			if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKeyGetOut)) === KeyVerificationState.MISMATCH) {
 				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			}
 		}

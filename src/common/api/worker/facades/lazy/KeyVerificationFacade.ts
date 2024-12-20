@@ -22,6 +22,12 @@ export interface KeyVerificationDetails {
 	verified: boolean
 }
 
+export enum KeyVerificationState {
+	NO_ENTRY, // Identity is not trusted by user
+	VERIFIED, // Identity is trusted and verified
+	MISMATCH, // Identity is trusted but not verified
+}
+
 export class KeyVerificationFacade {
 	serviceExecutor: IServiceExecutor
 	sqlCipherFacade: SqlCipherFacade
@@ -141,11 +147,6 @@ export class KeyVerificationFacade {
 					throw e
 				}
 			}
-
-			// TODO: differentiate return value by
-			// - Identity IS trusted AND verified
-			// - Identity IS trusted BUT NOT verified
-			// - Identity IS NOT trusted
 		} else {
 			// We should never run into this condition.
 			assertNotNull(null)
@@ -205,5 +206,19 @@ export class KeyVerificationFacade {
 
 		const hash = uint8ArrayToHex(sha256Hash(assertNotNull(publicKeysConcatenation)))
 		return hash
+	}
+
+	async resolveVerificationState(mailAddress: string, publicKey: PublicKeyGetOut): Promise<KeyVerificationState> {
+		const trusted = await this.isTrusted(mailAddress)
+		if (!trusted) {
+			return KeyVerificationState.NO_ENTRY
+		}
+
+		const expectedFingerprint = this.calculateFingerprint(publicKey)
+		if (await this.confirmFingerprint(mailAddress, expectedFingerprint, KeyVerificationSourceOfTruth.LocalTrusted)) {
+			return KeyVerificationState.VERIFIED
+		} else {
+			return KeyVerificationState.MISMATCH
+		}
 	}
 }

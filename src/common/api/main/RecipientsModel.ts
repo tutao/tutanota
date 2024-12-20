@@ -8,8 +8,11 @@ import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
-import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
-import { KeyVerificationSourceOfTruth } from "../common/TutanotaConstants"
+import { KeyVerificationFacade, KeyVerificationState } from "../worker/facades/lazy/KeyVerificationFacade"
+import { PublicKeyIdentifierType } from "../common/TutanotaConstants"
+import { createPublicKeyGetIn } from "../entities/sys/TypeRefs"
+import { PublicKeyService } from "../entities/sys/Services"
+import { IServiceExecutor } from "../common/ServiceRequest"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -47,6 +50,7 @@ export class RecipientsModel {
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {}
 
 	/**
@@ -61,6 +65,7 @@ export class RecipientsModel {
 			(mailAddress) => this.executor.run(this.resolveRecipientType(mailAddress)),
 			this.entityClient,
 			this.keyVerificationFacade,
+			this.serviceExecutor,
 			resolveMode,
 		)
 	}
@@ -111,6 +116,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		private readonly typeResolver: (mailAddress: string) => Promise<RecipientType>,
 		private readonly entityClient: EntityClient,
 		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly serviceExecutor: IServiceExecutor,
 		resolveMode: ResolveMode,
 	) {
 		if (isTutaMailAddress(arg.address) || arg.type === RecipientType.INTERNAL) {
@@ -232,16 +238,16 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	private async resolveVerification(mailAddress: string): Promise<boolean> {
-		const storedFingerprint = await this.keyVerificationFacade.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.LocalTrusted)
-		if (storedFingerprint == null) {
-			// address is considered "not verified" when not a member of the pool
-			// TODO: differentiate return value by
-			// - Identity IS trusted AND verified
-			// - Identity IS trusted BUT NOT verified
-			// - Identity IS NOT trusted
-			return false
-		}
-		const verified = this.keyVerificationFacade.confirmFingerprint(mailAddress, storedFingerprint, KeyVerificationSourceOfTruth.PublicKeyService)
-		return verified
+		// TODO: reuse public key from resolved recipient
+		const keyData = createPublicKeyGetIn({
+			identifier: mailAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+
+			// Fetch the latest version
+			version: null,
+		})
+
+		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+		return (await this.keyVerificationFacade.resolveVerificationState(mailAddress, publicKeyGetOut)) === KeyVerificationState.VERIFIED
 	}
 }
