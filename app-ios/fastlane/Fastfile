@@ -33,7 +33,7 @@ platform :ios do
 		build_app(
 			scheme: "tuta prod",
 			output_directory: "releases",
-			output_name: "tutanota-" + get_version_number(target: "tutanota", project: "tutanota.xcodeproj"),
+			output_name: "tutanota-" + get_version_number(target: "tutanota", xcodeproj: "tutanota.xcodeproj"),
 			include_symbols: true,
 			verbose: true
 		)
@@ -68,7 +68,7 @@ platform :ios do
 
 		clear_derived_data
 
-		ipa_name = "tutanota-" + get_version_number(target: "tutanota", project: "tutanota.xcodeproj") + "-adhoc"
+		ipa_name = "tutanota-" + get_version_number(target: "tutanota", xcodeproj: "tutanota.xcodeproj") + "-adhoc"
 		build_app(
 			scheme: "tuta prod",
 			output_directory: "releases",
