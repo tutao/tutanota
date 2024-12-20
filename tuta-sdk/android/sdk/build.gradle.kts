@@ -26,7 +26,7 @@ fun getABITargets(): List<String> {
 		abi = findProperty("targetABI") as String?
 
 	return if (abi.isNullOrBlank())
-		listOf("arm", "arm64", "x86", "x86_64")
+		listOf("arm", "arm64", "x86_64")
 	else
 		listOf(abi)
 }
@@ -37,7 +37,6 @@ fun getJNILibsDirs(): List<String> {
 		when (it) {
 			"arm" -> "armeabi-v7a"
 			"arm64" -> "arm64-v8a"
-			"x86" -> "x86"
 			"x86_64" -> "x86_64"
 			else -> "arm64-v8a"
 		}
@@ -56,6 +55,9 @@ android {
 		// Proguard rules that are passed on to the users of the library
 		// See https://developer.android.com/studio/projects/android-library#Considerations
 		consumerProguardFiles("consumer-rules.pro")
+
+		// Limit the ABIs this can be built for; we do not support base x86
+		ndk.abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
 	}
 
 	buildTypes {
