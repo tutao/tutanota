@@ -113,8 +113,16 @@ export class KeyVerificationFacade {
 				version: null,
 			})
 
-			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-			return this.calculateFingerprint(publicKeyGetOut)
+			try {
+				const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+				return this.calculateFingerprint(publicKeyGetOut)
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+					return null
+				} else {
+					throw e
+				}
+			}
 		} else {
 			// We should never run into this condition.
 			assertNotNull(null)
@@ -131,29 +139,9 @@ export class KeyVerificationFacade {
 	 * @param expectedFingerprint
 	 * @param sourceOfTruth whether to confirm the fingerprint with local/trusted storage or the public key service
 	 */
-	async confirmFingerprint(mailAddress: string, expectedFingerprint: string, sourceOfTruth: KeyVerificationSourceOfTruth): Promise<boolean> {
-		if (sourceOfTruth === KeyVerificationSourceOfTruth.LocalTrusted) {
-			const trustedFingerprint = await this.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.LocalTrusted)
-			return trustedFingerprint === expectedFingerprint
-		} else if (sourceOfTruth === KeyVerificationSourceOfTruth.PublicKeyService) {
-			try {
-				const serverFingerprint = await this.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.PublicKeyService)
-				return serverFingerprint === expectedFingerprint
-			} catch (e) {
-				if (e instanceof NotFoundError) {
-					// TODO: It might be better if NotFoundError resulted in a visible user message.
-					return false
-				} else {
-					throw e
-				}
-			}
-		} else {
-			// We should never run into this condition.
-			assertNotNull(null)
-
-			// make TypeScript happy
-			return false
-		}
+	private async confirmFingerprint(mailAddress: string, expectedFingerprint: string, sourceOfTruth: KeyVerificationSourceOfTruth): Promise<boolean> {
+		const receivedFingerprint = await this.getFingerprint(mailAddress, sourceOfTruth)
+		return receivedFingerprint === expectedFingerprint
 	}
 
 	/**
