@@ -65,7 +65,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 					legacyWebauthnUrl: `${protocol}//${hostname}:${port}/webauthn`,
 					webauthnMobileUrl: `${protocol}//${hostname}:${port}/webauthnmobile`,
 					legacyWebauthnMobileUrl: `${protocol}//${hostname}:${port}/webauthnmobile`,
-					webauthnRpId: `${hostname}:${port}`,
+					webauthnRpId: `${hostname}`,
 					u2fAppId: `${protocol}//${hostname}:${port}/u2f-appid.json`,
 					giftCardBaseUrl: `${protocol}//${hostname}:${port}/giftcard`,
 					referralBaseUrl: `${protocol}//${hostname}:${port}/signup`,
