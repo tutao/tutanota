@@ -4,11 +4,12 @@ import { MailExportTokenFacade } from "../../../../../src/common/api/worker/faca
 import { BulkMailLoader } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { object, when } from "testdouble"
+import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ArchiveDataType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { createReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils"
+import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade"
 
 o.spec("MailExportFacade", () => {
 	const token = "my token"
@@ -23,6 +24,7 @@ o.spec("MailExportFacade", () => {
 	let bulkMailLoader!: BulkMailLoader
 	let blobFacade!: BlobFacade
 	let cryptoFacade!: CryptoFacade
+	let blobAccessTokenFacade!: BlobAccessTokenFacade
 
 	o.beforeEach(() => {
 		tokenFacade = {
@@ -31,13 +33,17 @@ o.spec("MailExportFacade", () => {
 		bulkMailLoader = object()
 		blobFacade = object()
 		cryptoFacade = object()
-		facade = new MailExportFacade(tokenFacade, bulkMailLoader, blobFacade, cryptoFacade)
+		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
+		facade = new MailExportFacade(tokenFacade, bulkMailLoader, blobFacade, cryptoFacade, blobAccessTokenFacade)
 	})
 
 	o.test("loadFixedNumberOfMailsWithCache", async () => {
-		when(bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", { extraHeaders: tokenHeaders })).thenResolve([mail1, mail2])
+		when(bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", { baseUrl: "baseUrl", extraHeaders: tokenHeaders })).thenResolve([
+			mail1,
+			mail2,
+		])
 
-		const result = await facade.loadFixedNumberOfMailsWithCache("mailListId", "startId")
+		const result = await facade.loadFixedNumberOfMailsWithCache("mailListId", "startId", "baseUrl")
 
 		o(result).deepEquals([mail1, mail2])
 	})
@@ -56,9 +62,9 @@ o.spec("MailExportFacade", () => {
 
 	o.test("loadAttachments", async () => {
 		const expected = [createTestEntity(FileTypeRef), createTestEntity(FileTypeRef)]
-		when(bulkMailLoader.loadAttachments([mail1, mail2], { extraHeaders: tokenHeaders })).thenResolve(expected)
+		when(bulkMailLoader.loadAttachments([mail1, mail2], { baseUrl: "baseUrl", extraHeaders: tokenHeaders })).thenResolve(expected)
 
-		const result = await facade.loadAttachments([mail1, mail2])
+		const result = await facade.loadAttachments([mail1, mail2], "baseUrl")
 
 		o(result).deepEquals(expected)
 	})
@@ -77,6 +83,7 @@ o.spec("MailExportFacade", () => {
 				ArchiveDataType.Attachments,
 				[createReferencingInstance(mailAttachments[0]), createReferencingInstance(mailAttachments[1])],
 				{
+					baseUrl: "baseUrl",
 					extraHeaders: tokenHeaders,
 				},
 			),
@@ -87,7 +94,7 @@ o.spec("MailExportFacade", () => {
 			]),
 		)
 
-		const result = await facade.loadAttachmentData(mail1, mailAttachments)
+		const result = await facade.loadAttachmentData(mail1, mailAttachments, "baseUrl")
 
 		o(result).deepEquals([
 			{ _type: "DataFile", name: "mail1", mimeType: "img/png", data: dataByteMail1, cid: "12345", size: 3, id: ["attachment", "id1"] },

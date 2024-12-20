@@ -125,6 +125,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
+					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify({ instance: "calendar" }))
 
@@ -139,6 +140,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
+					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify({ instance: "customer" }))
 
@@ -154,6 +156,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version), baz: "quux" },
 					responseType: MediaType.Json,
 					queryParams: { foo: "bar" },
+					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify({ instance: "calendar" }))
 
@@ -174,6 +177,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
+					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify({ _ownerEncSessionKey: "some key" }))
 
@@ -201,6 +205,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { start: startId, count: String(count), reverse: String(false) },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
 
@@ -229,6 +234,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: "0,1,2,3,4" },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
 
@@ -250,6 +256,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: ids.join(",") },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
@@ -271,6 +278,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 1 }]))
@@ -280,6 +288,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: "100" },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 2 }]))
@@ -299,6 +308,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 1 }]))
@@ -308,6 +318,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(100, 100).join(",") },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 2 }]))
@@ -317,6 +328,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(200, 11).join(",") },
 					responseType: MediaType.Json,
+					baseUrl: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 3 }]))

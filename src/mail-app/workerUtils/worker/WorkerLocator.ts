@@ -531,7 +531,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { MailExportFacade } = await import("../../../common/api/worker/facades/lazy/MailExportFacade.js")
 		const { MailExportTokenFacade } = await import("../../../common/api/worker/facades/lazy/MailExportTokenFacade.js")
 		const mailExportTokenFacade = new MailExportTokenFacade(locator.serviceExecutor)
-		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto)
+		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto, locator.blobAccessToken)
 	})
 }
 
