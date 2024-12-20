@@ -61,7 +61,7 @@ pipeline {
 					filename 'linux-build.dockerfile'
 					label 'master'
 					dir 'ci/containers'
-					additionalBuildArgs "--format docker"
+							additionalBuildArgs "--format docker --squash"
 					args '--network host'
 				} // docker
 			} // agent
@@ -80,13 +80,18 @@ pipeline {
 				    when { expression { return params.WINDOWS } }
 				    stages {
 						stage('Native modules') {
+					environment {
+						CMAKE = "C:\\Program Files\\Cmake\\bin\\cmake.exe"
+					}
 							agent {
 								label 'win-native'
 							}
 							steps {
 								bat "npm ci"
+						bat "npm run build-packages"
 
 								bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+						powershell "node buildSrc\\getNativeLibrary.js \"@tutao/node-mimimi\" --copy-target node-mimimi --force-rebuild --root-dir ${WORKSPACE}"
 								stash includes: 'native-cache/**/*', name: 'native_modules'
 							}
 						}
@@ -123,7 +128,7 @@ pipeline {
                 stage('Mac') {
 				    when { expression { return params.MAC } }
 					environment {
-						PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+						PATH = "${env.NODE_MAC_PATH}:${env.RUST_MAC_PATH}:${env.PATH}"
 					}
 					agent {
 						label 'mac-m1'

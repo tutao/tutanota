@@ -1,5 +1,7 @@
 FROM node:lts-bullseye
 WORKDIR /
+# this is only valid in dockerfiles, OCI compliant files don't support it.
+# ie you have to run podman build --format docker
 SHELL ["/bin/bash", "-c"]
 
 # Install emscripten to compile C dependencies into WASM

@@ -125,3 +125,18 @@ export async function runStep(name, cmd) {
 export function writeFile(targetFile, content) {
 	return fs.mkdir(path.dirname(targetFile), { recursive: true }).then(() => fs.writeFile(targetFile, content, "utf-8"))
 }
+
+export function normalizeCopyTarget(target) {
+	return removeNpmNamespacePrefix(changeHypenToUnderscore(target))
+}
+
+export function changeHypenToUnderscore(target) {
+	// because its name is used as a C identifier, the binary produced by better-sqlite3 is called better_sqlite3.node
+	return target.replace("better-sqlite3", "better_sqlite3")
+}
+
+export function removeNpmNamespacePrefix(target) {
+	// linear complexity Array.last(), wth not?
+	// gets us the moduleName out of @tutao/moduleName
+	return target.split("/").reduce((p, c) => c, null)
+}

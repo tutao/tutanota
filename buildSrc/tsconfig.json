@@ -1,5 +1,12 @@
 {
-	"include": ["./*.js", "../src/types.d.ts"],
+	"include": [
+		"./*.js",
+		"../src/types.d.ts",
+		"native-build/nativeLibraryProvider.js",
+		"native-build/nativeLibraryRollupPlugin.js",
+		"native-build/getNativeCacheLocation.js",
+		"native-build/getNativeLibrary.js"
+	],
 	"exclude": ["../node_modules/**"],
 	"compilerOptions": {
 		"allowJs": true,
