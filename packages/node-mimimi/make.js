@@ -1,6 +1,7 @@
 import { Argument, program } from "commander"
 import { $, cd, usePowerShell } from "zx"
 import path from "node:path"
+import { rm } from "node:fs/promises"
 
 await program
 	.usage("[options] [win|linux|darwin|native]")
@@ -30,9 +31,9 @@ function getTarget(platform) {
 
 async function run(platform, { clean, release, greenmail }) {
 	if (clean) {
-		await fs.promises.rm("./build", { recursive: true, force: true })
-		await fs.promises.rm("./target", { recursive: true, force: true })
-		await fs.promises.rm("./dist", { recursive: true, force: true })
+		await rm("./build", { recursive: true, force: true })
+		await rm("./target", { recursive: true, force: true })
+		await rm("./dist", { recursive: true, force: true })
 	}
 
 	if (greenmail) {
@@ -45,6 +46,6 @@ async function run(platform, { clean, release, greenmail }) {
 
 	const releaseFlag = release ? "--release" : ""
 	for (const target of targets) {
-		await $`npx napi build dist --platform --js binding.cjs  --dts binding.d.cts ${target} ${releaseFlag} --features javascript`
+		await $`npx napi build dist --platform --js binding.cjs --dts binding.d.cts ${target} ${releaseFlag} --features javascript`
 	}
 }

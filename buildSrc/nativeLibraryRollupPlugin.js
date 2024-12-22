@@ -17,8 +17,10 @@ export function copyNativeModulePlugin({ rootDir, dstPath, platform, architectur
 				architecture,
 				copyTarget: normalizeCopyTarget(nodeModule),
 			})
-
-			for (const [architecture, modulePath] of Object.entries(modulePaths)) {
+			for (let [architecture, modulePath] of Object.entries(modulePaths)) {
+				if (nodeModule === "@tutao/node-mimimi") {
+					architecture = getMimimiArchitecture(platform, architecture)
+				}
 				const normalDst = path.join(path.normalize(dstPath), `${removeNpmNamespacePrefix(nodeModule)}.${platform}-${architecture}.node`)
 				const dstDir = path.dirname(normalDst)
 				await fs.promises.mkdir(dstDir, { recursive: true })
@@ -26,6 +28,18 @@ export function copyNativeModulePlugin({ rootDir, dstPath, platform, architectur
 			}
 		},
 	}
+}
+
+/**
+ * napi appends abi to the architecture (see https://napi.rs/docs/cli/napi-config)
+ */
+function getMimimiArchitecture(platform, architecture) {
+	if (platform === "linux") {
+		return architecture + "-gnu"
+	} else if (platform === "win32") {
+		return architecture + "-msvc"
+	}
+	return architecture
 }
 
 /**
