@@ -507,7 +507,7 @@ impl Importer {
 		Ok(importer)
 	}
 
-pub async fn create_file_importer(
+	pub async fn create_file_importer(
 		logged_in_sdk: Arc<LoggedInSdk>,
 		target_owner_group: GeneratedId,
 		target_mailset: IdTupleGenerated,
@@ -762,9 +762,10 @@ pub async fn create_file_importer(
 
 	pub(super) async fn get_resumable_import(
 		config_directory: String,
-		mailbox_id: String
+		mailbox_id: String,
 	) -> Result<ResumableImport, ImportError> {
-		let import_directory_path = Importer::get_import_directory(config_directory, GeneratedId::from(mailbox_id));
+		let import_directory_path =
+			Importer::get_import_directory(config_directory, GeneratedId::from(mailbox_id));
 		let mut state_file_path = import_directory_path.clone();
 		state_file_path.push("import_mail_state");
 
@@ -805,8 +806,8 @@ pub async fn create_file_importer(
 			"current_imports".into(),
 			mailbox_id.to_string(),
 		]
-			.iter()
-			.collect()
+		.iter()
+		.collect()
 	}
 }
 
@@ -1101,11 +1102,18 @@ mod tests {
 
 	#[tokio::test]
 	async fn get_resumable_state_id_should_delete_import_folder_if_no_state_id() {
-		let config_dir_string = "/tmp/get_resumable_state_id_should_delete_import_folder_if_no_state_id";
+		let config_dir_string =
+			"/tmp/get_resumable_state_id_should_delete_import_folder_if_no_state_id";
 		let mailbox_id = "some_mailbox_id";
-		let import_dir: PathBuf = [config_dir_string.to_string(), "current_imports".to_string(), mailbox_id.to_string()].iter().collect();
+		let import_dir: PathBuf = [
+			config_dir_string.to_string(),
+			"current_imports".to_string(),
+			mailbox_id.to_string(),
+		]
+		.iter()
+		.collect();
 		let config_dir = PathBuf::from(config_dir_string);
-	
+
 		let tear_down = CleanDir {
 			dir: config_dir.clone(),
 		};
@@ -1114,19 +1122,34 @@ mod tests {
 			fs::create_dir_all(&import_dir).unwrap();
 		}
 
-		let result = Importer::get_resumable_import(config_dir.display().to_string(), mailbox_id.to_string()).await;
+		let result = Importer::get_resumable_import(
+			config_dir.display().to_string(),
+			mailbox_id.to_string(),
+		)
+		.await;
 		assert!(matches!(result, Err(ImportError::NoElementIdForState)));
 		assert!(!import_dir.exists());
 	}
 
 	#[tokio::test]
 	async fn get_resumable_state_id_should_delete_import_folder_does_not_exist() {
-		let config_dir_string = "/tmp/get_resumable_state_id_should_delete_import_folder_does_not_exist";
+		let config_dir_string =
+			"/tmp/get_resumable_state_id_should_delete_import_folder_does_not_exist";
 		let mailbox_id = "some_mailbox_id";
-		let import_dir: PathBuf = [config_dir_string.to_string(), "current_imports".to_string(), mailbox_id.to_string()].iter().collect();
+		let import_dir: PathBuf = [
+			config_dir_string.to_string(),
+			"current_imports".to_string(),
+			mailbox_id.to_string(),
+		]
+		.iter()
+		.collect();
 		let config_dir = PathBuf::from(config_dir_string);
-		
-		let result = Importer::get_resumable_import(config_dir.display().to_string(), mailbox_id.to_string()).await;
+
+		let result = Importer::get_resumable_import(
+			config_dir.display().to_string(),
+			mailbox_id.to_string(),
+		)
+		.await;
 		assert!(matches!(result, Err(ImportError::NoElementIdForState)));
 		assert!(!import_dir.exists());
 	}
@@ -1135,7 +1158,13 @@ mod tests {
 	async fn get_resumable_state_id_invalid_content() {
 		let config_dir_string = "/tmp/get_resumable_state_id_invalid_content";
 		let mailbox_id = "some_mailbox_id";
-		let import_dir: PathBuf = [config_dir_string.to_string(), "current_imports".to_string(), mailbox_id.to_string()].iter().collect();
+		let import_dir: PathBuf = [
+			config_dir_string.to_string(),
+			"current_imports".to_string(),
+			mailbox_id.to_string(),
+		]
+		.iter()
+		.collect();
 		let config_dir = PathBuf::from(config_dir_string);
 
 		let tear_down = CleanDir {
@@ -1150,7 +1179,11 @@ mod tests {
 		let invalid_id = "blah";
 		fs::write(&state_id_file_path, invalid_id).unwrap();
 
-		let result = Importer::get_resumable_import(config_dir.display().to_string(), mailbox_id.to_string()).await;
+		let result = Importer::get_resumable_import(
+			config_dir.display().to_string(),
+			mailbox_id.to_string(),
+		)
+		.await;
 		assert!(matches!(result, Err(ImportError::NoElementIdForState)),);
 		assert!(!import_dir.try_exists().unwrap());
 	}
