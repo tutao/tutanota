@@ -801,7 +801,14 @@ class MailLocator {
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
 
-			this.mailImporter = new MailImporter(this.domainConfigProvider(), this.logins, this.mailboxModel, this.mailModel, this.entityClient)
+			this.mailImporter = new MailImporter(
+				this.domainConfigProvider(),
+				this.logins,
+				this.mailboxModel,
+				this.mailModel,
+				this.entityClient,
+				this.eventController,
+			)
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
