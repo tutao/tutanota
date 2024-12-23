@@ -1,7 +1,7 @@
 Content-type: text/plain
 Subject: Here's my UU'ed sig!
 
-Well, I don't know much about how these things are output,
+Well, I don't know much about how these things are output, 
 so here goes... first off, my .sig file:
 
 begin 644 .signature
@@ -16,7 +16,7 @@ end
 
 And now, a little .gif icon:
 
-begin 644
+begin 644 
 M1TE&.#EA%``6`,(``/___\S__YF9F3,S,P```````````````"'^3E1H:7,@
 M87)T(&ES(&EN('1H92!P=6)L:6,@9&]M86EN+B!+979I;B!(=6=H97,L(&ME
 M=FEN:$!E:70N8V]M+"!397!T96UB97(@,3DY-0`A^00!```!`"P`````%``6

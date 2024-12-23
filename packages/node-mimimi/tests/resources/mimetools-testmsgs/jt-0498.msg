@@ -26,7 +26,7 @@ This is a multi-part message in MIME format.
 Content-ID: <0_893950130@inet_out.mail.aol.com.1>
 Content-type: text/plain; charset=US-ASCII
 
-Hello to all,
+Hello to all, 
 
 I purchased a tall windshield about two weeks ago from Waynesville Cycle
 Center in NC.  The entire length and width of the windshield has optical waves
@@ -41,7 +41,7 @@ the windshields had distortions.  They have offered to give me a full refund.
 What bothers me is two things.  First, the stock windshield has no optical
 distortion.  Second, it appears that Honda knows that it is selling a less
 than perfect product and is apparently unconcerned about it (seems like a
-strange way to do business).
+strange way to do business).  
 
 Perhaps my windshield is the worst one ever made, but they made no offer to
 inspect mine and compare to others that they have in stock.

@@ -51,7 +51,7 @@ QceGWSMevpOYhl6CkydBHhBZQmGKjihVshypjB9ClAHZMTugzOU7mzhBPiSZ5uDNnA7b/aTZ
 Content-Type: image/gif
 Content-Transfer-Encoding: base64
 Content-Disposition: inline; filename="3d-eye.gif"
-Subject: Part 2 of the inner message is another GIF, "3d-eye.gif", but
+Subject: Part 2 of the inner message is another GIF, "3d-eye.gif", but 
  the terminating boundary is bad!
 
 R0lGODdhKAAoAPMAAAAAAAAAzN3u/76+voiIiG5ubszd7v///+fn5wAAAAAAAAAAAAAAAAAA
