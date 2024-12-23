@@ -37,13 +37,13 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async openMailApp(...args: Parameters<MobileSystemFacade["openMailApp"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "openMailApp", ...args])
 	}
+	async openCalendarApp(...args: Parameters<MobileSystemFacade["openCalendarApp"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "openCalendarApp", ...args])
+	}
 	async getInstallationDate(...args: Parameters<MobileSystemFacade["getInstallationDate"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "getInstallationDate", ...args])
 	}
 	async requestInAppRating(...args: Parameters<MobileSystemFacade["requestInAppRating"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestInAppRating", ...args])
-	}
-	async openCalendarApp(...args: Parameters<MobileSystemFacade["openCalendarApp"]>) {
-		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "openCalendarApp", ...args])
 	}
 }

@@ -5,9 +5,11 @@ import { KeyVerificationMethodType, KeyVerificationResultType } from "../../api/
 import { MethodExecutionPage, MethodExecutionPageAttrs } from "./wizardpages/MethodExecutionPage"
 import { VerificationResultPage, VerificationResultPageAttrs } from "./wizardpages/VerificationResultPage"
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
+import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 
 export type KeyVerificationWizardData = {
 	keyVerificationFacade: KeyVerificationFacade
+	mobileSystemFacade: MobileSystemFacade
 	method: KeyVerificationMethodType
 	reloadParent: () => Promise<void>
 	mailAddress: string
@@ -15,9 +17,14 @@ export type KeyVerificationWizardData = {
 	result: KeyVerificationResultType | null
 }
 
-export function showKeyVerificationWizard(keyVerificationFacade: KeyVerificationFacade, reloadParent: () => Promise<void>): Promise<void> {
+export function showKeyVerificationWizard(
+	keyVerificationFacade: KeyVerificationFacade,
+	mobileSystemFacade: MobileSystemFacade,
+	reloadParent: () => Promise<void>,
+): Promise<void> {
 	const wizardData: KeyVerificationWizardData = {
 		keyVerificationFacade: keyVerificationFacade,
+		mobileSystemFacade: mobileSystemFacade,
 		method: KeyVerificationMethodType.text, // will be overwritten by the wizard
 		reloadParent: reloadParent, // will be called after a key has been pinned
 		mailAddress: "",

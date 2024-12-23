@@ -11,6 +11,16 @@ import { MalformedQrPayloadError } from "../../../api/common/error/MalformedQrPa
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { KeyVerificationWizardPage } from "../KeyVerificationWizardPage"
+import { PermissionType } from "../../../native/common/generatedipc/PermissionType"
+import { isApp } from "../../../api/common/Env"
+
+enum QrCameraState {
+	STOPPED,
+	PERMISSION_CHECK,
+	INIT_VIDEO,
+	SCANNING,
+	PERMISSION_DENIED,
+}
 
 export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardData> {
 	private dom: HTMLElement | null = null
@@ -19,25 +29,41 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 	qrVideo: HTMLVideoElement | null = null
 	qrMediaStream: MediaStream | null = null
-	qrWaitingForVideo: boolean = true
-	qrStopScanning: boolean = false
+	qrCameraState: QrCameraState = QrCameraState.STOPPED
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
 		this.dom = vnode.dom as HTMLElement
+		if (vnode.attrs.data.method == KeyVerificationMethodType.qr) {
+			this.requestCameraPermission(vnode.attrs.data).then((r) => m.redraw())
+		}
+	}
 
-		this.startupVideo()
+	async requestCameraPermission(keyVerificationWizardData: KeyVerificationWizardData): Promise<void> {
+		this.qrCameraState = QrCameraState.PERMISSION_CHECK
+
+		if (isApp()) {
+			const hasPermission = await keyVerificationWizardData.mobileSystemFacade.hasPermission(PermissionType.Camera)
+			if (hasPermission) {
+				this.qrCameraState = QrCameraState.INIT_VIDEO
+			} else {
+				try {
+					await keyVerificationWizardData.mobileSystemFacade.requestPermission(PermissionType.Camera)
+					this.qrCameraState = QrCameraState.INIT_VIDEO
+				} catch (e) {
+					this.qrCameraState = QrCameraState.PERMISSION_DENIED
+				}
+			}
+		} else {
+			this.qrCameraState = QrCameraState.INIT_VIDEO
+		}
 	}
 
 	onremove(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
 		this.cleanupVideo()
 	}
 
-	private startupVideo() {
-		this.qrStopScanning = false
-	}
-
 	private cleanupVideo() {
-		this.qrStopScanning = true
+		this.qrCameraState = QrCameraState.STOPPED
 
 		this.qrVideo?.pause()
 
@@ -129,8 +155,8 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 	private validateMailAddress(mailAddress: string): TranslationKey | null {
 		/* TODO:
-		Properly validate mail address. Only Tuta domains are reasonable for this problem space
-		so only those should be considered valid. */
+        Properly validate mail address. Only Tuta domains are reasonable for this problem space
+        so only those should be considered valid. */
 
 		// validate email address (syntactically)
 		if (getCleanedMailAddress(mailAddress) == null) {
@@ -141,36 +167,52 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 	}
 
 	private renderQrMethod(attrs: MethodExecutionPageAttrs): Children {
-		const video = m("video[autoplay][muted][playsinline]", {
-			oncreate: async (videoNode) => {
-				this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
-				try {
-					await this.runQrScanner(attrs)
-				} catch (e) {
-					if (e instanceof DOMException && e.name === "AbortError") {
-						// Operation cancelled by user. Nothing we can really do about it.
-						this.cleanupVideo()
-					} else {
-						throw e
-					}
-				}
-			},
-			style: { display: "block", "max-width": "100%" },
-		})
+		return [m(".center", this.getStateMessage()), this.getVideoElement(attrs)]
+	}
 
-		return [
-			m(
-				"p",
-				m("span", "This is some introduction text explaining how to use the ", m("span.b", "QR code method. "), "It can also be a few lines longer."),
-			),
-			this.qrWaitingForVideo ? m(".center", lang.get("keyManagement.waitingForVideo_msg")) : m(""),
-			m(".mt.mb.border-radius", { style: { overflow: "clip" } }, video),
-		]
+	private getVideoElement(attrs: MethodExecutionPageAttrs): Children | null {
+		if (this.qrCameraState == QrCameraState.INIT_VIDEO || this.qrCameraState == QrCameraState.SCANNING) {
+			const video = m("video[autoplay][muted][playsinline]", {
+				oncreate: async (videoNode) => {
+					this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
+					try {
+						await this.runQrScanner(attrs)
+					} catch (e) {
+						if (e instanceof DOMException && e.name === "AbortError") {
+							// Operation cancelled by user. Nothing we can really do about it.
+							this.cleanupVideo()
+						} else {
+							throw e
+						}
+					}
+				},
+				style: { display: "block", "max-width": "100%" },
+			})
+			return m(".mt.mb.border-radius", { style: { overflow: "clip" } }, video)
+		}
+	}
+
+	private getStateMessage(): String {
+		switch (this.qrCameraState) {
+			case QrCameraState.SCANNING:
+				return "Scan QR code"
+			case QrCameraState.INIT_VIDEO:
+				return lang.get("keyManagement.waitingForVideo_msg")
+			case QrCameraState.PERMISSION_DENIED:
+				return "Enable camera permision in device settings"
+			case QrCameraState.PERMISSION_CHECK:
+				return "Waiting for permission"
+			default:
+				return ""
+		}
 	}
 
 	private async runQrScanner(attrs: MethodExecutionPageAttrs) {
 		// "environment" tells the web engine to prefer the rear camera if there are multiple
-		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({
+			audio: false,
+			video: { facingMode: "environment" },
+		})
 		const video = assertNotNull(this.qrVideo)
 
 		video.srcObject = this.qrMediaStream
@@ -186,8 +228,8 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 
 	private async runQrScannerTick(video: HTMLVideoElement, canvas: HTMLCanvasElement, context2d: CanvasRenderingContext2D, attrs: MethodExecutionPageAttrs) {
 		if (video.readyState === video.HAVE_ENOUGH_DATA) {
-			if (this.qrWaitingForVideo) {
-				this.qrWaitingForVideo = false
+			if (this.qrCameraState == QrCameraState.INIT_VIDEO) {
+				this.qrCameraState = QrCameraState.SCANNING
 				m.redraw()
 			}
 
@@ -236,7 +278,7 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 		}
 
 		requestAnimationFrame(() => {
-			if (!this.qrStopScanning) {
+			if (this.qrCameraState == QrCameraState.SCANNING) {
 				this.runQrScannerTick(video, canvas, context2d, attrs)
 			}
 		})

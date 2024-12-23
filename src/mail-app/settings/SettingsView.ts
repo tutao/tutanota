@@ -138,7 +138,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.Key,
 				"keymanagement",
 				() => {
-					var settingsViewer = new KeyManagementSettingsViewer(locator.keyVerificationFacade, locator.logins.getUserController())
+					var settingsViewer = new KeyManagementSettingsViewer(
+						locator.keyVerificationFacade,
+						locator.systemFacade,
+						locator.logins.getUserController(),
+					)
 					settingsViewer.init()
 					return settingsViewer
 				},

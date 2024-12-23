@@ -14,6 +14,7 @@ import { KeyVerificationMethodOptions, KeyVerificationMethodType, KeyVerificatio
 import { showKeyVerificationWizard } from "./KeyVerificationWizard"
 import { locator } from "../../api/main/CommonLocator"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
+import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	mailAddress: string | null
@@ -21,7 +22,11 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	trustedIdentities: Map<MailAddress, KeyVerificationDetails>
 	selectedFingerprintRenderMethod: KeyVerificationMethodType = KeyVerificationMethodType.text
 
-	constructor(private readonly keyVerificationFacade: KeyVerificationFacade, private readonly userController: UserController) {
+	constructor(
+		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly mobileSystemFacade: MobileSystemFacade,
+		private readonly userController: UserController,
+	) {
 		this.mailAddress = null
 		this.publicKeyHash = null
 		this.trustedIdentities = new Map<MailAddress, KeyVerificationDetails>()
@@ -107,7 +112,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					m(IconButton, {
 						title: "keyManagement.verifyMailAddress_action",
 						click: async () => {
-							await showKeyVerificationWizard(this.keyVerificationFacade, () => obj.reload())
+							await showKeyVerificationWizard(this.keyVerificationFacade, this.mobileSystemFacade, () => obj.reload())
 						},
 						icon: Icons.Add,
 						size: ButtonSize.Compact,
