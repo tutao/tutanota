@@ -3,7 +3,6 @@ use super::importer::{
 	StateCallbackResponse,
 };
 use crate::importer::file_reader::FileImport;
-use log::Log;
 use napi::bindgen_prelude::Promise;
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::Env;
@@ -45,7 +44,6 @@ impl ImporterApi {
 		target_owner_group: String,
 		target_mailset: IdTupleGenerated,
 		source_paths: Vec<PathBuf>,
-		import_mail_state_id: Option<IdTupleGenerated>,
 		import_directory: PathBuf,
 	) -> napi::Result<ImporterApi> {
 		let target_owner_group = GeneratedId(target_owner_group);
@@ -56,7 +54,6 @@ impl ImporterApi {
 			target_owner_group,
 			target_mailset,
 			source_paths,
-			import_mail_state_id,
 			import_directory,
 		)
 		.await?;
@@ -132,7 +129,7 @@ impl ImporterApi {
 			.ok_or(ImportError::CannotLoadMailbox)?;
 		let import_directory: PathBuf =
 			Importer::get_import_directory(config_directory, mailbox_id);
-		let source_paths = source_paths.into_iter().map(|p| PathBuf::from(p)).collect();
+		let source_paths = source_paths.into_iter().map(PathBuf::from).collect();
 		let eml_sources = FileImport::prepare_import(import_directory.clone(), source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
 
@@ -141,7 +138,6 @@ impl ImporterApi {
 			target_owner_group,
 			target_mailset,
 			eml_sources,
-			None,
 			import_directory,
 		)
 		.await
@@ -200,7 +196,6 @@ impl ImporterApi {
 			target_owner_group.as_str().to_string(),
 			target_mailset,
 			source_paths,
-			import_state._id,
 			import_directory,
 		)
 		.await

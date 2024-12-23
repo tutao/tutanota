@@ -8,7 +8,6 @@ use mail_parser::{Address, ContentType, MessagePart, MessagePartId, MimeHeaders,
 use regex::Regex;
 use std::borrow::Cow;
 use std::collections::HashSet;
-use std::error::Error;
 use std::path::PathBuf;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::key::GenericAesKey;
@@ -31,13 +30,16 @@ pub(crate) const FIXED_CUSTOM_ID: &str = "____";
 pub(super) enum MailState {
 	#[default]
 	Received = 2,
+	#[allow(unused)]
 	Sent = 1,
+	#[allow(unused)]
 	Draft = 0,
 }
 
 #[repr(i64)]
 #[derive(Default)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
+#[allow(unused)]
 pub(super) enum ICalType {
 	#[default]
 	Nothing = 0,
@@ -103,7 +105,7 @@ impl ImportableMailAttachmentMetaData {
 		reference_tokens: Vec<BlobReferenceTokenWrapper>,
 	) -> ImportAttachment {
 		let owner_enc_file_session_key = essentials.mail_group_key.encrypt_key(
-			&file_session_key,
+			file_session_key,
 			aes::Iv::generate(&essentials.randomizer_facade),
 		);
 
@@ -119,17 +121,14 @@ impl ImportableMailAttachmentMetaData {
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
-		let enc_cid = match self.content_id {
-			Some(cid) => Some(
-				file_session_key
-					.encrypt_data(
-						cid.as_bytes(),
-						aes::Iv::generate(&essentials.randomizer_facade),
-					)
-					.unwrap(),
-			),
-			None => None,
-		};
+		let enc_cid = self.content_id.map(|cid| {
+			file_session_key
+				.encrypt_data(
+					cid.as_bytes(),
+					aes::Iv::generate(&essentials.randomizer_facade),
+				)
+				.unwrap()
+		});
 
 		ImportAttachment {
 			_id: None,
@@ -156,7 +155,7 @@ pub struct MailContact {
 	pub name: String,
 }
 
-impl<'a> From<&mail_parser::Addr<'a>> for MailContact {
+impl From<&mail_parser::Addr<'_>> for MailContact {
 	fn from(addr: &mail_parser::Addr) -> Self {
 		Self {
 			name: addr.name().unwrap_or_default().to_string(),
@@ -436,9 +435,9 @@ impl ImportableMail {
 
 				PartType::Multipart(multi_part_ids) => {
 					Self::handle_multipart(
-						&parsed_message,
+						parsed_message,
 						&mut multipart_ignored_alternative,
-						&part,
+						part,
 						multi_part_ids,
 					);
 				},
@@ -471,7 +470,7 @@ impl ImportableMail {
 			)
 	}
 
-	fn is_attachment(email_body_as_html: &String, part: &MessagePart) -> bool {
+	fn is_attachment(email_body_as_html: &str, part: &MessagePart) -> bool {
 		part.content_disposition()
 			.map(|content_disposition| content_disposition.c_type == "attachment")
 			.unwrap_or_default()
@@ -481,12 +480,10 @@ impl ImportableMail {
 	fn get_filename(part: &MessagePart, fallback_name: &str) -> String {
 		let content_disposition_filename = part
 			.content_disposition()
-			.map(|c| c.attribute("filename").map(ToString::to_string))
-			.flatten();
+			.and_then(|c| c.attribute("filename").map(ToString::to_string));
 		let content_type_filename = part
 			.content_type()
-			.map(|c| c.attribute("name").map(ToString::to_string))
-			.flatten();
+			.and_then(|c| c.attribute("name").map(ToString::to_string));
 
 		let file_name = content_disposition_filename.unwrap_or_else(|| {
 			content_type_filename.unwrap_or_else(|| {
@@ -550,11 +547,9 @@ impl ImportableMail {
 
 	fn map_to_tuta_mail_address(mail_parser_addresses: &Address) -> Vec<MailContact> {
 		match mail_parser_addresses {
-			Address::List(address_list) => {
-				address_list.into_iter().map(MailContact::from).collect()
-			},
+			Address::List(address_list) => address_list.iter().map(MailContact::from).collect(),
 			Address::Group(group_senders) => group_senders
-				.into_iter()
+				.iter()
 				.flat_map(|group| group.addresses.as_slice())
 				.map(MailContact::from)
 				.collect(),
@@ -592,7 +587,7 @@ impl ImportableMail {
 			in_reply_to,
 			references,
 			attachments: _,
-			eml_file_path,
+			eml_file_path: _,
 		} = self;
 
 		let reply_tos = reply_to_addresses

@@ -742,7 +742,7 @@ mod tests {
 			let result = AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
 				AsymmetricKeyPair::RSAKeyPair(RSAKeyPair::generate(&make_thread_rng_facade())),
 				&CryptoProtocolVersion::SymmetricEncryption,
-				&vec![1, 2, 3],
+				&[1, 2, 3],
 			);
 			assert!(result.is_err());
 			assert!(matches!(
@@ -778,7 +778,7 @@ mod tests {
 			let result = AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
 				AsymmetricKeyPair::PQKeyPairs(PQKeyPairs::generate(&make_thread_rng_facade())),
 				&CryptoProtocolVersion::Rsa,
-				&vec![1, 2, 3],
+				&[1, 2, 3],
 			);
 			assert!(result.is_err());
 			assert!(matches!(
@@ -792,7 +792,7 @@ mod tests {
 			let result = AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
 				AsymmetricKeyPair::RSAKeyPair(RSAKeyPair::generate(&make_thread_rng_facade())),
 				&CryptoProtocolVersion::TutaCrypt,
-				&vec![1, 2, 3],
+				&[1, 2, 3],
 			);
 			assert!(result.is_err());
 			assert!(matches!(

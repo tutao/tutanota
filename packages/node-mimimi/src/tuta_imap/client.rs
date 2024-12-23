@@ -24,10 +24,6 @@ pub mod types;
 // todo: make a PR for this type alias?
 pub type CapabilitiesList<'a> = imap_types::core::Vec1<response::Capability<'a>>;
 
-/// Always return a pre-formatted/sanitised error to client and not the execution details
-pub type ApiError = String;
-pub type ApiResult<O> = Result<O, ApiError>;
-
 pub struct TutaImapClient {
 	pub capabilities: Option<CapabilitiesList<'static>>,
 	pub latest_search_results: Vec<NonZeroU32>,
@@ -116,6 +112,7 @@ impl TutaImapClient {
 	}
 
 	/// List all the mailboxes (i.e. folders) available inside the imap account.
+	#[allow(unused)]
 	pub fn list_mailboxes(&mut self) -> StatusKind {
 		assert_eq!(
 			ConnectionState::Authenticated,
@@ -166,6 +163,7 @@ impl TutaImapClient {
 	}
 
 	// TODO implement imap commands exposing the complete syntax?
+	#[allow(unused)]
 	pub fn fetch(&mut self, command_body: imap_types::command::CommandBody) -> StatusKind {
 		assert_eq!(
 			ConnectionState::Selected(Mailbox::Inbox),
@@ -227,8 +225,7 @@ impl TutaImapClient {
 	}
 }
 
-/// Implement direct helper function divisions
-
+// Implement direct helper function divisions
 impl TutaImapClient {
 	fn create_tag(&mut self) -> Tag<'static> {
 		Tag::try_from("tag").unwrap()
@@ -443,6 +440,7 @@ impl TutaImapClient {
 ///
 /// todo:
 /// For now only care for PLAIN mechanism.
+#[allow(unused)]
 pub enum CredentialsMechanism {
 	Plain,
 }

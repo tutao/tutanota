@@ -1,9 +1,8 @@
 use crate::importer::importable_mail::ImportableMail;
 use mail_parser::mailbox::mbox::MessageIterator;
 use mail_parser::MessageParser;
-use std::ffi::OsStr;
 use std::fs;
-use std::io::{BufReader, Read};
+use std::io::BufReader;
 use std::path::PathBuf;
 
 pub struct FileImport {
@@ -109,19 +108,20 @@ impl FileImport {
 	pub fn get_next_importable_mail(&mut self) -> Result<ImportableMail, FileIterationError> {
 		// Get next item from eml source first. once all eml sources are exhausted,
 		// move to next mbox sources,
-		let mut eml = self.next_eml_contents()?;
+		let eml = self.next_eml_contents()?;
 
 		let parsed_message = self
 			.message_parser
 			.parse(eml.file_content.as_slice())
-			.ok_or_else(|| FileIterationError::NotAValidEmailFile)?;
+			.ok_or(FileIterationError::NotAValidEmailFile)?;
 		let importable_mail =
 			ImportableMail::convert_from(&parsed_message, Some(eml.eml_file_path))
-				.map_err(|e| FileIterationError::NoImportableMail)?;
+				.map_err(|_e| FileIterationError::NoImportableMail)?;
 		Ok(importable_mail)
 	}
 }
 
+#[cfg(test)]
 mod test {
 	use crate::importer::file_reader::FileImport;
 	use std::fs;
@@ -156,13 +156,13 @@ mod test {
 			msg_path.push("msg.eml");
 			File::create(&msg_path)
 				.unwrap()
-				.write(EML_MSG.as_bytes())
+				.write_all(EML_MSG.as_bytes())
 				.unwrap();
 			let mut reply_path = src_folder.clone();
 			reply_path.push("reply.eml");
 			File::create(&reply_path)
 				.unwrap()
-				.write(EML_REPLY.as_bytes())
+				.write_all(EML_REPLY.as_bytes())
 				.unwrap();
 			let mut mbox_path = src_folder.clone();
 			mbox_path.push("mbox.mbox");
@@ -172,7 +172,7 @@ mod test {
 				+ EML_REPLY;
 			File::create(&mbox_path)
 				.unwrap()
-				.write(mbox_contents.as_bytes())
+				.write_all(mbox_contents.as_bytes())
 				.unwrap();
 			Setup {
 				src_folder,
@@ -187,10 +187,10 @@ mod test {
 		fn drop(&mut self) {
 			match fs::remove_dir_all(self.src_folder.clone()) {
 				Ok(_) => {},
-				Err(e) => println!("can't delete src_folder {:?}", self.src_folder),
+				Err(_e) => println!("can't delete src_folder {:?}", self.src_folder),
 			}
 			fs::remove_dir_all(self.target_folder.clone())
-				.map_err(|e| println!("can't delete target_folder {:?}", self.target_folder))
+				.map_err(|_e| println!("can't delete target_folder {:?}", self.target_folder))
 				.unwrap();
 		}
 	}
@@ -267,7 +267,7 @@ Yeah, but I really did not like it. Had higher hopes after watching that Simpson
 	#[test]
 	pub fn prepare_import_eml_and_mbox() {
 		let s = Setup::new();
-		let eml_files = FileImport::prepare_import(
+		let eml_files = crate::importer::file_reader::FileImport::prepare_import(
 			s.target_folder.clone(),
 			vec![
 				s.reply_path.clone(),

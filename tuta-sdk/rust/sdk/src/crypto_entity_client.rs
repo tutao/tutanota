@@ -39,6 +39,7 @@ impl CryptoEntityClient {
 		}
 	}
 
+	#[must_use]
 	pub fn get_crypto_facade(&self) -> &Arc<CryptoFacade> {
 		&self.crypto_facade
 	}
@@ -46,20 +47,11 @@ impl CryptoEntityClient {
 	pub fn serialize_entity<Instance: Entity + Serialize>(
 		&self,
 		instance: Instance,
-		key: Option<&GenericAesKey>,
+		key: Option<GenericAesKey>,
 	) -> Result<ParsedEntity, ApiCallError> {
 		let type_ref = &Instance::type_ref();
-		let type_model = self
-			.entity_client
-			.type_model_provider
-			.resolve_type_ref(type_ref)
-			.ok_or_else(|| {
-				ApiCallError::internal(format!(
-					"failed to find type model for type ref of instance {type_ref}"
-				))
-			})?;
-		let parsed_instance = self
-			.instance_mapper
+		let type_model = self.entity_client.get_type_model(type_ref)?;
+		let parsed_instance = InstanceMapper::new()
 			.serialize_entity(instance)
 			.map_err(|_e| {
 				ApiCallError::internal(format!("failed to serialize instance {type_ref}"))
@@ -68,7 +60,7 @@ impl CryptoEntityClient {
 			let key = key
 				.ok_or_else(|| ApiCallError::internal(format!("No key to encrypt: {type_ref}")))?;
 			self.entity_facade
-				.encrypt_and_map(type_model, &parsed_instance, key)
+				.encrypt_and_map(type_model, &parsed_instance, &key)
 				.map_err(Into::into)
 		} else {
 			Ok(parsed_instance)
@@ -78,7 +70,7 @@ impl CryptoEntityClient {
 	pub async fn create_instance<Instance: Entity + Serialize>(
 		&self,
 		instance: Instance,
-		session_key: Option<&GenericAesKey>,
+		session_key: Option<GenericAesKey>,
 	) -> Result<PersistenceResourcePostReturn, ApiCallError> {
 		let parsed_entity = self.serialize_entity(instance, session_key)?;
 		self.entity_client
@@ -97,18 +89,12 @@ impl CryptoEntityClient {
 			.map_err(|e| ApiCallError::internal_with_err(e, type_ref.to_string().as_str()))?;
 		let type_model = self
 			.entity_client
-			.type_model_provider
-			.resolve_type_ref(&type_ref)
-			.ok_or_else(|| {
-				ApiCallError::internal(format!(
-					"failed to find type model for type ref of instance {type_ref}"
-				))
-			})?;
+			.get_type_model(&type_ref)?;
 
 		let parsed_instance = if type_model.is_encrypted() {
 			let session_key = self
 				.crypto_facade
-				.resolve_session_key(&parsed_entity, &type_model)
+				.resolve_session_key(&parsed_entity, type_model)
 				.await
 				.map_err(|e| {
 					ApiCallError::internal_with_err(
@@ -163,11 +149,11 @@ impl CryptoEntityClient {
 	async fn process_encrypted_entity<T: Entity + Deserialize<'static>>(
 		&self,
 		type_model: &TypeModel,
-		mut parsed_entity: ParsedEntity,
+		parsed_entity: ParsedEntity,
 	) -> Result<T, ApiCallError> {
 		let possible_session_key = self
 			.crypto_facade
-			.resolve_session_key(&mut parsed_entity, type_model)
+			.resolve_session_key(&parsed_entity, type_model)
 			.await
 			.map_err(|error| {
 				let id = parsed_entity.get(ID_FIELD);

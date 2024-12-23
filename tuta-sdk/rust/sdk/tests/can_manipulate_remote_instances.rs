@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::sync::Arc;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;
@@ -43,7 +42,7 @@ async fn can_create_remote_instance() {
 		.await
 		.unwrap();
 
-	let owner_enc_session_key = mail_group_key.encrypt_key(
+	let _owner_enc_session_key = mail_group_key.encrypt_key(
 		&session_key,
 		Iv::from_bytes(&rand::random::<[u8; IV_BYTE_SIZE]>()).unwrap(),
 	);
@@ -63,7 +62,7 @@ async fn can_create_remote_instance() {
 	};
 
 	let response = crypto_entity_client
-		.create_instance(mail_import_state.clone(), Some(&session_key))
+		.create_instance(mail_import_state.clone(), Some(session_key))
 		.await
 		.unwrap();
 

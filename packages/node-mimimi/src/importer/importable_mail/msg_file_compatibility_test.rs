@@ -12,7 +12,7 @@ use tutasdk::date::DateTime;
 
 #[test]
 fn mime_tools_test_messages() {
-	const DATA_DIR: &'static str = concat!(
+	const DATA_DIR: &str = concat!(
 		env!("CARGO_MANIFEST_DIR"),
 		"/tests/resources/mimetools-testmsgs"
 	);
@@ -160,7 +160,7 @@ impl From<ExpectedMessage> for ImportableMail {
 								content_type.push_str(f.mime_type.as_str());
 							}
 							if let Some(charset) = f.charset {
-								content_type.push_str(";");
+								content_type.push(';');
 								content_type.push_str(&format!("charset=\"{charset}\""));
 							}
 

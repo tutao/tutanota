@@ -11,9 +11,12 @@ pub struct GreenMailTestServer {
 	pub jvm: Jvm,
 	pub server: Instance,
 
+	#[allow(unused)]
 	pub imaps_address: (String, u32),
 
+	#[allow(unused)]
 	pub users: HashMap<&'static str, Instance>,
+	#[allow(unused)]
 	pub imaps_port: i32,
 }
 
@@ -50,6 +53,7 @@ impl GreenMailTestServer {
 		}
 	}
 
+	#[allow(unused)]
 	pub fn stop(self) {
 		self.stop_greenmail_server();
 	}

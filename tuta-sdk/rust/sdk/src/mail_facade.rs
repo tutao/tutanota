@@ -1,6 +1,6 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
-use crate::entities::generated::sys::{Group, GroupInfo, User};
+use crate::entities::generated::sys::{Group, GroupInfo};
 use crate::entities::generated::tutanota::{
 	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
