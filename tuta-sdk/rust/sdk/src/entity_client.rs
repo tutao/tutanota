@@ -1,8 +1,6 @@
 use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions, RestResponse};
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::element_value::{ElementValue, ParsedEntity};
-use crate::entities::entity_facade::EntityFacade;
 use crate::entities::entity_facade::ID_FIELD;
 use crate::entities::generated::base::PersistenceResourcePostReturn;
 use crate::entities::Entity;
@@ -15,8 +13,6 @@ use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
 use crate::{ApiCallError, HeadersProvider, IdTupleCustom, ListLoadDirection, TypeRef};
 use crate::{GeneratedId, IdTupleGenerated};
-use futures::StreamExt;
-use serde_bytes::Serialize;
 use std::sync::Arc;
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
@@ -25,11 +21,10 @@ pub struct EntityClient {
 	base_url: String,
 	auth_headers_provider: Arc<HeadersProvider>,
 	json_serializer: Arc<JsonSerializer>,
-	pub(crate) type_model_provider: Arc<TypeModelProvider>,
+	pub type_model_provider: Arc<TypeModelProvider>,
 }
 
 impl EntityClient {
-	#[allow(dead_code)]
 	pub(crate) fn new(
 		rest_client: Arc<dyn RestClient>,
 		json_serializer: Arc<JsonSerializer>,
@@ -134,7 +129,7 @@ impl EntityClient {
 			"{}/rest/{}/{}/",
 			self.base_url, type_ref.app, type_ref.type_
 		);
-		let type_model = self.get_type_model(&type_ref)?;
+		let type_model = self.get_type_model(type_ref)?;
 		let model_version_str = type_model.version;
 		let model_version = model_version_str.parse::<u32>().map_err(|_e| {
 			ApiCallError::internal(format!(
@@ -220,8 +215,7 @@ impl EntityClient {
 		let raw_response = response
 			.body
 			.as_deref()
-			.map(|body| serde_json::from_slice(body).ok())
-			.flatten()
+			.and_then(|body| serde_json::from_slice(body).ok())
 			.ok_or_else(|| {
 				ApiCallError::internal("server did not responded with valid json".to_string())
 			})?;
@@ -326,6 +320,7 @@ mockall::mock! {
 			auth_headers_provider: Arc<HeadersProvider>,
 			type_model_provider: Arc<TypeModelProvider>,
 		) -> Self;
+		pub fn get_type_model_provider() -> Arc<TypeModelProvider>;
 		pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&'static TypeModel, ApiCallError>;
 		pub async fn load<Id: IdType>(
 			&self,
@@ -370,7 +365,6 @@ mod tests {
 
 	use super::*;
 	use crate::bindings::rest_client::{MockRestClient, RestResponse};
-	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::Entity;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
 	use crate::CustomId;
@@ -411,10 +405,7 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
-		let entity_facade = EntityFacadeImpl::new(
-			type_model_provider.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		);
+
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -465,10 +456,7 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_custom_element_id() {
 		let type_model_provider = mock_type_model_provider();
-		let entity_facade = EntityFacadeImpl::new(
-			type_model_provider.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		);
+
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -519,10 +507,7 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_asc_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
-		let entity_facade = EntityFacadeImpl::new(
-			type_model_provider.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		);
+
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -555,7 +540,6 @@ mod tests {
 			"http://test.com".to_owned(),
 			Arc::new(auth_headers_provider),
 			type_model_provider.clone(),
-			Arc::new(entity_facade),
 		);
 
 		let result_entity = entity_client
@@ -574,10 +558,6 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_asc_custom_element_id() {
 		let type_model_provider = mock_type_model_provider();
-		let entity_facade = EntityFacadeImpl::new(
-			type_model_provider.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {

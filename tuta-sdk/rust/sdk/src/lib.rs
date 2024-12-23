@@ -8,7 +8,6 @@ use std::sync::Arc;
 use minicbor::encode::Write;
 use minicbor::{Encode, Encoder};
 use serde::Serialize;
-use std::borrow::Borrow;
 use thiserror::Error;
 
 #[cfg_attr(test, mockall_double::double)]
@@ -21,13 +20,13 @@ use crate::crypto::crypto_facade::create_auth_verifier;
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 use crate::crypto::randomizer_facade::RandomizerFacade;
-use crate::crypto::{aes::Iv, Aes256Key, AES_256_KEY_SIZE};
+use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::date::date_provider::SystemDateProvider;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
-use crate::entities::generated::sys::{CreateSessionData, SaltData, User};
+use crate::entities::generated::sys::{CreateSessionData, SaltData};
 use crate::entities::generated::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -85,11 +84,9 @@ mod user_facade;
 mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
-use crate::entities::generated::base::PersistenceResourcePostReturn;
 use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::entities::Entity;
 use crate::groups::GroupType;
-use crate::json_element::RawEntity;
 use crate::metamodel::TypeModel;
 use crate::tutanota_constants::ArchiveDataType;
 pub use id::custom_id::CustomId;
@@ -400,7 +397,7 @@ impl LoggedInSdk {
 		self.entity_facade.encrypt_and_map(type_model, instance, sk)
 	}
 
-	pub fn get_entity_client(&self) -> Arc<EntityClient> {
+	#[must_use] pub fn get_entity_client(&self) -> Arc<EntityClient> {
 		self.entity_client.clone()
 	}
 
@@ -417,11 +414,11 @@ impl LoggedInSdk {
 			.map_err(|err| ApiCallError::internal(format!("KeyLoadError: {err:?}")))
 	}
 
-	pub fn get_user_group_id(&self) -> GeneratedId {
+	#[must_use] pub fn get_user_group_id(&self) -> GeneratedId {
 		self.user_facade.get_user_group_id()
 	}
 
-	pub fn get_user_id(&self) -> Option<GeneratedId> {
+	#[must_use] pub fn get_user_id(&self) -> Option<GeneratedId> {
 		self.user_facade.get_user()._id.clone()
 	}
 
@@ -442,7 +439,7 @@ impl LoggedInSdk {
 	pub fn serialize_instance_to_json<Instance>(
 		&self,
 		instance: Instance,
-		key: &GenericAesKey,
+		key: GenericAesKey,
 	) -> Result<String, ApiCallError>
 	where
 		Instance: Entity + Serialize,

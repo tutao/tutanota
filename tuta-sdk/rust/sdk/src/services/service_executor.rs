@@ -291,7 +291,7 @@ impl Executor for ServiceExecutor {
 		let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice())
 			.map_err(|e| ApiCallError::internal_with_err(e, "Failed to serialize instance"))?;
 		let output_type_ref = &OutputType::type_ref();
-		let mut parsed_entity = self
+		let parsed_entity = self
 			.json_serializer
 			.parse(output_type_ref, response_entity)?;
 		let type_model: &TypeModel = self
@@ -309,7 +309,7 @@ impl Executor for ServiceExecutor {
 						type_model.name,
 					))
 				})?
-				.resolve_session_key(&mut parsed_entity, type_model)
+				.resolve_session_key(&parsed_entity, type_model)
 				.await
 				.map_err(|error| {
 					ApiCallError::internal(format!(

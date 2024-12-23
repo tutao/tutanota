@@ -122,7 +122,6 @@ mod tests {
 
 	fn run_butcher<const L: usize>(data: Vec<usize>) -> Vec<Result<Vec<usize>, usize>> {
 		Butcher::<L, usize, std::vec::IntoIter<usize>>::new(data.into_iter(), usize::clone)
-			.into_iter()
 			.collect()
 	}
 
