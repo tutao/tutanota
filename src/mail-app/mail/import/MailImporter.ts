@@ -18,6 +18,8 @@ import { ResumableImport } from "../../../common/native/common/generatedipc/Resu
 import Stream from "mithril/stream"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { mailLocator } from "../../mailLocator.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EventController } from "../../../common/api/main/EventController"
 
 const DEFAULT_TOTAL_WORK: number = 100000
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
@@ -42,6 +44,7 @@ export class MailImporter implements MailImportFacade {
 	private activeImport: LocalImportMailState | null = null
 	private uiStatus: UiImportStatus
 	private wsConnectionOnline: boolean = false
+	private eventController: EventController
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -49,6 +52,7 @@ export class MailImporter implements MailImportFacade {
 		mailboxModel: MailboxModel,
 		mailModel: MailModel,
 		entityClient: EntityClient,
+		eventController: EventController,
 	) {
 		this.domainConfigProvider = domainConfigProvider
 		this.loginController = loginController
@@ -58,6 +62,9 @@ export class MailImporter implements MailImportFacade {
 
 		this.uiStatus = UiImportStatus.Idle
 		this.updateProgressMonitorTotalWork(DEFAULT_TOTAL_WORK)
+		this.eventController = eventController
+
+		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	}
 
 	async initImportMailStates(): Promise<void> {
@@ -359,6 +366,15 @@ export class MailImporter implements MailImportFacade {
 			return this.uiStatus
 		} else {
 			return UiImportStatus.Idle
+		}
+	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+				await this.newImportStateFromServer(updatedState)
+			}
 		}
 	}
 }

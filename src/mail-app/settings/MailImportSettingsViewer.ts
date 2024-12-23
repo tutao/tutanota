@@ -33,12 +33,10 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 	private isImportHistoryExpanded: boolean = false
 
 	private mailImporter: MailImporter
-	private entityClient: EntityClient
 	private fileApp: NativeFileApp | null
 
-	constructor(mailImporter: MailImporter, entityClient: EntityClient, fileApp: NativeFileApp | null) {
+	constructor(mailImporter: MailImporter, fileApp: NativeFileApp | null) {
 		this.mailImporter = mailImporter
-		this.entityClient = entityClient
 		this.fileApp = fileApp
 	}
 
@@ -66,15 +64,6 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 				  ]
 				: [this.renderNoImportOnWebText()],
 		)
-	}
-
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		for (const update of updates) {
-			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-				await this.mailImporter.newImportStateFromServer(updatedState)
-			}
-		}
 	}
 
 	private async onImportButtonClick(dom: HTMLElement) {
@@ -224,7 +213,13 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderMailImportProgressBar() {
 		// the ProgressBar uses progress values 0 ... 1
-		return m(".rel.border-radius-big.full-width", m(ProgressBar, { progress: this.mailImporter.getProgress() / 100, type: ProgressBarType.Large }))
+		return m(
+			".rel.border-radius-big.full-width",
+			m(ProgressBar, {
+				progress: this.mailImporter.getProgress() / 100,
+				type: ProgressBarType.Large,
+			}),
+		)
 	}
 
 	private renderImportHistory() {
@@ -302,6 +297,8 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 		}
 		throw new Error("could not load folder list")
 	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
 }
 
 export function getReadableUiImportStatus(uiStatus: UiImportStatus): string {
