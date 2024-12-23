@@ -70,7 +70,7 @@ Content-Disposition: inline
 Return-Path: <jasonc@snesystems.com>
 Received: from iglou.com (192.107.41.3) by mail.vynce.org
  with SMTP (Eudora Internet Mail Server 1.3.1); Thu, 18 May 2000 16:10:02 -0700
-Received: from [204.255.234.19] (helo=ntserver2.snesystems.com)
+Received: from [204.255.234.19] (helo=ntserver2.snesystems.com) 
 	by iglou.com with esmtp (8.9.3/8.9.3)
 	id 12sZKw-0007JK-00; Thu, 18 May 2000 19:04:15 -0400
 Received: from snesystems.com (sne-30.snesystems.com [204.255.234.30]) by ntserver2.snesystems.com with SMTP (Microsoft Exchange Internet Mail Service Version 5.5.2650.21)
@@ -102,11 +102,11 @@ Content-Type: message/rfc822
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Received: by ntserver2
+Received: by ntserver2 
 	id <01BFC0CA.C31F7A10@ntserver2>; Thu, 18 May 2000 09:12:47 -0400
 Message-ID: <01D476341BDBD211B7C500A0CC209BA03DF5C6@ntserver2>
 From: Shawn Morgan <ShawnM@snesystems.com>
-To: Wayne Price <WayneP@snesystems.com>, Tim Spayner <TimS@snesystems.com>,
+To: Wayne Price <WayneP@snesystems.com>, Tim Spayner <TimS@snesystems.com>, 
 	Gary Jones <Garyj@snesystems.com>, Jason Chelliah <JasonC@snesystems.com>
 Subject: FW: Another Priceless  Moment
 Date: Thu, 18 May 2000 09:12:47 -0400
@@ -131,15 +131,15 @@ Subject: Fw: Another Priceless Moment
 
 
 
------ Original Message -----
+----- Original Message ----- 
 From: Michele Morgan <Ailinn@bellsouth.net>
 To: <mailto:Undisclosed-Recipient:@mail0.mco.bellsouth.net>
 Sent: Tuesday, May 16, 2000 10:31 PM
 Subject: Fw: Another Priceless Moment
 
 
->
->
+> 
+> 
 
 
 ------_=_NextPart_000_01BFC0CA.C32A4450

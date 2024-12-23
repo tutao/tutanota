@@ -15,12 +15,12 @@ Content-Type: TEXT/PLAIN; charset=US-ASCII
 Dear Sir,
 
 I have a problem with Your MIME-Parser-1.9
-and multipart-nested messages.
+and multipart-nested messages. 
 Not all parts are parsed.
 
 Here my Makefile, Your own multipart-nested.msg
 and its out after "make test".
-Some my messages not completely parsed too.
+Some my messages not completely parsed too. 
 
 Is this a bug?
 

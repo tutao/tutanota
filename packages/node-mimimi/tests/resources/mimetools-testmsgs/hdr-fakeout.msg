@@ -9,7 +9,7 @@ Content-transfer-encoding: 7BIT
 Content-Type: text/plain; charset=us-ascii
 X-Mailer: Mutt 1.0us
 Organization: Quist Consulting
-
-The header is not properly terminated; the "blank line"
+ 
+The header is not properly terminated; the "blank line" 
 actually has a space in it.
 

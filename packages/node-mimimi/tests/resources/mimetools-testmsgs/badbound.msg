@@ -11,7 +11,7 @@ Resent-Date: Sun, 22 Dec 1996 23:25:10 +0100 (CET)
 Resent-Message-Id: <199612222225.XAA01761@franz.ww.TU-Berlin.DE>
 Resent-To: k
 Received: from mailgzrz.TU-Berlin.DE (mailgzrz.TU-Berlin.DE [130.149.4.10]) by franz.ww.TU-Berlin.DE (8.7.3/8.7.3) with ESMTP id XAA01754 for <koenig@franz.ww.TU-Berlin.DE>; Sun, 22 Dec 1996 23:24:32 +0100 (CET)
-Received: from challenge.uscom.com (actually mail.uscom.com)
+Received: from challenge.uscom.com (actually mail.uscom.com) 
           by mailgzrz.TU-Berlin.DE with SMTP (PP);
           Sun, 22 Dec 1996 23:19:35 +0100
 To: koenig@franz.ww.tu-berlin.de
@@ -21,13 +21,13 @@ Subject: Mail System Error - Returned Mail
 Date: Sun, 22 Dec 1996 17:21:12 -0500
 Message-ID: <19961222222112.AAE16235@challenge.uscom.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; Boundary="===========================_ _=
+Content-Type: multipart/mixed; Boundary="===========================_ _= 
               2283630(16235)"
 Content-Transfer-Encoding: 7BIT
 X-Filter: mailagent [version 3.0 PL44] for koenig@franz.ww.tu-berlin.de
 X-Filter: mailagent [version 3.0 PL44] for k@.in-berlin.de
 
---===========================_ _=
+--===========================_ _= 
               2283630(16235)
 Content-type: text/plain; charset="us-ascii"
 
@@ -39,34 +39,34 @@ The following error messages provide the details about each failure:
 
      The delivery program "/pages/pnet/admin/mail_proc.pl" produced
      the following output while delivering the message to
-     pnet@uscom.com
-
+     pnet@uscom.com 
+     
           Can't exec "/usr/sbin/sendmail -t": No such file or directory at /pages/pnet/admin/mail_proc.pl line 96, <> line 93.
           Broken pipe
-
+     
      The program "/pages/pnet/admin/mail_proc.pl" exited with an
      unknown value of 141 while delivering the message to
-     pnet@uscom.com
+     pnet@uscom.com 
 
-The message was not delivered to:
+The message was not delivered to: 
 
      pnet@uscom.com
 
 Please reply to Postmaster@challenge.uscom.com
 if you feel this message to be in error.
 
---===========================_ _=
+--===========================_ _= 
               2283630(16235)
 Content-type: message/rfc822
 Content-Disposition: attachment
 Date: Sun, 22 Dec 1996 22:24:21 +0000
 Message-ID: <"mailgzrz.T.061:22.12.96.22.24.21"@TU-Berlin.DE>
 
-Received: from franz.ww.TU-Berlin.DE ([130.149.200.51])
-          by challenge.uscom.com (Netscape Mail Server v2.02) with ESMTP
+Received: from franz.ww.TU-Berlin.DE ([130.149.200.51]) 
+          by challenge.uscom.com (Netscape Mail Server v2.02) with ESMTP 
           id AAA685 for <pnet@uscom.com>; Wed, 18 Dec 1996 16:58:30 -0500
-Received: from mailgzrz.TU-Berlin.DE (mailgzrz.TU-Berlin.DE [130.149.4.10])
-          by franz.ww.TU-Berlin.DE (8.7.3/8.7.3) with ESMTP id SAA23400
+Received: from mailgzrz.TU-Berlin.DE (mailgzrz.TU-Berlin.DE [130.149.4.10]) 
+          by franz.ww.TU-Berlin.DE (8.7.3/8.7.3) with ESMTP id SAA23400 
           for <msqlperl@franz.ww.tu-berlin.de>;
           Wed, 18 Dec 1996 18:59:21 +0100 (CET)
 Received: from anna.in-berlin.de by mailgzrz.TU-Berlin.DE with SMTP (PP);
@@ -156,5 +156,5 @@ NOTE: if the above recipe does not work for you, ask me for assistance
 and do not spam the list with the request. Thank you!
 
 
---===========================_ _=
+--===========================_ _= 
               2283630(16235)--

@@ -14,7 +14,7 @@ This is a multi-part message in MIME format.
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
---
+-- 
 Juergen Specht - KULTURBOX
 
 --------------70522FC73543

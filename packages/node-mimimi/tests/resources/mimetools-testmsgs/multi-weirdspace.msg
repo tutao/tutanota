@@ -9,7 +9,7 @@ To: john-bigboote@eryq.pr.mcs.net
 Subject: Two images for you...
 Content-Type: multipart/mixed; boundary="------------299A70B339B65A93542D2AE"
 
---------------299A70B339B65A93542D2AE
+--------------299A70B339B65A93542D2AE  		  
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -20,14 +20,14 @@ When unpacked, this message should produce two GIF files:
 
 There is an empty preamble, and linear space after the bounds.
 
---
+-- 
    ____           __
   / __/__________/_/  Eryq (eryq@rhine.gsfc.nasa.gov)
  / __/ _/ / / , /     Hughes STX Corporation, NASA/Goddard
-/___/_/ \  /\  /___
+/___/_/ \  /\  /___ 
         /_/ /_____/   http://selsvr.stx.com/~eryq/
 
---------------299A70B339B65A93542D2AE
+--------------299A70B339B65A93542D2AE  			
 Content-Type: image/gif
 Content-Transfer-Encoding: base64
 Content-Disposition: inline; filename="3d-compress.gif"
@@ -40,7 +40,7 @@ qTurjHgLKAu0B5Wqopm7J72etQN8t8Ijury+wMtvw8/Hv7Ylfs0BxCbGqMmK0yOOQ0GTCgrR
 2bhwJGlXJQYG6mMKoeNoWSbzCWIACe5JwxQm3AkDAbUAQCiQhDZEBeBl6afgCsOBrD45edIv
 QceGWSMevpOYhl6CkydBHhBZQmGKjihVshypjB9ClAHZMTugzOU7mzhBPiSZ5uDNnA7b/aTZ
 0mhMnfl0pDBFa6bUElSPWb0qtYuHrxlwcR17YsWMs2jTql3LFkQEADs=
---------------299A70B339B65A93542D2AE
+--------------299A70B339B65A93542D2AE 	
 Content-Type: image/gif; name="3d-eye.gif"
 Content-Transfer-Encoding: base64
 

@@ -12,8 +12,8 @@ Content-Type: text/plain
 Content-Disposition: inline
 Content-Transfer-Encoding: binary
 
-Having a wonderful time...
-wish you were looking at HTML
+Having a wonderful time... 
+wish you were looking at HTML 
 instead of this boring text!
 
 ------------=_961872013-1436-0
@@ -27,8 +27,8 @@ Content-Type: text/html
 Content-Disposition: inline
 Content-Transfer-Encoding: binary
 
- <H1>Hey there!</H1>
- Having a <I>wonderful</I> time...
+ <H1>Hey there!</H1> 
+ Having a <I>wonderful</I> time... 
  take a look!
   <BR><IMG SRC="cid:my-graphic" ALT="Snapshot"><HR>
 ------------=_961872013-1436-1
