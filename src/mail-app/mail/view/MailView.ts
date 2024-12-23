@@ -787,29 +787,34 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return files.every((f) => f.name.endsWith(".eml") || f.name.endsWith(".mbox"))
 		}
 
-		// importing mails is currently only allowed on plan LEGEND and UNLIMITED
-		const currentPlanType = await locator.logins.getUserController().getPlanType()
-		const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
+		await this.handleFileDrop(dropData)
 
-		let importAction: { text: TranslationText; value: boolean } = {
-			text: "import_action",
-			value: true,
-		}
-		let attachFilesAction: { text: TranslationText; value: boolean } = {
-			text: "attachFiles_action",
-			value: false,
-		}
-		const willImport =
-			isHighestTierPlan && droppedOnlyMailFiles(dropData.files) && (await Dialog.choice("emlOrMboxInSharingFiles_msg", [importAction, attachFilesAction]))
-
-		if (!willImport) {
-			await this.handleFileDrop(dropData)
-		} else if (mailFolder._ownerGroup && this.mailImporter) {
-			await this.mailImporter.onStartBtnClick(
-				mailFolder,
-				dropData.files.map((file) => window.nativeApp.getPathForFile(file)),
-			)
-		}
+		// DnD mail importing is disabled for now as the MailImporter might not have
+		// been initialized yet.
+		//
+		// // importing mails is currently only allowed on plan LEGEND and UNLIMITED
+		// const currentPlanType = await locator.logins.getUserController().getPlanType()
+		// const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
+		//
+		// let importAction: { text: TranslationText; value: boolean } = {
+		// 	text: "import_action",
+		// 	value: true,
+		// }
+		// let attachFilesAction: { text: TranslationText; value: boolean } = {
+		// 	text: "attachFiles_action",
+		// 	value: false,
+		// }
+		// const willImport =
+		// 	isHighestTierPlan && droppedOnlyMailFiles(dropData.files) && (await Dialog.choice("emlOrMboxInSharingFiles_msg", [importAction, attachFilesAction]))
+		//
+		// if (!willImport) {
+		// 	await this.handleFileDrop(dropData)
+		// } else if (mailFolder._ownerGroup && this.mailImporter) {
+		// 	await this.mailImporter.onStartBtnClick(
+		// 		mailFolder,
+		// 		dropData.files.map((file) => window.nativeApp.getPathForFile(file)),
+		// 	)
+		// }
 	}
 
 	private async showNewMailDialog(): Promise<void> {
