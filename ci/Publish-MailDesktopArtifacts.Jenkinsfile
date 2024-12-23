@@ -79,7 +79,7 @@ pipeline {
                         sh 'node -v'
                         sh 'npm -v'
                         sh 'npm ci'
-                        sh 'npm run build-packages'
+
                         sh 'node buildSrc/publish.js desktop'
                     } // steps
                 } // stage build deb
@@ -122,6 +122,8 @@ pipeline {
                                 currentBuild.result = 'ABORTED'
                                 error("Unable to find file ${desktopLinux}")
                             }
+
+                            sh 'npm ci'
 
                             writeFile file: "notes.txt", text: params.releaseNotes
 							withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
