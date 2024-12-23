@@ -58,8 +58,12 @@ export function displayOverlay(
 	}) as () => void
 }
 
-export const overlay: Component = {
-	view: (): Children =>
+type OverlayParentAttrs = {
+	inertBelow: number
+}
+
+export const overlay: Component<OverlayParentAttrs> = {
+	view: (vnode): Children =>
 		m(
 			// we want the overlays to position relative to the overlay parent
 			// the overlay parent also should fill the root
@@ -83,11 +87,15 @@ export const overlay: Component = {
 				const baseClasses = "abs elevated-bg " + attrs.shadowClass
 				const classes = attrs.createAnimation == null ? baseClasses : baseClasses + " " + attrs.createAnimation
 
+				const zIndex = position.zIndex != null ? position.zIndex : LayerType.Overlay
+				const inert = zIndex < vnode.attrs.inertBelow
+
 				return m(
 					"",
 					{
 						key,
 						class: classes,
+						inert,
 						style: {
 							width: position.width,
 							top: position.top,
@@ -95,7 +103,7 @@ export const overlay: Component = {
 							right: position.right,
 							left: position.left,
 							height: position.height,
-							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
+							zIndex,
 						},
 						onbeforeremove: (vnode: VnodeDOM) => {
 							if (attrs.closeAnimation != null) {
