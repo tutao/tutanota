@@ -36,10 +36,10 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatOccurrences: number
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
-		this.repeatRuleType = attrs.model.repeatPeriod
 		this.intervalOptions(this.numberValues)
 		this.occurrencesOptions(this.numberValues)
 
+		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
 		this.repeatOccurrences = attrs.model.repeatEndOccurrences
 	}
@@ -55,7 +55,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			},
 			[
 				m(".flex.col", [
-					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, "Frequency"),
+					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, "Frequency"), // TODO add label
 					m(
 						Card,
 						{
@@ -136,7 +136,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					},
 					classes: ["flex", "col"],
 				},
-				[this.renderIntervalPicker(attrs)],
+				[m("", [this.renderIntervalPicker(attrs)])],
 			),
 		])
 	}
