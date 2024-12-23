@@ -83,21 +83,26 @@ export class MailImporter implements MailImportFacade {
 			}
 		}
 
+		if (resumableImport) {
+			// we can't use the result of loadAll (see below) as that might only read from offline cache and
+			// not include a new ImportMailState that was created without sending an entity event
+			const importMailState = await this.entityClient.load(ImportMailStateTypeRef, resumableImport.remoteStateId) //
+			if (this.uiStatus != UiImportStatus.Running) {
+				importMailState.status = ImportStatus.Paused.toString()
+				this.activeImport = remoteStateAsLocal(importMailState, this.activeImport)
+				this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
+				const doneCount = parseInt(importMailState.failedMails) + parseInt(importMailState.successfulMails)
+				const totalCount = doneCount + resumableImport.remainingEmlCount
+				this.updateProgressMonitorTotalWork(totalCount)
+				this.progressMonitor?.totalWorkDone(doneCount)
+			}
+		}
+
 		const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
 		for (const importMailState of importMailStatesCollection) {
 			const remoteStatus = parseInt(importMailState.status) as ImportStatus
 			if (isFinalisedImport(remoteStatus)) {
 				this.updateFinalisedImport(elementIdPart(importMailState._id), importMailState)
-			} else {
-				if (this.uiStatus != UiImportStatus.Running && resumableImport && isSameId(importMailState._id, resumableImport.remoteStateId)) {
-					importMailState.status = ImportStatus.Paused.toString()
-					this.activeImport = remoteStateAsLocal(importMailState, this.activeImport)
-					this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
-					const doneCount = parseInt(importMailState.failedMails) + parseInt(importMailState.successfulMails)
-					const totalCount = doneCount + resumableImport.remainingEmlCount
-					this.updateProgressMonitorTotalWork(totalCount)
-					this.progressMonitor?.totalWorkDone(doneCount)
-				}
 			}
 		}
 		m.redraw()
