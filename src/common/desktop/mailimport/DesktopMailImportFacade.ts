@@ -74,8 +74,8 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		this.nextCallbackAction = ImportProgressAction.Pause
 	}
 
-	async getResumeableImport(): Promise<ResumableImport> {
-		const resumableImport = await ImporterApi.getResumableImport(this.configDirectory)
+	async getResumeableImport(mailboxId: string): Promise<ResumableImport> {
+		const resumableImport = await ImporterApi.getResumableImport(this.configDirectory, mailboxId)
 		return {
 			remoteStateId: [resumableImport.remoteStateId.listId, resumableImport.remoteStateId.elementId],
 			remainingEmlCount: resumableImport.remainingEmlCount,
