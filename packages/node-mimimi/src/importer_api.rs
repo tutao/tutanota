@@ -123,8 +123,15 @@ impl ImporterApi {
 			GeneratedId(target_mailset_lid),
 			GeneratedId(target_mailset_eid),
 		);
+		let mailbox_id = logged_in_sdk
+			.mail_facade()
+			.load_user_mailbox()
+			.await
+			.map_err(|e| ImportError::sdk("loading mailbox", e))?
+			._id
+			.ok_or(ImportError::CannotLoadMailbox)?;
 		let import_directory: PathBuf =
-			Self::get_import_directory(config_directory, target_owner_group.clone());
+			Importer::get_import_directory(config_directory, mailbox_id);
 		let source_paths = source_paths.into_iter().map(|p| PathBuf::from(p)).collect();
 		let eml_sources = FileImport::prepare_import(import_directory.clone(), source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
@@ -141,8 +148,11 @@ impl ImporterApi {
 	}
 
 	#[napi]
-	pub async fn get_resumable_import(config_directory: String) -> napi::Result<ResumableImport> {
-		Importer::get_resumable_import(config_directory)
+	pub async fn get_resumable_import(
+		config_directory: String,
+		mailbox_id: String,
+	) -> napi::Result<ResumableImport> {
+		Importer::get_resumable_import(config_directory, mailbox_id)
 			.await
 			.map_err(Into::into)
 	}
@@ -162,9 +172,15 @@ impl ImporterApi {
 		let target_owner_group = import_state
 			._ownerGroup
 			.expect("import state should have ownerGroup");
-
+		let mailbox_id = logged_in_sdk
+			.mail_facade()
+			.load_user_mailbox()
+			.await
+			.map_err(|e| ImportError::sdk("loading mailbox", e))?
+			._id
+			.ok_or(ImportError::CannotLoadMailbox)?;
 		let import_directory: PathBuf =
-			Self::get_import_directory(config_directory, target_owner_group.clone().into());
+			Importer::get_import_directory(config_directory, mailbox_id);
 
 		let dir_entries = fs::read_dir(&import_directory)?;
 		let mut source_paths: Vec<PathBuf> = vec![];
@@ -188,16 +204,6 @@ impl ImporterApi {
 			import_directory,
 		)
 		.await
-	}
-
-	fn get_import_directory(config_directory: String, target_owner_group: String) -> PathBuf {
-		[
-			config_directory,
-			"current_imports".into(),
-			target_owner_group,
-		]
-		.iter()
-		.collect()
 	}
 
 	#[napi]

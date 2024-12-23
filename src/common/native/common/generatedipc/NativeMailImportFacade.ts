@@ -35,7 +35,7 @@ export interface NativeMailImportFacade {
 	/**
 	 * @returns the mail import state id of the import that might be resumed
 	 */
-	getResumeableImport(): Promise<ResumableImport>
+	getResumeableImport(mailboxId: string): Promise<ResumableImport>
 
 	/**
 	 * resumes the import for a previously paused import

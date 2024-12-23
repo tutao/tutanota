@@ -70,10 +70,11 @@ export class MailImporter implements MailImportFacade {
 	async initImportMailStates(): Promise<void> {
 		let mailboxDetail = assertNotNull(first(await this.mailboxModel.getMailboxDetails()))
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
+		let mailboxId = mailboxDetail.mailbox._id
 
 		let resumableImport: ResumableImport | null = null
 		try {
-			resumableImport = await importFacade.getResumeableImport()
+			resumableImport = await importFacade.getResumeableImport(mailboxId)
 		} catch (e) {
 			if (e instanceof Error && e.message === "NoElementIdForState") {
 				console.log("nothing to resume")

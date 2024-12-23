@@ -43,7 +43,11 @@
 		},
 		"getResumeableImport": {
 			"doc": "@returns the mail import state id of the import that might be resumed",
-			"arg": [],
+			"arg": [
+				{
+					"mailboxId": "string"
+				}
+			],
 			"ret": "ResumableImport"
 		},
 		"resumeImport": {

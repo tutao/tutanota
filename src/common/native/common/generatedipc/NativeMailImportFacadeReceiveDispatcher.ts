@@ -25,7 +25,8 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				return this.facade.setPausedProgressAction()
 			}
 			case "getResumeableImport": {
-				return this.facade.getResumeableImport()
+				const mailboxId: string = arg[0]
+				return this.facade.getResumeableImport(mailboxId)
 			}
 			case "resumeImport": {
 				const apiUrl: string = arg[0]
