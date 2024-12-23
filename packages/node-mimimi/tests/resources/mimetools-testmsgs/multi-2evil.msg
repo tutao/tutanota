@@ -22,11 +22,11 @@ When unpacked, this message should produce two GIF files:
 
 Different ways of specifying the filenames have been used.
 
---
+-- 
    ____           __
   / __/__________/_/  Eryq (eryq@rhine.gsfc.nasa.gov)
  / __/ _/ / / , /     Hughes STX Corporation, NASA/Goddard
-/___/_/ \  /\  /___
+/___/_/ \  /\  /___ 
         /_/ /_____/   http://selsvr.stx.com/~eryq/
 
 --------------299A70B339B65A93542D2AE
