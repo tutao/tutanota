@@ -28,6 +28,7 @@ import {
 	count,
 	debounce,
 	first,
+	groupBy,
 	groupByAndMap,
 	isNotEmpty,
 	isNotNull,
@@ -630,6 +631,10 @@ export class MailViewModel {
 		const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
 		if (isNotEmpty(importedMailSetEntries)) {
 			const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
+
+			// put mails into cache before list model will download them one by one
+			await this.preloadMails(importedMailSetEntries)
+
 			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
 				if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
 				return listModelOfImport.entityEventReceived(
@@ -638,6 +643,15 @@ export class MailViewModel {
 					OperationType.CREATE,
 				)
 			})
+		}
+	}
+
+	private async preloadMails(importedMailSetEntries: MailSetEntry[]) {
+		const mailIds = importedMailSetEntries.map((mse) => mse.mail)
+		const mailsByList = groupBy(mailIds, (m) => listIdPart(m))
+		for (const [listId, mailIds] of mailsByList.entries()) {
+			const mailElementIds = mailIds.map((m) => elementIdPart(m))
+			await this.entityClient.loadMultiple(MailTypeRef, listId, mailElementIds)
 		}
 	}
 
