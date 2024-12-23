@@ -89,9 +89,9 @@ fn get_line_quote_level(line: String) -> i32 {
 mod test {
 	use crate::importer::importable_mail::plain_text_to_html_converter::plain_text_to_html;
 
-	/**
-	 * Adds <html> and <body> tags to the given html
-	 */
+	//
+	// Adds <html> and <body> tags to the given html
+	//
 	fn add_html_page_tags(html: String) -> String {
 		format!(
 			"<html>\r\n\

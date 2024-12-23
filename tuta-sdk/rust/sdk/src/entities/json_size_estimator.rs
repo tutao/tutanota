@@ -40,7 +40,7 @@ impl ser::Error for SizeEstimationError {
 /// in a non-serde way (eg IdTuple struct -> vector of strings)
 /// it assumes that certain types will be encrypted and/or b64
 /// encoded.
-impl<'a> Serializer for &'a mut SizeEstimatingSerializer {
+impl Serializer for &mut SizeEstimatingSerializer {
 	type Ok = usize;
 	type Error = SizeEstimationError;
 	type SerializeSeq = SizeEstimatingCompoundSerializer;
@@ -252,7 +252,7 @@ struct SizeEstimatingPlaintextSerializer;
 /// serializer that will not apply the encryption and encoding padding,
 /// to be used for objects that we know will not be encrypted or encoded,
 /// eg struct field names, ids.
-impl<'a> Serializer for &'a mut SizeEstimatingPlaintextSerializer {
+impl Serializer for &mut SizeEstimatingPlaintextSerializer {
 	type Ok = usize;
 	type Error = SizeEstimationError;
 	type SerializeSeq = ser::Impossible<usize, SizeEstimationError>;
@@ -432,7 +432,7 @@ enum CompoundType {
 
 struct SizeEstimatingCompoundSerializer(CompoundType, usize);
 
-impl<'a> SerializeSeq for SizeEstimatingCompoundSerializer {
+impl SerializeSeq for SizeEstimatingCompoundSerializer {
 	type Ok = usize;
 	type Error = SizeEstimationError;
 
@@ -450,7 +450,7 @@ impl<'a> SerializeSeq for SizeEstimatingCompoundSerializer {
 }
 
 /// maps are only used for the _finalIvs fields which are not encrypted.
-impl<'a> SerializeMap for SizeEstimatingCompoundSerializer {
+impl SerializeMap for SizeEstimatingCompoundSerializer {
 	type Ok = usize;
 	type Error = SizeEstimationError;
 
@@ -475,7 +475,7 @@ impl<'a> SerializeMap for SizeEstimatingCompoundSerializer {
 	}
 }
 
-impl<'a> SerializeStruct for SizeEstimatingCompoundSerializer {
+impl SerializeStruct for SizeEstimatingCompoundSerializer {
 	type Ok = usize;
 	type Error = SizeEstimationError;
 

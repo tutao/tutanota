@@ -143,7 +143,7 @@ impl EntityFacadeImpl {
 
 	fn map_value_to_binary(value_type: &ValueType, value: &ElementValue) -> Vec<u8> {
 		match value_type {
-			ValueType::Bytes => value.assert_bytes().to_vec(),
+			ValueType::Bytes => value.assert_bytes().clone(),
 			ValueType::String => value.assert_string().as_bytes().to_vec(),
 			ValueType::Number => value.assert_number().to_string().as_bytes().to_vec(),
 			ValueType::Date => value

@@ -1073,7 +1073,7 @@ Content-Type: text/calendar; charset="UTF-8"; method=request;
 }
 
 #[test]
-fn invalid_content_types_default_to_None() {
+fn invalid_content_types_default_to_none() {
 	let invalid_content_types = vec![
 		"Content-Type:",
 		"Content-Type: _",

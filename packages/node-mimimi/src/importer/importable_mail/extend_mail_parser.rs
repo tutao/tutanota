@@ -38,7 +38,7 @@ pub(super) trait MakeString {
 	fn make_string(&self) -> Cow<str>;
 }
 
-impl<'a> MakeString for [mail_parser::Header<'a>] {
+impl MakeString for [mail_parser::Header<'_>] {
 	fn make_string(&self) -> Cow<str> {
 		self.iter()
 			.map(MakeString::make_string)
@@ -47,7 +47,7 @@ impl<'a> MakeString for [mail_parser::Header<'a>] {
 			.into()
 	}
 }
-impl<'a> MakeString for mail_parser::Header<'a> {
+impl MakeString for mail_parser::Header<'_> {
 	fn make_string(&self) -> Cow<str> {
 		let Self {
 			name,
@@ -61,7 +61,7 @@ impl<'a> MakeString for mail_parser::Header<'a> {
 	}
 }
 
-impl<'a> MakeString for mail_parser::HeaderValue<'a> {
+impl MakeString for mail_parser::HeaderValue<'_> {
 	fn make_string(&self) -> Cow<str> {
 		match self {
 			mail_parser::HeaderValue::ContentType(content_t) => MakeString::make_string(content_t),
@@ -102,13 +102,13 @@ impl MakeString for mail_parser::DateTime {
 	}
 }
 
-impl<'x> MakeString for mail_parser::Received<'x> {
+impl MakeString for mail_parser::Received<'_> {
 	fn make_string(&self) -> Cow<str> {
 		Cow::Borrowed("todo!()")
 	}
 }
 
-impl<'a> MakeString for mail_parser::Address<'a> {
+impl MakeString for mail_parser::Address<'_> {
 	fn make_string(&self) -> Cow<str> {
 		match self {
 			mail_parser::Address::List(address_list) => address_list
@@ -124,7 +124,7 @@ impl<'a> MakeString for mail_parser::Address<'a> {
 	}
 }
 
-impl<'a> MakeString for mail_parser::ContentType<'a> {
+impl MakeString for mail_parser::ContentType<'_> {
 	fn make_string(&self) -> Cow<str> {
 		let attribute_str = self.attributes.as_ref().map(|attributes| {
 			attributes
@@ -147,7 +147,7 @@ impl<'a> MakeString for mail_parser::ContentType<'a> {
 		}
 		if let Some(attribute_str) = attribute_str {
 			if !content_type.is_empty() {
-				content_type.push_str(";");
+				content_type.push(';');
 			}
 			content_type.push_str(attribute_str.as_str());
 		}

@@ -23,7 +23,6 @@ use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
-use futures::FutureExt;
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
