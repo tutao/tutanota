@@ -15,7 +15,6 @@ import {
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
-	deconstructMailSetEntryId,
 	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -32,7 +31,6 @@ import {
 	groupByAndMap,
 	isNotEmpty,
 	isNotNull,
-	last,
 	lastThrow,
 	lazyMemoized,
 	mapWith,
@@ -626,27 +624,20 @@ export class MailViewModel {
 			return Promise.resolve()
 		}
 
-		let loadMailListIds = this.listModel?.getUnfilteredAsArray() ?? []
-		let lastLoadedMailTimestamp = last(loadMailListIds)?.receivedDate.getTime() ?? 0
-		if (lastLoadedMailTimestamp) {
-			let dateRangeFilteredMailSetEntryIds = importedMailEntries
-				.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
-				// we only want to load and display mails that are newer than the currently loaded mail range
-				.filter((importedEntry) => deconstructMailSetEntryId(importedEntry).receiveDate.getTime() >= lastLoadedMailTimestamp)
+		let mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
 
-			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
-			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, dateRangeFilteredMailSetEntryIds)
-			if (isNotEmpty(importedMailSetEntries)) {
-				const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
-				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
-					if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
-					return listModelOfImport.entityEventReceived(
-						listIdPart(importedMailSetEntry.mail),
-						elementIdPart(importedMailSetEntry.mail),
-						OperationType.CREATE,
-					)
-				})
-			}
+		const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
+		const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
+		if (isNotEmpty(importedMailSetEntries)) {
+			const isImportForThisFolder = isSameId(this._folder?.entries!, listIdPart(first(importedMailSetEntries)?._id!))
+			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
+				if (isImportForThisFolder) this.mailSetEntries().set(elementIdPart(importedMailSetEntry._id), importedMailSetEntry)
+				return listModelOfImport.entityEventReceived(
+					listIdPart(importedMailSetEntry.mail),
+					elementIdPart(importedMailSetEntry.mail),
+					OperationType.CREATE,
+				)
+			})
 		}
 	}
 
