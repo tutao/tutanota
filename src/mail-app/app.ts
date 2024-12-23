@@ -37,6 +37,7 @@ import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
+import { SessionType } from "../common/api/common/SessionType.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -190,9 +191,12 @@ import("./translations/en.js")
 			mailLocator.logins.addPostLoginAction(async () => {
 				return {
 					onPartialLoginSuccess: async () => {},
-					onFullLoginSuccess: async () => {
-						const controller = await mailLocator.mailExportController()
-						controller.resumeIfNeeded()
+					onFullLoginSuccess: async (event) => {
+						// not a temporary aka signup login
+						if (event.sessionType === SessionType.Persistent) {
+							const controller = await mailLocator.mailExportController()
+							controller.resumeIfNeeded()
+						}
 					},
 				}
 			})
