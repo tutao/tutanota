@@ -193,63 +193,59 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const { viewModel } = attrs
 		const classes = this.makeSubjectActionsLineClasses()
 
-		return m(
-			classes,
-			{
-				role: "button",
-				"mail-expander": "true",
-				"aria-expanded": !viewModel.isCollapsed(),
-				tabindex: TabIndex.Default,
-				onclick: (e: MouseEvent) => {
-					viewModel.collapseMail()
-					e.stopPropagation()
-				},
-				onkeydown: (e: KeyboardEvent) => {
-					if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN) && (e.target as HTMLElement).hasAttribute("mail-expander")) {
+		return m(classes, [
+			m(
+				".flex.flex-grow.align-self-start.items-start",
+				{
+					class: styles.isSingleColumnLayout() ? "mt-m" : "mt",
+					role: "button",
+					"mail-expander": "true",
+					// "aria-expanded" is always true because this component is only used in expanded view
+					"aria-expanded": "true",
+					tabindex: TabIndex.Default,
+					onclick: (e: MouseEvent) => {
 						viewModel.collapseMail()
-						e.preventDefault()
-					}
+						e.stopPropagation()
+					},
+					onkeydown: (e: KeyboardEvent) => {
+						if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN) && (e.target as HTMLElement).hasAttribute("mail-expander")) {
+							viewModel.collapseMail()
+							e.preventDefault()
+						}
+					},
 				},
-			},
-			[
-				m(
-					".flex.flex-grow.align-self-start.items-start",
-					{
-						class: styles.isSingleColumnLayout() ? "mt-m" : "mt",
+				[
+					viewModel.isUnread() ? this.renderUnreadDot() : null,
+					viewModel.isDraftMail()
+						? m(
+								".mr-xs.align-self-center",
+								m(Icon, {
+									icon: Icons.Edit,
+									container: "div",
+									style: {
+										fill: theme.content_button,
+									},
+									hoverText: lang.get("draft_label"),
+								}),
+						  )
+						: null,
+					this.tutaoBadge(viewModel),
+					m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.getDisplayedSender()?.name ?? ""),
+				],
+			),
+			m(
+				".flex-end.items-start.ml-between-s",
+				{
+					class: styles.isSingleColumnLayout() ? "" : "mt-xs",
+					style: {
+						// align "more" button with the datetime text
+						marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
 					},
-					[
-						viewModel.isUnread() ? this.renderUnreadDot() : null,
-						viewModel.isDraftMail()
-							? m(
-									".mr-xs.align-self-center",
-									m(Icon, {
-										icon: Icons.Edit,
-										container: "div",
-										style: {
-											fill: theme.content_button,
-										},
-										hoverText: lang.get("draft_label"),
-									}),
-							  )
-							: null,
-						this.tutaoBadge(viewModel),
-						m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.getDisplayedSender()?.name ?? ""),
-					],
-				),
-				m(
-					".flex-end.items-start.ml-between-s",
-					{
-						class: styles.isSingleColumnLayout() ? "" : "mt-xs",
-						style: {
-							// align "more" button with the datetime text
-							marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
-						},
-						onclick: (e: MouseEvent) => e.stopPropagation(),
-					},
-					this.moreButton(attrs),
-				),
-			],
-		)
+					onclick: (e: MouseEvent) => e.stopPropagation(),
+				},
+				this.moreButton(attrs),
+			),
+		])
 	}
 
 	private renderUnreadDot(): Children {

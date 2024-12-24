@@ -27,6 +27,8 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			".flex.items-center.pt.pb.click.no-wrap",
 			{
 				class: responsiveCardHPadding(),
+				role: "button",
+				"aria-expanded": "false",
 				style: {
 					color: theme.content_button,
 				},
