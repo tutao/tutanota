@@ -397,7 +397,8 @@ impl LoggedInSdk {
 		self.entity_facade.encrypt_and_map(type_model, instance, sk)
 	}
 
-	#[must_use] pub fn get_entity_client(&self) -> Arc<EntityClient> {
+	#[must_use]
+	pub fn get_entity_client(&self) -> Arc<EntityClient> {
 		self.entity_client.clone()
 	}
 
@@ -414,11 +415,13 @@ impl LoggedInSdk {
 			.map_err(|err| ApiCallError::internal(format!("KeyLoadError: {err:?}")))
 	}
 
-	#[must_use] pub fn get_user_group_id(&self) -> GeneratedId {
+	#[must_use]
+	pub fn get_user_group_id(&self) -> GeneratedId {
 		self.user_facade.get_user_group_id()
 	}
 
-	#[must_use] pub fn get_user_id(&self) -> Option<GeneratedId> {
+	#[must_use]
+	pub fn get_user_id(&self) -> Option<GeneratedId> {
 		self.user_facade.get_user()._id.clone()
 	}
 

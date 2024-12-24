@@ -406,7 +406,6 @@ mod tests {
 	async fn test_load_range_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
 
-
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
 			ID_FIELD => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("element_id".to_owned()))),
@@ -457,7 +456,6 @@ mod tests {
 	async fn test_load_range_custom_element_id() {
 		let type_model_provider = mock_type_model_provider();
 
-
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
 			ID_FIELD => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
@@ -507,7 +505,6 @@ mod tests {
 	#[tokio::test]
 	async fn test_load_range_asc_generated_element_id() {
 		let type_model_provider = mock_type_model_provider();
-
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
