@@ -38,10 +38,12 @@ o.spec("MailExportFacade", () => {
 	})
 
 	o.test("loadFixedNumberOfMailsWithCache", async () => {
-		when(bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", { baseUrl: "baseUrl", extraHeaders: tokenHeaders })).thenResolve([
-			mail1,
-			mail2,
-		])
+		when(
+			bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", {
+				baseUrl: "baseUrl",
+				extraHeaders: tokenHeaders,
+			}),
+		).thenResolve([mail1, mail2])
 
 		const result = await facade.loadFixedNumberOfMailsWithCache("mailListId", "startId", "baseUrl")
 
@@ -62,7 +64,12 @@ o.spec("MailExportFacade", () => {
 
 	o.test("loadAttachments", async () => {
 		const expected = [createTestEntity(FileTypeRef), createTestEntity(FileTypeRef)]
-		when(bulkMailLoader.loadAttachments([mail1, mail2], { baseUrl: "baseUrl", extraHeaders: tokenHeaders })).thenResolve(expected)
+		when(
+			bulkMailLoader.loadAttachments([mail1, mail2], {
+				baseUrl: "baseUrl",
+				extraHeaders: tokenHeaders,
+			}),
+		).thenResolve(expected)
 
 		const result = await facade.loadAttachments([mail1, mail2], "baseUrl")
 
@@ -73,7 +80,12 @@ o.spec("MailExportFacade", () => {
 		const dataByteMail1 = new Uint8Array([1, 2, 3])
 		const dataByteMail2 = new Uint8Array([4, 5, 6])
 		const mailAttachments = [
-			createTestEntity(FileTypeRef, { name: "mail1", mimeType: "img/png", cid: "12345", _id: ["attachment", "id1"] }),
+			createTestEntity(FileTypeRef, {
+				name: "mail1",
+				mimeType: "img/png",
+				cid: "12345",
+				_id: ["attachment", "id1"],
+			}),
 			createTestEntity(FileTypeRef, { name: "mail2", mimeType: "pdf", cid: "12345", _id: ["attachment", "id2"] }),
 		]
 
@@ -83,7 +95,6 @@ o.spec("MailExportFacade", () => {
 				ArchiveDataType.Attachments,
 				[createReferencingInstance(mailAttachments[0]), createReferencingInstance(mailAttachments[1])],
 				{
-					baseUrl: "baseUrl",
 					extraHeaders: tokenHeaders,
 				},
 			),
@@ -94,11 +105,27 @@ o.spec("MailExportFacade", () => {
 			]),
 		)
 
-		const result = await facade.loadAttachmentData(mail1, mailAttachments, "baseUrl")
+		const result = await facade.loadAttachmentData(mail1, mailAttachments)
 
 		o(result).deepEquals([
-			{ _type: "DataFile", name: "mail1", mimeType: "img/png", data: dataByteMail1, cid: "12345", size: 3, id: ["attachment", "id1"] },
-			{ _type: "DataFile", name: "mail2", mimeType: "pdf", data: dataByteMail2, cid: "12345", size: 3, id: ["attachment", "id2"] },
+			{
+				_type: "DataFile",
+				name: "mail1",
+				mimeType: "img/png",
+				data: dataByteMail1,
+				cid: "12345",
+				size: 3,
+				id: ["attachment", "id1"],
+			},
+			{
+				_type: "DataFile",
+				name: "mail2",
+				mimeType: "pdf",
+				data: dataByteMail2,
+				cid: "12345",
+				size: 3,
+				id: ["attachment", "id2"],
+			},
 		])
 	})
 })
