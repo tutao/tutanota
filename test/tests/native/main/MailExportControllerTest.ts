@@ -98,7 +98,7 @@ o.spec("MailExportController", function () {
 		when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, startId, matchers.anything())).thenResolve([mail])
 		when(mailExportFacade.loadMailDetails([mail])).thenResolve([{ mail, mailDetails }])
 		when(mailExportFacade.loadAttachments([mail], matchers.anything())).thenResolve([attachmentInfo])
-		when(mailExportFacade.loadAttachmentData(mail, [attachmentInfo], matchers.anything())).thenResolve([dataFile])
+		when(mailExportFacade.loadAttachmentData(mail, [attachmentInfo])).thenResolve([dataFile])
 
 		const mailBundle = makeMailBundle(sanitizer, mail, mailDetails, [dataFile])
 		return { mail, mailBundle, mailDetails }
@@ -242,7 +242,7 @@ o.spec("MailExportController", function () {
 
 			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(currentMailBag.mails, GENERATED_MAX_ID, "baseUrl2"))
 			verify(mailExportFacade.loadAttachments([mail1], "baseUrl3"))
-			verify(mailExportFacade.loadAttachmentData(mail1, matchers.anything(), "baseUrl1"))
+			verify(mailExportFacade.loadAttachmentData(mail1, matchers.anything()))
 		})
 	})
 
