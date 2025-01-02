@@ -10,7 +10,7 @@ import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 import { sh } from "../buildSrc/sh.js"
 
-export async function runTestBuild({ clean, fast = false }) {
+export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
@@ -19,7 +19,7 @@ export async function runTestBuild({ clean, fast = false }) {
 
 	if (!fast) {
 		await runStep("Packages", async () => {
-			await buildPackages("..")
+			await buildPackages("..", exclude)
 		})
 
 		await runStep("Types", async () => {
