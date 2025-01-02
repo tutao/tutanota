@@ -31,9 +31,13 @@ export async function buildRuntimePackages() {
 /**
  * Build all packages in packages directory.
  */
-export async function buildPackages(pathPrefix = ".") {
+export async function buildPackages(pathPrefix = ".", exclude = []) {
 	const packages = await glob(`${pathPrefix}/packages/*`, { deep: 1, onlyDirectories: true })
 	for (const dir of packages) {
+		if (exclude.some((p) => dir.endsWith(p))) {
+			console.log(`skipping build for ${dir}`)
+			continue
+		}
 		if (process.platform === "win32") {
 			const before = process.cwd()
 			cd(dir)
