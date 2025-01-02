@@ -597,7 +597,6 @@ class MainActivity : FragmentActivity() {
 			val serviceIntent = PushNotificationService.startIntent(
 				this,
 				"MainActivity#setupPushNotifications",
-				attemptForeground = true,
 			)
 			startService(serviceIntent)
 		} catch (e: Exception) {

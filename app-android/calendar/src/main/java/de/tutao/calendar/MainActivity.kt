@@ -198,7 +198,7 @@ class MainActivity : FragmentActivity() {
 		webView.settings.apply {
 			javaScriptEnabled = true
 			domStorageEnabled = true
-			javaScriptCanOpenWindowsAutomatically = false	
+			javaScriptCanOpenWindowsAutomatically = false
 			allowFileAccess = false
 			allowContentAccess = false
 			cacheMode = WebSettings.LOAD_NO_CACHE
@@ -584,7 +584,6 @@ class MainActivity : FragmentActivity() {
 			val serviceIntent = PushNotificationService.startIntent(
 				this,
 				"MainActivity#setupPushNotifications",
-				attemptForeground = true,
 			)
 			startService(serviceIntent)
 		} catch (e: Exception) {

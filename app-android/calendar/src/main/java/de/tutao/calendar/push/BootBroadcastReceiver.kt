@@ -15,9 +15,8 @@ class BootBroadcastReceiver : BroadcastReceiver() {
 			val serviceIntent = PushNotificationService.startIntent(
 					context,
 					"BootBroadcastReceiver",
-					attemptForeground = true,
 			)
-			ContextCompat.startForegroundService(context, serviceIntent)
+			context.startService(serviceIntent)
 		}
 	}
 }
