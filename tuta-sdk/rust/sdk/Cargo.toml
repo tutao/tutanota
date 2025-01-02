@@ -86,3 +86,6 @@ must_use_candidate = "warn"
 unused_async = "warn"
 implicit_clone = "warn"
 explicit_iter_loop = "warn"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ci)'] }

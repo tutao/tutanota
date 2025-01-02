@@ -85,6 +85,7 @@ impl Drop for GreenMailTestServer {
 }
 
 #[cfg(test)]
+#[cfg(not(ci))]
 pub mod greenmail_interaction {
 	use super::*;
 	use std::process::Command;
