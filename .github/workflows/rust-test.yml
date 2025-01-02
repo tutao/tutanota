@@ -10,6 +10,8 @@ on:
     branches:
       - dev-*
       - '*/dev'
+env:
+  RUSTFLAGS: "--cfg ci" # turns off some integration tests that need a server to pass
 
 jobs:
   test:

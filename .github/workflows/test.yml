@@ -9,6 +9,7 @@ on:
       - '*/dev'
 env:
   emscripten_version: 3.1.59
+  RUSTFLAGS: "--cfg ci" # turns off some integration tests that need a server to pass
 
 permissions:
   actions: none

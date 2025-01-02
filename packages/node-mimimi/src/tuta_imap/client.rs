@@ -446,6 +446,7 @@ pub enum CredentialsMechanism {
 }
 
 #[cfg(test)]
+#[cfg(not(ci))]
 mod tests {
 	use super::*;
 	use crate::tuta_imap::testing::utils::to_non_zero_u32;

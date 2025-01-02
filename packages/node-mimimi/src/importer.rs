@@ -832,6 +832,7 @@ impl LocalImportState {
 }
 
 #[cfg(test)]
+#[cfg(not(ci))]
 mod tests {
 	use super::*;
 	use crate::importer::imap_reader::{ImapCredentials, LoginMechanism};
