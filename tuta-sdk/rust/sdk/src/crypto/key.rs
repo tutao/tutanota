@@ -156,7 +156,8 @@ impl GenericAesKey {
 		}
 	}
 
-	#[must_use] pub fn get_inner(self) -> Vec<u8> {
+	#[must_use]
+	pub fn get_inner(self) -> Vec<u8> {
 		match self {
 			Self::Aes128(k) => k.get_inner().to_vec(),
 			Self::Aes256(k) => k.get_inner().to_vec(),

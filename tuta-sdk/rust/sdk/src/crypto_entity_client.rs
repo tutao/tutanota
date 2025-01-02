@@ -87,9 +87,7 @@ impl CryptoEntityClient {
 			.instance_mapper
 			.serialize_entity(instance)
 			.map_err(|e| ApiCallError::internal_with_err(e, type_ref.to_string().as_str()))?;
-		let type_model = self
-			.entity_client
-			.get_type_model(&type_ref)?;
+		let type_model = self.entity_client.get_type_model(&type_ref)?;
 
 		let parsed_instance = if type_model.is_encrypted() {
 			let session_key = self

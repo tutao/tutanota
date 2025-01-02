@@ -65,7 +65,8 @@ macro_rules! aes_key {
 			}
 
 			/// Get inner bytes
-			#[must_use] pub fn get_inner(self) -> [u8; $size] {
+			#[must_use]
+			pub fn get_inner(self) -> [u8; $size] {
 				self.0
 			}
 
