@@ -3,8 +3,8 @@ use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::crypto::{Aes256Key, IV_BYTE_SIZE};
-use tutasdk::entities::generated::tutanota::{ImportMailState, Mail};
-use tutasdk::folder_system::MailSetKind;
+use tutasdk::entities::generated::sys::PushIdentifier;
+use tutasdk::entities::generated::tutanota::Mail;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, IdTupleGenerated, ListLoadDirection, Sdk};
 
@@ -20,74 +20,71 @@ async fn can_create_remote_instance() {
 	let randomizer = RandomizerFacade::from_core(rand_core::OsRng);
 	let crypto_entity_client = logged_in_sdk.mail_facade().get_crypto_entity_client();
 
-	let mailbox = logged_in_sdk
-		.mail_facade()
-		.load_user_mailbox()
-		.await
-		.unwrap();
-
-	let inbox_mailset = logged_in_sdk
-		.mail_facade()
-		.load_folders_for_mailbox(&mailbox)
-		.await
-		.unwrap()
-		.system_folder_by_type(MailSetKind::Inbox)
-		.ok_or("cannot find inbox folder")
-		.unwrap()
-		.clone();
-
 	let session_key = GenericAesKey::Aes256(Aes256Key::generate(&randomizer));
-	let mail_group_key = logged_in_sdk
-		.get_current_sym_group_key(mailbox._ownerGroup.as_ref().unwrap())
+	let user_group_id = logged_in_sdk.get_user_group_id();
+	let user_group_key = logged_in_sdk
+		.get_current_sym_group_key(&user_group_id)
 		.await
 		.unwrap();
 
-	let _owner_enc_session_key = mail_group_key.encrypt_key(
+	let _owner_enc_session_key = user_group_key.encrypt_key(
 		&session_key,
 		Iv::from_bytes(&rand::random::<[u8; IV_BYTE_SIZE]>()).unwrap(),
 	);
-	let mut mail_import_state = ImportMailState {
-		_format: 0,
+	let user_push_identifier_list_id = logged_in_sdk
+		.get_user()
+		.pushIdentifierList
+		.as_ref()
+		.unwrap()
+		.list
+		.clone();
+
+	let mut push_identifier = PushIdentifier {
+		_area: 0,
+		_owner: user_group_id.clone(),
+		_ownerGroup: Some(user_group_id),
+		_ownerEncSessionKey: Some(_owner_enc_session_key.object),
+		_ownerKeyVersion: Some(_owner_enc_session_key.version),
 		_id: Some(IdTupleGenerated {
-			list_id: mailbox.mailImportStates.clone(),
+			list_id: user_push_identifier_list_id.clone(),
 			element_id: Default::default(),
 		}),
-		_permissions: mailbox._permissions,
-		_ownerGroup: Some(mailbox._ownerGroup.unwrap()),
-		status: 1,
-		successfulMails: 0,
-		importedMails: Default::default(),
-		targetFolder: inbox_mailset._id.as_ref().unwrap().clone(),
-		failedMails: 0,
+		app: 1, // AppType.Mail
+		disabled: false,
+		displayName: "display name for push identifier".to_string(),
+		identifier: "map-free@tutanota.de".to_string(),
+		language: "en".to_string(),
+		lastNotificationDate: None,
+		lastUsageTime: Default::default(),
+		pushServiceType: 2, // PushServiceType.EMAIL
+		// when this is returned and deserialized, this will be set but empty
+		_errors: Some(Default::default()),
+		// none of these need to be set
+		_permissions: Default::default(),
+		_finalIvs: Default::default(),
+		_format: 0,
 	};
 
 	let response = crypto_entity_client
-		.create_instance(mail_import_state.clone(), Some(session_key))
+		.create_instance(push_identifier.clone(), Some(session_key))
 		.await
 		.unwrap();
 
-	mail_import_state._id = Some(IdTupleGenerated {
-		list_id: mailbox.mailImportStates,
+	push_identifier._id = Some(IdTupleGenerated {
+		list_id: user_push_identifier_list_id,
 		element_id: response
 			.generatedId
 			.expect("Expected server to return generatedId for elementId"),
 	});
-	mail_import_state._permissions = response.permissionListId;
+	push_identifier._permissions = response.permissionListId;
 
 	let expected_mail_import_state = crypto_entity_client
-		.load::<ImportMailState, _>(mail_import_state._id.as_ref().unwrap())
+		.load::<PushIdentifier, _>(push_identifier._id.as_ref().unwrap())
 		.await
 		.as_ref()
 		.unwrap()
 		.clone();
-	assert_eq!(expected_mail_import_state, mail_import_state);
-
-	mail_import_state.successfulMails += 1;
-	mail_import_state.status += 1;
-	crypto_entity_client
-		.update_instance(mail_import_state.clone())
-		.await
-		.unwrap();
+	assert_eq!(expected_mail_import_state, push_identifier);
 }
 
 #[tokio::test]
