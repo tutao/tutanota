@@ -12,6 +12,6 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class ResumableImport(
-	val remoteStateId: IdTuple,
+	val remoteStateId: de.tutao.tutashared.IdTuple,
 	val remainingEmlCount: Int,
 )

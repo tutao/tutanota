@@ -280,6 +280,8 @@ function renderKotlinType(parsed: ParsedType): RenderedType {
 			return { externals: [], name: maybeNullable("DataWrapper", nullable) }
 		case "void":
 			return { externals: [], name: maybeNullable("Unit", nullable) }
+		case "IdTuple":
+			return { externals: [], name: maybeNullable("de.tutao.tutashared.IdTuple", nullable) }
 		default:
 			return { externals: [baseName], name: maybeNullable(baseName, nullable) }
 	}
