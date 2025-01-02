@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2024-12-13T10:50:44Z",
+	"updated_at": "2024-12-24T05:39:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -516,6 +516,7 @@ export default {
 		"doNotAskAgain_label": "Nicht noch einmal fragen",
 		"dontAskAgain_label": "Nicht mehr fragen",
 		"downloadCompleted_msg": "Download abgeschlossen",
+		"downloadDesktopClient_label": "Desktop Client herunterladen",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
 		"download_action": "Herunterladen",
@@ -951,7 +952,9 @@ export default {
 		"mailbox_label": "Postfach",
 		"mailExportModeHelp_msg": "Dateiformat beim Exportieren und bei Drag & Drop",
 		"mailExportMode_label": "Dateiformat für E-Mail-Export",
+		"mailExportOnlyOnDesktop_label": "E-Mail-Export ist in deinem Desktop Client zurzeit nicht verfügbar.",
 		"mailExportProgress_msg": "Bereite {current} von {total} E-Mails für den Export vor...",
+		"mailExport_label": "E-Mail-Export",
 		"mailFolder_label": "E-Mail-Ordner",
 		"mailHeaders_title": "E-Mail-Header",
 		"mailMoved_msg": "Diese E-Mail wurde in einen anderen Ordner verschoben.",

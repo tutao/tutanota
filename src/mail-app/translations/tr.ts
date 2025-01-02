@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2024-12-13T13:35:03Z",
+	"updated_at": "2024-12-24T14:06:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -516,6 +516,7 @@ export default {
 		"doNotAskAgain_label": "Bu dosya için bir daha sorma",
 		"dontAskAgain_label": "Tekrar sorma",
 		"downloadCompleted_msg": "İndirme tamamlandı",
+		"downloadDesktopClient_label": "Masaüstü istemcisini indir",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
 		"download_action": "İndir",
@@ -951,7 +952,9 @@ export default {
 		"mailbox_label": "Posta kutusu",
 		"mailExportModeHelp_msg": "E-postaları dışa aktarırken veya sürükle bırak yaparken kullanılacak dosya formatı",
 		"mailExportMode_label": "E-posta dışarı aktarım dosya formatı",
+		"mailExportOnlyOnDesktop_label": "E-posta dışa aktarma şu an sadece masaüstü istemcisinde mümkün.",
 		"mailExportProgress_msg": "{total} epostadan {current} tanesi dışa aktarım için hazırlanıyor...",
+		"mailExport_label": "E-posta dışa aktarma",
 		"mailFolder_label": "E-posta klasörü",
 		"mailHeaders_title": "E-posta başlıkları",
 		"mailMoved_msg": "E-posta başka bir dizine taşındı.",

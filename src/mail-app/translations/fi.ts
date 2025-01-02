@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2024-12-15T21:35:11Z",
+	"updated_at": "2024-12-29T11:17:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -512,6 +512,7 @@ export default {
 		"doNotAskAgain_label": "Älä kysy uudestaan tämän tiedoston kohdalla",
 		"dontAskAgain_label": "Älä kysy enää",
 		"downloadCompleted_msg": "Lataus valmis",
+		"downloadDesktopClient_label": "Lataa työpöytäsovellus",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
 		"download_action": "Lataa",
@@ -947,7 +948,9 @@ export default {
 		"mailbox_label": "Postilaatikko",
 		"mailExportModeHelp_msg": "Vetämällä ja pudottamalla vietävien sähköpostien tiedostomuoto",
 		"mailExportMode_label": "Vietävien sähköpostien tiedostomuoto",
+		"mailExportOnlyOnDesktop_label": "Sähköpostiviestejä voi toistaiseksi viedä vain työpöytäsovelluksillamme.",
 		"mailExportProgress_msg": "Valmistellaan {current}/{total} sähköpostiviestin vientiä...",
+		"mailExport_label": "Sähköpostien vienti",
 		"mailFolder_label": "Sähköpostikansio",
 		"mailHeaders_title": "Viestin otsakkeet",
 		"mailMoved_msg": "Tämä sähköpostiviesti on siirretty toiseen kansioon.",

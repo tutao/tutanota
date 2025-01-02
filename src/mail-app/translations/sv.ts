@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2024-12-13T15:07:29Z",
+	"updated_at": "2024-12-24T09:18:24Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -512,6 +512,7 @@ export default {
 		"doNotAskAgain_label": "Fråga inte igen efter den här filen",
 		"dontAskAgain_label": "Fråga inte igen",
 		"downloadCompleted_msg": "Nedladdningen slutförd",
+		"downloadDesktopClient_label": "Ladda ner skrivbordsklienten",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
 		"download_action": "Ladda ner",
@@ -947,7 +948,9 @@ export default {
 		"mailbox_label": "Brevlåda",
 		"mailExportModeHelp_msg": "Filformat för e-post som ska användas vid export eller dra och släpp",
 		"mailExportMode_label": "E-post export filformat",
+		"mailExportOnlyOnDesktop_label": "Export av e-post är för närvarande endast tillgängligt i vår stationära klient.",
 		"mailExportProgress_msg": "Förbereder {current} av {total} mejl för export...",
+		"mailExport_label": "E-post export",
 		"mailFolder_label": "E-postmapp",
 		"mailHeaders_title": "E-post sidhuvud",
 		"mailMoved_msg": "Det här mejlet har flyttats till en annan mapp.",

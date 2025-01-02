@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2024-12-13T10:52:07Z",
+	"updated_at": "2024-12-24T11:00:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -516,6 +516,7 @@ export default {
 		"doNotAskAgain_label": "No preguntar de nuevo para este archivo",
 		"dontAskAgain_label": "No vuelvas a preguntar",
 		"downloadCompleted_msg": "Descarga completada",
+		"downloadDesktopClient_label": "Descargar el cliente de escritorio",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XFactura)",
 		"download_action": "Descargar",
@@ -951,7 +952,9 @@ export default {
 		"mailbox_label": "Buzón",
 		"mailExportModeHelp_msg": "Formato de archivo de correo para usar al exportar o, arrastrar y soltar",
 		"mailExportMode_label": "Formato de archivo de exportación de correo",
+		"mailExportOnlyOnDesktop_label": "Actualmente, la exportación de correo electrónico sólo está disponible en nuestro cliente de escritorio.",
 		"mailExportProgress_msg": "Preparando {current} de {total} correos electrónicos para exportar ...",
+		"mailExport_label": "Exportación de correo",
 		"mailFolder_label": "Carpeta de correo",
 		"mailHeaders_title": "Encabezamientos de mensaje",
 		"mailMoved_msg": "Este correo electrónico se ha movido a otra carpeta.",

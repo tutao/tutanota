@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2024-12-13T10:50:01Z",
+	"updated_at": "2024-12-24T05:39:14Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -512,6 +512,7 @@ export default {
 		"doNotAskAgain_label": "Don't ask again for this file",
 		"dontAskAgain_label": "Don't ask again",
 		"downloadCompleted_msg": "Download completed",
+		"downloadDesktopClient_label": "Download desktop client",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
 		"download_action": "Download",
@@ -947,7 +948,9 @@ export default {
 		"mailbox_label": "Mailbox",
 		"mailExportModeHelp_msg": "Email file format to use when exporting or drag & dropping",
 		"mailExportMode_label": "Email export file format",
+		"mailExportOnlyOnDesktop_label": "Email export is currently only available in our desktop client.",
 		"mailExportProgress_msg": "Preparing {current} of {total} emails for export...",
+		"mailExport_label": "Mail export",
 		"mailFolder_label": "Email folder",
 		"mailHeaders_title": "Email headers",
 		"mailMoved_msg": "This email has been moved to another folder.",

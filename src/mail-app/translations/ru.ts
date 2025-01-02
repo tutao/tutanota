@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2024-12-14T02:05:50Z",
+	"updated_at": "2024-12-24T15:46:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -518,6 +518,7 @@ export default {
 		"doNotAskAgain_label": "Больше не спрашивать для этого файла",
 		"dontAskAgain_label": "Больше не спрашивать.",
 		"downloadCompleted_msg": "Загрузка завершена",
+		"downloadDesktopClient_label": "Скачать клиент для настольных компьютеров",
 		"downloadInvoicePdf_action": "PDF (PDF/A)",
 		"downloadInvoiceXml_action": "XML (XRechnung)",
 		"download_action": "Скачать",
@@ -953,7 +954,9 @@ export default {
 		"mailbox_label": "Почтовый ящик",
 		"mailExportModeHelp_msg": "Формат файла электронной почты для использования при экспорте или перетаскивании",
 		"mailExportMode_label": "Формат экспорта почты",
+		"mailExportOnlyOnDesktop_label": "В настоящее время экспорт электронной почты доступен только в клиенте для настольных компьютеров.",
 		"mailExportProgress_msg": "Подготовка {current} из {total} электронных писем для экспорта...",
+		"mailExport_label": "Экспорт почты",
 		"mailFolder_label": "Папка для почты",
 		"mailHeaders_title": "Заголовки писем",
 		"mailMoved_msg": "Это электронное письмо было перемещено в другую папку.",
