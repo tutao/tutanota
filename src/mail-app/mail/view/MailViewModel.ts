@@ -89,6 +89,7 @@ export class MailViewModel {
 	private loadingTargetId: Id | null = null
 	private conversationViewModel: ConversationViewModel | null = null
 	private _filterType: MailFilterType | null = null
+	private conversationIds: Set<string> = new Set()
 
 	/**
 	 * We remember the last URL used for each folder so if we switch between folders we can keep the selected mail.
@@ -397,6 +398,7 @@ export class MailViewModel {
 		// Cancel old load all
 		this.listModel?.cancelLoadAll()
 		this._filterType = null
+		this.conversationIds.clear()
 
 		this._folder = folder
 		this.listStreamSubscription?.end(true)
@@ -425,10 +427,22 @@ export class MailViewModel {
 
 				const { complete, items } = await this.loadMailRange(folder, startId, count, mailSetEntries)
 
+				const mostRecentMailsPerConversation = items.filter((mail) => {
+					const conversationId = listIdPart(mail.conversationEntry)
+					const isExistingConversation = this.conversationIds.has(conversationId)
+
+					if (!isExistingConversation) {
+						this.conversationIds.add(conversationId)
+						return true
+					} else {
+						return false
+					}
+				})
+
 				if (complete) {
 					this.fixCounterIfNeeded(folder, [])
 				}
-				return { complete, items }
+				return { complete, items: mostRecentMailsPerConversation }
 			},
 			loadSingle: async (listId: Id, elementId: Id): Promise<Mail | null> => {
 				// we already populate `mailSetEntries` in entity update handler so it's not necessary here
@@ -584,8 +598,14 @@ export class MailViewModel {
 					}
 				} else if (update.operation === OperationType.CREATE) {
 					const setEntry = await this.entityClient.load(MailSetEntryTypeRef, [update.instanceListId, update.instanceId])
+					const mail = await this.entityClient.load(MailTypeRef, setEntry.mail)
+					const conversationId = listIdPart(mail.conversationEntry)
+
 					mailSetEntries.set(update.instanceId, setEntry)
-					await listModel.entityEventReceived(listIdPart(setEntry.mail), elementIdPart(setEntry.mail), OperationType.CREATE)
+					if (!this.conversationIds.has(conversationId)) {
+						await listModel.entityEventReceived(listIdPart(setEntry.mail), elementIdPart(setEntry.mail), OperationType.CREATE)
+						this.conversationIds.add(conversationId)
+					}
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && OperationType.UPDATE) {
 				const mailWasInThisFolder = listModel.state.items.some((item) => isSameId(item._id, [update.instanceListId, update.instanceId]))
