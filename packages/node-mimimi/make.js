@@ -1,6 +1,7 @@
 import { Argument, program } from "commander"
 import { $, cd, usePowerShell } from "zx"
 import path from "node:path"
+import url from "node:url"
 import { rm } from "node:fs/promises"
 
 await program
@@ -37,7 +38,8 @@ async function run(platform, { clean, release, greenmail }) {
 	}
 
 	if (greenmail) {
-		cd(path.join(import.meta.url, "java"))
+		const currentPath = path.dirname(url.fileURLToPath(import.meta.url))
+		cd(path.join(currentPath, "java"))
 		await $`/opt/gradle-8.5/bin/gradle jar`
 		cd("..")
 	}
