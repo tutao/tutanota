@@ -193,7 +193,7 @@ export function rollupWasmLoader(options: PluginOptions & { output: string }) {
 				const lib = findLib(normalizedOptions, wasmLib)
 				await generateWasm(lib.command, lib)
 
-				return await generateImportCode(path.join("wasm", wasmLib), true)
+				return await generateImportCode(path.join("wasm", wasmLib), normalizedOptions.fallback != null)
 			} else if (id.startsWith("\0wasm-fallback") && normalizedOptions.fallback) {
 				const wasmLib = id.replaceAll("\0wasm-fallback:", "")
 				const lib = findLib(normalizedOptions, wasmLib)
