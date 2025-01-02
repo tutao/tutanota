@@ -579,7 +579,7 @@ export class MailViewModel {
 			return this.entityEventsReceivedForLegacy(updates)
 		}
 
-		let importMailStateUpdates = []
+		let importMailStateUpdates: Array<EntityUpdateData> = []
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				// In case labels change trigger a list redraw.
