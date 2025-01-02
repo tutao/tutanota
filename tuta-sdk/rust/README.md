@@ -12,7 +12,7 @@ Android Studio -> Android SDK Manager -> SDK Tools -> NDK (Side by Side) -> Inst
 rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
 
 # add ANDROID_NDK_HOME to your shell profile (.bashrc). the version depends on your NDK version.
-export ANDROID_NDK_HOME=/opt/android-sdk-linux/ndk/28.0.12674087
+export ANDROID_NDK_HOME=/opt/android-sdk-linux/ndk/26.1.10909125
 
 # add NDK toolchain to path
 export PATH=${PATH}:${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/

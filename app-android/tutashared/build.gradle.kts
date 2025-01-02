@@ -70,6 +70,7 @@ android {
 	sourceSets {
 		this.getByName("debug").assets.srcDirs(files("$projectDir/schemas"))
 	}
+	ndkVersion = "26.1.10909125"
 }
 
 dependencies {

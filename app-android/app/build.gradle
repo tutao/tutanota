@@ -107,6 +107,7 @@ android {
 	}
 
 	namespace 'de.tutao.tutanota'
+	ndkVersion '26.1.10909125'
 }
 
 tasks.withType(Test).configureEach {
