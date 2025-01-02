@@ -89,7 +89,7 @@ class AndroidNativeCryptoFacade(
 				subkeys
 			} else {
 				if (keyLength == AesKeyLength.Aes256) {
-					throw java.lang.IllegalArgumentException("must use mac with AES-256")
+					throw IllegalArgumentException("must use mac with AES-256")
 				}
 				SubKeys(
 					cKey = key,
