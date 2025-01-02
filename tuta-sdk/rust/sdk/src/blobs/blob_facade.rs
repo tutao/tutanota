@@ -992,7 +992,7 @@ mod tests {
 			}));
 
 		// third request (second attachment)
-		let third_attachment_clone = third_attachment.clone();
+		let second_attachment_clone = second_attachment.clone();
 		rest_client
 			.expect_request_binary()
 			.withf(move |path, method, options| {
@@ -1004,7 +1004,7 @@ mod tests {
 				let body = body.clone().unwrap();
 				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
 				// account for 65 byte encryption overhead per blob
-				new_blob_wrappers.first().unwrap().data.len() == third_attachment_clone.len() + 65
+				new_blob_wrappers.first().unwrap().data.len() == second_attachment_clone.len() + 65
 			})
 			.return_const(Ok(RestResponse {
 				status: 200,
