@@ -112,7 +112,7 @@ export class WindowManager {
 			this.saveBounds(w.getBounds())
 
 			if (windows.length === 1) {
-				await this.remoteBridge.denitImportFacadeLogger(w)
+				await w.desktopMailImportFacade.deinitLogger()
 			}
 		})
 			.on("closed", () => {

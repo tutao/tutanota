@@ -11,10 +11,10 @@ import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
-import { base64ToUint8Array } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, isSameDay } from "@tutao/tutanota-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { formatNotificationForDisplay } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { hasError } from "../../api/common/utils/ErrorUtils.js"
+import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>
@@ -143,4 +143,18 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 			})
 		})
 	}
+}
+
+export function formatNotificationForDisplay(eventTime: Date, summary: string): { title: string; body: string } {
+	let dateString: string
+
+	if (isSameDay(eventTime, new Date())) {
+		dateString = formatTime(eventTime)
+	} else {
+		dateString = formatDateWithWeekdayAndTime(eventTime)
+	}
+
+	const body = `${dateString} ${summary}`
+
+	return { body, title: body }
 }

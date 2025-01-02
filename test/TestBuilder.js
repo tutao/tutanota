@@ -1,14 +1,19 @@
 import * as env from "../buildSrc/env.js"
+import { preludeEnvPlugin } from "../buildSrc/env.js"
 import fs from "fs-extra"
-import path from "node:path"
+import path, { dirname } from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
-import { build as esbuild } from "esbuild"
 import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
-import { aliasPath as esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
-import { libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 import { buildPackages } from "../buildSrc/packageBuilderFunctions.js"
 import { domainConfigs } from "../buildSrc/DomainConfigs.js"
 import { sh } from "../buildSrc/sh.js"
+import { rolldown } from "rolldown"
+import { resolveLibs } from "../buildSrc/RollupConfig.js"
+import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
+import { fileURLToPath } from "node:url"
+
+const currentDir = dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(path.join(currentDir, ".."))
 
 export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 	if (clean) {
@@ -36,50 +41,25 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await createUnitTestHtml(localEnv)
 	})
-	await runStep("Esbuild", async () => {
-		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
-		await esbuild({
-			// this is here because the test build targets esm and esbuild
-			// does not support dynamic requires, which better-sqlite3 uses
-			// to load the native module.
-			banner: {
-				js: `
-				let require, __filename, __dirname = null
-
-					if (typeof process !== "undefined") {
-						const path = await import("node:path")
-						const {fileURLToPath} = await import("node:url")
-						const {createRequire} = await import("node:module")
-						require = createRequire(import.meta.url)
-						__filename = fileURLToPath(import.meta.url);
-						__dirname = path.dirname(__filename);
-					}
-    `,
-			},
-			entryPoints: ["tests/testInBrowser.ts", "tests/testInNode.ts"],
-			outdir: "./build",
-			// Bundle to include the whole graph
-			bundle: true,
-			// Split so that dynamically included node-only tests are not embedded/run in the browser
-			splitting: true,
-			format: "esm",
-			sourcemap: "linked",
-			target: "esnext",
+	await runStep("Rolldown", async () => {
+		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		const bundle = await rolldown({
+			input: ["tests/testInBrowser.ts", "tests/testInNode.ts"],
+			platform: "neutral",
 			define: {
 				// See Env.ts for explanation
-				NO_THREAD_ASSERTIONS: "true",
+				LOAD_ASSERTIONS: "false",
 			},
 			external: [
 				"electron",
 				// esbuild can't deal with node imports in ESM output at the moment
 				// see https://github.com/evanw/esbuild/pull/2067
 				"xhr2",
-				"better-sqlite3",
 				"express",
 				"server-destroy",
 				"body-parser",
 				"jsdom",
-				"node:*",
+				/node:.*/,
 				"http",
 				"stream",
 				"fs",
@@ -99,27 +79,17 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 				"util",
 				"string_decoder",
 			],
-			// even though tests might be running in browser we set it to node so that it ignores all builtins
-			platform: "neutral",
-			mainFields: ["module", "main"],
 			plugins: [
 				preludeEnvPlugin(localEnv),
-				libDeps(".."),
-				esbuildPluginAliasPath({
-					alias: {
-						// Take browser testdouble without funny require() magic
-						testdouble: path.resolve("../node_modules/testdouble/dist/testdouble.js"),
-					},
-				}),
-				sqliteNativePlugin({
-					environment: "node",
-					// We put it back into node_modules because we don't bundle it. If we remove node_modules but keep the cached one we will not run build.
-					dstPath: "../node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+				resolveLibs(".."),
+				nodeGypPlugin({
+					rootDir: projectRoot,
 					platform: process.platform,
 					architecture: process.arch,
-					nativeBindingPath: path.resolve("../node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
+					nodeModule: "better-sqlite3",
+					environment: "node",
 				}),
-				esbuildWasmLoader({
+				rollupWasmLoader({
 					output: `${process.cwd()}/build/wasm`,
 					fallback: true,
 					webassemblyLibraries: [
@@ -142,6 +112,25 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 					],
 				}),
 			],
+			resolve: {
+				mainFields: ["module", "main"],
+				alias: {
+					// Take browser testdouble without funny require() magic
+					testdouble: path.resolve("../node_modules/testdouble/dist/testdouble.js"),
+				},
+			},
+			onwarn: (warning, defaultHandler) => {
+				if (warning.code !== "EVAL") {
+					defaultHandler(warning)
+				}
+			},
+			// overwrite the files rather than keeping all versions in the build folder
+			chunkFileNames: "[name]-chunk.js",
+		})
+		await bundle.write({
+			dir: "./build",
+			format: "esm",
+			sourcemap: true,
 		})
 	})
 }

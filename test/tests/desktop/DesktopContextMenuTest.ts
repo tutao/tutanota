@@ -4,7 +4,7 @@ import { DesktopContextMenu } from "../../../src/common/desktop/DesktopContextMe
 import { downcast } from "@tutao/tutanota-utils"
 import { object } from "testdouble"
 import { WindowManager } from "../../../src/common/desktop/DesktopWindowManager.js"
-import ContextMenuParams = Electron.ContextMenuParams
+import { ContextMenuParams } from "electron"
 
 o.spec("DesktopContextMenu Test", () => {
 	const standardMocks = () => {

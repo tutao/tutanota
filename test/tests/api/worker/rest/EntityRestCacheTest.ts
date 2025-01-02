@@ -72,9 +72,7 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 
 	const odbRefCounter = new OfflineDbRefCounter({
 		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {
-			// @ts-ignore Added by sqliteNativeBannerPlugin
-			const nativePath = buildOptions.sqliteNativePath
-			const db = new DesktopSqlCipher(nativePath, ":memory:", false)
+			const db = new DesktopSqlCipher(__NODE_GYP_better_sqlite3, ":memory:", false)
 			//integrity check breaks for in memory database
 			await db.openDb(userId, key)
 			return db

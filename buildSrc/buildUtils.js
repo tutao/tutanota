@@ -99,9 +99,9 @@ export function getCanonicalPlatformName(platformName) {
 
 /**
  * Checks whether the combination of OS & architecture is supported by the build system
- * @param platformName {"darwin"|"win32"|"linux"}
- * @param architecture {"arm"|"arm64"|"ia32"|"mips"|"mipsel"|"ppc"|"ppc64"|"riscv64"|"s390"|"s390x"|"x64"|"universal"}
- * @returns {boolean}
+ * @param platformName {NodeJS.Platform}
+ * @param architecture {NodeJS.Architecture|"universal"}
+ * @returns {architecture is "x64"|"arm64"|"universal"}
  */
 export function checkArchitectureIsSupported(platformName, architecture) {
 	switch (architecture) {
@@ -113,6 +113,19 @@ export function checkArchitectureIsSupported(platformName, architecture) {
 		default:
 			return false
 	}
+}
+
+/**
+ *
+ * @param platformName {NodeJS.Platform}
+ * @param architecture {NodeJS.Architecture|"universal"}
+ * @return {"x64"|"arm64"|"universal"}
+ */
+export function getValidArchitecture(platformName, architecture) {
+	if (!checkArchitectureIsSupported(platformName, architecture)) {
+		throw new Error(`Unsupported architecture: ${platformName} ${architecture}`)
+	}
+	return architecture
 }
 
 export async function runStep(name, cmd) {

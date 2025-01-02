@@ -33,7 +33,7 @@ o.spec("DesktopCredentialsStorage", () => {
 	let storage: DesktopCredentialsStorage
 
 	o.beforeEach(() => {
-		storage = new DesktopCredentialsStorage(buildOptions.sqliteNativePath, ":memory:", object())
+		storage = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, ":memory:", object())
 	})
 	o.afterEach(async () => {
 		await storage.closeDb()

@@ -3,6 +3,7 @@ import { $, cd, usePowerShell } from "zx"
 import path from "node:path"
 import url from "node:url"
 import { rm } from "node:fs/promises"
+import { NapiCli } from "@napi-rs/cli"
 
 await program
 	.usage("[options] [win|linux|darwin|native]")
@@ -13,18 +14,22 @@ await program
 	.action(run)
 	.parseAsync(process.argv)
 
-function getTarget(platform) {
+/**
+ * @param platform {string}
+ * @return {string[]}
+ */
+function getTargets(platform) {
 	switch (platform) {
 		case "win":
 		case "win32":
 			usePowerShell()
-			return ["--target=x86_64-pc-windows-msvc"]
+			return "x86_64-pc-windows-msvc"
 		case "linux":
-			return ["--target=x86_64-unknown-linux-gnu"]
+			return ["x86_64-unknown-linux-gnu"]
 		case "darwin":
-			return ["--target=x86_64-apple-darwin", "--target=aarch64-apple-darwin"]
+			return ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 		case "native":
-			return getTarget(process.platform)
+			return getTargets(process.platform)
 		default:
 			throw new Error(`unknown platform ${platform}`)
 	}
@@ -44,10 +49,21 @@ async function run(platform, { clean, release, greenmail }) {
 		cd("..")
 	}
 
-	const targets = getTarget(platform)
+	const targets = getTargets(platform)
 
-	const releaseFlag = release ? "--release" : ""
 	for (const target of targets) {
-		await $`npx napi build dist --platform --js binding.cjs --dts binding.d.cts ${target} ${releaseFlag} --features javascript`
+		await new NapiCli().build({
+			outputDir: "dist",
+			platform: true,
+			jsBinding: "binding.js",
+			esm: true,
+			dts: "binding.d.ts",
+			target,
+			release,
+			features: ["javascript"],
+			// Even though it is documented as defaulting to true it doesn't seem to actually be the case
+			// https://github.com/napi-rs/napi-rs/issues/2419
+			dtsCache: true,
+		})
 	}
 }

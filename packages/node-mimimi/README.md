@@ -12,7 +12,7 @@ problems getting it to import in all cases. One solution was found on
 the [napi-rs github](https://github.com/napi-rs/napi-rs/issues/1429#issuecomment-1379743978). It works, but requires us
 to build like this:
 
-`napi build --platform . --js binding.cjs --dts binding.d.cts`
+`napi build --platform . --js binding.cjs --dts binding.d.ts`
 
 # Compilation
 

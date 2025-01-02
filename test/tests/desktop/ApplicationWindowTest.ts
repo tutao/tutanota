@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import n from "../nodemocker.js"
 import { defer, DeferredObject, delay, downcast } from "@tutao/tutanota-utils"
 import { ApplicationWindow } from "../../../src/common/desktop/ApplicationWindow.js"
-import type { NativeImage } from "electron"
+import type { BrowserWindow, NativeImage, Rectangle } from "electron"
 import type { Theme, ThemeId } from "../../../src/common/gui/theme.js"
 import { WindowManager } from "../../../src/common/desktop/DesktopWindowManager.js"
 import { LocalShortcutManager } from "../../../src/common/desktop/electron-localshortcut/LocalShortcut.js"
@@ -11,8 +11,6 @@ import { spy, verify } from "@tutao/tutanota-test-utils"
 import { ThemeFacade } from "../../../src/common/native/common/generatedipc/ThemeFacade.js"
 import { DesktopThemeFacade } from "../../../src/common/desktop/DesktopThemeFacade.js"
 import { RemoteBridge, SendingFacades } from "../../../src/common/desktop/ipc/RemoteBridge.js"
-import Rectangle = Electron.Rectangle
-import BrowserWindow = Electron.BrowserWindow
 
 const { anything } = matchers
 
@@ -284,6 +282,7 @@ o.spec("ApplicationWindow Test", function () {
 			desktopFacade: object(),
 			commonNativeFacade: object(),
 			sqlCipherFacade: object(),
+			desktopMailImportFacade: object(),
 		}
 		when(remoteBridge.createBridge(anything())).thenReturn(sendingFacades)
 		return {

@@ -28,6 +28,7 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+
 const PRESELECTED_LIKERT_VALUE = null
 
 type ExperienceSamplingOptions = {
@@ -178,8 +179,10 @@ export class UsageTestModel implements PingAdapter {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
+				await this.loginController.waitForFullLogin()
 				await this.updateCustomerProperties()
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				await this.loginController.waitForFullLogin()
 				const updatedOptInDecision = this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn
 
 				if (this.lastOptInDecision === updatedOptInDecision) {

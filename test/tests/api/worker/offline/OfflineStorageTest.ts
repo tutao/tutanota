@@ -62,7 +62,7 @@ function encode(thing) {
 	return cborg.encode(thing, { typeEncoders: customTypeEncoders })
 }
 
-const nativePath = buildOptions.sqliteNativePath
+const nativePath = __NODE_GYP_better_sqlite3
 const database = "./testdatabase.sqlite"
 export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
 

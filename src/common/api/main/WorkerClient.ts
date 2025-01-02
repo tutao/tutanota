@@ -48,7 +48,7 @@ export class WorkerClient {
 			// localhost/path/WorkerBootstrap.js respectively.
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
-			const worker = new Worker(workerUrl)
+			const worker = new Worker(workerUrl, { type: "module" })
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 

@@ -1,10 +1,9 @@
-import path from "node:path"
+import path, { dirname } from "node:path"
 import fs from "fs-extra"
-import { build as esbuild } from "esbuild"
-import { getTutanotaAppVersion, runStep, writeFile } from "./buildUtils.js"
+import { getCanonicalPlatformName, getTutanotaAppVersion, getValidArchitecture, runStep, writeFile } from "./buildUtils.js"
 import "zx/globals"
 import * as env from "./env.js"
-import { externalTranslationsPlugin, libDeps, mimimiNativePlugin, preludeEnvPlugin, sqliteNativePlugin } from "./esbuildUtils.js"
+import { preludeEnvPlugin } from "./env.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
@@ -12,6 +11,13 @@ import { checkOfflineDatabaseMigrations } from "./checkOfflineDbMigratons.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { sh } from "./sh.js"
+import { rolldown } from "rolldown"
+import { resolveLibs } from "./RollupConfig.js"
+import { nodeGypPlugin } from "./nodeGypPlugin.js"
+import { napiPlugin } from "./napiPlugin.js"
+
+const buildSrc = dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations, app }) {
 	const isCalendarBuild = app === "calendar"
@@ -95,67 +101,66 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
  */
 async function buildWebPart({ stage, host, version, domainConfigs, app }) {
 	const isCalendarBuild = app === "calendar"
-	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
-	await runStep("Web: Assets", async () => {
-		await prepareAssets(stage, host, version, domainConfigs, buildDir)
-		await fs.promises.writeFile(
-			`${buildDir}/worker-bootstrap.js`,
-			`importScripts("./polyfill.js")
-importScripts("./worker.js")
-`,
-		)
-	})
-
-	await runStep("Web: Esbuild", async () => {
-		const { esbuildWasmLoader } = await import("@tutao/tuta-wasm-loader")
-		await esbuild({
-			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
-			entryPoints: { app: entryFile, worker: workerFile },
-			outdir: `./${buildDir}/`,
-			tsconfig: tsConfig,
-			// Why bundle at the moment:
-			// - We need to include all the imports: everything in src + libs. We could use wildcard in the future.
-			// - We can't have imports or dynamic imports in the worker because we can't start it as a module because of Firefox.
-			//     (see https://bugzilla.mozilla.org/show_bug.cgi?id=1247687)
-			//     We can theoretically compile it separately but it will be slower and more confusing.
-			bundle: true,
-			format: "esm",
-			// "both" is the most reliable as in Worker or on Android linked source maps don't work
-			sourcemap: "both",
+	await runStep("Web: Rolldown", async () => {
+		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
+		const bundle = await rolldown({
+			input: { app: entryFile, worker: workerFile },
 			define: {
-				// See Env.ts for explanation
-				NO_THREAD_ASSERTIONS: "true",
+				// Need it at least until inlining enums is supported
+				LOAD_ASSERTIONS: "false",
 			},
+			external: "fs", // qrcode-svg tries to import it on save()
 			plugins: [
-				libDeps(),
-				externalTranslationsPlugin(),
-				esbuildWasmLoader({
-					output: `${process.cwd()}/${buildDir}/wasm`,
+				resolveLibs(),
+				rollupWasmLoader({
+					output: `${buildDir}/wasm`,
+					fallback: false,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
 							command: "make -f Makefile_liboqs build",
-							workingDir: `${process.cwd()}/libs/webassembly/`,
+							workingDir: "libs/webassembly/",
 							env: {
-								WASM: `${process.cwd()}/${buildDir}/wasm/liboqs.wasm`,
+								WASM: `../../${buildDir}/wasm/liboqs.wasm`,
 							},
 						},
 						{
 							name: "argon2.wasm",
 							command: "make -f Makefile_argon2 build",
-							workingDir: `${process.cwd()}/libs/webassembly/`,
+							workingDir: "libs/webassembly/",
 							env: {
-								WASM: `${process.cwd()}/${buildDir}/wasm/argon2.wasm`,
+								WASM: `../../${buildDir}/wasm/argon2.wasm`,
 							},
 						},
 					],
 				}),
 			],
 		})
+		await bundle.write({
+			dir: `./${buildDir}/`,
+			format: "esm",
+			// Setting source map to inline for web part because source maps won't be loaded correctly on mobile because requests from dev tools are not
+			// intercepted, so we can't serve the files.
+			sourcemap: "inline",
+			// overwrite the files rather than keeping all versions in the build folder
+			chunkFileNames: "[name]-chunk.js",
+		})
+	})
+
+	// Do assets last so that server that listens to index.html changes does not reload too early
+
+	await runStep("Web: Assets", async () => {
+		await prepareAssets(stage, host, version, domainConfigs, buildDir)
+		await fs.promises.writeFile(
+			`${buildDir}/worker-bootstrap.js`,
+			`import "./polyfill.js"
+import "./worker.js"
+`,
+		)
 	})
 }
 
@@ -163,37 +168,38 @@ async function buildDesktopPart({ version, app }) {
 	const isCalendarBuild = app === "calendar"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 
-	await runStep("Desktop: Esbuild", async () => {
-		await esbuild({
-			entryPoints: ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"],
-			outdir: `./${buildDir}/desktop`,
-			// Why we bundle at the moment:
-			// - We need to include all the imports: we currently use some node_modules directly, without pre-bundling them like rest of libs we can't avoid it
-			bundle: true,
-			format: "cjs",
-			sourcemap: "linked",
+	await runStep("Desktop: Rolldown", async () => {
+		const bundle = await rolldown({
+			input: ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"],
 			platform: "node",
-			external: ["electron", "*.node"],
-			banner: {
-				js: `globalThis.buildOptions = globalThis.buildOptions ?? {}
-globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
-			},
+			external: [
+				"electron",
+				"memcpy", // optional dep of oxmsg
+			],
 			plugins: [
-				libDeps(),
-				sqliteNativePlugin({
+				resolveLibs(),
+				nodeGypPlugin({
+					rootDir: projectRoot,
+					platform: getCanonicalPlatformName(process.platform),
+					architecture: getValidArchitecture(process.platform, process.arch),
+					nodeModule: "better-sqlite3",
 					environment: "electron",
-					dstPath: `./${buildDir}/desktop/better_sqlite3.node`,
-					platform: process.platform,
-					architecture: process.arch,
-					nativeBindingPath: "./better_sqlite3.node",
 				}),
-				mimimiNativePlugin({
-					dstPath: `./${buildDir}/desktop/`,
-					platform: process.platform,
+				napiPlugin({
+					nodeModule: "@tutao/node-mimimi",
+					platform: getCanonicalPlatformName(process.platform),
+					architecture: getValidArchitecture(process.platform, process.arch),
 				}),
 				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs })),
-				externalTranslationsPlugin(),
 			],
+		})
+
+		await bundle.write({
+			dir: `./${buildDir}/desktop`,
+			format: "esm",
+			sourcemap: true,
+			// overwrite the files rather than keeping all versions in the build folder
+			chunkFileNames: "[name]-chunk.js",
 		})
 	})
 
@@ -219,6 +225,7 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 		await fs.writeFile(`./${buildDir}/package.json`, content, "utf-8")
 
 		await fs.mkdir(`${buildDir}/desktop`, { recursive: true })
+		// The preload scripts are run as commonjs scripts and are a special environment so we just copy them directly.
 		await fs.copyFile("src/common/desktop/preload.js", `${buildDir}/desktop/preload.js`)
 		await fs.copyFile("src/common/desktop/preload-webdialog.js", `${buildDir}/desktop/preload-webdialog.js`)
 	})

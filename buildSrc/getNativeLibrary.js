@@ -4,7 +4,7 @@
 import { fileURLToPath } from "node:url"
 import { program } from "commander"
 import fs from "node:fs"
-import { getCanonicalPlatformName } from "./buildUtils.js"
+import { getCanonicalPlatformName, getValidArchitecture } from "./buildUtils.js"
 import { getCachedLibPaths, getNativeLibModulePaths } from "./nativeLibraryProvider.js"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -36,7 +36,7 @@ function validateOpts(opts) {
 
 async function cli(nodeModule, { environment, rootDir, forceRebuild, copyTarget }) {
 	const platform = getCanonicalPlatformName(process.platform)
-	const architecture = process.arch
+	const architecture = getValidArchitecture(process.platform, process.arch)
 	const paths = await getCachedLibPaths({ rootDir, nodeModule, environment, platform, architecture }, console.log.bind(console))
 
 	if (forceRebuild) {

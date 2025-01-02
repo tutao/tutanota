@@ -29,6 +29,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 		version: version,
 		author: "Tutao GmbH",
 		description: "The desktop client for Tutanota, the secure e-mail service.",
+		type: "module",
 		scripts: {
 			start: "electron .",
 		},

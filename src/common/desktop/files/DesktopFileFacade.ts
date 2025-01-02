@@ -26,7 +26,7 @@ import { DateProvider } from "../../api/common/DateProvider.js"
 import { TempFs } from "./TempFs.js"
 import { HttpMethod } from "../../api/common/EntityFunctions"
 import { FetchImpl } from "../net/NetAgent"
-import OpenDialogOptions = Electron.OpenDialogOptions
+import { OpenDialogOptions } from "electron"
 
 const TAG = "[DesktopFileFacade]"
 

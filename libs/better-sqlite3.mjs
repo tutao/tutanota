@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 import require$$0 from 'fs';
 import require$$1 from 'path';
 import require$$2 from 'util';

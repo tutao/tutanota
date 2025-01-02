@@ -111,13 +111,11 @@ export function isDesktopMainThread(): boolean {
 let boot = !isDesktopMainThread() && !isWorker()
 
 /**
- * A hackaround set by esbuild.
- * We have to bundle our project with esbuild now which puts everything together which means it won't be loaded at correct time and/or some thing might get
- * included where they shouldn't so for debug builds we set this flag to not take care of this.
+ * A hackaround. Set by bundler.
+ * Rolldown doesn't inline const enums at the moment, so we can't assert the loading order.
+ * If not set defaults to true
  */
-// eslint-disable-next-line no-var
-declare var NO_THREAD_ASSERTIONS: boolean
-const assertionsEnabled = typeof NO_THREAD_ASSERTIONS === "undefined" || !NO_THREAD_ASSERTIONS
+const assertionsEnabled = typeof LOAD_ASSERTIONS === "undefined" || LOAD_ASSERTIONS
 
 export function assertMainOrNode() {
 	if (!assertionsEnabled) return

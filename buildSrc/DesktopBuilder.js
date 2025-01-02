@@ -14,7 +14,8 @@ import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import commonjs from "@rollup/plugin-commonjs"
-import { copyNativeModulePlugin, nativeSqlBannerPlugin } from "./nativeLibraryRollupPlugin.js"
+import { nodeGypPlugin } from "./nodeGypPlugin.js"
+import { napiPlugin } from "./napiPlugin.js"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -23,13 +24,14 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 /**
  * @param dirname directory this was called from
  * @param version application version that gets built
- * @param platform: {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
- * @param architecture: {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
+ * @param platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
+ * @param architecture {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @param updateUrl where the client should pull its updates from, if any
  * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
- * @param notarize for the MacOs notarization feature
+ * @param notarize {boolean} for the macOS notarization feature
  * @param outDir where copy the finished artifacts
  * @param unpacked output desktop client without packing it into an installer
+ * @param [disableMinify] {boolean} whether to disible code minified
  * @returns {Promise<void>}
  */
 export async function buildDesktop({ dirname, version, platform, architecture, updateUrl, nameSuffix, notarize, outDir, unpacked, disableMinify }) {
@@ -128,16 +130,14 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		},
 		preserveEntrySignatures: false,
 		plugins: [
-			copyNativeModulePlugin({
+			nodeGypPlugin({
 				rootDir: projectRoot,
-				dstPath: "./build/desktop/",
 				platform,
 				architecture,
 				nodeModule: "better-sqlite3",
+				environment: "electron",
 			}),
-			copyNativeModulePlugin({
-				rootDir: projectRoot,
-				dstPath: "./build/desktop/",
+			napiPlugin({
 				platform,
 				architecture,
 				nodeModule: "@tutao/node-mimimi",
@@ -154,10 +154,9 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			commonjs(),
 			disableMinify ? undefined : terser(),
 			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs })),
-			nativeSqlBannerPlugin(),
 		],
 	})
-	await mainBundle.write({ sourcemap: true, format: "commonjs", dir: outDir })
+	await mainBundle.write({ sourcemap: true, format: "esm", dir: outDir })
 	await fs.promises.copyFile(path.join(dirname, "src/common/desktop/preload.js"), path.join(outDir, "preload.js"))
 	await fs.promises.copyFile(path.join(dirname, "src/common/desktop/preload-webdialog.js"), path.join(outDir, "preload-webdialog.js"))
 }

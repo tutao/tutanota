@@ -1,4 +1,4 @@
-import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, TutaCredentials } from "@tutao/node-mimimi"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"

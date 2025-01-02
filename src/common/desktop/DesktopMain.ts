@@ -35,7 +35,7 @@ import path from "node:path"
 import { DesktopContextMenu } from "./DesktopContextMenu.js"
 import { DesktopNativePushFacade } from "./sse/DesktopNativePushFacade.js"
 import { NativeCredentialsFacade } from "../native/common/generatedipc/NativeCredentialsFacade.js"
-import { FacadeHandler, RemoteBridge } from "./ipc/RemoteBridge.js"
+import { DispatcherFactory, FacadeHandler, RemoteBridge } from "./ipc/RemoteBridge.js"
 import { DesktopSettingsFacade } from "./config/DesktopSettingsFacade.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { DesktopCommonSystemFacade } from "./DesktopCommonSystemFacade.js"
@@ -75,14 +75,6 @@ import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 
 mp()
-
-/**
- * Should be injected during build time.
- * See sqliteNativeBannerPlugin.
- */
-declare const buildOptions: {
-	readonly sqliteNativePath: string
-}
 
 dns.setDefaultResultOrder("ipv4first")
 
@@ -170,7 +162,7 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const credentialsDb = new DesktopCredentialsStorage(buildOptions.sqliteNativePath, makeDbPath("credentials"), app)
+	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
 	const appPassHandler = new AppPassHandler(desktopCrypto, conf, wasmLoader(), lang, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
@@ -187,7 +179,7 @@ async function createComponents(): Promise<Components> {
 	/** functions to create and delete the physical db file on disk */
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userId: string, key: Uint8Array, retry: boolean = true): Promise<SqlCipherFacade> {
-			const db = new WorkerSqlCipher(buildOptions.sqliteNativePath, makeDbPath(`offline_${userId}`), true)
+			const db = new WorkerSqlCipher(__NODE_GYP_better_sqlite3, makeDbPath(`offline_${userId}`), true)
 			try {
 				await db.openDb(userId, key)
 			} catch (e) {
@@ -262,11 +254,12 @@ async function createComponents(): Promise<Components> {
 	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
 
-	const dispatcherFactory = (window: ApplicationWindow) => {
+	const dispatcherFactory: DispatcherFactory = (window: ApplicationWindow) => {
 		// @ts-ignore
 		const logger: Logger = global.logger
 		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
 		const sqlCipherFacade = new PerWindowSqlCipherFacade(offlineDbRefCounter)
+		const desktopMailImportFacade = new DesktopMailImportFacade(window, electron.app.getPath("userData"))
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
@@ -276,7 +269,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
-			new DesktopMailImportFacade(window, electron.app.getPath("userData")),
+			desktopMailImportFacade,
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
@@ -284,7 +277,7 @@ async function createComponents(): Promise<Components> {
 			themeFacade,
 			new DesktopWebauthnFacade(window, webDialogController),
 		)
-		return { desktopCommonSystemFacade, sqlCipherFacade, dispatcher }
+		return { desktopCommonSystemFacade, sqlCipherFacade, dispatcher, desktopMailImportFacade }
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {

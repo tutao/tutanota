@@ -1,4 +1,4 @@
-import type { BrowserWindow, ContextMenuParams, NativeImage, Result } from "electron"
+import type { BrowserWindow, ContextMenuParams, HandlerDetails, NativeImage, Result } from "electron"
 import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
 import url from "node:url"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -19,7 +19,7 @@ import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import HandlerDetails = Electron.HandlerDetails
+import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -51,6 +51,7 @@ export class ApplicationWindow {
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	private _sqlCipherFacade!: PerWindowSqlCipherFacade
+	private _desktopMailImportFacade!: DesktopMailImportFacade
 
 	_browserWindow!: BrowserWindow
 
@@ -176,6 +177,10 @@ export class ApplicationWindow {
 		this.electron.Menu.setApplicationMenu(null)
 	}
 
+	get desktopMailImportFacade(): DesktopMailImportFacade {
+		return this._desktopMailImportFacade
+	}
+
 	get desktopFacade(): DesktopFacade {
 		return this._desktopFacade
 	}
@@ -194,6 +199,7 @@ export class ApplicationWindow {
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
 		this._sqlCipherFacade = sendingFacades.sqlCipherFacade
+		this._desktopMailImportFacade = sendingFacades.desktopMailImportFacade
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {

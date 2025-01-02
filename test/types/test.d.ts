@@ -19,12 +19,3 @@ declare function browser<F>(f: F): F
  * Declaration is imprecise but it's easier to use this way.
  */
 declare function node<F>(f: F): F
-
-/**
- * Should be injected during build time.
- * See sqliteNativeBannerPlugin.
- */
-declare const buildOptions: {
-	readonly sqliteNativePath: string
-	readonly mimimiNativePath: string
-}

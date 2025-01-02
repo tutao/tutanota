@@ -76,3 +76,13 @@ declare var env: {
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }
+
+/**
+ * See Env.ts for explanation.
+ */
+declare var LOAD_ASSERTIONS: boolean
+
+/**
+ * Should be injected during build time. Only done for desktop
+ */
+declare const __NODE_GYP_better_sqlite3: string
