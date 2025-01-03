@@ -19,6 +19,10 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		this.configDirectory = configDirectory
 	}
 
+	async deinitLogger() {
+		ImporterApi.deinitLog()
+	}
+
 	async importFromFiles(
 		apiUrl: string,
 		unencTutaCredentials: UnencryptedCredentials,
@@ -48,7 +52,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	}
 
 	static async importStateCallback(mailImportFacade: MailImportFacade, callbackAction: ImportProgressAction, localState: LocalImportState) {
-		await mailImportFacade.onNewLocalImportMailState({
+		mailImportFacade.onNewLocalImportMailState({
 			remoteStateId: [localState.remoteStateId.listId, localState.remoteStateId.elementId],
 			status: localState.currentStatus,
 			start_timestamp: localState.startTimestamp,

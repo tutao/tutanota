@@ -41,4 +41,6 @@ export interface NativeMailImportFacade {
 	 * resumes the import for a previously paused import
 	 */
 	resumeImport(apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, importStateId: IdTuple): Promise<void>
+
+	deinitLogger(): Promise<void>
 }

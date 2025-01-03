@@ -1,5 +1,6 @@
 use log::Level;
 use napi::{bindgen_prelude::*, Env, JsFunction, JsObject, JsUndefined};
+use std::sync::mpsc::RecvError;
 
 /// The part of the logging setup that receives log messages from the rust log
 /// {@link struct Console} and forwards them to the node environment to log.
@@ -44,11 +45,14 @@ impl Task for Logger {
 	/// runs on the libuv thread pool.
 	fn compute(&mut self) -> Result<Self::Output> {
 		if let Some(rx) = &self.rx {
-			Ok(rx.recv().unwrap_or_else(|_| LogMessage {
-				level: LogLevel::Finish,
-				tag: "Logger".to_string(),
-				message: "channel closed, logger finished".to_string(),
-			}))
+			match rx.recv() {
+				Ok(log_message) => Ok(log_message),
+				Err(RecvError) => Ok(LogMessage {
+					level: LogLevel::Finish,
+					tag: "Logger".to_string(),
+					message: "channel closed, logger finished".to_string(),
+				}),
+			}
 		} else {
 			// should not happen - each Logger instance listens for exactly one message and then
 			// gets dropped and reincarnated.

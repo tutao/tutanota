@@ -73,7 +73,6 @@ import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
 import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
-import { locator } from "../../mail-app/workerUtils/worker/WorkerLocator.js"
 
 mp()
 

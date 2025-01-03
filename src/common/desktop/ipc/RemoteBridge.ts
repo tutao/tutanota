@@ -71,4 +71,8 @@ export class RemoteBridge {
 	unsubscribe(ipc: { removeHandler: (channel: string) => void }) {
 		ipc.removeHandler(primaryIpcConfig.renderToMainEvent)
 	}
+
+	async denitImportFacadeLogger(win: ApplicationWindow) {
+		return this.dispatcherFactory(win).dispatcher.denitImportFacadeLogger()
+	}
 }

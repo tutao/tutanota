@@ -64,6 +64,11 @@
 				}
 			],
 			"ret": "void"
+		},
+		"deinitLogger": {
+			"doc": "",
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }

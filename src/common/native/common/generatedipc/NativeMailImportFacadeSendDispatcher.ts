@@ -25,4 +25,7 @@ export class NativeMailImportFacadeSendDispatcher implements NativeMailImportFac
 	async resumeImport(...args: Parameters<NativeMailImportFacade["resumeImport"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "resumeImport", ...args])
 	}
+	async deinitLogger(...args: Parameters<NativeMailImportFacade["deinitLogger"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "deinitLogger", ...args])
+	}
 }

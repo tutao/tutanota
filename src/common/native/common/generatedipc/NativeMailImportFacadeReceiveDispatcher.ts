@@ -5,6 +5,7 @@ import { NativeMailImportFacade } from "./NativeMailImportFacade.js"
 
 export class NativeMailImportFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeMailImportFacade) {}
+
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "importFromFiles": {
@@ -33,6 +34,9 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				const unencryptedTutaCredentials: UnencryptedCredentials = arg[1]
 				const importStateId: IdTuple = arg[2]
 				return this.facade.resumeImport(apiUrl, unencryptedTutaCredentials, importStateId)
+			}
+			case "deinitLogger": {
+				return this.facade.deinitLogger()
 			}
 		}
 	}

@@ -47,6 +47,7 @@ export class DesktopGlobalDispatcher {
 	private readonly sqlCipherFacade: SqlCipherFacadeReceiveDispatcher
 	private readonly themeFacade: ThemeFacadeReceiveDispatcher
 	private readonly webAuthnFacade: WebAuthnFacadeReceiveDispatcher
+
 	constructor(
 		commonSystemFacade: CommonSystemFacade,
 		desktopSystemFacade: DesktopSystemFacade,
@@ -79,6 +80,10 @@ export class DesktopGlobalDispatcher {
 		this.sqlCipherFacade = new SqlCipherFacadeReceiveDispatcher(sqlCipherFacade)
 		this.themeFacade = new ThemeFacadeReceiveDispatcher(themeFacade)
 		this.webAuthnFacade = new WebAuthnFacadeReceiveDispatcher(webAuthnFacade)
+	}
+
+	async denitImportFacadeLogger() {
+		return this.nativeMailImportFacade.dispatch("deinitLogger", [])
 	}
 
 	async dispatch(facadeName: string, methodName: string, args: Array<any>) {

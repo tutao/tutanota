@@ -1,11 +1,12 @@
-use crate::logging::logger::{LogMessage, Logger};
+use crate::logging::logger::{LogLevel, LogMessage, Logger};
 use log::{Level, LevelFilter, Log, Metadata, Record};
-use napi::Env;
+use napi::sys::{napi_async_work, napi_cancel_async_work};
+use napi::{AsyncWorkPromise, Env, Task};
 use std::sync::OnceLock;
 
 const TAG: &str = file!();
 
-pub static GLOBAL_CONSOLE: OnceLock<Console> = OnceLock::new();
+pub static mut GLOBAL_CONSOLE: OnceLock<Console> = OnceLock::new();
 
 /// A way for the rust code to log messages to the main applications log files
 /// without having to deal with obtaining a reference to console each time.
@@ -38,31 +39,51 @@ impl Log for Console {
 }
 
 impl Console {
-	pub fn init(env: Env) {
+	pub unsafe fn init(env: Env) {
+		if GLOBAL_CONSOLE.get().is_some() {
+			// some other thread already initialized the cell, we don't need to set up the logger.
+			return;
+		}
 		let (tx, rx) = std::sync::mpsc::channel::<LogMessage>();
 		let console = Console { tx };
 		let logger = Logger::new(rx);
-		let Ok(()) = GLOBAL_CONSOLE.set(console) else {
-			// some other thread already initialized the cell, we don't need to set up the logger.
-			return;
-		};
-
-		// this may be the instance set by another thread, but that's okay.
-		let console = GLOBAL_CONSOLE.get().expect("not initialized");
 		let maybe_async_task = env.spawn(logger);
+
 		match maybe_async_task {
-			Ok(_) => console.log(
-				&Record::builder()
-					.level(Level::Info)
-					.file(Some(TAG))
-					.args(format_args!("{}", "spawned logger"))
-					.build(),
-			),
-			Err(e) => eprintln!("failed to spawn logger: {e}"),
-		};
-		set_panic_hook(console);
-		log::set_logger(console).unwrap_or_else(|e| eprintln!("failed to set logger: {e}"));
-		log::set_max_level(LevelFilter::Info);
+			Ok(_logger_task) => {
+				console.log(
+					&Record::builder()
+						.level(Level::Info)
+						.file(Some(TAG))
+						.args(format_args!("{}", "spawned logger"))
+						.build(),
+				);
+
+				GLOBAL_CONSOLE
+					.set(console)
+					.map_err(|_| "can not set")
+					.unwrap();
+
+				let console = GLOBAL_CONSOLE.get().unwrap();
+				set_panic_hook(&console);
+				log::set_logger(console).unwrap_or_else(|e| eprintln!("failed to set logger: {e}"));
+				log::set_max_level(LevelFilter::Info);
+			},
+			Err(e) => {
+				eprintln!("failed to spawn logger: {e}");
+			},
+		}
+	}
+	pub unsafe fn deinit() {
+		let console = GLOBAL_CONSOLE.take().expect("cannot deinit logger before initializing");
+		console
+			.tx
+			.send(LogMessage {
+				level: LogLevel::Finish,
+				message: "called deinit".to_string(),
+				tag: "[deinit]".to_string(),
+			})
+			.expect("Can not send finish log message. Receiver already disconnected");
 	}
 }
 

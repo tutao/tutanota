@@ -202,9 +202,14 @@ impl ImporterApi {
 	}
 
 	#[napi]
-	pub fn init_log(env: Env) {
+	pub unsafe fn init_log(env: Env) {
 		// this is in a separate fn because Env isn't Send, so can't be used in async fn.
-		crate::logging::console::Console::init(env);
+		crate::logging::console::Console::init(env)
+	}
+
+	#[napi]
+	pub unsafe fn deinit_log() {
+		crate::logging::console::Console::deinit();
 	}
 }
 
