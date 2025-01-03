@@ -45,7 +45,11 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
 			continue
 		}
 		const isFinalDelete = folder && isSpamOrTrashFolder(folders, folder)
-		isFinalDelete ? trashMails.push(mail) : moveMails.push(mail)
+		if (isFinalDelete) {
+			trashMails.push(mail)
+		} else {
+			moveMails.push(mail)
+		}
 	}
 
 	let confirmationTextId: TranslationKey | null = null
@@ -137,13 +141,14 @@ export function archiveMails(mails: Mail[]): Promise<void> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
 		return mailLocator.mailModel.getMailboxFoldersForMail(mails[0]).then((folders: FolderSystem) => {
-			folders &&
+			if (folders) {
 				moveMails({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					mails: mails,
 					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.ARCHIVE),
 				})
+			}
 		})
 	} else {
 		return Promise.resolve()
@@ -154,13 +159,14 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
 		return mailLocator.mailModel.getMailboxFoldersForMail(mails[0]).then((folders: FolderSystem) => {
-			folders &&
+			if (folders) {
 				moveMails({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					mails: mails,
 					targetMailFolder: assertSystemFolderOfType(folders, MailSetKind.INBOX),
 				})
+			}
 		})
 	} else {
 		return Promise.resolve()
@@ -249,7 +255,7 @@ export function replaceCidsWithInlineImages(
 							x: touch.clientX,
 							y: touch.clientY,
 						}
-						timeoutId && clearTimeout(timeoutId)
+						if (timeoutId) clearTimeout(timeoutId)
 						timeoutId = setTimeout(() => {
 							onContext(inlineImage.cid, e, imageElement)
 						}, 800)
@@ -267,8 +273,10 @@ export function replaceCidsWithInlineImages(
 						}
 					})
 					imageElement.addEventListener("touchend", () => {
-						timeoutId && clearTimeout(timeoutId)
-						timeoutId = null
+						if (timeoutId) {
+							clearTimeout(timeoutId)
+							timeoutId = null
+						}
 					})
 				}
 
@@ -443,7 +451,7 @@ export function getConfidentialIcon(mail: Mail): Icons {
  * Returns the confidential font icon for the given mail which indicates either RSA or PQ encryption.
  * The caller must ensure that the mail is in a confidential state.
  */
-export function getConfidentialFontIcon(mail: Mail): String {
+export function getConfidentialFontIcon(mail: Mail): string {
 	const confidentialIcon = getConfidentialIcon(mail)
 	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
 }

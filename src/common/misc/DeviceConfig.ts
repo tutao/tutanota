@@ -320,7 +320,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	}
 
 	getHiddenCalendars(user: Id): Id[] {
-		return this.config._hiddenCalendars.hasOwnProperty(user) ? this.config._hiddenCalendars[user] : []
+		return this.config._hiddenCalendars[user] ?? []
 	}
 
 	setHiddenCalendars(user: Id, calendars: Id[]) {
@@ -332,7 +332,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 	}
 
 	getExpandedFolders(user: Id): Id[] {
-		return this.config.expandedMailFolders.hasOwnProperty(user) ? this.config.expandedMailFolders[user] : []
+		return this.config.expandedMailFolders[user] ?? []
 	}
 
 	setExpandedFolders(user: Id, folders: Id[]) {

@@ -31,7 +31,7 @@ export class LazyLoaded<T> {
 	 */
 	getAsync(): Promise<T> {
 		switch (this.state.state) {
-			case "not_loaded":
+			case "not_loaded": {
 				const loadingPromise = this.loadFunction().then(
 					(value) => {
 						this.state = { state: "loaded", value }
@@ -44,6 +44,7 @@ export class LazyLoaded<T> {
 				)
 				this.state = { state: "loading", promise: loadingPromise }
 				return loadingPromise
+			}
 			case "loading":
 				return this.state.promise
 			case "loaded":

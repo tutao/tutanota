@@ -60,7 +60,7 @@ export class RestClient {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return new Promise(async (resolve, reject) => {
+			return new Promise((resolve, reject) => {
 				this.id++
 
 				const queryParams: Dict = options.queryParams ?? {}

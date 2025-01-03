@@ -85,8 +85,11 @@ export class ClientDetector {
 			}
 
 			for (const item of testGenerator()) {
+				/* empty */
 			}
-		} catch (e) {}
+		} catch (e) {
+			/* empty */
+		}
 	}
 
 	testBuiltins(): boolean {
@@ -256,7 +259,9 @@ export class ClientDetector {
 			if (mainVersionEndIndex !== -1) {
 				try {
 					this.browserVersion = Number(this.userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
-				} catch (e) {}
+				} catch (e) {
+					/* empty */
+				}
 			}
 		}
 
@@ -293,7 +298,9 @@ export class ClientDetector {
 
 				const numberString = this.userAgent.substring(versionIndex + 4, pos)
 				this.browserVersion = Number(numberString.replace(/_/g, "."))
-			} catch (e) {}
+			} catch (e) {
+				/* empty */
+			}
 		}
 	}
 

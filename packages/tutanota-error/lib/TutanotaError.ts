@@ -10,9 +10,9 @@
  * (needed for e instanceof CustomError to work), the error class needs to be
  * added to the ErrorNameToType map in Utils.js.
  */
-const ExtendableErrorF = function ExtendableError() {
+const ExtendableErrorF = function ExtendableError(...args: any[]) {
 	// @ts-ignore
-	Error.apply(this, arguments)
+	Error.apply(this, args)
 }
 
 // Warning: huge type hack
@@ -39,7 +39,9 @@ export class TutanotaError extends ExtendableError {
 				// fill the stack trace on ios devices
 				try {
 					throw error
-				} catch (e) {}
+				} catch (e) {
+					/* empty */
+				}
 			}
 
 			this.stack = this.name + ". " + this.message

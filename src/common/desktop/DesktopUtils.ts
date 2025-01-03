@@ -45,12 +45,13 @@ export class DesktopUtils {
 			case "win32":
 				await this.doRegisterMailtoOnWin32WithCurrentUser()
 				break
-			case "darwin":
+			case "darwin": {
 				const didRegister = this.electron.app.setAsDefaultProtocolClient("mailto")
 				if (!didRegister) {
 					throw new Error("Could not register as mailto handler")
 				}
 				break
+			}
 			case "linux":
 				throw new Error("Registering protocols on Linux does not work")
 			default:
@@ -64,12 +65,13 @@ export class DesktopUtils {
 			case "win32":
 				await this.doUnregisterMailtoOnWin32WithCurrentUser()
 				break
-			case "darwin":
+			case "darwin": {
 				const didUnregister = this.electron.app.removeAsDefaultProtocolClient("mailto")
 				if (!didUnregister) {
 					throw new Error("Could not unregister as mailto handler")
 				}
 				break
+			}
 			case "linux":
 				throw new Error("Registering protocols on Linux does not work")
 			default:

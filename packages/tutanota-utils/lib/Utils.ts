@@ -283,7 +283,7 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
 	let lastInvoked = 0
 	return downcast((...args: any) => {
 		if (Date.now() - lastInvoked < timeout) {
-			timeoutId && clearTimeout(timeoutId)
+			if (timeoutId) clearTimeout(timeoutId)
 			timeoutId = setTimeout(() => {
 				timeoutId = null
 				toThrottle.apply(null, args)
@@ -499,7 +499,7 @@ export function typedValues<K extends string, V>(obj: Record<K, V>): Array<V> {
 export type MaybeLazy<T> = T | lazy<T>
 
 export function resolveMaybeLazy<T>(maybe: MaybeLazy<T>): T {
-	return typeof maybe === "function" ? (maybe as Function)() : maybe
+	return typeof maybe === "function" ? (maybe as () => T)() : maybe
 }
 
 export function getAsLazy<T>(maybe: MaybeLazy<T>): lazy<T> {

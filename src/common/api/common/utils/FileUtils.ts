@@ -58,12 +58,12 @@ export function unreserveFileName(fileName: string): string {
  */
 export function sanitizeFilename(filename: string): string {
 	// / ? < > \ : * | "
-	const illegalRe = /[\/\?<>\\:\*\|"]/g
+	const illegalRe = /[/?<>\\:*|"]/g
 	// unicode control codes
 	const controlRe = /[\x00-\x1f\x80-\x9f]/g
 	// trailing period in windows file names
 	// this is valid in linux but can't be checked from the browser
-	const windowsTrailingRe = /[\. ]+$/
+	const windowsTrailingRe = /[. ]+$/
 	return unreserveFileName(filename).replace(illegalRe, "_").replace(controlRe, "_").replace(windowsTrailingRe, "_")
 }
 
@@ -131,7 +131,13 @@ export function isReservedFilename(filename: string): boolean {
 }
 
 export function isTutanotaFile(file: Attachment): file is TutanotaFile {
-	return file._type && file._type.hasOwnProperty("app") && file._type.hasOwnProperty("type") && isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
+	return (
+		file._type &&
+		typeof file._type === "object" &&
+		Object.hasOwn(file._type, "app") &&
+		Object.hasOwn(file._type, "type") &&
+		isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
+	)
 }
 
 export function isDataFile(file: Attachment): file is DataFile {

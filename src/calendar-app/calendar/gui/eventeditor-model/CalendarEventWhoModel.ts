@@ -517,7 +517,7 @@ export class CalendarEventWhoModel {
 	 * @param status
 	 */
 	setOwnAttendance(status: CalendarAttendeeStatus) {
-		this._ownAttendee && (this._ownAttendee.status = status)
+		if (this._ownAttendee) this._ownAttendee.status = status
 	}
 
 	setPresharedPassword(address: string, password: string) {

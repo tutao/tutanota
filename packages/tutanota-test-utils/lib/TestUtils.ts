@@ -129,7 +129,7 @@ export function makeTimeoutMock(): TimeoutMock {
 	const spiedMock: any = spy(timeoutMock)
 
 	spiedMock.next = function () {
-		scheduledFn && scheduledFn()
+		scheduledFn?.()
 	}
 
 	return spiedMock

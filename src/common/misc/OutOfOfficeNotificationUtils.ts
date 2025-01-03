@@ -26,7 +26,7 @@ export function isNotificationCurrentlyActive(notification: OutOfOfficeNotificat
 
 export function formatActivateState(notification: OutOfOfficeNotification | null): string {
 	if (notification && notification.enabled) {
-		var timeRange = ""
+		let timeRange = ""
 
 		if (notification.startDate) {
 			timeRange += " (" + formatDate(notification.startDate)

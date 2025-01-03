@@ -18,18 +18,21 @@ export async function getDesktopIntegratorForPlatform(
 	_winreg: () => Promise<WinregExports>,
 ): Promise<DesktopIntegrator> {
 	switch (process.platform) {
-		case "win32":
+		case "win32": {
 			const { DesktopIntegratorWin32 } = await import("./DesktopIntegratorWin32")
 			const winreg = await _winreg()
 			return new DesktopIntegratorWin32(electron, winreg.default)
+		}
 
-		case "darwin":
+		case "darwin": {
 			const { DesktopIntegratorDarwin } = await import("./DesktopIntegratorDarwin.js")
 			return new DesktopIntegratorDarwin(electron)
+		}
 
-		case "linux":
+		case "linux": {
 			const { DesktopIntegratorLinux } = await import("./DesktopIntegratorLinux")
 			return new DesktopIntegratorLinux(electron, fs, childProcess)
+		}
 
 		default:
 			return Promise.reject(new Error("Invalid Platform"))

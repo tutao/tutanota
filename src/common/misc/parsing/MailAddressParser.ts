@@ -72,7 +72,7 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 
 			case "to":
 			case "cc":
-			case "bcc":
+			case "bcc": {
 				if (result.recipients[paramName] == null) result.recipients[paramName] = []
 				const nextAddresses = paramValue
 					.split(",")
@@ -80,6 +80,7 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 					.filter(Boolean)
 				result.recipients[paramName].push(...nextAddresses)
 				break
+			}
 
 			case "attach":
 				if (result.attach == null) result.attach = []
@@ -157,7 +158,7 @@ export function stringToNameAndMailAddress(string: string):
  * @return The cleaned mail address.
  */
 export function getCleanedMailAddress(mailAddress: string): string | null {
-	var cleanedMailAddress = mailAddress.toLowerCase().trim()
+	const cleanedMailAddress = mailAddress.toLowerCase().trim()
 
 	if (isMailAddress(cleanedMailAddress, false)) {
 		return cleanedMailAddress
@@ -200,7 +201,7 @@ export function fullNameToFirstAndLastName(fullName: string): {
 		}
 	}
 
-	var separator = fullName.indexOf(" ")
+	const separator = fullName.indexOf(" ")
 
 	if (separator !== -1) {
 		return {

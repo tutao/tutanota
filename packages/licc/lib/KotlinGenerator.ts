@@ -257,19 +257,21 @@ function typeNameKotlin(name: string): RenderedType {
 function renderKotlinType(parsed: ParsedType): RenderedType {
 	const { baseName, nullable, external } = parsed
 	switch (baseName) {
-		case "List":
+		case "List": {
 			const renderedListInner = renderKotlinType(parsed.generics[0])
 			return {
 				externals: renderedListInner.externals,
 				name: maybeNullable(`List<${renderedListInner.name}>`, nullable),
 			}
-		case "Map":
+		}
+		case "Map": {
 			const renderedKey = renderKotlinType(parsed.generics[0])
 			const renderedValue = renderKotlinType(parsed.generics[1])
 			return {
 				externals: [...renderedKey.externals, ...renderedValue.externals],
 				name: maybeNullable(`Map<${renderedKey.name}, ${renderedValue.name}>`, nullable),
 			}
+		}
 		case "string":
 			return { externals: [], name: maybeNullable("String", nullable) }
 		case "boolean":

@@ -5,8 +5,6 @@ import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,
 	ContactTypeRef,
-	createContact,
-	createContactAddress,
 	MailBoxTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
@@ -34,7 +32,6 @@ o.spec("integration test", function () {
 	let mailbox = null
 	o("login, read mails, update contact", async function () {
 		env.staticUrl = "http://localhost:9000"
-		env.versionNumber
 		initLocator(null as any, browserDataStub)
 		o.timeout(20000)
 		await locator.login.createSession("map-free@tutanota.de", "map", "Linux node", SessionType.Temporary, null)

@@ -170,7 +170,7 @@ export interface CommonLocator {
 }
 
 export let locator: CommonLocator = new Proxy<CommonLocator>({} as unknown as CommonLocator, {
-	get: (target: {}, property: string) => {
+	get: (_: object, property: string) => {
 		throw new Error("Common locator must be initialized first")
 	},
 })

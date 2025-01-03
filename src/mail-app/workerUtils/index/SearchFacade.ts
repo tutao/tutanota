@@ -295,7 +295,7 @@ export class SearchFacade {
 			})
 			.then((result) => {
 				markEnd("_filterByListIdAndGroupSearchResults")
-				typeof self !== "undefined" &&
+				if (typeof self !== "undefined") {
 					printMeasure("query: " + searchResult.query + ", maxResults: " + String(maxResults), [
 						"findIndexEntries",
 						"_filterByEncryptedId",
@@ -305,6 +305,7 @@ export class SearchFacade {
 						"_reduceToUniqueElementIds",
 						"_filterByListIdAndGroupSearchResults",
 					])
+				}
 				return result
 			})
 	}

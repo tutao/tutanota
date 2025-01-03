@@ -13,26 +13,26 @@ o.spec("key encryption", function () {
 		"02008e8bf43e2990a46042da8168aebec699d62e1e1fd068c5582fd1d5433cee8c8b918799e8ee1a22dd9d6e21dd959d7faed8034663225848c21b88c2733c73788875639425a87d54882285e598bf7e8c83861e8b77ab3cf62c53d35e143cee9bb8b3f36850aebd1548c1881dc7485bb51aa13c5a0391b88a8d7afce88ecd4a7e231ca7cfd063216d1d573ad769a6bb557c251ad34beb393a8fff4a886715315ba9eac0bc31541999b92fcb33d15efd2bd50bf77637d3fc5ba1c21082f67281957832ac832fbad6c383779341555993bd945659d7797b9c993396915e6decee9da2d5e060c27c3b5a9bc355ef4a38088af53e5f795ccc837f45d0583052547a736f"
 
 	o("encrypt / decrypt aes128 key with aes128", function () {
-		let gk = [3957386659, 354339016, 3786337319, 3366334248]
-		let sk = [3229306880, 2716953871, 4072167920, 3901332676]
-		let encryptedKey = encryptKey(gk, sk)
+		const gk = [3957386659, 354339016, 3786337319, 3366334248]
+		const sk = [3229306880, 2716953871, 4072167920, 3901332676]
+		const encryptedKey = encryptKey(gk, sk)
 		o(Array.from(encryptedKey)).deepEquals(Array.from(base64ToUint8Array("O3cyw7uo5DMm655aQiw0Xw==")))
 		o(decryptKey(gk, encryptedKey)).deepEquals(sk)
 	})
 	o("encrypt / decrypt private rsa key with aes128", function () {
-		let gk = [3957386659, 354339016, 3786337319, 3366334248]
-		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
-		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
+		const gk = [3957386659, 354339016, 3786337319, 3366334248]
+		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
+		const iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
+		const encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
 		o(encryptedPrivateKey.length % 2).equals(1) // make sure a mac is present
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
 	o("encrypt / decrypt private rsa key with aes256", function () {
-		let gk = aes256RandomKey()
-		let privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
-		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
+		const gk = aes256RandomKey()
+		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
+		const iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
+		const encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv)
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 

@@ -2,14 +2,13 @@ import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncry
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-import { bitArrayToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { BitArray, bitArrayToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
 import { DesktopCredentialsStorage } from "../db/DesktopCredentialsStorage.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { assertDesktopEncryptionMode, assertSupportedEncryptionMode, DesktopCredentialsMode, SUPPORTED_MODES } from "./CredentialCommons.js"
 import { KeychainEncryption } from "./KeychainEncryption.js"
-import { BitArray } from "@tutao/tutanota-crypto"
 
 /**
  * Native storage will transparently encrypt and decrypt database key and access token during load and store calls.

@@ -16,7 +16,7 @@ globalThis.browser = () => noOp
 globalThis.node = (func) => func
 
 const { JSDOM } = await import("jsdom")
-var dom = new JSDOM("", {
+const dom = new JSDOM("", {
 	// So we can get `requestAnimationFrame`
 	pretendToBeVisual: true,
 })

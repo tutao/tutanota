@@ -150,7 +150,9 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 						[path.join(this._electron.app.getPath("home"), ".local/share/applications")],
 						logExecFile,
 					)
-				} catch (e) {}
+				} catch (e) {
+					/* empty */
+				}
 			})
 	}
 

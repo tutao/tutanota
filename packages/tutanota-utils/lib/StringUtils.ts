@@ -7,7 +7,7 @@ import type { lazy } from "./Utils.js"
  * @return The padded number as string.
  */
 export function pad(num: number, size: number): string {
-	var s = num + ""
+	let s = num + ""
 
 	while (s.length < size) s = "0" + s
 
@@ -96,10 +96,10 @@ export function localeCompare(a: string, b: string): number {
 export function byteLength(str: string | null | undefined): number {
 	if (str == null) return 0
 	// returns the byte length of an utf8 string
-	var s = str.length
+	let s = str.length
 
-	for (var i = str.length - 1; i >= 0; i--) {
-		var code = str.charCodeAt(i)
+	for (let i = str.length - 1; i >= 0; i--) {
+		const code = str.charCodeAt(i)
 
 		if (code > 0x7f && code <= 0x7ff) {
 			s++
@@ -109,12 +109,4 @@ export function byteLength(str: string | null | undefined): number {
 	}
 
 	return s
-}
-
-/**
- * Create a regex to exactly match a given string, by escaping any special regex characters
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
- * */
-function escapedStringRegExp(str: string, flags: string): RegExp {
-	return new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), flags)
 }

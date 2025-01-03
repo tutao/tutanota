@@ -26,11 +26,12 @@ export class ContactRow implements VirtualRow<Contact> {
 	private domName!: HTMLElement
 	private domAddress!: HTMLElement
 	private checkboxDom!: HTMLInputElement
-	private checkboxWasVisible: boolean = this.shouldShowCheckbox()
+	private checkboxWasVisible: boolean
 
 	constructor(private readonly onSelected: (entity: Contact, selected: boolean) => unknown, private readonly shouldShowCheckbox: () => boolean) {
 		this.top = 0
 		this.entity = null
+		this.checkboxWasVisible = this.shouldShowCheckbox()
 	}
 
 	update(contact: Contact, selected: boolean, isInMultiSelect: boolean): void {
@@ -67,7 +68,7 @@ export class ContactRow implements VirtualRow<Contact> {
 						// e.redraw = false
 					},
 					onchange: () => {
-						this.entity && this.onSelected(this.entity, this.checkboxDom.checked)
+						if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
 					},
 					oncreate: (vnode) => {
 						this.checkboxDom = vnode.dom as HTMLInputElement

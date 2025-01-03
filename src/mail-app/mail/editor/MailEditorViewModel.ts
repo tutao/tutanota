@@ -34,14 +34,14 @@ export async function chooseAndAttachFile(
 				// we have file refs and want to keep them
 				model.attachFiles(files)
 				return files
-			case Mode.Desktop:
-				// we have file refs and want to read them.
-				// this is important for the desktop client so it can attach them as inline images.
+			case Mode.Desktop: {
+				// this is important for the desktop client so it can attach them as inline images. // we have file refs and want to read them.
 				const dataFiles: Array<DataFile> = (
 					await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
 				).filter(isNotNull)
 				model.attachFiles(dataFiles)
 				return dataFiles
+			}
 			default:
 				// we have data files and want to keep them
 				model.attachFiles(files)

@@ -1,9 +1,9 @@
 {
 	"compilerOptions": {
-		"lib": ["es2021", "webworker", "dom"],
+		"lib": ["es2022", "webworker", "dom"],
 		"allowJs": true,
 		"checkJs": false,
-		"target": "es2021",
+		"target": "es2022",
 		"module": "es2022",
 		// We need either node16/nodenext or bundler to support export maps from modules but most of our imports don't
 		// contain the file extensions, so we can't use node16 as is. Bundler allows extensionless paths.

@@ -62,13 +62,14 @@ export function murmurHash(value: string): number {
 	len += remainder
 	let k1 = 0x0
 
-	// noinspection FallThroughInSwitchStatementJS
 	switch (remainder) {
 		case 3:
 			k1 ^= buf[i + 2] << 16
+		// falls through
 
 		case 2:
 			k1 ^= buf[i + 1] << 8
+		// falls through
 
 		case 1:
 			k1 ^= buf[i]

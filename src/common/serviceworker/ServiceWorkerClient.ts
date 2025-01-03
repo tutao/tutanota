@@ -50,7 +50,7 @@ function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration, doma
 			onUpdate: () => {
 				// user has confirmed update so we have to notify the service worker to force update of version.
 				console.log("registration.waiting: ", registration.waiting)
-				registration.waiting && registration.waiting.postMessage("update")
+				registration.waiting?.postMessage("update")
 			},
 		})
 	}

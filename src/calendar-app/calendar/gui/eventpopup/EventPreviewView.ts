@@ -258,9 +258,10 @@ export function formatRepetitionEnd(repeatRule: RepeatRule, isAllDay: boolean): 
 				})
 			)
 
-		case EndType.UntilDate:
+		case EndType.UntilDate: {
 			const repeatEndTime = getRepeatEndTimeForDisplay(repeatRule, isAllDay, getTimeZone())
 			return " " + lang.get("until_label") + " " + formatDateWithMonth(repeatEndTime)
+		}
 
 		default:
 			return ""

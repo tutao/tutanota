@@ -117,7 +117,7 @@ export class PQFacade {
 		eccSharedSecret: EccSharedSecrets,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 	): Aes256Key {
-		var context = concat(
+		const context = concat(
 			senderIdentityPublicKey,
 			ephemeralPublicKey,
 			recipientPublicKeys.eccPublicKey,
@@ -126,7 +126,7 @@ export class PQFacade {
 			new Uint8Array([Number(cryptoProtocolVersion)]),
 		)
 
-		var inputKeyMaterial = concat(eccSharedSecret.ephemeralSharedSecret, eccSharedSecret.authSharedSecret, kyberSharedSecret)
+		const inputKeyMaterial = concat(eccSharedSecret.ephemeralSharedSecret, eccSharedSecret.authSharedSecret, kyberSharedSecret)
 
 		const kekBytes = hkdf(context, inputKeyMaterial, stringToUtf8Uint8Array("kek"), KEY_LENGTH_BYTES_AES_256)
 		return uint8ArrayToKey(kekBytes)

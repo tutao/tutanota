@@ -44,7 +44,6 @@ const title = (win: BrowserWindow | typeof ANY_WINDOW | null) => {
 	if (win instanceof BrowserWindow) {
 		try {
 			return win.getTitle()
-			// eslint-disable-next-line no-unused-vars
 		} catch (error) {
 			return "A destroyed window"
 		}

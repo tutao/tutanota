@@ -374,7 +374,7 @@ class CalendarLocator {
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
 			return {
-				async getContactSuggestions(_query: String): Promise<readonly ContactSuggestion[]> {
+				async getContactSuggestions(_query: string): Promise<readonly ContactSuggestion[]> {
 					return []
 				},
 			}
@@ -704,25 +704,31 @@ class CalendarLocator {
 
 		this.newsModel = new NewsModel(this.serviceExecutor, deviceConfig, async (name: string) => {
 			switch (name) {
-				case "usageOptIn":
+				case "usageOptIn": {
 					const { UsageOptInNews } = await import("../common/misc/news/items/UsageOptInNews.js")
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
-				case "recoveryCode":
+				}
+				case "recoveryCode": {
 					const { RecoveryCodeNews } = await import("../common/misc/news/items/RecoveryCodeNews.js")
 					return new RecoveryCodeNews(this.newsModel, this.logins.getUserController(), this.recoverCodeFacade)
-				case "pinBiometrics":
+				}
+				case "pinBiometrics": {
 					const { PinBiometricsNews } = await import("../common/misc/news/items/PinBiometricsNews.js")
 					return new PinBiometricsNews(this.newsModel, this.credentialsProvider, this.logins.getUserController().userId)
-				case "referralLink":
+				}
+				case "referralLink": {
 					const { ReferralLinkNews } = await import("../common/misc/news/items/ReferralLinkNews.js")
 					const dateProvider = await this.noZoneDateProvider()
 					return new ReferralLinkNews(this.newsModel, dateProvider, this.logins.getUserController())
-				case "newPlans":
+				}
+				case "newPlans": {
 					const { NewPlansNews } = await import("../common/misc/news/items/NewPlansNews.js")
 					return new NewPlansNews(this.newsModel, this.logins.getUserController())
-				case "newPlansOfferEnding":
+				}
+				case "newPlansOfferEnding": {
 					const { NewPlansOfferEndingNews } = await import("../common/misc/news/items/NewPlansOfferEndingNews.js")
 					return new NewPlansOfferEndingNews(this.newsModel, this.logins.getUserController())
+				}
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null

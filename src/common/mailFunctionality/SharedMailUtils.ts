@@ -10,9 +10,9 @@ import {
 	EncryptionAuthStatus,
 	GroupType,
 	MailState,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-	MAX_BASE64_IMAGE_SIZE,
 	MAX_ATTACHMENT_SIZE,
+	MAX_BASE64_IMAGE_SIZE,
+	SYSTEM_GROUP_MAIL_ADDRESS,
 	TUTA_MAIL_ADDRESS_DOMAINS,
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
@@ -230,8 +230,8 @@ export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus
 			return true
 		case EncryptionAuthStatus.AES_NO_AUTHENTICATION:
 		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED:
-		// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
 		default:
+			// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
 			return false
 	}
 }

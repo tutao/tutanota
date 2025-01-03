@@ -89,7 +89,7 @@ const FORBID_TAGS = Object.freeze([
 ] as const)
 
 /** restricts the allowed protocols to some standard ones + our tutatemplate protocol that allows the knowledge base to link to email templates. */
-const ALLOWED_URI_REGEXP = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+const ALLOWED_URI_REGEXP = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i
 
 const HTML_CONFIG: Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undefined } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
@@ -413,7 +413,7 @@ export class HtmlSanitizer {
 			(currentNode.tagName.toLowerCase() === "a" || currentNode.tagName.toLowerCase() === "area" || currentNode.tagName.toLowerCase() === "form")
 		) {
 			const href = currentNode.getAttribute("href")
-			href && this.links.push(currentNode)
+			if (href) this.links.push(currentNode)
 
 			if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
 				currentNode.setAttribute("rel", "noopener noreferrer")
