@@ -260,6 +260,9 @@ styles.registerStyle("main", () => {
 		".white-space-pre": {
 			"white-space": "pre",
 		},
+		".white-space": {
+			"white-space": "normal",
+		},
 		".min-content": {
 			width: "min-content",
 			height: "min-content",
@@ -1263,6 +1266,14 @@ styles.registerStyle("main", () => {
 		".icon-xl > svg": {
 			height: px(size.icon_size_xl),
 			width: px(size.icon_size_xl),
+		},
+		".icon-xxl": {
+			height: px(size.icon_size_xxl),
+			width: px(size.icon_size_xxl),
+		},
+		".icon-xxl > svg": {
+			height: px(size.icon_size_xxl),
+			width: px(size.icon_size_xxl),
 		},
 		".icon-message-box": {
 			height: px(size.icon_message_box),
@@ -2690,6 +2701,13 @@ styles.registerStyle("main", () => {
 			padding: px(size.vpad_small),
 			position: "relative",
 			height: "fit-content",
+		},
+		".tutaui-card-container-divide": {
+			padding: "0",
+		},
+		".tutaui-card-container-divide > *:not(:last-child)": {
+			"border-radius": "0",
+			"border-bottom": `1px solid ${theme.button_bubble_bg}`,
 		},
 		".tutaui-text-field, .child-text-editor [role='textbox']": {
 			display: "block",

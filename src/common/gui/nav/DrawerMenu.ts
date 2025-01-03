@@ -66,7 +66,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								: null,
 					  ])
 					: null,
-				logins.isGlobalAdminUserLoggedIn() && userController.isPremiumAccount()
+				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount()
 					? m(IconButton, {
 							icon: Icons.Gift,
 							title: "buyGiftCard_label",

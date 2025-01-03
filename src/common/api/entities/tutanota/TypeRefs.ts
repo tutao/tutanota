@@ -2008,6 +2008,57 @@ export type Subfiles = {
 
 	files: Id;
 }
+export const SupportCategoryTypeRef: TypeRef<SupportCategory> = new TypeRef("tutanota", "SupportCategory")
+
+export function createSupportCategory(values: StrippedEntity<SupportCategory>): SupportCategory {
+	return Object.assign(create(typeModels.SupportCategory, SupportCategoryTypeRef), values)
+}
+
+export type SupportCategory = {
+	_type: TypeRef<SupportCategory>;
+
+	_id: Id;
+	icon: string;
+	introductionDE: string;
+	introductionEN: string;
+	nameDE: string;
+	nameEN: string;
+
+	topics: SupportTopic[];
+}
+export const SupportDataTypeRef: TypeRef<SupportData> = new TypeRef("tutanota", "SupportData")
+
+export function createSupportData(values: StrippedEntity<SupportData>): SupportData {
+	return Object.assign(create(typeModels.SupportData, SupportDataTypeRef), values)
+}
+
+export type SupportData = {
+	_type: TypeRef<SupportData>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+
+	categories: SupportCategory[];
+}
+export const SupportTopicTypeRef: TypeRef<SupportTopic> = new TypeRef("tutanota", "SupportTopic")
+
+export function createSupportTopic(values: StrippedEntity<SupportTopic>): SupportTopic {
+	return Object.assign(create(typeModels.SupportTopic, SupportTopicTypeRef), values)
+}
+
+export type SupportTopic = {
+	_type: TypeRef<SupportTopic>;
+
+	_id: Id;
+	issueDE: string;
+	issueEN: string;
+	lastUpdated: Date;
+	solutionHtmlDE: string;
+	solutionHtmlEN: string;
+	visibility: NumberString;
+}
 export const SymEncInternalRecipientKeyDataTypeRef: TypeRef<SymEncInternalRecipientKeyData> = new TypeRef("tutanota", "SymEncInternalRecipientKeyData")
 
 export function createSymEncInternalRecipientKeyData(values: StrippedEntity<SymEncInternalRecipientKeyData>): SymEncInternalRecipientKeyData {

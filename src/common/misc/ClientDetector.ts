@@ -402,6 +402,10 @@ export class ClientDetector {
 	isCalendarApp() {
 		return isApp() && this.appType === AppType.Calendar
 	}
+
+	isMailApp() {
+		return isApp() && this.appType === AppType.Mail
+	}
 }
 
 export const client: ClientDetector = new ClientDetector()

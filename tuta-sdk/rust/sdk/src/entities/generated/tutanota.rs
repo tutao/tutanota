@@ -2546,6 +2546,67 @@ impl Entity for Subfiles {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SupportCategory {
+	pub _id: Option<CustomId>,
+	pub icon: String,
+	pub introductionDE: String,
+	pub introductionEN: String,
+	pub nameDE: String,
+	pub nameEN: String,
+	pub topics: Vec<SupportTopic>,
+}
+
+impl Entity for SupportCategory {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "SupportCategory",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SupportData {
+	pub _format: i64,
+	pub _id: Option<GeneratedId>,
+	pub _ownerGroup: Option<GeneratedId>,
+	pub _permissions: GeneratedId,
+	pub categories: Vec<SupportCategory>,
+}
+
+impl Entity for SupportData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "SupportData",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SupportTopic {
+	pub _id: Option<CustomId>,
+	pub issueDE: String,
+	pub issueEN: String,
+	pub lastUpdated: DateTime,
+	pub solutionHtmlDE: String,
+	pub solutionHtmlEN: String,
+	pub visibility: i64,
+}
+
+impl Entity for SupportTopic {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "SupportTopic",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SymEncInternalRecipientKeyData {
 	pub _id: Option<CustomId>,
 	pub mailAddress: String,

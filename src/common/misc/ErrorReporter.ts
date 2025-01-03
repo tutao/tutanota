@@ -22,6 +22,7 @@ import { createErrorReportData, createErrorReportFile, createReportErrorIn } fro
 import { ErrorReportClientType } from "./ClientConstants.js"
 import { client } from "./ClientDetector.js"
 import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
+import { getTimeZone } from "../calendar/date/CalendarUtils.js"
 
 type FeedbackContent = {
 	message: string
@@ -378,7 +379,8 @@ export function clientInfoString(
 	message += `\n Type: ${type}`
 	message += `\n Tutanota version: ${env.versionNumber}`
 	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
-	message += `\n User agent:\n${navigator.userAgent}` + "\n"
+	message += `\n Time zone: ${getTimeZone()}`
+	message += `\n User agent: ${navigator.userAgent}\n`
 	return {
 		message,
 		client,

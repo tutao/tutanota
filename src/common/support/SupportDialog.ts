@@ -1,116 +1,219 @@
-import { Dialog } from "../gui/base/Dialog"
-import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
-import type { ButtonAttrs } from "../gui/base/Button.js"
-import { ButtonType } from "../gui/base/Button.js"
-import { lang } from "../misc/LanguageViewModel"
-import { TextField } from "../gui/base/TextField.js"
-import m, { Component } from "mithril"
-import stream from "mithril/stream"
-import { faq, FaqEntry } from "./FaqModel"
-import { Keys } from "../api/common/TutanotaConstants"
-import { clear, debounce } from "@tutao/tutanota-utils"
-import { writeSupportMail } from "../../mail-app/mail/editor/MailEditor"
-import { assertMainOrNode } from "../api/common/Env"
+import m from "mithril"
+import { assertMainOrNode, isWebClient } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
+import Stream from "mithril/stream"
+import { SupportCategory, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
+import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
+import { SupportLandingPage } from "./pages/SupportLandingPage.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { SupportCategoryPage } from "./pages/SupportCategoryPage.js"
+import { SupportTopicPage } from "./pages/SupportTopicPage.js"
+import { ContactSupportPage } from "./pages/ContactSupportPage.js"
+import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { Keys } from "../api/common/TutanotaConstants.js"
+import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
+import { DataFile } from "../api/common/DataFile.js"
+import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { client } from "../misc/ClientDetector"
+import { SupportVisibilityMask } from "./SupportVisibilityMask"
+import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { CacheMode } from "../api/worker/rest/EntityRestClient.js"
+
+export interface SupportDialogState {
+	canHaveEmailSupport: boolean
+	selectedCategory: Stream<SupportCategory | null>
+	selectedTopic: Stream<SupportTopic | null>
+	categories: SupportCategory[]
+	htmlEditor: HtmlEditor
+	shouldIncludeLogs: Stream<boolean>
+	userAttachments: Stream<DataFile[]>
+	logs: Stream<DataFile[]>
+}
 
 assertMainOrNode()
 
+enum SupportPages {
+	CATEGORIES,
+	CATEGORY_DETAIL,
+	TOPIC_DETAIL,
+	CONTACT_SUPPORT,
+	SUPPORT_REQUEST_SENT,
+	EMAIL_SUPPORT_BEHIND_PAYWALL,
+	SOLUTION_WAS_HELPFUL,
+}
+
+function isEnabled(visibility: number, mask: SupportVisibilityMask) {
+	return !!(visibility & mask)
+}
+
 export async function showSupportDialog(logins: LoginController) {
-	const canHaveEmailSupport = logins.isInternalUserLoggedIn()
-	const searchValue = stream("")
-	const searchResult: Array<FaqEntry> = []
-	let searchExecuted = false
-	const closeButton: ButtonAttrs = {
-		label: "close_alt",
-		type: ButtonType.Secondary,
-		click: () => {
-			closeAction()
-		},
-	}
+	const supportData = await locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly })
 
-	const closeAction = () => {
-		searchValue("")
-		clear(searchResult)
-		dialog.close()
-	}
+	const categories = supportData.categories
 
-	const debouncedSearch = debounce(200, async (value: string) => {
-		clear(searchResult)
-		for await (const result of faq.search(value)) {
-			// if the search query changed, we don't want to continue
-			// sanitizing entries, we'll get called again in 200ms
-			if (searchValue() != value) break
-			searchResult.push(result)
-			// delay first redraw until the bottom of the result list is likely to be below the
-			// visible area to prevent flashes while the list is built up
-			if (searchResult.length > 3) m.redraw()
+	for (const key in supportData.categories) {
+		const filteredTopics: SupportTopic[] = []
+		const supportCategory = categories[key]
+		for (const topic of supportCategory.topics) {
+			const visibility = Number(topic.visibility)
+
+			const meetsPlatform =
+				(isEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
+				(isEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
+				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
+
+			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
+			const meetsCustomerStatus =
+				(isEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
+				(isEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
+
+			if (meetsPlatform && meetsCustomerStatus) {
+				filteredTopics.push(topic)
+			}
 		}
-		m.redraw()
-		searchExecuted = value.trim() !== ""
-	})
 
-	searchValue.map(debouncedSearch)
+		supportCategory.topics = filteredTopics
+	}
 
-	const header: DialogHeaderBarAttrs = {
-		left: [closeButton],
-		middle: "supportMenu_label",
+	const data: SupportDialogState = {
+		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
+		selectedCategory: Stream<SupportCategory | null>(null),
+		selectedTopic: Stream<SupportTopic | null>(null),
+		categories: supportData.categories.filter((cat) => cat.topics.length > 0),
+		htmlEditor: new HtmlEditor().setMinHeight(250).setEnabled(true),
+		shouldIncludeLogs: Stream(true),
+		userAttachments: Stream([]),
+		logs: Stream([]),
 	}
-	const child: Component = {
-		view: () => {
-			return [
-				m(".pt"),
-				m(".h1 .text-center", lang.get("howCanWeHelp_title")),
-				m(TextField, {
-					label: "describeProblem_msg",
-					value: searchValue(),
-					oninput: searchValue,
-				}),
-				m(
-					".pt",
-					searchResult.map((value) => {
-						return m(".pb.faq-items", [
-							// we can trust the faq entry here because it is sanitized in update-translations.js from the website project
-							// trust is required because the search results are marked with <mark> tag and the faq entries contain html elements.
-							m(".b", m.trust(value.title)),
-							m(
-								".flex-start.flex-wrap",
-								value.tags.filter((tag) => tag !== "").map((tag) => m(".keyword-bubble.plr-button", m.trust(tag.trim()))),
-							),
-							m(".list-border-bottom.pb", m.trust(value.text)),
-						])
-					}),
-				),
-				searchExecuted && canHaveEmailSupport
-					? m(".pb", [
-							m(".h1 .text-center", lang.get("noSolution_msg")),
-							m(
-								".flex.center-horizontally.pt",
-								m(
-									".flex-grow-shrink-auto.max-width-200",
-									m(LoginButton, {
-										label: "contactSupport_action",
-										onclick: () => {
-											writeSupportMail(searchValue().trim()).then((isSuccessful) => {
-												if (isSuccessful) closeAction()
-											})
-										},
-									}),
-								),
-							),
-					  ])
-					: null,
-			]
-		},
-	}
-	await faq.init(locator.domainConfigProvider().getCurrentDomainConfig().websiteBaseUrl)
-	const dialog = Dialog.largeDialog(header, child).addShortcut({
-		key: Keys.ESC,
-		exec: () => {
-			closeAction()
-		},
-		help: "close_alt",
-	})
-	dialog.show()
+
+	const multiPageDialog: Dialog = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)
+		.buildDialog(
+			(currentPage, dialog, navigateToPage, _) => {
+				switch (currentPage) {
+					case SupportPages.CATEGORY_DETAIL:
+						return m(SupportCategoryPage, {
+							data,
+							goToContactSupport: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+							goToTopicDetailPage: () => navigateToPage(SupportPages.TOPIC_DETAIL),
+						})
+					case SupportPages.TOPIC_DETAIL:
+						return m(SupportTopicPage, {
+							data,
+							dialog,
+							goToSolutionWasHelpfulPage: () => {
+								navigateToPage(SupportPages.SOLUTION_WAS_HELPFUL)
+							},
+							goToContactSupportPage: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+						})
+					case SupportPages.CONTACT_SUPPORT:
+						return m(ContactSupportPage, { data, goToSuccessPage: () => navigateToPage(SupportPages.SUPPORT_REQUEST_SENT) })
+					case SupportPages.SOLUTION_WAS_HELPFUL:
+						return m(SupportSuccessPage)
+					case SupportPages.SUPPORT_REQUEST_SENT: {
+						return m(SupportRequestSentPage)
+					}
+					case SupportPages.CATEGORIES:
+						return m(SupportLandingPage, {
+							data,
+							toCategoryDetail: () => navigateToPage(SupportPages.CATEGORY_DETAIL),
+							goToContactSupport: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+						})
+					case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
+						return m(EmailSupportUnavailablePage, {
+							data,
+							goToContactSupportPage: () => {
+								navigateToPage(SupportPages.CONTACT_SUPPORT)
+							},
+						})
+				}
+			},
+			{
+				getPageTitle: (_) => {
+					return { testId: "back_action", text: lang.get("supportMenu_label") }
+				},
+				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case SupportPages.CATEGORIES:
+							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
+						case SupportPages.TOPIC_DETAIL:
+						case SupportPages.CATEGORY_DETAIL:
+						case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
+							return { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" }
+						case SupportPages.CONTACT_SUPPORT:
+							return {
+								type: ButtonType.Secondary,
+								click: async () => {
+									if (data.htmlEditor.getTrimmedValue().length > 10) {
+										const confirmed = await Dialog.confirm({
+											testId: "close_alt",
+											text: lang.get("supportBackLostRequest_msg"),
+										})
+										if (confirmed) {
+											goBack()
+										}
+									} else {
+										goBack()
+									}
+								},
+								label: "back_action",
+								title: "back_action",
+							}
+						case SupportPages.SOLUTION_WAS_HELPFUL:
+						case SupportPages.SUPPORT_REQUEST_SENT:
+							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
+					}
+				},
+				getRightAction: (currentPage, dialog, _, __) => {
+					if (currentPage === SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL) {
+						return {
+							type: ButtonType.Secondary,
+							label: "close_alt",
+							title: "close_alt",
+							click: () => {
+								dialog.close()
+							},
+						}
+					}
+				},
+			},
+		)
+		.addShortcut({
+			help: "close_alt",
+			key: Keys.ESC,
+			exec: () => multiPageDialog.close(),
+		})
+		.show()
+}
+
+export function getLocalisedCategoryName(category: SupportCategory, languageTag: string): string {
+	return languageTag.includes("de") ? category.nameDE : category.nameEN
+}
+
+export function getLocalisedCategoryIntroduction(category: SupportCategory, languageTag: string): string {
+	return languageTag.includes("de") ? category.introductionDE : category.introductionEN
+}
+
+export function getLocalisedTopicIssue(topic: SupportTopic, languageTag: string): string {
+	return languageTag.includes("de") ? topic.issueDE : topic.issueEN
 }

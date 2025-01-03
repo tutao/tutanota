@@ -127,7 +127,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	constructor(currentPlanType: PlanType, private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
 		this.currentPlanType = currentPlanType
-		const isPremiumPredicate = () => locator.logins.getUserController().isPremiumAccount()
+		const isPremiumPredicate = () => locator.logins.getUserController().isPaidAccount()
 
 		this._giftCards = new Map()
 		loadGiftCards(assertNotNull(locator.logins.getUserController().user.customer)).then((giftCards) => {
@@ -447,7 +447,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private showOrderAgreement(): boolean {
 		return (
-			locator.logins.getUserController().isPremiumAccount() &&
+			locator.logins.getUserController().isPaidAccount() &&
 			((this._customer != null && this._customer.businessUse) ||
 				(this._customer != null && (this._customer.orderProcessingAgreement != null || this._customer.orderProcessingAgreementNeeded)))
 		)
@@ -479,7 +479,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private showPriceData(): boolean {
 		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
-		return locator.logins.getUserController().isPremiumAccount() && !isIOSApp() && !isAppStorePayment
+		return locator.logins.getUserController().isPaidAccount() && !isIOSApp() && !isAppStorePayment
 	}
 
 	private async updatePriceInfo(): Promise<void> {
