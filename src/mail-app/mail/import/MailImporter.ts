@@ -20,6 +20,7 @@ import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { mailLocator } from "../../mailLocator.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { EventController } from "../../../common/api/main/EventController"
+import { Dialog } from "../../../common/gui/base/Dialog"
 
 const DEFAULT_TOTAL_WORK: number = 100000
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
@@ -129,7 +130,16 @@ export class MailImporter implements MailImportFacade {
 		this.startProgressEstimation()
 		m.redraw()
 		await importFacade.setContinueProgressAction()
-		await importFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+		try {
+			await importFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+		} catch (e) {
+			if (e.message === "NoImportFeature") {
+				this.uiStatus = UiImportStatus.Idle
+				await Dialog.message("serviceUnavailable_msg")
+			} else {
+				throw e
+			}
+		}
 	}
 
 	async onPauseBtnClick() {
