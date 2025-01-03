@@ -212,51 +212,53 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
-	"AdminGroupKeyAuthenticationData": {
-		"name": "AdminGroupKeyAuthenticationData",
-		"since": 111,
+	"AdminGroupKeyDistributionElement": {
+		"name": "AdminGroupKeyDistributionElement",
+		"since": 118,
 		"type": "AGGREGATED_TYPE",
-		"id": 2477,
-		"rootId": "A3N5cwAJrQ",
+		"id": 2526,
+		"rootId": "A3N5cwAJ3g",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 2478,
-				"since": 111,
+				"id": 2527,
+				"since": 118,
 				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"authKeyEncAdminRotationHash": {
-				"final": false,
-				"name": "authKeyEncAdminRotationHash",
-				"id": 2481,
-				"since": 111,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"version": {
-				"final": false,
-				"name": "version",
-				"id": 2480,
-				"since": 111,
-				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"userGroup": {
+			"distEncAdminGroupKey": {
 				"final": false,
-				"name": "userGroup",
-				"id": 2479,
-				"since": 111,
+				"name": "distEncAdminGroupKey",
+				"id": 2529,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "PubEncKeyData",
+				"dependency": null
+			},
+			"userEncAdminSymKeyHash": {
+				"final": false,
+				"name": "userEncAdminSymKeyHash",
+				"id": 2530,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
+			"userGroupId": {
+				"final": false,
+				"name": "userGroupId",
+				"id": 2528,
+				"since": 118,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
 				"refType": "Group",
@@ -264,7 +266,51 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
+	},
+	"AdminGroupKeyRotationGetOut": {
+		"name": "AdminGroupKeyRotationGetOut",
+		"since": 118,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2542,
+		"rootId": "A3N5cwAJ7g",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2543,
+				"since": 118,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"distributionKeys": {
+				"final": false,
+				"name": "distributionKeys",
+				"id": 2545,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "PubDistributionKey",
+				"dependency": null
+			},
+			"userGroupIdsMissingDistributionKeys": {
+				"final": false,
+				"name": "userGroupIdsMissingDistributionKeys",
+				"id": 2544,
+				"since": 118,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "Any",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "118"
 	},
 	"AdminGroupKeyRotationPostIn": {
 		"name": "AdminGroupKeyRotationPostIn",
@@ -286,16 +332,6 @@
 			}
 		},
 		"associations": {
-			"adminGroupKeyAuthenticationDataList": {
-				"final": false,
-				"name": "adminGroupKeyAuthenticationDataList",
-				"id": 2483,
-				"since": 111,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "AdminGroupKeyAuthenticationData",
-				"dependency": null
-			},
 			"adminGroupKeyData": {
 				"final": false,
 				"name": "adminGroupKeyData",
@@ -304,6 +340,26 @@
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "GroupKeyRotationData",
+				"dependency": null
+			},
+			"distribution": {
+				"final": false,
+				"name": "distribution",
+				"id": 2531,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "AdminGroupKeyDistributionElement",
+				"dependency": null
+			},
+			"userEncAdminPubKeyHashList": {
+				"final": false,
+				"name": "userEncAdminPubKeyHashList",
+				"id": 2483,
+				"since": 111,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "EncryptedKeyHash",
 				"dependency": null
 			},
 			"userGroupKeyData": {
@@ -318,22 +374,22 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AdminGroupKeyRotationPutIn": {
 		"name": "AdminGroupKeyRotationPutIn",
-		"since": 115,
+		"since": 118,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2498,
-		"rootId": "A3N5cwAJwg",
+		"id": 2532,
+		"rootId": "A3N5cwAJ5A",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 2499,
-				"since": 115,
+				"id": 2533,
+				"since": 118,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -343,8 +399,8 @@
 			"adminDistKeyPair": {
 				"final": false,
 				"name": "adminDistKeyPair",
-				"id": 2501,
-				"since": 115,
+				"id": 2535,
+				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "KeyPair",
@@ -353,8 +409,8 @@
 			"adminEncDistKeyHash": {
 				"final": false,
 				"name": "adminEncDistKeyHash",
-				"id": 2500,
-				"since": 115,
+				"id": 2534,
+				"since": 118,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refType": "EncryptedKeyHash",
@@ -362,7 +418,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "115"
+		"version": "118"
 	},
 	"AdministratedGroup": {
 		"name": "AdministratedGroup",
@@ -442,7 +498,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AdministratedGroupsRef": {
 		"name": "AdministratedGroupsRef",
@@ -476,7 +532,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AffiliatePartnerKpiMonthSummary": {
 		"name": "AffiliatePartnerKpiMonthSummary",
@@ -553,7 +609,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AffiliatePartnerKpiServiceGetOut": {
 		"name": "AffiliatePartnerKpiServiceGetOut",
@@ -614,7 +670,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AlarmInfo": {
 		"name": "AlarmInfo",
@@ -666,7 +722,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AlarmNotification": {
 		"name": "AlarmNotification",
@@ -766,7 +822,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AlarmServicePost": {
 		"name": "AlarmServicePost",
@@ -800,7 +856,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AppStoreSubscriptionGetIn": {
 		"name": "AppStoreSubscriptionGetIn",
@@ -832,7 +888,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AppStoreSubscriptionGetOut": {
 		"name": "AppStoreSubscriptionGetOut",
@@ -864,7 +920,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ArchiveRef": {
 		"name": "ArchiveRef",
@@ -896,7 +952,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ArchiveType": {
 		"name": "ArchiveType",
@@ -950,7 +1006,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AuditLogEntry": {
 		"name": "AuditLogEntry",
@@ -1084,7 +1140,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AuditLogRef": {
 		"name": "AuditLogRef",
@@ -1118,7 +1174,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AuthenticatedDevice": {
 		"name": "AuthenticatedDevice",
@@ -1168,7 +1224,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Authentication": {
 		"name": "Authentication",
@@ -1229,7 +1285,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AutoLoginDataDelete": {
 		"name": "AutoLoginDataDelete",
@@ -1261,7 +1317,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AutoLoginDataGet": {
 		"name": "AutoLoginDataGet",
@@ -1304,7 +1360,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AutoLoginDataReturn": {
 		"name": "AutoLoginDataReturn",
@@ -1336,7 +1392,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"AutoLoginPostReturn": {
 		"name": "AutoLoginPostReturn",
@@ -1368,7 +1424,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Blob": {
 		"name": "Blob",
@@ -1418,7 +1474,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BlobReferenceTokenWrapper": {
 		"name": "BlobReferenceTokenWrapper",
@@ -1450,7 +1506,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Booking": {
 		"name": "Booking",
@@ -1574,7 +1630,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BookingItem": {
 		"name": "BookingItem",
@@ -1660,7 +1716,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BookingsRef": {
 		"name": "BookingsRef",
@@ -1694,7 +1750,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BootstrapFeature": {
 		"name": "BootstrapFeature",
@@ -1726,7 +1782,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Braintree3ds2Request": {
 		"name": "Braintree3ds2Request",
@@ -1776,7 +1832,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Braintree3ds2Response": {
 		"name": "Braintree3ds2Response",
@@ -1817,7 +1873,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BrandingDomainData": {
 		"name": "BrandingDomainData",
@@ -1894,7 +1950,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BrandingDomainDeleteData": {
 		"name": "BrandingDomainDeleteData",
@@ -1926,7 +1982,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BrandingDomainGetReturn": {
 		"name": "BrandingDomainGetReturn",
@@ -1960,7 +2016,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Bucket": {
 		"name": "Bucket",
@@ -1994,7 +2050,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BucketKey": {
 		"name": "BucketKey",
@@ -2083,7 +2139,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"BucketPermission": {
 		"name": "BucketPermission",
@@ -2225,7 +2281,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CalendarEventRef": {
 		"name": "CalendarEventRef",
@@ -2266,7 +2322,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CertificateInfo": {
 		"name": "CertificateInfo",
@@ -2327,7 +2383,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Challenge": {
 		"name": "Challenge",
@@ -2380,7 +2436,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ChangeKdfPostIn": {
 		"name": "ChangeKdfPostIn",
@@ -2457,7 +2513,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ChangePasswordPostIn": {
 		"name": "ChangePasswordPostIn",
@@ -2552,7 +2608,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Chat": {
 		"name": "Chat",
@@ -2602,7 +2658,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CloseSessionServicePost": {
 		"name": "CloseSessionServicePost",
@@ -2645,7 +2701,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CreateCustomerServerPropertiesData": {
 		"name": "CreateCustomerServerPropertiesData",
@@ -2686,7 +2742,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CreateCustomerServerPropertiesReturn": {
 		"name": "CreateCustomerServerPropertiesReturn",
@@ -2720,7 +2776,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CreateSessionData": {
 		"name": "CreateSessionData",
@@ -2808,7 +2864,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CreateSessionReturn": {
 		"name": "CreateSessionReturn",
@@ -2861,7 +2917,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CreditCard": {
 		"name": "CreditCard",
@@ -2929,7 +2985,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomDomainCheckGetIn": {
 		"name": "CustomDomainCheckGetIn",
@@ -2972,7 +3028,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomDomainCheckGetOut": {
 		"name": "CustomDomainCheckGetOut",
@@ -3035,7 +3091,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomDomainData": {
 		"name": "CustomDomainData",
@@ -3078,7 +3134,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomDomainReturn": {
 		"name": "CustomDomainReturn",
@@ -3121,7 +3177,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Customer": {
 		"name": "Customer",
@@ -3378,7 +3434,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomerAccountTerminationPostIn": {
 		"name": "CustomerAccountTerminationPostIn",
@@ -3421,7 +3477,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomerAccountTerminationPostOut": {
 		"name": "CustomerAccountTerminationPostOut",
@@ -3455,7 +3511,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomerAccountTerminationRequest": {
 		"name": "CustomerAccountTerminationRequest",
@@ -3534,7 +3590,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomerInfo": {
 		"name": "CustomerInfo",
@@ -3847,7 +3903,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomerProperties": {
 		"name": "CustomerProperties",
@@ -3955,7 +4011,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"CustomerServerProperties": {
 		"name": "CustomerServerProperties",
@@ -4071,7 +4127,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DateWrapper": {
 		"name": "DateWrapper",
@@ -4103,7 +4159,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DebitServicePutData": {
 		"name": "DebitServicePutData",
@@ -4137,7 +4193,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DeleteCustomerData": {
 		"name": "DeleteCustomerData",
@@ -4217,7 +4273,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DnsRecord": {
 		"name": "DnsRecord",
@@ -4267,7 +4323,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DomainInfo": {
 		"name": "DomainInfo",
@@ -4329,7 +4385,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DomainMailAddressAvailabilityData": {
 		"name": "DomainMailAddressAvailabilityData",
@@ -4361,7 +4417,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"DomainMailAddressAvailabilityReturn": {
 		"name": "DomainMailAddressAvailabilityReturn",
@@ -4393,7 +4449,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"EmailSenderListElement": {
 		"name": "EmailSenderListElement",
@@ -4452,7 +4508,68 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
+	},
+	"EncryptedKeyHash": {
+		"name": "EncryptedKeyHash",
+		"since": 111,
+		"type": "AGGREGATED_TYPE",
+		"id": 2477,
+		"rootId": "A3N5cwAJrQ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2478,
+				"since": 111,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encryptingKeyEncKeyHash": {
+				"final": false,
+				"name": "encryptingKeyEncKeyHash",
+				"id": 2481,
+				"since": 111,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encryptingKeyVersion": {
+				"final": false,
+				"name": "encryptingKeyVersion",
+				"id": 2521,
+				"since": 118,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"hashedKeyVersion": {
+				"final": false,
+				"name": "hashedKeyVersion",
+				"id": 2480,
+				"since": 111,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"encryptingGroup": {
+				"final": false,
+				"name": "encryptingGroup",
+				"id": 2479,
+				"since": 111,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "118"
 	},
 	"EntityEventBatch": {
 		"name": "EntityEventBatch",
@@ -4513,7 +4630,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"EntityUpdate": {
 		"name": "EntityUpdate",
@@ -4581,7 +4698,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Exception": {
 		"name": "Exception",
@@ -4622,7 +4739,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ExternalPropertiesReturn": {
 		"name": "ExternalPropertiesReturn",
@@ -4684,7 +4801,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ExternalUserReference": {
 		"name": "ExternalUserReference",
@@ -4755,7 +4872,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Feature": {
 		"name": "Feature",
@@ -4787,7 +4904,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"File": {
 		"name": "File",
@@ -4837,7 +4954,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GeneratedIdWrapper": {
 		"name": "GeneratedIdWrapper",
@@ -4869,7 +4986,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCard": {
 		"name": "GiftCard",
@@ -4982,7 +5099,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardCreateData": {
 		"name": "GiftCardCreateData",
@@ -5050,7 +5167,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardCreateReturn": {
 		"name": "GiftCardCreateReturn",
@@ -5084,7 +5201,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardDeleteData": {
 		"name": "GiftCardDeleteData",
@@ -5118,7 +5235,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardGetReturn": {
 		"name": "GiftCardGetReturn",
@@ -5170,7 +5287,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardOption": {
 		"name": "GiftCardOption",
@@ -5202,7 +5319,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardRedeemData": {
 		"name": "GiftCardRedeemData",
@@ -5254,7 +5371,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardRedeemGetReturn": {
 		"name": "GiftCardRedeemGetReturn",
@@ -5306,7 +5423,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GiftCardsRef": {
 		"name": "GiftCardsRef",
@@ -5340,7 +5457,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Group": {
 		"name": "Group",
@@ -5565,7 +5682,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupInfo": {
 		"name": "GroupInfo",
@@ -5718,7 +5835,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKey": {
 		"name": "GroupKey",
@@ -5825,7 +5942,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeyRotationData": {
 		"name": "GroupKeyRotationData",
@@ -5925,7 +6042,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeyRotationInfoGetOut": {
 		"name": "GroupKeyRotationInfoGetOut",
@@ -5968,7 +6085,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeyRotationPostIn": {
 		"name": "GroupKeyRotationPostIn",
@@ -6002,7 +6119,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeyUpdate": {
 		"name": "GroupKeyUpdate",
@@ -6099,7 +6216,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeyUpdateData": {
 		"name": "GroupKeyUpdateData",
@@ -6160,7 +6277,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeyUpdatesRef": {
 		"name": "GroupKeyUpdatesRef",
@@ -6194,7 +6311,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupKeysRef": {
 		"name": "GroupKeysRef",
@@ -6228,7 +6345,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupMember": {
 		"name": "GroupMember",
@@ -6318,7 +6435,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupMembership": {
 		"name": "GroupMembership",
@@ -6426,7 +6543,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupMembershipKeyData": {
 		"name": "GroupMembershipKeyData",
@@ -6487,7 +6604,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupMembershipUpdateData": {
 		"name": "GroupMembershipUpdateData",
@@ -6539,7 +6656,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"GroupRoot": {
 		"name": "GroupRoot",
@@ -6620,7 +6737,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"IdTupleWrapper": {
 		"name": "IdTupleWrapper",
@@ -6661,7 +6778,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"InstanceSessionKey": {
 		"name": "InstanceSessionKey",
@@ -6740,7 +6857,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Invoice": {
 		"name": "Invoice",
@@ -6956,7 +7073,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"InvoiceDataGetIn": {
 		"name": "InvoiceDataGetIn",
@@ -6988,7 +7105,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"InvoiceDataGetOut": {
 		"name": "InvoiceDataGetOut",
@@ -7130,7 +7247,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"InvoiceDataItem": {
 		"name": "InvoiceDataItem",
@@ -7207,7 +7324,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"InvoiceInfo": {
 		"name": "InvoiceInfo",
@@ -7386,7 +7503,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"InvoiceItem": {
 		"name": "InvoiceItem",
@@ -7472,7 +7589,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"KeyPair": {
 		"name": "KeyPair",
@@ -7549,7 +7666,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"KeyRotation": {
 		"name": "KeyRotation",
@@ -7616,19 +7733,59 @@
 			}
 		},
 		"associations": {
-			"adminGroupKeyAuthenticationData": {
+			"adminDistKeyPair": {
 				"final": false,
-				"name": "adminGroupKeyAuthenticationData",
+				"name": "adminDistKeyPair",
+				"id": 2525,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "KeyPair",
+				"dependency": null
+			},
+			"adminEncDistKeyHash": {
+				"final": false,
+				"name": "adminEncDistKeyHash",
+				"id": 2524,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
+			"distEncAdminGroupSymKey": {
+				"final": false,
+				"name": "distEncAdminGroupSymKey",
+				"id": 2522,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "PubEncKeyData",
+				"dependency": null
+			},
+			"userEncAdminPubKeyHash": {
+				"final": false,
+				"name": "userEncAdminPubKeyHash",
 				"id": 2482,
 				"since": 111,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "AdminGroupKeyAuthenticationData",
+				"refType": "EncryptedKeyHash",
+				"dependency": null
+			},
+			"userEncAdminSymKeyHash": {
+				"final": false,
+				"name": "userEncAdminSymKeyHash",
+				"id": 2523,
+				"since": 118,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "EncryptedKeyHash",
 				"dependency": null
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"KeyRotationsRef": {
 		"name": "KeyRotationsRef",
@@ -7662,7 +7819,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"LocalAdminGroupReplacementData": {
 		"name": "LocalAdminGroupReplacementData",
@@ -7723,7 +7880,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"LocalAdminRemovalPostIn": {
 		"name": "LocalAdminRemovalPostIn",
@@ -7757,7 +7914,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"LocationServiceGetReturn": {
 		"name": "LocationServiceGetReturn",
@@ -7789,7 +7946,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Login": {
 		"name": "Login",
@@ -7848,7 +8005,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressAlias": {
 		"name": "MailAddressAlias",
@@ -7889,7 +8046,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressAliasGetIn": {
 		"name": "MailAddressAliasGetIn",
@@ -7923,7 +8080,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressAliasServiceData": {
 		"name": "MailAddressAliasServiceData",
@@ -7966,7 +8123,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressAliasServiceDataDelete": {
 		"name": "MailAddressAliasServiceDataDelete",
@@ -8018,7 +8175,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressAliasServiceReturn": {
 		"name": "MailAddressAliasServiceReturn",
@@ -8077,7 +8234,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressAvailability": {
 		"name": "MailAddressAvailability",
@@ -8118,7 +8275,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MailAddressToGroup": {
 		"name": "MailAddressToGroup",
@@ -8179,7 +8336,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MembershipAddData": {
 		"name": "MembershipAddData",
@@ -8250,7 +8407,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MembershipPutIn": {
 		"name": "MembershipPutIn",
@@ -8284,7 +8441,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MembershipRemoveData": {
 		"name": "MembershipRemoveData",
@@ -8328,7 +8485,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MissedNotification": {
 		"name": "MissedNotification",
@@ -8444,7 +8601,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MultipleMailAddressAvailabilityData": {
 		"name": "MultipleMailAddressAvailabilityData",
@@ -8478,7 +8635,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"MultipleMailAddressAvailabilityReturn": {
 		"name": "MultipleMailAddressAvailabilityReturn",
@@ -8512,7 +8669,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"NotificationInfo": {
 		"name": "NotificationInfo",
@@ -8564,7 +8721,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"NotificationMailTemplate": {
 		"name": "NotificationMailTemplate",
@@ -8614,7 +8771,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"NotificationSessionKey": {
 		"name": "NotificationSessionKey",
@@ -8657,7 +8814,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"OrderProcessingAgreement": {
 		"name": "OrderProcessingAgreement",
@@ -8773,7 +8930,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"OtpChallenge": {
 		"name": "OtpChallenge",
@@ -8807,7 +8964,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PaymentDataServiceGetData": {
 		"name": "PaymentDataServiceGetData",
@@ -8839,7 +8996,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PaymentDataServiceGetReturn": {
 		"name": "PaymentDataServiceGetReturn",
@@ -8871,7 +9028,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PaymentDataServicePostData": {
 		"name": "PaymentDataServicePostData",
@@ -8905,7 +9062,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PaymentDataServicePutData": {
 		"name": "PaymentDataServicePutData",
@@ -9020,7 +9177,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PaymentDataServicePutReturn": {
 		"name": "PaymentDataServicePutReturn",
@@ -9063,7 +9220,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PaymentErrorInfo": {
 		"name": "PaymentErrorInfo",
@@ -9113,7 +9270,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Permission": {
 		"name": "Permission",
@@ -9265,7 +9422,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PlanConfiguration": {
 		"name": "PlanConfiguration",
@@ -9387,7 +9544,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PlanPrices": {
 		"name": "PlanPrices",
@@ -9529,7 +9686,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PlanServiceGetOut": {
 		"name": "PlanServiceGetOut",
@@ -9563,7 +9720,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PriceData": {
 		"name": "PriceData",
@@ -9624,7 +9781,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PriceItemData": {
 		"name": "PriceItemData",
@@ -9683,7 +9840,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PriceRequestData": {
 		"name": "PriceRequestData",
@@ -9760,7 +9917,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PriceServiceData": {
 		"name": "PriceServiceData",
@@ -9803,7 +9960,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PriceServiceReturn": {
 		"name": "PriceServiceReturn",
@@ -9875,7 +10032,68 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
+	},
+	"PubDistributionKey": {
+		"name": "PubDistributionKey",
+		"since": 118,
+		"type": "AGGREGATED_TYPE",
+		"id": 2536,
+		"rootId": "A3N5cwAJ6A",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2537,
+				"since": 118,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"authEncPubKeyHash": {
+				"final": false,
+				"name": "authEncPubKeyHash",
+				"id": 2539,
+				"since": 118,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pubEccKey": {
+				"final": true,
+				"name": "pubEccKey",
+				"id": 2540,
+				"since": 118,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pubKyberKey": {
+				"final": true,
+				"name": "pubKyberKey",
+				"id": 2541,
+				"since": 118,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"userGroupId": {
+				"final": false,
+				"name": "userGroupId",
+				"id": 2538,
+				"since": 118,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "118"
 	},
 	"PubEncKeyData": {
 		"name": "PubEncKeyData",
@@ -9940,6 +10158,24 @@
 				"cardinality": "One",
 				"encrypted": false
 			},
+			"senderIdentifier": {
+				"final": true,
+				"name": "senderIdentifier",
+				"id": 2547,
+				"since": 118,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"senderIdentifierType": {
+				"final": true,
+				"name": "senderIdentifierType",
+				"id": 2548,
+				"since": 118,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
 			"senderKeyVersion": {
 				"final": true,
 				"name": "senderKeyVersion",
@@ -9952,7 +10188,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PublicKeyGetIn": {
 		"name": "PublicKeyGetIn",
@@ -10002,7 +10238,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PublicKeyGetOut": {
 		"name": "PublicKeyGetOut",
@@ -10061,7 +10297,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PublicKeyPutIn": {
 		"name": "PublicKeyPutIn",
@@ -10113,7 +10349,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PushIdentifier": {
 		"name": "PushIdentifier",
@@ -10271,7 +10507,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"PushIdentifierList": {
 		"name": "PushIdentifierList",
@@ -10305,7 +10541,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ReceivedGroupInvitation": {
 		"name": "ReceivedGroupInvitation",
@@ -10466,7 +10702,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RecoverCode": {
 		"name": "RecoverCode",
@@ -10552,7 +10788,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RecoverCodeData": {
 		"name": "RecoverCodeData",
@@ -10611,7 +10847,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ReferralCodeGetIn": {
 		"name": "ReferralCodeGetIn",
@@ -10645,7 +10881,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ReferralCodePostIn": {
 		"name": "ReferralCodePostIn",
@@ -10668,7 +10904,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ReferralCodePostOut": {
 		"name": "ReferralCodePostOut",
@@ -10702,7 +10938,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RegistrationCaptchaServiceData": {
 		"name": "RegistrationCaptchaServiceData",
@@ -10743,7 +10979,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RegistrationCaptchaServiceGetData": {
 		"name": "RegistrationCaptchaServiceGetData",
@@ -10811,7 +11047,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RegistrationCaptchaServiceReturn": {
 		"name": "RegistrationCaptchaServiceReturn",
@@ -10852,7 +11088,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RegistrationReturn": {
 		"name": "RegistrationReturn",
@@ -10884,7 +11120,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RegistrationServiceData": {
 		"name": "RegistrationServiceData",
@@ -10934,7 +11170,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RejectedSender": {
 		"name": "RejectedSender",
@@ -11029,7 +11265,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RejectedSendersRef": {
 		"name": "RejectedSendersRef",
@@ -11063,7 +11299,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RepeatRule": {
 		"name": "RepeatRule",
@@ -11142,7 +11378,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ResetFactorsDeleteData": {
 		"name": "ResetFactorsDeleteData",
@@ -11192,7 +11428,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"ResetPasswordPostIn": {
 		"name": "ResetPasswordPostIn",
@@ -11271,7 +11507,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"RootInstance": {
 		"name": "RootInstance",
@@ -11330,7 +11566,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SaltData": {
 		"name": "SaltData",
@@ -11362,7 +11598,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SaltReturn": {
 		"name": "SaltReturn",
@@ -11403,7 +11639,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactor": {
 		"name": "SecondFactor",
@@ -11491,7 +11727,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactorAuthAllowedReturn": {
 		"name": "SecondFactorAuthAllowedReturn",
@@ -11523,7 +11759,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactorAuthData": {
 		"name": "SecondFactorAuthData",
@@ -11595,7 +11831,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactorAuthDeleteData": {
 		"name": "SecondFactorAuthDeleteData",
@@ -11629,7 +11865,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactorAuthGetData": {
 		"name": "SecondFactorAuthGetData",
@@ -11661,7 +11897,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactorAuthGetReturn": {
 		"name": "SecondFactorAuthGetReturn",
@@ -11693,7 +11929,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SecondFactorAuthentication": {
 		"name": "SecondFactorAuthentication",
@@ -11779,7 +12015,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SendRegistrationCodeData": {
 		"name": "SendRegistrationCodeData",
@@ -11838,7 +12074,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SendRegistrationCodeReturn": {
 		"name": "SendRegistrationCodeReturn",
@@ -11870,7 +12106,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SentGroupInvitation": {
 		"name": "SentGroupInvitation",
@@ -11959,7 +12195,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Session": {
 		"name": "Session",
@@ -12102,7 +12338,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SignOrderProcessingAgreementData": {
 		"name": "SignOrderProcessingAgreementData",
@@ -12143,7 +12379,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SseConnectData": {
 		"name": "SseConnectData",
@@ -12186,7 +12422,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"StringConfigValue": {
 		"name": "StringConfigValue",
@@ -12227,7 +12463,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"StringWrapper": {
 		"name": "StringWrapper",
@@ -12259,7 +12495,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SurveyData": {
 		"name": "SurveyData",
@@ -12318,7 +12554,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SwitchAccountTypePostIn": {
 		"name": "SwitchAccountTypePostIn",
@@ -12416,7 +12652,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"SystemKeysReturn": {
 		"name": "SystemKeysReturn",
@@ -12532,7 +12768,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"TakeOverDeletedAddressData": {
 		"name": "TakeOverDeletedAddressData",
@@ -12591,7 +12827,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"TypeInfo": {
 		"name": "TypeInfo",
@@ -12632,7 +12868,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"U2fChallenge": {
 		"name": "U2fChallenge",
@@ -12675,7 +12911,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"U2fKey": {
 		"name": "U2fKey",
@@ -12727,7 +12963,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"U2fRegisteredDevice": {
 		"name": "U2fRegisteredDevice",
@@ -12795,7 +13031,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"U2fResponseData": {
 		"name": "U2fResponseData",
@@ -12845,7 +13081,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UpdatePermissionKeyData": {
 		"name": "UpdatePermissionKeyData",
@@ -12907,7 +13143,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UpdateSessionKeysPostIn": {
 		"name": "UpdateSessionKeysPostIn",
@@ -12941,7 +13177,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UpgradePriceServiceData": {
 		"name": "UpgradePriceServiceData",
@@ -12993,7 +13229,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UpgradePriceServiceReturn": {
 		"name": "UpgradePriceServiceReturn",
@@ -13164,7 +13400,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"User": {
 		"name": "User",
@@ -13379,7 +13615,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserAlarmInfo": {
 		"name": "UserAlarmInfo",
@@ -13458,7 +13694,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserAlarmInfoListType": {
 		"name": "UserAlarmInfoListType",
@@ -13492,7 +13728,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserAreaGroups": {
 		"name": "UserAreaGroups",
@@ -13526,7 +13762,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserAuthentication": {
 		"name": "UserAuthentication",
@@ -13580,7 +13816,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserDataDelete": {
 		"name": "UserDataDelete",
@@ -13632,7 +13868,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserExternalAuthInfo": {
 		"name": "UserExternalAuthInfo",
@@ -13702,7 +13938,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserGroupKeyDistribution": {
 		"name": "UserGroupKeyDistribution",
@@ -13770,7 +14006,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserGroupKeyRotationData": {
 		"name": "UserGroupKeyRotationData",
@@ -13835,6 +14071,15 @@
 				"cardinality": "One",
 				"encrypted": false
 			},
+			"userGroupEncAdminGroupKey": {
+				"final": false,
+				"name": "userGroupEncAdminGroupKey",
+				"id": 2546,
+				"since": 118,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
 			"userGroupEncPreviousGroupKey": {
 				"final": false,
 				"name": "userGroupEncPreviousGroupKey",
@@ -13897,7 +14142,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserGroupKeyRotationPostIn": {
 		"name": "UserGroupKeyRotationPostIn",
@@ -13931,7 +14176,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"UserGroupRoot": {
 		"name": "UserGroupRoot",
@@ -14012,7 +14257,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VariableExternalAuthInfo": {
 		"name": "VariableExternalAuthInfo",
@@ -14116,7 +14361,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VerifierTokenServiceIn": {
 		"name": "VerifierTokenServiceIn",
@@ -14148,7 +14393,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VerifierTokenServiceOut": {
 		"name": "VerifierTokenServiceOut",
@@ -14180,7 +14425,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VerifyRegistrationCodeData": {
 		"name": "VerifyRegistrationCodeData",
@@ -14221,7 +14466,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"Version": {
 		"name": "Version",
@@ -14292,7 +14537,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VersionData": {
 		"name": "VersionData",
@@ -14351,7 +14596,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VersionInfo": {
 		"name": "VersionInfo",
@@ -14476,7 +14721,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"VersionReturn": {
 		"name": "VersionReturn",
@@ -14510,7 +14755,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WebauthnResponseData": {
 		"name": "WebauthnResponseData",
@@ -14569,7 +14814,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WebsocketCounterData": {
 		"name": "WebsocketCounterData",
@@ -14612,7 +14857,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WebsocketCounterValue": {
 		"name": "WebsocketCounterValue",
@@ -14653,7 +14898,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WebsocketEntityData": {
 		"name": "WebsocketEntityData",
@@ -14705,7 +14950,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WebsocketLeaderStatus": {
 		"name": "WebsocketLeaderStatus",
@@ -14737,7 +14982,7 @@
 		},
 		"associations": {},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WhitelabelChild": {
 		"name": "WhitelabelChild",
@@ -14852,7 +15097,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WhitelabelChildrenRef": {
 		"name": "WhitelabelChildrenRef",
@@ -14886,7 +15131,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WhitelabelConfig": {
 		"name": "WhitelabelConfig",
@@ -15021,7 +15266,7 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	},
 	"WhitelabelParent": {
 		"name": "WhitelabelParent",
@@ -15065,6 +15310,6 @@
 			}
 		},
 		"app": "sys",
-		"version": "117"
+		"version": "118"
 	}
 }
