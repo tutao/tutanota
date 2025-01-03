@@ -944,10 +944,13 @@ export class Dialog implements ModalComponent {
 	}
 
 	/** @deprecated use editDialog*/
-	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
+	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component, experimental_style?: Partial<CSSStyleDeclaration> | {}): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
-				return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child)))])
+				return m("", { style: experimental_style }, [
+					m(DialogHeaderBar, headerBarAttrs),
+					m(".dialog-container.scroll", { style: experimental_style }, m(".fill-absolute.plr-l", m(child))),
+				])
 			},
 		})
 	}

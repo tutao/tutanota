@@ -1,0 +1,185 @@
+import { emitWizardEvent, WizardEventType, WizardPageAttrs } from "../../gui/base/WizardDialog.js"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { Checkbox } from "../../gui/base/Checkbox.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { SupportDialogAttrs } from "../SupportDialog.js"
+import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
+import { styles } from "../../gui/styles.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { DataFile } from "../../api/common/DataFile.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { MailMethod } from "../../api/common/TutanotaConstants.js"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { convertTextToHtml } from "../../misc/Formatter.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { Attachment, SendMailModel } from "../../mailFunctionality/SendMailModel.js"
+import { AttachmentBubble, AttachmentType } from "../../gui/AttachmentBubble.js"
+import { showFileChooser } from "../../file/FileController.js"
+
+export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
+	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setShowOutline(true).showBorders().setMinHeight(200).enableToolbar().setEnabled(true)
+	private logs: DataFile[] = []
+	private shouldIncludeLogs: boolean = true
+	private readonly userAttachments: DataFile[] = []
+	private dom: HTMLElement | null = null
+
+	oncreate(vnode: VnodeDOM<ContactSupportPageAttrs>) {
+		this.dom = vnode.dom as HTMLElement
+	}
+
+	oninit() {
+		this.collectLogs().then((logs) => {
+			this.logs = logs
+			m.redraw()
+		})
+	}
+
+	view(vnode: Vnode<ContactSupportPageAttrs>): Children {
+		if (vnode.attrs.data.canHaveEmailSupport) {
+			return m(
+				".flex.flex-column.plr-l",
+				{
+					style: {
+						// "min-height": styles.isDesktopLayout() ? "850px" : "",
+						// "min-width": styles.isDesktopLayout() ? "450px" : "360px",
+					},
+				},
+				m(
+					"p",
+					{
+						style: {
+							height: styles.isDesktopLayout() ? "45px" : "77.5px",
+						},
+					},
+					"Bitte beschreibe uns wo das Problem liegt.",
+				),
+				m(
+					".flex.flex-space-between.align-self-end.items-center.gap-hpad",
+					this.userAttachments.map((attachment, index) =>
+						m(AttachmentBubble, {
+							attachment: attachment,
+							download: () => locator.fileController.saveDataFile(attachment),
+							open: null,
+							remove: () => this.userAttachments.splice(index, 1),
+							fileImport: null,
+							type: AttachmentType.GENERIC,
+						}),
+					),
+					m(Button, {
+						type: ButtonType.Secondary,
+						label: () => "Attach files",
+						click: () => {
+							showFileChooser(true).then((chosenFiles) => {
+								this.userAttachments.push(...chosenFiles)
+								m.redraw()
+							})
+						},
+					}),
+				),
+				m(this.htmlEditor),
+				m(Checkbox, {
+					label: () => lang.get("sendLogs_action"),
+					class: "mb",
+					checked: this.shouldIncludeLogs,
+					helpLabel: () => "Sending anonymously collected logs help us identify your problem.",
+					onChecked: (checked) => (this.shouldIncludeLogs = checked),
+				}),
+				this.renderSubmitButton(),
+			)
+		} else {
+			return m("p", "Sorry, contacting support is not available for your account")
+		}
+	}
+
+	private renderSubmitButton() {
+		return m(
+			".align-self-center",
+			{
+				style: {
+					width: "200px",
+				},
+			},
+			m(LoginButton, {
+				label: () => "Send support request",
+				onclick: () => {
+					const message = this.htmlEditor.getValue()
+					const mailBody = this.shouldIncludeLogs ? `${message}${clientInfoString(new Date(), true).message}` : message
+					const attachments = this.shouldIncludeLogs ? [...this.userAttachments, ...this.logs] : this.userAttachments
+					ContactSupportPage.send(mailBody, attachments).then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
+				},
+			}),
+		)
+	}
+
+	/**
+	 * Sends an email to the support address
+	 * @param rawBody The unsanitised HTML string to be sanitised then used as the emails body
+	 * @param attachments The files to be added as attachments to the email
+	 */
+	private static async send(rawBody: string, attachments: Attachment[]) {
+		const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(rawBody), {
+			blockExternalContent: true,
+		}).html
+
+		const sendMailModel = await this.createSendMailModel()
+		const model = await sendMailModel.initWithTemplate(
+			{
+				to: [
+					{
+						name: null,
+						// address: "premium@tutao.de",
+						address: "arm-free@tutanota.de",
+					},
+				],
+			},
+			"Support Request", // TODO: Expand with category, topic and plan
+			sanitisedBody,
+			attachments,
+			false,
+		)
+		await model.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
+	}
+
+	// Generates a SendMailModel from the User Mailbox
+	private static async createSendMailModel(): Promise<SendMailModel> {
+		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		return await locator.sendMailModel(mailboxDetails, mailboxProperties)
+	}
+
+	private async collectLogs(): Promise<DataFile[]> {
+		return await getLogAttachments(new Date())
+	}
+}
+
+export class ContactSupportPageAttrs implements WizardPageAttrs<SupportDialogAttrs> {
+	readonly data: SupportDialogAttrs
+	readonly hideAllPagingButtons: boolean
+	readonly hidePagingButtonForPage: boolean
+	readonly preventGoBack: boolean
+
+	constructor(data: SupportDialogAttrs) {
+		this.data = data
+		this.hideAllPagingButtons = true
+		this.hidePagingButtonForPage = true
+		this.preventGoBack = false
+	}
+
+	headerTitle(): string {
+		return "Contact support"
+	}
+
+	isEnabled(): boolean {
+		return true
+	}
+
+	isSkipAvailable(): boolean {
+		return true
+	}
+
+	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		return Promise.resolve(true)
+	}
+}

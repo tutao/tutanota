@@ -110,7 +110,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				}),
 				locator.logins.getUserController().isGlobalAdmin()
 					? m("", [
-							locator.logins.getUserController().isPremiumAccount()
+							locator.logins.getUserController().isPaidAccount()
 								? m(DropDownSelector, {
 										label: "enforcePasswordUpdate_title",
 										helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
@@ -153,7 +153,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 					  ])
 					: null,
 			]),
-			locator.logins.getUserController().isPremiumAccount()
+			locator.logins.getUserController().isPaidAccount()
 				? m(
 						SettingsExpander,
 						{
@@ -207,7 +207,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 							m(LoginButton, {
 								label: "adminDeleteAccount_action",
 								onclick: () => {
-									const isPremium = locator.logins.getUserController().isPremiumAccount()
+									const isPremium = locator.logins.getUserController().isPaidAccount()
 									showLeavingUserSurveyWizard(isPremium, false).then((reason) => {
 										if (reason.submitted && reason.category && reason.reason) {
 											const surveyData = createSurveyData({

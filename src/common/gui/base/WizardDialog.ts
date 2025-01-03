@@ -52,6 +52,8 @@ export interface WizardPageAttrs<T> {
 	 * if this is true the paging button (button with the number) is hidden for this specific wizard page
 	 */
 	readonly hidePagingButtonForPage?: boolean
+
+	readonly backButtonText?: string
 }
 
 export type WizardPageN<T> = Component<WizardPageAttrs<T>>
@@ -232,8 +234,20 @@ class WizardDialogAttrs<T> {
 	updateHeaderBarAttrs<T>(): void {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
+		const getBackButtonLabel = () => {
+			if (this.currentPage?.attrs.backButtonText) {
+				return this.currentPage.attrs.backButtonText
+			}
+
+			if (currentPageIndex === 0) {
+				return lang.get(this.cancelButtonText)
+			}
+
+			return lang.get("back_action")
+		}
+
 		const backButtonAttrs: ButtonAttrs = {
-			label: () => (currentPageIndex === 0 ? lang.get(this.cancelButtonText) : lang.get("back_action")),
+			label: () => getBackButtonLabel(),
 			click: () => this.goToPreviousPageOrClose(),
 			type: ButtonType.Secondary,
 		}
@@ -370,6 +384,7 @@ export function createWizardDialog<T>(
 	closeAction: (() => $Promisable<void>) | null = null,
 	dialogType: DialogType.EditLarge | DialogType.EditSmall,
 	cancelButtonText: TranslationKey | null = null,
+	experimental_dialogStyles?: Partial<CSSStyleDeclaration> | {},
 ): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 
@@ -389,7 +404,7 @@ export function createWizardDialog<T>(
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper)
 	const wizardDialog =
 		dialogType === DialogType.EditLarge
-			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
+			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child, experimental_dialogStyles)
 			: Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
