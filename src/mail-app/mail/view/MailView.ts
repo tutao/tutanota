@@ -432,21 +432,21 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.DELETE,
 				exec: () => {
-					this.mailViewModel.listModel && this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
 				},
 				help: "deleteEmails_action",
 			},
 			{
 				key: Keys.BACKSPACE,
 				exec: () => {
-					this.mailViewModel.listModel && this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
 				},
 				help: "deleteEmails_action",
 			},
 			{
 				key: Keys.A,
 				exec: () => {
-					this.mailViewModel.listModel && archiveMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) archiveMails(this.mailViewModel.listModel.getSelectedAsArray())
 					return true
 				},
 				help: "archive_action",
@@ -455,7 +455,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.I,
 				exec: () => {
-					this.mailViewModel.listModel && moveToInbox(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) moveToInbox(this.mailViewModel.listModel.getSelectedAsArray())
 					return true
 				},
 				help: "moveToInbox_action",
@@ -479,7 +479,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.U,
 				exec: () => {
-					this.mailViewModel.listModel && this.toggleUnreadMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) this.toggleUnreadMails(this.mailViewModel.listModel.getSelectedAsArray())
 				},
 				help: "toggleUnread_action",
 			},
@@ -542,18 +542,21 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.P,
 				exec: () => {
-					new Promise(async (resolve) => {
-						const { openPressReleaseEditor } = await import("../press/PressReleaseEditor")
-						const mailboxDetails = await this.mailViewModel.getMailboxDetails()
-						mailboxDetails && openPressReleaseEditor(mailboxDetails)
-						resolve(null)
-					})
+					this.pressRelease()
 					return true
 				},
 				help: "emptyString_msg",
 				enabled: () => locator.logins.isEnabled(FeatureType.Newsletter),
 			},
 		]
+	}
+
+	private async pressRelease() {
+		const { openPressReleaseEditor } = await import("../press/PressReleaseEditor")
+		const mailboxDetails = await this.mailViewModel.getMailboxDetails()
+		if (mailboxDetails) {
+			openPressReleaseEditor(mailboxDetails)
+		}
 	}
 
 	private moveMails() {
@@ -680,7 +683,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private setExpandedState(folder: MailFolder, currentExpansionState: boolean) {
-		currentExpansionState ? this.expandedState.delete(getElementId(folder)) : this.expandedState.add(getElementId(folder))
+		if (currentExpansionState) {
+			this.expandedState.delete(getElementId(folder))
+		} else {
+			this.expandedState.add(getElementId(folder))
+		}
 		deviceConfig.setExpandedFolders(locator.logins.getUserController().userId, [...this.expandedState])
 	}
 

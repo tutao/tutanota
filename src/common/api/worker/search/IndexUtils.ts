@@ -346,12 +346,14 @@ export function printMeasure(prefix: string, names: string[]) {
 			performance.clearMeasures(name)
 			performance.clearMarks(name + "-end")
 			performance.clearMarks(name + "-start")
-		} catch (e) {}
+		} catch (e) {
+			/* empty */
+		}
 	}
 }
 
 export function markStart(name: string) {
-	shouldMeasure() && performance.mark(name + "-start")
+	if (shouldMeasure()) performance.mark(name + "-start")
 }
 
 export function markEnd(name: string) {
@@ -360,7 +362,9 @@ export function markEnd(name: string) {
 	try {
 		performance.mark(name + "-end")
 		performance.measure(name, name + "-start", name + "-end")
-	} catch (e) {}
+	} catch (e) {
+		/* empty */
+	}
 }
 
 export function shouldMeasure(): boolean {

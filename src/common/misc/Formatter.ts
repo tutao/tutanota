@@ -130,10 +130,10 @@ export function formatMonthShortWithFullYear(date: Date): string {
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.
  */
 export function formatStorageSize(sizeInBytes: number): string {
-	var units = ["B", "kB", "MB", "GB", "TB"]
-	var narrowNoBreakSpace = " " // this space is the special unicode narrow no-break character
+	const units = ["B", "kB", "MB", "GB", "TB"]
+	const narrowNoBreakSpace = " " // this space is the special unicode narrow no-break character
 
-	var unitIndex = 0
+	let unitIndex = 0
 
 	while (sizeInBytes >= 1000) {
 		sizeInBytes /= 1000 // we use 1000 instead of 1024

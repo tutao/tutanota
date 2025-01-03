@@ -148,7 +148,9 @@ export class EventQueue {
 				if (newEntityModification === EntityModificationType.UPDATE) {
 					switch (lastEntityModification) {
 						case EntityModificationType.CREATE:
-						// Skip create because the create was not processed yet and we will download the updated version already
+							// Skip create because the create was not processed yet and we will download the updated version already
+							break
+
 						case EntityModificationType.UPDATE:
 							// Skip update because the previous update was not processed yet and we will download the updated version already
 							break

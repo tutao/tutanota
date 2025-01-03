@@ -64,7 +64,9 @@ export function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<
 				result.push(parseResult)
 				parseResult = anotherParser(iterator)
 			}
-		} catch (e) {}
+		} catch (e) {
+			/* empty */
+		}
 
 		return result
 	}

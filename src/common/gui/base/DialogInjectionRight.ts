@@ -6,7 +6,7 @@ import type { MaybeLazy } from "@tutao/tutanota-utils"
 import { resolveMaybeLazy } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 
-export type DialogInjectionRightAttrs<T extends {}> = {
+export type DialogInjectionRightAttrs<T extends object> = {
 	visible: Stream<boolean>
 	headerAttrs: MaybeLazy<DialogHeaderBarAttrs>
 	component: Class<Component<T>>
@@ -16,7 +16,7 @@ export type DialogInjectionRightAttrs<T extends {}> = {
 /**
  * injects additional content on the right of a dialog
  */
-export class DialogInjectionRight<T extends {}> implements Component<DialogInjectionRightAttrs<T>> {
+export class DialogInjectionRight<T extends object> implements Component<DialogInjectionRightAttrs<T>> {
 	view({ attrs }: Vnode<DialogInjectionRightAttrs<T>>): Children {
 		const { component, componentAttrs } = attrs
 

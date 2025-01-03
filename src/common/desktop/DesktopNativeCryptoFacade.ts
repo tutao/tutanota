@@ -26,13 +26,13 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		private readonly argon2: Promise<Argon2IDExports>,
 	) {}
 
-	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | {}): string {
+	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | object): string {
 		const serializedObject = JSON.stringify(object)
 		const encryptedBytes = this.cryptoFns.aesEncrypt(encryptionKey, stringToUtf8Uint8Array(serializedObject))
 		return uint8ArrayToBase64(encryptedBytes)
 	}
 
-	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): number | string | boolean | ReadonlyArray<unknown> | {} {
+	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): number | string | boolean | ReadonlyArray<unknown> | object {
 		const encryptedBytes = base64ToUint8Array(serializedObject)
 		const decryptedBytes = this.cryptoFns.aesDecrypt(encryptionKey, encryptedBytes, true)
 		const stringObject = utf8Uint8ArrayToString(decryptedBytes)

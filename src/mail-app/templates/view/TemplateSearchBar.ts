@@ -46,7 +46,7 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 			oninput: () => {
 				const domInput = assertNotNull(this.domInput)
 				a.value(domInput.value)
-				a.oninput && a.oninput(domInput.value, domInput)
+				a.oninput?.(domInput.value, domInput)
 			},
 			style: {
 				lineHeight: px(inputLineHeight),

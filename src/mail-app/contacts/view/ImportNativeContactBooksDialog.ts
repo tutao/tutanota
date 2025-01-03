@@ -9,9 +9,11 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
  * Displays a list of contact books to import contacts from.
  */
 export class ImportNativeContactBooksDialog {
-	private readonly selectedContactBooks: Set<string> = new Set(this.contactBooks.map((book) => book.id))
+	private readonly selectedContactBooks: Set<string>
 
-	constructor(private readonly contactBooks: ReadonlyArray<ContactBook>) {}
+	constructor(private readonly contactBooks: ReadonlyArray<ContactBook>) {
+		this.selectedContactBooks = new Set(this.contactBooks.map((book) => book.id))
+	}
 
 	show(): Promise<ContactBook[] | null> {
 		const deferred = defer<ContactBook[] | null>()

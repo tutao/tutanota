@@ -7,6 +7,7 @@
  * Note: we can't import any other desktop code here because it is in the web (render) process.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { ipcRenderer, contextBridge, webUtils } = require("electron")
 
 contextBridge.exposeInMainWorld("nativeApp", {

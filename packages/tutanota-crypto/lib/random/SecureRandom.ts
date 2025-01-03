@@ -12,7 +12,7 @@ export class SecureRandom {
 	nextBytes(array: number[]) {
 		let bytes = random.generateRandomData(array.length)
 
-		for (var i = 0; i < array.length; i++) {
+		for (let i = 0; i < array.length; i++) {
 			array[i] = bytes[i]
 		}
 	}

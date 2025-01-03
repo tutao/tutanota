@@ -22,6 +22,6 @@ export async function getAvailableDomains(logins: LoginController, onlyCustomDom
 	return availableDomains.map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
 }
 
-export function isPaidPlanDomain(domain: String): boolean {
+export function isPaidPlanDomain(domain: string): boolean {
 	return domain === "tuta.com"
 }

@@ -710,7 +710,7 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 }
 
 function makeOldViewResolver(
-	makeView: (args: {}, requestedPath: string) => Promise<TopLevelView>,
+	makeView: (args: object, requestedPath: string) => Promise<TopLevelView>,
 	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},
 	logins: LoginController,
 ): RouteResolver {
@@ -831,8 +831,7 @@ function registerForMailto() {
 }
 
 function printJobsMessage(domainConfig: DomainConfig) {
-	env.dist &&
-		domainConfig.firstPartyDomain &&
+	if (env.dist && domainConfig.firstPartyDomain) {
 		console.log(`
 
 ........................................
@@ -859,4 +858,5 @@ function printJobsMessage(domainConfig: DomainConfig) {
 ........................................
 
 `)
+	}
 }

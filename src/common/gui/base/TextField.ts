@@ -267,7 +267,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						},
 						onfocus: (e: FocusEvent) => {
 							this.focus(e, a)
-							a.onfocus && a.onfocus(this._domWrapper, this.domInput)
+							a.onfocus?.(this._domWrapper, this.domInput)
 						},
 						onblur: (e: FocusEvent) => this.blur(e, a),
 						onkeydown: (e: KeyboardEvent) => {
@@ -285,7 +285,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							}
 						},
 						oninput: () => {
-							a.oninput && a.oninput(this.domInput.value, this.domInput)
+							a.oninput?.(this.domInput.value, this.domInput)
 						},
 						onremove: () => {
 							// We clean up any value that might still be in DOM e.g. password
@@ -333,7 +333,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				oninput: () => {
 					this.domInput.style.height = "0px"
 					this.domInput.style.height = px(this.domInput.scrollHeight)
-					a.oninput && a.oninput(this.domInput.value, this.domInput)
+					a.oninput?.(this.domInput.value, this.domInput)
 				},
 				onupdate: () => {
 					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.

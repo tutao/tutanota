@@ -309,7 +309,7 @@ export class EventBusClient {
 				this.listener.onPhishingMarkersReceived(data.markers)
 				break
 			}
-			case MessageType.LeaderStatus:
+			case MessageType.LeaderStatus: {
 				const data: WebsocketLeaderStatus = await this.instanceMapper.decryptAndMapToInstance(
 					await resolveTypeReference(WebsocketLeaderStatusTypeRef),
 					JSON.parse(value),
@@ -318,6 +318,7 @@ export class EventBusClient {
 				await this.userFacade.setLeaderStatus(data)
 				await this.listener.onLeaderStatusChanged(data)
 				break
+			}
 			default:
 				console.log("ws message with unknown type", type)
 				break

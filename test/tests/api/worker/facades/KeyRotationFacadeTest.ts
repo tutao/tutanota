@@ -727,7 +727,7 @@ o.spec("KeyRotationFacadeTest", function () {
 
 			o("Key rotation for multiple groups are executed in one request", async function () {
 				const secondGroupId = "groupId-2"
-				makeGroupWithMembership(secondGroupId, user).group
+				makeGroupWithMembership(secondGroupId, user)
 				when(keyLoaderFacadeMock.getCurrentSymGroupKey(secondGroupId)).thenResolve(CURRENT_USER_AREA_GROUP_KEY)
 
 				keyRotationFacade.setPendingKeyRotations({

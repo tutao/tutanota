@@ -2,7 +2,7 @@ import { TestError, TestResult } from "./TestResult.js"
 
 export type AssertionDescriber = (description: string) => void
 
-var asString: (thing: unknown) => string
+let asString: (thing: unknown) => string
 if (typeof process !== "undefined") {
 	const { inspect } = await import("node:util")
 	asString = function (thing) {

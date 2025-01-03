@@ -605,7 +605,7 @@ export class ApplicationWindow {
 		this._browserWindow.setBounds(bounds.rect)
 
 		if (process.platform !== "linux") return
-		this.setBoundsTimeout && clearTimeout(this.setBoundsTimeout)
+		if (this.setBoundsTimeout) clearTimeout(this.setBoundsTimeout)
 		this.setBoundsTimeout = setTimeout(() => {
 			if (this._browserWindow.isDestroyed()) {
 				return

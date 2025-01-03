@@ -7,7 +7,7 @@ export function tokenize(text: string | null): string[] {
 	let currentWord: string[] = []
 	let words: string[] = []
 
-	for (var i = 0; i < text.length; i++) {
+	for (let i = 0; i < text.length; i++) {
 		let currentChar = text.charAt(i)
 
 		if (isEndOfWord(currentChar)) {

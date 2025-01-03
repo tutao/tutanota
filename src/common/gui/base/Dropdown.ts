@@ -46,7 +46,7 @@ const DropdownInfo = pureComponent<DropdownInfoAttrs>(({ center, bold, info }) =
 export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
-	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
+	return Object.hasOwn(dropdownChild, "info") && Object.hasOwn(dropdownChild, "center") && Object.hasOwn(dropdownChild, "bold")
 }
 
 export interface PosRect {

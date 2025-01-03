@@ -114,7 +114,7 @@ function showNextNotification() {
 	)
 
 	closeFinalAttrs.click = (e, dom) => {
-		closeButtonAttrs.click && closeButtonAttrs.click(e, dom)
+		closeButtonAttrs.click?.(e, dom)
 		closeAndOpenNext()
 	}
 

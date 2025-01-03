@@ -226,7 +226,7 @@ export class CalendarSearchViewModel {
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 		const listModel = this.listModel
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
-		if (args.hasOwnProperty("query") && this.search.isNewSearch(args.query, restriction)) {
+		if (Object.hasOwn(args, "query") && this.search.isNewSearch(args.query, restriction)) {
 			this.searchResult = null
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
@@ -259,7 +259,7 @@ export class CalendarSearchViewModel {
 				)
 				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		} else if (!args.hasOwnProperty("query") && !lastQuery) {
+		} else if (!Object.hasOwn(args, "query") && !lastQuery) {
 			// no query at all yet
 			listModel.updateLoadingStatus(ListLoadingState.Done)
 		}

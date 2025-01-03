@@ -1,12 +1,16 @@
 // set by the build script
 import { getPathBases } from "../../mail-app/ApplicationPaths.js"
 
+// eslint-disable-next-line no-var
 declare var filesToCache: () => Array<string>
+// eslint-disable-next-line no-var
 declare var version: () => string
+// eslint-disable-next-line no-var
 declare var customDomainCacheExclusions: () => Array<string>
+// eslint-disable-next-line no-var
 declare var shouldTakeOverImmediately: () => boolean
 // test case
-var versionString = typeof version === "undefined" ? "test" : version()
+const versionString = typeof version === "undefined" ? "test" : version()
 
 // either tuta.com or tutanota.com without or with a subdomain or a domain without dots (e.g. localhost).
 // otherwise it is a custom domain

@@ -212,7 +212,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					toggled: this.shouldDisplayCollapsedQuotes(),
 					onToggled: () => {
 						this.quoteState = this.shouldDisplayCollapsedQuotes() ? "collapsed" : "expanded"
-						this.shadowDomRoot && this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
+						if (this.shadowDomRoot) this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
 					},
 					style: {
 						height: "24px",

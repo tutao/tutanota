@@ -2,6 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import { TextFieldType } from "./TextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
+import { filterInt } from "@tutao/tutanota-utils"
 
 export enum InputMode {
 	NONE = "none",
@@ -77,7 +78,9 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 			return
 		}
 
-		const fontSize = Number(attrs.style?.fontSize?.replace("px", "")) ?? 16
+		const fontSizeString = attrs.style?.fontSize
+		const fontSizeNumber = fontSizeString ? filterInt(fontSizeString.replace("px", "")) : NaN
+		const fontSize = isNaN(fontSizeNumber) ? 16 : fontSizeNumber
 		let iconSize
 		let padding
 

@@ -155,7 +155,7 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 						e.stopPropagation()
 					},
 					onchange: () => {
-						this.entity && this.onSelected(this.entity, this.checkboxDom.checked)
+						if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
 					},
 					oncreate: (vnode) => {
 						this.checkboxDom = vnode.dom as HTMLInputElement

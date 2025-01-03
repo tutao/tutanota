@@ -42,7 +42,7 @@ o.spec("Randomizer", function () {
 			},
 		])
 
-		for (var i = 1; i < 20; i++) {
+		for (let i = 1; i < 20; i++) {
 			let r = random.generateRandomData(i)
 			o(r.length).equals(i)
 		}
@@ -61,7 +61,7 @@ o.spec("Randomizer", function () {
 		let upperHalfCount = 0
 		let lowerHalfCount = 0
 
-		for (var i = 1; i <= runs; i++) {
+		for (let i = 1; i <= runs; i++) {
 			let r = random.generateRandomData(bytesPerRun)
 			for (const number of r) {
 				results[number]++

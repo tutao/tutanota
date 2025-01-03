@@ -834,7 +834,7 @@ export function findFirstPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarI
  * @param sanitizer optional sanitizer to apply after preparing the description
  */
 export function prepareCalendarDescription(description: string, sanitizer: (s: string) => string): string {
-	const prepared = description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),\/?]+>/gi, (possiblyLink) => {
+	const prepared = description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),/?]+>/gi, (possiblyLink) => {
 		try {
 			const withoutBrackets = possiblyLink.slice(1, -1)
 			const url = new URL(withoutBrackets)

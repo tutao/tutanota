@@ -1700,7 +1700,6 @@ o.spec("CryptoFacadeTest", function () {
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 
-		typeModels.tutanota
 		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
@@ -1797,7 +1796,6 @@ o.spec("CryptoFacadeTest", function () {
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		typeModels.tutanota
 		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,

@@ -161,7 +161,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 	private verifyMailAddress(attrs: SelectMailAddressFormAttrs) {
 		const { onValidationResult, onBusyStateChanged } = attrs
-		this.checkAddressTimeout && clearTimeout(this.checkAddressTimeout)
+		if (this.checkAddressTimeout) clearTimeout(this.checkAddressTimeout)
 
 		const cleanMailAddress = this.getCleanMailAddress(attrs)
 		const cleanUsername = this.username.trim().toLowerCase()

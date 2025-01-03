@@ -241,7 +241,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	onremove() {
 		this.focused = false
 
-		this.shortcuts && keyManager.unregisterShortcuts(this.shortcuts)
+		if (this.shortcuts) keyManager.unregisterShortcuts(this.shortcuts)
 
 		this.stateStream?.end(true)
 

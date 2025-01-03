@@ -26,7 +26,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor(private readonly getIsShowingKpis: () => boolean, private readonly toggleKpiColumn: () => unknown) {}
 
-	oninit(vnode: Mithril.Vnode<{}, Mithril._NoLifecycle<this & {}>>): any {
+	oninit(): any {
 		this.affiliateViewModel.getAsync().then((avm) => avm.load().finally(m.redraw))
 	}
 

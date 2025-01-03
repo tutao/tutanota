@@ -111,7 +111,7 @@ export class MailViewModel {
 	private listStreamSubscription: Stream<unknown> | null = null
 	private conversationPref: boolean = false
 	/** A slightly hacky marker to avoid concurrent URL updates. */
-	private currentShowTargetMarker: {} = {}
+	private currentShowTargetMarker: object = {}
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,

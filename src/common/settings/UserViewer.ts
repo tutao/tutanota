@@ -41,8 +41,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private groupsTableAttrs: TableAttrs | null = null
 	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
-	private administratedBy: Id | null = null
-	private availableTeamGroupInfos: Array<GroupInfo> = []
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
 
@@ -61,7 +59,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.teamGroupInfos.getAsync().then(async (availableTeamGroupInfos) => {
 			if (availableTeamGroupInfos.length > 0) {
-				this.availableTeamGroupInfos = availableTeamGroupInfos
 				this.groupsTableAttrs = {
 					columnHeading: ["name_label", "groupType_label"],
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
@@ -235,8 +232,10 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			selectionChangedHandler: (activate: boolean) => {
 				if (this.isAdmin) {
 					Dialog.message("deactivateOwnAccountInfo_msg")
+				} else if (activate) {
+					this.restoreUser()
 				} else {
-					activate ? this.restoreUser() : this.deleteUser()
+					this.deleteUser()
 				}
 			},
 		})
@@ -404,7 +403,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			) {
 				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
 				await this.updateUsedStorageAndAdminFlag()
-				this.administratedBy = this.userGroupInfo.localAdmin
 				m.redraw()
 			} else if (
 				isUpdateForTypeRef(UserTypeRef, update) &&

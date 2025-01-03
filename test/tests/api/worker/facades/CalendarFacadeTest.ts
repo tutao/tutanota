@@ -31,6 +31,7 @@ import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHan
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -41,7 +42,7 @@ o.spec("CalendarFacadeTest", function () {
 	let entityRestCache: DefaultEntityRestCache
 	let calendarFacade: CalendarFacade
 	let progressMonitor: ProgressMonitor
-	let entityRequest: Function
+	let entityRequest: EntityRestClient["setupMultiple"]
 	let requestSpy: any
 	let sendAlarmNotificationsMock
 	let loadAllMock
@@ -148,11 +149,11 @@ o.spec("CalendarFacadeTest", function () {
 				}
 				throw new Error("should not be called with typeRef: " + typeRef)
 			}
-			entityRequest = function () {
-				return Promise.resolve()
+			entityRequest = async function () {
+				throw new Error("not implemented")
 			} //dummy overwrite in test
-			requestSpy = spy(function () {
-				return entityRequest.apply(this, arguments)
+			requestSpy = spy(function (...args) {
+				return entityRequest.apply(this, args)
 			})
 
 			// @ts-ignore
@@ -170,9 +171,10 @@ o.spec("CalendarFacadeTest", function () {
 			entityRequest = function (listId, instances) {
 				const typeRef = instances[0]?._type
 				if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
-					o(instances.length).equals(2)
-					o(instances[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
-					o(instances[1].alarmInfos).deepEquals([
+					const calendarInstances = instances as unknown as CalendarEvent[]
+					o(calendarInstances.length).equals(2)
+					o(calendarInstances[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
+					o(calendarInstances[1].alarmInfos).deepEquals([
 						[userAlarmInfoListId, "2"],
 						[userAlarmInfoListId, "3"],
 					])
@@ -180,6 +182,8 @@ o.spec("CalendarFacadeTest", function () {
 				} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
 					o(instances.length).equals(3)
 					return Promise.resolve(["1", "2", "3"])
+				} else {
+					throw new Error()
 				}
 			}
 

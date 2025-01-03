@@ -74,6 +74,7 @@ export class OfflineIndicatorViewModel {
 					break
 				case "never":
 				// We can get into uninitialized state after temporary login e.g. during signup
+				// falls through
 				case "uninitialized":
 					this.lastUpdate = null
 					this.wsWasConnectedBefore = false

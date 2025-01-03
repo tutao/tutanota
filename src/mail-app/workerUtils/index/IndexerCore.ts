@@ -61,7 +61,7 @@ import {
 	removeBinaryBlockRanges,
 } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
-import { aes256EncryptSearchIndexEntry, aesDecrypt, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -289,7 +289,7 @@ export class IndexerCore {
 						// IndexedDB already and it will be inconsistent (oops).
 						.thenOrApply(noOp, (e) => {
 							try {
-								!transaction.aborted && transaction.abort()
+								if (!transaction.aborted) transaction.abort()
 							} catch (e) {
 								console.warn("abort has failed: ", e) // Ignore if abort has failed
 							}

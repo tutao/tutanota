@@ -39,7 +39,9 @@ export class DesktopWebauthnFacade implements WebAuthnFacade {
 	async abortCurrentOperation(): Promise<void> {
 		try {
 			;(await this.currentDialog)?.cancel()
-		} catch (ignored) {}
+		} catch (ignored) {
+			/* empty */
+		}
 	}
 
 	private async withDialog<T>(baseDomain: string, request: (webauthn: WebAuthnFacade) => Promise<T>): Promise<T> {
