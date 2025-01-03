@@ -34,7 +34,7 @@ export class FeatureListProvider {
 	private countFeatures(categories: FeatureCategory[]): void {
 		const featureCounts = new Map<string, { max: number }>()
 		for (const category of categories) {
-			var count = featureCounts.get(category.title)
+			const count = featureCounts.get(category.title)
 			const numberOfFeatures = category.features.length
 			if (count == null || numberOfFeatures > count.max) {
 				featureCounts.set(category.title, { max: numberOfFeatures })

@@ -115,6 +115,6 @@ export class ViewColumn implements Component<Attrs> {
 	}
 
 	focus() {
-		this.domColumn && this.domColumn.focus()
+		this.domColumn?.focus()
 	}
 }

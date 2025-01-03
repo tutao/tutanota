@@ -115,6 +115,7 @@ let boot = !isDesktopMainThread() && !isWorker()
  * We have to bundle our project with esbuild now which puts everything together which means it won't be loaded at correct time and/or some thing might get
  * included where they shouldn't so for debug builds we set this flag to not take care of this.
  */
+// eslint-disable-next-line no-var
 declare var NO_THREAD_ASSERTIONS: boolean
 const assertionsEnabled = typeof NO_THREAD_ASSERTIONS === "undefined" || !NO_THREAD_ASSERTIONS
 

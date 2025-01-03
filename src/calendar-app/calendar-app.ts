@@ -530,7 +530,7 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 
 // This is only used for non-mobile webauthn, so this may need to be removed if we do not have a separate calendar web/desktop app
 function makeOldViewResolver(
-	makeView: (args: {}, requestedPath: string) => Promise<TopLevelView>,
+	makeView: (args: object, requestedPath: string) => Promise<TopLevelView>,
 	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},
 	logins: LoginController,
 ): RouteResolver {
@@ -637,8 +637,7 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 }
 
 function printJobsMessage(domainConfig: DomainConfig) {
-	env.dist &&
-		domainConfig.firstPartyDomain &&
+	if (env.dist && domainConfig.firstPartyDomain) {
 		console.log(`
 
 ........................................
@@ -665,4 +664,5 @@ function printJobsMessage(domainConfig: DomainConfig) {
 ........................................
 
 `)
+	}
 }

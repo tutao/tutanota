@@ -153,7 +153,8 @@ export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 	}
 
 	// check that the zeros and the one is there
-	for (var index = 2 * hashLength; index < value.length; index++) {
+	let index
+	for (index = 2 * hashLength; index < value.length; index++) {
 		if (value[index] === 1) {
 			// found the 0x01
 			break
@@ -362,7 +363,7 @@ function _base64ToBigInt(base64: Base64): BigInteger {
  * @return {string} A hex string containing the length of string.
  */
 function _hexLen(string: string): Hex {
-	var hexLen = string.length.toString(16)
+	let hexLen = string.length.toString(16)
 
 	while (hexLen.length < 4) {
 		hexLen = "0" + hexLen
@@ -372,10 +373,10 @@ function _hexLen(string: string): Hex {
 }
 
 export function _keyArrayToHex(key: BigInteger[]): Hex {
-	var hex = ""
+	let hex = ""
 
-	for (var i = 0; i < key.length; i++) {
-		var param = key[i].toString(16)
+	for (let i = 0; i < key.length; i++) {
+		let param = key[i].toString(16)
 
 		if (param.length % 2 === 1) {
 			param = "0" + param
@@ -389,11 +390,11 @@ export function _keyArrayToHex(key: BigInteger[]): Hex {
 
 function _hexToKeyArray(hex: Hex): BigInteger[] {
 	try {
-		var key: BigInteger[] = []
-		var pos = 0
+		let key: BigInteger[] = []
+		let pos = 0
 
 		while (pos < hex.length) {
-			var nextParamLen = parseInt(hex.substring(pos, pos + 4), 16)
+			let nextParamLen = parseInt(hex.substring(pos, pos + 4), 16)
 			pos += 4
 			key.push(parseBigInt(hex.substring(pos, pos + nextParamLen), 16))
 			pos += nextParamLen

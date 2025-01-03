@@ -63,14 +63,7 @@ import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvi
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import {
-	calendarNavConfiguration,
-	calendarWeek,
-	daysHaveEvents,
-	generateRandomColor,
-	shouldDefaultToAmPmTimeFormat,
-	showDeletePopup,
-} from "../gui/CalendarGuiUtils.js"
+import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -760,7 +753,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const includeLocalCalendars = renderTypes.includes(RenderType.ClientOnly)
 		const toggleHidden = (viewModel: CalendarViewModel, groupRootId: string) => {
 			const newHiddenCalendars = new Set(viewModel.hiddenCalendars)
-			viewModel.hiddenCalendars.has(groupRootId) ? newHiddenCalendars.delete(groupRootId) : newHiddenCalendars.add(groupRootId)
+			if (viewModel.hiddenCalendars.has(groupRootId)) {
+				newHiddenCalendars.delete(groupRootId)
+			} else {
+				newHiddenCalendars.add(groupRootId)
+			}
 
 			viewModel.setHiddenCalendars(newHiddenCalendars)
 		}
@@ -927,7 +924,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								icon: Icons.Export,
 								click: () => {
 									const alarmInfoList = user.alarmInfoList
-									alarmInfoList &&
+									if (alarmInfoList) {
 										exportCalendar(
 											getSharedGroupName(groupInfo, locator.logins.getUserController(), sharedCalendar),
 											groupRoot,
@@ -935,6 +932,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 											new Date(),
 											getTimeZone(),
 										)
+									}
 								},
 						  }
 						: null,

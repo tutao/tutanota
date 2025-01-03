@@ -106,20 +106,21 @@ o.spec("OfflineStorageDb", function () {
 			let preparedQuery
 			switch (typeModel.type) {
 				case TypeId.Element.valueOf():
-					preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(
-						entity,
-					)})`
+					preparedQuery = sql`insert into element_entities
+										values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(entity)})`
 					break
-				case TypeId.ListElement.valueOf():
+				case TypeId.ListElement.valueOf(): {
 					const [listId, elementId] = (entity as ListElementEntity)._id
-					preparedQuery = sql`INSERT INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${entity._ownerGroup}, ${encode(entity)})`
+					preparedQuery = sql`INSERT INTO list_entities
+										VALUES (${type}, ${listId}, ${elementId}, ${entity._ownerGroup}, ${encode(entity)})`
 					break
-				case TypeId.BlobElement.valueOf():
+				}
+				case TypeId.BlobElement.valueOf(): {
 					const [archiveId, blobElementId] = (entity as BlobElementEntity)._id
-					preparedQuery = sql`INSERT INTO blob_element_entities VALUES (${type}, ${archiveId}, ${blobElementId}, ${entity._ownerGroup}, ${encode(
-						entity,
-					)})`
+					preparedQuery = sql`INSERT INTO blob_element_entities
+										VALUES (${type}, ${archiveId}, ${blobElementId}, ${entity._ownerGroup}, ${encode(entity)})`
 					break
+				}
 				default:
 					throw new Error("must be a persistent type")
 			}
@@ -127,7 +128,8 @@ o.spec("OfflineStorageDb", function () {
 		}
 
 		async function insertRange(type: TypeRef<unknown>, listId: string, lower: string, upper: string) {
-			const { query, params } = sql`INSERT INTO ranges VALUES(${getTypeId(type)}, ${listId}, ${lower}, ${upper})`
+			const { query, params } = sql`INSERT INTO ranges
+										  VALUES (${getTypeId(type)}, ${listId}, ${lower}, ${upper})`
 			await dbFacade.run(query, params)
 		}
 
@@ -136,13 +138,19 @@ o.spec("OfflineStorageDb", function () {
 			let preparedQuery
 			switch (typeModel.type) {
 				case TypeId.Element.valueOf():
-					preparedQuery = sql`select * from element_entities where type = ${getTypeId(typeRef)}`
+					preparedQuery = sql`select *
+										from element_entities
+										where type = ${getTypeId(typeRef)}`
 					break
 				case TypeId.ListElement.valueOf():
-					preparedQuery = sql`select * from list_entities where type = ${getTypeId(typeRef)}`
+					preparedQuery = sql`select *
+										from list_entities
+										where type = ${getTypeId(typeRef)}`
 					break
 				case TypeId.BlobElement.valueOf():
-					preparedQuery = sql`select * from blob_element_entities where type = ${getTypeId(typeRef)}`
+					preparedQuery = sql`select *
+										from blob_element_entities
+										where type = ${getTypeId(typeRef)}`
 					break
 				default:
 					throw new Error("must be a persistent type")
@@ -361,7 +369,6 @@ o.spec("OfflineStorageDb", function () {
 			const spamMailSetEntriesId = "spamMailSetEntriesId"
 			const trashMailSetEntriesId = "trashMailSetEntriesId"
 			const mailListId = "listId"
-			const mailType = getTypeId(MailTypeRef)
 
 			o.beforeEach(async function () {
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })

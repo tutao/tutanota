@@ -4,7 +4,7 @@ import type { ClickHandler } from "./GuiUtils"
 export type Attrs = {
 	label: string
 	click: ClickHandler
-	style?: {}
+	style?: object
 }
 
 export class RecipientButton implements Component<Attrs> {

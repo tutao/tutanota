@@ -86,13 +86,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 			case TypeId.Element:
 				this.entities.get(path)?.delete(elementId)
 				break
-			case TypeId.ListElement:
+			case TypeId.ListElement: {
 				const cache = this.lists.get(path)?.get(assertNotNull(listId))
 				if (cache != null) {
 					cache.elements.delete(elementId)
 					remove(cache.allRange, elementId)
 				}
 				break
+			}
 			case TypeId.BlobElement:
 				this.blobEntities.get(path)?.get(assertNotNull(listId))?.elements.delete(elementId)
 				break
@@ -120,22 +121,25 @@ export class EphemeralCacheStorage implements CacheStorage {
 		let { listId, elementId } = expandId(originalEntity._id)
 		elementId = ensureBase64Ext(typeModel, elementId)
 		switch (typeModel.type) {
-			case TypeId.Element:
+			case TypeId.Element: {
 				const elementEntity = entity as ElementEntity
 				this.addElementEntity(elementEntity._type, elementId, elementEntity)
 				break
-			case TypeId.ListElement:
+			}
+			case TypeId.ListElement: {
 				const listElementEntity = entity as ListElementEntity
 				const listElementTypeRef = typeRef as TypeRef<ListElementEntity>
 				listId = listId as Id
 				await this.putListElement(listElementTypeRef, listId, elementId, listElementEntity)
 				break
-			case TypeId.BlobElement:
+			}
+			case TypeId.BlobElement: {
 				const blobElementEntity = entity as BlobElementEntity
 				const blobTypeRef = typeRef as TypeRef<BlobElementEntity>
 				listId = listId as Id
 				await this.putBlobElement(blobTypeRef, listId, elementId, blobElementEntity)
 				break
+			}
 			default:
 				throw new ProgrammingError("must be a persistent type")
 		}

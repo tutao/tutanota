@@ -732,7 +732,7 @@ function makeMailModel(): MailboxModel {
 	return downcast({})
 }
 
-function makeCalendarFacade(getEventsByUid: { getEventsByUid: Function }, entityRestClient: EntityRestClientMock): CalendarFacade {
+function makeCalendarFacade(getEventsByUid: { getEventsByUid: (_: any) => unknown }, entityRestClient: EntityRestClientMock): CalendarFacade {
 	const saveCalendarEvent = func<CalendarFacade["saveCalendarEvent"]>()
 	when(saveCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything())).thenDo((event) => {
 		// testdouble is very insistent on calling such callbacks even during verification and we get weird args here

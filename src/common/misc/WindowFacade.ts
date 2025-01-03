@@ -232,7 +232,7 @@ export class WindowFacade {
 
 	async reload(args: Params) {
 		if (isApp() || isElectronClient()) {
-			if (!args.hasOwnProperty("noAutoLogin")) {
+			if (!Object.hasOwn(args, "noAutoLogin")) {
 				args.noAutoLogin = true
 			}
 

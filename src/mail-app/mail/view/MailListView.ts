@@ -133,7 +133,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		if (isExportDragEvent(event)) {
 			// We have to remove the drag mod key class here because once the dragstart has begun
 			// we won't receive the keyup event that would normally remove it
-			this._listDom && this._listDom.classList.remove("drag-mod-key")
+			this._listDom?.classList.remove("drag-mod-key")
 			// We have to preventDefault or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
 			event.preventDefault()
 			// if the mail being dragged is not included in the mails that are selected, then we only drag
@@ -160,7 +160,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		if (isExportDragEvent(event)) {
 			// We have to remove the drag mod key class here because once the dragstart has begun
 			// we won't receive the keyup event that would normally remove it
-			this._listDom && this._listDom.classList.remove("drag-mod-key")
+			this._listDom?.classList.remove("drag-mod-key")
 			// We have to preventDefault or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
 			event.preventDefault()
 			// if the mail being dragged is not included in the mails that are selected, then we only drag
@@ -326,13 +326,13 @@ export class MailListView implements Component<MailListViewAttrs> {
 		// listeners to indicate the when mod key is held, dragging will do something
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (isDragAndDropModifierHeld(event)) {
-				this._listDom && this._listDom.classList.add("drag-mod-key")
+				this._listDom?.classList.add("drag-mod-key")
 			}
 		}
 
 		const onKeyUp = (event: KeyboardEvent) => {
 			// The event doesn't have a
-			this._listDom && this._listDom.classList.remove("drag-mod-key")
+			this._listDom?.classList.remove("drag-mod-key")
 		}
 
 		const listModel = vnode.attrs.mailViewModel.listModel!

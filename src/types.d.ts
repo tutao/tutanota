@@ -4,6 +4,7 @@
  * Hey you! Don't import anything in this file, or all these declarations will cease to be global!
  */
 
+/* eslint-disable no-var */
 declare type NumberString = string
 declare type Dict = { [key: string]: string }
 

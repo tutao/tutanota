@@ -26,7 +26,7 @@ export class ThemeController {
 	readonly initialized: Promise<any>
 
 	constructor(
-		themeSingleton: {},
+		themeSingleton: object,
 		private readonly themeFacade: ThemeFacade,
 		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>,
 		private readonly app: AppType,

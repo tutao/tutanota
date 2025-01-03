@@ -15,7 +15,7 @@ o.spec("PQMessageTest", function () {
 				},
 			}
 
-			var encodedPqMessage = encodePQMessage(pqMessage)
+			const encodedPqMessage = encodePQMessage(pqMessage)
 
 			o(
 				concat(

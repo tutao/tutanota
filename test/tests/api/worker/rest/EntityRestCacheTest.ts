@@ -935,7 +935,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).equals(null)("Event has been evicted from cache")
 					const deletedRange = await storage.getRangeForList(CalendarEventTypeRef, listIdPart(eventId))
 					o(deletedRange).equals(null)
-					storage.getLastBatchIdForGroup && o(await storage.getLastBatchIdForGroup(calendarGroupId)).equals(null)
+					if (storage.getLastBatchIdForGroup) o(await storage.getLastBatchIdForGroup(calendarGroupId)).equals(null)
 				})
 
 				o("membership change but for another user does nothing", async function () {

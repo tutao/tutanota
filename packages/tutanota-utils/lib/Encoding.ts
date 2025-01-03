@@ -371,7 +371,7 @@ export function byteArraysToBytes(byteArrays: Array<Uint8Array>): Uint8Array {
 	const encodingOverhead = byteArrays.length * 2 // two byte length overhead for each byte array
 	const encodedByteArrays = new Uint8Array(encodingOverhead + totalBytesLength)
 	let index = 0
-	for (var byteArray of byteArrays) {
+	for (const byteArray of byteArrays) {
 		if (byteArray.length > MAX_ENCODED_BYTES_LENGTH) {
 			throw new Error("byte array is to long for encoding")
 		}
@@ -385,7 +385,7 @@ export function byteArraysToBytes(byteArrays: Array<Uint8Array>): Uint8Array {
  *
  * @return list of byte arrays
  */
-export function bytesToByteArrays(encodedByteArrays: Uint8Array, expectedByteArrays: Number): Array<Uint8Array> {
+export function bytesToByteArrays(encodedByteArrays: Uint8Array, expectedByteArrays: number): Array<Uint8Array> {
 	const byteArrays = new Array<Uint8Array>()
 	let index = 0
 	while (index < encodedByteArrays.length) {

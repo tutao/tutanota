@@ -462,7 +462,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		for (let name of Object.keys(TableDefinitions)) {
 			await this.sqlCipherFacade.run(
 				`DELETE
-											FROM ${name}`,
+				 FROM ${name}`,
 				[],
 			)
 		}
@@ -570,17 +570,17 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 					safeChunkSize,
 					listIdArr,
 					(c) => sql`DELETE
-																		   FROM ranges
-																		   WHERE type = ${type}
-																			 AND listId IN ${paramList(c)}`,
+							   FROM ranges
+							   WHERE type = ${type}
+								 AND listId IN ${paramList(c)}`,
 				)
 				await this.runChunked(
 					safeChunkSize,
 					listIdArr,
 					(c) => sql`DELETE
-																		   FROM list_entities
-																		   WHERE type = ${type}
-																			 AND listId IN ${paramList(c)}`,
+							   FROM list_entities
+							   WHERE type = ${type}
+								 AND listId IN ${paramList(c)}`,
 				)
 			}
 		}
@@ -646,9 +646,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		for (let [name, definition] of Object.entries(TableDefinitions)) {
 			await this.sqlCipherFacade.run(
 				`CREATE TABLE IF NOT EXISTS ${name}
-											(
-												${definition}
-											)`,
+				 (
+					 ${definition}
+				 )`,
 				[],
 			)
 		}
@@ -797,18 +797,20 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				const aggregateTypeModel = await resolveTypeReference(aggregateTypeRef)
 				switch (associationModel.cardinality) {
 					case Cardinality.One:
-					case Cardinality.ZeroOrOne:
+					case Cardinality.ZeroOrOne: {
 						const aggregate = deserialized[associationName]
 						if (aggregate) {
 							await this.fixupTypeRefs(aggregateTypeModel, aggregate)
 						}
 						break
-					case Cardinality.Any:
+					}
+					case Cardinality.Any: {
 						const aggregateList = deserialized[associationName]
 						for (const aggregate of aggregateList) {
 							await this.fixupTypeRefs(aggregateTypeModel, aggregate)
 						}
 						break
+					}
 				}
 			}
 		}

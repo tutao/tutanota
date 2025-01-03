@@ -63,15 +63,7 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import {
-	CLIENT_ONLY_CALENDARS,
-	Const,
-	DEFAULT_CLIENT_ONLY_CALENDAR_COLORS,
-	FeatureType,
-	GroupType,
-	KdfType,
-	MailSetKind,
-} from "../common/api/common/TutanotaConstants.js"
+import { CLIENT_ONLY_CALENDARS, Const, DEFAULT_CLIENT_ONLY_CALENDAR_COLORS, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
@@ -124,7 +116,6 @@ import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
 import { locator } from "../common/api/main/CommonLocator.js"
 import { showSnackBar } from "../common/gui/base/SnackBar.js"
-import { assertSystemFolderOfType } from "./mail/model/MailUtils.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
@@ -137,7 +128,6 @@ import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
-import { getElementId } from "../common/api/common/utils/EntityUtils.js"
 import { MailImporter } from "./mail/import/MailImporter.js"
 
 assertMainOrNode()
@@ -450,7 +440,7 @@ class MailLocator {
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
 			return {
-				async getContactSuggestions(_query: String): Promise<readonly ContactSuggestion[]> {
+				async getContactSuggestions(_query: string): Promise<readonly ContactSuggestion[]> {
 					return []
 				},
 			}
@@ -875,22 +865,27 @@ class MailLocator {
 
 		this.newsModel = new NewsModel(this.serviceExecutor, deviceConfig, async (name: string) => {
 			switch (name) {
-				case "usageOptIn":
+				case "usageOptIn": {
 					const { UsageOptInNews } = await import("../common/misc/news/items/UsageOptInNews.js")
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
-				case "recoveryCode":
+				}
+				case "recoveryCode": {
 					const { RecoveryCodeNews } = await import("../common/misc/news/items/RecoveryCodeNews.js")
 					return new RecoveryCodeNews(this.newsModel, this.logins.getUserController(), this.recoverCodeFacade)
-				case "pinBiometrics":
+				}
+				case "pinBiometrics": {
 					const { PinBiometricsNews } = await import("../common/misc/news/items/PinBiometricsNews.js")
 					return new PinBiometricsNews(this.newsModel, this.credentialsProvider, this.logins.getUserController().userId)
-				case "referralLink":
+				}
+				case "referralLink": {
 					const { ReferralLinkNews } = await import("../common/misc/news/items/ReferralLinkNews.js")
 					const dateProvider = await this.noZoneDateProvider()
 					return new ReferralLinkNews(this.newsModel, dateProvider, this.logins.getUserController())
-				case "richNotifications":
+				}
+				case "richNotifications": {
 					const { RichNotificationsNews } = await import("../common/misc/news/items/RichNotificationsNews.js")
 					return new RichNotificationsNews(this.newsModel, isApp() || isDesktop() ? this.pushService : null)
+				}
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null

@@ -952,7 +952,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static editDialog<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
+	static editDialog<T extends object>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () =>
 				m("", [
@@ -964,11 +964,11 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static editMediumDialog<T extends {}>(
+	static editMediumDialog<T extends object>(
 		headerBarAttrs: DialogHeaderBarAttrs,
 		child: Class<Component<T>>,
 		childAttrs: T,
-		dialogStyle?: Partial<CSSStyleDeclaration> | {},
+		dialogStyle?: Partial<CSSStyleDeclaration> | object,
 	): Dialog {
 		return new Dialog(DialogType.EditMedium, {
 			view: () =>
@@ -981,7 +981,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static editSmallDialog<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: () => Children): Dialog {
+	static editSmallDialog<T extends object>(headerBarAttrs: DialogHeaderBarAttrs, child: () => Children): Dialog {
 		return new Dialog(DialogType.EditSmall, {
 			view: () => [
 				/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
@@ -992,7 +992,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static async viewerDialog<T extends {}>(title: TranslationText, child: Class<Component<T>>, childAttrs: T): Promise<void> {
+	static async viewerDialog<T extends object>(title: TranslationText, child: Class<Component<T>>, childAttrs: T): Promise<void> {
 		return new Promise((resolve) => {
 			let dialog: Dialog
 

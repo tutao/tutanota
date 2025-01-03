@@ -114,7 +114,7 @@ export class WorkerClient {
 	}
 
 	restRequest(...args: Parameters<RestClient["request"]>): Promise<any | null> {
-		return this._postRequest(new Request("restRequest", Array.from(arguments)))
+		return this._postRequest(new Request("restRequest", args))
 	}
 
 	/** @private visible for tests */

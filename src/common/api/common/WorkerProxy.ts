@@ -18,7 +18,7 @@ export function exposeRemote<T>(requestSender: RequestSender<"facade">): T {
 	const workerProxy = new Proxy(
 		{},
 		{
-			get: (target: {}, property: string) => {
+			get: (_: object, property: string) => {
 				return facadeProxy(requestSender, property)
 			},
 		},
@@ -84,7 +84,7 @@ function facadeProxy(requestSender: RequestSender<"facade">, facadeName: string)
 	return new Proxy(
 		{},
 		{
-			get: (target: {}, property: string) => {
+			get: (_: object, property: string) => {
 				// We generate whatever property is asked from us and we assume it is a function. It is normally enforced by the type system
 				// but runtime also tests for certain properties e.g. when returning a value from a promise it will try to test whether it
 				// is "promisable". It is doing so by checking whether there's a "then" function. So we explicitly say we don't have such

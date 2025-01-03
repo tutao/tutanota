@@ -178,19 +178,21 @@ export class TypescriptGenerator implements LangGenerator {
 function renderTypescriptType(parsed: ParsedType): RenderedType {
 	const { baseName, nullable, external } = parsed
 	switch (baseName) {
-		case "List":
+		case "List": {
 			const renderedListInner = renderTypescriptType(parsed.generics[0])
 			return {
 				externals: renderedListInner.externals,
 				name: maybeNullable(`ReadonlyArray<${renderedListInner.name}>`, nullable),
 			}
-		case "Map":
+		}
+		case "Map": {
 			const renderedKey = renderTypescriptType(parsed.generics[0])
 			const renderedValue = renderTypescriptType(parsed.generics[1])
 			return {
 				externals: [...renderedKey.externals, ...renderedValue.externals],
 				name: maybeNullable(`Record<${renderedKey.name}, ${renderedValue.name}>`, nullable),
 			}
+		}
 		case "string":
 			return { externals: [], name: maybeNullable("string", nullable) }
 		case "boolean":

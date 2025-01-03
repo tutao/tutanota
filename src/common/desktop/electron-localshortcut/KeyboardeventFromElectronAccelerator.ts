@@ -306,7 +306,7 @@ export function reduceCode(
  * @param  {string} accelerator an Electron Accelerator string, e.g. `Ctrl+C` or `Shift+Space`.
  * @return {object} a DOM KeyboardEvent object derivate from the `accelerator` argument.
  */
-export function toKeyEvent(accelerator: string): {} {
+export function toKeyEvent(accelerator: string): object {
 	let state: ReducedEvent = {
 		accelerator,
 		event: {},

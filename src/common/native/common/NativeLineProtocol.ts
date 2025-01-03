@@ -115,7 +115,7 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 	const [type, messageId, ...rest] = encoded.split("\n")
 	let parsedMessage: Message<any>
 	switch (type) {
-		case "request":
+		case "request": {
 			const [requestType, ...args] = rest
 			parsedMessage = new Request(
 				requestType,
@@ -123,14 +123,17 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 			)
 			parsedMessage.id = messageId
 			break
-		case "response":
+		}
+		case "response": {
 			const [value] = rest
 			parsedMessage = new Response(messageId, decodeValueFromNative(value))
 			break
-		case "requestError":
+		}
+		case "requestError": {
 			const [error] = rest
 			parsedMessage = new RequestError(messageId, decodeValueFromNative(error) as Error)
 			break
+		}
 		default:
 			throw new ProgrammingError(`unknown message type: ${type}`)
 	}

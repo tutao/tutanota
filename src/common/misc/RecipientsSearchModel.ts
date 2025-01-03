@@ -22,7 +22,7 @@ export type RecipientSearchResultItem =
 export type RecipientSearchResultFilter = (item: RecipientSearchResultItem) => boolean
 
 export interface ContactSuggestionProvider {
-	getContactSuggestions(query: String): Promise<readonly ContactSuggestion[]>
+	getContactSuggestions(query: string): Promise<readonly ContactSuggestion[]>
 }
 
 export class RecipientsSearchModel {
@@ -61,6 +61,7 @@ export class RecipientsSearchModel {
 		this.currentQuery = query
 
 		if (this.loading != null) {
+			// fall through and await below
 		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.searchResults.length === 0)) {
 			const [newContactListSuggestions, newContactSuggestions] = await Promise.all([
 				this.findContactLists(query.toLowerCase()),

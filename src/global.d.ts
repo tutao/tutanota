@@ -52,8 +52,6 @@ declare global {
 		nativeAppWebDialog: NativeApp | undefined
 	}
 
-	declare var CompressionStream: any // remove after switching to typescript 5.3.3
-
 	interface WorkerGlobalScope {
 		locator: WorkerLocatorType
 	}

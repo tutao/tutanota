@@ -256,13 +256,13 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 
 		domElement.onclick = (e) => {
 			if (!touchStartTime || Date.now() - touchStartTime < LONG_PRESS_DURATION_MS) {
-				row.entity && this.handleEvent(row.entity, e)
+				if (row.entity) this.handleEvent(row.entity, e)
 			}
 		}
 
 		domElement.onkeyup = (e) => {
 			if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-				row.entity && this.handleEvent(row.entity, e)
+				if (row.entity) this.handleEvent(row.entity, e)
 			}
 		}
 
@@ -287,7 +287,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				if (row.domElement) row.domElement!.style.background = ""
 			})
 			if (attrs.renderConfig.dragStart) {
-				row.entity && this.state && attrs.renderConfig.dragStart(e, row.entity, this.state.selectedItems)
+				if (row.entity && this.state) attrs.renderConfig.dragStart(e, row.entity, this.state.selectedItems)
 			}
 		}
 
@@ -312,7 +312,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			})
 
 			const touchEnd = () => {
-				timeoutId && clearTimeout(timeoutId)
+				if (timeoutId) clearTimeout(timeoutId)
 			}
 			domElement.addEventListener("touchend", touchEnd)
 			domElement.addEventListener("touchcancel", touchEnd)
@@ -591,7 +591,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.domSwipeSpacerRight.style.transform = `translateX(${translateX}px) translateY(0px)`
 
 			for (const row of this.rows) {
-				row.domElement && applySafeAreaInsetMarginLR(row.domElement)
+				if (row.domElement) applySafeAreaInsetMarginLR(row.domElement)
 			}
 
 			this.domSwipeSpacerLeft.style.opacity = "1"

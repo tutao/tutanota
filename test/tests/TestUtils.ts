@@ -43,7 +43,7 @@ export function makeCore(
 		...safeArgs,
 	}
 	const core = new IndexerCore(db, queue, browserData)
-	mocker && mock(core, mocker)
+	if (mocker) mock(core, mocker)
 	return core
 }
 

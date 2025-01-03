@@ -40,26 +40,36 @@ export class DesktopConfigMigrator {
 			// no break, fallthrough applies all migrations in sequence
 			case 0:
 				await applyMigration(migration0001[migrationFunction], oldConfig)
+			// falls through
 
 			case 1:
 				await applyMigration(migration0002[migrationFunction], oldConfig)
+			// falls through
 
 			case 2:
 				await applyMigration((config) => migration0003[migrationFunction](config, this.crypto, this._keyStoreFacade), oldConfig)
+			// falls through
 
 			case 3:
 				await applyMigration(migration0004[migrationFunction], oldConfig)
+			// falls through
 
 			case 4:
 				await applyMigration((config) => migration0005[migrationFunction](config, this._electron), oldConfig)
+			// falls through
 
 			case 5:
 				await applyMigration(migration0006[migrationFunction], oldConfig)
+			// falls through
 
 			case 6:
 				await applyMigration(migration0007[migrationFunction], oldConfig)
+			// falls through
+
 			case 7:
 				await applyMigration(migration0008[migrationFunction], oldConfig)
+			// falls through
+
 			case 8:
 				log.debug("config up to date")
 				/* add new migrations as needed */

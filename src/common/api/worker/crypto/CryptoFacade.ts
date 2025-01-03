@@ -398,6 +398,7 @@ export class CryptoFacade {
 		unmappedInstance._ownerEncSessionKey = uint8ArrayToBase64(key.key)
 		unmappedInstance._ownerKeyVersion = key.encryptingKeyVersion.toString()
 		if (ownerGroup) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 			unmappedInstance._ownerGroup
 		}
 	}

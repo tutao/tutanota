@@ -77,9 +77,9 @@ export function vCardEscapingSplit(details: string): string[] {
 
 export function vCardReescapingArray(details: string[]): string[] {
 	return details.map((a) => {
-		a = a.replace(/\-\-bslashbslash\+\+/g, "\\")
-		a = a.replace(/\-\-semiColonsemiColon\+\+/g, ";")
-		a = a.replace(/\-\-dPunktdPunkt\+\+/g, ":")
+		a = a.replace(/--bslashbslash\+\+/g, "\\")
+		a = a.replace(/--semiColonsemiColon\+\+/g, ";")
+		a = a.replace(/--dPunktdPunkt\+\+/g, ":")
 		a = a.replace(/\\n/g, "\n")
 		a = a.replace(/\\,/g, ",")
 		return a
@@ -162,7 +162,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			tagValue = _decodeTag(encoding, charset, tagValue)
 
 			switch (tagName) {
-				case "N":
+				case "N": {
 					let nameDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
 
 					for (let i = nameDetails.length; nameDetails.length < 4; i++) {
@@ -175,6 +175,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					title = nameDetails[3]
 					suffix = nameDetails[4]
 					break
+				}
 
 				case "FN":
 					//Thunderbird can export FULLNAME tag if that is given with the email address automatic contact creation. If there is no first name or second name the namestring will be saved as full name.
@@ -185,7 +186,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 					break
 
-				case "BDAY":
+				case "BDAY": {
 					let indexOfT = tagValue.indexOf("T")
 					let bDayDetails: Birthday | null = null
 
@@ -226,8 +227,9 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					}
 
 					break
+				}
 
-				case "ORG":
+				case "ORG": {
 					let orgDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					for (let i = orgDetails.length; orgDetails.length < 2; i++) {
 						orgDetails.push("")
@@ -236,15 +238,16 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					department = orgDetails.pop() ?? ""
 					company = orgDetails.join(" ")
 					break
+				}
 
-				case "NOTE":
+				case "NOTE": {
 					let note = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					comment = note.join(" ")
 					break
+				}
 
 				case "ADR":
 				case "ITEM1.ADR": // necessary for apple vcards
-
 				case "ITEM2.ADR":
 					// necessary for apple vcards
 					if (tagAndTypeString.indexOf("HOME") > -1) {
@@ -259,7 +262,6 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "EMAIL":
 				case "ITEM1.EMAIL": // necessary for apple and protonmail vcards
-
 				case "ITEM2.EMAIL":
 					// necessary for apple vcards
 					if (tagAndTypeString.indexOf("HOME") > -1) {
@@ -274,7 +276,6 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "TEL":
 				case "ITEM1.TEL": // necessary for apple vcards
-
 				case "ITEM2.TEL":
 					// necessary for apple vcards
 					tagValue = tagValue.replace(/[\u2000-\u206F]/g, "")
@@ -295,16 +296,16 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "URL":
 				case "ITEM1.URL": // necessary for apple vcards
-
 				case "ITEM2.URL":
 					// necessary for apple vcards
 					addWebsite(tagValue, websites)
 					break
 
-				case "NICKNAME":
+				case "NICKNAME": {
 					let nick = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					nickname = nick.join(" ")
 					break
+				}
 
 				case "PHOTO":
 					// if (indexAfterTag < tagValue.indexOf(":")) {
@@ -314,13 +315,14 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 
 				case "ROLE":
-				case "TITLE":
+				case "TITLE": {
 					let vcardRole = vCardReescapingArray(vCardEscapingSplit(tagValue))
 					role += (" " + vcardRole.join(" ")).trim()
 					break
+				}
 
 				// The content bellow this comment is present only on vCard 4.0+ - RFC 6350
-				case "RELATED":
+				case "RELATED": {
 					let type = ContactRelationshipType.OTHER
 					const vCardPropertyType = getPropertyValue("TYPE", tagAndTypeString).toLowerCase()
 					if (vCardPropertyType === "friend") {
@@ -335,13 +337,15 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 					addRelationship(tagValue, relationships, type)
 					break
+				}
 
-				case "PRONOUNS":
+				case "PRONOUNS": {
 					const lang = getPropertyValue("LANG", tagAndTypeString)
 					addPronouns(tagValue, pronouns, lang)
 					break
+				}
 
-				case "IMPP":
+				case "IMPP": {
 					const imRawType = getPropertyValue("TYPE", tagAndTypeString)
 					let imType = ContactMessengerHandleType.OTHER
 					let customTypeName = ""
@@ -363,6 +367,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					const handleData = tagValue.indexOf(":") > -1 ? tagValue.substring(tagValue.indexOf(":") + 1) : tagValue
 					addMessengerHandle(handleData, messengerHandles, imType, customTypeName)
 					break
+				}
 				default:
 			}
 		}

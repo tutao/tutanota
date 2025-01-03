@@ -274,7 +274,7 @@ export class LanguageViewModel {
 		this.staticTranslations = {}
 	}
 
-	init(en: {}): Promise<void> {
+	init(en: object): Promise<void> {
 		this.translations = en
 		this.fallback = en // always load english as fallback
 
@@ -501,7 +501,7 @@ export class LanguageViewModel {
 			return "\u2008"
 		}
 
-		var text = this.translations.keys[id]
+		let text = this.translations.keys[id]
 
 		if (!text) {
 			// try fallback language

@@ -176,9 +176,9 @@ export function parseBirthday(text: string, referenceDateRenderer: (refdate: Dat
 
 export function _cleanupAndSplit(dateString: string): number[] {
 	// Clean up any characters that can't be dealt with
-	dateString = dateString.replace(/[^ 0-9.\/-]/g, "")
+	dateString = dateString.replace(/[^ 0-9./-]/g, "")
 	return dateString
-		.split(/[.\/-]/g)
+		.split(/[./-]/g)
 		.slice(0, 3) // keep at most three date parts even if the string contains more than two separators (e.g., extra '.' at the end)
 		.map((part) => parseInt(part))
 }

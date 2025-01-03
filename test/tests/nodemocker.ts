@@ -25,7 +25,6 @@ function getAllPropertyNames(obj) {
 				props.push(prop)
 			}
 		}
-		// eslint-disable-next-line no-cond-assign
 	} while ((obj = Object.getPrototypeOf(obj)))
 
 	return props
@@ -34,7 +33,7 @@ function getAllPropertyNames(obj) {
 export function spyify<T>(obj: T): T {
 	const anyObj: any = obj
 	switch (typeof obj) {
-		case "function":
+		case "function": {
 			const fSpy = spy(obj as any)
 
 			// classes are functions
@@ -45,6 +44,7 @@ export function spyify<T>(obj: T): T {
 			}
 
 			return downcast<T>(fSpy)
+		}
 		case "object":
 			if (anyObj instanceof Promise) {
 				return downcast<T>(anyObj)
@@ -86,7 +86,7 @@ export type Mocked<T> = Class<T> & {
  * @param template
  * @returns {cls}
  */
-function classify(template: { prototype: {}; statics: {} }): Mocked<any> {
+function classify(template: { prototype: object; statics: object }): Mocked<any> {
 	const cls = function () {
 		cls.mockedInstances.push(this)
 		for (const p of Object.keys(template.prototype)) {
@@ -108,6 +108,7 @@ function classify(template: { prototype: {}; statics: {} }): Mocked<any> {
 		}
 
 		if (typeof template.prototype["constructor"] === "function") {
+			// eslint-disable-next-line prefer-rest-params
 			template.prototype["constructor"].apply(this, arguments)
 		}
 	}

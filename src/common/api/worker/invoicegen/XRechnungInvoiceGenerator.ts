@@ -327,10 +327,11 @@ export class XRechnungInvoiceGenerator {
 	private getVatExcludedPrice(priceValue: NumberString): NumberString {
 		switch (this.invoice.vatType) {
 			case VatType.VAT_INCLUDED_SHOWN:
-			case VatType.VAT_INCLUDED_HIDDEN:
+			case VatType.VAT_INCLUDED_HIDDEN: {
 				const nPriceValue = parseFloat(priceValue)
 				const nVat = parseFloat(this.invoice.vat)
 				return (nPriceValue - nVat).toFixed(2)
+			}
 			default:
 				break
 		}

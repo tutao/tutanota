@@ -43,7 +43,7 @@ BDAY:2001-01-01
 EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
-ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;
+ADR;TYPE=WORK:;;Strasse 30, 67890 hamburg ;;;;
 END:VCARD
 
 `
@@ -60,7 +60,7 @@ BDAY:2001-01-01
 EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
-ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`,
+ADR;TYPE=WORK:;;Strasse 30, 67890 hamburg ;;;;`,
 		]
 		//prepares for further usage --> removes Begin and End tag and pushes the content between those tags into an array
 		o(vCardFileToVCards(str)!).deepEquals(expected)
@@ -85,7 +85,7 @@ BDAY:2001-01-01
 EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
-ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;
+ADR;TYPE=WORK:;;Strasse 30, 67890 hamburg ;;;;
 END:VCARD`
 		let expected = [
 			`VERSION:3.0
@@ -100,7 +100,7 @@ BDAY:2001-01-01
 EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
-ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`,
+ADR;TYPE=WORK:;;Strasse 30, 67890 hamburg ;;;;`,
 		]
 		//Unfolding lines for content lines longer than 75 characters
 		o(vCardFileToVCards(str)!).deepEquals(expected)

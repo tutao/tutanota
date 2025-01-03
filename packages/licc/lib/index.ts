@@ -55,7 +55,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 			throw new Error(`missing type declaration: ${inputPath}`)
 		}
 		switch (definition.type) {
-			case "facade":
+			case "facade": {
 				assertReturnTypesPresent(definition)
 				const isReceiving = definition.receivers.includes(platform)
 				const isSending = definition.senders.includes(platform)
@@ -74,20 +74,24 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 					write(sendOutput, outDir, definition.name + "SendDispatcher" + ext)
 				}
 				break
-			case "struct":
+			}
+			case "struct": {
 				const structOutput = generator.handleStructDefinition(definition)
 				write(structOutput, outDir, definition.name + ext)
 				break
-			case "typeref":
+			}
+			case "typeref": {
 				const refOutput = generator.generateTypeRef(outDir, inputPath, definition)
 				if (refOutput != null) {
 					write(refOutput, outDir, definition.name + ext)
 				}
 				break
-			case "enum":
+			}
+			case "enum": {
 				const enumOutput = generator.generateEnum(definition)
 				write(enumOutput, outDir, definition.name + ext)
 				break
+			}
 			default:
 				throw new Error(`unknown definition type in ${inputPath}: ` + (definition as any).type)
 		}
