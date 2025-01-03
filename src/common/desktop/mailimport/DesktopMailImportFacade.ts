@@ -4,8 +4,6 @@ import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
 import { elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
-import { MailImportFacade } from "../../native/common/generatedipc/MailImportFacade.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { ResumableImport } from "../../native/common/generatedipc/ResumableImport.js"
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
@@ -45,14 +43,14 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		this.importerApi = null
 		this.importerApi = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
 		this.nextCallbackAction = ImportProgressAction.Continue
-		await this.importerApi.startImport((localState: LocalImportState) => {
-			return DesktopMailImportFacade.importStateCallback(this.win.mailImportFacade, assertNotNull(this.nextCallbackAction), localState)
+		await this.importerApi.startImport((localImportState: LocalImportState) => {
+			return this.importStateCallback(localImportState)
 		})
 		this.importerApi = null
 	}
 
-	static async importStateCallback(mailImportFacade: MailImportFacade, callbackAction: ImportProgressAction, localState: LocalImportState) {
-		mailImportFacade.onNewLocalImportMailState({
+	async importStateCallback(localState: LocalImportState) {
+		this.win.mailImportFacade.onNewLocalImportMailState({
 			remoteStateId: [localState.remoteStateId.listId, localState.remoteStateId.elementId],
 			status: localState.currentStatus,
 			start_timestamp: localState.startTimestamp,
@@ -62,7 +60,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		})
 
 		return {
-			action: callbackAction,
+			action: this.nextCallbackAction,
 		}
 	}
 
@@ -104,8 +102,8 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		// force napi to drop the previous importer
 		this.importerApi = null
 		this.importerApi = await ImporterApi.resumeFileImport(tutaCredentials, importMailStateId, this.configDirectory)
-		await this.importerApi.startImport((localState: LocalImportState) => {
-			return DesktopMailImportFacade.importStateCallback(this.win.mailImportFacade, assertNotNull(this.nextCallbackAction), localState)
+		await this.importerApi.startImport((localImportState: LocalImportState) => {
+			return this.importStateCallback(localImportState)
 		})
 		this.importerApi = null
 	}
