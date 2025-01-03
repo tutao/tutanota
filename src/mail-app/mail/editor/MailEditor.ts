@@ -91,7 +91,6 @@ import {
 	dialogTitleTranslationKey,
 	getEnabledMailAddressesWithUser,
 	getMailAddressDisplayText,
-	LINE_BREAK,
 	RecipientField,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -1171,60 +1170,6 @@ export async function newMailEditorFromTemplate(
 		.sendMailModel(mailboxDetails, mailboxProperties)
 		.then((model) => model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState))
 		.then((model) => createMailEditorDialog(model))
-}
-
-export function getSupportMailSignature(): Promise<string> {
-	return import("../../../common/calendar/date/CalendarUtils").then(({ getTimeZone }) => {
-		return (
-			LINE_BREAK +
-			LINE_BREAK +
-			"--" +
-			`<br>Client: ${client.getIdentifier()}` +
-			`<br>Tutanota version: ${env.versionNumber}` +
-			`<br>Time zone: ${getTimeZone()}` +
-			`<br>User agent:<br> ${navigator.userAgent}`
-		)
-	})
-}
-
-/**
- * Create and show a new mail editor with a support query, addressed to premium support,
- * or show an option to upgrade
- * @param subject
- * @param mailboxDetails
- * @returns true if sending support email is allowed, false if upgrade to premium is required (may have been ordered)
- */
-export async function writeSupportMail(subject: string = "", mailboxDetails?: MailboxDetail): Promise<boolean> {
-	if (locator.logins.getUserController().isPremiumAccount()) {
-		const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
-		const recipients = {
-			to: [
-				{
-					name: null,
-					address: "premium@tutao.de",
-				},
-			],
-		}
-		const signature = await getSupportMailSignature()
-		const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, recipients, subject, signature)
-		dialog.show()
-		return true
-	} else {
-		return import("../../../common/subscription/PriceUtils")
-			.then(({ formatPrice }) => {
-				const message = lang.get("premiumOffer_msg", {
-					"{1}": formatPrice(1, true),
-				})
-				const title = lang.get("upgradeReminderTitle_msg")
-				return Dialog.reminder(title, message)
-			})
-			.then((confirm) => {
-				if (confirm) {
-					import("../../../common/subscription/UpgradeSubscriptionWizard").then((utils) => utils.showUpgradeWizard(locator.logins))
-				}
-			})
-			.then(() => false)
-	}
 }
 
 /**

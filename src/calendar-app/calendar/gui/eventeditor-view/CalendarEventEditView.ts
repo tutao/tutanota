@@ -27,6 +27,7 @@ import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/Ev
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
+import { SectionButton } from "../../../../common/gui/base/buttons/SectionButton.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -252,41 +253,15 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderRepeatRuleNavButton({ model, navigationCallback }: CalendarEventEditViewAttrs): Children {
-		const disabled = !model.canEditSeries()
-		return m(
-			Card,
-			{ classes: ["button-min-height", "flex", "items-center"] },
-			m(".flex.gap-vpad-s.items-center.flex-grow", [
-				m(".flex.items-center", [
-					m(Icon, {
-						icon: Icons.Sync,
-						style: { fill: getColors(ButtonColor.Content).button },
-						title: lang.get("calendarRepeating_label"),
-						size: IconSize.Medium,
-					}),
-				]),
-				m(
-					"button.flex.items-center.justify-between.flex-grow.flash",
-					{
-						onclick: (event: MouseEvent) => {
-							this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
-						},
-						disabled,
-						class: disabled ? "disabled cursor-disabled" : "",
-					},
-					[
-						this.getTranslatedRepeatRule(model.editModels.whenModel.result.repeatRule, model.editModels.whenModel.isAllDay),
-						m(Icon, {
-							icon: Icons.ArrowForward,
-							class: "flex items-center",
-							style: { fill: getColors(ButtonColor.Content).button },
-							title: lang.get("calendarRepeating_label"),
-							size: IconSize.Medium,
-						}),
-					],
-				),
-			]),
-		)
+		const repeatRuleText = this.getTranslatedRepeatRule(model.editModels.whenModel.result.repeatRule, model.editModels.whenModel.isAllDay)
+		return m(SectionButton, {
+			leftIcon: { icon: Icons.Sync, title: "calendarRepeating_label" },
+			text: lang.makeTranslation(repeatRuleText, repeatRuleText),
+			isDisabled: !model.canEditSeries(),
+			onclick: () => {
+				this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
+			},
+		})
 	}
 
 	private transitionTo(target: EditorPages, navigationCallback: (targetPage: EditorPages) => unknown) {
@@ -297,41 +272,14 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderGuestsNavButton({ navigationCallback, model }: CalendarEventEditViewAttrs): Children {
-		return m(
-			Card,
-			{ classes: ["button-min-height", "flex", "items-center"] },
-			m(".flex.gap-vpad-s.flash.items-center.flex-grow", [
-				m(".flex.items-center", [
-					m(Icon, {
-						icon: Icons.People,
-						style: { fill: getColors(ButtonColor.Content).button },
-						title: lang.get("calendarRepeating_label"),
-						size: IconSize.Medium,
-					}),
-				]),
-				m(
-					"button.flex.items-center.justify-between.flex-grow.flash",
-					{
-						onclick: (event: MouseEvent) => {
-							this.transitionTo(EditorPages.GUESTS, navigationCallback)
-						},
-					},
-					[
-						lang.get("guests_label"),
-						m(".flex", [
-							model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
-							m(Icon, {
-								icon: Icons.ArrowForward,
-								class: "flex items-center",
-								style: { fill: getColors(ButtonColor.Content).button },
-								title: lang.get("guests_label"),
-								size: IconSize.Medium,
-							}),
-						]),
-					],
-				),
-			]),
-		)
+		return m(SectionButton, {
+			leftIcon: { icon: Icons.People, title: "calendarRepeating_label" },
+			text: "guests_label",
+			injectionRight: model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
+			onclick: () => {
+				this.transitionTo(EditorPages.GUESTS, navigationCallback)
+			},
+		})
 	}
 
 	private renderCalendarPicker(vnode: Vnode<CalendarEventEditViewAttrs>): Children {

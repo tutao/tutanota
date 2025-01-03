@@ -1909,5 +1909,17 @@ export default {
         "localAdminGroup_label": "Local admin group",
         "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
         "localAdminGroups_label": "Local admin groups",
-    }
+		"supportStartPage_title": "We're here to help",
+		"supportStartPage_msg": "Please select an option below to get started:",
+		"supportNoDirectSupport_title": "Sorry, your Free plan doesn't offer direct email support",
+		"supportNoDirectSupport_msg": "You can still get further help through our official FAQ page. Alternatively, you can upgrade to get direct email support.",
+		"supportSuccess_msg": "Glad we could help!",
+		"supportSocialsInfo_msg": "For more tips and updates follow us on our blog and social media channels.",
+		"supportForm_title": "Let's get to the bottom of this",
+		"supportForm_msg": "Please provide more details, so we can assist you better.",
+		"supportRequestReceived_title": "We've received your request!",
+		"supportRequestReceived_msg": "Our team is reviewing your issue and will be in touch soon.",
+		"wasThisHelpful_msg": "Was this helpful?",
+		"supportBackLostRequest_msg": "Are you sure you want to go back? Your request will be lost."
+	}
 }

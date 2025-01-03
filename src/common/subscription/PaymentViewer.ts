@@ -181,7 +181,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				NewPaidPlans,
 				() => this.accountingInfo && this.changePaymentMethod(),
 				// iOS app is checked above
-				() => locator.logins.getUserController().isPremiumAccount(),
+				() => locator.logins.getUserController().isPaidAccount(),
 			)
 
 			showPaymentMethodDialog(e, dom)
@@ -469,7 +469,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					click: createNotAvailableForFreeClickHandler(
 						NewPaidPlans,
 						() => this.changeInvoiceData(),
-						() => locator.logins.getUserController().isPremiumAccount(),
+						() => locator.logins.getUserController().isPaidAccount(),
 					),
 					icon: Icons.Edit,
 					size: ButtonSize.Compact,

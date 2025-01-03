@@ -2,6 +2,7 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 export const size = {
+	icon_size_xxl: 64,
 	icon_size_xl: 32,
 	icon_size_large: 24,
 	icon_size_medium_large: 20,

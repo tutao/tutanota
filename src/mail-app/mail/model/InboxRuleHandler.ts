@@ -104,7 +104,7 @@ export class InboxRuleHandler {
 			mail._errors ||
 			!mail.unread ||
 			!(await isInboxFolder(mailboxDetail, mail)) ||
-			!this.logins.getUserController().isPremiumAccount() ||
+			!this.logins.getUserController().isPaidAccount() ||
 			mailboxDetail.mailbox.folders == null
 		) {
 			return null

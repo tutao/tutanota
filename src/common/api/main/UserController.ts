@@ -99,7 +99,7 @@ export class UserController {
 		return this.user.accountType === AccountType.FREE
 	}
 
-	isPremiumAccount(): boolean {
+	isPaidAccount(): boolean {
 		return this.user.accountType === AccountType.PAID
 	}
 
