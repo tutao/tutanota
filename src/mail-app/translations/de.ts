@@ -1912,18 +1912,6 @@ export default {
         // Put in temporarily, will be removed soon
         "localAdminGroup_label": "Local admin group",
         "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-        "localAdminGroups_label": "Local admin groups",
-		"supportStartPage_title": "Wir helfen dir gerne",
-		"supportStartPage_msg": "Bitte wähle als erstes eine Kategorie aus:",
-		"supportNoDirectSupport_title": "Leider gibt es im Free-Account keinen direkten E-Mail-Support",
-		"supportNoDirectSupport_msg": "Du kannst aber weitere Hilfe in unserem offiziellen FAQ bekommen. Alternativ kannst du ein Upgrade machen, um direkten E-Mail-Support zu bekommen.",
-		"supportSuccess_msg": "Wir freuen uns, dass wir dir helfen konnten!",
-		"supportSocialsInfo_msg": "Für weitere Tipps und Neuigkeiten folge uns auf unserem Blog und auf unseren Kanälen in den sozialen Netzwerken.",
-		"supportForm_title": "Gehen wir der Sache auf den Grund",
-		"supportForm_msg": "Bitte beschreibe uns mehr Details, damit wir dir besser helfen können.",
-		"supportRequestReceived_title": "Wir haben deine Anfrage erhalten!",
-		"supportRequestReceived_msg": "Unser Team schaut sich deine Anfrage an und wir melden uns bald zurück.",
-		"wasThisHelpful_msg": "War das hilfreich?",
-		"supportBackLostRequest_msg": "Möchtest du wirklich zurückgehen? Deine Anfrage wird nicht gespeichert."
+        "localAdminGroups_label": "Local admin groups"
 	}
 }
