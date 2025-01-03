@@ -15,7 +15,7 @@ import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntry
 import { memoized, NBSP, noOp } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../common/gui/SelectableRowContainer.js"
-import { ListModel } from "../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../common/gui/base/ListUtils.js"
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
@@ -40,7 +40,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private resultItemIds: Array<IdTuple> = []
 
-	private listModel: ListModel<KnowledgeBaseEntry>
+	private listModel: ListElementListModel<KnowledgeBaseEntry>
 	private listStateSubscription: Stream<unknown> | null = null
 	private readonly renderConfig: RenderConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
 		itemHeight: size.list_row_height,
@@ -81,7 +81,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 
 	private makeListModel() {
-		const listModel = new ListModel<KnowledgeBaseEntry>({
+		const listModel = new ListElementListModel<KnowledgeBaseEntry>({
 			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
 				const titleA = a.title.toUpperCase()
 				const titleB = b.title.toUpperCase()

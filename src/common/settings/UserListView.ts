@@ -18,7 +18,6 @@ import { locator } from "../api/main/CommonLocator.js"
 import Stream from "mithril/stream"
 import * as AddUserDialog from "./AddUserDialog.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../gui/SelectableRowContainer.js"
-import { ListModel } from "../misc/ListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../gui/base/List.js"
 import { listSelectionKeyboardShortcuts, VirtualRow } from "../gui/base/ListUtils.js"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox.js"
@@ -31,6 +30,7 @@ import { keyManager } from "../misc/KeyManager.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
+import { ListElementListModel } from "../misc/ListElementListModel"
 
 assertMainOrNode()
 
@@ -41,7 +41,7 @@ assertMainOrNode()
  */
 export class UserListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private listModel: ListModel<GroupInfo>
+	private listModel: ListElementListModel<GroupInfo>
 	private readonly renderConfig: RenderConfig<GroupInfo, UserRow> = {
 		createElement: (dom) => {
 			const row = new UserRow((groupInfo) => this.isAdmin(groupInfo))
@@ -207,8 +207,8 @@ export class UserListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	private makeListModel(): ListModel<GroupInfo> {
-		const listModel = new ListModel<GroupInfo>({
+	private makeListModel(): ListElementListModel<GroupInfo> {
+		const listModel = new ListElementListModel<GroupInfo>({
 			sortCompare: compareGroupInfos,
 			fetch: async (_lastFetchedEntity) => {
 				await this.loadAdmins()

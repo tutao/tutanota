@@ -1,4 +1,4 @@
-import { ListModel } from "../../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
@@ -386,7 +386,7 @@ export class MailViewModel {
 		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	})
 
-	get listModel(): ListModel<Mail> | null {
+	get listModel(): ListElementListModel<Mail> | null {
 		return this._folder ? this.listModelForFolder(getElementId(this._folder)) : null
 	}
 
@@ -426,7 +426,7 @@ export class MailViewModel {
 		// We need to populate mail set entries cache when loading mails so that we can react to updates later.
 		const mailSetEntries = this.mailSetEntries()
 		const folder = assertNotNull(this._folder)
-		return new ListModel<Mail>({
+		return new ListElementListModel<Mail>({
 			fetch: async (lastFetchedMail, count) => {
 				// in case the folder is a new MailSet folder we need to load via the MailSetEntry index indirection
 				let startId: Id

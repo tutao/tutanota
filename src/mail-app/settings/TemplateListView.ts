@@ -14,7 +14,7 @@ import { ListColumnWrapper } from "../../common/gui/ListColumnWrapper"
 import { memoized, noOp } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../common/gui/SelectableRowContainer.js"
-import { ListModel } from "../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import Stream from "mithril/stream"
 import ColumnEmptyMessageBox from "../../common/gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../common/gui/theme.js"
@@ -40,7 +40,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private resultItemIds: ReadonlyArray<IdTuple> = []
 
-	private listModel: ListModel<EmailTemplate>
+	private listModel: ListElementListModel<EmailTemplate>
 	private listStateSubscription: Stream<unknown> | null = null
 	private readonly renderConfig: RenderConfig<EmailTemplate, TemplateRow> = {
 		itemHeight: size.list_row_height,
@@ -80,7 +80,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 	private makeListModel() {
-		const listModel = new ListModel<EmailTemplate>({
+		const listModel = new ListElementListModel<EmailTemplate>({
 			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
 				const titleA = a.title.toUpperCase()
 				const titleB = b.title.toUpperCase()

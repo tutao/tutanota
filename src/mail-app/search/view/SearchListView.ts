@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { MailRow } from "../../mail/view/MailRow"
-import { ListModel } from "../../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
@@ -28,7 +28,7 @@ export class SearchResultListEntry {
 }
 
 export interface SearchListViewAttrs {
-	listModel: ListModel<SearchResultListEntry>
+	listModel: ListElementListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
 	currentType: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>
 	isFreeAccount: boolean
@@ -39,7 +39,7 @@ export interface SearchListViewAttrs {
 export class SearchListView implements Component<SearchListViewAttrs> {
 	private attrs: SearchListViewAttrs
 
-	private get listModel(): ListModel<SearchResultListEntry> {
+	private get listModel(): ListElementListModel<SearchResultListEntry> {
 		return this.attrs.listModel
 	}
 

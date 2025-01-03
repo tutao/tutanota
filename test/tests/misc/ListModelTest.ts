@@ -1,26 +1,27 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { getElementId, getListId, sortCompareById, timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils.js"
+import { getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/common/gui/base/List.js"
 import { ConnectionError } from "../../../src/common/api/common/error/RestError.js"
-import { OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 
 o.spec("ListModel", function () {
 	const listId = "listId"
 	let fetchDefer: DeferredObject<ListFetchResult<KnowledgeBaseEntry>>
-	let listModel: ListModel<KnowledgeBaseEntry>
-	const defaultListConfig = {
+	let listModel: ListModel<KnowledgeBaseEntry, Id>
+	const defaultListConfig: ListModelConfig<KnowledgeBaseEntry, Id> = {
 		fetch: () => fetchDefer.promise,
 		sortCompare: sortCompareById,
 		loadSingle: () => {
 			throw new Error("noop")
 		},
 		autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
+		getItemId: getElementId,
+		isSameId: (id1: string, id2: string) => id1 === id2,
 	}
 
 	const itemA = createTestEntity(KnowledgeBaseEntryTypeRef, {
@@ -49,7 +50,7 @@ o.spec("ListModel", function () {
 
 	o.beforeEach(function () {
 		fetchDefer = defer<ListFetchResult<KnowledgeBaseEntry>>()
-		listModel = new ListModel<KnowledgeBaseEntry>(defaultListConfig)
+		listModel = new ListModel<KnowledgeBaseEntry, Id>(defaultListConfig)
 	})
 
 	o.spec("loading states", function () {
@@ -409,94 +410,6 @@ o.spec("ListModel", function () {
 				},
 			)
 
-			o("when the active item is deleted selectPrevious single will still select previous item relative to it", async function () {
-				await setItems(items)
-				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
-				// start state:
-				//
-				// A
-				// (B) active, gone
-				// C
-				// D
-				//
-				// end state:
-				//
-				// A + active
-				// C
-				// D
-				listModel.selectPrevious(false)
-				o(getSortedSelection()).deepEquals([itemA])
-				o(listModel.state.inMultiselect).equals(false)
-				o(listModel.state.activeIndex).equals(0)
-			})
-
-			o("when the active item is deleted selectPrevious multiselect will still select previous item relative to it", async function () {
-				await setItems(items)
-				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
-				// start state:
-				//
-				// A
-				// (B) active, gone
-				// C
-				// D
-				//
-				// end state:
-				//
-				// A + active
-				// C
-				// D
-				listModel.selectPrevious(true)
-				o(getSortedSelection()).deepEquals([itemA])
-				o(listModel.state.inMultiselect).equals(true)
-				o(listModel.state.activeIndex).equals(0)
-			})
-
-			o("when the active item is deleted selectNext single will still select next item relative to it", async function () {
-				await setItems(items)
-				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
-				// start state:
-				//
-				// A
-				// (B) active, gone
-				// C
-				// D
-				//
-				// end state:
-				//
-				// A
-				// C + active
-				// D
-				listModel.selectNext(false)
-				o(getSortedSelection()).deepEquals([itemC])
-				o(listModel.state.inMultiselect).equals(false)
-				o(listModel.state.activeIndex).equals(1)
-			})
-
-			o("when the active item is deleted selectNext multiselect will still select next item relative to it", async function () {
-				await setItems(items)
-				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
-				// start state:
-				//
-				// A
-				// (B) active, gone
-				// C
-				// D
-				//
-				// end state:
-				//
-				// A
-				// C + active
-				// D
-				listModel.selectNext(true)
-				o(getSortedSelection()).deepEquals([itemC])
-				o(listModel.state.inMultiselect).equals(true)
-				o(listModel.state.activeIndex).equals(1)
-			})
-
 			o("when the active item is filtered out selectNext multiselect will still select next item relative to it", async function () {
 				await setItems(items)
 				listModel.onSingleInclusiveSelection(itemB)
@@ -706,82 +619,6 @@ o.spec("ListModel", function () {
 				o(getSortedSelection()).deepEquals([itemB, itemD])
 				o(listModel.state.inMultiselect).equals(true)
 			})
-		})
-	})
-
-	o.spec("Removing element in list ", function () {
-		o("in single select, the active element is next entity when active element gets deleted", async function () {
-			await setItems(items)
-			listModel.onSingleSelection(itemB)
-			await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
-
-			o(listModel.state.activeIndex).equals(1)
-		})
-
-		o("in single select, the active element is not changed when a different entity is deleted", async function () {
-			await setItems(items)
-			listModel.onSingleSelection(itemC)
-			await listModel.entityEventReceived(getListId(itemA), getElementId(itemA), OperationType.DELETE)
-
-			o(listModel.state.activeIndex).equals(1)
-		})
-
-		o("in multiselect, next element is not selected when element is removed", async function () {
-			await setItems(items)
-			listModel.onSingleInclusiveSelection(itemB)
-			await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
-
-			o(listModel.state.inMultiselect).equals(true)
-			o(listModel.state.activeIndex).equals(null)
-		})
-	})
-
-	o.spec("Updating items", function () {
-		o("update for item with id sorting updates item", async function () {
-			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
-
-			const newConfig: ListModelConfig<KnowledgeBaseEntry> = {
-				...defaultListConfig,
-				async loadSingle(_listId: Id, elementId: Id): Promise<KnowledgeBaseEntry | null> {
-					if (elementId === getElementId(itemD)) {
-						return updatedItemD
-					} else {
-						throw new Error("noop")
-					}
-				},
-			}
-
-			listModel = new ListModel<KnowledgeBaseEntry>(newConfig)
-			await setItems(items)
-
-			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
-
-			o(listModel.state.items).deepEquals([itemA, itemB, itemC, updatedItemD])
-		})
-
-		o("update for item with custom sorting changes position", async function () {
-			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
-
-			const newConfig: ListModelConfig<KnowledgeBaseEntry> = {
-				...defaultListConfig,
-				async loadSingle(_listId: Id, elementId: Id): Promise<KnowledgeBaseEntry | null> {
-					if (elementId === getElementId(itemD)) {
-						return updatedItemD
-					} else {
-						throw new Error("noop")
-					}
-				},
-				sortCompare: (e1, e2) => {
-					return e1.title.localeCompare(e2.title)
-				},
-			}
-
-			listModel = new ListModel<KnowledgeBaseEntry>(newConfig)
-			await setItems(items)
-
-			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
-
-			o(listModel.state.items).deepEquals([itemA, updatedItemD, itemB, itemC])
 		})
 	})
 })

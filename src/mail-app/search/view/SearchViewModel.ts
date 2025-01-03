@@ -1,4 +1,4 @@
-import { ListFilter, ListModel } from "../../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
@@ -78,6 +78,7 @@ import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewer
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
+import { ListFilter } from "../../../common/misc/ListModel"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -89,8 +90,8 @@ export enum PaidFunctionResult {
 }
 
 export class SearchViewModel {
-	private _listModel: ListModel<SearchResultListEntry>
-	get listModel(): ListModel<SearchResultListEntry> {
+	private _listModel: ListElementListModel<SearchResultListEntry>
+	get listModel(): ListElementListModel<SearchResultListEntry> {
 		return this._listModel
 	}
 
@@ -874,20 +875,20 @@ export class SearchViewModel {
 		}
 	}
 
-	private createList(): ListModel<SearchResultListEntry> {
+	private createList(): ListElementListModel<SearchResultListEntry> {
 		// since we recreate the list every time we set a new result object,
 		// we bind the value of result for the lifetime of this list model
 		// at this point
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
-		return new ListModel<SearchResultListEntry>({
+		return new ListElementListModel<SearchResultListEntry>({
 			fetch: async (lastFetchedEntity: SearchResultListEntry, count: number) => {
 				const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
 
 				const lastResult = this.searchResult
 				if (lastResult !== this.searchResult) {
 					console.warn("got a fetch request for outdated results object, ignoring")
-					// this._searchResults was reassigned, we'll create a new ListModel soon
+					// this._searchResults was reassigned, we'll create a new ListElementListModel soon
 					return { items: [], complete: true }
 				}
 				await awaitSearchInitialized(this.search)

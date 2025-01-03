@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../../common/api/common/Env"
-import { downcast, TypeRef } from "@tutao/tutanota-utils"
-import { ListModel } from "../../../../common/misc/ListModel.js"
+import { downcast } from "@tutao/tutanota-utils"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../common/gui/base/List.js"
 import { size } from "../../../../common/gui/size.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
@@ -12,6 +11,7 @@ import { theme } from "../../../../common/gui/theme.js"
 import { VirtualRow } from "../../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../../common/gui/styles.js"
 import { KindaCalendarRow } from "../../gui/CalendarRow.js"
+import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 
 assertMainOrNode()
 
@@ -24,14 +24,14 @@ export class CalendarSearchResultListEntry {
 }
 
 export interface CalendarSearchListViewAttrs {
-	listModel: ListModel<CalendarSearchResultListEntry>
+	listModel: ListElementListModel<CalendarSearchResultListEntry>
 	onSingleSelection: (item: CalendarSearchResultListEntry) => unknown
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 }
 
 export class CalendarSearchListView implements Component<CalendarSearchListViewAttrs> {
-	private listModel: ListModel<CalendarSearchResultListEntry>
+	private listModel: ListElementListModel<CalendarSearchResultListEntry>
 
 	constructor({ attrs }: Vnode<CalendarSearchListViewAttrs>) {
 		this.listModel = attrs.listModel

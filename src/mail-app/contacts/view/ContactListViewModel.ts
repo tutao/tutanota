@@ -1,4 +1,4 @@
-import { ListModel } from "../../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import {
 	Contact,
 	ContactListEntry,
@@ -77,12 +77,12 @@ export class ContactListViewModel {
 		await this.contactModel.getLoadedContactListInfos()
 	})
 
-	get listModel(): ListModel<ContactListEntry> | null {
+	get listModel(): ListElementListModel<ContactListEntry> | null {
 		return this.selectedContactList ? this._listModel(this.selectedContactList) : null
 	}
 
 	private readonly _listModel = memoized((listId: Id) => {
-		const newListModel = new ListModel<ContactListEntry>({
+		const newListModel = new ListElementListModel<ContactListEntry>({
 			fetch: async () => {
 				const items = await this.getRecipientsForList(listId)
 				return { items, complete: true }
@@ -148,7 +148,10 @@ export class ContactListViewModel {
 		if (!this.listModel?.state.inMultiselect) {
 			const recipient = this.getSelectedContactListEntries()
 			if (recipient && recipient.length === 1) {
-				this.router.routeTo(`/contactlist/:listId/:itemId`, { listId: this.selectedContactList, itemId: recipient[0]._id[1] })
+				this.router.routeTo(`/contactlist/:listId/:itemId`, {
+					listId: this.selectedContactList,
+					itemId: recipient[0]._id[1],
+				})
 				return
 			}
 		}

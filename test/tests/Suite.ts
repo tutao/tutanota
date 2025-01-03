@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 
 import "./misc/ListModelTest.js"
+import "./misc/ListElementListModelTest.js"
 import "./api/worker/facades/LoginFacadeTest.js"
 import "./api/common/utils/LoggerTest.js"
 import "./api/common/utils/BirthdayUtilsTest.js"

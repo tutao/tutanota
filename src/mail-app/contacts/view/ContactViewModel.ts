@@ -1,7 +1,7 @@
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
-import { ListModel } from "../../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
@@ -28,7 +28,7 @@ export class ContactViewModel {
 		private readonly updateUi: () => unknown,
 	) {}
 
-	readonly listModel: ListModel<Contact> = new ListModel<Contact>({
+	readonly listModel: ListElementListModel<Contact> = new ListElementListModel<Contact>({
 		fetch: async () => {
 			const items = await this.entityClient.loadAll(ContactTypeRef, this.contactListId)
 			return { items, complete: true }

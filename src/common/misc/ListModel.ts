@@ -1,7 +1,4 @@
-import { elementIdPart, getElementId, isSameId, ListElement } from "../api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../gui/base/List.js"
-
-import { OperationType } from "../api/common/TutanotaConstants.js"
 import {
 	assertNonNull,
 	binarySearch,
@@ -25,72 +22,86 @@ import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
-export type ListModelConfig<ListElementType> = {
+export type ListModelConfig<ItemType, IdType> = {
 	/**
-	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
+	 * Get the given number of entities starting after the given id. May return more items than requested, e.g. if all items are available on first fetch.
 	 */
-	fetch(lastFetchedEntity: ListElementType | null | undefined, count: number): Promise<ListFetchResult<ListElementType>>
+	fetch(lastFetchedItem: ItemType | null | undefined, count: number): Promise<ListFetchResult<ItemType>>
 
 	/**
-	 * Returns null if the given element could not be loaded
+	 * Returns null if the given item could not be loaded
 	 */
-	loadSingle(listId: Id, elementId: Id): Promise<ListElementType | null>
+	loadSingle(listId: IdType, itemId: IdType): Promise<ItemType | null>
 
-	sortCompare(entity1: ListElementType, entity2: ListElementType): number
+	/**
+	 * Compare the items
+	 * @return 0 if equal, less than 0 if less and greater than 0 if greater
+	 */
+	sortCompare(item1: ItemType, item2: ItemType): number
+
+	/**
+	 * @return the ID of the item
+	 */
+	getItemId(item: ItemType): IdType
+
+	/**
+	 * @return true if the IDs are the same
+	 */
+	isSameId(id1: IdType, id2: IdType): boolean
 
 	autoSelectBehavior: () => ListAutoSelectBehavior
 }
 
-export type ListFilter<ElementType extends ListElement> = (item: ElementType) => boolean
+export type ListFilter<ItemType> = (item: ItemType) => boolean
 
-type PrivateListState<ElementType> = Omit<ListState<ElementType>, "items" | "activeIndex"> & {
-	unfilteredItems: ElementType[]
-	filteredItems: ElementType[]
-	activeElement: ElementType | null
+type PrivateListState<ItemType> = Omit<ListState<ItemType>, "items" | "activeIndex"> & {
+	unfilteredItems: ItemType[]
+	filteredItems: ItemType[]
+	activeItem: ItemType | null
 }
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
-export class ListModel<ElementType extends ListElement> {
-	constructor(private readonly config: ListModelConfig<ElementType>) {}
+export class ListModel<ItemType, IdType> {
+	constructor(private readonly config: ListModelConfig<ItemType, IdType>) {}
 
 	private loadState: "created" | "initialized" = "created"
 	private loading: Promise<unknown> = Promise.resolve()
-	private filter: ListFilter<ElementType> | null = null
-	private rangeSelectionAnchorElement: ElementType | null = null
+	private filter: ListFilter<ItemType> | null = null
+	private rangeSelectionAnchorItem: ItemType | null = null
 
-	get state(): ListState<ElementType> {
+	get state(): ListState<ItemType> {
 		return this.stateStream()
 	}
 
-	private get rawState(): PrivateListState<ElementType> {
+	private get rawState(): PrivateListState<ItemType> {
 		return this.rawStateStream()
 	}
 
-	private defaultRawStateStream: PrivateListState<ElementType> = {
+	private defaultRawStateStream: PrivateListState<ItemType> = {
 		unfilteredItems: [],
 		filteredItems: [],
 		inMultiselect: false,
 		loadingStatus: ListLoadingState.Idle,
 		loadingAll: false,
 		selectedItems: new Set(),
-		activeElement: null,
+		activeItem: null,
 	}
-	private rawStateStream: Stream<PrivateListState<ElementType>> = stream(this.defaultRawStateStream)
+	private rawStateStream: Stream<PrivateListState<ItemType>> = stream(this.defaultRawStateStream)
 
-	readonly stateStream: Stream<ListState<ElementType>> = this.rawStateStream.map((state) => {
-		const activeElement = state.activeElement
-		const foundIndex = activeElement ? binarySearch(state.filteredItems, activeElement, (l, r) => this.config.sortCompare(l, r)) : -1
+	readonly stateStream: Stream<ListState<ItemType>> = this.rawStateStream.map((state) => {
+		const activeItem = state.activeItem
+		const foundIndex = activeItem ? binarySearch(state.filteredItems, activeItem, (l, r) => this.config.sortCompare(l, r)) : -1
 		const activeIndex = foundIndex < 0 ? null : foundIndex
 		return { ...state, items: state.filteredItems, activeIndex }
 	})
 
-	readonly differentItemsSelected: Stream<ReadonlySet<ElementType>> = Stream.scan(
-		(acc: ReadonlySet<ElementType>, state: ListState<ElementType>) => {
-			const newSelectedIds = setMap(state.selectedItems, getElementId)
-			const oldSelectedIds = setMap(acc, getElementId)
+	readonly differentItemsSelected: Stream<ReadonlySet<ItemType>> = Stream.scan(
+		(acc: ReadonlySet<ItemType>, state: ListState<ItemType>) => {
+			const newSelectedIds = setMap(state.selectedItems, (item) => this.config.getItemId(item))
+			const oldSelectedIds = setMap(acc, (item) => this.config.getItemId(item))
 			if (setEquals(oldSelectedIds, newSelectedIds)) {
 				// Stream.scan type definitions does not take it into account
-				return Stream.SKIP as unknown as ReadonlySet<ElementType>
+				return Stream.SKIP as unknown as ReadonlySet<ItemType>
 			} else {
 				return state.selectedItems
 			}
@@ -99,7 +110,7 @@ export class ListModel<ElementType extends ListElement> {
 		this.stateStream,
 	)
 
-	private updateState(newStatePart: Partial<PrivateListState<ElementType>>) {
+	private updateState(newStatePart: Partial<PrivateListState<ItemType>>) {
 		this.rawStateStream({ ...this.rawState, ...newStatePart })
 	}
 
@@ -175,11 +186,11 @@ export class ListModel<ElementType extends ListElement> {
 		return this.loading
 	}
 
-	private applyFilter(newItems: ReadonlyArray<ElementType>): Array<ElementType> {
+	private applyFilter(newItems: ReadonlyArray<ItemType>): Array<ItemType> {
 		return newItems.filter(this.filter ?? (() => true))
 	}
 
-	setFilter(filter: ListFilter<ElementType> | null) {
+	setFilter(filter: ListFilter<ItemType> | null) {
 		this.filter = filter
 		this.reapplyFilter()
 	}
@@ -192,136 +203,16 @@ export class ListModel<ElementType extends ListElement> {
 		this.updateState({ filteredItems: newFilteredItems, selectedItems: newSelectedItems })
 	}
 
-	async entityEventReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
-		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
-			// load the element without range checks for now
-			const entity = await this.config.loadSingle(listId, elementId)
-			if (!entity) {
-				return
-			}
-
-			// Wait for any pending loading
-			return settledThen(this.loading, () => {
-				if (operation === OperationType.CREATE) {
-					if (
-						this.rawState.loadingStatus === ListLoadingState.Done ||
-						// new element is in the loaded range or newer than the first element
-						(this.rawState.unfilteredItems.length > 0 && this.config.sortCompare(entity, lastThrow(this.rawState.unfilteredItems)) < 0)
-					) {
-						this.addToLoadedEntities(entity)
-					}
-				} else if (operation === OperationType.UPDATE) {
-					this.updateLoadedEntity(entity)
-				}
-			})
-		} else if (operation === OperationType.DELETE) {
-			// await this.swipeHandler?.animating
-			await this.deleteLoadedEntity(elementId)
-		}
+	onSingleSelection(item: ItemType): void {
+		this.updateState({ selectedItems: new Set([item]), inMultiselect: false, activeItem: item })
+		this.rangeSelectionAnchorItem = item
 	}
 
-	private addToLoadedEntities(entity: ElementType) {
-		const id = getElementId(entity)
-		if (this.rawState.unfilteredItems.some((item) => getElementId(item) === id)) {
-			return
-		}
-
-		// can we do something like binary search?
-		const unfilteredItems = this.rawState.unfilteredItems.concat(entity).sort(this.config.sortCompare)
-		const filteredItems = this.rawState.filteredItems.concat(this.applyFilter([entity])).sort(this.config.sortCompare)
-		this.updateState({ filteredItems, unfilteredItems })
-	}
-
-	private updateLoadedEntity(entity: ElementType) {
-		// We cannot use binary search here because the sort order of items can change based on the entity update, and we need to find the position of the
-		// old entity by id in order to remove it.
-
-		// Since every element id is unique and there's no scenario where the same item appears twice but in different lists, we can safely sort just
-		// by the element id, ignoring the list id
-
-		// update unfiltered list: find the position, take out the old item and put the updated one
-		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((item) => isSameId(elementIdPart(item._id), elementIdPart(entity._id)))
-		const unfilteredItems = this.rawState.unfilteredItems.slice()
-		if (positionToUpdateUnfiltered >= 0) {
-			unfilteredItems.splice(positionToUpdateUnfiltered, 1, entity)
-			unfilteredItems.sort(this.config.sortCompare)
-		}
-
-		// update filtered list & selected items
-		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((item) => isSameId(elementIdPart(item._id), elementIdPart(entity._id)))
-		const filteredItems = this.rawState.filteredItems.slice()
-		const selectedItems = new Set(this.rawState.selectedItems)
-		if (positionToUpdateFiltered >= 0) {
-			const [oldItem] = filteredItems.splice(positionToUpdateFiltered, 1, entity)
-			filteredItems.sort(this.config.sortCompare)
-			if (selectedItems.delete(oldItem)) {
-				selectedItems.add(entity)
-			}
-		}
-
-		// keep active element up-to-date
-		const activeElementUpdated = this.rawState.activeElement != null && isSameId(elementIdPart(this.rawState.activeElement._id), elementIdPart(entity._id))
-		const newActiveElement = this.rawState.activeElement
-
-		if (positionToUpdateUnfiltered !== -1 || positionToUpdateFiltered !== -1 || activeElementUpdated) {
-			this.updateState({ unfilteredItems, filteredItems, selectedItems, activeElement: newActiveElement })
-		}
-
-		// keep anchor up-to-date
-		if (this.rangeSelectionAnchorElement != null && isSameId(this.rangeSelectionAnchorElement._id, entity._id)) {
-			this.rangeSelectionAnchorElement = entity
-		}
-	}
-
-	private deleteLoadedEntity(elementId: Id): Promise<void> {
-		return settledThen(this.loading, () => {
-			const entity = this.rawState.filteredItems.find((e) => getElementId(e) === elementId)
-
-			const selectedItems = new Set(this.rawState.selectedItems)
-
-			let newActiveElement
-
-			if (entity) {
-				const wasEntityRemoved = selectedItems.delete(entity)
-
-				if (this.rawState.filteredItems.length > 1) {
-					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
-					if (wasEntityRemoved) {
-						if (desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) {
-							selectedItems.clear()
-						} else if (desiredBehavior === ListAutoSelectBehavior.NEWER) {
-							newActiveElement = this.getPreviousItem(entity)
-						} else {
-							newActiveElement = entity === last(this.state.items) ? this.getPreviousItem(entity) : this.getNextItem(entity, null)
-						}
-					}
-
-					if (newActiveElement) {
-						selectedItems.add(newActiveElement)
-					} else {
-						newActiveElement = this.rawState.activeElement
-					}
-				}
-
-				const filteredItems = this.rawState.filteredItems.slice()
-				remove(filteredItems, entity)
-				const unfilteredItems = this.rawState.unfilteredItems.slice()
-				remove(unfilteredItems, entity)
-				this.updateState({ filteredItems, selectedItems, unfilteredItems, activeElement: newActiveElement })
-			}
-		})
-	}
-
-	onSingleSelection(item: ElementType): void {
-		this.updateState({ selectedItems: new Set([item]), inMultiselect: false, activeElement: item })
-		this.rangeSelectionAnchorElement = item
-	}
-
-	/** An element was added to the selection. If multiselect was not on, discard previous single selection and only added selected item to the selection. */
-	onSingleExclusiveSelection(item: ElementType): void {
+	/** An item was added to the selection. If multiselect was not on, discard previous single selection and only added selected item to the selection. */
+	onSingleExclusiveSelection(item: ItemType): void {
 		if (!this.rawState.inMultiselect) {
-			this.updateState({ selectedItems: new Set([item]), inMultiselect: true, activeElement: item })
-			this.rangeSelectionAnchorElement = item
+			this.updateState({ selectedItems: new Set([item]), inMultiselect: true, activeItem: item })
+			this.rangeSelectionAnchorItem = item
 		} else {
 			const selectedItems = new Set(this.state.selectedItems)
 			if (selectedItems.has(item)) {
@@ -330,17 +221,17 @@ export class ListModel<ElementType extends ListElement> {
 				selectedItems.add(item)
 			}
 			if (selectedItems.size === 0) {
-				this.updateState({ selectedItems, inMultiselect: false, activeElement: null })
-				this.rangeSelectionAnchorElement = null
+				this.updateState({ selectedItems, inMultiselect: false, activeItem: null })
+				this.rangeSelectionAnchorItem = null
 			} else {
-				this.updateState({ selectedItems, inMultiselect: true, activeElement: item })
-				this.rangeSelectionAnchorElement = item
+				this.updateState({ selectedItems, inMultiselect: true, activeItem: item })
+				this.rangeSelectionAnchorItem = item
 			}
 		}
 	}
 
-	/** An element was added to the selection. If multiselect was not on, add previous single selection and newly added selected item to the selection. */
-	onSingleInclusiveSelection(item: ElementType, clearSelectionOnMultiSelectStart?: boolean): void {
+	/** An item was added to the selection. If multiselect was not on, add previous single selection and newly added selected item to the selection. */
+	onSingleInclusiveSelection(item: ItemType, clearSelectionOnMultiSelectStart?: boolean): void {
 		// If it isn't in MultiSelect, we discard all previous items
 		// and start a new set of selected items in MultiSelect mode
 		// we do it only if the user is on singleColumnMode, because
@@ -358,21 +249,21 @@ export class ListModel<ElementType extends ListElement> {
 		}
 
 		if (selectedItems.size === 0) {
-			this.updateState({ selectedItems, inMultiselect: false, activeElement: null })
-			this.rangeSelectionAnchorElement = null
+			this.updateState({ selectedItems, inMultiselect: false, activeItem: null })
+			this.rangeSelectionAnchorItem = null
 		} else {
-			this.updateState({ selectedItems, inMultiselect: true, activeElement: item })
-			this.rangeSelectionAnchorElement = item
+			this.updateState({ selectedItems, inMultiselect: true, activeItem: item })
+			this.rangeSelectionAnchorItem = item
 		}
 	}
 
 	async loadAndSelect(
-		itemId: Id,
+		itemId: IdType,
 		shouldStop: () => boolean,
-		finder: (a: ElementType) => boolean = (item) => getElementId(item) === itemId,
-	): Promise<ElementType | null> {
+		finder: (a: ItemType) => boolean = (item) => this.config.isSameId(this.config.getItemId(item), itemId),
+	): Promise<ItemType | null> {
 		await this.waitUtilInit()
-		let foundItem: ElementType | undefined = undefined
+		let foundItem: ItemType | undefined = undefined
 		while (
 			// if we did find the target mail, stop
 			// make sure to call this before shouldStop or we might stop before trying to find an item
@@ -392,12 +283,12 @@ export class ListModel<ElementType extends ListElement> {
 		return foundItem ?? null
 	}
 
-	selectRangeTowards(item: ElementType): void {
+	selectRangeTowards(item: ItemType): void {
 		const selectedItems = new Set(this.state.selectedItems)
 		if (selectedItems.size === 0) {
 			selectedItems.add(item)
 		} else {
-			// we are trying to find the element that's closest to the click one
+			// we are trying to find the item that's closest to the clicked one
 			// and after that we will select everything between the closest and the clicked one
 
 			const clickedItemIndex: number = this.state.items.indexOf(item)
@@ -413,7 +304,7 @@ export class ListModel<ElementType extends ListElement> {
 			}
 			assertNonNull(nearestSelectedIndex)
 
-			const itemsToAddToSelection: ElementType[] = []
+			const itemsToAddToSelection: ItemType[] = []
 
 			if (nearestSelectedIndex < clickedItemIndex) {
 				for (let i = nearestSelectedIndex + 1; i <= clickedItemIndex; i++) {
@@ -427,12 +318,12 @@ export class ListModel<ElementType extends ListElement> {
 
 			setAddAll(selectedItems, itemsToAddToSelection)
 		}
-		this.updateState({ selectedItems, inMultiselect: true, activeElement: item })
-		this.rangeSelectionAnchorElement = item
+		this.updateState({ selectedItems, inMultiselect: true, activeItem: item })
+		this.rangeSelectionAnchorItem = item
 	}
 
 	selectPrevious(multiselect: boolean) {
-		const oldActiveItem = this.rawState.activeElement
+		const oldActiveItem = this.rawState.activeItem
 		const newActiveItem = this.getPreviousItem(oldActiveItem)
 
 		if (newActiveItem != null) {
@@ -440,11 +331,11 @@ export class ListModel<ElementType extends ListElement> {
 				this.onSingleSelection(newActiveItem)
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
-				this.rangeSelectionAnchorElement = this.rangeSelectionAnchorElement ?? first(this.state.items)
-				if (!this.rangeSelectionAnchorElement) return
+				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
+				if (!this.rangeSelectionAnchorItem) return
 
 				const previousActiveIndex = this.state.activeIndex ?? 0
-				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorElement) > 0
+				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorItem) > 0
 				if (towardsAnchor) {
 					// remove
 					selectedItems.delete(this.state.items[previousActiveIndex])
@@ -453,19 +344,19 @@ export class ListModel<ElementType extends ListElement> {
 					selectedItems.add(newActiveItem)
 				}
 
-				this.updateState({ activeElement: newActiveItem, selectedItems, inMultiselect: true })
+				this.updateState({ activeItem: newActiveItem, selectedItems, inMultiselect: true })
 			}
 		}
 	}
 
-	private getPreviousItem(oldActiveItem: ElementType | null) {
+	private getPreviousItem(oldActiveItem: ItemType | null) {
 		return oldActiveItem == null
 			? first(this.state.items)
-			: findLast(this.state.items, (el) => this.config.sortCompare(el, oldActiveItem) < 0) ?? first(this.state.items)
+			: findLast(this.state.items, (item) => this.config.sortCompare(item, oldActiveItem) < 0) ?? first(this.state.items)
 	}
 
 	selectNext(multiselect: boolean) {
-		const oldActiveItem = this.rawState.activeElement
+		const oldActiveItem = this.rawState.activeItem
 		const lastItem = last(this.state.items)
 		const newActiveItem = this.getNextItem(oldActiveItem, lastItem)
 
@@ -474,27 +365,27 @@ export class ListModel<ElementType extends ListElement> {
 				this.onSingleSelection(newActiveItem)
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
-				this.rangeSelectionAnchorElement = this.rangeSelectionAnchorElement ?? first(this.state.items)
-				if (!this.rangeSelectionAnchorElement) return
+				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
+				if (!this.rangeSelectionAnchorItem) return
 
 				const previousActiveIndex = this.state.activeIndex ?? 0
-				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorElement) < 0
+				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorItem) < 0
 				if (towardsAnchor) {
 					selectedItems.delete(this.state.items[previousActiveIndex])
 				} else {
 					selectedItems.add(newActiveItem)
 				}
-				this.updateState({ selectedItems, inMultiselect: true, activeElement: newActiveItem })
+				this.updateState({ selectedItems, inMultiselect: true, activeItem: newActiveItem })
 			}
 		}
 	}
 
-	private getNextItem(oldActiveItem: ElementType | null, lastItem: ElementType | null | undefined) {
+	private getNextItem(oldActiveItem: ItemType | null, lastItem: ItemType | null | undefined) {
 		return oldActiveItem == null
 			? first(this.state.items)
 			: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
 			? lastItem
-			: this.state.items.find((el) => this.config.sortCompare(el, oldActiveItem) > 0) ?? first(this.state.items)
+			: this.state.items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(this.state.items)
 	}
 
 	areAllSelected(): boolean {
@@ -502,36 +393,36 @@ export class ListModel<ElementType extends ListElement> {
 	}
 
 	selectAll() {
-		this.updateState({ selectedItems: new Set(this.state.items), activeElement: null, inMultiselect: true })
-		this.rangeSelectionAnchorElement = null
+		this.updateState({ selectedItems: new Set(this.state.items), activeItem: null, inMultiselect: true })
+		this.rangeSelectionAnchorItem = null
 	}
 
 	selectNone() {
-		this.rangeSelectionAnchorElement = null
-		this.updateState({ selectedItems: new Set<ElementType>(), inMultiselect: false })
+		this.rangeSelectionAnchorItem = null
+		this.updateState({ selectedItems: new Set<ItemType>(), inMultiselect: false })
 	}
 
-	isItemSelected(itemId: Id): boolean {
-		return findBy(this.state.selectedItems, (item: ElementType) => getElementId(item) === itemId) != null
+	isItemSelected(itemId: IdType): boolean {
+		return findBy(this.state.selectedItems, (item: ItemType) => this.config.isSameId(this.config.getItemId(item), itemId)) != null
 	}
 
-	readonly getSelectedAsArray: () => Array<ElementType> = memoizedWithHiddenArgument(
+	readonly getSelectedAsArray: () => Array<ItemType> = memoizedWithHiddenArgument(
 		() => this.state,
-		(state: ListState<ElementType>) => [...state.selectedItems],
+		(state: ListState<ItemType>) => [...state.selectedItems],
 	)
 
 	readonly isSelectionEmpty: () => boolean = memoizedWithHiddenArgument(
 		() => this.state,
-		(state: ListState<ElementType>) => state.selectedItems.size === 0,
+		(state: ListState<ItemType>) => state.selectedItems.size === 0,
 	)
 
-	readonly getUnfilteredAsArray: () => Array<ElementType> = memoizedWithHiddenArgument(
+	readonly getUnfilteredAsArray: () => Array<ItemType> = memoizedWithHiddenArgument(
 		() => this.rawState,
-		(state: PrivateListState<ElementType>) => [...state.unfilteredItems],
+		(state: PrivateListState<ItemType>) => [...state.unfilteredItems],
 	)
 
 	enterMultiselect() {
-		// avoid having the viewed element as a preselected one which might be confusing.
+		// avoid having the viewed item as a preselected one which might be confusing.
 		this.selectNone()
 		this.updateState({ inMultiselect: true })
 	}
@@ -577,9 +468,118 @@ export class ListModel<ElementType extends ListElement> {
 			this.updateState({ loadingStatus: ListLoadingState.ConnectionLost })
 		}
 	}
+
+	waitLoad(what: () => any): Promise<any> {
+		return settledThen(this.loading, what)
+	}
+
+	insertLoadedItem(item: ItemType) {
+		if (this.rawState.unfilteredItems.some((unfilteredItem) => this.hasSameId(unfilteredItem, item))) {
+			return
+		}
+
+		// can we do something like binary search?
+		const unfilteredItems = this.rawState.unfilteredItems.concat(item).sort(this.config.sortCompare)
+		const filteredItems = this.rawState.filteredItems.concat(this.applyFilter([item])).sort(this.config.sortCompare)
+		this.updateState({ filteredItems, unfilteredItems })
+	}
+
+	updateLoadedItem(item: ItemType) {
+		// We cannot use binary search here because the sort order of items can change based on an entity update, and we need to find the position of the
+		// old entity by id in order to remove it.
+
+		// Since every item id is unique and there's no scenario where the same item appears twice but in different lists, we can safely sort just
+		// by the item id, ignoring the list id
+
+		// update unfiltered list: find the position, take out the old item and put the updated one
+		const positionToUpdateUnfiltered = this.rawState.unfilteredItems.findIndex((unfilteredItem) => this.hasSameId(unfilteredItem, item))
+		const unfilteredItems = this.rawState.unfilteredItems.slice()
+		if (positionToUpdateUnfiltered >= 0) {
+			unfilteredItems.splice(positionToUpdateUnfiltered, 1, item)
+			unfilteredItems.sort(this.config.sortCompare)
+		}
+
+		// update filtered list & selected items
+		const positionToUpdateFiltered = this.rawState.filteredItems.findIndex((filteredItem) => this.hasSameId(filteredItem, item))
+		const filteredItems = this.rawState.filteredItems.slice()
+		const selectedItems = new Set(this.rawState.selectedItems)
+		if (positionToUpdateFiltered >= 0) {
+			const [oldItem] = filteredItems.splice(positionToUpdateFiltered, 1, item)
+			filteredItems.sort(this.config.sortCompare)
+			if (selectedItems.delete(oldItem)) {
+				selectedItems.add(item)
+			}
+		}
+
+		// keep active item up-to-date
+		const activeItemUpdated = this.rawState.activeItem != null && this.hasSameId(this.rawState.activeItem, item)
+		const newActiveItem = this.rawState.activeItem
+
+		if (positionToUpdateUnfiltered !== -1 || positionToUpdateFiltered !== -1 || activeItemUpdated) {
+			this.updateState({ unfilteredItems, filteredItems, selectedItems, activeItem: newActiveItem })
+		}
+
+		// keep anchor up-to-date
+		if (this.rangeSelectionAnchorItem != null && this.hasSameId(this.rangeSelectionAnchorItem, item)) {
+			this.rangeSelectionAnchorItem = item
+		}
+	}
+
+	deleteLoadedItem(itemId: IdType): Promise<void> {
+		return settledThen(this.loading, () => {
+			const item = this.rawState.filteredItems.find((e) => this.config.isSameId(this.config.getItemId(e), itemId))
+
+			const selectedItems = new Set(this.rawState.selectedItems)
+
+			let newActiveItem
+
+			if (item) {
+				const wasRemoved = selectedItems.delete(item)
+
+				if (this.rawState.filteredItems.length > 1) {
+					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
+					if (wasRemoved) {
+						if (desiredBehavior === ListAutoSelectBehavior.NONE || this.state.inMultiselect) {
+							selectedItems.clear()
+						} else if (desiredBehavior === ListAutoSelectBehavior.NEWER) {
+							newActiveItem = this.getPreviousItem(item)
+						} else {
+							newActiveItem = item === last(this.state.items) ? this.getPreviousItem(item) : this.getNextItem(item, null)
+						}
+					}
+
+					if (newActiveItem) {
+						selectedItems.add(newActiveItem)
+					} else {
+						newActiveItem = this.rawState.activeItem
+					}
+				}
+
+				const filteredItems = this.rawState.filteredItems.slice()
+				remove(filteredItems, item)
+				const unfilteredItems = this.rawState.unfilteredItems.slice()
+				remove(unfilteredItems, item)
+				this.updateState({ filteredItems, selectedItems, unfilteredItems, activeItem: newActiveItem })
+			}
+		})
+	}
+
+	getLastItem(): ItemType | null {
+		if (this.rawState.unfilteredItems.length > 0) {
+			return lastThrow(this.rawState.unfilteredItems)
+		} else {
+			return null
+		}
+	}
+
+	private hasSameId(item1: ItemType, item2: ItemType): boolean {
+		const id1 = this.config.getItemId(item1)
+		const id2 = this.config.getItemId(item2)
+		return this.config.isSameId(id1, id2)
+	}
 }
 
-export function selectionAttrsForList(listModel: Pick<ListModel<ListElement>, "areAllSelected" | "selectNone" | "selectAll"> | null) {
+export function selectionAttrsForList<ItemType, IdType>(listModel: Pick<ListModel<ItemType, IdType>, "areAllSelected" | "selectNone" | "selectAll"> | null) {
 	return {
 		selected: listModel?.areAllSelected() ?? false,
 		selectNone: () => listModel?.selectNone(),

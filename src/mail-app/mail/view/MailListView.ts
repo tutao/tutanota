@@ -29,12 +29,12 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
-import { ListModel } from "../../../common/misc/ListModel.js"
 import { mailLocator } from "../../mailLocator.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 
 assertMainOrNode()
 
@@ -44,9 +44,9 @@ export interface MailListViewAttrs {
 	onClearFolder: () => unknown
 	mailViewModel: MailViewModel
 	onSingleSelection: (mail: Mail) => unknown
-	onSingleInclusiveSelection: ListModel<Mail>["onSingleInclusiveSelection"]
-	onRangeSelectionTowards: ListModel<Mail>["selectRangeTowards"]
-	onSingleExclusiveSelection: ListModel<Mail>["onSingleExclusiveSelection"]
+	onSingleInclusiveSelection: ListElementListModel<Mail>["onSingleInclusiveSelection"]
+	onRangeSelectionTowards: ListElementListModel<Mail>["selectRangeTowards"]
+	onSingleExclusiveSelection: ListElementListModel<Mail>["onSingleExclusiveSelection"]
 }
 
 export class MailListView implements Component<MailListViewAttrs> {

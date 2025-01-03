@@ -15,7 +15,7 @@ import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } fr
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { size } from "../../../common/gui/size.js"
-import { ListModel } from "../../../common/misc/ListModel.js"
+import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../common/api/common/utils/GroupUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../common/gui/base/ListUtils.js"
@@ -35,7 +35,7 @@ const className = "group-list"
 
 export class GroupListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private listModel: ListModel<GroupInfo>
+	private listModel: ListElementListModel<GroupInfo>
 	private readonly renderConfig: RenderConfig<GroupInfo, GroupRow> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
@@ -153,8 +153,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	private makeListModel(): ListModel<GroupInfo> {
-		const listModel = new ListModel<GroupInfo>({
+	private makeListModel(): ListElementListModel<GroupInfo> {
+		const listModel = new ListElementListModel<GroupInfo>({
 			sortCompare: compareGroupInfos,
 			fetch: async (_lastFetchedEntity, _count) => {
 				// load all entries at once to apply custom sort order

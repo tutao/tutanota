@@ -1,4 +1,3 @@
-import { ListModel } from "../../../../common/misc/ListModel.js"
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
@@ -47,6 +46,7 @@ import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
 import { getClientOnlyCalendars } from "../../gui/CalendarGuiUtils"
+import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -56,8 +56,8 @@ export enum PaidFunctionResult {
 }
 
 export class CalendarSearchViewModel {
-	private _listModel: ListModel<CalendarSearchResultListEntry>
-	get listModel(): ListModel<CalendarSearchResultListEntry> {
+	private _listModel: ListElementListModel<CalendarSearchResultListEntry>
+	get listModel(): ListElementListModel<CalendarSearchResultListEntry> {
 		return this._listModel
 	}
 
@@ -539,19 +539,19 @@ export class CalendarSearchViewModel {
 		this.updateUi()
 	}
 
-	private createList(): ListModel<CalendarSearchResultListEntry> {
+	private createList(): ListElementListModel<CalendarSearchResultListEntry> {
 		// since we recreate the list every time we set a new result object,
 		// we bind the value of result for the lifetime of this list model
 		// at this point
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
-		return new ListModel<CalendarSearchResultListEntry>({
+		return new ListElementListModel<CalendarSearchResultListEntry>({
 			fetch: async (lastFetchedEntity: CalendarSearchResultListEntry, count: number) => {
 				const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
 				const lastResult = this.searchResult
 				if (lastResult !== this.searchResult) {
 					console.warn("got a fetch request for outdated results object, ignoring")
-					// this.searchResults was reassigned, we'll create a new ListModel soon
+					// this.searchResults was reassigned, we'll create a new ListElementListModel soon
 					return { items: [], complete: true }
 				}
 

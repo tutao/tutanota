@@ -1,11 +1,11 @@
 import { ListElement } from "../../api/common/utils/EntityUtils.js"
-import { ListModel } from "../../misc/ListModel.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { mapLazily } from "@tutao/tutanota-utils"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { isBrowser } from "../../api/common/Env.js"
+import { ListElementListModel } from "../../misc/ListElementListModel"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100
@@ -29,7 +29,7 @@ export interface ListFetchResult<ElementType> {
 	complete: boolean
 }
 
-export type ListSelectionCallbacks = Pick<ListModel<ListElement>, "selectPrevious" | "selectNext" | "areAllSelected" | "selectAll" | "selectNone">
+export type ListSelectionCallbacks = Pick<ListElementListModel<ListElement>, "selectPrevious" | "selectNext" | "areAllSelected" | "selectAll" | "selectNone">
 
 export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode, callbacks: () => ListSelectionCallbacks | null): Array<Shortcut> {
 	const multiselectionEnabled = multiselectMode == MultiselectMode.Enabled ? () => true : () => false
