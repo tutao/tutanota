@@ -1,5 +1,3 @@
-import "systemjs"
-
 const globalContext = typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : self
 
 const noOp = function () {}
@@ -33,6 +31,7 @@ if (typeof BigInt === "undefined") {
 	function BigInt(arg: any) {
 		return arg
 	}
+
 	BigInt.polyfilled = true
 	// @ts-ignore
 	globalContext.BigInt = BigInt

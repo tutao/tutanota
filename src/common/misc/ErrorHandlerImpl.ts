@@ -54,15 +54,6 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		return
 	}
 
-	// This is from the s.js and it shouldn't change. Unfortunately it is a plain Error.
-	if (
-		e.message.includes("(SystemJS https://github.com/systemjs/systemjs/blob/master/docs/errors.md#") ||
-		e.message.includes("(SystemJS https://git.io/JvFET#3)") // points to the above url
-	) {
-		handleImportError()
-		return
-	}
-
 	if (e instanceof UserError) {
 		return showUserError(e)
 	}

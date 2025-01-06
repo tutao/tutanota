@@ -31,3 +31,8 @@ $(WASM):
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_argon2id_hash_raw', '_malloc', '_free']" \
     	-o $(WASM)
+
+fallback: $(WASM_FALLBACK)
+
+$(WASM_FALLBACK): $(WASM)
+	 ${WASM2JS} $(WASM) -o $(WASM_FALLBACK) -O3

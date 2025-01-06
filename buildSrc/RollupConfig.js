@@ -1,6 +1,6 @@
 import path from "node:path"
 
-// These are the dependencies that must be provided for the module loader systemjs
+// These are the vendored dependencies. This map is to help bundler find the resolved path.
 export const dependencyMap = {
 	mithril: path.normalize("./libs/mithril.js"),
 	"mithril/stream": path.normalize("./libs/stream.js"),

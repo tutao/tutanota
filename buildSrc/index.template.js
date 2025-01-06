@@ -46,7 +46,7 @@ function unsupported(e) {
 }
 
 try {
-	System.import("./app.js").catch(unsupported)
+	import("./app.js").catch(unsupported)
 } catch (e) {
 	unsupported(e)
 }

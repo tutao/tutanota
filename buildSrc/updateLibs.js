@@ -26,7 +26,6 @@ export async function updateLibs() {
  * @type Array<DependencyDescription>
  */
 const clientDependencies = [
-	{ src: "../node_modules/systemjs/dist/s.js", target: "s.js", bundling: "copy" },
 	// mithril is patched manually to remove some unused parts
 	// "../node_modules/mithril/mithril.js",
 	{ src: "../node_modules/mithril/stream/stream.js", target: "stream.js", bundling: "copy" },

@@ -50,6 +50,7 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 				// See Env.ts for explanation
 				LOAD_ASSERTIONS: "false",
 			},
+
 			external: [
 				"electron",
 				// esbuild can't deal with node imports in ESM output at the moment
@@ -91,23 +92,20 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 				}),
 				rollupWasmLoader({
 					output: `${process.cwd()}/build/wasm`,
-					fallback: true,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
-							command: "make -f Makefile_liboqs build",
+							command: "make -f Makefile_liboqs build fallback",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
-							env: {
-								WASM: `${process.cwd()}/build/wasm/liboqs.wasm`,
-							},
+							outputPath: `${process.cwd()}/build/wasm/liboqs.wasm`,
+							fallbackOutputPath: `${process.cwd()}/build/wasm/liboqs.js`,
 						},
 						{
 							name: "argon2.wasm",
-							command: "make -f Makefile_argon2 build",
+							command: "make -f Makefile_argon2 build fallback",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
-							env: {
-								WASM: `${process.cwd()}/build/wasm/argon2.wasm`,
-							},
+							outputPath: `${process.cwd()}/build/wasm/argon2.wasm`,
+							fallbackOutputPath: `${process.cwd()}/build/wasm/argon2.js`,
 						},
 					],
 				}),

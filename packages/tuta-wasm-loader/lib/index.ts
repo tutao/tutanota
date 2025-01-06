@@ -1,6 +1,5 @@
-import { OnLoadResult, OnResolveResult, PluginBuild } from "esbuild"
 import path from "node:path"
-import { FallbackOptions, generateImportCode, generateWasm, generateWasmFallback } from "./WasmHandler.js"
+import { generateImportCode, generateWasm } from "./WasmHandler.js"
 import * as fs from "node:fs"
 
 export interface Library {
@@ -8,31 +7,34 @@ export interface Library {
 	name: string
 	/** Command to run to generate WASM */
 	command: string
-	/** Optimization level for the JavaScript fallback */
-	optimizationLevel?: string
 	/** Where to run the command */
 	workingDir?: string
 	/** Environment variables to be set for compilation */
 	env?: Record<string, any>
+	/**
+	 * Path where the WASM output should reside.
+	 * Will be passed as {@code WASM} env variable to the {@link command}.
+	 */
+	outputPath: string
+	/**
+	 * Path where the JS fallback should reside. Useful for caching.
+	 * If specified wasm2js fallback will be enabled.
+	 * Will be passed as {@code WASM_FALLBACK} env variable to the {@link command}.
+	 */
+	fallbackOutputPath?: string
 }
 
 /**
  * Top-level plugin options
  */
 export interface PluginOptions {
-	/** Output path for the webassembly files */
-	output: string
 	/** List of webassembly files to be compiled and get fallback generated */
 	webassemblyLibraries: Library[]
-	/** Whether to generate JS fallback for WASM. If {@code true} or an object it will generate fallback code. */
-	fallback?: FallbackOptions | boolean
 }
 
 /** Private options */
 interface NormalizedOptions {
-	output: string
 	libraries: Map<string, Library>
-	fallback: FallbackOptions | null
 }
 
 function parseLibraries(libraries: unknown): Map<string, Library> {
@@ -44,9 +46,10 @@ function parseLibraries(libraries: unknown): Map<string, Library> {
 		if (
 			typeof library.name !== "string" ||
 			typeof library.command !== "string" ||
-			("optimizationLevel" in library && typeof library.optimizationLevel !== "string") ||
 			(library.workingDir != null && typeof library.workingDir !== "string") ||
-			(library.env != null && typeof library.env !== "object")
+			(library.env != null && typeof library.env !== "object") ||
+			typeof library.outputPath !== "string" ||
+			("fallbackOutputPath" in library && typeof library.fallbackOutputPath !== "string")
 		) {
 			throw new Error(`Invalid library: ${JSON.stringify(library)}`)
 		}
@@ -56,30 +59,8 @@ function parseLibraries(libraries: unknown): Map<string, Library> {
 }
 
 function parseOptions(options: PluginOptions): NormalizedOptions {
-	let output: string
-	if (typeof options.output === "string") {
-		output = options.output
-	} else {
-		throw new Error("Invalid output")
-	}
-
-	let fallback: FallbackOptions | null
-	if (options.fallback === true) {
-		fallback = { wasm2jsPath: undefined }
-	} else if (options.fallback === false || options.fallback == null) {
-		fallback = null
-	} else if (typeof options.fallback === "object") {
-		if (options.fallback.wasm2jsPath != null && typeof options.fallback.wasm2jsPath !== "string") {
-			throw new Error("Invalid wasm2jsPath")
-		}
-		fallback = options.fallback
-	} else {
-		throw new Error("Invalid fallback")
-	}
 	return {
-		output,
 		libraries: parseLibraries(options.webassemblyLibraries),
-		fallback,
 	}
 }
 
@@ -96,76 +77,7 @@ function createOutputFolderStructure(output: string) {
 	}
 }
 
-export function esbuildWasmLoader(options: PluginOptions) {
-	const normalizedOptions = parseOptions(options)
-	const fallbackOptions = normalizedOptions.fallback
-	return {
-		name: "wasm",
-		setup(build: PluginBuild) {
-			createOutputFolderStructure(normalizedOptions.output)
-
-			build.onResolve({ filter: /\.wasm$/ }, async (args): Promise<OnResolveResult | undefined> => {
-				if (args.resolveDir === "" && !args.path.includes("wasm-fallback")) return
-
-				if (fallbackOptions && args.path.includes("wasm-fallback")) {
-					return {
-						path: args.path.replaceAll("wasm-fallback:", ""),
-						namespace: "wasm-fallback",
-					}
-				} else {
-					return {
-						path: path.join("wasm", args.path),
-						namespace: "wasm-loader",
-					}
-				}
-			})
-
-			if (fallbackOptions) {
-				build.onResolve({ filter: /\.wasm-fallback$/ }, async (args): Promise<OnResolveResult | undefined> => {
-					if (args.resolveDir === "") return
-					return {
-						path: args.path,
-						namespace: "wasm-fallback",
-					}
-				})
-			}
-
-			build.onLoad({ filter: /\.wasm$/ }, async (args): Promise<OnLoadResult | undefined> => {
-				const lib = findLib(normalizedOptions, path.basename(args.path))
-				await generateWasm(lib.command, lib)
-				// don't try to read the wasm since we use wasm-loader or wasm-fallback to use the wasm
-				return undefined
-			})
-
-			build.onLoad({ filter: /.*/, namespace: "wasm-loader" }, async (args): Promise<OnLoadResult> => {
-				return {
-					contents: await generateImportCode(args.path, fallbackOptions != null),
-					loader: "js",
-				}
-			})
-
-			if (fallbackOptions) {
-				build.onLoad({ filter: /.*/, namespace: "wasm-fallback" }, async (args): Promise<OnLoadResult> => {
-					const buildPath = normalizedOptions.output
-					const lib = findLib(normalizedOptions, args.path)
-					const contents = await generateWasmFallback(path.join(buildPath, args.path), lib, fallbackOptions, lib.optimizationLevel)
-					return {
-						contents: contents,
-						loader: "js",
-					}
-				})
-			}
-			build.onResolve({ filter: /node:*/, namespace: "wasm-loader" }, async (_) => {
-				return {
-					external: true,
-				}
-			})
-		},
-	}
-}
-
-export function rollupWasmLoader(options: PluginOptions & { output: string }) {
-	createOutputFolderStructure(options.output)
+export function rollupWasmLoader(options: PluginOptions) {
 	const normalizedOptions = parseOptions(options)
 
 	return {
@@ -191,18 +103,23 @@ export function rollupWasmLoader(options: PluginOptions & { output: string }) {
 				const wasmLib = id.replaceAll("\0wasm-loader:", "")
 
 				const lib = findLib(normalizedOptions, wasmLib)
-				await generateWasm(lib.command, lib)
-
-				return await generateImportCode(path.join("wasm", wasmLib), normalizedOptions.fallback != null)
-			} else if (id.startsWith("\0wasm-fallback") && normalizedOptions.fallback) {
+				createOutputFolderStructure(path.dirname(lib.outputPath))
+				await generateWasm(lib.command, {
+					workingDir: lib.workingDir,
+					env: { ...lib.env, WASM: lib.outputPath, WASM_FALLBACK: lib.fallbackOutputPath },
+				})
+				return await generateImportCode(path.join("wasm", wasmLib), lib.fallbackOutputPath != null)
+			} else if (id.startsWith("\0wasm-fallback")) {
 				const wasmLib = id.replaceAll("\0wasm-fallback:", "")
 				const lib = findLib(normalizedOptions, wasmLib)
-				const wasmPath = path.join(normalizedOptions.output, wasmLib)
-
-				return await generateWasmFallback(wasmPath, lib, normalizedOptions.fallback, lib.optimizationLevel)
+				if (lib.fallbackOutputPath) {
+					await generateWasm(lib.command, {
+						workingDir: lib.workingDir,
+						env: { ...lib.env, WASM: lib.outputPath, WASM_FALLBACK: lib.fallbackOutputPath },
+					})
+					return fs.promises.readFile(lib.fallbackOutputPath, "utf-8")
+				}
 			}
 		},
 	}
 }
-
-export { esbuildWasmLoader as default }

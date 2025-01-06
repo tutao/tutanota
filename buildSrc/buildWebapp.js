@@ -32,6 +32,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const isCalendarApp = app === "calendar"
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
+	const resolvedBuildDir = path.resolve(buildDir)
 	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
@@ -47,14 +48,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		plugins: [
 			typescript(),
 			minify && terser(),
-			{
-				name: "append-libs",
-				resolveId(id) {
-					if (id === "systemjs") {
-						return path.resolve("libs/s.js")
-					}
-				},
-			},
 			// nodeResolve is for our own modules
 			nodeResolve({
 				preferBuiltins: true,
@@ -98,26 +91,20 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				resolveOnly: [/^@tutao\/.*$/],
 			}),
 			rollupWasmLoader({
-				output: `${buildDir}/wasm`,
-				fallback: true,
 				webassemblyLibraries: [
 					{
 						name: "liboqs.wasm",
-						command: "make -f Makefile_liboqs build",
+						command: "make -f Makefile_liboqs build fallback",
 						workingDir: "libs/webassembly/",
-						env: {
-							WASM: `../../${buildDir}/wasm/liboqs.wasm`,
-						},
-						optimizationLevel: "O3",
+						outputPath: path.join(resolvedBuildDir, "wasm/liboqs.wasm"),
+						fallbackOutputPath: path.join(resolvedBuildDir, "wasm/liboqs.js"),
 					},
 					{
 						name: "argon2.wasm",
-						command: "make -f Makefile_argon2 build",
+						command: "make -f Makefile_argon2 build fallback",
 						workingDir: "libs/webassembly/",
-						env: {
-							WASM: `../../${buildDir}/wasm/argon2.wasm`,
-						},
-						optimizationLevel: "O3",
+						outputPath: path.join(resolvedBuildDir, "wasm/argon2.wasm"),
+						fallbackOutputPath: path.join(resolvedBuildDir, "wasm/argon2.js"),
 					},
 				],
 			}),
@@ -131,7 +118,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	console.log("started writing bundles into", buildDir, measure())
 	const output = await bundle.write({
 		sourcemap: true,
-		format: "system",
+		format: "esm",
 		dir: buildDir,
 		manualChunks(id, { getModuleInfo, getModuleIds }) {
 			return getChunkName(id, { getModuleInfo })
@@ -146,14 +133,8 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	// unlike nollup+es format where it just runs on being loaded like you expect
 	await fs.promises.writeFile(
 		`${buildDir}/worker-bootstrap.js`,
-		`importScripts("./polyfill.js")
-const importPromise = System.import("./${builtWorkerFile}")
-self.onmessage = function (msg) {
-	importPromise.then(function () {
-		self.onmessage(msg)
-	})
-}
-`,
+		`import "./polyfill.js"
+import "./${builtWorkerFile}"`,
 	)
 
 	let restUrl

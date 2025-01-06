@@ -7,11 +7,6 @@ export interface WasmGeneratorOptions {
 	env?: Record<string, any>
 }
 
-export interface FallbackOptions {
-	/** Tool needed to transpile the wasm file to a JavaScript file */
-	wasm2jsPath?: string
-}
-
 async function generateWasm(command: string, options: WasmGeneratorOptions) {
 	const runner = util.promisify(exec)
 	const promise = runner(`${command}`, {
@@ -28,17 +23,6 @@ async function generateWasm(command: string, options: WasmGeneratorOptions) {
 		console.log("wasm build:", data)
 	})
 	await promise
-}
-
-async function generateWasmFallback(wasmFilePath: string, options: WasmGeneratorOptions, fallbackOptions: FallbackOptions, optLevel: string | undefined) {
-	const transpiler = util.promisify(exec)
-	const result = await transpiler(`${fallbackOptions.wasm2jsPath ?? "wasm2js"} ${wasmFilePath} -${optLevel ?? "O3"}`, {
-		env: {
-			...process.env,
-			...options.env,
-		},
-	})
-	return result.stdout
 }
 
 async function generateImportCode(wasmFilePath: string, enableFallback: boolean) {
@@ -74,4 +58,4 @@ async function generateImportCode(wasmFilePath: string, enableFallback: boolean)
 	`
 }
 
-export { generateWasmFallback, generateImportCode, generateWasm }
+export { generateImportCode, generateWasm }

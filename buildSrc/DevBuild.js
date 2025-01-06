@@ -102,6 +102,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 async function buildWebPart({ stage, host, version, domainConfigs, app }) {
 	const isCalendarBuild = app === "calendar"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
+	const resolvedBuildDir = path.resolve(buildDir)
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
@@ -117,24 +118,18 @@ async function buildWebPart({ stage, host, version, domainConfigs, app }) {
 			plugins: [
 				resolveLibs(),
 				rollupWasmLoader({
-					output: `${buildDir}/wasm`,
-					fallback: false,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
 							command: "make -f Makefile_liboqs build",
 							workingDir: "libs/webassembly/",
-							env: {
-								WASM: `../../${buildDir}/wasm/liboqs.wasm`,
-							},
+							outputPath: path.join(resolvedBuildDir, `/wasm/liboqs.wasm`),
 						},
 						{
 							name: "argon2.wasm",
 							command: "make -f Makefile_argon2 build",
 							workingDir: "libs/webassembly/",
-							env: {
-								WASM: `../../${buildDir}/wasm/argon2.wasm`,
-							},
+							outputPath: path.join(resolvedBuildDir, `/wasm/argon2.wasm`),
 						},
 					],
 				}),
