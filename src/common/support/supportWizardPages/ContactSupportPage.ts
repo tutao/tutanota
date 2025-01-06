@@ -4,7 +4,7 @@ import { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { SupportDialogAttrs } from "../SupportDialog.js"
+import { getLocalisedCategoryName, SupportDialogAttrs } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
 import { styles } from "../../gui/styles.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
@@ -165,6 +165,15 @@ export class ContactSupportPageAttrs implements WizardPageAttrs<SupportDialogAtt
 		this.hideAllPagingButtons = true
 		this.hidePagingButtonForPage = true
 		this.preventGoBack = false
+	}
+
+	getBackButtonText(): string {
+		const selectedCategory = this.data.selectedCategory()
+		if (selectedCategory != null && this.data.selectedTopic() == null) {
+			return "Back to " + getLocalisedCategoryName(selectedCategory, lang.languageTag)
+		}
+
+		return "Back"
 	}
 
 	headerTitle(): string {
