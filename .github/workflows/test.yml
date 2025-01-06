@@ -72,14 +72,16 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: install chrome
         id: setup-chrome
-        uses: browser-actions/setup-chrome@97349de5c98094d4fc9412f31c524d7697115ad8 #v1.5.0
+        uses: browser-actions/setup-chrome@facf10a55b9caf92e0cc749b4f82bf8220989148 #v1.7.2
         with:
           chrome-version: stable
       - name: run test in browser
         timeout-minutes: 3
+        # --no-sandbox is needed because it fails to create sandbox in container otherwise.
+        # It is fine as we run our own tests in a throwaway container anyway
         run: |
           echo Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}
-          npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --enable-logging=stderr --headless=new --disable-gpu'
+          npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
 
   build-webapp:
     runs-on: ubuntu-latest
