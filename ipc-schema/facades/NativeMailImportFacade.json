@@ -5,9 +5,12 @@
 	"receivers": ["desktop"],
 	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
 	"methods": {
-		"importFromFiles": {
+		"startFileImport": {
 			"doc": "Import multiple mails from .eml or .mbox files.",
 			"arg": [
+				{
+					"mailboxId": "string"
+				},
 				{
 					"apiUrl": "string"
 				},
@@ -28,17 +31,29 @@
 		},
 		"setContinueProgressAction": {
 			"doc": "Sets progress action to continue for next callback",
-			"arg": [],
+			"arg": [
+				{
+					"mailboxId": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"setStopProgressAction": {
 			"doc": "Sets progress action to stop for next callback",
-			"arg": [],
+			"arg": [
+				{
+					"mailboxId": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"setPausedProgressAction": {
 			"doc": "Sets progress action to pause for next callback",
-			"arg": [],
+			"arg": [
+				{
+					"mailboxId": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"getResumeableImport": {
@@ -50,9 +65,12 @@
 			],
 			"ret": "ResumableImport"
 		},
-		"resumeImport": {
+		"resumeFileImport": {
 			"doc": "resumes the import for a previously paused import",
 			"arg": [
+				{
+					"mailboxId": "string"
+				},
 				{
 					"apiUrl": "string"
 				},
@@ -64,6 +82,15 @@
 				}
 			],
 			"ret": "void"
+		},
+		"getImportState": {
+			"doc": "Gets LocalImportState from Importer",
+			"arg": [
+				{
+					"mailboxId": "string"
+				}
+			],
+			"ret": "LocalImportMailState?"
 		},
 		"deinitLogger": {
 			"doc": "",

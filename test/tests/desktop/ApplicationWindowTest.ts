@@ -284,7 +284,6 @@ o.spec("ApplicationWindow Test", function () {
 			desktopFacade: object(),
 			commonNativeFacade: object(),
 			sqlCipherFacade: object(),
-			mailImportFacade: object(),
 		}
 		when(remoteBridge.createBridge(anything())).thenReturn(sendingFacades)
 		return {

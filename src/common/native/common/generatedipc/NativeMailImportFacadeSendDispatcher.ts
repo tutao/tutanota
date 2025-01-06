@@ -7,8 +7,8 @@ interface NativeInterface {
 }
 export class NativeMailImportFacadeSendDispatcher implements NativeMailImportFacade {
 	constructor(private readonly transport: NativeInterface) {}
-	async importFromFiles(...args: Parameters<NativeMailImportFacade["importFromFiles"]>) {
-		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "importFromFiles", ...args])
+	async startFileImport(...args: Parameters<NativeMailImportFacade["startFileImport"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "startFileImport", ...args])
 	}
 	async setContinueProgressAction(...args: Parameters<NativeMailImportFacade["setContinueProgressAction"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "setContinueProgressAction", ...args])
@@ -22,8 +22,11 @@ export class NativeMailImportFacadeSendDispatcher implements NativeMailImportFac
 	async getResumeableImport(...args: Parameters<NativeMailImportFacade["getResumeableImport"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "getResumeableImport", ...args])
 	}
-	async resumeImport(...args: Parameters<NativeMailImportFacade["resumeImport"]>) {
-		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "resumeImport", ...args])
+	async resumeFileImport(...args: Parameters<NativeMailImportFacade["resumeFileImport"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "resumeFileImport", ...args])
+	}
+	async getImportState(...args: Parameters<NativeMailImportFacade["getImportState"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "getImportState", ...args])
 	}
 	async deinitLogger(...args: Parameters<NativeMailImportFacade["deinitLogger"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "deinitLogger", ...args])

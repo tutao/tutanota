@@ -813,7 +813,6 @@ class MailLocator {
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
-				this.mailImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,

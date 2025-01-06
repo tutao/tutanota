@@ -1,18 +1,17 @@
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import m, { Children } from "mithril"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils"
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
-import { assertNotNull, first } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
 import { HighestTierPlans, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
 import { FolderSystem, IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { ImportStatus, MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
-import { ImportMailStateTypeRef, MailFolder } from "../../common/api/entities/tutanota/TypeRefs"
+import { MailFolder } from "../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
 import { isDesktop } from "../../common/api/common/Env"
-import { EntityClient } from "../../common/api/common/EntityClient.js"
 import { NativeFileApp } from "../../common/native/common/FileApp.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { Button, ButtonType } from "../../common/gui/base/Button.js"
@@ -34,6 +33,7 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private mailImporter: MailImporter
 	private fileApp: NativeFileApp | null
+	private importStatePoolHandle: TimeoutID
 
 	constructor(mailImporter: MailImporter, fileApp: NativeFileApp | null) {
 		this.mailImporter = mailImporter
@@ -43,11 +43,20 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 	async oninit(): Promise<void> {
 		if (isDesktop()) {
 			await this.mailImporter.initImportMailStates()
-			let mailboxDetail = first(await this.mailImporter.mailboxModel.getMailboxDetails())
-			if (mailboxDetail) {
-				this.foldersForMailbox = this.getFoldersForMailGroup(mailboxDetail.mailGroup._id)
-				this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
-			}
+			this.importStatePoolHandle = setInterval(async () => {
+				await this.mailImporter.refreshLocalImportState()
+				m.redraw()
+			}, 1000)
+
+			let mailbox = await this.mailImporter.getMailbox()
+			this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
+			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
+		}
+	}
+
+	onbeforeremove(): void {
+		if (isDesktop()) {
+			clearInterval(this.importStatePoolHandle)
 		}
 	}
 

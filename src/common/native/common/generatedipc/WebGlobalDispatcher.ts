@@ -6,8 +6,6 @@ import { DesktopFacade } from "./DesktopFacade.js"
 import { DesktopFacadeReceiveDispatcher } from "./DesktopFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "./InterWindowEventFacade.js"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
-import { MailImportFacade } from "./MailImportFacade.js"
-import { MailImportFacadeReceiveDispatcher } from "./MailImportFacadeReceiveDispatcher.js"
 import { MobileFacade } from "./MobileFacade.js"
 import { MobileFacadeReceiveDispatcher } from "./MobileFacadeReceiveDispatcher.js"
 
@@ -15,19 +13,16 @@ export class WebGlobalDispatcher {
 	private readonly commonNativeFacade: CommonNativeFacadeReceiveDispatcher
 	private readonly desktopFacade: DesktopFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
-	private readonly mailImportFacade: MailImportFacadeReceiveDispatcher
 	private readonly mobileFacade: MobileFacadeReceiveDispatcher
 	constructor(
 		commonNativeFacade: CommonNativeFacade,
 		desktopFacade: DesktopFacade,
 		interWindowEventFacade: InterWindowEventFacade,
-		mailImportFacade: MailImportFacade,
 		mobileFacade: MobileFacade,
 	) {
 		this.commonNativeFacade = new CommonNativeFacadeReceiveDispatcher(commonNativeFacade)
 		this.desktopFacade = new DesktopFacadeReceiveDispatcher(desktopFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
-		this.mailImportFacade = new MailImportFacadeReceiveDispatcher(mailImportFacade)
 		this.mobileFacade = new MobileFacadeReceiveDispatcher(mobileFacade)
 	}
 
@@ -39,8 +34,6 @@ export class WebGlobalDispatcher {
 				return this.desktopFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":
 				return this.interWindowEventFacade.dispatch(methodName, args)
-			case "MailImportFacade":
-				return this.mailImportFacade.dispatch(methodName, args)
 			case "MobileFacade":
 				return this.mobileFacade.dispatch(methodName, args)
 			default:

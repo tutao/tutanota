@@ -75,7 +75,9 @@ impl Console {
 		}
 	}
 	pub unsafe fn deinit() {
-		let console = GLOBAL_CONSOLE.take().expect("cannot deinit logger before initializing");
+		let console = GLOBAL_CONSOLE
+			.take()
+			.expect("cannot deinit logger before initializing");
 		console
 			.tx
 			.send(LogMessage {

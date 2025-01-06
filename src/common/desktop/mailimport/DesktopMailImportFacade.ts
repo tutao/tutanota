@@ -1,19 +1,17 @@
-import { ImporterApi, ImportProgressAction, LocalImportState as LocalImportState, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, ImportProgressAction, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
 import { elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { ResumableImport } from "../../native/common/generatedipc/ResumableImport.js"
+import { LocalImportMailState } from "../../native/common/generatedipc/LocalImportMailState.js"
 
 export class DesktopMailImportFacade implements NativeMailImportFacade {
-	private nextCallbackAction: ImportProgressAction | null
 	private configDirectory: string
-	private importerApi: ImporterApi | null = null
 
 	constructor(private readonly win: ApplicationWindow, configDirectory: string) {
 		ImporterApi.initLog()
-		this.nextCallbackAction = null
 		this.configDirectory = configDirectory
 	}
 
@@ -21,7 +19,8 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		ImporterApi.deinitLog()
 	}
 
-	async importFromFiles(
+	async startFileImport(
+		mailboxId: string,
 		apiUrl: string,
 		unencTutaCredentials: UnencryptedCredentials,
 		targetOwnerGroup: string,
@@ -40,40 +39,35 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
 
-		this.importerApi = null
-		this.importerApi = await ImporterApi.createFileImporter(tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
-		this.nextCallbackAction = ImportProgressAction.Continue
-		await this.importerApi.startImport((localImportState: LocalImportState) => {
-			return this.importStateCallback(localImportState)
-		})
-		this.importerApi = null
+		await ImporterApi.startFileImport(mailboxId, tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
 	}
 
-	async importStateCallback(localState: LocalImportState) {
-		this.win.mailImportFacade.onNewLocalImportMailState({
+	async getImportState(mailboxId: string): Promise<LocalImportMailState | null> {
+		let localState = await ImporterApi.getImportState(mailboxId)
+		if (!localState) {
+			return null
+		}
+
+		return {
 			remoteStateId: [localState.remoteStateId.listId, localState.remoteStateId.elementId],
 			status: localState.currentStatus,
 			start_timestamp: localState.startTimestamp,
 			totalMails: localState.totalCount,
 			successfulMails: localState.successCount,
 			failedMails: localState.failedCount,
-		})
-
-		return {
-			action: this.nextCallbackAction,
 		}
 	}
 
-	async setContinueProgressAction() {
-		this.nextCallbackAction = ImportProgressAction.Continue
+	async setContinueProgressAction(mailboxId: string) {
+		return ImporterApi.setProgressAction(mailboxId, ImportProgressAction.Continue, this.configDirectory)
 	}
 
-	async setStopProgressAction(): Promise<void> {
-		this.nextCallbackAction = ImportProgressAction.Stop
+	async setStopProgressAction(mailboxId: string): Promise<void> {
+		return ImporterApi.setProgressAction(mailboxId, ImportProgressAction.Stop, this.configDirectory)
 	}
 
-	async setPausedProgressAction(): Promise<void> {
-		this.nextCallbackAction = ImportProgressAction.Pause
+	async setPausedProgressAction(mailboxId: string): Promise<void> {
+		return ImporterApi.setProgressAction(mailboxId, ImportProgressAction.Pause, this.configDirectory)
 	}
 
 	async getResumeableImport(mailboxId: string): Promise<ResumableImport> {
@@ -84,7 +78,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		}
 	}
 
-	async resumeImport(apiUrl: string, unencTutaCredentials: UnencryptedCredentials, importStateId: IdTuple): Promise<void> {
+	async resumeFileImport(mailboxId: string, apiUrl: string, unencTutaCredentials: UnencryptedCredentials, importStateId: IdTuple): Promise<void> {
 		let importMailStateId = {
 			listId: listIdPart(importStateId),
 			elementId: elementIdPart(importStateId),
@@ -99,12 +93,6 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			clientVersion: env.versionNumber,
 		}
 
-		// force napi to drop the previous importer
-		this.importerApi = null
-		this.importerApi = await ImporterApi.resumeFileImport(tutaCredentials, importMailStateId, this.configDirectory)
-		await this.importerApi.startImport((localImportState: LocalImportState) => {
-			return this.importStateCallback(localImportState)
-		})
-		this.importerApi = null
+		await ImporterApi.resumeFileImport(mailboxId, tutaCredentials, importMailStateId, this.configDirectory)
 	}
 }

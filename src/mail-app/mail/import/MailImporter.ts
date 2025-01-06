@@ -1,11 +1,10 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { ImportMailState, ImportMailStateTypeRef, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import { ImportMailState, ImportMailStateTypeRef, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { MailImportFacade } from "../../../common/native/common/generatedipc/MailImportFacade.js"
 import m from "mithril"
 import { elementIdPart, generatedIdToTimestamp, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -26,7 +25,7 @@ const DEFAULT_TOTAL_WORK: number = 100000
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
 const DEFAULT_PROGRESS: number = 0
 
-export class MailImporter implements MailImportFacade {
+export class MailImporter {
 	public nativeMailImportFacade: NativeMailImportFacade | null = null
 	public credentialsProvider: CredentialsProvider | null = null
 
@@ -69,18 +68,20 @@ export class MailImporter implements MailImportFacade {
 		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	}
 
+	async getMailbox(): Promise<MailBox> {
+		return assertNotNull(first(await this.mailboxModel.getMailboxDetails())).mailbox
+	}
+
 	async initImportMailStates(): Promise<void> {
 		if (this.initialized) {
 			return Promise.resolve()
 		}
 		this.initialized = true
-		let mailboxDetail = assertNotNull(first(await this.mailboxModel.getMailboxDetails()))
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
-		let mailboxId = mailboxDetail.mailbox._id
 
 		let resumableImport: ResumableImport | null = null
 		try {
-			resumableImport = await importFacade.getResumeableImport(mailboxId)
+			resumableImport = await importFacade.getResumeableImport((await this.getMailbox())._id)
 		} catch (e) {
 			if (e instanceof Error && e.message === "NoElementIdForState") {
 				console.log("nothing to resume")
@@ -104,7 +105,7 @@ export class MailImporter implements MailImportFacade {
 			}
 		}
 
-		const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailboxDetail.mailbox.mailImportStates)
+		const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, (await this.getMailbox()).mailImportStates)
 		for (const importMailState of importMailStatesCollection) {
 			const remoteStatus = parseInt(importMailState.status) as ImportStatus
 			if (isFinalisedImport(remoteStatus)) {
@@ -134,11 +135,10 @@ export class MailImporter implements MailImportFacade {
 		this.uiStatus = UiImportStatus.Starting
 		this.startProgressEstimation()
 		m.redraw()
-		await importFacade.setContinueProgressAction()
 		try {
-			await importFacade.importFromFiles(apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+			await importFacade.startFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
 		} catch (e) {
-			if (e.message === "NoImportFeature") {
+			if (e.message === "NoImportFeature" || e.message === "ImporterAlreadyRunning") {
 				this.uiStatus = UiImportStatus.Idle
 				await Dialog.message("mailImportErrorServiceUnavailable_msg")
 			} else {
@@ -157,8 +157,7 @@ export class MailImporter implements MailImportFacade {
 		m.redraw()
 
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
-
-		await importFacade.setPausedProgressAction()
+		await importFacade.setPausedProgressAction((await this.getMailbox())._id)
 	}
 
 	async onResumeBtnClick() {
@@ -176,21 +175,7 @@ export class MailImporter implements MailImportFacade {
 		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 		const resumableStateId = assertNotNull(this.activeImport?.remoteStateId)
 
-		await importFacade.setContinueProgressAction()
-		await importFacade.resumeImport(apiUrl, unencryptedCredentials, resumableStateId)
-	}
-
-	async cancelFromPaused(importFacade: NativeMailImportFacade) {
-		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-		const userId = this.loginController.getUserController().userId
-		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-
-		await importFacade.setStopProgressAction()
-		await importFacade.resumeImport(apiUrl, unencryptedCredentials, assertNotNull(this.activeImport?.remoteStateId))
-	}
-
-	async cancelFromRunning(importFacade: NativeMailImportFacade) {
-		await importFacade.setStopProgressAction()
+		await importFacade.resumeFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, resumableStateId)
 	}
 
 	async onCancelBtnClick() {
@@ -204,11 +189,7 @@ export class MailImporter implements MailImportFacade {
 		this.uiStatus = UiImportStatus.Cancelling
 		m.redraw()
 
-		if (isInRunningStatus) {
-			await this.cancelFromRunning(importFacade)
-		} else if (isInPausedStatus) {
-			await this.cancelFromPaused(importFacade)
-		}
+		await importFacade.setStopProgressAction((await this.getMailbox())._id)
 	}
 
 	shouldShowStartButton() {
@@ -317,19 +298,35 @@ export class MailImporter implements MailImportFacade {
 		clearInterval(this.progressEstimation)
 	}
 
+	async refreshLocalImportState() {
+		const importFacade = assertNotNull(this.nativeMailImportFacade)
+		const localState = await importFacade.getImportState((await this.getMailbox())._id)
+		if (localState) {
+			this.onNewLocalImportMailState(localState)
+		} else if (this.uiStatus != UiImportStatus.Paused) {
+			this.resetStatus()
+		}
+	}
+
 	/**
 	 * New localImportMailState event received from native mail import process.
 	 * Used to update import progress locally without sending entityEvents.
 	 * @param localImportMailState
 	 */
-	async onNewLocalImportMailState(localImportMailState: LocalImportMailState): Promise<void> {
+	onNewLocalImportMailState(localImportMailState: LocalImportMailState): void {
+		const previousState = this.activeImport
 		this.activeImport = localImportMailState
-		this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
-
-		this.updateProgressMonitorTotalWork(localImportMailState.totalMails)
-		this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
-
-		if (localImportMailState.status == ImportStatus.Finished) this.stopProgressEstimation()
+		if (
+			!previousState ||
+			previousState.status !== localImportMailState.status ||
+			previousState.successfulMails !== localImportMailState.successfulMails ||
+			previousState.totalMails !== localImportMailState.totalMails
+		) {
+			this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
+			this.updateProgressMonitorTotalWork(localImportMailState.totalMails)
+			this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
+			if (localImportMailState.status == ImportStatus.Finished) this.stopProgressEstimation()
+		}
 
 		m.redraw()
 	}
@@ -345,11 +342,7 @@ export class MailImporter implements MailImportFacade {
 				m.redraw()
 				return
 			} else if (isFinalisedImport(remoteStatus)) {
-				this.activeImport = null
-				this.progressMonitor = null
-				this.progress = 0
-				this.stopProgressEstimation()
-				this.uiStatus = UiImportStatus.Idle
+				this.resetStatus()
 			}
 		}
 
@@ -359,8 +352,16 @@ export class MailImporter implements MailImportFacade {
 		m.redraw()
 	}
 
+	private resetStatus() {
+		this.activeImport = null
+		this.progressMonitor = null
+		this.progress = 0
+		this.stopProgressEstimation()
+		this.uiStatus = UiImportStatus.Idle
+	}
+
 	async connectionStateListener(wsStream: Stream<WsConnectionState>) {
-		wsStream.map((wsConnection) => {
+		wsStream.map(async (wsConnection) => {
 			console.log("Importer says client connection is: " + wsConnection)
 
 			// Importer will never it the loop if the client connection is offline,
@@ -373,7 +374,7 @@ export class MailImporter implements MailImportFacade {
 				this.stopProgressEstimation()
 				this.uiStatus = UiImportStatus.Paused
 				m.redraw()
-				assertNotNull(this.nativeMailImportFacade).setPausedProgressAction()
+				assertNotNull(this.nativeMailImportFacade).setPausedProgressAction((await this.getMailbox())._id)
 			}
 		})
 	}
