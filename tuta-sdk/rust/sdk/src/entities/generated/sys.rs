@@ -3796,54 +3796,6 @@ impl Entity for StringWrapper {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct SupportCategory {
-	pub _format: i64,
-	pub _id: Option<IdTupleGenerated>,
-	pub _ownerGroup: Option<GeneratedId>,
-	pub _permissions: GeneratedId,
-	pub introductionDE: String,
-	pub introductionEN: String,
-	pub nameDE: String,
-	pub nameEN: String,
-	pub sortId: i64,
-}
-
-impl Entity for SupportCategory {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "SupportCategory",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct SupportTopic {
-	pub _format: i64,
-	pub _id: Option<IdTupleGenerated>,
-	pub _ownerGroup: Option<GeneratedId>,
-	pub _permissions: GeneratedId,
-	pub issueDE: String,
-	pub issueEN: String,
-	pub lastUpdated: DateTime,
-	pub solutionHtmlDE: String,
-	pub solutionHtmlEN: String,
-	pub sortId: i64,
-	pub category: IdTupleGenerated,
-}
-
-impl Entity for SupportTopic {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "SupportTopic",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SurveyData {
 	pub _id: Option<CustomId>,
 	pub category: i64,

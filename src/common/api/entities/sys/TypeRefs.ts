@@ -3031,47 +3031,6 @@ export type StringWrapper = {
 	_id: Id;
 	value: string;
 }
-export const SupportCategoryTypeRef: TypeRef<SupportCategory> = new TypeRef("sys", "SupportCategory")
-
-export function createSupportCategory(values: StrippedEntity<SupportCategory>): SupportCategory {
-	return Object.assign(create(typeModels.SupportCategory, SupportCategoryTypeRef), values)
-}
-
-export type SupportCategory = {
-	_type: TypeRef<SupportCategory>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	introductionDE: string;
-	introductionEN: string;
-	nameDE: string;
-	nameEN: string;
-	sortId: NumberString;
-}
-export const SupportTopicTypeRef: TypeRef<SupportTopic> = new TypeRef("sys", "SupportTopic")
-
-export function createSupportTopic(values: StrippedEntity<SupportTopic>): SupportTopic {
-	return Object.assign(create(typeModels.SupportTopic, SupportTopicTypeRef), values)
-}
-
-export type SupportTopic = {
-	_type: TypeRef<SupportTopic>;
-
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: null | Id;
-	_permissions: Id;
-	issueDE: string;
-	issueEN: string;
-	lastUpdated: Date;
-	solutionHtmlDE: string;
-	solutionHtmlEN: string;
-	sortId: NumberString;
-
-	category: IdTuple;
-}
 export const SurveyDataTypeRef: TypeRef<SurveyData> = new TypeRef("sys", "SurveyData")
 
 export function createSurveyData(values: StrippedEntity<SurveyData>): SurveyData {
