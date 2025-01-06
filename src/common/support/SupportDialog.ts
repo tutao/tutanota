@@ -9,8 +9,9 @@ import { SupportTopicPage, SupportTopicPageAttrs } from "./supportWizardPages/Su
 import { SectionButton } from "../gui/base/buttons/SectionButton.js"
 import Stream from "mithril/stream"
 import { ContactSupportPage, ContactSupportPageAttrs } from "./supportWizardPages/ContactSupportPage.js"
-import { SupportCategory, SupportTopic } from "../api/entities/sys/TypeRefs.js"
+import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
 import { theme } from "../gui/theme.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 assertMainOrNode()
 
@@ -20,6 +21,7 @@ export async function showSupportDialog(logins: LoginController) {
 		shouldDisplayContact: Stream({ value: false, returnTo: null }),
 		selectedCategory: Stream(null),
 		selectedTopic: Stream(null),
+		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
 	}
 	const wizardPages = [
 		wizardPageWrapper(SupportLandingPage, new SupportLandingPageAttrs(data)),
@@ -39,6 +41,7 @@ export interface SupportDialogAttrs {
 	shouldDisplayContact: Stream<{ value: boolean; returnTo: WizardPageAttrs<any> | null }>
 	selectedCategory: Stream<SupportCategory | null>
 	selectedTopic: Stream<SupportTopic | null>
+	supportData: SupportData
 }
 
 export type NoSolutionSectionButtonAttrs = {
@@ -48,6 +51,7 @@ export type NoSolutionSectionButtonAttrs = {
 
 export class NoSolutionSectionButton implements Component<NoSolutionSectionButtonAttrs> {
 	private dom: HTMLElement | null = null
+
 	oncreate(vnode: VnodeDOM<NoSolutionSectionButtonAttrs>) {
 		this.dom = vnode.dom as HTMLElement
 	}
