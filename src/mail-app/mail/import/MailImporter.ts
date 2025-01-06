@@ -46,6 +46,7 @@ export class MailImporter implements MailImportFacade {
 	private uiStatus: UiImportStatus
 	private wsConnectionOnline: boolean = false
 	private eventController: EventController
+	private initialized: boolean = false
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -69,6 +70,10 @@ export class MailImporter implements MailImportFacade {
 	}
 
 	async initImportMailStates(): Promise<void> {
+		if (this.initialized) {
+			return Promise.resolve()
+		}
+		this.initialized = true
 		let mailboxDetail = assertNotNull(first(await this.mailboxModel.getMailboxDetails()))
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 		let mailboxId = mailboxDetail.mailbox._id
