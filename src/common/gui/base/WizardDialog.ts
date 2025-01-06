@@ -18,6 +18,11 @@ export interface WizardPageAttrs<T> {
 	/** Title of the page that is shown in the header bar of the WizardDialog*/
 	headerTitle(): string
 
+	/**
+	 * Gets a custom text that is displayed in the header bar of the dialog replacing the default "Back" text, if provided.
+	 */
+	getBackButtonText?(): string
+
 	/** Action that needs to be executed before switching to the next page.
 	 * @return true if the action was successful and the next page can be shown, false otherwise.
 	 **/
@@ -52,8 +57,6 @@ export interface WizardPageAttrs<T> {
 	 * if this is true the paging button (button with the number) is hidden for this specific wizard page
 	 */
 	readonly hidePagingButtonForPage?: boolean
-
-	readonly backButtonText?: string
 }
 
 export type WizardPageN<T> = Component<WizardPageAttrs<T>>
@@ -235,8 +238,10 @@ class WizardDialogAttrs<T> {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
 		const getBackButtonLabel = () => {
-			if (this.currentPage?.attrs.backButtonText) {
-				return this.currentPage.attrs.backButtonText
+			const backButtonText = this.currentPage?.attrs.getBackButtonText?.()
+			console.log(backButtonText, "backButtonText")
+			if (backButtonText) {
+				return backButtonText
 			}
 
 			if (currentPageIndex === 0) {

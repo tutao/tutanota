@@ -2,9 +2,10 @@ import { emitWizardEvent, WizardEventType, WizardPageAttrs } from "../../gui/bas
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
-import { convertTextToHtml, formatDate } from "../../misc/Formatter.js"
+import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getLocalisedCategoryName, getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 	private dom: HTMLElement | null = null
@@ -12,10 +13,6 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 	oncreate(vnode: VnodeDOM<SupportTopicPageAttrs>) {
 		this.dom = vnode.dom as HTMLElement
 		handleReturnTo(vnode.attrs.data.shouldDisplayContact, vnode)
-		// TODO: Fix the back button not being set on first click
-		const selectedCategory = vnode.attrs.data.selectedCategory()
-		const categoryName = selectedCategory == null ? lang.get("back_action") : getLocalisedCategoryName(selectedCategory, lang.languageTag)
-		vnode.attrs.setBackButtonText(categoryName)
 	}
 
 	view(vnode: Vnode<SupportTopicPageAttrs>): Children {
@@ -51,6 +48,8 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 						if (canHaveEmailSupport) {
 							shouldDisplayContact({ value: true, returnTo: vnode.attrs })
 							emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+						} else {
+							void Dialog.reminder("We offer support", "Select a paid plan, please in order to have extensive support.")
 						}
 					},
 					label: () => "No, I need help",
@@ -62,23 +61,22 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 
 export class SupportTopicPageAttrs implements WizardPageAttrs<SupportDialogAttrs> {
 	readonly data: SupportDialogAttrs
-	backButtonText: string
 
 	constructor(data: SupportDialogAttrs) {
 		this.data = data
-		this.backButtonText = this.setBackButtonText(lang.get("back_action"))
 	}
 
 	readonly hideAllPagingButtons = true
 
-	setBackButtonText(text: string): string {
-		return (this.backButtonText = `< ${text}`)
-	}
-
 	headerTitle(): string {
 		const selectedTopic = this.data.selectedTopic()
-		const categoryName = selectedTopic == null ? "topic" : getLocalisedTopicIssue(selectedTopic, lang.languageTag)
-		return `Support: ${categoryName}`
+		const issue = selectedTopic == null ? "topic" : getLocalisedTopicIssue(selectedTopic, lang.languageTag)
+		return `Support: ${issue}`
+	}
+
+	getBackButtonText(): string {
+		const selectedCategory = this.data.selectedCategory()
+		return selectedCategory == null ? lang.get("back_action") : `Back to ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
 	}
 
 	isEnabled(): boolean {
