@@ -1,6 +1,16 @@
 import path from "node:path"
-import { generateImportCode, generateWasm } from "./WasmHandler.js"
+import { generateImportCode, runCommand } from "./WasmHandler.js"
 import * as fs from "node:fs"
+
+export interface FallbackOptions {
+	command: string
+	/**
+	 * Path where the JS fallback should reside. Useful for caching.
+	 * Will be passed as {@code WASM_FALLBACK} env variable to the {@link command}.
+	 */
+	outputPath: string
+	workingDir?: string
+}
 
 export interface Library {
 	/** Name of the module, how it is imported in JS */
@@ -9,19 +19,13 @@ export interface Library {
 	command: string
 	/** Where to run the command */
 	workingDir?: string
-	/** Environment variables to be set for compilation */
-	env?: Record<string, any>
 	/**
 	 * Path where the WASM output should reside.
-	 * Will be passed as {@code WASM} env variable to the {@link command}.
+	 * Will be passed as {@code WASM} env variable to the {@link command} and to {@link FallbackOptions#command}.
 	 */
 	outputPath: string
-	/**
-	 * Path where the JS fallback should reside. Useful for caching.
-	 * If specified wasm2js fallback will be enabled.
-	 * Will be passed as {@code WASM_FALLBACK} env variable to the {@link command}.
-	 */
-	fallbackOutputPath?: string
+	/** WASM -> JS fallback options */
+	fallback?: FallbackOptions
 }
 
 /**
@@ -48,10 +52,15 @@ function parseLibraries(libraries: unknown): Map<string, Library> {
 			typeof library.command !== "string" ||
 			(library.workingDir != null && typeof library.workingDir !== "string") ||
 			(library.env != null && typeof library.env !== "object") ||
-			typeof library.outputPath !== "string" ||
-			("fallbackOutputPath" in library && typeof library.fallbackOutputPath !== "string")
+			typeof library.outputPath !== "string"
 		) {
 			throw new Error(`Invalid library: ${JSON.stringify(library)}`)
+		}
+		if ("fallback" in library) {
+			const fallback = library.fallback
+			if (typeof fallback !== "object" || (typeof fallback.outputPath !== "string" && typeof fallback.command !== "string")) {
+				throw new Error(`Invalid library fallback for ${library.name}: ${JSON.stringify(fallback)}`)
+			}
 		}
 		librariesMap.set(library.name, library)
 	}
@@ -104,20 +113,20 @@ export function rollupWasmLoader(options: PluginOptions) {
 
 				const lib = findLib(normalizedOptions, wasmLib)
 				createOutputFolderStructure(path.dirname(lib.outputPath))
-				await generateWasm(lib.command, {
+				await runCommand(lib.command, {
 					workingDir: lib.workingDir,
-					env: { ...lib.env, WASM: lib.outputPath, WASM_FALLBACK: lib.fallbackOutputPath },
+					env: { WASM: lib.outputPath },
 				})
-				return await generateImportCode(path.join("wasm", wasmLib), lib.fallbackOutputPath != null)
+				return await generateImportCode(path.join("wasm", wasmLib), lib.fallback != null)
 			} else if (id.startsWith("\0wasm-fallback")) {
 				const wasmLib = id.replaceAll("\0wasm-fallback:", "")
 				const lib = findLib(normalizedOptions, wasmLib)
-				if (lib.fallbackOutputPath) {
-					await generateWasm(lib.command, {
-						workingDir: lib.workingDir,
-						env: { ...lib.env, WASM: lib.outputPath, WASM_FALLBACK: lib.fallbackOutputPath },
+				if (lib.fallback) {
+					await runCommand(lib.fallback.command, {
+						workingDir: lib.fallback.workingDir,
+						env: { WASM: lib.outputPath, WASM_FALLBACK: lib.fallback.outputPath },
 					})
-					return fs.promises.readFile(lib.fallbackOutputPath, "utf-8")
+					return fs.promises.readFile(lib.fallback.outputPath, "utf-8")
 				}
 			}
 		},

@@ -7,7 +7,7 @@ export interface WasmGeneratorOptions {
 	env?: Record<string, any>
 }
 
-async function generateWasm(command: string, options: WasmGeneratorOptions) {
+async function runCommand(command: string, options: WasmGeneratorOptions) {
 	const runner = util.promisify(exec)
 	const promise = runner(`${command}`, {
 		env: {
@@ -58,4 +58,4 @@ async function generateImportCode(wasmFilePath: string, enableFallback: boolean)
 	`
 }
 
-export { generateImportCode, generateWasm }
+export { generateImportCode, runCommand }

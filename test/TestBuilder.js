@@ -95,17 +95,25 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
-							command: "make -f Makefile_liboqs build fallback",
+							command: "make -f Makefile_liboqs build",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
 							outputPath: `${process.cwd()}/build/wasm/liboqs.wasm`,
-							fallbackOutputPath: `${process.cwd()}/build/wasm/liboqs.js`,
+							fallback: {
+								command: "make -f Makefile_liboqs fallback",
+								workingDir: `${process.cwd()}/../libs/webassembly/`,
+								outputPath: `${process.cwd()}/build/wasm/liboqs.js`,
+							},
 						},
 						{
 							name: "argon2.wasm",
-							command: "make -f Makefile_argon2 build fallback",
+							command: "make -f Makefile_argon2 build",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
 							outputPath: `${process.cwd()}/build/wasm/argon2.wasm`,
-							fallbackOutputPath: `${process.cwd()}/build/wasm/argon2.js`,
+							fallback: {
+								command: "make -f Makefile_argon2 fallback",
+								workingDir: `${process.cwd()}/../libs/webassembly/`,
+								outputPath: `${process.cwd()}/build/wasm/argon2.js`,
+							},
 						},
 					],
 				}),
