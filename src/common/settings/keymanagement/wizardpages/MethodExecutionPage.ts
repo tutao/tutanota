@@ -181,6 +181,10 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 						if (e instanceof DOMException && e.name === "AbortError") {
 							// Operation cancelled by user. Nothing we can really do about it.
 							this.cleanupVideo()
+						} else if (e instanceof DOMException && e.name === "NotAllowedError") {
+							this.cleanupVideo()
+							this.qrCameraState = QrCameraState.PERMISSION_DENIED
+							m.redraw()
 						} else {
 							throw e
 						}
