@@ -19,8 +19,8 @@ export async function showSupportDialog(logins: LoginController) {
 	const data: SupportDialogAttrs = {
 		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
 		shouldDisplayContact: Stream({ value: false, returnTo: null }),
-		selectedCategory: Stream(null),
-		selectedTopic: Stream(null),
+		selectedCategory: Stream<SupportCategory | null>(null),
+		selectedTopic: Stream<SupportTopic | null>(null),
 		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
 	}
 	const wizardPages = [
