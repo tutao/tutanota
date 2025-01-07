@@ -94,3 +94,4 @@ export {
 } from "./misc/Utils.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
+export { hmacSha256, verifyHmacSha256, MacTag } from "./encryption/Hmac.js"
