@@ -22,6 +22,7 @@ import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { getElevatedBackground } from "../../gui/theme.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { SupportRequestSentDialog } from "../SupportRequestSentDialog.js"
+import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 
 export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setMinHeight(200).enableToolbar().setEnabled(true)
@@ -119,10 +120,21 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 			)
 		} else {
 			return m("", [
+				m("img.pb.block.height-100p", {
+					src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,
+					alt: "",
+					rel: "noreferrer",
+					loading: "lazy",
+					decoding: "async",
+					style: {
+						margin: "0 auto",
+					},
+				}),
 				m(
 					"p",
 					"Sorry, your free plan does not support direct email support. But you can get more help from Tuta's Community at Reddit or at Tuta's official FAQ page.",
 				),
+				// TODO: Add icon for reddit and app favicon for FAQ
 				m(".flex-center", { style: { gap: "1em" } }, [
 					m(ExternalLink, {
 						text: "Reddit",
@@ -132,12 +144,15 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					m(ExternalLink, { text: "Tuta FAQ", href: "https://tuta.com/support", isCompanySite: true }),
 				]),
 				m(
-					".mt",
-					m(LoginButton, {
-						label: () => "Upgrade to a paid plan with email support",
+					".mt.center",
+					m(BaseButton, {
+						label: "Upgrade to a paid plan with email support",
+						text: "Upgrade to a paid plan with email support",
+						class: `button-content border-radius accent-bg center plr-button flash`,
 						onclick: () => {
 							showUpgradeDialog()
 						},
+						disabled: false,
 					}),
 				),
 			])
