@@ -84,6 +84,10 @@ export function getLocalisedCategoryName(category: SupportCategory, languageTag:
 	return languageTag.includes("de") ? category.nameDE : category.nameEN
 }
 
+export function getLocalisedCategoryIntroduction(category: SupportCategory, languageTag: string): string {
+	return languageTag.includes("de") ? category.introductionDE : category.introductionEN
+}
+
 export function getLocalisedTopicIssue(topic: SupportTopic, languageTag: string): string {
 	return languageTag.includes("de") ? topic.issueDE : topic.issueEN
 }

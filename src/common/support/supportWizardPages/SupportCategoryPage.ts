@@ -3,6 +3,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import {
+	getLocalisedCategoryIntroduction,
 	getLocalisedCategoryName,
 	getLocalisedTopicIssue,
 	handleReturnTo,
@@ -21,30 +22,32 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 
 	view(vnode: Vnode<SupportCategoryPageAttrs>): Children {
 		const {
-			data: { canHaveEmailSupport, shouldDisplayContact, selectedCategory, supportData, selectedTopic },
+			data: { canHaveEmailSupport, shouldDisplayContact, selectedCategory, selectedTopic },
 		} = vnode.attrs
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
-		const selectedTopics = currentlySelectedCategory == null ? supportData.categories.flatMap((x) => x.topics) : currentlySelectedCategory.topics
-		return m("section", [
-			m(
-				".pb.pt.flex.col.gap-vpad.fit-height.box-content",
-				selectedTopics.map((topic) =>
-					m(SectionButton, {
-						text: getLocalisedTopicIssue(topic, languageTag),
-						onclick: () => {
-							selectedTopic(topic)
-							emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
-						},
-					}),
+		return m("", [
+			m("p", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
+			m("section", [
+				m(
+					".pb.pt.flex.col.gap-vpad.fit-height.box-content",
+					currentlySelectedCategory!.topics.map((topic) =>
+						m(SectionButton, {
+							text: getLocalisedTopicIssue(topic, languageTag),
+							onclick: () => {
+								selectedTopic(topic)
+								emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+							},
+						}),
+					),
 				),
-			),
-			canHaveEmailSupport // TODO: Display dialog warning about free account on click instead of not rendering the button
-				? m(NoSolutionSectionButton, {
-						pageAttrs: vnode.attrs,
-						shouldDisplayContact: shouldDisplayContact,
-				  })
-				: null,
+				canHaveEmailSupport // TODO: Display dialog warning about free account on click instead of not rendering the button
+					? m(NoSolutionSectionButton, {
+							pageAttrs: vnode.attrs,
+							shouldDisplayContact: shouldDisplayContact,
+					  })
+					: null,
+			]),
 		])
 	}
 }

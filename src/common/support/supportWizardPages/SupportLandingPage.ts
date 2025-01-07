@@ -20,10 +20,7 @@ export class SupportLandingPage implements Component<SupportLandingPageAttrs> {
 		} = vnode.attrs
 		return [
 			m(".h1.text-center.pt", "Find your answers here"),
-			m(
-				"p.text-center",
-				"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent feugiat blandit dapibus. Donec placerat hendrerit lacinia. Nullam eros lorem, convallis mattis sapien mattis, ultrices laoreet libero. Nulla facilisi. Sed ac leo eleifend felis lacinia vehicula in a felis. Fusce lorem libero, scelerisque nec convallis et, tempus euismod nunc.",
-			),
+			m("p.text-center", "We are here to help you with your question or issue."),
 			this.renderCategories(supportData.categories, selectedCategory, lang.code),
 			canHaveEmailSupport
 				? m(NoSolutionSectionButton, {

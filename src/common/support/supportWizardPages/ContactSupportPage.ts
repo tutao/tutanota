@@ -53,7 +53,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 							height: styles.isDesktopLayout() ? "45px" : "77.5px",
 						},
 					},
-					"Bitte beschreibe uns wo das Problem liegt.",
+					"Please clarify what problem you faced. You can attach screenshots to help us understand your situation.",
 				),
 				m(
 					".flex.flex-space-between.align-self-end.items-center.gap-hpad",
@@ -83,7 +83,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					label: () => lang.get("sendLogs_action"),
 					class: "mb",
 					checked: this.shouldIncludeLogs,
-					helpLabel: () => "Sending anonymously collected logs help us identify your problem.",
+					helpLabel: () => "Send technical logs to help us solve your issue.",
 					onChecked: (checked) => (this.shouldIncludeLogs = checked),
 				}),
 				this.renderSubmitButton(vnode.attrs.data),
@@ -134,7 +134,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 		 */
 		function getSubject() {
 			const MAX_ISSUE_LENGTH = 60
-			let subject = `Support Request - ${PlanTypeToName[planType]}`
+			let subject = `Support Request (${PlanTypeToName[planType]})`
 
 			const selectedCategory = data.selectedCategory()
 			const selectedTopic = data.selectedTopic()
