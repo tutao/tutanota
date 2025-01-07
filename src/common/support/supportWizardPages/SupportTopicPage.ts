@@ -31,7 +31,7 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 		const issue = getLocalisedTopicIssue(topic, languageTag)
 		return m(
 			"",
-			m("section", [m("h1.pb-m", issue), m.trust(sanitisedSolution)]),
+			m("section", [m("p.b.text-center.h5", issue), m.trust(sanitisedSolution)]),
 			m("hr"),
 			m("section.flex-center.center-vertically", m("", "Was this helpful?"), [
 				m(Button, {
@@ -64,9 +64,11 @@ export class SupportTopicPageAttrs implements WizardPageAttrs<SupportDialogAttrs
 	readonly hideAllPagingButtons = true
 
 	headerTitle(): string {
-		const selectedTopic = this.data.selectedTopic()
-		const issue = selectedTopic == null ? "topic" : getLocalisedTopicIssue(selectedTopic, lang.languageTag)
-		return `Support: ${issue}`
+		return "Support"
+	}
+
+	getBackButtonText(): string {
+		return "Back"
 	}
 
 	/**

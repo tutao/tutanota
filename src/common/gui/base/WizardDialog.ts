@@ -34,6 +34,11 @@ export interface WizardPageAttrs<T> {
 	isSkipAvailable(): boolean
 
 	/**
+	 * Gets a custom text for the "back" or "close" navigation button.
+	 */
+	getBackButtonText?(): string
+
+	/**
 	 * Checks if the page is enabled and can be displayed.
 	 */
 	isEnabled(): boolean
@@ -238,6 +243,11 @@ class WizardDialogAttrs<T> {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
 		const getBackButtonLabel = () => {
+			const backButtonText = this.currentPage?.attrs.getBackButtonText?.()
+			if (backButtonText) {
+				return backButtonText
+			}
+
 			if (currentPageIndex === 0) {
 				return lang.get(this.cancelButtonText)
 			}

@@ -19,9 +19,10 @@ import { AttachmentBubble, AttachmentType } from "../../gui/AttachmentBubble.js"
 import { showFileChooser } from "../../file/FileController.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
+import { getElevatedBackground } from "../../gui/theme.js"
 
 export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
-	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setShowOutline(true).showBorders().setMinHeight(200).enableToolbar().setEnabled(true)
+	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setMinHeight(200).enableToolbar().setEnabled(true)
 	private logs: DataFile[] = []
 	private shouldIncludeLogs: boolean = true
 	private readonly userAttachments: DataFile[] = []
@@ -58,36 +59,60 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					"Please clarify what problem you faced. You can attach screenshots to help us understand your situation.",
 				),
 				m(
-					".flex.flex-space-between.align-self-end.items-center.gap-hpad",
-					this.userAttachments.map((attachment, index) =>
-						m(AttachmentBubble, {
-							attachment: attachment,
-							download: () => locator.fileController.saveDataFile(attachment),
-							open: null,
-							remove: () => this.userAttachments.splice(index, 1),
-							fileImport: null,
-							type: AttachmentType.GENERIC,
+					"",
+					{
+						style: {
+							"background-color": getElevatedBackground(),
+							padding: "0.5em 1em 1em 1em",
+						},
+					},
+					m(this.htmlEditor),
+				),
+				m(
+					".flex.flex-space-between.align-self-end.items-center.gap-hpad.mt-m",
+					m(
+						".flex",
+						{ style: { "flex-wrap": "wrap", gap: "0.5em" } },
+						this.userAttachments.map((attachment, index) =>
+							m(AttachmentBubble, {
+								attachment: attachment,
+								download: () => locator.fileController.saveDataFile(attachment),
+								open: null,
+								remove: () => this.userAttachments.splice(index, 1),
+								fileImport: null,
+								type: AttachmentType.GENERIC,
+							}),
+						),
+					),
+					m(
+						"",
+						{
+							style: {
+								"align-self": "flex-start",
+							},
+						},
+						m(Button, {
+							type: ButtonType.Secondary,
+							label: () => "Attach files",
+							click: () => {
+								showFileChooser(true).then((chosenFiles) => {
+									this.userAttachments.push(...chosenFiles)
+									m.redraw()
+								})
+							},
 						}),
 					),
-					m(Button, {
-						type: ButtonType.Secondary,
-						label: () => "Attach files",
-						click: () => {
-							showFileChooser(true).then((chosenFiles) => {
-								this.userAttachments.push(...chosenFiles)
-								m.redraw()
-							})
-						},
+				),
+				// TODO: Add a tooltip around this checkbox with the text "Send technical logs to help us solve your issue."
+				m(
+					".center",
+					m(Checkbox, {
+						label: () => lang.get("sendLogs_action"),
+						class: "mb",
+						checked: this.shouldIncludeLogs,
+						onChecked: (checked) => (this.shouldIncludeLogs = checked),
 					}),
 				),
-				m(this.htmlEditor),
-				m(Checkbox, {
-					label: () => lang.get("sendLogs_action"),
-					class: "mb",
-					checked: this.shouldIncludeLogs,
-					helpLabel: () => "Send technical logs to help us solve your issue.",
-					onChecked: (checked) => (this.shouldIncludeLogs = checked),
-				}),
 				this.renderSubmitButton(vnode.attrs.data),
 			)
 		} else {
