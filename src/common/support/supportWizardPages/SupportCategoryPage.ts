@@ -41,12 +41,10 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 						}),
 					),
 				),
-				canHaveEmailSupport // TODO: Display dialog warning about free account on click instead of not rendering the button
-					? m(NoSolutionSectionButton, {
-							pageAttrs: vnode.attrs,
-							shouldDisplayContact: shouldDisplayContact,
-					  })
-					: null,
+				m(NoSolutionSectionButton, {
+					pageAttrs: vnode.attrs,
+					shouldDisplayContact: shouldDisplayContact,
+				}),
 			]),
 		])
 	}

@@ -17,6 +17,8 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { Attachment, SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { AttachmentBubble, AttachmentType } from "../../gui/AttachmentBubble.js"
 import { showFileChooser } from "../../file/FileController.js"
+import { ExternalLink } from "../../gui/base/ExternalLink.js"
+import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 
 export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setShowOutline(true).showBorders().setMinHeight(200).enableToolbar().setEnabled(true)
@@ -89,7 +91,29 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 				this.renderSubmitButton(vnode.attrs.data),
 			)
 		} else {
-			return m("p", "Sorry, contacting support is not available for your account")
+			return m("", [
+				m(
+					"p",
+					"Sorry, your free plan does not support direct email support. But you can get more help from Tuta's Community at Reddit or at Tuta's official FAQ page.",
+				),
+				m(".flex-center", { style: { gap: "1em" } }, [
+					m(ExternalLink, {
+						text: "Reddit",
+						href: "https://reddit.com/r/tutanota",
+						isCompanySite: false,
+					}),
+					m(ExternalLink, { text: "Tuta FAQ", href: "https://tuta.com/support", isCompanySite: true }),
+				]),
+				m(
+					".mt",
+					m(LoginButton, {
+						label: () => "Upgrade to a paid plan with email support",
+						onclick: () => {
+							showUpgradeDialog()
+						},
+					}),
+				),
+			])
 		}
 	}
 
@@ -197,7 +221,11 @@ export class ContactSupportPageAttrs implements WizardPageAttrs<SupportDialogAtt
 	}
 
 	headerTitle(): string {
-		return "Contact support"
+		if (this.data.canHaveEmailSupport) {
+			return "Contact support"
+		} else {
+			return "Support"
+		}
 	}
 
 	isEnabled(): boolean {

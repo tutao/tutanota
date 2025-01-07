@@ -22,12 +22,10 @@ export class SupportLandingPage implements Component<SupportLandingPageAttrs> {
 			m(".h1.text-center.pt", "Find your answers here"),
 			m("p.text-center", "We are here to help you with your question or issue."),
 			this.renderCategories(supportData.categories, selectedCategory, lang.code),
-			canHaveEmailSupport
-				? m(NoSolutionSectionButton, {
-						pageAttrs: vnode.attrs,
-						shouldDisplayContact: shouldDisplayContact,
-				  })
-				: null,
+			m(NoSolutionSectionButton, {
+				pageAttrs: vnode.attrs,
+				shouldDisplayContact: shouldDisplayContact,
+			}),
 		]
 	}
 

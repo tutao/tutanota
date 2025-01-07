@@ -5,7 +5,6 @@ import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
-import { Dialog } from "../../gui/base/Dialog.js"
 
 export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 	private dom: HTMLElement | null = null
@@ -45,12 +44,8 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 				m(Button, {
 					type: ButtonType.Secondary,
 					click: () => {
-						if (canHaveEmailSupport) {
-							shouldDisplayContact({ value: true, returnTo: vnode.attrs })
-							emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
-						} else {
-							void Dialog.reminder("We offer support", "Select a paid plan, please in order to have extensive support.")
-						}
+						shouldDisplayContact({ value: true, returnTo: vnode.attrs })
+						emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 					},
 					label: () => "No, I need help",
 				}),
