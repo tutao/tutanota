@@ -22,11 +22,12 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 
 	view(vnode: Vnode<SupportCategoryPageAttrs>): Children {
 		const {
-			data: { canHaveEmailSupport, shouldDisplayContact, selectedCategory, selectedTopic },
+			data: { shouldDisplayContact, selectedCategory, selectedTopic },
 		} = vnode.attrs
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 		return m("", [
+			m("section", [m("p.b.text-center.h5", getLocalisedCategoryName(selectedCategory()!, languageTag))]),
 			m("p", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 			m("section", [
 				m(
@@ -56,9 +57,7 @@ export class SupportCategoryPageAttrs implements WizardPageAttrs<SupportDialogAt
 	constructor(readonly data: SupportDialogAttrs) {}
 
 	headerTitle(): string {
-		const selectedCategory = this.data.selectedCategory()
-		const categoryName = selectedCategory == null ? "category" : getLocalisedCategoryName(selectedCategory, lang.languageTag)
-		return `Support: ${categoryName}`
+		return `Support`
 	}
 
 	/**

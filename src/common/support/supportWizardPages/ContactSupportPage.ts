@@ -10,7 +10,7 @@ import { styles } from "../../gui/styles.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { DataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { MailMethod, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
+import { Keys, MailMethod, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -20,6 +20,8 @@ import { showFileChooser } from "../../file/FileController.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { getElevatedBackground } from "../../gui/theme.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { SupportRequestSentDialog } from "../SupportRequestSentDialog.js"
 
 export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setMinHeight(200).enableToolbar().setEnabled(true)
@@ -218,6 +220,20 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 			false,
 		)
 		await model.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
+
+		const dialog: Dialog = Dialog.editMediumDialog(
+			{
+				left: [{ click: () => dialog.close(), label: "close_alt", title: "close_alt", type: ButtonType.Secondary }],
+			},
+			SupportRequestSentDialog,
+			{ closeDialog: () => dialog.close() },
+		)
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => dialog.close(),
+				help: "close_alt",
+			})
+			.show()
 	}
 
 	// Generates a SendMailModel from the User Mailbox
