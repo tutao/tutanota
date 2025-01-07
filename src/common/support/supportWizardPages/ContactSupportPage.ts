@@ -108,7 +108,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 				),
 				// TODO: Add a tooltip around this checkbox with the text "Send technical logs to help us solve your issue."
 				m(
-					".center",
+					".center.mt",
 					m(Checkbox, {
 						label: () => lang.get("sendLogs_action"),
 						class: "mb",
