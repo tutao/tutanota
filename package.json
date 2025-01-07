@@ -34,7 +34,7 @@
 	"dependencies": {
 		"@tutao/node-mimimi": "259.250108.1",
 		"@tutao/oxmsg": "0.0.9-beta.0",
-		"@tutao/tuta-wasm-loader": "259.250108.1",
+		"@tutao/tuta-wasm-loader": "259.250106.1-beta.0",
 		"@tutao/tutanota-crypto": "259.250108.1",
 		"@tutao/tutanota-error": "259.250108.1",
 		"@tutao/tutanota-usagetests": "259.250108.1",
