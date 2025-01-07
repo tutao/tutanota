@@ -4,13 +4,13 @@ import { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { Checkbox } from "../../gui/base/Checkbox.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { SupportDialogAttrs } from "../SupportDialog.js"
+import { getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogAttrs } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
 import { styles } from "../../gui/styles.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { DataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { MailMethod } from "../../api/common/TutanotaConstants.js"
+import { MailMethod, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -86,14 +86,14 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					helpLabel: () => "Sending anonymously collected logs help us identify your problem.",
 					onChecked: (checked) => (this.shouldIncludeLogs = checked),
 				}),
-				this.renderSubmitButton(),
+				this.renderSubmitButton(vnode.attrs.data),
 			)
 		} else {
 			return m("p", "Sorry, contacting support is not available for your account")
 		}
 	}
 
-	private renderSubmitButton() {
+	private renderSubmitButton(data: SupportDialogAttrs) {
 		return m(
 			".align-self-center",
 			{
@@ -107,7 +107,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					const message = this.htmlEditor.getValue()
 					const mailBody = this.shouldIncludeLogs ? `${message}${clientInfoString(new Date(), true).message}` : message
 					const attachments = this.shouldIncludeLogs ? [...this.userAttachments, ...this.logs] : this.userAttachments
-					ContactSupportPage.send(mailBody, attachments).then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
+					this.send(mailBody, attachments, data).then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
 				},
 			}),
 		)
@@ -117,11 +117,40 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 	 * Sends an email to the support address
 	 * @param rawBody The unsanitised HTML string to be sanitised then used as the emails body
 	 * @param attachments The files to be added as attachments to the email
+	 * @param data The dialog data required to get the selected category and topic if present.
 	 */
-	private static async send(rawBody: string, attachments: Attachment[]) {
+	private async send(rawBody: string, attachments: Attachment[], data: SupportDialogAttrs) {
 		const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(rawBody), {
 			blockExternalContent: true,
 		}).html
+
+		const planType = await locator.logins.getUserController().getPlanType()
+
+		/**
+		 * Gets the subject of the support request considering the users current plan and the path they took to get to the contact form.
+		 * Appends the category and topic if present.
+		 *
+		 * **Example output: `Support Request - Unlimited - Account: I cannot login.`**
+		 */
+		function getSubject() {
+			const MAX_ISSUE_LENGTH = 60
+			let subject = `Support Request - ${PlanTypeToName[planType]}`
+
+			const selectedCategory = data.selectedCategory()
+			const selectedTopic = data.selectedTopic()
+
+			if (selectedCategory != null && selectedTopic != null) {
+				const localizedTopic = getLocalisedTopicIssue(selectedTopic, lang.languageTag)
+				const issue = localizedTopic.length > MAX_ISSUE_LENGTH ? localizedTopic.substring(0, MAX_ISSUE_LENGTH) + "..." : localizedTopic
+				subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
+			}
+
+			if (selectedCategory != null && selectedTopic == null) {
+				subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
+			}
+
+			return subject
+		}
 
 		const sendMailModel = await this.createSendMailModel()
 		const model = await sendMailModel.initWithTemplate(
@@ -134,7 +163,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					},
 				],
 			},
-			"Support Request", // TODO: Expand with category, topic and plan
+			getSubject(),
 			sanitisedBody,
 			attachments,
 			false,
@@ -143,7 +172,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 	}
 
 	// Generates a SendMailModel from the User Mailbox
-	private static async createSendMailModel(): Promise<SendMailModel> {
+	private async createSendMailModel(): Promise<SendMailModel> {
 		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
 		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		return await locator.sendMailModel(mailboxDetails, mailboxProperties)

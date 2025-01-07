@@ -3,7 +3,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
-import { getLocalisedCategoryName, getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
+import { getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 
@@ -74,9 +74,11 @@ export class SupportTopicPageAttrs implements WizardPageAttrs<SupportDialogAttrs
 		return `Support: ${issue}`
 	}
 
-	getBackButtonText(): string {
-		const selectedCategory = this.data.selectedCategory()
-		return selectedCategory == null ? lang.get("back_action") : `Back to ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
+	/**
+	 * Goes back to the list of topics in the current category.
+	 */
+	onClickBack() {
+		this.data.selectedTopic?.(null)
 	}
 
 	isEnabled(): boolean {

@@ -19,9 +19,9 @@ export interface WizardPageAttrs<T> {
 	headerTitle(): string
 
 	/**
-	 * Gets a custom text that is displayed in the header bar of the dialog replacing the default "Back" text, if provided.
+	 * Gets an additional action that is being triggered when the user clicks on the "Back" or "Close" button.
 	 */
-	getBackButtonText?(): string
+	onClickBack?(): void
 
 	/** Action that needs to be executed before switching to the next page.
 	 * @return true if the action was successful and the next page can be shown, false otherwise.
@@ -238,12 +238,6 @@ class WizardDialogAttrs<T> {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
 		const getBackButtonLabel = () => {
-			const backButtonText = this.currentPage?.attrs.getBackButtonText?.()
-			console.log(backButtonText, "backButtonText")
-			if (backButtonText) {
-				return backButtonText
-			}
-
 			if (currentPageIndex === 0) {
 				return lang.get(this.cancelButtonText)
 			}
@@ -253,7 +247,10 @@ class WizardDialogAttrs<T> {
 
 		const backButtonAttrs: ButtonAttrs = {
 			label: () => getBackButtonLabel(),
-			click: () => this.goToPreviousPageOrClose(),
+			click: () => {
+				this.currentPage?.attrs.onClickBack?.()
+				this.goToPreviousPageOrClose()
+			},
 			type: ButtonType.Secondary,
 		}
 		const skipButtonAttrs: ButtonAttrs = {

@@ -21,7 +21,7 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 
 	view(vnode: Vnode<SupportCategoryPageAttrs>): Children {
 		const {
-			data: { canHaveEmailSupport, shouldDisplayContact, selectedCategory, supportData },
+			data: { canHaveEmailSupport, shouldDisplayContact, selectedCategory, supportData, selectedTopic },
 		} = vnode.attrs
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
@@ -33,7 +33,7 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 					m(SectionButton, {
 						text: getLocalisedTopicIssue(topic, languageTag),
 						onclick: () => {
-							vnode.attrs.data.selectedTopic(topic)
+							selectedTopic(topic)
 							emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 						},
 					}),
@@ -58,6 +58,13 @@ export class SupportCategoryPageAttrs implements WizardPageAttrs<SupportDialogAt
 		const selectedCategory = this.data.selectedCategory()
 		const categoryName = selectedCategory == null ? "category" : getLocalisedCategoryName(selectedCategory, lang.languageTag)
 		return `Support: ${categoryName}`
+	}
+
+	/**
+	 * Goes back to the landing page.
+	 */
+	onClickBack() {
+		this.data.selectedCategory?.(null)
 	}
 
 	isEnabled(): boolean {
