@@ -27,8 +27,8 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 		return m("", [
-			m("section", [m("p.b.text-center.h5", getLocalisedCategoryName(selectedCategory()!, languageTag))]),
-			m("p", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
+			m("section", [m("p.b.h5.mb-0", getLocalisedCategoryName(selectedCategory()!, languageTag))]),
+			m("p.mt-xs", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 			m("section", [
 				m(
 					".pb.pt.flex.col.gap-vpad.fit-height.box-content",
