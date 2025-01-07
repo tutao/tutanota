@@ -33,9 +33,10 @@ pub fn generate_random_group(
 	current_keys: Option<KeyPair>,
 	former_keys: Option<GroupKeysRef>,
 ) -> Group {
+	let group_id = GeneratedId::test_random();
 	Group {
 		_format: 0,
-		_id: Some(GeneratedId::test_random()),
+		_id: Some(group_id.clone()),
 		_ownerGroup: None,
 		_permissions: GeneratedId::test_random(),
 		groupInfo: IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
@@ -73,6 +74,8 @@ pub fn generate_random_group(
 			pubEncSymKey: vec![1, 2, 3],
 			recipientKeyVersion: 0,
 			senderKeyVersion: Some(0),
+			senderIdentifier: Some(group_id.clone().to_string()),
+			senderIdentifierType: Some(PublicKeyIdentifierType::GroupId as i64),
 		}),
 		storageCounter: None,
 		user: None,

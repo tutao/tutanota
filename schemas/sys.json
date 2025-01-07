@@ -465,6 +465,71 @@
 					"info": "AddValue PlanConfiguration/unlimitedLabels/2494."
 				}
 			]
+		},
+		{
+			"version": 118,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "EncryptedKeyHash",
+					"info": "AddValue EncryptedKeyHash/encryptingKeyVersion/2521."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: userGroup -> encryptingGroup."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: version -> hashedKeyVersion."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "EncryptedKeyHash",
+					"info": "RenameAttribute EncryptedKeyHash: authKeyEncAdminRotationHash -> encryptingKeyEncKeyHash."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "KeyRotation",
+					"info": "RenameAttribute KeyRotation: adminGroupKeyAuthenticationData -> userEncAdminPubKeyHash."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/distEncAdminGroupSymKey/AGGREGATION/2522."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/userEncAdminSymKeyHash/AGGREGATION/2523."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2524."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "KeyRotation",
+					"info": "AddAssociation KeyRotation/adminDistKeyPair/AGGREGATION/2525."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "UserGroupKeyRotationData",
+					"info": "AddValue UserGroupKeyRotationData/userGroupEncAdminGroupKey/2546."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PubEncKeyData",
+					"info": "AddValue PubEncKeyData/senderIdentifier/2547."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "PubEncKeyData",
+					"info": "AddValue PubEncKeyData/senderIdentifierType/2548."
+				}
+			]
 		}
 	]
 }

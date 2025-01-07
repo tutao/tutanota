@@ -16,6 +16,7 @@ export function padAes(bytes: Uint8Array): Uint8Array {
 	padding.fill(paddingLength)
 	return concat(bytes, padding)
 }
+
 export function unpadAes(bytes: Uint8Array): Uint8Array {
 	let paddingLength = bytes[bytes.byteLength - 1]
 
@@ -38,6 +39,7 @@ export function createAuthVerifier(passwordKey: AesKey): Uint8Array {
 	// TODO Compatibility Test
 	return sha256Hash(bitArrayToUint8Array(passwordKey))
 }
+
 export function createAuthVerifierAsBase64Url(passwordKey: AesKey): Base64Url {
 	return base64ToBase64Url(uint8ArrayToBase64(createAuthVerifier(passwordKey)))
 }
@@ -101,10 +103,12 @@ export function base64ToKey(base64: Base64): BitArray {
 	}
 }
 
-export function uint8ArrayToKey(array: Uint8Array): BitArray {
+export function uint8ArrayToKey(array: Uint8Array): AesKey {
 	return base64ToKey(uint8ArrayToBase64(array))
 }
+
 export function keyToUint8Array(key: BitArray): Uint8Array {
 	return base64ToUint8Array(keyToBase64(key))
 }
+
 export const fixedIv: Uint8Array = hexToUint8Array("88888888888888888888888888888888")
