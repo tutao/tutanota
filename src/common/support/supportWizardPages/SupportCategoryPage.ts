@@ -60,10 +60,6 @@ export class SupportCategoryPageAttrs implements WizardPageAttrs<SupportDialogAt
 		return `Support: ${categoryName}`
 	}
 
-	getBackButtonText(): string {
-		return "Overview"
-	}
-
 	isEnabled(): boolean {
 		return shouldShowPage(this.data.shouldDisplayContact(), this)
 	}
