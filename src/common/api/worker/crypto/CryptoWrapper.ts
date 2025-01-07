@@ -21,18 +21,21 @@ import {
 	generateEccKeyPair,
 	hkdf,
 	HkdfKeyDerivationDomains,
+	hmacSha256,
 	IV_BYTE_LENGTH,
 	KEY_LENGTH_BYTES_AES_256,
 	keyToUint8Array,
 	KyberPrivateKey,
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
+	MacTag,
 	type PQKeyPairs,
 	random,
 	type RsaEccKeyPair,
 	type RsaKeyPair,
 	sha256Hash,
 	uint8ArrayToKey,
+	verifyHmacSha256,
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 
@@ -123,6 +126,14 @@ export class CryptoWrapper {
 			info: context,
 			length: KEY_LENGTH_BYTES_AES_256,
 		})
+	}
+
+	hmacSha256(key: AesKey, data: Uint8Array): MacTag {
+		return hmacSha256(key, data)
+	}
+
+	verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
+		return verifyHmacSha256(key, data, tag)
 	}
 }
 
