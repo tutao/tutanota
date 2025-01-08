@@ -14,8 +14,6 @@ use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, IdTupleGenerated, LoggedInSdk};
 
-pub type NapiTokioMutex<T> = napi::tokio::sync::Mutex<T>;
-
 #[napi_derive::napi(object)]
 #[derive(Clone)]
 /// Passed in from js-side, will be validated before being converted to proper tuta sdk credentials.
@@ -36,13 +34,10 @@ pub struct ImporterApi {}
 impl ImporterApi {
 	pub async fn get_running_imports<'a>(
 	) -> MutexGuard<'a, HashMap<String, Arc<Mutex<LocalImportState>>>> {
-		/// SAFETY: it's wrapped in a mutex, so it should be fine to access from multiple threads.
-		unsafe {
-			GLOBAL_IMPORTER_STATES
-				.get_or_init(|| Mutex::new(HashMap::new()))
-				.lock()
-				.await
-		}
+		GLOBAL_IMPORTER_STATES
+			.get_or_init(|| Mutex::new(HashMap::new()))
+			.lock()
+			.await
 	}
 
 	pub async fn create_file_importer_inner(
@@ -55,7 +50,7 @@ impl ImporterApi {
 		let target_owner_group = GeneratedId(target_owner_group);
 
 		let source_count = source_paths.len() as i64;
-		let mut importer = Importer::create_file_importer(
+		let importer = Importer::create_file_importer(
 			logged_in_sdk,
 			target_owner_group,
 			target_mailset,
@@ -63,11 +58,11 @@ impl ImporterApi {
 			import_directory,
 		)
 		.await?;
-		{
-			importer
-				.update_state(|mut state| state.total_count = source_count)
-				.await;
-		}
+
+		importer
+			.update_state(|mut state| state.total_count = source_count)
+			.await;
+
 		Ok(importer)
 	}
 
@@ -113,14 +108,12 @@ impl ImporterApi {
 		let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
 
 		let mut running_imports = Self::get_running_imports().await;
-		if running_imports.contains_key(&mailbox_id) {
-			if let Some(import) = running_imports.get_mut(&mailbox_id) {
-				let current_status = import.lock().await.current_status;
-				if current_status != ImportStatus::Running {
-					running_imports.remove(&mailbox_id);
-				} else {
-					Err(ImportError::ImporterAlreadyRunning)?;
-				}
+		if let Some(import) = running_imports.get_mut(&mailbox_id) {
+			let current_status = import.lock().await.current_status;
+			if current_status != ImportStatus::Running {
+				running_imports.remove(&mailbox_id);
+			} else {
+				Err(ImportError::ImporterAlreadyRunning)?;
 			}
 		}
 
@@ -135,7 +128,7 @@ impl ImporterApi {
 		let eml_sources = FileImport::prepare_import(import_directory.clone(), source_paths)
 			.map_err(|e| ImportError::IterationError(IterationError::File(e)))?;
 
-		let mut inner = Self::create_file_importer_inner(
+		let inner = Self::create_file_importer_inner(
 			logged_in_sdk,
 			target_owner_group,
 			target_mailset,
@@ -192,8 +185,7 @@ impl ImporterApi {
 			._ownerGroup
 			.expect("import state should have ownerGroup");
 
-		let import_directory: PathBuf =
-			Importer::get_import_directory(config_directory, &mailbox_id);
+		let import_directory = Importer::get_import_directory(config_directory, &mailbox_id);
 
 		let dir_entries = fs::read_dir(&import_directory)?;
 		let mut source_paths: Vec<PathBuf> = vec![];
@@ -229,28 +221,51 @@ impl ImporterApi {
 	#[napi]
 	pub async fn set_progress_action(
 		mailbox_id: String,
+		tuta_credentials: TutaCredentials,
 		import_progress_action: ImportProgressAction,
 		config_directory: String,
 	) -> napi::Result<()> {
 		let mut running_imports = Self::get_running_imports().await;
-
 		let locked_local_state = running_imports.get_mut(mailbox_id.as_str());
-		let delete_import_dir = match locked_local_state {
+		let import_directory_path = Importer::get_import_directory(config_directory, &mailbox_id);
+
+		match locked_local_state {
 			Some(local_import_state) => {
+				let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
 				let mut local_import_state = local_import_state.lock().await;
-				let delete_import_dir = import_progress_action == ImportProgressAction::Stop
-					&& local_import_state.import_progress_action == ImportProgressAction::Pause;
 				local_import_state.import_progress_action = import_progress_action;
-				delete_import_dir
+
+				match import_progress_action {
+					ImportProgressAction::Continue => Ok(()),
+
+					ImportProgressAction::Pause => {
+						local_import_state.current_status = ImportStatus::Paused;
+						Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state)
+							.await?;
+
+						Ok(())
+					},
+
+					ImportProgressAction::Stop => {
+						let previous_status = local_import_state.current_status;
+						local_import_state.current_status = ImportStatus::Canceled;
+						Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state)
+							.await?;
+
+						if previous_status != ImportStatus::Running {
+							Importer::delete_import_dir(&import_directory_path)?;
+						}
+
+						Ok(())
+					},
+				}
 			},
-			None => true,
-		};
-		if delete_import_dir {
-			let import_directory_path =
-				Importer::get_import_directory(config_directory, &mailbox_id);
-			Importer::delete_import_dir(&import_directory_path)?;
+
+			None => {
+				Importer::delete_import_dir(&import_directory_path)?;
+				Ok(())
+			},
 		}
-		Ok(())
 	}
 
 	#[napi]

@@ -3,7 +3,6 @@
 import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
 import { ResumableImport } from "./ResumableImport.js"
 import { LocalImportMailState } from "./LocalImportMailState.js"
-
 /**
  * Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.
  */
@@ -21,19 +20,9 @@ export interface NativeMailImportFacade {
 	): Promise<void>
 
 	/**
-	 * Sets progress action to continue for next callback
+	 * Sets progress action for next import iteration
 	 */
-	setContinueProgressAction(mailboxId: string): Promise<void>
-
-	/**
-	 * Sets progress action to stop for next callback
-	 */
-	setStopProgressAction(mailboxId: string): Promise<void>
-
-	/**
-	 * Sets progress action to pause for next callback
-	 */
-	setPausedProgressAction(mailboxId: string): Promise<void>
+	setProgressAction(mailboxId: string, apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, progressAction: number): Promise<void>
 
 	/**
 	 * @returns the mail import state id of the import that might be resumed

@@ -1,4 +1,4 @@
-import { ImporterApi, ImportProgressAction, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
+import { ImporterApi, TutaCredentials } from "../../../../packages/node-mimimi/dist/binding.cjs"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
@@ -27,6 +27,14 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		targetFolderId: IdTuple,
 		filePaths: Array<string>,
 	): Promise<void> {
+		const tutaCredentials = this.createTutaCredentials(unencTutaCredentials, apiUrl)
+
+		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
+
+		await ImporterApi.startFileImport(mailboxId, tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
+	}
+
+	private createTutaCredentials(unencTutaCredentials: UnencryptedCredentials, apiUrl: string) {
 		const tutaCredentials: TutaCredentials = {
 			accessToken: unencTutaCredentials?.accessToken,
 			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
@@ -36,10 +44,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			apiUrl: apiUrl,
 			clientVersion: env.versionNumber,
 		}
-
-		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
-
-		await ImporterApi.startFileImport(mailboxId, tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
+		return tutaCredentials
 	}
 
 	async getImportState(mailboxId: string): Promise<LocalImportMailState | null> {
@@ -58,16 +63,8 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		}
 	}
 
-	async setContinueProgressAction(mailboxId: string) {
-		return ImporterApi.setProgressAction(mailboxId, ImportProgressAction.Continue, this.configDirectory)
-	}
-
-	async setStopProgressAction(mailboxId: string): Promise<void> {
-		return ImporterApi.setProgressAction(mailboxId, ImportProgressAction.Stop, this.configDirectory)
-	}
-
-	async setPausedProgressAction(mailboxId: string): Promise<void> {
-		return ImporterApi.setProgressAction(mailboxId, ImportProgressAction.Pause, this.configDirectory)
+	async setProgressAction(mailboxId: string, apiUrl: string, unencTutaCredentials: UnencryptedCredentials, progressAction: number) {
+		return ImporterApi.setProgressAction(mailboxId, this.createTutaCredentials(unencTutaCredentials, apiUrl), progressAction, this.configDirectory)
 	}
 
 	async getResumeableImport(mailboxId: string): Promise<ResumableImport> {

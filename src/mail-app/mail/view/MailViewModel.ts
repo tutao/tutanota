@@ -619,9 +619,7 @@ export class MailViewModel {
 		let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 		const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
 
-		if (importedMailEntries.length !== parseInt(importMailState.successfulMails)) {
-			throw new ProgrammingError(`Imported ${importMailState.successfulMails} mails, but only got: ${importedMailEntries.length}`)
-		} else if (importedMailEntries.length === 0) {
+		if (importedMailEntries.length === 0) {
 			return Promise.resolve()
 		}
 

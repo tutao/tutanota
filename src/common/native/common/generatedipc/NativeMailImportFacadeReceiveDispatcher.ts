@@ -16,17 +16,12 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				const filePaths: ReadonlyArray<string> = arg[5]
 				return this.facade.startFileImport(mailboxId, apiUrl, unencryptedTutaCredentials, targetOwnerGroup, targetFolder, filePaths)
 			}
-			case "setContinueProgressAction": {
+			case "setProgressAction": {
 				const mailboxId: string = arg[0]
-				return this.facade.setContinueProgressAction(mailboxId)
-			}
-			case "setStopProgressAction": {
-				const mailboxId: string = arg[0]
-				return this.facade.setStopProgressAction(mailboxId)
-			}
-			case "setPausedProgressAction": {
-				const mailboxId: string = arg[0]
-				return this.facade.setPausedProgressAction(mailboxId)
+				const apiUrl: string = arg[1]
+				const unencryptedTutaCredentials: UnencryptedCredentials = arg[2]
+				const progressAction: number = arg[3]
+				return this.facade.setProgressAction(mailboxId, apiUrl, unencryptedTutaCredentials, progressAction)
 			}
 			case "getResumeableImport": {
 				const mailboxId: string = arg[0]

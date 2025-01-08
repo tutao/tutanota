@@ -9,9 +9,7 @@ use imap_reader::ImapImportConfig;
 use imap_reader::{ImapImport, ImapIterationError};
 use importable_mail::ImportableMail;
 use napi::tokio::sync::{Mutex, MutexGuard};
-use std::fmt::{Display, Formatter};
 use std::fs;
-use std::future::Future;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -46,7 +44,7 @@ pub const MAX_REQUEST_SIZE: usize = 1024 * 5;
 
 type MailboxId = String;
 
-pub static mut GLOBAL_IMPORTER_STATES: OnceLock<
+pub static GLOBAL_IMPORTER_STATES: OnceLock<
 	Mutex<HashMap<MailboxId, Arc<Mutex<LocalImportState>>>>,
 > = OnceLock::new();
 
@@ -608,30 +606,28 @@ impl Importer {
 			.load::<ImportMailState, _>(&id)
 			.await
 	}
-	async fn mark_remote_final_state(
-		&mut self,
-		final_status: ImportStatus,
+	pub(super) async fn mark_remote_final_state(
+		logged_in_sdk: &LoggedInSdk,
+		local_state: &LocalImportState,
 	) -> Result<(), ImportError> {
 		assert!(
-			final_status == ImportStatus::Finished
-				|| final_status == ImportStatus::Canceled
-				|| final_status == ImportStatus::Paused,
+			local_state.current_status == ImportStatus::Finished
+				|| local_state.current_status == ImportStatus::Canceled
+				|| local_state.current_status == ImportStatus::Paused,
 			"only cancel and finished should be final state"
 		);
 
 		// we reached final state before making first call, was either empty mails or was cancelled before making first post call
-		let remote_state_id = self.get_state(|state| state.remote_state_id.clone()).await;
-		if remote_state_id
+		if local_state.remote_state_id
 			!= IdTupleGenerated::new(GeneratedId::min_id(), GeneratedId::min_id()).into()
 		{
 			let mut import_state =
-				Self::load_import_state(&self.essentials.logged_in_sdk, remote_state_id)
+				Self::load_import_state(logged_in_sdk, local_state.remote_state_id.clone())
 					.await
 					.map_err(|e| ImportError::sdk("loading importState before Finished", e))?;
-			import_state.status = final_status as i64;
+			import_state.status = local_state.current_status as i64;
 
-			self.essentials
-				.logged_in_sdk
+			logged_in_sdk
 				.mail_facade()
 				.get_crypto_entity_client()
 				.update_instance(import_state)
@@ -725,36 +721,27 @@ impl Importer {
 	pub async fn start_stateful_import(&mut self) -> Result<(), ImportError> {
 		self.update_state(|mut state| state.change_status(ImportStatus::Running))
 			.await;
+		let mut import_progress_action = ImportProgressAction::Continue;
 
-		'import: loop {
-			let import_progress_action = self.get_state(|state| state.import_progress_action).await;
-			match import_progress_action {
-				ImportProgressAction::Pause => {
-					self.update_state(|mut state| state.change_status(ImportStatus::Paused))
-						.await;
-					self.mark_remote_final_state(ImportStatus::Paused).await?;
-					break 'import Ok(());
-				},
+		while import_progress_action == ImportProgressAction::Continue {
+			self.import_next_chunk().await?;
 
-				ImportProgressAction::Stop => {
-					self.update_state(|mut state| state.change_status(ImportStatus::Canceled))
-						.await;
-					self.mark_remote_final_state(ImportStatus::Canceled).await?;
-					Self::delete_import_dir(&self.import_directory)?;
-					break 'import Ok(());
-				},
+			let updated_state = self.get_state(|state| state.clone()).await;
+			import_progress_action = updated_state.import_progress_action;
+			eprintln!(
+				"Import state Id: {}",
+				updated_state.remote_state_id.element_id
+			);
 
-				ImportProgressAction::Continue => {
-					self.import_next_chunk().await?;
-					let current_status = self.get_state(|state| state.current_status).await;
-					if current_status == ImportStatus::Finished {
-						self.mark_remote_final_state(ImportStatus::Finished).await?;
-						Self::delete_import_dir(&self.import_directory)?;
-						break 'import Ok(());
-					}
-				},
+			if updated_state.current_status == ImportStatus::Finished {
+				Importer::mark_remote_final_state(&self.essentials.logged_in_sdk, &updated_state)
+					.await?;
+				Self::delete_import_dir(&self.import_directory)?;
+				break;
 			}
 		}
+
+		Ok(())
 	}
 
 	pub(super) async fn update_state<F: Fn(MutexGuard<LocalImportState>)>(&self, f: F) {
