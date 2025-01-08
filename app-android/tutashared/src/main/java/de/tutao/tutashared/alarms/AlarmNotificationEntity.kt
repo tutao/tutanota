@@ -4,6 +4,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.OperationType
@@ -21,6 +22,7 @@ class RepeatRule(
 	val endValue: Long?,
 	val endType: EndType,
 	val excludedDates: List<Date>,
+	val advancedRules: List<ByRule>
 )
 
 class AlarmInfo(
