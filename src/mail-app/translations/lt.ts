@@ -15,7 +15,7 @@ export default {
 		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2024-11-12T10:12:43Z",
+	"updated_at": "2025-01-07T10:43:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -59,7 +59,6 @@ export default {
 		"appInfoAndroidImageAlt_alt": "Android programėlę rasite Google Play",
 		"appInfoIosImageAlt_alt": "iOS programėlė randama Apple store",
 		"archive_action": "Archyvas",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "Jūs negalite priskirti globalaus administratoriaus teisių lokaliam administruojamam vartotojui.",
 		"attachFiles_action": "Prisegti failus",
 		"attachmentName_label": "Segtuvo vardas",
 		"auditLogInfo_msg": "Audito sąrankoje yra svarbūs administraciniai veiksmai.",
@@ -322,9 +321,6 @@ export default {
 		"lastName_placeholder": "Pavardė",
 		"linkedin_label": "LinkedIn",
 		"loading_msg": "Įkeliama...",
-		"localAdminGroupAssignedError_msg": "Vartotojai ar grupės yra vis dar priskirti šiai vietinei administratoriaus grupei, ji negali būti išjungta.",
-		"localAdminGroup_label": "Vietinio administratoriaus grupė",
-		"localAdmin_label": "Vietinis administratorius",
 		"location_label": "Gyvenamoji vieta",
 		"loggingOut_msg": "Atsijungiama ...",
 		"loginCredentials_label": "Prisijungimo duomenys",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2024-11-11T12:13:41Z",
+	"updated_at": "2025-01-07T10:43:45Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -374,7 +374,6 @@ export default {
 		"laterInvoicingInfo_msg": "Info: Juurde tellitud funktsionaalsust ei arvestata otsekohe, vaid järgmise tellimuskuu algul.",
 		"linkedin_label": "LinkedIn",
 		"loading_msg": "Laadimine...",
-		"localAdmin_label": "Kohalik administraator",
 		"location_label": "Asukoht",
 		"loggingOut_msg": "Väljalogimine...",
 		"loginCredentials_label": "Sisselogimistunnused",
@@ -659,7 +658,6 @@ export default {
 		"unsubscribeFailed_msg": "Ei saanud tühistada uudiskirja või meililisti.",
 		"unsubscribeSuccessful_msg": "Uudiskiri või meililist on edukalt tühistatud!",
 		"unsubscribe_action": "Tühista tellimus",
-		"updateAdminshipLocalAdminGroupError_msg": "Kohaliku administraatorgrupi administraatoreid ei saa muuta.",
 		"update_action": "Uuenda",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Hiljem",
