@@ -46,7 +46,7 @@ pub const MAX_REQUEST_SIZE: usize = 1024 * 5;
 
 type MailboxId = String;
 
-pub static mut GLOBAL_IMPORTER_STATES: OnceLock<
+pub static GLOBAL_IMPORTER_STATES: OnceLock<
 	Mutex<HashMap<MailboxId, Arc<Mutex<LocalImportState>>>>,
 > = OnceLock::new();
 

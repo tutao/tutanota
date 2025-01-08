@@ -36,13 +36,10 @@ pub struct ImporterApi {}
 impl ImporterApi {
 	pub async fn get_running_imports<'a>(
 	) -> MutexGuard<'a, HashMap<String, Arc<Mutex<LocalImportState>>>> {
-		/// SAFETY: it's wrapped in a mutex, so it should be fine to access from multiple threads.
-		unsafe {
-			GLOBAL_IMPORTER_STATES
-				.get_or_init(|| Mutex::new(HashMap::new()))
-				.lock()
-				.await
-		}
+		GLOBAL_IMPORTER_STATES
+			.get_or_init(|| Mutex::new(HashMap::new()))
+			.lock()
+			.await
 	}
 
 	pub async fn create_file_importer_inner(
