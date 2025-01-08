@@ -962,6 +962,7 @@ export default {
 		"mailFolder_label": "E-Mail-Ordner",
 		"mailHeaders_title": "E-Mail-Header",
 		"mailImportDownloadDesktopClient_label": "Desktop-Client herunterladen",
+		"mailImportErrorServiceUnavailable_msg": "Importieren ist derzeit nicht möglich; bitte versuch es später noch einmal.",
 		"mailImportHistoryTableHeading_label": "Beendete Imports",
 		"mailImportHistoryTableRowFolderDeleted_label": "Ordner gelöscht",
 		"mailImportHistoryTableRowSubtitle_label": "Datum: {date}, Importiert: {successfulMails}, Fehlgeschlagen: {failedMails}",
