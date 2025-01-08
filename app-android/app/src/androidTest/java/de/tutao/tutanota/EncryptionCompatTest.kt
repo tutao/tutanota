@@ -246,6 +246,17 @@ class CompatibilityTest {
 		}
 	}
 
+	@Test
+	fun hmac_sha256() = runBlocking {
+		for(td in testData.hmacSha256Tests) {
+			val key = hexToBytes(td.keyHex)
+			val data = hexToBytes(td.dataHex)
+			val givenTag = hexToBytes(td.hmacSha256TagHex)
+			val computedTag = crypto.hmacSha256(key, data)
+			assertArrayEquals(givenTag, computedTag)
+		}
+	}
+
 	private fun hexToKyberPrivateKey(privateKey: String): KyberPrivateKey {
 		val keyComponents = bytesToByteArrays(hexToBytes(privateKey), 5)
 		return KyberPrivateKey(DataWrapper(keyComponents[0] + keyComponents[3] + keyComponents[4] + keyComponents[1] + keyComponents[2]))

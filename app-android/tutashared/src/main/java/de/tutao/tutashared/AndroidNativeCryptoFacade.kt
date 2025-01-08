@@ -57,7 +57,7 @@ class AndroidNativeCryptoFacade(
 		const val AES256_KEY_LENGTH = 256
 		const val AES256_KEY_LENGTH_BYTES = AES256_KEY_LENGTH / 8
 
-		const val HMAC_256 = "HmacSHA256"
+		const val HMAC_SHA_256 = "HmacSHA256"
 
 		/**
 		 * Converts the given byte array to a key.
@@ -115,12 +115,13 @@ class AndroidNativeCryptoFacade(
 
 		}
 
-		private fun hmac256(key: ByteArray, data: ByteArray): ByteArray {
-			val macKey = SecretKeySpec(key, HMAC_256)
-			val hmac = Mac.getInstance(HMAC_256)
-			hmac.init(macKey)
-			return hmac.doFinal(data)
-		}
+	}
+
+	fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray {
+		val macKey = SecretKeySpec(key, HMAC_SHA_256)
+		val hmac = Mac.getInstance(HMAC_SHA_256)
+		hmac.init(macKey)
+		return hmac.doFinal(data)
 	}
 
 	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
@@ -247,7 +248,7 @@ class AndroidNativeCryptoFacade(
 				val data = tempOut.toByteArray()
 				out.write(byteArrayOf(1))
 				out.write(data)
-				val macBytes = hmac256(subKeys.mKey!!, data)
+				val macBytes = hmacSha256(subKeys.mKey!!, data)
 				out.write(macBytes)
 			} else {
 				out.write(tempOut.toByteArray())
@@ -409,7 +410,7 @@ class AndroidNativeCryptoFacade(
 				val cipherText = tempOut.toByteArray()
 				val cipherTextWithoutMac = cipherText.copyOfRange(1, cipherText.size - 32)
 				val providedMacBytes = cipherText.copyOfRange(cipherText.size - 32, cipherText.size)
-				val computedMacBytes = hmac256(subKeys.mKey!!, cipherTextWithoutMac)
+				val computedMacBytes = hmacSha256(subKeys.mKey!!, cipherTextWithoutMac)
 				if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
 					throw CryptoError("invalid mac")
 				}
