@@ -450,6 +450,15 @@ import("./translations/en.js")
 					// We have to manually parse it because mithril does not put hash into args of onmatch
 					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
 					showSignupDialog(urlParams)
+
+					// Change the href of the canonical link element to make the /signup path indexed.
+					// Since this is just for search crawlers, we do not have to change it again later.
+					// We know at least Google crawler executes js to render the application.
+					const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
+					if (canonicalEl) {
+						canonicalEl.href = "https://app.tuta.com/signup"
+					}
+
 					// when the user presses the browser back button, we would get a /login route without arguments
 					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
