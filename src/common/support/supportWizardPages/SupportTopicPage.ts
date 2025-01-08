@@ -4,7 +4,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { OutlineButton2 } from "../../gui/base/buttons/OutlineButton2.js"
 
 export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 	private dom: HTMLElement | null = null
@@ -33,21 +33,17 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 			"",
 			m("section", [m("p.b.text-center.h5", issue), m.trust(sanitisedSolution)]),
 			m("hr"),
-			m("section.flex-center.center-vertically", m("", "Was this helpful?"), [
-				m(Button, {
-					type: ButtonType.Secondary,
-					click: () => {
-						emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
-					},
+			m("section.flex-center.center-vertically.gap-hpad", m("", "Was this helpful?"), [
+				m(OutlineButton2, {
 					label: () => "Yes",
+					onclick: () => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG),
 				}),
-				m(Button, {
-					type: ButtonType.Secondary,
-					click: () => {
+				m(OutlineButton2, {
+					label: () => "No, I need help",
+					onclick: () => {
 						shouldDisplayContact({ value: true, returnTo: vnode.attrs })
 						emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 					},
-					label: () => "No, I need help",
 				}),
 			]),
 		)
