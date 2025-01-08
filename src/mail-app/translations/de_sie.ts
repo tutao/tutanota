@@ -976,6 +976,7 @@ export default {
 		"mailImportStatusResuming_label": "Fortsetzen...",
 		"mailImportStatusRunning_label": "Läuft...",
 		"mailImportStatusStarting_label": "Startet...",
+		"mailImportStatusError_label": "Fehler",
 		"mailImportTargetFolder_label": "Zielordner für Import",
 		"mailMoved_msg": "Diese E-Mail wurde in einen anderen Ordner verschoben.",
 		"mailName_label": "Absendername",

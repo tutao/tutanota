@@ -332,6 +332,8 @@ export function getUiImportStatusTranslationKey(uiStatus: UiImportStatus): Trans
 			return "mailImportStatusCancelling_label"
 		case UiImportStatus.Canceled:
 			return "mailImportStatusCanceled_label"
+		case UiImportStatus.Error:
+			return "mailImportStatusError_label"
 	}
 }
 
@@ -349,5 +351,7 @@ export function getImportStatusTranslationKey(importStatus: ImportStatus): Trans
 			return "mailImportStatusCanceled_label"
 		case ImportStatus.Finished:
 			return "mailImportStatusFinished_label"
+		case ImportStatus.Error:
+			return "mailImportStatusError_label"
 	}
 }

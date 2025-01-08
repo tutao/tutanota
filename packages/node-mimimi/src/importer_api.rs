@@ -114,7 +114,14 @@ impl ImporterApi {
 
 		let mut running_imports = Self::get_running_imports().await;
 		if running_imports.contains_key(&mailbox_id) {
-			Err(ImportError::ImporterAlreadyRunning)?;
+			if let Some(import) = running_imports.get_mut(&mailbox_id) {
+				let current_status = import.lock().await.current_status;
+				if current_status != ImportStatus::Running {
+					running_imports.remove(&mailbox_id);
+				} else {
+					Err(ImportError::ImporterAlreadyRunning)?;
+				}
+			}
 		}
 
 		let (target_mailset_lid, target_mailset_eid) = target_mailset_id;
@@ -140,25 +147,21 @@ impl ImporterApi {
 		running_imports.insert(mailbox_id.clone(), inner.state.clone());
 		drop(running_imports);
 
-		Self::spawn_importer_task(mailbox_id, inner);
+		Self::spawn_importer_task(inner);
 		Ok(())
 	}
 
-	fn spawn_importer_task(mailbox_id: String, mut inner: Importer) {
+	fn spawn_importer_task(mut inner: Importer) {
 		napi::tokio::task::spawn(async move {
 			match inner.start_stateful_import().await {
 				Ok(_) => {},
 				Err(e) => {
 					log::error!("Importer task failed: {:?}", e);
+					inner
+						.update_state(|mut state| state.change_status(ImportStatus::Error))
+						.await;
 				},
 			};
-
-			let current_status = inner.get_state(|state| state.current_status).await;
-			if current_status == ImportStatus::Finished || current_status == ImportStatus::Canceled
-			{
-				let mut running_imports = Self::get_running_imports().await;
-				running_imports.remove(&mailbox_id);
-			}
 		});
 	}
 
@@ -219,7 +222,7 @@ impl ImporterApi {
 			running_imports.insert(mailbox_id.clone(), inner.state.clone());
 		}
 
-		Self::spawn_importer_task(mailbox_id, inner);
+		Self::spawn_importer_task(inner);
 		Ok(())
 	}
 

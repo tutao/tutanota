@@ -159,6 +159,7 @@ pub enum ImportStatus {
 	Paused = 1,
 	Canceled = 2,
 	Finished = 3,
+	Error = 4,
 }
 
 /// A running import can be stopped or paused
@@ -470,7 +471,7 @@ impl ImportEssential {
 }
 
 impl LocalImportState {
-	fn change_status(&mut self, new_status: ImportStatus) {
+	pub(crate) fn change_status(&mut self, new_status: ImportStatus) {
 		self.current_status = new_status;
 	}
 }

@@ -956,6 +956,7 @@ export type TranslationKeyType =
 	| "mailImportStatusResuming_label"
 	| "mailImportStatusRunning_label"
 	| "mailImportStatusStarting_label"
+	| "mailImportStatusError_label"
 	| "mailImportTargetFolder_label"
 	| "mailMoved_msg"
 	| "mailName_label"

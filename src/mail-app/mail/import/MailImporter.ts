@@ -45,7 +45,8 @@ export class MailImporter {
 	private uiStatus: UiImportStatus
 	private wsConnectionOnline: boolean = false
 	private eventController: EventController
-	private initialized: boolean = false
+	private isInitialized: boolean = false
+	private isLastRunFailed: boolean = false
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -73,10 +74,10 @@ export class MailImporter {
 	}
 
 	async initImportMailStates(): Promise<void> {
-		if (this.initialized) {
+		if (this.isInitialized) {
 			return Promise.resolve()
 		}
-		this.initialized = true
+		this.isInitialized = true
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 
 		let resumableImport: ResumableImport | null = null
@@ -133,18 +134,10 @@ export class MailImporter {
 		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 
 		this.uiStatus = UiImportStatus.Starting
+		this.isLastRunFailed = false
 		this.startProgressEstimation()
 		m.redraw()
-		try {
-			await importFacade.startFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
-		} catch (e) {
-			if (e.message === "NoImportFeature" || e.message === "ImporterAlreadyRunning") {
-				this.uiStatus = UiImportStatus.Idle
-				await Dialog.message("mailImportErrorServiceUnavailable_msg")
-			} else {
-				throw e
-			}
-		}
+		await importFacade.startFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
 	}
 
 	async onPauseBtnClick() {
@@ -313,21 +306,29 @@ export class MailImporter {
 	 * Used to update import progress locally without sending entityEvents.
 	 * @param localImportMailState
 	 */
-	onNewLocalImportMailState(localImportMailState: LocalImportMailState): void {
+	async onNewLocalImportMailState(localImportMailState: LocalImportMailState): Promise<void> {
 		const previousState = this.activeImport
-		this.activeImport = localImportMailState
-		if (
-			!previousState ||
-			previousState.status !== localImportMailState.status ||
-			previousState.successfulMails !== localImportMailState.successfulMails ||
-			previousState.totalMails !== localImportMailState.totalMails
-		) {
-			this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
-			this.updateProgressMonitorTotalWork(localImportMailState.totalMails)
-			this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
-			if (localImportMailState.status == ImportStatus.Finished) this.stopProgressEstimation()
+		if (localImportMailState.status == ImportStatus.Error) {
+			this.resetStatus()
+			if (!this.isLastRunFailed) {
+				this.isLastRunFailed = true
+				await Dialog.message("mailImportErrorServiceUnavailable_msg")
+				await assertNotNull(this.nativeMailImportFacade).setStopProgressAction((await this.getMailbox())._id)
+			}
+		} else {
+			this.activeImport = localImportMailState
+			if (
+				!previousState ||
+				previousState.status !== localImportMailState.status ||
+				previousState.successfulMails !== localImportMailState.successfulMails ||
+				previousState.totalMails !== localImportMailState.totalMails
+			) {
+				this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
+				this.updateProgressMonitorTotalWork(localImportMailState.totalMails)
+				this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
+				if (localImportMailState.status == ImportStatus.Finished) this.stopProgressEstimation()
+			}
 		}
-
 		m.redraw()
 	}
 
@@ -421,6 +422,7 @@ export const enum UiImportStatus {
 	Paused,
 	Cancelling,
 	Canceled,
+	Error,
 }
 
 function importStatusToUiImportStatus(importStatus: ImportStatus) {
@@ -433,6 +435,8 @@ function importStatusToUiImportStatus(importStatus: ImportStatus) {
 			return UiImportStatus.Paused
 		case ImportStatus.Running:
 			return UiImportStatus.Running
+		case ImportStatus.Error:
+			return UiImportStatus.Error
 	}
 }
 
@@ -441,6 +445,7 @@ export const enum ImportStatus {
 	Paused = 1,
 	Canceled = 2,
 	Finished = 3,
+	Error = 4,
 }
 
 export function isFinalisedImport(remoteImportStatus: ImportStatus): boolean {
