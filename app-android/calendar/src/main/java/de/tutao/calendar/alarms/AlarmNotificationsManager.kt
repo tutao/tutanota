@@ -3,6 +3,7 @@ package de.tutao.calendar.alarms
 import android.util.Log
 import de.tutao.calendar.*
 import de.tutao.calendar.push.LocalNotificationsFacade
+import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.OperationType
@@ -229,10 +230,12 @@ class AlarmNotificationsManager(
 		val endValue = repeatRule.endValue
 		val excludedDates = repeatRule.excludedDates
 		val alarmTrigger: AlarmInterval = alarmNotification.alarmInfo.trigger
+		val byRules: List<ByRule> = alarmNotification.repeatRule?.advancedRules ?: listOf()
+
 		AlarmModel.iterateAlarmOccurrences(
 			Date(),
 			timeZone, eventStart, eventEnd, frequency, interval, endType,
-			endValue, alarmTrigger, TimeZone.getDefault(), excludedDates, callback
+			endValue, alarmTrigger, TimeZone.getDefault(), excludedDates, byRules, callback
 		)
 	}
 

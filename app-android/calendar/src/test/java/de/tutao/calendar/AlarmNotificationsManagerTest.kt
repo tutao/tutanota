@@ -76,7 +76,15 @@ class AlarmNotificationsManagerTest {
 		val repeatingAlarmIdentifier = "repeatingAlarmIdentifier"
 		val alarmNotification = createEncryptedAlarmNotification(userId, singleAlarmIdentifier, null, null)
 		val repeatRule =
-			EncryptedRepeatRule("1", "1", "Europe/Berlin", EndType.COUNT.ordinal.toString(), "2", emptyList())
+			EncryptedRepeatRule(
+				"1",
+				"1",
+				"Europe/Berlin",
+				EndType.COUNT.ordinal.toString(),
+				"2",
+				emptyList(),
+				emptyList()
+			)
 		val repeatingAlarmNotification = createEncryptedAlarmNotification(
 			userId, repeatingAlarmIdentifier, null, repeatRule
 		)
@@ -125,7 +133,15 @@ class AlarmNotificationsManagerTest {
 		val identifier = "notTooFarR"
 		val startDate = Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))
 		val repeatRule =
-			EncryptedRepeatRule(RepeatPeriod.WEEKLY.value().toString(), "1", "Europe/Berlin", "0", "0", emptyList())
+			EncryptedRepeatRule(
+				RepeatPeriod.WEEKLY.value().toString(),
+				"1",
+				"Europe/Berlin",
+				"0",
+				"0",
+				emptyList(),
+				emptyList()
+			)
 		val alarmNotification = createEncryptedAlarmNotification(userId, identifier, startDate, repeatRule)
 		manager.scheduleNewAlarms(listOf(alarmNotification))
 
