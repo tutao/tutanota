@@ -1,10 +1,11 @@
 import sjcl from "../internal/sjcl.js"
 import { random } from "../random/Randomizer.js"
 import { BitArray, bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
-import { arrayEquals, concat, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha512Hash } from "../hashes/Sha512.js"
+import { hmacSha256, MacTag, verifyHmacSha256 } from "./Hmac.js"
 
 export const ENABLE_MAC = true
 export const IV_BYTE_LENGTH = 16
@@ -60,8 +61,7 @@ export function aesEncrypt(key: AesKey, bytes: Uint8Array, iv: Uint8Array = gene
 	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
 
 	if (useMac) {
-		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
-		let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
+		const macBytes = hmacSha256(assertNotNull(subKeys.mKey), data)
 		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
 	}
 
@@ -151,12 +151,7 @@ function aesDecryptImpl(key: AesKey, encryptedBytes: Uint8Array, usePadding: boo
 	if (hasMac) {
 		cipherTextWithoutMac = encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES)
 		const providedMacBytes = encryptedBytes.subarray(encryptedBytes.length - MAC_LENGTH_BYTES)
-		const hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
-		const computedMacBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(cipherTextWithoutMac)))
-
-		if (!arrayEquals(providedMacBytes, computedMacBytes)) {
-			throw new CryptoError("invalid mac")
-		}
+		verifyHmacSha256(assertNotNull(subKeys.mKey), cipherTextWithoutMac, providedMacBytes as MacTag)
 	} else {
 		cipherTextWithoutMac = encryptedBytes
 	}
