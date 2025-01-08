@@ -64,7 +64,7 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					"Please clarify what problem you faced. You can attach screenshots to help us understand your situation.",
 				),
 				m(
-					"",
+					".border-radius-m",
 					{
 						style: {
 							"background-color": getElevatedBackground(),
