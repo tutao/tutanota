@@ -1244,3 +1244,5 @@ export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierT
 export const CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID = "clientOnly_birthdays"
 export const CLIENT_ONLY_CALENDARS: Map<Id, TranslationKey> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "birthdayCalendar_label"]])
 export const DEFAULT_CLIENT_ONLY_CALENDAR_COLORS: Map<Id, string> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "FF9933"]])
+
+export const MAX_LABELS_PER_MAIL = 5

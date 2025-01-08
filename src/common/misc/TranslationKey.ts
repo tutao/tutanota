@@ -1861,3 +1861,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "mailImportErrorServiceUnavailable_msg"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"
+	| "maximumLabelsPerMailReached_msg"

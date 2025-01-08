@@ -1881,5 +1881,6 @@ export default {
 		"localAdminGroups_label": "Local admin groups",
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
+		"maximumLabelsPerMailReached_msg": "Maximum allowed labels per mail reached."
 	}
 }

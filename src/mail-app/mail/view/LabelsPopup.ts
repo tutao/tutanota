@@ -4,32 +4,36 @@ import { focusNext, focusPrevious, Shortcut } from "../../../common/misc/KeyMana
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton.js"
 import { PosRect, showDropdown } from "../../../common/gui/base/Dropdown.js"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { px, size } from "../../../common/gui/size.js"
+import { size } from "../../../common/gui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { theme } from "../../../common/gui/theme.js"
-import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys, MAX_LABELS_PER_MAIL, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { getElementId } from "../../../common/api/common/utils/EntityUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
 import { AriaRole } from "../../../common/gui/AriaUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { noOp } from "@tutao/tutanota-utils"
 
 /**
  * Popup that displays assigned labels and allows changing them
  */
 export class LabelsPopup implements ModalComponent {
 	private dom: HTMLElement | null = null
+	private isMaxLabelsReached: boolean
 
 	constructor(
 		private readonly sourceElement: HTMLElement,
 		private readonly origin: PosRect,
 		private readonly width: number,
+		private readonly labelsForMails: ReadonlyMap<Id, ReadonlyArray<MailFolder>>,
 		private readonly labels: { label: MailFolder; state: LabelState }[],
 		private readonly onLabelsApplied: (addedLabels: MailFolder[], removedLabels: MailFolder[]) => unknown,
 	) {
 		this.view = this.view.bind(this)
 		this.oncreate = this.oncreate.bind(this)
+		this.isMaxLabelsReached = this.checkIsMaxLabelsReached()
 	}
 
 	async hideAnimation(): Promise<void> {}
@@ -61,6 +65,9 @@ export class LabelsPopup implements ModalComponent {
 				this.labels.map((labelState) => {
 					const { label, state } = labelState
 					const color = theme.content_button
+					const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
+					const opacity = !canToggleLabel ? 0.5 : undefined
+
 					return m(
 						"label-item.flex.items-center.plr.state-bg.cursor-pointer",
 
@@ -69,7 +76,8 @@ export class LabelsPopup implements ModalComponent {
 							role: AriaRole.MenuItemCheckbox,
 							tabindex: TabIndex.Default,
 							"aria-checked": ariaCheckedForState(state),
-							onclick: () => this.toggleLabel(labelState),
+							"aria-disabled": !canToggleLabel,
+							onclick: canToggleLabel ? () => this.toggleLabel(labelState) : noOp,
 						},
 						[
 							m(Icon, {
@@ -77,16 +85,18 @@ export class LabelsPopup implements ModalComponent {
 								size: IconSize.Medium,
 								style: {
 									fill: getLabelColor(label.color),
+									opacity,
 								},
 							}),
-							m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color } }, m(".text-ellipsis", label.name)),
+							m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
 						],
 					)
 				}),
 			),
+			this.isMaxLabelsReached && m(".small.center.pb-s", lang.get("maximumLabelsPerMailReached_msg")),
 			m(BaseButton, {
 				label: "Apply",
-				text: "Apply",
+				text: lang.get("apply_action"),
 				class: "limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-button button-content justify-center border-top state-bg",
 				onclick: () => {
 					this.applyLabels()
@@ -114,7 +124,34 @@ export class LabelsPopup implements ModalComponent {
 		}
 	}
 
-	private applyLabels() {
+	private checkIsMaxLabelsReached(): boolean {
+		const { addedLabels, removedLabels } = this.getSortedLabels()
+		if (addedLabels.length >= MAX_LABELS_PER_MAIL) {
+			return true
+		}
+
+		for (const [, labels] of this.labelsForMails) {
+			const labelsOnMail = new Set<Id>(labels.map((label) => getElementId(label)))
+
+			for (const label of removedLabels) {
+				labelsOnMail.delete(getElementId(label))
+			}
+			if (labelsOnMail.size >= MAX_LABELS_PER_MAIL) {
+				return true
+			}
+
+			for (const label of addedLabels) {
+				labelsOnMail.add(getElementId(label))
+				if (labelsOnMail.size >= MAX_LABELS_PER_MAIL) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
+	private getSortedLabels(): Record<"addedLabels" | "removedLabels", MailFolder[]> {
 		const removedLabels: MailFolder[] = []
 		const addedLabels: MailFolder[] = []
 		for (const { label, state } of this.labels) {
@@ -124,6 +161,11 @@ export class LabelsPopup implements ModalComponent {
 				removedLabels.push(label)
 			}
 		}
+		return { addedLabels, removedLabels }
+	}
+
+	private applyLabels() {
+		const { addedLabels, removedLabels } = this.getSortedLabels()
 		this.onLabelsApplied(addedLabels, removedLabels)
 		modal.remove(this)
 	}
@@ -199,11 +241,19 @@ export class LabelsPopup implements ModalComponent {
 	}
 
 	private toggleLabel(labelState: { label: MailFolder; state: LabelState }) {
-		if (labelState.state === LabelState.NotApplied || labelState.state === LabelState.AppliedToSome) {
-			labelState.state = LabelState.Applied
-		} else {
-			labelState.state = LabelState.NotApplied
+		switch (labelState.state) {
+			case LabelState.AppliedToSome:
+				labelState.state = this.isMaxLabelsReached ? LabelState.NotApplied : LabelState.Applied
+				break
+			case LabelState.NotApplied:
+				labelState.state = LabelState.Applied
+				break
+			case LabelState.Applied:
+				labelState.state = LabelState.NotApplied
+				break
 		}
+
+		this.isMaxLabelsReached = this.checkIsMaxLabelsReached()
 	}
 }
 

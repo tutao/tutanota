@@ -770,6 +770,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									dom,
 									dom.getBoundingClientRect(),
 									styles.isDesktopLayout() ? 300 : 200,
+									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
 									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
 									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
 								)

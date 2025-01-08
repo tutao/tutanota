@@ -15,11 +15,8 @@ import {
 	partition,
 	promiseMap,
 	splitInChunks,
-	TypeRef,
 } from "@tutao/tutanota-utils"
 import {
-	ImportedMailTypeRef,
-	ImportMailStateTypeRef,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -40,7 +37,7 @@ import {
 import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
-import { createEntityUpdate, WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
+import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -269,6 +266,15 @@ export class MailModel {
 			const state: LabelState = count === 0 ? LabelState.NotApplied : count === mails.length ? LabelState.Applied : LabelState.AppliedToSome
 			return { label, state }
 		})
+	}
+
+	getLabelsForMails(mails: readonly Mail[]): ReadonlyMap<Id, ReadonlyArray<MailFolder>> {
+		const labelsForMails = new Map<Id, MailFolder[]>()
+		for (const mail of mails) {
+			labelsForMails.set(getElementId(mail), this.getLabelsForMail(mail))
+		}
+
+		return labelsForMails
 	}
 
 	/**

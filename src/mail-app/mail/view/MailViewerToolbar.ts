@@ -119,6 +119,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 					dom,
 					dom.getBoundingClientRect(),
 					styles.isDesktopLayout() ? 300 : 200,
+					mailModel.getLabelsForMails(mails),
 					mailModel.getLabelStatesForMails(mails),
 					(addedLabels, removedLabels) => mailModel.applyLabels(mails, addedLabels, removedLabels),
 				)

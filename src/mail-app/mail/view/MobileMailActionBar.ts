@@ -84,6 +84,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 									referenceDom,
 									referenceDom.getBoundingClientRect(),
 									this.dropdownWidth() ?? 200,
+									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
 									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
 									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
 								)

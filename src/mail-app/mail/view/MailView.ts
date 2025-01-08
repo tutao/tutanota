@@ -1,9 +1,9 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import { lang, TranslationText } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, HighestTierPlans, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -589,6 +589,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			document.activeElement as HTMLElement,
 			getMoveMailBounds(),
 			styles.isDesktopLayout() ? 300 : 200,
+			mailLocator.mailModel.getLabelsForMails(selectedMails),
 			mailLocator.mailModel.getLabelStatesForMails(selectedMails),
 			(addedLabels, removedLabels) => mailLocator.mailModel.applyLabels(selectedMails, addedLabels, removedLabels),
 		)
