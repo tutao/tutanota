@@ -16,11 +16,13 @@ import {
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
 	hkdf,
+	hmacSha256,
 	KeyLength,
 	KeyPairType,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	LibOQSExports,
+	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
 	random,
@@ -28,6 +30,7 @@ import {
 	rsaDecrypt,
 	rsaEncrypt,
 	uint8ArrayToBitArray,
+	verifyHmacSha256,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -287,6 +290,16 @@ o.spec("CompatibilityTest", function () {
 			const info = hexToUint8Array(td.infoHex)
 			const lengthInBytes = td.lengthInBytes
 			o(uint8ArrayToHex(hkdf(salt, inputKeyMaterialHex, info, lengthInBytes))).equals(td.hkdfHex)
+		}
+	})
+
+	o("hmac-sha256", function () {
+		for (const td of testData.hmacSha256Tests) {
+			const key = uint8ArrayToBitArray(hexToUint8Array(td.keyHex))
+			const data = hexToUint8Array(td.dataHex)
+			const hmacSha256Tag = hexToUint8Array(td.hmacSha256TagHex) as MacTag
+			o(hmacSha256(key, data)).deepEquals(hmacSha256Tag)
+			verifyHmacSha256(key, data, hmacSha256Tag)
 		}
 	})
 
