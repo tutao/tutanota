@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import de.tutao.calendar.BuildConfig
 import java.util.Date
 
 
@@ -17,7 +18,12 @@ class SystemAlarmFacade(private val context: Context) {
 		eventDate: Date,
 		user: String
 	) {
-		Log.d(TAG, "Scheduled notification $identifier")
+		if (BuildConfig.DEBUG) {
+			Log.d(TAG, "Scheduled notification $identifier at $alarmTime")
+		} else {
+			Log.d(TAG, "Scheduled notification $identifier")
+		}
+
 		val alarmManager = alarmManager
 		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user)
 		alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)

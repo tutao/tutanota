@@ -3,6 +3,7 @@ package de.tutao.tutanota.alarms
 import android.util.Log
 import de.tutao.tutanota.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.OperationType
@@ -185,7 +186,6 @@ class AlarmNotificationsManager(
 		alarmNotification: EncryptedAlarmNotification,
 		pushKeyResolver: PushKeyResolver,
 	) {
-
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
 		val savedAlarmNotification = sseStorage.readAlarmNotifications().find {
 			it.alarmInfo.identifier == alarmNotification.alarmInfo.identifier
@@ -243,10 +243,12 @@ class AlarmNotificationsManager(
 		val endValue = repeatRule.endValue
 		val excludedDates = repeatRule.excludedDates
 		val alarmTrigger: AlarmInterval = alarmNotification.alarmInfo.trigger
+		val byRules: List<ByRule> = alarmNotification.repeatRule?.advancedRules ?: listOf()
+
 		AlarmModel.iterateAlarmOccurrences(
 			Date(),
 			timeZone, eventStart, eventEnd, frequency, interval, endType,
-			endValue, alarmTrigger, TimeZone.getDefault(), excludedDates, callback
+			endValue, alarmTrigger, TimeZone.getDefault(), excludedDates, byRules, callback
 		)
 	}
 
