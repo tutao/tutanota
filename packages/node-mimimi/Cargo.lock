@@ -2173,6 +2173,7 @@ dependencies = [
  "pqcrypto-mlkem",
  "pqcrypto-traits",
  "rand_core",
+ "regex",
  "rsa",
  "rustls",
  "serde",
