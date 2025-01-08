@@ -421,11 +421,11 @@ export class MailModel {
 	}
 
 	canManageLabels(): boolean {
-		return this.logins.getUserController().isInternalUser() && this.logins.isEnabled(FeatureType.Labels)
+		return this.logins.getUserController().isInternalUser()
 	}
 
 	canAssignLabels(): boolean {
-		return this.logins.getUserController().isInternalUser() && this.logins.isEnabled(FeatureType.Labels)
+		return this.logins.getUserController().isInternalUser()
 	}
 
 	isExportingMailsAllowed(): boolean {

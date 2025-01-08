@@ -516,7 +516,7 @@ export enum FeatureType {
 	AffiliatePartner = "12",
 	KnowledgeBase = "13",
 	Newsletter = "14",
-	Labels = "15", // enables blob attachments for mails
+	Unused15 = "15",
 	Unused16 = "16",
 	MultipleUsers = "17", // Multi-user support for new personal plans.
 }
