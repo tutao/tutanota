@@ -10,14 +10,8 @@ export class NativeMailImportFacadeSendDispatcher implements NativeMailImportFac
 	async startFileImport(...args: Parameters<NativeMailImportFacade["startFileImport"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "startFileImport", ...args])
 	}
-	async setContinueProgressAction(...args: Parameters<NativeMailImportFacade["setContinueProgressAction"]>) {
-		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "setContinueProgressAction", ...args])
-	}
-	async setStopProgressAction(...args: Parameters<NativeMailImportFacade["setStopProgressAction"]>) {
-		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "setStopProgressAction", ...args])
-	}
-	async setPausedProgressAction(...args: Parameters<NativeMailImportFacade["setPausedProgressAction"]>) {
-		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "setPausedProgressAction", ...args])
+	async setProgressAction(...args: Parameters<NativeMailImportFacade["setProgressAction"]>) {
+		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "setProgressAction", ...args])
 	}
 	async getResumeableImport(...args: Parameters<NativeMailImportFacade["getResumeableImport"]>) {
 		return this.transport.invokeNative("ipc", ["NativeMailImportFacade", "getResumeableImport", ...args])

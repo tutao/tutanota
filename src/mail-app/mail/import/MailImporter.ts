@@ -21,6 +21,13 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common
 import { EventController } from "../../../common/api/main/EventController"
 import { Dialog } from "../../../common/gui/base/Dialog"
 
+// keep in sync with napi binding.d.cts
+export const enum ImportProgressAction {
+	Continue = 0,
+	Pause = 1,
+	Stop = 2,
+}
+
 const DEFAULT_TOTAL_WORK: number = 100000
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
 const DEFAULT_PROGRESS: number = 0
@@ -157,7 +164,11 @@ export class MailImporter {
 		m.redraw()
 
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
-		await importFacade.setPausedProgressAction((await this.getMailbox())._id)
+		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+		const userId = this.loginController.getUserController().userId
+
+		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
+		await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ImportProgressAction.Pause)
 	}
 
 	async onResumeBtnClick() {
@@ -184,12 +195,14 @@ export class MailImporter {
 
 		this.stopProgressEstimation()
 
-		const isInRunningStatus = this.uiStatus === UiImportStatus.Running
-		const isInPausedStatus = this.uiStatus === UiImportStatus.Paused
 		this.uiStatus = UiImportStatus.Cancelling
 		m.redraw()
 
-		await importFacade.setStopProgressAction((await this.getMailbox())._id)
+		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+		const userId = this.loginController.getUserController().userId
+
+		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
+		await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ImportProgressAction.Stop)
 	}
 
 	shouldShowStartButton() {
@@ -374,7 +387,12 @@ export class MailImporter {
 				this.stopProgressEstimation()
 				this.uiStatus = UiImportStatus.Paused
 				m.redraw()
-				assertNotNull(this.nativeMailImportFacade).setPausedProgressAction((await this.getMailbox())._id)
+				const importFacade = assertNotNull(this.nativeMailImportFacade)
+				const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+				const userId = this.loginController.getUserController().userId
+
+				const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
+				await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ImportProgressAction.Pause)
 			}
 		})
 	}

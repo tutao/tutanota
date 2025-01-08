@@ -29,29 +29,20 @@
 			],
 			"ret": "void"
 		},
-		"setContinueProgressAction": {
-			"doc": "Sets progress action to continue for next callback",
+		"setProgressAction": {
+			"doc": "Sets progress action for next import iteration",
 			"arg": [
 				{
 					"mailboxId": "string"
-				}
-			],
-			"ret": "void"
-		},
-		"setStopProgressAction": {
-			"doc": "Sets progress action to stop for next callback",
-			"arg": [
+				},
 				{
-					"mailboxId": "string"
-				}
-			],
-			"ret": "void"
-		},
-		"setPausedProgressAction": {
-			"doc": "Sets progress action to pause for next callback",
-			"arg": [
+					"apiUrl": "string"
+				},
 				{
-					"mailboxId": "string"
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				},
+				{
+					"progressAction": "number"
 				}
 			],
 			"ret": "void"
