@@ -1,6 +1,14 @@
 import o from "@tutao/otest"
-import type { Hex } from "@tutao/tutanota-utils"
-import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	concat,
+	Hex,
+	hexToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import {
 	_aes128RandomKey,
 	Aes256Key,
@@ -20,6 +28,7 @@ import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
 import { assertThrows, throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
 import sjcl from "../lib/internal/sjcl.js"
+import { hmacSha256 } from "../lib/index.js"
 
 o.spec("aes", function () {
 	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, _aes128RandomKey(), false))
@@ -246,8 +255,7 @@ export function aes256EncryptLegacy(key: Aes256Key, bytes: Uint8Array, iv: Uint8
 	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
 
 	if (useMac) {
-		let hmac = new sjcl.misc.hmac(subKeys.mKey, sjcl.hash.sha256)
-		let macBytes = bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(data)))
+		const macBytes = hmacSha256(assertNotNull(subKeys.mKey), data)
 		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
 	}
 
