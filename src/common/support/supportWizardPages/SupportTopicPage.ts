@@ -4,7 +4,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
-import { OutlineButton2 } from "../../gui/base/buttons/OutlineButton2.js"
+import { OutlineButton } from "../../gui/base/buttons/OutlineButton.js"
 
 export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 	private dom: HTMLElement | null = null
@@ -34,11 +34,11 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 			m("section", [m("p.b.text-center.h5", issue), m.trust(sanitisedSolution)]),
 			m("hr"),
 			m("section.flex-center.center-vertically.gap-hpad", m("", "Was this helpful?"), [
-				m(OutlineButton2, {
+				m(OutlineButton, {
 					label: () => "Yes",
 					onclick: () => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG),
 				}),
-				m(OutlineButton2, {
+				m(OutlineButton, {
 					label: () => "No, I need help",
 					onclick: () => {
 						shouldDisplayContact({ value: true, returnTo: vnode.attrs })

@@ -1,65 +1,27 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { lang, TranslationKey, TranslationText } from "../../../misc/LanguageViewModel.js"
+import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
 import { ClickHandler } from "../GuiUtils.js"
-import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
+import { BaseButton } from "./BaseButton.js"
 import { theme } from "../../theme.js"
+import { px, size } from "../../size.js"
 
-export interface OutlineButtonAttrs {
-	label: TranslationKey
-	text?: TranslationText
-	click?: ClickHandler
-	disabled?: boolean
-	expanded?: boolean
+interface Props {
+	label: TranslationText
+	onclick: ClickHandler
 }
 
-/**
- * Simple outline button component
- * @see Component attributes: {OutlineButtonAttrs}
- * @example
- * m(OutlineButton, {
- * 	   label: button.label,
- * 	   click: button.click,
- * 	   disabled: button.isReadOnly,
- * }),
- */
-export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
-	view({ attrs }: Vnode<OutlineButtonAttrs>): Children {
+export class OutlineButton implements ClassComponent<Props> {
+	view({ attrs }: Vnode<Props>): Children {
 		return m(BaseButton, {
 			label: lang.getMaybeLazy(attrs.label),
-			text: attrs.text ? lang.getMaybeLazy(attrs.text) : lang.getMaybeLazy(attrs.label),
-			onclick: attrs.click,
-			disabled: attrs.disabled,
+			text: lang.getMaybeLazy(attrs.label),
+			onclick: attrs.onclick,
+			class: `border-radius-big plr-button center flash`,
 			style: {
-				borderColor: theme.content_message_bg,
-				color: theme.content_button,
+				border: `2px solid ${theme.content_accent}`,
+				height: px(size.button_height_compact),
+				color: theme.content_accent,
 			},
-			class: this.resolveClasses(attrs.expanded, attrs.disabled),
-		} as BaseButtonAttrs)
-	}
-
-	private resolveClasses(expanded: boolean = true, disabled: boolean = false) {
-		let classes = [
-			"tutaui-button-outline",
-			"limit-width",
-			"noselect",
-			"bg-transparent",
-			"text-ellipsis",
-			"content-accent-fg",
-			"flex",
-			"items-center",
-			"justify-center",
-		]
-
-		if (expanded) {
-			classes.push("full-width")
-		}
-
-		if (disabled) {
-			classes.push("disabled", "click-disabled")
-		} else {
-			classes.push("flash")
-		}
-
-		return classes.join(" ")
+		})
 	}
 }
