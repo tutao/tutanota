@@ -179,11 +179,7 @@ impl EventFacade {
         date: DateTime,
         repeat_rule: EventRepeatRule,
     ) -> Vec<DateTime> {
-        let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_millis() as i64) else {
-            // FIXME: fix paul's code :(
-            return Vec::new();
-        };
-
+        let parsed_date: OffsetDateTime = date.as_system_time().into();
         let date = PrimitiveDateTime::new(parsed_date.date(), parsed_date.time());
 
         let by_month_rules: Vec<&ByRule> = repeat_rule
