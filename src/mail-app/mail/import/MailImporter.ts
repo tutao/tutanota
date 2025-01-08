@@ -25,7 +25,7 @@ const DEFAULT_TOTAL_WORK: number = 100000
 const DEFAULT_PROGRESS_ESTIMATION_MAILS_PER_SECOND = 5
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
 const DEFAULT_PROGRESS: number = 0
-const PROGRESS_ESTIMATION_MAILS_PER_SECOND_SCALING_RATIO = 0.85
+const PROGRESS_ESTIMATION_MAILS_PER_SECOND_SCALING_RATIO = 0.75
 
 export class MailImporter {
 	public nativeMailImportFacade: NativeMailImportFacade | null = null
@@ -281,8 +281,8 @@ export class MailImporter {
 				let startTimestamp = this.activeImport?.start_timestamp ?? now
 				let durationSinceStartSeconds = (now - startTimestamp) / 1000
 				let mailsPerSecond = completedMails / durationSinceStartSeconds
-				let mailsPerSecondEstimate = Math.min(1, mailsPerSecond * PROGRESS_ESTIMATION_MAILS_PER_SECOND_SCALING_RATIO)
-				this.progressMonitor?.workDone(mailsPerSecondEstimate)
+				let mailsPerSecondEstimate = Math.max(1, mailsPerSecond * PROGRESS_ESTIMATION_MAILS_PER_SECOND_SCALING_RATIO)
+				this.progressMonitor?.workDone(Math.round(mailsPerSecondEstimate))
 			} else {
 				this.progressMonitor?.workDone(DEFAULT_PROGRESS_ESTIMATION_MAILS_PER_SECOND)
 			}
