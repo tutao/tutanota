@@ -23,6 +23,8 @@ import { getElevatedBackground } from "../../gui/theme.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { SupportRequestSentDialog } from "../SupportRequestSentDialog.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
+import { Icon, IconSize } from "../../gui/base/Icon.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
 
 export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 	private readonly htmlEditor: HtmlEditor = new HtmlEditor().setMinHeight(200).enableToolbar().setEnabled(true)
@@ -134,14 +136,26 @@ export class ContactSupportPage implements Component<ContactSupportPageAttrs> {
 					"p",
 					"Sorry, your free plan does not support direct email support. But you can get more help from Tuta's Community at Reddit or at Tuta's official FAQ page.",
 				),
-				// TODO: Add icon for reddit and app favicon for FAQ
-				m(".flex-center", { style: { gap: "1em" } }, [
-					m(ExternalLink, {
-						text: "Reddit",
-						href: "https://reddit.com/r/tutanota",
-						isCompanySite: false,
-					}),
-					m(ExternalLink, { text: "Tuta FAQ", href: "https://tuta.com/support", isCompanySite: true }),
+				m(".flex-center.mt-l.mb-l", { style: { gap: "1em" } }, [
+					m(".flex.gap-vpad-xs.center-vertically", [
+						m(Icon, { icon: Icons.Reddit, size: IconSize.Medium }),
+						m(ExternalLink, {
+							text: "Reddit",
+							href: "https://reddit.com/r/tutanota",
+							isCompanySite: false,
+						}),
+					]),
+					m(".flex.gap-vpad-xs.center-vertically", [
+						m("img", {
+							src: `${window.tutao.appState.prefixWithoutFile}/images/logo-favicon-152.png`,
+							alt: "Tuta.com logo",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+							style: { width: "16px", height: "16px" },
+						}),
+						m(ExternalLink, { text: "Tuta FAQ", href: "https://tuta.com/support", isCompanySite: true }),
+					]),
 				]),
 				m(
 					".mt.center",
