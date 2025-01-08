@@ -140,7 +140,7 @@ export class MailImporter implements MailImportFacade {
 		} catch (e) {
 			if (e.message === "NoImportFeature") {
 				this.uiStatus = UiImportStatus.Idle
-				await Dialog.message("serviceUnavailable_msg")
+				await Dialog.message("mailImportErrorServiceUnavailable_msg")
 			} else {
 				throw e
 			}

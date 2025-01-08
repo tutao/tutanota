@@ -978,6 +978,7 @@ export default {
 		"mailImportStatusRunning_label": "Running...",
 		"mailImportStatusStarting_label": "Starting...",
 		"mailImportTargetFolder_label": "Import into folder",
+		"mailImportErrorServiceUnavailable_msg": "Importing is temporarily unavailable; please try again later.",
 		"mailMoved_msg": "This email has been moved to another folder.",
 		"mailName_label": "Sender name",
 		"mailPartsNotLoaded_msg": "Some parts of the email failed to load due to a lost connection.",
