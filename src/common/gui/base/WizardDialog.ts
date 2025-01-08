@@ -396,7 +396,7 @@ export function createWizardDialog<T>(
 	closeAction: (() => $Promisable<void>) | null = null,
 	dialogType: DialogType.EditLarge | DialogType.EditSmall,
 	cancelButtonText: TranslationKey | null = null,
-	experimental_dialogStyles?: Partial<CSSStyleDeclaration> | {},
+	backgroundColor?: string,
 ): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 
@@ -416,7 +416,7 @@ export function createWizardDialog<T>(
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper)
 	const wizardDialog =
 		dialogType === DialogType.EditLarge
-			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child, experimental_dialogStyles)
+			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child, backgroundColor)
 			: Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
 
 	view = () => m(WizardDialog, wizardDialogAttrs)

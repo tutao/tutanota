@@ -88,7 +88,7 @@ export class Dialog implements ModalComponent {
 	private focusedBeforeShown: HTMLElement | null = null
 	private injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
 
-	constructor(dialogType: DialogType, childComponent: Component) {
+	constructor(dialogType: DialogType, childComponent: Component, private readonly backgroundColor?: string) {
 		this.visible = false
 
 		this.focusOnLoadFunction = () => this.defaultFocusOnLoad(assertNotNull(this.domDialog))
@@ -144,6 +144,7 @@ export class Dialog implements ModalComponent {
 								role: AriaWindow.Dialog,
 								"aria-modal": "true",
 								"aria-labelledby": "dialog-title",
+								...(this.backgroundColor && { style: { "background-color": this.backgroundColor } }),
 								"aria-describedby": "dialog-message",
 								onclick: (e: MouseEvent) => e.stopPropagation(),
 								// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
@@ -944,15 +945,16 @@ export class Dialog implements ModalComponent {
 	}
 
 	/** @deprecated use editDialog*/
-	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component, experimental_style?: Partial<CSSStyleDeclaration> | {}): Dialog {
-		return new Dialog(DialogType.EditLarge, {
-			view: () => {
-				return m("", { style: experimental_style }, [
-					m(DialogHeaderBar, headerBarAttrs),
-					m(".dialog-container.scroll", { style: experimental_style }, m(".fill-absolute.plr-l", m(child))),
-				])
+	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component, backgroundColor?: string): Dialog {
+		return new Dialog(
+			DialogType.EditLarge,
+			{
+				view: () => {
+					return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child)))])
+				},
 			},
-		})
+			backgroundColor,
+		)
 	}
 
 	static editDialog<T extends {}>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
