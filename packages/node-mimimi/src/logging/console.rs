@@ -62,6 +62,7 @@ impl Console {
 		match maybe_async_task {
 			Ok(_logger_task) => {
 				*current_sender = Some(tx);
+				drop(current_sender);
 				GLOBAL_CONSOLE.log(
 					&Record::builder()
 						.level(Level::Info)
