@@ -21,7 +21,7 @@ import { AppType } from "../../misc/ClientConstants.js"
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
 // keep in sync with app-ios/TutanotaSharedFramework/Utils/Utils.swift
-const MOBILE_SYS_MODEL_VERSION = 99
+const MOBILE_SYS_MODEL_VERSION = 118
 
 function effectiveModelVersion(): number {
 	// on desktop we use generated classes
