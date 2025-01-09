@@ -215,7 +215,7 @@ export class MailImporter {
 			this.uiStatus === UiImportStatus.Pausing ||
 			this.uiStatus === UiImportStatus.Paused ||
 			this.uiStatus === UiImportStatus.Cancelling ||
-			this.uiStatus === UiImportStatus.Error
+			this.uiStatus === UiImportStatus.Resuming
 		)
 	}
 
