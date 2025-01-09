@@ -37,8 +37,10 @@ async function generateImportCode(wasmFilePath: string, enableFallback: boolean)
 			} else if (typeof process !== "undefined") {
 				const {readFile} = await import("node:fs/promises")
 				const {dirname, join} = await import("node:path")
+				const {fileURLToPath} = await import("node:url")
 
-				const wasmPath = join(dirname(__filename), "${wasmFilePath}")
+				const __dirname = dirname(fileURLToPath(import.meta.url))
+				const wasmPath = join(__dirname, "${wasmFilePath}")
 				const wasmSource = await readFile(wasmPath)
 
 				return (await WebAssembly.instantiate(wasmSource)).instance.exports
