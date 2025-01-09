@@ -231,7 +231,6 @@ impl ImporterApi {
 
 		match locked_local_state {
 			Some(local_import_state) => {
-				let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
 				let mut local_import_state = local_import_state.lock().await;
 				local_import_state.import_progress_action = import_progress_action;
 
@@ -240,6 +239,7 @@ impl ImporterApi {
 
 					ImportProgressAction::Pause => {
 						local_import_state.current_status = ImportStatus::Paused;
+						let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
 						Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state)
 							.await?;
 
@@ -249,6 +249,7 @@ impl ImporterApi {
 					ImportProgressAction::Stop => {
 						let previous_status = local_import_state.current_status;
 						local_import_state.current_status = ImportStatus::Canceled;
+						let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
 						Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state)
 							.await?;
 

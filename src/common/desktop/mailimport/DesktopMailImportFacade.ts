@@ -64,7 +64,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	}
 
 	async setProgressAction(mailboxId: string, apiUrl: string, unencTutaCredentials: UnencryptedCredentials, progressAction: number) {
-		return ImporterApi.setProgressAction(mailboxId, this.createTutaCredentials(unencTutaCredentials, apiUrl), progressAction, this.configDirectory)
+		return await ImporterApi.setProgressAction(mailboxId, this.createTutaCredentials(unencTutaCredentials, apiUrl), progressAction, this.configDirectory)
 	}
 
 	async getResumeableImport(mailboxId: string): Promise<ResumableImport> {
@@ -80,16 +80,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			listId: listIdPart(importStateId),
 			elementId: elementIdPart(importStateId),
 		}
-		const tutaCredentials: TutaCredentials = {
-			accessToken: unencTutaCredentials?.accessToken,
-			isInternalCredential: unencTutaCredentials.credentialInfo.type === CredentialType.Internal,
-			encryptedPassphraseKey: unencTutaCredentials.encryptedPassphraseKey ? Array.from(unencTutaCredentials.encryptedPassphraseKey) : [],
-			login: unencTutaCredentials.credentialInfo.login,
-			userId: unencTutaCredentials.credentialInfo.userId,
-			apiUrl: apiUrl,
-			clientVersion: env.versionNumber,
-		}
-
+		const tutaCredentials = this.createTutaCredentials(unencTutaCredentials, apiUrl)
 		await ImporterApi.resumeFileImport(mailboxId, tutaCredentials, importMailStateId, this.configDirectory)
 	}
 }
