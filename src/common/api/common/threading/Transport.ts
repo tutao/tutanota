@@ -10,7 +10,7 @@ export interface Transport<OutgoingCommandType, IncomingCommandType> {
 	/**
 	 * Set the handler for messages coming from the other end of the transport
 	 */
-	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown): unknown
+	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown): void
 }
 
 /**

@@ -164,7 +164,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const mainInterface = worker.getMainInterface()
 
-	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
+	const contextObject = isTest() ? globalThis : self
+
+	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, contextObject)
 	locator.instanceMapper = new InstanceMapper()
 	locator.rsa = await createRsaImplementation(worker)
 
@@ -446,7 +448,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			nonCachingEntityClient, // without cache
 		)
 	})
-	const scheduler = new SchedulerImpl(dateProvider, self, self)
+	const scheduler = new SchedulerImpl(dateProvider, contextObject, contextObject)
 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
