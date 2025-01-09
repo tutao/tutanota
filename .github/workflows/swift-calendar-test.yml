@@ -1,0 +1,50 @@
+name: Swift CI - Calendar
+
+on:
+  pull_request:
+    types: [ opened, synchronize, edited ]
+    paths:
+      - 'app-ios/**'
+      - '.github/workflows/swift-calendar-test.yml'
+  push:
+    branches:
+      - dev-*
+      - '*/dev'
+    paths:
+      - 'app-ios/**'
+
+env:
+  swift-version: "5.9.2"
+  swift-format-version: "509.0.0"
+
+jobs:
+  test-swift:
+    runs-on: macos-14
+
+    permissions:
+      actions: none
+      checks: none
+      contents: read
+      deployments: none
+      id-token: none
+      issues: none
+      discussions: none
+      packages: none
+      pages: none
+      pull-requests: none
+      repository-projects: none
+      security-events: none
+      statuses: none
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: ./.github/shared/swift-common
+      - name: Test Calendar
+        working-directory: app-ios
+        run: |
+          mkdir -p ../build-calendar-app
+          xcodegen --spec calendar-project.yml
+          fastlane test_calendar_github
+
