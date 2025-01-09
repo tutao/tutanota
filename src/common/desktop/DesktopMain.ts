@@ -254,13 +254,13 @@ async function createComponents(): Promise<Components> {
 	}
 	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
+	const desktopImportFacade = new DesktopMailImportFacade(electron, notifier, lang)
 
 	const dispatcherFactory: DispatcherFactory = (window: ApplicationWindow) => {
 		// @ts-ignore
 		const logger: Logger = global.logger
 		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
 		const sqlCipherFacade = new PerWindowSqlCipherFacade(offlineDbRefCounter)
-		const desktopMailImportFacade = new DesktopMailImportFacade(window, electron.app.getPath("userData"))
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
@@ -270,7 +270,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
-			desktopMailImportFacade,
+			desktopImportFacade,
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
@@ -278,7 +278,7 @@ async function createComponents(): Promise<Components> {
 			themeFacade,
 			new DesktopWebauthnFacade(window, webDialogController),
 		)
-		return { desktopCommonSystemFacade, sqlCipherFacade, dispatcher, desktopMailImportFacade }
+		return { desktopCommonSystemFacade, sqlCipherFacade, dispatcher }
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {

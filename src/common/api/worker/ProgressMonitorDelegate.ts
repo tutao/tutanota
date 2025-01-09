@@ -5,15 +5,19 @@ import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 export class ProgressMonitorDelegate implements IProgressMonitor {
 	private readonly ref: Promise<ProgressMonitorId>
 
-	constructor(private readonly progressTracker: ExposedProgressTracker, readonly totalAmount: number) {
-		this.ref = progressTracker.registerMonitor(totalAmount)
+	constructor(private readonly progressTracker: ExposedProgressTracker, readonly totalWork: number) {
+		this.ref = progressTracker.registerMonitor(totalWork)
 	}
 
 	async workDone(amount: number) {
 		await this.progressTracker.workDoneForMonitor(await this.ref, amount)
 	}
 
+	async totalWorkDone(totalAmount: number) {
+		await this.progressTracker.workDoneForMonitor(await this.ref, this.totalWork - totalAmount)
+	}
+
 	async completed() {
-		await this.progressTracker.workDoneForMonitor(await this.ref, this.totalAmount)
+		await this.progressTracker.workDoneForMonitor(await this.ref, this.totalWork)
 	}
 }

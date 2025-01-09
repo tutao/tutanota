@@ -9,13 +9,11 @@ import { CommonNativeFacadeSendDispatcher } from "../../native/common/generatedi
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { PerWindowSqlCipherFacade } from "../db/PerWindowSqlCipherFacade.js"
-import { DesktopMailImportFacade } from "../mailimport/DesktopMailImportFacade"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
 	commonNativeFacade: CommonNativeFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
-	desktopMailImportFacade: DesktopMailImportFacade
 	sqlCipherFacade: PerWindowSqlCipherFacade
 }
 
@@ -28,7 +26,6 @@ export type DispatcherFactory = (window: ApplicationWindow) => {
 	desktopCommonSystemFacade: DesktopCommonSystemFacade
 	sqlCipherFacade: PerWindowSqlCipherFacade
 	dispatcher: DesktopGlobalDispatcher
-	desktopMailImportFacade: DesktopMailImportFacade
 }
 export type FacadeHandler = (message: Request<"facade">) => Promise<any>
 export type FacadeHandlerFactory = (window: ApplicationWindow) => FacadeHandler
@@ -38,7 +35,7 @@ export class RemoteBridge {
 
 	createBridge(window: ApplicationWindow): SendingFacades {
 		const webContents = window._browserWindow.webContents
-		const { desktopCommonSystemFacade, sqlCipherFacade, desktopMailImportFacade, dispatcher } = this.dispatcherFactory(window)
+		const { desktopCommonSystemFacade, sqlCipherFacade, dispatcher } = this.dispatcherFactory(window)
 		const facadeHandler = this.facadeHandlerFactory(window)
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcConfig)
@@ -63,7 +60,6 @@ export class RemoteBridge {
 			desktopFacade: new DesktopFacadeSendDispatcher(nativeInterface),
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
-			desktopMailImportFacade,
 			sqlCipherFacade,
 		}
 	}

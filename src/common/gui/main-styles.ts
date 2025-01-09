@@ -1870,6 +1870,10 @@ styles.registerStyle("main", () => {
 			// This value brings the bottom of the illustration inline with the first button on the notifications page
 			height: px(222),
 		},
+		"settings-illustration-large, .settings-illustration-large > svg": {
+			width: "full-width",
+			height: "fit-content",
+		},
 		// contact
 		".wrapping-row": {
 			display: "flex",

@@ -10,12 +10,14 @@ export interface IProgressMonitor {
 	 */
 	workDone(amount: number): void
 
+	totalWorkDone(totalAmount: number): void
+
 	completed(): void
 }
 
 /**
  * Class to calculate percentage of total work and report it back.
- * Call {@code workDone()} for each work step and {@code completed()}
+ * Call {@code workDone() or @code totalWorkDone()} for each work step and {@code completed()}
  * when you are done.
  */
 export class ProgressMonitor implements IProgressMonitor {
@@ -48,6 +50,8 @@ export class ProgressMonitor implements IProgressMonitor {
 
 export class NoopProgressMonitor implements IProgressMonitor {
 	workDone(amount: number) {}
+
+	totalWorkDone(totalAmount: number) {}
 
 	completed() {}
 }

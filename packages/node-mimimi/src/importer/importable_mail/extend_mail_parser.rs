@@ -104,7 +104,7 @@ impl MakeString for mail_parser::DateTime {
 
 impl MakeString for mail_parser::Received<'_> {
 	fn make_string(&self) -> Cow<str> {
-		Cow::Borrowed("todo!()")
+		Cow::Borrowed("todo")
 	}
 }
 

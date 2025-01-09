@@ -18,7 +18,20 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
-import { assertNotNull, first, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	first,
+	groupBy,
+	groupByAndMap,
+	isEmpty,
+	isNotNull,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+	splitInChunks,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import {
 	deconstructMailSetEntryId,
 	elementIdPart,
@@ -660,6 +673,11 @@ export class MailIndexer {
 	async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
 		const importMailState = await this._defaultCachingEntity.load(ImportMailStateTypeRef, importStateId)
 		let importedMailEntries = await this._defaultCachingEntity.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+
+		if (isEmpty(importedMailEntries)) {
+			return Promise.resolve([])
+		}
+
 		let importedMailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp
 		let dateRangeFilteredMailSetEntryIds = importedMailEntries

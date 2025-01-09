@@ -48,20 +48,21 @@ pub struct Butcher<
 	const CHUNK_LIMIT: usize,
 	// type of element which is to be chunked
 	ResolvingElement,
-	// streamer for all the ResolvingElement till end
-	Source: Iterator<Item = ResolvingElement>,
 > {
 	// Butcher will try to adjust every element into one chunk,
 	// but if CHUNK_LIMIT is surpassed, it should put the element back in same position it was before,
 	// hence, we should be able to peek one element ahead
-	provider: Peekable<Source>,
+	provider: Peekable<Box<dyn Send + Sync + Iterator<Item = ResolvingElement>>>,
 
 	// given a ResolvingElement, estimate it's size
 	sizer: fn(&ResolvingElement) -> usize,
 }
 
-impl<const CL: usize, Re, Src: Iterator<Item = Re>> Butcher<CL, Re, Src> {
-	pub fn new(source: Src, sizer: fn(&Re) -> usize) -> Self {
+impl<const CL: usize, Re> Butcher<CL, Re> {
+	pub fn new(
+		source: Box<dyn Iterator<Item = Re> + Send + Sync>,
+		sizer: fn(&Re) -> usize,
+	) -> Self {
 		Self {
 			provider: source.peekable(),
 			sizer,
@@ -75,10 +76,8 @@ impl<const CL: usize, Re, Src: Iterator<Item = Re>> Butcher<CL, Re, Src> {
 pub(super) type ChunkedImportItem<ResolvingElement> =
 	Result<Vec<ResolvingElement>, ResolvingElement>;
 
-impl<const CHUNK_LIMIT: usize, ResolvingElement, Source> Iterator
-	for Butcher<CHUNK_LIMIT, ResolvingElement, Source>
-where
-	Source: Iterator<Item = ResolvingElement>,
+impl<const CHUNK_LIMIT: usize, ResolvingElement> Iterator
+	for Butcher<CHUNK_LIMIT, ResolvingElement>
 {
 	type Item = ChunkedImportItem<ResolvingElement>;
 
@@ -102,7 +101,7 @@ where
 
 		let item = if imports_in_this_chunk.is_empty() {
 			let too_big_import = self.provider.next()?;
-			eprintln!(
+			log::info!(
 				"Max limit: {CHUNK_LIMIT}. our size: {}",
 				sizer(&too_big_import)
 			);
@@ -121,8 +120,7 @@ mod tests {
 	use super::*;
 
 	fn run_butcher<const L: usize>(data: Vec<usize>) -> Vec<Result<Vec<usize>, usize>> {
-		Butcher::<L, usize, std::vec::IntoIter<usize>>::new(data.into_iter(), usize::clone)
-			.collect()
+		Butcher::<L, usize>::new(Box::new(data.into_iter()), usize::clone).collect()
 	}
 
 	#[test]

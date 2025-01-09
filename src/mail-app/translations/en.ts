@@ -1881,6 +1881,11 @@ export default {
 		// Put in temporarily
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups"
+		"localAdminGroups_label": "Local admin groups",
+		"someMailFailedImport_msg": "Some mail failed to import.",
+		"importIncomplete_title": "Import incomplete",
+		"importIncomplete_msg": "Some mail files are invalid. Click to inspect them.",
+		"importComplete_title": "Import complete",
+		"importComplete_msg": "All selected files were imported to your mailbox",
 	}
 }

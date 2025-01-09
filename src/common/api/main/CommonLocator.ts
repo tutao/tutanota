@@ -85,7 +85,6 @@ export interface CommonLocator {
 	infoMessageHandler: InfoMessageHandler
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade
-	mailImporter: MailImporter
 	themeController: ThemeController
 
 	entityClient: EntityClient

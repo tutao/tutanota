@@ -174,7 +174,6 @@ class MailLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
-	mailImporter!: MailImporter
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -189,6 +188,7 @@ class MailLocator {
 	Const!: Record<string, any>
 
 	private nativeInterfaces: NativeInterfaces | null = null
+	private mailImporter: MailImporter | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
 
@@ -652,6 +652,14 @@ class MailLocator {
 		return this.nativeInterfaces[name]
 	}
 
+	public getMailImporter(): MailImporter {
+		if (this.mailImporter == null) {
+			throw new ProgrammingError(`Tried to use mail importer in web or mobile`)
+		}
+
+		return this.mailImporter
+	}
+
 	private readonly _workerDeferred: DeferredObject<WorkerClient>
 	private _entropyCollector!: EntropyCollector
 	private _deferredInitialized: DeferredObject<void> = defer()
@@ -791,15 +799,6 @@ class MailLocator {
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
 
-			this.mailImporter = new MailImporter(
-				this.domainConfigProvider(),
-				this.logins,
-				this.mailboxModel,
-				this.mailModel,
-				this.entityClient,
-				this.eventController,
-			)
-
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
 				new WebDesktopFacade(this.logins, async () => this.native),
@@ -832,8 +831,16 @@ class MailLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
-					this.mailImporter.nativeMailImportFacade = desktopInterfaces.nativeMailImportFacade
-					this.mailImporter.credentialsProvider = this.credentialsProvider
+					this.mailImporter = new MailImporter(
+						this.domainConfigProvider(),
+						this.logins,
+						this.mailboxModel,
+						this.entityClient,
+						this.eventController,
+						this.credentialsProvider,
+						desktopInterfaces.nativeMailImportFacade,
+						openSettingsHandler,
+					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")

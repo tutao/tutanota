@@ -7,39 +7,30 @@ export class NativeMailImportFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeMailImportFacade) {}
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
-			case "startFileImport": {
+			case "getResumableImport": {
 				const mailboxId: string = arg[0]
-				const apiUrl: string = arg[1]
+				const targetOwnerGroup: string = arg[1]
 				const unencryptedTutaCredentials: UnencryptedCredentials = arg[2]
-				const targetOwnerGroup: string = arg[3]
-				const targetFolder: ReadonlyArray<string> = arg[4]
-				const filePaths: ReadonlyArray<string> = arg[5]
-				return this.facade.startFileImport(mailboxId, apiUrl, unencryptedTutaCredentials, targetOwnerGroup, targetFolder, filePaths)
+				const apiUrl: string = arg[3]
+				return this.facade.getResumableImport(mailboxId, targetOwnerGroup, unencryptedTutaCredentials, apiUrl)
+			}
+			case "prepareNewImport": {
+				const mailboxId: string = arg[0]
+				const targetOwnerGroup: string = arg[1]
+				const targetMailSet: ReadonlyArray<string> = arg[2]
+				const filePaths: ReadonlyArray<string> = arg[3]
+				const unencryptedTutaCredentials: UnencryptedCredentials = arg[4]
+				const apiUrl: string = arg[5]
+				return this.facade.prepareNewImport(mailboxId, targetOwnerGroup, targetMailSet, filePaths, unencryptedTutaCredentials, apiUrl)
 			}
 			case "setProgressAction": {
 				const mailboxId: string = arg[0]
-				const apiUrl: string = arg[1]
-				const unencryptedTutaCredentials: UnencryptedCredentials = arg[2]
-				const progressAction: number = arg[3]
-				return this.facade.setProgressAction(mailboxId, apiUrl, unencryptedTutaCredentials, progressAction)
+				const importProgressAction: number = arg[1]
+				return this.facade.setProgressAction(mailboxId, importProgressAction)
 			}
-			case "getResumeableImport": {
+			case "setAsyncErrorHook": {
 				const mailboxId: string = arg[0]
-				return this.facade.getResumeableImport(mailboxId)
-			}
-			case "resumeFileImport": {
-				const mailboxId: string = arg[0]
-				const apiUrl: string = arg[1]
-				const unencryptedTutaCredentials: UnencryptedCredentials = arg[2]
-				const importStateId: IdTuple = arg[3]
-				return this.facade.resumeFileImport(mailboxId, apiUrl, unencryptedTutaCredentials, importStateId)
-			}
-			case "getImportState": {
-				const mailboxId: string = arg[0]
-				return this.facade.getImportState(mailboxId)
-			}
-			case "deinitLogger": {
-				return this.facade.deinitLogger()
+				return this.facade.setAsyncErrorHook(mailboxId)
 			}
 		}
 	}
