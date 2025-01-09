@@ -136,6 +136,8 @@ export class MailImporter {
 		if (isEmpty(filePaths)) return
 		if (!this.shouldShowStartButton()) throw new ProgrammingError("can't change state to starting")
 
+		this.resetStatus()
+
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const ownerGroup = assertNotNull(targetFolder._ownerGroup)
 		const userId = this.loginController.getUserController().userId
@@ -146,7 +148,14 @@ export class MailImporter {
 		this.isLastRunFailed = false
 		this.startProgressEstimation()
 		m.redraw()
-		await importFacade.startFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+
+		try {
+			await importFacade.startFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+		} catch (e) {
+			this.uiStatus = UiImportStatus.Error
+			console.log("could not start file import", e)
+			m.redraw()
+		}
 	}
 
 	async onPauseBtnClick() {
@@ -154,16 +163,11 @@ export class MailImporter {
 			throw new ProgrammingError("can't change state to pausing")
 		}
 
-		this.stopProgressEstimation()
 		this.uiStatus = UiImportStatus.Pausing
+		this.stopProgressEstimation()
 		m.redraw()
 
-		const importFacade = assertNotNull(this.nativeMailImportFacade)
-		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-		const userId = this.loginController.getUserController().userId
-
-		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-		await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ImportProgressAction.Pause)
+		await this.setProgressAction(ImportProgressAction.Pause)
 	}
 
 	async onResumeBtnClick() {
@@ -181,27 +185,27 @@ export class MailImporter {
 		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 		const resumableStateId = assertNotNull(this.activeImport?.remoteStateId)
 
-		await importFacade.resumeFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, resumableStateId)
+		try {
+			await importFacade.resumeFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, resumableStateId)
+		} catch (e) {
+			this.uiStatus = UiImportStatus.Error
+			console.log("could not resume file import", e)
+			m.redraw()
+		}
 	}
 
 	async onCancelBtnClick() {
 		if (!this.shouldShowCancelButton()) throw new ProgrammingError("can't change state to cancelling")
-		const importFacade = assertNotNull(this.nativeMailImportFacade)
-
-		this.stopProgressEstimation()
 
 		this.uiStatus = UiImportStatus.Cancelling
+		this.stopProgressEstimation()
 		m.redraw()
 
-		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-		const userId = this.loginController.getUserController().userId
-
-		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-		await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ImportProgressAction.Stop)
+		await this.setProgressAction(ImportProgressAction.Stop)
 	}
 
 	shouldShowStartButton() {
-		return this.wsConnectionOnline && this.uiStatus === UiImportStatus.Idle
+		return this.wsConnectionOnline && (this.uiStatus === UiImportStatus.Idle || this.uiStatus === UiImportStatus.Error)
 	}
 
 	shouldShowImportStatus(): boolean {
@@ -215,11 +219,14 @@ export class MailImporter {
 	}
 
 	shouldShowPauseButton(): boolean {
-		return this.wsConnectionOnline && (this.uiStatus === UiImportStatus.Running || this.uiStatus === UiImportStatus.Pausing)
+		return (
+			this.wsConnectionOnline &&
+			(this.uiStatus === UiImportStatus.Running || this.uiStatus === UiImportStatus.Starting || this.uiStatus === UiImportStatus.Pausing)
+		)
 	}
 
 	shouldDisablePauseButton(): boolean {
-		return this.wsConnectionOnline && this.uiStatus === UiImportStatus.Pausing
+		return (this.wsConnectionOnline && this.uiStatus === UiImportStatus.Pausing) || this.uiStatus === UiImportStatus.Starting
 	}
 
 	shouldShowResumeButton(): boolean {
@@ -227,7 +234,7 @@ export class MailImporter {
 	}
 
 	shouldDisableResumeButton(): boolean {
-		return !this.wsConnectionOnline || this.uiStatus === UiImportStatus.Resuming
+		return !this.wsConnectionOnline || this.uiStatus === UiImportStatus.Resuming || this.uiStatus === UiImportStatus.Starting
 	}
 
 	shouldShowCancelButton(): boolean {
@@ -241,7 +248,12 @@ export class MailImporter {
 	}
 
 	shouldDisableCancelButton(): boolean {
-		return !this.wsConnectionOnline || this.uiStatus === UiImportStatus.Cancelling || this.uiStatus === UiImportStatus.Pausing
+		return (
+			!this.wsConnectionOnline ||
+			this.uiStatus === UiImportStatus.Cancelling ||
+			this.uiStatus === UiImportStatus.Pausing ||
+			this.uiStatus === UiImportStatus.Starting
+		)
 	}
 
 	shouldShowProcessedMails(): boolean {
@@ -324,7 +336,7 @@ export class MailImporter {
 	 */
 	async onNewLocalImportMailState(localImportMailState: LocalImportMailState): Promise<void> {
 		const previousState = this.activeImport
-		if (localImportMailState.status == ImportStatus.Error) {
+		if (localImportMailState.status == ImportStatus.ServiceUnavailable) {
 			this.resetStatus()
 			if (!this.isLastRunFailed) {
 				this.isLastRunFailed = true
@@ -396,12 +408,7 @@ export class MailImporter {
 				this.stopProgressEstimation()
 				this.uiStatus = UiImportStatus.Paused
 				m.redraw()
-				const importFacade = assertNotNull(this.nativeMailImportFacade)
-				const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-				const userId = this.loginController.getUserController().userId
-
-				const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-				await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ImportProgressAction.Pause)
+				await this.setProgressAction(ImportProgressAction.Pause)
 			}
 		})
 	}
@@ -415,6 +422,20 @@ export class MailImporter {
 			return this.uiStatus
 		} else {
 			return UiImportStatus.Idle
+		}
+	}
+
+	async setProgressAction(progressAction: ImportProgressAction): Promise<void> {
+		const importFacade = assertNotNull(this.nativeMailImportFacade)
+
+		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+		const userId = this.loginController.getUserController().userId
+		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
+
+		try {
+			await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, progressAction)
+		} catch (e) {
+			console.log(`could execute progress action ${progressAction} for file import`, e)
 		}
 	}
 
@@ -463,6 +484,8 @@ function importStatusToUiImportStatus(importStatus: ImportStatus) {
 			return UiImportStatus.Running
 		case ImportStatus.Error:
 			return UiImportStatus.Error
+		case ImportStatus.ServiceUnavailable:
+			return UiImportStatus.Error
 	}
 }
 
@@ -472,6 +495,7 @@ export const enum ImportStatus {
 	Canceled = 2,
 	Finished = 3,
 	Error = 4,
+	ServiceUnavailable = 5,
 }
 
 export function isFinalisedImport(remoteImportStatus: ImportStatus): boolean {

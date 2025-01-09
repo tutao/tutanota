@@ -29,7 +29,7 @@ import { formatDate } from "../../common/misc/Formatter.js"
 export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 	private foldersForMailbox: FolderSystem | undefined
 	private selectedTargetFolder: MailFolder | null = null
-	private isImportHistoryExpanded: boolean = false
+	private isImportHistoryExpanded: boolean = true
 
 	private mailImporter: MailImporter
 	private fileApp: NativeFileApp | null
@@ -352,6 +352,8 @@ export function getImportStatusTranslationKey(importStatus: ImportStatus): Trans
 		case ImportStatus.Finished:
 			return "mailImportStatusFinished_label"
 		case ImportStatus.Error:
+			return "mailImportStatusError_label"
+		case ImportStatus.ServiceUnavailable:
 			return "mailImportStatusError_label"
 	}
 }

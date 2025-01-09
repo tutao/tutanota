@@ -150,9 +150,17 @@ impl ImporterApi {
 				Ok(_) => {},
 				Err(e) => {
 					log::error!("Importer task failed: {:?}", e);
-					inner
-						.update_state(|mut state| state.change_status(ImportStatus::Error))
-						.await;
+					if let ImportError::NoImportFeature = e {
+						inner
+							.update_state(|mut state| {
+								state.change_status(ImportStatus::ServiceUnavailable)
+							})
+							.await;
+					} else {
+						inner
+							.update_state(|mut state| state.change_status(ImportStatus::Error))
+							.await;
+					};
 				},
 			};
 		});
@@ -234,32 +242,15 @@ impl ImporterApi {
 				let mut local_import_state = local_import_state.lock().await;
 				local_import_state.import_progress_action = import_progress_action;
 
-				match import_progress_action {
-					ImportProgressAction::Continue => Ok(()),
-
-					ImportProgressAction::Pause => {
-						local_import_state.current_status = ImportStatus::Paused;
-						let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
-						Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state)
-							.await?;
-
-						Ok(())
-					},
-
-					ImportProgressAction::Stop => {
-						let previous_status = local_import_state.current_status;
-						local_import_state.current_status = ImportStatus::Canceled;
-						let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
-						Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state)
-							.await?;
-
-						if previous_status != ImportStatus::Running {
-							Importer::delete_import_dir(&import_directory_path)?;
-						}
-
-						Ok(())
-					},
-				}
+				if local_import_state.current_status != ImportStatus::Running
+					&& import_progress_action == ImportProgressAction::Stop
+				{
+					local_import_state.current_status = ImportStatus::Canceled;
+					Importer::delete_import_dir(&import_directory_path)?;
+					let logged_in_sdk = ImporterApi::create_sdk(tuta_credentials).await?;
+					Importer::mark_remote_final_state(&logged_in_sdk, &local_import_state).await?;
+				};
+				Ok(())
 			},
 
 			None => {

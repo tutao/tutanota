@@ -148,8 +148,7 @@ pub enum ImportParams {
 /// keep in sync with TutanotaConstants.ts
 #[cfg_attr(feature = "javascript", napi_derive::napi)]
 #[cfg_attr(not(feature = "javascript"), derive(Clone))]
-#[derive(PartialEq, Default)]
-#[cfg_attr(test, derive(Debug))]
+#[derive(PartialEq, Default, Debug)]
 #[repr(u8)]
 pub enum ImportStatus {
 	#[default]
@@ -158,6 +157,7 @@ pub enum ImportStatus {
 	Canceled = 2,
 	Finished = 3,
 	Error = 4,
+	ServiceUnavailable = 5,
 }
 
 /// A running import can be stopped or paused
@@ -614,7 +614,8 @@ impl Importer {
 			local_state.current_status == ImportStatus::Finished
 				|| local_state.current_status == ImportStatus::Canceled
 				|| local_state.current_status == ImportStatus::Paused,
-			"only cancel and finished should be final state"
+			"only cancel and finished should be final state {:?}",
+			local_state.current_status
 		);
 
 		// we reached final state before making first call, was either empty mails or was cancelled before making first post call
@@ -740,6 +741,19 @@ impl Importer {
 				break;
 			}
 		}
+
+		if import_progress_action == ImportProgressAction::Pause {
+			self.update_state(|mut state| state.change_status(ImportStatus::Paused))
+				.await;
+		} else if import_progress_action == ImportProgressAction::Stop {
+			self.update_state(|mut state| state.change_status(ImportStatus::Canceled))
+				.await;
+			Self::delete_import_dir(&self.import_directory)?;
+		}
+
+		let current_state = self.get_state(|state| state.clone()).await;
+		Importer::mark_remote_final_state(&self.essentials.logged_in_sdk, &current_state)
+			.await?;
 
 		Ok(())
 	}
