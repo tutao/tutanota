@@ -76,7 +76,7 @@ jobs:
         with:
           chrome-version: stable
       - name: run test in browser
-        timeout-minutes: 3
+        timeout-minutes: 10
         # --no-sandbox is needed because it fails to create sandbox in container otherwise.
         # It is fine as we run our own tests in a throwaway container anyway
         run: |

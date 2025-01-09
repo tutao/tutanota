@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url"
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ clean, fast = false, exclude = [] }) {
+export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
@@ -24,7 +24,7 @@ export async function runTestBuild({ clean, fast = false, exclude = [] }) {
 
 	if (!fast) {
 		await runStep("Packages", async () => {
-			await buildPackages("..", exclude)
+			await buildPackages("..")
 		})
 
 		await runStep("Types", async () => {
