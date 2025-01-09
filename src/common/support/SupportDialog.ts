@@ -30,7 +30,7 @@ export async function showSupportDialog(logins: LoginController) {
 		wizardPageWrapper(ContactSupportPage, new ContactSupportPageAttrs(data)),
 	]
 
-	const wizardBuilder = createWizardDialog(data, wizardPages, async () => {}, DialogType.EditLarge, "close_alt", theme.navigation_bg)
+	const wizardBuilder = createWizardDialog(data, wizardPages, async () => {}, DialogType.EditMedium, "close_alt", theme.navigation_bg)
 	wizardBuilder.dialog.show()
 }
 

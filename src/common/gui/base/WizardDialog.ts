@@ -394,7 +394,7 @@ export function createWizardDialog<T>(
 	data: T,
 	pages: ReadonlyArray<WizardPageWrapper<T>>,
 	closeAction: (() => $Promisable<void>) | null = null,
-	dialogType: DialogType.EditLarge | DialogType.EditSmall,
+	dialogType: DialogType.EditLarge | DialogType.EditSmall | DialogType.EditMedium,
 	cancelButtonText: TranslationKey | null = null,
 	backgroundColor?: string,
 ): WizardDialogAttrsBuilder<T> {
@@ -414,10 +414,15 @@ export function createWizardDialog<T>(
 		unregisterCloseListener()
 	}
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper)
-	const wizardDialog =
-		dialogType === DialogType.EditLarge
-			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child, backgroundColor)
-			: Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
+	let wizardDialog: Dialog
+	if (dialogType === DialogType.EditLarge) {
+		wizardDialog = Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child, backgroundColor)
+	} else if (dialogType === DialogType.EditMedium) {
+		// @ts-ignore
+		wizardDialog = Dialog.editMediumDialog(wizardDialogAttrs.headerBarAttrs, child, {})
+	} else {
+		wizardDialog = Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
+	}
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
 	wizardDialog
