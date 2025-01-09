@@ -98,13 +98,14 @@ type Components = {
 }
 const tfs = new TempFs(fs, electron, cryptoFns)
 const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
-const wasmLoader = async () => {
+// Argon2 is already built for the web part, we don't need to have another copy.
+const loadArgon2 = async () => {
 	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
 	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
 	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
 	return exports as unknown as Argon2IDExports
 }
-const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, wasmLoader())
+const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, loadArgon2())
 const opts = {
 	registerAsMailHandler: process.argv.some((arg) => arg === "-r"),
 	unregisterAsMailHandler: process.argv.some((arg) => arg === "-u"),
@@ -163,7 +164,7 @@ async function createComponents(): Promise<Components> {
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
-	const appPassHandler = new AppPassHandler(desktopCrypto, conf, wasmLoader(), lang, async () => {
+	const appPassHandler = new AppPassHandler(desktopCrypto, conf, loadArgon2(), lang, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
 	})
