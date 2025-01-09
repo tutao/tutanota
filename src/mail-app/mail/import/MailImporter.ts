@@ -214,7 +214,8 @@ export class MailImporter {
 			this.uiStatus === UiImportStatus.Running ||
 			this.uiStatus === UiImportStatus.Pausing ||
 			this.uiStatus === UiImportStatus.Paused ||
-			this.uiStatus === UiImportStatus.Cancelling
+			this.uiStatus === UiImportStatus.Cancelling ||
+			this.uiStatus === UiImportStatus.Error
 		)
 	}
 
@@ -359,7 +360,7 @@ export class MailImporter {
 				this.uiStatus = importStatusToUiImportStatus(this.activeImport.status)
 				this.updateProgressMonitorTotalWork(localImportMailState.totalMails)
 				this.progressMonitor?.totalWorkDone(localImportMailState.successfulMails + localImportMailState.failedMails)
-				if (localImportMailState.status == ImportStatus.Finished) this.stopProgressEstimation()
+				if (localImportMailState.status == ImportStatus.Finished || localImportMailState.status === ImportStatus.Error) this.stopProgressEstimation()
 			}
 		}
 		m.redraw()
@@ -406,9 +407,10 @@ export class MailImporter {
 			this.wsConnectionOnline = wsConnection === WsConnectionState.connected
 			if (haveImportOngoing && !this.wsConnectionOnline) {
 				this.stopProgressEstimation()
-				this.uiStatus = UiImportStatus.Paused
 				m.redraw()
-				await this.setProgressAction(ImportProgressAction.Pause)
+			} else if (haveImportOngoing && this.wsConnectionOnline) {
+				await this.setProgressAction(ImportProgressAction.Continue)
+				this.uiStatus = UiImportStatus.Paused
 			}
 		})
 	}
