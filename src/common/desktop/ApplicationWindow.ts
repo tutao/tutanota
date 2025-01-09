@@ -199,7 +199,6 @@ export class ApplicationWindow {
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
 		this._sqlCipherFacade = sendingFacades.sqlCipherFacade
-		this._desktopMailImportFacade = sendingFacades.desktopMailImportFacade
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {

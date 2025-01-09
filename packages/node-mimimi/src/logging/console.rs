@@ -47,6 +47,8 @@ impl Log for Console {
 
 impl Console {
 	pub fn init(env: Env) {
+		// println because log is not init yet
+		println!("initializing logger");
 		Self::init_global_state();
 
 		let mut current_sender = GLOBAL_CONSOLE.sender.write().expect("poisoned");

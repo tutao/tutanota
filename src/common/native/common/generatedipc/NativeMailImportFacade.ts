@@ -1,43 +1,34 @@
 /* generated file, don't edit. */
 
 import { UnencryptedCredentials } from "./UnencryptedCredentials.js"
-import { ResumableImport } from "./ResumableImport.js"
-import { LocalImportMailState } from "./LocalImportMailState.js"
 /**
  * Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.
  */
 export interface NativeMailImportFacade {
 	/**
-	 * Import multiple mails from .eml or .mbox files.
+	 * @returns the mail import state id of the import that might be resumed
 	 */
-	startFileImport(
+	getResumableImport(mailboxId: string, targetOwnerGroup: string, unencryptedTutaCredentials: UnencryptedCredentials, apiUrl: string): Promise<IdTuple | null>
+
+	/**
+	 * set up a new import state for the given parameters and return the ID of the new state entity on the server
+	 */
+	prepareNewImport(
 		mailboxId: string,
-		apiUrl: string,
-		unencryptedTutaCredentials: UnencryptedCredentials,
 		targetOwnerGroup: string,
-		targetFolder: ReadonlyArray<string>,
+		targetMailSet: ReadonlyArray<string>,
 		filePaths: ReadonlyArray<string>,
-	): Promise<void>
+		unencryptedTutaCredentials: UnencryptedCredentials,
+		apiUrl: string,
+	): Promise<IdTuple>
 
 	/**
 	 * Sets progress action for next import iteration
 	 */
-	setProgressAction(mailboxId: string, apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, progressAction: number): Promise<void>
+	setProgressAction(mailboxId: string, importProgressAction: number): Promise<void>
 
 	/**
-	 * @returns the mail import state id of the import that might be resumed
+	 * await to receive any errors and import state changes that must be handled locally
 	 */
-	getResumeableImport(mailboxId: string): Promise<ResumableImport>
-
-	/**
-	 * resumes the import for a previously paused import
-	 */
-	resumeFileImport(mailboxId: string, apiUrl: string, unencryptedTutaCredentials: UnencryptedCredentials, importStateId: IdTuple): Promise<void>
-
-	/**
-	 * Gets LocalImportState from Importer
-	 */
-	getImportState(mailboxId: string): Promise<LocalImportMailState | null>
-
-	deinitLogger(): Promise<void>
+	setAsyncErrorHook(mailboxId: string): Promise<void>
 }

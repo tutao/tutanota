@@ -69,14 +69,13 @@ fn mime_tools_test_messages() {
 			result: expected_result,
 			exception: _,
 		} = FileContent::read_from_file(expected_json_file_name.as_str()).unwrap();
-		let parsed_message_result = ImportableMail::convert_from(&parsed_message, None);
+		let mut parsed_message = ImportableMail::convert_from(&parsed_message, None);
 
 		if expected_result.is_none() {
 			eprintln!("above file has `error` field set in in -expected.json ......");
 			continue;
 		}
 
-		let mut parsed_message = parsed_message_result.unwrap();
 		let mut expected_importable_mail: ImportableMail = expected_result.unwrap().into();
 
 		// we import raw headers and there is no need to compare them

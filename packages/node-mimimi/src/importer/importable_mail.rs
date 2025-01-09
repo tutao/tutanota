@@ -1,4 +1,3 @@
-use crate::importer::file_reader::FileIterationError;
 use crate::importer::ImportEssential;
 use crate::tuta_imap::client::types::ImapMail;
 use extend_mail_parser::MakeString;
@@ -669,7 +668,7 @@ impl TryFrom<ImapMail> for ImportableMail {
 			.parse(rfc822_full.as_slice())
 			.ok_or(MailParseError::InvalidMimeMessage)?;
 
-		let mut importable_mail = Self::convert_from(&imap_mail, None).unwrap();
+		let mut importable_mail = Self::convert_from(&imap_mail, None);
 
 		// example:
 		// add more details from imap if given,
@@ -690,7 +689,7 @@ impl ImportableMail {
 	pub fn convert_from(
 		parsed_message: &mail_parser::Message,
 		eml_file_path: Option<PathBuf>,
-	) -> Result<Self, FileIterationError> {
+	) -> Self {
 		let subject = parsed_message.subject().unwrap_or_default().to_string();
 
 		let date = parsed_message
@@ -785,7 +784,7 @@ impl ImportableMail {
 
 		let (html_body_text, attachments) = ImportableMail::process_all_parts(parsed_message);
 
-		Ok(Self {
+		Self {
 			headers_string,
 			html_body_text,
 			subject,
@@ -807,7 +806,7 @@ impl ImportableMail {
 			mail_state: Default::default(),
 			is_phishing: false,
 			eml_file_path,
-		})
+		}
 	}
 }
 

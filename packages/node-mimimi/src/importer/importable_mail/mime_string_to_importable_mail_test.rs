@@ -6,7 +6,7 @@ use mail_parser::{MessageParser, MimeHeaders};
 use tutasdk::date::DateTime;
 
 fn parse_mail(msg: &str) -> ImportableMail {
-	ImportableMail::convert_from(&MessageParser::default().parse(msg).unwrap(), None).unwrap()
+	ImportableMail::convert_from(&MessageParser::default().parse(msg).unwrap(), None)
 }
 
 // to be able to convert any (str/string, str/string).into() => MailContact

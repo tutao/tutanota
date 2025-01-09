@@ -1,4 +1,5 @@
-use crate::importer::importable_mail::{ImportableMail, MailParseError};
+use crate::importer::importable_mail::ImportableMail;
+use crate::importer::messages::ImapIterationError;
 use crate::tuta_imap::client::TutaImapClient;
 use imap_codec::imap_types::mailbox::Mailbox;
 use imap_codec::imap_types::response::StatusKind;
@@ -58,21 +59,6 @@ impl ImapImportState {
 		assert!(self.current_mailbox.is_some(), "No current mailbox");
 		self.fetched_from_current_mailbox.push(id);
 	}
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ImapIterationError {
-	/// All mail form remote server have been visited at least once,
-	SourceEnd,
-
-	/// when executing a command, received a non-ok status,
-	NonOkCommandStatus,
-
-	/// Can not convert ImapMail to ConvertableMail
-	MailParseError(MailParseError),
-
-	/// Can not login to imap server
-	NoLogin,
 }
 
 impl ImapImport {

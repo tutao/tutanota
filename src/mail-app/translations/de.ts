@@ -1886,5 +1886,10 @@ export default {
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"localAdminGroups_label": "Local admin groups",
+		"someMailFailedImport_msg": "Einige E-mails konnten nicht importiert werden.",
+		"importIncomplete_title": "Import unvollständig",
+		"importIncomplete_msg": "Einige der E-Mail-Dateien sind ungültig. Hier klicken, um sie anzuzeigen.",
+		"importComplete_title": "Import beendet",
+		"importComplete_msg": "Alle gewählten E-Mail-Dateien wurden in dein Postfach importiert.",
 	}
 }

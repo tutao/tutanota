@@ -161,7 +161,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => Icons.Import,
 						"mailImport",
 						() => {
-							return new MailImportSettingsViewer(mailLocator.mailImporter, isDesktop() ? mailLocator.fileApp : null)
+							// todo: make this dependent on whether we actually have import
+							return new MailImportSettingsViewer(
+								() => mailLocator.getMailImporter(),
+								isDesktop() ? mailLocator.fileApp : null,
+								mailLocator.mailModel,
+							)
 						},
 						undefined,
 					),

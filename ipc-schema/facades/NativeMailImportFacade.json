@@ -5,29 +5,47 @@
 	"receivers": ["desktop"],
 	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
 	"methods": {
-		"startFileImport": {
-			"doc": "Import multiple mails from .eml or .mbox files.",
+		"getResumableImport": {
+			"doc": "@returns the mail import state id of the import that might be resumed",
 			"arg": [
 				{
 					"mailboxId": "string"
 				},
 				{
-					"apiUrl": "string"
+					"targetOwnerGroup": "string"
 				},
 				{
 					"unencryptedTutaCredentials": "UnencryptedCredentials"
 				},
 				{
+					"apiUrl": "string"
+				}
+			],
+			"ret": "IdTuple?"
+		},
+		"prepareNewImport": {
+			"doc": "set up a new import state for the given parameters and return the ID of the new state entity on the server",
+			"arg": [
+				{
+					"mailboxId": "string"
+				},
+				{
 					"targetOwnerGroup": "string"
 				},
 				{
-					"targetFolder": "List<string>"
+					"targetMailSet": "List<string>"
 				},
 				{
 					"filePaths": "List<string>"
+				},
+				{
+					"unencryptedTutaCredentials": "UnencryptedCredentials"
+				},
+				{
+					"apiUrl": "string"
 				}
 			],
-			"ret": "void"
+			"ret": "IdTuple"
 		},
 		"setProgressAction": {
 			"doc": "Sets progress action for next import iteration",
@@ -36,56 +54,18 @@
 					"mailboxId": "string"
 				},
 				{
-					"apiUrl": "string"
-				},
-				{
-					"unencryptedTutaCredentials": "UnencryptedCredentials"
-				},
-				{
-					"progressAction": "number"
+					"importProgressAction": "number"
 				}
 			],
 			"ret": "void"
 		},
-		"getResumeableImport": {
-			"doc": "@returns the mail import state id of the import that might be resumed",
+		"setAsyncErrorHook": {
+			"doc": "await to receive any errors and import state changes that must be handled locally",
 			"arg": [
 				{
 					"mailboxId": "string"
 				}
 			],
-			"ret": "ResumableImport"
-		},
-		"resumeFileImport": {
-			"doc": "resumes the import for a previously paused import",
-			"arg": [
-				{
-					"mailboxId": "string"
-				},
-				{
-					"apiUrl": "string"
-				},
-				{
-					"unencryptedTutaCredentials": "UnencryptedCredentials"
-				},
-				{
-					"importStateId": "IdTuple"
-				}
-			],
-			"ret": "void"
-		},
-		"getImportState": {
-			"doc": "Gets LocalImportState from Importer",
-			"arg": [
-				{
-					"mailboxId": "string"
-				}
-			],
-			"ret": "LocalImportMailState?"
-		},
-		"deinitLogger": {
-			"doc": "",
-			"arg": [],
 			"ret": "void"
 		}
 	}

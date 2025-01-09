@@ -84,7 +84,6 @@ export interface MailViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	cache: MailViewCache
 	header: AppHeaderAttrs
-	mailImporter: MailImporter | null
 	mailViewModel: MailViewModel
 }
 
@@ -96,7 +95,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
-	private readonly mailImporter: MailImporter | null
 	cache: MailViewCache
 	readonly oncreate: TopLevelView["oncreate"]
 	readonly onremove: TopLevelView["onremove"]
@@ -112,7 +110,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	constructor(vnode: Vnode<MailViewAttrs>) {
 		super()
-		this.mailImporter = vnode.attrs.mailImporter
 		this.expandedState = new Set(deviceConfig.getExpandedFolders(locator.logins.getUserController().userId))
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)

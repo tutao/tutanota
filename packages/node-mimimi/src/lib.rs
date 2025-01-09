@@ -6,6 +6,8 @@ mod importer_api;
 #[cfg(feature = "javascript")]
 pub mod logging;
 mod reduce_to_chunks;
+#[cfg(test)]
+mod test_utils;
 mod tuta_imap;
 
 pub trait BufReadExtension {
