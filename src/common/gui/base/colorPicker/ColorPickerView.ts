@@ -7,7 +7,7 @@ import { hexToHSL, hslToHex, isColorLight, isValidCSSHexColor, MAX_HUE_ANGLE, no
 import { ColorPickerModel } from "./ColorPickerModel.js"
 import { client } from "../../../misc/ClientDetector.js"
 import { theme } from "../../theme.js"
-import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
+import { assertNotNull, clamp, filterInt } from "@tutao/tutanota-utils"
 import { Keys, TabIndex } from "../../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../../misc/KeyManager"
 
@@ -430,7 +430,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	private handleHueChange = (e: PointerEvent | TouchEvent, hueImgDom: HTMLElement) => {
 		const hueImgDomRect = hueImgDom.getBoundingClientRect()
 		const eClientX = "clientX" in e ? e.clientX : e.touches[0].clientX
-		const posX = Math.floor(eClientX - hueImgDomRect.left + HUE_GRADIENT_BORDER_WIDTH)
+		const posX = clamp(eClientX - hueImgDomRect.left + HUE_GRADIENT_BORDER_WIDTH, HUE_GRADIENT_BORDER_WIDTH, hueImgDomRect.width)
 		this.selectedHueAngle = Math.floor((posX / hueImgDomRect.width) * MAX_HUE_ANGLE)
 
 		if (this.hueSliderDom) {
