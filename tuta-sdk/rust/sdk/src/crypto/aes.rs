@@ -1,5 +1,6 @@
 //! Contains code to handle AES128/AES256 encryption and decryption
 
+use crate::crypto::hmac::{HmacError, MAC_SIZE};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::join_slices;
 use crate::util::{array_cast_size, array_cast_slice, ArrayCastingError};
@@ -231,7 +232,7 @@ pub enum AesDecryptError {
 	#[error("PaddingError")]
 	PaddingError(#[from] UnpadError),
 	#[error("HmacError")]
-	HmacError,
+	HmacError(#[from] HmacError),
 }
 
 /// Result of decryption operation.
@@ -302,9 +303,6 @@ pub const AES_256_KEY_SIZE: usize = 32;
 /// The size of an AES initialisation vector in bytes
 pub const IV_BYTE_SIZE: usize = 16;
 
-/// Size of HMAC authentication added to the ciphertext
-const MAC_SIZE: usize = 32;
-
 /// Encrypts a plaintext without adding padding and returns the encrypted text as a vector
 fn encrypt_unpadded_vec_mut<C: BlockCipher + BlockEncryptMut>(
 	encryptor: &mut cbc::Encryptor<C>,
@@ -333,13 +331,24 @@ type Aes256SubKeys = AesSubKeys<Aes256Key>;
 
 impl<Key: AesKey> AesSubKeys<Key> {
 	fn compute_mac(&self, iv: &[u8], ciphertext: &[u8]) -> [u8; MAC_SIZE] {
-		use hmac::Mac;
-		use sha2::Sha256;
+		use crate::crypto::hmac::hmac_sha256;
+		// TODO get rid of the concat?
+		hmac_sha256(self.m_key.get_bytes(), [iv, ciphertext].concat().as_slice())
+	}
 
-		let mut hmac = hmac::Hmac::<Sha256>::new_from_slice(self.m_key.get_bytes()).unwrap();
-		hmac.update(iv);
-		hmac.update(ciphertext);
-		hmac.finalize().into_bytes().into()
+	fn verify_mac(
+		&self,
+		iv: &[u8],
+		ciphertext: &[u8],
+		tag: [u8; MAC_SIZE],
+	) -> Result<(), HmacError> {
+		use crate::crypto::hmac::verify_hmac_sha256;
+		verify_hmac_sha256(
+			self.m_key.get_bytes(),
+			// TODO get rid of the concat?
+			[iv, ciphertext].concat().as_slice(),
+			tag,
+		)
 	}
 }
 
@@ -431,7 +440,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
 
 		// Incorrect size for Hmac
 		if bytes.len() <= IV_BYTE_SIZE + MAC_SIZE {
-			return Err(AesDecryptError::HmacError);
+			return Err(AesDecryptError::HmacError(HmacError));
 		}
 
 		// Split `bytes` into the MAC and combined ciphertext with iv
@@ -442,8 +451,8 @@ impl<'a> CiphertextWithAuthentication<'a> {
 
 		// Extract the iv from the ciphertext and return the extracted components
 		let (iv, ciphertext) = ciphertext_without_mac.split_at(IV_BYTE_SIZE);
-		let mac: [u8; MAC_SIZE] =
-			array_cast_slice(provided_mac_bytes, "MAC").map_err(|_| AesDecryptError::HmacError)?;
+		let mac: [u8; MAC_SIZE] = array_cast_slice(provided_mac_bytes, "MAC")
+			.map_err(|_| AesDecryptError::HmacError(HmacError))?;
 		Ok(Some(CiphertextWithAuthentication {
 			iv,
 			ciphertext,
@@ -461,10 +470,6 @@ impl<'a> CiphertextWithAuthentication<'a> {
 			ciphertext,
 			mac: subkeys.compute_mac(iv, ciphertext),
 		}
-	}
-
-	fn matches<Key: AesKey>(&self, subkeys: &AesSubKeys<Key>) -> bool {
-		self.mac == subkeys.compute_mac(self.iv, self.ciphertext)
 	}
 
 	fn serialize(&self) -> Vec<u8> {
@@ -499,9 +504,12 @@ fn aes_decrypt<Key: AesKey>(
 	let (key, iv_bytes, encrypted_bytes) =
 		if let Some(ciphertext_with_auth) = CiphertextWithAuthentication::parse(encrypted_bytes)? {
 			let subkeys = key.derive_subkeys();
-			if !ciphertext_with_auth.matches(&subkeys) {
-				return Err(AesDecryptError::HmacError);
-			}
+
+			subkeys.verify_mac(
+				ciphertext_with_auth.iv,
+				ciphertext_with_auth.ciphertext,
+				ciphertext_with_auth.mac,
+			)?;
 
 			(
 				subkeys.c_key,
@@ -509,7 +517,7 @@ fn aes_decrypt<Key: AesKey>(
 				ciphertext_with_auth.ciphertext,
 			)
 		} else if enforce_mac == EnforceMac::EnforceMac {
-			return Err(AesDecryptError::HmacError);
+			return Err(AesDecryptError::HmacError(HmacError));
 		} else {
 			// Separate and check both the initialisation vector
 			let (iv_bytes, cipher_text) = encrypted_bytes.split_at(IV_BYTE_SIZE);
