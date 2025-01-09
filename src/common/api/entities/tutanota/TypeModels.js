@@ -8022,15 +8022,15 @@ export const typeModels = {
 		"name": "SupportCategory",
 		"since": 80,
 		"type": "AGGREGATED_TYPE",
-		"id": 1593,
-		"rootId": "CHR1dGFub3RhAAY5",
+		"id": 1597,
+		"rootId": "CHR1dGFub3RhAAY9",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1594,
+				"id": 1598,
 				"since": 80,
 				"type": "CustomId",
 				"cardinality": "One",
@@ -8039,7 +8039,7 @@ export const typeModels = {
 			"introductionDE": {
 				"final": false,
 				"name": "introductionDE",
-				"id": 1598,
+				"id": 1602,
 				"since": 80,
 				"type": "String",
 				"cardinality": "One",
@@ -8048,7 +8048,7 @@ export const typeModels = {
 			"introductionEN": {
 				"final": false,
 				"name": "introductionEN",
-				"id": 1597,
+				"id": 1601,
 				"since": 80,
 				"type": "String",
 				"cardinality": "One",
@@ -8057,7 +8057,7 @@ export const typeModels = {
 			"nameDE": {
 				"final": false,
 				"name": "nameDE",
-				"id": 1596,
+				"id": 1600,
 				"since": 80,
 				"type": "String",
 				"cardinality": "One",
@@ -8066,7 +8066,7 @@ export const typeModels = {
 			"nameEN": {
 				"final": false,
 				"name": "nameEN",
-				"id": 1595,
+				"id": 1599,
 				"since": 80,
 				"type": "String",
 				"cardinality": "One",
@@ -8077,7 +8077,7 @@ export const typeModels = {
 			"topics": {
 				"final": false,
 				"name": "topics",
-				"id": 1599,
+				"id": 1603,
 				"since": 80,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
@@ -8092,15 +8092,15 @@ export const typeModels = {
 		"name": "SupportData",
 		"since": 80,
 		"type": "ELEMENT_TYPE",
-		"id": 1600,
-		"rootId": "CHR1dGFub3RhAAZA",
+		"id": 1604,
+		"rootId": "CHR1dGFub3RhAAZE",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1604,
+				"id": 1608,
 				"since": 80,
 				"type": "Number",
 				"cardinality": "One",
@@ -8109,7 +8109,7 @@ export const typeModels = {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1602,
+				"id": 1606,
 				"since": 80,
 				"type": "GeneratedId",
 				"cardinality": "One",
@@ -8118,7 +8118,7 @@ export const typeModels = {
 			"_ownerGroup": {
 				"final": true,
 				"name": "_ownerGroup",
-				"id": 1605,
+				"id": 1609,
 				"since": 80,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
@@ -8127,7 +8127,7 @@ export const typeModels = {
 			"_permissions": {
 				"final": true,
 				"name": "_permissions",
-				"id": 1603,
+				"id": 1607,
 				"since": 80,
 				"type": "GeneratedId",
 				"cardinality": "One",
@@ -8138,7 +8138,7 @@ export const typeModels = {
 			"categories": {
 				"final": false,
 				"name": "categories",
-				"id": 1606,
+				"id": 1610,
 				"since": 80,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
@@ -8151,6 +8151,85 @@ export const typeModels = {
 	},
 	"SupportTopic": {
 		"name": "SupportTopic",
+		"since": 80,
+		"type": "AGGREGATED_TYPE",
+		"id": 1589,
+		"rootId": "CHR1dGFub3RhAAY1",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1590,
+				"since": 80,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"issueDE": {
+				"final": false,
+				"name": "issueDE",
+				"id": 1593,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"issueEN": {
+				"final": false,
+				"name": "issueEN",
+				"id": 1592,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"lastUpdated": {
+				"final": false,
+				"name": "lastUpdated",
+				"id": 1591,
+				"since": 80,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"solutionHtmlDE": {
+				"final": false,
+				"name": "solutionHtmlDE",
+				"id": 1595,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"solutionHtmlEN": {
+				"final": false,
+				"name": "solutionHtmlEN",
+				"id": 1594,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"tags": {
+				"final": false,
+				"name": "tags",
+				"id": 1596,
+				"since": 80,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "SupportTopicTag",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "80"
+	},
+	"SupportTopicTag": {
+		"name": "SupportTopicTag",
 		"since": 80,
 		"type": "AGGREGATED_TYPE",
 		"id": 1586,
@@ -8167,46 +8246,10 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"issueDE": {
+			"name": {
 				"final": false,
-				"name": "issueDE",
-				"id": 1590,
-				"since": 80,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"issueEN": {
-				"final": false,
-				"name": "issueEN",
-				"id": 1589,
-				"since": 80,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"lastUpdated": {
-				"final": false,
-				"name": "lastUpdated",
+				"name": "name",
 				"id": 1588,
-				"since": 80,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"solutionHtmlDE": {
-				"final": false,
-				"name": "solutionHtmlDE",
-				"id": 1592,
-				"since": 80,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"solutionHtmlEN": {
-				"final": false,
-				"name": "solutionHtmlEN",
-				"id": 1591,
 				"since": 80,
 				"type": "String",
 				"cardinality": "One",

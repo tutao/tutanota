@@ -2540,6 +2540,7 @@ pub struct SupportTopic {
 	pub lastUpdated: DateTime,
 	pub solutionHtmlDE: String,
 	pub solutionHtmlEN: String,
+	pub tags: Vec<SupportTopicTag>,
 }
 
 impl Entity for SupportTopic {
@@ -2547,6 +2548,22 @@ impl Entity for SupportTopic {
 		TypeRef {
 			app: "tutanota",
 			type_: "SupportTopic",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SupportTopicTag {
+	pub _id: Option<CustomId>,
+	pub name: String,
+}
+
+impl Entity for SupportTopicTag {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "SupportTopicTag",
 		}
 	}
 }

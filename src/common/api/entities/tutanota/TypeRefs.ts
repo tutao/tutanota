@@ -2016,6 +2016,20 @@ export type SupportTopic = {
 	lastUpdated: Date;
 	solutionHtmlDE: string;
 	solutionHtmlEN: string;
+
+	tags: SupportTopicTag[];
+}
+export const SupportTopicTagTypeRef: TypeRef<SupportTopicTag> = new TypeRef("tutanota", "SupportTopicTag")
+
+export function createSupportTopicTag(values: StrippedEntity<SupportTopicTag>): SupportTopicTag {
+	return Object.assign(create(typeModels.SupportTopicTag, SupportTopicTagTypeRef), values)
+}
+
+export type SupportTopicTag = {
+	_type: TypeRef<SupportTopicTag>;
+
+	_id: Id;
+	name: string;
 }
 export const SymEncInternalRecipientKeyDataTypeRef: TypeRef<SymEncInternalRecipientKeyData> = new TypeRef("tutanota", "SymEncInternalRecipientKeyData")
 
