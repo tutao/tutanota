@@ -14,7 +14,7 @@ runs:
         echo "emscripten_path=$(pwd)/emsdk" >> $GITHUB_ENV
     - name: cache emscripten
       id: cache-emscripten
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # 4.2.0
       with:
         path: ${{ env.emscripten_path }}
         key: emscripten-${{ inputs.emscripten-version }}
