@@ -1,38 +1,133 @@
-import { DialogType } from "../gui/base/Dialog"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { assertMainOrNode } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
-import { createWizardDialog, emitWizardEvent, WizardEventType, WizardPageAttrs, wizardPageWrapper } from "../gui/base/WizardDialog.js"
-import { SupportLandingPage, SupportLandingPageAttrs } from "./supportWizardPages/SupportLandingPage.js"
-import { SupportCategoryPage, SupportCategoryPageAttrs } from "./supportWizardPages/SupportCategoryPage.js"
-import { SupportTopicPage, SupportTopicPageAttrs } from "./supportWizardPages/SupportTopicPage.js"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs } from "../gui/base/WizardDialog.js"
 import { SectionButton } from "../gui/base/buttons/SectionButton.js"
 import Stream from "mithril/stream"
-import { ContactSupportPage, ContactSupportPageAttrs } from "./supportWizardPages/ContactSupportPage.js"
-import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
-import { theme } from "../gui/theme.js"
-import { locator } from "../api/main/CommonLocator.js"
+import { SupportCategory, SupportData, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
+import { MultiPageDialog, TransitionTo } from "../gui/dialogs/MultiPageDialog.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 
 assertMainOrNode()
 
-export async function showSupportDialog(logins: LoginController) {
-	const data: SupportDialogAttrs = {
-		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
-		shouldDisplayContact: Stream({ value: false, returnTo: null }),
-		selectedCategory: Stream<SupportCategory | null>(null),
-		selectedTopic: Stream<SupportTopic | null>(null),
-		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
-	}
-	const wizardPages = [
-		wizardPageWrapper(SupportLandingPage, new SupportLandingPageAttrs(data)),
-		wizardPageWrapper(SupportCategoryPage, new SupportCategoryPageAttrs(data)),
-		wizardPageWrapper(SupportTopicPage, new SupportTopicPageAttrs(data)),
-		wizardPageWrapper(ContactSupportPage, new ContactSupportPageAttrs(data)),
-	]
-
-	const wizardBuilder = createWizardDialog(data, wizardPages, async () => {}, DialogType.EditMedium, "close_alt", theme.navigation_bg)
-	wizardBuilder.dialog.show()
+enum ExamplePages {
+	ROOT,
+	SECOND,
+	THIRD,
 }
+
+export async function showSupportDialog(logins: LoginController) {
+	const multiPageDialog = new MultiPageDialog<ExamplePages>(ExamplePages.ROOT)
+
+	function renderContent(currentPage: Stream<ExamplePages>, transitionTo: (newPage: ExamplePages) => void) {
+		if (currentPage() === ExamplePages.ROOT) {
+			return m("h1", "This is the root page")
+		}
+		if (currentPage() === ExamplePages.SECOND) {
+			return m("h1", "This is the second page")
+		}
+
+		if (currentPage() === ExamplePages.THIRD) {
+			return m("h1", "This is the last and third page")
+		}
+
+		throw new Error("unsupported page")
+	}
+
+	function renderLeft(currentPage: Stream<ExamplePages>, dialog: Dialog, transitionTo: TransitionTo<ExamplePages>): ButtonAttrs[] {
+		if (currentPage() === ExamplePages.ROOT) {
+			return [
+				{
+					type: ButtonType.Secondary,
+					click: () => {
+						dialog.close()
+					},
+					label: () => "Close",
+				},
+			]
+		}
+		if (currentPage() === ExamplePages.SECOND) {
+			return [
+				{
+					type: ButtonType.Secondary,
+					click: () => {
+						transitionTo(ExamplePages.ROOT)
+					},
+					label: () => "Back",
+				},
+			]
+		}
+
+		if (currentPage() === ExamplePages.THIRD) {
+			return [
+				{
+					type: ButtonType.Secondary,
+					click: () => {
+						transitionTo(ExamplePages.SECOND)
+					},
+					label: () => "Back",
+				},
+			]
+		}
+
+		throw new Error("unsupported page")
+	}
+
+	function renderRight(currentPage: Stream<ExamplePages>, dialog: Dialog, transitionTo: TransitionTo<ExamplePages>) {
+		if (currentPage() === ExamplePages.ROOT) {
+			return [
+				{
+					type: ButtonType.Secondary,
+					click: () => {
+						transitionTo(ExamplePages.SECOND)
+					},
+					label: () => "Next",
+				},
+			]
+		}
+		if (currentPage() === ExamplePages.SECOND) {
+			return [
+				{
+					type: ButtonType.Secondary,
+					click: () => {
+						transitionTo(ExamplePages.THIRD)
+					},
+					label: () => "Next to third",
+				},
+			]
+		}
+
+		return []
+	}
+
+	function renderHeading(currentPage: Stream<ExamplePages>) {
+		const strings = Object.keys(ExamplePages)
+		console.log(strings, "strings")
+		return strings[currentPage()]
+	}
+
+	multiPageDialog.buildDialog(renderContent, renderLeft, renderRight, renderHeading).show()
+}
+
+// export async function showSupportDialog(logins: LoginController) {
+// 	const data: SupportDialogAttrs = {
+// 		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
+// 		shouldDisplayContact: Stream({ value: false, returnTo: null }),
+// 		selectedCategory: Stream<SupportCategory | null>(null),
+// 		selectedTopic: Stream<SupportTopic | null>(null),
+// 		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
+// 	}
+// 	const wizardPages = [
+// 		wizardPageWrapper(SupportLandingPage, new SupportLandingPageAttrs(data)),
+// 		wizardPageWrapper(SupportCategoryPage, new SupportCategoryPageAttrs(data)),
+// 		wizardPageWrapper(SupportTopicPage, new SupportTopicPageAttrs(data)),
+// 		wizardPageWrapper(ContactSupportPage, new ContactSupportPageAttrs(data)),
+// 	]
+//
+// 	const wizardBuilder = createWizardDialog(data, wizardPages, async () => {}, DialogType.EditMedium, "close_alt", theme.navigation_bg)
+// 	wizardBuilder.dialog.show()
+// }
 
 export interface SupportDialogAttrs {
 	canHaveEmailSupport: boolean
