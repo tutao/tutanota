@@ -27,17 +27,14 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
-	private intervalExpanded: boolean = false
 
 	private numberValues: IntervalOption[] = createIntervalValues()
 
-	private occurrencesOptions: stream<IntervalOption[]> = stream([])
 	private occurrencesExpanded: boolean = false
 	private repeatOccurrences: number
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
 		this.intervalOptions(this.numberValues)
-		this.occurrencesOptions(this.numberValues)
 
 		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
@@ -132,11 +129,11 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				Card,
 				{
 					style: {
-						padding: `0 0 ${size.vpad}px`,
+						padding: "8px 14px",
 					},
 					classes: ["flex", "col"],
 				},
-				[m("", [this.renderIntervalPicker(attrs)])],
+				[this.renderIntervalPicker(attrs)],
 			),
 		])
 	}
@@ -176,80 +173,47 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	private renderIntervalPicker(attrs: RepeatRuleEditorAttrs): Children {
-		return m(Select<IntervalOption, number>, {
-			onchange: (newValue) => {
-				if (this.repeatInterval === newValue.value) {
-					return
-				}
+		return m(".repeats-every-grid", [
+			m("", "Every"),
+			m(Select<IntervalOption, number>, {
+				onchange: (newValue) => {
+					if (this.repeatInterval === newValue.value) {
+						return
+					}
 
-				this.repeatInterval = newValue.value
-				this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-				m.redraw.sync()
-			},
-			onclose: () => {
-				this.intervalExpanded = false
-			},
-			selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
-			ariaLabel: lang.get("repeatsEvery_label"),
-			options: this.intervalOptions,
-			noIcon: true,
-			expanded: true,
-			tabIndex: Number(TabIndex.Programmatic),
-			classes: ["no-appearance"],
-			renderDisplay: () =>
-				m(SingleLineTextField, {
-					classes: ["border-radius-bottom-0"],
-					value: isNaN(this.repeatInterval) ? "" : this.repeatInterval.toString(),
-					oninput: (val: string) => {
-						if (this.repeatInterval === Number(val)) {
-							return
-						}
+					this.repeatInterval = newValue.value
+					this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
+					m.redraw.sync()
+				},
+				onclose: () => {},
+				selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
+				ariaLabel: lang.get("repeatsEvery_label"),
+				options: this.intervalOptionsForRepeatPeriod(),
+				noIcon: false,
+				expanded: true,
+				tabIndex: Number(TabIndex.Programmatic),
+				classes: ["no-appearance"],
+				renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", option.name)]),
+				renderOption: (option) =>
+					m(
+						"button.items-center.flex-grow",
+						{
+							class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
+						},
+						option.name,
+					),
+				keepFocus: true,
+			} satisfies SelectAttributes<IntervalOption, number>),
+		])
+	}
 
-						this.repeatInterval = val === "" ? NaN : Number(val)
-						if (!isNaN(this.repeatInterval)) {
-							this.intervalOptions(this.numberValues.filter((opt) => opt.value.toString().startsWith(val)))
-							this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-						} else {
-							this.intervalOptions(this.numberValues)
-						}
-					},
-					ariaLabel: lang.get("repeatsEvery_label"),
-					onclick: (e: MouseEvent) => {
-						e.stopImmediatePropagation()
-						if (!this.intervalExpanded) {
-							;(e.target as HTMLElement).parentElement?.click()
-							this.intervalExpanded = true
-						}
-					},
-					onfocus: (event: FocusEvent) => {
-						if (!this.intervalExpanded) {
-							;(event.target as HTMLElement).parentElement?.click()
-							this.intervalExpanded = true
-						}
-					},
-					onblur: (event: FocusEvent) => {
-						if (isNaN(this.repeatInterval)) {
-							this.repeatInterval = this.numberValues[0].value
-							this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-						}
-					},
-					style: {
-						textAlign: "center",
-					},
-					max: 256,
-					min: 1,
-					type: TextFieldType.Number,
-				}),
-			renderOption: (option) =>
-				m(
-					"button.items-center.flex-grow",
-					{
-						class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
-					},
-					option.name,
-				),
-			keepFocus: true,
-		} satisfies SelectAttributes<IntervalOption, number>)
+	/**
+	 * Populates an Array with numbers 1-256 and appends either "Day(s)", "Week(s)", "Month(s)", "Year(s)" according to what period has been selected.
+	 * @private
+	 */
+	private intervalOptionsForRepeatPeriod(): stream<IntervalOption[]> {
+		// TODO
+		return this.intervalOptions
 	}
 
 	private renderEndsPicker(attrs: RepeatRuleEditorAttrs): Child {
