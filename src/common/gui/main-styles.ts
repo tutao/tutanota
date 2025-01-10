@@ -2807,6 +2807,11 @@ styles.registerStyle("main", () => {
 			"grid-gap": px(size.vpad_small),
 			"align-items": "center",
 		},
+		".repeats-every-grid": {
+			display: "grid",
+			"grid-template-columns": "6fr 3fr",
+			"column-gap": px(size.vpad_small),
+		},
 		".time-selection-grid > *": {
 			overflow: "hidden",
 			"white-space": "nowrap",
