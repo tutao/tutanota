@@ -3,7 +3,7 @@ use mail_parser::mailbox::mbox::MessageIterator;
 use mail_parser::MessageParser;
 use std::fs;
 use std::io::BufReader;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub struct FileImport {
 	eml_sources: Vec<PathBuf>,
@@ -65,7 +65,7 @@ impl FileImport {
 	/// During the import, eml files are deleted from target_folder after they were imported.
 	/// so that we can keep track of files that failed to import and allow resuming the import.
 	pub(crate) fn prepare_import(
-		target_folder: PathBuf,
+		target_folder: &Path,
 		source_paths: Vec<PathBuf>,
 	) -> Result<Vec<PathBuf>, FileIterationError> {
 		fs::create_dir_all(&target_folder).map_err(FileIterationError::CantWriteToDisk)?;
