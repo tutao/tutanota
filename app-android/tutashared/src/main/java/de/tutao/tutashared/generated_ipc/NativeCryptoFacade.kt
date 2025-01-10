@@ -46,4 +46,13 @@ interface NativeCryptoFacade {
 		privateKey: KyberPrivateKey,
 		ciphertext: DataWrapper,
 	): DataWrapper
+	suspend fun hmacSha256(
+		key: DataWrapper,
+		data: DataWrapper,
+	): DataWrapper
+	suspend fun verifyHmacSha256(
+		key: DataWrapper,
+		data: DataWrapper,
+		tag: DataWrapper,
+	): Unit
 }

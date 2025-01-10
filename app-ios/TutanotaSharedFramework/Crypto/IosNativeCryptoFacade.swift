@@ -65,8 +65,16 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 			throw CryptoError(message: error.localizedDescription)
 		}
 	}
-	public func hmacSha256(_ key: Data, _ data: Data) async throws -> HashedAuthenticationCode<SHA256> {
-		HMAC<SHA256>.authenticationCode(for: data, using: SymmetricKey(data: key))
+	public func hmacSha256(_ key: DataWrapper, _ data: DataWrapper) -> DataWrapper {
+		let symmetricKey = SymmetricKey(data: key.data)
+		let macTag = TutanotaSharedFramework.hmacSha256(symmetricKey, data.data)
+		var bytes: [UInt8] = []
+		bytes.append(contentsOf: macTag)
+		return DataWrapper(data: Data(bytes: bytes, count: bytes.count))
+	}
+	public func verifyHmacSha256(_ key: DataWrapper, _ data: DataWrapper, _ tag: DataWrapper) async throws {
+		let isValid = HMAC<SHA256>.isValidAuthenticationCode(tag.data, authenticating: data.data, using: SymmetricKey(data: key.data))
+		if !isValid { throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "invalid MAC: checksum and/or key is wrong") }
 	}
 }
 

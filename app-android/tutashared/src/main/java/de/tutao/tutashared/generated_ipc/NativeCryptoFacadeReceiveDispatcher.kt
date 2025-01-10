@@ -88,6 +88,26 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"hmacSha256" -> {
+				val key: DataWrapper = json.decodeFromString(arg[0])
+				val data: DataWrapper = json.decodeFromString(arg[1])
+				val result: DataWrapper = this.facade.hmacSha256(
+					key,
+					data,
+				)
+				return json.encodeToString(result)
+			}
+			"verifyHmacSha256" -> {
+				val key: DataWrapper = json.decodeFromString(arg[0])
+				val data: DataWrapper = json.decodeFromString(arg[1])
+				val tag: DataWrapper = json.decodeFromString(arg[2])
+				val result: Unit = this.facade.verifyHmacSha256(
+					key,
+					data,
+					tag,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for NativeCryptoFacade: $method")
 		}
 	}

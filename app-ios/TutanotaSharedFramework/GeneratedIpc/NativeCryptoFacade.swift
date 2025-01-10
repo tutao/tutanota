@@ -43,4 +43,13 @@ public protocol NativeCryptoFacade {
 		_ privateKey: KyberPrivateKey,
 		_ ciphertext: DataWrapper
 	) async throws -> DataWrapper
+	func hmacSha256(
+		_ key: DataWrapper,
+		_ data: DataWrapper
+	) async throws -> DataWrapper
+	func verifyHmacSha256(
+		_ key: DataWrapper,
+		_ data: DataWrapper,
+		_ tag: DataWrapper
+	) async throws -> Void
 }

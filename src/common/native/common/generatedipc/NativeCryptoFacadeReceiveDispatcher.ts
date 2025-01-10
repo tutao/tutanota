@@ -51,6 +51,17 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				const ciphertext: Uint8Array = arg[1]
 				return this.facade.kyberDecapsulate(privateKey, ciphertext)
 			}
+			case "hmacSha256": {
+				const key: Uint8Array = arg[0]
+				const data: Uint8Array = arg[1]
+				return this.facade.hmacSha256(key, data)
+			}
+			case "verifyHmacSha256": {
+				const key: Uint8Array = arg[0]
+				const data: Uint8Array = arg[1]
+				const tag: Uint8Array = arg[2]
+				return this.facade.verifyHmacSha256(key, data, tag)
+			}
 		}
 	}
 }

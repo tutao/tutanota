@@ -29,4 +29,8 @@ export interface NativeCryptoFacade {
 	kyberEncapsulate(publicKey: KyberPublicKey, seed: Uint8Array): Promise<KyberEncapsulation>
 
 	kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array>
+
+	hmacSha256(key: Uint8Array, data: Uint8Array): Promise<Uint8Array>
+
+	verifyHmacSha256(key: Uint8Array, data: Uint8Array, tag: Uint8Array): Promise<void>
 }

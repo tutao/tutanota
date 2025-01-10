@@ -31,4 +31,10 @@ export class NativeCryptoFacadeSendDispatcher implements NativeCryptoFacade {
 	async kyberDecapsulate(...args: Parameters<NativeCryptoFacade["kyberDecapsulate"]>) {
 		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "kyberDecapsulate", ...args])
 	}
+	async hmacSha256(...args: Parameters<NativeCryptoFacade["hmacSha256"]>) {
+		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "hmacSha256", ...args])
+	}
+	async verifyHmacSha256(...args: Parameters<NativeCryptoFacade["verifyHmacSha256"]>) {
+		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "verifyHmacSha256", ...args])
+	}
 }

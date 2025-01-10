@@ -76,6 +76,24 @@ public class NativeCryptoFacadeReceiveDispatcher {
 				ciphertext
 			)
 			return toJson(result)
+		case "hmacSha256":
+			let key = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.hmacSha256(
+				key,
+				data
+			)
+			return toJson(result)
+		case "verifyHmacSha256":
+			let key = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let tag = try! JSONDecoder().decode(DataWrapper.self, from: arg[2].data(using: .utf8)!)
+			try await self.facade.verifyHmacSha256(
+				key,
+				data,
+				tag
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

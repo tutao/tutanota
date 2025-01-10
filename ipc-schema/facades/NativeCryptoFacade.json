@@ -96,6 +96,31 @@
 				}
 			],
 			"ret": "bytes"
+		},
+		"hmacSha256": {
+			"arg": [
+				{
+					"key": "bytes"
+				},
+				{
+					"data": "bytes"
+				}
+			],
+			"ret": "bytes"
+		},
+		"verifyHmacSha256": {
+			"arg": [
+				{
+					"key": "bytes"
+				},
+				{
+					"data": "bytes"
+				},
+				{
+					"tag": "bytes"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }
