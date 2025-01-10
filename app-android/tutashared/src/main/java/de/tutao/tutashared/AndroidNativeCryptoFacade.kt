@@ -7,6 +7,7 @@ import androidx.annotation.VisibleForTesting
 import de.tutao.tutasdk.KyberException
 import de.tutao.tutasdk.kyberDecapsulateWithPrivKey
 import de.tutao.tutasdk.kyberEncapsulateWithPubKey
+import de.tutao.tutashared.crypto.Crypto
 import de.tutao.tutashared.ipc.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -117,11 +118,13 @@ class AndroidNativeCryptoFacade(
 
 	}
 
-	fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray {
-		val macKey = SecretKeySpec(key, HMAC_SHA_256)
-		val hmac = Mac.getInstance(HMAC_SHA_256)
-		hmac.init(macKey)
-		return hmac.doFinal(data)
+	override suspend fun hmacSha256(key: DataWrapper, data: DataWrapper): DataWrapper {
+		return DataWrapper(Crypto.hmacSha256(key.data, data.data))
+	}
+
+	@Throws(CryptoError::class)
+	override suspend fun verifyHmacSha256(key: DataWrapper, data: DataWrapper, tag: DataWrapper) {
+		Crypto.verifyHmacSha256(key.data, data.data, tag.data)
 	}
 
 	override suspend fun generateKyberKeypair(seed: DataWrapper): KyberKeyPair {
@@ -248,7 +251,7 @@ class AndroidNativeCryptoFacade(
 				val data = tempOut.toByteArray()
 				out.write(byteArrayOf(1))
 				out.write(data)
-				val macBytes = hmacSha256(subKeys.mKey!!, data)
+				val macBytes = Crypto.hmacSha256(subKeys.mKey!!, data)
 				out.write(macBytes)
 			} else {
 				out.write(tempOut.toByteArray())
@@ -410,10 +413,7 @@ class AndroidNativeCryptoFacade(
 				val cipherText = tempOut.toByteArray()
 				val cipherTextWithoutMac = cipherText.copyOfRange(1, cipherText.size - 32)
 				val providedMacBytes = cipherText.copyOfRange(cipherText.size - 32, cipherText.size)
-				val computedMacBytes = hmacSha256(subKeys.mKey!!, cipherTextWithoutMac)
-				if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
-					throw CryptoError("invalid mac")
-				}
+				Crypto.verifyHmacSha256(subKeys.mKey!!, cipherTextWithoutMac, providedMacBytes)
 				inputWithoutMac = ByteArrayInputStream(cipherTextWithoutMac)
 			}
 			val iv = ByteArray(AES_BLOCK_SIZE_BYTES)
