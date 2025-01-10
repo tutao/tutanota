@@ -1,4 +1,5 @@
 import Foundation
+import tutasdk
 
 /// Identifier for when event will happen
 public struct EventOccurrence {
@@ -112,23 +113,56 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 	let cal: Calendar
 	let calendarComponent: Calendar.Component
 
-	fileprivate var ocurrenceNumber = 0
+	var expandedEvents: [Date] = []
+
+	fileprivate var intervalNumber = 0
+	fileprivate var occurrenceNumber = 0
 	fileprivate var exclusionNumber = 0
 
 	mutating func next() -> EventOccurrence? {
-		if case let .count(n) = repeatRule.endCondition, ocurrenceNumber >= n { return nil }
-		let occurrenceDate = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * ocurrenceNumber, to: calcEventStart)!
-		if let endDate, occurrenceDate >= endDate {
-			return nil
-		} else {
-			let occurrence = EventOccurrence(occurrenceNumber: ocurrenceNumber, occurenceDate: occurrenceDate)
-			ocurrenceNumber += 1
+		if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
 
-			while exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] < occurrenceDate { exclusionNumber += 1 }
-			if exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] == occurrenceDate { return self.next() }
-			return occurrence
+		if expandedEvents.isEmpty {
+			let nextExpansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
+			expandedEvents.append(nextExpansionProgenitor)
+
+			let eventFacade = EventFacade()
+
+			let generatedEvents = eventFacade.generateFutureInstances(date: nextExpansionProgenitor.timeIntervalSince1970, repeatRule: repeatRule)
+			self.expandedEvents = generatedEvents
+			intervalNumber += 1
 		}
+
+		if let date = expandedEvents.popLast() {
+			occurrenceNumber += 1
+
+			if let endDate, date >= endDate {
+				return nil
+			}
+
+			while exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] < date { exclusionNumber += 1 }
+			if exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] == date { return self.next() }
+
+			return EventOccurrence(occurrenceNumber: occurrenceNumber, occurenceDate: date)
+		}
+
+		return nil
 	}
+
+//	mutating func next() -> EventOccurrence? {
+//		if case let .count(n) = repeatRule.endCondition, ocurrenceNumber >= n { return nil }
+//		let occurrenceDate = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * ocurrenceNumber, to: calcEventStart)!
+//		if let endDate, occurrenceDate >= endDate {
+//			return nil
+//		} else {
+//			let occurrence = EventOccurrence(occurrenceNumber: ocurrenceNumber, occurenceDate: occurrenceDate)
+//			ocurrenceNumber += 1
+//
+//			while exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] < occurrenceDate { exclusionNumber += 1 }
+//			if exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] == occurrenceDate { return self.next() }
+//			return occurrence
+//		}
+//	}
 }
 
 /// Takes local date and makes a UTC date with year, month, day from it.

@@ -30,6 +30,10 @@ public enum RepeatEndCondition: Equatable {
 }
 
 public struct EncryptedDateWrapper: Codable, Hashable { public let date: Base64 }
+public struct EncryptedAdvancedRuleWrapper: Codable, Hashable {
+	public let ruleType: String
+	public let interval: String
+}
 
 public struct EncryptedRepeatRule: Codable, Hashable {
 	public let frequency: Base64
@@ -38,6 +42,7 @@ public struct EncryptedRepeatRule: Codable, Hashable {
 	public let endType: Base64
 	public let endValue: Base64?
 	public let excludedDates: [EncryptedDateWrapper]
+	public let advancedRules: [EncryptedAdvancedRuleWrapper]
 
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -45,6 +50,12 @@ public struct EncryptedRepeatRule: Codable, Hashable {
 			self.excludedDates = excludedDates
 		} else {
 			self.excludedDates = [EncryptedDateWrapper]()
+		}
+
+		if let advancedRules = try container.decodeIfPresent([EncryptedAdvancedRuleWrapper].self, forKey: .advancedRules) {
+			self.advancedRules = advancedRules
+		} else {
+			self.advancedRules = [EncryptedAdvancedRuleWrapper]()
 		}
 
 		self.frequency = try container.decode(Base64.self, forKey: .frequency)
