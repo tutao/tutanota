@@ -117,27 +117,41 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	view(vnode: Vnode<SearchBarAttrs>) {
 		this.onPathChange(m.route.get())
 
-		return m(BaseSearchBar, {
-			placeholder: vnode.attrs.placeholder,
-			text: this.state().query,
-			busy: this.busy,
-			disabled: vnode.attrs.disabled,
-			onInput: (text) => this.search(text),
-			onSearchClick: () => this.handleSearchClick(),
-			onClear: () => {
-				this.clear()
+		return m(
+			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
+			// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
+			"form.full-width",
+			{
+				style: {
+					"max-width": styles.isUsingBottomNavigation() ? "" : px(350),
+				},
+				onsubmit: (e: SubmitEvent) => {
+					e.stopPropagation()
+					e.preventDefault()
+				},
 			},
-			onWrapperCreated: (dom) => {
-				this.domWrapper = dom
-				this.showOverlay()
-			},
-			onInputCreated: (dom) => {
-				this.domInput = dom
-			},
-			onFocus: () => (this.focused = true),
-			onBlur: () => this.onBlur(),
-			onKeyDown: (e) => this.onkeydown(e),
-		} satisfies BaseSearchBarAttrs)
+			m(BaseSearchBar, {
+				placeholder: vnode.attrs.placeholder,
+				text: this.state().query,
+				busy: this.busy,
+				disabled: vnode.attrs.disabled,
+				onInput: (text) => this.search(text),
+				onSearchClick: () => this.handleSearchClick(),
+				onClear: () => {
+					this.clear()
+				},
+				onWrapperCreated: (dom) => {
+					this.domWrapper = dom
+					this.showOverlay()
+				},
+				onInputCreated: (dom) => {
+					this.domInput = dom
+				},
+				onFocus: () => (this.focused = true),
+				onBlur: () => this.onBlur(),
+				onKeyDown: (e) => this.onkeydown(e),
+			} satisfies BaseSearchBarAttrs),
+		)
 	}
 
 	private readonly onkeydown = (e: KeyboardEvent) => {
