@@ -66,17 +66,20 @@ impl FileImport {
 	/// so that we can keep track of files that failed to import and allow resuming the import.
 	pub(crate) fn prepare_import(
 		target_folder: &Path,
-		source_paths: Vec<PathBuf>,
+		source_paths: Vec<String>,
 	) -> Result<Vec<PathBuf>, FileIterationError> {
 		fs::create_dir_all(&target_folder).map_err(FileIterationError::CantWriteToDisk)?;
 		let mut target_paths: Vec<PathBuf> = vec![];
 		let mut file_counter = 0;
-		for source_path in source_paths {
+
+		for source_path in source_paths.into_iter().map(PathBuf::from) {
 			let file_buf_reader = std::fs::File::open(&source_path)
 				.map(BufReader::new)
 				.map_err(FileIterationError::FileReadError)?;
+
 			let is_mbox_file = source_path.extension() == Some("mbox".as_ref());
 			let is_eml_file = source_path.extension() == Some("eml".as_ref());
+
 			if is_mbox_file {
 				let msg_iterator = MessageIterator::new(file_buf_reader);
 				for result in msg_iterator {
@@ -100,6 +103,7 @@ impl FileImport {
 				return Err(FileIterationError::UnsupportedFile);
 			}
 		}
+
 		Ok(target_paths)
 	}
 
