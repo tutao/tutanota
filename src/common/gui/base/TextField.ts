@@ -272,7 +272,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						onblur: (e: FocusEvent) => this.blur(e, a),
 						onkeydown: (e: KeyboardEvent) => {
 							const handled = useKeyHandler(e, a.keyHandler)
-							if (!isKeyPressed(e.key, Keys.F1, Keys.TAB)) {
+							if (!isKeyPressed(e.key, Keys.F1, Keys.TAB, Keys.ESC)) {
 								// When we are in a text field we don't want keys propagated up to act as hotkeys
 								e.stopPropagation()
 							}
