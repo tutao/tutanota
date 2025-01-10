@@ -5,14 +5,13 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { EndType, Keys, RepeatPeriod, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
-import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, customFrequenciesOptions, IntervalOption } from "../CalendarGuiUtils.js"
+import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, IntervalOption } from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
-import { RadioGroup, RadioGroupAttrs, RadioGroupOption } from "../../../../common/gui/base/RadioGroup.js"
+import { RadioGroup, RadioGroupAttrs } from "../../../../common/gui/base/RadioGroup.js"
 import { InputMode, SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
-import { Divider } from "../../../../common/gui/Divider.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { isApp } from "../../../../common/api/common/Env.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
@@ -27,40 +26,26 @@ export type RepeatRuleEditorAttrs = {
 	backAction: () => void
 }
 
-type RepeatRuleOption = RepeatPeriod | "CUSTOM" | null
+type RepeatRuleOption = RepeatPeriod | null
 
 export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
-	private intervalExpanded: boolean = false
 	private hasUnsupportedRules: boolean = false
 	private numberValues: IntervalOption[] = createIntervalValues()
 
-	private occurrencesOptions: stream<IntervalOption[]> = stream([])
 	private occurrencesExpanded: boolean = false
 	private repeatOccurrences: number
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
-		if (attrs.model.repeatPeriod != null) {
-			this.repeatRuleType = this.getRepeatType(attrs.model.repeatPeriod, attrs.model.repeatInterval, attrs.model.repeatEndType)
-		}
-
 		this.intervalOptions(this.numberValues)
-		this.occurrencesOptions(this.numberValues)
 
+		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
 		this.repeatOccurrences = attrs.model.repeatEndOccurrences
 
 		this.hasUnsupportedRules = !areAllAdvancedRepeatRulesValid(attrs.model.advancedRules, attrs.model.repeatPeriod)
-	}
-
-	private getRepeatType(period: RepeatPeriod, interval: number, endTime: EndType) {
-		if (interval > 1 || endTime !== EndType.Never) {
-			return "CUSTOM"
-		}
-
-		return period
 	}
 
 	private renderUnsupportedAdvancedRulesWarning(): Children {
@@ -73,55 +58,53 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
-		const customRuleOptions = customFrequenciesOptions.map((option) => ({
-			...option,
-			name: attrs.model.repeatInterval > 1 ? option.name.plural : option.name.singular,
-		})) as RadioGroupOption<RepeatPeriod>[]
-
 		return m(
 			".pb.pt.flex.col.gap-vpad.fit-height",
 			{
-				class: this.repeatRuleType === "CUSTOM" ? "box-content" : "",
+				class: this.repeatRuleType !== null ? "box-content" : "",
 				style: {
 					width: px(attrs.width),
 				},
 			},
 			[
 				this.hasUnsupportedRules ? this.renderUnsupportedAdvancedRulesWarning() : null,
-				m(
-					Card,
-					{
-						style: {
-							padding: `${size.vpad}px`,
+				m(".flex.col", [
+					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, "Frequency"), // TODO add label
+					m(
+						Card,
+						{
+							style: {
+								padding: `${size.vpad}px`,
+							},
 						},
-					},
-					m(RadioGroup, {
-						ariaLabel: "calendarRepeating_label",
-						name: "calendarRepeating_label",
-						options: createRepeatRuleOptions(),
-						selectedOption: this.repeatRuleType,
-						onOptionSelected: (option: RepeatRuleOption) => {
-							this.repeatRuleType = option
-							if (option === "CUSTOM") {
-								attrs.model.repeatPeriod = attrs.model.repeatPeriod ?? RepeatPeriod.DAILY
-							} else {
-								attrs.model.repeatInterval = 1
-								attrs.model.repeatEndType = EndType.Never
-								attrs.model.repeatPeriod = option as RepeatPeriod
-								attrs.backAction()
-							}
-						},
-						classes: ["cursor-pointer"],
-					} satisfies RadioGroupAttrs<RepeatRuleOption>),
-				),
-				this.renderFrequencyOptions(attrs, customRuleOptions),
+						m(RadioGroup, {
+							ariaLabel: "calendarRepeating_label",
+							name: "calendarRepeating_label",
+							options: createRepeatRuleOptions(),
+							selectedOption: this.repeatRuleType,
+							onOptionSelected: (option: RepeatRuleOption) => {
+								this.repeatRuleType = option
+								if (option === null) {
+									attrs.model.repeatInterval = 1
+									attrs.model.repeatEndType = EndType.Never
+									attrs.model.repeatPeriod = option
+									attrs.backAction()
+								} else {
+									this.updateCustomRule(attrs.model, { intervalFrequency: option as RepeatPeriod })
+								}
+							},
+							classes: ["cursor-pointer"],
+						} satisfies RadioGroupAttrs<RepeatRuleOption>),
+					),
+				]),
+				this.renderFrequencyOptions(attrs),
 				this.renderEndOptions(attrs),
 			],
 		)
 	}
 
 	private renderEndOptions(attrs: RepeatRuleEditorAttrs) {
-		if (this.repeatRuleType !== "CUSTOM") {
+		if (this.repeatRuleType === null) {
 			return null
 		}
 
@@ -152,8 +135,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		])
 	}
 
-	private renderFrequencyOptions(attrs: RepeatRuleEditorAttrs, customRuleOptions: RadioGroupOption<RepeatPeriod>[]) {
-		if (this.repeatRuleType !== "CUSTOM") {
+	private renderFrequencyOptions(attrs: RepeatRuleEditorAttrs) {
+		if (this.repeatRuleType === null) {
 			return null
 		}
 
@@ -163,24 +146,11 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				Card,
 				{
 					style: {
-						padding: `0 0 ${size.vpad}px`,
+						padding: "8px 14px",
 					},
 					classes: ["flex", "col", "rel"],
 				},
-				[
-					this.renderIntervalPicker(attrs),
-					m(Divider, { color: theme.button_bubble_bg, style: { margin: `0 0 ${size.vpad}px` } }),
-					m(RadioGroup, {
-						ariaLabel: "intervalFrequency_label",
-						name: "intervalFrequency_label",
-						options: customRuleOptions,
-						selectedOption: attrs.model.repeatPeriod,
-						onOptionSelected: (option: RepeatPeriod) => {
-							this.updateCustomRule(attrs.model, { intervalFrequency: option })
-						},
-						classes: ["cursor-pointer", "capitalize", "pl-vpad-m", "pr-vpad-m"],
-					} satisfies RadioGroupAttrs<RepeatPeriod>),
-				],
+				[this.renderIntervalPicker(attrs)],
 			),
 		])
 	}
@@ -211,6 +181,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 		if (interval && !isNaN(interval)) {
 			whenModel.repeatInterval = interval
+		} else {
+			this.repeatInterval = whenModel.repeatInterval
 		}
 
 		if (intervalFrequency) {
@@ -219,8 +191,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	private renderIntervalPicker(attrs: RepeatRuleEditorAttrs): Children {
-		return m(
-			".rel",
+		return m(".flex.rel", [
+			m("", { style: { flex: "1" } }, "Every"),
 			m(Select<IntervalOption, number>, {
 				onchange: (newValue) => {
 					if (this.repeatInterval === newValue.value) {
@@ -231,67 +203,15 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
 					m.redraw.sync()
 				},
-				onclose: () => {
-					this.intervalExpanded = false
-					this.intervalOptions(this.numberValues)
-				},
+				onclose: () => {},
 				selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
 				ariaLabel: lang.get("repeatsEvery_label"),
 				options: this.intervalOptions,
-				noIcon: true,
-				expanded: true,
-				tabIndex: isApp() ? Number(TabIndex.Default) : Number(TabIndex.Programmatic),
+				noIcon: false,
+				expanded: false,
+				tabIndex: Number(TabIndex.Programmatic),
 				classes: ["no-appearance"],
-				renderDisplay: () =>
-					m(SingleLineTextField, {
-						classes: ["border-radius-bottom-0"],
-						value: isNaN(this.repeatInterval) ? "" : this.repeatInterval.toString(),
-						inputMode: isApp() ? InputMode.NONE : InputMode.TEXT,
-						readonly: isApp(),
-						oninput: (val: string) => {
-							if (val !== "" && this.repeatInterval === Number(val)) {
-								return
-							}
-
-							this.repeatInterval = val === "" ? NaN : Number(val)
-							if (!isNaN(this.repeatInterval)) {
-								this.intervalOptions(this.numberValues.filter((opt) => opt.value.toString().startsWith(val)))
-								this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-							} else {
-								this.intervalOptions(this.numberValues)
-							}
-						},
-						ariaLabel: lang.get("repeatsEvery_label"),
-						onclick: (e: MouseEvent) => {
-							e.stopImmediatePropagation()
-							if (!this.intervalExpanded) {
-								;(e.target as HTMLElement).parentElement?.click()
-								this.intervalExpanded = true
-							}
-						},
-						onkeydown: (e: KeyboardEvent) => {
-							if (isKeyPressed(e.key, Keys.RETURN) && !this.intervalExpanded) {
-								;(e.target as HTMLElement).parentElement?.click()
-								this.intervalExpanded = true
-								m.redraw.sync()
-							}
-						},
-						onblur: (event: FocusEvent) => {
-							if (isNaN(this.repeatInterval)) {
-								this.repeatInterval = this.numberValues[0].value
-								this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-							} else if (this.repeatInterval === 0) {
-								this.repeatInterval = this.numberValues[0].value
-								this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-							}
-						},
-						style: {
-							textAlign: "center",
-						},
-						max: 256,
-						min: 1,
-						type: TextFieldType.Number,
-					}),
+				renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
 				renderOption: (option) =>
 					m(
 						"button.items-center.flex-grow",
@@ -304,7 +224,31 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						option.name,
 					),
 			} satisfies SelectAttributes<IntervalOption, number>),
-		)
+		])
+	}
+
+	/**
+	 * Appends either "Day(s)", "Week(s)", "Month(s)" or "Year(s)" to the given number value.
+	 * Only do this for renderDisplay() to not re-populate the options array.
+	 * @param option
+	 */
+	private getNameAndAppendTimeFormat(option: IntervalOption) {
+		if (this.repeatRuleType === null) {
+			throw new Error("repeatRuleType was null")
+		}
+
+		const isPlural = option.value > 1
+
+		switch (this.repeatRuleType) {
+			case RepeatPeriod.DAILY:
+				return `${option.name} ${isPlural ? lang.get("days_label") : lang.get("day_label")}`
+			case RepeatPeriod.WEEKLY:
+				return `${option.name} ${isPlural ? lang.get("weeks_label") : lang.get("week_label")}`
+			case RepeatPeriod.MONTHLY:
+				return `${option.name} ${isPlural ? lang.get("months_label") : lang.get("month_label")}`
+			case RepeatPeriod.ANNUALLY:
+				return `${option.name} ${isPlural ? lang.get("years_label") : lang.get("year_label")}`
+		}
 	}
 
 	private renderEndsPicker(attrs: RepeatRuleEditorAttrs): Child {
@@ -317,18 +261,18 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					}
 
 					this.repeatOccurrences = newValue.value
-					attrs.model.repeatEndOccurrences = newValue.value
+					this.repeatOccurrences = newValue.value
 				},
 				onclose: () => {
 					this.occurrencesExpanded = false
-					this.occurrencesOptions(this.numberValues)
+					this.occurrencesExpanded = false
 				},
 				selected: { value: this.repeatOccurrences, name: this.repeatOccurrences.toString(), ariaValue: this.repeatOccurrences.toString() },
 				ariaLabel: lang.get("occurrencesCount_label"),
-				options: this.occurrencesOptions,
+				options: this.intervalOptions,
 				noIcon: true,
 				expanded: true,
-				tabIndex: isApp() ? Number(TabIndex.Default) : Number(TabIndex.Programmatic),
+				tabIndex: Number(TabIndex.Programmatic),
 				classes: ["no-appearance"],
 				renderDisplay: () =>
 					m(SingleLineTextField, {
@@ -338,18 +282,12 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						readonly: isApp(),
 						disabled: attrs.model.repeatEndType !== EndType.Count,
 						oninput: (val: string) => {
-							if (val !== "" && this.repeatOccurrences === Number(val)) {
+							if (this.repeatOccurrences === Number(val)) {
 								return
 							}
 
 							this.repeatOccurrences = val === "" ? NaN : Number(val)
-
-							if (!isNaN(this.repeatOccurrences)) {
-								this.occurrencesOptions(this.numberValues.filter((opt) => opt.value.toString().startsWith(val)))
-								attrs.model.repeatEndOccurrences = this.repeatOccurrences
-							} else {
-								this.occurrencesOptions(this.numberValues)
-							}
+							this.repeatOccurrences = val === "" ? NaN : Number(val)
 						},
 						ariaLabel: lang.get("occurrencesCount_label"),
 						style: {
@@ -368,15 +306,6 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 								;(e.target as HTMLElement).parentElement?.click()
 								this.occurrencesExpanded = true
 								m.redraw.sync()
-							}
-						},
-						onblur: (event: FocusEvent) => {
-							if (isNaN(this.repeatOccurrences)) {
-								this.repeatOccurrences = this.numberValues[0].value
-								attrs.model.repeatEndOccurrences = this.repeatOccurrences
-							} else if (this.repeatOccurrences === 0) {
-								this.repeatOccurrences = this.numberValues[0].value
-								attrs.model.repeatEndOccurrences = this.repeatOccurrences
 							}
 						},
 						max: 256,
