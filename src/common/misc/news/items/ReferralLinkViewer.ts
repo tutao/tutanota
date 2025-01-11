@@ -1,4 +1,4 @@
-import { InfoLink, lang } from "../../LanguageViewModel.js"
+import { InfoLinks, lang } from "../../LanguageViewModel.js"
 import { isApp } from "../../../api/common/Env.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
@@ -37,7 +37,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 			label: "referralLink_label",
 			value: referralLink,
 			injectionsRight: () => this.renderButtons(referralLink),
-			helpLabel: () => ifAllowedTutaLinks(locator.logins, InfoLink.ReferralLink, (link) => [m(MoreInfoLink, { link: link })]),
+			helpLabel: () => ifAllowedTutaLinks(locator.logins, InfoLinks.ReferralLink, (link) => [m(MoreInfoLink, { link: link })]),
 		}
 	}
 

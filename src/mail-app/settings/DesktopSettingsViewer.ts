@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
+import { InfoLinks, lang } from "../../common/misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
@@ -87,7 +87,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		const setRunInBackgroundAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "runInBackground_action",
 			helpLabel: () => {
-				return ifAllowedTutaLinks(locator.logins, InfoLink.RunInBackground, (link) => [
+				return ifAllowedTutaLinks(locator.logins, InfoLinks.RunInBackground, (link) => [
 					m("span", lang.get("runInBackground_msg") + " "),
 					m(MoreInfoLink, { link: link }),
 				])

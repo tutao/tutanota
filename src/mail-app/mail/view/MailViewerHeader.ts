@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
@@ -610,7 +610,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
 				type: BannerType.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLinks.Phishing : null,
 				buttons: [
 					{
 						label: "markAsNotPhishing_action",
@@ -629,7 +629,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLinks.MailAuth : null,
 				type: BannerType.Warning,
 				buttons: [
 					{
@@ -651,7 +651,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						  })
 						: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLinks.MailAuth : null,
 				buttons: [
 					{
 						label: "close_alt",
@@ -704,7 +704,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
-			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
+			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLinks.LoadImages : null,
 			buttons: [showButton, ...maybeDropdownButtons],
 		})
 	}

@@ -33,7 +33,7 @@ import {
 	UserTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/tutanota-utils"
-import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
+import { InfoLinks, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
 import { formatDate, formatStorageSize } from "../misc/Formatter"
@@ -298,7 +298,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			if (appStoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				return Dialog.message(() =>
 					lang.get("storeMultiSubscriptionError_msg", {
-						"{AppStorePayment}": InfoLink.AppStorePayment,
+						"{AppStorePayment}": InfoLinks.AppStorePayment,
 					}),
 				)
 			}
@@ -337,7 +337,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			// There's a subscription with this apple account that doesn't belong to this user
 			return Dialog.message(() =>
 				lang.get("storeMultiSubscriptionError_msg", {
-					"{AppStorePayment}": InfoLink.AppStorePayment,
+					"{AppStorePayment}": InfoLinks.AppStorePayment,
 				}),
 			)
 		} else if (
@@ -347,12 +347,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		) {
 			// User has an ongoing subscriptions but not on the current Apple Account, so we shouldn't allow them to change their plan with this account
 			// instead of the account owner of the subscriptions
-			return Dialog.message(() => lang.get("storeNoSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }))
+			return Dialog.message(() => lang.get("storeNoSubscription_msg", { "{AppStorePayment}": InfoLinks.AppStorePayment }))
 		} else if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
 			// User has no ongoing subscription and isn't approved. We should allow them to downgrade their accounts or resubscribe and
 			// restart an Apple Subscription flow
 			const isResubscribe = await Dialog.choice(
-				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
+				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLinks.AppStoreDowngrade }),
 				[
 					{
 						text: "changePlan_action",

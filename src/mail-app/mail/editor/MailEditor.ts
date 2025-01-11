@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { InfoLinks, lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -547,7 +547,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
-			helpLink: canSeeTutaLinks(attrs.model.logins) ? InfoLink.LoadImages : null,
+			helpLink: canSeeTutaLinks(attrs.model.logins) ? InfoLinks.LoadImages : null,
 			buttons: [showButton],
 		})
 	}

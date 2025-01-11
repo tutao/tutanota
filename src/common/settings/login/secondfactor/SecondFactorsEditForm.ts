@@ -4,7 +4,7 @@ import type { SecondFactor, User } from "../../../api/entities/sys/TypeRefs.js"
 import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, noOp } from "@tutao/tutanota-utils"
 import { Icons } from "../../../gui/base/icons/Icons.js"
-import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../../../misc/LanguageViewModel.js"
 import { assertEnumValue, SecondFactorType } from "../../../api/common/TutanotaConstants.js"
 import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../../gui/base/Table.js"
@@ -69,7 +69,7 @@ export class SecondFactorsEditForm {
 			m(Table, secondFactorTableAttrs),
 			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
 				? [
-						ifAllowedTutaLinks(locator.logins, InfoLink.SecondFactor, (link) =>
+						ifAllowedTutaLinks(locator.logins, InfoLinks.SecondFactor, (link) =>
 							m(MoreInfoLink, {
 								link: link,
 								isSmall: true,

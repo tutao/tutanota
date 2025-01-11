@@ -2,7 +2,7 @@ import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
 import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../api/main/CommonLocator.js"
-import { InfoLink, lang } from "../../LanguageViewModel.js"
+import { InfoLinks, lang } from "../../LanguageViewModel.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
@@ -66,7 +66,7 @@ export class UsageOptInNews implements NewsListItem {
 				m("li", lang.get("userUsageDataOptInStatement3_msg")),
 				m("li", lang.get("userUsageDataOptInStatement4_msg")),
 			]),
-			m(MoreInfoLink, { link: InfoLink.Privacy }),
+			m(MoreInfoLink, { link: InfoLinks.Privacy }),
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
 				buttonAttrs.map((a) => m(Button, a)),

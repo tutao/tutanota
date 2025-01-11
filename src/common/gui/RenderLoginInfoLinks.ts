@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import { isApp, isDesktop } from "../api/common/Env.js"
 import { ExternalLink } from "./base/ExternalLink.js"
-import { InfoLink, lang } from "../misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../misc/LanguageViewModel.js"
 import { createDropdown } from "./base/Dropdown.js"
 import { mapNullable } from "@tutao/tutanota-utils"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
@@ -48,11 +48,11 @@ export function renderInfoLinks(): Children {
 }
 
 function getImprintLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), (c) => c.imprintUrl) || InfoLink.About
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.imprintUrl) || InfoLinks.About
 }
 
 function getPrivacyStatementLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), (c) => c.privacyStatementUrl) || InfoLink.Privacy
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.privacyStatementUrl) || InfoLinks.Privacy
 }
 
 /**

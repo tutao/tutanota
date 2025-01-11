@@ -69,7 +69,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 					u2fAppId: `${protocol}//${hostname}:${port}/u2f-appid.json`,
 					giftCardBaseUrl: `${protocol}//${hostname}:${port}/giftcard`,
 					referralBaseUrl: `${protocol}//${hostname}:${port}/signup`,
-					websiteBaseUrl: "https://tuta.com",
+					websiteBaseUrl: domainConfigs[hostname].websiteBaseUrl ?? "https://tuta.com",
 				},
 			}
 		}
@@ -227,7 +227,7 @@ globalThis.buildOptions.sqliteNativePath = "./better-sqlite3.node";`,
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
 
-async function createBootstrap(env, buildDir) {
+async function createBootstrap(env, buildDir, stage) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
@@ -253,7 +253,7 @@ if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
 }
 import('./app.js')`
 	await writeFile(`./${buildDir}/${jsFileName}`, template)
-	const html = await LaunchHtml.renderHtml(imports, env)
+	const html = await LaunchHtml.renderHtml(imports, env, stage)
 	await writeFile(`./${buildDir}/${htmlFileName}`, html)
 }
 
@@ -301,6 +301,6 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	/** @type {EnvMode[]} */
 	const modes = ["Browser", "App", "Desktop"]
 	for (const mode of modes) {
-		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs }), buildDir)
+		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs }), buildDir, stage)
 	}
 }

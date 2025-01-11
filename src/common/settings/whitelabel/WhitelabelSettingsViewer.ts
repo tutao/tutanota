@@ -20,7 +20,7 @@ import {
 	CustomerTypeRef,
 	WhitelabelConfigTypeRef,
 } from "../../api/entities/sys/TypeRefs.js"
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../../misc/LanguageViewModel.js"
 import { FeatureType, OperationType } from "../../api/common/TutanotaConstants.js"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -88,7 +88,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				? [
 						m(".h4.mt-l", lang.get("whitelabel_label")),
 						m(".small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
-						m("small.text-break", [m(`a[href=${InfoLink.Whitelabel}][target=_blank]`, InfoLink.Whitelabel)]),
+						m("small.text-break", [m(`a[href=${InfoLinks.Whitelabel}][target=_blank]`, InfoLinks.Whitelabel)]),
 						this._renderWhitelabelStatusSettings(),
 						this._renderNotificationEmailSettings(),
 						m(".h4.mt-l", lang.get("whitelabelDomain_label")),

@@ -1,7 +1,7 @@
 import { client } from "../common/misc/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
-import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
+import { lang, languageCodeToTag, languages, setInfoLinks } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable } from "../common/api/common/Env.js"
@@ -396,6 +396,8 @@ import("../mail-app/translations/en.js")
 		const domainConfig = calendarLocator.domainConfigProvider().getCurrentDomainConfig()
 		const serviceworker = await import("../common/serviceworker/ServiceWorkerClient.js")
 		serviceworker.init(domainConfig)
+
+		setInfoLinks(domainConfig.websiteBaseUrl)
 
 		printJobsMessage(domainConfig)
 	})

@@ -1,7 +1,7 @@
 import { DomainDnsStatus } from "../DomainDnsStatus"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { assertEnumValue, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../../common/api/common/TutanotaConstants"
-import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { InfoLinks, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import type { AddDomainData, ValidatedDnSRecord } from "./AddDomainWizard"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
@@ -180,7 +180,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							click: () => _updateDnsStatus(domainStatus),
 					  },
 			),
-			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-m", isSmall: true }),
+			m(MoreInfoLink, { link: InfoLinks.DomainInfo, class: "mt-m", isSmall: true }),
 		]
 	} else {
 		const errorMessageMap: Record<CustomDomainCheckResult, TranslationKey> = {

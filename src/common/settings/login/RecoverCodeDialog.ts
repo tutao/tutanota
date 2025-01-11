@@ -1,4 +1,4 @@
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { assertNotNull, Hex, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
@@ -131,7 +131,7 @@ export class RecoverCodeField {
 	}
 
 	private renderRecoveryText(): Child {
-		const link = InfoLink.RecoverCode
+		const link = InfoLinks.RecoverCode
 		return m(".pt.pb", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
 	}
 }

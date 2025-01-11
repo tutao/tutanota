@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator.js"
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { InfoLinks, lang } from "../../misc/LanguageViewModel.js"
 import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
@@ -27,7 +27,7 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 			view: () => {
 				return [
 					m(".mt", lang.get("takeOverUnusedAddress_msg")),
-					m(MoreInfoLink, { link: InfoLink.InactiveAccounts }),
+					m(MoreInfoLink, { link: InfoLinks.InactiveAccounts }),
 					m(TextField, {
 						label: "targetAddress_label",
 						value: targetAccountAddress(),

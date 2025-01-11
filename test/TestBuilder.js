@@ -152,7 +152,7 @@ async function createUnitTestHtml(localEnv) {
 
 	console.log(`Generating browser tests at "${htmlFilePath}"`)
 
-	const html = await renderHtml(imports, localEnv)
+	const html = await renderHtml(imports, localEnv, "local")
 	await writeFile(htmlFilePath, html)
 }
 
