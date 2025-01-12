@@ -16,12 +16,10 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				const filePaths: ReadonlyArray<string> = arg[5]
 				return this.facade.startFileImport(mailboxId, apiUrl, unencryptedTutaCredentials, targetOwnerGroup, targetFolder, filePaths)
 			}
-			case "setProgressAction": {
+			case "setAction": {
 				const mailboxId: string = arg[0]
-				const apiUrl: string = arg[1]
-				const unencryptedTutaCredentials: UnencryptedCredentials = arg[2]
-				const progressAction: number = arg[3]
-				return this.facade.setProgressAction(mailboxId, apiUrl, unencryptedTutaCredentials, progressAction)
+				const progressAction: number = arg[1]
+				return this.facade.setAction(mailboxId, progressAction)
 			}
 			case "getResumeableImport": {
 				const mailboxId: string = arg[0]
@@ -34,9 +32,9 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				const importStateId: IdTuple = arg[3]
 				return this.facade.resumeFileImport(mailboxId, apiUrl, unencryptedTutaCredentials, importStateId)
 			}
-			case "getImportState": {
+			case "waitForRunningImport": {
 				const mailboxId: string = arg[0]
-				return this.facade.getImportState(mailboxId)
+				return this.facade.waitForRunningImport(mailboxId)
 			}
 			case "deinitLogger": {
 				return this.facade.deinitLogger()

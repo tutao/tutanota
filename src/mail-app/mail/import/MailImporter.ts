@@ -56,6 +56,7 @@ export class MailImporter {
 	private eventController: EventController
 	private isInitialized: boolean = false
 	private isLastRunFailed: boolean = false
+	private activeImportPromise: Promise<void> | null = null
 
 	constructor(
 		domainConfigProvider: DomainConfigProvider,
@@ -150,7 +151,25 @@ export class MailImporter {
 		m.redraw()
 
 		try {
-			await importFacade.startFileImport((await this.getMailbox())._id, apiUrl, unencryptedCredentials, ownerGroup, targetFolder._id, filePaths)
+			this.activeImportPromise = null
+			let remoteStateId = await importFacade.startFileImport(
+				(
+					await this.getMailbox()
+				)._id,
+				apiUrl,
+				unencryptedCredentials,
+				ownerGroup,
+				targetFolder._id,
+				filePaths,
+			)
+			this.activeImport = {
+				remoteStateId,
+				failedMails: 0,
+				start_timestamp: new Date().getTime(),
+				status: ImportStatus.Running,
+				successfulMails: 0,
+				totalMails: 0,
+			}
 		} catch (e) {
 			this.uiStatus = UiImportStatus.Error
 			console.log("could not start file import", e)
@@ -320,16 +339,6 @@ export class MailImporter {
 		clearInterval(this.progressEstimation)
 	}
 
-	async refreshLocalImportState() {
-		const importFacade = assertNotNull(this.nativeMailImportFacade)
-		const localState = await importFacade.getImportState((await this.getMailbox())._id)
-		if (localState) {
-			this.onNewLocalImportMailState(localState)
-		} else if (this.uiStatus != UiImportStatus.Paused) {
-			this.resetStatus()
-		}
-	}
-
 	/**
 	 * New localImportMailState event received from native mail import process.
 	 * Used to update import progress locally without sending entityEvents.
@@ -343,11 +352,8 @@ export class MailImporter {
 				this.isLastRunFailed = true
 				await Dialog.message("mailImportErrorServiceUnavailable_msg")
 
-				const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-				const userId = this.loginController.getUserController().userId
-				const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 				let mailboxId = (await this.getMailbox())._id
-				await assertNotNull(this.nativeMailImportFacade).setProgressAction(mailboxId, apiUrl, unencryptedCredentials, ImportProgressAction.Stop)
+				await assertNotNull(this.nativeMailImportFacade).setAction(mailboxId, ImportProgressAction.Stop)
 			}
 		} else {
 			this.activeImport = localImportMailState
@@ -378,6 +384,13 @@ export class MailImporter {
 				return
 			} else if (isFinalisedImport(remoteStatus)) {
 				this.resetStatus()
+			} else if (!this.activeImportPromise) {
+				const importFacade = assertNotNull(this.nativeMailImportFacade)
+				let mailboxId = (await this.getMailbox())._id
+				this.activeImportPromise = importFacade.waitForRunningImport(mailboxId).catch(async (e) => {
+					console.log("EEEEEEEEEEEE", e)
+					await Dialog.message("mailImportErrorServiceUnavailable_msg")
+				})
 			}
 		}
 
@@ -430,14 +443,10 @@ export class MailImporter {
 	async setProgressAction(progressAction: ImportProgressAction): Promise<void> {
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 
-		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-		const userId = this.loginController.getUserController().userId
-		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-
 		try {
-			await importFacade.setProgressAction((await this.getMailbox())._id, apiUrl, unencryptedCredentials, progressAction)
+			await importFacade.setAction((await this.getMailbox())._id, progressAction)
 		} catch (e) {
-			console.log(`could execute progress action ${progressAction} for file import`, e)
+			console.log(`could not execute progress action ${progressAction} for file import`, e)
 		}
 	}
 

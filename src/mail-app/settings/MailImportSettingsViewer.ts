@@ -43,20 +43,10 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 	async oninit(): Promise<void> {
 		if (isDesktop()) {
 			await this.mailImporter.initImportMailStates()
-			this.importStatePoolHandle = setInterval(async () => {
-				await this.mailImporter.refreshLocalImportState()
-				m.redraw()
-			}, 1000)
 
 			let mailbox = await this.mailImporter.getMailbox()
 			this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
 			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
-		}
-	}
-
-	onbeforeremove(): void {
-		if (isDesktop()) {
-			clearInterval(this.importStatePoolHandle)
 		}
 	}
 

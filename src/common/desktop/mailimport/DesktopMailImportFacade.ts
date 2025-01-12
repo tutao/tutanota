@@ -26,12 +26,19 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		targetOwnerGroup: string,
 		targetFolderId: IdTuple,
 		filePaths: Array<string>,
-	): Promise<void> {
+	): Promise<IdTuple> {
 		const tutaCredentials = this.createTutaCredentials(unencTutaCredentials, apiUrl)
 
 		const targetFolderIdTuple: [string, string] = [targetFolderId[0], targetFolderId[1]]
-
-		await ImporterApi.startFileImport(mailboxId, tutaCredentials, targetOwnerGroup, targetFolderIdTuple, filePaths, this.configDirectory)
+		let importMailStateId: IdTuple = await ImporterApi.startFileImport(
+			mailboxId,
+			tutaCredentials,
+			targetOwnerGroup,
+			targetFolderIdTuple,
+			filePaths,
+			this.configDirectory,
+		).then((value) => [value.listId, value.elementId])
+		return importMailStateId
 	}
 
 	private createTutaCredentials(unencTutaCredentials: UnencryptedCredentials, apiUrl: string) {
@@ -47,24 +54,12 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		return tutaCredentials
 	}
 
-	async getImportState(mailboxId: string): Promise<LocalImportMailState | null> {
-		let localState = await ImporterApi.getImportState(mailboxId)
-		if (!localState) {
-			return null
-		}
-
-		return {
-			remoteStateId: [localState.remoteStateId.listId, localState.remoteStateId.elementId],
-			status: localState.currentStatus,
-			start_timestamp: localState.startTimestamp,
-			totalMails: localState.totalCount,
-			successfulMails: localState.successCount,
-			failedMails: localState.failedCount,
-		}
+	async waitForRunningImport(mailboxId: string): Promise<void> {
+		let localState = await ImporterApi.waitForRunningImport(mailboxId)
 	}
 
-	async setProgressAction(mailboxId: string, apiUrl: string, unencTutaCredentials: UnencryptedCredentials, progressAction: number) {
-		return await ImporterApi.setProgressAction(mailboxId, this.createTutaCredentials(unencTutaCredentials, apiUrl), progressAction, this.configDirectory)
+	async setAction(mailboxId: string, progressAction: number) {
+		return await ImporterApi.setAction(mailboxId, progressAction)
 	}
 
 	async getResumeableImport(mailboxId: string): Promise<ResumableImport> {

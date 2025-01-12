@@ -27,19 +27,13 @@
 					"filePaths": "List<string>"
 				}
 			],
-			"ret": "void"
+			"ret": "IdTuple"
 		},
-		"setProgressAction": {
-			"doc": "Sets progress action for next import iteration",
+		"setAction": {
+			"doc": "Sets action for next import iteration",
 			"arg": [
 				{
 					"mailboxId": "string"
-				},
-				{
-					"apiUrl": "string"
-				},
-				{
-					"unencryptedTutaCredentials": "UnencryptedCredentials"
 				},
 				{
 					"progressAction": "number"
@@ -74,14 +68,14 @@
 			],
 			"ret": "void"
 		},
-		"getImportState": {
-			"doc": "Gets LocalImportState from Importer",
+		"waitForRunningImport": {
+			"doc": "Waits until the current import is finished. Will throw an error if the import fails.",
 			"arg": [
 				{
 					"mailboxId": "string"
 				}
 			],
-			"ret": "LocalImportMailState?"
+			"ret": "void"
 		},
 		"deinitLogger": {
 			"doc": "",
