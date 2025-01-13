@@ -88,11 +88,13 @@ pipeline {
 							}
 							steps {
 								bat "npm ci"
+								// building packages builds node-mimimi
 								bat "npm run build-packages"
 
 								bat "node buildSrc\\getNodeGypLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
-								powershell "node buildSrc\\getNapiRsLibrary.js \"@tutao/node-mimimi\" --dst-dir native-cache --root-dir ${WORKSPACE}"
-								stash includes: 'native-cache/**/*', name: 'native_modules'
+								// napi-rs rollup plugin expects .node for the package to be next to the entry point
+								// so we stash and unstash it as-is
+								stash includes: 'native-cache/**/*,packages/node-mimimi/dist/*.node', name: 'native_modules'
 							}
 						}
 				    	stage("Client") {
@@ -106,7 +108,8 @@ pipeline {
 								initBuildArea()
 
 								// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
-								// so they will be picked up by our rollup plugin
+								// so they will be picked up by our rollup plugin.
+								//
 								unstash 'native_modules'
 
 								// add DEBUG for electron-builder because it tends to not let us know about things failing
