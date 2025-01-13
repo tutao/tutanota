@@ -113,13 +113,13 @@ function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[
 	if (isNotEmpty(advancedRules)) {
 		const BYRULES = new Map<string, string>()
 		const byRuleValueToKey = reverse(ByRule)
-		advancedRules.forEach((r) => {
+		for (const r of advancedRules) {
 			const type = byRuleValueToKey[r.ruleType as ByRule]
 			BYRULES.set(type, BYRULES.get(type) ? `${BYRULES.get(type)},${r.interval}` : r.interval)
-		})
-		BYRULES.forEach((interval, type) => {
+		}
+		for (const [interval, type] of BYRULES) {
 			advancedRepeatRules += `;${type.toUpperCase()}=${interval}`
-		})
+		}
 	}
 
 	return advancedRepeatRules

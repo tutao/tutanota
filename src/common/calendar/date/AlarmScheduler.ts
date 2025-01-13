@@ -43,7 +43,7 @@ export class AlarmScheduler {
 				event.endTime,
 				parseAlarmInterval(alarmInfo.trigger),
 				calculationLocalZone,
-				repeatRule
+				repeatRule,
 			)
 
 			if (nextOccurrence) {
