@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-01-08T11:50:22Z",
+	"updated_at": "2025-01-09T11:39:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -909,8 +909,6 @@ export default {
 		"loadingTemplates_label": "Loading templates...",
 		"loading_msg": "Loading ...",
 		"loadMore_action": "Load more",
-		"localAdminGroups_label": "Local admin groups",
-		"localAdminGroup_label": "Local admin group",
 		"localDataSection_label": "Local data",
 		"location_label": "Location",
 		"lockdownModeNotSupported1_msg": "Your device has Lockdown Mode enabled which will prevent future versions of Tuta from running.",
@@ -967,6 +965,7 @@ export default {
 		"mailImportStateProcessedMailsTotalMails_label": "{processedMails} / {totalMails}",
 		"mailImportStatusCanceled_label": "Canceled",
 		"mailImportStatusCancelling_label": "Cancelling...",
+		"mailImportStatusError_label": "An error occurred",
 		"mailImportStatusFinished_label": "Finished",
 		"mailImportStatusIdle_label": "Idle",
 		"mailImportStatusPaused_label": "Paused",
@@ -974,7 +973,6 @@ export default {
 		"mailImportStatusResuming_label": "Resuming...",
 		"mailImportStatusRunning_label": "Running...",
 		"mailImportStatusStarting_label": "Starting...",
-		"mailImportStatusError_label": "Error",
 		"mailImportTargetFolder_label": "Import into folder",
 		"mailMoved_msg": "This email has been moved to another folder.",
 		"mailName_label": "Sender name",
@@ -992,6 +990,7 @@ export default {
 		"markUnread_action": "Mark unread",
 		"matchCase_alt": "Match case",
 		"matchingKeywords_label": "Matching keywords:",
+		"maximumLabelsPerMailReached_msg": "Maximum allowed labels per email reached.",
 		"maybeAttending_label": "Maybe attending",
 		"maybe_label": "Maybe",
 		"menu_label": "Menu",
@@ -1876,7 +1875,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		// Put in temporarily
+		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"maximumLabelsPerMailReached_msg": "Maximum allowed labels per mail reached."
+		"localAdminGroups_label": "Local admin groups",
 	}
 }

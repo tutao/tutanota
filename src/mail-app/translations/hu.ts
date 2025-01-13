@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-01-07T15:47:14Z",
+	"updated_at": "2025-01-12T09:40:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -952,6 +952,7 @@ export default {
 		"mailFolder_label": "Email mappa",
 		"mailHeaders_title": "E-mail fejlécek",
 		"mailImportDownloadDesktopClient_label": "Töltse le az asztali klienst!",
+		"mailImportErrorServiceUnavailable_msg": "Az exportálás átmenetileg nem elérhető; kérjük, próbálja meg később újra!",
 		"mailImportHistoryTableHeading_label": "A letöltés/importálás befejeződött.",
 		"mailImportHistoryTableRowFolderDeleted_label": "mappa törölve",
 		"mailImportHistoryTableRowSubtitle_label": "Dátum: {date}, Importálva: {successfulMails}, Sikertelen: {failedMails}",
@@ -964,6 +965,7 @@ export default {
 		"mailImportStateProcessedMailsTotalMails_label": "{processedMails} / {totalMails}",
 		"mailImportStatusCanceled_label": "Törölve",
 		"mailImportStatusCancelling_label": "Törlés ...",
+		"mailImportStatusError_label": "Hiba észlelve",
 		"mailImportStatusFinished_label": "Befejezve",
 		"mailImportStatusIdle_label": "Tétlen",
 		"mailImportStatusPaused_label": "Szüneteltetett",
@@ -988,6 +990,7 @@ export default {
 		"markUnread_action": "Olvasatlannak jelölés",
 		"matchCase_alt": "Kis- és nagybetűk egyeztetése",
 		"matchingKeywords_label": "Egyező/Megfelelő kulcsszavak:",
+		"maximumLabelsPerMailReached_msg": "Elérte a megengedett maximális e-mailenkénti címkeszámot",
 		"maybeAttending_label": "Talán részt vesz",
 		"maybe_label": "Talán",
 		"menu_label": "Menü",

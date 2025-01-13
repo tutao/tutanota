@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-01-08T11:52:06Z",
+	"updated_at": "2025-01-09T11:39:34Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -969,6 +969,7 @@ export default {
 		"mailImportStateProcessedMailsTotalMails_label": "{processedMails} / {totalMails}",
 		"mailImportStatusCanceled_label": "Abgebrochen",
 		"mailImportStatusCancelling_label": "Abbrechen...",
+		"mailImportStatusError_label": "Ein Fehler ist aufgetreten",
 		"mailImportStatusFinished_label": "Beendet",
 		"mailImportStatusIdle_label": "Ruht",
 		"mailImportStatusPaused_label": "Pausiert",
@@ -976,7 +977,6 @@ export default {
 		"mailImportStatusResuming_label": "Fortsetzen...",
 		"mailImportStatusRunning_label": "Läuft...",
 		"mailImportStatusStarting_label": "Startet...",
-		"mailImportStatusError_label": "Fehler",
 		"mailImportTargetFolder_label": "Zielordner für Import",
 		"mailMoved_msg": "Diese E-Mail wurde in einen anderen Ordner verschoben.",
 		"mailName_label": "Absendername",
@@ -994,6 +994,7 @@ export default {
 		"markUnread_action": "Ungelesen",
 		"matchCase_alt": "Groß/Kleinschreibung beachten",
 		"matchingKeywords_label": "Übereinstimmende Schlüsselwörter",
+		"maximumLabelsPerMailReached_msg": "Maximum der erlaubten Labels pro E-Mail erreicht.",
 		"maybeAttending_label": "Veilleicht teilnehmen",
 		"maybe_label": "Vielleicht",
 		"menu_label": "Menü",
@@ -1878,9 +1879,9 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"localAdminGroups_label": "Local admin groups",
+		// Put in temporarily
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"maximumLabelsPerMailReached_msg": "Maximum allowed labels per mail reached."
+		"localAdminGroups_label": "Local admin groups",
 	}
 }
