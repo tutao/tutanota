@@ -1,4 +1,5 @@
 import Foundation
+import tutasdk
 
 /// Identifier for when event will happen
 public struct EventOccurrence {
@@ -91,7 +92,14 @@ public class AlarmModel: AlarmCalculator {
 
 		cal.timeZone = isAllDayEvent ? localTimeZone : TimeZone(identifier: repeatRule.timeZone) ?? localTimeZone
 
-		return LazyEventSequence(calcEventStart: calcEventStart, endDate: endDate, repeatRule: repeatRule, cal: cal, calendarComponent: calendarUnit)
+		return LazyEventSequence(
+			calcEventStart: calcEventStart,
+			endDate: endDate,
+			repeatRule: repeatRule,
+			cal: cal,
+			calendarComponent: calendarUnit,
+			dateProvider: self.dateProvider
+		)
 	}
 
 	static func alarmTime(trigger: AlarmInterval, eventTime: Date) -> Date {
@@ -111,22 +119,48 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 	let repeatRule: RepeatRule
 	let cal: Calendar
 	let calendarComponent: Calendar.Component
+	let dateProvider: DateProvider
 
-	fileprivate var ocurrenceNumber = 0
+	var expandedEvents: [DateTime] = []
+
+	fileprivate var intervalNumber = 0
+	fileprivate var occurrenceNumber = 0
 	fileprivate var exclusionNumber = 0
 
 	mutating func next() -> EventOccurrence? {
-		if case let .count(n) = repeatRule.endCondition, ocurrenceNumber >= n { return nil }
-		let occurrenceDate = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * ocurrenceNumber, to: calcEventStart)!
-		if let endDate, occurrenceDate >= endDate {
-			return nil
-		} else {
-			let occurrence = EventOccurrence(occurrenceNumber: ocurrenceNumber, occurenceDate: occurrenceDate)
-			ocurrenceNumber += 1
+		if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
 
-			while exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] < occurrenceDate { exclusionNumber += 1 }
-			if exclusionNumber < repeatRule.excludedDates.count && repeatRule.excludedDates[exclusionNumber] == occurrenceDate { return self.next() }
-			return occurrence
+		if expandedEvents.isEmpty {
+			let nextExpansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
+			let progenitorTime = UInt64(nextExpansionProgenitor.timeIntervalSince1970)
+			let eventFacade = EventFacade()
+			let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
+			let generatedEvents = eventFacade.generateFutureInstances(
+				date: progenitorTime * 1000,
+				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)
+			)
+			self.expandedEvents.append(contentsOf: generatedEvents)
+			// Handle the event 0
+			if self.intervalNumber == 0 && !self.expandedEvents.contains(progenitorTime) { expandedEvents.append(progenitorTime) }
+
+			intervalNumber += 1
+		}
+
+		if let date = expandedEvents.popLast() {
+			occurrenceNumber += 1
+
+			if let endDate, date >= UInt64(endDate.timeIntervalSince1970) { return nil }
+
+			while exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < date {
+				exclusionNumber += 1
+			}
+			if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == date {
+				return self.next()
+			}
+
+			return EventOccurrence(occurrenceNumber: occurrenceNumber, occurenceDate: Date(timeIntervalSince1970: Double(date)))
+		} else {
+			return self.next()
 		}
 	}
 }
@@ -172,5 +206,16 @@ private func calendarUnit(for repeatPeriod: RepeatPeriod) -> Calendar.Component 
 	case .weekly: return .weekOfYear
 	case .monthly: return .month
 	case .annually: return .year
+	}
+}
+
+private extension RepeatPeriod {
+	func toSDKPeriod() -> tutasdk.RepeatPeriod {
+		switch self {
+		case .annually: return tutasdk.RepeatPeriod.annually
+		case .daily: return tutasdk.RepeatPeriod.daily
+		case .monthly: return tutasdk.RepeatPeriod.monthly
+		case .weekly: return tutasdk.RepeatPeriod.weekly
+		}
 	}
 }
