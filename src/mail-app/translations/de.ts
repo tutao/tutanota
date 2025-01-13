@@ -1882,6 +1882,21 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"monday_label": "Montag",
+		"tuesday_label": "Dienstag",
+		"wednesday_label": "Mittwoch",
+		"thursday_label": "Donnerstag",
+		"friday_label": "Freitag",
+		"saturday_label": "Samstag",
+		"sunday_label": "Sonntag",
+		"and_label": "und",
+		"firstOfPeriod_label": "Am ersten {day} des Monats",
+		"secondOfPeriod_label": "Am zweiten {day} des Monats",
+		"thirdOfPeriod_label": "Am dritten {day} des Monats",
+		"nthOfPeriod_label": "Am {n}-ten {day} des Monats",
+		"lastOfPeriod_label": "Am letzten {day} des Monats",
+		"withCustomRules_label": "Mit benutzerdefinierten Wiederholungsregeln",
+		"unsupportedAdvancedRules_msg": "Dieses Ereignis enthält eine oder mehrere nicht unterstützte erweiterte Wiederholungsregeln; jede Änderung führt zum Verlust dieser Regeln."
 	}
 }

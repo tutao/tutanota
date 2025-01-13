@@ -1,4 +1,10 @@
-import type { CalendarEvent, CalendarEventAttendee, CalendarRepeatRule, EncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import type {
+	AdvancedRepeatRule,
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarRepeatRule,
+	EncryptedMailAddress,
+} from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { createCalendarEventAttendee, createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
@@ -21,6 +27,7 @@ import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 
 import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
+import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 export type EventPreviewViewAttrs = {
 	event: Omit<CalendarEvent, "description">
@@ -229,20 +236,95 @@ export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null
 		const frequency = createRepeatRuleFrequencyValues().find((frequency) => frequency.value === repeatRule.frequency)
 
 		if (frequency) {
-			return frequency.name
+			const freq = frequency.name
+			const readable = buildReadableAdvancedRepetitionRule(repeatRule.advancedRules, downcast(repeatRule.frequency))
+
+			return `${freq}. ${readable}`.trim()
 		}
 	} else {
-		return lang.get("repetition_msg", {
+		const repeatMessage = lang.get("repetition_msg", {
 			"{interval}": repeatRule.interval,
 			"{timeUnit}": getFrequencyTimeUnit(downcast(repeatRule.frequency)),
 		})
+
+		const advancedRule = buildReadableAdvancedRepetitionRule(repeatRule.advancedRules, downcast(repeatRule.frequency))
+
+		return `${repeatMessage}. ${advancedRule}`.trim()
 	}
 
 	return null
 }
 
+function buildReadableAdvancedRepetitionRule(advancedRule: AdvancedRepeatRule[], frequency: RepeatPeriod): string {
+	const hasInvalidRules = advancedRule.some(
+		(rule) => !((frequency === RepeatPeriod.WEEKLY || frequency === RepeatPeriod.MONTHLY) && rule.ruleType === ByRule.BYDAY),
+	)
+
+	let translationKey: TranslationKey = "withCustomRules_label"
+	if (hasInvalidRules) {
+		return lang.get(translationKey)
+	}
+
+	const days: string[] = []
+
+	advancedRule.forEach((item) => {
+		switch (item.ruleType) {
+			case ByRule.BYDAY:
+				days.push(item.interval)
+				break
+			default:
+				return lang.get(translationKey)
+		}
+	})
+
+	if (days.length === 0) return ""
+
+	if (frequency === RepeatPeriod.MONTHLY) {
+		const ruleRegex = /^([-+]?\d{0,3})([a-zA-Z]{2})?$/g
+
+		const parsedRuleValue = Array.from(days[0].matchAll(ruleRegex)).flat()
+
+		const day = parseShortDay(parsedRuleValue[2] ?? "")
+		const leadingValue = Number.parseInt(parsedRuleValue[1])
+
+		if (leadingValue === 1) {
+			translationKey = "firstOfPeriod_label"
+		} else if (leadingValue === 2) {
+			translationKey = "secondOfPeriod_label"
+		} else if (leadingValue === -1) {
+			translationKey = "lastOfPeriod_label"
+		} else if (!Number.isNaN(leadingValue)) {
+			translationKey = "nthOfPeriod_label"
+		}
+
+		return lang.get(translationKey, {
+			"{days}": day,
+			"{n}": leadingValue,
+		})
+	}
+
+	return lang.get("onDays_label", {
+		"{days}": joinWithAnd(
+			days.map((day) => parseShortDay(day)),
+			", ",
+			lang.get("and_label"),
+		),
+	})
+}
+
+function joinWithAnd(items: any[], separator: string, lastSeparator: string) {
+	if (items.length > 1) {
+		const last = items.pop()
+		const joinedString = items.join(separator)
+
+		return `${joinedString} ${lastSeparator} ${last}`
+	}
+
+	return items.join(separator)
+}
+
 /**
- * @returns {string} The returned string includes a leading separator (", " or " ").
+ * @returns {string} The returned string includes a leading separator (", " or "").
  */
 export function formatRepetitionEnd(repeatRule: RepeatRule, isAllDay: boolean): string {
 	switch (repeatRule.endType) {
@@ -283,6 +365,27 @@ function getFrequencyTimeUnit(frequency: RepeatPeriod): string {
 
 		default:
 			throw new Error("Unknown calendar event repeat rule frequency: " + frequency)
+	}
+}
+
+function parseShortDay(day: string) {
+	switch (day) {
+		case "MO":
+			return lang.get("monday_label")
+		case "TU":
+			return lang.get("tuesday_label")
+		case "WE":
+			return lang.get("wednesday_label")
+		case "TH":
+			return lang.get("thursday_label")
+		case "FR":
+			return lang.get("friday_label")
+		case "SA":
+			return lang.get("saturday_label")
+		case "SU":
+			return lang.get("sunday_label")
+		default:
+			return ""
 	}
 }
 
