@@ -35,6 +35,7 @@ import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
+import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
