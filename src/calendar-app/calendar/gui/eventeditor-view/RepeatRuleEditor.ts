@@ -173,8 +173,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	private renderIntervalPicker(attrs: RepeatRuleEditorAttrs): Children {
-		return m(".repeats-every-grid", [
-			m("", "Every"),
+		return m(".flex", [
+			m("", { style: { flex: "1" } }, "Every"),
 			m(Select<IntervalOption, number>, {
 				onchange: (newValue) => {
 					if (this.repeatInterval === newValue.value) {
@@ -188,12 +188,12 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				onclose: () => {},
 				selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
 				ariaLabel: lang.get("repeatsEvery_label"),
-				options: this.intervalOptionsForRepeatPeriod(),
+				options: this.intervalOptions,
 				noIcon: false,
-				expanded: true,
+				expanded: false,
 				tabIndex: Number(TabIndex.Programmatic),
 				classes: ["no-appearance"],
-				renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", option.name)]),
+				renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
 				renderOption: (option) =>
 					m(
 						"button.items-center.flex-grow",
@@ -208,12 +208,27 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	/**
-	 * Populates an Array with numbers 1-256 and appends either "Day(s)", "Week(s)", "Month(s)", "Year(s)" according to what period has been selected.
-	 * @private
+	 * Appends either "Day(s)", "Week(s)", "Month(s)" or "Year(s)" to the given number value.
+	 * Only do this for renderDisplay() to not re-populate the options array.
+	 * @param option
 	 */
-	private intervalOptionsForRepeatPeriod(): stream<IntervalOption[]> {
-		// TODO
-		return this.intervalOptions
+	private getNameAndAppendTimeFormat(option: IntervalOption) {
+		if (this.repeatRuleType === null) {
+			throw new Error("repeatRuleType was null")
+		}
+
+		const isPlural = option.value > 1
+
+		switch (this.repeatRuleType) {
+			case RepeatPeriod.DAILY:
+				return `${option.name} ${isPlural ? lang.get("days_label") : lang.get("day_label")}`
+			case RepeatPeriod.WEEKLY:
+				return `${option.name} ${isPlural ? lang.get("weeks_label") : lang.get("week_label")}`
+			case RepeatPeriod.MONTHLY:
+				return `${option.name} ${isPlural ? lang.get("months_label") : lang.get("month_label")}`
+			case RepeatPeriod.ANNUALLY:
+				return `${option.name} ${isPlural ? lang.get("years_label") : lang.get("year_label")}`
+		}
 	}
 
 	private renderEndsPicker(attrs: RepeatRuleEditorAttrs): Child {
