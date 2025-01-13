@@ -59,19 +59,25 @@ export class UserFacade implements AuthDataProvider {
 			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
 		}
 		this.keyCache.setCurrentUserGroupKey(currentUserGroupKey)
-		this.setUserGroupKeyDistributionKey(userPassphraseKey)
+		this.setUserDistKey(userPassphraseKey)
 	}
 
-	setUserGroupKeyDistributionKey(userPassphraseKey: number[]) {
+	setUserDistKey(userPassphraseKey: number[]) {
 		if (this.user == null) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		const userGroupMembership = this.user.userGroup
-		const userGroupKeyDistributionKey = this.deriveUserGroupKeyDistributionKey(userGroupMembership.group, userPassphraseKey)
-		this.keyCache.setUserGroupKeyDistributionKey(userGroupKeyDistributionKey)
+		const userDistKey = this.deriveUserDistKey(userGroupMembership.group, userPassphraseKey)
+		this.keyCache.setUserDistKey(userDistKey)
 	}
 
-	deriveUserGroupKeyDistributionKey(userGroupId: Id, userPassphraseKey: AesKey): AesKey {
+	/**
+	 * Derives a distribution key from the password key to share the new user group key of the user to their other clients (apps, web etc)
+	 *
+	 * @param userGroupId user group id of the logged in user
+	 * @param userPasswordKey current password key of the user
+	 */
+	deriveUserDistKey(userGroupId: Id, userPasswordKey: AesKey): AesKey {
 		// we prepare a key to encrypt potential user group key rotations with
 		// when passwords are changed clients are logged-out of other sessions
 		// this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
@@ -81,7 +87,7 @@ export class UserFacade implements AuthDataProvider {
 
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: userGroupId,
-			key: userPassphraseKey,
+			key: userPasswordKey,
 			context: "userGroupKeyDistributionKey",
 		})
 	}
@@ -203,14 +209,14 @@ export class UserFacade implements AuthDataProvider {
 	}
 
 	updateUserGroupKey(userGroupKeyDistribution: UserGroupKeyDistribution) {
-		const userGroupKeyDistributionKey = this.keyCache.getUserGroupKeyDistributionKey()
-		if (userGroupKeyDistributionKey == null) {
+		const userDistKey = this.keyCache.getUserDistKey()
+		if (userDistKey == null) {
 			console.log("could not update userGroupKey because distribution key is not available")
 			return
 		}
 		let newUserGroupKeyBytes
 		try {
-			newUserGroupKeyBytes = decryptKey(userGroupKeyDistributionKey, userGroupKeyDistribution.distributionEncUserGroupKey)
+			newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
 		} catch (e) {
 			// this may happen during offline storage synchronisation when the event queue contains user group key rotation and a password change.
 			// We can ignore this error as we already have the latest user group key after connecting the offline client

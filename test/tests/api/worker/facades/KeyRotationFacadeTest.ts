@@ -920,7 +920,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				prepareRecoverData(recoverData, recoverCodeFacade)
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(groupManagementFacade.hasAdminEncGKey(adminGroup)).thenReturn(true)
-				when(userFacade.deriveUserGroupKeyDistributionKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
 				when(cryptoWrapperMock.encryptKey(DISTRIBUTION_KEY, NEW_USER_GROUP_KEY.object)).thenReturn(DISTRIBUTION_KEY_ENC_NEW_USER_GROUP_KEY)
@@ -1059,7 +1059,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				)
 				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
-				verify(keyAuthenticationFacade.deriveTargetUserGroupKeyAuthKeyForNewAdminPubKeyHash(additionalUserGroupId, additionalUserGroupKey))
+				verify(keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminPubKeyHash(additionalUserGroupId, additionalUserGroupKey))
 			})
 
 			o.spec("AdminGroupKeyRotationMultipleAdminAccount", function () {
@@ -1077,7 +1077,7 @@ o.spec("KeyRotationFacadeTest", function () {
 
 					const adminDistKeyPairDistributionKey = object<Aes256Key>()
 					const adminDistAuthKey = object<Aes256Key>()
-					when(keyAuthenticationFacade.deriveAdminPubDistAuthKey(adminGroupId, userGroupId, CURRENT_ADMIN_GROUP_KEY)).thenReturn(adminDistAuthKey)
+					when(keyAuthenticationFacade.deriveAdminDistAuthKey(adminGroupId, userGroupId, CURRENT_ADMIN_GROUP_KEY)).thenReturn(adminDistAuthKey)
 					when(cryptoWrapperMock.deriveKeyWithHkdf(anything())).thenReturn(adminDistKeyPairDistributionKey)
 
 					const mockedDistKeyPair = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, adminDistKeyPairDistributionKey).get(
@@ -1304,7 +1304,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					when(keyAuthenticationFacade.generatePubDistKeyHash(anything(), anything())).thenReturn(generatedClientHash)
 
 					const adminDistAuthKey = object<AesKey>()
-					when(keyAuthenticationFacade.deriveAdminPubDistAuthKey(anything(), anything(), anything())).thenReturn(adminDistAuthKey)
+					when(keyAuthenticationFacade.deriveAdminDistAuthKey(anything(), anything(), anything())).thenReturn(adminDistAuthKey)
 
 					const givenServerHash = new Uint8Array([0, 1])
 					when(cryptoWrapperMock.aesDecrypt(adminDistAuthKey, anything(), anything())).thenReturn(givenServerHash)
@@ -1360,7 +1360,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				prepareRecoverData(recoverData, recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
-				when(userFacade.deriveUserGroupKeyDistributionKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
 				when(cryptoWrapperMock.aes256RandomKey()).thenReturn(NEW_USER_GROUP_KEY.object)
@@ -1430,9 +1430,9 @@ o.spec("KeyRotationFacadeTest", function () {
 					),
 				)
 
-				verify(keyAuthenticationFacade.deriveTargetUserGroupKeyAuthKeyForNewAdminPubKeyHash(userGroupId, CURRENT_USER_GROUP_KEY))
+				verify(keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminPubKeyHash(userGroupId, CURRENT_USER_GROUP_KEY))
 
-				verify(keyAuthenticationFacade.deriveUserRotationNewUserGroupKeyAuthKey(userGroupId, CURRENT_USER_GROUP_KEY))
+				verify(keyAuthenticationFacade.deriveUserGroupAuthKey(userGroupId, CURRENT_USER_GROUP_KEY))
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
@@ -1559,7 +1559,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				prepareRecoverData(recoverData, recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
-				when(userFacade.deriveUserGroupKeyDistributionKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
@@ -1625,7 +1625,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				})
 
 				verify(
-					keyAuthenticationFacade.deriveTargetUserGroupKeyAuthKeyForNewAdminSymKeyHash(
+					keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminSymKeyHash(
 						adminGroupId,
 						userGroupId,
 						CURRENT_USER_GROUP_KEY,

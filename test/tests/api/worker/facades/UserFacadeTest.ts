@@ -42,7 +42,7 @@ o.spec("UserFacadeTest", function () {
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
-		when(keyCache.getUserGroupKeyDistributionKey()).thenReturn(distributionKey)
+		when(keyCache.getUserDistKey()).thenReturn(distributionKey)
 		facade.updateUserGroupKey(distributionUpdate)
 		verify(keyCache.setCurrentUserGroupKey({ version: 1, object: newUserGroupKey }))
 	})
@@ -56,7 +56,7 @@ o.spec("UserFacadeTest", function () {
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
-		when(keyCache.getUserGroupKeyDistributionKey()).thenReturn(null)
+		when(keyCache.getUserDistKey()).thenReturn(null)
 		facade.updateUserGroupKey(distributionUpdate)
 		verify(keyCache.setCurrentUserGroupKey(matchers.anything()), { times: 0 })
 	})
@@ -70,7 +70,7 @@ o.spec("UserFacadeTest", function () {
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
-		when(keyCache.getUserGroupKeyDistributionKey()).thenReturn(distributionKey)
+		when(keyCache.getUserDistKey()).thenReturn(distributionKey)
 		facade.updateUserGroupKey(distributionUpdate)
 		verify(keyCache.setCurrentUserGroupKey(matchers.anything()), { times: 0 })
 	})
