@@ -90,7 +90,7 @@ pipeline {
 								bat "npm ci"
 								bat "npm run build-packages"
 
-								bat "node buildSrc\\getNativeLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+								bat "node buildSrc\\getNodeGypLibrary.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
 								powershell "node buildSrc\\getNapiRsLibrary.js \"@tutao/node-mimimi\" --dst-dir native-cache --root-dir ${WORKSPACE}"
 								stash includes: 'native-cache/**/*', name: 'native_modules'
 							}
