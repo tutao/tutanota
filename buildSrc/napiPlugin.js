@@ -1,5 +1,5 @@
 import path from "node:path"
-import { removeNpmNamespacePrefix } from "./buildUtils.js"
+import { getTargetTriple, removeNpmNamespacePrefix, resolveArch } from "./buildUtils.js"
 import fs from "node:fs"
 
 /**
@@ -25,26 +25,5 @@ export function napiPlugin({ nodeModule, platform, architecture }) {
 				await fs.promises.copyFile(path.join(modulePath, fileName), path.join(normalizedDstDir, fileName))
 			}
 		},
-	}
-}
-
-function resolveArch(arch) {
-	if (arch === "universal") {
-		return ["x64", "arm64"]
-	} else {
-		return [arch]
-	}
-}
-
-/**
- * napi appends abi to the architecture (see https://napi.rs/docs/cli/napi-config)
- */
-function getTargetTriple(platform, architecture) {
-	if (platform === "linux") {
-		return `${platform}-${architecture}-gnu`
-	} else if (platform === "win32") {
-		return `${platform}-${architecture}-msvc`
-	} else {
-		return `${platform}-${architecture}`
 	}
 }

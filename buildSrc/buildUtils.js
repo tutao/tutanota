@@ -153,3 +153,32 @@ export function removeNpmNamespacePrefix(target) {
 	// gets us the moduleName out of @tutao/moduleName
 	return target.split("/").reduce((p, c) => c, null)
 }
+
+/**
+ * @param arch {NodeJS.Architecture|"universal"}
+ * @returns {Array<import("./nativeLibraryProvider.js").BuildArch>}
+ */
+export function resolveArch(arch) {
+	if (arch === "universal") {
+		return ["x64", "arm64"]
+	} else if (arch === "x64" || arch === "arm64") {
+		return [arch]
+	} else {
+		throw new Error(`Unsupported arch: ${arch}`)
+	}
+}
+
+/**
+ * napi appends abi to the architecture (see https://napi.rs/docs/cli/napi-config)
+ * @param platform {NodeJS.Platform}
+ * @param architecture {NodeJS.Architecture}
+ */
+export function getTargetTriple(platform, architecture) {
+	if (platform === "linux") {
+		return `${platform}-${architecture}-gnu`
+	} else if (platform === "win32") {
+		return `${platform}-${architecture}-msvc`
+	} else {
+		return `${platform}-${architecture}`
+	}
+}
