@@ -239,6 +239,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				}
 
 				this.repeatOccurrences = newValue.value
+				attrs.model.repeatEndOccurrences = newValue.value
 			},
 			onclose: () => {
 				this.occurrencesExpanded = false
