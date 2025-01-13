@@ -140,4 +140,12 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
 	}
+
+	hmacSha256(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
+		throw new Error("not implemented for this platform")
+	}
+
+	verifyHmacSha256(key: Uint8Array, data: Uint8Array, tag: Uint8Array): Promise<void> {
+		throw new Error("not implemented for this platform")
+	}
 }
