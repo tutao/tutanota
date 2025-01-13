@@ -23,7 +23,7 @@ function getTargets(platform) {
 		case "win":
 		case "win32":
 			usePowerShell()
-			return "x86_64-pc-windows-msvc"
+			return ["x86_64-pc-windows-msvc"]
 		case "linux":
 			return ["x86_64-unknown-linux-gnu"]
 		case "darwin":
