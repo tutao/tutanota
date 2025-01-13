@@ -1,26 +1,36 @@
-/**
- * This file contains the functions used to set up and tear down edit dialogs for calendar events.
- *
- * they're not responsible for upholding invariants or ensure valid events (CalendarEventModel.editModels
- * and CalendarEventEditView do that), but know what additional information to ask the user before saving
- * and which methods to call to save the changes.
- */
 import { noOp, Thunk } from "@tutao/tutanota-utils"
 import { Dialog } from "../base/Dialog.js"
 import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"
 import { theme } from "../theme.js"
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m from "mithril"
+import Mithril, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { client } from "../../misc/ClientDetector.js"
 import { px, size } from "../size.js"
 
 export class MultiPageDialog<TPages> {
-	private readonly currentPage: stream<TPages>
-	private readonly pages: stream<TPages[]>
+	private readonly currentPageStream: stream<TPages>
+	private readonly pageStackStream: stream<TPages[]>
 
 	constructor(rootPage: TPages) {
-		this.currentPage = stream(rootPage)
-		this.pages = stream([rootPage])
+		this.currentPageStream = stream(rootPage)
+		this.pageStackStream = stream([rootPage])
+	}
+
+	private readonly goBack = () => {
+		const tmp = this.pageStackStream()
+		tmp.pop()
+
+		this.pageStackStream(tmp)
+		this.currentPageStream(tmp[0])
+	}
+
+	private readonly navigateToPage = (target: TPages) => {
+		const tmp = this.pageStackStream()
+		tmp.push(target)
+
+		this.pageStackStream(tmp)
+		this.currentPageStream(target)
 	}
 
 	buildDialog(
@@ -31,64 +41,15 @@ export class MultiPageDialog<TPages> {
 	): Dialog {
 		const dialog: Dialog = Dialog.editMediumDialog(
 			{
-				left: () =>
-					getLeftAction(
-						this.currentPage,
-						dialog,
-						(target: TPages) => {
-							const tmp = this.pages()
-							tmp.push(target)
-
-							this.pages(tmp)
-							this.currentPage(target)
-						},
-						() => {
-							const tmp = this.pages()
-							tmp.pop()
-
-							this.pages(tmp)
-						},
-					),
-				middle: () => getPageTitle(this.currentPage),
-				right: () =>
-					getRightAction(
-						this.currentPage,
-						dialog,
-						(target: TPages) => {
-							const tmp = this.pages()
-							tmp.push(target)
-
-							this.pages(tmp)
-							this.currentPage(target)
-						},
-						() => {
-							const tmp = this.pages()
-							tmp.pop()
-
-							this.pages(tmp)
-						},
-					),
+				left: () => getLeftAction(this.currentPageStream, dialog, this.navigateToPage, this.goBack),
+				middle: () => getPageTitle(this.currentPageStream),
+				right: () => getRightAction(this.currentPageStream, dialog, this.navigateToPage, this.goBack),
 			},
 			MultiPageDialogViewWrapper<TPages>,
 			{
-				currentPage: this.currentPage,
-				renderContent: () =>
-					renderContent(
-						this.currentPage,
-						(target: TPages) => {
-							const tmp = this.pages()
-							tmp.push(target)
-
-							this.pages(tmp)
-						},
-						() => {
-							const tmp = this.pages()
-							tmp.pop()
-
-							this.pages(tmp)
-						},
-					),
-				stack: this.pages,
+				currentPageStream: this.currentPageStream,
+				renderContent: () => renderContent(this.currentPageStream, this.navigateToPage, this.goBack),
+				stackStream: this.pageStackStream,
 			},
 			{
 				height: "100%",
@@ -108,9 +69,9 @@ export class MultiPageDialog<TPages> {
 export type TransitionTo<T> = (newPage: T) => void
 
 type Props<TPages> = {
-	currentPage: stream<TPages>
+	currentPageStream: stream<TPages>
 	renderContent: (currentPage: stream<TPages>) => Children
-	stack: stream<TPages[]>
+	stackStream: stream<TPages[]>
 }
 
 export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
@@ -123,20 +84,23 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 	private stackSize = 0
 
 	constructor(vnode: Vnode<Props<TPages>>) {
-		vnode.attrs.stack.map((newStack: TPages[]) => {
+		vnode.attrs.stackStream.map((newStack: TPages[]) => {
 			const newStackLength = newStack.length
 			if (newStackLength < this.stackSize && newStack.length > 0) {
-				this.goBack(vnode.attrs.currentPage())
+				this.goBack(vnode.attrs.currentPageStream())
 				this.stackSize = newStackLength
 			} else if (newStackLength > this.stackSize) {
 				this.stackSize = newStackLength
 				this.transitionTo(newStack[newStackLength - 1])
 			}
 		})
-
-		vnode.attrs.currentPage.map(() => {
+		vnode.attrs.currentPageStream.map(() => {
 			this.hasAnimationEnded = false
 		})
+	}
+
+	onremove(vnode: Mithril.VnodeDOM<Props<TPages>>): any {
+		vnode.attrs.currentPageStream.end(true)
 	}
 
 	oncreate(vnode: VnodeDOM<Props<TPages>>): void {
@@ -166,8 +130,8 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 	}
 
 	private renderPage(vnode: Vnode<Props<TPages>>) {
-		const stackSize = vnode.attrs.stack().length
-		const currentPageStream = stream(vnode.attrs.stack()[stackSize - 1])
+		const stackSize = vnode.attrs.stackStream().length
+		const currentPageStream = stream(vnode.attrs.stackStream()[stackSize - 1])
 		if (this.hasAnimationEnded || this.transitionPage() == null) {
 			return [
 				// m("", { style: { width: this.pageWidth + "px" } }),
@@ -176,7 +140,7 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 		}
 
 		return [
-			stackSize > 1 ? m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPage)) : null,
+			stackSize > 1 ? m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)) : null,
 			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream)),
 		]
 	}
