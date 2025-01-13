@@ -1,7 +1,6 @@
 package de.tutao.tutanota
 
 import android.content.Context
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -248,12 +247,13 @@ class CompatibilityTest {
 
 	@Test
 	fun hmac_sha256() = runBlocking {
-		for(td in testData.hmacSha256Tests) {
+		for (td in testData.hmacSha256Tests) {
 			val key = hexToBytes(td.keyHex)
 			val data = hexToBytes(td.dataHex)
 			val givenTag = hexToBytes(td.hmacSha256TagHex)
-			val computedTag = crypto.hmacSha256(key, data)
-			assertArrayEquals(givenTag, computedTag)
+
+			val computedTag = crypto.hmacSha256(DataWrapper(key), DataWrapper(data))
+			assertArrayEquals(givenTag, computedTag.data)
 		}
 	}
 
