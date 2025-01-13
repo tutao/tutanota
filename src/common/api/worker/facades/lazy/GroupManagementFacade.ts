@@ -389,13 +389,9 @@ export class GroupManagementFacade {
 		} else {
 			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key")
 		}
-		const userRotationNewUserGroupKeyAuthKey = this.keyAuthenticationFacade.deriveUserRotationNewUserGroupKeyAuthKey(userGroup._id, previousUserGroupKey)
+		const userGroupAuthKey = this.keyAuthenticationFacade.deriveUserGroupAuthKey(userGroup._id, previousUserGroupKey)
 
-		const givenUserGroupKeyHash = this.cryptoWrapper.aesDecrypt(
-			userRotationNewUserGroupKeyAuthKey,
-			givenEncryptedUserGroupKeyHash.encryptingKeyEncKeyHash,
-			true,
-		)
+		const givenUserGroupKeyHash = this.cryptoWrapper.aesDecrypt(userGroupAuthKey, givenEncryptedUserGroupKeyHash.encryptingKeyEncKeyHash, true)
 
 		const generatedUserGroupKeyHash = this.keyAuthenticationFacade.generateNewUserGroupKeyHash(versionedDecryptedUserGroupKey)
 
