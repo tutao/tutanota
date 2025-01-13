@@ -21,16 +21,15 @@ export class MultiPageDialog<TPages> {
 		const tmp = this.pageStackStream()
 		tmp.pop()
 
-		this.pageStackStream(tmp)
-		this.currentPageStream(tmp[0])
+		this.navigateToPage(tmp[0])
 	}
 
 	private readonly navigateToPage = (target: TPages) => {
 		const tmp = this.pageStackStream()
 		tmp.push(target)
 
-		this.pageStackStream(tmp)
 		this.currentPageStream(target)
+		this.pageStackStream(tmp)
 	}
 
 	buildDialog(
@@ -107,6 +106,7 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 		this.pagesWrapperDomElement = vnode.dom as HTMLElement
 
 		this.pagesWrapperDomElement.addEventListener("transitionend", () => {
+			document.getElementById("foo-bar-baz")?.classList.remove("transition-transform")
 			this.transitionPage(null)
 			this.translate = 0
 			this.hasAnimationEnded = true
@@ -132,15 +132,19 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 	private renderPage(vnode: Vnode<Props<TPages>>) {
 		const stackSize = vnode.attrs.stackStream().length
 		const currentPageStream = stream(vnode.attrs.stackStream()[stackSize - 1])
-		if (this.hasAnimationEnded || this.transitionPage() == null) {
+		if (this.hasAnimationEnded || (this.transitionPage() == null && stackSize >= 2)) {
 			return [
-				// m("", { style: { width: this.pageWidth + "px" } }),
+				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
 				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream)),
 			]
 		}
 
+		if (stackSize <= 1) {
+			return [null, m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream))]
+		}
+
 		return [
-			stackSize > 1 ? m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)) : null,
+			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
 			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream)),
 		]
 	}
@@ -154,12 +158,13 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 	private transitionTo(target: TPages) {
 		this.hasAnimationEnded = false
 		this.transitionPage(target)
+		document.getElementById("foo-bar-baz")?.classList.add("transition-transform")
 		if (this.stackSize > 1) this.translate = -(this.pageWidth + size.vpad_xxl)
 	}
 
 	view(vnode: Vnode<Props<TPages>>): Children {
 		return m(
-			".flex.gap-vpad-xxl.fit-content.transition-transform",
+			".flex.gap-vpad-xxl.fit-content.#foo-bar-baz",
 			{
 				style: {
 					transform: `translateX(${this.translate}px)`,
