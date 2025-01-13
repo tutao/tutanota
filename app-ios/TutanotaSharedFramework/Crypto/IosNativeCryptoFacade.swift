@@ -1,5 +1,4 @@
 import CryptoKit
-import TutanotaSharedFramework
 import tutasdk
 
 /// High-level cryptographic operations API
@@ -67,7 +66,7 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 	}
 	public func hmacSha256(_ key: DataWrapper, _ data: DataWrapper) -> DataWrapper {
 		let symmetricKey = SymmetricKey(data: key.data)
-		let macTag = TutanotaSharedFramework.hmacSha256(symmetricKey, data.data)
+		let macTag = HMAC<SHA256>.authenticationCode(for: data.data, using: symmetricKey)
 		var bytes: [UInt8] = []
 		bytes.append(contentsOf: macTag)
 		return DataWrapper(data: Data(bytes: bytes, count: bytes.count))

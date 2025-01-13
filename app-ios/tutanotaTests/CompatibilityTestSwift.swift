@@ -162,9 +162,9 @@ class CompatibilityTestSwift: XCTestCase {
 			let dataHex = TUTEncodingConverter.hex(toBytes: test["dataHex"]! as! String)
 			let hmacSha256TagHex = TUTEncodingConverter.hex(toBytes: test["hmacSha256TagHex"]! as! String)
 			let facade = IosNativeCryptoFacade()
-			let tag = try await facade.hmacSha256(keyHex, dataHex)
+			let tag = await facade.hmacSha256(DataWrapper(data: keyHex), DataWrapper(data: dataHex))
 			var output: [UInt8] = []
-			output.append(contentsOf: tag)
+			output.append(contentsOf: tag.data)
 			XCTAssertEqual(Data(output), hmacSha256TagHex)
 		}
 	}
