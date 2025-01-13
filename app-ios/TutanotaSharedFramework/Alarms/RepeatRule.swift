@@ -4,6 +4,7 @@ struct RepeatRule: Equatable {
 	let timeZone: String
 	let endCondition: RepeatEndCondition
 	let excludedDates: [Date]
+	let advancedRules: [AdvancedRule]
 }
 
 extension RepeatRule {
@@ -16,5 +17,13 @@ extension RepeatRule {
 		self.endCondition = RepeatEndCondition(endType: endType, endValue: endValue ?? 0)
 		let decryptedExclusions: [Date] = try encrypted.excludedDates.map { try decrypt(base64: $0.date, key: sessionKey) }
 		self.excludedDates = decryptedExclusions
+		let advancedRules: [AdvancedRule] = try encrypted.advancedRules.map {
+			let decryptedType: String = try decrypt(base64: $0.ruleType, key: sessionKey)
+			let type = try ByRuleType(value: decryptedType)
+
+			let interval: String = try decrypt(base64: $0.interval, key: sessionKey)
+			return AdvancedRule(ruleType: type, interval: interval)
+		}
+		self.advancedRules = advancedRules
 	}
 }
