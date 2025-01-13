@@ -12,7 +12,7 @@ export class KeyCache {
 	// also it is used to decrypt the rest of the keys therefore it requires some special handling
 	private currentUserGroupKey: VersionedKey | null = null
 	// the new user group key will be re-encrypted with this key to distribute the rotated user group key without asking for the password
-	private userGroupKeyDistributionKey: Aes256Key | null = null
+	private userDistKey: Aes256Key | null = null
 
 	setCurrentUserGroupKey(newUserGroupKey: VersionedKey) {
 		if (this.currentUserGroupKey != null && this.currentUserGroupKey.version > newUserGroupKey.version) {
@@ -26,12 +26,12 @@ export class KeyCache {
 		return this.currentUserGroupKey
 	}
 
-	setUserGroupKeyDistributionKey(userGroupKeyDistributionKey: Aes256Key) {
-		this.userGroupKeyDistributionKey = userGroupKeyDistributionKey
+	setUserDistKey(userDistKey: Aes256Key) {
+		this.userDistKey = userDistKey
 	}
 
-	getUserGroupKeyDistributionKey(): Aes256Key | null {
-		return this.userGroupKeyDistributionKey
+	getUserDistKey(): Aes256Key | null {
+		return this.userDistKey
 	}
 
 	/**
@@ -48,7 +48,7 @@ export class KeyCache {
 	reset() {
 		this.currentGroupKeys = new Map<Id, Promise<VersionedKey>>()
 		this.currentUserGroupKey = null
-		this.userGroupKeyDistributionKey = null
+		this.userDistKey = null
 	}
 
 	/**
