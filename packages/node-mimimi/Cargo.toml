@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "tutao_node-mimimi"
-version = "259.250108.1"
+version = "259.250113.0"
 
 [lib]
 # need to have lib to be able to use this from rust tests
