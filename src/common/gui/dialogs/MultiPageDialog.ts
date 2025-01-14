@@ -1,4 +1,4 @@
-import { noOp, Thunk } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/tutanota-utils"
 import { Dialog } from "../base/Dialog.js"
 import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"
@@ -7,6 +7,7 @@ import m from "mithril"
 import Mithril, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { client } from "../../misc/ClientDetector.js"
 import { px, size } from "../size.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 export class MultiPageDialog<TPages> {
 	private readonly currentPageStream: stream<TPages>
@@ -18,13 +19,24 @@ export class MultiPageDialog<TPages> {
 		this.pageStackStream = stream([rootPage])
 	}
 
-	private readonly goBack = () => {
-		if (this.isAnimating()) {
+	private readonly goBack = (to?: TPages) => {
+		if (this.isAnimating() || this.pageStackStream().length < 2) {
 			return
 		}
 
 		const tmp = this.pageStackStream()
-		tmp.pop()
+		if (to !== undefined) {
+			if (!this.pageStackStream().includes(to)) {
+				console.error(new ProgrammingError("Cannot go back to a page that was never visited before."))
+				return
+			}
+
+			while (tmp[tmp.length - 1] !== to) {
+				tmp.pop()
+			}
+		} else {
+			tmp.pop()
+		}
 
 		this.pageStackStream(tmp)
 		this.currentPageStream(tmp[tmp.length - 1])
@@ -43,9 +55,9 @@ export class MultiPageDialog<TPages> {
 	}
 
 	buildDialog(
-		renderContent: (currentPage: stream<TPages>, transitionTo: TransitionTo<TPages>, goBack: Thunk) => Children,
-		getLeftAction: (currentPage: stream<TPages>, dialog: Dialog, navigateToPage: TransitionTo<TPages>, goBack: Thunk) => ButtonAttrs[],
-		getRightAction: (currentPage: stream<TPages>, dialog: Dialog, navigateToPage: TransitionTo<TPages>, goBack: Thunk) => ButtonAttrs[],
+		renderContent: (currentPage: stream<TPages>, transitionTo: TransitionTo<TPages>, goBack: (to?: TPages) => void) => Children,
+		getLeftAction: (currentPage: stream<TPages>, dialog: Dialog, navigateToPage: TransitionTo<TPages>, goBack: (to?: TPages) => void) => ButtonAttrs[],
+		getRightAction: (currentPage: stream<TPages>, dialog: Dialog, navigateToPage: TransitionTo<TPages>, goBack: (to?: TPages) => void) => ButtonAttrs[],
 		getPageTitle: (currentPage: stream<TPages>) => string,
 	): Dialog {
 		const dialog: Dialog = Dialog.editMediumDialog(
@@ -57,7 +69,7 @@ export class MultiPageDialog<TPages> {
 			MultiPageDialogViewWrapper<TPages>,
 			{
 				currentPageStream: this.currentPageStream,
-				renderContent,
+				renderContent: (page: stream<TPages>) => renderContent(page, this.navigateToPage, this.goBack),
 				stackStream: this.pageStackStream,
 				isAnimating: this.isAnimating,
 			},
@@ -144,26 +156,29 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 		}
 	}
 
+	private wrap(children: Children) {
+		return m("", { style: { width: px(this.pageWidth) } }, children)
+	}
+
+	private getFillerPage(currentPage: TPages, stack: TPages[]): stream<TPages> {
+		const page = this.slideDirection == SlideDirection.RIGHT ? stack[stack.length - 2] : this.transitionPage()
+		return stream(page ?? currentPage)
+	}
+
 	private renderPage(vnode: Vnode<Props<TPages>>) {
 		const updatedStackSize = vnode.attrs.stackStream().length
-		const leftPage =
-			this.slideDirection == SlideDirection.RIGHT
-				? stream(vnode.attrs.stackStream()[updatedStackSize - 2] ?? vnode.attrs.currentPageStream())
-				: stream(this.transitionPage() ?? vnode.attrs.currentPageStream())
-		if (!vnode.attrs.isAnimating() || (this.transitionPage() == null && updatedStackSize >= 2)) {
-			const pages = [
-				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(leftPage)),
-				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
-			]
-			return this.slideDirection === SlideDirection.RIGHT ? pages.reverse() : pages
+
+		const fillerPageStream = this.getFillerPage(vnode.attrs.currentPageStream(), vnode.attrs.stackStream())
+
+		const pages = [this.wrap(vnode.attrs.renderContent(fillerPageStream)), this.wrap(vnode.attrs.renderContent(vnode.attrs.currentPageStream))]
+
+		const isOnRootPage = this.transitionPage() == null && updatedStackSize >= 2
+
+		if (vnode.attrs.isAnimating() && !isOnRootPage) {
+			return this.slideDirection === SlideDirection.RIGHT ? pages : pages.reverse()
 		}
 
-		const pages = [
-			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(leftPage)),
-			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
-		]
-
-		return this.slideDirection === SlideDirection.RIGHT ? pages : pages.reverse()
+		return this.slideDirection === SlideDirection.RIGHT ? pages.reverse() : pages
 	}
 
 	private goBack(vnode: Vnode<Props<TPages>>) {
