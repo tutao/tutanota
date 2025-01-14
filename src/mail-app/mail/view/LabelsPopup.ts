@@ -95,7 +95,7 @@ export class LabelsPopup implements ModalComponent {
 			),
 			this.isMaxLabelsReached && m(".small.center.pb-s", lang.get("maximumLabelsPerMailReached_msg")),
 			m(BaseButton, {
-				label: "Apply",
+				label: lang.get("apply_action"),
 				text: lang.get("apply_action"),
 				class: "limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-button button-content justify-center border-top state-bg",
 				onclick: () => {
