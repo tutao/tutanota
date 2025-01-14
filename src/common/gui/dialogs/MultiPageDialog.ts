@@ -9,6 +9,54 @@ import { client } from "../../misc/ClientDetector.js"
 import { px, size } from "../size.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
+type ContentRenderer<TPages> = (currentPage: TPages, dialog: Dialog, navigateToPage: (targetPage: TPages) => void, goBack: (to?: TPages) => void) => Children
+type DialogAction<TPages> = (currentPage: TPages, dialog: Dialog, navigateToPage: (targetPage: TPages) => void, goBack: (to?: TPages) => void) => ButtonAttrs
+
+type DialogHeaderOptions<TPages> = {
+	getLeftAction: DialogAction<TPages>
+	getRightAction: DialogAction<TPages>
+	getPageTitle: (currentPage: TPages) => string
+}
+
+/**
+ * Multipage dialog with transition animations.
+ *
+ * @example
+ * enum UpgradePlanPages {
+ *   PLAN,
+ *   INVOICE,
+ *   CONFIRM
+ * }
+ *
+ * function renderContent(page, dialog, navigateToPage, goBack) {
+ *     if(page === UpgradePlanPages.PLAN) {
+ *         // return your component here for the "plan" page...
+ *     }
+ *
+ *     // ... return your other pages
+ * }
+ *
+ * function getLeftAction(page, dialog, navigateToPage, goBack) {
+ * 		if(page === UpgradePlanPages.PLAN) {
+ *			return {
+ *				type: ButtonType.Secondary,
+ *				click: () => dialog.close()
+ *				label: () => "Close",
+ *			}
+ *		}
+ *  	// ... handle other pages
+ * }
+ *
+ * const dialog = new MultiPageDialog<UpgradePlanPages>()
+ * 	 .buildDialog(renderContent, { getLeftAction, getPageTitle, getRightAction })
+ *
+ * dialog.show()
+ *
+ * @see ContentRenderer
+ * @see DialogAction
+ * @see DialogHeaderOptions
+ * @see ButtonAttrs
+ */
 export class MultiPageDialog<TPages> {
 	private readonly currentPageStream: stream<TPages>
 	private readonly pageStackStream: stream<TPages[]>
@@ -54,22 +102,24 @@ export class MultiPageDialog<TPages> {
 		this.pageStackStream(tmp)
 	}
 
-	buildDialog(
-		renderContent: (currentPage: stream<TPages>, transitionTo: TransitionTo<TPages>, goBack: (to?: TPages) => void) => Children,
-		getLeftAction: (currentPage: stream<TPages>, dialog: Dialog, navigateToPage: TransitionTo<TPages>, goBack: (to?: TPages) => void) => ButtonAttrs[],
-		getRightAction: (currentPage: stream<TPages>, dialog: Dialog, navigateToPage: TransitionTo<TPages>, goBack: (to?: TPages) => void) => ButtonAttrs[],
-		getPageTitle: (currentPage: stream<TPages>) => string,
-	): Dialog {
+	/**
+	 * Prepares dialog attributes and builds a MediumDialog returning it to the caller
+	 * @param renderContent
+	 * @param getLeftAction
+	 * @param getPageTitle
+	 * @param getRightAction
+	 */
+	buildDialog(renderContent: ContentRenderer<TPages>, { getLeftAction, getPageTitle, getRightAction }: DialogHeaderOptions<TPages>): Dialog {
 		const dialog: Dialog = Dialog.editMediumDialog(
 			{
-				left: () => getLeftAction(this.currentPageStream, dialog, this.navigateToPage, this.goBack),
-				middle: () => getPageTitle(this.currentPageStream),
-				right: () => getRightAction(this.currentPageStream, dialog, this.navigateToPage, this.goBack),
+				left: () => [getLeftAction(this.currentPageStream(), dialog, this.navigateToPage, this.goBack)],
+				middle: () => getPageTitle(this.currentPageStream()),
+				right: () => [getRightAction(this.currentPageStream(), dialog, this.navigateToPage, this.goBack)],
 			},
 			MultiPageDialogViewWrapper<TPages>,
 			{
 				currentPageStream: this.currentPageStream,
-				renderContent: (page: stream<TPages>) => renderContent(page, this.navigateToPage, this.goBack),
+				renderContent: (page: stream<TPages>) => renderContent(page(), dialog, this.navigateToPage, this.goBack),
 				stackStream: this.pageStackStream,
 				isAnimating: this.isAnimating,
 			},
@@ -88,8 +138,6 @@ export class MultiPageDialog<TPages> {
 	}
 }
 
-export type TransitionTo<T> = (newPage: T) => void
-
 type Props<TPages> = {
 	currentPageStream: stream<TPages>
 	renderContent: (currentPage: stream<TPages>) => Children
@@ -102,7 +150,7 @@ enum SlideDirection {
 	RIGHT,
 }
 
-export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
+class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	private readonly transitionPage: stream<TPages | null> = stream(null)
 	private dialogHeight: number | null = null
 	private pageWidth: number = -1
