@@ -10,7 +10,12 @@ import { px, size } from "../size.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 
 type ContentRenderer<TPages> = (currentPage: TPages, dialog: Dialog, navigateToPage: (targetPage: TPages) => void, goBack: (to?: TPages) => void) => Children
-type DialogAction<TPages> = (currentPage: TPages, dialog: Dialog, navigateToPage: (targetPage: TPages) => void, goBack: (to?: TPages) => void) => ButtonAttrs
+type DialogAction<TPages> = (
+	currentPage: TPages,
+	dialog: Dialog,
+	navigateToPage: (targetPage: TPages) => void,
+	goBack: (to?: TPages) => void,
+) => ButtonAttrs | undefined
 
 type DialogHeaderOptions<TPages> = {
 	getLeftAction?: DialogAction<TPages>

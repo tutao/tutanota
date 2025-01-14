@@ -1,25 +1,22 @@
-import { emitWizardEvent, WizardEventType, WizardPageAttrs } from "../../gui/base/WizardDialog.js"
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
-import { getLocalisedTopicIssue, handleReturnTo, shouldShowPage, SupportDialogAttrs } from "../SupportDialog.js"
+import { getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { OutlineButton } from "../../gui/base/buttons/OutlineButton.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { Thunk } from "@tutao/tutanota-utils"
 
-export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
-	private dom: HTMLElement | null = null
+type Props = {
+	data: SupportDialogState
+	dialog: Dialog
+	goToContactSupportPage: Thunk
+}
 
-	oncreate(vnode: VnodeDOM<SupportTopicPageAttrs>) {
-		this.dom = vnode.dom as HTMLElement
-		handleReturnTo(vnode.attrs.data.shouldDisplayContact, vnode)
-	}
-
-	view(vnode: Vnode<SupportTopicPageAttrs>): Children {
-		const { shouldDisplayContact, selectedTopic, canHaveEmailSupport } = vnode.attrs.data
-
-		const topic = selectedTopic()
+export class SupportTopicPage implements Component<Props> {
+	view({ attrs: { dialog, data, goToContactSupportPage } }: Vnode<Props>): Children {
+		const topic = data.selectedTopic()
 		if (topic == null) {
-			emitWizardEvent(this.dom, WizardEventType.SHOW_PREVIOUS_PAGE)
 			return
 		}
 
@@ -36,53 +33,15 @@ export class SupportTopicPage implements Component<SupportTopicPageAttrs> {
 			m("section.flex-center.center-vertically.gap-hpad", m("", "Was this helpful?"), [
 				m(OutlineButton, {
 					label: () => "Yes",
-					onclick: () => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG),
+					onclick: () => {
+						dialog.close()
+					},
 				}),
 				m(OutlineButton, {
 					label: () => "No, I need help",
-					onclick: () => {
-						shouldDisplayContact({ value: true, returnTo: vnode.attrs })
-						emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
-					},
+					onclick: goToContactSupportPage,
 				}),
 			]),
 		)
-	}
-}
-
-export class SupportTopicPageAttrs implements WizardPageAttrs<SupportDialogAttrs> {
-	readonly data: SupportDialogAttrs
-
-	constructor(data: SupportDialogAttrs) {
-		this.data = data
-	}
-
-	readonly hideAllPagingButtons = true
-
-	headerTitle(): string {
-		return "Support"
-	}
-
-	getBackButtonText(): string {
-		return "Back"
-	}
-
-	/**
-	 * Goes back to the list of topics in the current category.
-	 */
-	onClickBack() {
-		this.data.selectedTopic?.(null)
-	}
-
-	isEnabled(): boolean {
-		return shouldShowPage(this.data.shouldDisplayContact(), this)
-	}
-
-	isSkipAvailable(): boolean {
-		return false
-	}
-
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		return Promise.resolve(true)
 	}
 }

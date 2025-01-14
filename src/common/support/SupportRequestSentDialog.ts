@@ -4,7 +4,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 type Props = { closeDialog: () => void }
 
 export class SupportRequestSentDialog implements Component<Props> {
-	view(vnode: Vnode<Props>): Children {
+	view({ attrs: { closeDialog } }: Vnode<Props>): Children {
 		return m(
 			".pb-m.pt-m",
 			m(
@@ -31,9 +31,7 @@ export class SupportRequestSentDialog implements Component<Props> {
 					},
 					m(LoginButton, {
 						label: () => "Nice!",
-						onclick: () => {
-							vnode.attrs.closeDialog()
-						},
+						onclick: closeDialog,
 					}),
 				),
 			),

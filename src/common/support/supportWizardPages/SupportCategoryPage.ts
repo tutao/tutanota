@@ -1,28 +1,22 @@
-import { emitWizardEvent, WizardEventType, WizardPageAttrs } from "../../gui/base/WizardDialog.js"
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import {
-	getLocalisedCategoryIntroduction,
-	getLocalisedCategoryName,
-	getLocalisedTopicIssue,
-	handleReturnTo,
-	NoSolutionSectionButton,
-	shouldShowPage,
-	SupportDialogAttrs,
-} from "../SupportDialog.js"
+import { getLocalisedCategoryIntroduction, getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
+import { Thunk } from "@tutao/tutanota-utils"
+import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 
-export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> {
-	private dom: HTMLElement | null = null
+type Props = {
+	data: SupportDialogState
+	goToContactSupport: Thunk
+	goToTopicDetailPage: Thunk
+}
 
-	oncreate(vnode: VnodeDOM<SupportCategoryPageAttrs>) {
-		this.dom = vnode.dom as HTMLElement
-		handleReturnTo(vnode.attrs.data.shouldDisplayContact, vnode)
-	}
-
-	view(vnode: Vnode<SupportCategoryPageAttrs>): Children {
+export class SupportCategoryPage implements Component<Props> {
+	view(vnode: Vnode<Props>): Children {
 		const {
-			data: { shouldDisplayContact, selectedCategory, selectedTopic },
+			data: { selectedCategory, selectedTopic },
+			goToTopicDetailPage,
+			goToContactSupport,
 		} = vnode.attrs
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
@@ -37,45 +31,15 @@ export class SupportCategoryPage implements Component<SupportCategoryPageAttrs> 
 							text: getLocalisedTopicIssue(topic, languageTag),
 							onclick: () => {
 								selectedTopic(topic)
-								emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+								goToTopicDetailPage()
 							},
 						}),
 					),
 				),
 				m(NoSolutionSectionButton, {
-					pageAttrs: vnode.attrs,
-					shouldDisplayContact: shouldDisplayContact,
+					onClick: () => goToContactSupport(),
 				}),
 			]),
 		])
-	}
-}
-
-export class SupportCategoryPageAttrs implements WizardPageAttrs<SupportDialogAttrs> {
-	readonly hideAllPagingButtons = true
-
-	constructor(readonly data: SupportDialogAttrs) {}
-
-	headerTitle(): string {
-		return `Support`
-	}
-
-	/**
-	 * Goes back to the landing page.
-	 */
-	onClickBack() {
-		this.data.selectedCategory?.(null)
-	}
-
-	isEnabled(): boolean {
-		return shouldShowPage(this.data.shouldDisplayContact(), this)
-	}
-
-	isSkipAvailable(): boolean {
-		return false
-	}
-
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		return Promise.resolve(true)
 	}
 }

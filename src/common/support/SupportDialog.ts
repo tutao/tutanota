@@ -1,177 +1,134 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m from "mithril"
 import { assertMainOrNode } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
-import { emitWizardEvent, WizardEventType, WizardPageAttrs } from "../gui/base/WizardDialog.js"
-import { SectionButton } from "../gui/base/buttons/SectionButton.js"
 import Stream from "mithril/stream"
-import { SupportCategory, SupportData, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
-import { MultiPageDialog, TransitionTo } from "../gui/dialogs/MultiPageDialog.js"
-import { Dialog } from "../gui/base/Dialog.js"
-import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { Thunk } from "@tutao/tutanota-utils"
+import stream from "mithril/stream"
+import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
+import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
+import { SupportLandingPage } from "./supportWizardPages/SupportLandingPage.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { SupportCategoryPage } from "./supportWizardPages/SupportCategoryPage.js"
+import { SupportTopicPage } from "./supportWizardPages/SupportTopicPage.js"
+import { ContactSupportPage } from "./supportWizardPages/ContactSupportPage.js"
+import { SupportRequestSentDialog } from "./SupportRequestSentDialog.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { clientInfoString } from "../misc/ErrorReporter.js"
+import { Attachment, SendMailModel } from "../mailFunctionality/SendMailModel.js"
+import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
+import { convertTextToHtml } from "../misc/Formatter.js"
+import { MailMethod, PlanTypeToName } from "../api/common/TutanotaConstants.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
+import { DataFile } from "../api/common/DataFile.js"
 
-assertMainOrNode()
-
-enum ExamplePages {
-	ROOT,
-	SECOND,
-	THIRD,
-}
-
-export async function showSupportDialog(logins: LoginController) {
-	const multiPageDialog = new MultiPageDialog<ExamplePages>(ExamplePages.ROOT)
-
-	function renderContent(currentPage: Stream<ExamplePages>, transitionTo: (newPage: ExamplePages) => void) {
-		// console.log("##### currentPage() in consumer ######", currentPage())
-		if (currentPage() === ExamplePages.ROOT) {
-			return m("h1", "aaa AAAA aaa")
-		}
-		if (currentPage() === ExamplePages.SECOND) {
-			return m("h1", "bbb BBBB bbb")
-		}
-
-		if (currentPage() === ExamplePages.THIRD) {
-			return m("h1", "ccc CCCC ccc")
-		}
-
-		throw new Error("unsupported page")
-	}
-
-	function renderLeft(currentPage: Stream<ExamplePages>, dialog: Dialog, transitionTo: TransitionTo<ExamplePages>, goBack: Thunk): ButtonAttrs[] {
-		if (currentPage() === ExamplePages.ROOT) {
-			return [
-				{
-					type: ButtonType.Secondary,
-					click: () => {
-						dialog.close()
-					},
-					label: () => "Close",
-				},
-			]
-		}
-		if (currentPage() === ExamplePages.SECOND) {
-			return [
-				{
-					type: ButtonType.Secondary,
-					click: () => {
-						goBack()
-					},
-					label: () => "Back",
-				},
-			]
-		}
-
-		if (currentPage() === ExamplePages.THIRD) {
-			return [
-				{
-					type: ButtonType.Secondary,
-					click: () => {
-						goBack()
-					},
-					label: () => "Back",
-				},
-			]
-		}
-
-		throw new Error("unsupported page")
-	}
-
-	function renderRight(currentPage: Stream<ExamplePages>, dialog: Dialog, transitionTo: TransitionTo<ExamplePages>) {
-		if (currentPage() === ExamplePages.ROOT) {
-			return [
-				{
-					type: ButtonType.Secondary,
-					click: () => {
-						transitionTo(ExamplePages.SECOND)
-					},
-					label: () => "Next",
-				},
-			]
-		}
-		if (currentPage() === ExamplePages.SECOND) {
-			return [
-				{
-					type: ButtonType.Secondary,
-					click: () => {
-						transitionTo(ExamplePages.THIRD)
-					},
-					label: () => "Next to third",
-				},
-			]
-		}
-
-		return []
-	}
-
-	function renderHeading(currentPage: Stream<ExamplePages>) {
-		const strings = Object.keys(ExamplePages)
-		return strings[currentPage()]
-	}
-
-	multiPageDialog.buildDialog(renderContent, renderLeft, renderRight, renderHeading).show()
-}
-
-// export async function showSupportDialog(logins: LoginController) {
-// 	const data: SupportDialogAttrs = {
-// 		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
-// 		shouldDisplayContact: Stream({ value: false, returnTo: null }),
-// 		selectedCategory: Stream<SupportCategory | null>(null),
-// 		selectedTopic: Stream<SupportTopic | null>(null),
-// 		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
-// 	}
-// 	const wizardPages = [
-// 		wizardPageWrapper(SupportLandingPage, new SupportLandingPageAttrs(data)),
-// 		wizardPageWrapper(SupportCategoryPage, new SupportCategoryPageAttrs(data)),
-// 		wizardPageWrapper(SupportTopicPage, new SupportTopicPageAttrs(data)),
-// 		wizardPageWrapper(ContactSupportPage, new ContactSupportPageAttrs(data)),
-// 	]
-//
-// 	const wizardBuilder = createWizardDialog(data, wizardPages, async () => {}, DialogType.EditMedium, "close_alt", theme.navigation_bg)
-// 	wizardBuilder.dialog.show()
-// }
-
-export interface SupportDialogAttrs {
+export interface SupportDialogState {
 	canHaveEmailSupport: boolean
-	shouldDisplayContact: Stream<{ value: boolean; returnTo: WizardPageAttrs<any> | null }>
 	selectedCategory: Stream<SupportCategory | null>
 	selectedTopic: Stream<SupportTopic | null>
 	supportData: SupportData
+	htmlEditor: HtmlEditor
+	shouldIncludeLogs: Stream<boolean>
+	userAttachments: stream<DataFile[]>
+	logs: Stream<DataFile[]>
 }
 
-export type NoSolutionSectionButtonAttrs = {
-	shouldDisplayContact: Stream<{ value: boolean; returnTo: WizardPageAttrs<any> | null }>
-	pageAttrs: WizardPageAttrs<any>
+assertMainOrNode()
+
+enum SupportPages {
+	CATEGORIES,
+	CATEGORY_DETAIL,
+	TOPIC_DETAIL,
+	CONTACT_SUPPORT,
+	SUPPORT_REQUEST_SENT,
 }
 
-export class NoSolutionSectionButton implements Component<NoSolutionSectionButtonAttrs> {
-	private dom: HTMLElement | null = null
-
-	oncreate(vnode: VnodeDOM<NoSolutionSectionButtonAttrs>) {
-		this.dom = vnode.dom as HTMLElement
+// Generates a SendMailModel from the User Mailbox
+export async function showSupportDialog(logins: LoginController) {
+	const data: SupportDialogState = {
+		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
+		selectedCategory: Stream<SupportCategory | null>(null),
+		selectedTopic: Stream<SupportTopic | null>(null),
+		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
+		htmlEditor: new HtmlEditor().setMinHeight(200).enableToolbar().setEnabled(true),
+		shouldIncludeLogs: stream(true),
+		userAttachments: stream([]),
+		logs: stream([]),
 	}
-
-	view(vnode: Vnode<NoSolutionSectionButtonAttrs>): Children {
-		return m(SectionButton, {
-			text: "Other",
-			onclick: () => {
-				vnode.attrs.shouldDisplayContact({ value: true, returnTo: vnode.attrs.pageAttrs })
-				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+	const _ = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)
+		.buildDialog(
+			(currentPage, dialog, navigateToPage, goBack) => {
+				switch (currentPage) {
+					case SupportPages.CATEGORY_DETAIL:
+						return m(SupportCategoryPage, {
+							data,
+							goToContactSupport: () => navigateToPage(SupportPages.CONTACT_SUPPORT),
+							goToTopicDetailPage: () => navigateToPage(SupportPages.TOPIC_DETAIL),
+						})
+					case SupportPages.TOPIC_DETAIL:
+						return m(SupportTopicPage, { data, dialog, goToContactSupportPage: () => navigateToPage(SupportPages.CONTACT_SUPPORT) })
+					case SupportPages.CONTACT_SUPPORT:
+						return m(ContactSupportPage, { data, goToSuccessPage: () => navigateToPage(SupportPages.SUPPORT_REQUEST_SENT) })
+					case SupportPages.SUPPORT_REQUEST_SENT:
+						return m(SupportRequestSentDialog, {
+							closeDialog: () => dialog.close(),
+						})
+					case SupportPages.CATEGORIES:
+						return m(SupportLandingPage, {
+							data,
+							toCategoryDetail: () => navigateToPage(SupportPages.CATEGORY_DETAIL),
+							goToContactSupport: () => navigateToPage(SupportPages.CONTACT_SUPPORT),
+						})
+				}
 			},
-		})
-	}
-}
+			{
+				getPageTitle: (currentPage) => {
+					switch (currentPage) {
+						case SupportPages.SUPPORT_REQUEST_SENT:
+							return "We received your request!"
+						case SupportPages.CONTACT_SUPPORT:
+						case SupportPages.CATEGORY_DETAIL:
+						case SupportPages.CATEGORIES:
+						case SupportPages.TOPIC_DETAIL:
+							return "Support"
+					}
+				},
+				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case SupportPages.CATEGORIES:
+							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
+						case SupportPages.TOPIC_DETAIL:
+						case SupportPages.CATEGORY_DETAIL:
+						case SupportPages.CONTACT_SUPPORT:
+							return { type: ButtonType.Secondary, click: () => goBack(), label: () => "Back", title: () => "Back" }
+						case SupportPages.SUPPORT_REQUEST_SENT:
+							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
+					}
+				},
+				getRightAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case SupportPages.CONTACT_SUPPORT:
+							return {
+								type: ButtonType.Primary,
+								label: () => "Send",
+								title: () => "Send",
+								click: async () => {
+									const message = data.htmlEditor.getValue()
+									const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
+									const attachments = data.shouldIncludeLogs() ? [...data.userAttachments(), ...data.logs()] : data.userAttachments()
 
-// Resets `shouldDisplayContact` if the current page is the `returnTo` page
-export function handleReturnTo(shouldDisplayContact: Stream<{ value: boolean; returnTo: WizardPageAttrs<any> | null }>, vnode: Vnode) {
-	if (shouldDisplayContact().value && shouldDisplayContact().returnTo === vnode.attrs) {
-		shouldDisplayContact({ value: false, returnTo: null })
-	}
-}
+									await send(mailBody, attachments, data)
 
-// Determines whether the current page should be shown when navigating to the contact page
-export function shouldShowPage(shouldDisplayContact: { value: boolean; returnTo: WizardPageAttrs<any> | null }, pageAttrs: WizardPageAttrs<any>): boolean {
-	const isReturningHere = shouldDisplayContact.returnTo === pageAttrs
-	return (isReturningHere && shouldDisplayContact.value) || !shouldDisplayContact.value
+									navigateToPage(SupportPages.SUPPORT_REQUEST_SENT)
+								},
+							}
+						default:
+							return undefined
+					}
+				},
+			},
+		)
+		.show()
 }
 
 export function getLocalisedCategoryName(category: SupportCategory, languageTag: string): string {
@@ -184,4 +141,68 @@ export function getLocalisedCategoryIntroduction(category: SupportCategory, lang
 
 export function getLocalisedTopicIssue(topic: SupportTopic, languageTag: string): string {
 	return languageTag.includes("de") ? topic.issueDE : topic.issueEN
+}
+
+/**
+ * Sends an email to the support address
+ * @param rawBody The unsanitised HTML string to be sanitised then used as the emails body
+ * @param attachments The files to be added as attachments to the email
+ * @param data The dialog data required to get the selected category and topic if present.
+ */
+async function send(rawBody: string, attachments: Attachment[], data: SupportDialogState) {
+	const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(rawBody), {
+		blockExternalContent: true,
+	}).html
+
+	const planType = await locator.logins.getUserController().getPlanType()
+
+	/**
+	 * Gets the subject of the support request considering the users current plan and the path they took to get to the contact form.
+	 * Appends the category and topic if present.
+	 *
+	 * **Example output: `Support Request - Unlimited - Account: I cannot login.`**
+	 */
+	function getSubject() {
+		const MAX_ISSUE_LENGTH = 60
+		let subject = `Support Request (${PlanTypeToName[planType]})`
+
+		const selectedCategory = data.selectedCategory()
+		const selectedTopic = data.selectedTopic()
+
+		if (selectedCategory != null && selectedTopic != null) {
+			const localizedTopic = getLocalisedTopicIssue(selectedTopic, lang.languageTag)
+			const issue = localizedTopic.length > MAX_ISSUE_LENGTH ? localizedTopic.substring(0, MAX_ISSUE_LENGTH) + "..." : localizedTopic
+			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
+		}
+
+		if (selectedCategory != null && selectedTopic == null) {
+			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
+		}
+
+		return subject
+	}
+
+	const sendMailModel = await createSendMailModel()
+	const model = await sendMailModel.initWithTemplate(
+		{
+			to: [
+				{
+					name: null,
+					// address: "premium@tutao.de",
+					address: "arm-free@tutanota.de",
+				},
+			],
+		},
+		getSubject(),
+		sanitisedBody,
+		attachments,
+		false,
+	)
+	await model.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
+}
+
+async function createSendMailModel(): Promise<SendMailModel> {
+	const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	return await locator.sendMailModel(mailboxDetails, mailboxProperties)
 }
