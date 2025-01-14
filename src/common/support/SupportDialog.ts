@@ -57,7 +57,7 @@ export async function showSupportDialog(logins: LoginController) {
 	}
 	const _ = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)
 		.buildDialog(
-			(currentPage, dialog, navigateToPage, goBack) => {
+			(currentPage, dialog, navigateToPage, _) => {
 				switch (currentPage) {
 					case SupportPages.CATEGORY_DETAIL:
 						return m(SupportCategoryPage, {
@@ -105,25 +105,22 @@ export async function showSupportDialog(logins: LoginController) {
 							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
 					}
 				},
-				getRightAction: (currentPage, dialog, navigateToPage, goBack) => {
-					switch (currentPage) {
-						case SupportPages.CONTACT_SUPPORT:
-							return {
-								type: ButtonType.Primary,
-								label: () => "Send",
-								title: () => "Send",
-								click: async () => {
-									const message = data.htmlEditor.getValue()
-									const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
-									const attachments = data.shouldIncludeLogs() ? [...data.userAttachments(), ...data.logs()] : data.userAttachments()
+				getRightAction: (currentPage, _, navigateToPage, __) => {
+					if (currentPage === SupportPages.CONTACT_SUPPORT) {
+						return {
+							type: ButtonType.Primary,
+							label: () => "Send",
+							title: () => "Send",
+							click: async () => {
+								const message = data.htmlEditor.getValue()
+								const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
+								const attachments = data.shouldIncludeLogs() ? [...data.userAttachments(), ...data.logs()] : data.userAttachments()
 
-									await send(mailBody, attachments, data)
+								await send(mailBody, attachments, data)
 
-									navigateToPage(SupportPages.SUPPORT_REQUEST_SENT)
-								},
-							}
-						default:
-							return undefined
+								navigateToPage(SupportPages.SUPPORT_REQUEST_SENT)
+							},
+						}
 					}
 				},
 			},
