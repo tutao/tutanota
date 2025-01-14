@@ -1,4 +1,4 @@
-import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { GroupType } from "../api/common/TutanotaConstants"
 import { getDefaultGroupName, ShareableGroupType } from "./GroupUtils"
@@ -16,7 +16,7 @@ export type GroupSharingTexts = {
 	readonly shareEmailBody: (sharer: string, groupName: string) => string
 	readonly addMemberMessage: (groupName: string) => string
 	readonly removeMemberMessage: (groupName: string, member: string) => string
-	readonly alreadyGroupMemberMessage: TranslationText
+	readonly alreadyGroupMemberMessage: MaybeTranslation
 	readonly receivedGroupInvitationMessage: string
 	readonly sharedGroupDefaultCustomName: (invitation: ReceivedGroupInvitation) => string
 	readonly yourCustomNameLabel: (groupName: string) => string

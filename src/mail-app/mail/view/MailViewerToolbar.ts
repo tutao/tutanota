@@ -168,18 +168,17 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 						type: ButtonType.Secondary,
 					},
 				],
-				middle: () => "",
+				middle: "emptyString_msg",
 			}
 
 			return m(IconButton, {
 				title: "export_action",
 				click: () =>
 					showProgressDialog(
-						() =>
-							lang.get("mailExportProgress_msg", {
-								"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
-								"{total}": attrs.mails.length,
-							}),
+						lang.getTranslation("mailExportProgress_msg", {
+							"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
+							"{total}": attrs.mails.length,
+						}),
 						exportMails(
 							attrs.mails,
 							locator.mailFacade,
@@ -209,14 +208,16 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 			const expanded = stream<boolean>(false)
 			const dialog = Dialog.createActionDialog({
-				title: lang.get("failedToExport_title"),
+				title: "failedToExport_title",
 				child: () =>
 					m("", [
 						m(".pt-m", lang.get("failedToExport_msg")),
 						m(".flex-start.items-center", [
 							m(ExpanderButton, {
-								label: () =>
+								label: lang.makeTranslation(
+									"hide_show",
 									`${lang.get(expanded() ? "hide_action" : "show_action")} ${lang.get("failedToExport_label", { "{0}": mailList.length })}`,
+								),
 								expanded: expanded(),
 								onExpandedChange: expanded,
 							}),

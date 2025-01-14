@@ -3,11 +3,11 @@ import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../common/gui/base/Button.js"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons.js"
-import type { TranslationText } from "../../common/misc/LanguageViewModel.js"
+import type { MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 
 export type FloatingActionButtonAttrs = {
-	title: TranslationText
+	title: MaybeTranslation
 	colors: ButtonColor
 	icon: Icons | BootIcons
 	action: () => unknown

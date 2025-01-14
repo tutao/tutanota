@@ -13,6 +13,7 @@ import { px } from "./size.js"
 import { theme } from "./theme.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { ClickHandler } from "./base/GuiUtils.js"
+import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	columnType: "first" | "other"
@@ -25,7 +26,7 @@ export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	 * in the second column in two column layout.
 	 */
 	primaryAction: () => Children
-	title?: string
+	title?: MaybeTranslation
 	backAction: () => unknown
 	useBackButton?: boolean
 }
@@ -44,7 +45,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 			left: this.renderLeftAction(attrs),
 			center: firstVisibleColumn
 				? m(MobileHeaderTitle, {
-						title: attrs.title,
+						title: attrs.title ? lang.getTranslationText(attrs.title) : undefined,
 						bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				  })
 				: null,

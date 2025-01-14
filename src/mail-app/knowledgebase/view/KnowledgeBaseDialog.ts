@@ -53,7 +53,7 @@ function createEntryViewHeader(entry: KnowledgeBaseEntry, model: KnowledgeBaseMo
 				type: ButtonType.Secondary,
 			},
 		],
-		middle: () => lang.get("knowledgebase_label"),
+		middle: "knowledgebase_label",
 	}
 }
 
@@ -66,7 +66,7 @@ function createListViewHeader(model: KnowledgeBaseModel, isDialogVisible: Stream
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => lang.get("knowledgebase_label"),
+		middle: "knowledgebase_label",
 		right: [createAddButtonAttrs(model)],
 	}
 }
@@ -90,7 +90,7 @@ function createAddButtonAttrs(model: KnowledgeBaseModel): ButtonAttrs {
 				lazyButtons: () =>
 					templateGroupInstances.map((groupInstances) => {
 						return {
-							label: () => getSharedGroupName(groupInstances.groupInfo, model.userController, true),
+							label: lang.makeTranslation("group_name", getSharedGroupName(groupInstances.groupInfo, model.userController, true)),
 							click: () => {
 								showKnowledgeBaseEditor(null, groupInstances.groupRoot)
 							},

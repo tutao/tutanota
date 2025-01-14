@@ -166,7 +166,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		}
 
 		Dialog.showActionDialog({
-			title: lang.get("addUserToGroup_label"),
+			title: "addUserToGroup_label",
 			child: {
 				view: () =>
 					m(DropDownSelector, {

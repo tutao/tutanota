@@ -11,7 +11,7 @@ import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextField.js"
 import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.js"
 import { lazy, noOp } from "@tutao/tutanota-utils"
-import { lang } from "../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../common/misc/LanguageViewModel.js"
 import { isSameId } from "../../common/api/common/utils/EntityUtils.js"
 import { Keys } from "../../common/api/common/TutanotaConstants.js"
 import { isMailAddress } from "../../common/misc/FormatValidator.js"
@@ -19,7 +19,7 @@ import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUt
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,
-	headerText: string,
+	headerText: TranslationKey,
 	save: (name: string, addresses: Array<string>) => void,
 	addressesOnList?: Array<string>,
 ): Promise<void> {
@@ -59,7 +59,7 @@ export async function showContactListEditor(
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => headerText,
+		middle: headerText,
 	}
 
 	const dialog = Dialog.editDialog(headerBarAttrs, ContactListEditor, {
@@ -91,7 +91,7 @@ export async function showContactListNameEditor(name: string, save: (name: strin
 	}
 
 	Dialog.showActionDialog({
-		title: lang.get("editContactList_action"),
+		title: "editContactList_action",
 		child: form,
 		allowOkWithReturn: true,
 		okAction: okAction,

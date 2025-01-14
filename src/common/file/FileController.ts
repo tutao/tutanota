@@ -31,6 +31,7 @@ export enum VCARD_MIME_TYPES {
 	X_VCARD = "text/x-vcard",
 	VCARD = "text/vcard",
 }
+
 export enum MAIL_MIME_TYPES {
 	EML = "message/rfc822",
 	MBOX = "application/mbox",
@@ -65,7 +66,7 @@ export abstract class FileController {
 						if (msg === "couldNotAttachFile_msg") {
 							isOffline = true
 						} else {
-							Dialog.message(() => lang.get(msg) + " " + file.name)
+							Dialog.message(lang.makeTranslation("error_msg", lang.get(msg) + " " + file.name))
 						}
 					})
 					if (isOffline) break // don't try to download more files, but the previous ones (if any) will still be downloaded

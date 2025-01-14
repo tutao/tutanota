@@ -50,7 +50,7 @@ export function show(model: CustomColorsEditorViewModel) {
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => lang.get("customColors_label"),
+		middle: "customColors_label",
 	}
 	let dialog = Dialog.largeDialog(actionBarAttrs, form)
 		.addShortcut({

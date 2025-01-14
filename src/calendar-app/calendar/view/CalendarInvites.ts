@@ -20,6 +20,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -173,7 +174,7 @@ export class CalendarInviteHandler {
 			await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
 		} catch (e) {
 			if (e instanceof UserError) {
-				await Dialog.message(() => e.message)
+				await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
 				return ReplyResult.ReplyNotSent
 			} else {
 				throw e

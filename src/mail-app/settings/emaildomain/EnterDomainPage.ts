@@ -75,8 +75,8 @@ export class EnterDomainPageAttrs implements WizardPageAttrs<AddDomainData> {
 		this.data = domainData
 	}
 
-	headerTitle(): string {
-		return lang.get("domainSetup_title")
+	headerTitle(): TranslationKey {
+		return "domainSetup_title"
 	}
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {

@@ -22,7 +22,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 	}
 	const header: DialogHeaderBarAttrs = {
 		left: [closeButton],
-		middle: () => lang.get("news_label"),
+		middle: "news_label",
 	}
 
 	let loaded = false
@@ -42,7 +42,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 						  })
 						: m(
 								".flex-center.mt-l",
-								m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getMaybeLazy("pleaseWait_msg"))]),
+								m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getTranslationText("pleaseWait_msg"))]),
 						  ),
 				]),
 			]

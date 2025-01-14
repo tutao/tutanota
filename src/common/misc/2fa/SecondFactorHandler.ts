@@ -128,7 +128,7 @@ export class SecondFactorHandler {
 		}
 
 		this.otherLoginDialog = Dialog.showActionDialog({
-			title: lang.get("secondFactorConfirmLogin_label"),
+			title: "secondFactorConfirmLogin_label",
 			child: {
 				view: () => m(".text-break.pt", text),
 			},

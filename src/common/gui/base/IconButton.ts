@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationText } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
@@ -12,7 +12,7 @@ assertMainOrNode()
 
 export interface IconButtonAttrs {
 	icon: AllIcons
-	title: TranslationText
+	title: MaybeTranslation
 	click: ClickHandler
 	colors?: ButtonColor
 	size?: ButtonSize
@@ -23,7 +23,7 @@ export interface IconButtonAttrs {
 export class IconButton implements Component<IconButtonAttrs> {
 	view({ attrs }: Vnode<IconButtonAttrs>): Children {
 		return m(BaseButton, {
-			label: lang.getMaybeLazy(attrs.title),
+			label: attrs.title,
 			icon: m(Icon, {
 				icon: attrs.icon,
 				container: "div",

@@ -173,7 +173,7 @@ export function show(): void {
 		}
 
 		Dialog.showActionDialog({
-			title: viewModel.groupType == GroupType.Mail ? lang.get("createSharedMailbox_label") : lang.get("addGroup_label"),
+			title: viewModel.groupType == GroupType.Mail ? "createSharedMailbox_label" : "addGroup_label",
 			child: () =>
 				m(AddGroupDialog, {
 					selectedDomain: viewModel.selectedDomain,
@@ -210,7 +210,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 						const plans = await getAvailablePlansWithTemplates()
 						showPlanUpgradeRequiredDialog(plans)
 					} else {
-						Dialog.message(() => e.message)
+						Dialog.message(lang.makeTranslation("confirm_msg", e.message))
 					}
 
 					return false

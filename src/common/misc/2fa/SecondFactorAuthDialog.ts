@@ -111,7 +111,7 @@ export class SecondFactorAuthDialog {
 
 		const { mailAddress } = this.authData
 		this.waitingForSecondFactorDialog = Dialog.showActionDialog({
-			title: "",
+			title: "emptyString_msg",
 			allowOkWithReturn: true,
 			child: {
 				view: () => {

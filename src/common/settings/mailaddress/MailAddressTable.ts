@@ -185,8 +185,8 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 	if (deactivateOrDeleteAlias) {
 		// alias from custom domains will be deleted. Tutanota aliases will be deactivated
 		const message: TranslationKey = alias.status === AddressStatus.Custom ? "deleteAlias_msg" : "deactivateAlias_msg"
-		const confirmed = await Dialog.confirm(() =>
-			lang.get(message, {
+		const confirmed = await Dialog.confirm(
+			lang.getTranslation(message, {
 				"{1}": alias.address,
 			}),
 		)
@@ -206,7 +206,7 @@ function showSenderNameChangeDialog(model: MailAddressTableModel, alias: { addre
 	Dialog.showTextInputDialog({
 		title: "edit_action",
 		label: "mailName_label",
-		infoMsgId: () => alias.address,
+		infoMsgId: lang.makeTranslation("alias_addr", alias.address),
 		defaultValue: alias.name,
 	}).then((newName) => showProgressDialog("pleaseWait_msg", model.setAliasName(alias.address, newName)))
 }

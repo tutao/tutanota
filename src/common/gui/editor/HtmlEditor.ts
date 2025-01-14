@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import stream from "mithril/stream"
 import { Editor } from "./Editor.js"
-import type { TranslationKey, TranslationText } from "../../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { px } from "../size"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
@@ -27,12 +27,12 @@ export class HtmlEditor implements Component {
 	private placeholderDomElement: HTMLElement | null = null
 	private value = stream("")
 	private htmlMonospace = true
-	private modeSwitcherLabel: TranslationText | null = null
+	private modeSwitcherLabel: MaybeTranslation | null = null
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 
-	constructor(private label?: TranslationText, private readonly injections?: () => Children) {
+	constructor(private label?: MaybeTranslation, private readonly injections?: () => Children) {
 		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment, null)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
@@ -64,7 +64,7 @@ export class HtmlEditor implements Component {
 		return m(".html-editor" + (this.mode === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), { class: this.editor.isEnabled() ? "" : "disabled" }, [
 			modeSwitcherLabel != null
 				? m(DropDownSelector, {
-						label: () => lang.getMaybeLazy(modeSwitcherLabel),
+						label: modeSwitcherLabel,
 						items: [
 							{ name: lang.get("richText_label"), value: HtmlEditorMode.WYSIWYG },
 							{ name: lang.get("htmlSourceCode_label"), value: HtmlEditorMode.HTML },
@@ -77,7 +77,7 @@ export class HtmlEditor implements Component {
 						},
 				  })
 				: null,
-			this.label ? m(".small.mt-form", lang.getMaybeLazy(this.label)) : null,
+			this.label ? m(".small.mt-form", lang.getTranslationText(this.label)) : null,
 			m(borderClasses, [
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG
@@ -157,7 +157,7 @@ export class HtmlEditor implements Component {
 		}
 	}
 
-	setModeSwitcher(label: TranslationText): this {
+	setModeSwitcher(label: MaybeTranslation): this {
 		this.modeSwitcherLabel = label
 		return this
 	}

@@ -12,7 +12,7 @@ import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
 import { Keys, PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, Translation } from "../../misc/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "../../api/common/error/RestError"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { client } from "../../misc/ClientDetector"
@@ -82,8 +82,8 @@ class PurchaseGiftCardModel {
 
 			switch (message) {
 				case "giftcard.limitreached":
-					throw new UserError(() =>
-						lang.get("tooManyGiftCards_msg", {
+					throw new UserError(
+						lang.getTranslation("tooManyGiftCards_msg", {
 							"{amount}": `${this.purchaseLimit}`,
 							"{period}": `${this.purchasePeriodMonths} months`,
 						}),
@@ -143,7 +143,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 								},
 							}),
 						price: formatPrice(value, true),
-						helpLabel: () => this.getGiftCardHelpText(model.revolutionaryPrice, value),
+						helpLabel: this.getGiftCardHelpText(model.revolutionaryPrice, value),
 						width: 230,
 						height: 250,
 						selectedPaymentInterval: null,
@@ -174,7 +174,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 		onPurchaseSuccess(giftCard)
 	}
 
-	private getGiftCardHelpText(upgradePrice: number, giftCardValue: number): string {
+	private getGiftCardHelpText(upgradePrice: number, giftCardValue: number): Translation {
 		let helpTextId: TranslationKeyType
 		if (giftCardValue < upgradePrice) {
 			helpTextId = "giftCardOptionTextC_msg"
@@ -183,7 +183,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 		} else {
 			helpTextId = "giftCardOptionTextE_msg"
 		}
-		return lang.get(helpTextId, {
+		return lang.getTranslation(helpTextId, {
 			"{remainingCredit}": formatPrice(giftCardValue - upgradePrice, true),
 			"{fullCredit}": formatPrice(giftCardValue, true),
 		})
@@ -221,7 +221,7 @@ export async function showPurchaseGiftCardDialog() {
 				click: () => dialog.close(),
 			},
 		],
-		middle: () => lang.get("buyGiftCard_label"),
+		middle: "buyGiftCard_label",
 	}
 
 	const content = {
@@ -270,8 +270,8 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 	const numPurchasedGiftCards = count(existingGiftCards, (giftCard) => giftCard.orderDate > sixMonthsAgo)
 
 	if (numPurchasedGiftCards >= parseInt(giftCardInfo.maxPerPeriod)) {
-		throw new UserError(() =>
-			lang.get("tooManyGiftCards_msg", {
+		throw new UserError(
+			lang.getTranslation("tooManyGiftCards_msg", {
 				"{amount}": giftCardInfo.maxPerPeriod,
 				"{period}": `${giftCardInfo.period} months`,
 			}),

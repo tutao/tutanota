@@ -1,15 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
-import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
+import { lang, Translation, TranslationKey, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 
-export type LoginButtonAttrs = Pick<BaseButtonAttrs, "onclick" | "class"> & { label: TranslationText; disabled?: boolean }
+export type LoginButtonAttrs = Pick<BaseButtonAttrs, "onclick" | "class"> & { label: MaybeTranslation; disabled?: boolean }
 
 export class LoginButton implements Component<LoginButtonAttrs> {
 	view({ attrs }: Vnode<LoginButtonAttrs>): Children {
-		const label = lang.getMaybeLazy(attrs.label)
 		return m(BaseButton, {
-			label,
-			text: label,
+			label: attrs.label,
+			text: lang.getTranslationText(attrs.label),
 
 			// This makes the button appear "disabled" (grey color, no hover) when disabled is set to true
 			class: `button-content border-radius ${attrs.disabled ? "button-bg" : `accent-bg`} full-width center plr-button flash ${attrs.class} `,

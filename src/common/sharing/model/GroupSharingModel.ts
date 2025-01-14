@@ -150,7 +150,12 @@ export class GroupSharingModel {
 			}
 		}
 		if (externalRecipients.length) {
-			throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + externalRecipients.join("\n"))
+			throw new UserError(
+				lang.makeTranslation(
+					"featureTutanotaOnly_msg",
+					lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + externalRecipients.join("\n"),
+				),
+			)
 		}
 
 		let groupInvitationReturn
@@ -162,7 +167,12 @@ export class GroupSharingModel {
 			)
 		} catch (e) {
 			if (e instanceof RecipientsNotFoundError) {
-				throw new UserError(() => `${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`)
+				throw new UserError(
+					lang.makeTranslation(
+						"tutanotaAddressDoesNotExist_msg",
+						`${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`,
+					),
+				)
 			} else {
 				throw e
 			}
@@ -171,13 +181,11 @@ export class GroupSharingModel {
 		if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
 			const existingMailAddresses = groupInvitationReturn.existingMailAddresses.map((ma) => ma.address).join("\n")
 			const invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map((ma) => ma.address).join("\n")
-			throw new UserError(() => {
-				let msg = ""
-				msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
-				msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
-				msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
-				return msg
-			})
+			let msg = ""
+			msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
+			msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
+			msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
+			throw new UserError(lang.makeTranslation("group_invitation_err", msg))
 		}
 
 		return groupInvitationReturn.invitedMailAddresses

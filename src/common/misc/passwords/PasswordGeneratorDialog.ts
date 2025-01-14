@@ -39,7 +39,7 @@ export async function showPasswordGeneratorDialog(): Promise<string> {
 		updateAction()
 
 		const dialog = Dialog.showActionDialog({
-			title: () => "Passphrase",
+			title: lang.makeTranslation("passphrase_title", "Passphrase"),
 			child: {
 				view: () =>
 					m(PasswordGeneratorDialog, {

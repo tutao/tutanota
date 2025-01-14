@@ -295,7 +295,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		Promise.all(groupInfoLoadingPromises).then(() => {
 			const groupInfoValue = groupInfo()
 			let dialog = Dialog.showActionDialog({
-				title: lang.get("auditLog_title"),
+				title: "auditLog_title",
 				child: {
 					view: () =>
 						m("table.pt", [

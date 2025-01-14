@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { AllIcons } from "./Icon"
 import { Icon } from "./Icon"
@@ -11,7 +11,7 @@ assertMainOrNode()
 
 // If you change this make sure you pass through all the attrs
 export type InfoMessaggeBoxAttrs = {
-	message: TranslationKey | lazy<Children>
+	message: MaybeTranslation
 	icon?: AllIcons
 	color: string
 	bottomContent?: Children
@@ -38,7 +38,7 @@ export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 						color: attrs.color,
 					},
 				},
-				getMessage(attrs),
+				lang.getTranslationText(attrs.message),
 			),
 		])
 	}
@@ -79,8 +79,4 @@ export default class ColumnEmptyMessageBox implements Component<ColumnEmptyMessa
 			),
 		)
 	}
-}
-
-function getMessage({ message }: InfoMessaggeBoxAttrs) {
-	return typeof message === "function" ? message() : lang.get(message)
 }

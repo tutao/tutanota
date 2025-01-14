@@ -1,6 +1,6 @@
 import { SessionType } from "../api/common/SessionType.js"
 import { LoginState } from "../login/LoginViewModel.js"
-import { InfoLink, lang, TranslationText } from "../misc/LanguageViewModel.js"
+import { InfoLink, lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
@@ -23,7 +23,7 @@ export class TerminationViewModel {
 	date: Date
 	terminationPeriodOption: TerminationPeriodOptions
 	acceptedTerminationRequest: CustomerAccountTerminationRequest | null
-	helpText: TranslationText
+	helpText: MaybeTranslation
 	loginState: LoginState
 
 	constructor(
@@ -72,8 +72,8 @@ export class TerminationViewModel {
 						this.onTerminationRequestFailed("terminationNoActiveSubscription_msg")
 						break
 					case "hasAppStoreSubscription":
-						this.onTerminationRequestFailed(() =>
-							lang.get("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+						this.onTerminationRequestFailed(
+							lang.getTranslation("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
 						)
 						break
 					default:
@@ -88,7 +88,7 @@ export class TerminationViewModel {
 		}
 	}
 
-	private onTerminationRequestFailed(errorMessage: TranslationText) {
+	private onTerminationRequestFailed(errorMessage: MaybeTranslation) {
 		this.helpText = errorMessage
 	}
 
@@ -97,7 +97,7 @@ export class TerminationViewModel {
 		this.loginState = LoginState.LoggedIn
 	}
 
-	private onError(helpText: TranslationText, state: LoginState) {
+	private onError(helpText: MaybeTranslation, state: LoginState) {
 		this.helpText = helpText
 		this.loginState = state
 	}

@@ -68,7 +68,7 @@ function showDialog(okLabel: TranslationKey, view: () => Children) {
 
 		dialog = Dialog.showActionDialog({
 			okActionTextId: okLabel,
-			title: () => lang.get("bookingSummary_label"),
+			title: "bookingSummary_label",
 			child: () => view(),
 			okAction: () => doAction(true),
 			cancelAction: () => doAction(false),

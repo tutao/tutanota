@@ -17,7 +17,7 @@ function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDe
 				label: () => lang.get("rememberDecision_msg"),
 				checked: shallRememberDecision,
 				onChecked: (v) => (shallRememberDecision = v),
-				helpLabel: () => lang.get("changeMailSettings_msg"),
+				helpLabel: "changeMailSettings_msg",
 			})
 
 		async function updateSpamReportSetting(areMailsReported: boolean) {
@@ -47,7 +47,7 @@ function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDe
 		}
 
 		const dialog = Dialog.confirmMultiple(
-			() => lang.get("unencryptedTransmission_msg") + " " + lang.get("allowOperation_msg"),
+			lang.makeTranslation("unencryptedTransmission_msg", lang.get("unencryptedTransmission_msg") + " " + lang.get("allowOperation_msg")),
 			[noButton, yesButton],
 			onclose,
 			child,

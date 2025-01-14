@@ -147,7 +147,7 @@ class RedeemGiftCardModel {
 			)
 			.catch(
 				ofClass(NotAuthorizedError, (e) => {
-					throw new UserError(() => e.message)
+					throw new UserError(lang.makeTranslation("error_msg", e.message))
 				}),
 			)
 	}
@@ -282,7 +282,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 						if (e instanceof UserError) {
 							showUserError(e)
 						} else {
-							this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
+							this.loginFormHelpText = lang.getTranslationText(getLoginErrorMessage(e, false))
 						}
 					}
 				}
@@ -308,7 +308,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 					if (e instanceof UserError) {
 						showUserError(e)
 					} else {
-						this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
+						this.loginFormHelpText = lang.getTranslationText(getLoginErrorMessage(e, false))
 						handleExpectedLoginError(e, noOp)
 					}
 				}
@@ -508,21 +508,21 @@ export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dia
 	const wizardPages = [
 		wizardPageWrapper(GiftCardWelcomePage, {
 			data: model,
-			headerTitle: () => lang.get("giftCard_label"),
+			headerTitle: () => "giftCard_label",
 			nextAction: async () => true,
 			isSkipAvailable: () => false,
 			isEnabled: () => true,
 		}),
 		wizardPageWrapper(GiftCardCredentialsPage, {
 			data: model,
-			headerTitle: () => lang.get(model.credentialsMethod === GetCredentialsMethod.Signup ? "register_label" : "login_label"),
+			headerTitle: () => (model.credentialsMethod === GetCredentialsMethod.Signup ? "register_label" : "login_label"),
 			nextAction: async () => true,
 			isSkipAvailable: () => false,
 			isEnabled: () => true,
 		}),
 		wizardPageWrapper(RedeemGiftCardPage, {
 			data: model,
-			headerTitle: () => lang.get("redeem_label"),
+			headerTitle: () => "redeem_label",
 			nextAction: async () => true,
 			isSkipAvailable: () => false,
 			isEnabled: () => true,

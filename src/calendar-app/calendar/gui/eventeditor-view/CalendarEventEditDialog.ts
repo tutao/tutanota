@@ -7,7 +7,7 @@
  */
 
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
-import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../common/gui/base/Button.js"
 import { Keys } from "../../../../common/api/common/TutanotaConstants.js"
 import { AlarmInterval, getStartOfTheWeekOffsetForUser, getTimeFormatForUser, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -114,10 +114,8 @@ export class EventEditorDialog {
 			handler(dom.getBoundingClientRect(), () => dialog.close())
 		}
 
-		const heading = () => {
-			const summary = model.editModels.summary.content
-			return summary.trim().length > 0 ? summary : lang.get("createEvent_label")
-		}
+		const summary = model.editModels.summary.content
+		const heading = summary.trim().length > 0 ? lang.makeTranslation("summary", summary) : "createEvent_label"
 
 		const navigationCallback = (targetPage: EditorPages) => {
 			this.currentPage(targetPage)

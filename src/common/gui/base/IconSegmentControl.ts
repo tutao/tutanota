@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
-import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { ButtonColor, getColors } from "./Button.js"
 import { px } from "../size.js"
 
 export interface IconSegmentControlItem<T> {
 	icon: AllIcons
-	label: TranslationText
+	label: MaybeTranslation
 	value: T
 }
 
@@ -29,7 +29,7 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 					role: "tablist",
 				},
 				vnode.attrs.items.map((item) => {
-					const title = lang.getMaybeLazy(item.label)
+					const title = lang.getTranslationText(item.label)
 					return m(
 						"button.icon-segment-control-item.flex.center-horizontally.center-vertically.text-ellipsis.small.state-bg.pt-xs.pb-xs",
 						{

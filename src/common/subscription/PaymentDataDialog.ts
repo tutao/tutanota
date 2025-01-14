@@ -86,7 +86,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 		}
 
 		const dialog = Dialog.showActionDialog({
-			title: lang.get("adminPayment_action"),
+			title: "adminPayment_action",
 			child: {
 				view: () =>
 					m(
@@ -111,7 +111,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 			okAction: confirmAction,
 			// if they've just gone through the process of linking a paypal account, don't offer a cancel button
 			allowCancel: () => !didLinkPaypal(),
-			okActionTextId: () => (didLinkPaypal() ? "close_alt" : "save_action"),
+			okActionTextId: didLinkPaypal() ? "close_alt" : "save_action",
 			cancelAction: () => resolve(false),
 		})
 	})

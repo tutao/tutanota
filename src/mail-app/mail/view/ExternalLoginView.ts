@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { AccessExpiredError } from "../../../common/api/common/error/RestError.js"
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "@tutao/tutanota-utils"
-import type { TranslationText } from "../../../common/misc/LanguageViewModel.js"
+import type { MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { client } from "../../../common/misc/ClientDetector.js"
@@ -34,8 +34,8 @@ type UrlData = { userId: Id; salt: Uint8Array; kdfType: KdfType }
 export class ExternalLoginViewModel {
 	password: string = ""
 	doSavePassword: boolean = false
-	helpText: TranslationText = "emptyString_msg"
-	errorMessageId: TranslationText | null = null
+	helpText: MaybeTranslation = "emptyString_msg"
+	errorMessageId: MaybeTranslation | null = null
 	autologinInProgress = false
 	showAutoLoginButton = false
 
@@ -221,12 +221,12 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 		if (this.viewModel.autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this.viewModel.errorMessageId) {
-			return m("p.center", m(MessageBox, {}, lang.getMaybeLazy(this.viewModel.errorMessageId)))
+			return m("p.center", m(MessageBox, {}, lang.getTranslationText(this.viewModel.errorMessageId)))
 		} else {
 			return [
 				m(".flex.col.content-bg.border-radius-big.plr-2l.mt", [
 					this.viewModel.showAutoLoginButton ? this.renderAutoLoginButton() : this.renderForm(),
-					m("p.center.statusTextColor.mt-xs.mb-s", m("small", lang.getMaybeLazy(this.viewModel.helpText))),
+					m("p.center.statusTextColor.mt-xs.mb-s", m("small", lang.getTranslationText(this.viewModel.helpText), [])),
 				]),
 				m(".flex-grow"),
 				renderInfoLinks(),
@@ -254,7 +254,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 			}),
 			m(Checkbox, {
 				label: () => lang.get("storePassword_action"),
-				helpLabel: () => lang.get("onlyPrivateComputer_msg"),
+				helpLabel: "onlyPrivateComputer_msg",
 				checked: this.viewModel.doSavePassword,
 				onChecked: (checked) => (this.viewModel.doSavePassword = checked),
 			}),

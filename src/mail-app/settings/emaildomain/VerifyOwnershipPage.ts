@@ -8,7 +8,7 @@ import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/Wiza
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { isEmpty, ofClass } from "@tutao/tutanota-utils"
+import { downcast, isEmpty, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
@@ -67,8 +67,8 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 		this.data = domainData
 	}
 
-	headerTitle(): string {
-		return lang.get("domainSetup_title")
+	headerTitle(): TranslationKey {
+		return "domainSetup_title"
 	}
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
@@ -96,17 +96,19 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 						[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_AVAILABLE]: "customDomainErrorDomainNotAvailable_msg",
 						[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_VALIDATION_FAILED]: "customDomainErrorValidationFailed_msg",
 					}
-					return () =>
+					return lang.makeTranslation(
+						"error_msg",
 						lang.get(errorMessageMap[validationResult]) + //TODO correct to use? customDomainErrorOtherTxtRecords_msg
-						(result.invalidDnsRecords.length > 0
-							? " " + lang.get("customDomainErrorOtherTxtRecords_msg") + "\n" + result.invalidDnsRecords.map((r) => r.value).join("\n")
-							: "")
+							(result.invalidDnsRecords.length > 0
+								? " " + lang.get("customDomainErrorOtherTxtRecords_msg") + "\n" + result.invalidDnsRecords.map((r) => r.value).join("\n")
+								: ""),
+					)
 				}
 			}),
 		)
 			.then((message) => {
 				if (message) {
-					return showErrorDialog ? Dialog.message(message).then(() => false) : false
+					return showErrorDialog ? Dialog.message(downcast(message)).then(() => false) : false
 				}
 
 				return true
@@ -131,7 +133,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 							showPlanUpgradeRequiredDialog(plans, "moreCustomDomainsRequired_msg")
 						}
 					} else {
-						Dialog.message(() => e.toString())
+						Dialog.message(lang.makeTranslation("error_msg", e.toString()))
 					}
 					return false
 				}),

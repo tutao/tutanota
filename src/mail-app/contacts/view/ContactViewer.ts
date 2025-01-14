@@ -260,14 +260,14 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private renderCustomDatesAndRelationships(contact: Contact): Children {
 		const dates = contact.customDate.map((element) =>
 			m(TextField, {
-				label: () => getContactCustomDateTypeToLabel(getCustomDateType(element), element.customTypeName),
+				label: getContactCustomDateTypeToLabel(getCustomDateType(element), element.customTypeName),
 				value: formatContactDate(element.dateIso),
 				isReadOnly: true,
 			}),
 		)
 		const relationships = contact.relationships.map((element) =>
 			m(TextField, {
-				label: () => getContactRelationshipTypeToLabel(getRelationshipType(element), element.customTypeName),
+				label: getContactRelationshipTypeToLabel(getRelationshipType(element), element.customTypeName),
 				value: element.person,
 				isReadOnly: true,
 			}),
@@ -309,7 +309,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
+			label: getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
 			value: contactSocialId.socialId,
 			isReadOnly: true,
 			injectionsRight: () => m(`a[href=${getSocialUrl(contactSocialId)}][target=_blank]`, showButton),
@@ -324,7 +324,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactCustomWebsiteTypeToLabel(downcast(website.type), website.customTypeName),
+			label: getContactCustomWebsiteTypeToLabel(downcast(website.type), website.customTypeName),
 			value: website.url,
 			isReadOnly: true,
 			injectionsRight: () => m(`a[href=${getWebsiteUrl(website.url)}][target=_blank]`, showButton),
@@ -339,7 +339,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactMessengerHandleTypeToLabel(downcast(messengerHandle.type), messengerHandle.customTypeName),
+			label: getContactMessengerHandleTypeToLabel(downcast(messengerHandle.type), messengerHandle.customTypeName),
 			value: messengerHandle.handle,
 			isReadOnly: true,
 			injectionsRight: () => m(`a[href=${getMessengerHandleUrl(messengerHandle)}][target=_blank]`, showButton),
@@ -354,7 +354,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactAddressTypeLabel(address.type as any, address.customTypeName),
+			label: getContactAddressTypeLabel(address.type as any, address.customTypeName),
 			value: address.address,
 			isReadOnly: true,
 			injectionsRight: () => [newMailButton],
@@ -369,7 +369,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactPhoneNumberTypeLabel(phone.type as ContactPhoneNumberType, phone.customTypeName),
+			label: getContactPhoneNumberTypeLabel(phone.type as ContactPhoneNumberType, phone.customTypeName),
 			value: phone.number,
 			isReadOnly: true,
 			injectionsRight: () => m(`a[href="tel:${phone.number}"][target=_blank]`, callButton),
@@ -392,7 +392,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
-			label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),
+			label: getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),
 			value: address.address,
 			isReadOnly: true,
 			type: TextFieldType.Area,

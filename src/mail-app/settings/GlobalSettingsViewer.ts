@@ -413,8 +413,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private deleteCustomDomain(domainInfo: DomainInfo) {
-		Dialog.confirm(() =>
-			lang.get("confirmCustomDomainDeletion_msg", {
+		Dialog.confirm(
+			lang.getTranslation("confirmCustomDomainDeletion_msg", {
 				"{domain}": domainInfo.domain,
 			}),
 		).then((confirmed) => {
@@ -427,14 +427,14 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								this.props() != null ? this.props().whitelabelRegistrationDomains.map((domainWrapper) => domainWrapper.value) : []
 
 							if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-								Dialog.message(() =>
-									lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {
+								Dialog.message(
+									lang.getTranslation("customDomainDeletePreconditionWhitelabelFailed_msg", {
 										"{domainName}": domainInfo.domain,
 									}),
 								)
 							} else {
-								Dialog.message(() =>
-									lang.get("customDomainDeletePreconditionFailed_msg", {
+								Dialog.message(
+									lang.getTranslation("customDomainDeletePreconditionFailed_msg", {
 										"{domainName}": domainInfo.domain,
 									}),
 								)

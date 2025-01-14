@@ -4,7 +4,7 @@ import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
-import { lang, TranslationText } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
@@ -15,11 +15,11 @@ assertMainOrNode()
 export const SNACKBAR_SHOW_TIME = 6000
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
-	label: TranslationText
+	label: MaybeTranslation
 	click: ClickHandler
 }
 type SnackBarAttrs = {
-	message: TranslationText
+	message: MaybeTranslation
 	button: ButtonAttrs | null
 }
 type QueueItem = SnackBarAttrs & { onClose: (() => void) | null }
@@ -30,7 +30,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
 		// use same padding as MinimizedEditor
 		return m(".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs", [
-			m(".flex.center-vertically.smaller", lang.getMaybeLazy(vnode.attrs.message)),
+			m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
 			vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
 		])
 	}
@@ -51,7 +51,7 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  * @param onClose called when the snackbar is closed (either by timeout or button click)
  * @param waitingTime number of milliseconds to wait before showing the snackbar
  */
-export async function showSnackBar(args: { message: TranslationText; button: SnackBarButtonAttrs; onClose?: () => void; waitingTime?: number }) {
+export async function showSnackBar(args: { message: MaybeTranslation; button: SnackBarButtonAttrs; onClose?: () => void; waitingTime?: number }) {
 	const { message, button, onClose, waitingTime } = args
 	const triggerSnackbar = () => {
 		const buttonAttrs = makeButtonAttrsForSnackBar(button)

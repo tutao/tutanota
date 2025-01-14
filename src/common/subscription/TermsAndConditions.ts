@@ -80,7 +80,7 @@ export async function showServiceTerms(section: TermsSection, version: string) {
 	let headerBarAttrs: DialogHeaderBarAttrs = {
 		left: [
 			{
-				label: () => "EN/DE",
+				label: lang.makeTranslation("lang_toggle", "EN/DE"),
 				click: () => {
 					visibleLang = visibleLang === "de" ? "en" : "de"
 					sanitizedTerms = getSection()

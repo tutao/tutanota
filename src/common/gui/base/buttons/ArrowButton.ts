@@ -10,7 +10,7 @@ import { theme } from "../../theme.js"
 
 export default function renderSwitchMonthArrowIcon(forward: boolean, size: number, onClick: ClickHandler): Children {
 	return m(BaseButton, {
-		label: forward ? lang.get("nextMonth_label") : lang.get("prevMonth_label"),
+		label: forward ? "nextMonth_label" : "prevMonth_label",
 		icon: m(Icon, {
 			icon: forward ? Icons.ArrowForward : BootIcons.Back,
 			container: "div",

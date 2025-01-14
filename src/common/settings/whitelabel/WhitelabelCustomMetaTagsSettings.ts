@@ -33,7 +33,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 
 	private showEditMetaTagsDialog(metaTags: string, onMetaTagsChanged: (tags: string) => unknown) {
 		let dialog = Dialog.showActionDialog({
-			title: lang.get("customMetaTags_label"),
+			title: "customMetaTags_label",
 			child: {
 				view: () =>
 					m(TextField, {

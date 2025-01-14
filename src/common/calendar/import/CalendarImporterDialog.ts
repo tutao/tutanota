@@ -26,11 +26,14 @@ import { EventImportRejectionReason, EventWrapper, sortOutParsedEvents } from ".
 async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirmationText: TranslationKeyType, total: number): Promise<boolean> {
 	return (
 		skippedEvents.length === 0 ||
-		(await Dialog.confirm(() =>
-			lang.get(confirmationText, {
-				"{amount}": skippedEvents.length + "",
-				"{total}": total + "",
-			}),
+		(await Dialog.confirm(
+			lang.makeTranslation(
+				"confirm_msg",
+				lang.get(confirmationText, {
+					"{amount}": skippedEvents.length + "",
+					"{total}": total + "",
+				}),
+			),
 		))
 	)
 }
@@ -75,10 +78,13 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	} catch (e) {
 		if (e instanceof ParserError) {
 			console.log("Failed to parse file", e)
-			Dialog.message(() =>
-				lang.get("importReadFileError_msg", {
-					"{filename}": e.filename ?? "",
-				}),
+			Dialog.message(
+				lang.makeTranslation(
+					"confirm_msg",
+					lang.get("importReadFileError_msg", {
+						"{filename}": e.filename ?? "",
+					}),
+				),
 			)
 			return []
 		} else {
@@ -92,11 +98,14 @@ async function importEvents(eventsForCreation: Array<EventWrapper>): Promise<voi
 	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(
 			ofClass(ImportError, (e) =>
-				Dialog.message(() =>
-					lang.get("importEventsError_msg", {
-						"{amount}": e.numFailed + "",
-						"{total}": eventsForCreation.length.toString(),
-					}),
+				Dialog.message(
+					lang.makeTranslation(
+						"confirm_msg",
+						lang.get("importEventsError_msg", {
+							"{amount}": e.numFailed + "",
+							"{total}": eventsForCreation.length.toString(),
+						}),
+					),
 				),
 			),
 		)

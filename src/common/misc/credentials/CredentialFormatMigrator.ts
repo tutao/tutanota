@@ -6,6 +6,7 @@ import { base64ToUint8Array, mapNullable } from "@tutao/tutanota-utils"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
 import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
+import { lang } from "../LanguageViewModel.js"
 
 function credentialEncryptionModeToAppLockMethod(mode: CredentialEncryptionMode): AppLockMethod {
 	switch (mode) {
@@ -32,7 +33,7 @@ export class CredentialFormatMigrator {
 		} catch (e) {
 			console.error(e)
 			await Dialog.message(
-				() => "Could not migrate credentials",
+				lang.makeTranslation("confirm_msg", "Could not migrate credentials"),
 				`${e.name} ${e.message}
 ${e.stack}`,
 			).then(() => this.migrate())

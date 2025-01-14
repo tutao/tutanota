@@ -1,8 +1,9 @@
 import m, { Component } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
 import { LayerType } from "../../../RootView"
-import type { lazy } from "@tutao/tutanota-utils"
+import { lazy, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
+import { lang, Translation, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -20,7 +21,7 @@ export class ViewColumn implements Component<Attrs> {
 	readonly columnType: ColumnType
 	readonly minWidth: number
 	readonly maxWidth: number
-	private readonly headerCenter: lazy<string>
+	private readonly headerCenter: MaybeLazy<MaybeTranslation>
 	private readonly ariaLabel: lazy<string>
 	width: number
 	offset: number // offset to the left
@@ -51,11 +52,11 @@ export class ViewColumn implements Component<Attrs> {
 			// note: headerCenter is a candidate for removal, ViewColumn is not responsible for the header. This is only useful as an ARIA description which we can already
 			// provide separately. We should always require aria description instead.
 			headerCenter,
-			ariaLabel = () => this.getTitle(),
+			ariaLabel = () => lang.getTranslationText(this.getTitle()),
 		}: {
 			minWidth: number
 			maxWidth: number
-			headerCenter?: lazy<string>
+			headerCenter?: MaybeLazy<MaybeTranslation>
 			ariaLabel?: lazy<string>
 		},
 	) {
@@ -64,7 +65,7 @@ export class ViewColumn implements Component<Attrs> {
 		this.minWidth = minWidth
 		this.maxWidth = maxWidth
 
-		this.headerCenter = headerCenter || (() => "")
+		this.headerCenter = headerCenter || "emptyString_msg"
 
 		this.ariaLabel = ariaLabel ?? null
 		this.width = minWidth
@@ -77,7 +78,7 @@ export class ViewColumn implements Component<Attrs> {
 
 	view() {
 		const zIndex = !this.isVisible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
-		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : {}
+		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel ? this.ariaLabel() : lang.getTranslationText(this.getTitle())) : {}
 		return m(
 			".view-column.fill-absolute",
 			{
@@ -102,8 +103,8 @@ export class ViewColumn implements Component<Attrs> {
 		)
 	}
 
-	getTitle(): string {
-		return this.headerCenter()
+	getTitle(): MaybeTranslation {
+		return resolveMaybeLazy(this.headerCenter)
 	}
 
 	getOffsetForeground(foregroundState: boolean): number {

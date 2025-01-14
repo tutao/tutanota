@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { theme } from "../../../common/gui/theme"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -21,7 +21,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 	view({ attrs }: Vnode<MultiContactViewerAttrs>) {
 		return [
 			m(ColumnEmptyMessageBox, {
-				message: () => getContactSelectionMessage(attrs.selectedEntities.length),
+				message: getContactSelectionMessage(attrs.selectedEntities.length),
 				icon: BootIcons.Contacts,
 				color: theme.content_message_bg,
 				bottomContent:
@@ -38,11 +38,11 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 	}
 }
 
-export function getContactSelectionMessage(numberEntities: number): string {
+export function getContactSelectionMessage(numberEntities: number): Translation {
 	if (numberEntities === 0) {
-		return lang.get("noContact_msg")
+		return lang.getTranslation("noContact_msg")
 	} else {
-		return lang.get("nbrOfContactsSelected_msg", {
+		return lang.getTranslation("nbrOfContactsSelected_msg", {
 			"{1}": numberEntities,
 		})
 	}

@@ -1,4 +1,4 @@
-import { lang } from "../../misc/LanguageViewModel"
+import { lang, Translation } from "../../misc/LanguageViewModel"
 import m, { Component, Vnode } from "mithril"
 import { Dialog } from "../base/Dialog"
 import { Keys } from "../../api/common/TutanotaConstants"
@@ -8,16 +8,17 @@ import { ButtonType } from "../base/Button.js"
 import { DialogHeaderBarAttrs } from "../base/DialogHeaderBar"
 import { isAppleDevice } from "../../api/common/Env.js"
 
-function makeShortcutName(shortcut: Shortcut): string {
+function makeShortcutName(shortcut: Shortcut): Translation {
 	const mainModifier = isAppleDevice() ? Keys.META.name : Keys.CTRL.name
 
-	return (
+	return lang.makeTranslation(
+		shortcut.help,
 		(shortcut.meta ? Keys.META.name + " + " : "") +
-		(shortcut.ctrlOrCmd ? mainModifier + " + " : "") +
-		(shortcut.ctrl ? Keys.CTRL.name + " + " : "") +
-		(shortcut.shift ? Keys.SHIFT.name + " + " : "") +
-		(shortcut.alt ? Keys.ALT.name + " + " : "") +
-		shortcut.key.name
+			(shortcut.ctrlOrCmd ? mainModifier + " + " : "") +
+			(shortcut.ctrl ? Keys.CTRL.name + " + " : "") +
+			(shortcut.shift ? Keys.SHIFT.name + " + " : "") +
+			(shortcut.alt ? Keys.ALT.name + " + " : "") +
+			shortcut.key.name,
 	)
 }
 
@@ -46,7 +47,7 @@ class ShortcutDialog implements Component<ShortcutDialogAttrs> {
 		const textFieldAttrs = shortcuts
 			.filter((shortcut) => shortcut.enabled == null || shortcut.enabled())
 			.map((shortcut) => ({
-				label: () => makeShortcutName(shortcut),
+				label: makeShortcutName(shortcut),
 				value: lang.get(shortcut.help),
 				isReadOnly: true,
 			}))

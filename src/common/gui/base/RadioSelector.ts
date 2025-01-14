@@ -1,15 +1,15 @@
-import type { TranslationText } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme"
 
 export type RadioSelectorOption<T> = {
-	readonly name: TranslationText
+	readonly name: MaybeTranslation
 	readonly value: T
 }
 export type RadioSelectorAttrs<T> = {
 	// The unique name of the radio button group. The browser uses it to group the radio buttons together.
-	name: TranslationText
+	name: MaybeTranslation
 	options: ReadonlyArray<RadioSelectorOption<T>>
 	class?: string
 	selectedOption: T
@@ -25,13 +25,13 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 	}
 
 	private renderOption(
-		groupName: TranslationText,
+		groupName: MaybeTranslation,
 		option: RadioSelectorOption<T>,
 		selectedOption: T,
 		optionClass: string | undefined,
 		onOptionSelected: (arg0: T) => unknown,
 	): Children {
-		const name = lang.getMaybeLazy(groupName)
+		const name = lang.getTranslationText(groupName)
 		const valueString = String(option.value)
 		const isSelected = option.value === selectedOption
 
@@ -60,13 +60,13 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 					/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
 					 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
 					 */
-					name: lang.getMaybeLazy(groupName),
+					name: lang.getTranslationText(groupName),
 					value: valueString,
 					id: optionId,
 					// Handle changes in value from the attributes
 					checked: isSelected ? true : null,
 				}),
-				m("label.b.left.pt-xs.pb-xs", { for: optionId }, lang.getMaybeLazy(option.name)),
+				m("label.b.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
 			],
 		)
 	}

@@ -5,7 +5,7 @@ import { Alignment } from "../editor/Editor"
 import { numberRange } from "@tutao/tutanota-utils"
 import { size } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { animations, height, opacity } from "../animation/Animations"
 import { client } from "../../misc/ClientDetector"
 import { BrowserType } from "../../misc/ClientConstants"
@@ -93,7 +93,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 
 	private renderStyleToggleButton(style: Style, title: string, icon: Icons, editor: Editor): Children {
 		return this.renderToggleButton(
-			title,
+			lang.makeTranslation(title, title),
 			icon,
 			() => editor.setStyle(!editor.hasStyle(style), style),
 			() => editor.hasStyle(style),
@@ -102,7 +102,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 
 	private renderListToggleButton(listing: Listing, title: string, icon: Icons, editor: Editor): Children {
 		return this.renderToggleButton(
-			title,
+			lang.makeTranslation(title, title),
 			icon,
 			() =>
 				editor.styles.listing === listing
@@ -114,9 +114,9 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		)
 	}
 
-	private renderToggleButton(title: string, icon: Icons, click: () => void, isSelected: () => boolean): Children {
+	private renderToggleButton(title: MaybeTranslation, icon: Icons, click: () => void, isSelected: () => boolean): Children {
 		return m(ToggleButton, {
-			title: () => title,
+			title: title,
 			onToggled: click,
 			icon: icon,
 			toggled: isSelected(),
@@ -192,7 +192,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 					lazyButtons: () =>
 						numberRange(8, 144).map((n) => {
 							return {
-								label: () => n.toString(),
+								label: lang.makeTranslation("font_size_" + n, n.toString()),
 								click: () => {
 									editor.squire.setFontSize(n)
 									this.selectedSize = n

@@ -22,7 +22,7 @@ label: TranslationKey | lazy<string>,
 */
 export function showRejectedSendersInfoDialog(rejectedSender: RejectedSender) {
 	const actionDialogProperties = {
-		title: () => lang.get("details_label"),
+		title: "details_label",
 		child: {
 			view: () => {
 				return [

@@ -7,16 +7,10 @@ import {
 	ContactSocialType,
 	ContactWebsiteType,
 } from "../../../common/api/common/TutanotaConstants"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
+import type { MaybeTranslation, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
-import { locator } from "../../../common/api/main/CommonLocator"
-import { PermissionType } from "../../../common/native/common/generatedipc/PermissionType"
-import { NativeContactsSyncManager } from "../model/NativeContactsSyncManager"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { isIOSApp, isTest } from "../../../common/api/common/Env"
-import { assert } from "@tutao/tutanota-utils"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {
 	[ContactAddressType.PRIVATE]: "private_label",
@@ -25,11 +19,12 @@ export const ContactMailAddressTypeToLabel: Record<ContactAddressType, Translati
 	[ContactAddressType.CUSTOM]: "custom_label",
 }
 
-export function getContactAddressTypeLabel(type: ContactAddressType, custom: string): string {
+export function getContactAddressTypeLabel(type: ContactAddressType, custom: string): MaybeTranslation {
 	if (type === ContactAddressType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactMailAddressTypeToLabel[type])
+		let key = ContactMailAddressTypeToLabel[type]
+		return key
 	}
 }
 
@@ -42,11 +37,12 @@ export const ContactPhoneNumberTypeToLabel: Record<ContactPhoneNumberType, Trans
 	[ContactPhoneNumberType.CUSTOM]: "custom_label",
 }
 
-export function getContactPhoneNumberTypeLabel(type: ContactPhoneNumberType, custom: string): string {
+export function getContactPhoneNumberTypeLabel(type: ContactPhoneNumberType, custom: string): MaybeTranslation {
 	if (type === ContactPhoneNumberType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactPhoneNumberTypeToLabel[type])
+		let key = ContactPhoneNumberTypeToLabel[type]
+		return key
 	}
 }
 
@@ -59,11 +55,12 @@ export const ContactSocialTypeToLabel: Record<ContactSocialType, TranslationKey>
 	[ContactSocialType.CUSTOM]: "custom_label",
 }
 
-export function getContactSocialTypeLabel(type: ContactSocialType, custom: string): string {
+export function getContactSocialTypeLabel(type: ContactSocialType, custom: string): MaybeTranslation {
 	if (type === ContactSocialType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactSocialTypeToLabel[type])
+		let key = ContactSocialTypeToLabel[type]
+		return key
 	}
 }
 
@@ -82,11 +79,12 @@ export const ContactRelationshipTypeToLabel: Record<ContactRelationshipType, Tra
 	[ContactRelationshipType.CUSTOM]: "custom_label",
 }
 
-export function getContactRelationshipTypeToLabel(type: ContactRelationshipType, custom: string): string {
+export function getContactRelationshipTypeToLabel(type: ContactRelationshipType, custom: string): MaybeTranslation {
 	if (type === ContactRelationshipType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactRelationshipTypeToLabel[type])
+		let key = ContactRelationshipTypeToLabel[type]
+		return key
 	}
 }
 
@@ -99,11 +97,12 @@ export const ContactMessengerHandleTypeToLabel: Record<ContactMessengerHandleTyp
 	[ContactMessengerHandleType.CUSTOM]: "custom_label",
 }
 
-export function getContactMessengerHandleTypeToLabel(type: ContactMessengerHandleType, custom: string): string {
+export function getContactMessengerHandleTypeToLabel(type: ContactMessengerHandleType, custom: string): MaybeTranslation {
 	if (type === ContactMessengerHandleType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactMessengerHandleTypeToLabel[type])
+		let key = ContactMessengerHandleTypeToLabel[type]
+		return key
 	}
 }
 
@@ -113,11 +112,12 @@ export const ContactCustomDateTypeToLabel: Record<ContactCustomDateType, Transla
 	[ContactCustomDateType.CUSTOM]: "custom_label",
 }
 
-export function getContactCustomDateTypeToLabel(type: ContactCustomDateType, custom: string): string {
+export function getContactCustomDateTypeToLabel(type: ContactCustomDateType, custom: string): MaybeTranslation {
 	if (type === ContactCustomDateType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactCustomDateTypeToLabel[type])
+		let key = ContactCustomDateTypeToLabel[type]
+		return key
 	}
 }
 
@@ -128,11 +128,12 @@ export const ContactCustomWebsiteTypeToLabel: Record<ContactWebsiteType, Transla
 	[ContactWebsiteType.CUSTOM]: "custom_label",
 }
 
-export function getContactCustomWebsiteTypeToLabel(type: ContactWebsiteType, custom: string): string {
+export function getContactCustomWebsiteTypeToLabel(type: ContactWebsiteType, custom: string): MaybeTranslation {
 	if (type === ContactWebsiteType.CUSTOM) {
-		return custom
+		return lang.makeTranslation("custom", custom)
 	} else {
-		return lang.get(ContactCustomWebsiteTypeToLabel[type])
+		let key = ContactCustomWebsiteTypeToLabel[type]
+		return key
 	}
 }
 

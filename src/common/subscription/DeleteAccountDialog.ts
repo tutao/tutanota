@@ -19,7 +19,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	const userId = getEtId(locator.logins.getUserController().user)
 
 	Dialog.showActionDialog({
-		title: lang.get("adminDeleteAccount_action"),
+		title: "adminDeleteAccount_action",
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
@@ -62,14 +62,16 @@ async function deleteAccount(takeover: string, password: string, surveyData: Sur
 		await Dialog.message("mailAddressInvalid_msg")
 		return false
 	} else {
-		const messageFn = () =>
+		const message = lang.makeTranslation(
+			"confirm_msg",
 			cleanedTakeover === ""
 				? lang.get("deleteAccountConfirm_msg")
 				: lang.get("deleteAccountWithTakeoverConfirm_msg", {
 						"{1}": cleanedTakeover,
-				  })
+				  }),
+		)
 
-		const ok = await Dialog.confirm(messageFn)
+		const ok = await Dialog.confirm(message)
 		if (!ok) return false
 		// this is necessary to prevent us from applying websocket events to an already deleted/closed offline DB
 		// which is an immediate crash on ios

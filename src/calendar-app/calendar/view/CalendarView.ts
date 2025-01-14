@@ -237,7 +237,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			{
 				minWidth: size.calendar_first_col_min_width,
 				maxWidth: size.first_col_max_width,
-				headerCenter: () => (this.currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label")),
+				headerCenter: this.currentViewType === CalendarViewType.WEEK ? "month_label" : "calendar_label",
 			},
 		)
 
@@ -938,12 +938,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						: null,
 					(isApp() || isDesktop()) && isExternal
 						? {
-								label: () => "Sync",
+								label: lang.makeTranslation("sync_action", "Sync"),
 								icon: Icons.Sync,
 								size: ButtonSize.Compact,
 								click: () => {
 									this.viewModel.forceSyncExternal(existingGroupSettings, true)?.catch(async (e) => {
-										await Dialog.message(() => e.message)
+										await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
 									})
 								},
 						  }
@@ -975,15 +975,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)
 			Dialog.confirm(
-				() =>
+				lang.makeTranslation(
+					"confirm_msg",
 					(otherMembers.length > 0
 						? lang.get("deleteSharedCalendarConfirm_msg", {
 								"{calendar}": calendarName,
 						  }) + " "
 						: "") +
-					lang.get("deleteCalendarConfirm_msg", {
-						"{calendar}": calendarName,
-					}),
+						lang.get("deleteCalendarConfirm_msg", {
+							"{calendar}": calendarName,
+						}),
+				),
 			).then((confirmed) => {
 				if (confirmed) {
 					this.viewModel.deleteCalendar(calendarInfo).catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
@@ -1064,7 +1066,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			if (shouldSyncExternal)
 				this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
 					showSnackBar({
-						message: () => e.message,
+						message: lang.makeTranslation("exception_msg", e.message),
 						button: {
 							label: "ok_action",
 							click: noOp,

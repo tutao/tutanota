@@ -103,8 +103,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		this.isMailVerificationBusy = false
 	}
 
-	headerTitle(): string {
-		return lang.get("domainSetup_title")
+	headerTitle(): TranslationKey {
+		return "domainSetup_title"
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {

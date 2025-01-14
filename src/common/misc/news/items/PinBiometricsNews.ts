@@ -68,7 +68,7 @@ export class PinBiometricsNews implements NewsListItem {
 			label: "secureNow_action",
 			click: async () => {
 				if ((await this.credentialsProvider.getCredentialsInfoByUserId(this.userId)) === null) {
-					await Dialog.message(() => lang.get("needSavedCredentials_msg", { "{storePasswordAction}": lang.get("storePassword_action") }))
+					await Dialog.message(lang.getTranslation("needSavedCredentials_msg", { "{storePasswordAction}": lang.get("storePassword_action") }))
 				} else {
 					await showCredentialsEncryptionModeDialog(this.credentialsProvider)
 

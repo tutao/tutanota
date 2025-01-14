@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import type { TranslationKey, TranslationText } from "../../../common/misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -202,7 +202,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			{
 				minWidth: size.first_col_min_width,
 				maxWidth: size.first_col_max_width,
-				headerCenter: () => lang.get("search_label"),
+				headerCenter: "search_label",
 			},
 		)
 
@@ -229,7 +229,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			{
 				minWidth: size.second_col_min_width,
 				maxWidth: size.second_col_max_width,
-				headerCenter: () => lang.get("searchResult_label"),
+				headerCenter: "searchResult_label",
 			},
 		)
 		this.resultDetailsColumn = new ViewColumn(
@@ -381,7 +381,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						...header,
 						backAction: () => this.viewSlider.focusPreviousColumn(),
 						columnType: "other",
-						title: lang.get("search_label"),
+						title: "search_label",
 						actions: null,
 						multicolumnActions: () => actions,
 						primaryAction: () => this.renderHeaderRightView(),
@@ -474,7 +474,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						...header,
 						backAction: () => this.viewSlider.focusPreviousColumn(),
 						columnType: "other",
-						title: lang.get("search_label"),
+						title: "search_label",
 						actions: null,
 						multicolumnActions: () => [],
 						primaryAction: () => this.renderHeaderRightView(),
@@ -497,7 +497,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				m(
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
-						message: () => lang.get("noSelection_msg"),
+						message: "noSelection_msg",
 						color: theme.content_message_bg,
 						backgroundColor: theme.navigation_bg,
 					}),
@@ -795,7 +795,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderDateRangeSelection(): Children {
-		const renderedHelpText: TranslationText | undefined =
+		const renderedHelpText: MaybeTranslation | undefined =
 			this.searchViewModel.warning === "startafterend"
 				? "startAfterEnd_label"
 				: this.searchViewModel.warning === "long"

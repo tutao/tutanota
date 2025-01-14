@@ -15,7 +15,7 @@ import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
 import m from "mithril"
 import stream from "mithril/stream"
-import { InfoLink, lang, TranslationKey, TranslationText } from "../misc/LanguageViewModel"
+import { InfoLink, lang, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
@@ -66,10 +66,10 @@ export type UpgradeSubscriptionData = {
 	referralCode: string | null
 	multipleUsersAllowed: boolean
 	acceptedPlans: AvailablePlanType[]
-	msg: TranslationText | null
+	msg: MaybeTranslation | null
 }
 
-export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: TranslationText): Promise<void> {
+export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: MaybeTranslation): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -149,7 +149,7 @@ export async function loadSignupWizard(
 	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 
-	let message: TranslationText | null
+	let message: MaybeTranslation | null
 	if (isIOSApp()) {
 		const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 		// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
@@ -158,7 +158,7 @@ export async function loadSignupWizard(
 		}
 		message =
 			appstoreSubscriptionOwnership != MobilePaymentSubscriptionOwnership.NoSubscription
-				? () => lang.get("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+				? lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
 				: null
 	} else {
 		message = null

@@ -22,6 +22,7 @@ import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { getFolderIcon } from "./MailGuiUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { DropData } from "../../../common/gui/base/GuiUtils"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
@@ -95,7 +96,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		for (let system of subSystems) {
 			const id = getElementId(system.folder)
 			const button: NavButtonAttrs = {
-				label: () => getFolderName(system.folder),
+				label: lang.makeTranslation("folder_name", getFolderName(system.folder)),
 				href: () => {
 					if (attrs.inEditMode) {
 						return m.route.get()

@@ -71,11 +71,11 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 						},
 						childAttrs: () => [
 							...createAlarmIntervalItems(lang.languageTag).map((i) => ({
-								label: () => i.name,
+								label: lang.makeTranslation(i.name, i.name),
 								click: () => addNewAlarm(i.value),
 							})),
 							{
-								label: () => lang.get("calendarReminderIntervalDropdownCustomItem_label"),
+								label: "calendarReminderIntervalDropdownCustomItem_label",
 								click: () => {
 									this.showCustomReminderIntervalDialog((value, unit) => {
 										addNewAlarm({
@@ -133,7 +133,10 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 						BaseButton,
 						{
 							//This might not make sense in other languages, but is better than what we have now
-							label: `${lang.get("delete_action")} ${humanDescriptionForAlarmInterval(alarm, lang.languageTag)}`,
+							label: lang.makeTranslation(
+								"delete_action",
+								`${lang.get("delete_action")} ${humanDescriptionForAlarmInterval(alarm, lang.languageTag)}`,
+							),
 							onclick: () => removeAlarm(alarm),
 							class: "flex items-center",
 						},
@@ -193,7 +196,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 		let timeReminderUnit: AlarmIntervalUnit = AlarmIntervalUnit.MINUTE
 
 		Dialog.showActionDialog({
-			title: () => lang.get("calendarReminderIntervalCustomDialog_title"),
+			title: "calendarReminderIntervalCustomDialog_title",
 			allowOkWithReturn: true,
 			child: {
 				view: () => {

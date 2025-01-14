@@ -50,7 +50,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 					type: ButtonType.Secondary,
 				},
 			],
-			middle: () => lang.get("mailHeaders_title"),
+			middle: "mailHeaders_title",
 		},
 		{
 			view: () =>
@@ -225,7 +225,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 	}
 
 	const dialog = Dialog.showActionDialog({
-		title: lang.get("reportEmail_action"),
+		title: "reportEmail_action",
 		child: () =>
 			m(
 				".flex.col.mt-m",

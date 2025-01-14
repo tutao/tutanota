@@ -153,10 +153,9 @@ export class SelectAppLockMethodView implements Component<SelectAppLockMethodDia
 	}
 
 	private renderSelectButton(onclick: () => unknown) {
-		const label = lang.get("ok_action")
 		return m(BaseButton, {
-			label,
-			text: label,
+			label: "ok_action",
+			text: lang.get("ok_action"),
 			class: "uppercase accent-bg full-width center b content-fg flash",
 			style: {
 				height: "60px",

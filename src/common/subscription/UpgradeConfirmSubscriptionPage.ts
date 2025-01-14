@@ -95,18 +95,22 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			.catch(
 				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
-						() =>
+						lang.makeTranslation(
+							"precondition_failed",
 							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
-							(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+								(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+						),
 					)
 				}),
 			)
 			.catch(
 				ofClass(BadGatewayError, (e) => {
 					Dialog.message(
-						() =>
+						lang.makeTranslation(
+							"payment_failed",
 							lang.get("paymentProviderNotAvailableError_msg") +
-							(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+								(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+						),
 					)
 				}),
 			)

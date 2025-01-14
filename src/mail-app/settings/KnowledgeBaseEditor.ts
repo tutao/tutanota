@@ -50,7 +50,7 @@ export function showKnowledgeBaseEditor(entry: KnowledgeBaseEntry | null, templa
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => lang.get(editorModel.entry._id ? "editEntry_label" : "createEntry_action"),
+		middle: editorModel.entry._id ? "editEntry_label" : "createEntry_action",
 	}
 	const dialog = Dialog.editDialog(headerBarAttrs, KnowledgeBaseEditor, editorModel)
 	dialog.show()
@@ -95,7 +95,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 			if (templates.length > 0) {
 				return templates.map((template) => {
 					return {
-						label: () => template.tag,
+						label: lang.makeTranslation("tag", template.tag),
 						click: () => this.entryContentEditor.editor.insertHTML(createTemplateLink(template)),
 					}
 				})

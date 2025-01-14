@@ -315,7 +315,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 				let selectedGroupInfo = getFirstOrThrow(availableGroupInfos)
 				Dialog.showActionDialog({
-					title: lang.get("addUserToGroup_label"),
+					title: "addUserToGroup_label",
 					child: {
 						view: () =>
 							m(DropDownSelector, {
@@ -445,7 +445,7 @@ export function showUserImportDialog(customDomains: string[]) {
 		},
 	}
 	Dialog.showActionDialog({
-		title: lang.get("importUsers_action"),
+		title: "importUsers_action",
 		child: form,
 		okAction: (csvDialog) => {
 			let closeCsvDialog = checkAndImportUserData(editor.getValue(), customDomains)

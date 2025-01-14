@@ -70,7 +70,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => lang.get("outOfOfficeNotification_title"),
+		middle: "outOfOfficeNotification_title",
 	}
 	const dialog = Dialog.editDialog(dialogHeaderAttrs, EditOutOfOfficeNotificationDialog, {
 		model: dialogModel,
@@ -112,7 +112,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 					label: () => lang.get("outOfOfficeTimeRange_msg"),
 					checked: model.timeRangeEnabled(),
 					onChecked: model.timeRangeEnabled,
-					helpLabel: () => lang.get("outOfOfficeTimeRangeHelp_msg"),
+					helpLabel: "outOfOfficeTimeRangeHelp_msg",
 				}),
 			),
 			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,

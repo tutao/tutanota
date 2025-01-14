@@ -262,7 +262,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							".rel.flex-grow.height-100p",
 							m(ColumnEmptyMessageBox, {
 								icon: BootIcons.Calendar,
-								message: () => lang.get("noEventSelect_msg"),
+								message: "noEventSelect_msg",
 								color: theme.list_message_bg,
 							}),
 					  )

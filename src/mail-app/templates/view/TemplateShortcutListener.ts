@@ -61,7 +61,7 @@ class TemplateShortcutListener {
 						// show dropdown to select language
 						let buttons = template.contents.map((content) => {
 							return {
-								label: () => this._lang.get(languageByCode[downcast(content.languageCode)].textId),
+								label: languageByCode[downcast(content.languageCode)].textId,
 								click: () => {
 									this._editor.insertHTML(content.text)
 

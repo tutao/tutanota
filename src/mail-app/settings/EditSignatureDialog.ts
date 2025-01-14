@@ -1,12 +1,12 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../../common/gui/base/Dialog"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../common/misc/LanguageViewModel"
 import { EmailSignatureType, FeatureType } from "../../common/api/common/TutanotaConstants"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
 import type { TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { downcast, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
@@ -92,7 +92,7 @@ export function show(props: TutanotaProperties) {
 				if (newType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM && newCustomValue.length > RECOMMENDED_SIGNATURE_SIZE_LIMIT) {
 					const signatureSizeKb = Math.floor(newCustomValue.length / 1024)
 					const confirmLargeSignatureAttrs = {
-						title: lang.get("userEmailSignature_label"),
+						title: downcast("userEmailSignature_label"),
 						child: {
 							view: () =>
 								m(
@@ -116,7 +116,7 @@ export function show(props: TutanotaProperties) {
 		}
 
 		Dialog.showActionDialog({
-			title: lang.get("userEmailSignature_label"),
+			title: "userEmailSignature_label",
 			child: form,
 			type: DialogType.EditLarge,
 			okAction: editSignatureOkAction,

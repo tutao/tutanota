@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../../../gui/base/WizardDialog.js"
-import { lang } from "../../../../misc/LanguageViewModel.js"
+import { lang, type TranslationKey } from "../../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {
@@ -17,8 +17,8 @@ export class SetupCongratulationsPageAttrs implements WizardPageAttrs<null> {
 	hidePagingButtonForPage = false
 	data: null = null
 
-	headerTitle(): string {
-		return lang.get("welcome_label")
+	headerTitle(): TranslationKey {
+		return "welcome_label"
 	}
 
 	nextAction(showDialogs: boolean): Promise<boolean> {

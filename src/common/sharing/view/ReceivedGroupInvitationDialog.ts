@@ -68,12 +68,12 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	}
 
 	dialog = Dialog.showActionDialog({
-		title: () => lang.get("invitation_label"),
+		title: "invitation_label",
 		child: {
 			view: () =>
 				m(".flex.col", [
 					m(".mb", [
-						m(".pt.selectable", isMember ? lang.getMaybeLazy(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
+						m(".pt.selectable", isMember ? lang.getTranslationText(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
 						m(TextField, {
 							value: nameStream(),
 							oninput: nameStream,

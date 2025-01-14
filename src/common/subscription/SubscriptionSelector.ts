@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey, TranslationText } from "../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
@@ -60,7 +60,7 @@ export type SubscriptionSelectorAttr = {
 	priceAndConfigProvider: PriceAndConfigProvider
 	acceptedPlans: AvailablePlanType[]
 	multipleUsersAllowed: boolean
-	msg: TranslationText | null
+	msg: MaybeTranslation | null
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<Children> {
@@ -96,7 +96,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	}
 
 	private renderHeadline(
-		msg: TranslationText | null,
+		msg: MaybeTranslation | null,
 		currentPlanType: PlanType | null,
 		priceInfoTextId: TranslationKey | null,
 		isBusiness: boolean,
@@ -107,7 +107,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (msg) {
-			return wrapInDiv(lang.getMaybeLazy(msg))
+			return wrapInDiv(lang.getTranslationText(msg))
 		} else if (currentPlanType != null && LegacyPlans.includes(currentPlanType)) {
 			return wrapInDiv(lang.get("currentPlanDiscontinued_msg"))
 		}
@@ -309,7 +309,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: priceStr,
 			referencePrice: referencePriceStr,
-			priceHint: () => `${getPriceHint(subscriptionPrice, interval, multiuser)}${asteriskOrEmptyString}`,
+			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, interval, multiuser)}${asteriskOrEmptyString}`),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,

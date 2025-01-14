@@ -52,7 +52,7 @@ export function showTemplateEditor(template: EmailTemplate | null, templateGroup
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => lang.get(editorModel.template._id ? "editTemplate_action" : "createTemplate_action"),
+		middle: editorModel.template._id ? "editTemplate_action" : "createTemplate_action",
 	}
 	const dialog = Dialog.editDialog(headerBarAttrs, TemplateEditor, {
 		model: editorModel,
@@ -100,7 +100,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 			}),
 			m(TextField, {
 				label: "language_label",
-				value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
+				value: this.model.selectedContent() ? lang.getTranslationText(getLanguageName(this.model.selectedContent())) : "",
 				injectionsRight: () =>
 					m(".flex.ml-between-s", [
 						this.model.getAddedLanguages().length > 1 ? [this.renderRemoveLangButton(), this.renderSelectLangButton()] : null,
@@ -139,7 +139,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 					this.model.updateContent()
 					return this.model.template.contents.map((content) => {
 						return {
-							label: () => getLanguageName(content),
+							label: getLanguageName(content),
 							click: () => {
 								this.model.selectedContent(content)
 
@@ -162,8 +162,8 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private removeLanguage() {
-		return Dialog.confirm(() =>
-			lang.get("deleteLanguageConfirmation_msg", {
+		return Dialog.confirm(
+			lang.getTranslation("deleteLanguageConfirmation_msg", {
 				"{language}": getLanguageName(this.model.selectedContent()),
 			}),
 		).then((confirmed) => {

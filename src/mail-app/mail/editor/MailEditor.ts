@@ -256,7 +256,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 
 			if (invalidText !== "") {
-				throw new UserError(() => lang.get("invalidRecipients_msg") + invalidText)
+				throw new UserError(lang.makeTranslation("invalidRecipients_msg", lang.get("invalidRecipients_msg") + invalidText))
 			}
 		})
 		const dialog = a.dialog()
@@ -661,7 +661,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					return m(PasswordField, {
 						oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
-						label: () => lang.get("passwordFor_label", { "{1}": recipient.address }),
+						label: lang.getTranslation("passwordFor_label", { "{1}": recipient.address }),
 						value: this.sendMailModel.getPassword(recipient.address),
 						passwordStrength: this.sendMailModel.getPasswordStrength(recipient),
 						status: "auto",
@@ -754,14 +754,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		if (canEditBubbleRecipient) {
 			if (recipient.contact && recipient.contact._id) {
 				contextButtons.push({
-					label: () => lang.get("editContact_label"),
+					label: "editContact_label",
 					click: () => {
 						import("../../contacts/ContactEditor").then(({ ContactEditor }) => new ContactEditor(entity, recipient.contact).show())
 					},
 				})
 			} else {
 				contextButtons.push({
-					label: () => lang.get("createContact_action"),
+					label: "createContact_action",
 					click: () => {
 						// contact list
 						contactModel.getContactListId().then((contactListId: Id) => {
@@ -909,7 +909,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				type: ButtonType.Primary,
 			},
 		],
-		middle: () => conversationTypeString(model.getConversationType()),
+		middle: lang.makeTranslation("conversation_type", conversationTypeString(model.getConversationType())),
 		create: () => {
 			if (isBrowser()) {
 				// Have a simple listener on browser, so their browser will make the user ask if they are sure they want to close when closing the tab/window
@@ -1137,10 +1137,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 			dataFiles = sizeCheckResult.attachableFiles
 
 			if (sizeCheckResult.tooBigFiles.length > 0) {
-				await Dialog.message(
-					() => lang.get("tooBigAttachment_msg"),
-					() => sizeCheckResult.tooBigFiles.map((file) => m(".text-break.selectable", file)),
-				)
+				await Dialog.message("tooBigAttachment_msg", () => sizeCheckResult.tooBigFiles.map((file) => m(".text-break.selectable", file)))
 			}
 		} else {
 			throw new CancelledError("user cancelled opening mail editor with attachments")

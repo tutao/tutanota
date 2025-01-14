@@ -542,10 +542,10 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 
 	const newTimeRangeDeferred = defer<number>()
 	const dialog = Dialog.showActionDialog({
-		title: "",
+		title: "emptyString_msg",
 		child: () =>
 			m(TextField, {
-				label: () => capitalizeFirstLetter(lang.get("days_label")),
+				label: lang.makeTranslation("days_label", capitalizeFirstLetter(lang.get("days_label"))),
 				helpLabel: () => lang.get("storedDataTimeRangeHelpText_msg"),
 				type: TextFieldType.Number,
 				value: `${timeRange}`,

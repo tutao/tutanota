@@ -18,7 +18,7 @@ export class CancellationReasonInput {
 		return [
 			m(".mt.pb-s.b.center", lang.get("cancellationInfo_msg")),
 			m(DropDownSelector, {
-				label: () => lang.get("whyLeave_msg"),
+				label: "whyLeave_msg",
 				items: [
 					{
 						name: lang.get("experienceSamplingAnswer_label"),

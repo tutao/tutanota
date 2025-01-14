@@ -1,4 +1,4 @@
-import type { Language, LanguageCode } from "../../common/misc/LanguageViewModel"
+import type { Language, LanguageCode, Translation, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { lang, languageByCode, languages } from "../../common/misc/LanguageViewModel"
 import type { EmailTemplateContent } from "../../common/api/entities/tutanota/TypeRefs.js"
 import type { EmailTemplate } from "../../common/api/entities/tutanota/TypeRefs.js"
@@ -121,6 +121,6 @@ export function getLanguageCode(content: EmailTemplateContent): LanguageCode {
 	return downcast(content.languageCode)
 }
 
-export function getLanguageName(content: EmailTemplateContent): string {
-	return lang.get(languageByCode[getLanguageCode(content)].textId)
+export function getLanguageName(content: EmailTemplateContent): TranslationKey {
+	return languageByCode[getLanguageCode(content)].textId
 }

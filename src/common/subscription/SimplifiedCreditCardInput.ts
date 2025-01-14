@@ -66,7 +66,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				autocompleteAs: Autocomplete.ccExp,
 			}),
 			m(TextField, {
-				label: () => viewModel.getCvvLabel(),
+				label: lang.makeTranslation("cvv", viewModel.getCvvLabel()),
 				value: viewModel.cvv,
 				helpLabel: () => this.renderCvvNumberHelpLabel(viewModel),
 				oninput: (newValue) => (viewModel.cvv = newValue),

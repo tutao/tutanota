@@ -133,9 +133,9 @@ export class GroupListView implements UpdatableSettingsViewer {
 		if (await locator.logins.getUserController().isNewPaidPlan()) {
 			AddGroupDialog.show()
 		} else {
-			const msg = lang.get("newPaidPlanRequired_msg") + " " + lang.get("sharedMailboxesMultiUser_msg")
+			const msg = lang.makeTranslation("upgrade_text", lang.get("newPaidPlanRequired_msg") + " " + lang.get("sharedMailboxesMultiUser_msg"))
 			const wizard = await import("../../../common/subscription/UpgradeSubscriptionWizard")
-			await wizard.showUpgradeWizard(locator.logins, NewPaidPlans, () => msg)
+			await wizard.showUpgradeWizard(locator.logins, NewPaidPlans, msg)
 		}
 	}
 

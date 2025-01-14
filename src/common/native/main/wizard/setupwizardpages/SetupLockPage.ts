@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
-import { lang } from "../../../../misc/LanguageViewModel.js"
+import { lang, type TranslationKey } from "../../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SelectAppLockMethodView } from "../../SelectAppLockMethodDialog.js"
 import { AppLockMethod } from "../../../common/generatedipc/AppLockMethod.js"
@@ -42,8 +42,8 @@ export class SetupLockPageAttrs implements WizardPageAttrs<null> {
 		})
 	}
 
-	headerTitle(): string {
-		return lang.get("credentialsEncryptionMode_label")
+	headerTitle(): TranslationKey {
+		return "credentialsEncryptionMode_label"
 	}
 
 	async nextAction(showDialogs: boolean): Promise<boolean> {

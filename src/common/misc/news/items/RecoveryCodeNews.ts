@@ -85,7 +85,7 @@ export class RecoveryCodeNews implements NewsListItem {
 						dialog.close()
 						this.newsModel.acknowledgeNews(newsId.newsItemId).then(m.redraw)
 					},
-					title: lang.get("recoveryCode_label"),
+					title: "recoveryCode_label",
 					allowCancel: true,
 					child: () => m("p", lang.get("recoveryCodeConfirmation_msg")),
 				}),

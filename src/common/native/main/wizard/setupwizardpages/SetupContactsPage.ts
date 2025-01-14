@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
-import { lang } from "../../../../misc/LanguageViewModel.js"
+import { lang, type TranslationKey } from "../../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { NativeContactsSyncManager } from "../../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
 import { ContactImporter } from "../../../../../mail-app/contacts/ContactImporter.js"
@@ -54,8 +54,8 @@ export class SetupContactsPageAttrs implements WizardPageAttrs<null> {
 		public readonly allowContactSyncAndImport: boolean,
 	) {}
 
-	headerTitle(): string {
-		return lang.get("contacts_label")
+	headerTitle(): TranslationKey {
+		return "contacts_label"
 	}
 
 	nextAction(showDialogs: boolean): Promise<boolean> {

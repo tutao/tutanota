@@ -5,7 +5,7 @@ import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { lang, TranslationText } from "../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
 import { size } from "../../gui/size.js"
@@ -52,7 +52,7 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
  * @param okAction The action to be executed when the user press the ok or continue button
  * @param title
  */
-export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialog: Dialog) => unknown, title: TranslationText) {
+export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialog: Dialog) => unknown, title: MaybeTranslation) {
 	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
@@ -74,7 +74,7 @@ export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialo
 						},
 					},
 				],
-				middle: () => lang.getMaybeLazy(title),
+				middle: title,
 				right: [
 					{
 						type: ButtonType.Primary,
@@ -165,7 +165,7 @@ export function calendarSelectionDialog(
 						},
 					},
 				],
-				middle: () => lang.getMaybeLazy("calendar_label"),
+				middle: "calendar_label",
 				right: [
 					{
 						type: ButtonType.Primary,

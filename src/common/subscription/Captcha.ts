@@ -138,7 +138,7 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 					type: ButtonType.Primary,
 				},
 			],
-			middle: () => lang.get("captchaDisplay_label"),
+			middle: "captchaDisplay_label",
 		}
 		const imageData = `data:image/png;base64,${uint8ArrayToBase64(challenge)}`
 
@@ -161,7 +161,7 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 							style: captchaFilter,
 						}),
 						m(TextField, {
-							label: () => lang.get("captchaInput_label") + " (hh:mm)",
+							label: lang.makeTranslation("captcha_input", lang.get("captchaInput_label") + " (hh:mm)"),
 							helpLabel: () => lang.get("captchaInfo_msg"),
 							value: captchaInput,
 							oninput: (value) => (captchaInput = value),

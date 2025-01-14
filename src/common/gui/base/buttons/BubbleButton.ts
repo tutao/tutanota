@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
-import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 import { AllIcons, Icon } from "../Icon.js"
 import { theme } from "../../theme.js"
 import { styles } from "../../styles.js"
 import { px, size } from "../../size.js"
 
 export interface BubbleButtonAttrs {
-	label: TranslationText
-	text?: TranslationText
+	label: MaybeTranslation
+	text?: MaybeTranslation
 	icon?: AllIcons
 	onclick: BaseButtonAttrs["onclick"]
 }
@@ -32,12 +32,11 @@ export function bubbleButtonPadding(): string {
  */
 export class BubbleButton implements Component<BubbleButtonAttrs> {
 	view({ attrs, children }: Vnode<BubbleButtonAttrs>): Children {
-		const label = lang.getMaybeLazy(attrs.label)
 		return m(
 			BaseButton,
 			{
-				label,
-				text: attrs.text ? m("span.text-ellipsis", lang.getMaybeLazy(attrs.text)) : label,
+				label: attrs.label,
+				text: attrs.text ? m("span.text-ellipsis", lang.getTranslationText(attrs.text)) : lang.getTranslationText(attrs.label),
 				icon:
 					attrs.icon &&
 					m(Icon, {

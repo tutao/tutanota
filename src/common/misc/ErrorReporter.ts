@@ -81,7 +81,7 @@ async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore
 			},
 			[
 				{
-					label: () => "Send report",
+					label: lang.makeTranslation("send", "Send report"),
 					click: () => resolve("send"),
 					type: ButtonType.Secondary,
 				},
@@ -112,7 +112,7 @@ function showReportDialog(
 				}),
 				m(Checkbox, {
 					label: () => lang.get("sendLogs_action"),
-					helpLabel: () => lang.get("sendLogsInfo_msg"),
+					helpLabel: "sendLogsInfo_msg",
 					checked: sendLogs,
 					onChecked: (checked) => (sendLogs = checked),
 				}),
@@ -120,7 +120,7 @@ function showReportDialog(
 					".flex.flex-column.space-around.items-center",
 					logs.map((l) =>
 						m(BubbleButton, {
-							label: () => l.name,
+							label: lang.makeTranslation("filename", l.name),
 							onclick: () => showLogDialog(l.name, uint8ArrayToString("utf-8", (l as DataFile).data)),
 						}),
 					),
@@ -150,7 +150,7 @@ function showReportDialog(
 	return new Promise((resolve) => {
 		Dialog.showActionDialog({
 			okActionTextId: "send_action",
-			title: lang.get("sendErrorReport_action"),
+			title: "sendErrorReport_action",
 			type: DialogType.EditMedium,
 			child: dialogContent,
 			okAction: (dialog: Dialog) => {
@@ -180,7 +180,7 @@ async function showLogDialog(heading: string, text: string) {
 					type: ButtonType.Secondary,
 				},
 			],
-			middle: () => heading,
+			middle: lang.makeTranslation("heading", heading),
 		},
 		{
 			view: () => m(".white-space-pre.pt.pb.selectable", text),

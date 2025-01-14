@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { theme } from "../../../common/gui/theme"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -16,7 +16,7 @@ export type MultiItemViewerAttrs<T> = {
 	loadingAll: "can_load" | "loading" | "loaded"
 	loadAll: () => unknown
 	stopLoadAll: () => unknown
-	getSelectionMessage: (entities: ReadonlyArray<T>) => string
+	getSelectionMessage: (entities: ReadonlyArray<T>) => MaybeTranslation
 }
 
 export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
@@ -28,7 +28,7 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 				m(
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
-						message: () => attrs.getSelectionMessage(selectedEntities),
+						message: attrs.getSelectionMessage(selectedEntities),
 						icon: BootIcons.Mail,
 						color: theme.content_message_bg,
 						backgroundColor: theme.navigation_bg,
@@ -74,15 +74,15 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 	}
 }
 
-export function getMailSelectionMessage(selectedEntities: ReadonlyArray<Mail>): string {
+export function getMailSelectionMessage(selectedEntities: ReadonlyArray<Mail>): Translation {
 	let nbrOfSelectedMails = selectedEntities.length
 
 	if (nbrOfSelectedMails === 0) {
-		return lang.get("noMail_msg")
+		return lang.getTranslation("noMail_msg")
 	} else if (nbrOfSelectedMails === 1) {
-		return lang.get("oneMailSelected_msg")
+		return lang.getTranslation("oneMailSelected_msg")
 	} else {
-		return lang.get("nbrOfMailsSelected_msg", {
+		return lang.getTranslation("nbrOfMailsSelected_msg", {
 			"{1}": nbrOfSelectedMails,
 		})
 	}

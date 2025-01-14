@@ -1,6 +1,6 @@
 import type { Country } from "../../api/common/CountryList"
 import { Countries } from "../../api/common/CountryList"
-import type { InfoLink, TranslationKey } from "../../misc/LanguageViewModel"
+import type { InfoLink, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
@@ -45,7 +45,7 @@ export function renderCountryDropdown(params: {
 	selectedCountry: Country | null
 	onSelectionChanged: (country: Country) => void
 	helpLabel?: lazy<string>
-	label?: TranslationKey | lazy<string>
+	label?: MaybeTranslation
 }): Children {
 	return m(DropDownSelector, {
 		label: params.label ?? "invoiceCountry_label",
@@ -92,7 +92,7 @@ type Confirmation = {
  * @param confirmMessage
  * @returns {Confirmation}
  */
-export function getConfirmation(message: TranslationKey | lazy<string>, confirmMessage: TranslationKey = "ok_action"): Confirmation {
+export function getConfirmation(message: MaybeTranslation, confirmMessage: TranslationKey = "ok_action"): Confirmation {
 	const confirmationPromise = Dialog.confirm(message, confirmMessage)
 	const confirmation: Confirmation = {
 		confirmed(action) {

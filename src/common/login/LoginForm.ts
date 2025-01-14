@@ -134,9 +134,11 @@ export class LoginForm implements Component<LoginFormAttrs> {
 									checked: a.savePassword(),
 									onChecked: a.savePassword,
 									helpLabel: canSaveCredentials
-										? () =>
+										? lang.makeTranslation(
+												"onlyPrivateComputer_msg",
 												lang.get("onlyPrivateComputer_msg") +
-												(isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
+													(isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : ""),
+										  )
 										: "functionNotSupported_msg",
 									disabled: !canSaveCredentials,
 								}),

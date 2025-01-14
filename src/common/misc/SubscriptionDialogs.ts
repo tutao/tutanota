@@ -1,6 +1,6 @@
 import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/tutanota-utils"
 import { Dialog } from "../gui/base/Dialog"
-import type { TranslationKey, TranslationText } from "./LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "./LanguageViewModel"
 import { lang } from "./LanguageViewModel"
 import type { ClickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
@@ -75,7 +75,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 /**
  * @returns true if the needed plan has been ordered
  */
-export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlanType[], reason?: TranslationText): Promise<boolean> {
+export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlanType[], reason?: MaybeTranslation): Promise<boolean> {
 	if (isEmpty(acceptedPlans)) {
 		throw new ProgrammingError("no plans specified")
 	}
@@ -84,7 +84,7 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlan
 		showNotAvailableForFreeDialog(acceptedPlans)
 		return false
 	} else if (!userController.isGlobalAdmin()) {
-		Dialog.message(() => lang.get("contactAdmin_msg"))
+		Dialog.message("contactAdmin_msg")
 		return false
 	} else {
 		if (reason == null) {
@@ -109,7 +109,7 @@ export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController
 	}
 }
 
-async function showSwitchPlanDialog(userController: UserController, acceptedPlans: AvailablePlanType[], reason?: TranslationText): Promise<void> {
+async function showSwitchPlanDialog(userController: UserController, acceptedPlans: AvailablePlanType[], reason?: MaybeTranslation): Promise<void> {
 	let customerInfo = await userController.loadCustomerInfo()
 	const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")

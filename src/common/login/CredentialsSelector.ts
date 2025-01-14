@@ -2,6 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
+import { lang } from "../misc/LanguageViewModel.js"
 
 export type CredentialsSelectorAttrs = {
 	credentials: ReadonlyArray<CredentialsInfo>
@@ -18,7 +19,7 @@ export class CredentialsSelector implements Component<CredentialsSelectorAttrs> 
 			const onCredentialsDeleted = a.onCredentialsDeleted
 			buttons.push(
 				m(LoginButton, {
-					label: () => c.login,
+					label: lang.makeTranslation("login_label", c.login),
 					onclick: () => a.onCredentialsSelected(c),
 				}),
 			)

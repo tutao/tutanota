@@ -21,7 +21,7 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 	editor.setMinHeight(80)
 	editor.showBorders()
 	const takeoverDialog = Dialog.showActionDialog({
-		title: lang.get("help_label"),
+		title: "help_label",
 		type: DialogType.EditSmall,
 		child: {
 			view: () => {

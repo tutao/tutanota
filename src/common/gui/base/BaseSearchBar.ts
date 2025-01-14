@@ -81,7 +81,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				),
 				attrs.busy || attrs.text
 					? m(BaseButton, {
-							label: lang.get(attrs.busy ? "loading_msg" : "close_alt"),
+							label: attrs.busy ? "loading_msg" : "close_alt",
 							icon: m(Icon, {
 								container: "div",
 								size: IconSize.Medium,

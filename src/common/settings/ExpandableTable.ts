@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import type { InfoLink, TranslationKey } from "../misc/LanguageViewModel.js"
+import type { InfoLink, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import type { TableAttrs } from "../gui/base/Table.js"
 import { Table } from "../gui/base/Table.js"
 import { SettingsExpander } from "./SettingsExpander.js"
@@ -8,9 +8,9 @@ import type { lazy } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 
 type ExpandableTableAttrs = {
-	title: TranslationKey | lazy<string>
+	title: MaybeTranslation
 	table: TableAttrs
-	infoMsg: TranslationKey | lazy<string>
+	infoMsg: MaybeTranslation
 	infoLinkId?: InfoLink
 	// ExpandableTable uses internal state whenever this isn't passed in
 	expanded?: Stream<boolean>

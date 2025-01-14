@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
@@ -11,7 +11,7 @@ export type CheckboxAttrs = {
 	checked: boolean
 	onChecked: (value: boolean) => unknown
 	class?: string
-	helpLabel?: TranslationKey | lazy<string>
+	helpLabel?: MaybeTranslation
 	disabled?: boolean
 }
 
@@ -23,7 +23,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
-		const helpLabelText = a.helpLabel ? lang.getMaybeLazy(a.helpLabel) : ""
+		const helpLabelText = lang.getTranslationText(a.helpLabel ? a.helpLabel : "emptyString_msg")
 		const helpLabel = a.helpLabel ? m(`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`, helpLabelText) : []
 		const userClasses = a.class == null ? "" : " " + a.class
 		return m(

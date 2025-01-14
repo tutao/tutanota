@@ -29,7 +29,7 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 			},
 			childAttrs: () => [
 				{
-					label: () => lang.get(vnode.attrs.disabled ? "activate_action" : "deactivate_action"),
+					label: vnode.attrs.disabled ? "activate_action" : "deactivate_action",
 					click: vnode.attrs.disableClicked,
 				},
 				{

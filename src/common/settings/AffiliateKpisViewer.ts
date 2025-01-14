@@ -29,17 +29,17 @@ export class AffiliateKpisViewer implements UpdatableSettingsDetailsViewer {
 						m(Table, {
 							columnHeading: [
 								{ text: "month_label" },
-								{ text: "affiliateSettingsNewFree_label", helpText: () => lang.get("affiliateSettingsNewFree_msg") },
-								{ text: "affiliateSettingsNewPaid_label", helpText: () => lang.get("affiliateSettingsNewPaid_msg") },
+								{ text: "affiliateSettingsNewFree_label", helpText: "affiliateSettingsNewFree_msg" },
+								{ text: "affiliateSettingsNewPaid_label", helpText: "affiliateSettingsNewPaid_msg" },
 								{
 									text: "affiliateSettingsTotalFree_label",
-									helpText: () => lang.get("affiliateSettingsTotalFree_msg"),
+									helpText: "affiliateSettingsTotalFree_msg",
 								},
 								{
 									text: "affiliateSettingsTotalPaid_label",
-									helpText: () => lang.get("affiliateSettingsTotalPaid_msg"),
+									helpText: "affiliateSettingsTotalPaid_msg",
 								},
-								{ text: "affiliateSettingsCommission_label", helpText: () => lang.get("affiliateSettingsCommission_msg") },
+								{ text: "affiliateSettingsCommission_label", helpText: "affiliateSettingsCommission_msg" },
 							],
 							columnWidths: [
 								ColumnWidth.Largest,

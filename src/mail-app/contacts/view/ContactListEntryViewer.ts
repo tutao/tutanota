@@ -6,7 +6,7 @@ import { responsiveCardHMargin } from "../../../common/gui/cards.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
 import { ContactAddressType } from "../../../common/api/common/TutanotaConstants.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang, Translation } from "../../../common/misc/LanguageViewModel.js"
 
 export interface ContactListEntryViewerAttrs {
 	entry: ContactListEntry
@@ -100,10 +100,10 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 	}
 }
 
-export function getContactListEntriesSelectionMessage(selectedEntities: ContactListEntry[] | undefined): string {
+export function getContactListEntriesSelectionMessage(selectedEntities: ContactListEntry[] | undefined): Translation {
 	if (selectedEntities && selectedEntities.length > 0) {
-		return lang.get("nbrOfEntriesSelected_msg", { "{nbr}": selectedEntities.length })
+		return lang.getTranslation("nbrOfEntriesSelected_msg", { "{nbr}": selectedEntities.length })
 	} else {
-		return lang.get("noSelection_msg")
+		return lang.getTranslation("noSelection_msg")
 	}
 }

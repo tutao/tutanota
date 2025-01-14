@@ -27,7 +27,7 @@ export async function renderNotificationPermissionsDialog(onClose: () => void) {
 				type: ButtonType.Secondary,
 			},
 		],
-		middle: () => lang.get("permissions_label"),
+		middle: "permissions_label",
 		remove: () => onClose(),
 	}
 	const dialog = Dialog.editSmallDialog(headerBarAttrs, () =>

@@ -27,6 +27,7 @@ import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
+import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
@@ -48,7 +49,7 @@ export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNam
 	).then((model) => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
 		let dialog = Dialog.showActionDialog({
-			title: lang.get("sharing_label"),
+			title: "sharing_label",
 			type: DialogType.EditMedium,
 			child: () =>
 				m(GroupSharingDialogContent, {
@@ -77,7 +78,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 		const groupName = getSharedGroupName(model.info, model.logins.getUserController(), allowGroupNameOverride)
 		return m(".flex.col.pt-s", [
 			m(Table, {
-				columnHeading: [() => texts.participantsLabel(groupName)],
+				columnHeading: [lang.makeTranslation("column_heading", texts.participantsLabel(groupName))],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: this._renderMemberInfos(model, texts, groupName, dialog).concat(this._renderGroupInvitations(model, texts, groupName)),
 				showActionButtonColumn: true,
@@ -94,6 +95,18 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 
 	_renderGroupInvitations(model: GroupSharingModel, texts: GroupSharingTexts, groupName: string): Array<TableLineAttrs> {
 		return model.sentGroupInvitations.map((sentGroupInvitation) => {
+			let iconBtn: IconButtonAttrs = {
+				title: "remove_action",
+				click: () => {
+					getConfirmation(
+						lang.makeTranslation("confirmation_msg", texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)),
+					).confirmed(async () => {
+						await model.cancelInvitation(sentGroupInvitation)
+						m.redraw()
+					})
+				},
+				icon: Icons.Cancel,
+			}
 			return {
 				cells: () => [
 					{
@@ -102,18 +115,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						mainStyle: ".i",
 					},
 				],
-				actionButtonAttrs: model.canCancelInvitation(sentGroupInvitation)
-					? {
-							title: "remove_action",
-							click: () => {
-								getConfirmation(() => texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)).confirmed(async () => {
-									await model.cancelInvitation(sentGroupInvitation)
-									m.redraw()
-								})
-							},
-							icon: Icons.Cancel,
-					  }
-					: null,
+				actionButtonAttrs: model.canCancelInvitation(sentGroupInvitation) ? iconBtn : null,
 			}
 		})
 	}
@@ -136,7 +138,9 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 							title: "delete_action",
 							icon: Icons.Cancel,
 							click: () => {
-								getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(async () => {
+								getConfirmation(
+									lang.makeTranslation("confirmation_msg", texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))),
+								).confirmed(async () => {
 									await model.removeGroupMember(memberInfo.member)
 									if (model.memberIsSelf(memberInfo.member)) {
 										dialog.close()
@@ -163,7 +167,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 
 	let dialog = Dialog.showActionDialog({
 		type: DialogType.EditMedium,
-		title: () => lang.get("addParticipant_action"),
+		title: "addParticipant_action",
 		child: () => [
 			m(
 				".rel",
@@ -249,7 +253,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 							const plans = await getAvailablePlansWithSharing()
 							await showPlanUpgradeRequiredDialog(plans)
 						} else {
-							Dialog.message(() => lang.get("contactAdmin_msg"))
+							Dialog.message("contactAdmin_msg")
 						}
 					} else if (e instanceof UserError) {
 						showUserError(e)

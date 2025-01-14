@@ -9,6 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { isApp, isDesktop } from "../../api/common/Env.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 export const BUTTON_WIDTH = 270
 
@@ -45,24 +46,24 @@ export class CustomColorEditorPreview implements Component {
 				),
 				m(".pt", [
 					m(Button, {
-						label: () => "Secondary",
+						label: lang.makeTranslation("secondary", "Secondary"),
 						click: noOp,
 						type: ButtonType.Secondary,
 					}),
 					m(Button, {
-						label: () => "Primary",
+						label: lang.makeTranslation("primary", "Primary"),
 						click: noOp,
 						type: ButtonType.Primary,
 					}),
 				]),
 				m(".pt", [
 					m(IconButton, {
-						title: () => "Icon button",
+						title: lang.makeTranslation("icon_button", "Icon button"),
 						icon: Icons.Folder,
 						click: noOp,
 					}),
 					m(ToggleButton, {
-						title: () => "Toggle button",
+						title: lang.makeTranslation("toggle_button", "Toggle button"),
 						icon: this.toggleSelected ? Icons.Lock : Icons.Unlock,
 						toggled: this.toggleSelected,
 						onToggled: () => (this.toggleSelected = !this.toggleSelected),

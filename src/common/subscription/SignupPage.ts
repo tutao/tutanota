@@ -5,6 +5,7 @@ import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { SignupForm } from "./SignupForm"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { PlanType } from "../api/common/TutanotaConstants.js"
+import { lang, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -42,13 +43,13 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 		this.data = signupData
 	}
 
-	headerTitle(): string {
+	headerTitle(): Translation {
 		const title = getDisplayNameOfPlanType(this.data.type)
 
 		if (this.data.type === PlanType.Essential || this.data.type === PlanType.Advanced) {
-			return title + " Business"
+			return lang.makeTranslation("signup_business", title + " Business")
 		} else {
-			return title
+			return lang.makeTranslation("signup_title", title)
 		}
 	}
 

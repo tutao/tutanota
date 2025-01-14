@@ -131,7 +131,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 									// the user could have, but did not upgrade.
 									if (!this.hasPlanWithInvites) return
 								} else {
-									Dialog.message(() => lang.get("contactAdmin_msg"))
+									Dialog.message("contactAdmin_msg")
 								}
 							} else {
 								whoModel.addAttendee(address, contact)

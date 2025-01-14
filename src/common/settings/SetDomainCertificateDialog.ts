@@ -71,7 +71,7 @@ export function show(customerInfo: CustomerInfo): void {
 		},
 	}
 	let dialog = Dialog.showActionDialog({
-		title: lang.get("whitelabelDomain_label"),
+		title: "whitelabelDomain_label",
 		child: form,
 		okAction: () => {
 			const domainAllLowercase = domain().trim().toLowerCase()
