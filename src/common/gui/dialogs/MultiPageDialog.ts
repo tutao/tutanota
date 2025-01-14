@@ -13,8 +13,8 @@ type ContentRenderer<TPages> = (currentPage: TPages, dialog: Dialog, navigateToP
 type DialogAction<TPages> = (currentPage: TPages, dialog: Dialog, navigateToPage: (targetPage: TPages) => void, goBack: (to?: TPages) => void) => ButtonAttrs
 
 type DialogHeaderOptions<TPages> = {
-	getLeftAction: DialogAction<TPages>
-	getRightAction: DialogAction<TPages>
+	getLeftAction?: DialogAction<TPages>
+	getRightAction?: DialogAction<TPages>
 	getPageTitle: (currentPage: TPages) => string
 }
 
@@ -112,9 +112,10 @@ export class MultiPageDialog<TPages> {
 	buildDialog(renderContent: ContentRenderer<TPages>, { getLeftAction, getPageTitle, getRightAction }: DialogHeaderOptions<TPages>): Dialog {
 		const dialog: Dialog = Dialog.editMediumDialog(
 			{
-				left: () => [getLeftAction(this.currentPageStream(), dialog, this.navigateToPage, this.goBack)],
+				left: () => [getLeftAction?.(this.currentPageStream(), dialog, this.navigateToPage, this.goBack)].filter((item): item is ButtonAttrs => !!item),
 				middle: () => getPageTitle(this.currentPageStream()),
-				right: () => [getRightAction(this.currentPageStream(), dialog, this.navigateToPage, this.goBack)],
+				right: () =>
+					[getRightAction?.(this.currentPageStream(), dialog, this.navigateToPage, this.goBack)].filter((item): item is ButtonAttrs => !!item),
 			},
 			MultiPageDialogViewWrapper<TPages>,
 			{
