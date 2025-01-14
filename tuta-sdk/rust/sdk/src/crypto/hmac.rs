@@ -35,6 +35,7 @@ mod tests {
 	use crate::crypto::hmac::{verify_hmac_sha256, HMAC_SHA256_SIZE};
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::Aes256Key;
+	use crate::util::test_utils::random_aes256_key;
 
 	#[test]
 	fn compatibility_test() {
@@ -44,7 +45,32 @@ mod tests {
 			let tag: [u8; HMAC_SHA256_SIZE] = td.hmac_sha256_tag_hex.as_slice().try_into().unwrap();
 			let result = hmac_sha256(&key, &data);
 			assert_eq!(tag, result);
+			// sneak round trip test as well
 			verify_hmac_sha256(&key, &data, tag).unwrap();
 		}
+	}
+
+	#[test]
+	fn bad_key() {
+		let key = GenericAesKey::Aes256(random_aes256_key());
+		let data = b"some data";
+		let tag = hmac_sha256(&key, data);
+
+		let bad_key = GenericAesKey::Aes256(random_aes256_key());
+		let result = verify_hmac_sha256(&bad_key, data, tag);
+
+		assert!(result.is_err());
+	}
+
+	#[test]
+	fn bad_data() {
+		let key = GenericAesKey::Aes256(random_aes256_key());
+		let data = b"some data";
+		let tag = hmac_sha256(&key, data);
+
+		let bad_data = b"bad data";
+		let result = verify_hmac_sha256(&key, bad_data, tag);
+
+		assert!(result.is_err());
 	}
 }
