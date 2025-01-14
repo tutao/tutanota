@@ -2,10 +2,10 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { EndType, RepeatPeriod, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { EndType, RepeatPeriod, TabIndex, Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
-import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, IntervalOption } from "../CalendarGuiUtils.js"
+import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, createWeekdaySelectorItems, IntervalOption } from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { RadioGroup, RadioGroupAttrs } from "../../../../common/gui/base/RadioGroup.js"
@@ -13,6 +13,8 @@ import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextF
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
 import { theme } from "../../../../common/gui/theme.js"
+import { Divider } from "../../../../common/gui/Divider.js"
+import { WeekdaySelector, WeekdaySelectorItem } from "../../../../common/gui/base/icons/WeekdaySelector.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -27,6 +29,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
+	private weekdayItems: Array<WeekdaySelectorItem<Weekdays>>
 
 	private numberValues: IntervalOption[] = createIntervalValues()
 
@@ -35,6 +38,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
 		this.intervalOptions(this.numberValues)
+		this.weekdayItems = createWeekdaySelectorItems()
 
 		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
@@ -129,13 +133,28 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				Card,
 				{
 					style: {
-						padding: "8px 14px",
+						padding: "0px", // overrides card specific padding that miss aligns divider line
 					},
 					classes: ["flex", "col"],
 				},
-				[this.renderIntervalPicker(attrs)],
+				this.renderRepetitionArea(attrs),
 			),
 		])
+	}
+
+	private renderRepetitionArea(attrs: RepeatRuleEditorAttrs): Children {
+		return [
+			this.renderIntervalPicker(attrs),
+			this.repeatRuleType === RepeatPeriod.WEEKLY || this.repeatRuleType === RepeatPeriod.MONTHLY
+				? [
+						m(Divider, { color: theme.button_bubble_bg, style: { margin: `0 0 ${size.vpad}px` } }),
+						m(WeekdaySelector, {
+							onValueSelected: (item) => (item.selected = !item.selected),
+							items: this.weekdayItems,
+						}),
+				  ]
+				: null,
+		]
 	}
 
 	private buildInjections(attrs: RepeatRuleEditorAttrs) {
@@ -173,38 +192,46 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	private renderIntervalPicker(attrs: RepeatRuleEditorAttrs): Children {
-		return m(".flex", [
-			m("", { style: { flex: "1" } }, "Every"),
-			m(Select<IntervalOption, number>, {
-				onchange: (newValue) => {
-					if (this.repeatInterval === newValue.value) {
-						return
-					}
-
-					this.repeatInterval = newValue.value
-					this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-					m.redraw.sync()
+		return m(
+			".flex",
+			{
+				style: {
+					padding: "8px 14px",
 				},
-				onclose: () => {},
-				selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
-				ariaLabel: lang.get("repeatsEvery_label"),
-				options: this.intervalOptions,
-				noIcon: false,
-				expanded: false,
-				tabIndex: Number(TabIndex.Programmatic),
-				classes: ["no-appearance"],
-				renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
-				renderOption: (option) =>
-					m(
-						"button.items-center.flex-grow",
-						{
-							class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
-						},
-						option.name,
-					),
-				keepFocus: true,
-			} satisfies SelectAttributes<IntervalOption, number>),
-		])
+			},
+			[
+				m(".flex-grow", "Every"),
+				m(Select<IntervalOption, number>, {
+					onchange: (newValue) => {
+						if (this.repeatInterval === newValue.value) {
+							return
+						}
+
+						this.repeatInterval = newValue.value
+						this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
+						m.redraw.sync()
+					},
+					onclose: () => {},
+					selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
+					ariaLabel: lang.get("repeatsEvery_label"),
+					options: this.intervalOptions,
+					noIcon: false,
+					expanded: false,
+					tabIndex: Number(TabIndex.Programmatic),
+					classes: ["no-appearance"],
+					renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
+					renderOption: (option) =>
+						m(
+							"button.items-center.flex-grow",
+							{
+								class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
+							},
+							option.name,
+						),
+					keepFocus: true,
+				} satisfies SelectAttributes<IntervalOption, number>),
+			],
+		)
 	}
 
 	/**

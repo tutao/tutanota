@@ -61,6 +61,7 @@ import {
 	EventTextTimeOption,
 	RepeatPeriod,
 	ShareCapability,
+	Weekdays,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
@@ -84,6 +85,7 @@ import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
 import { theme } from "../../../common/gui/theme.js"
+import { WeekdaySelectorItem } from "../../../common/gui/base/icons/WeekdaySelector.js"
 
 export interface IntervalOption {
 	value: number
@@ -439,6 +441,16 @@ export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<End
 		{
 			name: "calendarRepeatStopConditionDate_label",
 			value: EndType.UntilDate,
+		},
+	]
+}
+
+export const createWeekdaySelectorItems = (): Array<WeekdaySelectorItem<Weekdays>> => {
+	return [
+		{
+			value: Weekdays.MONDAY,
+			selected: false,
+			label: "monday_label".slice(0, 1).toUpperCase(),
 		},
 	]
 }

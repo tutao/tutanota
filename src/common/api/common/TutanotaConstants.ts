@@ -608,6 +608,16 @@ export enum RepeatPeriod {
 	ANNUALLY = "3",
 }
 
+export enum Weekdays {
+	MONDAY = "0",
+	TUESDAY = "1",
+	WEDNESDAY = "2",
+	THURSDAY = "3",
+	FRIDAY = "4",
+	SATURDAY = "5",
+	SUNDAY = "6",
+}
+
 export const enum EndType {
 	Never = "0",
 	Count = "1",
