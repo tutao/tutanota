@@ -82,8 +82,8 @@ impl Entity for AdminGroupKeyRotationGetOut {
 pub struct AdminGroupKeyRotationPostIn {
 	pub _format: i64,
 	pub adminGroupKeyData: GroupKeyRotationData,
+	pub adminPubKeyMacList: Vec<KeyMac>,
 	pub distribution: Vec<AdminGroupKeyDistributionElement>,
-	pub userEncAdminPubKeyHashList: Vec<EncryptedKeyHash>,
 	pub userGroupKeyData: UserGroupKeyRotationData,
 }
 
@@ -101,7 +101,7 @@ impl Entity for AdminGroupKeyRotationPostIn {
 pub struct AdminGroupKeyRotationPutIn {
 	pub _format: i64,
 	pub adminDistKeyPair: KeyPair,
-	pub adminEncDistKeyHash: EncryptedKeyHash,
+	pub distKeyMac: KeyMac,
 }
 
 impl Entity for AdminGroupKeyRotationPutIn {
@@ -1413,26 +1413,6 @@ impl Entity for EmailSenderListElement {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct EncryptedKeyHash {
-	pub _id: Option<CustomId>,
-	#[serde(with = "serde_bytes")]
-	pub encryptingKeyEncKeyHash: Vec<u8>,
-	pub encryptingKeyVersion: i64,
-	pub hashedKeyVersion: i64,
-	pub encryptingGroup: GeneratedId,
-}
-
-impl Entity for EncryptedKeyHash {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "EncryptedKeyHash",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EntityEventBatch {
 	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
@@ -2297,6 +2277,26 @@ impl Entity for InvoiceItem {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct KeyMac {
+	pub _id: Option<CustomId>,
+	#[serde(with = "serde_bytes")]
+	pub tag: Vec<u8>,
+	pub taggedKeyVersion: i64,
+	pub taggingKeyVersion: i64,
+	pub taggingGroup: GeneratedId,
+}
+
+impl Entity for KeyMac {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "KeyMac",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct KeyPair {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
@@ -2332,9 +2332,9 @@ pub struct KeyRotation {
 	pub groupKeyRotationType: i64,
 	pub targetKeyVersion: i64,
 	pub adminDistKeyPair: Option<KeyPair>,
-	pub adminEncDistKeyHash: Option<EncryptedKeyHash>,
+	pub adminPubKeyMac: Option<KeyMac>,
 	pub distEncAdminGroupSymKey: Option<PubEncKeyData>,
-	pub userEncAdminPubKeyHash: Option<EncryptedKeyHash>,
+	pub distKeyMac: Option<KeyMac>,
 }
 
 impl Entity for KeyRotation {
@@ -3082,9 +3082,9 @@ impl Entity for PriceServiceReturn {
 pub struct PubDistributionKey {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
-	pub authEncPubKeyHash: Vec<u8>,
-	#[serde(with = "serde_bytes")]
 	pub pubEccKey: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub pubKeyMac: Vec<u8>,
 	#[serde(with = "serde_bytes")]
 	pub pubKyberKey: Vec<u8>,
 	pub userGroupId: GeneratedId,
@@ -3112,7 +3112,7 @@ pub struct PubEncKeyData {
 	pub senderIdentifier: Option<String>,
 	pub senderIdentifierType: Option<i64>,
 	pub senderKeyVersion: Option<i64>,
-	pub symKeyTag: Option<EncryptedKeyHash>,
+	pub symKeyMac: Option<KeyMac>,
 }
 
 impl Entity for PubEncKeyData {

@@ -1,41 +1,38 @@
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { concat } from "@tutao/tutanota-utils"
-import { Aes256Key } from "@tutao/tutanota-crypto"
+import { Aes256Key, MacTag } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { customIdToUint8array } from "../../common/utils/EntityUtils.js"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { KeyMac } from "../../entities/sys/TypeRefs.js"
 
 assertWorkerOrNode()
 
 export class KeyAuthenticationFacade {
 	constructor(private readonly cryptoWrapper: CryptoWrapper) {}
 
-	public generateNewUserGroupKeyHash(newUserSymKey: VersionedKey) {
+	public generateNewUserGroupKeyAuthenticationData(newUserSymKey: VersionedKey) {
 		const versionByte = Uint8Array.from([0])
-		const hashData = concat(versionByte, Uint8Array.from([newUserSymKey.version]), Uint8Array.from(newUserSymKey.object))
-		return this.cryptoWrapper.sha256Hash(hashData)
+		return concat(versionByte, Uint8Array.from([newUserSymKey.version]), Uint8Array.from(newUserSymKey.object))
 	}
 
-	public generateAdminPubKeyHash(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
+	public generateAdminPubKeyAuthenticationData(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
 		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
 		const identifierType = Uint8Array.from([Number(PublicKeyIdentifierType.GROUP_ID)])
 		const identifier = customIdToUint8array(adminGroupId) // also works for generated IDs
 		//Format:  versionByte, pubEccKey, pubKyberKey, groupKeyVersion, identifier, identifierType
-		const hashData = concat(versionByte, pubEccKey, pubKyberKey, adminKeyVersion, identifier, identifierType)
-		return this.cryptoWrapper.sha256Hash(hashData)
+		return concat(versionByte, pubEccKey, pubKyberKey, adminKeyVersion, identifier, identifierType)
 	}
 
-	public generatePubDistKeyHash(pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
+	public generatePubDistKeyAuthenticationData(pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
-		const hashData = concat(versionByte, pubEccKey, pubKyberKey)
-		return this.cryptoWrapper.sha256Hash(hashData)
+		return concat(versionByte, pubEccKey, pubKyberKey)
 	}
 
-	public generateAdminSymKeyHash(adminSymKey: VersionedKey) {
+	public generateAdminSymKeyAuthenticationData(adminSymKey: VersionedKey) {
 		const versionByte = Uint8Array.from([0])
-		const hashData = concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
-		return this.cryptoWrapper.sha256Hash(hashData)
+		return concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
 	}
 
 	/**
@@ -46,7 +43,7 @@ export class KeyAuthenticationFacade {
 	 * @param userGroupId user group id of the user that will use this new admin public key
 	 * @param userGroupKey user group key of the user that will use this new admin public key
 	 */
-	public deriveAdminGroupAuthKeyForNewAdminPubKeyHash(userGroupId: Id, userGroupKey: VersionedKey) {
+	public deriveAdminGroupAuthKeyForNewAdminPubKeyMac(userGroupId: Id, userGroupKey: VersionedKey) {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: userGroupId,
 			key: userGroupKey.object,
@@ -113,4 +110,10 @@ export class KeyAuthenticationFacade {
 			context: "multiUserKeyRotationNewUserSymKeyHash",
 		})
 	}
+}
+
+type BrandedKeyMac = Omit<KeyMac, "mac"> & { tag: MacTag }
+
+export function brandKeyMac(keyMac: KeyMac): BrandedKeyMac {
+	return keyMac as BrandedKeyMac
 }
