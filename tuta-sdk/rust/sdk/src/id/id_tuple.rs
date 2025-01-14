@@ -41,7 +41,7 @@ impl TryFrom<String> for IdTupleGenerated {
 	type Error = ();
 
 	fn try_from(value: String) -> Result<Self, Self::Error> {
-		let mut ids: Vec<_> = value.split("/").collect();
+		let mut ids: Vec<_> = value.split('/').collect();
 		let element_id = ids.pop().ok_or(())?;
 		let list_id = ids.pop().ok_or(())?;
 		Ok(IdTupleGenerated::new(
