@@ -14,6 +14,7 @@ pub use sha::sha256;
 pub use tuta_crypt::PQKeyPairs;
 
 pub mod aes;
+pub mod hmac;
 
 mod sha;
 
