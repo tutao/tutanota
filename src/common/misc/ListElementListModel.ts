@@ -65,7 +65,7 @@ export class ListElementListModel<ElementType extends ListElement> {
 			// Wait for any pending loading
 			return this.listModel.waitLoad(() => {
 				if (operation === OperationType.CREATE) {
-					if (this.canInsertEntity(entity)) {
+					if (this.listModel.canInsertItem(entity)) {
 						this.listModel.insertLoadedItem(entity)
 					}
 				} else if (operation === OperationType.UPDATE) {
@@ -76,16 +76,6 @@ export class ListElementListModel<ElementType extends ListElement> {
 			// await this.swipeHandler?.animating
 			await this.listModel.deleteLoadedItem(elementId)
 		}
-	}
-
-	private canInsertEntity(entity: ElementType): boolean {
-		if (this.state.loadingStatus === ListLoadingState.Done) {
-			return true
-		}
-
-		// new element is in the loaded range or newer than the first element
-		const lastElement = this.listModel.getLastItem()
-		return lastElement != null && this.config.sortCompare(entity, lastElement) < 0
 	}
 
 	async loadAndSelect(

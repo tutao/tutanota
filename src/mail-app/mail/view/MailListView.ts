@@ -368,7 +368,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							color: theme.list_message_bg,
 					  })
 					: m(List, {
-							state: listModel.state,
+							state: listModel.stateStream(),
 							renderConfig: this.renderConfig,
 							onLoadMore() {
 								listModel.loadMore()

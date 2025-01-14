@@ -21,6 +21,7 @@ import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
+import { OperationType } from "../api/common/TutanotaConstants"
 
 /**
  * Specifies methods for retrieving items, fetching items, and comparing items for a ListModel.
@@ -574,6 +575,16 @@ export class ListModel<ItemType, IdType> {
 		const id1 = this.config.getItemId(item1)
 		const id2 = this.config.getItemId(item2)
 		return this.config.isSameId(id1, id2)
+	}
+
+	canInsertItem(entity: ItemType): boolean {
+		if (this.state.loadingStatus === ListLoadingState.Done) {
+			return true
+		}
+
+		// new element is in the loaded range or newer than the first element
+		const lastElement = this.getLastItem()
+		return lastElement != null && this.config.sortCompare(entity, lastElement) < 0
 	}
 }
 
