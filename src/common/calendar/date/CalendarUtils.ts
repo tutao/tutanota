@@ -882,6 +882,9 @@ const MAX_EVENT_ITERATIONS = 10000
  * add the days the given {@param event} is happening on during the given {@param range} to {@param daysToEvents}.
  *
  * ignores repeat rules.
+ * @param daysToEvents
+ * @param event
+ * @param range
  * @param zone
  */
 export function addDaysForEventInstance(daysToEvents: Map<number, Array<CalendarEvent>>, event: CalendarEvent, range: CalendarTimeRange, zone: string) {
@@ -918,7 +921,7 @@ export function addDaysForEventInstance(daysToEvents: Map<number, Array<Calendar
 	}
 }
 
-function bySetPosContainsEventOccurance(posRulesValues: string[], event: CalendarEvent, eventCount: number, allEvents: CalendarEvent[]) {
+function bySetPosContainsEventOccurance(posRulesValues: string[], frequency: RepeatPeriod, eventCount: number, allEvents: DateTime[]) {
 	const negativeValues: string[] = []
 	const positiveValues: string[] = []
 	for (const posRulesValue of posRulesValues) {
@@ -928,8 +931,7 @@ function bySetPosContainsEventOccurance(posRulesValues: string[], event: Calenda
 			positiveValues.push(posRulesValue)
 		}
 	}
-	const { repeatRule } = event
-	switch (repeatRule?.frequency) {
+	switch (frequency) {
 		case RepeatPeriod.DAILY:
 			if (
 				negativeValues.some((value) => Number(value) < -366) ||
@@ -995,7 +997,6 @@ export function addDaysForRecurringEvent(
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
 	const generatedEvents = generateEventOccurrences(event, timeZone, new Date(range.end))
-	const allEvents: Map<number, CalendarEvent> = new Map()
 
 	for (const { startTime, endTime } of generatedEvents) {
 		if (startTime.getTime() > range.end) break
@@ -1012,20 +1013,9 @@ export function addDaysForRecurringEvent(
 				eventClone.startTime = new Date(startTime)
 				eventClone.endTime = new Date(endTime)
 			}
-			allEvents.set(eventClone.startTime.getTime(), eventClone)
-		}
-	}
 
-	const setPosRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYSETPOS)
-	const setPosRulesValues = setPosRules.map((rule) => rule.interval)
-	const shouldApplySetPos = isNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
-	let eventCount = 0
-	const events = Array.from(allEvents.values())
-	for (const event of events) {
-		if (shouldApplySetPos && !bySetPosContainsEventOccurance(setPosRulesValues, event, ++eventCount, events)) {
-			continue
+			addDaysForEventInstance(daysToEvents, eventClone, range, timeZone)
 		}
-		addDaysForEventInstance(daysToEvents, event, range, timeZone)
 	}
 }
 
@@ -1241,11 +1231,21 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 			validMonths as MonthNumbers[],
 			eventStartTime,
 		)
+
+		const setPosRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYSETPOS)
+		const setPosRulesValues = setPosRules.map((rule) => rule.interval)
+		const shouldApplySetPos = isNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
+		let eventCount = 0
+
 		for (const event of events) {
 			const newStartTime = event.toJSDate()
 			const newEndTime = allDay
 				? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
 				: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
+
+			if (shouldApplySetPos && !bySetPosContainsEventOccurance(setPosRulesValues, downcast(repeatRule?.frequency), ++eventCount, events)) {
+				continue
+			}
 
 			assertDateIsValid(newStartTime)
 			assertDateIsValid(newEndTime)
