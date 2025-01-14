@@ -135,7 +135,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										mailViewModel: this.mailViewModel,
 										onSingleSelection: (mail) => {
 											this.mailViewModel.onSingleSelection(mail)
-											if (!this.mailViewModel.listModel?.state.inMultiselect) {
+											if (!this.mailViewModel.listModel?.isInMultiselect()) {
 												this.viewSlider.focus(this.mailColumn)
 
 												// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
@@ -175,7 +175,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							  )
 							: null,
 						mobileHeader: () =>
-							this.mailViewModel.listModel?.state.inMultiselect
+							this.mailViewModel.listModel?.isInMultiselect()
 								? m(MultiselectMobileHeader, {
 										...selectionAttrsForList(this.mailViewModel.listModel),
 										message: getMailSelectionMessage(this.mailViewModel.listModel.getSelectedAsArray()),
@@ -320,9 +320,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 				loadAll: () => this.mailViewModel.listModel?.loadAll(),
 				stopLoadAll: () => this.mailViewModel.listModel?.cancelLoadAll(),
-				loadingAll: this.mailViewModel.listModel?.state.loadingAll
+				loadingAll: this.mailViewModel.listModel?.isLoadingAll()
 					? "loading"
-					: this.mailViewModel.listModel?.state.loadingStatus === ListLoadingState.Done
+					: this.mailViewModel.listModel?.loadingStatus === ListLoadingState.Done
 					? "loaded"
 					: "can_load",
 				getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
@@ -369,7 +369,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, { viewModel: this.conversationViewModel.primaryViewModel() })
-						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.state.inMultiselect
+						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
 								mails: this.mailViewModel.listModel.getSelectedAsArray(),
 								selectNone: () => this.mailViewModel.listModel?.selectNone(),
@@ -387,7 +387,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	handleBackButton(): boolean {
 		const listModel = this.mailViewModel.listModel
-		if (listModel && listModel.state.inMultiselect) {
+		if (listModel && listModel.isInMultiselect()) {
 			listModel.selectNone()
 			return true
 		} else if (this.viewSlider.isFirstBackgroundColumnFocused()) {
@@ -772,7 +772,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (this.mailViewModel.listModel.isItemSelected(mailId)) {
 			mailsToMove = this.mailViewModel.listModel.getSelectedAsArray()
 		} else {
-			const entity = this.mailViewModel.listModel.state.items.find((item) => getElementId(item) === mailId)
+			const entity = this.mailViewModel.listModel.getMail(mailId)
 
 			if (entity) {
 				mailsToMove.push(entity)
