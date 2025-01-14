@@ -2262,6 +2262,16 @@ styles.registerStyle("main", () => {
 		".calendar-selected-day-circle": {
 			"background-color": theme.content_accent,
 		},
+		".weekday-button-unselected-circle": {
+			border: `${px(1)} solid ${theme.content_accent}`,
+		},
+		".weekday-button-unselected-text": {
+			color: theme.content_accent,
+		},
+		".weekday-selector": {
+			margin: `${px(size.vpad_small)} 0`,
+			height: "44px",
+		},
 		".calendar-current-day-text": {
 			color: theme.content_bg,
 			"font-weight": "bold",

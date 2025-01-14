@@ -2,10 +2,17 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { EndType, Keys, RepeatPeriod, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { EndType, Weekdays, Keys, RepeatPeriod, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
-import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, IntervalOption } from "../CalendarGuiUtils.js"
+import {
+	createCustomEndTypeOptions,
+	createIntervalValues,
+	createRepeatRuleOptions,
+	createWeekdaySelectorItems,
+	getByDayRulesFromAdvancedRules,
+	IntervalOption,
+} from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { RadioGroup, RadioGroupAttrs } from "../../../../common/gui/base/RadioGroup.js"
@@ -18,12 +25,15 @@ import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { areAllAdvancedRepeatRulesValid } from "../../../../common/calendar/date/CalendarUtils.js"
 import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
+import { Divider } from "../../../../common/gui/Divider.js"
+import { WeekdaySelector, WeekdaySelectorItem } from "../../../../common/gui/base/icons/WeekdaySelector.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
 	startOfTheWeekOffset: number
 	width: number
 	backAction: () => void
+	writeWeekdaysToModel: (weekdays: Weekdays[]) => void
 }
 
 type RepeatRuleOption = RepeatPeriod | null
@@ -32,14 +42,17 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
+	private readonly weekdayItems: Array<WeekdaySelectorItem> = createWeekdaySelectorItems()
+
+	private byDayRules: Weekdays[] | null = null
 	private hasUnsupportedRules: boolean = false
 	private numberValues: IntervalOption[] = createIntervalValues()
-
 	private occurrencesExpanded: boolean = false
 	private repeatOccurrences: number
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
 		this.intervalOptions(this.numberValues)
+		this.byDayRules = getByDayRulesFromAdvancedRules(attrs.model.advancedRules)
 
 		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
@@ -146,13 +159,29 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				Card,
 				{
 					style: {
-						padding: "8px 14px",
+						padding: "0px", // overrides card specific padding that miss aligns divider line
 					},
 					classes: ["flex", "col", "rel"],
 				},
-				[this.renderIntervalPicker(attrs)],
+				this.renderRepetitionArea(attrs),
 			),
 		])
+	}
+
+	private renderRepetitionArea(attrs: RepeatRuleEditorAttrs): Children {
+		return [
+			this.renderIntervalPicker(attrs),
+			this.repeatRuleType === RepeatPeriod.WEEKLY || this.repeatRuleType === RepeatPeriod.MONTHLY
+				? [
+						m(Divider, { color: theme.button_bubble_bg }),
+						m(WeekdaySelector, {
+							items: this.weekdayItems,
+							selectedDays: this.byDayRules,
+							selectionChanged: attrs.writeWeekdaysToModel,
+						}),
+				  ]
+				: null,
+		]
 	}
 
 	private buildInjections(attrs: RepeatRuleEditorAttrs) {
@@ -191,40 +220,49 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	}
 
 	private renderIntervalPicker(attrs: RepeatRuleEditorAttrs): Children {
-		return m(".flex.rel", [
-			m("", { style: { flex: "1" } }, "Every"),
-			m(Select<IntervalOption, number>, {
-				onchange: (newValue) => {
-					if (this.repeatInterval === newValue.value) {
-						return
-					}
-
-					this.repeatInterval = newValue.value
-					this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-					m.redraw.sync()
+		return m(
+			".flex.rel",
+			{
+				style: {
+					padding: "8px 14px",
+					maxHeight: "44px",
 				},
-				onclose: () => {},
-				selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
-				ariaLabel: lang.get("repeatsEvery_label"),
-				options: this.intervalOptions,
-				noIcon: false,
-				expanded: false,
-				tabIndex: Number(TabIndex.Programmatic),
-				classes: ["no-appearance"],
-				renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
-				renderOption: (option) =>
-					m(
-						"button.items-center.flex-grow",
-						{
+			},
+			[
+				m(".flex-grow", "Every"),
+				m(Select<IntervalOption, number>, {
+					onchange: (newValue) => {
+						if (this.repeatInterval === newValue.value) {
+							return
+						}
+
+						this.repeatInterval = newValue.value
+						this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
+						m.redraw.sync()
+					},
+					onclose: () => {},
+					selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
+					ariaLabel: lang.get("repeatsEvery_label"),
+					options: this.intervalOptions,
+					noIcon: false,
+					expanded: false,
+					tabIndex: Number(TabIndex.Programmatic),
+					classes: ["no-appearance"],
+					renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
+					renderOption: (option) =>
+						m(
+							"button.items-center.flex-grow",
+							{
 							...(option.value == this.repeatInterval ? { "aria-selected": "true" } : {}),
 							class:
 								"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
 								(option.value == this.repeatInterval ? "content-accent-fg row-selected icon-accent" : ""),
-						},
-						option.name,
-					),
-			} satisfies SelectAttributes<IntervalOption, number>),
-		])
+							},
+							option.name,
+						),
+				} satisfies SelectAttributes<IntervalOption, number>),
+			],
+		)
 	}
 
 	/**
