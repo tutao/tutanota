@@ -11,6 +11,7 @@ import { px, size } from "../size.js"
 export class MultiPageDialog<TPages> {
 	private readonly currentPageStream: stream<TPages>
 	private readonly pageStackStream: stream<TPages[]>
+	private readonly isAnimating: stream<boolean> = stream(false)
 
 	constructor(rootPage: TPages) {
 		this.currentPageStream = stream(rootPage)
@@ -18,13 +19,22 @@ export class MultiPageDialog<TPages> {
 	}
 
 	private readonly goBack = () => {
+		if (this.isAnimating()) {
+			return
+		}
+
 		const tmp = this.pageStackStream()
 		tmp.pop()
 
-		this.navigateToPage(tmp[0])
+		this.pageStackStream(tmp)
+		this.currentPageStream(tmp[tmp.length - 1])
 	}
 
 	private readonly navigateToPage = (target: TPages) => {
+		if (this.isAnimating()) {
+			return
+		}
+
 		const tmp = this.pageStackStream()
 		tmp.push(target)
 
@@ -47,8 +57,9 @@ export class MultiPageDialog<TPages> {
 			MultiPageDialogViewWrapper<TPages>,
 			{
 				currentPageStream: this.currentPageStream,
-				renderContent: () => renderContent(this.currentPageStream, this.navigateToPage, this.goBack),
+				renderContent,
 				stackStream: this.pageStackStream,
+				isAnimating: this.isAnimating,
 			},
 			{
 				height: "100%",
@@ -71,6 +82,7 @@ type Props<TPages> = {
 	currentPageStream: stream<TPages>
 	renderContent: (currentPage: stream<TPages>) => Children
 	stackStream: stream<TPages[]>
+	isAnimating: stream<boolean>
 }
 
 export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
@@ -80,17 +92,22 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 	private dialogHeight: number | null = null
 	private pageWidth: number = -1
 	private translate = 0
-	private stackSize = 0
+	// We can assume the stack size is one because we already enforce having a root page when initializing MultiPageDialog
+	private stackSize = 1
+	private isGoingForward = false
+	private transitionClass = ""
 
 	constructor(vnode: Vnode<Props<TPages>>) {
 		vnode.attrs.stackStream.map((newStack: TPages[]) => {
 			const newStackLength = newStack.length
 			if (newStackLength < this.stackSize && newStack.length > 0) {
-				this.goBack(vnode.attrs.currentPageStream())
+				this.isGoingForward = false
+				this.goBack(vnode)
 				this.stackSize = newStackLength
 			} else if (newStackLength > this.stackSize) {
+				this.isGoingForward = true
 				this.stackSize = newStackLength
-				this.transitionTo(newStack[newStackLength - 1])
+				this.transitionTo(vnode, newStack[newStackLength - 1])
 			}
 		})
 		vnode.attrs.currentPageStream.map(() => {
@@ -106,10 +123,11 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 		this.pagesWrapperDomElement = vnode.dom as HTMLElement
 
 		this.pagesWrapperDomElement.addEventListener("transitionend", () => {
-			document.getElementById("foo-bar-baz")?.classList.remove("transition-transform")
+			this.transitionClass = ""
+			this.hasAnimationEnded = true
 			this.transitionPage(null)
 			this.translate = 0
-			this.hasAnimationEnded = true
+			vnode.attrs.isAnimating(false)
 			m.redraw()
 		})
 	}
@@ -123,49 +141,62 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 
 		if (this.pageWidth == -1 && dom.parentElement) {
 			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
-			// Twice the page width (Main Page + Guests/Repeat) plus the gap between pages (64px)
+			// Twice the page width plus the gap between pages (64px)
 			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.vpad_xxl)
 			m.redraw()
 		}
 	}
 
 	private renderPage(vnode: Vnode<Props<TPages>>) {
-		const stackSize = vnode.attrs.stackStream().length
-		const currentPageStream = stream(vnode.attrs.stackStream()[stackSize - 1])
-		if (this.hasAnimationEnded || (this.transitionPage() == null && stackSize >= 2)) {
-			return [
+		const updatedStackSize = vnode.attrs.stackStream().length
+		const leftPage = this.isGoingForward
+			? stream(vnode.attrs.stackStream()[updatedStackSize - 2] ?? vnode.attrs.currentPageStream())
+			: stream(this.transitionPage() ?? vnode.attrs.currentPageStream())
+		if (this.hasAnimationEnded || (this.transitionPage() == null && updatedStackSize >= 2)) {
+			const pages = [
+				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(leftPage)),
 				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
-				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream)),
 			]
+			return this.isGoingForward ? pages.reverse() : pages
 		}
 
-		if (stackSize <= 1) {
-			return [null, m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream))]
-		}
-
-		return [
+		const pages = [
+			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(leftPage)),
 			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
-			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(currentPageStream)),
 		]
+
+		return this.isGoingForward ? pages : pages.reverse()
 	}
 
-	private goBack(target: TPages) {
-		this.hasAnimationEnded = false
-		this.transitionPage(target)
-		this.translate = 0
+	private goBack(vnode: Vnode<Props<TPages>>) {
+		const target = vnode.attrs.currentPageStream()
+		vnode.attrs.isAnimating(true)
+		this.translate = -(this.pageWidth + size.vpad_xxl)
+		m.redraw.sync()
+
+		// FIXME Can we do something to not use setTimeout???
+		setTimeout(() => {
+			this.hasAnimationEnded = false
+			this.transitionPage(target)
+			this.transitionClass = "transition-transform"
+			this.translate = 0
+			m.redraw()
+		}, 1)
 	}
 
-	private transitionTo(target: TPages) {
+	private transitionTo(vnode: Vnode<Props<TPages>>, target: TPages) {
 		this.hasAnimationEnded = false
 		this.transitionPage(target)
-		document.getElementById("foo-bar-baz")?.classList.add("transition-transform")
+		vnode.attrs.isAnimating(true)
+		this.transitionClass = "transition-transform"
 		if (this.stackSize > 1) this.translate = -(this.pageWidth + size.vpad_xxl)
 	}
 
 	view(vnode: Vnode<Props<TPages>>): Children {
 		return m(
-			".flex.gap-vpad-xxl.fit-content.#foo-bar-baz",
+			".flex.gap-vpad-xxl.fit-content",
 			{
+				class: this.transitionClass,
 				style: {
 					transform: `translateX(${this.translate}px)`,
 				},
