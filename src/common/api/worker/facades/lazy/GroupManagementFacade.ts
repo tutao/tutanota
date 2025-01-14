@@ -8,7 +8,7 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { arrayEquals, assertNotNull, freshVersioned, getFirstOrThrow, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, getFirstOrThrow, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
 import {
 	AdministratedGroup,
 	AdministratedGroupTypeRef,
@@ -40,7 +40,7 @@ import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedEncr
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { isGlobalAdmin } from "../../../common/utils/UserUtils.js"
-import { KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
+import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 
 assertWorkerOrNode()
@@ -352,18 +352,18 @@ export class GroupManagementFacade {
 		).decryptedAesKey
 
 		// this function is called recursively. therefore we must not return the group key version from the group but from the pubAdminEncUserKeyData
-		const versionedDecryptedUserGroupKey = { object: decryptedUserGroupKey, version: Number(pubAdminEncUserKeyData.symKeyTag?.hashedKeyVersion) }
+		const versionedDecryptedUserGroupKey = { object: decryptedUserGroupKey, version: Number(pubAdminEncUserKeyData.symKeyMac?.taggedKeyVersion) }
 
-		await this.verifyUserGroupKeyHash(pubAdminEncUserKeyData, userGroup, versionedDecryptedUserGroupKey)
+		await this.verifyUserGroupKeyMac(pubAdminEncUserKeyData, userGroup, versionedDecryptedUserGroupKey)
 
 		return versionedDecryptedUserGroupKey
 	}
 
-	private async verifyUserGroupKeyHash(pubEncKeyData: PubEncKeyData, userGroup: Group, versionedDecryptedUserGroupKey: VersionedKey) {
-		const givenEncryptedUserGroupKeyHash = assertNotNull(pubEncKeyData.symKeyTag)
+	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, versionedDecryptedUserGroupKey: VersionedKey) {
+		const givenUserGroupKeyMac = brandKeyMac(assertNotNull(pubEncKeyData.symKeyMac))
 
-		// The given hash is authenticated by the previous user group key, so we can get the version from there.
-		const previousUserGroupKeyVersion = Number(givenEncryptedUserGroupKeyHash.encryptingKeyVersion)
+		// The given mac is authenticated by the previous user group key, so we can get the version from there.
+		const previousUserGroupKeyVersion = Number(givenUserGroupKeyMac.taggingKeyVersion)
 
 		// get previous user group key: ag1 -> ag0 -> ug0
 		const formerGroupKeysListId = assertNotNull(userGroup.formerGroupKeys?.list)
@@ -380,9 +380,9 @@ export class GroupManagementFacade {
 				previousUserGroupKeyVersion,
 			)
 		} else if (formerGroupKey.pubAdminGroupEncGKey != null) {
-			const pubAdminEncGKeyAuthHash = assertNotNull(formerGroupKey.pubAdminGroupEncGKey.symKeyTag)
+			const userGroupKeyMac = assertNotNull(formerGroupKey.pubAdminGroupEncGKey.symKeyMac)
 			// recurse, but expect to hit the end _before_ version 0, which should always be symmetrically encrypted
-			if (pubAdminEncGKeyAuthHash.hashedKeyVersion === "0") {
+			if (userGroupKeyMac.taggedKeyVersion === "0") {
 				throw new TutanotaError("UserGroupKeyNotTrustedError", "cannot establish trust on the user group key")
 			}
 			previousUserGroupKey = await this.decryptViaAsymmetricAdminGKey(userGroup, formerGroupKey.pubAdminGroupEncGKey)
@@ -391,15 +391,9 @@ export class GroupManagementFacade {
 		}
 		const userGroupAuthKey = this.keyAuthenticationFacade.deriveUserGroupAuthKey(userGroup._id, previousUserGroupKey)
 
-		const givenUserGroupKeyHash = this.cryptoWrapper.aesDecrypt(userGroupAuthKey, givenEncryptedUserGroupKeyHash.encryptingKeyEncKeyHash, true)
+		const tagData = this.keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(versionedDecryptedUserGroupKey)
 
-		const generatedUserGroupKeyHash = this.keyAuthenticationFacade.generateNewUserGroupKeyHash(versionedDecryptedUserGroupKey)
-
-		const verified = arrayEquals(givenUserGroupKeyHash, generatedUserGroupKeyHash)
-
-		if (!verified) {
-			throw new TutanotaError("UserGroupKeyVerificationError", "Hashes do not match")
-		}
+		this.cryptoWrapper.verifyHmacSha256(userGroupAuthKey, tagData, givenUserGroupKeyMac.tag)
 	}
 
 	/**
