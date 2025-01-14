@@ -85,33 +85,33 @@ type Props<TPages> = {
 	isAnimating: stream<boolean>
 }
 
+enum SlideDirection {
+	LEFT,
+	RIGHT,
+}
+
 export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	private readonly transitionPage: stream<TPages | null> = stream(null)
-	private hasAnimationEnded = true
-	private pagesWrapperDomElement!: HTMLElement
 	private dialogHeight: number | null = null
 	private pageWidth: number = -1
 	private translate = 0
 	// We can assume the stack size is one because we already enforce having a root page when initializing MultiPageDialog
 	private stackSize = 1
-	private isGoingForward = false
+	private slideDirection: SlideDirection | undefined = undefined
 	private transitionClass = ""
 
 	constructor(vnode: Vnode<Props<TPages>>) {
 		vnode.attrs.stackStream.map((newStack: TPages[]) => {
 			const newStackLength = newStack.length
 			if (newStackLength < this.stackSize && newStack.length > 0) {
-				this.isGoingForward = false
+				this.slideDirection = SlideDirection.LEFT
 				this.goBack(vnode)
 				this.stackSize = newStackLength
 			} else if (newStackLength > this.stackSize) {
-				this.isGoingForward = true
+				this.slideDirection = SlideDirection.RIGHT
 				this.stackSize = newStackLength
 				this.transitionTo(vnode, newStack[newStackLength - 1])
 			}
-		})
-		vnode.attrs.currentPageStream.map(() => {
-			this.hasAnimationEnded = false
 		})
 	}
 
@@ -120,14 +120,11 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 	}
 
 	oncreate(vnode: VnodeDOM<Props<TPages>>): void {
-		this.pagesWrapperDomElement = vnode.dom as HTMLElement
-
-		this.pagesWrapperDomElement.addEventListener("transitionend", () => {
+		vnode.dom.addEventListener("transitionend", () => {
 			this.transitionClass = ""
-			this.hasAnimationEnded = true
+			vnode.attrs.isAnimating(false)
 			this.transitionPage(null)
 			this.translate = 0
-			vnode.attrs.isAnimating(false)
 			m.redraw()
 		})
 	}
@@ -149,15 +146,16 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 
 	private renderPage(vnode: Vnode<Props<TPages>>) {
 		const updatedStackSize = vnode.attrs.stackStream().length
-		const leftPage = this.isGoingForward
-			? stream(vnode.attrs.stackStream()[updatedStackSize - 2] ?? vnode.attrs.currentPageStream())
-			: stream(this.transitionPage() ?? vnode.attrs.currentPageStream())
-		if (this.hasAnimationEnded || (this.transitionPage() == null && updatedStackSize >= 2)) {
+		const leftPage =
+			this.slideDirection == SlideDirection.RIGHT
+				? stream(vnode.attrs.stackStream()[updatedStackSize - 2] ?? vnode.attrs.currentPageStream())
+				: stream(this.transitionPage() ?? vnode.attrs.currentPageStream())
+		if (!vnode.attrs.isAnimating() || (this.transitionPage() == null && updatedStackSize >= 2)) {
 			const pages = [
 				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(leftPage)),
 				m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
 			]
-			return this.isGoingForward ? pages.reverse() : pages
+			return this.slideDirection === SlideDirection.RIGHT ? pages.reverse() : pages
 		}
 
 		const pages = [
@@ -165,29 +163,25 @@ export class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPage
 			m("", { style: { width: this.pageWidth + "px" } }, vnode.attrs.renderContent(vnode.attrs.currentPageStream)),
 		]
 
-		return this.isGoingForward ? pages : pages.reverse()
+		return this.slideDirection === SlideDirection.RIGHT ? pages : pages.reverse()
 	}
 
 	private goBack(vnode: Vnode<Props<TPages>>) {
 		const target = vnode.attrs.currentPageStream()
-		vnode.attrs.isAnimating(true)
 		this.translate = -(this.pageWidth + size.vpad_xxl)
 		m.redraw.sync()
 
-		// FIXME Can we do something to not use setTimeout???
-		setTimeout(() => {
-			this.hasAnimationEnded = false
+		requestAnimationFrame(() => {
+			vnode.attrs.isAnimating(true)
 			this.transitionPage(target)
 			this.transitionClass = "transition-transform"
 			this.translate = 0
-			m.redraw()
-		}, 1)
+		})
 	}
 
 	private transitionTo(vnode: Vnode<Props<TPages>>, target: TPages) {
-		this.hasAnimationEnded = false
-		this.transitionPage(target)
 		vnode.attrs.isAnimating(true)
+		this.transitionPage(target)
 		this.transitionClass = "transition-transform"
 		if (this.stackSize > 1) this.translate = -(this.pageWidth + size.vpad_xxl)
 	}
