@@ -41,13 +41,9 @@ export class AlarmScheduler {
 				repeatTimeZone,
 				event.startTime,
 				event.endTime,
-				downcast(repeatRule.frequency),
-				Number(repeatRule.interval),
-				downcast(repeatRule.endType) || EndType.Never,
-				Number(repeatRule.endValue),
-				repeatRule.excludedDates.map(({ date }) => date),
 				parseAlarmInterval(alarmInfo.trigger),
 				calculationLocalZone,
+				repeatRule
 			)
 
 			if (nextOccurrence) {
