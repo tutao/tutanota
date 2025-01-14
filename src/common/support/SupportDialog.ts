@@ -8,6 +8,7 @@ import { SupportCategory, SupportData, SupportTopic } from "../api/entities/tuta
 import { MultiPageDialog, TransitionTo } from "../gui/dialogs/MultiPageDialog.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import { Thunk } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -21,21 +22,22 @@ export async function showSupportDialog(logins: LoginController) {
 	const multiPageDialog = new MultiPageDialog<ExamplePages>(ExamplePages.ROOT)
 
 	function renderContent(currentPage: Stream<ExamplePages>, transitionTo: (newPage: ExamplePages) => void) {
+		// console.log("##### currentPage() in consumer ######", currentPage())
 		if (currentPage() === ExamplePages.ROOT) {
-			return m("h1", "This is the root page")
+			return m("h1", "aaa AAAA aaa")
 		}
 		if (currentPage() === ExamplePages.SECOND) {
-			return m("h1", "This is the second page")
+			return m("h1", "bbb BBBB bbb")
 		}
 
 		if (currentPage() === ExamplePages.THIRD) {
-			return m("h1", "This is the last and third page")
+			return m("h1", "ccc CCCC ccc")
 		}
 
 		throw new Error("unsupported page")
 	}
 
-	function renderLeft(currentPage: Stream<ExamplePages>, dialog: Dialog, transitionTo: TransitionTo<ExamplePages>): ButtonAttrs[] {
+	function renderLeft(currentPage: Stream<ExamplePages>, dialog: Dialog, transitionTo: TransitionTo<ExamplePages>, goBack: Thunk): ButtonAttrs[] {
 		if (currentPage() === ExamplePages.ROOT) {
 			return [
 				{
@@ -52,7 +54,7 @@ export async function showSupportDialog(logins: LoginController) {
 				{
 					type: ButtonType.Secondary,
 					click: () => {
-						transitionTo(ExamplePages.ROOT)
+						goBack()
 					},
 					label: () => "Back",
 				},
@@ -64,7 +66,7 @@ export async function showSupportDialog(logins: LoginController) {
 				{
 					type: ButtonType.Secondary,
 					click: () => {
-						transitionTo(ExamplePages.SECOND)
+						goBack()
 					},
 					label: () => "Back",
 				},
@@ -103,7 +105,6 @@ export async function showSupportDialog(logins: LoginController) {
 
 	function renderHeading(currentPage: Stream<ExamplePages>) {
 		const strings = Object.keys(ExamplePages)
-		console.log(strings, "strings")
 		return strings[currentPage()]
 	}
 
