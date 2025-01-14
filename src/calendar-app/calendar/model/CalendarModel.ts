@@ -230,24 +230,40 @@ export class CalendarModel {
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
 		const groupSettings = userController.userSettingsGroupRoot.groupSettings
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
-			const groupMembers = await loadGroupMembers(group, this.entityClient)
-			const shared = groupMembers.length > 1
-			const userIsOwner = !shared || isSharedGroupOwner(group, userController.userId)
-			const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
-			calendarInfos.set(groupRoot._id, {
-				groupRoot,
-				groupInfo,
-				group: group,
-				shared,
-				userIsOwner,
-				isExternal,
-			})
+			try {
+				const groupMembers = await loadGroupMembers(group, this.entityClient)
+				const shared = groupMembers.length > 1
+				const userIsOwner = !shared || isSharedGroupOwner(group, userController.userId)
+				const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
+				calendarInfos.set(groupRoot._id, {
+					groupRoot,
+					groupInfo,
+					group: group,
+					shared,
+					userIsOwner,
+					isExternal,
+				})
+			} catch (e) {
+				if (e instanceof NotAuthorizedError) {
+					console.log("NotAuthorizedError when initializing calendar. Calendar has been removed ")
+				} else {
+					throw e
+				}
+			}
 		}
 
 		// cleanup inconsistent memberships
 		for (const membership of notFoundMemberships) {
 			// noinspection ES6MissingAwait
-			this.serviceExecutor.delete(MembershipService, createMembershipRemoveData({ user: userController.userId, group: membership.group }))
+			this.serviceExecutor
+				.delete(
+					MembershipService,
+					createMembershipRemoveData({
+						user: userController.userId,
+						group: membership.group,
+					}),
+				)
+				.catch((e) => console.log("error cleaning up membership for group: ", membership.group))
 		}
 		return calendarInfos
 	}
