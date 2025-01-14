@@ -51,6 +51,17 @@ pub struct HkdfTest {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct HmacTest {
+	#[serde(with = "const_hex")]
+	pub key_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub data_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub hmac_sha256_tag_hex: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Argon2Test {
 	pub password: String,
 	#[serde(with = "const_hex")]
@@ -152,6 +163,7 @@ pub struct CompatibilityTestData {
 	pub aes128_mac_tests: Vec<Aes128MacTest>,
 	pub aes256_tests: Vec<AesTest>,
 	pub hkdf_tests: Vec<HkdfTest>,
+	pub hmac_sha256_tests: Vec<HmacTest>,
 	pub argon2id_tests: Vec<Argon2Test>,
 	pub x25519_tests: Vec<X25519Test>,
 	pub kyber_encryption_tests: Vec<KyberEncryptionTest>,
