@@ -207,15 +207,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
-		let promise = Promise.resolve()
-
-		if (data.newAccountData && locator.logins.isUserLoggedIn()) {
-			promise = locator.logins.logout(false)
-		}
-
-		promise.then(() => {
-			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
-		})
+		emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 	}
 }
 

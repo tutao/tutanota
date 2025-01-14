@@ -202,8 +202,8 @@ export async function loadSignupWizard(
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
-		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs),
-		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs),
+		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
+		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs), // this page will login the user if they are not login for iOS payment through AppStore
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
 
@@ -216,6 +216,8 @@ export async function loadSignupWizard(
 		wizardPages,
 		async () => {
 			if (locator.logins.isUserLoggedIn()) {
+				// this ensures that all created sessions during signup process are closed
+				// either by clicking on `cancel`, closing the window, or confirm on the UpgradeCongratulationsPage
 				await locator.logins.logout(false)
 			}
 
