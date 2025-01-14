@@ -36,13 +36,14 @@ import {
 	CalendarEventTypeRef,
 	CalendarGroupRoot,
 	CalendarRepeatRule,
+	createCalendarEvent,
 	createCalendarRepeatRule,
 	GroupSettings,
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, GroupInfo, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
-import { isSameId } from "../../api/common/utils/EntityUtils"
+import { isSameId, StrippedEntity } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { DateProvider } from "../../api/common/DateProvider"
@@ -1341,38 +1342,59 @@ export function findNextAlarmOccurrence(
 	timeZone: string,
 	eventStart: Date,
 	eventEnd: Date,
-	frequency: RepeatPeriod,
-	interval: number,
-	endType: EndType,
-	endValue: number,
-	exclusions: Array<Date>,
 	alarmTrigger: AlarmInterval,
 	localTimeZone: string,
+	repeatRule: RepeatRule,
 ): AlarmOccurrence | null {
 	let occurrenceNumber = 0
+	const exclusions = repeatRule.excludedDates.map(({ date }) => date)
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
 	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
 	assertDateIsValid(calcEventStart)
-	const endDate = endType === EndType.UntilDate ? (isAllDayEvent ? getAllDayDateForTimezone(new Date(endValue), localTimeZone) : new Date(endValue)) : null
 
-	while (endType !== EndType.Count || occurrenceNumber < endValue) {
-		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval * occurrenceNumber, isAllDayEvent ? localTimeZone : timeZone)
-		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
+	const endDate =
+		repeatRule.endType === EndType.UntilDate
+			? isAllDayEvent
+				? getAllDayDateForTimezone(new Date(Number(repeatRule.endValue)), localTimeZone)
+				: new Date(Number(repeatRule.endValue))
+			: null
+
+	while (repeatRule.endType !== EndType.Count || occurrenceNumber < Number(repeatRule.endValue)) {
+		const maxDate = incrementByRepeatPeriod(
+			calcEventStart,
+			downcast(repeatRule.frequency),
+			Number(repeatRule.interval) * (occurrenceNumber + 1),
+			isAllDayEvent ? localTimeZone : timeZone,
+		)
+
+		if (endDate && maxDate.getTime() >= endDate.getTime()) {
 			return null
 		}
 
-		if (!exclusions.some((d) => d.getTime() === occurrenceDate.getTime())) {
-			const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone)
+		const eventGenerator = generateEventOccurrences(
+			createCalendarEvent({
+				startTime: eventStart,
+				endTime: eventEnd,
+				repeatRule,
+			} as StrippedEntity<CalendarEvent>),
+			timeZone,
+			maxDate,
+		)
 
-			if (alarmTime >= now) {
-				return {
-					alarmTime,
-					occurrenceNumber: occurrenceNumber,
-					eventTime: occurrenceDate,
+		for (const { startTime, endTime } of eventGenerator) {
+			if (!exclusions.some((d) => d.getTime() === startTime.getTime())) {
+				const alarmTime = calculateAlarmTime(startTime, alarmTrigger, localTimeZone)
+
+				if (alarmTime >= now) {
+					return {
+						alarmTime,
+						occurrenceNumber: occurrenceNumber,
+						eventTime: startTime,
+					}
 				}
 			}
+			occurrenceNumber++
 		}
-		occurrenceNumber++
 	}
 	return null
 }
