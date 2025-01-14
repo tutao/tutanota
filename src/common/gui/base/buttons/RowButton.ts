@@ -4,13 +4,13 @@ import { AllIcons, Icon, IconSize } from "../Icon.js"
 import { ClickHandler } from "../GuiUtils.js"
 import { AriaRole } from "../../AriaUtils.js"
 import { theme } from "../../theme.js"
-import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 
 export interface RowButtonAttrs {
 	/** accessibility & tooltip description */
-	label: TranslationText
+	label: MaybeTranslation
 	/** visible text inside button */
-	text?: TranslationText
+	text?: MaybeTranslation
 	icon?: AllIcons | "none"
 	selected?: boolean
 	onclick: ClickHandler
@@ -23,11 +23,11 @@ export interface RowButtonAttrs {
 export class RowButton implements Component<RowButtonAttrs> {
 	view(vnode: Vnode<RowButtonAttrs>) {
 		const attrs = vnode.attrs
-		const label = lang.getMaybeLazy(attrs.label)
-		const text = lang.getMaybeLazy(attrs.text ?? attrs.label)
+		const label = lang.getTranslationText(attrs.label)
+		const text = lang.getTranslationText(attrs.text ?? attrs.label)
 		const color = attrs.selected ? theme.content_button_selected : theme.content_button
 		return m(BaseButton, {
-			label,
+			label: attrs.label,
 			text: m(
 				".plr-button.text-ellipsis",
 				{

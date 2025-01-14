@@ -7,12 +7,12 @@ import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "./PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import type { TranslationKey } from "../LanguageViewModel.js"
+import type { TranslationKey, MaybeTranslation } from "../LanguageViewModel.js"
 
 type StatusSetting = Status | "auto"
 
 export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "label" | "type"> {
-	label?: TranslationKey | lazy<string>
+	label?: MaybeTranslation
 	passwordStrength?: number
 	status?: StatusSetting
 }

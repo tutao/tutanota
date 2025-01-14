@@ -48,7 +48,7 @@ export class ContactMergeView {
 					type: ButtonType.Primary,
 				},
 			],
-			middle: () => lang.get("merge_action"),
+			middle: "merge_action",
 		}
 		this.dialog = Dialog.largeDialog(headerBarAttrs as DialogHeaderBarAttrs, this)
 			.setCloseHandler(cancelAction)
@@ -220,14 +220,14 @@ export class ContactMergeView {
 	} {
 		const mailAddresses = contact.mailAddresses.map((element) => {
 			return m(TextField, {
-				label: () => getContactAddressTypeLabel(element.type as any, element.customTypeName),
+				label: getContactAddressTypeLabel(element.type as any, element.customTypeName),
 				value: element.address,
 				isReadOnly: true,
 			})
 		})
 		const phones = contact.phoneNumbers.map((element) => {
 			return m(TextField, {
-				label: () => getContactPhoneNumberTypeLabel(element.type as any, element.customTypeName),
+				label: getContactPhoneNumberTypeLabel(element.type as any, element.customTypeName),
 				value: element.number,
 				isReadOnly: true,
 			})
@@ -236,12 +236,12 @@ export class ContactMergeView {
 			// Manually implement text area to make it stretch vertically. TextField is unable to do that.
 			return m(TextDisplayArea, {
 				value: element.address,
-				label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(element.type), element.customTypeName),
+				label: getContactAddressTypeLabel(downcast<ContactAddressType>(element.type), element.customTypeName),
 			})
 		})
 		const socials = contact.socialIds.map((element) => {
 			return m(TextField, {
-				label: () => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName),
+				label: getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName),
 				value: element.socialId,
 				isReadOnly: true,
 			})

@@ -3,11 +3,12 @@ import { ClickHandler } from "../GuiUtils.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { TabIndex } from "../../../api/common/TutanotaConstants.js"
 import { AriaRole } from "../../AriaUtils.js"
+import { lang, Translation, TranslationKey, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 
 // `staticRightText` to be passed as a child
 export interface BaseButtonAttrs {
 	/** accessibility & tooltip description */
-	label: string
+	label: MaybeTranslation
 	/** visible text inside button */
 	text?: Children
 	icon?: Children
@@ -33,7 +34,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 		return m(
 			"button",
 			{
-				title: attrs.label,
+				title: lang.getTranslationText(attrs.label),
 				disabled,
 				"aria-disabled": disabled,
 				pressed,
@@ -44,6 +45,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 				class: attrs.class,
 				style: attrs.style,
 				role: attrs.role,
+				"data-testid": lang.getTestId(attrs.label),
 			},
 			[attrs.icon ? this.renderIcon(attrs.icon, attrs.iconWrapperSelector) : null, attrs.text ?? null, children],
 		)

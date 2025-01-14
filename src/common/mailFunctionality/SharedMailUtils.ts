@@ -17,7 +17,7 @@ import {
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang, Language, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
@@ -273,8 +273,8 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 		}
 
 		if (tooBig.length > 0) {
-			Dialog.message(() =>
-				lang.get("tooBigInlineImages_msg", {
+			Dialog.message(
+				lang.getTranslation("tooBigInlineImages_msg", {
 					"{size}": MAX_BASE64_IMAGE_SIZE / 1024,
 				}),
 			)

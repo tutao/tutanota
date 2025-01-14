@@ -1,7 +1,7 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
 import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
-import type { TranslationText } from "./LanguageViewModel"
+import type { MaybeTranslation } from "./LanguageViewModel"
 import { lang } from "./LanguageViewModel"
 import {
 	AccessBlockedError,
@@ -71,9 +71,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 			} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
 				if (logins.getUserController().isGlobalAdmin()) {
 					if (includeInvoiceNotPaidForAdmin) {
-						return Dialog.message(() => {
-							return lang.get("invoiceNotPaid_msg")
-						})
+						return Dialog.message("invoiceNotPaid_msg")
 							.then(() => {
 								// TODO: navigate to payment site in settings
 								//m.route.set("/settings")
@@ -84,7 +82,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 						return true
 					}
 				} else {
-					const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
+					const errorMessage = lang.makeTranslation("invoiceNotPaidUser_msg", lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg"))
 
 					return Dialog.message(errorMessage).then(() => false)
 				}
@@ -107,7 +105,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 		})
 }
 
-export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): TranslationText {
+export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): MaybeTranslation {
 	switch (error.constructor) {
 		case BadRequestError:
 		case NotAuthenticatedError:
@@ -127,10 +125,9 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 			return "emptyString_msg"
 
 		case CredentialAuthenticationError:
-			return () =>
-				lang.get("couldNotUnlockCredentials_msg", {
-					"{reason}": error.message,
-				})
+			return lang.getTranslation("couldNotUnlockCredentials_msg", {
+				"{reason}": error.message,
+			})
 
 		case ConnectionError:
 			return "connectionLostLong_msg"
@@ -162,7 +159,7 @@ export function handleExpectedLoginError<E extends Error>(error: E, handler: (er
 	}
 }
 
-export function getLoginErrorStateAndMessage(error: Error): { errorMessage: TranslationText; state: LoginState } {
+export function getLoginErrorStateAndMessage(error: Error): { errorMessage: MaybeTranslation; state: LoginState } {
 	let errorMessage = getLoginErrorMessage(error, false)
 	let state
 	if (error instanceof BadRequestError || error instanceof NotAuthenticatedError) {

@@ -36,7 +36,7 @@ import type { File as TutanotaFile } from "../../common/api/entities/tutanota/Ty
 import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "./SharedMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../api/main/RecipientsModel.js"
-import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, Language, languages, TranslationKey, TranslationText } from "../misc/LanguageViewModel.js"
+import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, Language, languages, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
@@ -618,7 +618,7 @@ export class SendMailModel {
 		this.markAsChangedIfNecessary(sizeCheckResult.attachableFiles.length > 0)
 
 		if (sizeCheckResult.tooBigFiles.length > 0) {
-			throw new UserError(() => lang.get("tooBigAttachment_msg") + "\n" + sizeCheckResult.tooBigFiles.join("\n"))
+			throw new UserError(lang.makeTranslation("tooBigAttachment_msg", lang.get("tooBigAttachment_msg") + "\n" + sizeCheckResult.tooBigFiles.join("\n")))
 		}
 	}
 
@@ -717,8 +717,8 @@ export class SendMailModel {
 	 */
 	async send(
 		mailMethod: MailMethod,
-		getConfirmation: (arg0: TranslationText) => Promise<boolean> = (_) => Promise.resolve(true),
-		waitHandler: (arg0: TranslationText, arg1: Promise<any>) => Promise<any> = (_, p) => p,
+		getConfirmation: (arg0: MaybeTranslation) => Promise<boolean> = (_) => Promise.resolve(true),
+		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
@@ -791,7 +791,10 @@ export class SendMailModel {
 					} else {
 						let invalidRecipients = e.message
 						throw new UserError(
-							() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
+							lang.makeTranslation(
+								"error_msg",
+								lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
+							),
 						)
 					}
 				}),

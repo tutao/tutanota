@@ -29,7 +29,7 @@ export function folderSelectionDialog(indentedFolders: IndentedFolder[], okActio
 						},
 					},
 				],
-				middle: () => lang.getMaybeLazy("mailFolder_label"),
+				middle: "mailFolder_label",
 				right: [
 					{
 						type: ButtonType.Primary,

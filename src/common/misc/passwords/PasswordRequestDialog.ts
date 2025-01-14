@@ -3,7 +3,7 @@
  * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
  */
 import { PasswordField, PasswordFieldAttrs } from "./PasswordField.js"
-import { lang, TranslationKey } from "../LanguageViewModel.js"
+import { TranslationKey, MaybeTranslation } from "../LanguageViewModel.js"
 import { Dialog, INPUT } from "../../gui/base/Dialog.js"
 import m from "mithril"
 import { Autocomplete } from "../../gui/base/TextField.js"
@@ -13,7 +13,7 @@ import { Icon } from "../../gui/base/Icon.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 
 export function showRequestPasswordDialog(props: {
-	title?: string
+	title?: MaybeTranslation
 	messageText?: string
 	action: (pw: string) => Promise<string>
 	cancel: {
@@ -21,7 +21,7 @@ export function showRequestPasswordDialog(props: {
 		action: () => void
 	} | null
 }): Dialog {
-	const title = props.title != null ? () => props.title! : () => lang.get("password_label")
+	const title = props.title ? props.title : "password_label"
 	let value = ""
 	let state: { type: "progress" } | { type: "idle"; message: string } = { type: "idle", message: "" }
 

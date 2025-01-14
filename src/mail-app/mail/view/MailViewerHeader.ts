@@ -526,8 +526,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						  this.renderAttachmentContainer(viewModel, attachments, importFile)
 						: // Otherwise, we show the number of attachments and its total size along with a show all button
 						  m(ExpanderButton, {
-								label: () =>
+								label: lang.makeTranslation(
+									"attachmentAmount_label",
 									lang.get("attachmentAmount_label", { "{amount}": attachmentCount + "" }) + ` (${formatStorageSize(totalAttachmentSize)})`,
+								),
 								style: {
 									"padding-top": "inherit",
 									height: "inherit",

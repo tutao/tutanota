@@ -1,6 +1,5 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import { lang } from "../misc/LanguageViewModel"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { BadRequestError } from "../api/common/error/RestError"
@@ -61,7 +60,7 @@ export function showSwitchToBusinessInvoiceDataDialog(customer: Customer, invoic
 	const cancelAction = () => result.resolve(false)
 
 	const dialog = Dialog.showActionDialog({
-		title: lang.get("invoiceData_msg"),
+		title: "invoiceData_msg",
 		child: {
 			view: () =>
 				m("#changeInvoiceDataDialog", [

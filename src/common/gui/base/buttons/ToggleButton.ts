@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../Icon.js"
-import { lang, TranslationText } from "../../../misc/LanguageViewModel.js"
+import { lang, Translation, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 import { ButtonColor, getColors } from "../Button.js"
 import { ButtonSize } from "../ButtonSize.js"
 import { BaseButton } from "./BaseButton.js"
@@ -8,7 +8,7 @@ import { BaseButton } from "./BaseButton.js"
 export interface ToggleButtonAttrs {
 	icon: AllIcons
 	// The title should not change on toggle. See: https://www.w3.org/WAI/ARIA/apg/patterns/button/
-	title: TranslationText
+	title: MaybeTranslation
 	toggled: boolean
 	onToggled: (selected: boolean, event: MouseEvent) => unknown
 	colors?: ButtonColor
@@ -19,7 +19,7 @@ export interface ToggleButtonAttrs {
 export class ToggleButton implements Component<ToggleButtonAttrs> {
 	view({ attrs }: Vnode<ToggleButtonAttrs>): Children {
 		return m(BaseButton, {
-			label: lang.getMaybeLazy(attrs.title),
+			label: attrs.title,
 			icon: m(Icon, {
 				icon: attrs.icon,
 				container: "div",

@@ -6,7 +6,7 @@ import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao
 import { OutOfOfficeNotificationMessageType } from "../../common/api/common/TutanotaConstants"
 import { InvalidDataError, PreconditionFailedError } from "../../common/api/common/error/RestError"
 import type { EntityClient } from "../../common/api/common/EntityClient"
-import type { LanguageViewModel } from "../../common/misc/LanguageViewModel"
+import { lang, LanguageViewModel } from "../../common/misc/LanguageViewModel"
 import type { UserController } from "../../common/api/main/UserController"
 import { appendEmailSignature } from "../mail/signature/Signature"
 import { UserError } from "../../common/api/main/UserError"
@@ -199,7 +199,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 					if (e.data === FAILURE_UPGRADE_REQUIRED) {
 						throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithAutoResponder())
 					} else {
-						throw new UserError(() => e.toString())
+						throw new UserError(lang.makeTranslation("error_msg", e.toString()))
 					}
 				}),
 			)

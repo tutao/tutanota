@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector.js"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject, mapNullable } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -33,7 +33,7 @@ export interface LoginViewAttrs extends TopLevelAttrs {
 }
 
 /** create a string provider that changes periodically until promise is resolved */
-function makeDynamicLoggingInMessage(promise: Promise<unknown>): () => string {
+function makeDynamicLoggingInMessage(promise: Promise<unknown>): () => TranslationKey {
 	const messageArray: Array<TranslationKey> = [
 		"dynamicLoginDecryptingMails_msg",
 		"dynamicLoginOrganizingCalendarEvents_msg",
@@ -52,7 +52,7 @@ function makeDynamicLoggingInMessage(promise: Promise<unknown>): () => string {
 		m.redraw()
 	}, 4000 /** spinner spins every 2s */)
 	promise.finally(() => clearInterval(messageIntervalId))
-	return () => lang.get(currentMessage)
+	return () => currentMessage
 }
 
 export class LoginView extends BaseTopLevelView implements TopLevelView<LoginViewAttrs> {
@@ -212,7 +212,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				]
 				const customButtons = (await locator.themeController.getCustomThemes()).map((themeId) => {
 					return {
-						label: () => themeId,
+						label: lang.makeTranslation(themeId, themeId),
 						click: () => locator.themeController.setThemePreference(themeId),
 					}
 				})
@@ -264,7 +264,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				mailAddress: this.viewModel.mailAddress,
 				password: this.viewModel.password,
 				savePassword: this.viewModel.savePassword,
-				helpText: lang.getMaybeLazy(this.viewModel.helpText),
+				helpText: lang.getTranslationText(this.viewModel.helpText),
 				invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
 				showRecoveryOption: this._recoverLoginVisible(),
 				accessExpired: this.viewModel.state === LoginState.AccessExpired,
@@ -290,7 +290,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 					...liveDataAttrs(),
 					class: styles.isSingleColumnLayout() ? "" : "pt-xs",
 				},
-				lang.getMaybeLazy(this.viewModel.helpText),
+				lang.getTranslationText(this.viewModel.helpText),
 			),
 			m(CredentialsSelector, {
 				credentials: this.viewModel.getSavedCredentials(),

@@ -1,7 +1,7 @@
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../../../common/gui/size.js"
-import { lang, TranslationText } from "../../../common/misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { IconSegmentControl } from "../../../common/gui/base/IconSegmentControl.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { TodayIconButton } from "./TodayIconButton.js"
@@ -43,7 +43,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 	}
 
 	private renderViewSelector(attrs: CalendarDesktopToolbarAttrs): Children {
-		const calendarViewValues: Array<{ icon: AllIcons; label: TranslationText; value: CalendarViewType }> = [
+		const calendarViewValues: Array<{ icon: AllIcons; label: MaybeTranslation; value: CalendarViewType }> = [
 			{
 				icon: getIconForViewType(CalendarViewType.AGENDA),
 				label: "agenda_label",

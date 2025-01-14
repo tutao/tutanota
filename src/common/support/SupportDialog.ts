@@ -55,7 +55,7 @@ export async function showSupportDialog(logins: LoginController) {
 
 	const header: DialogHeaderBarAttrs = {
 		left: [closeButton],
-		middle: () => lang.get("supportMenu_label"),
+		middle: "supportMenu_label",
 	}
 	const child: Component = {
 		view: () => {
@@ -63,7 +63,7 @@ export async function showSupportDialog(logins: LoginController) {
 				m(".pt"),
 				m(".h1 .text-center", lang.get("howCanWeHelp_title")),
 				m(TextField, {
-					label: () => lang.get("describeProblem_msg"),
+					label: "describeProblem_msg",
 					value: searchValue(),
 					oninput: searchValue,
 				}),

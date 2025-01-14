@@ -1,5 +1,4 @@
-import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
-import { lazy } from "@tutao/tutanota-utils"
+import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../../size.js"
 import { BaseButton } from "./BaseButton.js"
@@ -13,16 +12,15 @@ export type BannerButtonAttrs = {
 	class?: string
 	disabled?: boolean
 	click: ClickHandler
-	text: TranslationKey | lazy<string>
+	text: MaybeTranslation
 	icon?: Children
 }
 
 export class BannerButton implements Component<BannerButtonAttrs> {
 	view({ attrs }: Vnode<BannerButtonAttrs>): Children {
-		const text = lang.getMaybeLazy(attrs.text)
 		return m(BaseButton, {
-			label: text,
-			text,
+			label: attrs.text,
+			text: lang.getTranslationText(attrs.text),
 			class: `border-radius mr-s center ${attrs.class} ${attrs.disabled ? "disabled" : ""}`,
 			style: {
 				border: `2px solid ${attrs.disabled ? theme.content_button : attrs.borderColor}`,

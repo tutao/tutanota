@@ -179,7 +179,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 
 	Dialog.showActionDialog({
 		type: DialogType.EditLarge,
-		title: lang.get("edit_action"),
+		title: "edit_action",
 		child: () => {
 			return [
 				m(SegmentControl, {
@@ -192,8 +192,8 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		},
 		okAction: (dialog: Dialog) => {
 			if (!editor.getValue().includes("{link}")) {
-				return Dialog.message(() =>
-					lang.get("templateMustContain_msg", {
+				return Dialog.message(
+					lang.getTranslation("templateMustContain_msg", {
 						"{value}": "{link}",
 					}),
 				)
@@ -231,7 +231,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 			)
 				.catch(
 					ofClass(UserError, (err) => {
-						return Dialog.message(() => err.message)
+						return Dialog.message(lang.makeTranslation("error_message", err.message))
 					}),
 				)
 				.catch(

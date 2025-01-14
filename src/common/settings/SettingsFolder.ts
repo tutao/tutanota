@@ -1,5 +1,5 @@
 import type { lazyIcon } from "../gui/base/Icon.js"
-import type { TranslationKey } from "../misc/LanguageViewModel.js"
+import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { isSelectedPrefix } from "../gui/base/NavButton.js"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../api/common/Env.js"
@@ -15,7 +15,7 @@ export class SettingsFolder<T> {
 	private _isVisibleHandler: lazy<boolean>
 
 	constructor(
-		readonly name: TranslationKey | lazy<string>,
+		readonly name: MaybeTranslation,
 		readonly icon: lazyIcon,
 		readonly path: SettingsFolderPath,
 		readonly viewerCreator: lazy<UpdatableSettingsViewer>,

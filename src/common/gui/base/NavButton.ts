@@ -7,7 +7,7 @@ import type { lazyIcon } from "./Icon"
 import { Icon } from "./Icon"
 import { theme } from "../theme"
 import { styles } from "../styles"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
@@ -18,7 +18,7 @@ import { fileListToArray } from "../../api/common/utils/FileUtils.js"
 
 assertMainOrNode()
 export type NavButtonAttrs = {
-	label: TranslationKey | lazy<string>
+	label: MaybeTranslation
 	icon?: lazyIcon
 	href: string | lazy<string>
 	isSelectedPrefix?: string | boolean
@@ -66,7 +66,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						},
 				  })
 				: null,
-			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-m" : ""), this.getLabel(a.label)) : null,
+			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-m" : ""), lang.getTranslationText(a.label)) : null,
 		]
 
 		// allow nav button without label for registration button on mobile devices
@@ -75,10 +75,6 @@ export class NavButton implements Component<NavButtonAttrs> {
 		} else {
 			return m(m.route.Link, linkAttrs, children)
 		}
-	}
-
-	getLabel(label: TranslationKey | lazy<string>): string {
-		return lang.getMaybeLazy(label)
 	}
 
 	_getUrl(href: string | lazy<string>): string {
@@ -124,7 +120,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 				"font-size": a.fontSize ? px(a.fontSize) : "",
 				background: (isNavButtonSelected(a) && a.persistentBackground) || this._draggedOver ? stateBgHover : "",
 			},
-			title: this.getLabel(a.label),
+			title: lang.getTranslationText(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
 			selector: this._getNavButtonClass(a),
 			onclick: (e: MouseEvent) => this.click(e, a, e.target as HTMLElement),
@@ -136,6 +132,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			onfocus: a.onfocus,
 			onblur: a.onblur,
 			onkeydown: a.onkeydown,
+			"data-testid": lang.getTestId(a.label),
 		}
 
 		if (a.dropHandler) {

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang, TranslationText } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { progressIcon } from "./Icon"
 import { downcast, neverNull } from "@tutao/tutanota-utils"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
@@ -21,8 +21,8 @@ export const enum ColumnWidth {
 }
 
 export type TableHeading = {
-	text: TranslationText
-	helpText?: TranslationText
+	text: MaybeTranslation
+	helpText?: MaybeTranslation
 }
 
 /**
@@ -34,7 +34,7 @@ export type TableHeading = {
  * @param lines the lines of the table
  */
 export type TableAttrs = {
-	columnHeading?: Array<TableHeading | TranslationText>
+	columnHeading?: Array<TableHeading | MaybeTranslation>
 	columnWidths: ReadonlyArray<ColumnWidth>
 	columnAlignments?: Array<boolean>
 	verticalColumnHeadings?: boolean
@@ -76,9 +76,9 @@ export class Table implements Component<TableAttrs> {
 									cells: () =>
 										a.columnHeading!.map((header) => {
 											const text = this.isTableHeading(header) ? header.text : header
-											const info = this.isTableHeading(header) && header.helpText ? [lang.getMaybeLazy(header.helpText)] : undefined
+											const info = this.isTableHeading(header) && header.helpText ? [lang.getTranslationText(header.helpText)] : undefined
 											return {
-												main: lang.getMaybeLazy(text),
+												main: lang.getTranslationText(text),
 												info: info,
 											} satisfies CellTextData
 										}),
@@ -100,7 +100,7 @@ export class Table implements Component<TableAttrs> {
 		])
 	}
 
-	private isTableHeading(textIdOrFunction: TableHeading | TranslationText): textIdOrFunction is TableHeading {
+	private isTableHeading(textIdOrFunction: TableHeading | MaybeTranslation): textIdOrFunction is TableHeading {
 		return (textIdOrFunction as TableHeading).text !== undefined
 	}
 

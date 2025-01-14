@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, CVnode } from "mithril"
 import { px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { theme } from "../theme"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { isKeyPressed, keyHandler, useKeyHandler } from "../../misc/KeyManager"
@@ -12,7 +12,7 @@ import { AriaPopupType } from "../AriaUtils.js"
 
 export type TextFieldAttrs = {
 	id?: string
-	label: TranslationKey | lazy<string>
+	label: MaybeTranslation
 	value: string
 	autocompleteAs?: Autocomplete
 	autocapitalize?: Autocapitalize
@@ -134,7 +134,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							transition: `transform ${labelTransitionSpeed}ms ease-out, font-size ${labelTransitionSpeed}ms  ease-out`,
 						},
 					},
-					lang.getMaybeLazy(a.label),
+					lang.getTranslationText(a.label),
 				),
 				m(".flex.flex-column", [
 					// another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
@@ -246,7 +246,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						type: a.type,
 						min: a.min,
 						max: a.max,
-						"aria-label": lang.getMaybeLazy(a.label),
+						"aria-label": lang.getTranslationText(a.label),
 						disabled: a.disabled,
 						class: getOperatingClasses(a.disabled) + " text",
 						oncreate: (vnode) => {
@@ -298,6 +298,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							lineHeight: px(inputLineHeight),
 							fontSize: a.fontSize,
 						},
+						"data-testid": lang.getTestId(a.label),
 					}),
 				]),
 			)
@@ -318,7 +319,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			)
 		} else {
 			return m("textarea.input-area.text-pre", {
-				"aria-label": lang.getMaybeLazy(a.label),
+				"aria-label": lang.getTranslationText(a.label),
 				disabled: a.disabled,
 				autocapitalize: a.autocapitalize,
 				class: getOperatingClasses(a.disabled) + " text",

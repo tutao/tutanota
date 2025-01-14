@@ -18,7 +18,7 @@ export class ImportNativeContactBooksDialog {
 	show(): Promise<ContactBook[] | null> {
 		const deferred = defer<ContactBook[] | null>()
 		const dialog = Dialog.showActionDialog({
-			title: () => lang.get("importContacts_label"),
+			title: "importContacts_label",
 			type: DialogType.EditMedium,
 			allowCancel: true,
 			child: () => {

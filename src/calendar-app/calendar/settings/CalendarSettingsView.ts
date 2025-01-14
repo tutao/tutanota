@@ -16,7 +16,7 @@ import { LoginSettingsViewer } from "../../../common/settings/login/LoginSetting
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
 import { px, size } from "../../../common/gui/size.js"
-import { lang, TranslationText } from "../../../common/misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -140,7 +140,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 											this.viewSlider.focusPreviousColumn()
 										},
 										columnType: "first",
-										title: lang.getMaybeLazy(this.selectedFolder.name),
+										title: this.selectedFolder.name,
 										actions: [],
 										useBackButton: true,
 										primaryAction: () => null,
@@ -153,7 +153,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			{
 				minWidth: size.second_col_min_width,
 				maxWidth: size.third_col_max_width,
-				headerCenter: () => lang.getMaybeLazy(this.selectedFolder.name),
+				headerCenter: this.selectedFolder.name,
 			},
 		)
 	}
@@ -174,7 +174,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 								...vnode.attrs.header,
 								backAction: () => m.route.set(CALENDAR_PREFIX),
 								columnType: "first",
-								title: lang.getMaybeLazy("settings_label"),
+								title: "settings_label",
 								actions: [],
 								useBackButton: true,
 								primaryAction: () => null,
@@ -187,7 +187,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			{
 				minWidth: size.first_col_min_width,
 				maxWidth: size.first_col_max_width,
-				headerCenter: () => lang.get("settings_label"),
+				headerCenter: "settings_label",
 			},
 		)
 	}
@@ -317,7 +317,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		}
 	}
 
-	renderSettingsNavigation(folders: SettingsFolder<unknown>[], title: TranslationText): Children {
+	renderSettingsNavigation(folders: SettingsFolder<unknown>[], title: MaybeTranslation): Children {
 		if (folders.length === 0) {
 			return null
 		}
@@ -328,7 +328,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				class: styles.isSingleColumnLayout() ? "pr-m" : "pr-vpad-s",
 			},
 			[
-				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.getMaybeLazy(title)),
+				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.getTranslationText(title)),
 				m(
 					".flex.col.border-radius-m.list-bg",
 					folders
@@ -467,7 +467,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						onclick: () => {
 							setTimeout(() => {
 								const dialog = Dialog.showActionDialog({
-									title: () => lang.get("about_label"),
+									title: "about_label",
 									child: () =>
 										m(AboutDialog, {
 											onShowSetupWizard: () => {

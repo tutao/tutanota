@@ -1,5 +1,5 @@
 import { Icon, IconSize, lazyIcon } from "../../common/gui/base/Icon.js"
-import { lang, TranslationText } from "../../common/misc/LanguageViewModel.js"
+import { lang, Translation, MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
 import { ClickHandler } from "../../common/gui/base/GuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton } from "../../common/gui/base/buttons/BaseButton.js"
@@ -8,7 +8,7 @@ import { lazyStringValue } from "@tutao/tutanota-utils"
 
 export interface SettingsNavButtonAttrs {
 	icon?: lazyIcon
-	label: TranslationText
+	label: MaybeTranslation
 	click: ClickHandler
 	href?: string
 	class?: string
@@ -19,8 +19,8 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 		const child = m(
 			BaseButton,
 			{
-				label: lang.getMaybeLazy(attrs.label),
-				text: m("span.flex-grow", lang.getMaybeLazy(attrs.label)),
+				label: attrs.label,
+				text: m("span.flex-grow", lang.getTranslationText(attrs.label)),
 				icon: attrs.icon
 					? m(Icon, {
 							icon: attrs.icon?.(),

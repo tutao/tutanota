@@ -736,7 +736,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		} catch (e) {
 			console.log(e)
 			if (e instanceof UserError) {
-				return await Dialog.message(() => e.message)
+				return await Dialog.message(lang.makeTranslation("error_msg", e.message))
 			}
 
 			await Dialog.message("unknownError_msg")

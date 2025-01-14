@@ -111,7 +111,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 			onDateChanged: (date) => (this.model.date = date),
 			terminationPeriodOption: this.model.terminationPeriodOption,
 			onTerminationPeriodOptionChanged: (option) => (this.model.terminationPeriodOption = option),
-			helpText: lang.getMaybeLazy(this.model.helpText),
+			helpText: lang.getTranslationText(this.model.helpText),
 		})
 	}
 }

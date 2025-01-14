@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { lang } from "../misc/LanguageViewModel"
+import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import type { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonType } from "../gui/base/Button.js"
@@ -80,13 +80,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			},
 			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
 			[PlanType.Legend]: () => ({
-				label: () => {
-					if (shouldApplyCyberMonday) {
-						return lang.get("pricing.cyber_monday_select_action")
-					}
-
-					return lang.get("pricing.select_action")
-				},
+				label: shouldApplyCyberMonday ? "pricing.cyber_monday_select_action" : "pricing.select_action",
 				class: shouldApplyCyberMonday ? "accent-bg-cyber-monday" : undefined,
 				onclick: () => this.setNonFreeDataAndGoToNextPage(data, PlanType.Legend),
 			}),
@@ -94,7 +88,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
 			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),
 		}
-		return m("#upgrade-account-dialog.pt", [
+		return m(".pt", { "data-testid": "upgrade-account-dialog" }, [
 			m(SubscriptionSelector, {
 				options: data.options,
 				priceInfoTextId: data.priceInfoTextId,
@@ -241,7 +235,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
 				// m(".h2.pb", lang.get("confirmFreeAccount_label")),
-				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", lang.getMaybeLazy("freeAccountInfo_msg")),
+				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", lang.getTranslationText("freeAccountInfo_msg")),
 				m(".dialog-contentButtonsBottom", [
 					m(Checkbox, {
 						label: () => lang.get("confirmNoOtherFreeAccount_msg"),
@@ -296,8 +290,8 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 		this.data = upgradeData
 	}
 
-	headerTitle(): string {
-		return lang.get("subscription_label")
+	headerTitle(): TranslationKey {
+		return "subscription_label"
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {

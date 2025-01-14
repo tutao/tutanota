@@ -27,6 +27,7 @@ import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { hasSourceUrl } from "../../../../common/calendar/date/CalendarUtils"
+import { lang } from "../../../../common/misc/LanguageViewModel.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
@@ -409,7 +410,7 @@ export class CalendarEventWhoModel {
 	 */
 	addAttendee(address: string, contact: Contact | null = null): void {
 		if (!this.canModifyGuests) {
-			throw new UserError(() => "cannotAddAttendees_msg")
+			throw new UserError(lang.makeTranslation("cannotAddAttendees_msg", "Cannot add attendees"))
 		}
 		const cleanAddress = cleanMailAddress(address)
 		// We don't add an attendee if they are already an attendee

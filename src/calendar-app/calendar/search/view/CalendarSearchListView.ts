@@ -45,7 +45,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 		return attrs.listModel.isEmptyAndDone()
 			? m(ColumnEmptyMessageBox, {
 					icon,
-					message: () => lang.get("searchNoResults_msg"),
+					message: "searchNoResults_msg",
 					color: theme.list_message_bg,
 			  })
 			: m(List, {

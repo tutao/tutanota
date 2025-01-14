@@ -92,7 +92,7 @@ export async function showAppRatingDialog(): Promise<void> {
 								".flex.flex-column.mt",
 								{ style: { gap: "1em" } },
 								m(BaseButton, {
-									label: lang.get("ratingLoveIt_label"),
+									label: "ratingLoveIt_label",
 									text: lang.get("ratingLoveIt_label"),
 									onclick: () => choose(AppRatingValue.Happy),
 									class: `full-width border-radius-small center b flash accent-bg button-content`,
@@ -102,7 +102,7 @@ export async function showAppRatingDialog(): Promise<void> {
 								} satisfies BaseButtonAttrs),
 
 								m(BaseButton, {
-									label: lang.get("ratingNeedsWork_label"),
+									label: "ratingNeedsWork_label",
 									text: lang.get("ratingNeedsWork_label"),
 									onclick: () => choose(AppRatingValue.Unhappy),
 									class: `full-width border-radius-small center b flash`,

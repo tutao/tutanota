@@ -3,7 +3,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import type { CustomerInfo, GiftCard } from "../../api/entities/sys/TypeRefs.js"
 import { CustomerInfoTypeRef, CustomerTypeRef, GiftCardTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { locator } from "../../api/main/CommonLocator"
-import { lang, TranslationText } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { UserError } from "../../api/main/UserError"
 import { Dialog } from "../../gui/base/Dialog"
 import { ButtonType } from "../../gui/base/Button.js"
@@ -66,7 +66,7 @@ export async function generateGiftCardLink(giftCard: GiftCard): Promise<string> 
 
 export function showGiftCardToShare(giftCard: GiftCard) {
 	generateGiftCardLink(giftCard).then((link) => {
-		let infoMessage: TranslationText = "emptyString_msg"
+		let infoMessage: MaybeTranslation = "emptyString_msg"
 		const dialog: Dialog = Dialog.largeDialog(
 			{
 				right: [
@@ -76,7 +76,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 						click: () => dialog.close(),
 					},
 				],
-				middle: () => lang.get("giftCard_label"),
+				middle: "giftCard_label",
 			},
 			{
 				view: () => [
@@ -141,7 +141,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 							  })
 							: null,
 					]),
-					m(".flex-center", m("small.noprint", lang.getMaybeLazy(infoMessage))),
+					m(".flex-center", m("small.noprint", lang.getTranslationText(infoMessage))),
 				],
 			},
 		)

@@ -249,7 +249,7 @@ export class NativeContactsSyncManager {
 			return
 		}
 
-		const shouldDedupe = await Dialog.confirm(() => lang.get("importContactRemoveDuplicatesConfirm_msg", { "{count}": duplicateContacts.length }))
+		const shouldDedupe = await Dialog.confirm(lang.getTranslation("importContactRemoveDuplicatesConfirm_msg", { "{count}": duplicateContacts.length }))
 		if (shouldDedupe) {
 			await showProgressDialog("progressDeleting_msg", this.mobileContactsFacade.deleteLocalContacts(duplicateContacts))
 		}

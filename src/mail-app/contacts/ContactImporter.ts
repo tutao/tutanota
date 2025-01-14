@@ -3,7 +3,7 @@ import { assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/tuta
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../../common/api/common/error/ImportError.js"
-import { lang, TranslationText } from "../../common/misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../../common/api/worker/facades/lazy/ContactFacade.js"
 import {
@@ -75,20 +75,26 @@ export class ContactImporter {
 			.importContactList(contacts, contactListId)
 			.catch(
 				ofClass(ImportError, (e) =>
-					Dialog.message(() =>
-						lang.get("importContactsError_msg", {
-							"{amount}": e.numFailed + "",
-							"{total}": contacts.length + "",
-						}),
+					Dialog.message(
+						lang.makeTranslation(
+							"confirm_msg",
+							lang.get("importContactsError_msg", {
+								"{amount}": e.numFailed + "",
+								"{total}": contacts.length + "",
+							}),
+						),
 					),
 				),
 			)
 			.catch(() => Dialog.message("unknownError_msg"))
 		await showProgressDialog("pleaseWait_msg", importPromise)
-		await Dialog.message(() =>
-			lang.get("importVCardSuccess_msg", {
-				"{1}": contacts.length,
-			}),
+		await Dialog.message(
+			lang.makeTranslation(
+				"confirm_msg",
+				lang.get("importVCardSuccess_msg", {
+					"{1}": contacts.length,
+				}),
+			),
 		)
 	}
 
@@ -246,7 +252,7 @@ export class ContactImporter {
  * @param contacts The contact list to be previewed
  * @param okAction The action to be executed when the user press the import button with at least one contact selected
  */
-export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: TranslationText) {
+export function showContactImportDialog(contacts: Contact[], okAction: (dialog: Dialog, selectedContacts: Contact[]) => unknown, title: MaybeTranslation) {
 	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()
 	viewModel.selectContacts(contacts)
 	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
@@ -275,7 +281,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 						},
 					},
 				],
-				middle: () => lang.getMaybeLazy(title),
+				middle: title,
 				right: [
 					{
 						type: ButtonType.Primary,

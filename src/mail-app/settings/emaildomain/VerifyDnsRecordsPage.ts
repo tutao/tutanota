@@ -3,7 +3,7 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { assertEnumValue, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../../common/api/common/TutanotaConstants"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import type { AddDomainData, ValidatedDnSRecord } from "./AddDomainWizard"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { ActionDialogProps, Dialog } from "../../../common/gui/base/Dialog"
 import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
@@ -62,8 +62,8 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 	}
 
 	_finishDialog(data: AddDomainData, dom: HTMLElement | null): Promise<void> {
-		const leaveUnfinishedDialogAttrs = {
-			title: lang.get("quitSetup_title"),
+		const leaveUnfinishedDialogAttrs: ActionDialogProps = {
+			title: "quitSetup_title",
 			child: {
 				view: () => {
 					return [m("p", lang.get("quitDNSSetup_msg"))]
@@ -204,8 +204,8 @@ export class VerifyDnsRecordsPageAttrs implements WizardPageAttrs<AddDomainData>
 		this.data = domainData
 	}
 
-	headerTitle(): string {
-		return lang.get("domainSetup_title")
+	headerTitle(): TranslationKey {
+		return "domainSetup_title"
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {

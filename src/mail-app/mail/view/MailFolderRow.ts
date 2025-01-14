@@ -64,7 +64,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				style: {
 					background: isNavButtonSelected(button) ? stateBgHover : "",
 				},
-				title: lang.getMaybeLazy(button.label),
+				title: lang.getTranslationText(button.label),
 				onmouseenter: onHover,
 				onmouseleave: () => {
 					this.hovered = false

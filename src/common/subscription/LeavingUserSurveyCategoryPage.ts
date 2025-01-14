@@ -2,7 +2,7 @@ import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "
 import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
 import m, { Vnode, VnodeDOM } from "mithril"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import { lang, type TranslationKey } from "../misc/LanguageViewModel.js"
 import { theme } from "../gui/theme.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
 
@@ -87,8 +87,8 @@ export class LeavingUserSurveyPageAttrs implements WizardPageAttrs<LeavingUserSu
 		this.data = leavingUserSurveyData
 	}
 
-	headerTitle(): string {
-		return lang.get("survey_label")
+	headerTitle(): TranslationKey {
+		return "survey_label"
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {

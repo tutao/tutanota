@@ -16,10 +16,9 @@ export interface MainCreateButtonAttrs {
  */
 export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 	view(vnode: Vnode<MainCreateButtonAttrs>): Children {
-		const label = lang.get(vnode.attrs.label)
 		return m(BaseButton, {
-			label,
-			text: label,
+			label: vnode.attrs.label,
+			text: lang.get(vnode.attrs.label),
 			onclick: vnode.attrs.click,
 			class: `full-width border-radius-big center b flash ${vnode.attrs.class}`,
 			style: {

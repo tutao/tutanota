@@ -140,7 +140,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 					this.value = getFirstOrThrow(errors)
 				} else {
 					if (errors.length > 0) {
-						Dialog.message(() => `${lang.get("invalidPastedRecipients_msg")}\n\n${errors.join("\n")}`)
+						Dialog.message(lang.makeTranslation("error_message", `${lang.get("invalidPastedRecipients_msg")}\n\n${errors.join("\n")}`))
 					}
 					this.value = remainingText
 				}

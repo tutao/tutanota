@@ -5,7 +5,7 @@ import { ease } from "../animation/Easing"
 import { px, size } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
-import { lang, TranslationText } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
@@ -29,9 +29,9 @@ export type DropdownInfoAttrs = {
 
 export interface DropdownButtonAttrs {
 	/** accessibility & tooltip description */
-	label: TranslationText
+	label: MaybeTranslation
 	/** visible text inside button */
-	text?: TranslationText
+	text?: MaybeTranslation
 	icon?: AllIcons
 	click?: ClickHandler
 	selected?: boolean
@@ -211,7 +211,7 @@ export class Dropdown implements ModalComponent {
 		}
 		const closeBtn = () => {
 			return m(BaseButton, {
-				label: lang.get("close_alt"),
+				label: "close_alt",
 				text: lang.get("close_alt"),
 				class: "hidden-until-focus content-accent-fg button-content",
 				onclick: () => {
@@ -338,7 +338,7 @@ export class Dropdown implements ModalComponent {
 
 		let visibleElements: Array<ButtonAttrs> = downcast(this.visibleChildren().filter((b) => !isDropDownInfo(b)))
 		let matchingButton =
-			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find((b) => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
+			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find((b) => lang.getTranslationText(b.label).toLowerCase() === filterString)
 
 		if (this.domInput && document.activeElement === this.domInput && matchingButton && matchingButton.click) {
 			matchingButton.click(new MouseEvent("click"), this.domInput)
@@ -365,7 +365,7 @@ export class Dropdown implements ModalComponent {
 			if (isDropDownInfo(b)) {
 				return b.info.includes(this.filterString.toLowerCase())
 			} else if (this.isFilterable) {
-				const filterable = lang.getMaybeLazy(b.text ?? b.label)
+				const filterable = lang.getTranslationText(b.text ?? b.label)
 				return filterable.toLowerCase().includes(this.filterString.toLowerCase())
 			} else {
 				return true

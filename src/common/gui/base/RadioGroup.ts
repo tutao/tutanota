@@ -1,4 +1,4 @@
-import type { TranslationText } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { isKeyPressed } from "../../misc/KeyManager.js"
@@ -6,20 +6,20 @@ import { Keys } from "../../api/common/TutanotaConstants.js"
 import { AriaRole } from "../AriaUtils.js"
 
 export interface SingularOrPluralLabel {
-	singular: TranslationText
-	plural: TranslationText
+	singular: MaybeTranslation
+	plural: MaybeTranslation
 }
 
 export type RadioGroupOption<T> = {
-	readonly name: TranslationText
+	readonly name: MaybeTranslation
 	readonly value: T
 }
 
 export type RadioGroupAttrs<T> = {
 	// The unique name of the radio button group. The browser uses it to group the radio buttons together.
-	name: TranslationText
+	name: MaybeTranslation
 	options: ReadonlyArray<RadioGroupOption<T>>
-	ariaLabel: TranslationText
+	ariaLabel: MaybeTranslation
 	classes?: Array<string>
 	selectedOption: T | null
 	onOptionSelected: (arg0: T) => unknown
@@ -34,7 +34,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 		return m(
 			"ul.unstyled-list.flex.col.gap-vpad",
 			{
-				ariaLabel: lang.getMaybeLazy(attrs.ariaLabel),
+				ariaLabel: lang.getTranslationText(attrs.ariaLabel),
 				role: AriaRole.RadioGroup,
 			},
 			attrs.options.map((option) =>
@@ -44,14 +44,14 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 	}
 
 	private renderOption(
-		groupName: TranslationText,
+		groupName: MaybeTranslation,
 		option: RadioGroupOption<T>,
 		selectedOption: T | null,
 		optionClass: string | undefined,
 		onOptionSelected: (arg0: T) => unknown,
 		injectionMap?: Map<string, Child>,
 	): Children {
-		const name = lang.getMaybeLazy(groupName)
+		const name = lang.getTranslationText(groupName)
 		const valueString = String(option.value)
 		const isSelected = option.value === selectedOption
 
@@ -73,7 +73,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 					/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
 					 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
 					 */
-					name: lang.getMaybeLazy(groupName),
+					name: lang.getTranslationText(groupName),
 					value: valueString,
 					id: optionId,
 					// Handle changes in value from the attributes
@@ -87,7 +87,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 					},
 				}),
 				m(".flex.flex-column.full-width", [
-					m("label.cursor-pointer", { for: optionId }, lang.getMaybeLazy(option.name)),
+					m("label.cursor-pointer", { for: optionId }, lang.getTranslationText(option.name)),
 					this.getInjection(String(option.value), injectionMap),
 				]),
 			],

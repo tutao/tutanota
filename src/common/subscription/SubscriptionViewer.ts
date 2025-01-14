@@ -166,10 +166,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				this.showPriceData() ? this.renderIntervals() : null,
 				this.showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
 					? m(TextField, {
-							label: () =>
-								lang.get("priceFrom_label", {
-									"{date}": formatDate(new Date(neverNull(this._periodEndDate).getTime() + DAY)),
-								}),
+							label: lang.getTranslation("priceFrom_label", {
+								"{date}": formatDate(new Date(neverNull(this._periodEndDate).getTime() + DAY)),
+							}),
 							helpLabel: () => lang.get("nextSubscriptionPrice_msg"),
 							value: this._nextPriceFieldValue(),
 							oninput: this._nextPriceFieldValue,
@@ -296,8 +295,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 
 			if (appStoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
-				return Dialog.message(() =>
-					lang.get("storeMultiSubscriptionError_msg", {
+				return Dialog.message(
+					lang.getTranslation("storeMultiSubscriptionError_msg", {
 						"{AppStorePayment}": InfoLink.AppStorePayment,
 					}),
 				)
@@ -335,8 +334,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		// This prevents the user from accidentally changing a subscription that they don't own
 		if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NotOwner) {
 			// There's a subscription with this apple account that doesn't belong to this user
-			return Dialog.message(() =>
-				lang.get("storeMultiSubscriptionError_msg", {
+			return Dialog.message(
+				lang.getTranslation("storeMultiSubscriptionError_msg", {
 					"{AppStorePayment}": InfoLink.AppStorePayment,
 				}),
 			)
@@ -347,12 +346,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		) {
 			// User has an ongoing subscriptions but not on the current Apple Account, so we shouldn't allow them to change their plan with this account
 			// instead of the account owner of the subscriptions
-			return Dialog.message(() => lang.get("storeNoSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }))
+			return Dialog.message(lang.getTranslation("storeNoSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }))
 		} else if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
 			// User has no ongoing subscription and isn't approved. We should allow them to downgrade their accounts or resubscribe and
 			// restart an Apple Subscription flow
 			const isResubscribe = await Dialog.choice(
-				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
+				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
 				[
 					{
 						text: "changePlan_action",
@@ -422,7 +421,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private async handleAppOpen(app: SubscriptionApp) {
 		const appName = app === SubscriptionApp.Calendar ? "Tuta Calendar" : "Tuta Mail"
-		const dialogResult = await Dialog.confirm(() => lang.get("handleSubscriptionOnApp_msg", { "{1}": appName }), "yes_label")
+		const dialogResult = await Dialog.confirm(lang.getTranslation("handleSubscriptionOnApp_msg", { "{1}": appName }), "yes_label")
 		const query = stringToBase64(`settings=subscription`)
 
 		if (!dialogResult) {
@@ -717,12 +716,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						isReadOnly: true,
 				  }),
 			m(TextField, {
-				label: () =>
+				label:
 					this._nextPeriodPriceVisible && this._periodEndDate
-						? lang.get("priceTill_label", {
+						? lang.getTranslation("priceTill_label", {
 								"{date}": formatDate(this._periodEndDate),
 						  })
-						: lang.get("price_label"),
+						: "price_label",
 				value: this._currentPriceFieldValue(),
 				oninput: this._currentPriceFieldValue,
 				isReadOnly: true,
@@ -793,13 +792,11 @@ function _getAccountTypeName(type: AccountType, subscription: PlanType): string 
 
 function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, paymentInterval: PaymentInterval, periodEndDate: Date | null): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && asPaymentInterval(accountingInfo.paymentInterval) !== paymentInterval) {
-		const confirmationMessage = () => {
-			return periodEndDate
-				? lang.get("subscriptionChangePeriod_msg", {
-						"{1}": formatDate(periodEndDate),
-				  })
-				: lang.get("subscriptionChange_msg")
-		}
+		const confirmationMessage = periodEndDate
+			? lang.getTranslation("subscriptionChangePeriod_msg", {
+					"{1}": formatDate(periodEndDate),
+			  })
+			: "subscriptionChange_msg"
 
 		Dialog.confirm(confirmationMessage).then(async (confirmed) => {
 			if (confirmed) {
@@ -839,7 +836,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 							click: () => {
 								let message = stream(giftCard.message)
 								Dialog.showActionDialog({
-									title: lang.get("editMessage_label"),
+									title: "editMessage_label",
 									child: () =>
 										m(
 											".flex-center",

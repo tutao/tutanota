@@ -136,7 +136,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 	private createDropdownItemAttrs(domainData: EmailDomainData, attrs: SelectMailAddressFormAttrs): DropdownButtonAttrs {
 		return {
-			label: () => domainData.domain,
+			label: lang.makeTranslation("domain", domainData.domain),
 			click: () => {
 				attrs.onDomainChanged(domainData)
 			},

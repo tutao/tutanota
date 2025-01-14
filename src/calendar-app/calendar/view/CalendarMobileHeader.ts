@@ -8,7 +8,7 @@ import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGui
 import { MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } from "../../../common/gui/MobileHeader.js"
 import { AppHeaderAttrs } from "../../../common/gui/Header.js"
 import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
-import { TranslationKey } from "../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { styles } from "../../../common/gui/styles.js"
 import { theme } from "../../../common/gui/theme.js"
 import { ClickHandler } from "../../../common/gui/base/GuiUtils.js"
@@ -44,7 +44,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 			center: m(MobileHeaderTitle, {
 				title: attrs.showExpandIcon
 					? m(ExpanderButton, {
-							label: () => attrs.navConfiguration.title,
+							label: lang.makeTranslation(attrs.navConfiguration.title, attrs.navConfiguration.title),
 							isUnformattedLabel: true,
 							style: {
 								"padding-top": "inherit",

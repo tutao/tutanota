@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "./Icon"
-import { isNavButtonSelected, NavButton } from "./NavButton"
+import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
 import { ClickHandler } from "./GuiUtils"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { stateBgHover } from "../builtinThemes"
 import { client } from "../../misc/ClientDetector"
@@ -11,7 +11,7 @@ import { theme } from "../theme"
 
 export interface SidebarSectionRowAttrs {
 	icon: AllIcons
-	label: TranslationKey | lazy<string>
+	label: MaybeTranslation
 	path: string
 	onClick: ClickHandler
 	moreButton: IconButtonAttrs
@@ -43,7 +43,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			if (event.key === "Tab" && event.shiftKey) this.hovered = false
 		}
 
-		const navButtonAttrs = {
+		const navButtonAttrs: NavButtonAttrs = {
 			label: attrs.label,
 			href: () => attrs.path,
 			disableHoverBackground: true,

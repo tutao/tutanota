@@ -34,6 +34,7 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
+
 assertMainOrNode()
 
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
@@ -102,7 +103,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					  }
 					: null,
 				{
-					label: () => (neverNull(locator.logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
+					label: neverNull(locator.logins.getUserController().user.auth).recoverCode ? "update_action" : "setUp_action",
 					click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
 				},
 			],
@@ -275,7 +276,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 	private showActiveSessionInfoDialog(session: Session, isThisSession: boolean) {
 		const actionDialogProperties = {
-			title: () => lang.get("details_label"),
+			title: "details_label",
 			child: {
 				view: () => {
 					return [

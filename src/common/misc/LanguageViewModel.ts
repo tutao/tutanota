@@ -1,11 +1,35 @@
-import type { lazy } from "@tutao/tutanota-utils"
-import { downcast, typedEntries } from "@tutao/tutanota-utils"
+import { downcast, lazy, typedEntries } from "@tutao/tutanota-utils"
 import type { TranslationKeyType } from "./TranslationKey"
 import { getWhitelabelCustomizations, WhitelabelCustomizations } from "./WhitelabelCustomizations"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 
+/**
+ * A translation key is a string that maps to a translation text.
+ */
 export type TranslationKey = TranslationKeyType
-export type TranslationText = TranslationKey | lazy<string>
+
+/**
+ * Legacy type that is either a TranslationKey or a Translation.
+ * New code should either use TranslationKey or Translation.
+ */
+export type MaybeTranslation = TranslationKey | Translation
+
+/**
+ * A Translation is a keyed translation text.
+ *
+ * Encapsulates a testid and the resolved translation text.
+ * The testid is the translation key in most cases, and
+ * it is used as data-testid dom attribute for acceptance tests.
+ */
+export type Translation = {
+	testId: TranslationKey | string
+	text: string
+
+	// defined to make the Translation type clash with Component.
+	// This ensures that typscript errors out when we pass a resolved translation
+	// to the m hyperscript function like m('div', ResolvedTranslation{tkey: "dummy", text: "yeah"})
+	oninit?: object
+}
 assertMainOrNodeBoot()
 export type DateTimeFormatOptions = {
 	hourCycle?: "h11" | "h12" | "h23" | "h24"
@@ -490,7 +514,23 @@ export class LanguageViewModel {
 	}
 
 	/**
-	 * @throws An error if there is no translation for the given id.
+	 * Resolve TranslationKey to Translation.
+	 */
+	getTranslation(id: TranslationKey, replacements?: Record<string, string | number>): Translation {
+		return this.makeTranslation(id, this.get(id, replacements))
+	}
+
+	/**
+	 * Should only be used to write the text of a TranslationKey to the dom.
+	 */
+	getTranslationText(value: MaybeTranslation): string {
+		return typeof value === "object" ? (value as Translation).text : lang.get(value as TranslationKey)
+	}
+
+	/**
+	 * Legacy. Use getTranslation instead.
+	 *
+	 * Should only be used to write the text of a TranslationKey to the dom.
 	 */
 	get(id: TranslationKey, replacements?: Record<string, string | number>): string {
 		if (id == null) {
@@ -524,8 +564,19 @@ export class LanguageViewModel {
 		return text
 	}
 
-	getMaybeLazy(value: TranslationText): string {
-		return typeof value === "function" ? value() : lang.get(value)
+	getTestId(value: MaybeTranslation): string {
+		return typeof value === "object" ? (value as Translation).testId : (value as TranslationKey)
+	}
+
+	/**
+	 * Creates a Translation. Only to be used in rare cases where we can't use a
+	 * TranslationKey (e.g. rendering the name of a folder).
+	 * @param testId
+	 * @param unresolved
+	 */
+	makeTranslation(testId: string, unresolved: string | lazy<string>): Translation {
+		let text = typeof unresolved === "function" ? unresolved() : unresolved
+		return { testId: testId, text }
 	}
 }
 

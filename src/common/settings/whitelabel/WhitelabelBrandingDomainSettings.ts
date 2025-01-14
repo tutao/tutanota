@@ -61,7 +61,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 					if (e.data === FAILURE_LOCKED) {
 						return await Dialog.message("operationStillActive_msg")
 					} else if (e.data === FAILURE_CONTACT_FORM_ACTIVE) {
-						return await Dialog.message(() => lang.get("domainStillHasContactForms_msg", { "{domain}": whitelabelDomain }))
+						return await Dialog.message(lang.getTranslation("domainStillHasContactForms_msg", { "{domain}": whitelabelDomain }))
 					}
 				}
 				throw e

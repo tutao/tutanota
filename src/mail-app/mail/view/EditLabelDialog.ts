@@ -39,7 +39,7 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 	}
 
 	Dialog.showActionDialog({
-		title: lang.get(label ? "editLabel_action" : "addLabel_action"),
+		title: label ? "editLabel_action" : "addLabel_action",
 		allowCancel: true,
 		okAction: (dialog: Dialog) => {
 			onOkClicked(dialog)

@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../gui/size"
-import type { TranslationKey } from "../misc/LanguageViewModel"
+import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
@@ -27,8 +27,8 @@ export type BuyOptionBoxAttr = {
 	 * Null when we do not want to show the difference between actual price and reference price.
 	 */
 	referencePrice?: string
-	priceHint?: TranslationKey | lazy<string>
-	helpLabel: TranslationKey | lazy<string>
+	priceHint?: MaybeTranslation
+	helpLabel: MaybeTranslation
 	width: number
 	height: number
 	/**
@@ -175,8 +175,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						shouldApplyCyberMondayDesign ? this.renderCyberMondayRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
-						m(".small.text-center", attrs.priceHint ? lang.getMaybeLazy(attrs.priceHint) : lang.get("emptyString_msg")),
-						m(".small.text-center.pb-ml", lang.getMaybeLazy(attrs.helpLabel)),
+						m(".small.text-center", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
+						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
 						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, shouldApplyCyberMondayDesign),
 						attrs.actionButton
 							? m(

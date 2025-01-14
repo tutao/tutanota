@@ -87,10 +87,13 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
 				if (selectedParentFolder?.folderType === MailSetKind.TRASH && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
-					const confirmed = await Dialog.confirm(() =>
-						lang.get("confirmDeleteCustomFolder_msg", {
-							"{1}": getFolderName(editedFolder),
-						}),
+					const confirmed = await Dialog.confirm(
+						lang.makeTranslation(
+							"confirm",
+							lang.get("confirmDeleteCustomFolder_msg", {
+								"{1}": getFolderName(editedFolder),
+							}),
+						),
 					)
 					if (!confirmed) return
 
@@ -98,10 +101,13 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 					await mailLocator.mailModel.trashFolderAndSubfolders(editedFolder)
 				} else if (selectedParentFolder?.folderType === MailSetKind.SPAM && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
-					const confirmed = await Dialog.confirm(() =>
-						lang.get("confirmSpamCustomFolder_msg", {
-							"{1}": getFolderName(editedFolder),
-						}),
+					const confirmed = await Dialog.confirm(
+						lang.makeTranslation(
+							"confirm",
+							lang.get("confirmSpamCustomFolder_msg", {
+								"{1}": getFolderName(editedFolder),
+							}),
+						),
 					)
 					if (!confirmed) return
 
@@ -129,7 +135,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 	}
 
 	Dialog.showActionDialog({
-		title: editedFolder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
+		title: editedFolder ? "editFolder_action" : "addFolder_action",
 		child: form,
 		validator: () => checkFolderName(mailBoxDetail, folders, folderNameValue, mailGroupId, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,

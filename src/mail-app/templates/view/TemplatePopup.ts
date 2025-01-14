@@ -308,7 +308,7 @@ export class TemplatePopup implements ModalComponent {
 				childAttrs: () =>
 					writeableGroups.map((groupInstances) => {
 						return {
-							label: () => getSharedGroupName(groupInstances.groupInfo, locator.logins.getUserController(), true),
+							label: lang.makeTranslation("group_name", getSharedGroupName(groupInstances.groupInfo, locator.logins.getUserController(), true)),
 							click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
 						}
 					}),
@@ -337,7 +337,7 @@ export class TemplatePopup implements ModalComponent {
 						selectedTemplate.contents.map((content) => {
 							const langCode: LanguageCode = downcast(content.languageCode)
 							return {
-								label: () => lang.get(languageByCode[langCode].textId),
+								label: languageByCode[langCode].textId,
 								click: (e: MouseEvent) => {
 									e.stopPropagation()
 									this._templateModel.setSelectedContentLanguage(langCode)

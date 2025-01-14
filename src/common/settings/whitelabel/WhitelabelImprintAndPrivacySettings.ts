@@ -41,7 +41,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 
 	private editPrivacyStatementUrl(privacyStatementUrl: string, onPrivacyStatementUrlChanged: (arg0: string) => unknown) {
 		let dialog = Dialog.showActionDialog({
-			title: lang.get("privacyLink_label"),
+			title: "privacyLink_label",
 			child: {
 				view: () =>
 					m(TextField, {
@@ -81,7 +81,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 
 	private showEditImprintDialog(imprintUrl: string, onImprintUrlChanged: (imprintUrl: string) => unknown) {
 		const dialog = Dialog.showActionDialog({
-			title: lang.get("imprintUrl_label"),
+			title: "imprintUrl_label",
 			child: {
 				view: () =>
 					m(TextField, {

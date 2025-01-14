@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { WizardPageAttrs, WizardPageN } from "../../../../gui/base/WizardDialog.js"
-import { lang } from "../../../../misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../../misc/LanguageViewModel.js"
 import { RadioSelector, RadioSelectorAttrs, RadioSelectorOption } from "../../../../gui/base/RadioSelector.js"
 import { themeOptions, ThemePreference } from "../../../../gui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
@@ -15,7 +15,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 		// Get the whitelabel themes from the theme controller and map them to `RadioSelector` options.
 		locator.themeController.getCustomThemes().then((customThemes) => {
 			this.customThemes = customThemes.map((themeId) => {
-				return { name: () => themeId, value: themeId }
+				return { name: lang.makeTranslation(themeId, themeId), value: themeId }
 			})
 			m.redraw()
 		})
@@ -48,8 +48,8 @@ export class SetupThemePageAttrs implements WizardPageAttrs<null> {
 	hidePagingButtonForPage = false
 	data: null = null
 
-	headerTitle(): string {
-		return lang.get("appearanceSettings_label")
+	headerTitle(): TranslationKey {
+		return "appearanceSettings_label"
 	}
 
 	nextAction(showDialogs: boolean): Promise<boolean> {

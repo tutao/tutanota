@@ -61,7 +61,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	editor.setMinHeight(80)
 	editor.showBorders()
 	const recoverDialog = Dialog.showActionDialog({
-		title: lang.get("recover_label"),
+		title: "recover_label",
 		type: DialogType.EditSmall,
 		child: {
 			view: () => {

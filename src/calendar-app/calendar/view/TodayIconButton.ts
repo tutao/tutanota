@@ -4,7 +4,6 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 type TodayIconButtonAttrs = Pick<IconButtonAttrs, "click">
 
@@ -14,7 +13,7 @@ type TodayIconButtonAttrs = Pick<IconButtonAttrs, "click">
 export class TodayIconButton implements Component<TodayIconButtonAttrs> {
 	view({ attrs }: Vnode<TodayIconButtonAttrs>): Children {
 		return m(BaseButton, {
-			label: lang.get("today_label"),
+			label: "today_label",
 			onclick: attrs.click,
 			icon: m(Icon, {
 				container: "div",

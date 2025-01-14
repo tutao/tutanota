@@ -1,13 +1,12 @@
-import type { TranslationKeyType } from "../../misc/TranslationKey"
-import { lang } from "../../misc/LanguageViewModel"
-import type { lazy } from "@tutao/tutanota-utils"
+import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import { MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../common/Env"
 import { TutanotaError } from "@tutao/tutanota-error"
 
 assertMainOrNode()
 
 export class UserError extends TutanotaError {
-	constructor(message: TranslationKeyType | lazy<string>) {
-		super("UserError", lang.getMaybeLazy(message))
+	constructor(message: MaybeLazy<MaybeTranslation>) {
+		super("UserError", lang.getTranslationText(resolveMaybeLazy(message)))
 	}
 }

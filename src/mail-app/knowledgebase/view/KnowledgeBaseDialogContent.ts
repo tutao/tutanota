@@ -63,7 +63,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 			  })
 			: [
 					m(TextField, {
-						label: () => lang.get("filter_label"),
+						label: "filter_label",
 						value: this.filterValue,
 						oninput: (value) => {
 							this.filterValue = value

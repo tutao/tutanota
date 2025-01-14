@@ -178,7 +178,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		})
 
 		this._dummyTemplateFolder = new SettingsFolder<void>(
-			() => getDefaultGroupName(GroupType.Template),
+			lang.makeTranslation("group_name", getDefaultGroupName(GroupType.Template)),
 			() => Icons.ListAlt,
 			{
 				folder: "templates",
@@ -276,7 +276,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			{
 				minWidth: size.first_col_min_width,
 				maxWidth: size.first_col_max_width,
-				headerCenter: () => lang.get("settings_label"),
+				headerCenter: "settings_label",
 			},
 		)
 		this._settingsColumn = new ViewColumn(
@@ -298,7 +298,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								...vnode.attrs.header,
 								backAction: () => this.viewSlider.focusPreviousColumn(),
 								columnType: "first",
-								title: lang.getMaybeLazy(this._selectedFolder.name),
+								title: this._selectedFolder.name,
 								actions: [],
 								primaryAction: () => null,
 							}),
@@ -309,7 +309,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			{
 				minWidth: 400,
 				maxWidth: 600,
-				headerCenter: () => lang.getMaybeLazy(this._selectedFolder.name),
+				headerCenter: this._selectedFolder.name,
 			},
 		)
 		this._settingsDetailsColumn = new ViewColumn(
@@ -323,7 +323,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								...vnode.attrs.header,
 								backAction: () => this.viewSlider.focusPreviousColumn(),
 								columnType: "other",
-								title: lang.getMaybeLazy(this._selectedFolder.name),
+								title: this._selectedFolder.name,
 								actions: [],
 								primaryAction: () => null,
 							}),
@@ -334,7 +334,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			{
 				minWidth: 500,
 				maxWidth: 2400,
-				headerCenter: () => lang.get("settings_label"),
+				headerCenter: "settings_label",
 			},
 		)
 		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn])
@@ -554,8 +554,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	private _leaveTemplateGroup(templateInfo: TemplateGroupInstance) {
-		return getConfirmation(() =>
-			lang.get("confirmLeaveSharedGroup_msg", {
+		return getConfirmation(
+			lang.getTranslation("confirmLeaveSharedGroup_msg", {
 				"{groupName}": getSharedGroupName(templateInfo.groupInfo, this.logins.getUserController(), false),
 			}),
 		).confirmed(() => locator.groupManagementFacade.removeUserFromGroup(getEtId(this.logins.getUserController().user), templateInfo.groupInfo.group))
@@ -745,7 +745,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						this.viewSlider.focusNextColumn()
 						setTimeout(() => {
 							const dialog = Dialog.showActionDialog({
-								title: () => lang.get("about_label"),
+								title: "about_label",
 								child: () =>
 									m(AboutDialog, {
 										onShowSetupWizard: () => {
@@ -783,7 +783,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
 			(groupInstance) =>
 				new SettingsFolder(
-					() => getSharedGroupName(groupInstance.groupInfo, userController, true),
+					lang.makeTranslation("group_name", getSharedGroupName(groupInstance.groupInfo, userController, true)),
 					() => Icons.ListAlt,
 					{
 						folder: "templates",
@@ -812,7 +812,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
 				(groupInstance) =>
 					new SettingsFolder(
-						() => getSharedGroupName(groupInstance.groupInfo, userController, true),
+						lang.makeTranslation("group_name", getSharedGroupName(groupInstance.groupInfo, userController, true)),
 						() => Icons.Book,
 						{
 							folder: "knowledgebase",
@@ -845,7 +845,7 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 	const logins = locator.logins
 	const name = stream(getSharedGroupName(instance.groupInfo, logins.getUserController(), true))
 	Dialog.showActionDialog({
-		title: () => lang.get("renameTemplateList_label"),
+		title: "renameTemplateList_label",
 		allowOkWithReturn: true,
 		child: {
 			view: () =>

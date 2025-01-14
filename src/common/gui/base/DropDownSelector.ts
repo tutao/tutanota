@@ -4,7 +4,7 @@ import { createDropdown } from "./Dropdown.js"
 import type { AllIcons } from "./Icon"
 import type { lazy } from "@tutao/tutanota-utils"
 import { lazyStringValue, noOp } from "@tutao/tutanota-utils"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { BootIcons } from "./icons/BootIcons"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -22,7 +22,7 @@ export type SelectorItem<T> = {
 export type SelectorItemList<T> = ReadonlyArray<SelectorItem<T>>
 
 export interface DropDownSelectorAttrs<T> {
-	label: TranslationKey | lazy<string>
+	label: MaybeTranslation
 	items: SelectorItemList<T>
 	selectedValue: T | null
 	/** Override what is displayed for the selected value in the text field (but not in the dropdown) */
@@ -86,7 +86,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 					.filter((item) => item.selectable !== false)
 					.map((item) => {
 						return {
-							label: () => item.name,
+							label: lang.makeTranslation(item.name, item.name),
 							click: () => {
 								a.selectionChangedHandler?.(item.value)
 								m.redraw()
@@ -108,7 +108,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 		if (selectedItem) {
 			return selectedItem.name
 		} else {
-			console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${String(JSON.stringify(value))}`)
+			console.log(`Dropdown ${lang.getTranslationText(a.label)} couldn't find element for value: ${String(JSON.stringify(value))}`)
 			return null
 		}
 	}

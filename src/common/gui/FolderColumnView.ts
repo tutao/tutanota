@@ -1,7 +1,7 @@
 import { DrawerMenu, DrawerMenuAttrs } from "./nav/DrawerMenu.js"
 import { theme } from "./theme.js"
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey } from "../misc/LanguageViewModel.js"
+import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { ClickHandler } from "./base/GuiUtils.js"
@@ -12,7 +12,7 @@ export type Attrs = {
 	/** Button to be displayed on top of the column*/
 	button: { label: TranslationKey; click: ClickHandler } | null | undefined
 	content: Children
-	ariaLabel: TranslationKey | lazy<string>
+	ariaLabel: MaybeTranslation
 	drawer: DrawerMenuAttrs
 }
 
@@ -20,7 +20,7 @@ export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(".flex.height-100p.nav-bg", [
 			m(DrawerMenu, attrs.drawer),
-			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
+			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)), [
 				this.renderMainButton(attrs),
 				m(
 					".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow",

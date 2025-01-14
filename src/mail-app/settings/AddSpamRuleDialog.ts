@@ -73,7 +73,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 	}
 
 	const dialog = Dialog.showActionDialog({
-		title: lang.get("addSpamRule_action"),
+		title: "addSpamRule_action",
 		child: form,
 		validator: () => validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate),
 		allowOkWithReturn: true,

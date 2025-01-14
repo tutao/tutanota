@@ -58,7 +58,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		.setHtmlMonospace(false)
 		.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress))
 	Dialog.showActionDialog({
-		title: lang.get("orderProcessingAgreement_label"),
+		title: "orderProcessingAgreement_label",
 		okAction: signAction,
 		okActionTextId: "sign_action",
 		type: DialogType.EditLarge,
@@ -112,7 +112,7 @@ function cleanupPrintElement() {
 
 export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo) {
 	Dialog.showActionDialog({
-		title: lang.get("orderProcessingAgreement_label"),
+		title: "orderProcessingAgreement_label",
 		okAction: !isApp() && "function" === typeof window.print ? () => printElementContent(document.getElementById("agreement-content")) : null,
 		okActionTextId: "print_action",
 		cancelActionTextId: "close_alt",

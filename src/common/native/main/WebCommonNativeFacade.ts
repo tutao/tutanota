@@ -1,5 +1,5 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { TranslationKey, TranslationText } from "../../misc/LanguageViewModel.js"
+import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -114,11 +114,11 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 					const currentPlanType = await locator.logins.getUserController().getPlanType()
 					const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
 
-					let importAction: { text: TranslationText; value: boolean } = {
+					let importAction: { text: MaybeTranslation; value: boolean } = {
 						text: "import_action",
 						value: true,
 					}
-					let attachFilesAction: { text: TranslationText; value: boolean } = {
+					let attachFilesAction: { text: MaybeTranslation; value: boolean } = {
 						text: "attachFiles_action",
 						value: false,
 					}
@@ -156,7 +156,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		} catch (e) {
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
-				Dialog.message(() => e.message)
+				Dialog.message(lang.makeTranslation("error_msg", e.message))
 			}
 			throw e
 		}
@@ -200,7 +200,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			}
 
 			Dialog.showActionDialog({
-				title: () => title,
+				title: lang.makeTranslation(title, title),
 				child: () => m(PasswordForm, { model }),
 				validator: () => model.getErrorMessageId(),
 				okAction: changePasswordOkAction,
@@ -215,7 +215,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 		return new Promise((resolve, reject) => {
 			const dialog = showRequestPasswordDialog({
-				title,
+				title: lang.makeTranslation(title, title),
 				action: async (pw) => {
 					resolve(pw)
 					dialog.close()

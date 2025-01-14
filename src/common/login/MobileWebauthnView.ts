@@ -41,7 +41,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 				},
 			],
 			right: [],
-			middle: () => lang.get("u2fSecurityKey_label"),
+			middle: "u2fSecurityKey_label",
 		}
 
 		return m(

@@ -30,7 +30,7 @@ export class SecondFactorEditDialog {
 
 	constructor(private readonly model: SecondFactorEditModel) {
 		this.dialog = Dialog.createActionDialog({
-			title: lang.get("add_action"),
+			title: "add_action",
 			allowOkWithReturn: true,
 			child: {
 				view: () => this.render(),
@@ -50,7 +50,7 @@ export class SecondFactorEditDialog {
 		} catch (e) {
 			if (e instanceof UserError) {
 				// noinspection ES6MissingAwait
-				Dialog.message(() => e.message)
+				Dialog.message(lang.makeTranslation("error_msg", e.message))
 			} else if (e instanceof NotAuthorizedError) {
 				this.dialog.close()
 				Dialog.message("contactFormSubmitError_msg")

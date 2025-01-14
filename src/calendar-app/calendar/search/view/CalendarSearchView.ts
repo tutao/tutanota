@@ -12,7 +12,7 @@ import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { px, size } from "../../../../common/gui/size.js"
-import { lang, type TranslationText } from "../../../../common/misc/LanguageViewModel.js"
+import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
@@ -76,7 +76,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly searchViewModel: CalendarSearchViewModel
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
-	private datePickerWarning: TranslationText | null = null
+	private datePickerWarning: MaybeTranslation | null = null
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -117,7 +117,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			{
 				minWidth: size.second_col_min_width,
 				maxWidth: size.second_col_max_width,
-				headerCenter: () => lang.get("searchResult_label"),
+				headerCenter: "searchResult_label",
 			},
 		)
 		this.resultDetailsColumn = new ViewColumn(
@@ -215,7 +215,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					...header,
 					backAction: () => this.viewSlider.focusPreviousColumn(),
 					columnType: "other",
-					title: lang.get("search_label"),
+					title: "search_label",
 					actions: null,
 					multicolumnActions: () => [],
 					primaryAction: () => this.renderHeaderRightView(),
@@ -362,7 +362,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					click: () => {
 						const dialog = Dialog.editSmallDialog(
 							{
-								middle: () => lang.get("filter_label"),
+								middle: "filter_label",
 								right: [
 									{
 										label: "ok_action",
@@ -384,7 +384,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderDateRangeSelection(): Children {
-		const renderedHelpText: TranslationText | undefined =
+		const renderedHelpText: MaybeTranslation | undefined =
 			this.searchViewModel.warning === "startafterend"
 				? "startAfterEnd_label"
 				: this.searchViewModel.warning === "long"

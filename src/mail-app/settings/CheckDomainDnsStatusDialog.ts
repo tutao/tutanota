@@ -13,7 +13,7 @@ assertMainOrNode()
 export function showDnsCheckDialog(domainStatus: DomainDnsStatus) {
 	let dialog = Dialog.showActionDialog({
 		type: DialogType.EditLarger,
-		title: () => lang.get("checkDnsRecords_action"),
+		title: "checkDnsRecords_action",
 		okActionTextId: "checkAgain_action",
 		cancelActionTextId: "close_alt",
 		child: () => renderCheckResult(domainStatus, true),

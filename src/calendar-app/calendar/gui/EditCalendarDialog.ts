@@ -183,7 +183,7 @@ export function showCreateEditCalendarDialog({
 									}
 									doAction(dialog)
 								})
-								.catch((e) => Dialog.message(() => e.message))
+								.catch((e) => Dialog.message(lang.makeTranslation("error_message", e.message)))
 						},
 						class: errorMessageStream().trim() !== "" ? "mt-s no-hover button-bg" : "mt-s",
 						disabled: errorMessageStream().trim() !== "",
@@ -198,7 +198,7 @@ export function showCreateEditCalendarDialog({
 			{
 				allowOkWithReturn: true,
 				okActionTextId: okTextId,
-				title: lang.get(titleTextId),
+				title: titleTextId,
 				child: {
 					view: () =>
 						m(".flex.col", [

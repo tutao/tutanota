@@ -5,7 +5,7 @@ import { ButtonType } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import { Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -16,7 +16,7 @@ assertMainOrNode()
 
 export interface WizardPageAttrs<T> {
 	/** Title of the page that is shown in the header bar of the WizardDialog*/
-	headerTitle(): string
+	headerTitle(): MaybeTranslation
 
 	/** Action that needs to be executed before switching to the next page.
 	 * @return true if the action was successful and the next page can be shown, false otherwise.
@@ -233,7 +233,7 @@ class WizardDialogAttrs<T> {
 		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
 		const backButtonAttrs: ButtonAttrs = {
-			label: () => (currentPageIndex === 0 ? lang.get(this.cancelButtonText) : lang.get("back_action")),
+			label: currentPageIndex === 0 ? this.cancelButtonText : "back_action",
 			click: () => this.goToPreviousPageOrClose(),
 			type: ButtonType.Secondary,
 		}
@@ -244,7 +244,7 @@ class WizardDialogAttrs<T> {
 		}
 
 		// the wizard dialog has a reference to this._headerBarAttrs -> changing this object changes the dialog
-		Object.assign(this._headerBarAttrs, {
+		let source: DialogHeaderBarAttrs = {
 			left: currentPageIndex >= 0 && this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex) ? [backButtonAttrs] : [],
 			right: () =>
 				this.currentPage &&
@@ -252,8 +252,9 @@ class WizardDialogAttrs<T> {
 				this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
 					? [skipButtonAttrs]
 					: [],
-			middle: () => (this.currentPage ? this.currentPage.attrs.headerTitle() : ""),
-		})
+			middle: this.currentPage ? this.currentPage.attrs.headerTitle() : "emptyString_msg",
+		}
+		Object.assign(this._headerBarAttrs, source)
 	}
 
 	_getEnabledPages(): Array<WizardPageWrapper<T>> {
@@ -414,7 +415,7 @@ export function createWizardDialog<T>(
 }
 
 async function confirmThenCleanup(closeAction: () => Promise<void>) {
-	const confirmed = await Dialog.confirm(() => lang.get("closeWindowConfirmation_msg"))
+	const confirmed = await Dialog.confirm("closeWindowConfirmation_msg")
 	if (confirmed) {
 		closeAction()
 	}

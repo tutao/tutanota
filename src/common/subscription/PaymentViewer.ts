@@ -141,7 +141,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		if (isIOSApp()) {
 			// Paid users trying to change payment method on iOS with an active subscription
 			if (currentPaymentMethod !== PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
-				return Dialog.message(() => lang.get("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+				return Dialog.message(lang.getTranslation("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
 			}
 
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
@@ -152,7 +152,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			// they must downgrade to Free first.
 
 			const isResubscribe = await Dialog.choice(
-				() => lang.get("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
+				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
 				[
 					{
 						text: "changePlan_action",
@@ -511,7 +511,7 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 					type: ButtonType.Primary,
 				},
 			],
-			middle: () => lang.get("adminPayment_action"),
+			middle: "adminPayment_action",
 		}
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
@@ -561,8 +561,8 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 }
 
 export async function showManageThroughAppStoreDialog(): Promise<void> {
-	const confirmed = await Dialog.confirm(() =>
-		lang.get("storeSubscription_msg", {
+	const confirmed = await Dialog.confirm(
+		lang.getTranslation("storeSubscription_msg", {
 			"{AppStorePayment}": InfoLink.AppStorePayment,
 		}),
 	)

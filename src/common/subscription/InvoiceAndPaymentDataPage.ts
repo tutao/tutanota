@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog, DialogType } from "../gui/base/Dialog"
-import { lang } from "../misc/LanguageViewModel"
+import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { PaymentMethodInput } from "./PaymentMethodInput"
@@ -179,7 +179,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 
 		return m(
-			"#upgrade-account-dialog.pt",
+			".pt",
 			this._availablePaymentMethods
 				? [
 						m(SegmentControl, {
@@ -233,8 +233,8 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 		return Promise.resolve(true)
 	}
 
-	headerTitle(): string {
-		return lang.get("adminPayment_action")
+	headerTitle(): TranslationKey {
+		return "adminPayment_action"
 	}
 
 	isSkipAvailable(): boolean {
@@ -276,35 +276,69 @@ export async function updatePaymentData(
 		}
 	} else if (statusCode === PaymentDataResultType.COUNTRY_MISMATCH) {
 		const countryName = invoiceData.country ? invoiceData.country.n : ""
-		const confirmMessage = lang.get("confirmCountry_msg", {
+		const confirmMessage = lang.getTranslation("confirmCountry_msg", {
 			"{1}": countryName,
 		})
-		const confirmed = await Dialog.confirm(() => confirmMessage)
+		const confirmed = await Dialog.confirm(confirmMessage)
 		if (confirmed) {
 			return updatePaymentData(paymentInterval, invoiceData, paymentData, invoiceData.country, isSignup, price, accountingInfo) // add confirmed invoice country
 		} else {
 			return false
 		}
 	} else if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-		await Dialog.message(() => lang.get("invalidVatIdNumber_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation("invalidVatIdNumber_msg", lang.get("invalidVatIdNumber_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : "")),
+		)
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-		await Dialog.message(() => lang.get("creditCardDeclined_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation("creditCardDeclined_msg", lang.get("creditCardDeclined_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : "")),
+		)
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
 		await Dialog.message("creditCardCVVInvalid_msg")
 	} else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-		await Dialog.message(() => lang.get("paymentProviderNotAvailableError_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation(
+				"paymentProviderNotAvailableError_msg",
+				lang.get("paymentProviderNotAvailableError_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+			),
+		)
 	} else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-		await Dialog.message(() => lang.get("paymentAccountRejected_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation(
+				"paymentAccountRejected_msg",
+				lang.get("paymentAccountRejected_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+			),
+		)
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
 		await Dialog.message("creditCardExprationDateInvalid_msg")
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-		await Dialog.message(() => lang.get("creditCardNumberInvalid_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation(
+				"creditCardNumberInvalid_msg",
+				lang.get("creditCardNumberInvalid_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+			),
+		)
 	} else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
-		await Dialog.message(() => lang.get("invalidVatIdValidationFailed_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation(
+				"invalidVatIdValidationFailed_msg",
+				lang.get("invalidVatIdValidationFailed_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+			),
+		)
 	} else if (statusCode === PaymentDataResultType.CREDIT_CARD_VERIFICATION_LIMIT_REACHED) {
-		await Dialog.message(() => lang.get("creditCardVerificationLimitReached_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation(
+				"creditCardVerificationLimitReached_msg",
+				lang.get("creditCardVerificationLimitReached_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+			),
+		)
 	} else {
-		await Dialog.message(() => lang.get("otherPaymentProviderError_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""))
+		await Dialog.message(
+			lang.makeTranslation(
+				"otherPaymentProviderError_msg",
+				lang.get("otherPaymentProviderError_msg") + (isSignup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+			),
+		)
 	}
 
 	return false

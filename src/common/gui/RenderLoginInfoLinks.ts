@@ -63,7 +63,7 @@ function showVersionDropdown(e: MouseEvent) {
 	createDropdown({
 		lazyButtons: () => [
 			{
-				label: () => "Get logs",
+				label: lang.makeTranslation("get_logs", "Get logs"),
 				click: () => showLogsDialog(),
 			},
 		],
@@ -75,7 +75,7 @@ async function showLogsDialog() {
 
 	const dialog: Dialog = Dialog.editDialog(
 		{
-			middle: () => "Logs",
+			middle: lang.makeTranslation("logs", "Logs"),
 			right: () => [
 				{
 					type: ButtonType.Secondary,

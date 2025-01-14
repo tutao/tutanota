@@ -47,7 +47,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		}
 
 		Dialog.showActionDialog({
-			title: lang.get("addEmailAlias_label"),
+			title: "addEmailAlias_label",
 			child: {
 				view: () => {
 					return [
@@ -67,13 +67,13 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 								if (!domain.isPaid || isNewPaidPlan) {
 									formDomain = domain
 								} else {
-									Dialog.confirm(() => `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`).then(
-										async (confirmed) => {
-											if (confirmed) {
-												isNewPaidPlan = await showPlanUpgradeRequiredDialog(NewPaidPlans)
-											}
-										},
-									)
+									Dialog.confirm(
+										lang.makeTranslation("confirm_msg", `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`),
+									).then(async (confirmed) => {
+										if (confirmed) {
+											isNewPaidPlan = await showPlanUpgradeRequiredDialog(NewPaidPlans)
+										}
+									})
 								}
 							},
 						}),
@@ -112,7 +112,7 @@ async function addAlias(model: MailAddressTableModel, alias: string, senderName:
 				errorMsg = lang.get("addAliasUserDisabled_msg")
 			}
 
-			return Dialog.message(() => errorMsg)
+			return Dialog.message(lang.makeTranslation("confirm_msg", errorMsg))
 		} else if (error instanceof UpgradeRequiredError) {
 			showPlanUpgradeRequiredDialog(error.plans, error.message)
 		} else {

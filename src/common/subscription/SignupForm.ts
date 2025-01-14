@@ -104,11 +104,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (!domain.isPaid || a.isPaidSubscription()) {
 					this.selectedDomain = domain
 				} else {
-					Dialog.confirm(() => `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`).then((confirmed) => {
-						if (confirmed) {
-							vnode.attrs.onChangePlan()
-						}
-					})
+					Dialog.confirm(lang.makeTranslation("confirm_msg", `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`)).then(
+						(confirmed) => {
+							if (confirmed) {
+								vnode.attrs.onChangePlan()
+							}
+						},
+					)
 				}
 			},
 			availableDomains: this.availableDomains,

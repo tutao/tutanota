@@ -22,7 +22,7 @@ export class AddNotificationEmailDialog {
 			let mailAddress = ""
 
 			Dialog.showActionDialog({
-				title: lang.get("notificationSettings_action"),
+				title: "notificationSettings_action",
 				child: {
 					view: () => [
 						m(TextField, {

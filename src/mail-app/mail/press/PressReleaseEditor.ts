@@ -17,6 +17,7 @@ import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getDefaultSender } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 
 type PressContact = {
 	email: string
@@ -46,18 +47,18 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 
 		// We aren't using translation keys here because it's not a user facing feature
 		const choice = await Dialog.choice(
-			() => `Really send the press release out to ${recipients.length} recipients?`,
+			lang.makeTranslation("press_release_confirmation", `Really send the press release out to ${recipients.length} recipients?`),
 			[
 				{
-					text: () => "Cancel",
+					text: "cancel_action",
 					value: "cancel",
 				},
 				{
-					text: () => "Just test",
+					text: lang.makeTranslation("noOp_action", "Just test"),
 					value: "test",
 				},
 				{
-					text: () => "Yes please",
+					text: "yes_label",
 					value: "send",
 				},
 			],
@@ -139,7 +140,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 				)
 			} catch (e) {
 				// Stop sending after first failure in case something bad happened
-				Dialog.message(() => `Error sending to ${recipient.email}: ${e.message}.\nStopping.`)
+				Dialog.message(lang.makeTranslation("error_msg", `Error sending to ${recipient.email}: ${e.message}.\nStopping.`))
 				didFinish = false
 				break
 			}
@@ -165,7 +166,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 				type: ButtonType.Secondary,
 			},
 		],
-		middle: () => "Press Release",
+		middle: lang.makeTranslation("pr", "Press Release"),
 		right: [
 			{
 				label: "send_action",
@@ -184,20 +185,20 @@ function getValidRecipients(recipientsJSON: string): Array<PressContact> {
 	try {
 		parsed = JSON.parse(recipientsJSON)
 	} catch (e) {
-		throw new UserError(() => "Unable to parse recipients JSON:\n" + e.toString())
+		throw new UserError(lang.makeTranslation("parse_json", "Unable to parse recipients JSON:\n" + e.toString()))
 	}
 
 	if (!(parsed instanceof Array)) {
-		throw new UserError(() => "Recipients must be an array")
+		throw new UserError(lang.makeTranslation("rec_arr", "Recipients must be an array"))
 	}
 
 	return parsed.map(({ email, greeting }) => {
 		if (typeof email !== "string" || !isMailAddress(email, false)) {
-			throw new UserError(() => `Not all provided recipients have an "email" field`)
+			throw new UserError(lang.makeTranslation("no_email", `Not all provided recipients have an "email" field`))
 		}
 
 		if (typeof greeting !== "string") {
-			throw new UserError(() => `Not all provided recipients have a "greeting" field`)
+			throw new UserError(lang.makeTranslation("no_greeting", `Not all provided recipients have a "greeting" field`))
 		}
 
 		// Discard any unneeded fields

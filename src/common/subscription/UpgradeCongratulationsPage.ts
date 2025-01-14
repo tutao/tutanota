@@ -1,5 +1,5 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { lang } from "../misc/LanguageViewModel"
+import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -81,8 +81,8 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 		this.data = upgradeData
 	}
 
-	headerTitle(): string {
-		return lang.get("accountCongratulations_msg")
+	headerTitle(): TranslationKey {
+		return "accountCongratulations_msg"
 	}
 
 	nextAction(showDialogs: boolean): Promise<boolean> {

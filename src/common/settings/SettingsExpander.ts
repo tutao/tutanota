@@ -1,4 +1,4 @@
-import type { InfoLink, TranslationKey } from "../misc/LanguageViewModel.js"
+import type { InfoLink, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
@@ -8,9 +8,9 @@ import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
 
 export type SettingsExpanderAttrs = {
-	title: TranslationKey | lazy<string>
-	buttonText?: TranslationKey | lazy<string>
-	infoMsg?: TranslationKey | lazy<string>
+	title: MaybeTranslation
+	buttonText?: MaybeTranslation
+	infoMsg?: MaybeTranslation
 	infoLinkId?: InfoLink | undefined
 	onExpand?: Thunk | undefined
 	expanded: Stream<boolean>
@@ -29,7 +29,7 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 		const { title, buttonText, infoLinkId, infoMsg, expanded } = vnode.attrs
 		return [
 			m(".flex-space-between.items-center.mb-s.mt-l", [
-				m(".h4", lang.getMaybeLazy(title)),
+				m(".h4", lang.getTranslationText(title)),
 				m(ExpanderButton, {
 					label: buttonText || "show_action",
 					expanded: expanded(),
@@ -43,7 +43,7 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 				},
 				vnode.children,
 			),
-			infoMsg ? m("small", lang.getMaybeLazy(infoMsg)) : null,
+			infoMsg ? m("small", lang.getTranslationText(infoMsg)) : null,
 			infoLinkId ? ifAllowedTutaLinks(locator.logins, infoLinkId, (link) => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)])) : null,
 		]
 	}

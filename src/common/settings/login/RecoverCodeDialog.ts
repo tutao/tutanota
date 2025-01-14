@@ -25,7 +25,7 @@ export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user
 
 	const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
 	Dialog.showActionDialog({
-		title: lang.get("recoveryCode_label"),
+		title: "recoveryCode_label",
 		type: DialogType.EditMedium,
 		child: () => m(".pt", lang.get("recoveryCode_msg")),
 		allowOkWithReturn: true,
@@ -60,7 +60,7 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
 	return new Promise((resolve) => {
 		Dialog.showActionDialog({
-			title: lang.get("recoveryCode_label"),
+			title: "recoveryCode_label",
 			child: {
 				view: () => {
 					return m(RecoverCodeField, {

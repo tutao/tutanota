@@ -19,7 +19,7 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 		if (userController.isGlobalAdmin()) {
 			allowed = await showPlanUpgradeRequiredDialog(await getAvailablePlansWithTemplates())
 		} else {
-			Dialog.message(() => lang.get("contactAdmin_msg"))
+			Dialog.message("contactAdmin_msg")
 		}
 	}
 

@@ -361,7 +361,7 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.UnknownError)
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 			o(viewModel.getSavedCredentials()).deepEquals([unencryptedCredentials.credentialInfo])
-			o(lang.getMaybeLazy(viewModel.helpText)).satisfies(textIncludes("test"))
+			o(lang.getTranslationText(viewModel.helpText)).satisfies(textIncludes("test"))
 		})
 	})
 	o.spec("Login with email and password", function () {
