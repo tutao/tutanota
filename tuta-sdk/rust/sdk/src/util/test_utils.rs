@@ -76,7 +76,7 @@ pub fn generate_random_group(
 			senderKeyVersion: Some(0),
 			senderIdentifier: Some(group_id.clone().to_string()),
 			senderIdentifierType: Some(PublicKeyIdentifierType::GroupId as i64),
-			symKeyTag: None,
+			symKeyMac: None,
 		}),
 		storageCounter: None,
 		user: None,
