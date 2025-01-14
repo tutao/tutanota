@@ -1327,7 +1327,7 @@ mod tests {
 			Ok("Hello, world!".to_string()),
 			String::from_utf8(subject_and_iv.data)
 		);
-		assert_eq!(new_iv.get_inner(), &subject_and_iv.iv);
+		assert_eq!(new_iv, subject_and_iv.iv);
 
 		// other fields should be encrypted with origin_iv
 		let encrypted_recipient_name = encrypted_mail
@@ -1339,7 +1339,7 @@ mod tests {
 			.assert_bytes()
 			.to_vec();
 		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
-		assert_eq!(original_iv.get_inner().to_vec(), recipient_and_iv.iv)
+		assert_eq!(original_iv, recipient_and_iv.iv)
 	}
 
 	#[test]
