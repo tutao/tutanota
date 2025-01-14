@@ -471,28 +471,28 @@
 			"changes": [
 				{
 					"name": "AddValue",
-					"sourceType": "EncryptedKeyHash",
-					"info": "AddValue EncryptedKeyHash/encryptingKeyVersion/2521."
+					"sourceType": "KeyMac",
+					"info": "AddValue KeyMac/taggingKeyVersion/2521."
 				},
 				{
 					"name": "RenameAttribute",
-					"sourceType": "EncryptedKeyHash",
-					"info": "RenameAttribute EncryptedKeyHash: userGroup -> encryptingGroup."
+					"sourceType": "KeyMac",
+					"info": "RenameAttribute KeyMac: userGroup -> taggingGroup."
 				},
 				{
 					"name": "RenameAttribute",
-					"sourceType": "EncryptedKeyHash",
-					"info": "RenameAttribute EncryptedKeyHash: version -> hashedKeyVersion."
+					"sourceType": "KeyMac",
+					"info": "RenameAttribute KeyMac: version -> taggedKeyVersion."
 				},
 				{
 					"name": "RenameAttribute",
-					"sourceType": "EncryptedKeyHash",
-					"info": "RenameAttribute EncryptedKeyHash: authKeyEncAdminRotationHash -> encryptingKeyEncKeyHash."
+					"sourceType": "KeyMac",
+					"info": "RenameAttribute KeyMac: authKeyEncAdminRotationHash -> tag."
 				},
 				{
 					"name": "RenameAttribute",
 					"sourceType": "KeyRotation",
-					"info": "RenameAttribute KeyRotation: adminGroupKeyAuthenticationData -> userEncAdminPubKeyHash."
+					"info": "RenameAttribute KeyRotation: adminGroupKeyAuthenticationData -> adminPubKeyMac."
 				},
 				{
 					"name": "AddAssociation",
@@ -502,7 +502,7 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "KeyRotation",
-					"info": "AddAssociation KeyRotation/adminEncDistKeyHash/AGGREGATION/2523."
+					"info": "AddAssociation KeyRotation/distKeyMac/AGGREGATION/2523."
 				},
 				{
 					"name": "AddAssociation",
@@ -527,7 +527,7 @@
 				{
 					"name": "AddAssociation",
 					"sourceType": "PubEncKeyData",
-					"info": "AddAssociation PubEncKeyData/symKeyTag/AGGREGATION/2547."
+					"info": "AddAssociation PubEncKeyData/symKeyMac/AGGREGATION/2547."
 				}
 			]
 		}
