@@ -7,10 +7,10 @@ export type Props = {
 }
 
 export class NoSolutionSectionButton implements Component<Props> {
-	view(vnode: Vnode<Props>): Children {
+	view({ attrs: { onClick } }: Vnode<Props>): Children {
 		return m(SectionButton, {
 			text: "Other",
-			onclick: () => vnode.attrs.onClick(),
+			onclick: onClick,
 		})
 	}
 }

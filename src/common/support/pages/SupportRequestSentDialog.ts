@@ -1,7 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
+import { Thunk } from "@tutao/tutanota-utils"
 
-type Props = { closeDialog: () => void }
+type Props = { closeDialog: Thunk }
 
 export class SupportRequestSentDialog implements Component<Props> {
 	view({ attrs: { closeDialog } }: Vnode<Props>): Children {

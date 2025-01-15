@@ -2,15 +2,14 @@ import m from "mithril"
 import { assertMainOrNode } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
-import stream from "mithril/stream"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
-import { SupportLandingPage } from "./supportWizardPages/SupportLandingPage.js"
+import { SupportLandingPage } from "./pages/SupportLandingPage.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { SupportCategoryPage } from "./supportWizardPages/SupportCategoryPage.js"
-import { SupportTopicPage } from "./supportWizardPages/SupportTopicPage.js"
-import { ContactSupportPage } from "./supportWizardPages/ContactSupportPage.js"
-import { SupportRequestSentDialog } from "./SupportRequestSentDialog.js"
+import { SupportCategoryPage } from "./pages/SupportCategoryPage.js"
+import { SupportTopicPage } from "./pages/SupportTopicPage.js"
+import { ContactSupportPage } from "./pages/ContactSupportPage.js"
+import { SupportRequestSentDialog } from "./pages/SupportRequestSentDialog.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
 import { Attachment, SendMailModel } from "../mailFunctionality/SendMailModel.js"
@@ -21,7 +20,7 @@ import { lang } from "../misc/LanguageViewModel.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
 import { DataFile } from "../api/common/DataFile.js"
-import { EmailSupportUnavailableView } from "./supportWizardPages/EmailSupportUnavailableView.js"
+import { EmailSupportUnavailableView } from "./pages/EmailSupportUnavailableView.js"
 import { Dialog } from "../gui/base/Dialog.js"
 
 export interface SupportDialogState {
@@ -31,7 +30,7 @@ export interface SupportDialogState {
 	supportData: SupportData
 	htmlEditor: HtmlEditor
 	shouldIncludeLogs: Stream<boolean>
-	userAttachments: stream<DataFile[]>
+	userAttachments: Stream<DataFile[]>
 	logs: Stream<DataFile[]>
 }
 
@@ -54,9 +53,9 @@ export async function showSupportDialog(logins: LoginController) {
 		selectedTopic: Stream<SupportTopic | null>(null),
 		supportData: await locator.entityClient.load(SupportDataTypeRef, "--------1---"),
 		htmlEditor: new HtmlEditor().setMinHeight(200).enableToolbar().setEnabled(true),
-		shouldIncludeLogs: stream(true),
-		userAttachments: stream([]),
-		logs: stream([]),
+		shouldIncludeLogs: Stream(true),
+		userAttachments: Stream([]),
+		logs: Stream([]),
 	}
 
 	const multiPageDialog: Dialog = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)

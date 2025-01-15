@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component } from "mithril"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
@@ -6,7 +6,7 @@ import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 
 export class EmailSupportUnavailableView implements Component {
-	view(vnode: Vnode): Children {
+	view(): Children {
 		return m("", [
 			m("img.pb.block.height-100p", {
 				src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,

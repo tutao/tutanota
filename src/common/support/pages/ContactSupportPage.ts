@@ -18,9 +18,9 @@ export type Props = {
 }
 
 export class ContactSupportPage implements Component<Props> {
-	oninit(vnode: Vnode<Props>) {
+	oninit({ attrs: { data } }: Vnode<Props>) {
 		this.collectLogs().then((logs) => {
-			vnode.attrs.data.logs(logs)
+			data.logs(logs)
 			m.redraw()
 		})
 	}

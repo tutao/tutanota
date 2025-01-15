@@ -12,12 +12,13 @@ type Props = {
 }
 
 export class SupportCategoryPage implements Component<Props> {
-	view(vnode: Vnode<Props>): Children {
-		const {
+	view({
+		attrs: {
 			data: { selectedCategory, selectedTopic },
 			goToTopicDetailPage,
 			goToContactSupport,
-		} = vnode.attrs
+		},
+	}: Vnode<Props>): Children {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 		return m("", [
