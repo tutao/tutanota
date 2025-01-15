@@ -12,13 +12,11 @@ pipeline {
     	choice(
     		name: 'target',
     		choices: ['dryRun', 'buildAndPublishToStaging', 'publishToStaging', 'publishToProd'],
-    		description: "publishToStaging and publishToProd do not build. They download artifacts from nexus"
+    		description: "dryRun: build no-op (only the prod version is built for mobile)<br>" +
+				"buildAndPublishToStaging: builds staging and prod, uploads both to Nexus, and publishes to staging<br>" +
+				"publishToStaging: downloads from Nexus and publishes to staging<br>" +
+				"publishToProd: downloads from Nexus, publishes to prod, and generates release notes"
     	)
-        booleanParam(
-            name: 'generateReleaseNotes',
-            defaultValue: false,
-            description: "Check if the release notes should be updated in the downstream jobs, uncheck if last runs release notes should be reused"
-        )
 		persistentString(
 			name: 'milestone',
 			defaultValue: '',
@@ -58,7 +56,8 @@ pipeline {
     stages {
 		stage("Prepare Release Notes") {
 			agent { label 'master' }
-			when { expression { return params.generateReleaseNotes && (params.web || params.android || params.ios || params.desktop) } }
+			// Release Notes are only generating when publishing to Prod
+			when { expression { return params.target.equals("publishToProd") && (params.web || params.android || params.ios || params.desktop) } }
 			steps {
 				sh "npm ci"
 				script { // create release notes
@@ -76,7 +75,6 @@ pipeline {
 		stage("Clients") {
 			environment {
 				BUILD = "${params.target.equals("dryRun") || params.target.equals("buildAndPublishToStaging")}"
-				PUBLISH_STAGING = "${params.target.equals("buildAndPublishToStaging") || params.target.equals("publishToStaging")}"
 			}
 			// Web/Desktop and Mobile are ran sequentially because we ran into resource allocation issues
 			stages {
@@ -97,10 +95,10 @@ pipeline {
 								stage("Publish Web") {
 									when { expression { return !params.target.equals("dryRun") } }
 									steps {
-										build job: 'tutanota-3-webapp-publish', parameters: params.generateReleaseNotes ? [
+										build job: 'tutanota-3-webapp-publish', parameters: params.target.equals("publishToProd") ? [
 											booleanParam(name: 'DEB', value: true),
-											booleanParam(name: 'PUBLISH_NPM_MODULES', value: params.target.equals("buildAndPublishToStaging")),
-											booleanParam(name: 'GITHUB_RELEASE', value: params.target.equals("publishToProd")),
+											booleanParam(name: 'PUBLISH_NPM_MODULES', value: false),
+											booleanParam(name: 'GITHUB_RELEASE', value: true),
 											text(name: "releaseNotes", value: releaseNotes.web),
 										] : [
 											booleanParam(name: 'DEB', value: true),
@@ -143,9 +141,9 @@ pipeline {
 									when { expression { return !params.target.equals("dryRun") } }
 									steps {
 										script {
-											build job: 'tutanota-3-desktop-publish', parameters: params.generateReleaseNotes ? [
+											build job: 'tutanota-3-desktop-publish', parameters: params.target.equals("publishToProd") ? [
 												booleanParam(name: "DEB", value: true),
-												booleanParam(name: "GITHUB_RELEASE", value: params.target.equals("publishToProd")),
+												booleanParam(name: "GITHUB_RELEASE", value: true),
 												text(name: "releaseNotes", value: releaseNotes.desktop),
 											] : [
 												booleanParam(name: "DEB", value: true),
@@ -180,15 +178,15 @@ pipeline {
 									when { expression { return !params.target.equals("dryRun") } }
 									steps {
 										script {
-											 build job: 'tutanota-3-ios-publish', parameters: params.generateReleaseNotes ? [
-												 booleanParam(name: "STAGING", value: PUBLISH_STAGING.toBoolean()),
-												 booleanParam(name: "PROD", value: params.target.equals("publishToProd")),
-												 booleanParam(name: "APP_STORE_NOTES", value: params.target.equals("publishToProd")),
-												 booleanParam(name: "GITHUB_RELEASE", value: params.target.equals("publishToProd")),
+											 build job: 'tutanota-3-ios-publish', parameters: params.target.equals("publishToProd") ? [
+												 booleanParam(name: "STAGING", value: false),
+												 booleanParam(name: "PROD", value: true),
+												 booleanParam(name: "APP_STORE_NOTES", value: true),
+												 booleanParam(name: "GITHUB_RELEASE", value: true),
 												 text(name: "releaseNotes", value: releaseNotes.ios),
 											 ] : [
-												 booleanParam(name: "STAGING", value: PUBLISH_STAGING.toBoolean()),
-												 booleanParam(name: "PROD", value: params.target.equals("publishToProd")),
+												 booleanParam(name: "STAGING", value: true),
+												 booleanParam(name: "PROD", value: false),
 												 booleanParam(name: "APP_STORE_NOTES", value: false),
 												 booleanParam(name: "GITHUB_RELEASE", value: false),
 											 ]
@@ -217,14 +215,14 @@ pipeline {
 									when { expression { return !params.target.equals("dryRun") } }
 									steps {
 										script {
-											 build job: 'tutanota-3-android-publish', parameters: params.generateReleaseNotes ? [
-												 booleanParam(name: "STAGING", value: PUBLISH_STAGING.toBoolean()),
-												 booleanParam(name: "PROD", value: params.target.equals("publishToProd")),
-												 booleanParam(name: "GITHUB_RELEASE", value: params.target.equals("publishToProd")),
+											 build job: 'tutanota-3-android-publish', parameters: params.target.equals("publishToProd") ? [
+												 booleanParam(name: "STAGING", value: false),
+												 booleanParam(name: "PROD", value: true),
+												 booleanParam(name: "GITHUB_RELEASE", value: true),
 												 text(name: "releaseNotes", value: releaseNotes.android),
 											 ] : [
-												 booleanParam(name: "STAGING", value: PUBLISH_STAGING.toBoolean()),
-												 booleanParam(name: "PROD", value: params.target.equals("publishToProd")),
+												 booleanParam(name: "STAGING", value: true),
+												 booleanParam(name: "PROD", value: false),
 												 booleanParam(name: "GITHUB_RELEASE", value: false),
 											 ]
 										} // script
