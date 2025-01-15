@@ -7,6 +7,7 @@ import { OperationType } from "../../../src/common/api/common/TutanotaConstants.
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
+import { ConnectionError } from "../../../src/common/api/common/error/RestError"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"
@@ -174,18 +175,22 @@ o.spec("ListElementListModel", function () {
 	})
 
 	o.spec("Updating items", function () {
+		function loadsElement(element: KnowledgeBaseEntry): (listId: Id, elementId: Id) => Promise<KnowledgeBaseEntry | null> {
+			return async (_listId: Id, elementId: Id): Promise<KnowledgeBaseEntry | null> => {
+				if (elementId === getElementId(element)) {
+					return element
+				} else {
+					throw new Error("noop")
+				}
+			}
+		}
+
 		o("update for item with id sorting updates item", async function () {
 			const updatedItemD = createTestEntity(KnowledgeBaseEntryTypeRef, { ...itemD, title: "AA" })
 
 			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
 				...defaultListConfig,
-				async loadSingle(_listId: Id, elementId: Id): Promise<KnowledgeBaseEntry | null> {
-					if (elementId === getElementId(itemD)) {
-						return updatedItemD
-					} else {
-						throw new Error("noop")
-					}
-				},
+				loadSingle: loadsElement(updatedItemD),
 			}
 
 			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
@@ -201,13 +206,7 @@ o.spec("ListElementListModel", function () {
 
 			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
 				...defaultListConfig,
-				async loadSingle(_listId: Id, elementId: Id): Promise<KnowledgeBaseEntry | null> {
-					if (elementId === getElementId(itemD)) {
-						return updatedItemD
-					} else {
-						throw new Error("noop")
-					}
-				},
+				loadSingle: loadsElement(updatedItemD),
 				sortCompare: (e1, e2) => {
 					return e1.title.localeCompare(e2.title)
 				},
@@ -219,6 +218,127 @@ o.spec("ListElementListModel", function () {
 			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
 
 			o(listModel.state.items).deepEquals([itemA, updatedItemD, itemB, itemC])
+		})
+
+		o("create loading done", async function () {
+			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: [listId, "e"],
+				title: "e",
+			})
+
+			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+
+			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+				...defaultListConfig,
+				fetch: () => {
+					return somePromise.promise
+				},
+				loadSingle: loadsElement(itemE),
+			}
+
+			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+
+			listModel.loadInitial()
+
+			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			somePromise.resolve({
+				items: [],
+				complete: true,
+			})
+
+			await received
+
+			o(listModel.state.items).deepEquals([itemE])
+		})
+
+		o("when receive create event while empty list and not loaded completely it will not insert the item", async function () {
+			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: [listId, "e"],
+				title: "e",
+			})
+
+			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+
+			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+				...defaultListConfig,
+				fetch: () => {
+					return somePromise.promise
+				},
+				loadSingle: loadsElement(itemE),
+			}
+
+			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+
+			listModel.loadInitial()
+
+			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			somePromise.resolve({
+				items: [],
+				complete: false,
+			})
+
+			await received
+
+			o(listModel.state.items).deepEquals([])
+		})
+
+		o("when receive create event while empty list and error it does not insert", async function () {
+			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: [listId, "e"],
+				title: "e",
+			})
+
+			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+
+			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+				...defaultListConfig,
+				fetch: () => {
+					return somePromise.promise
+				},
+				loadSingle: loadsElement(itemE),
+			}
+
+			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+
+			listModel.loadInitial()
+
+			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			somePromise.reject(new ConnectionError("test"))
+
+			await received
+
+			o(listModel.state.items).deepEquals([])
+		})
+
+		o("when receive create event and out of range", async function () {
+			const itemE = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: [listId, "e"],
+				title: "e",
+			})
+
+			let somePromise: DeferredObject<ListFetchResult<KnowledgeBaseEntry>> = defer()
+
+			const newConfig: ListElementListModelConfig<KnowledgeBaseEntry> = {
+				...defaultListConfig,
+				fetch: () => {
+					return somePromise.promise
+				},
+				loadSingle: loadsElement(itemE),
+			}
+
+			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
+
+			listModel.loadInitial()
+
+			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			somePromise.resolve({
+				items: [itemA, itemB, itemC, itemD],
+				complete: false,
+			})
+
+			await received
+
+			o(listModel.state.items).deepEquals([itemA, itemB, itemC, itemD])
 		})
 	})
 })
