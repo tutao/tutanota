@@ -26,8 +26,7 @@ export class SupportLandingPage implements Component<Props> {
 					height: "666px", // FIXME: Find proper responsive height
 				},
 			},
-			m(".h1.text-center.pt", "Find your answers here"),
-			m("p.text-center", "We are here to help you with your question or issue."),
+			m(".h4.pt", "Find your answers here"),
 			m(
 				".pb.pt.flex.col.gap-vpad.fit-height.box-content",
 				supportData.categories.map((category) =>

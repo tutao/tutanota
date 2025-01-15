@@ -1,4 +1,5 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m from "mithril"
+import Mithril, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
@@ -6,6 +7,7 @@ import { getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { OutlineButton } from "../../gui/base/buttons/OutlineButton.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
+import { Card } from "../../gui/base/Card.js"
 
 type Props = {
 	data: SupportDialogState
@@ -28,17 +30,51 @@ export class SupportTopicPage implements Component<Props> {
 		const issue = getLocalisedTopicIssue(topic, languageTag)
 		return m(
 			"",
-			m("section", [m("p.b.text-center.h5", issue), m.trust(sanitisedSolution)]),
-			m("hr"),
-			m("section.flex-center.center-vertically.gap-hpad", m("", "Was this helpful?"), [
+			{
+				style: {
+					position: "relative",
+				},
+				class: "height-100p",
+			},
+			[
+				m("p.h5.m-0.pb.pt", issue),
+				m(
+					// @ts-ignore
+					Card,
+					{
+						rootElementType: "div",
+						style: { padding: "1em", height: "80%" },
+						classes: ["scroll"],
+					},
+					m.trust(sanitisedSolution),
+				),
+			],
+			m(WasThisHelpful, { data, goToContactSupportPage, dialog }),
+		)
+	}
+}
+
+class WasThisHelpful implements Component<Props> {
+	view({ attrs: { dialog, goToContactSupportPage } }: Vnode<Props>): Mithril.Children | void | null {
+		return m(
+			"",
+			{
+				style: {
+					position: "absolute",
+					padding: "1em 0",
+					bottom: 0,
+					right: 0,
+				},
+			},
+			m(".flex-center.center-vertically.gap-hpad.b", m("", "Was this helpful?"), [
 				m(OutlineButton, {
-					label: () => "Yes",
+					label: "yes_label",
 					onclick: () => {
 						dialog.close()
 					},
 				}),
 				m(OutlineButton, {
-					label: () => "No, I need help",
+					label: "no_label",
 					onclick: goToContactSupportPage,
 				}),
 			]),

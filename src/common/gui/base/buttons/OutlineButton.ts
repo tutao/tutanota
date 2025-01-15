@@ -16,10 +16,10 @@ export class OutlineButton implements ClassComponent<Props> {
 			label: lang.getMaybeLazy(attrs.label),
 			text: lang.getMaybeLazy(attrs.label),
 			onclick: attrs.onclick,
-			class: `border-radius-big plr-button center flash`,
+			class: `border-radius-big plr-button-double center flash`,
 			style: {
 				border: `2px solid ${theme.content_accent}`,
-				height: px(size.button_height_compact),
+				height: px(size.button_height + size.vpad_xs * 2),
 				color: theme.content_accent,
 			},
 		})

@@ -31,7 +31,7 @@ export class ContactSupportPage implements Component<Props> {
 		},
 	}: Vnode<Props>): Children {
 		return m(
-			".flex.flex-column.plr-l",
+			".flex.flex-column",
 			{
 				style: {
 					// "min-height": styles.isDesktopLayout() ? "850px" : "",
