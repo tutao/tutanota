@@ -41,7 +41,7 @@ export class ListElementListModel<ElementType extends ListElement> {
 			// Wait for any pending loading
 			return this.listModel.waitLoad(() => {
 				if (operation === OperationType.CREATE) {
-					if (this.canCreateEntity(entity)) {
+					if (this.canInsertEntity(entity)) {
 						this.listModel.insertLoadedItem(entity)
 					}
 				} else if (operation === OperationType.UPDATE) {
@@ -54,9 +54,9 @@ export class ListElementListModel<ElementType extends ListElement> {
 		}
 	}
 
-	private canCreateEntity(entity: ElementType): boolean {
-		if (this.state.loadingStatus !== ListLoadingState.Done) {
-			return false
+	private canInsertEntity(entity: ElementType): boolean {
+		if (this.state.loadingStatus === ListLoadingState.Done) {
+			return true
 		}
 
 		// new element is in the loaded range or newer than the first element
