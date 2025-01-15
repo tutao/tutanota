@@ -146,6 +146,24 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			intervalNumber += 1
 		}
 
+		let setPosRules = repeatRule.advancedRules.filter { item in item.ruleType == ByRuleType.bysetpos }.map { rule in
+			let parsedInterval = Int(string: rule.interval)!
+
+			if parsedInterval < 0 {
+				return expandedEvents.count - abs(parsedInterval)
+			}
+
+			return parsedInterval - 1
+		}.filter { interval in interval >= 0 && interval < repeatRule.frequency.getMaxDaysInPeriod()}
+
+		self.expandedEvents = expandedEvents.enumerated().filter { (index, event) in
+			if !setPosRules.isEmpty && !setPosRules.contains(index) {
+				return false
+			}
+
+			return true
+		}.map { (index, event) in event}
+
 		if let date = expandedEvents.popLast() {
 			occurrenceNumber += 1
 
@@ -154,6 +172,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			while exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < date {
 				exclusionNumber += 1
 			}
+
 			if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == date {
 				return self.next()
 			}
@@ -212,10 +231,19 @@ private func calendarUnit(for repeatPeriod: RepeatPeriod) -> Calendar.Component 
 private extension RepeatPeriod {
 	func toSDKPeriod() -> tutasdk.RepeatPeriod {
 		switch self {
-		case .annually: return tutasdk.RepeatPeriod.annually
-		case .daily: return tutasdk.RepeatPeriod.daily
-		case .monthly: return tutasdk.RepeatPeriod.monthly
-		case .weekly: return tutasdk.RepeatPeriod.weekly
+			case .annually: return tutasdk.RepeatPeriod.annually
+			case .daily: return tutasdk.RepeatPeriod.daily
+			case .monthly: return tutasdk.RepeatPeriod.monthly
+			case .weekly: return tutasdk.RepeatPeriod.weekly
+		}
+	}
+
+	func getMaxDaysInPeriod() -> Int {
+		switch self {
+			case .annually: return 366
+			case .monthly: return 31
+			case .weekly: return 7
+			case .daily: return 1
 		}
 	}
 }
