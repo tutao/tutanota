@@ -16,11 +16,13 @@ import { clientInfoString } from "../misc/ErrorReporter.js"
 import { Attachment, SendMailModel } from "../mailFunctionality/SendMailModel.js"
 import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../misc/Formatter.js"
-import { MailMethod, PlanTypeToName } from "../api/common/TutanotaConstants.js"
+import { Keys, MailMethod, PlanTypeToName } from "../api/common/TutanotaConstants.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
 import { DataFile } from "../api/common/DataFile.js"
+import { EmailSupportUnavailableView } from "./supportWizardPages/EmailSupportUnavailableView.js"
+import { Dialog } from "../gui/base/Dialog.js"
 
 export interface SupportDialogState {
 	canHaveEmailSupport: boolean
@@ -41,6 +43,7 @@ enum SupportPages {
 	TOPIC_DETAIL,
 	CONTACT_SUPPORT,
 	SUPPORT_REQUEST_SENT,
+	EMAIL_SUPPORT_BEHIND_PAYWALL,
 }
 
 // Generates a SendMailModel from the User Mailbox
@@ -55,18 +58,35 @@ export async function showSupportDialog(logins: LoginController) {
 		userAttachments: stream([]),
 		logs: stream([]),
 	}
-	const _ = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)
+
+	const multiPageDialog: Dialog = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)
 		.buildDialog(
 			(currentPage, dialog, navigateToPage, _) => {
 				switch (currentPage) {
 					case SupportPages.CATEGORY_DETAIL:
 						return m(SupportCategoryPage, {
 							data,
-							goToContactSupport: () => navigateToPage(SupportPages.CONTACT_SUPPORT),
+							goToContactSupport: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
 							goToTopicDetailPage: () => navigateToPage(SupportPages.TOPIC_DETAIL),
 						})
 					case SupportPages.TOPIC_DETAIL:
-						return m(SupportTopicPage, { data, dialog, goToContactSupportPage: () => navigateToPage(SupportPages.CONTACT_SUPPORT) })
+						return m(SupportTopicPage, {
+							data,
+							dialog,
+							goToContactSupportPage: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+						})
 					case SupportPages.CONTACT_SUPPORT:
 						return m(ContactSupportPage, { data, goToSuccessPage: () => navigateToPage(SupportPages.SUPPORT_REQUEST_SENT) })
 					case SupportPages.SUPPORT_REQUEST_SENT:
@@ -77,8 +97,16 @@ export async function showSupportDialog(logins: LoginController) {
 						return m(SupportLandingPage, {
 							data,
 							toCategoryDetail: () => navigateToPage(SupportPages.CATEGORY_DETAIL),
-							goToContactSupport: () => navigateToPage(SupportPages.CONTACT_SUPPORT),
+							goToContactSupport: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
 						})
+					case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
+						return m(EmailSupportUnavailableView)
 				}
 			},
 			{
@@ -88,6 +116,7 @@ export async function showSupportDialog(logins: LoginController) {
 							return "We received your request!"
 						case SupportPages.CONTACT_SUPPORT:
 						case SupportPages.CATEGORY_DETAIL:
+						case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
 						case SupportPages.CATEGORIES:
 						case SupportPages.TOPIC_DETAIL:
 							return "Support"
@@ -99,32 +128,59 @@ export async function showSupportDialog(logins: LoginController) {
 							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
 						case SupportPages.TOPIC_DETAIL:
 						case SupportPages.CATEGORY_DETAIL:
-						case SupportPages.CONTACT_SUPPORT:
+						case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
 							return { type: ButtonType.Secondary, click: () => goBack(), label: () => "Back", title: () => "Back" }
+						case SupportPages.CONTACT_SUPPORT:
+							return {
+								type: ButtonType.Secondary,
+								click: async () => {
+									const confirmed = await Dialog.confirm(() => "Are you sure you want to go back? Your request will be lost.")
+									if (confirmed) {
+										goBack()
+									}
+								},
+								label: () => "Back",
+								title: () => "Back",
+							}
 						case SupportPages.SUPPORT_REQUEST_SENT:
 							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
 					}
 				},
-				getRightAction: (currentPage, _, navigateToPage, __) => {
-					if (currentPage === SupportPages.CONTACT_SUPPORT) {
-						return {
-							type: ButtonType.Primary,
-							label: () => "Send",
-							title: () => "Send",
-							click: async () => {
-								const message = data.htmlEditor.getValue()
-								const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
-								const attachments = data.shouldIncludeLogs() ? [...data.userAttachments(), ...data.logs()] : data.userAttachments()
+				getRightAction: (currentPage, dialog, navigateToPage, __) => {
+					switch (currentPage) {
+						case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
+							return {
+								type: ButtonType.Secondary,
+								label: "close_alt",
+								title: "close_alt",
+								click: () => {
+									dialog.close()
+								},
+							}
+						case SupportPages.CONTACT_SUPPORT:
+							return {
+								type: ButtonType.Primary,
+								label: () => "Send",
+								title: () => "Send",
+								click: async () => {
+									const message = data.htmlEditor.getValue()
+									const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
+									const attachments = data.shouldIncludeLogs() ? [...data.userAttachments(), ...data.logs()] : data.userAttachments()
 
-								await send(mailBody, attachments, data)
+									await send(mailBody, attachments, data)
 
-								navigateToPage(SupportPages.SUPPORT_REQUEST_SENT)
-							},
-						}
+									navigateToPage(SupportPages.SUPPORT_REQUEST_SENT)
+								},
+							}
 					}
 				},
 			},
 		)
+		.addShortcut({
+			help: "close_alt",
+			key: Keys.ESC,
+			exec: () => multiPageDialog.close(),
+		})
 		.show()
 }
 
