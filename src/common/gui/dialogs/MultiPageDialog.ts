@@ -161,6 +161,7 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	private dialogHeight: number | null = null
 	private pageWidth: number = -1
 	private translate = 0
+	private pagesWrapperDomElement!: HTMLElement
 	// We can assume the stack size is one because we already enforce having a root page when initializing MultiPageDialog
 	private stackSize = 1
 	private slideDirection: SlideDirection | undefined = undefined
@@ -186,6 +187,8 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	}
 
 	oncreate(vnode: VnodeDOM<Props<TPages>>): void {
+		this.pagesWrapperDomElement = vnode.dom as HTMLElement
+
 		vnode.dom.addEventListener("transitionend", () => {
 			this.transitionClass = ""
 			vnode.attrs.isAnimating(false)
@@ -236,6 +239,8 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	}
 
 	private goBack(vnode: Vnode<Props<TPages>>) {
+		this.tryScrollToTop()
+
 		const target = vnode.attrs.currentPageStream()
 		this.translate = -(this.pageWidth + size.vpad_xxl)
 		m.redraw.sync()
@@ -248,11 +253,27 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		})
 	}
 
+	/**
+	 * Determines the parent element of the pages wrapper (which should be the dialog) and sets the `scrollTop` to `0`.
+	 * If the parent element is not found or does not include the `scroll` CSS class, nothing will happen.
+	 */
+	private tryScrollToTop() {
+		const parentElement = this.pagesWrapperDomElement.parentElement
+
+		if (parentElement?.classList.contains("scroll")) {
+			parentElement.scrollTop = 0
+		}
+	}
+
 	private transitionTo(vnode: Vnode<Props<TPages>>, target: TPages) {
+		this.tryScrollToTop()
+
 		vnode.attrs.isAnimating(true)
 		this.transitionPage(target)
 		this.transitionClass = "transition-transform"
-		if (this.stackSize > 1) this.translate = -(this.pageWidth + size.vpad_xxl)
+		if (this.stackSize > 1) {
+			this.translate = -(this.pageWidth + size.vpad_xxl)
+		}
 	}
 
 	view(vnode: Vnode<Props<TPages>>): Children {
