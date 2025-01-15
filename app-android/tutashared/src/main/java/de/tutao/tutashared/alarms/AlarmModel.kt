@@ -9,6 +9,7 @@ import java.time.Instant
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
+import kotlin.math.abs
 
 object AlarmModel {
 	private const val OCCURRENCES_SCHEDULED_AHEAD = 10
@@ -81,11 +82,11 @@ object AlarmModel {
 			// and ensures that 0 <= abs(SETPOS) < eventCount
 			val parsedSetPos = setPosRules.map {
 				if (it.interval.toInt() < 0) {
-					expandedEvents.count() - it.interval.toInt()
+					expandedEvents.count() - abs(it.interval.toInt())
 				} else {
 					it.interval.toInt() - 1
 				}
-			}.filter { it < expandedEvents.count() && it >= 0 }
+			}.filter { it >= 0 && it < frequency.getMaxDaysInPeriod() }
 
 			if (endType == EndType.UNTIL && calendar.timeInMillis >= endDate!!.time) {
 				break
@@ -209,6 +210,15 @@ object AlarmModel {
 			RepeatPeriod.WEEKLY -> de.tutao.tutasdk.RepeatPeriod.WEEKLY
 			RepeatPeriod.MONTHLY -> de.tutao.tutasdk.RepeatPeriod.MONTHLY
 			RepeatPeriod.ANNUALLY -> de.tutao.tutasdk.RepeatPeriod.ANNUALLY
+		}
+	}
+
+	private fun RepeatPeriod.getMaxDaysInPeriod() = run {
+		when (this) {
+			RepeatPeriod.DAILY -> 1
+			RepeatPeriod.WEEKLY -> 7
+			RepeatPeriod.MONTHLY -> 31
+			RepeatPeriod.ANNUALLY -> 366
 		}
 	}
 }
