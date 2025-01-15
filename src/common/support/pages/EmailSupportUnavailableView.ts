@@ -8,12 +8,12 @@ import { Card } from "../../gui/base/Card.js"
 
 export class EmailSupportUnavailableView implements Component {
 	view(): Children {
-		return m("", [
+		return [
 			m(".h4.pt.pb", "Your plan doesn't offer direct support"),
 			m(
 				Card,
 				{ rootElementType: "div" },
-				m("img.block.height-100p", {
+				m("img.block", {
 					src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,
 					alt: "",
 					rel: "noreferrer",
@@ -21,6 +21,7 @@ export class EmailSupportUnavailableView implements Component {
 					decoding: "async",
 					style: {
 						margin: "0 auto",
+						width: "100%",
 					},
 				}),
 				m(
@@ -61,6 +62,6 @@ export class EmailSupportUnavailableView implements Component {
 					disabled: false,
 				}),
 			),
-		])
+		]
 	}
 }
