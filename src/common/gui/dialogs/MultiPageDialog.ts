@@ -3,11 +3,11 @@ import { Dialog } from "../base/Dialog.js"
 import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"
 import { theme } from "../theme.js"
-import m from "mithril"
-import Mithril, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { client } from "../../misc/ClientDetector.js"
 import { px, size } from "../size.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { windowFacade, windowSizeListener } from "../../misc/WindowFacade.js"
 
 type ContentRenderer<TPages> = (currentPage: TPages, dialog: Dialog, navigateToPage: (targetPage: TPages) => void, goBack: (to?: TPages) => void) => Children
 type DialogAction<TPages> = (
@@ -182,7 +182,22 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		})
 	}
 
-	onremove(vnode: Mithril.VnodeDOM<Props<TPages>>): any {
+	private readonly resizeListener: windowSizeListener = () => {
+		this.setPageWidth(this.pagesWrapperDomElement)
+		m.redraw()
+	}
+
+	private setPageWidth(dom: HTMLElement) {
+		const parentElement = dom.parentElement
+		if (parentElement) {
+			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
+		}
+		// Twice the page width plus the gap between pages (64px)
+		dom.style.width = px(this.pageWidth * 2 + size.vpad_xxl)
+	}
+
+	onremove(vnode: VnodeDOM<Props<TPages>>) {
+		windowFacade.removeResizeListener(this.resizeListener)
 		vnode.attrs.currentPageStream.end(true)
 	}
 
@@ -196,6 +211,8 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 			this.translate = 0
 			m.redraw()
 		})
+
+		windowFacade.addResizeListener(this.resizeListener)
 	}
 
 	onupdate(vnode: VnodeDOM<Props<TPages>>): any {
@@ -206,9 +223,7 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		}
 
 		if (this.pageWidth == -1 && dom.parentElement) {
-			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
-			// Twice the page width plus the gap between pages (64px)
-			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.vpad_xxl)
+			this.setPageWidth(dom)
 			m.redraw()
 		}
 	}
