@@ -63,7 +63,7 @@ function showVersionDropdown(e: MouseEvent) {
 	createDropdown({
 		lazyButtons: () => [
 			{
-				label: lang.makeTranslation("get_logs", "Get logs"),
+				label: "getLogs_action",
 				click: () => showLogsDialog(),
 			},
 		],

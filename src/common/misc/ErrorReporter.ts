@@ -81,7 +81,7 @@ async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore
 			},
 			[
 				{
-					label: lang.makeTranslation("send", "Send report"),
+					label: "sendReport_label",
 					click: () => resolve("send"),
 					type: ButtonType.Secondary,
 				},

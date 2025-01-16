@@ -3,7 +3,7 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { getLightOrDarkTutaLogo } from "../gui/theme.js"
 import { showUserError } from "../misc/ErrorHandlerImpl.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { InfoLink, lang } from "../misc/LanguageViewModel.js"
+import { InfoLink } from "../misc/LanguageViewModel.js"
 import { newMailEditorFromTemplate } from "../../mail-app/mail/editor/MailEditor.js"
 import { UserError } from "../api/main/UserError.js"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
@@ -32,7 +32,13 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 				m.trust(getLightOrDarkTutaLogo(client.isCalendarApp())),
 			),
 			m(".flex.justify-center.flex-wrap", [
-				m(ExternalLink, { href: InfoLink.HomePage, text: "Website", isCompanySite: true, specialType: "me", class: "mlr mt" }),
+				m(ExternalLink, {
+					href: InfoLink.HomePage,
+					text: "Website",
+					isCompanySite: true,
+					specialType: "me",
+					class: "mlr mt",
+				}),
 				m(ExternalLink, {
 					href: "https://github.com/tutao/tutanota/releases",
 					text: "Releases",
@@ -51,7 +57,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 				? m(
 						"",
 						m(Button, {
-							label: lang.makeTranslation("welcome_label", "Show welcome dialog"),
+							label: "showWelcomeDialog_action",
 							type: ButtonType.Primary,
 							click: vnode.attrs.onShowSetupWizard,
 						}),
