@@ -180,3 +180,25 @@ export enum CalendarViewType {
 	MONTH = "month",
 	AGENDA = "agenda",
 }
+
+/**
+ * Checks if dateA occurs before dateB based on the specified comparison type.
+ *
+ * @param {Date} dateA - The first date to compare.
+ * @param {Date} dateB - The second date to compare.
+ * @param {string} comparisonType - The type of comparison to perform.
+ *                              "full" = compare date and time,
+ *                              "dayMonthYear" = compare only day, month, and year.
+ * @returns {boolean} - Returns true if dateA is before dateB according to the comparison type, false otherwise.
+ */
+export function isBefore(dateA: Date, dateB: Date, comparisonType: "dateTime" | "date" = "dateTime"): boolean {
+	switch (comparisonType) {
+		case "dateTime":
+			return dateA.getTime() < dateB.getTime()
+		case "date": {
+			return dateA.setHours(0, 0, 0, 0) < dateB.setHours(0, 0, 0, 0)
+		}
+		default:
+			throw new Error("Unknown comparison method")
+	}
+}
