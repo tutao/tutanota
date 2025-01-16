@@ -660,8 +660,8 @@ export class KeyRotationFacade {
 			version: 0, // dummy
 		}
 		const membershipSymEncNewGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(versionedPassphraseKey, newUserGroupKeys.symGroupKey.object)
-		const userDistKey = this.userFacade.deriveUserDistKey(userGroup._id, passphraseKey)
-		const distributionKeyEncNewUserGroupKey = this.cryptoWrapper.encryptKey(userDistKey, newUserGroupKeys.symGroupKey.object)
+		const legacyUserDistKey = this.userFacade.deriveLegacyUserDistKey(userGroup._id, passphraseKey)
+		const distributionKeyEncNewUserGroupKey = this.cryptoWrapper.encryptKey(legacyUserDistKey, newUserGroupKeys.symGroupKey.object)
 		const authVerifier = createAuthVerifier(passphraseKey)
 		const newGroupKeyEncCurrentGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(newUserGroupKeys.symGroupKey, currentGroupKey.object)
 		return { membershipSymEncNewGroupKey, distributionKeyEncNewUserGroupKey, authVerifier, newGroupKeyEncCurrentGroupKey }
