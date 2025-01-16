@@ -34,6 +34,11 @@ export type ListModelConfig<ItemType, IdType> = {
 	loadSingle(listId: IdType, itemId: IdType): Promise<ItemType | null>
 
 	/**
+	 * @return a (arbitrary) timestamp corresponding to this item
+	 */
+	getItemTimestamp(item: ItemType): number
+
+	/**
 	 * Compare the items
 	 * @return 0 if equal, less than 0 if less and greater than 0 if greater
 	 */
@@ -62,12 +67,14 @@ type PrivateListState<ItemType> = Omit<ListState<ItemType>, "items" | "activeInd
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
 export class ListModel<ItemType, IdType> {
-	constructor(private readonly config: ListModelConfig<ItemType, IdType>) {}
+	constructor(private readonly config: ListModelConfig<ItemType, IdType>) {
+	}
 
 	private loadState: "created" | "initialized" = "created"
 	private loading: Promise<unknown> = Promise.resolve()
 	private filter: ListFilter<ItemType> | null = null
 	private rangeSelectionAnchorItem: ItemType | null = null
+	private itemIdToItemTimestampMap: Map<IdType, number> = new Map()
 
 	get state(): ListState<ItemType> {
 		return this.stateStream()
@@ -164,6 +171,7 @@ export class ListModel<ItemType, IdType> {
 			const lastFetchedItem = last(this.rawState.unfilteredItems)
 			try {
 				const { items: newItems, complete } = await this.config.fetch(lastFetchedItem, PageSize)
+				newItems.map((newItem) =>)
 				// if the loading was cancelled in the meantime, don't insert anything so that it's not confusing
 				if (this.state.loadingStatus === ListLoadingState.ConnectionLost) {
 					return
@@ -268,13 +276,14 @@ export class ListModel<ItemType, IdType> {
 			// if we did find the target mail, stop
 			// make sure to call this before shouldStop or we might stop before trying to find an item
 			// this can probably be optimized to be binary search in most (all?) cases
-			!(foundItem = this.rawState.unfilteredItems.find(finder)) &&
-			!shouldStop() &&
-			// if we are done loading, stop
-			this.rawState.loadingStatus !== ListLoadingState.Done &&
-			// if we are offline, stop
-			this.rawState.loadingStatus !== ListLoadingState.ConnectionLost
-		) {
+		!(foundItem = this.rawState.unfilteredItems.find(finder)) &&
+		!shouldStop() &&
+		// if we are done loading, stop
+		this.rawState.loadingStatus !== ListLoadingState.Done &&
+		// if we are offline, stop
+		this.rawState.loadingStatus !== ListLoadingState.ConnectionLost
+			) {
+			// FIXME try to load the mailId from the mailbag
 			await this.loadMore()
 		}
 		if (foundItem) {
@@ -384,8 +393,8 @@ export class ListModel<ItemType, IdType> {
 		return oldActiveItem == null
 			? first(this.state.items)
 			: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
-			? lastItem
-			: this.state.items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(this.state.items)
+				? lastItem
+				: this.state.items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(this.state.items)
 	}
 
 	areAllSelected(): boolean {
@@ -576,6 +585,10 @@ export class ListModel<ItemType, IdType> {
 		const id1 = this.config.getItemId(item1)
 		const id2 = this.config.getItemId(item2)
 		return this.config.isSameId(id1, id2)
+	}
+
+	loadItemTimestamp(itemId: IdType): number | null {
+		return this.itemIdToItemTimestampMap.get(itemId) ?? null
 	}
 }
 

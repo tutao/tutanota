@@ -344,18 +344,23 @@ export class MailViewModel {
 	}
 
 	private async loadAndSelectMail(folder: MailFolder, mailId: Id) {
-		const foundMail = await this.listModel?.loadAndSelect(
-			mailId,
-			() =>
-				// if we changed the list, stop
-				this.getFolder() !== folder ||
-				// if listModel is gone for some reason, stop
-				!this.listModel ||
+		let mailReceivedTimestamp = this.listModel?.loadItemTimestamp(mailId)
+		const foundMail = await this.listModel?.loadAndSelect(mailId, () => {
+			if (
+				this.getFolder() !== folder || // if we changed the list, stop
+				!this.listModel || // if listModel is gone for some reason, stop
+				this.loadingTargetId !== mailId
+			) {
 				// if the target mail has changed, stop
-				this.loadingTargetId !== mailId ||
+				return true
+			} else if (this.listModel.state.items.length > 0 && mailReceivedTimestamp != null) {
 				// if we loaded past the target item we won't find it, stop
-				(this.listModel.state.items.length > 0 && firstBiggerThanSecond(mailId, getElementId(lastThrow(this.listModel.state.items)))),
-		)
+				let lastMailReceivedTimestamp = this.listModel.loadItemTimestamp(getElementId(lastThrow(this.listModel.state.items)))
+				return lastMailReceivedTimestamp != null && mailReceivedTimestamp > lastMailReceivedTimestamp
+			} else {
+				return false
+			}
+		})
 		if (foundMail == null) {
 			console.log("did not find mail", folder, mailId)
 		}

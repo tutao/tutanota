@@ -72,6 +72,10 @@ export class ListElementListModel<ElementType extends ListElement> {
 		return this.listModel.loadAndSelect(itemId, shouldStop, finder)
 	}
 
+	loadItemTimestamp(itemId: Id): number | null {
+		return this.listModel.loadItemTimestamp(itemId)
+	}
+
 	isItemSelected(itemId: Id): boolean {
 		return this.listModel.isItemSelected(itemId)
 	}
