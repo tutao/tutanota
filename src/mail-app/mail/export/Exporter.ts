@@ -202,10 +202,10 @@ export function mailToEml(mail: MailBundle): string {
 		lines.push(
 			"--------------79Bu5A16qPEYcVIZL@tutanota",
 			"Content-Type: " + getCleanedMimeType(attachment.mimeType) + ";",
-			" name=" + base64Filename + "",
+			" name=\"" + base64Filename + "\"",
 			"Content-Transfer-Encoding: base64",
 			"Content-Disposition: attachment;",
-			" filename=" + base64Filename + "",
+			" filename=\"" + base64Filename + "\"",
 		)
 
 		if (attachment.cid) {
