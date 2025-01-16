@@ -350,7 +350,7 @@ export class LoginFacade {
 		// In order do not rework the entity processing and its initialization for new clients we
 		// replace the cached instances after doing the migration
 		await (await this.cacheManagementFacade()).reloadUser()
-		this.userFacade.setUserDistKey(newUserPassphraseKey)
+		this.userFacade.setUserDistKey(currentUserGroupKey.version, newUserPassphraseKey)
 	}
 
 	/**
@@ -952,7 +952,7 @@ export class LoginFacade {
 
 		await this.serviceExecutor.post(ChangePasswordService, service)
 
-		this.userFacade.setUserDistKey(newUserPassphraseKey)
+		this.userFacade.setUserDistKey(currentUserGroupKey.version, newUserPassphraseKey)
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
 		const sessionData = await this.loadSessionData(accessToken)
 		if (sessionData.accessKey != null) {
