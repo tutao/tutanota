@@ -4492,7 +4492,7 @@ export const typeModels = {
 		"id": 1582,
 		"rootId": "CHR1dGFub3RhAAYu",
 		"versioned": false,
-		"encrypted": false,
+		"encrypted": true,
 		"values": {
 			"_format": {
 				"final": false,
@@ -4502,9 +4502,99 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"newImportedMailSetName": {
+				"final": false,
+				"name": "newImportedMailSetName",
+				"id": 1597,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"ownerEncSessionKey": {
+				"final": false,
+				"name": "ownerEncSessionKey",
+				"id": 1596,
+				"since": 80,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerGroup": {
+				"final": false,
+				"name": "ownerGroup",
+				"id": 1594,
+				"since": 80,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1595,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"totalMails": {
+				"final": false,
+				"name": "totalMails",
+				"id": 1598,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
-		"associations": {},
+		"associations": {
+			"targetMailFolder": {
+				"final": true,
+				"name": "targetMailFolder",
+				"id": 1599,
+				"since": 80,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refType": "MailFolder",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "80"
+	},
+	"ImportMailGetOut": {
+		"name": "ImportMailGetOut",
+		"since": 80,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1591,
+		"rootId": "CHR1dGFub3RhAAY3",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1592,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mailState": {
+				"final": true,
+				"name": "mailState",
+				"id": 1593,
+				"since": 80,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refType": "ImportMailState",
+				"dependency": null
+			}
+		},
 		"app": "tutanota",
 		"version": "80"
 	},
@@ -4515,48 +4605,12 @@ export const typeModels = {
 		"id": 1570,
 		"rootId": "CHR1dGFub3RhAAYi",
 		"versioned": false,
-		"encrypted": true,
+		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
 				"id": 1571,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"newImportedMailSetName": {
-				"final": true,
-				"name": "newImportedMailSetName",
-				"id": 1575,
-				"since": 79,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"ownerEncSessionKey": {
-				"final": true,
-				"name": "ownerEncSessionKey",
-				"id": 1574,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerGroup": {
-				"final": false,
-				"name": "ownerGroup",
-				"id": 1572,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": true,
-				"name": "ownerKeyVersion",
-				"id": 1573,
 				"since": 79,
 				"type": "Number",
 				"cardinality": "One",
@@ -4583,16 +4637,6 @@ export const typeModels = {
 				"cardinality": "One",
 				"refType": "ImportMailState",
 				"dependency": null
-			},
-			"targetMailFolder": {
-				"final": true,
-				"name": "targetMailFolder",
-				"id": 1576,
-				"since": 79,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
 			}
 		},
 		"app": "tutanota",
@@ -4617,18 +4661,7 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {
-			"mailState": {
-				"final": true,
-				"name": "mailState",
-				"id": 1581,
-				"since": 79,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "ImportMailState",
-				"dependency": null
-			}
-		},
+		"associations": {},
 		"app": "tutanota",
 		"version": "80"
 	},
@@ -4700,6 +4733,15 @@ export const typeModels = {
 				"name": "successfulMails",
 				"id": 1566,
 				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"totalMails": {
+				"final": false,
+				"name": "totalMails",
+				"id": 1600,
+				"since": 80,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false

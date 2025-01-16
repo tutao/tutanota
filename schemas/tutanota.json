@@ -553,6 +553,11 @@
 					"name": "AddAssociation",
 					"sourceType": "CalendarRepeatRule",
 					"info": "AddAssociation CalendarRepeatRule/advancedRules/AGGREGATION/1590."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "ImportMailState",
+					"info": "AddValue ImportMailState/totalMails/1600."
 				}
 			]
 		}
