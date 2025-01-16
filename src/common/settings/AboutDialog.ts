@@ -51,7 +51,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 				? m(
 						"",
 						m(Button, {
-							label: () => "Show welcome dialog",
+							label: () => lang.get("showWelcomeDialog_action"),
 							type: ButtonType.Primary,
 							click: vnode.attrs.onShowSetupWizard,
 						}),

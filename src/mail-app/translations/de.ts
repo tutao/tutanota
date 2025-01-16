@@ -1879,6 +1879,10 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
+		"getLogs_action": "Get logs",
+		"showWelcomeDialog_action": "Show welcome dialog",
+		"sendReport_label": "Send report",
+		"passphrase_label": "Passphrase",
 		// Put in temporarily
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",

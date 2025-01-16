@@ -1859,6 +1859,10 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "getLogs_action"
+	| "showWelcomeDialog_action"
+	| "sendReport_label"
+	| "passphrase_label"
 	// Put in temporarily
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"
