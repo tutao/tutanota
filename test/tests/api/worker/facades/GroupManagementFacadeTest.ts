@@ -189,7 +189,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				o(groupKey.object).equals(groupKeyBytes)
 				o(groupKey.version).equals(groupKeyVersion)
 				verify(
-					keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(groupId, {
+					keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(groupId, adminGroupId, adminGroupKeyVersion, {
 						object: formerGroupSymKey,
 						version: groupKeyVersion - 1,
 					}),
@@ -259,6 +259,8 @@ o.spec("GroupManagementFacadeTest", function () {
 					when(
 						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
 							groupId,
+							adminGroupId,
+							2,
 							argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV1),
 						),
 					).thenReturn(derivedAuthKeyV1)
@@ -277,6 +279,8 @@ o.spec("GroupManagementFacadeTest", function () {
 					when(
 						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
 							anything(),
+							adminGroupId,
+							1,
 							argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV0),
 						),
 					).thenReturn(derivedAuthKeyV0)
@@ -301,7 +305,14 @@ o.spec("GroupManagementFacadeTest", function () {
 					o(groupKey.object).equals(groupKeyBytes)
 					o(groupKey.version).equals(groupKeyVersion)
 					const previousUserGroupKeyCaptor = captor()
-					verify(keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(groupId, previousUserGroupKeyCaptor.capture()))
+					verify(
+						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+							groupId,
+							adminGroupId,
+							anything(),
+							previousUserGroupKeyCaptor.capture(),
+						),
+					)
 					o(previousUserGroupKeyCaptor.values!.length).equals(2)
 
 					const firstCall = previousUserGroupKeyCaptor.values![0]

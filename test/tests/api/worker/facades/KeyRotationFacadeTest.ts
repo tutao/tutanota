@@ -1016,11 +1016,12 @@ o.spec("KeyRotationFacadeTest", function () {
 			})
 
 			o("Successful rotation with multiple users - sends encrypted new key hash", async function () {
+				const newAdminGroupKeyVersion = Number(adminGroup.groupKeyVersion) + 1
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: PW_KEY,
 					adminOrUserGroupKeyRotation: createTestEntity(KeyRotationTypeRef, {
 						_id: [keyRotationsListId, adminGroupId],
-						targetKeyVersion: String(Number(adminGroup.groupKeyVersion) + 1),
+						targetKeyVersion: String(newAdminGroupKeyVersion),
 						groupKeyRotationType: GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount,
 					}),
 					teamOrCustomerGroupKeyRotations: [],
@@ -1057,7 +1058,14 @@ o.spec("KeyRotationFacadeTest", function () {
 				)
 				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
-				verify(keyAuthenticationFacade.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(additionalUserGroupId, additionalUserGroupKey))
+				verify(
+					keyAuthenticationFacade.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(
+						additionalUserGroupId,
+						adminGroupId,
+						newAdminGroupKeyVersion,
+						additionalUserGroupKey,
+					),
+				)
 			})
 
 			o.spec("AdminGroupKeyRotationMultipleAdminAccount", function () {
@@ -1076,7 +1084,12 @@ o.spec("KeyRotationFacadeTest", function () {
 					const adminDistKeyPairDistributionKey = object<Aes256Key>()
 					const adminDistAuthKey = object<Aes256Key>()
 					when(
-						keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(adminGroupId, userGroupId, CURRENT_ADMIN_GROUP_KEY),
+						keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+							adminGroupId,
+							userGroupId,
+							CURRENT_USER_GROUP_KEY.version,
+							CURRENT_ADMIN_GROUP_KEY,
+						),
 					).thenReturn(adminDistAuthKey)
 					when(cryptoWrapperMock.deriveKeyWithHkdf(anything())).thenReturn(adminDistKeyPairDistributionKey)
 
@@ -1305,9 +1318,14 @@ o.spec("KeyRotationFacadeTest", function () {
 					when(keyAuthenticationFacade.generatePubDistKeyAuthenticationData(anything(), anything())).thenReturn(distKeyAuthenticationData)
 
 					const adminDistAuthKey = object<AesKey>()
-					when(keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(anything(), anything(), anything())).thenReturn(
-						adminDistAuthKey,
-					)
+					when(
+						keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+							adminGroupId,
+							userGroupId,
+							CURRENT_USER_GROUP_KEY.version,
+							CURRENT_ADMIN_GROUP_KEY,
+						),
+					).thenReturn(adminDistAuthKey)
 
 					when(cryptoWrapperMock.verifyHmacSha256(adminDistAuthKey, distKeyAuthenticationData, distKeyMac.tag)).thenThrow(
 						new CryptoError("test error"),
@@ -1438,9 +1456,18 @@ o.spec("KeyRotationFacadeTest", function () {
 					),
 				)
 
-				verify(keyAuthenticationFacade.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(userGroupId, CURRENT_USER_GROUP_KEY))
+				verify(
+					keyAuthenticationFacade.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(userGroupId, adminGroupId, anything(), CURRENT_USER_GROUP_KEY),
+				)
 
-				verify(keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(userGroupId, CURRENT_USER_GROUP_KEY))
+				verify(
+					keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+						userGroupId,
+						adminGroupId,
+						anything(),
+						CURRENT_USER_GROUP_KEY,
+					),
+				)
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
