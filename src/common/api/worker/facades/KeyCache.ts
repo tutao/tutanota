@@ -14,6 +14,8 @@ export class KeyCache {
 	// the new user group key will be re-encrypted with this key to distribute the rotated user group key without asking for the password
 	private userDistKey: Aes256Key | null = null
 
+	private legacyUserDistKey: Aes256Key | null = null
+
 	setCurrentUserGroupKey(newUserGroupKey: VersionedKey) {
 		if (this.currentUserGroupKey != null && this.currentUserGroupKey.version > newUserGroupKey.version) {
 			console.log("Tried to set an outdated user group key")
@@ -30,8 +32,16 @@ export class KeyCache {
 		this.userDistKey = userDistKey
 	}
 
+	setLegacyUserDistKey(legacyUserDistKey: Aes256Key) {
+		this.legacyUserDistKey = legacyUserDistKey
+	}
+
 	getUserDistKey(): Aes256Key | null {
 		return this.userDistKey
+	}
+
+	getLegacyUserDistKey(): Aes256Key | null {
+		return this.legacyUserDistKey
 	}
 
 	/**

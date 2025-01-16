@@ -74,4 +74,38 @@ o.spec("UserFacadeTest", function () {
 		facade.updateUserGroupKey(distributionUpdate)
 		verify(keyCache.setCurrentUserGroupKey(matchers.anything()), { times: 0 })
 	})
+
+	o("updateUserGroupKey - fall back to legacy user distribution key if regular one fails to decrypt", function () {
+		const legacyDistributionKey = aes256RandomKey()
+		const distributionKey = aes256RandomKey()
+		const newUserGroupKey = aes256RandomKey()
+
+		const legacyDistributionEncUserGroupKey = encryptKey(legacyDistributionKey, newUserGroupKey)
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
+			_id: "userGroupId",
+			distributionEncUserGroupKey: legacyDistributionEncUserGroupKey,
+			userGroupKeyVersion: "1",
+		})
+		when(keyCache.getUserDistKey()).thenReturn(distributionKey)
+		facade.updateUserGroupKey(distributionUpdate)
+		verify(keyCache.getLegacyUserDistKey(), { times: 1 })
+	})
+
+	o("updateUserGroupKey - do not fall back to legacy user distribution key if regular one is able to decrypt", function () {
+		const distributionKey = aes256RandomKey()
+		const newUserGroupKey = aes256RandomKey()
+
+		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
+			_id: "userGroupId",
+			distributionEncUserGroupKey: distributionEncUserGroupKey,
+			userGroupKeyVersion: "1",
+		})
+		when(keyCache.getUserDistKey()).thenReturn(distributionKey)
+		facade.updateUserGroupKey(distributionUpdate)
+		verify(keyCache.getLegacyUserDistKey(), { times: 0 })
+
+		// make sure we reach the end of the function and do not return earlier
+		verify(keyCache.setCurrentUserGroupKey(matchers.anything()))
+	})
 })
