@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-01-10T09:47:06Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -960,6 +960,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Datum: {date}, Importováno: {successfulMails}, Selhalo: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Historie importu",
+		"mailImportInfoText_label": "Můžete importovat soubory EML a MBOX.",
 		"mailImportNoImportOnWeb_label": "Import e-mailů je v současné době dostupný pouze v aplikaci pro počítače.",
 		"mailImportSelection_label": "Importovat nebo připojit?",
 		"mailImportSettings_label": "Import e-mailů",

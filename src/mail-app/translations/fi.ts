@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-01-09T20:49:34Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -958,6 +958,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Päiväys: {date}, tuotiin: {successfulMails}, virheen takia ei tuotu: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Tuontihistoria",
+		"mailImportInfoText_label": "Voit tuoda EML- ja MBOX-tiedostoja.",
 		"mailImportNoImportOnWeb_label": "Sähköpostiviestejä voi toistaiseksi tuoda vain työpöytäsovelluksillamme.",
 		"mailImportSelection_label": "Tuo vai liitä?",
 		"mailImportSettings_label": "Sähköpostien tuonti",
@@ -1253,6 +1254,7 @@ export default {
 		"pricing.catchall_tooltip": "Varmista, että verkkotunnukseesi lähetetyt sähköpostit löytävät perille, vaikka lähettäjä kirjoittaisi tunnuksen väärin.",
 		"pricing.comparison10Domains_msg": "10 mukautettua verkkotunnusta",
 		"pricing.comparison3Domains_msg": "3 mukautettua verkkotunnusta",
+		"pricing.comparison3Label_msg": "{amount} tunnistetta",
 		"pricing.comparisonAddUser_msg": "Lisää käyttäjiä ({1})",
 		"pricing.comparisonContactFormPro_msg": "Yhteydenottolomakkeet ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Rajaton määrä sähköpostiosoitteita omilla verkkotunnuksilla",
@@ -1279,6 +1281,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Oma logo ja väriteemat",
 		"pricing.comparisonThemePro_tooltip": "Brändää Tuta omalla brändilläsi ja käytä omia logoja ja värejäsi Tutan verkko-, työpöytä- ja mobiilisovelluksissa",
 		"pricing.comparisonUnlimitedDomains_msg": "Rajaton määrä mukautettuja verkkotunnuksia",
+		"pricing.comparisonUnlimitedLabel_msg": "Rajaton määrä tunnisteita",
 		"pricing.comparisonUsersFree_msg": "Yksi käyttäjä",
 		"pricing.contactLists_label": "Yhteystietolistat",
 		"pricing.contactLists_tooltip": "Luo ja jaa yhteystietolistoja lähettääksesi helposti viestejä ryhmille.",

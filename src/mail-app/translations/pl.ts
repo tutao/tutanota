@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-01-10T20:41:24Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -963,6 +963,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Data: {date}, Zaimportowano: {successfulMails}, Nieudanych: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Zaimportuj historię",
+		"mailImportInfoText_label": "Możesz importować pliki EML i MBOX.",
 		"mailImportNoImportOnWeb_label": "Import wiadomości e-mail jest obecnie dostępny tylko w naszym kliencie na platformy PC.",
 		"mailImportSelection_label": "Importować czy dołączyć?",
 		"mailImportSettings_label": "Zaimportuj wiadomość e-mail",
@@ -1258,6 +1259,7 @@ export default {
 		"pricing.catchall_tooltip": "Upewnij się, że wszystkie e-maile wysłane do twojej własnej domeny dotrą do twojej skrzynki pocztowej, nawet jeśli nadawca pomylił twój adres e-mail.",
 		"pricing.comparison10Domains_msg": "10 własnych domen",
 		"pricing.comparison3Domains_msg": "3 własne domeny",
+		"pricing.comparison3Label_msg": "{amount} etykiet",
 		"pricing.comparisonAddUser_msg": "Kolejny użytkownik ({1})",
 		"pricing.comparisonContactFormPro_msg": "Formularz kontaktowy ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Nieograniczone adresy e-mail dla własnych domen",
@@ -1284,6 +1286,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Własne logo i kolory",
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tuta z własną marką dzięki możliwości zdefiniowania logo, kolorów klientów: internetowych, mobilnych i stacjonarnych Tuta",
 		"pricing.comparisonUnlimitedDomains_msg": "Nieograniczona liczba własnych domen",
+		"pricing.comparisonUnlimitedLabel_msg": "Nieograniczona ilość etykiet",
 		"pricing.comparisonUsersFree_msg": "Jeden użytkownik",
 		"pricing.contactLists_label": "Lista kontaktów",
 		"pricing.contactLists_tooltip": "Twórz i udostępniaj grupy kontaktów, aby łatwo wysyłać wiadomości e-mail do grup.",

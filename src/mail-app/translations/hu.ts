@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-01-12T09:40:11Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -958,6 +958,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Dátum: {date}, Importálva: {successfulMails}, Sikertelen: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Előzmények importálása",
+		"mailImportInfoText_label": "Importálni tud EML és MBOX fájlokat.",
 		"mailImportNoImportOnWeb_label": "Az e-mail import jelenleg csak az asztali kliensünkben érhető el.",
 		"mailImportSelection_label": "Importálás vagy Csatolás?",
 		"mailImportSettings_label": "E-mail importálás",

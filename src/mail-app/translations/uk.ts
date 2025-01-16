@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-01-12T17:31:49Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -960,6 +960,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Дата: {date}, Імпортовано: {successfulMails}, Помилка: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Журнал імпорту",
+		"mailImportInfoText_label": "Ви можете імпортувати файли EML та MBOX.",
 		"mailImportNoImportOnWeb_label": "Наразі імпорт електронних листів доступний лише в нашому настільному клієнті.",
 		"mailImportSelection_label": "Імпортувати чи прикріпити?",
 		"mailImportSettings_label": "Імпорт електронної пошти",
@@ -1255,6 +1256,7 @@ export default {
 		"pricing.catchall_tooltip": "Переконайтеся, що всі повідомлення електронної пошти, надіслані до настроюваного домену, надходять до вашої поштової скриньки, навіть якщо відправник неправильно ввів вашу адресу електронної пошти.",
 		"pricing.comparison10Domains_msg": "10 індивідуальних доменів",
 		"pricing.comparison3Domains_msg": "3 індивідуальні домени",
+		"pricing.comparison3Label_msg": "{amount} позначок",
 		"pricing.comparisonAddUser_msg": "Додати користувача ({1})\n\n\n",
 		"pricing.comparisonContactFormPro_msg": "Форми контактів ({price})\n\n",
 		"pricing.comparisonCustomDomainAddresses_msg": "Необмежена кількість адрес електронної пошти для власних доменів",
@@ -1281,6 +1283,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Користувацькі кольори та логотип",
 		"pricing.comparisonThemePro_tooltip": "Застосуйте функцію Whitelabel Tuta стосовно вашого власного бренду, визначаючи логотипи та кольори веб-, мобільних та настільних клієнтів сервісу Tuta",
 		"pricing.comparisonUnlimitedDomains_msg": "Необмежена кількість власних доменів",
+		"pricing.comparisonUnlimitedLabel_msg": "Необмежена кількість позначок",
 		"pricing.comparisonUsersFree_msg": "Один користувач",
 		"pricing.contactLists_label": "Списки контактів",
 		"pricing.contactLists_tooltip": "Для легкого надсилання електронної пошти групам створюйте та діліться контактними групами. ",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-01-09T13:48:13Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -962,6 +962,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Tarih: {date}, İçe aktarılan: {successfulMails}, Başarısız: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Geçmişi içe aktar",
+		"mailImportInfoText_label": "EML ve MBOX dosyalarını içe aktarabilirsiniz.",
 		"mailImportNoImportOnWeb_label": "E-posta içe aktarma şu an sadece masaüstü istemcisinde mümkün.",
 		"mailImportSelection_label": "İçe aktar veya ekle?",
 		"mailImportSettings_label": "E-posta içe aktarma",
@@ -1257,6 +1258,7 @@ export default {
 		"pricing.catchall_tooltip": "Gönderici, e-posta adresinizi yanlış yazmış olsa bile özel alan adınıza gönderilen tüm e-postaların posta kutunuza ulaştığından kuşkunuz olmasın.",
 		"pricing.comparison10Domains_msg": "10 özel alan adı",
 		"pricing.comparison3Domains_msg": "3 özel alan adı",
+		"pricing.comparison3Label_msg": "{amount} etiket",
 		"pricing.comparisonAddUser_msg": "Kullanıcı ekle  ({1})",
 		"pricing.comparisonContactFormPro_msg": "İletişim formu ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Özel alan adınız için e-posta adresleri ekleyin",
@@ -1283,6 +1285,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Özel logo ve renkler",
 		"pricing.comparisonThemePro_tooltip": "Tuta web, mobil ve masaüstü istemcilerinin logolarını ve renklerini değiştirerek Tuta'yı kendi markanızla sunun.",
 		"pricing.comparisonUnlimitedDomains_msg": "Sınırsız özel alan adı",
+		"pricing.comparisonUnlimitedLabel_msg": "Sınırsız sayıda etiket",
 		"pricing.comparisonUsersFree_msg": "Tek kullanıcı",
 		"pricing.contactLists_label": "Kişi listeleri",
 		"pricing.contactLists_tooltip": "Gruplara kolayca e-posta göndermek için kişi grupları oluşturun ve paylaşın.",

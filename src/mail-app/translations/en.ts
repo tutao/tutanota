@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-01-09T11:39:32Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -958,6 +958,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Date: {date}, Imported: {successfulMails}, Failed: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Import history",
+		"mailImportInfoText_label": "You can import EML and MBOX files.",
 		"mailImportNoImportOnWeb_label": "Email import is currently only available in our desktop client.",
 		"mailImportSelection_label": "Import or attach?",
 		"mailImportSettings_label": "Email import",
@@ -971,7 +972,7 @@ export default {
 		"mailImportStatusPaused_label": "Paused",
 		"mailImportStatusPausing_label": "Pausing...",
 		"mailImportStatusResuming_label": "Resuming...",
-		"mailImportStatusRunning_label": "Running...",
+		"mailImportStatusRunning_label": "Importing emails ...",
 		"mailImportStatusStarting_label": "Starting...",
 		"mailImportTargetFolder_label": "Import into folder",
 		"mailMoved_msg": "This email has been moved to another folder.",
@@ -1253,6 +1254,7 @@ export default {
 		"pricing.catchall_tooltip": "Make sure that all emails sent to your custom domain reach your mailbox even if the sender has mistyped your email address.",
 		"pricing.comparison10Domains_msg": "10 custom domains",
 		"pricing.comparison3Domains_msg": "3 custom domains",
+		"pricing.comparison3Label_msg": "{amount} labels",
 		"pricing.comparisonAddUser_msg": "Add user ({1})",
 		"pricing.comparisonContactFormPro_msg": "Contact forms ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Unlimited email addresses for custom domains",
@@ -1279,6 +1281,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Custom logo and colors",
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tuta with your own branding by defining the logos and colors of the Tuta web, mobile and desktop clients",
 		"pricing.comparisonUnlimitedDomains_msg": "Unlimited custom domains",
+		"pricing.comparisonUnlimitedLabel_msg": "Unlimited number of labels",
 		"pricing.comparisonUsersFree_msg": "One user",
 		"pricing.contactLists_label": "Contact lists",
 		"pricing.contactLists_tooltip": "Create and share contact groups to send emails to groups easily. ",
@@ -1874,10 +1877,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		// Put in temporarily
-		"localAdminGroup_label": "Local admin group",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups",
+		"you_label": "You"
 	}
 }

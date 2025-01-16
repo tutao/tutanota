@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-01-10T12:49:33Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -962,6 +962,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Fecha: {fecha}, Importado: {successfulMails}, Fallidos: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Historial de importaciones",
+		"mailImportInfoText_label": "Puedes importar archivos EML y MBOX.",
 		"mailImportNoImportOnWeb_label": "Actualmente, la importación de correo electrónico sólo está disponible en nuestro cliente de escritorio.",
 		"mailImportSelection_label": "¿Importar o adjuntar?",
 		"mailImportSettings_label": "Importación de correo electrónico",
@@ -1257,6 +1258,7 @@ export default {
 		"pricing.catchall_tooltip": "Asegúrate de que todos los correos enviados a tu dominio personalizado lleguen a tu buzón, incluso si el remitente ha escrito mal tu dirección de correo.",
 		"pricing.comparison10Domains_msg": "10 dominios personalizados",
 		"pricing.comparison3Domains_msg": "3 dominios personalizados",
+		"pricing.comparison3Label_msg": "{amount} etiquetas",
 		"pricing.comparisonAddUser_msg": "Añadir usuario {1}",
 		"pricing.comparisonContactFormPro_msg": "Formularios de contacto ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Direcciones de correo electrónico ilimitadas para dominios personalizados",
@@ -1283,6 +1285,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Logotipo y Colores personalizados",
 		"pricing.comparisonThemePro_tooltip": "Etiqueta Blanca Tuta con tu propia marca definiendo los logotipos y colores de los clientes web, móviles y de escritorio de Tuta",
 		"pricing.comparisonUnlimitedDomains_msg": "Dominios personalizados ilimitados",
+		"pricing.comparisonUnlimitedLabel_msg": "Número ilimitado de etiquetas",
 		"pricing.comparisonUsersFree_msg": "Un usuario",
 		"pricing.contactLists_label": "Listas de contactos",
 		"pricing.contactLists_tooltip": "Crea y comparte grupos de contactos para enviar correos electrónicos a grupos fácilmente. ",

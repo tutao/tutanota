@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-01-09T11:39:34Z",
+	"updated_at": "2025-01-16T09:02:23Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -962,6 +962,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Datum: {date}, Importiert: {successfulMails}, Fehlgeschlagen: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Import-Verlauf",
+		"mailImportInfoText_label": "Sie können EML und MBOX Dateien importieren.",
 		"mailImportNoImportOnWeb_label": "E-Mail-Import ist zur Zeit nur in unserem Desktop-Client verfügbar.",
 		"mailImportSelection_label": "Importieren oder anhängen?",
 		"mailImportSettings_label": "E-Mail-Import",
@@ -975,7 +976,7 @@ export default {
 		"mailImportStatusPaused_label": "Pausiert",
 		"mailImportStatusPausing_label": "Pausieren...",
 		"mailImportStatusResuming_label": "Fortsetzen...",
-		"mailImportStatusRunning_label": "Läuft...",
+		"mailImportStatusRunning_label": "E-Mails werden importiert ...",
 		"mailImportStatusStarting_label": "Startet...",
 		"mailImportTargetFolder_label": "Zielordner für Import",
 		"mailMoved_msg": "Diese E-Mail wurde in einen anderen Ordner verschoben.",
@@ -1257,6 +1258,7 @@ export default {
 		"pricing.catchall_tooltip": "Stellen Sie sicher, dass alle an die eigene Domain gesendeten E-Mails Ihr Postfach erreichen, selbst wenn Ihre E-Mail-Adresse beim Versenden falsch eingegeben wurde.",
 		"pricing.comparison10Domains_msg": "10 eigene Domains",
 		"pricing.comparison3Domains_msg": "3 eigene Domains",
+		"pricing.comparison3Label_msg": "{amount} Labels",
 		"pricing.comparisonAddUser_msg": "Mehr Benutzer ({1})",
 		"pricing.comparisonContactFormPro_msg": "Kontaktformulare ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Unbegrenzte Anzahl von E-Mail-Adressen für eigene Domains",
@@ -1283,6 +1285,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Eigenes Logo/Farben",
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tuta mit Ihrem eigenen Branding, indem Sie die Logos und Farben der Tuta Web-, Mobile- und Desktop-Clients anpassen.",
 		"pricing.comparisonUnlimitedDomains_msg": "Unbegrenzte eigene Domains",
+		"pricing.comparisonUnlimitedLabel_msg": "Unlimitierte Anzahl an Labels",
 		"pricing.comparisonUsersFree_msg": "Ein Benutzer",
 		"pricing.contactLists_label": "Kontaktlisten",
 		"pricing.contactLists_tooltip": "Erstellen und teilen Sie Kontaktlisten, um schnell E-Mails an Gruppen zu versenden.",
@@ -1878,10 +1881,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		// Put in temporarily
-		"localAdminGroup_label": "Local admin group",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups",
+		"you_label": "Sie"
 	}
 }

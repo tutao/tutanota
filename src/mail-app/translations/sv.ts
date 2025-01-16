@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-01-10T10:46:29Z",
+	"updated_at": "2025-01-16T08:56:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -958,6 +958,7 @@ export default {
 		"mailImportHistoryTableRowSubtitle_label": "Datum: {date}, Importerade: {successfulMails}, Misslyckade: {failedMails}",
 		"mailImportHistoryTableRowTitle_label": "{status}, {folder}",
 		"mailImportHistory_label": "Import historik",
+		"mailImportInfoText_label": "Du kan importera EML och MBOX filer.",
 		"mailImportNoImportOnWeb_label": "Import av e-post är för närvarande endast tillgänglig i vår stationära klient.",
 		"mailImportSelection_label": "Importera eller bifoga?",
 		"mailImportSettings_label": "Import e-post",
@@ -1253,6 +1254,7 @@ export default {
 		"pricing.catchall_tooltip": "Se till att alla mejl som skickas till din anpassade domän når din brevlåda även om avsändaren har skrivit fel på din e-postadress.",
 		"pricing.comparison10Domains_msg": "10 anpassade domäner",
 		"pricing.comparison3Domains_msg": "3 anpassade domäner",
+		"pricing.comparison3Label_msg": "{amount} etiketter",
 		"pricing.comparisonAddUser_msg": "Lägg till användare ({1})",
 		"pricing.comparisonContactFormPro_msg": "Kontaktformulär ({price})",
 		"pricing.comparisonCustomDomainAddresses_msg": "Obegränsat antal e-postadresser för anpassade domäner",
@@ -1279,6 +1281,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "Anpassade logotyper och färger",
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tuta med ditt eget varumärke genom att definiera logotyper och färger för Tuta klienterna på webben, mobilen och datorn.",
 		"pricing.comparisonUnlimitedDomains_msg": "Obegränsat antal anpassade domäner",
+		"pricing.comparisonUnlimitedLabel_msg": "Obegränsat antal etiketter",
 		"pricing.comparisonUsersFree_msg": "En användare",
 		"pricing.contactLists_label": "Kontaktlistor",
 		"pricing.contactLists_tooltip": "Skapa och dela kontaktgrupper för att enkelt skicka e-post till grupper.",
