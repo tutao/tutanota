@@ -111,13 +111,13 @@ export class WindowManager {
 		w.on("close", async () => {
 			this.saveBounds(w.getBounds())
 
-			if (windows.length === 1) {
+			w.setUserId(null)
+			windows.splice(windows.indexOf(w), 1)
+			if (windows.length < 1) {
 				await w.desktopMailImportFacade.deinitLogger()
 			}
 		})
 			.on("closed", () => {
-				w.setUserId(null)
-				windows.splice(windows.indexOf(w), 1)
 				this._tray.update(this._notifier)
 			})
 			.on("focus", () => {
