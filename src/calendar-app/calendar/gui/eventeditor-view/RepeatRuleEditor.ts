@@ -15,6 +15,9 @@ import stream from "mithril/stream"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { isApp } from "../../../../common/api/common/Env.js"
+import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
+import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
+import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -30,7 +33,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
 	private intervalExpanded: boolean = false
-
+	private hasUnsupportedRules: boolean = false
 	private numberValues: IntervalOption[] = createIntervalValues()
 
 	private occurrencesOptions: stream<IntervalOption[]> = stream([])
@@ -47,6 +50,11 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 		this.repeatInterval = attrs.model.repeatInterval
 		this.repeatOccurrences = attrs.model.repeatEndOccurrences
+		this.hasUnsupportedRules = attrs.model.advancedRules.some((rule) => {
+			const isValidRule =
+				(attrs.model.repeatPeriod === RepeatPeriod.WEEKLY || attrs.model.repeatPeriod === RepeatPeriod.MONTHLY) && rule.ruleType === ByRule.BYDAY
+			return !isValidRule
+		})
 	}
 
 	private getRepeatType(period: RepeatPeriod, interval: number, endTime: EndType) {
@@ -55,6 +63,15 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return period
+	}
+
+	private renderUnsupportedAdvancedRulesWarning(): Children {
+		return m(InfoBanner, {
+			message: () => m(".small.selectable", lang.get("unsupportedAdvancedRules_msg")),
+			icon: Icons.Sync,
+			type: BannerType.Info,
+			buttons: [],
+		} satisfies InfoBannerAttrs)
 	}
 
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
@@ -72,6 +89,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				},
 			},
 			[
+				this.hasUnsupportedRules ? this.renderUnsupportedAdvancedRulesWarning() : null,
 				m(
 					Card,
 					{

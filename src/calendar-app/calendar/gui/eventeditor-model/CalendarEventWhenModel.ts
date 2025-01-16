@@ -13,7 +13,7 @@ import {
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils"
-import { CalendarEvent, CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { EndType, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../../common/api/entities/sys/TypeRefs.js"
@@ -246,6 +246,10 @@ export class CalendarEventWhenModel {
 
 	get repeatPeriod(): RepeatPeriod | null {
 		return this.repeatRule ? (this.repeatRule.frequency as RepeatPeriod) : null
+	}
+
+	get advancedRules(): AdvancedRepeatRule[] {
+		return this.repeatRule?.advancedRules ?? []
 	}
 
 	set repeatPeriod(repeatPeriod: RepeatPeriod | null) {
