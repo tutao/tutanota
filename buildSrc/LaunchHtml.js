@@ -36,7 +36,7 @@ export async function renderHtml(scripts, env) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	${scripts.map(renderScriptImport).join("\n\t")}
 	<!-- TutanotaTags -->
-	<title>${env.mode === "App" ? "Tuta Mail" : "Tuta Mail: Login &amp; Sign up for free"}</title>
+	<title>${env.mode === "App" || env.mode === "Desktop" ? "Tuta Mail" : "Tuta Mail: Login &amp; Sign up for free"}</title>
 	<meta name="description" content="Sign-up for Tuta Mail: Get a free email account with quantum-safe encryption and best privacy for all your emails, calendars and contacts.">
 	<link rel="shortcut icon" type="image/x-icon" href="images/logo-favicon-152.png">
 	<meta name="application-name" content="Tuta Mail">
