@@ -496,12 +496,17 @@ export class KeyRotationFacade {
 		return keyTags
 	}
 
-	private deriveAdminGroupDistributionKeyPairKey(adminGroupId: string, currentAdminGroupKeyVersion: number, pwKey: Aes256Key) {
-		// when creating new distribution keys we encrypt the private keys with this derivation from the password key
+	private deriveAdminGroupDistributionKeyPairEncryptionKey(
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentAdminGroupKeyVersion: number,
+		currentUserGroupKeyVersion: number,
+		pwKey: Aes256Key,
+	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${currentAdminGroupKeyVersion}`,
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKeyVersion}`,
 			key: pwKey,
-			context: "adminGroupDistributionKeyPairKey",
+			context: "adminGroupDistributionKeyPairEncryptionKey",
 		})
 	}
 
@@ -1039,7 +1044,13 @@ export class KeyRotationFacade {
 		}
 		//derive adminDistKeyPairDistributionKey
 		const currentAdminGroupKeyFromMembership = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId) // get admin group key from the membership (not yet rotated)
-		const adminGroupKeyDistributionKeyPairKey = this.deriveAdminGroupDistributionKeyPairKey(adminGroupId, currentAdminGroupKeyFromMembership.version, pwKey)
+		const adminGroupKeyDistributionKeyPairKey = this.deriveAdminGroupDistributionKeyPairEncryptionKey(
+			adminGroupId,
+			userGroupId,
+			currentAdminGroupKeyFromMembership.version,
+			currentUserGroupKey.version,
+			pwKey,
+		)
 
 		// decrypt his private distribution key
 		const adminGroupDistKeyPair = this.cryptoWrapper.decryptKeyPair(adminGroupKeyDistributionKeyPairKey, userGroupKeyRotation.adminDistKeyPair)
@@ -1125,14 +1136,22 @@ export class KeyRotationFacade {
 	private async createDistributionKeyPair(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation) {
 		let adminGroupId = getElementId(multiAdminKeyRotation)
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
-		const adminDistKeyPairDistributionKey = this.deriveAdminGroupDistributionKeyPairKey(adminGroupId, currentAdminGroupKey.version, pwKey)
+		const userGroupId = this.userFacade.getUserGroupId()
+		const userGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
+		const adminDistKeyPairDistributionKey = this.deriveAdminGroupDistributionKeyPairEncryptionKey(
+			adminGroupId,
+			userGroupId,
+			currentAdminGroupKey.version,
+			userGroupKey.version,
+			pwKey,
+		)
 		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
 
 		const pubDistKeyAuthenticationData = this.keyAuthenticationFacade.generatePubDistKeyAuthenticationData(
 			adminDistributionKeyPair.pubEccKey,
 			adminDistributionKeyPair.pubKyberKey,
 		)
-		const adminDistAuthKey = this.keyAuthenticationFacade.deriveAdminDistAuthKey(adminGroupId, this.userFacade.getUserGroupId(), currentAdminGroupKey)
+		const adminDistAuthKey = this.keyAuthenticationFacade.deriveAdminDistAuthKey(adminGroupId, userGroupId, currentAdminGroupKey)
 		const tag = this.cryptoWrapper.hmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData)
 
 		const putDistributionKeyPairsOnKeyRotation = createAdminGroupKeyRotationPutIn({
