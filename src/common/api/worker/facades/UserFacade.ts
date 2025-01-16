@@ -1,5 +1,5 @@
 import { GroupType } from "../../common/TutanotaConstants"
-import { AesKey, decryptKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, AesKey, decryptKey } from "@tutao/tutanota-crypto"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
@@ -7,6 +7,7 @@ import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 import { isSameId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 export interface AuthDataProvider {
 	/**
@@ -59,25 +60,30 @@ export class UserFacade implements AuthDataProvider {
 			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
 		}
 		this.keyCache.setCurrentUserGroupKey(currentUserGroupKey)
-		this.setUserDistKey(userPassphraseKey)
+		this.setUserDistKey(currentUserGroupKey.version, userPassphraseKey)
 	}
 
-	setUserDistKey(userPassphraseKey: number[]) {
+	setUserDistKey(currentUserGroupKeyVersion: number, userPassphraseKey: number[]) {
 		if (this.user == null) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
+		// Why this magic + 1? Because we don't have access to the new version number when calling this function so we compute it from the current one
+		const newUserGroupKeyVersion = currentUserGroupKeyVersion + 1
 		const userGroupMembership = this.user.userGroup
-		const userDistKey = this.deriveUserDistKey(userGroupMembership.group, userPassphraseKey)
+		const legacyUserDistKey = this.deriveLegacyUserDistKey(userGroupMembership.group, userPassphraseKey)
+		const userDistKey = this.deriveUserDistKey(userGroupMembership.group, newUserGroupKeyVersion, userPassphraseKey)
+		this.keyCache.setLegacyUserDistKey(legacyUserDistKey)
 		this.keyCache.setUserDistKey(userDistKey)
 	}
 
 	/**
 	 * Derives a distribution key from the password key to share the new user group key of the user to their other clients (apps, web etc)
-	 *
+	 * This is a fallback function that gets called when the output key of `deriveUserDistKey` fails to decrypt the new user group key
+	 * @deprecated
 	 * @param userGroupId user group id of the logged in user
 	 * @param userPasswordKey current password key of the user
 	 */
-	deriveUserDistKey(userGroupId: Id, userPasswordKey: AesKey): AesKey {
+	deriveLegacyUserDistKey(userGroupId: Id, userPasswordKey: AesKey): AesKey {
 		// we prepare a key to encrypt potential user group key rotations with
 		// when passwords are changed clients are logged-out of other sessions
 		// this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
@@ -89,6 +95,21 @@ export class UserFacade implements AuthDataProvider {
 			salt: userGroupId,
 			key: userPasswordKey,
 			context: "userGroupKeyDistributionKey",
+		})
+	}
+
+	/**
+	 * Derives a distribution to share the new user group key of the user to their other clients (apps, web etc)
+	 * @param userGroupId user group id of the logged in user
+	 * @param newUserGroupKeyVersion the new user group key version
+	 * @param userPasswordKey current password key of the user
+	 */
+	deriveUserDistKey(userGroupId: Id, newUserGroupKeyVersion: number, userPasswordKey: AesKey): Aes256Key {
+		return this.cryptoWrapper.deriveKeyWithHkdf({
+			salt: `userGroup: ${userGroupId}, newUserGroupKeyVersion: ${newUserGroupKeyVersion}`,
+			key: userPasswordKey,
+			// Formerly,this was not bound to the user group key version.
+			context: "versionedUserGroupKeyDistributionKey",
 		})
 	}
 
@@ -216,7 +237,22 @@ export class UserFacade implements AuthDataProvider {
 		}
 		let newUserGroupKeyBytes
 		try {
-			newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
+			try {
+				newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
+			} catch (e) {
+				if (e instanceof CryptoError) {
+					// this might be due to old encryption with the legacy derivation of the distribution key
+					// try with the legacy one instead
+					const legacyUserDistKey = this.keyCache.getLegacyUserDistKey()
+					if (legacyUserDistKey == null) {
+						console.log("could not update userGroupKey because old legacy distribution key is not available")
+						return
+					}
+					newUserGroupKeyBytes = decryptKey(legacyUserDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
+				} else {
+					throw e
+				}
+			}
 		} catch (e) {
 			// this may happen during offline storage synchronisation when the event queue contains user group key rotation and a password change.
 			// We can ignore this error as we already have the latest user group key after connecting the offline client

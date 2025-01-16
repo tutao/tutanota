@@ -921,7 +921,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				prepareRecoverData(recoverData, recoverCodeFacade)
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(groupManagementFacade.hasAdminEncGKey(adminGroup)).thenReturn(true)
-				when(userFacade.deriveUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
 				when(cryptoWrapperMock.encryptKey(DISTRIBUTION_KEY, NEW_USER_GROUP_KEY.object)).thenReturn(DISTRIBUTION_KEY_ENC_NEW_USER_GROUP_KEY)
@@ -1364,7 +1364,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				prepareRecoverData(recoverData, recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
-				when(userFacade.deriveUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
 				when(cryptoWrapperMock.aes256RandomKey()).thenReturn(NEW_USER_GROUP_KEY.object)
@@ -1565,7 +1565,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				prepareRecoverData(recoverData, recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
-				when(userFacade.deriveUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
+				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
 
 				const encryptingKeyCaptor = matchers.captor()
 				const keyCaptor = matchers.captor()
