@@ -3,12 +3,15 @@
 You can build your own Tuta Mail client and run it locally. Remember that you have to update your Tuta Mail client on your
 own. If you prefer the auto-update feature, you can use the official [mail](https://app.tuta.com) client.
 
+Instructions here will produce a *release* version of the client. For *debug* version see [HACKING.md](./HACKING.md).
+
 #### Pre-requisites:
 
 * An up-to-date version of Git is installed
 * Node.js (check package.json `engines` field for the version)
 * Emscripten 3.1.59
 * WASM2JS (Included in Emscripten)
+* Cargo & Rust (1.80 up)
 
 #### Build steps:
 

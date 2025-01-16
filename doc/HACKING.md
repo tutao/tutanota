@@ -106,11 +106,77 @@ tp stay up-to-date with the server (for caching and indexing).
 
 ## Workflow and Testing
 
+See [HACKING](./HACKING.md) for build pre-requisites.
+
+Prepare the project:
+1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
+2. Switch into the repository directory: `cd tutanota`
+3. Initialize liboqs and argon2 submodules: `git submodule init`
+4. Synchronize submodules: `git submodule sync --recursive`
+5. Update submodules: `git submodule update`
+6. Run `npm ci` to install dependencies.
+
+To build the web client without specific target (will use browser URL as an API endpoint).
+
 ```bash
 node make
 ```
 
-Start any web server serving `build` directory, and you should be good to go.
+You can run `node make prod` to run it against the production server.
+
+Start any web server serving `build` directory, and you should be good to go. e.g.
+
+```bash
+npx serve build -s -p 9000` or `python -m SimpleHTTPServer 9000
+```
+
+To build desktop client against the production server:
+
+```bash
+node make -d prod
+```
+
+## Android app
+
+Prerequisites:
+
+You need to have Android SDK and NDK (26.1.10909125). The simplest way it to use Android studio but anything that can
+run Gradle will do.
+
+To build Android app against production server you first need to build webapp (like `node make prod`) and then build
+the Android app like you would normally (e.g. import the project under `android-app` in Android Studio, run the `app`
+target for the mail app).
+
+For building calendar app run `node make prod -a calendar instead.
+
+## iOS app
+
+Prerequisites:
+
+You need XCode, xcodegen.
+You might need swiftlint swift-format.
+You can install them through homebrew.
+
+To build iOS app, build the web part (`node make prod`). Then generate iOS projects:
+
+```bash
+pushd tuta-sdk/ios # go into SDK directory
+xcodegen # generate XCode project
+popd # go back
+
+mkdir -p build
+mkdir -p build-calendar-app
+
+cd app-ios # go into iOS app directory, generate projects for both apps
+xcodegen --spec calendar-project.yml
+xcodegen --spec mail-project.yml
+```
+
+After that you can open `app-ios/tuta.xcworkspace` in XCode and build the mail app.
+
+For building calendar app run `node make prod -a calenar` instead.
+
+### Tests
 
 To run tests:
 
