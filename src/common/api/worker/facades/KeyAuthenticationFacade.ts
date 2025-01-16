@@ -1,119 +1,228 @@
-import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { concat, KeyVersion } from "@tutao/tutanota-utils"
-import { Aes256Key, MacTag } from "@tutao/tutanota-crypto"
+import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
+import { assertNotNull, concat, KeyVersion } from "@tutao/tutanota-utils"
+import { Aes256Key, AesKey, bitArrayToUint8Array, EncryptedPqKeyPairs, KeyPairType, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
-import { customIdToUint8array } from "../../common/utils/EntityUtils.js"
-import { KeyMac } from "../../entities/sys/TypeRefs.js"
-import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { KeyMac, PubDistributionKey } from "../../entities/sys/TypeRefs.js"
+import { PublicKeys } from "./PublicKeyProvider.js"
 
 assertWorkerOrNode()
 
+type AuthenticationBindingData = {
+	userGroupId: Id
+	adminGroupId: Id
+}
+
+type BaseKeyAuthenticationParams = {
+	tagType: keyof typeof systemMap
+	sourceOfTrust: {}
+	// this can be a user group key, an admin group key, an admin group public key or a distribution public key
+	untrustedKey: {}
+	bindingData: AuthenticationBindingData
+}
+
+export type UserGroupKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+	tagType: "USER_GROUP_KEY_TAG"
+	untrustedKey: { newUserGroupKey: Aes256Key }
+	sourceOfTrust: { currentUserGroupKey: AesKey }
+	bindingData: AuthenticationBindingData & {
+		currentUserGroupKeyVersion: KeyVersion
+		newUserGroupKeyVersion: KeyVersion
+		newAdminGroupKeyVersion: KeyVersion
+	}
+}
+
+/**
+ * A system to authenticate some key.
+ */
+type KeyAuthenticationSystem<T extends KeyAuthenticationParams> = {
+	/**
+	 * Canonicalizes the data we want to authenticate, i.e., the new key and some binding data, into a byte array.
+	 * @param params
+	 */
+	generateAuthenticationData(params: T): Uint8Array
+	/**
+	 * Derives the authentication key from a trusted key and some additional binding parameters.
+	 * @param params
+	 * @param cryptoWrapper
+	 */
+	deriveKey(params: T, cryptoWrapper: CryptoWrapper): Aes256Key
+}
+
+/**
+ * Purpose: prove to admins that the new User Group Key is authentic.
+ * By deriving this key from the current User Group Key, the admin knows that it was created by someone who had access to this key,
+ * that is, either the user or another admin.
+ */
+const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuthenticationParams> = {
+	deriveKey(
+		{ bindingData: { userGroupId, adminGroupId, newAdminGroupKeyVersion, newUserGroupKeyVersion, currentUserGroupKeyVersion }, sourceOfTrust },
+		cryptoWrapper,
+	) {
+		return cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}, newUserGroupKeyVersion: ${newUserGroupKeyVersion}`,
+			key: sourceOfTrust.currentUserGroupKey,
+			context: "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
+		})
+	},
+	generateAuthenticationData({ untrustedKey: { newUserGroupKey } }) {
+		return bitArrayToUint8Array(newUserGroupKey)
+	},
+}
+
+export type NewAdminPubKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+	tagType: "NEW_ADMIN_PUB_KEY_TAG"
+	untrustedKey: { newAdminPubKey: PQPublicKeys }
+	sourceOfTrust: { receivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group pub keys
+	bindingData: AuthenticationBindingData & {
+		newAdminGroupKeyVersion: KeyVersion
+		currentReceivingUserGroupKeyVersion: KeyVersion
+	}
+}
+
+/**
+ * Purpose: prove to users that the new Admin Group Public Key is authentic.
+ * By deriving this key from the current User Group Key, the user knows that it was created either by someone who had access to this key,
+ * that is, either themselves or an admin.
+ */
+const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKeyAuthenticationParams> = {
+	deriveKey({ bindingData: { userGroupId, adminGroupId, newAdminGroupKeyVersion, currentReceivingUserGroupKeyVersion }, sourceOfTrust }, cryptoWrapper) {
+		return cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentReceivingUserGroupKeyVersion}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
+			key: sourceOfTrust.receivingUserGroupKey,
+			context: "newAdminPubKeyAuthKeyForUserGroupKeyRotation",
+		})
+	},
+	generateAuthenticationData({
+		untrustedKey: {
+			newAdminPubKey: { eccPublicKey, kyberPublicKey },
+		},
+	}) {
+		return concat(eccPublicKey, kyberPublicKey.raw)
+	},
+}
+
+export type PubDistKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+	tagType: "PUB_DIST_KEY_TAG"
+	untrustedKey: { distPubKey: PQPublicKeys }
+	sourceOfTrust: { currentAdminGroupKey: AesKey }
+	bindingData: AuthenticationBindingData & {
+		currentUserGroupKeyVersion: KeyVersion
+		currentAdminGroupKeyVersion: KeyVersion
+	}
+}
+
+/**
+ * Purpose: prove to other admins that the Distribution Public Key is authentic.
+ * By deriving this key from the current Admin Group Key, the admin knows that it was created by someone who had access to this key,
+ * that is, either themselves or another admin.
+ */
+const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenticationParams> = {
+	deriveKey({ bindingData: { adminGroupId, userGroupId, currentUserGroupKeyVersion, currentAdminGroupKeyVersion }, sourceOfTrust }, cryptoWrapper) {
+		return cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKeyVersion}`,
+			key: sourceOfTrust.currentAdminGroupKey,
+			context: "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
+		})
+	},
+	generateAuthenticationData({
+		untrustedKey: {
+			distPubKey: { eccPublicKey, kyberPublicKey },
+		},
+	}) {
+		return concat(eccPublicKey, kyberPublicKey.raw)
+	},
+}
+
+export type AdminSymKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+	tagType: "ADMIN_SYM_KEY_TAG"
+	untrustedKey: { newAdminGroupKey: Aes256Key }
+	sourceOfTrust: { currentReceivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group sym key
+	bindingData: AuthenticationBindingData & {
+		newAdminGroupKeyVersion: KeyVersion
+		currentReceivingUserGroupKeyVersion: KeyVersion
+	}
+}
+
+/**
+ * Purpose: prove to other admins that the new Admin Group Symmetric Key is authentic.
+ * By deriving this key from the current User Group Key, the admin user knows that it was created either by someone who had access to this key,
+ * that is, either themselves or another admin.
+ */
+const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthenticationParams> = {
+	deriveKey({ bindingData: { adminGroupId, userGroupId, newAdminGroupKeyVersion, currentReceivingUserGroupKeyVersion }, sourceOfTrust }, cryptoWrapper) {
+		return cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentReceivingUserGroupKeyVersion}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
+			key: sourceOfTrust.currentReceivingUserGroupKey,
+			context: "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser",
+		})
+	},
+	generateAuthenticationData({ untrustedKey: { newAdminGroupKey } }) {
+		return bitArrayToUint8Array(newAdminGroupKey)
+	},
+}
+
+export type KeyAuthenticationParams =
+	| UserGroupKeyAuthenticationParams
+	| NewAdminPubKeyAuthenticationParams
+	| PubDistKeyAuthenticationParams
+	| AdminSymKeyAuthenticationParams
+
+const systemMap = {
+	USER_GROUP_KEY_TAG: userGroupKeyAuthenticationSystem,
+	NEW_ADMIN_PUB_KEY_TAG: newAdminPubKeyAuthenticationSystem,
+	PUB_DIST_KEY_TAG: pubDistKeyAuthenticationSystem,
+	ADMIN_SYM_KEY_TAG: adminSymKeyAuthenticationSystem,
+}
+
+/**
+ * Authenticates keys by deriving trust in another key using a Message Authentication Code (MAC tag).
+ */
 export class KeyAuthenticationFacade {
 	constructor(private readonly cryptoWrapper: CryptoWrapper) {}
 
-	public generateNewUserGroupKeyAuthenticationData(newUserSymKey: VersionedKey) {
-		const versionByte = Uint8Array.from([0])
-		return concat(versionByte, Uint8Array.from([newUserSymKey.version]), Uint8Array.from(newUserSymKey.object))
-	}
-
-	public generateAdminPubKeyAuthenticationData(adminGroupKeyVersion: KeyVersion, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
-		const versionByte = Uint8Array.from([0])
-		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
-		const identifierType = Uint8Array.from([Number(PublicKeyIdentifierType.GROUP_ID)])
-		const identifier = customIdToUint8array(adminGroupId) // also works for generated IDs
-		//Format:  versionByte, pubEccKey, pubKyberKey, groupKeyVersion, identifier, identifierType
-		return concat(versionByte, pubEccKey, pubKyberKey, adminKeyVersion, identifier, identifierType)
-	}
-
-	public generatePubDistKeyAuthenticationData(pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
-		const versionByte = Uint8Array.from([0])
-		return concat(versionByte, pubEccKey, pubKyberKey)
-	}
-
-	public generateAdminSymKeyAuthenticationData(adminSymKey: VersionedKey) {
-		const versionByte = Uint8Array.from([0])
-		return concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
+	/**
+	 * Computes a MAC tag using an existing key authentication system.
+	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
+	 */
+	public computeTag(keyAuthenticationParams: KeyAuthenticationParams): MacTag {
+		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
+		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
+		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
+		return this.cryptoWrapper.hmacSha256(authKey, authData)
 	}
 
 	/**
-	 * When sharing the new admin public key to other users we encrypt its public key hash with this auth key derived from the recipients user group key
-	 * it should prove to the recipient that the new admin group key comes from a valid admin since only admin have access to their user group key
-	 * and is safe to use for whatever use case (ex: encrypting their new user group key and share it with the admin)
-	 *
-	 * @param userGroupId user group id of the user that will use this new admin public key
-	 * @param userGroupKey user group key of the user that will use this new admin public key
+	 * Verifies a MAC tag using an existing key authentication system.
+	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
+	 * @param tag The MAC tag to be verified. Must be a branded MacTag, which you can get with brandKeyMac() in most cases
 	 */
-	public deriveAdminGroupAuthKeyForNewAdminPubKeyMac(userGroupId: Id, userGroupKey: VersionedKey) {
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: userGroupId,
-			key: userGroupKey.object,
-			context: "adminGroupKeyRotationHash",
-		})
-	}
-
-	/**
-	 * When distributing the new admin group key to other admins we encrypt its symetric hash with this auth key derived from the recipient admin user group key
-	 * it should prove to the recipient admin that the new admin group key comes from another admin since only admin have access to their user group key
-	 *
-	 * @param adminGroupId group id of the admin group from which both user belongs to
-	 * @param userGroupId user group id of the admin user that will receive the new admin group key
-	 * @param userGroupKey user group key of the admin user that will receive the new admin group key
-	 * @param newAdminGroupKeyVersion version of the new admin group key being shared
-	 */
-	public deriveAdminGroupAuthKeyForNewAdminSymKeyHash(
-		adminGroupId: Id,
-		userGroupId: Id,
-		userGroupKey: VersionedKey,
-		newAdminGroupKeyVersion: KeyVersion,
-	): Aes256Key {
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, userGroupKeyVersion: ${userGroupKey.version}, adminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
-			key: userGroupKey.object,
-			context: "multiAdminKeyRotationNewAdminSymKeyHash",
-		})
-	}
-
-	/**
-	 *
-	 * Derives the adminDistAuthKey that is used to prove that an adminDistKey belongs to an admin of the customer.
-	 * In the multi admin group key rotation scenario, each admin generates a distribution key pair that can be used to distributes
-	 * a new admin group key.
-	 * This function generates an AuthKey that authenticate the hash of the public key of this new distribution key pair.
-	 * This proves to the admin performing the rotation and distributing the new admin group key that this distribution key is safe to use and encrypt
-	 * the new admin group key.
-	 *
-	 * @param adminGroupId group id of the AdminGroup of the customer
-	 * @param userGroupId user group id of the admin that have created the distribution key
-	 * @param adminGroupKey the current admin group key, source of the derivation
-	 */
-	public deriveAdminDistAuthKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
-		// when distributing the public key that will be used to encrypt the new admin group key
-		// we authenticate that it comes from another admin with the current admin group key
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
-			key: adminGroupKey.object,
-			context: "multiAdminKeyRotationPubDistKeyHash",
-		})
-	}
-
-	/**
-	 * Derives a auth key that prove that the user had access to the previous user group key
-	 * when sharing his new user group key.
-	 *
-	 * @param userGroupId user group id of the user sharing the new user group key
-	 * @param userGroupKey current user group key of the user sharing the new user group key
-	 */
-	public deriveUserGroupAuthKey(userGroupId: Id, userGroupKey: VersionedKey): Aes256Key {
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `userGroup: ${userGroupId}, userGroupKeyVersion: ${userGroupKey.version}`,
-			key: userGroupKey.object,
-			context: "multiUserKeyRotationNewUserSymKeyHash",
-		})
+	public verifyTag(keyAuthenticationParams: KeyAuthenticationParams, tag: MacTag): void {
+		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
+		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
+		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
+		this.cryptoWrapper.verifyHmacSha256(authKey, authData, tag)
 	}
 }
 
 type BrandedKeyMac = Omit<KeyMac, "mac"> & { tag: MacTag }
 
+/**
+ * Brands a KeyMac so that it has a branded MacTag, which can be used in authentication methods.
+ */
 export function brandKeyMac(keyMac: KeyMac): BrandedKeyMac {
 	return keyMac as BrandedKeyMac
+}
+
+/**
+ * Converts some form of public PQ keys to the PQPublicKeys type. Assumes pubEccKey and pubKyberKey exist.
+ * @param kp
+ */
+export function asPQPublicKeys(kp: EncryptedPqKeyPairs | PubDistributionKey | PublicKeys): PQPublicKeys {
+	return {
+		keyPairType: KeyPairType.TUTA_CRYPT,
+		eccPublicKey: assertNotNull(kp.pubEccKey),
+		kyberPublicKey: {
+			raw: assertNotNull(kp.pubKyberKey),
+		},
+	}
 }
