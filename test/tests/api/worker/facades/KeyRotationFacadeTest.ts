@@ -1057,7 +1057,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				)
 				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
-				verify(keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminPubKeyMac(additionalUserGroupId, additionalUserGroupKey))
+				verify(keyAuthenticationFacade.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(additionalUserGroupId, additionalUserGroupKey))
 			})
 
 			o.spec("AdminGroupKeyRotationMultipleAdminAccount", function () {
@@ -1075,7 +1075,9 @@ o.spec("KeyRotationFacadeTest", function () {
 
 					const adminDistKeyPairDistributionKey = object<Aes256Key>()
 					const adminDistAuthKey = object<Aes256Key>()
-					when(keyAuthenticationFacade.deriveAdminDistAuthKey(adminGroupId, userGroupId, CURRENT_ADMIN_GROUP_KEY)).thenReturn(adminDistAuthKey)
+					when(
+						keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(adminGroupId, userGroupId, CURRENT_ADMIN_GROUP_KEY),
+					).thenReturn(adminDistAuthKey)
 					when(cryptoWrapperMock.deriveKeyWithHkdf(anything())).thenReturn(adminDistKeyPairDistributionKey)
 
 					const mockedDistKeyPair = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, adminDistKeyPairDistributionKey).get(
@@ -1303,7 +1305,9 @@ o.spec("KeyRotationFacadeTest", function () {
 					when(keyAuthenticationFacade.generatePubDistKeyAuthenticationData(anything(), anything())).thenReturn(distKeyAuthenticationData)
 
 					const adminDistAuthKey = object<AesKey>()
-					when(keyAuthenticationFacade.deriveAdminDistAuthKey(anything(), anything(), anything())).thenReturn(adminDistAuthKey)
+					when(keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(anything(), anything(), anything())).thenReturn(
+						adminDistAuthKey,
+					)
 
 					when(cryptoWrapperMock.verifyHmacSha256(adminDistAuthKey, distKeyAuthenticationData, distKeyMac.tag)).thenThrow(
 						new CryptoError("test error"),
@@ -1434,9 +1438,9 @@ o.spec("KeyRotationFacadeTest", function () {
 					),
 				)
 
-				verify(keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminPubKeyMac(userGroupId, CURRENT_USER_GROUP_KEY))
+				verify(keyAuthenticationFacade.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(userGroupId, CURRENT_USER_GROUP_KEY))
 
-				verify(keyAuthenticationFacade.deriveUserGroupAuthKey(userGroupId, CURRENT_USER_GROUP_KEY))
+				verify(keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(userGroupId, CURRENT_USER_GROUP_KEY))
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
@@ -1631,7 +1635,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				})
 
 				verify(
-					keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminSymKeyHash(
+					keyAuthenticationFacade.deriveNewAdminSymKeyAuthKeyForMultiAdminRotationAsUser(
 						adminGroupId,
 						userGroupId,
 						CURRENT_USER_GROUP_KEY,
