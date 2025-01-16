@@ -133,8 +133,12 @@ export async function showSupportDialog(logins: LoginController) {
 							return {
 								type: ButtonType.Secondary,
 								click: async () => {
-									const confirmed = await Dialog.confirm(() => "Are you sure you want to go back? Your request will be lost.")
-									if (confirmed) {
+									if (data.htmlEditor.getTrimmedValue().length > 10) {
+										const confirmed = await Dialog.confirm(() => "Are you sure you want to go back? Your request will be lost.")
+										if (confirmed) {
+											goBack()
+										}
+									} else {
 										goBack()
 									}
 								},
