@@ -7,9 +7,9 @@ export type EntropySource = "mouse" | "touch" | "key" | "random" | "static" | "t
 
 export type HkdfKeyDerivationDomains =
 	| "userGroupKeyDistributionKey"
-	| "adminGroupKeyRotationHash"
-	| "adminGroupDistributionKeyPairKey"
-	| "multiAdminKeyRotationPubDistKeyHash"
-	| "multiAdminKeyRotationNewAdminSymKeyHash"
-	| "multiUserKeyRotationNewUserSymKeyHash"
+	| "newAdminPubKeyAuthKeyForUserGroupKeyRotation"
+	| "adminGroupDistributionKeyPairEncryptionKey"
+	| "adminGroupDistKeyPairAuthKeyForMultiAdminRotation"
+	| "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser"
+	| "newUserGroupKeyAuthKeyForRotationAsNonAdminUser"
 	| "versionedUserGroupKeyDistributionKey"
