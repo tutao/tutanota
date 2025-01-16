@@ -363,11 +363,12 @@ export class GroupManagementFacade {
 		return versionedDecryptedUserGroupKey
 	}
 
-	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, versionedDecryptedUserGroupKey: VersionedKey) {
+	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, receivedUserGroupKey: VersionedKey) {
 		const givenUserGroupKeyMac = brandKeyMac(assertNotNull(pubEncKeyData.symKeyMac))
 
 		// The given mac is authenticated by the previous user group key, so we can get the version from there.
 		const previousUserGroupKeyVersion = parseKeyVersion(givenUserGroupKeyMac.taggingKeyVersion)
+		const recipientAdminGroupKeyVersion = parseKeyVersion(pubEncKeyData.recipientKeyVersion)
 
 		// get previous user group key: ag1 -> ag0 -> ug0
 		const formerGroupKey = await this.keyLoaderFacade.loadFormerGroupKeyInstance(userGroup, previousUserGroupKeyVersion)
@@ -391,11 +392,22 @@ export class GroupManagementFacade {
 		} else {
 			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key")
 		}
-		const userGroupAuthKey = this.keyAuthenticationFacade.deriveUserGroupAuthKey(userGroup._id, previousUserGroupKey)
 
-		const tagData = this.keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(versionedDecryptedUserGroupKey)
-
-		this.cryptoWrapper.verifyHmacSha256(userGroupAuthKey, tagData, givenUserGroupKeyMac.tag)
+		this.keyAuthenticationFacade.verifyTag(
+			{
+				tagType: "USER_GROUP_KEY_TAG",
+				sourceOfTrust: { currentUserGroupKey: previousUserGroupKey.object },
+				untrustedKey: { newUserGroupKey: receivedUserGroupKey.object },
+				bindingData: {
+					userGroupId: userGroup._id,
+					adminGroupId: assertNotNull(userGroup.admin),
+					currentUserGroupKeyVersion: previousUserGroupKey.version,
+					newUserGroupKeyVersion: receivedUserGroupKey.version,
+					newAdminGroupKeyVersion: recipientAdminGroupKeyVersion,
+				},
+			},
+			givenUserGroupKeyMac.tag,
+		)
 	}
 
 	/**
