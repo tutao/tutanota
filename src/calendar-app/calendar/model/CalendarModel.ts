@@ -386,7 +386,13 @@ export class CalendarModel {
 				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
 			)
 			for (const event of eventsToRemove) {
-				this.deleteEvent(event)
+				this.deleteEvent(event).catch((err) => {
+					if (err instanceof NotFoundError) {
+						return console.log(`Already deleted event`, event)
+					}
+
+					throw err
+				})
 				operationsLog.deleted.push(event)
 			}
 			console.log(TAG, `${operationsLog.deleted.length} events removed`)
