@@ -20,9 +20,9 @@ import { OperationType } from "../../../common/api/common/TutanotaConstants"
 
 assertMainOrNode()
 
-type LoadedMail = {
-	mail: Mail
-	mailSetEntry: MailSetEntry
+interface LoadedMail {
+	mail: Readonly<Mail>
+	mailSetEntry: Readonly<MailSetEntry>
 }
 
 /**
