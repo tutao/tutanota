@@ -32,20 +32,20 @@ export class SupportTopicPage implements Component<Props> {
 			"",
 			{
 				style: {
-					position: "relative",
+					"overflow-x": "auto",
 				},
 				class: "height-100p",
 			},
 			[
-				m("p.h5.m-0.pb.pt", issue),
 				m(
 					// @ts-ignore
 					Card,
 					{
 						rootElementType: "div",
 						style: { padding: "1em", height: "80%" },
-						classes: ["scroll"],
+						classes: ["scroll", "mt"],
 					},
+					m(".h4.m-0.pb", issue),
 					m.trust(sanitisedSolution),
 				),
 			],
@@ -56,28 +56,17 @@ export class SupportTopicPage implements Component<Props> {
 
 class WasThisHelpful implements Component<Props> {
 	view({ attrs: { dialog, goToContactSupportPage } }: Vnode<Props>): Mithril.Children | void | null {
-		return m(
-			"",
-			{
-				style: {
-					position: "absolute",
-					padding: "1em 0",
-					bottom: 0,
-					right: 0,
+		return m(".flex-center.center-vertically.gap-hpad.b", m("", "Was this helpful?"), [
+			m(OutlineButton, {
+				label: "yes_label",
+				onclick: () => {
+					dialog.close()
 				},
-			},
-			m(".flex-center.center-vertically.gap-hpad.b", m("", "Was this helpful?"), [
-				m(OutlineButton, {
-					label: "yes_label",
-					onclick: () => {
-						dialog.close()
-					},
-				}),
-				m(OutlineButton, {
-					label: "no_label",
-					onclick: goToContactSupportPage,
-				}),
-			]),
-		)
+			}),
+			m(OutlineButton, {
+				label: "no_label",
+				onclick: goToContactSupportPage,
+			}),
+		])
 	}
 }

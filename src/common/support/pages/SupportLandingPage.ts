@@ -4,7 +4,6 @@ import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { getLocalisedCategoryName, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
-import { styles } from "../../gui/styles.js"
 import { px } from "../../gui/size.js"
 
 type Props = {
@@ -26,7 +25,8 @@ export class SupportLandingPage implements Component<Props> {
 			"",
 			{
 				style: {
-					height: px(styles.bodyHeight > defaultHeight ? defaultHeight : styles.bodyHeight),
+					height: px(defaultHeight),
+					// height: px(styles.bodyHeight > defaultHeight ? defaultHeight : styles.bodyHeight),
 				},
 			},
 			m(".h4.pt", "Find your answers here"),

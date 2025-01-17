@@ -9,10 +9,14 @@ import { Card } from "../../gui/base/Card.js"
 export class EmailSupportUnavailableView implements Component {
 	view(): Children {
 		return [
-			m(".h4.pt.pb", "Your plan doesn't offer direct support"),
 			m(
 				Card,
-				{ rootElementType: "div" },
+				{ rootElementType: "div", classes: ["mt"] },
+				m(".h4.mt-xs", "Your plan doesn't offer direct support"),
+				m(
+					"p",
+					"Sorry, your free plan does not support direct email support. But you can get more help from Tuta's Community at Reddit or at Tuta's official FAQ page.",
+				),
 				m("img.block", {
 					src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,
 					alt: "",
@@ -24,10 +28,6 @@ export class EmailSupportUnavailableView implements Component {
 						width: "100%",
 					},
 				}),
-				m(
-					"p.m-0.mb-s.mt-s",
-					"Sorry, your free plan does not support direct email support. But you can get more help from Tuta's Community at Reddit or at Tuta's official FAQ page.",
-				),
 				m(".flex-center.mt-s.mb-s", { style: { gap: "1em" } }, [
 					m(".flex.gap-vpad-xs.center-vertically", [
 						m(Icon, { icon: Icons.Reddit, size: IconSize.Medium }),

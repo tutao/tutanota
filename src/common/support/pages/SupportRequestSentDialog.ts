@@ -1,39 +1,28 @@
-import m, { Children, Component, Vnode } from "mithril"
-import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { Thunk } from "@tutao/tutanota-utils"
+import m, { Children, Component } from "mithril"
+import { Card } from "../../gui/base/Card.js"
 
-type Props = { closeDialog: Thunk }
-
-export class SupportRequestSentDialog implements Component<Props> {
-	view({ attrs: { closeDialog } }: Vnode<Props>): Children {
+export class SupportRequestSentDialog implements Component {
+	view(): Children {
 		return m(
-			".pb-m.pt-m",
+			".pt-ml",
 			m(
-				"",
-				m("h1.center", "We got you covered!"),
-				m("p.h4.center.m-0", "lorem ipsum dolor sit amet"),
+				Card,
+				{ rootElementType: "div" },
 				m(
-					".mt-l.mb-l",
-					{},
-					m("img.pb.block.full-width.height-100p", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.png`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-					}),
-				),
-				m(
-					".center-h.pb",
-					{
-						style: {
-							width: "200px",
-						},
-					},
-					m(LoginButton, {
-						label: () => "Nice!",
-						onclick: closeDialog,
-					}),
+					"",
+					m("h1.center.pb-s.pt-s", "We received your request!"),
+					m("p.h4.center.m-0", "We got you covered and you'll soon hear back from us."),
+					m(
+						".mt-l.mb-s",
+						{},
+						m("img.pb.block.full-width.height-100p", {
+							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.png`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+						}),
+					),
 				),
 			),
 		)
