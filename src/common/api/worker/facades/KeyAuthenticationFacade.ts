@@ -9,7 +9,12 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 assertWorkerOrNode()
 
-export type UserGroupKeyAuthenticationParams = {
+type KeyAuthenticationSystem<T extends KeyAuthenticationParams> = {
+	generateAuthenticationData(params: T): Uint8Array
+	deriveKey(params: T, cryptoWrapper: CryptoWrapper): Aes256Key
+}
+
+type UserGroupKeyAuthenticationParams = {
 	tagType: "USER_GROUP_KEY_TAG"
 	adminSymKey: VersionedKey
 	userGroupId: Id
@@ -18,7 +23,29 @@ export type UserGroupKeyAuthenticationParams = {
 	currentUserGroupKey: VersionedKey
 }
 
-export type NewAdminPubKeyAuthenticationParams = {
+/**
+ * Purpose: prove to admins that the new User Group Key is authentic.
+ * By deriving this key from the current User Group Key, the admin knows that it was created by someone who had access to this key,
+ * that is, either the user or another admin.
+ */
+const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuthenticationParams> = {
+	deriveKey(
+		{ userGroupId, adminGroupId, newAdminGroupKeyVersion, currentUserGroupKey }: UserGroupKeyAuthenticationParams,
+		cryptoWrapper: CryptoWrapper,
+	): Aes256Key {
+		return cryptoWrapper.deriveKeyWithHkdf({
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
+			key: currentUserGroupKey.object,
+			context: "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
+		})
+	},
+	generateAuthenticationData({ adminSymKey }: UserGroupKeyAuthenticationParams): Uint8Array {
+		const versionByte = Uint8Array.from([0])
+		return concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
+	},
+}
+
+type NewAdminPubKeyAuthenticationParams = {
 	tagType: "NEW_ADMIN_PUB_KEY_TAG"
 	adminGroupKeyVersion: number
 	pubEccKey: Uint8Array
@@ -29,66 +56,78 @@ export type NewAdminPubKeyAuthenticationParams = {
 	currentUserGroupKey: VersionedKey
 }
 
-export type KeyAuthenticationParams = UserGroupKeyAuthenticationParams | NewAdminPubKeyAuthenticationParams
+type PubDistKeyAuthenticationParams = {
+	tagType: "PUB_DIST_KEY_TAG"
+	pubEccKey: Uint8Array
+	pubKyberKey: Uint8Array
+	adminGroupId: Id
+	userGroupId: Id
+	currentUserGroupKeyVersion: number
+	currentAdminGroupKey: VersionedKey
+}
+
+type AdminSymKeyAuthenticationParams = {
+	tagType: "ADMIN_SYM_KEY_TAG"
+	adminSymKey: VersionedKey
+	adminGroupId: Id
+	userGroupId: Id
+	currentReceivingUserGroupKey: VersionedKey
+	newAdminGroupKeyVersion: number
+}
+
+type KeyAuthenticationParams =
+	| UserGroupKeyAuthenticationParams
+	| NewAdminPubKeyAuthenticationParams
+	| PubDistKeyAuthenticationParams
+	| AdminSymKeyAuthenticationParams
 
 export class KeyAuthenticationFacade {
 	constructor(private readonly cryptoWrapper: CryptoWrapper) {}
 
 	public computeTag(keyAuthenticationParams: KeyAuthenticationParams): MacTag {
+		let authKey: Aes256Key
+		let authData: Uint8Array
 		if (keyAuthenticationParams.tagType === "USER_GROUP_KEY_TAG") {
-			return this.computeNewUserGroupKeyTag(keyAuthenticationParams)
+			authData = userGroupKeyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
+			authKey = userGroupKeyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		} else if (keyAuthenticationParams.tagType === "NEW_ADMIN_PUB_KEY_TAG") {
 			return this.computeNewAdminPubKeyTag(keyAuthenticationParams)
+		} else if (keyAuthenticationParams.tagType === "PUB_DIST_KEY_TAG") {
+			return this.computePubDistKeyTag(keyAuthenticationParams)
+		} else if (keyAuthenticationParams.tagType === "ADMIN_SYM_KEY_TAG") {
+			return this.computeAdminSymKeyTag(keyAuthenticationParams)
 		} else {
 			const exhaustiveCheck: never = keyAuthenticationParams
 			throw new ProgrammingError(exhaustiveCheck)
 		}
-	}
-
-	public verifyTag(keyAuthenticationParams: KeyAuthenticationParams, tag: MacTag): void {
-		if (keyAuthenticationParams.tagType === "USER_GROUP_KEY_TAG") {
-			this.verifyNewUserGroupKeyTag(keyAuthenticationParams, tag)
-		} else if (keyAuthenticationParams.tagType === "NEW_ADMIN_PUB_KEY_TAG") {
-			this.verifyNewAdminPubKeyTag(keyAuthenticationParams, tag)
-		} else {
-			const exhaustiveCheck: never = keyAuthenticationParams
-			throw new ProgrammingError(exhaustiveCheck)
-		}
-	}
-
-	public computeNewUserGroupKeyTag({
-		adminSymKey,
-		userGroupId,
-		adminGroupId,
-		newAdminGroupKeyVersion,
-		currentUserGroupKey,
-	}: UserGroupKeyAuthenticationParams): MacTag {
-		const newUserGroupKeyAuthenticationData = this.generateNewUserGroupKeyAuthenticationData(adminSymKey)
-		const userRotationNewUserGroupKeyAuthKey = this.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
-			userGroupId,
-			adminGroupId,
-			newAdminGroupKeyVersion,
-			currentUserGroupKey,
-		)
-		const tag = this.cryptoWrapper.hmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData)
+		const tag = this.cryptoWrapper.hmacSha256(authKey, authData)
 		return tag
 	}
 
-	public verifyNewUserGroupKeyTag(
-		{ adminSymKey, userGroupId, adminGroupId, newAdminGroupKeyVersion, currentUserGroupKey }: UserGroupKeyAuthenticationParams,
-		tag: MacTag,
-	): void {
-		const newUserGroupKeyAuthenticationData = this.generateNewUserGroupKeyAuthenticationData(adminSymKey)
-		const userRotationNewUserGroupKeyAuthKey = this.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
-			userGroupId,
-			adminGroupId,
-			newAdminGroupKeyVersion,
-			currentUserGroupKey,
-		)
-		this.cryptoWrapper.verifyHmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData, tag)
+	public verifyTag(keyAuthenticationParams: KeyAuthenticationParams, tag: MacTag): void {
+		let authKey: Aes256Key
+		let authData: Uint8Array
+		if (keyAuthenticationParams.tagType === "USER_GROUP_KEY_TAG") {
+			authData = userGroupKeyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
+			authKey = userGroupKeyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
+		} else if (keyAuthenticationParams.tagType === "NEW_ADMIN_PUB_KEY_TAG") {
+			this.verifyNewAdminPubKeyTag(keyAuthenticationParams, tag)
+			return
+		} else if (keyAuthenticationParams.tagType === "PUB_DIST_KEY_TAG") {
+			this.verifyPubDistKeyTag(keyAuthenticationParams, tag)
+			return
+		} else if (keyAuthenticationParams.tagType === "ADMIN_SYM_KEY_TAG") {
+			this.verifyAdminSymKeyTag(keyAuthenticationParams, tag)
+			return
+		} else {
+			const exhaustiveCheck: never = keyAuthenticationParams
+			throw new ProgrammingError(exhaustiveCheck)
+		}
+
+		this.cryptoWrapper.verifyHmacSha256(authKey, authData, tag)
 	}
 
-	public computeNewAdminPubKeyTag({
+	private computeNewAdminPubKeyTag({
 		adminGroupKeyVersion,
 		pubEccKey,
 		pubKyberKey,
@@ -108,7 +147,7 @@ export class KeyAuthenticationFacade {
 		return tag
 	}
 
-	public verifyNewAdminPubKeyTag(
+	private verifyNewAdminPubKeyTag(
 		{
 			adminGroupKeyVersion,
 			pubEccKey,
@@ -130,14 +169,14 @@ export class KeyAuthenticationFacade {
 		this.cryptoWrapper.verifyHmacSha256(newAdminPubKeyAuthKey, adminPubKeyAuthenticationData, tag)
 	}
 
-	public computePubDistKeyTag(
-		pubEccKey: Uint8Array,
-		pubKyberKey: Uint8Array,
-		adminGroupId: Id,
-		userGroupId: Id,
-		currentUserGroupKeyVersion: number,
-		currentAdminGroupKey: VersionedKey,
-	): MacTag {
+	private computePubDistKeyTag({
+		pubEccKey,
+		pubKyberKey,
+		adminGroupId,
+		userGroupId,
+		currentUserGroupKeyVersion,
+		currentAdminGroupKey,
+	}: PubDistKeyAuthenticationParams): MacTag {
 		const pubDistKeyAuthenticationData = this.generatePubDistKeyAuthenticationData(pubEccKey, pubKyberKey)
 		const adminDistAuthKey = this.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
 			adminGroupId,
@@ -149,13 +188,8 @@ export class KeyAuthenticationFacade {
 		return tag
 	}
 
-	public verifyPubDistKeyTag(
-		pubEccKey: Uint8Array,
-		pubKyberKey: Uint8Array,
-		adminGroupId: Id,
-		userGroupId: Id,
-		currentUserGroupKeyVersion: number,
-		currentAdminGroupKey: VersionedKey,
+	private verifyPubDistKeyTag(
+		{ pubEccKey, pubKyberKey, adminGroupId, userGroupId, currentUserGroupKeyVersion, currentAdminGroupKey }: PubDistKeyAuthenticationParams,
 		tag: MacTag,
 	) {
 		const pubDistKeyAuthenticationData = this.generatePubDistKeyAuthenticationData(pubEccKey, pubKyberKey)
@@ -168,13 +202,13 @@ export class KeyAuthenticationFacade {
 		this.cryptoWrapper.verifyHmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData, tag)
 	}
 
-	public computeAdminSymKeyTag(
-		adminSymKey: VersionedKey,
-		adminGroupId: Id,
-		userGroupId: Id,
-		currentReceivingUserGroupKey: VersionedKey,
-		newAdminGroupKeyVersion: number,
-	): MacTag {
+	private computeAdminSymKeyTag({
+		adminSymKey,
+		adminGroupId,
+		userGroupId,
+		currentReceivingUserGroupKey,
+		newAdminGroupKeyVersion,
+	}: AdminSymKeyAuthenticationParams): MacTag {
 		const computedNewAdminSymKeyAuthenticationData = this.generateAdminSymKeyAuthenticationData(adminSymKey)
 		const adminGroupAuthKey = this.deriveNewAdminSymKeyAuthKeyForMultiAdminRotationAsUser(
 			adminGroupId,
@@ -186,12 +220,8 @@ export class KeyAuthenticationFacade {
 		return tag
 	}
 
-	public verifyAdminSymKeyTag(
-		adminSymKey: VersionedKey,
-		adminGroupId: Id,
-		userGroupId: Id,
-		currentReceivingUserGroupKey: VersionedKey,
-		newAdminGroupKeyVersion: number,
+	private verifyAdminSymKeyTag(
+		{ adminSymKey, adminGroupId, userGroupId, currentReceivingUserGroupKey, newAdminGroupKeyVersion }: AdminSymKeyAuthenticationParams,
 		tag: MacTag,
 	): void {
 		const computedNewAdminSymKeyAuthenticationData = this.generateAdminSymKeyAuthenticationData(adminSymKey)
@@ -279,24 +309,6 @@ export class KeyAuthenticationFacade {
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKey.version}`,
 			key: currentAdminGroupKey.object,
 			context: "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
-		})
-	}
-
-	/**
-	 * Purpose: prove to admins that the new User Group Key is authentic.
-	 * By deriving this key from the current User Group Key, the admin knows that it was created by someone who had access to this key,
-	 * that is, either the user or another admin.
-	 */
-	deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
-		userGroupId: Id,
-		adminGroupId: Id,
-		newAdminGroupKeyVersion: number,
-		currentUserGroupKey: VersionedKey,
-	): Aes256Key {
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
-			key: currentUserGroupKey.object,
-			context: "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
 		})
 	}
 }

@@ -477,22 +477,23 @@ export class KeyRotationFacade {
 		for (const userGroupInfo of userGroupInfos) {
 			if (isSameId(userGroupInfo.group, groupToExclude)) continue
 
-			const userGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
-			const tag = this.keyAuthenticationFacade.computeNewAdminPubKeyTag(
-				newAdminGroupKeyVersion,
+			const currentUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
+			const tag = this.keyAuthenticationFacade.computeTag({
+				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				adminGroupKeyVersion: newAdminGroupKeyVersion,
 				pubEccKey,
 				pubKyberKey,
-				userGroupInfo.group,
+				userGroupId: userGroupInfo.group,
 				adminGroupId,
 				newAdminGroupKeyVersion,
-				userGroupKey,
-			)
+				currentUserGroupKey,
+			})
 
 			const publicKeyTag = createKeyMac({
 				taggingGroup: userGroupInfo.group,
 				tag,
 				taggedKeyVersion: String(newAdminGroupKeyVersion),
-				taggingKeyVersion: String(userGroupKey.version),
+				taggingKeyVersion: String(currentUserGroupKey.version),
 			})
 			keyTags.push(publicKeyTag)
 		}
@@ -1015,14 +1016,17 @@ export class KeyRotationFacade {
 		}
 
 		const adminGroupKeyVersion = adminPublicKeyGetOut.pubKeyVersion
-		this.keyAuthenticationFacade.verifyNewAdminPubKeyTag(
-			Number(taggedKeyVersion),
-			pubEccKey,
-			pubKyberKey,
-			userGroupId,
-			adminGroupId,
-			Number(adminGroupKeyVersion),
-			currentUserGroupKey,
+		this.keyAuthenticationFacade.verifyTag(
+			{
+				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				newAdminGroupKeyVersion: Number(taggedKeyVersion),
+				pubEccKey,
+				pubKyberKey,
+				userGroupId,
+				adminGroupId,
+				adminGroupKeyVersion: Number(adminGroupKeyVersion),
+				currentUserGroupKey,
+			},
 			tag,
 		)
 
@@ -1076,12 +1080,15 @@ export class KeyRotationFacade {
 			version: Number(pubAdminEncGKeyAuthHash.taggedKeyVersion),
 		}
 
-		this.keyAuthenticationFacade.verifyAdminSymKeyTag(
-			versionedNewAdminGroupKey,
-			adminGroupId,
-			userGroupId,
-			currentUserGroupKey,
-			versionedNewAdminGroupKey.version,
+		this.keyAuthenticationFacade.verifyTag(
+			{
+				tagType: "ADMIN_SYM_KEY_TAG",
+				adminSymKey: versionedNewAdminGroupKey,
+				adminGroupId,
+				userGroupId,
+				currentReceivingUserGroupKey: currentUserGroupKey,
+				newAdminGroupKeyVersion: versionedNewAdminGroupKey.version,
+			},
 			pubAdminEncGKeyAuthHash.tag,
 		)
 
@@ -1160,14 +1167,15 @@ export class KeyRotationFacade {
 		)
 		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
 
-		const tag = this.keyAuthenticationFacade.computePubDistKeyTag(
-			adminDistributionKeyPair.pubEccKey,
-			adminDistributionKeyPair.pubKyberKey,
+		const tag = this.keyAuthenticationFacade.computeTag({
+			tagType: "PUB_DIST_KEY_TAG",
+			pubEccKey: adminDistributionKeyPair.pubEccKey,
+			pubKyberKey: adminDistributionKeyPair.pubKyberKey,
 			adminGroupId,
 			userGroupId,
-			currentUserGroupKey.version,
+			currentUserGroupKeyVersion: currentUserGroupKey.version,
 			currentAdminGroupKey,
-		)
+		})
 
 		const putDistributionKeyPairsOnKeyRotation = createAdminGroupKeyRotationPutIn({
 			adminDistKeyPair: assertNotNull(makeKeyPair(adminDistributionKeyPair)),
@@ -1242,13 +1250,16 @@ export class KeyRotationFacade {
 			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(distributionKey.userGroupId)
 			const givenTag = distributionKey.pubKeyMac as MacTag
 
-			this.keyAuthenticationFacade.verifyPubDistKeyTag(
-				distributionKey.pubEccKey,
-				distributionKey.pubKyberKey,
-				adminGroupId,
-				distributionKey.userGroupId,
-				targetUserGroupKey.version,
-				currentAdminGroupKey,
+			this.keyAuthenticationFacade.verifyTag(
+				{
+					tagType: "PUB_DIST_KEY_TAG",
+					pubEccKey: distributionKey.pubEccKey,
+					pubKyberKey: distributionKey.pubKyberKey,
+					adminGroupId,
+					userGroupId: distributionKey.userGroupId,
+					currentUserGroupKeyVersion: targetUserGroupKey.version,
+					currentAdminGroupKey,
+				},
 				givenTag,
 			)
 
@@ -1267,13 +1278,14 @@ export class KeyRotationFacade {
 				generatedEccKeyPair,
 			)
 
-			const adminSymKeyTag = this.keyAuthenticationFacade.computeAdminSymKeyTag(
-				newSymAdminGroupKey,
+			const adminSymKeyTag = this.keyAuthenticationFacade.computeTag({
+				tagType: "ADMIN_SYM_KEY_TAG",
+				adminSymKey: newSymAdminGroupKey,
 				adminGroupId,
-				distributionKey.userGroupId,
-				targetUserGroupKey,
-				newAdminGroupKeys.symGroupKey.version,
-			)
+				userGroupId: distributionKey.userGroupId,
+				currentReceivingUserGroupKey: targetUserGroupKey,
+				newAdminGroupKeyVersion: newAdminGroupKeys.symGroupKey.version,
+			})
 
 			const symKeyMac = createKeyMac({
 				taggingGroup: adminGroupId,
