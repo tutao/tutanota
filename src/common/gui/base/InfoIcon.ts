@@ -1,20 +1,22 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { Keys } from "../../api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
 
 export interface InfoIconAttrs {
 	text: Children
 }
 
 export class InfoIcon implements Component<InfoIconAttrs> {
-	expanded: boolean = false
+	private hovered = false
+	private expanded: boolean = false
 
 	view({ attrs }: Vnode<InfoIconAttrs>) {
 		return m(
 			"div.flex.justify-center.no-grow-no-shrink.overflow-visible",
 			{
 				"aria-pressed": String(this.expanded),
+				tabindex: TabIndex.Default,
 				role: "button",
 				style: {
 					"margin-top": px(1),
@@ -28,17 +30,19 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 				},
 				onfocusin: () => this.expand(),
 				onfocusout: (e: Event) => this.listener(e),
+				onmouseenter: () => (this.hovered = true),
+				onmouseleave: () => (this.hovered = false),
 			},
 			m(
 				".info-badge.tooltip",
 				{
 					expanded: String(this.expanded),
-					tabindex: 0,
 				},
 				"i",
 				m(
 					"span.tooltiptext.break-word",
 					{
+						hidden: this.hovered || this.expanded ? undefined : "",
 						role: "tooltip",
 						style: {
 							width: px(120),

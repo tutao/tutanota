@@ -1888,6 +1888,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"vitor_alt": "Black-and white high-contrast image of a man (Vitor) sipping from a cup, knowing he is secure.",
 		// Put in temporarily, will be removed soon
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",

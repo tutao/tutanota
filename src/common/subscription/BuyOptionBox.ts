@@ -108,10 +108,7 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 									  })
 									: m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark, style: attrs.iconStyle }),
 								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
-								f.toolTip
-									? //@ts-ignore
-									  m(InfoIcon, { text: f.toolTip })
-									: null,
+								f.toolTip ? m(InfoIcon, { text: f.toolTip }) : null,
 							]),
 						),
 					this.renderPlaceholders(fc),
