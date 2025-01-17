@@ -71,7 +71,7 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 		const currentPlanType = await mailLocator.logins.getUserController().getPlanType()
 		const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
 		if (!isHighestTierPlan) {
-			showNotAvailableForFreeDialog([PlanType.Legend, PlanType.Unlimited])
+			showNotAvailableForFreeDialog([PlanType.Legend, PlanType.Unlimited]).then()
 			return
 		}
 
@@ -210,7 +210,7 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 			[
 				m(
 					".flex-space-between.p.small.mt-m",
-					getReadableUiImportStatus(this.mailImporter().getUiStatus()),
+					getReadableUiImportStatus(assertNotNull(this.mailImporter().getUiStatus())),
 					this.mailImporter().shouldRenderProcessedMails() ? processedMailsCountLabel : null,
 				),
 			],
@@ -314,8 +314,6 @@ export function getReadableUiImportStatus(uiStatus: UiImportStatus): string {
 
 export function getUiImportStatusTranslationKey(uiStatus: UiImportStatus): TranslationKey {
 	switch (uiStatus) {
-		case UiImportStatus.Idle:
-			return "mailImportStatusIdle_label"
 		case UiImportStatus.Starting:
 			return "mailImportStatusStarting_label"
 		case UiImportStatus.Resuming:
@@ -328,10 +326,6 @@ export function getUiImportStatusTranslationKey(uiStatus: UiImportStatus): Trans
 			return "mailImportStatusPaused_label"
 		case UiImportStatus.Cancelling:
 			return "mailImportStatusCancelling_label"
-		case UiImportStatus.Canceled:
-			return "mailImportStatusCanceled_label"
-		case UiImportStatus.Error:
-			return "mailImportStatusError_label"
 	}
 }
 

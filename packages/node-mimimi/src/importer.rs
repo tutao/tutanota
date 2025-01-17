@@ -828,24 +828,6 @@ impl Importer {
 		let id_tuple = IdTupleGenerated::new(GeneratedId(list_id), GeneratedId(element_id));
 		Ok(Some(id_tuple))
 	}
-
-	// todo: use this function to do certain task that have very minimal chances of failure?
-	// example: deleting file, copying file, loading state from server
-	// keep executing the action Nth time maximum until we get Ok()
-	pub fn do_until_ok<const MAX_LIMIT: usize, O, E>(
-		action: impl Fn() -> Result<O, E>,
-	) -> Result<O, E> {
-		let mut last_result = action();
-
-		for _ in 1..=MAX_LIMIT {
-			last_result = action();
-			if last_result.is_ok() {
-				return last_result;
-			}
-		}
-
-		last_result
-	}
 }
 
 impl From<IdTupleGenerated> for ImportMailStateId {
