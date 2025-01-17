@@ -390,16 +390,15 @@ export class GroupManagementFacade {
 		} else {
 			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key")
 		}
-		const userGroupAuthKey = this.keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+
+		this.keyAuthenticationFacade.verifyNewUserGroupKeyTag(
+			versionedDecryptedUserGroupKey,
 			userGroup._id,
 			assertNotNull(userGroup.admin),
 			recipientAdminGroupKeyVersion,
 			previousUserGroupKey,
+			givenUserGroupKeyMac.tag,
 		)
-
-		const tagData = this.keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(versionedDecryptedUserGroupKey)
-
-		this.cryptoWrapper.verifyHmacSha256(userGroupAuthKey, tagData, givenUserGroupKeyMac.tag)
 	}
 
 	/**

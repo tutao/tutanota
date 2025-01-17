@@ -11,6 +11,156 @@ assertWorkerOrNode()
 export class KeyAuthenticationFacade {
 	constructor(private readonly cryptoWrapper: CryptoWrapper) {}
 
+	public computeNewUserGroupKeyTag(
+		adminSymKey: VersionedKey,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+	): MacTag {
+		const newUserGroupKeyAuthenticationData = this.generateNewUserGroupKeyAuthenticationData(adminSymKey)
+		const userRotationNewUserGroupKeyAuthKey = this.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyNewUserGroupKeyTag(
+		adminSymKey: VersionedKey,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+		tag: MacTag,
+	): void {
+		const newUserGroupKeyAuthenticationData = this.generateNewUserGroupKeyAuthenticationData(adminSymKey)
+		const userRotationNewUserGroupKeyAuthKey = this.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		this.cryptoWrapper.verifyHmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData, tag)
+	}
+
+	public computeNewAdminPubKeyTag(
+		adminGroupKeyVersion: number,
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+	): MacTag {
+		const adminPubKeyAuthenticationData = this.generateAdminPubKeyAuthenticationData(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
+		const newAdminPubKeyAuthKey = this.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(newAdminPubKeyAuthKey, adminPubKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyNewAdminPubKeyTag(
+		adminGroupKeyVersion: number,
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+		tag: MacTag,
+	): void {
+		const adminPubKeyAuthenticationData = this.generateAdminPubKeyAuthenticationData(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
+		const newAdminPubKeyAuthKey = this.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		this.cryptoWrapper.verifyHmacSha256(newAdminPubKeyAuthKey, adminPubKeyAuthenticationData, tag)
+	}
+
+	public computePubDistKeyTag(
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentUserGroupKeyVersion: number,
+		currentAdminGroupKey: VersionedKey,
+	): MacTag {
+		const pubDistKeyAuthenticationData = this.generatePubDistKeyAuthenticationData(pubEccKey, pubKyberKey)
+		const adminDistAuthKey = this.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+			adminGroupId,
+			userGroupId,
+			currentUserGroupKeyVersion,
+			currentAdminGroupKey,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyPubDistKeyTag(
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentUserGroupKeyVersion: number,
+		currentAdminGroupKey: VersionedKey,
+		tag: MacTag,
+	) {
+		const pubDistKeyAuthenticationData = this.generatePubDistKeyAuthenticationData(pubEccKey, pubKyberKey)
+		const adminDistAuthKey = this.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+			adminGroupId,
+			userGroupId,
+			currentUserGroupKeyVersion,
+			currentAdminGroupKey,
+		)
+		this.cryptoWrapper.verifyHmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData, tag)
+	}
+
+	public computeAdminSymKeyTag(
+		adminSymKey: VersionedKey,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentReceivingUserGroupKey: VersionedKey,
+		newAdminGroupKeyVersion: number,
+	): MacTag {
+		const computedNewAdminSymKeyAuthenticationData = this.generateAdminSymKeyAuthenticationData(adminSymKey)
+		const adminGroupAuthKey = this.deriveNewAdminSymKeyAuthKeyForMultiAdminRotationAsUser(
+			adminGroupId,
+			userGroupId,
+			currentReceivingUserGroupKey,
+			newAdminGroupKeyVersion,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(adminGroupAuthKey, computedNewAdminSymKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyAdminSymKeyTag(
+		adminSymKey: VersionedKey,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentReceivingUserGroupKey: VersionedKey,
+		newAdminGroupKeyVersion: number,
+		tag: MacTag,
+	): void {
+		const computedNewAdminSymKeyAuthenticationData = this.generateAdminSymKeyAuthenticationData(adminSymKey)
+		const adminGroupAuthKey = this.deriveNewAdminSymKeyAuthKeyForMultiA	dminRotationAsUser(
+			adminGroupId,
+			userGroupId,
+			currentReceivingUserGroupKey,
+			newAdminGroupKeyVersion,
+		)
+		this.cryptoWrapper.verifyHmacSha256(adminGroupAuthKey, computedNewAdminSymKeyAuthenticationData, tag)
+	}
+
 	public generateNewUserGroupKeyAuthenticationData(newUserSymKey: VersionedKey) {
 		const versionByte = Uint8Array.from([0])
 		return concat(versionByte, Uint8Array.from([newUserSymKey.version]), Uint8Array.from(newUserSymKey.object))
