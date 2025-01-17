@@ -147,7 +147,7 @@ export class MailListModel {
 			} else if (update.operation === OperationType.CREATE) {
 				const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
 				await this.listModel.waitLoad(async () => {
-					if (this.listModel.itemWithinLoadedRange(loadedMail)) {
+					if (this.listModel.canInsertItem(loadedMail)) {
 						this.listModel.insertLoadedItem(loadedMail)
 					}
 				})

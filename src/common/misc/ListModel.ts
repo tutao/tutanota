@@ -577,7 +577,7 @@ export class ListModel<ItemType, IdType> {
 		return this.config.isSameId(id1, id2)
 	}
 
-	itemWithinLoadedRange(entity: ItemType): boolean {
+	canInsertItem(entity: ItemType): boolean {
 		if (this.state.loadingStatus === ListLoadingState.Done) {
 			return true
 		}

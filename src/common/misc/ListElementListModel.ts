@@ -65,7 +65,7 @@ export class ListElementListModel<ElementType extends ListElement> {
 			// Wait for any pending loading
 			return this.listModel.waitLoad(() => {
 				if (operation === OperationType.CREATE) {
-					if (this.listModel.itemWithinLoadedRange(entity)) {
+					if (this.listModel.canInsertItem(entity)) {
 						this.listModel.insertLoadedItem(entity)
 					}
 				} else if (operation === OperationType.UPDATE) {
