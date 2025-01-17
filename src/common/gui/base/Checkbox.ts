@@ -29,8 +29,6 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		return m(
 			`.pt`,
 			{
-				role: "checkbox",
-				"aria-checked": String(a.checked),
 				"aria-disabled": String(a.disabled),
 				class: getOperatingClasses(a.disabled, "click flash") + userClasses,
 				onclick: (e: MouseEvent) => {
@@ -43,13 +41,6 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				`label${Checkbox.getBreakClass(a.label())}`,
 				{
 					class: `${this.focused ? "content-accent-fg" : "content-fg"} ${getOperatingClasses(a.disabled, "click")}`,
-					onclick: (e: MouseEvent) => {
-						// if the label contains a link, then stop the event so that the checkbox doesn't get toggled upon clicking
-						// we still allow it to be checked if they click on the non-link part of the label
-						if (e.target instanceof HTMLElement && e.target.tagName.toUpperCase() === "A") {
-							e.stopPropagation()
-						}
-					},
 				},
 				[
 					m("input[type=checkbox].icon.checkbox-override", {

@@ -1863,6 +1863,7 @@ export type TranslationKeyType =
 	| "showWelcomeDialog_action"
 	| "sendReport_label"
 	| "passphrase_label"
+	| "vitor_alt"
 	// Put in temporarily
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"

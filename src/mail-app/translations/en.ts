@@ -1879,6 +1879,7 @@ export default {
 		"showWelcomeDialog_action": "Show welcome dialog",
 		"sendReport_label": "Send report",
 		"passphrase_label": "Passphrase",
+		"vitor_alt": "Black-and white high-contrast image of a man (Vitor) sipping from a cup, knowing he is secure.",
 		// Put in temporarily
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
