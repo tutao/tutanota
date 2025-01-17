@@ -375,6 +375,7 @@ export class MailImporter {
 
 	private resetStatus() {
 		this.activeImport = null
+		this.progressMonitor?.pauseEstimation()
 		this.progressMonitor = null
 		this.activeImport = null
 		this.progressPercentage = 0
