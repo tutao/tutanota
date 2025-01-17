@@ -155,8 +155,8 @@ impl ImporterApi {
 					// they might have performed new action in mean time,
 					// we should keep the original final state in that case
 
-					let was_already_finalised = pre_update_status != ImportStatus::Canceled as i64
-						&& pre_update_status != ImportStatus::Finished as i64;
+					let was_already_finalised = pre_update_status == ImportStatus::Canceled as i64
+						|| pre_update_status == ImportStatus::Finished as i64;
 
 					!was_already_finalised && !is_same_status
 				})

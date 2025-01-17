@@ -85,6 +85,7 @@ export class MailImporter {
 			switch (remoteStatus) {
 				case ImportStatus.Canceled:
 				case ImportStatus.Finished:
+					activeImportId = null
 					this.activeImport = null
 					break
 
@@ -92,7 +93,7 @@ export class MailImporter {
 				case ImportStatus.Running:
 					this.activeImport = {
 						remoteStateId: activeImportId,
-						uiStatus: importStatusToUiImportStatus(remoteStatus),
+						uiStatus: UiImportStatus.Paused,
 					}
 
 					if (!this.progressMonitor) {
