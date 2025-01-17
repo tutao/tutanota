@@ -283,12 +283,15 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	private transitionTo(vnode: Vnode<Props<TPages>>, target: TPages) {
 		this.tryScrollToTop()
 
-		vnode.attrs.isAnimating(true)
-		this.transitionPage(target)
-		this.transitionClass = "transition-transform"
-		if (this.stackSize > 1) {
+		this.translate = 0
+		m.redraw.sync()
+
+		requestAnimationFrame(() => {
+			vnode.attrs.isAnimating(true)
+			this.transitionPage(target)
+			this.transitionClass = "transition-transform"
 			this.translate = -(this.pageWidth + size.vpad_xxl)
-		}
+		})
 	}
 
 	view(vnode: Vnode<Props<TPages>>): Children {
