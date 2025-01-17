@@ -188,7 +188,12 @@ o.spec("GroupManagementFacadeTest", function () {
 				const groupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 				o(groupKey.object).equals(groupKeyBytes)
 				o(groupKey.version).equals(groupKeyVersion)
-				verify(keyAuthenticationFacade.deriveUserGroupAuthKey(groupId, { object: formerGroupSymKey, version: groupKeyVersion - 1 }))
+				verify(
+					keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(groupId, adminGroupId, adminGroupKeyVersion, {
+						object: formerGroupSymKey,
+						version: groupKeyVersion - 1,
+					}),
+				)
 				verify(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyMacData, brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag))
 			})
 
@@ -252,8 +257,10 @@ o.spec("GroupManagementFacadeTest", function () {
 					when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 1)).thenResolve(groupKeysV1)
 					derivedAuthKeyV1 = object<AesKey>()
 					when(
-						keyAuthenticationFacade.deriveUserGroupAuthKey(
+						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
 							groupId,
+							adminGroupId,
+							2,
 							argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV1),
 						),
 					).thenReturn(derivedAuthKeyV1)
@@ -270,8 +277,10 @@ o.spec("GroupManagementFacadeTest", function () {
 					when(cryptoWrapper.decryptKey(adminSymKeyV0, anything())).thenReturn(userGroupSymKeyV0)
 					const derivedAuthKeyV0 = object<AesKey>()
 					when(
-						keyAuthenticationFacade.deriveUserGroupAuthKey(
+						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
 							anything(),
+							adminGroupId,
+							1,
 							argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV0),
 						),
 					).thenReturn(derivedAuthKeyV0)
@@ -296,7 +305,14 @@ o.spec("GroupManagementFacadeTest", function () {
 					o(groupKey.object).equals(groupKeyBytes)
 					o(groupKey.version).equals(groupKeyVersion)
 					const previousUserGroupKeyCaptor = captor()
-					verify(keyAuthenticationFacade.deriveUserGroupAuthKey(groupId, previousUserGroupKeyCaptor.capture()))
+					verify(
+						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+							groupId,
+							adminGroupId,
+							anything(),
+							previousUserGroupKeyCaptor.capture(),
+						),
+					)
 					o(previousUserGroupKeyCaptor.values!.length).equals(2)
 
 					const firstCall = previousUserGroupKeyCaptor.values![0]

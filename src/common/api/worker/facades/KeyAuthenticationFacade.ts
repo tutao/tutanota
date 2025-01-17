@@ -11,6 +11,156 @@ assertWorkerOrNode()
 export class KeyAuthenticationFacade {
 	constructor(private readonly cryptoWrapper: CryptoWrapper) {}
 
+	public computeNewUserGroupKeyTag(
+		adminSymKey: VersionedKey,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+	): MacTag {
+		const newUserGroupKeyAuthenticationData = this.generateNewUserGroupKeyAuthenticationData(adminSymKey)
+		const userRotationNewUserGroupKeyAuthKey = this.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyNewUserGroupKeyTag(
+		adminSymKey: VersionedKey,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+		tag: MacTag,
+	): void {
+		const newUserGroupKeyAuthenticationData = this.generateNewUserGroupKeyAuthenticationData(adminSymKey)
+		const userRotationNewUserGroupKeyAuthKey = this.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		this.cryptoWrapper.verifyHmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData, tag)
+	}
+
+	public computeNewAdminPubKeyTag(
+		adminGroupKeyVersion: number,
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+	): MacTag {
+		const adminPubKeyAuthenticationData = this.generateAdminPubKeyAuthenticationData(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
+		const newAdminPubKeyAuthKey = this.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(newAdminPubKeyAuthKey, adminPubKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyNewAdminPubKeyTag(
+		adminGroupKeyVersion: number,
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+		tag: MacTag,
+	): void {
+		const adminPubKeyAuthenticationData = this.generateAdminPubKeyAuthenticationData(adminGroupKeyVersion, adminGroupId, pubEccKey, pubKyberKey)
+		const newAdminPubKeyAuthKey = this.deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(
+			userGroupId,
+			adminGroupId,
+			newAdminGroupKeyVersion,
+			currentUserGroupKey,
+		)
+		this.cryptoWrapper.verifyHmacSha256(newAdminPubKeyAuthKey, adminPubKeyAuthenticationData, tag)
+	}
+
+	public computePubDistKeyTag(
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentUserGroupKeyVersion: number,
+		currentAdminGroupKey: VersionedKey,
+	): MacTag {
+		const pubDistKeyAuthenticationData = this.generatePubDistKeyAuthenticationData(pubEccKey, pubKyberKey)
+		const adminDistAuthKey = this.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+			adminGroupId,
+			userGroupId,
+			currentUserGroupKeyVersion,
+			currentAdminGroupKey,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyPubDistKeyTag(
+		pubEccKey: Uint8Array,
+		pubKyberKey: Uint8Array,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentUserGroupKeyVersion: number,
+		currentAdminGroupKey: VersionedKey,
+		tag: MacTag,
+	) {
+		const pubDistKeyAuthenticationData = this.generatePubDistKeyAuthenticationData(pubEccKey, pubKyberKey)
+		const adminDistAuthKey = this.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+			adminGroupId,
+			userGroupId,
+			currentUserGroupKeyVersion,
+			currentAdminGroupKey,
+		)
+		this.cryptoWrapper.verifyHmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData, tag)
+	}
+
+	public computeAdminSymKeyTag(
+		adminSymKey: VersionedKey,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentReceivingUserGroupKey: VersionedKey,
+		newAdminGroupKeyVersion: number,
+	): MacTag {
+		const computedNewAdminSymKeyAuthenticationData = this.generateAdminSymKeyAuthenticationData(adminSymKey)
+		const adminGroupAuthKey = this.deriveNewAdminSymKeyAuthKeyForMultiAdminRotationAsUser(
+			adminGroupId,
+			userGroupId,
+			currentReceivingUserGroupKey,
+			newAdminGroupKeyVersion,
+		)
+		const tag = this.cryptoWrapper.hmacSha256(adminGroupAuthKey, computedNewAdminSymKeyAuthenticationData)
+		return tag
+	}
+
+	public verifyAdminSymKeyTag(
+		adminSymKey: VersionedKey,
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentReceivingUserGroupKey: VersionedKey,
+		newAdminGroupKeyVersion: number,
+		tag: MacTag,
+	): void {
+		const computedNewAdminSymKeyAuthenticationData = this.generateAdminSymKeyAuthenticationData(adminSymKey)
+		const adminGroupAuthKey = this.deriveNewAdminSymKeyAuthKeyForMultiA	dminRotationAsUser(
+			adminGroupId,
+			userGroupId,
+			currentReceivingUserGroupKey,
+			newAdminGroupKeyVersion,
+		)
+		this.cryptoWrapper.verifyHmacSha256(adminGroupAuthKey, computedNewAdminSymKeyAuthenticationData, tag)
+	}
+
 	public generateNewUserGroupKeyAuthenticationData(newUserSymKey: VersionedKey) {
 		const versionByte = Uint8Array.from([0])
 		return concat(versionByte, Uint8Array.from([newUserSymKey.version]), Uint8Array.from(newUserSymKey.object))
@@ -36,78 +186,74 @@ export class KeyAuthenticationFacade {
 	}
 
 	/**
-	 * When sharing the new admin public key to other users we encrypt its public key hash with this auth key derived from the recipients user group key
-	 * it should prove to the recipient that the new admin group key comes from a valid admin since only admin have access to their user group key
-	 * and is safe to use for whatever use case (ex: encrypting their new user group key and share it with the admin)
-	 *
-	 * @param userGroupId user group id of the user that will use this new admin public key
-	 * @param userGroupKey user group key of the user that will use this new admin public key
+	 * Purpose: prove to users that the new Admin Group Public Key is authentic.
+	 * By deriving this key from the current User Group Key, the user knows that it was created either by someone who had access to this key,
+	 * that is, either themselves or an admin.
 	 */
-	public deriveAdminGroupAuthKeyForNewAdminPubKeyMac(userGroupId: Id, userGroupKey: VersionedKey) {
+	deriveNewAdminPubKeyAuthKeyForUserGroupKeyRotation(
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: userGroupId,
-			key: userGroupKey.object,
-			context: "adminGroupKeyRotationHash",
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
+			key: currentUserGroupKey.object,
+			context: "newAdminPubKeyAuthKeyForUserGroupKeyRotation",
 		})
 	}
 
 	/**
-	 * When distributing the new admin group key to other admins we encrypt its symetric hash with this auth key derived from the recipient admin user group key
-	 * it should prove to the recipient admin that the new admin group key comes from another admin since only admin have access to their user group key
-	 *
-	 * @param adminGroupId group id of the admin group from which both user belongs to
-	 * @param userGroupId user group id of the admin user that will receive the new admin group key
-	 * @param userGroupKey user group key of the admin user that will receive the new admin group key
-	 * @param newAdminGroupKeyVersion version of the new admin group key being shared
+	 * Purpose: prove to other admins that the new Admin Group Symmetric Key is authentic.
+	 * By deriving this key from the current User Group Key, the admin user knows that it was created either by someone who had access to this key,
+	 * that is, either themselves or another admin.
 	 */
-	public deriveAdminGroupAuthKeyForNewAdminSymKeyHash(
+	deriveNewAdminSymKeyAuthKeyForMultiAdminRotationAsUser(
 		adminGroupId: Id,
 		userGroupId: Id,
-		userGroupKey: VersionedKey,
+		currentReceivingUserGroupKey: VersionedKey,
 		newAdminGroupKeyVersion: number,
 	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, userGroupKeyVersion: ${userGroupKey.version}, adminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
-			key: userGroupKey.object,
-			context: "multiAdminKeyRotationNewAdminSymKeyHash",
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentReceivingUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
+			key: currentReceivingUserGroupKey.object,
+			context: "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser",
 		})
 	}
 
 	/**
-	 *
-	 * Derives the adminDistAuthKey that is used to prove that an adminDistKey belongs to an admin of the customer.
-	 * In the multi admin group key rotation scenario, each admin generates a distribution key pair that can be used to distributes
-	 * a new admin group key.
-	 * This function generates an AuthKey that authenticate the hash of the public key of this new distribution key pair.
-	 * This proves to the admin performing the rotation and distributing the new admin group key that this distribution key is safe to use and encrypt
-	 * the new admin group key.
-	 *
-	 * @param adminGroupId group id of the AdminGroup of the customer
-	 * @param userGroupId user group id of the admin that have created the distribution key
-	 * @param adminGroupKey the current admin group key, source of the derivation
+	 * Purpose: prove to other admins that the Distribution Public Key is authentic.
+	 * By deriving this key from the current Admin Group Key, the admin knows that it was created by someone who had access to this key,
+	 * that is, either themselves or another admin.
 	 */
-	public deriveAdminDistAuthKey(adminGroupId: Id, userGroupId: Id, adminGroupKey: VersionedKey): Aes256Key {
-		// when distributing the public key that will be used to encrypt the new admin group key
-		// we authenticate that it comes from another admin with the current admin group key
+	deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentUserGroupKeyVersion: number,
+		currentAdminGroupKey: VersionedKey,
+	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, adminGroupKeyVersion: ${adminGroupKey.version}`,
-			key: adminGroupKey.object,
-			context: "multiAdminKeyRotationPubDistKeyHash",
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKey.version}`,
+			key: currentAdminGroupKey.object,
+			context: "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
 		})
 	}
 
 	/**
-	 * Derives a auth key that prove that the user had access to the previous user group key
-	 * when sharing his new user group key.
-	 *
-	 * @param userGroupId user group id of the user sharing the new user group key
-	 * @param userGroupKey current user group key of the user sharing the new user group key
+	 * Purpose: prove to admins that the new User Group Key is authentic.
+	 * By deriving this key from the current User Group Key, the admin knows that it was created by someone who had access to this key,
+	 * that is, either the user or another admin.
 	 */
-	public deriveUserGroupAuthKey(userGroupId: Id, userGroupKey: VersionedKey): Aes256Key {
+	deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+		userGroupId: Id,
+		adminGroupId: Id,
+		newAdminGroupKeyVersion: number,
+		currentUserGroupKey: VersionedKey,
+	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `userGroup: ${userGroupId}, userGroupKeyVersion: ${userGroupKey.version}`,
-			key: userGroupKey.object,
-			context: "multiUserKeyRotationNewUserSymKeyHash",
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
+			key: currentUserGroupKey.object,
+			context: "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
 		})
 	}
 }

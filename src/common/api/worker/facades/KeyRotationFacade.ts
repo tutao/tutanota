@@ -401,7 +401,7 @@ export class KeyRotationFacade {
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
 		const pubEccKey = assertNotNull(adminKeyPair.pubEccKey)
 		const pubKyberKey = assertNotNull(adminKeyPair.pubKyberKey)
-		const adminPubKeyMacList = await this.generateEncryptedPubKeyHashForNonAdminUsers(
+		const adminPubKeyMacList = await this.generatePubKeyTagsForNonAdminUsers(
 			pubEccKey,
 			pubKyberKey,
 			newAdminGroupKeys.symGroupKey.version,
@@ -459,35 +459,39 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async generateEncryptedPubKeyHashForNonAdminUsers(
+	private async generatePubKeyTagsForNonAdminUsers(
 		pubEccKey: Uint8Array,
 		pubKyberKey: Uint8Array,
-		adminGroupKeyVersion: number,
+		newAdminGroupKeyVersion: number,
 		adminGroupId: Id,
 		customerId: Id,
 		groupToExclude: Id,
 	): Promise<Array<KeyMac>> {
-		const keyAuthenticationData = this.keyAuthenticationFacade.generateAdminPubKeyAuthenticationData(
-			adminGroupKeyVersion,
-			adminGroupId,
-			pubEccKey,
-			pubKyberKey,
-		)
 		const keyTags: KeyMac[] = []
 
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 
+		let groupManagementFacade = await this.groupManagementFacade()
+
 		for (const userGroupInfo of userGroupInfos) {
 			if (isSameId(userGroupInfo.group, groupToExclude)) continue
-			let gmf = await this.groupManagementFacade()
-			const userGroupKey = await gmf.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
-			const authKey = this.keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminPubKeyMac(userGroupInfo.group, userGroupKey)
-			const tag = this.cryptoWrapper.hmacSha256(authKey, keyAuthenticationData)
+
+			const userGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
+			const tag = this.keyAuthenticationFacade.computeNewAdminPubKeyTag(
+				newAdminGroupKeyVersion,
+				pubEccKey,
+				pubKyberKey,
+				userGroupInfo.group,
+				adminGroupId,
+				newAdminGroupKeyVersion,
+				userGroupKey,
+			)
+
 			const publicKeyTag = createKeyMac({
 				taggingGroup: userGroupInfo.group,
 				tag,
-				taggedKeyVersion: String(adminGroupKeyVersion),
+				taggedKeyVersion: String(newAdminGroupKeyVersion),
 				taggingKeyVersion: String(userGroupKey.version),
 			})
 			keyTags.push(publicKeyTag)
@@ -496,12 +500,17 @@ export class KeyRotationFacade {
 		return keyTags
 	}
 
-	private deriveAdminGroupDistributionKeyPairKey(adminGroupId: string, currentAdminGroupKeyVersion: number, pwKey: Aes256Key) {
-		// when creating new distribution keys we encrypt the private keys with this derivation from the password key
+	private deriveAdminGroupDistributionKeyPairEncryptionKey(
+		adminGroupId: Id,
+		userGroupId: Id,
+		currentAdminGroupKeyVersion: number,
+		currentUserGroupKeyVersion: number,
+		pwKey: Aes256Key,
+	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: `adminGroupId: ${adminGroupId}, adminKeyVersion: ${currentAdminGroupKeyVersion}`,
+			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKeyVersion}`,
 			key: pwKey,
-			context: "adminGroupDistributionKeyPairKey",
+			context: "adminGroupDistributionKeyPairEncryptionKey",
 		})
 	}
 
@@ -1004,23 +1013,26 @@ export class KeyRotationFacade {
 		if (pubKyberKey == null) {
 			throw new Error("tried to generate a keyhash when rotating but received an empty public kyber key!")
 		}
-		const clientGeneratedKeyTagData = this.keyAuthenticationFacade.generateAdminPubKeyAuthenticationData(
+
+		const adminGroupKeyVersion = adminPublicKeyGetOut.pubKeyVersion
+		this.keyAuthenticationFacade.verifyNewAdminPubKeyTag(
 			Number(taggedKeyVersion),
-			adminGroupId,
 			pubEccKey,
 			pubKyberKey,
+			userGroupId,
+			adminGroupId,
+			Number(adminGroupKeyVersion),
+			currentUserGroupKey,
+			tag,
 		)
-		const authKey = this.keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminPubKeyMac(userGroupId, currentUserGroupKey)
-		this.cryptoWrapper.verifyHmacSha256(authKey, clientGeneratedKeyTagData, tag)
 
-		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdminAsymetrically(
+		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdminAsymmetrically(
 			userGroupId,
 			newUserGroupKeys,
 			adminPublicKeyGetOut,
 			adminGroupId,
 			currentUserGroupKey,
 		)
-		const adminGroupKeyVersion = pubAdminGroupEncUserGroupKey.recipientKeyVersion
 		return { pubAdminGroupEncUserGroupKey, adminGroupKeyVersion }
 	}
 
@@ -1039,7 +1051,13 @@ export class KeyRotationFacade {
 		}
 		//derive adminDistKeyPairDistributionKey
 		const currentAdminGroupKeyFromMembership = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId) // get admin group key from the membership (not yet rotated)
-		const adminGroupKeyDistributionKeyPairKey = this.deriveAdminGroupDistributionKeyPairKey(adminGroupId, currentAdminGroupKeyFromMembership.version, pwKey)
+		const adminGroupKeyDistributionKeyPairKey = this.deriveAdminGroupDistributionKeyPairEncryptionKey(
+			adminGroupId,
+			userGroupId,
+			currentAdminGroupKeyFromMembership.version,
+			currentUserGroupKey.version,
+			pwKey,
+		)
 
 		// decrypt his private distribution key
 		const adminGroupDistKeyPair = this.cryptoWrapper.decryptKeyPair(adminGroupKeyDistributionKeyPairKey, userGroupKeyRotation.adminDistKeyPair)
@@ -1058,15 +1076,14 @@ export class KeyRotationFacade {
 			version: Number(pubAdminEncGKeyAuthHash.taggedKeyVersion),
 		}
 
-		//Verify tag
-		const computedNewAdminSymKeyAuthenticationData = this.keyAuthenticationFacade.generateAdminSymKeyAuthenticationData(versionedNewAdminGroupKey)
-		const adminGroupAuthKey = this.keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminSymKeyHash(
+		this.keyAuthenticationFacade.verifyAdminSymKeyTag(
+			versionedNewAdminGroupKey,
 			adminGroupId,
 			userGroupId,
 			currentUserGroupKey,
 			versionedNewAdminGroupKey.version,
+			pubAdminEncGKeyAuthHash.tag,
 		)
-		this.cryptoWrapper.verifyHmacSha256(adminGroupAuthKey, computedNewAdminSymKeyAuthenticationData, pubAdminEncGKeyAuthHash.tag)
 
 		const adminGroupEncUserGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(versionedNewAdminGroupKey, newUserGroupKeys.symGroupKey.object).key
 		const userGroupEncAdminGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(newUserGroupKeys.symGroupKey, versionedNewAdminGroupKey.object).key
@@ -1074,18 +1091,19 @@ export class KeyRotationFacade {
 		return { adminGroupEncUserGroupKey, userGroupEncAdminGroupKey, adminGroupKeyVersion }
 	}
 
-	private async encryptUserGroupKeyForAdminAsymetrically(
+	private async encryptUserGroupKeyForAdminAsymmetrically(
 		userGroupId: Id,
 		newUserGroupKeys: GeneratedGroupKeys,
-		publicKeyGetOut: PublicKeyGetOut,
+		adminPublicKeyGetOut: PublicKeyGetOut,
 		adminGroupId: Id,
 		currentUserGroupKey: VersionedKey,
 	): Promise<PubEncKeyData> {
+		const adminPubKeyVersion = Number(adminPublicKeyGetOut.pubKeyVersion)
 		const adminPubKeys: Versioned<PublicKeys> = {
-			version: Number(publicKeyGetOut.pubKeyVersion),
+			version: adminPubKeyVersion,
 			object: {
-				pubEccKey: publicKeyGetOut.pubEccKey,
-				pubKyberKey: publicKeyGetOut.pubKyberKey,
+				pubEccKey: adminPublicKeyGetOut.pubEccKey,
+				pubKyberKey: adminPublicKeyGetOut.pubKyberKey,
 				pubRsaKey: null,
 			},
 		}
@@ -1098,9 +1116,13 @@ export class KeyRotationFacade {
 			object: pqKeyPair.eccKeyPair,
 		})
 
-		const newUserGroupKeyAuthenticationData = this.keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(newUserGroupKeys.symGroupKey)
-		const userRotationNewUserGroupKeyAuthKey = this.keyAuthenticationFacade.deriveUserGroupAuthKey(userGroupId, currentUserGroupKey)
-		const tag = this.cryptoWrapper.hmacSha256(userRotationNewUserGroupKeyAuthKey, newUserGroupKeyAuthenticationData)
+		const tag = this.keyAuthenticationFacade.computeNewUserGroupKeyTag(
+			newUserGroupKeys.symGroupKey,
+			userGroupId,
+			adminGroupId,
+			adminPubKeyVersion,
+			currentUserGroupKey,
+		)
 
 		const symKeyMac = createKeyMac({
 			taggingGroup: userGroupId,
@@ -1125,15 +1147,26 @@ export class KeyRotationFacade {
 	private async createDistributionKeyPair(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation) {
 		let adminGroupId = getElementId(multiAdminKeyRotation)
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
-		const adminDistKeyPairDistributionKey = this.deriveAdminGroupDistributionKeyPairKey(adminGroupId, currentAdminGroupKey.version, pwKey)
+		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
+		const userGroupId = this.userFacade.getUserGroupId()
+		const userGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
+		const adminDistKeyPairDistributionKey = this.deriveAdminGroupDistributionKeyPairEncryptionKey(
+			adminGroupId,
+			userGroupId,
+			currentAdminGroupKey.version,
+			userGroupKey.version,
+			pwKey,
+		)
 		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
 
-		const pubDistKeyAuthenticationData = this.keyAuthenticationFacade.generatePubDistKeyAuthenticationData(
+		const tag = this.keyAuthenticationFacade.computePubDistKeyTag(
 			adminDistributionKeyPair.pubEccKey,
 			adminDistributionKeyPair.pubKyberKey,
+			adminGroupId,
+			userGroupId,
+			currentUserGroupKey.version,
+			currentAdminGroupKey,
 		)
-		const adminDistAuthKey = this.keyAuthenticationFacade.deriveAdminDistAuthKey(adminGroupId, this.userFacade.getUserGroupId(), currentAdminGroupKey)
-		const tag = this.cryptoWrapper.hmacSha256(adminDistAuthKey, pubDistKeyAuthenticationData)
 
 		const putDistributionKeyPairsOnKeyRotation = createAdminGroupKeyRotationPutIn({
 			adminDistKeyPair: assertNotNull(makeKeyPair(adminDistributionKeyPair)),
@@ -1196,19 +1229,27 @@ export class KeyRotationFacade {
 			},
 		}
 
+		const groupManagementFacade = await this.groupManagementFacade()
+
 		// distribution for all other admins using their distribution keys
 		for (const distributionKey of distributionKeys) {
 			// we do not distribute for ourselves
 			if (isSameId(distributionKey.userGroupId, user.userGroup.group)) continue
 			// verify authenticity of this distribution key
 			// reproduce hash
-			const distributionKeyAuthenticationData = this.keyAuthenticationFacade.generatePubDistKeyAuthenticationData(
+
+			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(distributionKey.userGroupId)
+			const givenTag = distributionKey.pubKeyMac as MacTag
+
+			this.keyAuthenticationFacade.verifyPubDistKeyTag(
 				distributionKey.pubEccKey,
 				distributionKey.pubKyberKey,
+				adminGroupId,
+				distributionKey.userGroupId,
+				targetUserGroupKey.version,
+				currentAdminGroupKey,
+				givenTag,
 			)
-			const adminDistAuthKey = this.keyAuthenticationFacade.deriveAdminDistAuthKey(adminGroupId, distributionKey.userGroupId, currentAdminGroupKey)
-			const givenTag = distributionKey.pubKeyMac as MacTag
-			this.cryptoWrapper.verifyHmacSha256(adminDistAuthKey, distributionKeyAuthenticationData, givenTag)
 
 			const recipientPublicDistKeys: Versioned<PublicKeys> = {
 				version: 0,
@@ -1225,18 +1266,13 @@ export class KeyRotationFacade {
 				generatedEccKeyPair,
 			)
 
-			const computedNewAdminSymKeyAuthenticationData = this.keyAuthenticationFacade.generateAdminSymKeyAuthenticationData(newSymAdminGroupKey)
-
-			const groupManagementFacade = await this.groupManagementFacade()
-
-			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(distributionKey.userGroupId)
-			const adminGroupAuthKey = this.keyAuthenticationFacade.deriveAdminGroupAuthKeyForNewAdminSymKeyHash(
+			const adminSymKeyTag = this.keyAuthenticationFacade.computeAdminSymKeyTag(
+				newSymAdminGroupKey,
 				adminGroupId,
 				distributionKey.userGroupId,
 				targetUserGroupKey,
 				newAdminGroupKeys.symGroupKey.version,
 			)
-			const adminSymKeyTag = this.cryptoWrapper.hmacSha256(adminGroupAuthKey, computedNewAdminSymKeyAuthenticationData)
 
 			const symKeyMac = createKeyMac({
 				taggingGroup: adminGroupId,
