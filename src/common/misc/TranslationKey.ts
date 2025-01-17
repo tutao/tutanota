@@ -1872,6 +1872,7 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "vitor_alt"
 	// Put in temporarily, will be removed soon
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"

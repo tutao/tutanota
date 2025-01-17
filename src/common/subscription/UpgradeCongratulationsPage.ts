@@ -32,7 +32,10 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 						m(RecoverCodeField, {
 							showMessage: true,
 							recoverCode: newAccountData.recoverCode,
-							showImage: VisSignupImage,
+							image: {
+								src: VisSignupImage,
+								alt: "vitor_alt",
+							},
 						}),
 				  ])
 				: null,

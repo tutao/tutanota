@@ -5,7 +5,7 @@ import { assertMainOrNodeBoot, isAppleDevice } from "../api/common/Env"
 import m from "mithril"
 
 assertMainOrNodeBoot()
-export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a"
+export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"
 export type KeyPress = {
 	key: string
 
@@ -87,7 +87,11 @@ function isFocusable(e: HTMLElement) {
 		// also filter for tabIndex here to restrict tabbing to invisible inputs
 		return false
 	}
-	return e.style.display !== "none"
+	return (
+		e.style.display !== "none" &&
+		// check that none of the parents have hidden=true or aria-hidden=true
+		e.closest("[hidden]:not([hidden=false]), [aria-hidden]:not([aria-hidden=false]), [inert]:not([inert=false])") == null
+	)
 }
 
 export function focusPrevious(dom: HTMLElement): boolean {

@@ -1,4 +1,4 @@
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
+import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { assertNotNull, Hex, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
@@ -84,24 +84,28 @@ export type RecoverCodeFieldAttrs = {
 	showMessage: boolean
 	recoverCode: Hex
 	showButtons?: boolean
-	showImage?: string
+	image?: {
+		src: string
+		alt: TranslationKey
+	}
 }
 
 export class RecoverCodeField {
 	view(vnode: Vnode<RecoverCodeFieldAttrs>): Children {
-		let { recoverCode, showButtons, showMessage, showImage } = vnode.attrs
+		let { recoverCode, showButtons, showMessage, image } = vnode.attrs
 		showButtons = showButtons ?? true
 
 		const splitRecoverCode = assertNotNull(recoverCode.match(/.{4}/g)).join(" ")
 		return [
 			showMessage
-				? showImage
+				? image
 					? m(".flex-space-around.flex-wrap", [
 							m(".flex-grow-shrink-half.plr-l.flex-center.align-self-center", this.renderRecoveryText()),
 							m(
 								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
 								m("img.pt.bg-white.pt.pb", {
-									src: showImage,
+									src: image.src,
+									alt: lang.getTranslationText(image.alt),
 									style: {
 										width: "200px",
 									},
