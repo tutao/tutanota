@@ -1237,18 +1237,19 @@ export class KeyRotationFacade {
 			},
 		}
 
+		const groupManagementFacade = await this.groupManagementFacade()
+
 		// distribution for all other admins using their distribution keys
 		for (const distributionKey of distributionKeys) {
 			// we do not distribute for ourselves
 			if (isSameId(distributionKey.userGroupId, user.userGroup.group)) continue
 			// verify authenticity of this distribution key
 			// reproduce hash
+
 			const distributionKeyAuthenticationData = this.keyAuthenticationFacade.generatePubDistKeyAuthenticationData(
 				distributionKey.pubEccKey,
 				distributionKey.pubKyberKey,
 			)
-
-			const groupManagementFacade = await this.groupManagementFacade()
 			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(distributionKey.userGroupId)
 
 			const adminDistAuthKey = this.keyAuthenticationFacade.deriveAdminGroupDistKeyPairAuthKeyForMultiAdminRotation(
