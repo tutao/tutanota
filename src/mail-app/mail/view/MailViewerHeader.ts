@@ -192,10 +192,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderSubjectActionsLine(attrs: MailViewerHeaderAttrs) {
 		const { viewModel } = attrs
 		const classes = this.makeSubjectActionsLineClasses()
+		const senderName = viewModel.getDisplayedSender()?.name?.trim() ?? ""
+		const displayAddressForSender = senderName === ""
 
 		return m(classes, [
 			m(
-				".flex.flex-grow.align-self-start.items-start",
+				".flex.flex-grow.align-self-start.items-start.overflow-hidden",
 				{
 					class: styles.isSingleColumnLayout() ? "mt-m" : "mt",
 					role: "button",
@@ -230,7 +232,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						  )
 						: null,
 					this.tutaoBadge(viewModel),
-					m("span.text-break" + (viewModel.isUnread() ? ".font-weight-600" : ""), viewModel.getDisplayedSender()?.name ?? ""),
+					m(
+						"span" + (displayAddressForSender ? ".invisible.overflow-hidden" : ".text-break") + (viewModel.isUnread() ? ".font-weight-600" : ""),
+						displayAddressForSender ? viewModel.getDisplayedSender()?.address ?? "" : senderName,
+					),
 				],
 			),
 			m(
