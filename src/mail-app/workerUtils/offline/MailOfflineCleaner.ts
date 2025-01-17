@@ -53,19 +53,10 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, cutoffTimestamp)
 					}
 				}
-
+				//FIXME: mailSetCleanup
 				const mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
 				for (const mailListId of mailListIds) {
 					await this.deleteMailListLegacy(offlineStorage, mailListId, cutoffId)
-				}
-			} else {
-				const folderSystem = new FolderSystem(folders)
-				for (const folder of folders) {
-					if (isSpamOrTrashFolder(folderSystem, folder)) {
-						await this.deleteMailListLegacy(offlineStorage, folder.mails, GENERATED_MAX_ID)
-					} else {
-						await this.deleteMailListLegacy(offlineStorage, folder.mails, cutoffId)
-					}
 				}
 			}
 		}
@@ -84,9 +75,9 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 * will no longer be valid. (this is future proofing, because as of now there is not going to be a Range set for the
 	 * File list anyway, since we currently do not do range requests for Files.
 	 *
-	 * 	We do not delete ConversationEntries because:
-	 * 	1. They are in the same list for the whole conversation so we can't adjust the range
-	 * 	2. We might need them in the future for showing the whole thread
+	 *    We do not delete ConversationEntries because:
+	 *    1. They are in the same list for the whole conversation so we can't adjust the range
+	 *    2. We might need them in the future for showing the whole thread
 	 */
 	private async deleteMailListLegacy(offlineStorage: OfflineStorage, listId: Id, cutoffId: Id): Promise<void> {
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.

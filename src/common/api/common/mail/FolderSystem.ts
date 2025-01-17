@@ -1,7 +1,7 @@
-import { groupBy, isNotEmpty, partition } from "@tutao/tutanota-utils"
+import { groupBy, partition } from "@tutao/tutanota-utils"
 import { Mail, MailFolder } from "../../entities/tutanota/TypeRefs.js"
 import { isFolder, MailSetKind } from "../TutanotaConstants.js"
-import { elementIdPart, getElementId, getListId, isSameId } from "../utils/EntityUtils.js"
+import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
 	level: number
@@ -42,23 +42,13 @@ export class FolderSystem {
 
 	getFolderByMail(mail: Mail): MailFolder | null {
 		const sets = mail.sets
-		if (isNotEmpty(sets)) {
-			for (const setId of sets) {
-				const folder = this.getFolderById(elementIdPart(setId))
-				if (folder != null) {
-					return folder
-				}
+		for (const setId of sets) {
+			const folder = this.getFolderById(elementIdPart(setId))
+			if (folder != null) {
+				return folder
 			}
-			return null
-		} else {
-			return this.getFolderByMailListIdLegacy(getListId(mail))
 		}
-	}
-
-	private getFolderByMailListIdLegacy(mailListId: Id): MailFolder | null {
-		const subtree =
-			this.getFolderByMailListIdInSubtrees(this.systemSubtrees, mailListId) ?? this.getFolderByMailListIdInSubtrees(this.customSubtrees, mailListId)
-		return subtree?.folder ?? null
+		return null
 	}
 
 	/**
@@ -119,10 +109,6 @@ export class FolderSystem {
 
 	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: Id): FolderSubtree | null {
 		return this.getFolderBy(systems, (system) => isSameId(getElementId(system.folder), folderId))
-	}
-
-	private getFolderByMailListIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, mailListId: Id): FolderSubtree | null {
-		return this.getFolderBy(systems, (subtree) => isSameId(subtree.folder.mails, mailListId))
 	}
 
 	private getFolderBy(systems: ReadonlyArray<FolderSubtree>, predicate: (subtree: FolderSubtree) => boolean): FolderSubtree | null {

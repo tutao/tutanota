@@ -428,13 +428,7 @@ export class MailViewModel {
 		const folder = assertNotNull(this._folder)
 		return new ListElementListModel<Mail>({
 			fetch: async (lastFetchedMail, count) => {
-				// in case the folder is a new MailSet folder we need to load via the MailSetEntry index indirection
-				let startId: Id
-				if (folder.isMailSet) {
-					startId = lastFetchedMail == null ? CUSTOM_MAX_ID : constructMailSetEntryId(lastFetchedMail.receivedDate, getElementId(lastFetchedMail))
-				} else {
-					startId = lastFetchedMail == null ? GENERATED_MAX_ID : getElementId(lastFetchedMail)
-				}
+				let startId = lastFetchedMail == null ? CUSTOM_MAX_ID : constructMailSetEntryId(lastFetchedMail.receivedDate, getElementId(lastFetchedMail))
 
 				const { complete, items } = await this.loadMailRange(folder, startId, count, mailSetEntries)
 
@@ -452,7 +446,7 @@ export class MailViewModel {
 					}),
 				)
 			},
-			sortCompare: folder.isMailSet ? sortCompareMailSetMailsReversed : sortCompareByReverseId,
+			sortCompare: sortCompareMailSetMailsReversed,
 			autoSelectBehavior: () => this.conversationPrefProvider.getMailAutoSelectBehavior(),
 		})
 	})
@@ -554,18 +548,6 @@ export class MailViewModel {
 		this.conversationViewModel = this.conversationViewModelFactory(viewModelParams)
 	}
 
-	private async entityEventsReceivedForLegacy(updates: ReadonlyArray<EntityUpdateData>) {
-		for (const update of updates) {
-			if (isUpdateForTypeRef(MailTypeRef, update) && update.instanceListId === this._folder?.mails) {
-				if (this.stickyMailId && update.instanceId === elementIdPart(this.stickyMailId) && update.operation === OperationType.DELETE) {
-					// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
-					this.stickyMailId = null
-				}
-				await this.listModel?.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
-			}
-		}
-	}
-
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		// capturing the state so that if we switch folders we won't run into race conditions
 		const folder = this._folder
@@ -574,9 +556,6 @@ export class MailViewModel {
 
 		if (!folder || !listModel) {
 			return
-		}
-		if (!folder.isMailSet) {
-			return this.entityEventsReceivedForLegacy(updates)
 		}
 
 		let importMailStateUpdates: Array<EntityUpdateData> = []
@@ -654,11 +633,7 @@ export class MailViewModel {
 	}
 
 	private async loadMailRange(folder: MailFolder, start: Id, count: number, mailSetEntriesToPopulate: Map<Id, MailSetEntry>): Promise<ListFetchResult<Mail>> {
-		if (folder.isMailSet) {
-			return await this.loadMailSetMailRange(folder, start, count, mailSetEntriesToPopulate)
-		} else {
-			return await this.loadLegacyMailRange(folder, start, count)
-		}
+		return await this.loadMailSetMailRange(folder, start, count, mailSetEntriesToPopulate)
 	}
 
 	private async loadMailSetMailRange(
@@ -744,41 +719,6 @@ export class MailViewModel {
 			mailToSetEntries.set(elementIdPart(mailSetEntry.mail), mailSetEntry)
 		}
 		return { mails, mailIdToSetEntry: mailToSetEntries }
-	}
-
-	private async loadLegacyMailRange(folder: MailFolder, start: string, count: number): Promise<ListFetchResult<Mail>> {
-		const listId = folder.mails
-		try {
-			const items = await this.entityClient.loadRange(MailTypeRef, listId, start, count, true)
-			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
-			// For inbox rules there are two points where we might want to apply them. The first one is MailModel which applied inbox rules as they are received
-			// in real time. The second one is here, when we load emails in inbox. If they are unread we want to apply inbox rules to them. If inbox rule
-			// applies, the email is moved out of the inbox, and we don't return it here.
-			if (mailboxDetail) {
-				const mailsToKeepInInbox = await promiseFilter(items, async (mail) => {
-					const wasMatched = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
-					return !wasMatched
-				})
-				return { items: mailsToKeepInInbox, complete: items.length < count }
-			} else {
-				return { items, complete: items.length < count }
-			}
-		} catch (e) {
-			// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
-			// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
-			// around). Because of that cache will try to load additional items from the server in order to return `count` items. If it fails to load them,
-			// it will not return anything and instead will throw an error.
-			// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
-			// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
-			// the items we have and also show that we couldn't load everything.
-			if (isOfflineError(e)) {
-				const items = await this.cacheStorage.provideFromRange(MailTypeRef, listId, start, count, true)
-				if (items.length === 0) throw e
-				return { items, complete: false }
-			} else {
-				throw e
-			}
-		}
 	}
 
 	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {

@@ -9,7 +9,7 @@ import {
 } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -44,7 +44,7 @@ import type { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "..
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
 
 assertWorkerOrNode()
@@ -763,40 +763,28 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		// We put new instances into cache only when it's a new instance in the cached range which is only for the list instances.
 		if (instanceListId != null) {
-			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
-
-			const mail = deleteEvent && isSameTypeRef(MailTypeRef, typeRef) ? await this.storage.get(MailTypeRef, deleteEvent.instanceListId, instanceId) : null
-			// avoid downloading new mail element for non-mailSet user.
-			// can be removed once all mailbox have been migrated to mailSet (once lastNonOutdatedClientVersion is >= v242)
-			if (deleteEvent != null && mail != null && isEmpty(mail.sets)) {
-				// It is a move event for cached mail
-				await this.storage.deleteIfExists(typeRef, deleteEvent.instanceListId, instanceId)
-				await this.updateListIdOfMailAndUpdateCache(mail, instanceListId, instanceId)
-				return update
+			// If there is a custom handler we follow its decision.
+			// Otherwise, we do a range check to see if we need to keep the range up-to-date.
+			const shouldLoad =
+				(await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
+				(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
+			if (shouldLoad) {
+				// No need to try to download something that's not there anymore
+				// We do not consult custom handlers here because they are only needed for list elements.
+				console.log("downloading create event for", getTypeId(typeRef), instanceListId, instanceId)
+				return this.entityRestClient
+					.load(typeRef, [instanceListId, instanceId])
+					.then((entity) => this.storage.put(entity))
+					.then(() => update)
+					.catch((e) => {
+						if (isExpectedErrorForSynchronization(e)) {
+							return null
+						} else {
+							throw e
+						}
+					})
 			} else {
-				// If there is a custom handler we follow its decision.
-				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
-				const shouldLoad =
-					(await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
-					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
-				if (shouldLoad) {
-					// No need to try to download something that's not there anymore
-					// We do not consult custom handlers here because they are only needed for list elements.
-					console.log("downloading create event for", getTypeId(typeRef), instanceListId, instanceId)
-					return this.entityRestClient
-						.load(typeRef, [instanceListId, instanceId])
-						.then((entity) => this.storage.put(entity))
-						.then(() => update)
-						.catch((e) => {
-							if (isExpectedErrorForSynchronization(e)) {
-								return null
-							} else {
-								throw e
-							}
-						})
-				} else {
-					return update
-				}
+				return update
 			}
 		} else {
 			return update
@@ -896,14 +884,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (update.operation !== OperationType.UPDATE || !isSameTypeRef(typeRef, MailFolderTypeRef)) return
 		// load the old version of the folder now to check if it was migrated to mail set
 		const oldFolder = await this.storage.get(MailFolderTypeRef, update.instanceListId, update.instanceId)
-		// if it already is a mail set, we're done.
-		// we also delete the mails in the case where we don't have the folder itself in the cache.
-		// because we cache after loading the folder, we won't do it again on the next update event.
-		if (oldFolder != null && oldFolder.isMailSet) return
-		const updatedFolder = await this.entityRestClient.load(MailFolderTypeRef, [update.instanceListId, update.instanceId])
-		if (!updatedFolder.isMailSet) return
-		await this.storage.deleteWholeList(MailTypeRef, updatedFolder.mails)
-		await this.storage.put(updatedFolder)
 	}
 }
 

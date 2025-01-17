@@ -15,7 +15,6 @@ import {
 	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/api/common/TutanotaConstants"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
@@ -118,7 +117,7 @@ export async function moveMails({ mailboxModel, mailModel, mails, targetMailFold
 				const reportableMails = mails.map((mail) => {
 					// mails have just been moved
 					const reportableMail = createMail(mail)
-					reportableMail._id = targetMailFolder.isMailSet ? mail._id : [targetMailFolder.mails, getElementId(mail)]
+					reportableMail._id = mail._id
 					return reportableMail
 				})
 				const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))

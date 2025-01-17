@@ -487,7 +487,7 @@ export class MailModel {
 				} else {
 					const mailGroupCounter = this.mailboxCounters()[mailboxDetails.mailGroup._id]
 					if (mailGroupCounter) {
-						const counterId = folder.isMailSet ? getElementId(folder) : folder.mails
+						const counterId = getElementId(folder)
 						return mailGroupCounter[counterId]
 					} else {
 						return null
@@ -561,11 +561,7 @@ export class MailModel {
 
 	// Only load one mail, if there is even one we won't remove
 	private async isEmptyFolder(descendant: MailFolder) {
-		if (descendant.isMailSet) {
-			return (await this.entityClient.loadRange(MailSetEntryTypeRef, descendant.entries, CUSTOM_MIN_ID, 1, false)).length === 0
-		} else {
-			return (await this.entityClient.loadRange(MailTypeRef, descendant.mails, GENERATED_MAX_ID, 1, true)).length === 0
-		}
+		return (await this.entityClient.loadRange(MailSetEntryTypeRef, descendant.entries, CUSTOM_MIN_ID, 1, false)).length === 0
 	}
 
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
