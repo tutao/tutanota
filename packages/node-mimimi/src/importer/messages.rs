@@ -4,7 +4,7 @@ use tutasdk::ApiCallError;
 
 #[napi_derive::napi(string_enum)]
 #[derive(Debug)]
-pub enum ImportMessageKind {
+pub enum ImportErrorKind {
 	SdkError,
 	/// import feature is not available for this user
 	NoImportFeature,
@@ -14,23 +14,47 @@ pub enum ImportMessageKind {
 	TooBigChunk,
 	/// Error that occured when deleting a file
 	FileDeletionError,
-	/// The import was finished, but some files
-	/// were left behind and marked as failures.
-	/// the path is the directory where the failures can be inspected
-	ImportIncomplete,
 	/// Generic counterpart for SdkError
 	// note: do not throw this manually
 	GenericSdkError,
-	/// Import finished without any error
-	Success,
+	/// The import was finished, but some files
+	/// were left behind and marked as failures.
+	/// the path is the directory where the failures can be inspected
+	SourceExhaustedSomeError,
+}
+
+#[napi_derive::napi(string_enum)]
+#[derive(Debug)]
+pub enum ImportOkKind {
+	SourceExhaustedNoError,
+	UserCancelInterruption,
+	UserPauseInterruption,
 }
 
 /// needed because napi_rs doesn't support structured enums yet
 #[napi_derive::napi(object)]
 #[derive(Debug, Clone)]
-pub struct MailImportMessage {
-	pub kind: ImportMessageKind,
+pub struct MailImportErrorMessage {
+	pub kind: ImportErrorKind,
 	pub path: Option<String>,
+}
+
+/// note: this type can be simplified once napi have structural enum support,
+/// it can be:
+///```
+/// use std::path::PathBuf;
+/// use tutao_node_mimimi::importer::messages::{ImportOkKind, MailImportErrorMessage };
+///
+/// enum ImportMessage {
+/// 	Ok{kind: ImportOkKind},
+/// 	Err{kind: MailImportErrorMessage, path: Option<PathBuf>}
+/// }
+/// ```
+#[napi_derive::napi(object)]
+#[derive(Debug, Clone)]
+pub struct MailImportMessage {
+	pub ok_message: Option<ImportOkKind>,
+	pub error_message: Option<MailImportErrorMessage>,
 }
 
 /// Errors that can happen when we are preparing for an import.
@@ -107,11 +131,10 @@ pub enum FileIterationError {
 	ParseError(PathBuf),
 }
 
-#[cfg(feature = "javascript")]
-impl From<MailImportMessage> for napi::Error {
-	fn from(import_err: MailImportMessage) -> Self {
-		napi::Error::from_reason(format!("{:?}", import_err))
-	}
+/// Error that can happen while changing progress action,
+pub enum ProgressActionError {
+	CannotJoinImportLoop,
+	CannotUpdateRemoteStatus,
 }
 
 #[cfg(feature = "javascript")]
@@ -141,16 +164,27 @@ impl From<PreparationError> for napi::Error {
 	}
 }
 
-impl MailImportMessage {
+#[cfg(feature = "javascript")]
+impl From<ProgressActionError> for napi::Error {
+	fn from(progress_action_error: ProgressActionError) -> Self {
+		let code = match progress_action_error {
+			ProgressActionError::CannotJoinImportLoop => "CannotJoinImportLoop",
+			ProgressActionError::CannotUpdateRemoteStatus => "CannotUpdateRemoteStatus",
+		};
+		napi::Error::from_reason(code)
+	}
+}
+
+impl MailImportErrorMessage {
 	pub fn sdk(action: &'static str, error: ApiCallError) -> Self {
 		log::error!("ImportError::SdkError: {action} ({error})");
 		Self {
-			kind: ImportMessageKind::SdkError,
+			kind: ImportErrorKind::SdkError,
 			path: None,
 		}
 	}
 
-	pub fn with_path(kind: ImportMessageKind, path: PathBuf) -> Self {
+	pub fn with_path(kind: ImportErrorKind, path: PathBuf) -> Self {
 		Self {
 			kind,
 			path: Some(path.to_string_lossy().to_string()),
@@ -158,8 +192,24 @@ impl MailImportMessage {
 	}
 }
 
-impl From<ImportMessageKind> for MailImportMessage {
-	fn from(kind: ImportMessageKind) -> Self {
-		Self { kind, path: None }
+impl From<ImportErrorKind> for MailImportErrorMessage {
+	fn from(kind: ImportErrorKind) -> Self {
+		MailImportErrorMessage { kind, path: None }
+	}
+}
+
+impl MailImportMessage {
+	pub fn ok(ok_message: ImportOkKind) -> Self {
+		Self {
+			ok_message: Some(ok_message),
+			error_message: None,
+		}
+	}
+
+	pub fn err(err_message: MailImportErrorMessage) -> Self {
+		Self {
+			ok_message: None,
+			error_message: Some(err_message),
+		}
 	}
 }

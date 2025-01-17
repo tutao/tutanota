@@ -1,7 +1,11 @@
-use super::importer::{ImportMailStateId, ImportProgressAction, ImportStatus, Importer};
-use crate::importer::errors::{ImportMessageKind, MailImportMessage, PreparationError};
+use super::importer::{
+	ImportLoopResult, ImportMailStateId, ImportProgressAction, ImportStatus, Importer,
+};
 use crate::importer::file_reader::FileImport;
-use log::error;
+use crate::importer::messages::{
+	ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError,
+	ProgressActionError,
+};
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::Env;
 use std::future::{Future, IntoFuture};
@@ -27,8 +31,8 @@ pub struct TutaCredentials {
 #[napi_derive::napi]
 pub struct ImporterApi {
 	importer: Arc<Importer>,
-	importer_loop_handle: Option<napi::tokio::task::JoinHandle<()>>,
-	message_callback: Option<
+	importer_loop_handle: Option<napi::tokio::task::JoinHandle<ImportLoopResult>>,
+	message_handler: Option<
 		ThreadsafeFunction<MailImportMessage, napi::threadsafe_function::ErrorStrategy::Fatal>,
 	>,
 }
@@ -64,7 +68,7 @@ impl ImporterApi {
 				Ok(Some(ImporterApi {
 					importer: Arc::new(importer),
 					importer_loop_handle: None,
-					message_callback: None,
+					message_handler: None,
 				}))
 			},
 		}
@@ -111,7 +115,7 @@ impl ImporterApi {
 		Ok(ImporterApi {
 			importer: Arc::new(importer),
 			importer_loop_handle: None,
-			message_callback: None,
+			message_handler: None,
 		})
 	}
 
@@ -126,30 +130,65 @@ impl ImporterApi {
 			.set_next_progress_action(next_progress_action)
 			.await;
 
-		if let Some(previous_loop_handle) = std::mem::take(&mut self.importer_loop_handle) {
-			previous_loop_handle
+		// to-review:
+		// extracted to closure because we want to do this update
+		// - if we have loop running: after we wait for that loop
+		// - if we do not have loop running: before we spawn new loop
+		let update_remote_state = || async {
+			self.importer
+				.essentials
+				.update_remote_state(|remote_state| {
+					let pre_update_status = remote_state.status;
+
+					// change the state to this progress action corresponding status in server
+					remote_state.status = match next_progress_action {
+						ImportProgressAction::Continue => ImportStatus::Running,
+						ImportProgressAction::Pause => ImportStatus::Paused,
+						ImportProgressAction::Stop => ImportStatus::Canceled,
+					} as i64;
+
+					let is_same_status = pre_update_status == remote_state.status;
+
+					// do not perform this update if remote state is finalised,
+					// prevent the situation where we already finalised the import but
+					// since there will be some delay until user receive the final state,
+					// they might have performed new action in mean time,
+					// we should keep the original final state in that case
+
+					let was_already_finalised = pre_update_status != ImportStatus::Canceled as i64
+						&& pre_update_status != ImportStatus::Finished as i64;
+
+					!was_already_finalised && !is_same_status
+				})
 				.await
-				.expect("Can not join the task handle");
+				.map_err(|err| {
+					log::error!(
+						"Can not update remote status to action {next_progress_action:?}: {err:?}"
+					);
+					ProgressActionError::CannotUpdateRemoteStatus
+				})
 		};
 
-		match next_progress_action {
-			ImportProgressAction::Continue => {
-				self.importer
-					.set_remote_import_status(ImportStatus::Running)
-					.await?;
+		match std::mem::take(&mut self.importer_loop_handle) {
+			Some(existing_loop_handle) => {
+				let existing_loop_result = existing_loop_handle.await.map_err(|join_error| {
+					log::error!("Can not join existing loop handle");
+					ProgressActionError::CannotJoinImportLoop
+				})?;
+
+				self.message_handler.as_ref().map(|message_handler| {
+					Self::handle_import_loop_result(message_handler, existing_loop_result);
+				});
+
+				update_remote_state().await?;
+			},
+
+			None => {
+				update_remote_state().await?;
 				self.importer_loop_handle = Some(self.spawn_importer_task());
 			},
-			ImportProgressAction::Pause => {
-				self.importer
-					.set_remote_import_status(ImportStatus::Paused)
-					.await?;
-			},
-			ImportProgressAction::Stop => {
-				self.importer
-					.set_remote_import_status(ImportStatus::Canceled)
-					.await?
-			},
-		};
+		}
+
 		Ok(())
 	}
 
@@ -162,7 +201,7 @@ impl ImporterApi {
 			napi::threadsafe_function::ErrorStrategy::Fatal,
 		>,
 	) -> napi::Result<()> {
-		self.message_callback = Some(hook);
+		self.message_handler = Some(hook);
 		Ok(())
 	}
 
@@ -184,31 +223,42 @@ impl ImporterApi {
 }
 
 impl ImporterApi {
-	fn spawn_importer_task(&mut self) -> napi::tokio::task::JoinHandle<()> {
+	fn spawn_importer_task(&mut self) -> napi::tokio::task::JoinHandle<ImportLoopResult> {
 		let importer = Arc::clone(&self.importer);
-		let error_handler = self.message_callback.clone();
-		log::info!("starting an import");
+		let error_handler = self.message_handler.clone();
+		if error_handler.is_none() {
+			log::warn!("Started importer loop without a error handler")
+		}
+
 		napi::tokio::task::spawn(async move {
-			let import_res = importer.start_stateful_import().await;
-			if error_handler.is_none() {
-				log::warn!("Started importer loop without a error handler")
-			}
-
-			if let Some(error_handler) = error_handler {
-				let message_to_send = match import_res {
-					Err(error_to_send) => error_to_send,
-					Ok(()) => ImportMessageKind::Success.into(),
-				};
-
-				let call_status = error_handler.call(
-					message_to_send.clone(),
-					ThreadsafeFunctionCallMode::NonBlocking,
-				);
-				if !matches!(call_status, napi::Status::Ok) {
-					log::error!("Can not send final import message. Message: {message_to_send:?}")
-				}
-			}
+			let import_loop_result = importer.start_stateful_import().await;
+			error_handler.map(|error_handler| {
+				Self::handle_import_loop_result(&error_handler, import_loop_result.clone())
+			});
+			import_loop_result
 		})
+	}
+
+	fn handle_import_loop_result(
+		message_handler: &ThreadsafeFunction<
+			MailImportMessage,
+			napi::threadsafe_function::ErrorStrategy::Fatal,
+		>,
+		loop_result: ImportLoopResult,
+	) {
+		let message_to_send = match loop_result {
+			Err(error_to_send) => MailImportMessage::err(error_to_send),
+			Ok(exit_message_kind) => MailImportMessage::ok(exit_message_kind),
+		};
+
+		let call_status = message_handler.call(
+			message_to_send.clone(),
+			ThreadsafeFunctionCallMode::NonBlocking,
+		);
+
+		if !matches!(call_status, napi::Status::Ok) {
+			log::error!("Can not send final import message. Message: {message_to_send:?}")
+		}
 	}
 }
 

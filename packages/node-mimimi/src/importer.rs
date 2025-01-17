@@ -20,9 +20,9 @@ use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
-use crate::importer::errors::{
-	FileIterationError, ImapIterationError, ImportMessageKind, IterationError, MailImportMessage,
-	PreparationError,
+use crate::importer::messages::{
+	FileIterationError, ImapIterationError, ImportErrorKind, ImportOkKind, IterationError,
+	MailImportErrorMessage, MailImportMessage, PreparationError,
 };
 use crate::importer_api::TutaCredentials;
 use tutasdk::entities::generated::tutanota::{
@@ -37,7 +37,7 @@ use tutasdk::services::ExtraServiceParams;
 use tutasdk::tutanota_constants::ArchiveDataType;
 use tutasdk::{ApiCallError, CustomId, GeneratedId, IdTupleGenerated, LoggedInSdk};
 
-pub mod errors;
+pub mod messages;
 
 pub mod file_reader;
 mod filename_producer;
@@ -77,8 +77,7 @@ pub enum ImportParams {
 /// keep in sync with TutanotaConstants.ts
 #[cfg_attr(feature = "javascript", napi_derive::napi)]
 #[cfg_attr(not(feature = "javascript"), derive(Clone))]
-#[derive(PartialEq, Default)]
-#[cfg_attr(test, derive(Debug))]
+#[derive(PartialEq, Default, Debug)]
 #[repr(u8)]
 pub enum ImportStatus {
 	#[default]
@@ -132,6 +131,8 @@ impl Iterator for ImportSource {
 	}
 }
 
+pub(super) type ImportLoopResult = Result<ImportOkKind, MailImportErrorMessage>;
+
 impl ImportEssential {
 	const IMPORT_DISABLED_ERROR: ApiCallError = ApiCallError::ServerResponseError {
 		source: HttpError::PreconditionFailedError(Some(ImportFailure(
@@ -149,27 +150,38 @@ impl ImportEssential {
 
 	pub(super) async fn update_remote_state(
 		&self,
-		updater: impl Fn(&mut ImportMailState),
-	) -> Result<(), MailImportMessage> {
+		updater: impl Fn(&mut ImportMailState) -> bool,
+	) -> Result<(), MailImportErrorMessage> {
+		// to-review:
+		// we should prevent race condition while reading and writing remote state
+		// example: we might update spawn new task in ImporterApi::set_progress_action which
+		// finished immediately and tried to update the server, and in ImporterApi::set_progress_action itself,
+		// we also try to update the remote server. and these two update might not be synchronised
+		// hence: we should keep some mutex lock while we have importMailState
+		// and should only update when that lock is free
+
 		let mut server_state = self
 			.load_remote_state()
 			.await
-			.map_err(|e| MailImportMessage::sdk("getting remote import state", e))?;
+			.map_err(|e| MailImportErrorMessage::sdk("getting remote import state", e))?;
 
-		updater(&mut server_state);
-
-		self.logged_in_sdk
-			.mail_facade()
-			.get_crypto_entity_client()
-			.update_instance(server_state)
-			.await
-			.map_err(|e| MailImportMessage::sdk("update remote import state", e))
+		let should_upload = updater(&mut server_state);
+		if should_upload {
+			self.logged_in_sdk
+				.mail_facade()
+				.get_crypto_entity_client()
+				.update_instance(server_state)
+				.await
+				.map_err(|e| MailImportErrorMessage::sdk("update remote import state", e))
+		} else {
+			Ok(())
+		}
 	}
 
 	async fn upload_attachments_for_chunk(
 		&self,
 		importable_chunk: Vec<AttachmentUploadData>,
-	) -> Result<Vec<KeyedImportMailData>, MailImportMessage> {
+	) -> Result<Vec<KeyedImportMailData>, MailImportErrorMessage> {
 		let mut upload_data_per_mail: Vec<(Vec<FileData>, Vec<ImportableMailAttachmentMetaData>)> =
 			Vec::with_capacity(importable_chunk.len());
 		let attachments_count_per_mail: Vec<usize> = importable_chunk
@@ -236,7 +248,7 @@ impl ImportEssential {
 				attachments_file_data_flattened,
 			)
 			.await
-			.map_err(|e| MailImportMessage::sdk("fail to upload multiple attachments", e))?;
+			.map_err(|e| MailImportErrorMessage::sdk("fail to upload multiple attachments", e))?;
 
 		// reference mails and received reference tokens, by using the attachments count per mail
 		let mut all_reference_tokens_per_mail: Vec<Vec<Vec<BlobReferenceTokenWrapper>>> = vec![];
@@ -291,14 +303,14 @@ impl ImportEssential {
 	async fn make_serialized_chunk(
 		&self,
 		importable_chunk: Vec<KeyedImportMailData>,
-	) -> Result<ImportMailPostIn, MailImportMessage> {
+	) -> Result<ImportMailPostIn, MailImportErrorMessage> {
 		let mut serialized_imports = Vec::with_capacity(importable_chunk.len());
 
 		for unit_import in importable_chunk {
 			let serialized_import = self
 				.logged_in_sdk
 				.serialize_instance_to_json(unit_import.import_mail_data, unit_import.session_key)
-				.map_err(|e| MailImportMessage::sdk("serializing instance to json", e))?;
+				.map_err(|e| MailImportErrorMessage::sdk("serializing instance to json", e))?;
 			let wrapped_import_data = StringWrapper {
 				_id: Some(Importer::make_random_aggregate_id(&self.randomizer_facade)),
 				value: serialized_import,
@@ -318,21 +330,21 @@ impl ImportEssential {
 	// distribute load across the cluster. should be switched to read token (once it is implemented on the
 	// BlobFacade) and use ArchiveDataType::MailDetails to target one of the nodes that actually stores the
 	// data
-	async fn get_server_url_to_upload(&self) -> Result<String, MailImportMessage> {
+	async fn get_server_url_to_upload(&self) -> Result<String, MailImportErrorMessage> {
 		self.logged_in_sdk
 			.request_blob_facade_write_token(ArchiveDataType::Attachments)
 			.await
-			.map_err(|e| MailImportMessage::sdk("request blob write token", e))?
+			.map_err(|e| MailImportErrorMessage::sdk("request blob write token", e))?
 			.servers
 			.last()
 			.map(|s| s.url.to_string())
-			.ok_or(ImportMessageKind::EmptyBlobServerList.into())
+			.ok_or(ImportErrorKind::EmptyBlobServerList.into())
 	}
 
 	async fn make_import_service_call(
 		&self,
 		import_mail_data: ImportMailPostIn,
-	) -> Result<ImportMailPostOut, MailImportMessage> {
+	) -> Result<ImportMailPostOut, MailImportErrorMessage> {
 		let server_to_upload = self.get_server_url_to_upload().await?;
 		let import_mail_post_in = import_mail_data;
 
@@ -346,7 +358,7 @@ impl ImportEssential {
 				},
 			)
 			.await
-			.map_err(|e| MailImportMessage::sdk("calling ImportMailService", e))
+			.map_err(|e| MailImportErrorMessage::sdk("calling ImportMailService", e))
 	}
 
 	pub async fn create_new_server_import_state(
@@ -469,30 +481,14 @@ impl Importer {
 	}
 
 	/// check the given directory for any failed mail files that have been left behind during iteration
-	pub(crate) fn assert_no_failures(import_directory: &Path) -> Result<(), MailImportMessage> {
-		let err = MailImportMessage::with_path(
-			ImportMessageKind::ImportIncomplete,
-			import_directory.to_path_buf(),
-		);
-
-		let Ok(read_dir) = fs::read_dir(&import_directory) else {
-			return Err(err);
-		};
-
-		let Ok(entries) = read_dir.collect::<std::io::Result<Vec<DirEntry>>>() else {
-			return Err(err);
-		};
-
-		let err_entry = entries
+	pub(crate) fn have_failed_mails(import_directory: &Path) -> std::io::Result<bool> {
+		let have_failed_mails = fs::read_dir(&import_directory)?
+			.collect::<std::io::Result<Vec<DirEntry>>>()?
 			.iter()
 			.map(DirEntry::path)
-			.find(|path| path.extension() == Some(OsStr::new(FAILED_EML_EXTENSION)));
+			.any(|path| path.extension() == Some(OsStr::new(FAILED_EML_EXTENSION)));
 
-		if err_entry.is_none() {
-			Ok(())
-		} else {
-			Err(err)
-		}
+		Ok(have_failed_mails)
 	}
 
 	pub(super) async fn resume_file_importer(
@@ -619,7 +615,7 @@ impl Importer {
 	/// 	   `Ok(Some(..))` if we need to do another loop. the returned vector contains the file paths that were
 	///        successfully uploaded.
 	///        `Err()` if something went wrong. we might still continue depending on the error.
-	pub async fn import_next_chunk(&self) -> Result<Option<Vec<PathBuf>>, MailImportMessage> {
+	pub async fn import_next_chunk(&self) -> Result<Option<Vec<PathBuf>>, MailImportErrorMessage> {
 		let import_essentials = &self.essentials;
 		let Self {
 			chunked_import_source,
@@ -636,11 +632,12 @@ impl Importer {
 				self.essentials
 					.update_remote_state(|remote_state| {
 						remote_state.failedMails += 1;
+						true
 					})
 					.await?;
 
-				Err(MailImportMessage {
-					kind: ImportMessageKind::TooBigChunk,
+				Err(MailImportErrorMessage {
+					kind: ImportErrorKind::TooBigChunk,
 					path: too_big_chunk
 						.keyed_import_mail_data
 						.eml_file_path
@@ -680,6 +677,7 @@ impl Importer {
 					.update_remote_state(move |state| {
 						state.failedMails += failed_count;
 						state.successfulMails += import_count_in_this_chunk;
+						true
 					})
 					.await?;
 				Ok(Some(eml_file_paths))
@@ -689,39 +687,27 @@ impl Importer {
 
 	pub(super) async fn set_remote_import_status(
 		&self,
-		exit_import_status: ImportStatus,
-	) -> Result<(), MailImportMessage> {
-		match exit_import_status {
-			terminal_status @ (ImportStatus::Finished | ImportStatus::Canceled) => {
-				self.essentials
-					.update_remote_state(|remote_state| {
-						remote_state.status = terminal_status as i64;
-					})
-					.await
-			},
-			ImportStatus::Paused => {
-				self.essentials
-					.update_remote_state(|remote_state| {
-						remote_state.status = ImportStatus::Paused as i64;
-					})
-					.await
-			},
-			ImportStatus::Running => {
-				self.essentials
-					.update_remote_state(|remote_state| {
-						remote_state.status = ImportStatus::Running as i64;
-					})
-					.await
-			},
-		}
+		remote_import_status: ImportStatus,
+	) -> Result<(), MailImportErrorMessage> {
+		self.essentials
+			.update_remote_state(|remote_state| {
+				remote_state.status = remote_import_status as i64;
+				true
+			})
+			.await
 	}
 
-	pub async fn start_stateful_import(&self) -> Result<(), MailImportMessage> {
+	pub async fn start_stateful_import(&self) -> ImportLoopResult {
 		loop {
 			let requested_progress_action = *self.next_progress_action.lock().await;
-
 			match requested_progress_action {
-				ImportProgressAction::Pause | ImportProgressAction::Stop => break,
+				ImportProgressAction::Pause => {
+					return Ok(ImportOkKind::UserPauseInterruption);
+				},
+				ImportProgressAction::Stop => {
+					return Ok(ImportOkKind::UserCancelInterruption);
+				},
+
 				ImportProgressAction::Continue => {
 					let import_chunk_res = self.import_next_chunk().await;
 					match import_chunk_res {
@@ -729,29 +715,45 @@ impl Importer {
 							// deleting the state file is enough to mark there is no import running,
 							// do not delete the whole directory because we will leave some un-importable file
 							// in the directory. and users should be able to inspect those
-							FileImport::delete_state_file(&self.essentials.import_directory);
-							self.set_remote_import_status(ImportStatus::Finished)
-								.await?;
-							Importer::assert_no_failures(&self.essentials.import_directory)?;
-							break;
-						},
-						Ok(Some(completed_paths)) => {
-							for eml_file_path in completed_paths.into_iter() {
-								fs::remove_file(&eml_file_path).map_err(|_e| {
-									MailImportMessage::with_path(
-										ImportMessageKind::FileDeletionError,
-										eml_file_path,
+							FileImport::delete_state_file(&self.essentials.import_directory)
+								.map_err(|_del_err| {
+									MailImportErrorMessage::with_path(
+										ImportErrorKind::FileDeletionError,
+										self.essentials.import_directory.clone(),
 									)
 								})?;
-							}
+							self.set_remote_import_status(ImportStatus::Finished)
+								.await?;
+
+							return Importer::have_failed_mails(&self.essentials.import_directory)
+								// if we can not read import directory to check for failed files,
+								// pretend we have some failed mail
+								.unwrap_or(true)
+								.then_some(Err(ImportErrorKind::SourceExhaustedSomeError.into()))
+								.unwrap_or(Ok(ImportOkKind::SourceExhaustedNoError));
 						},
 
-						Err(e) => {
-							self.handle_err_while_importing_chunk(e)?;
+						Ok(Some(completed_paths)) => {
+							self.remove_chunked_uploaded_files(completed_paths)?;
+						},
+
+						Err(chunk_import_error) => {
+							self.handle_err_while_importing_chunk(chunk_import_error)?;
 						},
 					}
 				},
 			}
+		}
+	}
+
+	fn remove_chunked_uploaded_files(
+		&self,
+		uploaded_files: Vec<PathBuf>,
+	) -> Result<(), MailImportErrorMessage> {
+		for eml_file_path in uploaded_files {
+			fs::remove_file(&eml_file_path).map_err(|_e| {
+				MailImportErrorMessage::with_path(ImportErrorKind::FileDeletionError, eml_file_path)
+			})?;
 		}
 
 		Ok(())
@@ -762,28 +764,25 @@ impl Importer {
 	/// the import should stop for now.
 	fn handle_err_while_importing_chunk(
 		&self,
-		import_error: MailImportMessage,
-	) -> Result<(), MailImportMessage> {
+		import_error: MailImportErrorMessage,
+	) -> Result<(), MailImportErrorMessage> {
 		// todo: review
 		match import_error.kind {
-			// this is success kind, will really not reach here, but is ok to continue
-			ImportMessageKind::Success => Ok(()),
-
 			// if there is not import feature, we should give up and let user try again
-			ImportMessageKind::NoImportFeature => Err(ImportMessageKind::NoImportFeature)?,
+			ImportErrorKind::NoImportFeature => Err(ImportErrorKind::NoImportFeature)?,
 
 			// these are error we can do nothing about
-			ImportMessageKind::EmptyBlobServerList
-			| ImportMessageKind::GenericSdkError
-			| ImportMessageKind::SdkError => Err(ImportMessageKind::GenericSdkError)?,
+			ImportErrorKind::EmptyBlobServerList
+			| ImportErrorKind::GenericSdkError
+			| ImportErrorKind::SdkError => Err(ImportErrorKind::GenericSdkError)?,
 
 			// if something is too big, we just rename it as failed,
 			// and is fine to continue importing next one. user will get import incomplete notification at end
-			ImportMessageKind::TooBigChunk => {
-				if let Some(too_big_chunk_path) = import_error.path.as_ref() {
-					FileImport::rename_failed_eml_file(PathBuf::from(too_big_chunk_path).as_path())
-						.ok();
-				}
+			ImportErrorKind::TooBigChunk => {
+				let too_big_chunk_path = import_error
+					.path
+					.expect("All too bug chunk error should contain path");
+				FileImport::rename_failed_eml_file(&PathBuf::from(too_big_chunk_path)).ok();
 
 				Ok(())
 			},
@@ -795,16 +794,16 @@ impl Importer {
 			// best that can happen is:
 			// user do not re-start application and let import finish, so we remove state_id at end
 			// and we will clean complete dir in next import
-			ImportMessageKind::FileDeletionError => {
+			ImportErrorKind::FileDeletionError => {
 				// we can not delete the file after we imported it,
 				// best case: everything else is fine and import is finished/canceled so we just delete the whole dir
-				// worst case: use pause/resume ( or quit the app and open again ) and the imported chunk will be imported again
+				// worst case: user pause/resume ( or quit the app and open again ) and the imported chunk will be imported again
 				Ok(())
 			},
 
-			// this error is also not thrown by the loop itself, should not reach this branch,
-			// is ok to throw the user to renderer back,
-			ImportMessageKind::ImportIncomplete => Err(ImportMessageKind::ImportIncomplete.into()),
+			// this kind will not be created by import loop,
+			// exists only to pass over to api
+			ImportErrorKind::SourceExhaustedSomeError => unreachable!(),
 		}
 	}
 

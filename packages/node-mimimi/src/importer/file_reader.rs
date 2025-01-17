@@ -1,4 +1,4 @@
-use crate::importer::errors::{
+use crate::importer::messages::{
 	FileIterationError, IterationError, MailImportMessage, PreparationError,
 };
 use crate::importer::filename_producer::FileNameProducer;
@@ -161,8 +161,8 @@ impl FileImport {
 	/// makes a best-effort attempt to make the state in the given target directory
 	/// look like there is no ongoing import anymore, but will ignore errors.
 	/// if there were malformed files, they will remain behind to be inspected until a new import starts.
-	pub fn delete_state_file(import_dir: &PathBuf) {
-		fs::remove_file(import_dir.join(STATE_ID_FILE_NAME)).ok();
+	pub fn delete_state_file(import_dir: &PathBuf) -> std::io::Result<()> {
+		fs::remove_file(import_dir.join(STATE_ID_FILE_NAME))
 	}
 
 	pub fn make_import_directory(config_directory: &str, mailbox_id: &str) -> PathBuf {

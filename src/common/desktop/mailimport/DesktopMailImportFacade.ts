@@ -1,8 +1,8 @@
-import { ImporterApi, ImportMessageKind, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/node-mimimi"
+import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/node-mimimi"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../misc/credentials/CredentialType.js"
 import { NativeMailImportFacade } from "../../native/common/generatedipc/NativeMailImportFacade"
-import { clear, defer, DeferredObject } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, defer, DeferredObject } from "@tutao/tutanota-utils"
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
@@ -11,7 +11,7 @@ import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import path from "node:path"
 
 const TAG = "[DesktopMailImportFacade]"
-type Listener = DeferredObject<ImportMessageKind>["reject"]
+type Listener = DeferredObject<MailImportErrorMessage>["reject"]
 
 export type ImportErrorData =
 	| { category: ImportErrorCategories.LocalSdkError; source: string }
@@ -19,26 +19,23 @@ export type ImportErrorData =
 	| { category: ImportErrorCategories.InvalidImportFilesErrors; source: string }
 	| { category: ImportErrorCategories.ImportIncomplete; source: string }
 
-function asyncImportErrorToMailImportErrorData(message: MailImportMessage): ImportErrorData {
+function asyncImportErrorToMailImportErrorData(message: MailImportErrorMessage): ImportErrorData {
 	const { kind } = message
 	switch (kind) {
-		case ImportMessageKind.FileDeletionError:
+		case ImportErrorKind.FileDeletionError:
 			return { category: ImportErrorCategories.InvalidImportFilesErrors, source: kind }
 
-		case ImportMessageKind.SdkError:
-		case ImportMessageKind.GenericSdkError:
+		case ImportErrorKind.SdkError:
+		case ImportErrorKind.GenericSdkError:
 			return { category: ImportErrorCategories.LocalSdkError, source: kind }
 
-		case ImportMessageKind.NoImportFeature:
-		case ImportMessageKind.EmptyBlobServerList:
+		case ImportErrorKind.NoImportFeature:
+		case ImportErrorKind.EmptyBlobServerList:
 			return { category: ImportErrorCategories.ServerCommunicationError, source: kind }
 
-		case ImportMessageKind.TooBigChunk:
-		case ImportMessageKind.ImportIncomplete:
+		case ImportErrorKind.TooBigChunk:
+		case ImportErrorKind.SourceExhaustedSomeError:
 			return { category: ImportErrorCategories.ImportIncomplete, source: kind }
-
-		case ImportMessageKind.Success:
-			throw new ProgrammingError("ImportMessageKind.Success is not an error")
 	}
 }
 
@@ -181,25 +178,40 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	}
 
 	private processMimimiMessage(mailboxId: string, message: MailImportMessage) {
-		if (message.kind === ImportMessageKind.Success) {
-			this.processMimimiOkMessage(mailboxId)
-		} else {
-			this.processMimimiErrMessage(mailboxId, message)
+		const haveOkMessage = message.okMessage != null
+		const haveErrMessage = message.errorMessage != null
+
+		if (haveErrMessage == haveOkMessage) {
+			throw new ProgrammingError("Mail import message can either only be error or only be ok")
+		} else if (haveErrMessage) {
+			return this.processMimimiErrMessage(mailboxId, assertNotNull(message.errorMessage))
+		}
+
+		const okMessage = assertNotNull(message.okMessage)
+		switch (okMessage) {
+			case ImportOkKind.SourceExhaustedNoError:
+			case ImportOkKind.UserCancelInterruption:
+				console.log("cancel or success? whatever this is the final shot")
+				this.importerApis.delete(mailboxId)
+				this.notifier
+					.showOneShot({
+						title: this.lang.get("importComplete_title"),
+						body: this.lang.get("importComplete_msg"),
+					})
+					.catch()
+				break
+
+			case ImportOkKind.UserPauseInterruption:
+				console.log("User pause request was complete.")
+				// have to do nothing for pause
+				break
 		}
 	}
 
-	private processMimimiOkMessage(mailboxId: string) {
-		this.importerApis.delete(mailboxId)
-
-		this.notifier
-			.showOneShot({
-				title: this.lang.get("importComplete_title"),
-				body: this.lang.get("importComplete_msg"),
-			})
-			.catch()
-	}
-
-	private processMimimiErrMessage(mailboxId: string, error: MailImportMessage) {
+	private processMimimiErrMessage(mailboxId: string, error: MailImportErrorMessage) {
+		if (error.kind === ImportErrorKind.SourceExhaustedSomeError) {
+			this.importerApis.delete(mailboxId)
+		}
 		let errorData = asyncImportErrorToMailImportErrorData(error)
 
 		// this is the only category where it does not make sense for user to retry

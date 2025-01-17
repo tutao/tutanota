@@ -1,4 +1,4 @@
-use crate::importer::errors::ImapIterationError;
+use crate::importer::messages::ImapIterationError;
 use crate::importer::importable_mail::ImportableMail;
 use crate::tuta_imap::client::TutaImapClient;
 use imap_codec::imap_types::mailbox::Mailbox;
