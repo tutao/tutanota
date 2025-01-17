@@ -391,12 +391,15 @@ export class GroupManagementFacade {
 			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key")
 		}
 
-		this.keyAuthenticationFacade.verifyNewUserGroupKeyTag(
-			versionedDecryptedUserGroupKey,
-			userGroup._id,
-			assertNotNull(userGroup.admin),
-			recipientAdminGroupKeyVersion,
-			previousUserGroupKey,
+		this.keyAuthenticationFacade.verifyTag(
+			{
+				tagType: "USER_GROUP_KEY_TAG",
+				adminSymKey: versionedDecryptedUserGroupKey,
+				userGroupId: userGroup._id,
+				adminGroupId: assertNotNull(userGroup.admin),
+				newAdminGroupKeyVersion: recipientAdminGroupKeyVersion,
+				currentUserGroupKey: previousUserGroupKey,
+			},
 			givenUserGroupKeyMac.tag,
 		)
 	}

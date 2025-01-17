@@ -1116,13 +1116,14 @@ export class KeyRotationFacade {
 			object: pqKeyPair.eccKeyPair,
 		})
 
-		const tag = this.keyAuthenticationFacade.computeNewUserGroupKeyTag(
-			newUserGroupKeys.symGroupKey,
+		const tag = this.keyAuthenticationFacade.computeTag({
+			tagType: "USER_GROUP_KEY_TAG",
+			adminSymKey: newUserGroupKeys.symGroupKey,
 			userGroupId,
 			adminGroupId,
-			adminPubKeyVersion,
+			newAdminGroupKeyVersion: adminPubKeyVersion,
 			currentUserGroupKey,
-		)
+		})
 
 		const symKeyMac = createKeyMac({
 			taggingGroup: userGroupId,
