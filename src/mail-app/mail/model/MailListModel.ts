@@ -104,12 +104,12 @@ export class MailListModel {
 	}
 
 	getMail(mailId: Id): Mail | null {
-		return this.getLoadedMail(mailId)?.mail ?? null
+		return this.getLoadedMailByMailId(mailId)?.mail ?? null
 	}
 
 	getMailSetEntry(mailSetEntryId: Id): MailSetEntry | null {
 		const { mailId } = deconstructMailSetEntryId(mailSetEntryId)
-		return this.getLoadedMail(mailId)?.mailSetEntry ?? null
+		return this.getLoadedMailByMailId(mailId)?.mailSetEntry ?? null
 	}
 
 	loadAndSelect(mailId: Id, shouldStop: () => boolean): Promise<LoadedMail | null> {
@@ -117,7 +117,7 @@ export class MailListModel {
 	}
 
 	onSingleSelection(mail: Mail) {
-		this.listModel.onSingleSelection(assertNotNull(this.getLoadedMail(mail)))
+		this.listModel.onSingleSelection(assertNotNull(this.getLoadedMailByMailInstance(mail)))
 	}
 
 	selectNone() {
@@ -172,11 +172,11 @@ export class MailListModel {
 	}
 
 	onSingleInclusiveSelection(mail: Mail, clearSelectionOnMultiSelectStart?: boolean) {
-		this.listModel.onSingleInclusiveSelection(assertNotNull(this.getLoadedMail(mail)), clearSelectionOnMultiSelectStart)
+		this.listModel.onSingleInclusiveSelection(assertNotNull(this.getLoadedMailByMailInstance(mail)), clearSelectionOnMultiSelectStart)
 	}
 
 	selectRangeTowards(mail: Mail) {
-		this.listModel.selectRangeTowards(assertNotNull(this.getLoadedMail(mail)))
+		this.listModel.selectRangeTowards(assertNotNull(this.getLoadedMailByMailInstance(mail)))
 	}
 
 	selectPrevious(multiselect: boolean) {
@@ -188,7 +188,7 @@ export class MailListModel {
 	}
 
 	onSingleExclusiveSelection(mail: Mail) {
-		this.listModel.onSingleExclusiveSelection(assertNotNull(this.getLoadedMail(mail)))
+		this.listModel.onSingleExclusiveSelection(assertNotNull(this.getLoadedMailByMailInstance(mail)))
 	}
 
 	isInMultiselect(): boolean {
@@ -227,12 +227,12 @@ export class MailListModel {
 		this.listModel.stopLoading()
 	}
 
-	private getLoadedMail(mail: Id | Mail): LoadedMail | null {
-		if (typeof mail !== "string") {
-			return this.mailMap.get(getElementId(mail)) ?? null
-		} else {
-			return this.mailMap.get(mail) ?? null
-		}
+	private getLoadedMailByMailId(mailId: Id): LoadedMail | null {
+		return this.mailMap.get(mailId) ?? null
+	}
+
+	private getLoadedMailByMailInstance(mail: Mail): LoadedMail | null {
+		return this.getLoadedMailByMailId(getElementId(mail))
 	}
 
 	private loadedMails(): readonly LoadedMail[] {
