@@ -5,7 +5,7 @@ import { assertMainOrNodeBoot, isAppleDevice } from "../api/common/Env"
 import m from "mithril"
 
 assertMainOrNodeBoot()
-export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0']"
+export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a"
 export type KeyPress = {
 	key: string
 
