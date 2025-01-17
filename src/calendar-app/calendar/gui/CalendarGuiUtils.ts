@@ -86,6 +86,8 @@ import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { WeekdaySelectorItem } from "../../../common/gui/base/icons/WeekdaySelector.js"
+import { Type } from "cborg"
+import map = Type.map
 
 export interface IntervalOption {
 	value: number
@@ -445,12 +447,35 @@ export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<End
 	]
 }
 
-export const createWeekdaySelectorItems = (): Array<WeekdaySelectorItem<Weekdays>> => {
+export const createWeekdaySelectorItems = (): Array<WeekdaySelectorItem> => {
 	return [
 		{
 			value: Weekdays.MONDAY,
-			selected: false,
-			label: "monday_label".slice(0, 1).toUpperCase(),
+			label: lang.get("monday_label").slice(0, 1),
+		},
+		{
+			value: Weekdays.TUESDAY,
+			label: lang.get("tuesday_label").slice(0, 1),
+		},
+		{
+			value: Weekdays.WEDNESDAY,
+			label: lang.get("wednesday_label").slice(0, 1),
+		},
+		{
+			value: Weekdays.THURSDAY,
+			label: lang.get("thursday_label").slice(0, 1),
+		},
+		{
+			value: Weekdays.FRIDAY,
+			label: lang.get("friday_label").slice(0, 1),
+		},
+		{
+			value: Weekdays.SATURDAY,
+			label: lang.get("saturday_label").slice(0, 1),
+		},
+		{
+			value: Weekdays.SUNDAY,
+			label: lang.get("sunday_label").slice(0, 1),
 		},
 	]
 }

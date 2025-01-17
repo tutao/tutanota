@@ -1,59 +1,85 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { px } from "../../size.js"
+import { Weekdays } from "../../../api/common/TutanotaConstants.js"
 
-export interface WeekdaySelectorItem<T> {
-	value: T
+export interface WeekdaySelectorItem {
+	value: Weekdays
 	label: string
-	selected: boolean
 }
 
-export interface WeekdaySelectorAttrs<T> {
-	onValueSelected: (item: WeekdaySelectorItem<T>) => unknown
-	items: Array<WeekdaySelectorItem<T>>
+export interface WeekdaySelectorAttrs {
+	items: Array<WeekdaySelectorItem>
 }
 
 /**
  * Weekday picker that allows at least 1, maximum 7 days to be selected.
  * Displays each Weekday in a circle containing the first letter of the day.
  */
-export class WeekdaySelector<T> implements Component<WeekdaySelectorAttrs<T>> {
-	view(vnode: Vnode<WeekdaySelectorAttrs<T>>): Children {
-		return vnode.attrs.items.map((item) => {
-			let circleClass = ""
-			let textClass = ""
-			if (item.selected) {
-				circleClass = "calendar-selected-day-circle"
-				textClass = "calendar-selected-day-text"
-			}
-
-			return m(
-				"button.click.items-center.justify-center",
-				{
-					role: "option",
-					onclick: () => {
-						vnode.attrs.onValueSelected(item)
-					},
+export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
+	view(vnode: Vnode<WeekdaySelectorAttrs>): Children {
+		return m(
+			".flex-space-around",
+			{
+				style: {
+					margin: "4px 12px",
+					height: "52px",
 				},
-				[
-					m(".abs.z1.circle", {
-						class: circleClass,
-						style: {
-							width: px(40 * 0.625),
-							height: px(40 * 0.625),
-						},
-					}),
-					m(
-						".full-width.height-100p.center.z2",
-						{
-							class: textClass,
-							style: {
-								fontSize: px(14),
-							},
-						},
-						item.label,
-					),
-				],
-			)
-		})
+			},
+			vnode.attrs.items.map((item) => {
+				return m(WeekdaySelectorButton, { weekday: item })
+			}),
+		)
+	}
+}
+
+interface WeekdaySelectorButtonAttrs {
+	weekday: WeekdaySelectorItem
+	onEditorClosed?: () => unknown // callback for when Editor is closed to pass back values
+}
+
+/**
+ *
+ */
+class WeekdaySelectorButton implements Component<WeekdaySelectorButtonAttrs> {
+	private isToggled: boolean = false
+
+	get highlightedCircleClass() {
+		return this.isToggled ? "calendar-selected-day-circle" : "weekday-button-unselected-circle"
+	}
+
+	get highlightedTextClass() {
+		return this.isToggled ? "calendar-selected-day-text" : "weekday-button-unselected-text"
+	}
+
+	// "toggles" the switch
+	private toggle() {
+		this.isToggled = !this.isToggled
+	}
+
+	view(vnode: Vnode<WeekdaySelectorButtonAttrs>): Children {
+		return m(
+			"button.rel.click.flex.items-center.justify-center.flex-grow-shrink-0",
+			{
+				role: "option",
+				onclick: () => {
+					this.toggle()
+				},
+			},
+			[
+				m(".abs.z1.circle", {
+					class: this.highlightedCircleClass,
+					style: {
+						width: "36px",
+						height: "36px",
+					},
+				}),
+				m(
+					".full-width.center.z2",
+					{
+						class: this.highlightedTextClass,
+					},
+					vnode.attrs.weekday.label,
+				),
+			],
+		)
 	}
 }

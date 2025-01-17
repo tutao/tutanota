@@ -29,7 +29,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
-	private weekdayItems: Array<WeekdaySelectorItem<Weekdays>>
+	private readonly weekdayItems: Array<WeekdaySelectorItem> = createWeekdaySelectorItems()
 
 	private numberValues: IntervalOption[] = createIntervalValues()
 
@@ -38,7 +38,6 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
 		this.intervalOptions(this.numberValues)
-		this.weekdayItems = createWeekdaySelectorItems()
 
 		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
@@ -147,9 +146,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			this.renderIntervalPicker(attrs),
 			this.repeatRuleType === RepeatPeriod.WEEKLY || this.repeatRuleType === RepeatPeriod.MONTHLY
 				? [
-						m(Divider, { color: theme.button_bubble_bg, style: { margin: `0 0 ${size.vpad}px` } }),
+						m(Divider, { color: theme.button_bubble_bg }),
 						m(WeekdaySelector, {
-							onValueSelected: (item) => (item.selected = !item.selected),
 							items: this.weekdayItems,
 						}),
 				  ]
@@ -197,6 +195,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			{
 				style: {
 					padding: "8px 14px",
+					maxHeight: "40px",
 				},
 			},
 			[
