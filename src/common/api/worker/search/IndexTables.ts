@@ -1,3 +1,5 @@
+import { KeyVersion } from "@tutao/tutanota-utils"
+
 export type ObjectStoreName = string
 export type IndexName = string
 
@@ -24,7 +26,7 @@ export const Metadata = {
 export type EncryptedDbKeyBaseMetaData = {
 	userEncDbKey: Uint8Array
 	encDbIv: Uint8Array
-	userGroupKeyVersion: number
+	userGroupKeyVersion: KeyVersion
 }
 
 export type EncryptedIndexerMetaData = EncryptedDbKeyBaseMetaData & {

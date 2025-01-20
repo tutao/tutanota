@@ -5,7 +5,7 @@ import { EntropyService } from "../../entities/tutanota/Services.js"
 import { lazy, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import { encryptBytes } from "../crypto/CryptoWrapper.js"
 
 export interface EntropyDataChunk {
@@ -74,7 +74,7 @@ export class EntropyFacade {
 		if (tutanotaProperties.userEncEntropy) {
 			try {
 				const keyLoaderFacade = this.lazyKeyLoaderFacade()
-				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(Number(tutanotaProperties.userKeyVersion ?? 0))
+				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(tutanotaProperties.userKeyVersion ?? "0"))
 				const entropy = authenticatedAesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
 				random.addStaticEntropy(entropy)
 			} catch (error) {

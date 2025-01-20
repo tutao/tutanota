@@ -5,15 +5,16 @@ import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../
 import { CacheMode, EntityRestClientLoadOptions, OwnerEncSessionKeyProvider } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import {
-	Mail,
 	File as TutanotaFile,
+	FileTypeRef,
+	Mail,
 	MailDetails,
-	MailTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	FileTypeRef,
+	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SomeEntity } from "../../../common/api/common/EntityTypes.js"
+import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -30,7 +31,8 @@ export class BulkMailLoader {
 		private readonly mailEntityClient: EntityClient,
 		private readonly mailDataEntityClient: EntityClient,
 		private readonly cachedStorage: ExposedCacheStorage | null,
-	) {}
+	) {
+	}
 
 	loadMailsInRangeWithCache(
 		mailListId: Id,
@@ -70,7 +72,7 @@ export class BulkMailLoader {
 				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
 				return {
 					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+					encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				}
 			}
 			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
@@ -93,7 +95,7 @@ export class BulkMailLoader {
 				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
 				return {
 					key: assertNotNull(mail._ownerEncSessionKey),
-					encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+					encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				}
 			}
 			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider, options)

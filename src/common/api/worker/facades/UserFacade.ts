@@ -1,6 +1,6 @@
 import { GroupType } from "../../common/TutanotaConstants"
 import { Aes256Key, AesKey, decryptKey } from "@tutao/tutanota-crypto"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, KeyVersion } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
@@ -8,6 +8,7 @@ import { isSameId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { checkKeyVersionConstraints, parseKeyVersion } from "./KeyLoaderFacade.js"
 
 export interface AuthDataProvider {
 	/**
@@ -56,19 +57,19 @@ export class UserFacade implements AuthDataProvider {
 		}
 		const userGroupMembership = this.user.userGroup
 		const currentUserGroupKey = {
-			version: Number(userGroupMembership.groupKeyVersion),
+			version: parseKeyVersion(userGroupMembership.groupKeyVersion),
 			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
 		}
 		this.keyCache.setCurrentUserGroupKey(currentUserGroupKey)
 		this.setUserDistKey(currentUserGroupKey.version, userPassphraseKey)
 	}
 
-	setUserDistKey(currentUserGroupKeyVersion: number, userPassphraseKey: number[]) {
+	setUserDistKey(currentUserGroupKeyVersion: KeyVersion, userPassphraseKey: AesKey) {
 		if (this.user == null) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		// Why this magic + 1? Because we don't have access to the new version number when calling this function so we compute it from the current one
-		const newUserGroupKeyVersion = currentUserGroupKeyVersion + 1
+		const newUserGroupKeyVersion = checkKeyVersionConstraints(currentUserGroupKeyVersion + 1)
 		const userGroupMembership = this.user.userGroup
 		const legacyUserDistKey = this.deriveLegacyUserDistKey(userGroupMembership.group, userPassphraseKey)
 		const userDistKey = this.deriveUserDistKey(userGroupMembership.group, newUserGroupKeyVersion, userPassphraseKey)
@@ -104,7 +105,7 @@ export class UserFacade implements AuthDataProvider {
 	 * @param newUserGroupKeyVersion the new user group key version
 	 * @param userPasswordKey current password key of the user
 	 */
-	deriveUserDistKey(userGroupId: Id, newUserGroupKeyVersion: number, userPasswordKey: AesKey): Aes256Key {
+	deriveUserDistKey(userGroupId: Id, newUserGroupKeyVersion: KeyVersion, userPasswordKey: AesKey): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: `userGroup: ${userGroupId}, newUserGroupKeyVersion: ${newUserGroupKeyVersion}`,
 			key: userPasswordKey,
@@ -261,7 +262,7 @@ export class UserFacade implements AuthDataProvider {
 		}
 		const newUserGroupKey = {
 			object: newUserGroupKeyBytes,
-			version: Number(userGroupKeyDistribution.userGroupKeyVersion),
+			version: parseKeyVersion(userGroupKeyDistribution.userGroupKeyVersion),
 		}
 		console.log(`updating userGroupKey. new version: ${userGroupKeyDistribution.userGroupKeyVersion}`)
 		this.keyCache.setCurrentUserGroupKey(newUserGroupKey)
