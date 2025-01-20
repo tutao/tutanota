@@ -609,13 +609,13 @@ export enum RepeatPeriod {
 }
 
 export enum Weekdays {
-	MONDAY = "0",
-	TUESDAY = "1",
-	WEDNESDAY = "2",
-	THURSDAY = "3",
-	FRIDAY = "4",
-	SATURDAY = "5",
-	SUNDAY = "6",
+	MONDAY = "MO",
+	TUESDAY = "TU",
+	WEDNESDAY = "WE",
+	THURSDAY = "TH",
+	FRIDAY = "FR",
+	SATURDAY = "SA",
+	SUNDAY = "SU",
 }
 
 export const enum EndType {

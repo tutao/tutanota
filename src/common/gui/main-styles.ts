@@ -2248,6 +2248,10 @@ styles.registerStyle("main", () => {
 		".weekday-button-unselected-text": {
 			color: theme.content_accent,
 		},
+		".weekday-selector": {
+			margin: `${px(size.vpad_xsm)} 0`,
+			height: "52px",
+		},
 		".calendar-current-day-text": {
 			color: theme.content_bg,
 			"font-weight": "bold",

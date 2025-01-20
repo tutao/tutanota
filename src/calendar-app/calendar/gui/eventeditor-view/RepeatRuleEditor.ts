@@ -5,7 +5,14 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { EndType, RepeatPeriod, TabIndex, Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
-import { createCustomEndTypeOptions, createIntervalValues, createRepeatRuleOptions, createWeekdaySelectorItems, IntervalOption } from "../CalendarGuiUtils.js"
+import {
+	createCustomEndTypeOptions,
+	createIntervalValues,
+	createRepeatRuleOptions,
+	createWeekdaySelectorItems,
+	getByDayRulesFromAdvancedRules,
+	IntervalOption,
+} from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { RadioGroup, RadioGroupAttrs } from "../../../../common/gui/base/RadioGroup.js"
@@ -31,13 +38,16 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private intervalOptions: stream<IntervalOption[]> = stream([])
 	private readonly weekdayItems: Array<WeekdaySelectorItem> = createWeekdaySelectorItems()
 
-	private numberValues: IntervalOption[] = createIntervalValues()
+	private byDayRules: Weekdays[] | null = null
+	private handleWeekdaySelectionChange: (value: Weekdays) => unknown = () => {}
 
+	private numberValues: IntervalOption[] = createIntervalValues()
 	private occurrencesExpanded: boolean = false
 	private repeatOccurrences: number
 
 	constructor({ attrs }: Vnode<RepeatRuleEditorAttrs>) {
 		this.intervalOptions(this.numberValues)
+		this.byDayRules = getByDayRulesFromAdvancedRules(attrs.model.advancedRules)
 
 		this.repeatRuleType = attrs.model.repeatPeriod
 		this.repeatInterval = attrs.model.repeatInterval
@@ -149,6 +159,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						m(Divider, { color: theme.button_bubble_bg }),
 						m(WeekdaySelector, {
 							items: this.weekdayItems,
+							selectedDays: this.byDayRules,
+							selectionChanged: this.handleWeekdaySelectionChange,
 						}),
 				  ]
 				: null,

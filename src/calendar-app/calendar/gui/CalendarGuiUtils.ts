@@ -68,7 +68,7 @@ import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
 import { hslToHex, isColorLight, isValidColorCode, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
@@ -88,6 +88,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { WeekdaySelectorItem } from "../../../common/gui/base/icons/WeekdaySelector.js"
 import { Type } from "cborg"
 import map = Type.map
+import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
 
 export interface IntervalOption {
 	value: number
@@ -497,6 +498,16 @@ export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
 	]
 }
 export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).map((n) => ({ name: String(n), value: n, ariaValue: String(n) }))
+
+/**
+ * From a given Array of AdvancedRules, collect all BYDAY Rules and cast them to Weekday enum.
+ * this is necessary for opening the RepeatEditor for a given event that has AdvancedRules configured.
+ * @param advancedRepeatRules AdvancedRepeatRules that have been written on the Event already.
+ */
+export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): Weekdays[] | null => {
+	if (advancedRepeatRules.length == 0) return null
+	return advancedRepeatRules.filter((rr) => rr.ruleType === ByRule.BYDAY).map((rr) => <Weekdays>rr.interval)
+}
 
 export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
 	if (value.value === 0) return lang.get("calendarReminderIntervalAtEventStart_label")
