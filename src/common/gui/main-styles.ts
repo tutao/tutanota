@@ -2695,6 +2695,13 @@ styles.registerStyle("main", () => {
 			position: "relative",
 			height: "fit-content",
 		},
+		".tutaui-card-container-divide": {
+			padding: "0",
+		},
+		".tutaui-card-container-divide > *:not(:last-child)": {
+			"border-radius": "0",
+			"border-bottom": `1px solid ${theme.button_bubble_bg}`,
+		},
 		".tutaui-text-field, .child-text-editor [role='textbox']": {
 			display: "block",
 			"box-sizing": "border-box",

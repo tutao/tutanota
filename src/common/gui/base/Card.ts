@@ -4,6 +4,7 @@ export interface CardAttrs {
 	rootElementType?: "div" | "section"
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding">>
+	shouldDivide?: boolean
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLElement, "style"> & CardAttrs>
@@ -23,7 +24,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
 export class Card implements ClassComponent<CardAttrs> {
 	view({ attrs, children }: Vnode<CardAttrs, this>): Children | void | null {
 		return m(
-			`${attrs.rootElementType ?? "div"}.tutaui-card-container`,
+			`${attrs.rootElementType ?? "div"}.tutaui-card-container${attrs.shouldDivide ? ".tutaui-card-container-divide" : ""}`,
 			{
 				class: attrs.classes?.join(" "),
 				style: attrs.style,

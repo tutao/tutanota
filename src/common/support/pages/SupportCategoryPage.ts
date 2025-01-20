@@ -4,6 +4,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { getLocalisedCategoryIntroduction, getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
+import { Card } from "../../gui/base/Card.js"
 
 type Props = {
 	data: SupportDialogState
@@ -22,20 +23,19 @@ export class SupportCategoryPage implements Component<Props> {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 		return m(".pt.pb", [
-			m("section", [m(".h4.mb-0", getLocalisedCategoryName(selectedCategory()!, languageTag))]),
-			m("p.mt-xs", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
-			m("section", [
-				m(
-					".pb.pt.flex.col.gap-vpad.fit-height.box-content",
-					currentlySelectedCategory!.topics.map((topic) =>
-						m(SectionButton, {
-							text: getLocalisedTopicIssue(topic, languageTag),
-							onclick: () => {
-								selectedTopic(topic)
-								goToTopicDetailPage()
-							},
-						}),
-					),
+			m(Card, { shouldDivide: true }, [
+				m("section.pt-s.pb-s.plr-l", [
+					m(".h4.mb-0", getLocalisedCategoryName(selectedCategory()!, languageTag)),
+					m("p.mt-xs", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
+				]),
+				currentlySelectedCategory!.topics.map((topic) =>
+					m(SectionButton, {
+						text: getLocalisedTopicIssue(topic, languageTag),
+						onclick: () => {
+							selectedTopic(topic)
+							goToTopicDetailPage()
+						},
+					}),
 				),
 				m(NoSolutionSectionButton, {
 					onClick: () => goToContactSupport(),
