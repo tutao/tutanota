@@ -256,8 +256,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(SectionButton, {
 			leftIcon: { icon: Icons.Sync, title: "calendarRepeating_label" },
 			text: lang.get("calendarRepeating_label"),
-			inject: this.getTranslatedRepeatRule(model.editModels.whenModel.result.repeatRule, model.editModels.whenModel.isAllDay),
-			disabled: !model.canEditSeries(),
+			injectionRight: this.getTranslatedRepeatRule(model.editModels.whenModel.result.repeatRule, model.editModels.whenModel.isAllDay),
+			isDisabled: !model.canEditSeries(),
 			onclick: () => {
 				this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
 			},
@@ -275,7 +275,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(SectionButton, {
 			leftIcon: { icon: Icons.People, title: "calendarRepeating_label" },
 			text: lang.get("guests_label"),
-			inject: model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
+			injectionRight: model.editModels.whoModel.guests.length > 0 ? m("span", model.editModels.whoModel.guests.length) : null,
 			onclick: () => {
 				this.transitionTo(EditorPages.GUESTS, navigationCallback)
 			},
