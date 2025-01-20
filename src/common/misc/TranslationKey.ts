@@ -1906,3 +1906,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "threeDays_label"
+	| "prevThreeDays_label"
+	| "nextThreeDays_label"

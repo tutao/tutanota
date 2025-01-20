@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getStartOfDay, incrementDate, isToday, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
+import { getStartOfDay, incrementDate, isSameDay, isToday, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../../common/misc/Formatter"
 import {
 	combineDateWithTime,
@@ -28,7 +28,15 @@ import { getIfLargeScroll, getPosAndBoundsFromMouseEvent } from "../../../common
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { styles } from "../../../common/gui/styles"
-import { CALENDAR_EVENT_HEIGHT, daysHaveEvents, EventLayoutMode, getEventColor, layOutEvents, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils.js"
+import {
+	CALENDAR_EVENT_HEIGHT,
+	daysHaveAllDayEvents,
+	daysHaveEvents,
+	EventLayoutMode,
+	getEventColor,
+	layOutEvents,
+	TEMPORARY_EVENT_OPACITY,
+} from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
@@ -56,6 +64,7 @@ export type MultiDayCalendarViewAttrs = {
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
+	currentViewType: CalendarViewType
 }
 
 export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
@@ -70,9 +79,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private isProgrammaticScrollInProgress: boolean = false
 	private scrollEndTime: TimeoutID | null = null
 	private lastScrollPosition: number | null = null
+	private viewType: CalendarViewType
 
 	constructor({ attrs }: Vnode<MultiDayCalendarViewAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
+		this.viewType = attrs.currentViewType
 	}
 
 	oncreate(vnode: VnodeDOM<MultiDayCalendarViewAttrs>) {
@@ -81,6 +92,10 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 	onupdate(vnode: VnodeDOM<MultiDayCalendarViewAttrs>) {
 		this.viewDom = vnode.dom as HTMLElement
+		if (vnode.attrs.currentViewType !== this.viewType) {
+			this.longEventsDom = null
+			this.viewType = vnode.attrs.currentViewType
+		}
 	}
 
 	view({ attrs }: Vnode<MultiDayCalendarViewAttrs>): Children {
@@ -101,7 +116,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		const isDesktopLayout = styles.isDesktopLayout()
 
 		return m(".flex.col.fill-absolute", [
-			!isDesktopLayout
+			!isDesktopLayout && attrs.currentViewType !== CalendarViewType.THREE_DAY
 				? [
 						this.renderDateSelector(attrs, isDayView),
 						this.renderHeaderMobile(
@@ -112,6 +127,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							attrs.temporaryEvents,
 						),
 				  ]
+				: !isDesktopLayout && attrs.currentViewType === CalendarViewType.THREE_DAY
+				? this.renderShortWeekHeader(attrs, currentPageEvents, currentPageEvents)
 				: null,
 
 			m(PageView, {
@@ -156,7 +173,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 						const sign = isNext ? 1 : -1
 						const duration = {
 							month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
-							week: sign * (attrs.isDaySelectorExpanded ? 0 : 1),
+							days: sign * (attrs.daysInPeriod ? 0 : 1),
 						}
 
 						attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
@@ -164,7 +181,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					showDaySelection: isDayView,
 					highlightToday: true,
 					highlightSelectedWeek: !isDayView,
-					useNarrowWeekName: styles.isSingleColumnLayout(),
+					useNarrowWeekName: styles.isSingleColumnLayout() || attrs.currentViewType === CalendarViewType.THREE_DAY,
 					hasEventOn: (date) => daysHaveEvents(attrs.getEventsOnDays([date])),
 				}),
 			),
@@ -414,7 +431,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
 		// `scrollbar-gutter-stable-or-fallback` is needed because the scroll bar brings the calendar body out of line with the header
 		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s.scrollbar-gutter-stable-or-fallback", [
-			this.renderDayNamesRow(thisPageEvents.days, attrs.weekIndicator, onDateSelected),
+			this.renderDayNamesRow(thisPageEvents.days, attrs.weekIndicator, onDateSelected, attrs.selectedDate, false, attrs.getEventsOnDays),
 			m(".content-bg", [
 				m(
 					".calendar-hour-margin.content-bg",
@@ -439,8 +456,18 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					// in day view there's no days row and no selection indicator.
 					// it all must work with and without long events.
 					// thread carefully and test all the cases.
-					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyDown, temporaryEvents)],
+					[this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyDown, temporaryEvents, false)],
 				),
+			]),
+		])
+	}
+
+	private renderShortWeekHeader(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
+		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
+		return m("flex-fixed.pt-s.scrollbar-gutter-stable-or-fallback", [
+			this.renderDayNamesRow(thisPageEvents.days, null, (day, _) => onDateSelected(day), attrs.selectedDate, true, attrs.getEventsOnDays),
+			m(".calendar-hour-margin.mb-s", [
+				this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyDown, temporaryEvents, false),
 			]),
 		])
 	}
@@ -452,6 +479,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
 		temporaryEvents: Array<CalendarEvent>,
+		isDesktopLayout: boolean,
 	): Children {
 		const thisPageLongEvents = this.renderLongEvents(
 			thisPageEvents.days,
@@ -460,7 +488,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			onEventClicked,
 			onEventKeyDown,
 			temporaryEvents,
-			true,
+			isDesktopLayout,
 		)
 		const mainPageLongEvents = this.renderLongEvents(
 			mainPageEvents.days,
@@ -469,7 +497,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			onEventClicked,
 			onEventKeyDown,
 			temporaryEvents,
-			true,
+			isDesktopLayout,
 		)
 		return m(
 			".rel.mb-xs",
@@ -660,12 +688,29 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		})
 	}
 
-	private renderDayNamesRow(days: Array<Date>, weekIndicator: string | null, onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown): Children {
+	private renderDayNamesRow(
+		days: Array<Date>,
+		weekIndicator: string | null,
+		onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown,
+		selectedDate: Date,
+		highlightSelectedDay: boolean,
+		getEventsOnDays: (dateRange: Date[]) => EventsOnDays,
+	): Children {
 		if (days.length === 1 && weekIndicator == null) {
 			return null
 		}
 
 		const rowSize = px(size.calendar_days_header_height)
+
+		const getCircleClass = (date: Date) => {
+			if (highlightSelectedDay && isSameDay(date, selectedDate)) {
+				return { circle: "calendar-selected-day-circle", text: "calendar-selected-day-text" }
+			} else if (isToday(date)) {
+				return { circle: "calendar-current-day-circle", text: "calendar-current-day-text" }
+			}
+
+			return { circle: "", text: "" }
+		}
 
 		return m(
 			".flex.mb-s",
@@ -675,45 +720,65 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				: days.map((day) => {
 						// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
 						const onclick = () => onDateSelected(day, CalendarViewType.DAY)
-
-						return m(".flex.center-horizontally.flex-grow.center.b", [
+						const eventsOnDay = getEventsOnDays([day])
+						const shouldShowEventIndicator = !daysHaveAllDayEvents(eventsOnDay) && daysHaveEvents(eventsOnDay)
+						const classes = getCircleClass(day)
+						return m(".flex.flex-column.center-horizontally.flex-grow.center.b.items-center.rel", [
 							m(
-								".calendar-day-indicator.clickable",
+								".flex.center-horizontally.flex-grow.center.b.items-center",
 								{
-									onclick,
-									style: {
-										"padding-right": px(4),
-									},
-								},
-								lang.formats.weekdayShort.format(day) + " ",
-							),
-							m(
-								".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
-								{
-									"aria-label": day.toLocaleDateString(),
-									onclick,
+									class: !styles.isDesktopLayout() && shouldShowEventIndicator ? "mb-s" : "",
 								},
 								[
-									m(".abs.z1.circle", {
-										class: isToday(day) ? "calendar-current-day-circle" : "",
-										style: {
-											width: rowSize,
-											height: rowSize,
-										},
-									}),
 									m(
-										".full-width.height-100p.center.z2",
+										".calendar-day-indicator.clickable",
 										{
-											class: isToday(day) ? "calendar-current-day-text" : "",
+											onclick,
 											style: {
-												fontSize: px(14),
-												lineHeight: rowSize,
+												"padding-right": px(4),
 											},
 										},
-										day.getDate(),
+										lang.formats.weekdayShort.format(day) + " ",
+									),
+									m(
+										".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+										{
+											"aria-label": day.toLocaleDateString(),
+											onclick,
+										},
+										[
+											m(".abs.z1.circle", {
+												class: classes.circle,
+												style: {
+													width: rowSize,
+													height: rowSize,
+												},
+											}),
+											m(
+												".full-width.height-100p.center.z2",
+												{
+													class: classes.text,
+													style: {
+														fontSize: px(14),
+														lineHeight: rowSize,
+													},
+												},
+												day.getDate(),
+											),
+										],
 									),
 								],
 							),
+							!styles.isDesktopLayout() && shouldShowEventIndicator
+								? m(".day-events-indicator", {
+										style: styles.isDesktopLayout()
+											? {
+													width: "3px",
+													height: "3px",
+											  }
+											: {},
+								  })
+								: null,
 						])
 				  }),
 		)
