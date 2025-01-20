@@ -385,7 +385,7 @@ export class MailViewModel {
 		// Capture state to avoid race conditions.
 		// We need to populate mail set entries cache when loading mails so that we can react to updates later.
 		const folder = assertNotNull(this._folder)
-		return new MailListModel(folder, this.conversationPrefProvider, this.entityClient)
+		return new MailListModel(folder, this.conversationPrefProvider, this.entityClient, this.mailModel, this.inboxRuleHandler, this.cacheStorage)
 	})
 
 	private fixCounterIfNeeded: (folder: MailFolder, itemsWhenCalled: ReadonlyArray<Mail>) => void = debounce(

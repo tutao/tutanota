@@ -12,11 +12,16 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { assertNotNull, compare } from "@tutao/tutanota-utils"
+import { assertNotNull, compare, promiseFilter } from "@tutao/tutanota-utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
+import { MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { InboxRuleHandler } from "./InboxRuleHandler"
+import { MailModel } from "./MailModel"
+import { ListFetchResult } from "../../../common/gui/base/ListUtils"
+import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
+import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 
 assertMainOrNode()
 
@@ -39,15 +44,14 @@ export class MailListModel {
 		private readonly mailSet: MailFolder,
 		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly entityClient: EntityClient,
+		private readonly mailModel: MailModel,
+		private readonly inboxRuleHandler: InboxRuleHandler,
+		private readonly cacheStorage: ExposedCacheStorage,
 	) {
 		this.listModel = new ListModel({
-			fetch: async (lastFetchedItem, count) => {
+			fetch: (lastFetchedItem, count) => {
 				const lastFetchedId = lastFetchedItem?.mailSetEntry?._id ?? [mailSet.entries, CUSTOM_MAX_ID]
-				const items = await this.loadMails(lastFetchedId, count)
-				return {
-					items,
-					complete: items.length < count,
-				}
+				return this.loadMails(lastFetchedId, count)
 			},
 
 			sortCompare: (item1, item2) => {
@@ -239,14 +243,76 @@ export class MailListModel {
 		return this.listModel.state.items
 	}
 
-	private async loadMails(id: IdTuple, count: number): Promise<LoadedMail[]> {
-		const mailSetEntries = await this.entityClient.loadRange(MailSetEntryTypeRef, listIdPart(id), elementIdPart(id), count, true)
-		if (mailSetEntries.length === 0) {
-			return []
+	/**
+	 * Load mails, applying inbox rules as needed
+	 */
+	private async loadMails(startingId: IdTuple, count: number): Promise<ListFetchResult<LoadedMail>> {
+		let items: LoadedMail[] = []
+		let complete = false
+
+		try {
+			const mailSetEntries = await this.entityClient.loadRange(MailSetEntryTypeRef, listIdPart(startingId), elementIdPart(startingId), count, true)
+
+			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
+			complete = mailSetEntries.length < count
+			if (mailSetEntries.length > 0) {
+				items = await this.resolveMailSetEntries(mailSetEntries, (listId, elements) => this.entityClient.loadMultiple(MailTypeRef, listId, elements))
+				items = await this.applyInboxRulesToEntries(items)
+			}
+		} catch (e) {
+			if (isOfflineError(e)) {
+				// Attempt loading from the cache if we failed to get mails and/or mailset entries
+				// Note that we may have items if it was just inbox rules that failed
+				if (items.length === 0) {
+					// Set the request as incomplete so that we make another request later (see `loadMailsFromCache` comment)
+					complete = false
+					items = await this.loadMailsFromCache(startingId, count)
+					if (items.length === 0) {
+						throw e // we couldn't get anything from the cache!
+					}
+				}
+			} else {
+				throw e
+			}
 		}
-		const entries = await this.resolveMultipleMailSetEntries(mailSetEntries)
-		this.onLoadMails(entries)
-		return entries
+
+		this.onLoadMails(items)
+		return {
+			items,
+			complete,
+		}
+	}
+
+	/**
+	 * Load mails from the cache rather than remotely
+	 */
+	private async loadMailsFromCache(startId: IdTuple, count: number): Promise<LoadedMail[]> {
+		// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
+		// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
+		// around). Because of that cache will try to load additional items from the server in order to return `count` items. If it fails to load them,
+		// it will not return anything and instead will throw an error.
+		// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
+		// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
+		// the items we have and also show that we couldn't load everything.
+		const mailSetEntries = await this.cacheStorage.provideFromRange(MailSetEntryTypeRef, listIdPart(startId), elementIdPart(startId), count, true)
+		return await this.resolveMailSetEntries(mailSetEntries, (list, elements) => this.cacheStorage.provideMultiple(MailTypeRef, list, elements))
+	}
+
+	/**
+	 * Apply inbox rules to an array of mails, returning all mails that were not moved
+	 */
+	private async applyInboxRulesToEntries(entries: LoadedMail[]): Promise<LoadedMail[]> {
+		if (this.mailSet.folderType !== MailSetKind.INBOX || entries.length === 0) {
+			return entries
+		}
+		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(this.mailSet)
+		if (!mailboxDetail) {
+			return entries
+		}
+		return await promiseFilter(entries, async (entry) => {
+			const ruleApplied = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, entry.mail, true)
+			return ruleApplied == null
+		})
 	}
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
@@ -257,7 +323,13 @@ export class MailListModel {
 		return loadedMail
 	}
 
-	private async resolveMultipleMailSetEntries(mailSetEntries: MailSetEntry[]): Promise<LoadedMail[]> {
+	/**
+	 * Loads all Mail instances for each MailSetEntry, returning a tuple of each
+	 */
+	private async resolveMailSetEntries(
+		mailSetEntries: MailSetEntry[],
+		mailProvider: (listId: Id, elementIds: Id[]) => Promise<Mail[]>,
+	): Promise<LoadedMail[]> {
 		// Sort all mails into mailbags so we can retrieve them with loadMultiple
 		const mailListMap: Map<Id, Id[]> = new Map()
 		for (const entry of mailSetEntries) {
@@ -274,7 +346,7 @@ export class MailListModel {
 		// Retrieve all mails by mailbag
 		const allMails: Map<Id, Mail> = new Map()
 		for (const [list, elements] of mailListMap) {
-			const mails = await this.entityClient.loadMultiple(MailTypeRef, list, elements)
+			const mails = await mailProvider(list, elements)
 			for (const mail of mails) {
 				allMails.set(getElementId(mail), mail)
 			}
