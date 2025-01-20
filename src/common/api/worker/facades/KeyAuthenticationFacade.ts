@@ -5,12 +5,23 @@ import { assertWorkerOrNode } from "../../common/Env.js"
 import { customIdToUint8array } from "../../common/utils/EntityUtils.js"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 assertWorkerOrNode()
 
+/**
+ * A system to authenticate some key.
+ */
 type KeyAuthenticationSystem<T extends KeyAuthenticationParams> = {
+	/**
+	 * Canonicalizes the data we want to authenticate, i.e., the new key and some binding data, into a byte array.
+	 * @param params
+	 */
 	generateAuthenticationData(params: T): Uint8Array
+	/**
+	 * Derives the authentication key from a trusted key and some additional binding parameters.
+	 * @param params
+	 * @param cryptoWrapper
+	 */
 	deriveKey(params: T, cryptoWrapper: CryptoWrapper): Aes256Key
 }
 
@@ -29,17 +40,14 @@ type UserGroupKeyAuthenticationParams = {
  * that is, either the user or another admin.
  */
 const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuthenticationParams> = {
-	deriveKey(
-		{ userGroupId, adminGroupId, newAdminGroupKeyVersion, currentUserGroupKey }: UserGroupKeyAuthenticationParams,
-		cryptoWrapper: CryptoWrapper,
-	): Aes256Key {
+	deriveKey({ userGroupId, adminGroupId, newAdminGroupKeyVersion, currentUserGroupKey }, cryptoWrapper) {
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
 			key: currentUserGroupKey.object,
 			context: "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
 		})
 	},
-	generateAuthenticationData({ adminSymKey }: UserGroupKeyAuthenticationParams): Uint8Array {
+	generateAuthenticationData({ adminSymKey }) {
 		const versionByte = Uint8Array.from([0])
 		return concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
 	},
@@ -62,17 +70,14 @@ type NewAdminPubKeyAuthenticationParams = {
  * that is, either themselves or an admin.
  */
 const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKeyAuthenticationParams> = {
-	deriveKey(
-		{ userGroupId, adminGroupId, newAdminGroupKeyVersion, currentUserGroupKey }: NewAdminPubKeyAuthenticationParams,
-		cryptoWrapper: CryptoWrapper,
-	): Aes256Key {
+	deriveKey({ userGroupId, adminGroupId, newAdminGroupKeyVersion, currentUserGroupKey }, cryptoWrapper) {
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKey.version}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
 			key: currentUserGroupKey.object,
 			context: "newAdminPubKeyAuthKeyForUserGroupKeyRotation",
 		})
 	},
-	generateAuthenticationData({ adminGroupKeyVersion, pubEccKey, pubKyberKey, adminGroupId }: NewAdminPubKeyAuthenticationParams): Uint8Array {
+	generateAuthenticationData({ adminGroupKeyVersion, pubEccKey, pubKyberKey, adminGroupId }) {
 		const versionByte = Uint8Array.from([0])
 		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
 		const identifierType = Uint8Array.from([Number(PublicKeyIdentifierType.GROUP_ID)])
@@ -98,17 +103,14 @@ type PubDistKeyAuthenticationParams = {
  * that is, either themselves or another admin.
  */
 const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenticationParams> = {
-	deriveKey(
-		{ adminGroupId, userGroupId, currentUserGroupKeyVersion, currentAdminGroupKey }: PubDistKeyAuthenticationParams,
-		cryptoWrapper: CryptoWrapper,
-	): Aes256Key {
+	deriveKey({ adminGroupId, userGroupId, currentUserGroupKeyVersion, currentAdminGroupKey }, cryptoWrapper) {
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKey.version}`,
 			key: currentAdminGroupKey.object,
 			context: "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
 		})
 	},
-	generateAuthenticationData({ pubEccKey, pubKyberKey }: PubDistKeyAuthenticationParams): Uint8Array {
+	generateAuthenticationData({ pubEccKey, pubKyberKey }) {
 		const versionByte = Uint8Array.from([0])
 		return concat(versionByte, pubEccKey, pubKyberKey)
 	},
@@ -136,7 +138,7 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 			context: "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser",
 		})
 	},
-	generateAuthenticationData({ adminSymKey }: AdminSymKeyAuthenticationParams): Uint8Array {
+	generateAuthenticationData({ adminSymKey }) {
 		const versionByte = Uint8Array.from([0])
 		return concat(versionByte, Uint8Array.from([adminSymKey.version]), Uint8Array.from(adminSymKey.object))
 	},
@@ -148,35 +150,37 @@ type KeyAuthenticationParams =
 	| PubDistKeyAuthenticationParams
 	| AdminSymKeyAuthenticationParams
 
-function selectKeyAuthenticationSystem(keyAuthenticationParams: KeyAuthenticationParams): KeyAuthenticationSystem<KeyAuthenticationParams> {
-	switch (keyAuthenticationParams.tagType) {
-		case "USER_GROUP_KEY_TAG":
-			return userGroupKeyAuthenticationSystem
-		case "NEW_ADMIN_PUB_KEY_TAG":
-			return newAdminPubKeyAuthenticationSystem
-		case "PUB_DIST_KEY_TAG":
-			return pubDistKeyAuthenticationSystem
-		case "ADMIN_SYM_KEY_TAG":
-			return adminSymKeyAuthenticationSystem
-		default:
-			const exhaustiveCheck: never = keyAuthenticationParams
-			throw new ProgrammingError(exhaustiveCheck)
-	}
+const systemMap = {
+	USER_GROUP_KEY_TAG: userGroupKeyAuthenticationSystem,
+	NEW_ADMIN_PUB_KEY_TAG: newAdminPubKeyAuthenticationSystem,
+	PUB_DIST_KEY_TAG: pubDistKeyAuthenticationSystem,
+	ADMIN_SYM_KEY_TAG: adminSymKeyAuthenticationSystem,
 }
 
+/**
+ * Authenticates keys by deriving trust in another key using a Message Authentication Code (MAC tag).
+ */
 export class KeyAuthenticationFacade {
 	constructor(private readonly cryptoWrapper: CryptoWrapper) {}
 
+	/**
+	 * Computes a MAC tag using an existing key authentication system.
+	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
+	 */
 	public computeTag(keyAuthenticationParams: KeyAuthenticationParams): MacTag {
-		const keyAuthenticationSystem = selectKeyAuthenticationSystem(keyAuthenticationParams)
+		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
 		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
-		const tag = this.cryptoWrapper.hmacSha256(authKey, authData)
-		return tag
+		return this.cryptoWrapper.hmacSha256(authKey, authData)
 	}
 
+	/**
+	 * Verifies a MAC tag using an existing key authentication system.
+	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
+	 * @param tag The MAC tag to be verified. Must be a branded MacTag, which you can get with brandKeyMac() in most cases
+	 */
 	public verifyTag(keyAuthenticationParams: KeyAuthenticationParams, tag: MacTag): void {
-		const keyAuthenticationSystem = selectKeyAuthenticationSystem(keyAuthenticationParams)
+		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
 		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
 		this.cryptoWrapper.verifyHmacSha256(authKey, authData, tag)
@@ -185,6 +189,9 @@ export class KeyAuthenticationFacade {
 
 type BrandedKeyMac = Omit<KeyMac, "mac"> & { tag: MacTag }
 
+/**
+ * Brands a KeyMac so that it has a branded MacTag, which can be used in authentication methods.
+ */
 export function brandKeyMac(keyMac: KeyMac): BrandedKeyMac {
 	return keyMac as BrandedKeyMac
 }
