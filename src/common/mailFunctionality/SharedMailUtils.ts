@@ -159,7 +159,7 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 		.catch(() => [])
 }
 
-export function conversationTypeString(conversationType: ConversationType): string {
+export function dialogTitleTranslationKey(conversationType: ConversationType): TranslationKey {
 	let key: TranslationKey
 
 	switch (conversationType) {
@@ -179,7 +179,7 @@ export function conversationTypeString(conversationType: ConversationType): stri
 			key = "emptyString_msg"
 	}
 
-	return lang.get(key)
+	return key
 }
 
 type AttachmentSizeCheckResult = {

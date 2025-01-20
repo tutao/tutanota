@@ -87,8 +87,8 @@ import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import {
 	checkAttachmentSize,
-	conversationTypeString,
 	createNewContact,
+	dialogTitleTranslationKey,
 	getEnabledMailAddressesWithUser,
 	getMailAddressDisplayText,
 	LINE_BREAK,
@@ -909,7 +909,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				type: ButtonType.Primary,
 			},
 		],
-		middle: lang.makeTranslation("conversation_type", conversationTypeString(model.getConversationType())),
+		middle: dialogTitleTranslationKey(model.getConversationType()),
 		create: () => {
 			if (isBrowser()) {
 				// Have a simple listener on browser, so their browser will make the user ask if they are sure they want to close when closing the tab/window

@@ -172,7 +172,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailSubject(attrs: MailViewerAttrs) {
-		return m("h4.font-weight-600.mt.mb.text-break.selectable." + responsiveCardHMargin(), attrs.viewModel.getSubject())
+		return m(
+			"h4.font-weight-600.mt.mb.text-break.selectable." + responsiveCardHMargin(),
+			{
+				"data-testid": "subject",
+			},
+			attrs.viewModel.getSubject(),
+		)
 	}
 
 	/**
@@ -382,6 +388,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 		const wrapNode = document.createElement("div")
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
+		wrapNode.setAttribute("data-testid", "mail-body")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))

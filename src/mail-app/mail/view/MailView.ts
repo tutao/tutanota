@@ -919,7 +919,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							return m(SidebarSectionRow, {
 								icon: Icons.Label,
 								iconColor: getLabelColor(label.color),
-								label: lang.makeTranslation("folder_name", label.name),
+								label: lang.makeTranslation(`folder:${label.name}`, label.name),
 								path,
 								isSelectedPrefix: inEditMode ? false : path,
 								disabled: inEditMode,

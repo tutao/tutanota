@@ -89,6 +89,7 @@ export class Editor implements ImageHandler, Component {
 		return m(".selectable", {
 			role: "textbox",
 			"aria-multiline": "true",
+			"data-testid": "text_editor",
 			tabindex: TabIndex.Default,
 			oncreate: (vnode) => this.initSquire(vnode.dom as HTMLElement),
 			class: `flex-grow ${this.showOutline ? "" : "hide-outline"}`,
