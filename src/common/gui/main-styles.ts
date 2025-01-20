@@ -1264,6 +1264,14 @@ styles.registerStyle("main", () => {
 			height: px(size.icon_size_xl),
 			width: px(size.icon_size_xl),
 		},
+		".icon-xxl": {
+			height: px(size.icon_size_xxl),
+			width: px(size.icon_size_xxl),
+		},
+		".icon-xxl > svg": {
+			height: px(size.icon_size_xxl),
+			width: px(size.icon_size_xxl),
+		},
 		".icon-message-box": {
 			height: px(size.icon_message_box),
 			width: px(size.icon_message_box),

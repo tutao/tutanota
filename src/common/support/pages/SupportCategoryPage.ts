@@ -21,8 +21,8 @@ export class SupportCategoryPage implements Component<Props> {
 	}: Vnode<Props>): Children {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
-		return m("", [
-			m("section", [m(".h4.mb-0.pt", getLocalisedCategoryName(selectedCategory()!, languageTag))]),
+		return m(".pt.pb", [
+			m("section", [m(".h4.mb-0", getLocalisedCategoryName(selectedCategory()!, languageTag))]),
 			m("p.mt-xs", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 			m("section", [
 				m(

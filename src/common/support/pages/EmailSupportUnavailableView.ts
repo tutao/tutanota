@@ -8,10 +8,11 @@ import { Card } from "../../gui/base/Card.js"
 
 export class EmailSupportUnavailableView implements Component {
 	view(): Children {
-		return [
+		return m(
+			".pt.pb",
 			m(
 				Card,
-				{ rootElementType: "div", classes: ["mt"] },
+				{ rootElementType: "div" },
 				m(".h4.mt-xs", "Your plan doesn't offer direct support"),
 				m(
 					"p",
@@ -62,6 +63,6 @@ export class EmailSupportUnavailableView implements Component {
 					disabled: false,
 				}),
 			),
-		]
+		)
 	}
 }

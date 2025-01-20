@@ -4,7 +4,7 @@ import { Card } from "../../gui/base/Card.js"
 export class SupportRequestSentDialog implements Component {
 	view(): Children {
 		return m(
-			".pt-ml",
+			".pt.pb",
 			m(
 				Card,
 				{ rootElementType: "div" },

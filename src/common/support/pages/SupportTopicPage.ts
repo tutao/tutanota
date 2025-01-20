@@ -29,7 +29,7 @@ export class SupportTopicPage implements Component<Props> {
 		}).html
 		const issue = getLocalisedTopicIssue(topic, languageTag)
 		return m(
-			"",
+			".pt.pb",
 			{
 				style: {
 					"overflow-x": "auto",
@@ -43,7 +43,7 @@ export class SupportTopicPage implements Component<Props> {
 					{
 						rootElementType: "div",
 						style: { padding: "1em", height: "80%" },
-						classes: ["scroll", "mt"],
+						classes: ["scroll"],
 					},
 					m(".h4.m-0.pb", issue),
 					m.trust(sanitisedSolution),

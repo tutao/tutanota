@@ -32,7 +32,7 @@ export class ContactSupportPage implements Component<Props> {
 
 	view({ attrs: { data, goToSuccessPage } }: Vnode<Props>): Children {
 		return m(
-			".flex.flex-column",
+			".flex.flex-column.pt.pb",
 			{
 				style: {
 					gap: "1em",
@@ -42,7 +42,7 @@ export class ContactSupportPage implements Component<Props> {
 			},
 			m(
 				Card,
-				{ rootElementType: "div", classes: ["mt"], style: { padding: "1em" } },
+				{ rootElementType: "div", style: { padding: "1em" } },
 				m(
 					"",
 					m("p.h4.m-0", "Tell us more"),
