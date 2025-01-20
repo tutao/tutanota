@@ -11,11 +11,33 @@ export type lazyAsync<T> = () => Promise<T>
 export type Thunk = () => unknown
 
 /**
+ * Integer constraint from 0 to n (using tail-recursion elimination)
+ */
+type Enumerate<N extends number, Acc extends number[] = []> = Acc["length"] extends N ? Acc[number] : Enumerate<N, [...Acc, Acc["length"]]>
+
+/**
+ * A key version must be an integer between 0 and 100.
+ *
+ * The constraint to < 100 is arbitrary and must be changed when we rotate keys more often.
+ *
+ * Must be kept in sync with the constraints in isKeyVersion() right below.
+ */
+export type KeyVersion = Enumerate<100>
+
+/**
+ * Must be kept in sync with the constraints in KeyVersion
+ */
+export function isKeyVersion(version: number): version is KeyVersion {
+	// TODO probably we should not include the < 100 check here
+	return Number.isInteger(version) && version >= 0 && version < 100
+}
+
+/**
  * A group key and its version.
  */
 export type Versioned<T> = {
 	object: T
-	version: number
+	version: KeyVersion
 }
 
 /**

@@ -15,7 +15,7 @@ import {
 } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
@@ -76,7 +76,7 @@ export class RecoverCodeFacade {
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
-		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(recoveryCodeEntity.userKeyVersion))
+		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(recoveryCodeEntity.userKeyVersion))
 		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}
 

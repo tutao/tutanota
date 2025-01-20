@@ -22,7 +22,7 @@ import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
 import { CryptoWrapper } from "./CryptoWrapper.js"
@@ -284,6 +284,6 @@ export function convertToVersionedPublicKeys(publicKeyGetOut: PublicKeyGetOut): 
 			pubKyberKey: publicKeyGetOut.pubKyberKey,
 			pubEccKey: publicKeyGetOut.pubEccKey,
 		},
-		version: Number(publicKeyGetOut.pubKeyVersion),
+		version: parseKeyVersion(publicKeyGetOut.pubKeyVersion),
 	}
 }

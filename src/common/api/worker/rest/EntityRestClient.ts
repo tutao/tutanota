@@ -29,6 +29,7 @@ import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
+import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
@@ -183,7 +184,7 @@ export class EntityRestClient implements EntityRestInterface {
 	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Record<string, any>, typeModel: TypeModel) {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(Number(migratedEntity._ownerKeyVersion ?? 0))
+				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? 0))
 				return this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
 			} else {
 				return await this._crypto.resolveSessionKey(typeModel, migratedEntity)

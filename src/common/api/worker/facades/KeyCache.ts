@@ -2,6 +2,7 @@ import { getFromMap, neverNull } from "@tutao/tutanota-utils"
 import { User } from "../../entities/sys/TypeRefs.js"
 import { VersionedKey } from "../crypto/CryptoWrapper.js"
 import { Aes256Key } from "@tutao/tutanota-crypto"
+import { parseKeyVersion } from "./KeyLoaderFacade.js"
 
 /**
  * A cache for decrypted current keys of each group. Encrypted keys are stored on membership.symEncGKey.
@@ -68,7 +69,7 @@ export class KeyCache {
 	 */
 	async removeOutdatedGroupKeys(user: User) {
 		const currentUserGroupKeyVersion = neverNull(this.getCurrentUserGroupKey()).version
-		const receivedUserGroupKeyVersion = Number(user.userGroup.groupKeyVersion)
+		const receivedUserGroupKeyVersion = parseKeyVersion(user.userGroup.groupKeyVersion)
 		if (receivedUserGroupKeyVersion > currentUserGroupKeyVersion) {
 			//we just ignore this as the same batch MUST have a UserGroupKeyDistribution entity event update
 			console.log(`Received user update with new user group key version: ${currentUserGroupKeyVersion} -> ${receivedUserGroupKeyVersion}`)
@@ -77,7 +78,7 @@ export class KeyCache {
 		const newCurrentGroupKeyCache = new Map<Id, Promise<VersionedKey>>()
 		for (const membership of user.memberships) {
 			const cachedGroupKey = this.currentGroupKeys.get(membership.group)
-			if (cachedGroupKey != null && Number(membership.groupKeyVersion) === (await cachedGroupKey).version) {
+			if (cachedGroupKey != null && parseKeyVersion(membership.groupKeyVersion) === (await cachedGroupKey).version) {
 				await getFromMap(newCurrentGroupKeyCache, membership.group, () => cachedGroupKey)
 			}
 		}

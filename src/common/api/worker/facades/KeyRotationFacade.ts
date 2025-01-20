@@ -65,7 +65,7 @@ import {
 	Versioned,
 } from "@tutao/tutanota-utils"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
-import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
+import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import {
 	Aes256Key,
 	AesKey,
@@ -604,8 +604,8 @@ export class KeyRotationFacade {
 		} catch (e) {
 			//if we cannot get/decrypt the group key via membership we try via adminEncGroupKey
 			const groupManagementFacade = await this.groupManagementFacade()
-			const currentKey = await groupManagementFacade.getGroupKeyViaAdminEncGKey(targetGroup._id, Number(targetGroup.groupKeyVersion))
-			return { object: currentKey, version: Number(targetGroup.groupKeyVersion) }
+			const currentKey = await groupManagementFacade.getGroupKeyViaAdminEncGKey(targetGroup._id, parseKeyVersion(targetGroup.groupKeyVersion))
+			return { object: currentKey, version: parseKeyVersion(targetGroup.groupKeyVersion) }
 		}
 	}
 
@@ -655,7 +655,7 @@ export class KeyRotationFacade {
 	}
 
 	private encryptUserGroupKeyForUser(passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys, userGroup: Group, currentGroupKey: VersionedKey) {
-		const versionedPassphraseKey = {
+		const versionedPassphraseKey: VersionedKey = {
 			object: passphraseKey,
 			version: 0, // dummy
 		}
@@ -801,9 +801,9 @@ export class KeyRotationFacade {
 	private async encryptGroupKeyForOtherUsers(userId: Id, newGroupKey: VersionedKey): Promise<VersionedEncryptedKey> {
 		const groupManagementFacade = await this.groupManagementFacade()
 		const user = await this.entityClient.load(UserTypeRef, userId)
-		const userGroupKey = await groupManagementFacade.getGroupKeyViaAdminEncGKey(user.userGroup.group, Number(user.userGroup.groupKeyVersion))
+		const userGroupKey = await groupManagementFacade.getGroupKeyViaAdminEncGKey(user.userGroup.group, parseKeyVersion(user.userGroup.groupKeyVersion))
 		const encrypteNewGroupKey = this.cryptoWrapper.encryptKey(userGroupKey, newGroupKey.object)
-		return { key: encrypteNewGroupKey, encryptingKeyVersion: Number(user.userGroup.groupKeyVersion) }
+		return { key: encrypteNewGroupKey, encryptingKeyVersion: parseKeyVersion(user.userGroup.groupKeyVersion) }
 	}
 
 	private async generateGroupKeys(group: Group): Promise<GeneratedGroupKeys> {
@@ -812,7 +812,7 @@ export class KeyRotationFacade {
 		return {
 			symGroupKey: {
 				object: symGroupKeyBytes,
-				version: Number(group.groupKeyVersion) + 1,
+				version: checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1),
 			},
 			encryptedKeyPair: keyPair,
 		}
@@ -984,7 +984,7 @@ export class KeyRotationFacade {
 		}
 
 		const { taggedKeyVersion, tag, taggingKeyVersion } = brandKeyMac(userGroupKeyRotation.adminPubKeyMac)
-		if (Number(taggingKeyVersion) !== currentUserGroupKey.version) {
+		if (parseKeyVersion(taggingKeyVersion) !== currentUserGroupKey.version) {
 			throw new Error(
 				`the encrypting key version in the userEncAdminPubKeyHash does not match hash: ${taggingKeyVersion} current user group key:${currentUserGroupKey.version}`,
 			)
@@ -1005,7 +1005,7 @@ export class KeyRotationFacade {
 			throw new Error("tried to generate a keyhash when rotating but received an empty public kyber key!")
 		}
 		const clientGeneratedKeyTagData = this.keyAuthenticationFacade.generateAdminPubKeyAuthenticationData(
-			Number(taggedKeyVersion),
+			parseKeyVersion(taggedKeyVersion),
 			adminGroupId,
 			pubEccKey,
 			pubKyberKey,
@@ -1055,7 +1055,7 @@ export class KeyRotationFacade {
 		)
 		const versionedNewAdminGroupKey = {
 			object: decapsulatedNewAdminGroupKey.decryptedAesKey,
-			version: Number(pubAdminEncGKeyAuthHash.taggedKeyVersion),
+			version: parseKeyVersion(pubAdminEncGKeyAuthHash.taggedKeyVersion),
 		}
 
 		//Verify tag
@@ -1082,7 +1082,7 @@ export class KeyRotationFacade {
 		currentUserGroupKey: VersionedKey,
 	): Promise<PubEncKeyData> {
 		const adminPubKeys: Versioned<PublicKeys> = {
-			version: Number(publicKeyGetOut.pubKeyVersion),
+			version: parseKeyVersion(publicKeyGetOut.pubKeyVersion),
 			object: {
 				pubEccKey: publicKeyGetOut.pubEccKey,
 				pubKyberKey: publicKeyGetOut.pubKyberKey,

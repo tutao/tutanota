@@ -66,7 +66,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
@@ -142,7 +142,7 @@ export class CustomerFacade {
 				pubKyberKey,
 				pubRsaKey,
 			},
-			version: Number(keyData.systemAdminPubKeyVersion),
+			version: parseKeyVersion(keyData.systemAdminPubKeyVersion),
 		}
 		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.asymEncryptSymKey(
 			sessionKey,
@@ -285,9 +285,9 @@ export class CustomerFacade {
 		currentLanguage: string,
 		app: SubscriptionApp,
 	): Promise<Hex> {
-		const userGroupKey = { object: aes256RandomKey(), version: 0 }
-		const adminGroupKey = { object: aes256RandomKey(), version: 0 }
-		const customerGroupKey = { object: aes256RandomKey(), version: 0 }
+		const userGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+		const adminGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+		const customerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 		const userGroupInfoSessionKey = aes256RandomKey()
 		const adminGroupInfoSessionKey = aes256RandomKey()
 		const customerGroupInfoSessionKey = aes256RandomKey()
@@ -306,7 +306,7 @@ export class CustomerFacade {
 			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
 			systemAdminPubEncAccountingInfoSessionKey = {
 				key: systemAdminPubEncAccountingInfoSessionKeyBytes,
-				encryptingKeyVersion: Number(keyData.systemAdminPubKeyVersion),
+				encryptingKeyVersion: parseKeyVersion(keyData.systemAdminPubKeyVersion),
 			}
 			systemAdminPublicProtocolVersion = CryptoProtocolVersion.RSA
 		} else {
@@ -383,7 +383,7 @@ export class CustomerFacade {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 			await this.switchAccountGroup(neverNull(keyData.freeGroup), neverNull(keyData.premiumGroup), {
 				object: uint8ArrayToBitArray(keyData.premiumGroupKey),
-				version: Number(keyData.premiumGroupKeyVersion),
+				version: parseKeyVersion(keyData.premiumGroupKeyVersion),
 			})
 		} catch (e) {
 			e.message = e.message + " error switching free to premium group"
@@ -397,7 +397,7 @@ export class CustomerFacade {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 			await this.switchAccountGroup(neverNull(keyData.premiumGroup), neverNull(keyData.freeGroup), {
 				object: uint8ArrayToBitArray(keyData.freeGroupKey),
-				version: Number(keyData.freeGroupKeyVersion),
+				version: parseKeyVersion(keyData.freeGroupKeyVersion),
 			})
 		} catch (e) {
 			e.message = e.message + " error switching premium to free group"

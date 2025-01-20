@@ -8,6 +8,7 @@ import { isSameId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { parseKeyVersion } from "./KeyLoaderFacade.js"
 
 export interface AuthDataProvider {
 	/**
@@ -56,7 +57,7 @@ export class UserFacade implements AuthDataProvider {
 		}
 		const userGroupMembership = this.user.userGroup
 		const currentUserGroupKey = {
-			version: Number(userGroupMembership.groupKeyVersion),
+			version: parseKeyVersion(userGroupMembership.groupKeyVersion),
 			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
 		}
 		this.keyCache.setCurrentUserGroupKey(currentUserGroupKey)
@@ -261,7 +262,7 @@ export class UserFacade implements AuthDataProvider {
 		}
 		const newUserGroupKey = {
 			object: newUserGroupKeyBytes,
-			version: Number(userGroupKeyDistribution.userGroupKeyVersion),
+			version: parseKeyVersion(userGroupKeyDistribution.userGroupKeyVersion),
 		}
 		console.log(`updating userGroupKey. new version: ${userGroupKeyDistribution.userGroupKeyVersion}`)
 		this.keyCache.setCurrentUserGroupKey(newUserGroupKey)

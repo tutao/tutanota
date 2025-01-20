@@ -136,7 +136,7 @@ import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
@@ -319,7 +319,8 @@ export class MailFacade {
 
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
-		const mailGroupKeyVersion = Number(draft._ownerKeyVersion ?? 0)
+		// we assume that there is an _ownerEncSessionKey anyway, so we can default to 0
+		const mailGroupKeyVersion = parseKeyVersion(draft._ownerKeyVersion ?? "0")
 		const mailGroupKey = {
 			version: mailGroupKeyVersion,
 			object: await this.keyLoaderFacade.loadSymGroupKey(senderMailGroupId, mailGroupKeyVersion),
@@ -786,14 +787,14 @@ export class MailFacade {
 
 		const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
 		const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupId)
-		const requiredInternalUserGroupKeyVersion = Number(externalUserGroup.adminGroupKeyVersion ?? 0)
-		const requiredExternalUserGroupKeyVersion = Number(externalMailGroup.adminGroupKeyVersion ?? 0)
+		const requiredInternalUserGroupKeyVersion = parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
+		const requiredExternalUserGroupKeyVersion = parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
 		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
 		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
 		const requiredInternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
 		const currentExternalUserGroupKey = {
 			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
-			version: Number(externalUserGroup.groupKeyVersion),
+			version: parseKeyVersion(externalUserGroup.groupKeyVersion),
 		}
 		const requiredExternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
 			externalUserGroupId,
@@ -802,7 +803,7 @@ export class MailFacade {
 		)
 		const currentExternalMailGroupKey = {
 			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
-			version: Number(externalMailGroup.groupKeyVersion),
+			version: parseKeyVersion(externalMailGroup.groupKeyVersion),
 		}
 		return {
 			currentExternalUserGroupKey,
@@ -975,7 +976,7 @@ export class MailFacade {
 				)
 				return {
 					key: instanceSessionKey.symEncSessionKey,
-					encryptingKeyVersion: Number(instanceSessionKey.symKeyVersion),
+					encryptingKeyVersion: parseKeyVersion(instanceSessionKey.symKeyVersion),
 				}
 			}
 		}
@@ -1008,7 +1009,7 @@ export class MailFacade {
 	private keyProviderFromInstance(mail: Mail) {
 		return async () => ({
 			key: assertNotNull(mail._ownerEncSessionKey),
-			encryptingKeyVersion: Number(mail._ownerKeyVersion),
+			encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 		})
 	}
 

@@ -1,7 +1,7 @@
 import { EntityClient } from "../../common/EntityClient.js"
 import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
-import { Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
+import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
@@ -9,6 +9,7 @@ import { KeyCache } from "./KeyCache.js"
 import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { VersionedKey } from "../crypto/CryptoWrapper.js"
 
 /**
@@ -94,18 +95,18 @@ export class KeyLoaderFacade {
 		let group = await this.entityClient.load(GroupTypeRef, groupId)
 
 		let currentGroupKey = await this.getCurrentSymGroupKey(groupId)
-		if (Number(group.groupKeyVersion) !== currentGroupKey.version) {
+		if (parseKeyVersion(group.groupKeyVersion) !== currentGroupKey.version) {
 			// There is a race condition after rotating the group key were the group entity in the cache is not in sync with current key version in the key cache.
 			// group.groupKeyVersion might be newer than currentGroupKey.version.
 			// We reload group and user and refresh entity and key cache to synchronize both caches.
 			group = (await (await this.cacheManagementFacade()).refreshKeyCache(groupId)).group
 			currentGroupKey = await this.getCurrentSymGroupKey(groupId)
-			if (Number(group.groupKeyVersion) !== currentGroupKey.version) {
+			if (parseKeyVersion(group.groupKeyVersion) !== currentGroupKey.version) {
 				// we still do not have the proper state to get the current key pair
 				throw new Error(`inconsistent key version state in cache and key cache for group ${groupId}`)
 			}
 		}
-		return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, currentGroupKey.object), version: Number(group.groupKeyVersion) }
+		return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, currentGroupKey.object), version: parseKeyVersion(group.groupKeyVersion) }
 	}
 
 	private async loadKeyPairImpl(group: Group, requestedVersion: number, currentGroupKey: VersionedKey) {
@@ -116,7 +117,7 @@ export class KeyLoaderFacade {
 			throw new Error(`Not possible to get newer key version than is cached for group ${keyPairGroupId}`)
 		} else if (requestedVersion === currentGroupKey.version) {
 			symGroupKey = currentGroupKey.object
-			if (Number(group.groupKeyVersion) === currentGroupKey.version) {
+			if (parseKeyVersion(group.groupKeyVersion) === currentGroupKey.version) {
 				keyPair = group.currentKeys
 			} else {
 				const formerKeysList = assertNotNull(group.formerGroupKeys).list
@@ -147,9 +148,9 @@ export class KeyLoaderFacade {
 			throw new ProgrammingError("Must not add the user group to the regular group key cache")
 		}
 		const groupMembership = this.userFacade.getMembership(groupId)
-		const requiredUserGroupKey = await this.loadSymUserGroupKey(Number(groupMembership.symKeyVersion))
+		const requiredUserGroupKey = await this.loadSymUserGroupKey(parseKeyVersion(groupMembership.symKeyVersion))
 		return {
-			version: Number(groupMembership.groupKeyVersion),
+			version: parseKeyVersion(groupMembership.groupKeyVersion),
 			object: decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
 		}
 	}
@@ -193,8 +194,8 @@ export class KeyLoaderFacade {
 		return { symmetricGroupKey: lastGroupKey, groupKeyInstance: lastGroupKeyInstance }
 	}
 
-	private decodeGroupKeyVersion(id: Id): number {
-		return Number(customIdToString(id))
+	private decodeGroupKeyVersion(id: Id): KeyVersion {
+		return parseKeyVersion(customIdToString(id))
 	}
 
 	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: AesKey) {
@@ -208,4 +209,16 @@ export class KeyLoaderFacade {
 
 function convertKeyVersionToCustomId(version: number) {
 	return stringToCustomId(String(version))
+}
+
+export function parseKeyVersion(version: NumberString): KeyVersion {
+	const versionAsNumber = Number(version)
+	return checkKeyVersionConstraints(versionAsNumber)
+}
+
+export function checkKeyVersionConstraints(version: number): KeyVersion {
+	if (!isKeyVersion(version)) {
+		throw new CryptoError("key version is not a non-negative integer")
+	}
+	return version
 }
