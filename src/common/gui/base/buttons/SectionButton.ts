@@ -9,7 +9,7 @@ import { BaseButton } from "./BaseButton.js"
 import { AriaRole } from "../../AriaUtils.js"
 
 export interface SectionButtonAttrs {
-	leftIcon?: { icon: AllIcons; title: TranslationKey }
+	leftIcon?: { icon: AllIcons; title: TranslationKey; fill?: string }
 	inject?: Children
 	disabled?: boolean
 	text: string
@@ -31,7 +31,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 						? null
 						: m(Icon, {
 								icon: leftIcon.icon,
-								style: { fill: getColors(ButtonColor.Content).button },
+								style: { fill: leftIcon.fill ?? getColors(ButtonColor.Content).button },
 								title: lang.get(leftIcon.title),
 								size: IconSize.Medium,
 						  }),
