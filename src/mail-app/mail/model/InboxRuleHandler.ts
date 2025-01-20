@@ -113,8 +113,8 @@ export class InboxRuleHandler {
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
 			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
-			let inboxFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.INBOX))
-			let targetFolder = await folders.getFolderById(elementIdPart(inboxRule.targetFolder))
+			const inboxFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.INBOX))
+			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
 				if (applyRulesOnServer) {

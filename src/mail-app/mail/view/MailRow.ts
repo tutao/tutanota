@@ -67,7 +67,7 @@ export class MailRow implements VirtualRow<Mail> {
 
 	constructor(
 		private readonly showFolderIcon: boolean,
-		private readonly getLabelsForMail: (mail: Mail) => MailFolder[],
+		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailFolder>,
 		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
 	) {
 		this.top = 0

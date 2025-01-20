@@ -4,11 +4,32 @@ import { OperationType } from "../api/common/TutanotaConstants"
 import Stream from "mithril/stream"
 import { ListLoadingState, ListState } from "../gui/base/List"
 
-export type ListElementListModelConfig<ElementType> = Omit<ListModelConfig<ElementType, Id>, "getItemId" | "isSameId">
+/**
+ * Specifies methods for fetching and sorting list elements for a ListElementListModel.
+ *
+ * Unlike ListModelConfig, isSameId and getItemId are provided automatically. However, an additional method `loadSingle`
+ * is needed.
+ */
+export interface ListElementListModelConfig<ElementType> {
+	/**
+	 * Returns null if the given item could not be loaded
+	 */
+	loadSingle(listId: Id, itemId: Id): Promise<ElementType | null>
 
+	// See ListModelConfig
+	fetch: ListModelConfig<ElementType, Id>["fetch"]
+	sortCompare: ListModelConfig<ElementType, Id>["sortCompare"]
+	autoSelectBehavior: ListModelConfig<ElementType, Id>["autoSelectBehavior"]
+}
+
+/**
+ * List model that provides ListElement functionality.
+ *
+ * Internally wraps around a ListModel<ElementType, Id>.
+ */
 export class ListElementListModel<ElementType extends ListElement> {
 	private readonly listModel: ListModel<ElementType, Id>
-	private readonly config: ListModelConfig<ElementType, Id>
+	private readonly config: ListElementListModelConfig<ElementType>
 
 	get state(): ListState<ElementType> {
 		return this.listModel.state
@@ -23,11 +44,14 @@ export class ListElementListModel<ElementType extends ListElement> {
 	}
 
 	constructor(config: ListElementListModelConfig<ElementType>) {
-		this.config = Object.assign({}, config, {
+		const theBestConfig = {
+			...config,
 			isSameId,
 			getItemId: getElementId,
-		})
-		this.listModel = new ListModel(this.config)
+		}
+
+		this.listModel = new ListModel<ElementType, Id>(theBestConfig)
+		this.config = theBestConfig
 	}
 
 	async entityEventReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
@@ -41,7 +65,7 @@ export class ListElementListModel<ElementType extends ListElement> {
 			// Wait for any pending loading
 			return this.listModel.waitLoad(() => {
 				if (operation === OperationType.CREATE) {
-					if (this.canInsertEntity(entity)) {
+					if (this.listModel.canInsertItem(entity)) {
 						this.listModel.insertLoadedItem(entity)
 					}
 				} else if (operation === OperationType.UPDATE) {
@@ -54,20 +78,10 @@ export class ListElementListModel<ElementType extends ListElement> {
 		}
 	}
 
-	private canInsertEntity(entity: ElementType): boolean {
-		if (this.state.loadingStatus === ListLoadingState.Done) {
-			return true
-		}
-
-		// new element is in the loaded range or newer than the first element
-		const lastElement = this.listModel.getLastItem()
-		return lastElement != null && this.config.sortCompare(entity, lastElement) < 0
-	}
-
 	async loadAndSelect(
 		itemId: Id,
 		shouldStop: () => boolean,
-		finder: (a: ElementType) => boolean = (item) => this.config.isSameId(this.config.getItemId(item), itemId),
+		finder: (a: ElementType) => boolean = (item) => isSameId(getElementId(item), itemId),
 	): Promise<ElementType | null> {
 		return this.listModel.loadAndSelect(itemId, shouldStop, finder)
 	}

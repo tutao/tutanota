@@ -16,9 +16,6 @@ o.spec("ListModel", function () {
 	const defaultListConfig: ListModelConfig<KnowledgeBaseEntry, Id> = {
 		fetch: () => fetchDefer.promise,
 		sortCompare: sortCompareById,
-		loadSingle: () => {
-			throw new Error("noop")
-		},
 		autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		getItemId: getElementId,
 		isSameId: (id1: string, id2: string) => id1 === id2,
