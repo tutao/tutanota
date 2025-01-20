@@ -4,10 +4,13 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
-import { OutlineButton } from "../../gui/base/buttons/OutlineButton.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import { Card } from "../../gui/base/Card.js"
+import { theme } from "../../gui/theme.js"
+import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { dialog } from "electron"
 
 type Props = {
 	data: SupportDialogState
@@ -29,7 +32,7 @@ export class SupportTopicPage implements Component<Props> {
 		}).html
 		const issue = getLocalisedTopicIssue(topic, languageTag)
 		return m(
-			".pt.pb",
+			".flex.flex-column.pt.pb",
 			{
 				style: {
 					"overflow-x": "auto",
@@ -38,12 +41,11 @@ export class SupportTopicPage implements Component<Props> {
 			},
 			[
 				m(
-					// @ts-ignore
 					Card,
 					{
 						rootElementType: "div",
-						style: { padding: "1em", height: "80%" },
-						classes: ["scroll"],
+						style: { padding: "1em" },
+						classes: ["scroll", "mb"],
 					},
 					m(".h4.m-0.pb", issue),
 					m.trust(sanitisedSolution),
@@ -56,17 +58,22 @@ export class SupportTopicPage implements Component<Props> {
 
 class WasThisHelpful implements Component<Props> {
 	view({ attrs: { dialog, goToContactSupportPage } }: Vnode<Props>): Mithril.Children | void | null {
-		return m(".flex-center.center-vertically.gap-hpad.b", m("", "Was this helpful?"), [
-			m(OutlineButton, {
-				label: "yes_label",
-				onclick: () => {
-					dialog.close()
-				},
-			}),
-			m(OutlineButton, {
-				label: "no_label",
-				onclick: goToContactSupportPage,
-			}),
-		])
+		return m(
+			".flex.flex-column.gap-vpad-s",
+			m("small.uppercase.b.text-ellipsis", { style: { color: theme.navigation_button } }, "Was this helpful?"),
+			m(Card, { shouldDivide: true }, [
+				m(SectionButton, {
+					text: "Yes",
+					onclick: () => {
+						dialog.close()
+					},
+					rightIcon: { icon: Icons.Checkmark, title: "yes_label" },
+				}),
+				m(SectionButton, {
+					text: "No",
+					onclick: goToContactSupportPage,
+				}),
+			]),
+		)
 	}
 }
