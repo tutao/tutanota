@@ -202,3 +202,32 @@ export function isBefore(dateA: Date, dateB: Date, comparisonType: "dateTime" | 
 			throw new Error("Unknown comparison method")
 	}
 }
+
+/**
+ * Prepare calendar event description to be shown to the user.
+ *
+ * Outlook invitations frequently include links enclosed within "<>" in the email/event description.
+ * Sanitizing this string can cause the links to be lost.
+ * To prevent this, we use this function to remove the "<>" characters before applying sanitization whenever necessary.
+ *
+ * They look like this:
+ * ```
+ * text<https://example.com>
+ * ```
+ *
+ * @param description Description to clean up
+ * @param sanitizer Sanitizer to apply after preparing the description
+ */
+export function prepareCalendarDescription(description: string, sanitizer: (s: string) => string): string {
+	const prepared = description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),/?]+>/gi, (possiblyLink) => {
+		try {
+			const withoutBrackets = possiblyLink.slice(1, -1)
+			const url = new URL(withoutBrackets)
+			return ` <a href="${url.toString()}">${withoutBrackets}</a>`
+		} catch (e) {
+			return possiblyLink
+		}
+	})
+
+	return sanitizer(prepared)
+}
