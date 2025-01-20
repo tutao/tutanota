@@ -1,5 +1,7 @@
 import type { HtmlSanitizer } from "./HtmlSanitizer.js"
 import { noOp } from "@tutao/tutanota-utils"
+import { convertTextToHtml } from "./Formatter.js"
+import { prepareCalendarDescription } from "../api/common/utils/CommonCalendarUtils.js"
 
 export class SanitizedTextViewModel {
 	private sanitizedText: string | null = null
@@ -14,7 +16,13 @@ export class SanitizedTextViewModel {
 
 	get content(): string {
 		if (this.sanitizedText == null) {
-			this.sanitizedText = this.sanitizer.sanitizeHTML(this.text, { blockExternalContent: false }).html
+			this.sanitizedText = prepareCalendarDescription(
+				this.text,
+				(s) =>
+					this.sanitizer.sanitizeHTML(convertTextToHtml(s), {
+						blockExternalContent: false,
+					}).html,
+			)
 		}
 		return this.sanitizedText
 	}
