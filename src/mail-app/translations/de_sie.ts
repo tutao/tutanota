@@ -1891,6 +1891,10 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		// Put in temporarily, will be removed soon
+		"localAdminGroup_label": "Local admin group",
+		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
+		"localAdminGroups_label": "Local admin groups",
 	}
 }
