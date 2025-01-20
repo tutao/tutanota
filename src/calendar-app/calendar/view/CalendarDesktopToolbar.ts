@@ -55,6 +55,11 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 				value: CalendarViewType.DAY,
 			},
 			{
+				icon: getIconForViewType(CalendarViewType.THREE_DAY),
+				label: "threeDays_label",
+				value: CalendarViewType.THREE_DAY,
+			},
+			{
 				icon: getIconForViewType(CalendarViewType.WEEK),
 				label: "week_label",
 				value: CalendarViewType.WEEK,

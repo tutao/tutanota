@@ -1879,5 +1879,8 @@ export default {
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"localAdminGroups_label": "Local admin groups",
+		"threeDays_label": "Three Days",
+		"prevThreeDays_label": "Previous three days",
+		"nextThreeDays_label": "Next three days"
 	}
 }
