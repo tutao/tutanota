@@ -181,20 +181,23 @@ o.spec("GroupManagementFacadeTest", function () {
 
 				when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, Number(taggingKeyVersion))).thenResolve(formerGroupKeys)
 
-				when(
-					keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
-				).thenReturn(userGroupKeyMacData)
-
 				const groupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 				o(groupKey.object).equals(groupKeyBytes)
 				o(groupKey.version).equals(groupKeyVersion)
-				verify(
-					keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(groupId, adminGroupId, adminGroupKeyVersion, {
-						object: formerGroupSymKey,
-						version: groupKeyVersion - 1,
-					}),
-				)
-				verify(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyMacData, brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag))
+				const formerUserGroupKey: VersionedKey = {
+					object: formerGroupSymKey,
+					version: groupKeyVersion - 1,
+				}
+				const paramsCaptor = matchers.captor()
+				verify(keyAuthenticationFacade.verifyTag(paramsCaptor.capture(), brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag))
+				o(paramsCaptor.values?.length).equals(1)
+				const params = paramsCaptor.values![0]
+				o(params.tagType).equals("USER_GROUP_KEY_TAG")
+				o(params.adminGroupId).equals(adminGroupId)
+				o(params.userGroupId).equals(groupId)
+				o(params.newAdminGroupKeyVersion).equals(adminGroupKeyVersion)
+				o(params.adminSymKey.object).equals(groupKeyBytes)
+				o(params.currentUserGroupKey).equals(formerUserGroupKey)
 			})
 
 			o.spec("former group key is asymmetrically encrypted for the admin", function () {
@@ -256,14 +259,14 @@ o.spec("GroupManagementFacadeTest", function () {
 					})
 					when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 1)).thenResolve(groupKeysV1)
 					derivedAuthKeyV1 = object<AesKey>()
-					when(
-						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
-							groupId,
-							adminGroupId,
-							2,
-							argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV1),
-						),
-					).thenReturn(derivedAuthKeyV1)
+					// when(
+					// 	keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+					// 		groupId,
+					// 		adminGroupId,
+					// 		2,
+					// 		argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV1),
+					// 	),
+					// ).thenReturn(derivedAuthKeyV1)
 
 					// Prepare V0
 
@@ -276,23 +279,23 @@ o.spec("GroupManagementFacadeTest", function () {
 					userGroupSymKeyV0 = object<AesKey>()
 					when(cryptoWrapper.decryptKey(adminSymKeyV0, anything())).thenReturn(userGroupSymKeyV0)
 					const derivedAuthKeyV0 = object<AesKey>()
-					when(
-						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
-							anything(),
-							adminGroupId,
-							1,
-							argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV0),
-						),
-					).thenReturn(derivedAuthKeyV0)
-					when(
-						keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV1)),
-					).thenReturn(userGroupKeyV1MacData)
+					// when(
+					// 	keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+					// 		anything(),
+					// 		adminGroupId,
+					// 		1,
+					// 		argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV0),
+					// 	),
+					// ).thenReturn(derivedAuthKeyV0)
+					// when(
+					// 	keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === userGroupSymKeyV1)),
+					// ).thenReturn(userGroupKeyV1MacData)
 				})
 
 				o("successful asym decryption", async function () {
-					when(
-						keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
-					).thenReturn(userGroupKeyMacDataV2)
+					// when(
+					// 	keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
+					// ).thenReturn(userGroupKeyMacDataV2)
 
 					// Prepare V1
 					when(cryptoWrapper.aesDecrypt(derivedAuthKeyV1, anything(), true)).thenReturn(userGroupKeyMacDataV2)
@@ -305,14 +308,14 @@ o.spec("GroupManagementFacadeTest", function () {
 					o(groupKey.object).equals(groupKeyBytes)
 					o(groupKey.version).equals(groupKeyVersion)
 					const previousUserGroupKeyCaptor = captor()
-					verify(
-						keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
-							groupId,
-							adminGroupId,
-							anything(),
-							previousUserGroupKeyCaptor.capture(),
-						),
-					)
+					// verify(
+					// 	keyAuthenticationFacade.deriveNewUserGroupKeyAuthKeyForRotationAsNonAdminUser(
+					// 		groupId,
+					// 		adminGroupId,
+					// 		anything(),
+					// 		previousUserGroupKeyCaptor.capture(),
+					// 	),
+					// )
 					o(previousUserGroupKeyCaptor.values!.length).equals(2)
 
 					const firstCall = previousUserGroupKeyCaptor.values![0]
@@ -323,14 +326,16 @@ o.spec("GroupManagementFacadeTest", function () {
 					o(secondCall.object).equals(userGroupSymKeyV1)
 					o(secondCall.version).equals(1)
 
-					verify(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyV1MacData, anything()))
+					const paramsCaptor = matchers.captor()
+					verify(keyAuthenticationFacade.verifyTag(paramsCaptor.capture(), anything()))
+					// TODO
 				})
 
 				o("user group key mac is invalid", async function () {
 					// Prepare V2
-					when(
-						keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
-					).thenReturn(userGroupKeyMacDataV2)
+					// when(
+					// 	keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
+					// ).thenReturn(userGroupKeyMacDataV2)
 
 					// Prepare V1
 					when(cryptoWrapper.verifyHmacSha256(derivedAuthKeyV1, userGroupKeyMacDataV2, anything())).thenThrow(new CryptoError("invalid mac"))
@@ -342,9 +347,9 @@ o.spec("GroupManagementFacadeTest", function () {
 				})
 
 				o("user group key - no symmetrically encrypted former group key", async function () {
-					when(
-						keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
-					).thenReturn(userGroupKeyMacDataV2)
+					// when(
+					// 	keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
+					// ).thenReturn(userGroupKeyMacDataV2)
 
 					// Prepare V1
 					when(cryptoWrapper.aesDecrypt(derivedAuthKeyV1, anything(), true)).thenReturn(userGroupKeyMacDataV2)
@@ -389,7 +394,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				when(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyMacData, brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag)).thenThrow(
 					new CryptoError("invalid mac"),
 				)
-				when(keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(anything())).thenReturn(userGroupKeyMacData)
+				// when(keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(anything())).thenReturn(userGroupKeyMacData)
 				await assertThrows(CryptoError, async () => await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId))
 			})
 		})

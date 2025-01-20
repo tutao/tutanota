@@ -25,7 +25,7 @@ type KeyAuthenticationSystem<T extends KeyAuthenticationParams> = {
 	deriveKey(params: T, cryptoWrapper: CryptoWrapper): Aes256Key
 }
 
-type UserGroupKeyAuthenticationParams = {
+export type UserGroupKeyAuthenticationParams = {
 	tagType: "USER_GROUP_KEY_TAG"
 	adminSymKey: VersionedKey
 	userGroupId: Id
@@ -53,7 +53,7 @@ const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuth
 	},
 }
 
-type NewAdminPubKeyAuthenticationParams = {
+export type NewAdminPubKeyAuthenticationParams = {
 	tagType: "NEW_ADMIN_PUB_KEY_TAG"
 	adminGroupKeyVersion: number
 	pubEccKey: Uint8Array
@@ -87,7 +87,7 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 	},
 }
 
-type PubDistKeyAuthenticationParams = {
+export type PubDistKeyAuthenticationParams = {
 	tagType: "PUB_DIST_KEY_TAG"
 	pubEccKey: Uint8Array
 	pubKyberKey: Uint8Array
@@ -116,7 +116,7 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 	},
 }
 
-type AdminSymKeyAuthenticationParams = {
+export type AdminSymKeyAuthenticationParams = {
 	tagType: "ADMIN_SYM_KEY_TAG"
 	adminSymKey: VersionedKey
 	adminGroupId: Id
@@ -144,7 +144,7 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 	},
 }
 
-type KeyAuthenticationParams =
+export type KeyAuthenticationParams =
 	| UserGroupKeyAuthenticationParams
 	| NewAdminPubKeyAuthenticationParams
 	| PubDistKeyAuthenticationParams
