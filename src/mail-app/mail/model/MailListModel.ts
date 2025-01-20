@@ -28,7 +28,7 @@ assertMainOrNode()
 interface LoadedMail {
 	readonly mail: Mail
 	readonly mailSetEntry: MailSetEntry
-	readonly labels: MailFolder[]
+	readonly labels: ReadonlyArray<MailFolder>
 }
 
 /**
@@ -40,8 +40,6 @@ export class MailListModel {
 
 	// keep a reverse map for going from Mail element id -> LoadedMail
 	private readonly mailMap: Map<Id, LoadedMail> = new Map()
-
-	private readonly mailsetMap: Map<Id, MailFolder> = new Map()
 
 	constructor(
 		private readonly mailSet: MailFolder,
@@ -167,8 +165,7 @@ export class MailListModel {
 					...mailItem,
 					mail: newMailData,
 				}
-				this.onLoadMails([newMailItem])
-				this.listModel.updateLoadedItem(newMailItem)
+				this.updateSingleMail(newMailItem)
 			}
 		}
 	}
@@ -373,28 +370,16 @@ export class MailListModel {
 			}
 
 			// Resolve labels
-			const folderListId = mail.sets[0] && listIdPart(mail.sets[0])
-			const labels: MailFolder[] = []
-			if (folderListId) {
-				const setsToRetrieve = mail.sets.filter((id) => !this.mailsetMap.has(elementIdPart(id)))
-				if (setsToRetrieve.length > 0) {
-					const newSets = await mailSetProvider(folderListId, mail.sets.map(elementIdPart))
-					for (const set of newSets) {
-						this.mailsetMap.set(getElementId(set), set)
-					}
-				}
-				for (const setId of mail.sets) {
-					const set = this.mailsetMap.get(elementIdPart(setId))
-					if (set?.folderType === MailSetKind.LABEL) {
-						labels.push(set)
-					}
-				}
-			}
-
+			const labels: MailFolder[] = this.mailModel.getLabelsForMail(mail)
 			loadedMails.push({ mailSetEntry, mail, labels })
 		}
 
 		return loadedMails
+	}
+
+	private updateSingleMail(mail: LoadedMail) {
+		this.onLoadMails([mail])
+		this.listModel.updateLoadedItem(mail)
 	}
 
 	private onLoadMails(mails: LoadedMail[]) {
