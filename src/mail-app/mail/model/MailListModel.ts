@@ -28,6 +28,7 @@ assertMainOrNode()
 interface LoadedMail {
 	readonly mail: Mail
 	readonly mailSetEntry: MailSetEntry
+	readonly labels: MailFolder[]
 }
 
 /**
@@ -39,6 +40,8 @@ export class MailListModel {
 
 	// keep a reverse map for going from Mail element id -> LoadedMail
 	private readonly mailMap: Map<Id, LoadedMail> = new Map()
+
+	private readonly mailsetMap: Map<Id, MailFolder> = new Map()
 
 	constructor(
 		private readonly mailSet: MailFolder,
@@ -111,6 +114,10 @@ export class MailListModel {
 		return this.getLoadedMailByMailId(mailId)?.mail ?? null
 	}
 
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
+		return assertNotNull(this.getLoadedMailByMailInstance(mail)).labels
+	}
+
 	getMailSetEntry(mailSetEntryId: Id): MailSetEntry | null {
 		const { mailId } = deconstructMailSetEntryId(mailSetEntryId)
 		return this.getLoadedMailByMailId(mailId)?.mailSetEntry ?? null
@@ -141,11 +148,7 @@ export class MailListModel {
 	}
 
 	async handleEntityUpdate(update: EntityUpdateData) {
-		if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-			// In case labels change trigger a list redraw.
-			// We need to do it because labels are passed out of band and are not part of the list state.
-			this.reapplyFilter()
-		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
+		if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
 			if (update.operation === OperationType.DELETE) {
 				await this.listModel.deleteLoadedItem(update.instanceId)
 			} else if (update.operation === OperationType.CREATE) {
@@ -259,7 +262,7 @@ export class MailListModel {
 			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
 			complete = mailSetEntries.length < count
 			if (mailSetEntries.length > 0) {
-				items = await this.resolveMailSetEntries(mailSetEntries, (listId, elements) => this.entityClient.loadMultiple(MailTypeRef, listId, elements))
+				items = await this.resolveMailSetEntries(mailSetEntries, this.defaultMailProvider, this.defaultMailFolderProvider)
 				items = await this.applyInboxRulesToEntries(items)
 			}
 		} catch (e) {
@@ -298,7 +301,11 @@ export class MailListModel {
 		// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
 		// the items we have and also show that we couldn't load everything.
 		const mailSetEntries = await this.cacheStorage.provideFromRange(MailSetEntryTypeRef, listIdPart(startId), elementIdPart(startId), count, true)
-		return await this.resolveMailSetEntries(mailSetEntries, (list, elements) => this.cacheStorage.provideMultiple(MailTypeRef, list, elements))
+		return await this.resolveMailSetEntries(
+			mailSetEntries,
+			(list, elements) => this.cacheStorage.provideMultiple(MailTypeRef, list, elements),
+			(list, elements) => this.cacheStorage.provideMultiple(MailFolderTypeRef, list, elements),
+		)
 	}
 
 	/**
@@ -320,10 +327,9 @@ export class MailListModel {
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
 		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
-		const mail = await this.entityClient.load(MailTypeRef, mailSetEntry.mail)
-		const loadedMail = { mailSetEntry, mail }
-		this.onLoadMails([loadedMail])
-		return loadedMail
+		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider, this.defaultMailFolderProvider)
+		this.onLoadMails(loadedMails)
+		return assertNotNull(loadedMails[0])
 	}
 
 	/**
@@ -332,6 +338,7 @@ export class MailListModel {
 	private async resolveMailSetEntries(
 		mailSetEntries: MailSetEntry[],
 		mailProvider: (listId: Id, elementIds: Id[]) => Promise<Mail[]>,
+		mailSetProvider: (listId: Id, elementIds: Id[]) => Promise<MailFolder[]>,
 	): Promise<LoadedMail[]> {
 		// Sort all mails into mailbags so we can retrieve them with loadMultiple
 		const mailListMap: Map<Id, Id[]> = new Map()
@@ -359,10 +366,32 @@ export class MailListModel {
 		const loadedMails: LoadedMail[] = []
 		for (const mailSetEntry of mailSetEntries) {
 			const mail = allMails.get(elementIdPart(mailSetEntry.mail))
+
 			// Mail may have been deleted in the meantime
-			if (mail) {
-				loadedMails.push({ mailSetEntry, mail })
+			if (!mail) {
+				continue
 			}
+
+			// Resolve labels
+			const folderListId = mail.sets[0] && listIdPart(mail.sets[0])
+			const labels: MailFolder[] = []
+			if (folderListId) {
+				const setsToRetrieve = mail.sets.filter((id) => !this.mailsetMap.has(elementIdPart(id)))
+				if (setsToRetrieve.length > 0) {
+					const newSets = await mailSetProvider(folderListId, mail.sets.map(elementIdPart))
+					for (const set of newSets) {
+						this.mailsetMap.set(getElementId(set), set)
+					}
+				}
+				for (const setId of mail.sets) {
+					const set = this.mailsetMap.get(elementIdPart(setId))
+					if (set?.folderType === MailSetKind.LABEL) {
+						labels.push(set)
+					}
+				}
+			}
+
+			loadedMails.push({ mailSetEntry, mail, labels })
 		}
 
 		return loadedMails
@@ -372,5 +401,13 @@ export class MailListModel {
 		for (const mail of mails) {
 			this.mailMap.set(getElementId(mail.mail), mail)
 		}
+	}
+
+	private readonly defaultMailProvider = (listId: Id, elements: Id[]): Promise<Mail[]> => {
+		return this.entityClient.loadMultiple(MailTypeRef, listId, elements)
+	}
+
+	private readonly defaultMailFolderProvider = (listId: Id, elements: Id[]): Promise<MailFolder[]> => {
+		return this.entityClient.loadMultiple(MailFolderTypeRef, listId, elements)
 	}
 }

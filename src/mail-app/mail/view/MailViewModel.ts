@@ -358,9 +358,8 @@ export class MailViewModel {
 		return this._folder
 	}
 
-	getLabelsForMail(mail: Mail): MailFolder[] {
-		const groupLabels = this.mailModel.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
-		return mail.sets.map((labelId) => groupLabels.get(elementIdPart(labelId))).filter(isNotNull)
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
+		return this.listModel?.getLabelsForMail(mail) ?? []
 	}
 
 	private setListId(folder: MailFolder) {
