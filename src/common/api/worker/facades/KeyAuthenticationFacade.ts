@@ -1,10 +1,10 @@
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { concat } from "@tutao/tutanota-utils"
+import { concat, KeyVersion } from "@tutao/tutanota-utils"
 import { Aes256Key, MacTag } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { customIdToUint8array } from "../../common/utils/EntityUtils.js"
-import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
+import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 
 assertWorkerOrNode()
 
@@ -16,7 +16,7 @@ export class KeyAuthenticationFacade {
 		return concat(versionByte, Uint8Array.from([newUserSymKey.version]), Uint8Array.from(newUserSymKey.object))
 	}
 
-	public generateAdminPubKeyAuthenticationData(adminGroupKeyVersion: number, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
+	public generateAdminPubKeyAuthenticationData(adminGroupKeyVersion: KeyVersion, adminGroupId: string, pubEccKey: Uint8Array, pubKyberKey: Uint8Array) {
 		const versionByte = Uint8Array.from([0])
 		const adminKeyVersion = Uint8Array.from([adminGroupKeyVersion])
 		const identifierType = Uint8Array.from([Number(PublicKeyIdentifierType.GROUP_ID)])
@@ -64,7 +64,7 @@ export class KeyAuthenticationFacade {
 		adminGroupId: Id,
 		userGroupId: Id,
 		userGroupKey: VersionedKey,
-		newAdminGroupKeyVersion: number,
+		newAdminGroupKeyVersion: KeyVersion,
 	): Aes256Key {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, userGroupKeyVersion: ${userGroupKey.version}, adminGroupKeyVersion: ${newAdminGroupKeyVersion}`,

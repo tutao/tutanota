@@ -1,6 +1,6 @@
 import { asKdfType } from "../../../common/TutanotaConstants.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "../../../entities/sys/TypeRefs.js"
-import { assertNotNull, type Hex, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { assertNotNull, type Hex, KeyVersion, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { LoginFacade } from "../LoginFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
@@ -15,14 +15,14 @@ import {
 } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
 export type RecoverData = {
 	userEncRecoverCode: Uint8Array
-	userKeyVersion: number
+	userKeyVersion: KeyVersion
 	recoverCodeEncUserGroupKey: Uint8Array
 	hexCode: Hex
 	recoveryCodeVerifier: Uint8Array
@@ -76,7 +76,7 @@ export class RecoverCodeFacade {
 		}
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
-		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(recoveryCodeEntity.userKeyVersion))
+		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(recoveryCodeEntity.userKeyVersion))
 		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}
 

@@ -10,6 +10,7 @@ import {
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
+	Versioned,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
@@ -24,12 +25,11 @@ import {
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission, PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
+import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
-	createPublicKeyGetIn,
 	createUpdatePermissionKeyData,
 	GroupInfoTypeRef,
 	GroupTypeRef,
@@ -62,16 +62,18 @@ import { Aes256Key, aes256RandomKey, aesEncrypt, AesKey, bitArrayToUint8Array, d
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
-import { PublicKeyService, UpdatePermissionKeyService } from "../../entities/sys/Services"
+import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
-import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "./AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
+import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
+import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
 
@@ -98,6 +100,7 @@ export class CryptoFacade {
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	async applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
@@ -178,11 +181,14 @@ export class CryptoFacade {
 				const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, instance, typeModel)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
 			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(instance._ownerGroup, Number(instance._ownerKeyVersion ?? 0))
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(instance._ownerGroup, parseKeyVersion(instance._ownerKeyVersion ?? "0"))
 				return this.resolveSessionKeyWithOwnerKey(instance, gk)
 			} else if (instance.ownerEncSessionKey) {
 				// Likely a DataTransferType, so this is a service.
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getGroupId(GroupType.Mail), Number(instance.ownerKeyVersion ?? 0))
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(
+					this.userFacade.getGroupId(GroupType.Mail),
+					parseKeyVersion(instance.ownerKeyVersion ?? "0"),
+				)
 				return this.resolveSessionKeyWithOwnerKey(instance, gk)
 			} else {
 				// See PermissionType jsdoc for more info on permissions
@@ -244,7 +250,7 @@ export class CryptoFacade {
 			// bucket key is encrypted with public key for internal recipient
 			const { decryptedAesKey, senderIdentityPubKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
 				bucketKey.keyGroup,
-				Number(bucketKey.recipientKeyVersion),
+				parseKeyVersion(bucketKey.recipientKeyVersion),
 				asCryptoProtoocolVersion(bucketKey.protocolVersion),
 				bucketKey.pubEncBucketKey,
 			)
@@ -253,7 +259,7 @@ export class CryptoFacade {
 		} else if (bucketKey.groupEncBucketKey) {
 			// received as secure external recipient or reply from secure external sender
 			let keyGroup
-			const groupKeyVersion = Number(bucketKey.recipientKeyVersion)
+			const groupKeyVersion = parseKeyVersion(bucketKey.recipientKeyVersion)
 			if (bucketKey.keyGroup) {
 				// 1. Uses when receiving confidential replies from external users.
 				// 2. legacy code path for old external clients that used to encrypt bucket keys with user group keys.
@@ -305,7 +311,7 @@ export class CryptoFacade {
 	 * @param groupKeyVersion the version of the key from the keyGroup
 	 * @param groupEncBucketKey The group key encrypted bucket key.
 	 */
-	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: number, groupEncBucketKey: Uint8Array): Promise<AesKey> {
+	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: KeyVersion, groupEncBucketKey: Uint8Array): Promise<AesKey> {
 		if (this.userFacade.hasGroup(keyGroup)) {
 			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
 			const groupKey = await this.keyLoaderFacade.loadSymGroupKey(keyGroup, groupKeyVersion)
@@ -321,11 +327,11 @@ export class CryptoFacade {
 			if (!externalUserGroupdId) {
 				throw new SessionKeyNotFoundError("no admin group on key group: " + externalMailGroupId)
 			}
-			const externalUserGroupKeyVersion = Number(externalMailGroup.adminGroupKeyVersion ?? 0)
+			const externalUserGroupKeyVersion = parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
 			const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupdId)
 
 			const internalUserGroupId = externalUserGroup.admin
-			const internalUserGroupKeyVersion = Number(externalUserGroup.adminGroupKeyVersion ?? 0)
+			const internalUserGroupKeyVersion = parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
 			if (!(internalUserGroupId && this.userFacade.hasGroup(internalUserGroupId))) {
 				throw new SessionKeyNotFoundError("no admin group or no membership of admin group: " + internalUserGroupId)
 			}
@@ -335,13 +341,13 @@ export class CryptoFacade {
 			const currentExternalUserGroupKey = decryptKey(internalUserGroupKey, assertNotNull(externalUserGroup.adminGroupEncGKey))
 			const externalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(externalUserGroupdId, externalUserGroupKeyVersion, {
 				object: currentExternalUserGroupKey,
-				version: Number(externalUserGroup.groupKeyVersion),
+				version: parseKeyVersion(externalUserGroup.groupKeyVersion),
 			})
 
 			const currentExternalMailGroupKey = decryptKey(externalUserGroupKey, assertNotNull(externalMailGroup.adminGroupEncGKey))
 			const externalMailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(externalMailGroupId, externalMailGroupKeyVersion, {
 				object: currentExternalMailGroupKey,
-				version: Number(externalMailGroup.groupKeyVersion),
+				version: parseKeyVersion(externalMailGroup.groupKeyVersion),
 			})
 
 			return decryptKey(externalMailGroupKey, groupEncBucketKey)
@@ -380,7 +386,7 @@ export class CryptoFacade {
 		const customerGroupPermission = listPermissions.find((p) => p.group === customerGroupMembership.group)
 
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
-		const customerGroupKeyVersion = Number(customerGroupPermission.symKeyVersion ?? 0)
+		const customerGroupKeyVersion = parseKeyVersion(customerGroupPermission.symKeyVersion ?? "0")
 		const customerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
 		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
 		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
@@ -426,7 +432,7 @@ export class CryptoFacade {
 		if (symmetricPermission) {
 			const gk = await this.keyLoaderFacade.loadSymGroupKey(
 				assertNotNull(symmetricPermission._ownerGroup),
-				Number(symmetricPermission._ownerKeyVersion ?? 0),
+				parseKeyVersion(symmetricPermission._ownerKeyVersion ?? "0"),
 			)
 			return decryptKey(gk, assertNotNull(symmetricPermission._ownerEncSessionKey))
 		} else {
@@ -462,7 +468,7 @@ export class CryptoFacade {
 					typeModel,
 					encryptionAuthStatus,
 					pqMessageSenderKey,
-					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? Number(bucketKey.senderKeyVersion ?? 0) : null,
+					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? parseKeyVersion(bucketKey.senderKeyVersion ?? "0") : null,
 					instance,
 					resolvedSessionKeyForInstance,
 					instanceSessionKeyWithOwnerEncSessionKey,
@@ -491,7 +497,7 @@ export class CryptoFacade {
 			| EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			| EncryptionAuthStatus.AES_NO_AUTHENTICATION,
 		pqMessageSenderKey: Uint8Array | null,
-		pqMessageSenderKeyVersion: number | null,
+		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: Record<string, any>,
 		resolvedSessionKeyForInstance: number[],
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
@@ -508,14 +514,19 @@ export class CryptoFacade {
 						? ((await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail)
 						: (instance as Mail)
 					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
-					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(senderMailAddress, pqMessageSenderKey, pqMessageSenderKeyVersion)
+					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(
+						senderMailAddress,
+						pqMessageSenderKey,
+						// must not be null if this is a TutaCrypt message with a pqMessageSenderKey
+						assertNotNull(pqMessageSenderKeyVersion),
+					)
 				}
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
 		}
 	}
 
-	private async tryAuthenticateSenderOfMainInstance(senderMailAddress: string, pqMessageSenderKey: Uint8Array, pqMessageSenderKeyVersion: number | null) {
+	private async tryAuthenticateSenderOfMainInstance(senderMailAddress: string, pqMessageSenderKey: Uint8Array, pqMessageSenderKeyVersion: KeyVersion) {
 		try {
 			return await this.asymmetricCryptoFacade.authenticateSender(
 				{
@@ -523,7 +534,7 @@ export class CryptoFacade {
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				},
 				pqMessageSenderKey,
-				assertNotNull(pqMessageSenderKeyVersion),
+				pqMessageSenderKeyVersion,
 			)
 		} catch (e) {
 			// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
@@ -568,7 +579,7 @@ export class CryptoFacade {
 		if (bucketPermission.ownerEncBucketKey != null) {
 			const ownerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
 				neverNull(bucketPermission._ownerGroup),
-				Number(bucketPermission.ownerKeyVersion ?? 0),
+				parseKeyVersion(bucketPermission.ownerKeyVersion ?? "0"),
 			)
 			bucketKey = decryptKey(ownerGroupKey, bucketPermission.ownerEncBucketKey)
 		} else if (bucketPermission.symEncBucketKey) {
@@ -576,7 +587,7 @@ export class CryptoFacade {
 			// The bucket key is encrypted with the user group key of the external user.
 			// We maintain this code as we still have some old BucketKeys in some external mailboxes.
 			// Can be removed if we finished mail details migration or when we do cleanup of external mailboxes.
-			const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(Number(bucketPermission.symKeyVersion ?? 0))
+			const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(bucketPermission.symKeyVersion ?? "0"))
 			bucketKey = decryptKey(userGroupKey, bucketPermission.symEncBucketKey)
 		} else {
 			throw new SessionKeyNotFoundError(
@@ -608,7 +619,7 @@ export class CryptoFacade {
 
 		const { decryptedAesKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
 			bucketPermission.group,
-			Number(bucketPermission.pubKeyVersion ?? 0),
+			parseKeyVersion(bucketPermission.pubKeyVersion ?? "0"),
 			asCryptoProtoocolVersion(bucketPermission.protocolVersion),
 			pubEncBucketKey,
 		)
@@ -681,13 +692,11 @@ export class CryptoFacade {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
-		const keyData = createPublicKeyGetIn({
-			identifier: recipientMailAddress,
-			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			version: null,
-		})
 		try {
-			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+			const pubKeys = await this.publicKeyProvider.loadCurrentPubKey({
+				identifier: recipientMailAddress,
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			})
 			// We do not create any key data in case there is one not found recipient, but we want to
 			// collect ALL not found recipients when iterating a recipient list.
 			if (notFoundRecipients.length !== 0) {
@@ -696,10 +705,10 @@ export class CryptoFacade {
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetricly when old clients are deactivated that don't support tuta-crypt.
-			if (publicKeyGetOut.pubKyberKey && isExternalSender) {
+			if (pubKeys.object.pubKyberKey && isExternalSender) {
 				return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
 			} else {
-				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKeyGetOut, senderUserGroupId)
+				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, pubKeys, senderUserGroupId)
 			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -713,8 +722,12 @@ export class CryptoFacade {
 		}
 	}
 
-	private async createPubEncInternalRecipientKeyData(bucketKey: AesKey, recipientMailAddress: string, publicKeyGetOut: PublicKeyGetOut, senderGroupId: Id) {
-		const recipientPublicKeys = convertToVersionedPublicKeys(publicKeyGetOut)
+	private async createPubEncInternalRecipientKeyData(
+		bucketKey: AesKey,
+		recipientMailAddress: string,
+		recipientPublicKeys: Versioned<PublicKeys>,
+		senderGroupId: Id,
+	) {
 		const pubEncBucketKey = await this.asymmetricCryptoFacade.asymEncryptSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,

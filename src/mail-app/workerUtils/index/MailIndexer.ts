@@ -60,6 +60,7 @@ import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader } from "./BulkMailLoader.js"
+import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 // one day
@@ -169,7 +170,7 @@ export class MailIndexer {
 					mailDetails = await this.entityClient
 						.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => ({
 							key: mailOwnerEncSessionKey,
-							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+							encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 						}))
 						.then((d) => {
 							const draft = first(d)
@@ -185,7 +186,7 @@ export class MailIndexer {
 					mailDetails = await this.entityClient
 						.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => ({
 							key: mailOwnerEncSessionKey,
-							encryptingKeyVersion: Number(mail._ownerKeyVersion ?? 0),
+							encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 						}))
 						.then((d) => {
 							const blob = first(d)
