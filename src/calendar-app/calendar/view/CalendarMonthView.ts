@@ -467,7 +467,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			m(ContinuingCalendarEventBubble, {
 				event: event,
 				startsBefore: eventStart < firstDayOfWeek,
-				endsAfter: firstDayOfNextWeek < eventEnd,
+				endsAfter: firstDayOfNextWeek <= eventEnd,
 				color: getEventColor(event, attrs.groupColors),
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
@@ -498,7 +498,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
 		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
-		const right = (eventEnd > firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
+		const right = (eventEnd >= firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
 		return {
 			top,
 			left,
