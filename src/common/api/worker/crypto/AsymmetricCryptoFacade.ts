@@ -20,14 +20,16 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { createPublicKeyGetIn, createPublicKeyPutIn, PubEncKeyData, type PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
+import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
+import { PublicKeyIdentifier, PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
+import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
 
@@ -36,21 +38,11 @@ export type DecapsulatedAesKey = {
 	senderIdentityPubKey: EccPublicKey | null // for authentication: null for rsa only
 }
 
-export type PublicKeyIdentifier = {
-	identifier: string
-	identifierType: PublicKeyIdentifierType
-}
-
 export type PubEncSymKey = {
 	pubEncSymKeyBytes: Uint8Array
 	cryptoProtocolVersion: CryptoProtocolVersion
-	senderKeyVersion: number | null
-	recipientKeyVersion: number
-}
-export type PublicKeys = {
-	pubRsaKey: null | Uint8Array
-	pubEccKey: null | Uint8Array
-	pubKyberKey: null | Uint8Array
+	senderKeyVersion: KeyVersion | null
+	recipientKeyVersion: KeyVersion
 }
 
 /**
@@ -64,6 +56,7 @@ export class AsymmetricCryptoFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	/**
@@ -74,14 +67,9 @@ export class AsymmetricCryptoFacade {
 	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
-	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: number): Promise<EncryptionAuthStatus> {
-		const keyData = createPublicKeyGetIn({
-			identifier: identifier.identifier,
-			identifierType: identifier.identifierType,
-			version: senderKeyVersion.toString(),
-		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-		return publicKeyGetOut.pubEccKey != null && arrayEquals(publicKeyGetOut.pubEccKey, senderIdentityPubKey)
+	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: KeyVersion): Promise<EncryptionAuthStatus> {
+		const publicKeys = await this.publicKeyProvider.loadVersionedPubKey(identifier, senderKeyVersion)
+		return publicKeys.pubEccKey != null && arrayEquals(publicKeys.pubEccKey, senderIdentityPubKey)
 			? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
 			: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 	}
@@ -105,7 +93,7 @@ export class AsymmetricCryptoFacade {
 			const encryptionAuthStatus = await this.authenticateSender(
 				senderIdentifier,
 				assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
-				Number(assertNotNull(pubEncKeyData.senderKeyVersion)),
+				parseKeyVersion(assertNotNull(pubEncKeyData.senderKeyVersion)),
 			)
 			if (encryptionAuthStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
 				throw new CryptoError("the provided public key could not be authenticated")
@@ -157,7 +145,7 @@ export class AsymmetricCryptoFacade {
 	 */
 	async loadKeyPairAndDecryptSymKey(
 		recipientKeyPairGroupId: Id,
-		recipientKeyVersion: number,
+		recipientKeyVersion: KeyVersion,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array,
 	): Promise<DecapsulatedAesKey> {
@@ -274,16 +262,5 @@ export class AsymmetricCryptoFacade {
 		} else {
 			throw new CryptoError("unknown key pair type: " + algo)
 		}
-	}
-}
-
-export function convertToVersionedPublicKeys(publicKeyGetOut: PublicKeyGetOut): Versioned<PublicKeys> {
-	return {
-		object: {
-			pubRsaKey: publicKeyGetOut.pubRsaKey,
-			pubKyberKey: publicKeyGetOut.pubKyberKey,
-			pubEccKey: publicKeyGetOut.pubEccKey,
-		},
-		version: Number(publicKeyGetOut.pubKeyVersion),
 	}
 }

@@ -18,7 +18,7 @@ import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
@@ -92,7 +92,7 @@ export class ShareFacade {
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
-		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: Number(invitation.sharedGroupKeyVersion) }
+		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: parseKeyVersion(invitation.sharedGroupKeyVersion) }
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
 		const sharedGroupEncInviteeGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))

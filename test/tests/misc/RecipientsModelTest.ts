@@ -4,7 +4,7 @@ import { LoginController } from "../../../src/common/api/main/LoginController.js
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { func, instance, object, when } from "testdouble"
-import { GroupInfoTypeRef, GroupMembershipTypeRef, PublicKeyGetOutTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
@@ -114,7 +114,7 @@ o.spec("RecipientsModel", function () {
 	o("correctly resolves type for non tutanota addresses", async function () {
 		const internalAddress = "internal@email.com"
 		const externalAddress = "external@email.com"
-		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(createTestEntity(PublicKeyGetOutTypeRef))
+		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(object())
 		when(mailFacadeMock.getRecipientKeyData(externalAddress)).thenResolve(null)
 
 		const internal = await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved()

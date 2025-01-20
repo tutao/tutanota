@@ -38,6 +38,7 @@ import {
 	verifyHmacSha256,
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
+import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 /**
  * An AesKey (usually a group key) and its version.
@@ -47,7 +48,7 @@ export type VersionedKey = Versioned<AesKey>
  * A key that is encrypted with a given version of some other key.
  */
 export type VersionedEncryptedKey = {
-	encryptingKeyVersion: number // the version of the encryption key NOT the encrypted key
+	encryptingKeyVersion: KeyVersion // the version of the encryption key NOT the encrypted key
 	key: Uint8Array // encrypted key
 }
 

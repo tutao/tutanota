@@ -1,4 +1,4 @@
-import { Group, GroupKeyTypeRef, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import { Group, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { UserFacade } from "../UserFacade.js"
