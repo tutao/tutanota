@@ -475,6 +475,21 @@
 					"info": "AddAssociation RepeatRule/advancedRules/AGGREGATION/2525."
 				}
 			]
+		},
+		{
+			"version": 119,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "PlanConfiguration",
+					"info": "AddValue PlanConfiguration/maxLabels/2526."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "PlanConfiguration",
+					"info": "RemoveValue PlanConfiguration/unlimitedLabels/2494."
+				}
+			]
 		}
 	]
 }
