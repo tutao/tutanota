@@ -1925,6 +1925,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"threeDays_label": "Three Days",
+		"prevThreeDays_label": "Previous three days",
+		"nextThreeDays_label": "Next three days",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"monday_label": "Monday",
@@ -1947,9 +1950,6 @@ export default {
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"localAdminGroups_label": "Local admin groups",
-		"threeDays_label": "Three Days",
-		"prevThreeDays_label": "Previous three days",
-		"nextThreeDays_label": "Next three days",
 		"weekScrollTime_label": "Default time",
 		"weekScrollTime_msg": "Default time for Three Days and Week views to scroll to"
 	}
