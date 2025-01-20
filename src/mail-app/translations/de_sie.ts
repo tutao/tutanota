@@ -1925,6 +1925,9 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"threeDays_label": "Drei Tage",
+		"prevThreeDays_label": "Vorherige drei Tage",
+		"nextThreeDays_label": "Nächsten drei Tage"
 	}
 }
