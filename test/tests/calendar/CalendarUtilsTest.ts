@@ -24,7 +24,6 @@ import {
 	getWeekNumber,
 	isEventBetweenDays,
 	parseAlarmInterval,
-	prepareCalendarDescription,
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
@@ -32,7 +31,12 @@ import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, UserTypeRef }
 import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
-import { generateEventElementId, getAllDayDateUTC, serializeAlarmInterval } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import {
+	generateEventElementId,
+	getAllDayDateUTC,
+	prepareCalendarDescription,
+	serializeAlarmInterval,
+} from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
 import {
 	CalendarEvent,
@@ -491,7 +495,7 @@ o.spec("calendar utils tests", function () {
 	o.spec("prepareCalendarDescription", function () {
 		o("angled link replaced with a proper link", function () {
 			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path>", identity)).equals(
-				`JoinBlahBlah<a href="https://the-link.com/path">https://the-link.com/path</a>`,
+				`JoinBlahBlah <a href="https://the-link.com/path">https://the-link.com/path</a>`,
 			)
 		})
 		o("normal HTML link is not touched", function () {

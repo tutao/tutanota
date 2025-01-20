@@ -2,7 +2,7 @@ import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
 import type { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
 import { EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
 import { stringToCustomId } from "./EntityUtils"
-import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
+import { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
 
@@ -179,4 +179,33 @@ export enum CalendarViewType {
 	WEEK = "week",
 	MONTH = "month",
 	AGENDA = "agenda",
+}
+
+/**
+ * Prepare calendar event description to be shown to the user.
+ *
+ * Outlook invitations frequently include links enclosed within "<>" in the email/event description.
+ * Sanitizing this string can cause the links to be lost.
+ * To prevent this, we use this function to remove the "<>" characters before applying sanitization whenever necessary.
+ *
+ * They look like this:
+ * ```
+ * text<https://example.com>
+ * ```
+ *
+ * @param description Description to clean up
+ * @param sanitizer Optional sanitizer to apply after preparing the description
+ */
+export function prepareCalendarDescription(description: string, sanitizer?: (s: string) => string): string {
+	const prepared = description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),/?]+>/gi, (possiblyLink) => {
+		try {
+			const withoutBrackets = possiblyLink.slice(1, -1)
+			const url = new URL(withoutBrackets)
+			return ` <a href="${url.toString()}">${withoutBrackets}</a>`
+		} catch (e) {
+			return possiblyLink
+		}
+	})
+
+	return sanitizer ? sanitizer(prepared) : prepared
 }
