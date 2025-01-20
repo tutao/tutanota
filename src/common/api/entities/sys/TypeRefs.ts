@@ -2303,12 +2303,12 @@ export type PlanConfiguration = {
 	contactList: boolean;
 	customDomainType: NumberString;
 	eventInvites: boolean;
+	maxLabels: NumberString;
 	multiUser: boolean;
 	nbrOfAliases: NumberString;
 	sharing: boolean;
 	storageGb: NumberString;
 	templates: boolean;
-	unlimitedLabels: boolean;
 	whitelabel: boolean;
 }
 export const PlanPricesTypeRef: TypeRef<PlanPrices> = new TypeRef("sys", "PlanPrices")

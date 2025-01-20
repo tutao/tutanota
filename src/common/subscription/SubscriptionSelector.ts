@@ -21,6 +21,8 @@ import { downcast, lazy, NBSP } from "@tutao/tutanota-utils"
 import {
 	AvailablePlanType,
 	Const,
+	CustomDomainType,
+	CustomDomainTypeCountName,
 	HighlightedPlans,
 	LegacyPlans,
 	NewBusinessPlans,
@@ -471,12 +473,17 @@ export function getReplacement(
 ): Record<string, string | number> | undefined {
 	const { priceAndConfigProvider } = attrs
 	switch (key) {
-		case "customDomains":
-			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).customDomains }
+		case "customDomains": {
+			const customDomainType = downcast<CustomDomainType>(priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.customDomainType)
+			return { "{amount}": CustomDomainTypeCountName[customDomainType] }
+		}
 		case "mailAddressAliases":
-			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).includedAliases }
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.nbrOfAliases }
 		case "storage":
-			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).includedStorage }
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.storageGb }
+		case "label": {
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.maxLabels }
+		}
 	}
 }
 
