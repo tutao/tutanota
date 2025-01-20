@@ -823,32 +823,6 @@ export function findFirstPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarI
 	return null
 }
 
-/**
- * Prepare calendar event description to be shown to the user.
- *
- * It is needed to fix special format of links from Outlook which otherwise disappear during sanitizing.
- * They look like this:
- * ```
- * text<https://example.com>
- * ```
- *
- * @param description description to clean up
- * @param sanitizer optional sanitizer to apply after preparing the description
- */
-export function prepareCalendarDescription(description: string, sanitizer: (s: string) => string): string {
-	const prepared = description.replace(/<(http|https):\/\/[A-z0-9$-_.+!*‘(),/?]+>/gi, (possiblyLink) => {
-		try {
-			const withoutBrackets = possiblyLink.slice(1, -1)
-			const url = new URL(withoutBrackets)
-			return `<a href="${url.toString()}">${withoutBrackets}</a>`
-		} catch (e) {
-			return possiblyLink
-		}
-	})
-
-	return sanitizer(prepared)
-}
-
 export const DEFAULT_HOUR_OF_DAY = 6
 
 /** Get CSS class for the date element. */
