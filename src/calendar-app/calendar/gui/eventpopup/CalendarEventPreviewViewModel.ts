@@ -9,6 +9,8 @@ import m from "mithril"
 import { clone, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
+import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
+import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -215,9 +217,13 @@ export class CalendarEventPreviewViewModel {
 
 	async sanitizeDescription(): Promise<void> {
 		const { htmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
-		this.sanitizedDescription = htmlSanitizer.sanitizeHTML(this.calendarEvent.description, {
-			blockExternalContent: true,
-		}).html
+		this.sanitizedDescription = prepareCalendarDescription(
+			this.calendarEvent.description,
+			(s) =>
+				htmlSanitizer.sanitizeHTML(convertTextToHtml(s), {
+					blockExternalContent: false,
+				}).html,
+		)
 	}
 
 	getSanitizedDescription() {
