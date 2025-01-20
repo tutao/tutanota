@@ -87,6 +87,7 @@ import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
+import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
@@ -113,6 +114,7 @@ export type WorkerLocatorType = {
 	blobAccessToken: BlobAccessTokenFacade
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
+	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 
 	// login
@@ -277,7 +279,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
-	locator.asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, locator.cryptoWrapper, locator.serviceExecutor)
+	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
+
+	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
+		locator.rsa,
+		locator.pqFacade,
+		locator.keyLoader,
+		locator.cryptoWrapper,
+		locator.serviceExecutor,
+		locator.publicKeyProvider,
+	)
 
 	locator.crypto = new CryptoFacade(
 		locator.user,
@@ -289,6 +300,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		cache,
 		locator.keyLoader,
 		locator.asymmetricCrypto,
+		locator.publicKeyProvider,
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
@@ -332,6 +344,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.groupManagement,
 		locator.asymmetricCrypto,
 		keyAuthenticationFacade,
+		locator.publicKeyProvider,
 	)
 
 	const loginListener: LoginListener = {
@@ -446,6 +459,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			fileApp,
 			locator.login,
 			locator.keyLoader,
+			locator.publicKeyProvider,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

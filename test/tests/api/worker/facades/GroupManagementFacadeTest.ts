@@ -5,7 +5,7 @@ import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
-import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -179,7 +179,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				const formerGroupSymKey = object<AesKey>()
 				when(cryptoWrapper.decryptKey(anything(), formerGroupKeys.adminGroupEncGKey!)).thenReturn(formerGroupSymKey)
 
-				when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, Number(taggingKeyVersion))).thenResolve(formerGroupKeys)
+				when(keyLoaderFacade.loadFormerGroupKeyInstance(group, parseKeyVersion(taggingKeyVersion))).thenResolve(formerGroupKeys)
 
 				when(
 					keyAuthenticationFacade.generateNewUserGroupKeyAuthenticationData(argThat((arg: VersionedKey) => arg.object === groupKeyBytes)),
@@ -188,7 +188,12 @@ o.spec("GroupManagementFacadeTest", function () {
 				const groupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 				o(groupKey.object).equals(groupKeyBytes)
 				o(groupKey.version).equals(groupKeyVersion)
-				verify(keyAuthenticationFacade.deriveUserGroupAuthKey(groupId, { object: formerGroupSymKey, version: groupKeyVersion - 1 }))
+				verify(
+					keyAuthenticationFacade.deriveUserGroupAuthKey(groupId, {
+						object: formerGroupSymKey,
+						version: checkKeyVersionConstraints(groupKeyVersion - 1),
+					}),
+				)
 				verify(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyMacData, brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag))
 			})
 
@@ -249,7 +254,7 @@ o.spec("GroupManagementFacadeTest", function () {
 						decryptedAesKey: userGroupSymKeyV1,
 						senderIdentityPubKey: object(),
 					})
-					when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 1)).thenResolve(groupKeysV1)
+					when(keyLoaderFacade.loadFormerGroupKeyInstance(group, 1)).thenResolve(groupKeysV1)
 					derivedAuthKeyV1 = object<AesKey>()
 					when(
 						keyAuthenticationFacade.deriveUserGroupAuthKey(
@@ -289,7 +294,7 @@ o.spec("GroupManagementFacadeTest", function () {
 					when(cryptoWrapper.aesDecrypt(derivedAuthKeyV1, anything(), true)).thenReturn(userGroupKeyMacDataV2)
 
 					// Prepare V0
-					when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 0)).thenResolve(groupKeysV0)
+					when(keyLoaderFacade.loadFormerGroupKeyInstance(group, 0)).thenResolve(groupKeysV0)
 
 					const groupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 
@@ -320,7 +325,7 @@ o.spec("GroupManagementFacadeTest", function () {
 					when(cryptoWrapper.verifyHmacSha256(derivedAuthKeyV1, userGroupKeyMacDataV2, anything())).thenThrow(new CryptoError("invalid mac"))
 
 					// Prepare V0
-					when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 0)).thenResolve(groupKeysV0)
+					when(keyLoaderFacade.loadFormerGroupKeyInstance(group, 0)).thenResolve(groupKeysV0)
 
 					const error = await assertThrows(CryptoError, () => groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId))
 				})
@@ -343,7 +348,7 @@ o.spec("GroupManagementFacadeTest", function () {
 						}),
 						adminGroupKeyVersion: "0",
 					})
-					when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 0)).thenResolve(groupKeysV0)
+					when(keyLoaderFacade.loadFormerGroupKeyInstance(group, 0)).thenResolve(groupKeysV0)
 
 					const error = await assertThrows(TutanotaError, () => groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId))
 					o(error.name).equals("UserGroupKeyNotTrustedError")
@@ -369,7 +374,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				})
 				when(cryptoWrapper.decryptKey(anything(), formerGroupKeys.adminGroupEncGKey!)).thenReturn([3, 5, 7])
 
-				when(keyLoaderFacade.loadFormerGroupKeyInstance(formerGroupKeyListId, 1)).thenResolve(formerGroupKeys)
+				when(keyLoaderFacade.loadFormerGroupKeyInstance(group, 1)).thenResolve(formerGroupKeys)
 				when(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyMacData, brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag)).thenThrow(
 					new CryptoError("invalid mac"),
 				)

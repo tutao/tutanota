@@ -23,7 +23,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, findAndRemove, getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/tutanota-utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
@@ -147,7 +147,7 @@ export class MailAddressFacade {
 			mailboxGroupRoot.mailboxProperties = await this.createMailboxProperties(mailboxGroupRoot, currentGroupKey)
 		}
 
-		const groupKeyProvider = async (version: number) =>
+		const groupKeyProvider = async (version: KeyVersion) =>
 			viaUser
 				? await this.groupManagement.getGroupKeyViaUser(mailGroupId, version, viaUser)
 				: await this.groupManagement.getGroupKeyViaAdminEncGKey(mailGroupId, version)
@@ -210,7 +210,7 @@ export class MailAddressFacade {
 	}
 
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {
-		const groupKeyProvider = async (version: number) =>
+		const groupKeyProvider = async (version: KeyVersion) =>
 			viaUser
 				? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
 				: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)

@@ -16,7 +16,7 @@ import {
 import { UserFacade } from "../UserFacade.js"
 import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import type { QueuedBatch } from "../../EventQueue.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
@@ -210,7 +210,7 @@ export async function getMetaData(db: DbFacade, objectStoreName: ObjectStoreName
 	const transaction = await db.createTransaction(true, [objectStoreName])
 	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
 	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
-	const userGroupKeyVersion = (await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0 // was not written for old dbs
+	const userGroupKeyVersion = checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
 	if (userEncDbKey == null || encDbIv == null) {
 		return null
 	} else {
@@ -231,7 +231,7 @@ export async function getIndexerMetaData(db: DbFacade, objectStoreName: ObjectSt
 	const transaction = await db.createTransaction(true, [objectStoreName])
 	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
 	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
-	const userGroupKeyVersion = (await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0 // was not written for old dbs
+	const userGroupKeyVersion = checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
 	const mailIndexingEnabled = (await transaction.get(objectStoreName, Metadata.mailIndexingEnabled)) as boolean
 	const excludedListIds = (await transaction.get(objectStoreName, Metadata.excludedListIds)) as Id[]
 	const lastEventIndexTimeMs = (await transaction.get(objectStoreName, Metadata.lastEventIndexTimeMs)) as number

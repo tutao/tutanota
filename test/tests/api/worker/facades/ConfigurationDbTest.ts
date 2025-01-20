@@ -7,7 +7,7 @@ import {
 	loadEncryptionMetadata,
 	updateEncryptionMetadata,
 } from "../../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, KeyVersion } from "@tutao/tutanota-utils"
 import { DbStub } from "../search/DbStub.js"
 import { ExternalImageRule } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
@@ -174,7 +174,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 
 		o("write group key version when updating database", async function () {
-			const oldGroupKey = { version: currentUserGroupKey.version - 1, object: aes256RandomKey() }
+			const oldGroupKey = { version: (currentUserGroupKey.version - 1) as KeyVersion, object: aes256RandomKey() }
 			when(keyLoaderFacade.loadSymUserGroupKey(oldGroupKey.version)).thenResolve(oldGroupKey.object)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(oldGroupKey.version)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encryptKey(oldGroupKey.object, dbKey))
