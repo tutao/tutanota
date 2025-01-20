@@ -22,16 +22,14 @@ import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
-export type ListModelConfig<ItemType, IdType> = {
+/**
+ * Specifies methods for retrieving items, fetching items, and comparing items for a ListModel.
+ */
+export interface ListModelConfig<ItemType, IdType> {
 	/**
 	 * Get the given number of entities starting after the given id. May return more items than requested, e.g. if all items are available on first fetch.
 	 */
 	fetch(lastFetchedItem: ItemType | null | undefined, count: number): Promise<ListFetchResult<ItemType>>
-
-	/**
-	 * Returns null if the given item could not be loaded
-	 */
-	loadSingle(listId: IdType, itemId: IdType): Promise<ItemType | null>
 
 	/**
 	 * Compare the items
