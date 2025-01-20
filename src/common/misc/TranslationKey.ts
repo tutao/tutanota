@@ -1907,3 +1907,6 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "threeDays_label"
+	| "prevThreeDays_label"
+	| "nextThreeDays_label"

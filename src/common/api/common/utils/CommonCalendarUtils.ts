@@ -179,6 +179,7 @@ export enum CalendarViewType {
 	WEEK = "week",
 	MONTH = "month",
 	AGENDA = "agenda",
+	THREE_DAY = "three",
 }
 
 /**

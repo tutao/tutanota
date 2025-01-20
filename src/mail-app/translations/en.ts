@@ -1922,6 +1922,9 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"threeDays_label": "Three Days",
+		"prevThreeDays_label": "Previous three days",
+		"nextThreeDays_label": "Next three days",
 	}
 }

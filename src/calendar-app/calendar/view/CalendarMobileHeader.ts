@@ -143,6 +143,10 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 							value: CalendarViewType.DAY,
 						},
 						{
+							name: "threeDays_label",
+							value: CalendarViewType.THREE_DAY,
+						},
+						{
 							name: "week_label",
 							value: CalendarViewType.WEEK,
 						},

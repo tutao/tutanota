@@ -1926,6 +1926,9 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"threeDays_label": "Drei Tage",
+		"prevThreeDays_label": "Vorherige drei Tage",
+		"nextThreeDays_label": "Nächsten drei Tage"
 	}
 }

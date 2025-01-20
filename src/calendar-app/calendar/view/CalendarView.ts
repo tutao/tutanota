@@ -298,6 +298,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									scrollPosition: this.viewModel.getScrollPosition(),
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
+									currentViewType: this.currentViewType,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 							})
@@ -331,6 +332,41 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									scrollPosition: this.viewModel.getScrollPosition(),
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
+									currentViewType: this.currentViewType,
+								}),
+								floatingActionButton: this.renderFab.bind(this),
+							})
+
+						case CalendarViewType.THREE_DAY:
+							return m(BackgroundColumnLayout, {
+								backgroundColor: theme.navigation_bg,
+								desktopToolbar: () => this.renderDesktopToolbar(),
+								mobileHeader: () => this.renderMobileHeader(attrs.header),
+								columnLayout: m(MultiDayCalendarView, {
+									temporaryEvents: this.viewModel.temporaryEvents,
+									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
+									daysInPeriod: 3,
+									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
+									onEventKeyDown: this.handleEventKeyDown(),
+									onNewEvent: (date) => {
+										this.createNewEventDialog(date)
+									},
+									selectedDate: this.viewModel.selectedDate(),
+									onDateSelected: (date, viewType) => {
+										this.viewModel.selectedDate(date)
+										this.setUrl(viewType ?? CalendarViewType.THREE_DAY, date)
+									},
+									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+									groupColors: this.viewModel.calendarColors,
+									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.THREE_DAY, next),
+									dragHandlerCallbacks: this.viewModel,
+									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
+									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
+									selectedTime: this.viewModel.selectedTime,
+									scrollPosition: this.viewModel.getScrollPosition(),
+									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
+									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
+									currentViewType: this.currentViewType,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 							})
@@ -469,11 +505,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderMobileHeader(header: AppHeaderAttrs) {
+		const isExpandable = !styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY
 		return m(CalendarMobileHeader, {
 			...header,
 			viewType: this.currentViewType,
 			viewSlider: this.viewSlider,
-			showExpandIcon: !styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH,
+			showExpandIcon: isExpandable,
 			isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 			navConfiguration: calendarNavConfiguration(
 				this.currentViewType,
@@ -495,7 +532,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					return
 				}
 
-				if (!styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH) {
+				if (isExpandable) {
 					if (this.viewModel.isDaySelectorExpanded()) {
 						this.viewModel.setDaySelectorExpanded(false)
 					}
@@ -540,6 +577,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			{
 				key: Keys.THREE,
+				exec: () => this.setUrl(CalendarViewType.THREE_DAY, this.viewModel.selectedDate()),
+				help: "switchAgendaView_action",
+			},
+			{
+				key: Keys.FOUR,
 				exec: () => this.setUrl(CalendarViewType.AGENDA, this.viewModel.selectedDate()),
 				help: "switchAgendaView_action",
 			},
@@ -650,7 +692,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}
 				unit = "week"
 				break
-
+			case CalendarViewType.THREE_DAY:
+				duration = {
+					day: 3,
+				}
+				unit = "day"
+				break
 			case CalendarViewType.DAY:
 				duration = {
 					day: 1,
@@ -1083,7 +1130,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			this.setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
-
 			const urlDateParam = args.date
 
 			if (urlDateParam) {
