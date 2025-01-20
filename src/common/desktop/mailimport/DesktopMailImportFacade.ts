@@ -27,7 +27,6 @@ function asyncImportErrorToMailImportErrorData(message: MailImportErrorMessage):
 			return { category: ImportErrorCategories.InvalidImportFilesErrors, source: kind }
 
 		case ImportErrorKind.SdkError:
-		case ImportErrorKind.GenericSdkError:
 		case ImportErrorKind.EmptyBlobServerList:
 			return { category: ImportErrorCategories.LocalSdkError, source: kind }
 
@@ -63,7 +62,7 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 		case PreparationError.CannotLoadRemoteState:
 			return { category: ImportErrorCategories.ServerCommunicationError, source }
 
-		case PreparationError.NoImportFeature:
+		case PreparationError.ImportFeatureDisabled:
 			return { category: ImportErrorCategories.ImportFeatureDisabled }
 
 		// errors that happen before we even talk to the server. usually not actionable.
@@ -149,7 +148,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 				this.configDirectory,
 			)
 		} catch (e) {
-			throw new MailImportError(mimimiErrorToImportErrorData(e.message))
+			throw new MailImportError(mimimiErrorToImportErrorData(e))
 		}
 		importerApi.setMessageHook((message: MailImportMessage) => this.processMimimiMessage(mailboxId, message))
 		this.importerApis.set(mailboxId, importerApi)

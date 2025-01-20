@@ -1,12 +1,14 @@
 use crate::importer::importable_mail::MailParseError;
 use std::path::PathBuf;
+use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
+use tutasdk::rest_error::{HttpError, ImportFailureReason};
 use tutasdk::ApiCallError;
 
 #[napi_derive::napi(string_enum)]
 #[derive(Debug, PartialEq)]
 pub enum ImportErrorKind {
 	SdkError,
-	/// import feature is not available for this user
+	/// No import feature on the server (it's disabled)
 	ImportFeatureDisabled,
 	/// Blob responded with empty server url list
 	EmptyBlobServerList,
@@ -14,9 +16,6 @@ pub enum ImportErrorKind {
 	TooBigChunk,
 	/// Error that occured when deleting a file
 	FileDeletionError,
-	/// Generic counterpart for SdkError
-	// note: do not throw this manually
-	GenericSdkError,
 	/// The import was finished, but some files
 	/// were left behind and marked as failures.
 	/// the path is the directory where the failures can be inspected
@@ -84,7 +83,7 @@ pub enum PreparationError {
 	/// can not load remote state
 	CannotLoadRemoteState,
 	/// No import feature on the server (it's disabled)
-	NoImportFeature,
+	ImportFeatureDisabled,
 	/// Can not write to state file
 	StateFileWriteFailed,
 	/// Can not create directory to keep selected files
@@ -151,7 +150,7 @@ impl From<PreparationError> for napi::Error {
 			PreparationError::FailedToReadEmls => "FailedToReadEmls",
 			PreparationError::NoMailGroupKey => "NoMailGroupKey",
 			PreparationError::CannotLoadRemoteState => "CannotLoadRemoteState",
-			PreparationError::NoImportFeature => "NoImportFeature",
+			PreparationError::ImportFeatureDisabled => "ImportFeatureDisabled",
 			PreparationError::StateFileWriteFailed => "StateFileWriteFailed",
 			PreparationError::CanNotCreateImportDir => "CanNotCreateImportDir",
 			PreparationError::CanNotDeleteImportDir => "CanNotDeleteImportDir",
@@ -175,13 +174,25 @@ impl From<ProgressActionError> for napi::Error {
 	}
 }
 
+impl ImportErrorKind {
+	pub const IMPORT_DISABLED_ERROR: ApiCallError = ApiCallError::ServerResponseError {
+		source: HttpError::PreconditionFailedError(Some(ImportFailure(
+			ImportFailureReason::ImportDisabled,
+		))),
+	};
+}
+
 impl MailImportErrorMessage {
 	pub fn sdk(action: &'static str, error: ApiCallError) -> Self {
 		log::error!("ImportError::SdkError: {action} ({error})");
-		Self {
-			kind: ImportErrorKind::SdkError,
-			path: None,
-		}
+
+		let kind = if error == ImportErrorKind::IMPORT_DISABLED_ERROR {
+			ImportErrorKind::ImportFeatureDisabled
+		} else {
+			ImportErrorKind::SdkError
+		};
+
+		Self { kind, path: None }
 	}
 
 	pub fn with_path(kind: ImportErrorKind, path: PathBuf) -> Self {

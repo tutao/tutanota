@@ -2,10 +2,7 @@ use super::importer::{
 	ImportLoopResult, ImportMailStateId, ImportProgressAction, ImportStatus, Importer,
 };
 use crate::importer::file_reader::FileImport;
-use crate::importer::messages::{
-	MailImportMessage,
-	ProgressActionError,
-};
+use crate::importer::messages::{MailImportMessage, ProgressActionError};
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::Env;
 use std::path::PathBuf;
@@ -175,7 +172,9 @@ impl ImporterApi {
 					ProgressActionError::CannotJoinImportLoop
 				})?;
 
-				if let Some(message_handler) = self.message_handler.as_ref() { Self::handle_import_loop_result(message_handler, existing_loop_result); }
+				if let Some(message_handler) = self.message_handler.as_ref() {
+					Self::handle_import_loop_result(message_handler, existing_loop_result);
+				}
 
 				update_remote_state().await?;
 			},
@@ -229,7 +228,9 @@ impl ImporterApi {
 
 		napi::tokio::task::spawn(async move {
 			let import_loop_result = importer.start_stateful_import().await;
-			if let Some(error_handler) = error_handler { Self::handle_import_loop_result(&error_handler, import_loop_result.clone()) }
+			if let Some(error_handler) = error_handler {
+				Self::handle_import_loop_result(&error_handler, import_loop_result.clone())
+			}
 			import_loop_result
 		})
 	}

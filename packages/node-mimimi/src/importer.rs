@@ -20,8 +20,7 @@ use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::entities::generated::sys::{BlobReferenceTokenWrapper, StringWrapper};
 
 use crate::importer::messages::{
-	ImportErrorKind, ImportOkKind,
-	MailImportErrorMessage, PreparationError,
+	ImportErrorKind, ImportOkKind, MailImportErrorMessage, PreparationError,
 };
 use crate::importer_api::TutaCredentials;
 use tutasdk::entities::generated::tutanota::{
@@ -29,8 +28,6 @@ use tutasdk::entities::generated::tutanota::{
 };
 use tutasdk::entities::json_size_estimator::estimate_json_size;
 use tutasdk::net::native_rest_client::NativeRestClient;
-use tutasdk::rest_error::PreconditionFailedReason::ImportFailure;
-use tutasdk::rest_error::{HttpError, ImportFailureReason};
 use tutasdk::services::generated::tutanota::ImportMailService;
 use tutasdk::services::ExtraServiceParams;
 use tutasdk::tutanota_constants::ArchiveDataType;
@@ -76,7 +73,6 @@ pub enum ImportParams {
 /// keep in sync with TutanotaConstants.ts
 #[cfg_attr(feature = "javascript", napi_derive::napi)]
 #[cfg_attr(not(feature = "javascript"), derive(Clone))]
-// todo: need debug?
 #[derive(PartialEq, Default, Debug)]
 #[repr(u8)]
 pub enum ImportStatus {
@@ -134,12 +130,6 @@ impl Iterator for ImportSource {
 pub(super) type ImportLoopResult = Result<ImportOkKind, MailImportErrorMessage>;
 
 impl ImportEssential {
-	const IMPORT_DISABLED_ERROR: ApiCallError = ApiCallError::ServerResponseError {
-		source: HttpError::PreconditionFailedError(Some(ImportFailure(
-			ImportFailureReason::ImportDisabled,
-		))),
-	};
-
 	pub async fn load_remote_state(&self) -> Result<ImportMailState, ApiCallError> {
 		self.logged_in_sdk
 			.mail_facade()
@@ -400,7 +390,11 @@ impl ImportEssential {
 			.map_err(|e| {
 				log::error!("Can not get:: on ImportMailService: {e:?}");
 
-				if e == Self::IMPORT_DISABLED_ERROR { PreparationError::NoImportFeature } else { PreparationError::CannotLoadRemoteState }
+				if e == ImportErrorKind::IMPORT_DISABLED_ERROR {
+					PreparationError::ImportFeatureDisabled
+				} else {
+					PreparationError::CannotLoadRemoteState
+				}
 			})?;
 
 		Ok(import_get_response.mailState)
@@ -613,8 +607,8 @@ impl Importer {
 	}
 
 	/// return `Ok(None)` if all mails are finished. we can remove the remote state id. the folder will be left with
-	///         the unparseable/unreadable mails.
-	/// 	   `Ok(Some(..))` if we need to do another loop. the returned vector contains the file paths that were
+	///        the unparseable/unreadable mails.
+	///        `Ok(Some(..))` if we need to do another loop. the returned vector contains the file paths that were
 	///        successfully uploaded.
 	///        `Err()` if something went wrong. we might still continue depending on the error.
 	pub async fn import_next_chunk(&self) -> Result<Option<Vec<PathBuf>>, MailImportErrorMessage> {
@@ -730,7 +724,12 @@ impl Importer {
 							return if Importer::have_failed_mails(&self.essentials.import_directory)
 								// if we can not read import directory to check for failed files,
 								// pretend we have some failed mail
-								.unwrap_or(true) { Err(ImportErrorKind::SourceExhaustedSomeError.into()) } else { Ok(ImportOkKind::SourceExhaustedNoError) };
+								.unwrap_or(true)
+							{
+								Err(ImportErrorKind::SourceExhaustedSomeError.into())
+							} else {
+								Ok(ImportOkKind::SourceExhaustedNoError)
+							};
 						},
 
 						Ok(Some(completed_paths)) => {
@@ -760,20 +759,20 @@ impl Importer {
 	}
 
 	/// called if any chunk fails to import for any reason. if it returns `Ok`, we should continue with the next
-	/// chunk, if it returns `Err`, the error should be propagated to the node process to meybe be displayed and
+	/// chunk, if it returns `Err`, the error should be propagated to the node process to maybe be displayed and
 	/// the import should stop for now.
 	fn handle_err_while_importing_chunk(
 		&self,
 		import_error: MailImportErrorMessage,
 	) -> Result<(), MailImportErrorMessage> {
 		match import_error.kind {
-			// if the import is (temporarly) disabled, we should give up and let user try again later
+			// if the import is (temporary) disabled, we should give up and let user try again later
 			ImportErrorKind::ImportFeatureDisabled => Err(ImportErrorKind::ImportFeatureDisabled)?,
 
 			// these are error we can do nothing about
-			ImportErrorKind::EmptyBlobServerList
-			| ImportErrorKind::GenericSdkError
-			| ImportErrorKind::SdkError => Err(ImportErrorKind::GenericSdkError)?,
+			ImportErrorKind::EmptyBlobServerList | ImportErrorKind::SdkError => {
+				Err(ImportErrorKind::SdkError)?
+			},
 
 			// if something is too big, we just rename it as failed,
 			// and is fine to continue importing next one. user will get import incomplete notification at end
