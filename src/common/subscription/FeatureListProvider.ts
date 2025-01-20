@@ -101,7 +101,7 @@ export type SelectedSubscriptionOptions = {
  * we have to provide functions to produce it. these
  * are used to select the correct one.
  **/
-export type ReplacementKey = "customDomains" | "mailAddressAliases" | "storage"
+export type ReplacementKey = "customDomains" | "mailAddressAliases" | "storage" | "label"
 
 /**
  * A category of features to be shown

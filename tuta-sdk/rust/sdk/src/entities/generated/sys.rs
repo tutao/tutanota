@@ -2863,12 +2863,12 @@ pub struct PlanConfiguration {
 	pub contactList: bool,
 	pub customDomainType: i64,
 	pub eventInvites: bool,
+	pub maxLabels: i64,
 	pub multiUser: bool,
 	pub nbrOfAliases: i64,
 	pub sharing: bool,
 	pub storageGb: i64,
 	pub templates: bool,
-	pub unlimitedLabels: bool,
 	pub whitelabel: bool,
 }
 
