@@ -9,12 +9,12 @@ import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { createAsyncDropdown, DROPDOWN_MARGIN, PosRect, showDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { Keys } from "../../../../common/api/common/TutanotaConstants.js"
 import type { HtmlSanitizer } from "../../../../common/misc/HtmlSanitizer.js"
-import { prepareCalendarDescription } from "../../../../common/calendar/date/CalendarUtils.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
 import { showDeletePopup } from "../CalendarGuiUtils.js"
+import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the
