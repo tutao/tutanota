@@ -1915,6 +1915,9 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"threeDays_label": "Three Days",
+		"prevThreeDays_label": "Previous three days",
+		"nextThreeDays_label": "Next three days",
 	}
 }

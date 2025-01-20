@@ -1919,6 +1919,9 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"threeDays_label": "Drei Tage",
+		"prevThreeDays_label": "Vorherige drei Tage",
+		"nextThreeDays_label": "Nächsten drei Tage"
 	}
 }
