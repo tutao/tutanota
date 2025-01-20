@@ -8,6 +8,7 @@ import { px } from "../../gui/size.js"
 import { Card } from "../../gui/base/Card.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { theme } from "../../gui/theme.js"
 
 type Props = {
 	data: SupportDialogState
@@ -59,6 +60,7 @@ export class SupportLandingPage implements Component<Props> {
 				".pb.pt.flex.col.gap-vpad.fit-height.box-content",
 				supportData.categories.map((category) =>
 					m(SectionButton, {
+						leftIcon: { icon: Icons.People, title: "close_alt", fill: theme.content_accent },
 						text: getLocalisedCategoryName(category, lang.languageTag),
 						onclick: () => {
 							selectedCategory(category)
