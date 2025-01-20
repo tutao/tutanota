@@ -74,6 +74,7 @@ import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
+import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 
 assertWorkerOrNode()
 
@@ -94,6 +95,7 @@ export type CalendarWorkerLocatorType = {
 	blobAccessToken: BlobAccessTokenFacade
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
+	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 
 	// login
@@ -210,9 +212,18 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
+	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
+
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
-	const asymmetricCrypto = new AsymmetricCryptoFacade(locator.rsa, locator.pqFacade, locator.keyLoader, cryptoWrapper, locator.serviceExecutor)
+	const asymmetricCrypto = new AsymmetricCryptoFacade(
+		locator.rsa,
+		locator.pqFacade,
+		locator.keyLoader,
+		cryptoWrapper,
+		locator.serviceExecutor,
+		locator.publicKeyProvider,
+	)
 	locator.crypto = new CryptoFacade(
 		locator.user,
 		locator.cachingEntityClient,
@@ -223,6 +234,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
 		asymmetricCrypto,
+		locator.publicKeyProvider,
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
@@ -266,6 +278,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.groupManagement,
 		asymmetricCrypto,
 		keyAuthenticationFacade,
+		locator.publicKeyProvider,
 	)
 
 	const loginListener: LoginListener = {
@@ -378,6 +391,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			fileApp,
 			locator.login,
 			locator.keyLoader,
+			locator.publicKeyProvider,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

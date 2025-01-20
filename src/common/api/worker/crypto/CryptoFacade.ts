@@ -10,6 +10,7 @@ import {
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
+	Versioned,
 } from "@tutao/tutanota-utils"
 import {
 	AccountType,
@@ -24,12 +25,11 @@ import {
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission, PublicKeyGetOut } from "../../entities/sys/TypeRefs.js"
+import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
-	createPublicKeyGetIn,
 	createUpdatePermissionKeyData,
 	GroupInfoTypeRef,
 	GroupTypeRef,
@@ -62,7 +62,7 @@ import { Aes256Key, aes256RandomKey, aesEncrypt, AesKey, bitArrayToUint8Array, d
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
-import { PublicKeyService, UpdatePermissionKeyService } from "../../entities/sys/Services"
+import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
@@ -71,7 +71,9 @@ import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
-import { AsymmetricCryptoFacade, convertToVersionedPublicKeys } from "./AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
+import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
+import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
 
@@ -98,6 +100,7 @@ export class CryptoFacade {
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	async applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
@@ -494,7 +497,7 @@ export class CryptoFacade {
 			| EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			| EncryptionAuthStatus.AES_NO_AUTHENTICATION,
 		pqMessageSenderKey: Uint8Array | null,
-		pqMessageSenderKeyVersion: number | null,
+		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: Record<string, any>,
 		resolvedSessionKeyForInstance: number[],
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
@@ -511,14 +514,19 @@ export class CryptoFacade {
 						? ((await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail)
 						: (instance as Mail)
 					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
-					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(senderMailAddress, pqMessageSenderKey, pqMessageSenderKeyVersion)
+					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(
+						senderMailAddress,
+						pqMessageSenderKey,
+						// must not be null if this is a TutaCrypt message with a pqMessageSenderKey
+						assertNotNull(pqMessageSenderKeyVersion),
+					)
 				}
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
 		}
 	}
 
-	private async tryAuthenticateSenderOfMainInstance(senderMailAddress: string, pqMessageSenderKey: Uint8Array, pqMessageSenderKeyVersion: number | null) {
+	private async tryAuthenticateSenderOfMainInstance(senderMailAddress: string, pqMessageSenderKey: Uint8Array, pqMessageSenderKeyVersion: KeyVersion) {
 		try {
 			return await this.asymmetricCryptoFacade.authenticateSender(
 				{
@@ -684,13 +692,11 @@ export class CryptoFacade {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
-		const keyData = createPublicKeyGetIn({
-			identifier: recipientMailAddress,
-			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			version: null,
-		})
 		try {
-			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
+			const pubKeys = await this.publicKeyProvider.loadCurrentPubKey({
+				identifier: recipientMailAddress,
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			})
 			// We do not create any key data in case there is one not found recipient, but we want to
 			// collect ALL not found recipients when iterating a recipient list.
 			if (notFoundRecipients.length !== 0) {
@@ -699,10 +705,10 @@ export class CryptoFacade {
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetricly when old clients are deactivated that don't support tuta-crypt.
-			if (publicKeyGetOut.pubKyberKey && isExternalSender) {
+			if (pubKeys.object.pubKyberKey && isExternalSender) {
 				return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
 			} else {
-				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKeyGetOut, senderUserGroupId)
+				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, pubKeys, senderUserGroupId)
 			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -716,8 +722,12 @@ export class CryptoFacade {
 		}
 	}
 
-	private async createPubEncInternalRecipientKeyData(bucketKey: AesKey, recipientMailAddress: string, publicKeyGetOut: PublicKeyGetOut, senderGroupId: Id) {
-		const recipientPublicKeys = convertToVersionedPublicKeys(publicKeyGetOut)
+	private async createPubEncInternalRecipientKeyData(
+		bucketKey: AesKey,
+		recipientMailAddress: string,
+		recipientPublicKeys: Versioned<PublicKeys>,
+		senderGroupId: Id,
+	) {
 		const pubEncBucketKey = await this.asymmetricCryptoFacade.asymEncryptSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,

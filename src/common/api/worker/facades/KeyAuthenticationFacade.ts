@@ -3,8 +3,8 @@ import { concat } from "@tutao/tutanota-utils"
 import { Aes256Key, MacTag } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { customIdToUint8array } from "../../common/utils/EntityUtils.js"
-import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
+import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 
 assertWorkerOrNode()
 

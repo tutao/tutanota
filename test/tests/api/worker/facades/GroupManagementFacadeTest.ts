@@ -5,7 +5,7 @@ import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
-import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { checkKeyVersionConstraints, KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -188,7 +188,12 @@ o.spec("GroupManagementFacadeTest", function () {
 				const groupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 				o(groupKey.object).equals(groupKeyBytes)
 				o(groupKey.version).equals(groupKeyVersion)
-				verify(keyAuthenticationFacade.deriveUserGroupAuthKey(groupId, { object: formerGroupSymKey, version: groupKeyVersion - 1 }))
+				verify(
+					keyAuthenticationFacade.deriveUserGroupAuthKey(groupId, {
+						object: formerGroupSymKey,
+						version: checkKeyVersionConstraints(groupKeyVersion - 1),
+					}),
+				)
 				verify(cryptoWrapper.verifyHmacSha256(anything(), userGroupKeyMacData, brandKeyMac(pubAdminGroupEncGKey.symKeyMac).tag))
 			})
 

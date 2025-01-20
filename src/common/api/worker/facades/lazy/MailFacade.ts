@@ -75,10 +75,9 @@ import {
 } from "../../../entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { NotFoundError } from "../../../common/error/RestError.js"
-import type { EntityUpdate, ExternalUserReference, PublicKeyGetOut, User } from "../../../entities/sys/TypeRefs.js"
+import type { EntityUpdate, ExternalUserReference, User } from "../../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
-	createPublicKeyGetIn,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
@@ -100,6 +99,7 @@ import {
 	ofClass,
 	promiseFilter,
 	promiseMap,
+	Versioned,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -126,7 +126,6 @@ import {
 import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
 import { CounterService } from "../../../entities/monitor/Services.js"
-import { PublicKeyService } from "../../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { createWriteCounterData } from "../../../entities/monitor/TypeRefs.js"
 import { UserFacade } from "../UserFacade.js"
@@ -138,6 +137,7 @@ import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { PublicKeyProvider, PublicKeys } from "../PublicKeyProvider.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -185,6 +185,7 @@ export class MailFacade {
 		private readonly fileApp: NativeFileApp,
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -811,16 +812,12 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<PublicKeyGetOut | null> {
-		return this.serviceExecutor
-			.get(
-				PublicKeyService,
-				createPublicKeyGetIn({
-					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-					identifier: mailAddress,
-					version: null, // get the current version for encryption
-				}),
-			)
+	getRecipientKeyData(mailAddress: string): Promise<Versioned<PublicKeys> | null> {
+		return this.publicKeyProvider
+			.loadCurrentPubKey({
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				identifier: mailAddress,
+			})
 			.catch(ofClass(NotFoundError, () => null))
 	}
 
