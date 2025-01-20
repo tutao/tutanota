@@ -122,6 +122,19 @@ function weekTitle(date: Date, weekStart: WeekStart): string {
 	}
 }
 
+function shortWeekTitle(date: Date, weekStart: WeekStart): string {
+	const lastDate = incrementDate(new Date(date), 2)
+
+	if (date.getMonth() !== lastDate.getMonth()) {
+		if (date.getFullYear() !== lastDate.getFullYear()) {
+			return `${lang.formats.monthShortWithFullYear.format(date)} - ${lang.formats.monthShortWithFullYear.format(lastDate)}`
+		}
+		return `${lang.formats.monthShort.format(date)} - ${lang.formats.monthShort.format(lastDate)} ${lang.formats.yearNumeric.format(date)}`
+	} else {
+		return `${lang.formats.monthLong.format(date)} ${lang.formats.yearNumeric.format(date)}`
+	}
+}
+
 export function getNextFourteenDays(startOfToday: Date): Array<Date> {
 	let calculationDate = new Date(startOfToday)
 	const days: Date[] = []
@@ -182,6 +195,12 @@ export function calendarNavConfiguration(
 				back: renderCalendarSwitchLeftButton("prevDay_label", onBack),
 				forward: renderCalendarSwitchRightButton("nextDay_label", onForward),
 				title: titleType === "short" ? formatMonthWithFullYear(date) : formatDateWithWeekday(date),
+			}
+		case CalendarViewType.THREE_DAY:
+			return {
+				back: renderCalendarSwitchLeftButton("prevThreeDays_label", onBack),
+				forward: renderCalendarSwitchRightButton("nextThreeDays_label", onForward),
+				title: shortWeekTitle(date, weekStart),
 			}
 	}
 }
@@ -255,7 +274,8 @@ export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export function getIconForViewType(viewType: CalendarViewType): AllIcons {
 	const lookupTable: Record<CalendarViewType, AllIcons> = {
 		[CalendarViewType.DAY]: Icons.TableSingle,
-		[CalendarViewType.WEEK]: Icons.TableColumns,
+		[CalendarViewType.THREE_DAY]: Icons.TableColumns,
+		[CalendarViewType.WEEK]: Icons.Week,
 		[CalendarViewType.MONTH]: Icons.Table,
 		[CalendarViewType.AGENDA]: Icons.ListUnordered,
 	}
@@ -924,6 +944,10 @@ export function shouldDisplayEvent(e: CalendarEvent, hiddenCalendars: ReadonlySe
 
 export function daysHaveEvents(eventsOnDays: EventsOnDays): boolean {
 	return eventsOnDays.shortEventsPerDay.some(isNotEmpty) || isNotEmpty(eventsOnDays.longEvents)
+}
+
+export function daysHaveAllDayEvents(eventsOnDays: EventsOnDays): boolean {
+	return isNotEmpty(eventsOnDays.longEvents)
 }
 
 /**

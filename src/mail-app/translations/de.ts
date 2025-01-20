@@ -1930,6 +1930,9 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"threeDays_label": "Drei Tage",
+		"prevThreeDays_label": "Vorherige drei Tage",
+		"nextThreeDays_label": "Nächsten drei Tage"
 	}
 }
