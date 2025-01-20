@@ -1,4 +1,10 @@
-import { CalendarEventTimes, getAllDayDateUTC, getEventWithDefaultTimes, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import {
+	CalendarEventTimes,
+	getAllDayDateUTC,
+	getEventWithDefaultTimes,
+	isAllDayEvent,
+	isBefore,
+} from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { DateTime, DurationLikeObject } from "luxon"
 import {
@@ -236,10 +242,12 @@ export class CalendarEventWhenModel {
 		const endTime = this._endTime ?? new Time(0, 0)
 		const currentStart = startTime.toDate(this._startDate)
 		const newEnd = endTime.toDate(value)
-		if (newEnd < currentStart) {
+
+		if (isBefore(newEnd, currentStart, "date")) {
 			console.log("tried to set the end date to before the start date")
 			return
 		}
+
 		this._endDate = DateTime.fromJSDate(value, this).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
 		this.uiUpdateCallback()
 	}
