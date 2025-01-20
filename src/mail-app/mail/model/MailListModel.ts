@@ -26,8 +26,8 @@ import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEnti
 assertMainOrNode()
 
 interface LoadedMail {
-	mail: Readonly<Mail>
-	mailSetEntry: Readonly<MailSetEntry>
+	readonly mail: Mail
+	readonly mailSetEntry: MailSetEntry
 }
 
 /**
@@ -160,9 +160,12 @@ export class MailListModel {
 			const mailItem = this.mailMap.get(update.instanceId)
 			if (mailItem != null && update.operation === OperationType.UPDATE) {
 				const newMailData = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
-				// Updating the mail in-place does not require waiting for the underlying list model to finish.
-				// We use Object.assign here to ensure references to the mail now have the new mail data
-				Object.assign(mailItem.mail, newMailData)
+				const newMailItem = {
+					...mailItem,
+					mail: newMailData,
+				}
+				this.onLoadMails([newMailItem])
+				this.listModel.updateLoadedItem(newMailItem)
 			}
 		}
 	}
