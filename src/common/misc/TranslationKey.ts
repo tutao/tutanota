@@ -1936,4 +1936,7 @@ export type TranslationKeyType =
 	| "and_label"
 	| "beforeEndOfPeriod_label"
 	| "withCustomRules_label"
+	| "secondOfPeriod_label"
+	| "thirdOfPeriod_label"
+	| "nthOfPeriod_label"
 	| "unsupportedAdvancedRules_msg"

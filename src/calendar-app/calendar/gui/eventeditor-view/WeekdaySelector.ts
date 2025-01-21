@@ -1,17 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Weekdays } from "../../../api/common/TutanotaConstants.js"
-import { client } from "../../../misc/ClientDetector.js"
-import { px } from "../../size.js"
+import { Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
+import { client } from "../../../../common/misc/ClientDetector.js"
+import { px } from "../../../../common/gui/size.js"
 
-export interface WeekdaySelectorItem {
+export interface WeekdayToTranslation {
 	value: Weekdays
 	label: string
 }
 
 export interface WeekdaySelectorAttrs {
-	items: Array<WeekdaySelectorItem>
+	items: Array<WeekdayToTranslation>
 	selectedDays: Weekdays[] | null
-	selectionChanged: (value: Weekdays[]) => void
+	gatherSelectedDays: (value: Weekdays[]) => void
 }
 
 const WEEKDAY_BUTTON_MOBILE_DIMENSIONS: string = px(36)
@@ -28,11 +28,6 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 		this.selectedDays = vnode.attrs.selectedDays ?? []
 	}
 
-	onremove(vnode: Vnode<WeekdaySelectorAttrs>) {
-		vnode.attrs.selectionChanged(this.selectedDays)
-		this.selectedDays = []
-	}
-
 	view(vnode: Vnode<WeekdaySelectorAttrs>): Children {
 		return m(
 			".flex-space-around.weekday-selector",
@@ -46,6 +41,7 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 					selected: vnode.attrs.selectedDays?.includes(item.value) ?? false,
 					onSelectionChanged: (weekday: Weekdays) => {
 						this.selectedDays.includes(weekday) ? delete this.selectedDays[this.selectedDays.indexOf(weekday)] : this.selectedDays.push(weekday)
+						vnode.attrs.gatherSelectedDays(this.selectedDays)
 					},
 				} satisfies WeekdaySelectorButtonAttrs)
 			}),
@@ -54,7 +50,7 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 }
 
 interface WeekdaySelectorButtonAttrs {
-	weekday: WeekdaySelectorItem
+	weekday: WeekdayToTranslation
 	buttonDimensions: string
 	selected: boolean
 	onSelectionChanged: (weekday: Weekdays) => void
