@@ -21,7 +21,7 @@ export const enum ColumnWidth {
 }
 
 export type TableHeading = {
-	text: MaybeTranslation
+	label: MaybeTranslation
 	helpText?: MaybeTranslation
 }
 
@@ -75,7 +75,7 @@ export class Table implements Component<TableAttrs> {
 								{
 									cells: () =>
 										a.columnHeading!.map((header) => {
-											const text = this.isTableHeading(header) ? header.text : header
+											const text = this.isTableHeading(header) ? header.label : header
 											const info = this.isTableHeading(header) && header.helpText ? [lang.getTranslationText(header.helpText)] : undefined
 											return {
 												main: lang.getTranslationText(text),
@@ -101,7 +101,7 @@ export class Table implements Component<TableAttrs> {
 	}
 
 	private isTableHeading(textIdOrFunction: TableHeading | MaybeTranslation): textIdOrFunction is TableHeading {
-		return (textIdOrFunction as TableHeading).text !== undefined
+		return (textIdOrFunction as TableHeading).label !== undefined
 	}
 
 	private createLine(

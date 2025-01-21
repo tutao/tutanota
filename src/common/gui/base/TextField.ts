@@ -199,6 +199,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						marginTop: px(inputMarginTop),
 						lineHeight: px(inputLineHeight),
 					},
+					"data-testid": lang.getTestId(a.label),
 				},
 				a.value,
 			)

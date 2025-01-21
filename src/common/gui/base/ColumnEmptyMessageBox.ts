@@ -1,10 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { AllIcons } from "./Icon"
 import { Icon } from "./Icon"
 import { px, size } from "../size"
-import type { lazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
@@ -37,6 +36,7 @@ export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 					style: {
 						color: attrs.color,
 					},
+					"data-testid": "message-box",
 				},
 				lang.getTranslationText(attrs.message),
 			),

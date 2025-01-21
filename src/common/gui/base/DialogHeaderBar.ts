@@ -46,9 +46,13 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 					resolveMaybeLazy(a.left).map((a) => m(Button, a)),
 				), // ellipsis is not working if the text is directly in the flex element, so create a child div for it
 				a.middle
-					? m("#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b", [
-							m(".text-ellipsis", lang.getTranslationText(a.middle)),
-					  ])
+					? m(
+							"#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b",
+							{
+								"data-testid": `dialog:${lang.getTestId(a.middle)}`,
+							},
+							[m(".text-ellipsis", lang.getTranslationText(a.middle))],
+					  )
 					: null,
 				m(
 					columnClass + ".mr-negative-s.flex.justify-end",
