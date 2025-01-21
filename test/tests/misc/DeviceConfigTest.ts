@@ -109,6 +109,7 @@ o.spec("DeviceConfig", function () {
 				events: [],
 				lastRatingPromptedDate: null,
 				retryRatingPromptAfter: null,
+				scrollTime: 8,
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

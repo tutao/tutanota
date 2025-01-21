@@ -36,7 +36,6 @@ import {
 	getStartOfTheWeekOffset,
 	getStartOfTheWeekOffsetForUser,
 	getTimeZone,
-	getWeekNumber,
 	hasSourceUrl,
 	isBirthdayEvent,
 	isClientOnlyCalendar,
@@ -1128,6 +1127,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	onNewUrl(args: Record<string, any>) {
 		if (!args.view) {
 			this.setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
+			if (this.currentViewType === CalendarViewType.WEEK || this.currentViewType === CalendarViewType.THREE_DAY) {
+				this.viewModel.setSelectedTime(Time.fromDateTime(DateTime.fromObject({ hour: deviceConfig.getScrollTime(), minute: 0 })))
+			}
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
 			const urlDateParam = args.date
@@ -1149,7 +1151,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}
 
 				const today = new Date()
-				if (isSameDayOfDate(today, date) || (args.view === "week" && getWeekNumber(date) === getWeekNumber(today))) {
+				if (args.view === "week" || args.view === "three") {
+					this.viewModel.setSelectedTime(Time.fromDateTime(DateTime.fromObject({ hour: deviceConfig.getScrollTime(), minute: 0 })))
+				} else if (isSameDayOfDate(today, date)) {
 					const time = Time.fromDate(today)
 					this.viewModel.setSelectedTime(time)
 				} else {
