@@ -28,7 +28,6 @@ import { UserError } from "../../../../common/api/main/UserError.js"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 import { theme } from "../../../../common/gui/theme.js"
 import stream from "mithril/stream"
-
 import { handleRatingByEvent } from "../../../../common/ratings/InAppRatingDialog.js"
 
 const enum ConfirmationResult {

@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { defaultCalendarColor, TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { defaultCalendarColor, TabIndex, TimeFormat, Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -22,11 +22,12 @@ import { deepEqual } from "@tutao/tutanota-utils"
 import { ButtonColor, getColors } from "../../../../common/gui/base/Button.js"
 import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
-import type { CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarRepeatRule, createAdvancedRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
+import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -517,8 +518,22 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			model: whenModel,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
 			width: this.pageWidth,
-			backAction: () => navigationCallback(EditorPages.MAIN),
+			backAction: () => {
+				navigationCallback(EditorPages.MAIN)
+			},
+			writeWeekdaysToModel: (weekdays: Weekdays[]) => {
+				whenModel.advancedRules = this.createAdvancedRulesFromWeekdays(weekdays)
+			},
 		} satisfies RepeatRuleEditorAttrs)
+	}
+
+	private createAdvancedRulesFromWeekdays(weekdays: Weekdays[]): AdvancedRepeatRule[] {
+		return weekdays.map((wd) => {
+			return createAdvancedRepeatRule({
+				interval: wd,
+				ruleType: ByRule.BYDAY,
+			})
+		})
 	}
 
 	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {
