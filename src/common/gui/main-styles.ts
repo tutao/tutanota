@@ -1689,10 +1689,10 @@ styles.registerStyle("main", () => {
 		},
 		".dropdown-panel-scrollable": {
 			position: "absolute",
-			width: 0,
-			height: 0,
+			width: "inherit",
 			"overflow-x": "hidden",
 			"overflow-y": "auto",
+			"z-index": 999,
 		},
 		".dropdown-panel.fit-content, .dropdown-panel.fit-content .dropdown-content": {
 			"min-width": "fit-content",
@@ -2704,7 +2704,6 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_bg,
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.vpad_small),
-			position: "relative",
 			height: "fit-content",
 		},
 		".tutaui-card-container-divide": {
@@ -2864,6 +2863,11 @@ styles.registerStyle("main", () => {
 		".border-radius-bottom-0": {
 			"border-bottom-right-radius": px(0),
 			"border-bottom-left-radius": px(0),
+		},
+		".tutaui-select-close:focus": {
+			position: "initial",
+			transform: "translate(0)",
+			"text-align": "center",
 		},
 	}
 })

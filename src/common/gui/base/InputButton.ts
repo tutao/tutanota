@@ -84,7 +84,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						this.inputDOM.focus()
 					}
 				},
-				disabled: attrs.disabled,
+				disabled: attrs.disabled ? true : undefined,
 			},
 			[
 				m.fragment({}, [
@@ -104,7 +104,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 
 							attrs.oncreate?.(vnode)
 						},
-						disabled: attrs.disabled,
+						disabled: attrs.disabled ? true : undefined,
 						value: attrs.inputValue,
 						oninput: attrs.oninput,
 						onkeydown: attrs.onkeydown,

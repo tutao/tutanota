@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../common/gui/base/Select.js"
-import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { debounceStart, getFirstOrThrow } from "@tutao/tutanota-utils"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
@@ -9,7 +9,6 @@ import { parseMailAddress, parsePastedInput, parseTypedInput } from "../../../..
 import { Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { RecipientSearchResultItem, RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import stream from "mithril/stream"
-import { keyboardEventToKeyPress } from "../../../../common/misc/KeyManager.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { Icon } from "../../../../common/gui/base/Icon.js"
@@ -61,7 +60,6 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 			placeholder: this.renderSearchInput(attrs),
 			renderDisplay: () => this.renderSearchInput(attrs),
 			renderOption: (option) => this.renderSuggestionItem(option === this.selected, option),
-			keepFocus: true,
 		} satisfies SelectAttributes<GuestItem, RecipientSearchResultItem>)
 	}
 
@@ -78,7 +76,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 				  })
 		const secondRow = option.value.type === "recipient" ? option.value.value.address : option.value.value.name
 		return m(
-			".pt-s.pb-s.click.content-hover.button-min-height",
+			"button.pt-s.pb-s.click.content-hover.state-bg",
 			{
 				class: selected ? "content-accent-fg row-selected icon-accent" : "",
 				style: {
@@ -160,7 +158,6 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 
 				e.redraw = false
 			},
-			onkeydown: (event: KeyboardEvent) => this.handleKeyDown(event, attrs),
 			type: TextFieldType.Text,
 		})
 	}
@@ -185,40 +182,6 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 			m.redraw()
 		})
 	})
-
-	private handleKeyDown(event: KeyboardEvent, attrs: GuestPickerAttrs) {
-		const keyPress = keyboardEventToKeyPress(event)
-
-		switch (keyPress.key.toLowerCase()) {
-			case Keys.RETURN.code:
-				this.resolveInput(attrs, true)
-				break
-			case Keys.DOWN.code:
-				this.moveSelection(true)
-				event.stopImmediatePropagation()
-				return false
-			case Keys.UP.code:
-				this.moveSelection(false)
-				event.stopImmediatePropagation()
-				return false
-		}
-
-		return true
-	}
-
-	private moveSelection(forward: boolean) {
-		const selectedIndex = this.selected ? this.options().indexOf(this.selected) : -1
-		const optionsLength = this.options().length
-
-		let newIndex
-		if (forward) {
-			newIndex = selectedIndex + 1 < optionsLength ? selectedIndex + 1 : 0
-		} else {
-			newIndex = selectedIndex - 1 >= 0 ? selectedIndex - 1 : optionsLength - 1
-		}
-
-		this.selected = this.options()[newIndex]
-	}
 
 	private async selectSuggestion(attrs: GuestPickerAttrs) {
 		if (this.selected == null) {

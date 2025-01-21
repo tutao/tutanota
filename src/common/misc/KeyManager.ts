@@ -94,6 +94,11 @@ function isFocusable(e: HTMLElement) {
 	)
 }
 
+export function canFocus(element: HTMLElement, dom: HTMLElement): boolean {
+	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(isFocusable) as HTMLElement[]
+	return tabbable.includes(element)
+}
+
 export function focusPrevious(dom: HTMLElement): boolean {
 	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(isFocusable) as HTMLElement[]
 
