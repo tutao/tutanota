@@ -83,7 +83,7 @@ export class ListElementListModel<ElementType extends ListElement> {
 		shouldStop: () => boolean,
 		finder: (a: ElementType) => boolean = (item) => isSameId(getElementId(item), itemId),
 	): Promise<ElementType | null> {
-		return this.listModel.loadAndSelect(itemId, shouldStop, finder)
+		return this.listModel.loadAndSelect(finder, shouldStop)
 	}
 
 	isItemSelected(itemId: Id): boolean {

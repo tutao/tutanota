@@ -224,12 +224,12 @@ export class MailViewModel {
 	private async loadExplicitMailTarget(listId: Id, mailId: Id, onMissingTargetEmail: () => unknown) {
 		const expectedStickyMailId: IdTuple = [listId, mailId]
 
-		// First try loading from the list. We don't need to do anything more if we can simply select it.
-		// shouldStop returning true guarantees we won't load anything if the mail is not in the list already, so
-		// this will be synchronous
-		const listMail = await this.listModel?.loadAndSelect(mailId, () => true)
-		if (listMail) {
+		// First try getting the mail from the list. We don't need to do anything more if we can simply select it, as
+		// getting the mail is completely synchronous.
+		const mailInList = this.listModel?.getMail(mailId)
+		if (mailInList) {
 			console.log(TAG, "opening mail from list", mailId)
+			this.listModel?.onSingleSelection(mailInList)
 			return
 		}
 
