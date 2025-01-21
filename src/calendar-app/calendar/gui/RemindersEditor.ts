@@ -151,7 +151,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 				]),
 			),
 			m(
-				"li.items-center",
+				"li.items-center.rel",
 				m(Select<RemindersSelectOption, AlarmInterval>, {
 					ariaLabel: lang.get("calendarReminderIntervalValue_label"),
 					selected: defaultSelected,

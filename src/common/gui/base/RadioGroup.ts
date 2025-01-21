@@ -64,7 +64,6 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 			{
 				class: optionClass ?? "",
 				onclick: () => {
-					console.log("Clicked?")
 					onOptionSelected(option.value)
 				},
 			},
