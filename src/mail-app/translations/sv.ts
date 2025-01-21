@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-01-20T13:59:15Z",
+	"updated_at": "2025-01-20T18:28:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -724,6 +724,7 @@ export default {
 		"icsInSharingFiles_msg": "En eller flera kalenderfiler upptäcktes. Vill du importera eller bifoga dem?",
 		"importantLabel_label": "Viktigt",
 		"importCalendar_label": "Importera kalender",
+		"importComplete_msg": "Alla valda mejl importerades till din brevlåda.",
 		"importComplete_title": "Importen slutförd",
 		"importContactRemoveDuplicatesConfirm_msg": "Hittade {count} dubbla kontakter på din enhet under synkroniseringen.  Vill du ta bort dessa från din enhet? Observera att detta inte kan ångras.",
 		"importContactRemoveImportedContactsConfirm_msg": "Vill du ta bort de importerade kontakterna från din enhet? Observera att detta inte kan ångras.",
@@ -736,7 +737,7 @@ export default {
 		"importEventsError_msg": "{amount} av {total} aktiviteter kunde inte importeras.",
 		"importEvents_label": "Importera händelser",
 		"importFromContactBook_label": "Importera kontakter från din enhet",
-		"importIncomplete_msg": "Vissa mejl är ogiltiga. Klicka för att inspektera dem.",
+		"importIncomplete_msg": "Importen är klar, men vissa mail gick inte att importera.",
 		"importIncomplete_title": "Importen ofullständig",
 		"importInvalidDatesInEvent_msg": "{amount} av {total} aktiviteter innehåller ogiltiga datum och kommer inte att importeras.",
 		"importPre1970StartInEvent_msg": "{amount} av {total} aktiviteter börjar eller slutar före 1970 och kommer inte att importeras.",

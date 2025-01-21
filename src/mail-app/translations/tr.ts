@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-01-20T13:59:15Z",
+	"updated_at": "2025-01-20T18:57:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -728,6 +728,7 @@ export default {
 		"icsInSharingFiles_msg": "Bir veya daha fazla takvim dosyası tespit edildi. İçe aktarmak veya eklemek ister misiniz?",
 		"importantLabel_label": "Önemli",
 		"importCalendar_label": "Takvim içeri aktarılıyor",
+		"importComplete_msg": "Tüm seçili e-postalar posta kutunuza aktarıldı.",
 		"importComplete_title": "İçe aktarma tamamlandı",
 		"importContactRemoveDuplicatesConfirm_msg": "Eşleştirme sırasında aygıtınızda {count} çift kopya bulundu. Bunları aygıtınızdan silmek istiyor musunuz? Bu işlemin geri alınamayacağını unutmayın lütfen.",
 		"importContactRemoveImportedContactsConfirm_msg": "İçe aktarılmış kişileri aygıtınızdan silmek istiyor musunuz? Bu işlemin geri alınamayacağını unutmayın lütfen.",
@@ -740,7 +741,7 @@ export default {
 		"importEventsError_msg": "{total} etkinlikten {amount} tanesi içeri aktarılamadı.",
 		"importEvents_label": "Etkinlikleri İçe Aktar",
 		"importFromContactBook_label": "Cihazınızdaki kişileri içe aktarın",
-		"importIncomplete_msg": "Bazı e-postalar geçersizdir. İncelemek için tıklayın.",
+		"importIncomplete_msg": "İçe aktarma tamamlandı, ancak bazı e-postalar içe aktarılamadı.",
 		"importIncomplete_title": "İçe aktarma tamamlanmadı",
 		"importInvalidDatesInEvent_msg": "{amount} of {total} etkinlikler geçersiz tarihler içeriyor ve içe aktarılmayacak.",
 		"importPre1970StartInEvent_msg": "{amount}  {total} etkinliklerinin 1970'ten önce başlaması veya bitmesi durumunda içe aktarılmayacaktır.",
