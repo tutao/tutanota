@@ -1909,3 +1909,5 @@ export type TranslationKeyType =
 	| "threeDays_label"
 	| "prevThreeDays_label"
 	| "nextThreeDays_label"
+	| "weekScrollTime_label"
+	| "weekScrollTime_msg"
