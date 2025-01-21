@@ -1928,6 +1928,8 @@ export default {
 		"you_label": "Du",
 		"threeDays_label": "Drei Tage",
 		"prevThreeDays_label": "Vorherige drei Tage",
-		"nextThreeDays_label": "Nächsten drei Tage"
+		"nextThreeDays_label": "Nächsten drei Tage",
+		"weekScrollTime_label": "Standardzeit",
+		"weekScrollTime_msg": "Standardzeit für Drei-Tage- und Wochen-Ansichten zum Blättern zu"
 	}
 }

@@ -14,15 +14,27 @@ import { isDesktop } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { client } from "../misc/ClientDetector.js"
+import { DateTime } from "../../../libs/luxon.js"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
+	private timeOptions: Array<{ name: string; value: number }> = []
 
 	oncreate() {
 		locator.themeController.getCustomThemes().then((themes) => {
 			this._customThemes = themes
 			m.redraw()
 		})
+
+		const userSettingsGroupRoot = locator.logins.getUserController().userSettingsGroupRoot
+		const timeFormat = userSettingsGroupRoot.timeFormat
+
+		for (let hour = 0; hour < 24; hour++) {
+			this.timeOptions.push({
+				name: DateTime.fromFormat(hour.toString(), "h").toFormat(timeFormat === TimeFormat.TWENTY_FOUR_HOURS ? "HH:mm" : "hh:mm a"),
+				value: hour,
+			})
+		}
 	}
 
 	view(): Children {
@@ -117,6 +129,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			m(".h4.mt-l", lang.get("settingsForDevice_label")),
 			m(DropDownSelector, languageDropDownAttrs),
 			this._renderThemeSelector(),
+			this.renderScrollTimeSelector(),
 			m(".h4.mt-l", lang.get("userSettings_label")),
 			m(DropDownSelector, hourFormatDropDownAttrs),
 			m(DropDownSelector, weekStartDropDownAttrs),
@@ -140,6 +153,18 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			items: [...themeOptions(client.isCalendarApp()).map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
 			selectedValue: locator.themeController.themePreference,
 			selectionChangedHandler: (value) => locator.themeController.setThemePreference(value),
+			dropdownWidth: 300,
+		}
+		return m(DropDownSelector, themeDropDownAttrs)
+	}
+
+	renderScrollTimeSelector(): Children {
+		const themeDropDownAttrs: DropDownSelectorAttrs<number> = {
+			label: "weekScrollTime_label",
+			helpLabel: () => lang.get("weekScrollTime_msg"),
+			items: this.timeOptions as SelectorItemList<number>,
+			selectedValue: deviceConfig.getScrollTime(),
+			selectionChangedHandler: (value) => deviceConfig.setScrollTime(value),
 			dropdownWidth: 300,
 		}
 		return m(DropDownSelector, themeDropDownAttrs)
