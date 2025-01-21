@@ -81,6 +81,11 @@ interface ConfigObject {
 	 * This is only for the case the user does not want to rate right now or completely opts out of the in-app ratings.
 	 */
 	retryRatingPromptAfter?: number
+
+	/**
+	 * Which time the three days or week view will scroll to when opened
+	 */
+	scrollTime: number
 }
 
 /**
@@ -144,6 +149,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			events: loadedConfig.events ?? [],
 			lastRatingPromptedDate: loadedConfig.lastRatingPromptedDate ?? null,
 			retryRatingPromptAfter: loadedConfig.retryRatingPromptAfter ?? null,
+			scrollTime: loadedConfig.scrollTime ?? 8,
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -171,6 +177,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			console.warn("Could not parse device config")
 			return null
 		}
+	}
+
+	getScrollTime(): number {
+		return this.config.scrollTime
+	}
+
+	setScrollTime(time: number) {
+		this.config.scrollTime = time
+		this.writeToStorage()
 	}
 
 	storeCredentials(credentials: DeviceConfigCredentials) {
