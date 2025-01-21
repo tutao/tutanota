@@ -1930,5 +1930,7 @@ export default {
 		"threeDays_label": "Three Days",
 		"prevThreeDays_label": "Previous three days",
 		"nextThreeDays_label": "Next three days",
+		"weekScrollTime_label": "Default time",
+		"weekScrollTime_msg": "Default time for Three Days and Week views to scroll to"
 	}
 }
