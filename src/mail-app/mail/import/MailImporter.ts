@@ -17,6 +17,7 @@ import { ImportErrorCategories, MailImportError } from "../../../common/api/comm
 import { showSnackBar, SnackBarButtonAttrs } from "../../../common/gui/base/SnackBar.js"
 import { OpenSettingsHandler } from "../../../common/native/main/OpenSettingsHandler.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
+import { ImportStatus } from "../../../common/api/common/TutanotaConstants"
 
 // keep in sync with napi binding.d.cts
 export const enum ImportProgressAction {
@@ -177,7 +178,11 @@ export class MailImporter {
 
 		this.resetStatus()
 		let progressMonitor = this.createEstimatingProgressMonitor()
-		this.activeImport = { remoteStateId: [GENERATED_MIN_ID, GENERATED_MIN_ID], uiStatus: UiImportStatus.Starting, progressMonitor }
+		this.activeImport = {
+			remoteStateId: [GENERATED_MIN_ID, GENERATED_MIN_ID],
+			uiStatus: UiImportStatus.Starting,
+			progressMonitor,
+		}
 		this.activeImport?.progressMonitor?.continueEstimation()
 		m.redraw()
 
@@ -404,13 +409,6 @@ function importStatusToUiImportStatus(importStatus: ImportStatus) {
 		case ImportStatus.Running:
 			return UiImportStatus.Running
 	}
-}
-
-export const enum ImportStatus {
-	Running = 0,
-	Paused = 1,
-	Canceled = 2,
-	Finished = 3,
 }
 
 export function isFinalisedImport(remoteImportStatus: ImportStatus): boolean {

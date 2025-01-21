@@ -1246,3 +1246,10 @@ export const CLIENT_ONLY_CALENDARS: Map<Id, TranslationKey> = new Map([[CLIENT_O
 export const DEFAULT_CLIENT_ONLY_CALENDAR_COLORS: Map<Id, string> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "FF9933"]])
 
 export const MAX_LABELS_PER_MAIL = 5
+
+export const enum ImportStatus {
+	Running = 0,
+	Paused = 1,
+	Canceled = 2,
+	Finished = 3,
+}
