@@ -50,10 +50,10 @@ impl FileImport {
 			.expect("failed eml path will always have filename");
 		let import_directory = failed_eml_path
 			.parent()
-			.ok_or(std::io::ErrorKind::NotADirectory)?;
+			.ok_or(std::io::ErrorKind::NotFound)?;
 		let new_failed_eml_path = import_directory.join(FAILED_MAILS_SUB_DIR).join(filename);
 
-		fs::rename(failed_eml_path, &new_failed_eml_path)
+		fs::rename(failed_eml_path, new_failed_eml_path)
 	}
 
 	/// Convert mbox files to eml and copy all eml files to target_folder.
@@ -77,7 +77,7 @@ impl FileImport {
 
 		fs::create_dir_all(&import_directory_path)
 			.map_err(|_| PreparationError::CanNotCreateImportDir)?;
-		fs::create_dir_all(&failed_sub_directory_path)
+		fs::create_dir_all(failed_sub_directory_path)
 			.map_err(|_| PreparationError::CanNotCreateImportDir)?;
 
 		for source_path in source_paths {

@@ -158,7 +158,7 @@ impl MakeString for mail_parser::ContentType<'_> {
 
 fn make_mail_address(name: Option<&str>, address: Option<&str>) -> String {
 	let name = name.unwrap_or_default();
-	let mut res = if name.is_empty() || name.starts_with("\"") {
+	let mut res = if name.is_empty() || name.starts_with('\"') {
 		name.to_string()
 	} else {
 		// always wrap name in quotes. tutadb: #417

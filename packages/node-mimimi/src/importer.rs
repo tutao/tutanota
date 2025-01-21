@@ -478,7 +478,7 @@ impl Importer {
 	/// check the given directory for any failed mail files that have been left behind during iteration
 	pub(crate) fn have_failed_mails(import_directory: &Path) -> std::io::Result<bool> {
 		let failed_sub_dir = import_directory.join(FAILED_MAILS_SUB_DIR);
-		let have_failed_mails = fs::read_dir(&failed_sub_dir)?
+		let have_failed_mails = fs::read_dir(failed_sub_dir)?
 			.collect::<std::io::Result<Vec<DirEntry>>>()?
 			.iter()
 			.map(DirEntry::path)
@@ -543,12 +543,9 @@ impl Importer {
 		let mail_group_key = logged_in_sdk
 			.get_current_sym_group_key(&target_owner_group)
 			.await
-			.map_err(|e| {
-				eprintln!("Can not load mail group key: {e:?}");
-				PreparationError::NoMailGroupKey
-			})?;
+			.map_err(|_| PreparationError::NoMailGroupKey)?;
 
-		// the key is not copy and we want to re-use it after moving it into the map fn
+		// the key is not copy, and we want to re-use it after moving it into the map fn
 		// not using a move closure also doesn't work since we don't want to collect the iterator here.
 		let mail_group_key_clone = mail_group_key.clone();
 		let attachment_upload_data = import_source.into_iter().map(move |importable_mail| {
@@ -780,7 +777,7 @@ impl Importer {
 				let too_big_chunk_path = import_error
 					.path
 					.expect("All too bug chunk error should contain path");
-				FileImport::move_failed_eml_file(&PathBuf::from(too_big_chunk_path)).unwrap();
+				FileImport::move_failed_eml_file(&PathBuf::from(too_big_chunk_path)).ok();
 
 				Ok(())
 			},
@@ -816,7 +813,7 @@ impl Importer {
 
 		let id_tuple_str = fs::read_to_string(&state_file_path)?;
 		let [list_id, element_id] = id_tuple_str
-			.split("/")
+			.split('/')
 			.map(String::from)
 			.collect::<Vec<_>>()
 			.try_into()

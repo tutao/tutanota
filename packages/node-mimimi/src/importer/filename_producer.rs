@@ -27,8 +27,8 @@ impl<'a> FileNameProducer<'a> {
 			.file_name()
 			.and_then(OsStr::to_str)
 			.unwrap_or("unnamed")
-			.to_string()
-			+ "-" + self.eml_file_count.to_string().as_str()
+			.to_string() + "-"
+			+ self.eml_file_count.to_string().as_str()
 			+ ".eml";
 
 		self.eml_file_count += 1;
@@ -42,8 +42,8 @@ impl<'a> FileNameProducer<'a> {
 			.file_name()
 			.and_then(OsStr::to_str)
 			.unwrap_or("unnamed")
-			.to_string()
-			+ "-" + self.mbox_file_count.to_string().as_str()
+			.to_string() + "-"
+			+ self.mbox_file_count.to_string().as_str()
 			+ ".mbox";
 
 		self.mbox_file_count += 1;

@@ -64,10 +64,10 @@ pub(super) fn plain_text_to_html(plain_text: &str) -> String {
 }
 
 fn escape_plain_text_line(line: &str) -> String {
-	let escaped_line = line.replace("&", "&amp;");
-	let escaped_line = escaped_line.replace("<", "&lt;");
+	let escaped_line = line.replace('&', "&amp;");
+	let escaped_line = escaped_line.replace('<', "&lt;");
 
-	escaped_line.replace(">", "&gt;")
+	escaped_line.replace('>', "&gt;")
 }
 
 fn get_line_quote_level(line: String) -> i32 {
