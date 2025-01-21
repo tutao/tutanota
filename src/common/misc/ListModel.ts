@@ -21,7 +21,6 @@ import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
-import { OperationType } from "../api/common/TutanotaConstants"
 
 /**
  * Specifies methods for retrieving items, fetching items, and comparing items for a ListModel.
@@ -256,11 +255,7 @@ export class ListModel<ItemType, IdType> {
 		}
 	}
 
-	async loadAndSelect(
-		itemId: IdType,
-		shouldStop: () => boolean,
-		finder: (a: ItemType) => boolean = (item) => this.config.isSameId(this.config.getItemId(item), itemId),
-	): Promise<ItemType | null> {
+	async loadAndSelect(finder: (item: ItemType) => boolean, shouldStop: () => boolean): Promise<ItemType | null> {
 		await this.waitUtilInit()
 		let foundItem: ItemType | undefined = undefined
 		while (

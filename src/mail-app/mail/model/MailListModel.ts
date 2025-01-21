@@ -25,7 +25,12 @@ import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEnti
 
 assertMainOrNode()
 
-interface LoadedMail {
+/**
+ * Internal representation of a loaded mail
+ *
+ * @VisibleForTesting
+ */
+export interface LoadedMail {
 	readonly mail: Mail
 	readonly mailSetEntry: MailSetEntry
 	readonly labels: ReadonlyArray<MailFolder>
@@ -73,7 +78,7 @@ export class MailListModel {
 	}
 
 	get items(): Mail[] {
-		return this.loadedMails().map((mail) => mail.mail)
+		return this._loadedMails().map((mail) => mail.mail)
 	}
 
 	get loadingStatus(): ListLoadingState {
@@ -108,8 +113,8 @@ export class MailListModel {
 		return this.listModel.isItemSelected(getElementId(loadedMail.mailSetEntry))
 	}
 
-	getMail(mailId: Id): Mail | null {
-		return this.getLoadedMailByMailId(mailId)?.mail ?? null
+	getMail(mailElementId: Id): Mail | null {
+		return this.getLoadedMailByMailId(mailElementId)?.mail ?? null
 	}
 
 	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
@@ -117,12 +122,13 @@ export class MailListModel {
 	}
 
 	getMailSetEntry(mailSetEntryId: Id): MailSetEntry | null {
-		const { mailId } = deconstructMailSetEntryId(mailSetEntryId)
-		return this.getLoadedMailByMailId(mailId)?.mailSetEntry ?? null
+		return this.getLoadedMailByMailSetId(mailSetEntryId)?.mailSetEntry ?? null
 	}
 
-	loadAndSelect(mailId: Id, shouldStop: () => boolean): Promise<LoadedMail | null> {
-		return this.listModel.loadAndSelect(mailId, shouldStop)
+	async loadAndSelect(mailId: Id, shouldStop: () => boolean): Promise<Mail | null> {
+		const mailFinder = (loadedMail: LoadedMail) => isSameId(getElementId(loadedMail.mail), mailId)
+		const mail = await this.listModel.loadAndSelect(mailFinder, shouldStop)
+		return mail?.mail ?? null
 	}
 
 	onSingleSelection(mail: Mail) {
@@ -164,12 +170,16 @@ export class MailListModel {
 						...loadedMail,
 						labels,
 					}
-					this.updateSingleMail(newMailEntry)
+					this._updateSingleMail(newMailEntry)
 				}
 			}
 		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
 			// Adding/removing to this list (MailSetEntry doesn't have any fields to update, so we don't need to handle this)
 			if (update.operation === OperationType.DELETE) {
+				const mail = this.getLoadedMailByMailSetId(update.instanceId)
+				if (mail) {
+					this.mailMap.delete(getElementId(mail.mail))
+				}
 				await this.listModel.deleteLoadedItem(update.instanceId)
 			} else if (update.operation === OperationType.CREATE) {
 				const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
@@ -191,7 +201,7 @@ export class MailListModel {
 					labels,
 					mail: newMailData,
 				}
-				this.updateSingleMail(newMailItem)
+				this._updateSingleMail(newMailItem)
 			}
 		}
 	}
@@ -260,12 +270,12 @@ export class MailListModel {
 		return this.mailMap.get(mailId) ?? null
 	}
 
-	private getLoadedMailByMailInstance(mail: Mail): LoadedMail | null {
-		return this.getLoadedMailByMailId(getElementId(mail))
+	private getLoadedMailByMailSetId(mailId: Id): LoadedMail | null {
+		return this.mailMap.get(deconstructMailSetEntryId(mailId).mailId) ?? null
 	}
 
-	private loadedMails(): readonly LoadedMail[] {
-		return this.listModel.state.items
+	private getLoadedMailByMailInstance(mail: Mail): LoadedMail | null {
+		return this.getLoadedMailByMailId(getElementId(mail))
 	}
 
 	/**
@@ -301,7 +311,7 @@ export class MailListModel {
 			}
 		}
 
-		this.onLoadMails(items)
+		this.updateMailMap(items)
 		return {
 			items,
 			complete,
@@ -343,7 +353,7 @@ export class MailListModel {
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
 		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-		this.onLoadMails(loadedMails)
+		this.updateMailMap(loadedMails)
 		return assertNotNull(loadedMails[0])
 	}
 
@@ -394,15 +404,21 @@ export class MailListModel {
 		return loadedMails
 	}
 
-	private updateSingleMail(mail: LoadedMail) {
-		this.onLoadMails([mail])
-		this.listModel.updateLoadedItem(mail)
-	}
-
-	private onLoadMails(mails: LoadedMail[]) {
+	private updateMailMap(mails: LoadedMail[]) {
 		for (const mail of mails) {
 			this.mailMap.set(getElementId(mail.mail), mail)
 		}
+	}
+
+	// @VisibleForTesting
+	_updateSingleMail(mail: LoadedMail) {
+		this.updateMailMap([mail])
+		this.listModel.updateLoadedItem(mail)
+	}
+
+	// @VisibleForTesting
+	_loadedMails(): readonly LoadedMail[] {
+		return this.listModel.state.items
 	}
 
 	private readonly defaultMailProvider = (listId: Id, elements: Id[]): Promise<Mail[]> => {
