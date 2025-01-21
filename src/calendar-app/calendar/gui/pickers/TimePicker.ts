@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { Keys, TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
@@ -9,6 +9,9 @@ import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextF
 import { isApp } from "../../../../common/api/common/Env.js"
 import { px, size } from "../../../../common/gui/size.js"
 import stream from "mithril/stream"
+import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
+import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import { DateTime } from "luxon"
 
 export type TimePickerAttrs = {
 	time: Time | null
@@ -116,6 +119,18 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		])
 	}
 
+	private renderTimeOptions(option: TimeOption, isTarget: boolean, isSelected: boolean) {
+		return m(
+			"button.items-center.flex-grow",
+			{
+				...(isTarget ? { "data-target": "true" } : {}),
+				...(isSelected ? { "aria-selected": "true" } : {}),
+				class: "state-bg button-content dropdown-button pt-s pb-s button-min-height" + (isSelected ? "content-accent-fg row-selected icon-accent" : ""),
+			},
+			option.name,
+		)
+	}
+
 	private renderCustomTimePicker(attrs: TimePickerAttrs): Children {
 		const options = this.values.map((time) => ({
 			value: time,
@@ -144,19 +159,17 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			expanded: true,
 			tabIndex: Number(TabIndex.Programmatic),
 			renderDisplay: () => this.renderTimeSelectInput(attrs),
-			renderOption: (option) => this.renderTimeOptions(option),
-			keepFocus: true,
+			renderOption: (option) => this.renderTimeOptions(option, option.value === this.getTargetHour(this.value), option.value === this.value),
 		} satisfies SelectAttributes<TimeOption, string>)
 	}
 
-	private renderTimeOptions(option: TimeOption) {
-		return m(
-			"button.items-center.flex-grow",
-			{
-				class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
-			},
-			option.name,
-		)
+	private getTargetHour(currentTime: string): string {
+		const time = Time.parseFromString(currentTime)?.toObject()
+
+		if (!time) {
+			return Time.fromDate(getNextHalfHour()).toString(false)
+		}
+		return Time.fromDateTime({ hour: time.hours, minute: 0 } as DateTime).toString(false)
 	}
 
 	private renderTimeSelectInput(attrs: TimePickerAttrs) {
@@ -182,11 +195,15 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					this.isExpanded = true
 				}
 			},
-			onfocus: (event: FocusEvent) => {
+			onfocus: () => {
 				this.focused = true
-				if (!this.isExpanded) {
-					;(event.target as HTMLElement).parentElement?.click()
+			},
+			onkeydown: (e: KeyboardEvent) => {
+				if (isKeyPressed(e.key, Keys.RETURN) && !this.isExpanded) {
+					this.focused = true
+					;(e.target as HTMLElement).parentElement?.click()
 					this.isExpanded = true
+					m.redraw.sync()
 				}
 			},
 			onblur: (e: any) => {

@@ -70,7 +70,12 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							}),
 						),
 						m(
-							"",
+							".rel",
+							{
+								style: {
+									overflow: "visible",
+								},
+							},
 							m(TimePicker, {
 								classes: appClasses,
 								time: editModel.startTime,
@@ -94,7 +99,12 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							}),
 						),
 						m(
-							"",
+							".rel",
+							{
+								style: {
+									overflow: "visible",
+								},
+							},
 							m(TimePicker, {
 								classes: appClasses,
 								time: editModel.endTime,

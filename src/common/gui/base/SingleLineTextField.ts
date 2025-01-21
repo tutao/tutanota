@@ -113,7 +113,7 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 		return m("input.tutaui-text-field", {
 			ariaLabel: attrs.ariaLabel,
 			value: attrs.value,
-			disabled: attrs.disabled ?? false,
+			disabled: attrs.disabled ? true : undefined,
 			onblur: attrs.onblur,
 			onfocus: attrs.onfocus,
 			onkeydown: attrs.onkeydown,
