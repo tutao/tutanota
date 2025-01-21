@@ -159,7 +159,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						m(WeekdaySelector, {
 							items: this.weekdayItems,
 							selectedDays: this.byDayRules,
-							selectionChanged: attrs.writeWeekdaysToModel,
+							gatherSelectedDays: attrs.writeWeekdaysToModel,
 						}),
 				  ]
 				: null,

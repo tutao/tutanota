@@ -522,18 +522,24 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				navigationCallback(EditorPages.MAIN)
 			},
 			writeWeekdaysToModel: (weekdays: Weekdays[]) => {
-				whenModel.advancedRules = this.createAdvancedRulesFromWeekdays(weekdays)
+				this.createAdvancedRulesFromWeekdays(weekdays).then((advancedRules) => {
+					whenModel.advancedRules = advancedRules
+					m.redraw()
+				})
 			},
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
-	private createAdvancedRulesFromWeekdays(weekdays: Weekdays[]): AdvancedRepeatRule[] {
-		return weekdays.map((wd) => {
-			return createAdvancedRepeatRule({
-				interval: wd,
-				ruleType: ByRule.BYDAY,
-			})
-		})
+	private async createAdvancedRulesFromWeekdays(weekdays: Weekdays[]): Promise<AdvancedRepeatRule[]> {
+		if (weekdays.length == 0) return Promise.resolve([])
+		return Promise.resolve(
+			weekdays.map((wd) => {
+				return createAdvancedRepeatRule({
+					interval: wd,
+					ruleType: ByRule.BYDAY,
+				})
+			}),
+		)
 	}
 
 	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {

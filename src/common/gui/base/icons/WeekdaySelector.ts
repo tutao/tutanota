@@ -11,7 +11,7 @@ export interface WeekdaySelectorItem {
 export interface WeekdaySelectorAttrs {
 	items: Array<WeekdaySelectorItem>
 	selectedDays: Weekdays[] | null
-	selectionChanged: (value: Weekdays[]) => void
+	gatherSelectedDays: (value: Weekdays[]) => void
 }
 
 const WEEKDAY_BUTTON_MOBILE_DIMENSIONS: string = px(36)
@@ -29,7 +29,7 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 	}
 
 	onremove(vnode: Vnode<WeekdaySelectorAttrs>) {
-		vnode.attrs.selectionChanged(this.selectedDays)
+		vnode.attrs.gatherSelectedDays(this.selectedDays)
 		this.selectedDays = []
 	}
 
