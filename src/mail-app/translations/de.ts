@@ -1956,5 +1956,5 @@ export default {
 		"localAdminGroups_label": "Local admin groups",
 		"weekScrollTime_label": "Standardzeit",
 		"weekScrollTime_msg": "Standardzeit für Drei-Tage- und Wochen-Ansichten zum Blättern zu"
-	}
+    }
 }
