@@ -67,8 +67,9 @@ import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
-import { MailImportSettingsViewer } from "./MailImportSettingsViewer.js"
+import { DesktopMailImportSettingsViewer } from "./DesktopMailImportSettingsViewer.js"
 import { mailLocator } from "../mailLocator"
+import { WebMailImportSettingsViewer } from "./WebMailImportSettingsViewer.js"
 
 assertMainOrNode()
 
@@ -161,12 +162,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => Icons.Import,
 						"mailImport",
 						() => {
-							// todo: make this dependent on whether we actually have import
-							return new MailImportSettingsViewer(
-								() => mailLocator.getMailImporter(),
-								isDesktop() ? mailLocator.fileApp : null,
-								mailLocator.mailModel,
-							)
+							if (isDesktop()) {
+								return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
+							} else {
+								return new WebMailImportSettingsViewer()
+							}
 						},
 						undefined,
 					),

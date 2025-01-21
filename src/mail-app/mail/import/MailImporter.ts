@@ -1,5 +1,5 @@
 import { getApiBaseUrl } from "../../../common/api/common/Env"
-import { ImportMailState, ImportMailStateTypeRef, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import { ImportMailState, ImportMailStateTypeRef, MailBox, MailFolder, MailFolderTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { assertNotNull, first, isEmpty } from "@tutao/tutanota-utils"
 import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
@@ -17,7 +17,9 @@ import { ImportErrorCategories, MailImportError } from "../../../common/api/comm
 import { showSnackBar, SnackBarButtonAttrs } from "../../../common/gui/base/SnackBar.js"
 import { OpenSettingsHandler } from "../../../common/native/main/OpenSettingsHandler.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { ImportStatus } from "../../../common/api/common/TutanotaConstants"
+import { ImportStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { mailLocator } from "../../mailLocator"
 
 // keep in sync with napi binding.d.cts
 export const enum ImportProgressAction {
@@ -36,6 +38,8 @@ type ActiveImport = {
 export class MailImporter {
 	private finalisedImportStates: Map<Id, ImportMailState> = new Map()
 	private activeImport: ActiveImport | null = null
+	public foldersForMailbox: FolderSystem | undefined
+	public selectedTargetFolder: MailFolder | null = null
 
 	constructor(
 		private readonly domainConfigProvider: DomainConfigProvider,
@@ -57,13 +61,14 @@ export class MailImporter {
 	async initImportMailStates(): Promise<void> {
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 		const mailbox = await this.getMailbox()
-
+		this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
 		let activeImportId: IdTuple | null = null
 		if (this.activeImport === null) {
 			const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
 
 			try {
 				activeImportId = await importFacade.getResumableImport(mailbox._id, mailOwnerGroupId, unencryptedCredentials, apiUrl)
@@ -86,6 +91,7 @@ export class MailImporter {
 				case ImportStatus.Finished:
 					activeImportId = null
 					this.activeImport = null
+					this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
 					break
 
 				case ImportStatus.Paused:
@@ -103,7 +109,7 @@ export class MailImporter {
 						uiStatus: UiImportStatus.Paused,
 						progressMonitor,
 					}
-					m.redraw()
+					this.selectedTargetFolder = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
 				}
 			}
 		}
@@ -125,6 +131,16 @@ export class MailImporter {
 
 	private isFinalisedImport(importMailState: ImportMailState) {
 		return parseInt(importMailState.status) == ImportStatus.Finished || parseInt(importMailState.status) == ImportStatus.Canceled
+	}
+
+	private getFoldersForMailGroup(mailGroupId: Id): FolderSystem {
+		if (mailGroupId) {
+			const folderSystem = mailLocator.mailModel.getFolderSystemByGroupId(mailGroupId)
+			if (folderSystem) {
+				return folderSystem
+			}
+		}
+		throw new Error("could not load folder list")
 	}
 
 	/// start a loop that listens to an arbitrary amount of errors that can happen during the import process.
@@ -161,10 +177,9 @@ export class MailImporter {
 
 	/**
 	 * Call to the nativeMailImportFacade in worker to start a mail import from .eml or .mbox files.
-	 * @param targetFolder in which to import mails into
 	 * @param filePaths to the .eml/.mbox files to import mails from
 	 */
-	async onStartBtnClick(targetFolder: MailFolder, filePaths: Array<string>) {
+	async onStartBtnClick(filePaths: Array<string>) {
 		if (isEmpty(filePaths)) return
 		if (!this.shouldRenderStartButton()) throw new ProgrammingError("can't change state to starting")
 
@@ -174,6 +189,7 @@ export class MailImporter {
 		const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 		const userId = this.loginController.getUserController().userId
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
+		const selectedTargetFolder = assertNotNull(this.selectedTargetFolder)
 		const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 
 		this.resetStatus()
@@ -190,7 +206,7 @@ export class MailImporter {
 			this.activeImport.remoteStateId = await importFacade.prepareNewImport(
 				mailboxId,
 				mailOwnerGroupId,
-				targetFolder._id,
+				selectedTargetFolder._id,
 				filePaths,
 				unencryptedCredentials,
 				apiUrl,

@@ -5,13 +5,12 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/tutanota-utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { HighestTierPlans, ImportStatus, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
-import { FolderSystem, IndentedFolder } from "../../common/api/common/mail/FolderSystem"
+import { HighestTierPlans, ImportStatus, PlanType } from "../../common/api/common/TutanotaConstants"
+import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
 import { MailFolder } from "../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
-import { isDesktop } from "../../common/api/common/Env"
 import { NativeFileApp } from "../../common/native/common/FileApp.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
@@ -22,49 +21,33 @@ import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.
 import { mailLocator } from "../mailLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
-import { MailModel } from "../mail/model/MailModel.js"
 
 /**
- * Settings viewer for mail import.
+ * Settings viewer for mail import rendered only in the Desktop client.
+ * See {@link WebMailImportSettingsViewer} for other views.
  */
-export class MailImportSettingsViewer implements UpdatableSettingsViewer {
-	private foldersForMailbox: FolderSystem | undefined
-	private selectedTargetFolder: MailFolder | null = null
+export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer {
 	private isImportHistoryExpanded: boolean = true
-
 	private importStatePoolHandle: TimeoutID
 
-	constructor(private readonly mailImporter: lazy<MailImporter>, private readonly fileApp: NativeFileApp | null, private readonly mailModel: MailModel) {}
+	constructor(private readonly mailImporter: lazy<MailImporter>) {}
 
 	async oninit(): Promise<void> {
-		if (isDesktop()) {
-			await this.mailImporter().initImportMailStates()
-
-			let mailbox = await this.mailImporter().getMailbox()
-			this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
-			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
-		}
+		await this.mailImporter().initImportMailStates()
 	}
 
 	onbeforeremove(): void {
-		if (isDesktop()) {
-			clearInterval(this.importStatePoolHandle)
-		}
+		clearInterval(this.importStatePoolHandle)
 	}
 
 	view(): Children {
-		return m(
-			".fill-absolute.scroll.plr-l.pb-xl",
+		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".h4.mt-l", lang.get("mailImportSettings_label")),
-			isDesktop()
-				? [
-						this.renderTargetFolderControls(),
-						!this.mailImporter().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,
-						this.mailImporter().shouldRenderImportStatus() ? this.renderImportStatus() : null,
-						this.renderImportHistory(),
-				  ]
-				: [this.renderNoImportOnWebText()],
-		)
+			this.renderTargetFolderControls(),
+			!this.mailImporter().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,
+			this.mailImporter().shouldRenderImportStatus() ? this.renderImportStatus() : null,
+			this.renderImportHistory(),
+		])
 	}
 
 	private async onImportButtonClick(dom: HTMLElement) {
@@ -76,53 +59,19 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const allowedExtensions = ["eml", "mbox"]
-		const filePaths = await assertNotNull(this.fileApp).openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
-		if (this.selectedTargetFolder) {
-			await this.mailImporter().onStartBtnClick(
-				this.selectedTargetFolder,
-				filePaths.map((fp) => fp.location),
-			)
-		}
-	}
-
-	private renderNoImportOnWebText() {
-		return [
-			m(
-				".flex-column.mt",
-				m(".p", lang.get("mailImportNoImportOnWeb_label")),
-				m(
-					".flex-start.mt-l",
-					m(LoginButton, {
-						type: LoginButtonType.FlexWidth,
-						label: "mailImportDownloadDesktopClient_label",
-						onclick: () => {
-							open("https://tuta.com#download")
-						},
-					}),
-				),
-				m(
-					".flex-v-center.full-width.mt-xl",
-					m("img", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/mail-import/email-import-webapp.svg`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-						class: "settings-illustration-large",
-					}),
-				),
-			),
-		]
+		const filePaths = await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
+		await this.mailImporter().onStartBtnClick(filePaths.map((fp) => fp.location))
 	}
 
 	private renderTargetFolderControls() {
-		let folders = this.foldersForMailbox
+		let folders = this.mailImporter().foldersForMailbox
 		if (folders) {
 			const loadingMsg = lang.get("loading_msg")
 			const emptyLabel = m("br")
-			const selectedTargetFolderPath = this.selectedTargetFolder ? getPathToFolderString(folders!, this.selectedTargetFolder) : ""
-			const isNotSubfolder = this.selectedTargetFolder ? selectedTargetFolderPath == getFolderName(this.selectedTargetFolder) : false
-			const helpLabel = this.selectedTargetFolder ? (isNotSubfolder ? emptyLabel : selectedTargetFolderPath) : emptyLabel
+			const selectedTargetFolder = this.mailImporter().selectedTargetFolder
+			const selectedTargetFolderPath = selectedTargetFolder ? getPathToFolderString(folders!, selectedTargetFolder) : ""
+			const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath == getFolderName(selectedTargetFolder) : false
+			const helpLabel = selectedTargetFolder ? (isNotSubfolder ? emptyLabel : selectedTargetFolderPath) : emptyLabel
 			let targetFolders: SelectorItemList<MailFolder | null> = folders.getIndentedList().map((folderInfo: IndentedFolder) => {
 				return {
 					name: getIndentedFolderNameForDropdown(folderInfo),
@@ -133,9 +82,9 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 				label: "mailImportTargetFolder_label",
 				items: targetFolders,
 				disabled: this.mailImporter().shouldRenderImportStatus(),
-				selectedValue: this.selectedTargetFolder,
-				selectedValueDisplay: this.selectedTargetFolder ? getFolderName(this.selectedTargetFolder) : loadingMsg,
-				selectionChangedHandler: (newFolder: MailFolder | null) => (this.selectedTargetFolder = newFolder),
+				selectedValue: selectedTargetFolder,
+				selectedValueDisplay: selectedTargetFolder ? getFolderName(selectedTargetFolder) : loadingMsg,
+				selectionChangedHandler: (newFolder: MailFolder | null) => (this.mailImporter().selectedTargetFolder = newFolder),
 				helpLabel: () => helpLabel,
 			})
 		} else {
@@ -261,7 +210,7 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 	 * @returns array of the parsed table lines.
 	 */
 	private makeMailImportHistoryTableLines(): Array<TableLineAttrs> {
-		let folders = this.foldersForMailbox?.getIndentedList()
+		let folders = this.mailImporter().foldersForMailbox?.getIndentedList()
 		if (folders) {
 			return this.mailImporter()
 				.getFinalisedImports()
@@ -293,16 +242,6 @@ export class MailImportSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 			return []
 		}
-	}
-
-	private getFoldersForMailGroup(mailGroupId: Id): FolderSystem {
-		if (mailGroupId) {
-			const folderSystem = this.mailModel.getFolderSystemByGroupId(mailGroupId)
-			if (folderSystem) {
-				return folderSystem
-			}
-		}
-		throw new Error("could not load folder list")
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
