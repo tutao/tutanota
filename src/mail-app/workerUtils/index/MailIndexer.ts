@@ -1,4 +1,11 @@
-import { FULL_INDEXED_TIMESTAMP, MailSetKind, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants"
+import {
+	FULL_INDEXED_TIMESTAMP,
+	MailSetKind,
+	MailState,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+	ImportStatus,
+} from "../../../common/api/common/TutanotaConstants"
 import {
 	File as TutanotaFile,
 	FileTypeRef,
@@ -672,6 +679,10 @@ export class MailIndexer {
 
 	async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
 		const importMailState = await this._defaultCachingEntity.load(ImportMailStateTypeRef, importStateId)
+		let status = parseInt(importMailState.status) as ImportStatus
+		if (status !== ImportStatus.Finished && status !== ImportStatus.Canceled) {
+			return Promise.resolve([])
+		}
 		let importedMailEntries = await this._defaultCachingEntity.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 
 		if (isEmpty(importedMailEntries)) {
