@@ -562,11 +562,11 @@ export class MailViewerViewModel {
 		return this.mail.unread
 	}
 
-	setUnread(unread: boolean) {
+	async setUnread(unread: boolean) {
 		if (this.mail.unread !== unread) {
 			this.mail.unread = unread
 
-			this.entityClient
+			await this.entityClient
 				.update(this.mail)
 				.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
 				.catch(ofClass(NotFoundError, noOp))
@@ -1096,7 +1096,11 @@ export class MailViewerViewModel {
 	expandMail(delayBodyRendering: Promise<unknown>): void {
 		this.loadAll(delayBodyRendering, { notify: true })
 		if (this.isUnread()) {
-			this.setUnread(false)
+			// When we automatically mark email as read (e.g. opening it from notification) we don't want to run into offline errors, but we still want to mark
+			// the email as read once we log in.l
+			// It is appropriate to show the error when the user marks the email as unread explicitly but less so when they open it and just didn't reach the
+			// full login yet.
+			this.logins.waitForFullLogin().then(() => this.setUnread(false))
 		}
 		this.collapsed = false
 	}
