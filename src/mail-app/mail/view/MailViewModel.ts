@@ -423,31 +423,34 @@ export class MailViewModel {
 	)
 
 	private onListStateChange(newState: ListState<Mail>) {
-		// If we are showing sticky mail ignore the state changes from the list. We will reset the target on user selection, url changes and
-		// entity events separately.
-		const targetItem = this.stickyMailId
-			? newState.items.find((item) => isSameId(this.stickyMailId, item._id))
-			: !newState.inMultiselect && newState.selectedItems.size === 1
-			? first(this.listModel!.getSelectedAsArray())
-			: null
-		if (targetItem != null) {
-			if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, targetItem._id)) {
+		// If we are already displaying sticky mail just leave it alone, no matter what's happening to the list.
+		// User actions and URL updated do reset sticky mail id.
+		const displayedMailId = this.conversationViewModel?.primaryViewModel()?.mail._id
+		if (!(displayedMailId && isSameId(displayedMailId, this.stickyMailId))) {
+			const targetItem = this.stickyMailId
+				? newState.items.find((item) => isSameId(this.stickyMailId, item._id))
+				: !newState.inMultiselect && newState.selectedItems.size === 1
+				? first(this.listModel!.getSelectedAsArray())
+				: null
+			if (targetItem != null) {
+				// Always write the targetItem in case it was not written before but already being displayed (sticky mail)
 				this.mailFolderElementIdToSelectedMailId = mapWith(
 					this.mailFolderElementIdToSelectedMailId,
 					getElementId(assertNotNull(this.getFolder())),
 					getElementId(targetItem),
 				)
-
-				this.createConversationViewModel({
-					mail: targetItem,
-					showFolder: false,
-				})
-				this.mailOpenedListener.onEmailOpened(targetItem)
+				if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, targetItem._id)) {
+					this.createConversationViewModel({
+						mail: targetItem,
+						showFolder: false,
+					})
+					this.mailOpenedListener.onEmailOpened(targetItem)
+				}
+			} else {
+				this.conversationViewModel?.dispose()
+				this.conversationViewModel = null
+				this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
 			}
-		} else {
-			this.conversationViewModel?.dispose()
-			this.conversationViewModel = null
-			this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
 		}
 		this.updateUrl()
 		this.updateUi()
@@ -537,11 +540,11 @@ export class MailViewModel {
 
 				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
 					return listModelOfImport.handleEntityUpdate({
-					...update,
+						...update,
 						instanceListId: listIdPart(importedMailSetEntry._id),
 						instanceId: elementIdPart(importedMailSetEntry._id),
 						operation: OperationType.CREATE,
-				})
+					})
 				})
 			}
 		}
