@@ -384,7 +384,17 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
-		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
+
+		// Remove "align" property from the top-level content as it causes overflow.
+		// Note: this is not CSS align, this is a deprecated align attribute.
+		// see https://github.com/tutao/tutanota/issues/8271
+		const contentRoot = sanitizedMailBody.cloneNode(true) as HTMLElement
+		for (const child of Array.from(contentRoot.children)) {
+			child.removeAttribute("align")
+		}
+
+		wrapNode.appendChild(contentRoot)
+
 		this.shadowDomMailContent = wrapNode
 
 		// query all top level block quotes
