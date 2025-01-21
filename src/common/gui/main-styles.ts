@@ -2249,8 +2249,8 @@ styles.registerStyle("main", () => {
 			color: theme.content_accent,
 		},
 		".weekday-selector": {
-			margin: `${px(size.vpad_xsm)} 0`,
-			height: "52px",
+			margin: `${px(size.vpad_small)} 0`,
+			height: "44px",
 		},
 		".calendar-current-day-text": {
 			color: theme.content_bg,

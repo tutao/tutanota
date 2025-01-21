@@ -28,6 +28,7 @@ export type RepeatRuleEditorAttrs = {
 	startOfTheWeekOffset: number
 	width: number
 	backAction: () => void
+	writeWeekdaysToModel: (weekdays: Weekdays[]) => void
 }
 
 type RepeatRuleOption = RepeatPeriod | null
@@ -39,8 +40,6 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private readonly weekdayItems: Array<WeekdaySelectorItem> = createWeekdaySelectorItems()
 
 	private byDayRules: Weekdays[] | null = null
-	private handleWeekdaySelectionChange: (value: Weekdays) => unknown = () => {}
-
 	private numberValues: IntervalOption[] = createIntervalValues()
 	private occurrencesExpanded: boolean = false
 	private repeatOccurrences: number
@@ -160,7 +159,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						m(WeekdaySelector, {
 							items: this.weekdayItems,
 							selectedDays: this.byDayRules,
-							selectionChanged: this.handleWeekdaySelectionChange,
+							selectionChanged: attrs.writeWeekdaysToModel,
 						}),
 				  ]
 				: null,
@@ -207,7 +206,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			{
 				style: {
 					padding: "8px 14px",
-					maxHeight: "40px",
+					maxHeight: "44px",
 				},
 			},
 			[

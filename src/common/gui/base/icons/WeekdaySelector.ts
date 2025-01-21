@@ -11,11 +11,10 @@ export interface WeekdaySelectorItem {
 export interface WeekdaySelectorAttrs {
 	items: Array<WeekdaySelectorItem>
 	selectedDays: Weekdays[] | null
-	selectionChanged: (value: Weekdays) => unknown
+	selectionChanged: (value: Weekdays[]) => void
 }
 
 const WEEKDAY_BUTTON_MOBILE_DIMENSIONS: string = px(36)
-const WEEKDAY_BUTTON_WEB_DIMENSIONS: string = px(44)
 
 /**
  * Weekday picker that allows minimum 0, maximum 7 days to be selected.
@@ -23,30 +22,42 @@ const WEEKDAY_BUTTON_WEB_DIMENSIONS: string = px(44)
  */
 export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 	private isMobile: boolean = client.isMobileDevice()
+	private selectedDays: Weekdays[] = []
+
+	constructor(vnode: Vnode<WeekdaySelectorAttrs>) {
+		this.selectedDays = vnode.attrs.selectedDays ?? []
+	}
+
+	onremove(vnode: Vnode<WeekdaySelectorAttrs>) {
+		vnode.attrs.selectionChanged(this.selectedDays)
+		this.selectedDays = []
+	}
 
 	view(vnode: Vnode<WeekdaySelectorAttrs>): Children {
 		return m(
 			".flex-space-around.weekday-selector",
 			{
-				style: this.isMobile ? { margin: "4px 12px" } : {},
+				style: this.isMobile ? { margin: "8px 12px" } : {},
 			},
 			vnode.attrs.items.map((item) => {
 				return m(WeekdaySelectorButton, {
 					weekday: item,
-					buttonDimensions: this.isMobile ? WEEKDAY_BUTTON_MOBILE_DIMENSIONS : WEEKDAY_BUTTON_WEB_DIMENSIONS,
+					buttonDimensions: WEEKDAY_BUTTON_MOBILE_DIMENSIONS,
 					selected: vnode.attrs.selectedDays?.includes(item.value) ?? false,
-				})
+					onSelectionChanged: (weekday: Weekdays) => {
+						this.selectedDays.includes(weekday) ? delete this.selectedDays[this.selectedDays.indexOf(weekday)] : this.selectedDays.push(weekday)
+					},
+				} satisfies WeekdaySelectorButtonAttrs)
 			}),
 		)
 	}
-
-	private gatherSelectedWeekdays() {}
 }
 
 interface WeekdaySelectorButtonAttrs {
 	weekday: WeekdaySelectorItem
 	buttonDimensions: string
 	selected: boolean
+	onSelectionChanged: (weekday: Weekdays) => void
 }
 
 /**
@@ -54,9 +65,11 @@ interface WeekdaySelectorButtonAttrs {
  */
 class WeekdaySelectorButton implements Component<WeekdaySelectorButtonAttrs> {
 	private isToggled: boolean
+	private readonly value: Weekdays
 
 	constructor({ attrs }: Vnode<WeekdaySelectorButtonAttrs>) {
 		this.isToggled = attrs.selected
+		this.value = attrs.weekday.value
 	}
 
 	get highlightedCircleClass() {
@@ -79,6 +92,7 @@ class WeekdaySelectorButton implements Component<WeekdaySelectorButtonAttrs> {
 				role: "option",
 				onclick: () => {
 					this.toggle()
+					vnode.attrs.onSelectionChanged(this.value)
 				},
 			},
 			[
