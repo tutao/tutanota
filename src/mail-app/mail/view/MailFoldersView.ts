@@ -95,8 +95,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		const result: { children: Children[]; numRows: number } = { children: [], numRows: 0 }
 		for (let system of subSystems) {
 			const id = getElementId(system.folder)
+			const folderName = getFolderName(system.folder)
 			const button: NavButtonAttrs = {
-				label: lang.makeTranslation("folder_name", getFolderName(system.folder)),
+				label: lang.makeTranslation(`folder:${folderName}`, folderName),
 				href: () => {
 					if (attrs.inEditMode) {
 						return m.route.get()

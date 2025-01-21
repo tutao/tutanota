@@ -362,6 +362,7 @@ export class Dialog implements ModalComponent {
 			}
 
 			let lines = lang.getTranslationText(messageIdOrMessageFunction).split("\n")
+			let testId = lang.getTestId(messageIdOrMessageFunction)
 
 			if (typeof infoToAppend === "string") {
 				lines.push(infoToAppend)
@@ -374,10 +375,13 @@ export class Dialog implements ModalComponent {
 			}
 			dialog = new Dialog(DialogType.Alert, {
 				view: () => [
-					m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", [
-						lines.map((line) => m(".text-break.selectable", line)),
-						typeof infoToAppend == "function" ? infoToAppend() : null,
-					]),
+					m(
+						".dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll",
+						{
+							"data-testid": testId,
+						},
+						[lines.map((line) => m(".text-break.selectable", line)), typeof infoToAppend == "function" ? infoToAppend() : null],
+					),
 					m(".flex-center.dialog-buttons", m(Button, buttonAttrs)),
 				],
 			})
