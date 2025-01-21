@@ -279,11 +279,6 @@ export class CalendarEventWhenModel {
 		this.uiUpdateCallback()
 	}
 
-	get advancedRules(): AdvancedRepeatRule[] {
-		if (!this.repeatRule?.advancedRules) return []
-		return this.repeatRule.advancedRules
-	}
-
 	set advancedRules(advancedRules: AdvancedRepeatRule[]) {
 		if (this.repeatRule && this.repeatRule.advancedRules !== advancedRules) {
 			this.repeatRule.advancedRules = advancedRules

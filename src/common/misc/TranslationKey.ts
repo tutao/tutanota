@@ -1891,3 +1891,6 @@ export type TranslationKeyType =
 	| "afterStartOfPeriod_label"
 	| "and_label"
 	| "beforeEndOfPeriod_label"
+	| "withCustomRules_label"
+	| "secondOfPeriod_label"
+	| "nthOfPeriod_label"
