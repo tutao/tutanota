@@ -4,7 +4,7 @@ import { first, last } from "@tutao/tutanota-utils"
 const DEFAULT_RATE_PER_SECOND = 0.5
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
 const MINIMUM_HISTORY_LENGTH_FOR_ESTIMATION = 3
-const RATE_PER_SECOND_ESTIMATION_SCALING_RATIO: number = 0.75
+const RATE_PER_SECOND_MAXIMUM_SCALING_RATIO: number = 0.75
 
 const WORK_MAX_PERCENTAGE = 100
 const WORK_COMPLETED_MIN = 0
@@ -37,11 +37,27 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 			if (this.ratePerSecondHistory.length < MINIMUM_HISTORY_LENGTH_FOR_ESTIMATION) {
 				this.workEstimate(DEFAULT_RATE_PER_SECOND)
 			} else {
-				let lastRateEntry = last(this.ratePerSecondHistory)!
-				let lastRatePerSecond = last(lastRateEntry)!
-				let scaledRatePerSecond = lastRatePerSecond * RATE_PER_SECOND_ESTIMATION_SCALING_RATIO
-				let workDoneEstimation = Math.max(DEFAULT_RATE_PER_SECOND, scaledRatePerSecond)
-				this.workEstimate(workDoneEstimation)
+				const previousRateEntry = this.ratePerSecondHistory[this.ratePerSecondHistory.length - 2]
+				const previousRateEntryTimestamp = first(previousRateEntry)!
+
+				const lastRateEntry = last(this.ratePerSecondHistory)!
+				const lastRateEntryTimestamp = first(lastRateEntry)!
+				const lastRatePerSecond = last(lastRateEntry)!
+
+				let lastDurationBetweenRatePerSecondUpdatesMs = lastRateEntryTimestamp - previousRateEntryTimestamp
+				let currentDurationMs = Date.now() - lastRateEntryTimestamp
+				let ratePerSecondScalingRatio: number = Math.min(
+					RATE_PER_SECOND_MAXIMUM_SCALING_RATIO,
+					lastDurationBetweenRatePerSecondUpdatesMs / currentDurationMs,
+				)
+
+				let newRatePerSecondEstimate = lastRatePerSecond * ratePerSecondScalingRatio
+				let workDoneEstimation = Math.max(DEFAULT_RATE_PER_SECOND, newRatePerSecondEstimate)
+
+				// only update estimation if we did not exceed the actual totalWork yet
+				if (this.workCompleted + workDoneEstimation < this.totalWork) {
+					this.workEstimate(workDoneEstimation)
+				}
 			}
 		}, DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS)
 	}
