@@ -4,7 +4,7 @@ The type of the identifier to look up the public key for a group.
 use num_enum::TryFromPrimitive;
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 #[repr(i64)]
 pub enum PublicKeyIdentifierType {
 	MailAddress = 0, // the default to retrieve public keys. identify the group by mail address.
