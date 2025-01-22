@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2025-01-20T13:59:15Z",
+	"updated_at": "2025-01-22T04:27:14Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -727,6 +727,7 @@ export default {
 		"icsInSharingFiles_msg": "Detectáronse un ou mais ficheiros de calendarios. Queres importalos ou anexalos?",
 		"importantLabel_label": "Importante",
 		"importCalendar_label": "Importando calendario",
+		"importComplete_msg": "Importáronse á caixa de correo os correos seleccionados",
 		"importComplete_title": "Importación completada",
 		"importContactRemoveDuplicatesConfirm_msg": "Ao sincronizar atopáronse {count} contacto(s) duplicado(s) no dispositivo. Queres eliminalos do dispositivo? Ten en conta que isto non se pode desfacer.",
 		"importContactRemoveImportedContactsConfirm_msg": "Queres eliminar os contactos importados do teu dispositivo? Ten en conta que esta acción non se pode desfacer.",
