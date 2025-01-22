@@ -2,7 +2,7 @@ use super::importer::{
 	ImportLoopResult, ImportMailStateId, ImportProgressAction, ImportStatus, Importer,
 };
 use crate::importer::file_reader::FileImport;
-use crate::importer::messages::{MailImportMessage, ProgressActionError};
+use crate::importer::messages::{MailImportMessage, PreparationError, ProgressActionError};
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::Env;
 use std::path::PathBuf;
@@ -46,7 +46,8 @@ impl ImporterApi {
 	) -> napi::Result<Option<ImporterApi>> {
 		let target_owner_group = GeneratedId(target_owner_group);
 		let import_directory = FileImport::make_import_directory(&config_directory, &mailbox_id);
-		let existing_import = Importer::get_existing_import_id(&import_directory)?;
+		let existing_import = Importer::get_existing_import_id(&import_directory)
+			.map_err(|_| PreparationError::CannotReadOldStateId)?;
 
 		match existing_import {
 			None => Ok(None),

@@ -375,8 +375,13 @@ export class MailImporter {
 				activeImport.uiStatus = importStatusToUiImportStatus(remoteStatus)
 				const newTotalWork = parseInt(serverState.totalMails)
 				const newDoneWork = parseInt(serverState.successfulMails) + parseInt(serverState.failedMails)
-				activeImport.progressMonitor?.updateTotalWork(newTotalWork)
-				activeImport.progressMonitor?.totalWorkDone(newDoneWork)
+				activeImport.progressMonitor.updateTotalWork(newTotalWork)
+				activeImport.progressMonitor.totalWorkDone(newDoneWork)
+				if (remoteStatus === ImportStatus.Paused) {
+					activeImport.progressMonitor.pauseEstimation()
+				} else {
+					activeImport.progressMonitor.continueEstimation()
+				}
 			}
 		} else {
 			this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
