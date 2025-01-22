@@ -85,7 +85,7 @@ impl FileImport {
 			let is_eml_file = source_path.extension() == Some("eml".as_ref());
 
 			if is_mbox_file {
-				filename_producer.new_mbox(source_path.clone());
+				filename_producer.new_mbox(&source_path);
 
 				let file_buf_reader =
 					fs::File::open(&source_path)
@@ -116,7 +116,7 @@ impl FileImport {
 					})?;
 				}
 			} else if is_eml_file {
-				let target_eml_file_path = filename_producer.new_plain_eml(source_path.clone());
+				let target_eml_file_path = filename_producer.new_plain_eml(&source_path);
 
 				fs::copy(&source_path, &target_eml_file_path).map_err(|copy_err| {
 					log::error!("Can not copy eml: {source_path:?}. Error: {copy_err:?}");

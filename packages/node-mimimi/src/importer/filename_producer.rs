@@ -21,44 +21,39 @@ impl<'a> FileNameProducer<'a> {
 		}
 	}
 
-	pub fn new_plain_eml(&mut self, mut eml_path: PathBuf) -> PathBuf {
-		eml_path.set_extension("");
-		let original_filename = eml_path
-			.file_name()
-			.and_then(OsStr::to_str)
-			.unwrap_or("unnamed")
-			.to_string() + "-"
-			+ self.eml_file_count.to_string().as_str()
-			+ ".eml";
+	pub fn new_plain_eml(&mut self, eml_path: &Path) -> PathBuf {
+		let original_filename = Self::format_new_file_name(&eml_path, self.eml_file_count, ".eml");
 
 		self.eml_file_count += 1;
 
 		self.import_directory.join(original_filename)
 	}
 
-	pub fn new_mbox(&mut self, mut mbox_path: PathBuf) {
-		mbox_path.set_extension("");
-		let original_filename = mbox_path
-			.file_name()
-			.and_then(OsStr::to_str)
-			.unwrap_or("unnamed")
-			.to_string() + "-"
-			+ self.mbox_file_count.to_string().as_str()
-			+ ".mbox";
+	pub fn new_mbox(&mut self, mbox_path: &Path) {
+		let original_filename = Self::format_new_file_name(&mbox_path, self.mbox_file_count, ".mbox-item-");
 
 		self.mbox_file_count += 1;
 
-		self.current_mbox_prefix = original_filename + "-item-";
+		self.current_mbox_prefix = original_filename;
 		self.current_mbox_iter_count = 0;
 	}
 
 	pub fn new_file_of_current_mbox(&mut self) -> PathBuf {
-		let new_filename = self.current_mbox_prefix.clone()
-			+ self.current_mbox_iter_count.to_string().as_str()
-			+ ".eml";
+		let current_prefix = &self.current_mbox_prefix;
+		let count = self.current_mbox_iter_count;
+		let new_filename = format!("{current_prefix}{count}.eml");
+
 		self.current_mbox_iter_count += 1;
 
 		self.import_directory.join(new_filename)
+	}
+
+	fn format_new_file_name(path: &Path, count: usize, suffix: &str) -> String {
+		let file_name = path
+			.file_stem()
+			.and_then(OsStr::to_str)
+			.unwrap_or("unnamed");
+		format!("{file_name}-{count}{suffix}")
 	}
 }
 
@@ -72,22 +67,22 @@ mod tests {
 		let import_directory = PathBuf::from("/tmp/");
 		let mut producer = FileNameProducer::new(&import_directory);
 		let first_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/somefile.eml"))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/somefile.eml"))
 			.to_str()
 			.unwrap()
 			.to_string();
 		let second_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherfile.eml"))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherfile.eml"))
 			.to_str()
 			.unwrap()
 			.to_string();
 		let third_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherfile"))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherfile"))
 			.to_str()
 			.unwrap()
 			.to_string();
 		let fourth_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherdir/.."))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherdir/.."))
 			.to_str()
 			.unwrap()
 			.to_string();
@@ -102,7 +97,7 @@ mod tests {
 	fn producer_for_multiple_mbox_only() {
 		let import_directory = PathBuf::from("/tmp/");
 		let mut producer = FileNameProducer::new(&import_directory);
-		producer.new_mbox(PathBuf::from("/usr/var/log/somefile.mbox"));
+		producer.new_mbox(&PathBuf::from("/usr/var/log/somefile.mbox"));
 		let first_name = producer
 			.new_file_of_current_mbox()
 			.to_str()
@@ -113,7 +108,7 @@ mod tests {
 			.to_str()
 			.unwrap()
 			.to_string();
-		producer.new_mbox(PathBuf::from("/usr/var/log/someotherdir/.."));
+		producer.new_mbox(&PathBuf::from("/usr/var/log/someotherdir/.."));
 		let third_name = producer
 			.new_file_of_current_mbox()
 			.to_str()
@@ -124,7 +119,7 @@ mod tests {
 			.to_str()
 			.unwrap()
 			.to_string();
-		producer.new_mbox(PathBuf::from("/usr/var/log/somedir/.."));
+		producer.new_mbox(&PathBuf::from("/usr/var/log/somedir/.."));
 		let fifth_name = producer
 			.new_file_of_current_mbox()
 			.to_str()
@@ -147,7 +142,7 @@ mod tests {
 	fn producer_for_multiple_mbox_and_multiple_eml() {
 		let import_directory = PathBuf::from("/tmp/");
 		let mut producer = FileNameProducer::new(&import_directory);
-		producer.new_mbox(PathBuf::from("/usr/var/log/somefile.mbox"));
+		producer.new_mbox(&PathBuf::from("/usr/var/log/somefile.mbox"));
 		let first_name = producer
 			.new_file_of_current_mbox()
 			.to_str()
@@ -159,12 +154,12 @@ mod tests {
 			.unwrap()
 			.to_string();
 		let third_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherfile"))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherfile"))
 			.to_str()
 			.unwrap()
 			.to_string();
 		let fourth_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherdir/.."))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherdir/.."))
 			.to_str()
 			.unwrap()
 			.to_string();
@@ -181,25 +176,25 @@ mod tests {
 	fn can_import_multiple_files_with_same_name() {
 		let import_directory = PathBuf::from("/tmp/");
 		let mut producer = FileNameProducer::new(&import_directory);
-		producer.new_mbox(PathBuf::from("/usr/var/log/somefile.mbox"));
+		producer.new_mbox(&PathBuf::from("/usr/var/log/somefile.mbox"));
 		let first_name = producer
 			.new_file_of_current_mbox()
 			.to_str()
 			.unwrap()
 			.to_string();
-		producer.new_mbox(PathBuf::from("/usr/var/log/somefile.mbox"));
+		producer.new_mbox(&PathBuf::from("/usr/var/log/somefile.mbox"));
 		let second_name = producer
 			.new_file_of_current_mbox()
 			.to_str()
 			.unwrap()
 			.to_string();
 		let third_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherfile"))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherfile"))
 			.to_str()
 			.unwrap()
 			.to_string();
 		let fourth_name = producer
-			.new_plain_eml(PathBuf::from("/usr/var/log/someotherfile"))
+			.new_plain_eml(&PathBuf::from("/usr/var/log/someotherfile"))
 			.to_str()
 			.unwrap()
 			.to_string();
