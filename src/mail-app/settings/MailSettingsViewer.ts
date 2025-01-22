@@ -35,7 +35,7 @@ import { formatActivateState, loadOutOfOfficeNotification } from "../../common/m
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettings"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
-import { deviceConfig, ListAutoSelectBehavior } from "../../common/misc/DeviceConfig"
+import { deviceConfig, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../../common/misc/MailboxPropertiesUtils.js"
@@ -312,6 +312,20 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 350,
 		}
+		const mailListView: DropDownSelectorAttrs<MailListDisplayMode> = {
+			label: "mailListGrouping_label",
+			// Don't group means normal view instead of conversation
+			items: [
+				{ name: lang.get("mailListGroupingDontGroup_label"), value: MailListDisplayMode.MAILS },
+				{ name: lang.get("mailListGroupingGroupByConversation_label"), value: MailListDisplayMode.CONVERSATIONS },
+			],
+			selectedValue: deviceConfig.getMailListDisplayMode(),
+			helpLabel: () => lang.get("mailListGroupingHelp_msg"),
+			selectionChangedHandler: (arg: MailListDisplayMode) => {
+				deviceConfig.setMailListDisplayMode(arg)
+			},
+			dropdownWidth: 350,
+		}
 		return [
 			m(
 				"#user-settings.fill-absolute.scroll.plr-l.pb-xl",
@@ -345,6 +359,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						: null,
 					m(".h4.mt-l", lang.get("general_label")),
 					m(DropDownSelector, conversationViewDropdownAttrs),
+					m(DropDownSelector, mailListView),
 					m(DropDownSelector, enableMailIndexingAttrs),
 					m(DropDownSelector, behaviorAfterMoveEmailAction),
 					m(".h4.mt-l", lang.get("emailSending_label")),

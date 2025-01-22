@@ -336,7 +336,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this._listDom?.classList.remove("drag-mod-key")
 		}
 
-		const listModel = vnode.attrs.mailViewModel.listModel!
+		const listModel = vnode.attrs.mailViewModel.listModel
 		return m(
 			".mail-list-wrapper",
 			{
@@ -362,7 +362,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				{
 					headerContent: this.renderListHeader(purgeButtonAttrs),
 				},
-				listModel.isEmptyAndDone()
+				listModel == null || listModel.isEmptyAndDone()
 					? m(ColumnEmptyMessageBox, {
 							icon: BootIcons.Mail,
 							message: "noMails_msg",

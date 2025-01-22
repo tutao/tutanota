@@ -1,5 +1,11 @@
 import o from "@tutao/otest"
-import { DeviceConfig, DeviceConfigCredentials, ListAutoSelectBehavior, migrateConfig, migrateConfigV2to3 } from "../../../src/common/misc/DeviceConfig.js"
+import {
+	DeviceConfig,
+	DeviceConfigCredentials,
+	ListAutoSelectBehavior,
+	MailListDisplayMode,
+	migrateConfigV2to3,
+} from "../../../src/common/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { CredentialEncryptionMode } from "../../../src/common/misc/credentials/CredentialEncryptionMode.js"
@@ -7,7 +13,7 @@ import { CredentialType } from "../../../src/common/misc/credentials/CredentialT
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {
-		o("migrating from v2 to v3 preserves internal logins", function () {
+		o.test("migrating from v2 to v3 preserves internal logins", function () {
 			const oldConfig: any = {
 				_version: 2,
 				_credentials: [
@@ -53,6 +59,30 @@ o.spec("DeviceConfig", function () {
 
 			o(oldConfig._credentials).deepEquals(expectedCredentialsAfterMigration)
 		})
+
+		o.test("migrating from v4 to v5 sets mailListDisplayMode to MAILS", function () {
+			const oldConfig: any = {
+				_version: 2,
+				_credentials: [
+					{
+						mailAddress: "internal@example.com",
+						userId: "internalUserId",
+						accessToken: "internalAccessToken",
+						encryptedPassword: "internalEncPassword",
+					},
+					{
+						mailAddress: "externalUserId",
+						userId: "externalUserId",
+						accessToken: "externalAccessToken",
+						encryptedPassword: "externalEncPassword",
+					},
+				],
+			}
+
+			const localStorageMock = object<Storage>()
+			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(oldConfig))
+			o.check(new DeviceConfig(localStorageMock).getMailListDisplayMode()).equals(MailListDisplayMode.MAILS)
+		})
 	})
 
 	o.spec("loading config", function () {
@@ -70,7 +100,7 @@ o.spec("DeviceConfig", function () {
 				}),
 			)
 
-			new DeviceConfig(DeviceConfig.Version, localStorageMock)
+			new DeviceConfig(localStorageMock)
 
 			verify(localStorageMock.setItem(DeviceConfig.LocalStorageKey, matchers.anything()), { times: 0 })
 		})
@@ -110,6 +140,7 @@ o.spec("DeviceConfig", function () {
 				lastRatingPromptedDate: null,
 				retryRatingPromptAfter: null,
 				scrollTime: 8,
+				mailListDisplayMode: MailListDisplayMode.MAILS,
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))
@@ -119,7 +150,7 @@ o.spec("DeviceConfig", function () {
 				storedJson = json
 			})
 
-			new DeviceConfig(DeviceConfig.Version, localStorageMock)
+			new DeviceConfig(localStorageMock)
 
 			const migratedConfig = Object.assign({}, storedInLocalStorage, {
 				_version: DeviceConfig.Version,
@@ -141,6 +172,13 @@ o.spec("DeviceConfig", function () {
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly
 			o(JSON.parse(storedJson)).deepEquals(migratedConfig)
+		})
+
+		o.test("new config has MailListDisplayMode CONVERSATION", function () {
+			const localStorageMock = object<Storage>()
+			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(null)
+
+			o.check(new DeviceConfig(localStorageMock).getMailListDisplayMode()).equals(MailListDisplayMode.CONVERSATIONS)
 		})
 	})
 })
