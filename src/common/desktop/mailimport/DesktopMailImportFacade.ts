@@ -15,6 +15,7 @@ type Listener = DeferredObject<MailImportErrorMessage>["reject"]
 
 export type ImportErrorData =
 	| { category: ImportErrorCategories.ImportFeatureDisabled }
+	| { category: ImportErrorCategories.ConcurrentImport }
 	| { category: ImportErrorCategories.LocalSdkError; source: string }
 	| { category: ImportErrorCategories.ServerCommunicationError; source: string }
 	| { category: ImportErrorCategories.InvalidImportFilesErrors; source: string }
@@ -84,7 +85,7 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 export class DesktopMailImportFacade implements NativeMailImportFacade {
 	private readonly configDirectory: string
 	// map from mailbox id to its importer Api
-	private readonly importerApis: Map<string, ImporterApi> = new Map()
+	private readonly importerApis: Map<string, Promise<ImporterApi>> = new Map()
 	private readonly currentListeners: Map<string, Array<Listener>> = new Map()
 
 	constructor(private readonly electron: ElectronExports, private readonly notifier: DesktopNotifier, private readonly lang: LanguageViewModel) {
@@ -101,7 +102,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	): Promise<readonly [string, string] | null> {
 		const existingImporterApi = this.importerApis.get(mailboxId)
 		if (existingImporterApi) {
-			const { listId, elementId } = existingImporterApi.getImportStateId()
+			const { listId, elementId } = await existingImporterApi.then((importerApi) => importerApi.getImportStateId())
 			return [listId, elementId]
 		} else {
 			const tutaCredentials = this.createTutaCredentials(unencryptedTutaCredentials, apiUrl)
@@ -113,7 +114,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			}
 			if (importerApi != null) {
 				importerApi.setMessageHook((message: MailImportMessage) => this.processMimimiMessage(mailboxId, message))
-				this.importerApis.set(mailboxId, importerApi)
+				this.importerApis.set(mailboxId, Promise.resolve(importerApi))
 
 				const { listId, elementId } = importerApi.getImportStateId()
 				return [listId, elementId]
@@ -133,34 +134,45 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	): Promise<readonly [string, string]> {
 		const tutaCredentials = this.createTutaCredentials(unencryptedTutaCredentials, apiUrl)
 
-		let importerApi
+		let hasOngoingImport = this.importerApis.has(mailboxId)
+		if (hasOngoingImport) {
+			throw new MailImportError({ category: ImportErrorCategories.ConcurrentImport })
+		}
+
+		let importerApiPromise = ImporterApi.prepareNewImport(
+			mailboxId,
+			tutaCredentials,
+			targetOwnerGroup,
+			[targetMailset[0], targetMailset[1]],
+			filePaths.slice(),
+			this.configDirectory,
+		)
+		this.importerApis.set(mailboxId, importerApiPromise)
+
+		let importerApi: ImporterApi | null = null
 		try {
-			importerApi = await ImporterApi.prepareNewImport(
-				mailboxId,
-				tutaCredentials,
-				targetOwnerGroup,
-				[targetMailset[0], targetMailset[1]],
-				filePaths.slice(),
-				this.configDirectory,
-			)
+			importerApi = await importerApiPromise
 		} catch (e) {
+			this.importerApis.delete(mailboxId)
 			throw new MailImportError(mimimiErrorToImportErrorData(e))
 		}
 		importerApi.setMessageHook((message: MailImportMessage) => this.processMimimiMessage(mailboxId, message))
-		this.importerApis.set(mailboxId, importerApi)
+		this.importerApis.set(mailboxId, Promise.resolve(importerApi))
 		const { listId, elementId } = importerApi.getImportStateId()
 		return [listId, elementId]
 	}
 
 	async setProgressAction(mailboxId: string, progressAction: number): Promise<void> {
-		let importerApi = this.importerApis.get(mailboxId)
-		if (!importerApi) {
+		let importerApiPromise = this.importerApis.get(mailboxId)
+		if (importerApiPromise) {
+			const importerApi = await importerApiPromise
+			await importerApi.setProgressAction(progressAction)
+		} else {
 			console.warn(TAG, "received progress action for nonexistent import")
 			// we can ignore this - the worst that can happen is that we have an unresponsive button.
 			// import was probably finished, but UI didn't get the entity event yet
 			return
 		}
-		await importerApi.setProgressAction(progressAction)
 	}
 
 	async setAsyncErrorHook(mailboxId: string): Promise<void> {

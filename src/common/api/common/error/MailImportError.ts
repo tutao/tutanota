@@ -9,6 +9,7 @@ export const enum ImportErrorCategories {
 	ServerCommunicationError,
 	InvalidImportFilesErrors,
 	ImportIncomplete,
+	ConcurrentImport,
 }
 
 export class MailImportError extends TutanotaError {
