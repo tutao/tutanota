@@ -22,6 +22,10 @@ export enum ListAutoSelectBehavior {
 	OLDER,
 	NEWER,
 }
+export const enum MailListDisplayMode {
+	CONVERSATIONS = "conversations",
+	MAILS = "mails",
+}
 
 export type LastExternalCalendarSyncEntry = {
 	lastSuccessfulSync: number | undefined | null
@@ -53,6 +57,7 @@ interface ConfigObject {
 	_testAssignments: PersistedAssignmentData | null
 	offlineTimeRangeDaysByUser: Record<Id, number>
 	conversationViewShowOnlySelectedMail: boolean
+	mailListDisplayMode: MailListDisplayMode
 	/** Stores each users' definition about contact synchronization */
 	syncContactsWithPhonePreference: Record<Id, boolean>
 	/** Whether mobile calendar navigation is in the "per week" or "per month" mode */
@@ -92,13 +97,13 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
-	public static Version = 4
-	public static LocalStorageKey = "tutanotaConfig"
+	public static readonly Version = 5
+	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
 	private lastSyncStream: Stream<Map<Id, LastExternalCalendarSyncEntry>> = stream(new Map())
 
-	constructor(private readonly _version: number, private readonly localStorage: Storage | null) {
+	constructor(private readonly localStorage: Storage | null) {
 		this.init()
 	}
 
@@ -139,6 +144,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			_signupToken: signupToken,
 			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
+			mailListDisplayMode: loadedConfig.mailListDisplayMode ?? MailListDisplayMode.CONVERSATIONS,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
 			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
@@ -413,6 +419,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 		this.writeToStorage()
 	}
 
+	getMailListDisplayMode(): MailListDisplayMode {
+		return this.config.mailListDisplayMode
+	}
+
+	setMailListDisplayMode(setting: MailListDisplayMode) {
+		this.config.mailListDisplayMode = setting
+		this.writeToStorage()
+	}
+
 	getUserSyncContactsWithPhonePreference(id: Id): boolean | null {
 		return this.config.syncContactsWithPhonePreference[id] ?? null
 	}
@@ -525,6 +540,12 @@ export function migrateConfig(loadedConfig: any) {
 	if (loadedConfig._version < 3) {
 		migrateConfigV2to3(loadedConfig)
 	}
+
+	// version 4 had no migration
+
+	if (loadedConfig._version < 5) {
+		loadedConfig.mailListDisplayMode = MailListDisplayMode.MAILS
+	}
 }
 
 /**
@@ -573,4 +594,4 @@ export interface DeviceConfigCredentials {
 	readonly encryptedPassphraseKey: Base64 | null
 }
 
-export const deviceConfig: DeviceConfig = new DeviceConfig(DeviceConfig.Version, client.localStorage() ? localStorage : null)
+export const deviceConfig: DeviceConfig = new DeviceConfig(client.localStorage() ? localStorage : null)
