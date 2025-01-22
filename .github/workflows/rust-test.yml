@@ -40,8 +40,8 @@ jobs:
           #
           # Newer versions will enable newer features, but at the same time, you may get newer warnings which you have
           # to fix. This should be a manual step.
-          rustup install 1.83.0
-          rustup default 1.83.0
+          rustup install 1.84.0
+          rustup default 1.84.0
           rustup component add rustfmt clippy
       - name: sdk format
         working-directory: tuta-sdk/rust

@@ -2,7 +2,7 @@
 set -euxo pipefail
 
 # Set the version of rust to install
-RUST_VERSION="1.78.0"
+RUST_VERSION="1.84.0"
 # Set the platform of our machine (the one we are running this script on)
 HOST_TARGET="x86_64-unknown-linux-gnu"
 
