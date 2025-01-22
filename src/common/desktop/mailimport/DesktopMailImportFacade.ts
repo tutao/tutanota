@@ -44,9 +44,6 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 	switch (source) {
 		// errors related to the files we use to track the import progress.
 		// might require manual intervention due to misconfiguration or leftover files.
-		case PreparationError.NoStateFile:
-		case PreparationError.MalformedStateFile:
-		case PreparationError.ImportDirectoryPreparation:
 		case PreparationError.FailedToReadEmls:
 		case PreparationError.StateFileWriteFailed:
 		case PreparationError.CanNotCreateImportDir:
@@ -56,7 +53,6 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 			return { category: ImportErrorCategories.InvalidImportFilesErrors, source }
 
 		// errors due to problems communicating with the server (network, auth,...)
-		case PreparationError.CanNotLoginToSdk:
 		case PreparationError.LoginError:
 		case PreparationError.NoMailGroupKey:
 		case PreparationError.CannotLoadRemoteState:
@@ -66,7 +62,6 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
 			return { category: ImportErrorCategories.ImportFeatureDisabled }
 
 		// errors that happen before we even talk to the server. usually not actionable.
-		case PreparationError.CannotCreateSdk:
 		case PreparationError.NoNativeRestClient:
 			return { category: ImportErrorCategories.LocalSdkError, source }
 
@@ -87,7 +82,8 @@ function mimimiErrorToImportErrorData(error: { message: string }): ImportErrorDa
  * windows can subscribe to events and control the importer, but are considered "disposable" and are not required for the importer to do work.
  */
 export class DesktopMailImportFacade implements NativeMailImportFacade {
-	private configDirectory: string
+	private readonly configDirectory: string
+	// map from mailbox id to its importer Api
 	private readonly importerApis: Map<string, ImporterApi> = new Map()
 	private readonly currentListeners: Map<string, Array<Listener>> = new Map()
 

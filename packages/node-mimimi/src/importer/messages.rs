@@ -61,19 +61,12 @@ pub struct MailImportMessage {
 #[napi_derive::napi(string_enum)]
 #[repr(u8)]
 #[cfg_attr(test, derive(Debug))]
+#[derive(PartialEq)]
 pub enum PreparationError {
-	/// import state file does not exist at all
-	NoStateFile,
-	/// import state file exists, but it's content can not be deserialized to valid idTuple
-	MalformedStateFile,
 	/// Can not create a native Rest client
 	NoNativeRestClient,
-	/// Can not log in through sdk
-	CanNotLoginToSdk,
-	/// Can not create a sdk
-	CannotCreateSdk,
-	/// some error occurred while preparing import directory
-	ImportDirectoryPreparation,
+	/// some error occurred while reading import directory
+	CannotReadOldStateId,
 	/// Error when trying to resume the session passed from client
 	LoginError,
 	/// Can not read all the eml files in import directory
@@ -140,12 +133,8 @@ pub enum ProgressActionError {
 impl From<PreparationError> for napi::Error {
 	fn from(prep_err: PreparationError) -> Self {
 		let code = match prep_err {
-			PreparationError::NoStateFile => "NoStateFile",
-			PreparationError::MalformedStateFile => "MalformedStateFile",
 			PreparationError::NoNativeRestClient => "NoNativeRestClient",
-			PreparationError::CanNotLoginToSdk => "CanNotLoginToSdk",
-			PreparationError::CannotCreateSdk => "CannotCreateSdk",
-			PreparationError::ImportDirectoryPreparation => "ImportDirectoryPreparation",
+			PreparationError::CannotReadOldStateId => "ImportDirectoryPreparation",
 			PreparationError::LoginError => "LoginError",
 			PreparationError::FailedToReadEmls => "FailedToReadEmls",
 			PreparationError::NoMailGroupKey => "NoMailGroupKey",
