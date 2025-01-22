@@ -59,16 +59,29 @@ export class MailImporter {
 	}
 
 	async initImportMailStates(): Promise<void> {
+		await this.checkForResumableImport()
+
+		const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, (await this.getMailbox()).mailImportStates)
+		for (const importMailState of importMailStatesCollection) {
+			if (this.isFinalisedImport(importMailState)) {
+				this.updateFinalisedImport(elementIdPart(importMailState._id), importMailState)
+			}
+		}
+		m.redraw()
+	}
+
+	private async checkForResumableImport(): Promise<void> {
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 		const mailbox = await this.getMailbox()
 		this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
+		this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
+
 		let activeImportId: IdTuple | null = null
 		if (this.activeImport === null) {
 			const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
 
 			try {
 				activeImportId = await importFacade.getResumableImport(mailbox._id, mailOwnerGroupId, unencryptedCredentials, apiUrl)
@@ -113,13 +126,42 @@ export class MailImporter {
 				}
 			}
 		}
+	}
 
-		const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, (await this.getMailbox()).mailImportStates)
-		for (const importMailState of importMailStatesCollection) {
-			if (this.isFinalisedImport(importMailState)) {
-				this.updateFinalisedImport(elementIdPart(importMailState._id), importMailState)
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+				await this.newImportStateFromServer(updatedState)
 			}
 		}
+	}
+
+	async newImportStateFromServer(serverState: ImportMailState) {
+		const remoteStatus = parseInt(serverState.status) as ImportStatus
+
+		const wasUpdatedForThisImport = this.activeImport !== null && isSameId(this.activeImport.remoteStateId, serverState._id)
+		if (wasUpdatedForThisImport) {
+			if (isFinalisedImport(remoteStatus)) {
+				this.resetStatus()
+				this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
+			} else {
+				const activeImport = assertNotNull(this.activeImport)
+				activeImport.uiStatus = importStatusToUiImportStatus(remoteStatus)
+				const newTotalWork = parseInt(serverState.totalMails)
+				const newDoneWork = parseInt(serverState.successfulMails) + parseInt(serverState.failedMails)
+				activeImport.progressMonitor.updateTotalWork(newTotalWork)
+				activeImport.progressMonitor.totalWorkDone(newDoneWork)
+				if (remoteStatus === ImportStatus.Paused) {
+					activeImport.progressMonitor.pauseEstimation()
+				} else {
+					activeImport.progressMonitor.continueEstimation()
+				}
+			}
+		} else {
+			this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
+		}
+
 		m.redraw()
 	}
 
@@ -165,6 +207,15 @@ export class MailImporter {
 				this.activeImport.uiStatus = UiImportStatus.Paused
 			}
 			await Dialog.message("mailImportErrorServiceUnavailable_msg")
+		} else if (err.data.category == ImportErrorCategories.ConcurrentImport) {
+			console.log("Tried to start concurrent import")
+			showSnackBar({
+				message: "pleaseWait_msg",
+				button: {
+					label: "ok_action",
+					click: () => {},
+				},
+			})
 		} else {
 			console.log(`Error while importing mails, category: ${err.data.category}, source: ${err.data.source}`)
 			const navigateToImportSettings: SnackBarButtonAttrs = {
@@ -361,50 +412,12 @@ export class MailImporter {
 		this.finalisedImportStates.set(importMailStateElementId, importMailState)
 	}
 
-	async newImportStateFromServer(serverState: ImportMailState) {
-		const wasUpdatedForThisImport = this.activeImport !== null && isSameId(this.activeImport.remoteStateId, serverState._id)
-
-		if (wasUpdatedForThisImport) {
-			const remoteStatus = parseInt(serverState.status) as ImportStatus
-
-			if (isFinalisedImport(remoteStatus)) {
-				this.resetStatus()
-				this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
-			} else {
-				const activeImport = assertNotNull(this.activeImport)
-				activeImport.uiStatus = importStatusToUiImportStatus(remoteStatus)
-				const newTotalWork = parseInt(serverState.totalMails)
-				const newDoneWork = parseInt(serverState.successfulMails) + parseInt(serverState.failedMails)
-				activeImport.progressMonitor.updateTotalWork(newTotalWork)
-				activeImport.progressMonitor.totalWorkDone(newDoneWork)
-				if (remoteStatus === ImportStatus.Paused) {
-					activeImport.progressMonitor.pauseEstimation()
-				} else {
-					activeImport.progressMonitor.continueEstimation()
-				}
-			}
-		} else {
-			this.updateFinalisedImport(elementIdPart(serverState._id), serverState)
-		}
-
-		m.redraw()
-	}
-
 	private resetStatus() {
 		this.activeImport = null
 	}
 
 	getUiStatus() {
 		return this.activeImport?.uiStatus ?? null
-	}
-
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		for (const update of updates) {
-			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
-				await this.newImportStateFromServer(updatedState)
-			}
-		}
 	}
 }
 
