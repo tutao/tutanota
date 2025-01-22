@@ -19,21 +19,7 @@ import {
 	isSameId,
 	listIdPart,
 } from "../../../common/api/common/utils/EntityUtils.js"
-import {
-	assertNotNull,
-	count,
-	debounce,
-	first,
-	groupBy,
-	isEmpty,
-	lastThrow,
-	lazyMemoized,
-	mapWith,
-	mapWithout,
-	memoized,
-	ofClass,
-	promiseMap,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
@@ -56,6 +42,9 @@ import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
 import { MailListModel } from "../model/MailListModel"
+import { MailSetListModel } from "../model/MailSetListModel"
+import { ConversationListModel } from "../model/ConversationListModel"
+import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -63,9 +52,20 @@ export interface MailOpenedListener {
 
 const TAG = "MailVM"
 
+/**
+ * These folders will always use the mail list model instead of the conversation list model regardless of the user's
+ * settings.
+ */
+const MAIL_LIST_FOLDERS: MailSetKind[] = [MailSetKind.DRAFT, MailSetKind.SENT]
+
+export interface MailListViewPrefProvider {
+	getMailListDisplayMode(): MailListDisplayMode
+}
+
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	private _folder: MailFolder | null = null
+	private _listModel: MailSetListModel | null = null
 	/** id of the mail that was requested to be displayed, independent of the list state. */
 	private stickyMailId: IdTuple | null = null
 	/**
@@ -83,6 +83,7 @@ export class MailViewModel {
 	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
 	private listStreamSubscription: Stream<unknown> | null = null
 	private conversationPref: boolean = false
+	private groupMailsByConversationPref: boolean = false
 	/** A slightly hacky marker to avoid concurrent URL updates. */
 	private currentShowTargetMarker: object = {}
 
@@ -99,6 +100,7 @@ export class MailViewModel {
 		private readonly inboxRuleHandler: InboxRuleHandler,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
+		private readonly mailListViewPrefProvider: MailListViewPrefProvider,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {
@@ -321,7 +323,7 @@ export class MailViewModel {
 				// if the target mail has changed, stop
 				this.loadingTargetId !== mailId ||
 				// if we loaded past the target item we won't find it, stop
-				(this.listModel.items.length > 0 && firstBiggerThanSecond(mailId, getElementId(lastThrow(this.listModel.items)))),
+				(this.listModel.lastItem != null && firstBiggerThanSecond(mailId, getElementId(this.listModel.lastItem))),
 		)
 		if (foundMail == null) {
 			console.log("did not find mail", folder, mailId)
@@ -334,10 +336,12 @@ export class MailViewModel {
 		return assertSystemFolderOfType(folders, MailSetKind.INBOX)
 	}
 
+	/** init is called every time the view is opened */
 	init() {
-		this.singInit()
-		const conversationEnabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
-		if (this.conversationViewModel && this.conversationPref !== conversationEnabled) {
+		this.onceInit()
+		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
+		const mailListViewPref = this.mailListViewPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
+		if (this.conversationViewModel && this.conversationPref !== conversationDisabled) {
 			const mail = this.conversationViewModel.primaryMail
 			this.createConversationViewModel({
 				mail,
@@ -346,15 +350,23 @@ export class MailViewModel {
 			})
 			this.mailOpenedListener.onEmailOpened(mail)
 		}
-		this.conversationPref = conversationEnabled
+
+		this.conversationPref = conversationDisabled
+
+		const oldGroupMailsByConversationPref = this.groupMailsByConversationPref
+		this.groupMailsByConversationPref = mailListViewPref
+		if (oldGroupMailsByConversationPref !== mailListViewPref) {
+			// if the preference for conversation in list has changed we need to re-create the list model
+			this.updateListModel()
+		}
 	}
 
-	private readonly singInit = lazyMemoized(() => {
+	private readonly onceInit = lazyMemoized(() => {
 		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 	})
 
-	get listModel(): MailListModel | null {
-		return this._folder ? this.listModelForFolder(getElementId(this._folder)) : null
+	get listModel(): MailSetListModel | null {
+		return this._listModel
 	}
 
 	getMailFolderToSelectedMail(): ReadonlyMap<Id, Id> {
@@ -370,37 +382,71 @@ export class MailViewModel {
 	}
 
 	private setListId(folder: MailFolder) {
-		if (folder === this._folder) {
-			return
-		}
-		// Cancel old load all
-		this.listModel?.cancelLoadAll()
-		this._filterType = null
-
+		const oldFolderId = this._folder?._id
+		// update folder just in case, maybe it got updated
 		this._folder = folder
-		this.listStreamSubscription?.end(true)
-		this.listStreamSubscription = this.listModel!.stateStream.map((state) => this.onListStateChange(state))
-		this.listModel!.loadInitial().then(() => {
-			if (this.listModel != null && this._folder === folder) {
-				this.fixCounterIfNeeded(folder, this.listModel.items)
-			}
-		})
+
+		// only re-create list things if it's actually another folder
+		if (!oldFolderId || !isSameId(oldFolderId, folder._id)) {
+			// Cancel old load all
+			this.listModel?.cancelLoadAll()
+			this._filterType = null
+
+			// the open folder has changed which means we need another list model with data for this list
+			this.updateListModel()
+		}
 	}
 
 	getConversationViewModel(): ConversationViewModel | null {
 		return this.conversationViewModel
 	}
 
-	private listModelForFolder = memoized((_folderId: Id) => {
-		// Capture state to avoid race conditions.
-		// We need to populate mail set entries cache when loading mails so that we can react to updates later.
-		const folder = assertNotNull(this._folder)
-		return new MailListModel(folder, this.conversationPrefProvider, this.entityClient, this.mailModel, this.inboxRuleHandler, this.cacheStorage)
-	})
+	// deinit old list model if it exists and create and init a new one
+	private updateListModel() {
+		if (this._folder == null) {
+			this.listStreamSubscription?.end(true)
+			this.listStreamSubscription = null
+			this._listModel = null
+		} else {
+			// Capture state to avoid race conditions.
+			// We need to populate mail set entries cache when loading mails so that we can react to updates later.
+			const folder = this._folder
 
-	private fixCounterIfNeeded: (folder: MailFolder, itemsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
+			let listModel: MailSetListModel
+			if (this.groupMailsByConversationPref && !this.folderNeverGroupsMails(folder)) {
+				listModel = new ConversationListModel(
+					folder,
+					this.conversationPrefProvider,
+					this.entityClient,
+					this.mailModel,
+					this.inboxRuleHandler,
+					this.cacheStorage,
+				)
+			} else {
+				listModel = new MailListModel(
+					folder,
+					this.conversationPrefProvider,
+					this.entityClient,
+					this.mailModel,
+					this.inboxRuleHandler,
+					this.cacheStorage,
+				)
+			}
+			this.listStreamSubscription?.end(true)
+			this.listStreamSubscription = listModel.stateStream.map((state: ListState<Mail>) => this.onListStateChange(listModel, state))
+			listModel.loadInitial().then(() => {
+				if (this.listModel != null && this._folder === folder) {
+					this.fixCounterIfNeeded(folder, this.listModel.mails)
+				}
+			})
+
+			this._listModel = listModel
+		}
+	}
+
+	private fixCounterIfNeeded: (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
 		2000,
-		async (folder: MailFolder, itemsWhenCalled: ReadonlyArray<Mail>) => {
+		async (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
 			const ourFolder = this.getFolder()
 			if (ourFolder == null || (this._filterType != null && this.filterType !== MailFilterType.Unread)) {
 				return
@@ -413,12 +459,12 @@ export class MailViewModel {
 			}
 
 			// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
-			if (this.listModel?.items !== itemsWhenCalled) {
+			if (this.listModel?.mails !== loadedMailsWhenCalled) {
 				console.log(`list changed, trying again later`)
-				return this.fixCounterIfNeeded(folder, this.listModel?.items ?? [])
+				return this.fixCounterIfNeeded(folder, this.listModel?.mails ?? [])
 			}
 
-			const unreadMailsCount = count(this.listModel.items, (e) => e.unread)
+			const unreadMailsCount = count(this.listModel.mails, (e) => e.unread)
 
 			const counterValue = await this.mailModel.getCounterValue(folder)
 			if (counterValue != null && counterValue !== unreadMailsCount) {
@@ -430,16 +476,12 @@ export class MailViewModel {
 		},
 	)
 
-	private onListStateChange(newState: ListState<Mail>) {
+	private onListStateChange(listModel: MailSetListModel, newState: ListState<Mail>) {
 		// If we are already displaying sticky mail just leave it alone, no matter what's happening to the list.
 		// User actions and URL updated do reset sticky mail id.
 		const displayedMailId = this.conversationViewModel?.primaryViewModel()?.mail._id
 		if (!(displayedMailId && isSameId(displayedMailId, this.stickyMailId))) {
-			const targetItem = this.stickyMailId
-				? newState.items.find((item) => isSameId(this.stickyMailId, item._id))
-				: !newState.inMultiselect && newState.selectedItems.size === 1
-				? first(this.listModel!.getSelectedAsArray())
-				: null
+			const targetItem = this.stickyMailId ? newState.items.find((item) => isSameId(this.stickyMailId, item._id)) : listModel.getDisplayedMail()
 			if (targetItem != null) {
 				// Always write the targetItem in case it was not written before but already being displayed (sticky mail)
 				this.mailFolderElementIdToSelectedMailId = mapWith(
@@ -532,14 +574,17 @@ export class MailViewModel {
 	private async processImportedMails(update: EntityUpdateData) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 		const importedFolder = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
-		const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
 
 		let status = parseInt(importMailState.status) as ImportStatus
 		if (status === ImportStatus.Finished || status === ImportStatus.Canceled) {
 			let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 			if (isEmpty(importedMailEntries)) return Promise.resolve()
+			if (this._folder == null || !isSameId(this._folder._id, importMailState.targetFolder)) {
+				return
+			}
+			const listModelOfImport = assertNotNull(this._listModel)
 
-			let mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+			const mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
 			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
 			if (isEmpty(importedMailSetEntries)) return Promise.resolve()
@@ -708,5 +753,9 @@ export class MailViewModel {
 
 	async deleteLabel(label: MailFolder) {
 		await this.mailModel.deleteLabel(label)
+	}
+
+	private folderNeverGroupsMails(mailSet: MailFolder): boolean {
+		return MAIL_LIST_FOLDERS.includes(mailSet.folderType as MailSetKind)
 	}
 }

@@ -1,5 +1,4 @@
 import o from "../../../../packages/otest/dist/otest"
-import { MailListModel } from "../../../../src/mail-app/mail/model/MailListModel"
 import {
 	createMailSetEntry,
 	Mail,
@@ -21,6 +20,7 @@ import { MailSetKind, OperationType } from "../../../../src/common/api/common/Tu
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
+	CUSTOM_MIN_ID,
 	deconstructMailSetEntryId,
 	elementIdPart,
 	GENERATED_MAX_ID,
@@ -38,9 +38,10 @@ import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entit
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
 import { clamp, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
+import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
 
-o.spec("MailListModelTest", () => {
-	let model: MailListModel
+o.spec("ConversationListModelTest", () => {
+	let model: ConversationListModel
 
 	const mailboxDetail: MailboxDetail = {
 		mailbox: createTestEntity(MailBoxTypeRef),
@@ -93,7 +94,7 @@ o.spec("MailListModelTest", () => {
 		mailModel = object()
 		inboxRuleHandler = object()
 		cacheStorage = object()
-		model = new MailListModel(mailSet, conversationPrefProvider, entityClient, mailModel, inboxRuleHandler, cacheStorage)
+		model = new ConversationListModel(mailSet, conversationPrefProvider, entityClient, mailModel, inboxRuleHandler, cacheStorage)
 		when(mailModel.getMailboxDetailsForMailFolder(mailSet)).thenResolve(mailboxDetail)
 	})
 
@@ -112,17 +113,19 @@ o.spec("MailListModelTest", () => {
 		return Number(deconstructMailSetEntryId(mailSetElementId).mailId)
 	}
 
-	async function setUpTestData(count: number, initialLabels: MailFolder[], offline: boolean) {
+	async function setUpTestData(count: number, initialLabels: MailFolder[], offline: boolean, mailsPerConversation: number) {
 		const mailSetEntries: MailSetEntry[] = []
 		const mails: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
 
 		for (let i = 0; i < count; i++) {
 			const mailBag = i % 10
 			const mailId: IdTuple = makeMailId(i)
+			const conversationId = "" + Math.floor(i / mailsPerConversation)
 
 			const mail = createTestEntity(MailTypeRef, {
 				_id: mailId,
 				sets: [mailSet._id, ...initialLabels.map((l) => l._id)],
+				conversationEntry: [conversationId, elementIdPart(mailId)],
 			})
 
 			mails[mailBag].push(mail)
@@ -186,10 +189,10 @@ o.spec("MailListModelTest", () => {
 	}
 
 	o.test("loads PageSize items and sets labels correctly", async () => {
-		await setUpTestData(PageSize, labels, false)
+		await setUpTestData(PageSize, labels, false, 1)
 		await model.loadInitial()
-		o(model.items.length).equals(PageSize)
-		for (const mail of model.items) {
+		o(model.mails.length).equals(PageSize)
+		for (const mail of model.mails) {
 			o(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
 		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
@@ -204,10 +207,10 @@ o.spec("MailListModelTest", () => {
 	})
 
 	o.test("loads PageSize items while offline and sets labels correctly", async () => {
-		await setUpTestData(PageSize, labels, true)
+		await setUpTestData(PageSize, labels, true, 1)
 		await model.loadInitial()
-		o(model.items.length).equals(PageSize)
-		for (const mail of model.items) {
+		o(model.mails.length).equals(PageSize)
+		for (const mail of model.mails) {
 			o(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
 		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
@@ -233,10 +236,10 @@ o.spec("MailListModelTest", () => {
 			),
 		).thenResolve({})
 
-		await setUpTestData(PageSize, labels, false)
+		await setUpTestData(PageSize, labels, false, 1)
 		await model.loadInitial()
-		o(model.items.length).equals(PageSize - 1)
-		for (const mail of model.items) {
+		o(model.mails.length).equals(PageSize - 1)
+		for (const mail of model.mails) {
 			o(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
 		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
@@ -250,28 +253,65 @@ o.spec("MailListModelTest", () => {
 		})
 	})
 
-	o.test("loadMore eventually loads more mails", async () => {
-		const pages = 5
-		await setUpTestData(PageSize * pages, labels, false)
-		await model.loadInitial() // will have the first page loaded
-		const unloadedMail = elementIdPart(makeMailId(1)) // a mail that will be on the bottom of the list
+	o.spec("loadMore eventually loads more mails", () => {
+		o.test("ungrouped", async () => {
+			const mailsPerConversation = 1
+			const pages = 5
+			await setUpTestData(PageSize * pages, labels, false, mailsPerConversation)
+			await model.loadInitial() // will have the first page loaded
+			const unloadedMail = elementIdPart(makeMailId(1)) // a mail that will be on the bottom of the list
 
-		// This mail is not loaded until we load a few more pages.
-		for (let loadedPageCount = 1; loadedPageCount < pages; loadedPageCount++) {
-			o(model.items.length).equals(PageSize * loadedPageCount)
+			// This mail is not loaded until we load a few more pages.
+			for (let loadedPageCount = 1; loadedPageCount < pages; loadedPageCount++) {
+				o(model.mails.length).equals(PageSize * loadedPageCount)
+				const mail = model.getMail(unloadedMail)
+				o(mail).equals(null)
+				await model.loadMore()
+			}
+
+			// Everything is loaded including that mail we wanted from before
+			o(model.mails.length).equals(PageSize * pages)
 			const mail = model.getMail(unloadedMail)
-			o(mail).equals(null)
-			await model.loadMore()
-		}
+			o(mail).notEquals(null)
+		})
 
-		// Everything is loaded including that mail we wanted from before
-		o(model.items.length).equals(PageSize * pages)
-		const mail = model.getMail(unloadedMail)
-		o(mail).notEquals(null)
+		o.test("grouped by conversations", async () => {
+			const mailsPerConversation = 2
+			const pages = 4
+			await setUpTestData(PageSize * pages * mailsPerConversation, labels, false, mailsPerConversation)
+			await model.loadInitial() // will have the first page loaded
+			const unloadedMail = elementIdPart(makeMailId(1)) // a mail that will be on the bottom of the list
+
+			// This mail is not loaded until we load a few more pages.
+			for (let loadedPageCount = 1; loadedPageCount < pages * mailsPerConversation; loadedPageCount++) {
+				const mail = model.getMail(unloadedMail)
+				o(mail).equals(null)
+				await model.loadMore()
+			}
+
+			// Everything is now loaded, including that mail we wanted from before
+			o(model.mails.length).equals(PageSize * pages * mailsPerConversation)
+
+			// But we have fewer pages shown because half of them are hidden behind conversations where there are newer mails
+			o(model.items.length).equals(PageSize * pages)
+			const mail = model.getMail(unloadedMail)
+			o(mail).notEquals(null)
+		})
+
+		o.test("everything is one conversation", async () => {
+			const pages = 4
+			const totalMails = PageSize * pages
+			await setUpTestData(totalMails, labels, false, totalMails)
+			await model.loadInitial() // will have the first page loaded
+			await model.loadAll()
+
+			o(model.mails.length).equals(totalMails)
+			o(model.items.length).equals(1)
+		})
 	})
 
 	o.test("loadAndSelect selects by mail id", async () => {
-		await setUpTestData(PageSize * 5, labels, false)
+		await setUpTestData(PageSize * 5, labels, false, 1)
 		await model.loadInitial() // will have the first page loaded
 
 		// This mail is not loaded yet.
@@ -287,17 +327,17 @@ o.spec("MailListModelTest", () => {
 
 	o.spec("handleEntityUpdate", () => {
 		o.test("mailset update updates labels", async () => {
-			await setUpTestData(PageSize, [labels[0]], false)
+			await setUpTestData(PageSize, [labels[0]], false, 1)
 			await model.loadInitial()
 
 			// Overwrite one of the mails inside the list so it has both labels
 			const someIndex = 50 // a random number
 			const someMail: LoadedMail = {
-				...model._loadedMails()[someIndex],
+				...model._getMailMap().get(elementIdPart(makeMailId(someIndex)))!,
 				labels: [labels[0], labels[1]],
 			}
 			someMail.mail.sets.push(labels[1]._id)
-			model._updateSingleMail(someMail)
+			model._updateMails([someMail])
 			o(model.getLabelsForMail(someMail.mail)[1]).deepEquals(labels[1])
 
 			// Change one of the labels (but not inside the mail we just updated)
@@ -323,11 +363,11 @@ o.spec("MailListModelTest", () => {
 
 			// verify getLabelsForMail call times (someMail was queried twice, but other mails only once)
 			verify(mailModel.getLabelsForMail(someMail.mail), { times: 2 })
-			verify(mailModel.getLabelsForMail(model.items[someIndex + 1]), { times: 1 })
+			verify(mailModel.getLabelsForMail(model.mails[someIndex + 1]), { times: 1 })
 		})
 
 		o.test("mailset delete does nothing", async () => {
-			await setUpTestData(PageSize, [labels[0]], false)
+			await setUpTestData(PageSize, [labels[0]], false, 1)
 			await model.loadInitial()
 
 			const entityUpdateData = {
@@ -340,14 +380,14 @@ o.spec("MailListModelTest", () => {
 			entityUpdateData.operation = OperationType.DELETE
 
 			await model.handleEntityUpdate(entityUpdateData)
-			o(model.items.length).equals(PageSize)
+			o(model.mails.length).equals(PageSize)
 		})
 
 		o.test("deleting a mail set entry", async () => {
-			await setUpTestData(PageSize, labels, false)
+			await setUpTestData(PageSize, labels, false, 1)
 			await model.loadInitial()
 			const someIndex = 22 // a random number
-			const someMail = model._loadedMails()[someIndex]
+			const someMail: LoadedMail = model._getMailMap().get(elementIdPart(makeMailId(someIndex)))!
 
 			const entityUpdateData = {
 				application: MailSetEntryTypeRef.app,
@@ -357,29 +397,33 @@ o.spec("MailListModelTest", () => {
 				operation: OperationType.DELETE,
 			}
 
-			const oldItems = model.items
+			const oldItems = model.mails
 			const newItems = [...oldItems]
-			newItems.splice(someIndex, 1)
+			newItems.splice(PageSize - 1 - someIndex, 1)
 
-			o(model.items).deepEquals(oldItems)
+			o(model.mails).deepEquals(oldItems)
 			await model.handleEntityUpdate(entityUpdateData)
-			o(model.items).deepEquals(newItems)
+			o(model.mails).deepEquals(newItems)
 			o(model.getMail(getElementId(someMail.mail))).equals(null)
 		})
 
-		function createInsertedMail(forEntries: Id): {
+		function createInsertedMail(
+			mailSetEntryId: IdTuple,
+			conversationId: Id,
+		): {
 			mail: Mail
 			mailSetEntry: MailSetEntry
 			entityUpdateData: EntityUpdateData
 			mailLabels: MailFolder[]
 		} {
 			const newMail = createTestEntity(MailTypeRef, {
-				_id: ["new mail!!!", "the mail!!!"],
+				_id: ["new mail!!!", deconstructMailSetEntryId(elementIdPart(mailSetEntryId)).mailId],
 				sets: [mailSet._id, labels[1]._id],
+				conversationEntry: [conversationId, "yay!"],
 			})
 
 			const newEntry = createMailSetEntry({
-				_id: [forEntries, CUSTOM_MAX_ID],
+				_id: mailSetEntryId,
 				mail: newMail._id,
 			})
 
@@ -403,38 +447,156 @@ o.spec("MailListModelTest", () => {
 		}
 
 		o.test("creating a mail set entry of the same set adds the element", async () => {
-			await setUpTestData(PageSize, labels, false)
+			await setUpTestData(3, labels, false, 1)
 			await model.loadInitial()
-			const { mail, entityUpdateData, mailLabels } = createInsertedMail(mailSet.entries)
+			const { mail, entityUpdateData, mailLabels } = createInsertedMail([mailSet.entries, CUSTOM_MAX_ID], "1")
 
-			const oldItems = model.items
-			const newItems = [mail, ...oldItems]
+			const oldItems = model.mails
+			// NOTE: mails is backed by a Map which maintains insertion order; MailSetListModel#mails is not required to
+			// be ordered
+			const newItems = [...oldItems, mail]
 
-			o(model.items).deepEquals(oldItems)
+			o(model.mails).equals(oldItems)
 			await model.handleEntityUpdate(entityUpdateData)
-			o(model.items).deepEquals(newItems)
+			o(model.mails).deepEquals(newItems)
 			o(model.getMail(getElementId(mail))).deepEquals(mail)
 			o(model.getLabelsForMail(mail)).deepEquals(mailLabels)
 		})
 
-		o.test("creating a mail set entry in a different set does nothing", async () => {
-			await setUpTestData(PageSize, labels, false)
+		o.test("creating an older mail in an existing conversation", async () => {
+			await setUpTestData(1, labels, false, 1)
 			await model.loadInitial()
-			const { mail, entityUpdateData } = createInsertedMail("something else")
+			const { mail, entityUpdateData } = createInsertedMail([mailSetEntriesListId, CUSTOM_MIN_ID], "0")
+
+			const oldMails = model.mails
+			const newMails = [...oldMails, mail]
 
 			const oldItems = model.items
 			const newItems = [...oldItems]
 
+			o(model.mails).deepEquals(oldMails)
 			o(model.items).deepEquals(oldItems)
 			await model.handleEntityUpdate(entityUpdateData)
+			o(model.mails).deepEquals(newMails)
 			o(model.items).deepEquals(newItems)
+			o(model.getMail(getElementId(mail))).equals(mail)
+		})
+
+		o.test("creating a newer mail in an existing conversation", async () => {
+			await setUpTestData(1, labels, false, 1)
+			await model.loadInitial()
+			const { mail, entityUpdateData } = createInsertedMail([mailSetEntriesListId, CUSTOM_MAX_ID], "0")
+
+			const oldMails = model.mails
+			const newMails = [...oldMails, mail]
+
+			const oldItems = model.items
+			const newItems = [mail]
+
+			o(model.mails).deepEquals(oldMails)
+			o(model.items).deepEquals(oldItems)
+			await model.handleEntityUpdate(entityUpdateData)
+			o(model.mails).deepEquals(newMails)
+			o(model.items).deepEquals(newItems)
+			o(model.getMail(getElementId(mail))).equals(mail)
+		})
+
+		o.test("deleting an older mail in an existing conversation", async () => {
+			await setUpTestData(2, labels, false, 2)
+			await model.loadInitial()
+
+			const oldMails = model.mails
+			const newMails = [oldMails[0]]
+
+			const oldItems = model.items
+			const newItems = [...oldItems]
+
+			const entityUpdateData = {
+				application: MailSetEntryTypeRef.app,
+				type: MailSetEntryTypeRef.type,
+				instanceListId: mailSetEntriesListId,
+				instanceId: makeMailSetElementId(0),
+				operation: OperationType.DELETE,
+			}
+
+			o(model.mails).deepEquals(oldMails)
+			o(model.items).deepEquals(oldItems)
+			await model.handleEntityUpdate(entityUpdateData)
+			o(model.mails).deepEquals(newMails)
+			o(model.items).deepEquals(newItems)
+			o(model.getMail(entityUpdateData.instanceId)).equals(null)
+		})
+
+		o.test("deleting the newest mail in an existing conversation of 3 items selects the second newest", async () => {
+			await setUpTestData(3, labels, false, 3)
+			await model.loadInitial()
+
+			const oldMails = model.mails
+			const newMails = [oldMails[1], oldMails[2]]
+
+			const oldItems = model.items
+			const newItems = [oldMails[1]]
+
+			const entityUpdateData = {
+				application: MailSetEntryTypeRef.app,
+				type: MailSetEntryTypeRef.type,
+				instanceListId: mailSetEntriesListId,
+				instanceId: makeMailSetElementId(2),
+				operation: OperationType.DELETE,
+			}
+
+			o(model.mails).deepEquals(oldMails)
+			o(model.items).deepEquals(oldItems)
+			await model.handleEntityUpdate(entityUpdateData)
+			o(model.mails).deepEquals(newMails)
+			o(model.items).deepEquals(newItems)
+			o(model.getMail(entityUpdateData.instanceId)).equals(null)
+		})
+
+		o.test("deleting a newer mail in an existing conversation of 2 items", async () => {
+			await setUpTestData(2, labels, false, 2)
+			await model.loadInitial()
+
+			const oldMails = model.mails
+			const newMails = [oldMails[1]]
+
+			const oldItems = model.items
+			const newItems = [oldMails[1]]
+
+			const entityUpdateData = {
+				application: MailSetEntryTypeRef.app,
+				type: MailSetEntryTypeRef.type,
+				instanceListId: mailSetEntriesListId,
+				instanceId: makeMailSetElementId(1),
+				operation: OperationType.DELETE,
+			}
+
+			o(model.mails).deepEquals(oldMails)
+			o(model.items).deepEquals(oldItems)
+			await model.handleEntityUpdate(entityUpdateData)
+			o(model.mails).deepEquals(newMails)
+			o(model.items).deepEquals(newItems)
+			o(model.getMail(entityUpdateData.instanceId)).equals(null)
+		})
+
+		o.test("creating a mail set entry in a different set does nothing", async () => {
+			await setUpTestData(PageSize, labels, false, 1)
+			await model.loadInitial()
+			const { mail, entityUpdateData } = createInsertedMail(["something else", CUSTOM_MAX_ID], "whoo!")
+
+			const oldItems = model.mails
+			const newItems = [...oldItems]
+
+			o(model.mails).deepEquals(oldItems)
+			await model.handleEntityUpdate(entityUpdateData)
+			o(model.mails).deepEquals(newItems)
 			o(model.getMail(getElementId(mail))).equals(null)
 		})
 
 		o.test("updating a mail updates the contents", async () => {
-			await setUpTestData(PageSize, labels, false)
+			await setUpTestData(PageSize, labels, false, 1)
 			await model.loadInitial()
-			const mail = { ...model.items[2] }
+			const mail = { ...model.mails[2] }
 			mail.subject = "hey it's a subject"
 			mail.sets = [mailSet._id] // remove all labels
 
@@ -454,9 +616,9 @@ o.spec("MailListModelTest", () => {
 		})
 
 		o.test("mail delete does nothing", async () => {
-			await setUpTestData(PageSize, labels, false)
+			await setUpTestData(PageSize, labels, false, 1)
 			await model.loadInitial()
-			const mail = { ...model.items[2] }
+			const mail = { ...model.mails[2] }
 			const entityUpdateData = {
 				application: MailTypeRef.app,
 				type: MailTypeRef.type,

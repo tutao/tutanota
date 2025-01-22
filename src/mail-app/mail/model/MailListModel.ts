@@ -12,34 +12,24 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { assertNotNull, compare, promiseFilter } from "@tutao/tutanota-utils"
+import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { MailModel } from "./MailModel"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
+import { applyInboxRulesToEntries, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 
 assertMainOrNode()
 
 /**
- * Internal representation of a loaded mail
- *
- * @VisibleForTesting
- */
-export interface LoadedMail {
-	readonly mail: Mail
-	readonly mailSetEntry: MailSetEntry
-	readonly labels: ReadonlyArray<MailFolder>
-}
-
-/**
  * Handles fetching and resolving mail set entries into mails as well as handling sorting.
  */
-export class MailListModel {
+export class MailListModel implements MailSetListModel {
 	// Id = MailSetEntry element id
 	private readonly listModel: ListModel<LoadedMail, Id>
 
@@ -56,20 +46,20 @@ export class MailListModel {
 	) {
 		this.listModel = new ListModel({
 			fetch: (lastFetchedItem, count) => {
-				const lastFetchedId = lastFetchedItem?.mailSetEntry?._id ?? [mailSet.entries, CUSTOM_MAX_ID]
+				const lastFetchedId = lastFetchedItem?.mailSetEntryId ?? [mailSet.entries, CUSTOM_MAX_ID]
 				return this.loadMails(lastFetchedId, count)
 			},
 
 			sortCompare: (item1, item2) => {
 				// Mail set entry ID has the timestamp and mail element ID
-				const item1Id = getElementId(item1.mailSetEntry)
-				const item2Id = getElementId(item2.mailSetEntry)
+				const item1Id = elementIdPart(item1.mailSetEntryId)
+				const item2Id = elementIdPart(item2.mailSetEntryId)
 
 				// Sort in reverse order to ensure newer mails are first
 				return compare(customIdToUint8array(item2Id), customIdToUint8array(item1Id))
 			},
 
-			getItemId: (item) => getElementId(item.mailSetEntry),
+			getItemId: (item) => elementIdPart(item.mailSetEntryId),
 
 			isSameId: (id1, id2) => id1 === id2,
 
@@ -77,8 +67,16 @@ export class MailListModel {
 		})
 	}
 
-	get items(): Mail[] {
-		return this._loadedMails().map((mail) => mail.mail)
+	get items(): ReadonlyArray<Mail> {
+		return this._items()
+	}
+
+	get mails(): ReadonlyArray<Mail> {
+		return this.items
+	}
+
+	get lastItem(): Mail | null {
+		return last(this._loadedMails())?.mail ?? null
 	}
 
 	get loadingStatus(): ListLoadingState {
@@ -87,15 +85,10 @@ export class MailListModel {
 
 	get stateStream(): Stream<ListState<Mail>> {
 		return this.listModel.stateStream.map((state) => {
-			const items = state.items.map((item) => item.mail)
-			const selectedItems: Set<Mail> = new Set()
-			for (const item of state.selectedItems) {
-				selectedItems.add(item.mail)
-			}
 			const newState: ListState<Mail> = {
 				...state,
-				items,
-				selectedItems,
+				items: this.items,
+				selectedItems: new Set(this.getSelectedAsArray()),
 			}
 			return newState
 		})
@@ -110,7 +103,7 @@ export class MailListModel {
 		if (loadedMail == null) {
 			return false
 		}
-		return this.listModel.isItemSelected(getElementId(loadedMail.mailSetEntry))
+		return this.listModel.isItemSelected(elementIdPart(loadedMail.mailSetEntryId))
 	}
 
 	getMail(mailElementId: Id): Mail | null {
@@ -119,10 +112,6 @@ export class MailListModel {
 
 	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
 		return this.getLoadedMailByMailInstance(mail)?.labels ?? []
-	}
-
-	getMailSetEntry(mailSetEntryId: Id): MailSetEntry | null {
-		return this.getLoadedMailByMailSetId(mailSetEntryId)?.mailSetEntry ?? null
 	}
 
 	async loadAndSelect(mailId: Id, shouldStop: () => boolean): Promise<Mail | null> {
@@ -147,9 +136,10 @@ export class MailListModel {
 		await this.listModel.loadInitial()
 	}
 
-	getSelectedAsArray(): Array<Mail> {
-		return this.listModel.getSelectedAsArray().map(({ mail }) => mail)
-	}
+	readonly getSelectedAsArray = memoizedWithHiddenArgument(
+		() => this.listModel.getSelectedAsArray(),
+		(mails) => mails.map(({ mail }) => mail),
+	)
 
 	async handleEntityUpdate(update: EntityUpdateData) {
 		if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
@@ -177,10 +167,10 @@ export class MailListModel {
 			// Adding/removing to this list (MailSetEntry doesn't have any fields to update, so we don't need to handle this)
 			if (update.operation === OperationType.DELETE) {
 				const mail = this.getLoadedMailByMailSetId(update.instanceId)
+				await this.listModel.deleteLoadedItem(update.instanceId)
 				if (mail) {
 					this.mailMap.delete(getElementId(mail.mail))
 				}
-				await this.listModel.deleteLoadedItem(update.instanceId)
 			} else if (update.operation === OperationType.CREATE) {
 				const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
 				await this.listModel.waitLoad(async () => {
@@ -193,7 +183,7 @@ export class MailListModel {
 			// We only need to handle updates for Mail.
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this.mailMap.get(update.instanceId)
-			if (mailItem != null && update.operation === OperationType.UPDATE) {
+			if (mailItem != null && (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE)) {
 				const newMailData = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
 				const labels = this.mailModel.getLabelsForMail(newMailData) // in case labels were added/removed
 				const newMailItem = {
@@ -264,6 +254,14 @@ export class MailListModel {
 
 	stopLoading() {
 		this.listModel.stopLoading()
+	}
+
+	getDisplayedMail(): Mail | null {
+		if (this.isInMultiselect()) {
+			return null
+		} else {
+			return first(this.getSelectedAsArray())
+		}
 	}
 
 	private getLoadedMailByMailId(mailId: Id): LoadedMail | null {
@@ -337,17 +335,7 @@ export class MailListModel {
 	 * Apply inbox rules to an array of mails, returning all mails that were not moved
 	 */
 	private async applyInboxRulesToEntries(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		if (this.mailSet.folderType !== MailSetKind.INBOX || entries.length === 0) {
-			return entries
-		}
-		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(this.mailSet)
-		if (!mailboxDetail) {
-			return entries
-		}
-		return await promiseFilter(entries, async (entry) => {
-			const ruleApplied = await this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, entry.mail, true)
-			return ruleApplied == null
-		})
+		return applyInboxRulesToEntries(entries, this.mailSet, this.mailModel, this.inboxRuleHandler)
 	}
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
@@ -357,51 +345,11 @@ export class MailListModel {
 		return assertNotNull(loadedMails[0])
 	}
 
-	/**
-	 * Loads all Mail instances for each MailSetEntry, returning a tuple of each
-	 */
 	private async resolveMailSetEntries(
 		mailSetEntries: MailSetEntry[],
 		mailProvider: (listId: Id, elementIds: Id[]) => Promise<Mail[]>,
 	): Promise<LoadedMail[]> {
-		// Sort all mails into mailbags so we can retrieve them with loadMultiple
-		const mailListMap: Map<Id, Id[]> = new Map()
-		for (const entry of mailSetEntries) {
-			const mailBag = listIdPart(entry.mail)
-			const mailElementId = elementIdPart(entry.mail)
-			let mailIds = mailListMap.get(mailBag)
-			if (!mailIds) {
-				mailIds = []
-				mailListMap.set(mailBag, mailIds)
-			}
-			mailIds.push(mailElementId)
-		}
-
-		// Retrieve all mails by mailbag
-		const allMails: Map<Id, Mail> = new Map()
-		for (const [list, elements] of mailListMap) {
-			const mails = await mailProvider(list, elements)
-			for (const mail of mails) {
-				allMails.set(getElementId(mail), mail)
-			}
-		}
-
-		// Build our array
-		const loadedMails: LoadedMail[] = []
-		for (const mailSetEntry of mailSetEntries) {
-			const mail = allMails.get(elementIdPart(mailSetEntry.mail))
-
-			// Mail may have been deleted in the meantime
-			if (!mail) {
-				continue
-			}
-
-			// Resolve labels
-			const labels: MailFolder[] = this.mailModel.getLabelsForMail(mail)
-			loadedMails.push({ mailSetEntry, mail, labels })
-		}
-
-		return loadedMails
+		return resolveMailSetEntries(mailSetEntries, mailProvider, this.mailModel)
 	}
 
 	private updateMailMap(mails: LoadedMail[]) {
@@ -424,4 +372,9 @@ export class MailListModel {
 	private readonly defaultMailProvider = (listId: Id, elements: Id[]): Promise<Mail[]> => {
 		return this.entityClient.loadMultiple(MailTypeRef, listId, elements)
 	}
+
+	private readonly _items = memoizedWithHiddenArgument(
+		() => this.listModel.state.items,
+		(mails: ReadonlyArray<LoadedMail>) => mails.map((mail) => mail.mail),
+	)
 }
