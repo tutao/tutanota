@@ -6,6 +6,7 @@ import { Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { InvalidDataError } from "../../common/error/RestError.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 export type PublicKeyIdentifier = {
 	identifier: string
@@ -39,21 +40,33 @@ export class PublicKeyProvider {
 			identifierType: pubKeyIdentifier.identifierType,
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, requestData)
-		const pubKeys = convertToVersionedPublicKeys(publicKeyGetOut)
+		const pubKeys = this.convertToVersionedPublicKeys(publicKeyGetOut)
+		this.enforceRsaKeyVersionConstraint(pubKeys)
 		if (version != null && pubKeys.version !== version) {
 			throw new InvalidDataError("the server returned a key version that was not requested")
 		}
 		return pubKeys
 	}
-}
 
-export function convertToVersionedPublicKeys(publicKeyGetOut: PublicKeyGetOut): Versioned<PublicKeys> {
-	return {
-		object: {
-			pubRsaKey: publicKeyGetOut.pubRsaKey,
-			pubKyberKey: publicKeyGetOut.pubKyberKey,
-			pubEccKey: publicKeyGetOut.pubEccKey,
-		},
-		version: parseKeyVersion(publicKeyGetOut.pubKeyVersion),
+	/**
+	 * RSA keys were only created before introducing key versions, i.e. they always have version 0.
+	 *
+	 * Receiving a higher version would indicate a protocol downgrade/ MITM attack, and we reject such keys.
+	 */
+	private enforceRsaKeyVersionConstraint(pubKeys: Versioned<PublicKeys>) {
+		if (pubKeys.version !== 0 && pubKeys.object.pubRsaKey != null) {
+			throw new CryptoError("rsa key in a version that is not 0")
+		}
+	}
+
+	private convertToVersionedPublicKeys(publicKeyGetOut: PublicKeyGetOut): Versioned<PublicKeys> {
+		return {
+			object: {
+				pubRsaKey: publicKeyGetOut.pubRsaKey,
+				pubKyberKey: publicKeyGetOut.pubKyberKey,
+				pubEccKey: publicKeyGetOut.pubEccKey,
+			},
+			version: parseKeyVersion(publicKeyGetOut.pubKeyVersion),
+		}
 	}
 }

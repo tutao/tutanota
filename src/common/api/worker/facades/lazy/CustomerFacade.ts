@@ -296,8 +296,6 @@ export class CustomerFacade {
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const pubRsaKey = keyData.systemAdminPubRsaKey
-		const pubEccKey = keyData.systemAdminPubEccKey
-		const pubKyberKey = keyData.systemAdminPubKyberKey
 		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
 		let systemAdminPublicProtocolVersion: CryptoProtocolVersion
 
