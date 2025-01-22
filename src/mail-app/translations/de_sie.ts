@@ -1909,9 +1909,13 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		// Put in temporarily, will be removed soon
-		"localAdminGroup_label": "Local admin group",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups",
-	}
+		"mailListGrouping_label": "Email list grouping",
+        "mailListGroupingDontGroup_label": "Don't group",
+        "mailListGroupingGroupByConversation_label": "Group by conversation",
+        "mailListGroupingHelp_msg": "Group emails in a folder by conversation, or list each email separately.",
+        // Put in temporarily, will be removed soon
+        "localAdminGroup_label": "Local admin group",
+        "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
+        "localAdminGroups_label": "Local admin groups",
+    }
 }

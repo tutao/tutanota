@@ -1889,6 +1889,10 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "mailListGrouping_label"
+	| "mailListGroupingDontGroup_label"
+	| "mailListGroupingGroupByConversation_label"
+	| "mailListGroupingHelp_msg"
 	// Put in temporarily, will be removed soon
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"
