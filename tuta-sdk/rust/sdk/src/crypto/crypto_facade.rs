@@ -18,7 +18,7 @@ use crate::instance_mapper::InstanceMapper;
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
 use crate::tutanota_constants::{CryptoProtocolVersion, EncryptionAuthStatus};
-use crate::util::ArrayCastingError;
+use crate::util::{convert_version_to_u64, ArrayCastingError};
 use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
@@ -39,7 +39,7 @@ pub struct CryptoFacade {
 pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
-	pub owner_key_version: i64,
+	pub owner_key_version: u64,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -155,7 +155,7 @@ impl CryptoFacade {
 			self.asymmetric_crypto_facade
 				.load_key_pair_and_decrypt_sym_key(
 					key_group,
-					bucket_key.recipientKeyVersion,
+					convert_version_to_u64(bucket_key.recipientKeyVersion),
 					&CryptoProtocolVersion::try_from(bucket_key.protocolVersion).unwrap(),
 					pub_enc_bucket_key,
 				)
@@ -233,7 +233,7 @@ fn parse_generated_id_field(
 
 struct EntityOwnerKeyData<'a> {
 	owner_enc_session_key: Option<&'a Vec<u8>>,
-	owner_key_version: Option<i64>,
+	owner_key_version: Option<u64>,
 	owner_group: Option<&'a GeneratedId>,
 }
 
@@ -253,8 +253,10 @@ impl<'a> EntityOwnerKeyData<'a> {
 
 		let owner_enc_session_key =
 			get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_FIELD, Bytes)?;
-		let owner_key_version =
+
+		let owner_key_version_i64 =
 			get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.copied();
+		let owner_key_version: Option<u64> = owner_key_version_i64.map(convert_version_to_u64);
 		let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;
 
 		Ok(EntityOwnerKeyData {
@@ -467,8 +469,8 @@ mod test {
 		bucket_key: Aes256Key,
 		bucket_key_generic: GenericAesKey,
 		bucket_enc_session_key: Vec<u8>,
-		sender_key_version: i64,
-		recipient_key_version: i64,
+		sender_key_version: u64,
+		recipient_key_version: u64,
 		pub_enc_bucket_key: Vec<u8>,
 	}
 
@@ -508,7 +510,7 @@ mod test {
 	fn make_crypto_facade(
 		randomizer_facade: RandomizerFacade,
 		group_key: GenericAesKey,
-		sender_key_version: i64,
+		sender_key_version: u64,
 		asymmetric_crypto_facade: Option<MockAsymmetricCryptoFacade>,
 	) -> CryptoFacade {
 		let mut key_loader = MockKeyLoaderFacade::default();
@@ -537,7 +539,7 @@ mod test {
 	}
 
 	fn make_bucket_key(
-		recipient_key_version: i64,
+		recipient_key_version: u64,
 		pub_enc_bucket_key: Vec<u8>,
 		instance_id: &GeneratedId,
 		instance_list: &GeneratedId,
@@ -545,18 +547,19 @@ mod test {
 		bucket_enc_session_key: Vec<u8>,
 		protocol_version: i64,
 	) -> BucketKey {
+		let recipient_key_version_i64 = recipient_key_version as i64;
 		BucketKey {
 			groupEncBucketKey: None,
 			protocolVersion: protocol_version,
 			pubEncBucketKey: Some(pub_enc_bucket_key),
-			recipientKeyVersion: recipient_key_version,
+			recipientKeyVersion: recipient_key_version_i64,
 			senderKeyVersion: None,
 			bucketEncSessionKeys: vec![InstanceSessionKey {
 				encryptionAuthStatus: None,
 				instanceId: instance_id.clone(),
 				instanceList: instance_list.clone(),
 				symEncSessionKey: bucket_enc_session_key.clone(),
-				symKeyVersion: recipient_key_version,
+				symKeyVersion: recipient_key_version_i64,
 				..create_test_entity()
 			}],
 			keyGroup: Some(key_group.clone()),

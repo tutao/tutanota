@@ -4,11 +4,14 @@ use crate::crypto::key::{
 	AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError, VersionedAesKey,
 };
 use crate::crypto::kyber::{KyberKeyError, KyberPublicKey};
+#[cfg_attr(test, mockall_double::double)]
+use crate::crypto::public_key_provider::PublicKeyProvider;
+use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError, PublicKeys};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
 use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
 use crate::crypto::Aes256Key;
-use crate::entities::generated::sys::{PubEncKeyData, PublicKeyGetIn, PublicKeyPutIn};
+use crate::entities::generated::sys::{PubEncKeyData, PublicKeyPutIn};
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::services::generated::sys::PublicKeyService;
@@ -16,9 +19,9 @@ use crate::services::generated::sys::PublicKeyService;
 use crate::services::service_executor::ServiceExecutor;
 use crate::services::ExtraServiceParams;
 use crate::tutanota_constants::CryptoProtocolVersion;
-use crate::tutanota_constants::{EncryptionAuthStatus, PublicKeyIdentifierType};
+use crate::tutanota_constants::EncryptionAuthStatus;
 use crate::util::ArrayCastingError;
-use crate::util::Versioned;
+use crate::util::{convert_version_to_u64, Versioned};
 use crate::ApiCallError;
 use crate::GeneratedId;
 use std::sync::Arc;
@@ -29,22 +32,11 @@ pub struct DecapsulatedAesKey {
 	pub sender_identity_pub_key: Option<EccPublicKey>, // for authentication: None for rsa only
 }
 
-pub struct PublicKeyIdentifier {
-	pub identifier: String,
-	pub identifier_type: PublicKeyIdentifierType,
-}
-
 pub struct PubEncSymKey {
 	pub_enc_sym_key_bytes: Vec<u8>,
 	crypto_protocol_version: CryptoProtocolVersion,
-	sender_key_version: Option<i64>,
-	recipient_key_version: i64,
-}
-
-pub struct PublicKeys {
-	pub_rsa_key: Option<Vec<u8>>,
-	pub_ecc_key: Option<Vec<u8>>,
-	pub_kyber_key: Option<Vec<u8>>,
+	sender_key_version: Option<u64>,
+	recipient_key_version: u64,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -64,12 +56,14 @@ pub enum AsymmetricCryptoError {
 	AesEncrypt(#[from] AesEncryptError),
 	ApiCall(#[from] ApiCallError),
 	AuthenticationError(EncryptionAuthStatus),
+	PublicKeyLoadingError(#[from] PublicKeyLoadingError),
 }
 
 pub struct AsymmetricCryptoFacade {
 	key_loader_facade: Arc<KeyLoaderFacade>,
 	randomizer_facade: RandomizerFacade,
 	service_executor: Arc<ServiceExecutor>,
+	public_key_provider: Arc<PublicKeyProvider>,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -79,11 +73,13 @@ impl AsymmetricCryptoFacade {
 		key_loader_facade: Arc<KeyLoaderFacade>,
 		randomizer_facade: RandomizerFacade,
 		service_executor: Arc<ServiceExecutor>,
+		public_key_provider: Arc<PublicKeyProvider>,
 	) -> Self {
 		Self {
 			key_loader_facade,
 			randomizer_facade,
 			service_executor,
+			public_key_provider,
 		}
 	}
 
@@ -97,20 +93,15 @@ impl AsymmetricCryptoFacade {
 		&self,
 		identifier: PublicKeyIdentifier,
 		sender_identity_pub_key: &[u8],
-		sender_key_version: i64,
+		sender_key_version: u64,
 	) -> Result<EncryptionAuthStatus, AsymmetricCryptoError> {
-		let key_data = PublicKeyGetIn {
-			_format: 0,
-			identifier: identifier.identifier,
-			identifierType: identifier.identifier_type as i64,
-			version: Some(sender_key_version),
-		};
-		let public_key_get_out = self
-			.service_executor
-			.get::<PublicKeyService>(key_data, ExtraServiceParams::default())
+		let pub_keys = self
+			.public_key_provider
+			.load_versioned_pub_key(&identifier, sender_key_version)
 			.await?;
-		if Option::is_some(&public_key_get_out.pubEccKey)
-			&& public_key_get_out.pubEccKey.unwrap() == sender_identity_pub_key
+
+		if Option::is_some(&pub_keys.pub_ecc_key)
+			&& pub_keys.pub_ecc_key.unwrap() == sender_identity_pub_key
 		{
 			Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
 		} else {
@@ -147,7 +138,7 @@ impl AsymmetricCryptoFacade {
 				.authenticate_sender(
 					sender_identifier,
 					sender_identity_pub_key_from_pq_message,
-					pub_enc_key_data.senderKeyVersion.unwrap(),
+					convert_version_to_u64(pub_enc_key_data.senderKeyVersion.unwrap()),
 				)
 				.await?;
 			if encryption_auth_status != EncryptionAuthStatus::TutacryptAuthenticationSucceeded {
@@ -211,7 +202,7 @@ impl AsymmetricCryptoFacade {
 	pub async fn load_key_pair_and_decrypt_sym_key(
 		&self,
 		recipient_key_pair_group_id: &GeneratedId,
-		recipient_key_version: i64,
+		recipient_key_version: u64,
 		crypto_protocol_version: &CryptoProtocolVersion,
 		pub_enc_sym_key: &[u8],
 	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
@@ -407,8 +398,8 @@ impl AsymmetricCryptoFacade {
 #[cfg(test)]
 mod tests {
 	use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
+	use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeyIdentifier};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
-	use crate::entities::generated::sys::PublicKeyGetIn;
 	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::services::service_executor::MockServiceExecutor;
 	use crate::tutanota_constants::PublicKeyIdentifierType;
@@ -416,39 +407,36 @@ mod tests {
 
 	fn make_asymmetric_crypto_facade(
 		service_executor: MockServiceExecutor,
+		public_key_provider: MockPublicKeyProvider,
 	) -> AsymmetricCryptoFacade {
 		let key_loader_facade = MockKeyLoaderFacade::default();
 		AsymmetricCryptoFacade::new(
 			Arc::new(key_loader_facade),
 			make_thread_rng_facade(),
 			Arc::new(service_executor),
+			Arc::new(public_key_provider),
 		)
 	}
 
 	fn setup_authentication_test() -> (
-		i64,
-		String,
-		PublicKeyIdentifierType,
-		PublicKeyGetIn,
+		u64,
+		PublicKeyIdentifier,
 		MockServiceExecutor,
+		MockPublicKeyProvider,
 	) {
-		let sender_key_version = 0i64;
-		let identifier = String::from("sender_id");
-		let identifier_type = PublicKeyIdentifierType::MailAddress;
-		let first_service_executor_invocation = PublicKeyGetIn {
-			_format: 0,
-			identifier: identifier.clone(),
-			identifierType: identifier_type.clone() as i64,
-			version: Some(sender_key_version),
+		let sender_key_version = 0u64;
+		let public_key_identifier = PublicKeyIdentifier {
+			identifier: String::from("sender_id"),
+			identifier_type: PublicKeyIdentifierType::GroupId,
 		};
 
 		let service_executor = MockServiceExecutor::default();
+		let public_key_provider = MockPublicKeyProvider::default();
 		(
 			sender_key_version,
-			identifier,
-			identifier_type,
-			first_service_executor_invocation,
+			public_key_identifier,
 			service_executor,
+			public_key_provider,
 		)
 	}
 
@@ -456,45 +444,42 @@ mod tests {
 		use crate::crypto::asymmetric_crypto_facade::tests::{
 			make_asymmetric_crypto_facade, setup_authentication_test,
 		};
-		use crate::crypto::asymmetric_crypto_facade::PublicKeyIdentifier;
-		use crate::entities::generated::sys::PublicKeyGetOut;
+		use crate::crypto::public_key_provider::PublicKeys;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::tutanota_constants::EncryptionAuthStatus;
-		use mockall::predicate::{always, eq};
+		use mockall::predicate::eq;
 
 		#[tokio::test]
 		async fn should_return_tutacrypt_authentication_succeeded_if_the_key_matches() {
 			let (
 				sender_key_version,
-				identifier,
-				identifier_type,
-				first_service_executor_invocation,
+				public_key_identifier,
 				mut service_executor,
+				mut public_key_provider,
 			) = setup_authentication_test();
 			let sender_identity_pub_key = vec![9, 8, 7];
 
 			let pub_key = sender_identity_pub_key.clone();
-			service_executor
-				.expect_get::<PublicKeyService>()
-				.with(eq(first_service_executor_invocation), always())
+
+			service_executor.expect_get::<PublicKeyService>().never();
+			service_executor.expect_put::<PublicKeyService>().never();
+			public_key_provider
+				.expect_load_versioned_pub_key()
+				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeyGetOut {
-						_format: 0,
-						pubEccKey: Some(pub_key.clone()),
-						pubKeyVersion: 0i64,
-						pubKyberKey: Some(vec![1, 2, 3]),
-						pubRsaKey: None,
+					Ok(PublicKeys {
+						pub_ecc_key: Some(pub_key.clone()),
+						pub_kyber_key: Some(vec![1, 2, 3]),
+						pub_rsa_key: None,
 					})
 				});
 
-			let asymmetric_crypto_facade = make_asymmetric_crypto_facade(service_executor);
+			let asymmetric_crypto_facade =
+				make_asymmetric_crypto_facade(service_executor, public_key_provider);
 
 			let result = asymmetric_crypto_facade
 				.authenticate_sender(
-					PublicKeyIdentifier {
-						identifier,
-						identifier_type,
-					},
+					public_key_identifier,
 					&sender_identity_pub_key,
 					sender_key_version,
 				)
@@ -511,34 +496,32 @@ mod tests {
 		) {
 			let (
 				sender_key_version,
-				identifier,
-				identifier_type,
-				first_service_executor_invocation,
+				public_key_identifier,
 				mut service_executor,
+				mut public_key_provider,
 			) = setup_authentication_test();
 			let sender_identity_pub_key = vec![9, 8, 7];
 
 			let pub_key = sender_identity_pub_key.clone();
-			service_executor
-				.expect_get::<PublicKeyService>()
-				.with(eq(first_service_executor_invocation), always())
+
+			service_executor.expect_get::<PublicKeyService>().never();
+			service_executor.expect_put::<PublicKeyService>().never();
+			public_key_provider
+				.expect_load_versioned_pub_key()
+				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeyGetOut {
-						_format: 0,
-						pubEccKey: None,
-						pubKeyVersion: 0i64,
-						pubKyberKey: None,
-						pubRsaKey: Some(pub_key.clone()),
+					Ok(PublicKeys {
+						pub_ecc_key: None,
+						pub_kyber_key: None,
+						pub_rsa_key: Some(pub_key.clone()),
 					})
 				});
 
-			let asymmetric_crypto_facade = make_asymmetric_crypto_facade(service_executor);
+			let asymmetric_crypto_facade =
+				make_asymmetric_crypto_facade(service_executor, public_key_provider);
 			let result = asymmetric_crypto_facade
 				.authenticate_sender(
-					PublicKeyIdentifier {
-						identifier,
-						identifier_type,
-					},
+					public_key_identifier,
 					&sender_identity_pub_key,
 					sender_key_version,
 				)
@@ -552,34 +535,31 @@ mod tests {
 		async fn should_return_tutacrypt_authentication_failed_if_the_key_does_not_match() {
 			let (
 				sender_key_version,
-				identifier,
-				identifier_type,
-				first_service_executor_invocation,
+				public_key_identifier,
 				mut service_executor,
+				mut public_key_provider,
 			) = setup_authentication_test();
 			let sender_identity_pub_key = vec![9, 8, 7];
 
-			service_executor
-				.expect_get::<PublicKeyService>()
-				.with(eq(first_service_executor_invocation), always())
+			service_executor.expect_get::<PublicKeyService>().never();
+			service_executor.expect_put::<PublicKeyService>().never();
+			public_key_provider
+				.expect_load_versioned_pub_key()
+				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeyGetOut {
-						_format: 0,
-						pubEccKey: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
-						pubKeyVersion: 0i64,
-						pubKyberKey: Some(vec![1, 2, 3]),
-						pubRsaKey: None,
+					Ok(PublicKeys {
+						pub_ecc_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
+						pub_kyber_key: Some(vec![1, 2, 3]),
+						pub_rsa_key: None,
 					})
 				});
 
-			let asymmetric_crypto_facade = make_asymmetric_crypto_facade(service_executor);
+			let asymmetric_crypto_facade =
+				make_asymmetric_crypto_facade(service_executor, public_key_provider);
 
 			let result = asymmetric_crypto_facade
 				.authenticate_sender(
-					PublicKeyIdentifier {
-						identifier,
-						identifier_type,
-					},
+					public_key_identifier,
 					&sender_identity_pub_key,
 					sender_key_version,
 				)
@@ -595,43 +575,44 @@ mod tests {
 		use crate::crypto::asymmetric_crypto_facade::tests::{
 			make_asymmetric_crypto_facade, setup_authentication_test,
 		};
-		use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, PublicKeyIdentifier};
+		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 		use crate::crypto::ecc::EccKeyPair;
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+		use crate::crypto::public_key_provider::PublicKeys;
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::PQMessage;
 		use crate::crypto::{Aes256Key, PQKeyPairs};
-		use crate::entities::generated::sys::{PubEncKeyData, PublicKeyGetOut};
+		use crate::entities::generated::sys::PubEncKeyData;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::tutanota_constants::CryptoProtocolVersion;
 		use crate::tutanota_constants::PublicKeyIdentifierType;
-		use mockall::predicate::{always, eq};
+		use mockall::predicate::eq;
 
 		#[tokio::test]
 		async fn error_if_authentication_fails() {
 			let (
 				sender_key_version,
 				sender_identifier,
-				sender_identifier_type,
-				first_service_executor_invocation,
 				mut service_executor,
+				mut public_key_provider,
 			) = setup_authentication_test();
 
-			service_executor
-				.expect_get::<PublicKeyService>()
-				.with(eq(first_service_executor_invocation), always())
+			service_executor.expect_get::<PublicKeyService>().never();
+			service_executor.expect_put::<PublicKeyService>().never();
+			public_key_provider
+				.expect_load_versioned_pub_key()
+				.with(eq(sender_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeyGetOut {
-						_format: 0,
-						pubEccKey: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
-						pubKeyVersion: 0i64,
-						pubKyberKey: Some(vec![1, 2, 3]),
-						pubRsaKey: None,
+					Ok(PublicKeys {
+						pub_ecc_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
+						pub_kyber_key: Some(vec![1, 2, 3]),
+						pub_rsa_key: None,
 					})
 				});
 
-			let asymmetric_crypto_facade = make_asymmetric_crypto_facade(service_executor);
+			let asymmetric_crypto_facade =
+				make_asymmetric_crypto_facade(service_executor, public_key_provider);
 
 			let randomizer_facade = make_thread_rng_facade();
 			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
@@ -655,9 +636,9 @@ mod tests {
 				recipientIdentifier: recipient_identifier,
 				recipientIdentifierType: recipient_identifier_type as i64,
 				recipientKeyVersion: 0,
-				senderKeyVersion: Some(sender_key_version),
-				senderIdentifier: Some(sender_identifier.clone()),
-				senderIdentifierType: Some(sender_identifier_type.clone() as i64),
+				senderKeyVersion: Some(sender_key_version as i64),
+				senderIdentifier: Some(sender_identifier.identifier.clone()),
+				senderIdentifierType: Some(sender_identifier.identifier_type.clone() as i64),
 				symKeyMac: None,
 			};
 
@@ -665,10 +646,7 @@ mod tests {
 				.decrypt_sym_key_with_key_pair_and_authenticate(
 					AsymmetricKeyPair::PQKeyPairs(recipient_key_pair),
 					pub_enc_key_data,
-					PublicKeyIdentifier {
-						identifier: sender_identifier,
-						identifier_type: sender_identifier_type,
-					},
+					sender_identifier,
 				)
 				.await;
 			assert!(result.is_err());
@@ -680,17 +658,13 @@ mod tests {
 
 		#[tokio::test]
 		async fn should_not_try_authentication_when_protocol_is_not_tuta_crypt() {
-			let (
-				_sender_key_version,
-				sender_identifier,
-				sender_identifier_type,
-				_first_service_executor_invocation,
-				mut service_executor,
-			) = setup_authentication_test();
+			let (_sender_key_version, sender_identifier, mut service_executor, public_key_provider) =
+				setup_authentication_test();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 
-			let asymmetric_crypto_facade = make_asymmetric_crypto_facade(service_executor);
+			let asymmetric_crypto_facade =
+				make_asymmetric_crypto_facade(service_executor, public_key_provider);
 
 			let randomizer_facade = make_thread_rng_facade();
 			let recipient_key_pair = RSAKeyPair::generate(&randomizer_facade);
@@ -708,8 +682,8 @@ mod tests {
 				recipientKeyVersion: 0,
 				protocolVersion: CryptoProtocolVersion::Rsa as i64,
 				senderKeyVersion: None,
-				senderIdentifier: Some(sender_identifier.clone()),
-				senderIdentifierType: Some(sender_identifier_type.clone() as i64),
+				senderIdentifier: Some(sender_identifier.identifier.clone()),
+				senderIdentifierType: Some(sender_identifier.identifier_type.clone() as i64),
 				symKeyMac: None,
 			};
 
@@ -717,10 +691,7 @@ mod tests {
 				.decrypt_sym_key_with_key_pair_and_authenticate(
 					AsymmetricKeyPair::RSAKeyPair(recipient_key_pair),
 					pub_enc_key_data,
-					PublicKeyIdentifier {
-						identifier: sender_identifier,
-						identifier_type: sender_identifier_type,
-					},
+					sender_identifier,
 				)
 				.await
 				.unwrap();
@@ -863,8 +834,9 @@ mod tests {
 		// when(keyLoaderFacade.loadCurrentKeyPair(senderGroupId)).thenResolve(senderPqKeyPair)
 		// })
 
-		use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoFacade, PublicKeys};
+		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+		use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::{Aes256Key, PQKeyPairs};
@@ -881,10 +853,11 @@ mod tests {
 
 		#[tokio::test]
 		async fn encrypt_the_sym_key_with_the_recipient_pq_public_key() {
-			let sender_key_version = 1i64;
+			let sender_key_version = 1u64;
 			let sender_group_id = GeneratedId::test_random();
 
 			let mut service_executor = MockServiceExecutor::default();
+			let public_key_provider = MockPublicKeyProvider::default();
 			service_executor.expect_get::<PublicKeyService>().never();
 
 			let mut key_loader_facade = MockKeyLoaderFacade::default();
@@ -906,11 +879,12 @@ mod tests {
 				Arc::new(key_loader_facade),
 				make_thread_rng_facade(),
 				Arc::new(service_executor),
+				Arc::new(public_key_provider),
 			);
 
 			let sym_key = Aes256Key::generate(&randomizer_facade);
 			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
-			let recipient_key_version = 3i64;
+			let recipient_key_version = 3u64;
 			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 				version: recipient_key_version,
 				object: PublicKeys {
@@ -949,11 +923,12 @@ mod tests {
 		#[tokio::test]
 		async fn recipient_has_pq_public_key_and_sender_has_only_rsa_key_pair_then_put_sender_ecc_key(
 		) {
-			let sender_key_version = 1i64;
+			let sender_key_version = 1u64;
 			let sender_group_id = GeneratedId::test_random();
 			let sender_group_id_clone = sender_group_id.clone();
 
 			let mut service_executor = MockServiceExecutor::default();
+			let public_key_provider = MockPublicKeyProvider::default();
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor
 				.expect_put::<PublicKeyService>()
@@ -996,11 +971,12 @@ mod tests {
 				Arc::new(key_loader_facade),
 				make_thread_rng_facade(),
 				Arc::new(service_executor),
+				Arc::new(public_key_provider),
 			);
 
 			let sym_key = Aes256Key::generate(&randomizer_facade);
 			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
-			let recipient_key_version = 3i64;
+			let recipient_key_version = 3u64;
 			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 				version: recipient_key_version,
 				object: PublicKeys {
@@ -1041,6 +1017,7 @@ mod tests {
 			let sender_group_id = GeneratedId::test_random();
 
 			let mut service_executor = MockServiceExecutor::default();
+			let public_key_provider = MockPublicKeyProvider::default();
 			service_executor.expect_put::<PublicKeyService>().never();
 			service_executor.expect_get::<PublicKeyService>().never();
 
@@ -1052,11 +1029,12 @@ mod tests {
 				Arc::new(key_loader_facade),
 				make_thread_rng_facade(),
 				Arc::new(service_executor),
+				Arc::new(public_key_provider),
 			);
 
 			let sym_key = Aes256Key::generate(&randomizer_facade);
 			let recipient_key_pair = RSAKeyPair::generate(&randomizer_facade);
-			let recipient_key_version = 3i64;
+			let recipient_key_version = 3u64;
 			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 				version: recipient_key_version,
 				object: PublicKeys {
@@ -1085,8 +1063,9 @@ mod tests {
 		}
 		mod tuta_crypt_encrypt_sym_key {
 			use crate::crypto::asymmetric_crypto_facade::tests::make_asymmetric_crypto_facade;
-			use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, PublicKeys};
+			use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 			use crate::crypto::ecc::EccKeyPair;
+			use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
 			use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 			use crate::crypto::rsa::RSAKeyPair;
 			use crate::crypto::Aes256Key;
@@ -1096,17 +1075,19 @@ mod tests {
 
 			#[tokio::test]
 			async fn error_when_passing_an_rsa_public_key() {
-				let sender_key_version = 1i64;
+				let sender_key_version = 1u64;
 
 				let mut service_executor = MockServiceExecutor::default();
+				let public_key_provider = MockPublicKeyProvider::default();
 				service_executor.expect_get::<PublicKeyService>().never();
 				let randomizer_facade = make_thread_rng_facade();
 
-				let asymmetric_crypto_facade = make_asymmetric_crypto_facade(service_executor);
+				let asymmetric_crypto_facade =
+					make_asymmetric_crypto_facade(service_executor, public_key_provider);
 
 				let sym_key = Aes256Key::generate(&randomizer_facade);
 				let recipient_key_pair = RSAKeyPair::generate(&randomizer_facade);
-				let recipient_key_version = 3i64;
+				let recipient_key_version = 3u64;
 				let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 					version: recipient_key_version,
 					object: PublicKeys {
