@@ -156,7 +156,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				identifierType: senderIdentifierType,
 			})
 
-			verify(serviceExecutor.get(PublicKeyService, matchers.anything()), { times: 0 })
+			verify(publicKeyProvider, { times: 0 })
 			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: uint8ArrayToBitArray(symKey) })
 		})
 	})
