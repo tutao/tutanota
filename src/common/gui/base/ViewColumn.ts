@@ -83,6 +83,7 @@ export class ViewColumn implements Component<Attrs> {
 			".view-column.fill-absolute",
 			{
 				...landmark,
+				"data-testid": lang.getTranslationText(this.getTitle()),
 				inert: !this.isVisible && !this.isInForeground,
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement

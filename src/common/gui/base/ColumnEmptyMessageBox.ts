@@ -36,7 +36,7 @@ export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 					style: {
 						color: attrs.color,
 					},
-					"data-testid": "message-box",
+					"data-testid": `message_box:${lang.getTestId(attrs.message)}`,
 				},
 				lang.getTranslationText(attrs.message),
 			),

@@ -149,6 +149,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.renderSwipeItems(attrs),
 			// we need rel for the status indicator
 			m("ul.list.rel.click", {
+				"data-testid": "unordered_list",
 				oncreate: ({ dom }) => {
 					this.innerDom = dom as HTMLElement
 					this.initializeDom(dom as HTMLElement, attrs)
