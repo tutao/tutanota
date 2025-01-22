@@ -25,7 +25,7 @@ o.spec("PublicKeyProviderTest", function () {
 	})
 
 	o.spec("loadCurrentPubKey", function () {
-		o("success", async function () {
+		o("success pq keys", async function () {
 			const pubKyberKey = object<Uint8Array>()
 			const pubEccKey = object<Uint8Array>()
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
@@ -34,6 +34,26 @@ o.spec("PublicKeyProviderTest", function () {
 			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
 			o(pubKeys.version).equals(currentVersion)
 			o(pubKeys.object).deepEquals({ pubRsaKey: null, pubKyberKey, pubEccKey })
+		})
+
+		o("success rsa keys", async function () {
+			currentVersion = 0
+			const pubRsaKey = object<Uint8Array>()
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
+				createPublicKeyGetOut({ pubKeyVersion: String(currentVersion), pubRsaKey, pubKyberKey: null, pubEccKey: null }),
+			)
+			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
+			o(pubKeys.version).equals(currentVersion)
+			o(pubKeys.object).deepEquals({ pubRsaKey, pubKyberKey: null, pubEccKey: null })
+		})
+
+		o("rsa key in version other than 0", async function () {
+			const pubRsaKey = object<Uint8Array>()
+			currentVersion = 1
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
+				createPublicKeyGetOut({ pubKeyVersion: String(currentVersion), pubRsaKey, pubKyberKey: null, pubEccKey: null }),
+			)
+			await assertThrows(CryptoError, async () => publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier))
 		})
 	})
 
@@ -50,7 +70,7 @@ o.spec("PublicKeyProviderTest", function () {
 			o(pubKeys).deepEquals({ pubRsaKey: null, pubKyberKey, pubEccKey })
 		})
 
-		o("invalid Version returnd", async function () {
+		o("invalid Version returned", async function () {
 			const pubKyberKey = object<Uint8Array>()
 			const pubEccKey = object<Uint8Array>()
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
@@ -58,6 +78,15 @@ o.spec("PublicKeyProviderTest", function () {
 			)
 			o(currentVersion).notEquals(requestedVersion)
 			await assertThrows(InvalidDataError, async () => publicKeyProvider.loadVersionedPubKey(publicKeyIdentifier, requestedVersion))
+		})
+
+		o("rsa key in version other than 0", async function () {
+			const pubRsaKey = object<Uint8Array>()
+			currentVersion = 1
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
+				createPublicKeyGetOut({ pubKeyVersion: String(currentVersion), pubRsaKey, pubKyberKey: null, pubEccKey: null }),
+			)
+			await assertThrows(CryptoError, async () => publicKeyProvider.loadVersionedPubKey(publicKeyIdentifier, currentVersion))
 		})
 	})
 

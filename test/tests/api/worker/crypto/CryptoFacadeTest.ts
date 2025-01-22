@@ -41,7 +41,6 @@ import {
 	createInstanceSessionKey,
 	createKeyPair,
 	createPermission,
-	createPublicKeyGetOut,
 	createTypeInfo,
 	CustomerAccountTerminationRequestTypeRef,
 	Group,
@@ -85,7 +84,7 @@ import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/Inst
 import type { TypeModel } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
-import { PublicKeyService, UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
+import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { getListId, isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { HttpMethod, resolveTypeReference, typeModels } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
@@ -720,7 +719,7 @@ o.spec("CryptoFacadeTest", function () {
 		o(internalRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.TUTA_CRYPT)
 		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
 		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodedPqMessage)
-		verify(serviceExecutor.put(PublicKeyService, anything()), { times: 0 })
+		verify(publicKeyProvider, { times: 0 })
 	})
 
 	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender", async () => {
@@ -830,7 +829,7 @@ o.spec("CryptoFacadeTest", function () {
 		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
 		o(internalRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.RSA)
 		o(internalRecipientKeyData.pubEncBucketKey).deepEquals(pubEncBucketKey)
-		verify(serviceExecutor.put(PublicKeyService, anything()), { times: 0 })
+		verify(publicKeyProvider, { times: 0 })
 	})
 
 	o("authenticateSender | sender is authenticated for correct SenderIdentityKey", async function () {
@@ -1267,15 +1266,6 @@ o.spec("CryptoFacadeTest", function () {
 			const file2SessionKey = aes256RandomKey()
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
 			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
-
-			when(serviceExecutor.get(PublicKeyService, anything())).thenResolve(
-				createPublicKeyGetOut({
-					pubEccKey: testData.senderIdentityKeyPair.publicKey,
-					pubKeyVersion: "0",
-					pubKyberKey: null,
-					pubRsaKey: null,
-				}),
-			)
 
 			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 			o(mailSessionKey).deepEquals(testData.sk)
