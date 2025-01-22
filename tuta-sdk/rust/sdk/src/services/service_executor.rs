@@ -669,7 +669,7 @@ mod tests {
 				.unwrap();
 		}
 		let owner_enc_session_key = [rand::random(); 32].to_vec();
-		let owner_key_version = 0i64;
+		let owner_key_version = 0u64;
 
 		rest_client
 			.expect_request_binary()

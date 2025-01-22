@@ -5,7 +5,7 @@ use crate::entities::generated::sys::{Group, GroupKey, KeyPair};
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::Versioned;
+use crate::util::{convert_version_to_u64, Versioned};
 use crate::CustomId;
 use crate::GeneratedId;
 use crate::IdTupleCustom;
@@ -33,7 +33,7 @@ impl KeyLoaderFacade {
 	pub async fn load_sym_group_key(
 		&self,
 		group_id: &GeneratedId,
-		version: i64,
+		version: u64,
 		current_group_key: Option<VersionedAesKey>,
 	) -> Result<GenericAesKey, KeyLoadError> {
 		let group_key = match current_group_key {
@@ -68,7 +68,7 @@ impl KeyLoaderFacade {
 		group: &Group,
 		// TODO: why do we take it by ref if we are cloning it anyway
 		current_group_key: &VersionedAesKey,
-		target_key_version: i64,
+		target_key_version: u64,
 	) -> Result<FormerGroupKey, KeyLoadError> {
 		let list_id = group.formerGroupKeys.clone().unwrap().list;
 
@@ -138,7 +138,7 @@ impl KeyLoaderFacade {
 		})
 	}
 
-	fn decode_group_key_version(&self, element_id: &CustomId) -> Result<i64, KeyLoadError> {
+	fn decode_group_key_version(&self, element_id: &CustomId) -> Result<u64, KeyLoadError> {
 		element_id
 			.to_custom_string()
 			.parse()
@@ -188,9 +188,9 @@ impl KeyLoaderFacade {
 		);
 		let group_membership = self.user_facade.get_membership(group_id)?;
 		let required_user_group_key = self
-			.load_sym_user_group_key(group_membership.symKeyVersion)
+			.load_sym_user_group_key(convert_version_to_u64(group_membership.symKeyVersion))
 			.await?;
-		let version = group_membership.groupKeyVersion;
+		let version = convert_version_to_u64(group_membership.groupKeyVersion);
 		let object = required_user_group_key
 			.decrypt_aes_key(&group_membership.symEncGKey)
 			.map_err(|e| KeyLoadError {
@@ -201,7 +201,7 @@ impl KeyLoaderFacade {
 
 	async fn load_sym_user_group_key(
 		&self,
-		user_group_key_version: i64,
+		user_group_key_version: u64,
 	) -> Result<GenericAesKey, KeyLoadError> {
 		// TODO: check for the version and refresh cache if needed
 		self.load_sym_group_key(
@@ -225,7 +225,7 @@ impl KeyLoaderFacade {
 	pub async fn load_key_pair(
 		&self,
 		key_pair_group_id: &GeneratedId,
-		requested_version: i64,
+		requested_version: u64,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let group: Group = self.entity_client.load(key_pair_group_id).await?;
 		let current_group_key = self
@@ -252,7 +252,7 @@ impl KeyLoaderFacade {
 		let group: Group = self.entity_client.load(group_id).await?;
 
 		let current_group_key = self.get_current_sym_group_key(group_id).await?;
-		if group.groupKeyVersion != current_group_key.version {
+		if convert_version_to_u64(group.groupKeyVersion) != current_group_key.version {
 			// There is a race condition after rotating the group key were the group entity in the cache is not in sync with current key version in the key cache.
 			// group.groupKeyVersion might be newer than current_group_key.version.
 			// We reload group and user and refresh entity and key cache to synchronize both caches.
@@ -275,14 +275,14 @@ impl KeyLoaderFacade {
 		)?;
 		Ok(Versioned {
 			object: key_pair,
-			version: group.groupKeyVersion,
+			version: convert_version_to_u64(group.groupKeyVersion),
 		})
 	}
 
 	async fn load_key_pair_impl(
 		&self,
 		group: Group,
-		requested_version: i64,
+		requested_version: u64,
 		current_group_key: VersionedAesKey,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let key_pair_group_id = &group._id.clone().unwrap();
@@ -294,7 +294,7 @@ impl KeyLoaderFacade {
 			},
 			Ordering::Equal => {
 				sym_group_key = current_group_key.object;
-				if group.groupKeyVersion == current_group_key.version {
+				if convert_version_to_u64(group.groupKeyVersion) == current_group_key.version {
 					key_pair = group.currentKeys
 				} else {
 					let former_keys_list = group.formerGroupKeys.unwrap().list;
@@ -353,14 +353,14 @@ mod tests {
 	use crate::key_cache::MockKeyCache;
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
-	use crate::util::get_vec_reversed;
 	use crate::util::test_utils::{generate_random_group, random_aes256_key};
+	use crate::util::{convert_version_to_i64, get_vec_reversed};
 	use crate::CustomId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
 	use mockall::predicate;
 	use std::array::from_fn;
 
-	fn generate_group_key(version: i64) -> VersionedAesKey {
+	fn generate_group_key(version: u64) -> VersionedAesKey {
 		VersionedAesKey {
 			object: random_aes256_key().into(),
 			version,
@@ -562,10 +562,10 @@ mod tests {
 						_id: Some(CustomId(user_group_id.clone().unwrap().to_string())),
 						admin: false,
 						capability: None,
-						groupKeyVersion: current_group_key.clone().version,
+						groupKeyVersion: convert_version_to_i64(current_group_key.clone().version),
 						groupType: None,
 						symEncGKey: sym_enc_g_key.clone(),
-						symKeyVersion: user_group_key.version,
+						symKeyVersion: convert_version_to_i64(user_group_key.version),
 						group: user_group_id.clone().unwrap(),
 						groupInfo: IdTupleGenerated {
 							list_id: Default::default(),
@@ -626,7 +626,10 @@ mod tests {
 			.get_current_sym_group_key(user_group._id.as_ref().unwrap())
 			.await
 			.unwrap();
-		assert_eq!(current_user_group_key.version, user_group.groupKeyVersion);
+		assert_eq!(
+			current_user_group_key.version,
+			convert_version_to_u64(user_group.groupKeyVersion)
+		);
 		assert_eq!(current_user_group_key.object, user_group_key.object);
 
 		let _ = key_loader_facade
@@ -663,7 +666,10 @@ mod tests {
 			.get_current_sym_group_key(group._id.as_ref().unwrap())
 			.await
 			.unwrap();
-		assert_eq!(group_key.version, group.groupKeyVersion);
+		assert_eq!(
+			group_key.version,
+			convert_version_to_u64(group.groupKeyVersion)
+		);
 		assert_eq!(group_key.object, current_group_key.object)
 	}
 
@@ -672,7 +678,7 @@ mod tests {
 		let randomizer = make_thread_rng_facade();
 
 		// Same as the length of former_keys_deprecated
-		let current_group_key_version = FORMER_KEYS as i64;
+		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
 
@@ -686,7 +692,7 @@ mod tests {
 
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
-				.load_key_pair(group._id.as_ref().unwrap(), i as i64)
+				.load_key_pair(group._id.as_ref().unwrap(), i as u64)
 				.await
 				.unwrap();
 			match keypair {
@@ -736,7 +742,10 @@ mod tests {
 		);
 
 		let loaded_current_key_pair = key_loader_facade
-			.load_key_pair(&user_group._id.unwrap(), user_group.groupKeyVersion)
+			.load_key_pair(
+				&user_group._id.unwrap(),
+				convert_version_to_u64(user_group.groupKeyVersion),
+			)
 			.await
 			.unwrap();
 
@@ -754,7 +763,7 @@ mod tests {
 		let randomizer = make_thread_rng_facade();
 
 		// Same as the length of former_keys_deprecated
-		let current_group_key_version = FORMER_KEYS as i64;
+		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
 		let (former_keys, _, former_keys_decrypted) =
 			generate_former_keys(&current_group_key, &randomizer);
@@ -766,7 +775,7 @@ mod tests {
 			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
-				.load_sym_group_key(group._id.as_ref().expect("no id on group!"), i as i64, None)
+				.load_sym_group_key(group._id.as_ref().expect("no id on group!"), i as u64, None)
 				.await
 				.unwrap();
 			match keypair {
@@ -783,7 +792,7 @@ mod tests {
 		let randomizer = make_thread_rng_facade();
 
 		// Same as the length of former_keys_deprecated
-		let current_group_key_version = FORMER_KEYS as i64;
+		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
 
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
@@ -813,7 +822,7 @@ mod tests {
 		let randomizer = make_thread_rng_facade();
 
 		// Same as the length of former_keys_deprecated
-		let current_group_key_version = FORMER_KEYS as i64;
+		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
 
 		let current_key_pair = PQKeyPairs::generate(&randomizer);

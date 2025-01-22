@@ -133,7 +133,7 @@ impl ImportableMailAttachmentMetaData {
 		ImportAttachment {
 			_id: None,
 			ownerEncFileSessionKey: owner_enc_file_session_key.object,
-			ownerFileKeyVersion: owner_enc_file_session_key.version,
+			ownerFileKeyVersion: owner_enc_file_session_key.version as i64,
 			existingAttachmentFile: None,
 			newAttachment: Some(NewImportAttachment {
 				_id: None,

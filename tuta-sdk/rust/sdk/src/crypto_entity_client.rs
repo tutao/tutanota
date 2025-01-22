@@ -298,7 +298,7 @@ mod tests {
 				Ok(Some(ResolvedSessionKey {
 					session_key: sk.clone(),
 					owner_enc_session_key: vec![1, 2, 3],
-					owner_key_version: 0i64,
+					owner_key_version: 0u64,
 				}))
 			});
 

@@ -19,6 +19,8 @@ use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{GenericAesKey, VersionedAesKey};
+#[cfg_attr(test, mockall_double::double)]
+use crate::crypto::public_key_provider::PublicKeyProvider;
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
@@ -222,10 +224,12 @@ impl Sdk {
 			self.type_model_provider.clone(),
 			self.base_url.clone(),
 		));
+		let public_key_provider = Arc::new(PublicKeyProvider::new(service_executor.clone()));
 		let asymmetric_crypto_facade = Arc::new(AsymmetricCryptoFacade::new(
 			key_loader.clone(),
 			RandomizerFacade::from_core(rand_core::OsRng),
-			service_executor,
+			service_executor.clone(),
+			public_key_provider.clone(),
 		));
 		let crypto_facade: Arc<CryptoFacade> = Arc::new(CryptoFacade::new(
 			key_loader.clone(),

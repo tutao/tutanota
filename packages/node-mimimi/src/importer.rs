@@ -398,7 +398,7 @@ impl ImportEssential {
 			ownerGroup: self.target_owner_group.clone(),
 			encImports: serialized_imports,
 			targetMailFolder: self.target_mailset.clone(),
-			ownerKeyVersion: owner_enc_sk_for_import_post.version,
+			ownerKeyVersion: owner_enc_sk_for_import_post.version as i64,
 			ownerEncSessionKey: owner_enc_sk_for_import_post.object,
 			newImportedMailSetName: "@internal-imported-mailset".to_string(),
 			mailState: remote_state_id,
