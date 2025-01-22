@@ -52,6 +52,7 @@ jobs:
         with:
           submodules: 'true'
       - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
       - uses: "./.github/shared/setup-emscripten"
         with:
           emscripten-version: ${{ env.emscripten_version }}
@@ -67,6 +68,7 @@ jobs:
         with:
           submodules: 'true'
       - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
       - uses: "./.github/shared/setup-emscripten"
         with:
           emscripten-version: ${{ env.emscripten_version }}
@@ -90,6 +92,7 @@ jobs:
         with:
           submodules: 'true'
       - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
       - uses: "./.github/shared/setup-emscripten"
         with:
           emscripten-version: ${{ env.emscripten_version }}
@@ -105,6 +108,7 @@ jobs:
         with:
           submodules: 'true'
       - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
       - uses: "./.github/shared/setup-emscripten"
         with:
           emscripten-version: ${{ env.emscripten_version }}

@@ -5,7 +5,7 @@ on:
     types: [ opened, synchronize, edited ]
     paths:
       - 'tuta-sdk/**'
-      - '.github/workflows/rust-test.yml'
+      - '.github/workflows/tuta-sdk-test.yml'
   push:
     branches:
       - dev-*
@@ -34,15 +34,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
-      - name: setup rust
-        run: |
-          # Specify an exact Rust version.
-          #
-          # Newer versions will enable newer features, but at the same time, you may get newer warnings which you have
-          # to fix. This should be a manual step.
-          rustup install 1.84.0
-          rustup default 1.84.0
-          rustup component add rustfmt clippy
+      - uses: ./.github/shared/setup-rust
       - name: sdk format
         working-directory: tuta-sdk/rust
         run: cargo fmt --check

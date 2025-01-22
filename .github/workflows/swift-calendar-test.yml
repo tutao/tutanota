@@ -16,6 +16,7 @@ on:
 env:
   swift-version: "5.9.2"
   swift-format-version: "509.0.0"
+  rust-targets: "aarch64-apple-ios-sim"
 
 jobs:
   test-swift:

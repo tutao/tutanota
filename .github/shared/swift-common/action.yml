@@ -15,16 +15,7 @@ runs:
       shell: bash
       run: |
         brew install swiftlint swift-format xcodegen
-        brew upgrade rustup
-    - name: Versions
-      shell: bash
-      run: |
-        rustup --version
-        cargo --version
-        rustc --version
-    - name: Add rust target
-      shell: bash
-      run: rustup target add aarch64-apple-ios-sim
+    - uses: ./.github/shared/setup-rust
     - name: Lint
       working-directory: ./app-ios
       shell: bash
