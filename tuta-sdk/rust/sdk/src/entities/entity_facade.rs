@@ -631,7 +631,7 @@ impl EntityFacade for EntityFacadeImpl {
 		);
 		mapped_decrypted.insert(
 			OWNER_KEY_VERSION_FIELD.to_owned(),
-			ElementValue::Number(resolved_session_key.owner_key_version),
+			ElementValue::Number(resolved_session_key.owner_key_version as i64),
 		);
 		Ok(mapped_decrypted)
 	}
@@ -776,7 +776,7 @@ mod tests {
 	fn test_decrypt_mail() {
 		let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(KNOWN_SK.as_slice()).unwrap());
 		let owner_enc_session_key = vec![0, 1, 2];
-		let owner_key_version = 0i64;
+		let owner_key_version = 0u64;
 		let type_model_provider = Arc::new(init_type_model_provider());
 		let raw_entity: RawEntity = make_json_entity();
 		let json_serializer = JsonSerializer::new(type_model_provider.clone());
@@ -1104,7 +1104,7 @@ mod tests {
 	fn encrypt_and_map_instance() {
 		let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(KNOWN_SK.as_slice()).unwrap());
 		let owner_enc_session_key = [0, 1, 2];
-		let owner_key_version = 0i64;
+		let owner_key_version = 0u64;
 
 		let deterministic_rng = DeterministicRng(20);
 		let random = RandomizerFacade::from_core(deterministic_rng.clone());
@@ -1221,7 +1221,9 @@ mod tests {
 			);
 			decrypted_mail.insert(OWNER_ENC_SESSION_KEY_FIELD.to_string(), ElementValue::Null);
 			assert_eq!(
-				Some(&ElementValue::Number(owner_key_version)),
+				Some(&ElementValue::Number(
+					owner_key_version as i64 // we know it is 0
+				)),
 				decrypted_mail.get(OWNER_KEY_VERSION_FIELD),
 			);
 			decrypted_mail.insert(OWNER_KEY_VERSION_FIELD.to_string(), ElementValue::Null);

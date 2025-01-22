@@ -7,7 +7,7 @@ use crate::entities::generated::sys::{GroupMembership, User};
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;
-use crate::util::Versioned;
+use crate::util::{convert_version_to_u64, Versioned};
 use crate::ApiCallError;
 use crate::GeneratedId;
 use base64::prelude::BASE64_STANDARD;
@@ -52,7 +52,7 @@ impl UserFacade {
 				.map_err(|e| ApiCallError::InternalSdkError {
 					error_message: e.to_string(),
 				})?,
-			user_group_membership.groupKeyVersion,
+			convert_version_to_u64(user_group_membership.groupKeyVersion),
 		);
 		self.key_cache
 			.set_current_user_group_key(current_user_group_key);

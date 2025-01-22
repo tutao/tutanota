@@ -45,7 +45,7 @@ async fn can_create_remote_instance() {
 		_owner: user_group_id.clone(),
 		_ownerGroup: Some(user_group_id),
 		_ownerEncSessionKey: Some(_owner_enc_session_key.object),
-		_ownerKeyVersion: Some(_owner_enc_session_key.version),
+		_ownerKeyVersion: Some(_owner_enc_session_key.version as i64),
 		_id: Some(IdTupleGenerated {
 			list_id: user_push_identifier_list_id.clone(),
 			element_id: Default::default(),
