@@ -6,6 +6,7 @@ on:
     paths:
       - 'app-ios/**'
       - '.github/workflows/swift-calendar-test.yml'
+      - '!app-ios/**/Info.plist'
   push:
     branches:
       - dev-*
