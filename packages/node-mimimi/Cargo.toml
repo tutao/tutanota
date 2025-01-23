@@ -14,13 +14,13 @@ strip = "symbols"
 
 [dependencies]
 tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net"] }
-async-trait = "0.1.83"
+async-trait = "0.1.85"
 rand = { version = "0.8.5" }
 mail-parser = { version = "0.9.4", features = ["full_encoding"] }
-thiserror = { version = "1.0.64" }
+thiserror = { version = "2.0" }
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "2.16.12", default-features = false, features = ["napi9", "async", "tokio_rt"] }
-napi-derive = { version = "2.16.12", optional = true }
+napi = { version = "2.16.13", default-features = false, features = ["napi9", "async", "tokio_rt"] }
+napi-derive = { version = "2.16.13", optional = true }
 base64 = "0.22.1"
 log = { version = "0.4.22" }
 
@@ -36,8 +36,7 @@ features = ["serde", "starttls", "ext_id", "ext_metadata"]
 
 
 [build-dependencies]
-# napi-build >2.1.3 needs rust >1.80.0
-napi-build = { version = "=2.1.3" }
+napi-build = { version = "2.1.4" }
 
 [dev-dependencies]
 base64 = "0.22.1"
@@ -47,8 +46,8 @@ tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net", "testing"] }
 mail-builder = { version = "0.3.2" }
 
 # tuta-imap
-j4rs = { version = "0.20.0" }
-lazy_static = { version = "0.2.11" }
+j4rs = { version = "0.22" }
+lazy_static = { version = "1.5" }
 
 [features]
 default = ["javascript"]
