@@ -5,7 +5,7 @@ import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider, PriceType } from "./PriceUtils"
 import {
 	FeatureCategory,
 	FeatureListItem,
@@ -259,6 +259,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
+		let priceType: PriceType
 		if (isIOSApp()) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
@@ -267,21 +268,27 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					priceStr = revolutionaryPrice?.displayYearlyPerMonth ?? NBSP
 					// if there is a discount for this plan we show the original price as reference
 					referencePriceStr = prices?.displayYearlyPerMonth
+					priceType = PriceType.YearlyPerMonth
 				} else {
 					switch (interval) {
 						case PaymentInterval.Monthly:
 							priceStr = prices.displayMonthlyPerMonth
+							priceType = PriceType.MonthlyPerMonth
 							break
 						case PaymentInterval.Yearly:
 							priceStr = prices.displayYearlyPerYear
+							priceType = PriceType.YearlyPerYear
 							break
 					}
 				}
 			} else {
+				// when can this happen?
+				priceType = PriceType.MonthlyPerMonth
 				priceStr = NBSP
 				referencePriceStr = NBSP
 			}
 		} else {
+			priceType = interval == PaymentInterval.Monthly ? PriceType.MonthlyPerMonth : PriceType.YearlyPerMonth
 			const referencePrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanReferencePrice)
 			priceStr = formatMonthlyPrice(subscriptionPrice, interval)
 			if (referencePrice > subscriptionPrice) {
@@ -309,7 +316,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: priceStr,
 			referencePrice: referencePriceStr,
-			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, interval, multiuser)}${asteriskOrEmptyString}`),
+			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, priceType, multiuser)}${asteriskOrEmptyString}`),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -478,12 +485,24 @@ function getHelpLabel(planType: PlanType, businessUse: boolean): TranslationKey 
 	return businessUse ? "pricing.excludesTaxes_msg" : "pricing.includesTaxes_msg"
 }
 
-function getPriceHint(subscriptionPrice: number, paymentInterval: PaymentInterval, multiuser: boolean): string {
+function getPriceHint(subscriptionPrice: number, priceType: PriceType, multiuser: boolean): string {
 	if (subscriptionPrice > 0) {
-		if (multiuser) {
-			return lang.get(paymentInterval === PaymentInterval.Yearly ? "pricing.perUserMonthPaidYearly_label" : "pricing.perUserMonth_label")
-		} else {
-			return lang.get(paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label")
+		switch (priceType) {
+			case PriceType.YearlyPerYear:
+				// we do not support multiuser here
+				return lang.get("pricing.perYear_label")
+			case PriceType.YearlyPerMonth:
+				if (multiuser) {
+					return lang.get("pricing.perUserMonthPaidYearly_label")
+				} else {
+					return lang.get("pricing.perMonthPaidYearly_label")
+				}
+			case PriceType.MonthlyPerMonth:
+				if (multiuser) {
+					return lang.get("pricing.perUserMonth_label")
+				} else {
+					return lang.get("pricing.perMonth_label")
+				}
 		}
 	}
 	return ""
