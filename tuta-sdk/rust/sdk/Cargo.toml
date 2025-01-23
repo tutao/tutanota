@@ -7,8 +7,8 @@ version = "264.250127.0"
 async-trait = "0.1.77"
 serde = { version = "1.0.201", features = ["derive"] }
 serde_json = "1.0.117"
-minicbor = { version = "0.24.2", features = ["std", "alloc"] }
-thiserror = "1.0.60"
+minicbor = { version = "0.25", features = ["std", "alloc"] }
+thiserror = "2.0"
 base64 = "0.22.1"
 aes = { version = "0.8.4", features = ["zeroize"] }
 cbc = { version = "0.1.2", features = ["std", "zeroize"] }
@@ -20,27 +20,30 @@ hkdf = "0.12.4"
 argon2 = { version = "0.5.3", features = ["zeroize"] }
 curve25519-dalek = "4.1.2"
 pqcrypto-kyber = { version = "0.7.9", default-features = false, features = [
-	"std",
+    "std",
 ] }
-# Pin the version explicitly as pqcrypto-kyber depends on pqcrypto-internals ^0.2 and 0.2.6 does not compile for iOS
+# Pin the version explicitly as pqcrypto-kyber depends on pqcrypto-internals ^0.2, but
+# 0.2.6 and 0.2.7 do not compile for iOS
+# updating march flag in pqcrypto-internals/build.rs from armv8-a to armv8.2-a might help,
+# but since pqcrypto-kyber was retired it's not easy to test.
 # see https://github.com/rustpq/pqcrypto/issues/68
 pqcrypto-internals = "=0.2.5"
 pqcrypto-traits = "0.3.4"
 rsa = "0.9.6"
 rand_core = { version = "0.6.4", features = ["getrandom"] }
-serde_bytes = "0.11.14"
-futures = "0.3.30"
-log = "0.4.22"
+serde_bytes = "0.11.15"
+futures = "0.3.31"
+log = "0.4.25"
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c" }
 num_enum = "0.7.3"
 lz4_flex = { version = "0.11.3", default-features = false, features = ["safe-encode", "safe-decode", "std"] }
-tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
+tokio = { version = "1.43", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
 
 # only used for the native rest client
-hyper = { version = "1.4.1", features = ["client"], optional = true }
-hyper-util = { version = "0.1.9", features = ["full"], optional = true }
+hyper = { version = "1.5", features = ["client"], optional = true }
+hyper-util = { version = "0.1.10", features = ["full"], optional = true }
 http-body-util = { version = "0.1.2", optional = true }
-hyper-rustls = { version = "0.27.3", features = ["ring", "http2"], optional = true }
+hyper-rustls = { version = "0.27.5", features = ["ring", "http2"], optional = true }
 rustls = { version = "*", optional = true }
 form_urlencoded = "1"
 # allow initializing a simple_logger if the consuming application (or examples) want to do that.
@@ -54,7 +57,7 @@ oslog = "0.2.0"
 
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", features = [
-	"build",
+    "build",
 ] }
 
 
