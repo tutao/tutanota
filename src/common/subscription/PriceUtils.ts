@@ -1,6 +1,6 @@
 import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
-import { assertNotNull, downcast, NBSP, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
@@ -16,6 +16,12 @@ import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUti
 export const enum PaymentInterval {
 	Monthly = 1,
 	Yearly = 12,
+}
+
+export const enum PriceType {
+	MonthlyPerMonth,
+	YearlyPerMonth,
+	YearlyPerYear,
 }
 
 export function asPaymentInterval(paymentInterval: string | number): PaymentInterval {
@@ -85,6 +91,9 @@ export function formatMonthlyPrice(subscriptionPrice: number, paymentInterval: P
 	return formatPrice(monthlyPrice, true)
 }
 
+/**
+ * Formats the yearly price for the full year (not monthly).
+ */
 export function formatPriceWithInfo(formattedPrice: string, paymentInterval: PaymentInterval, taxIncluded: boolean): string {
 	const netOrGross = taxIncluded ? lang.get("gross_label") : lang.get("net_label")
 	const yearlyOrMonthly = paymentInterval === PaymentInterval.Yearly ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
