@@ -21,6 +21,11 @@ members = [
     "tuta-sdk/rust/uniffi-bindgen",
 ]
 
+# in most cases, we don't want to build everything.
+# this requires passing --all or --package <package-name> to
+# cargo for almost anything
+default-members = []
+
 [workspace.dependencies]
 thiserror = { version = "2.0" }
 base64 = { version = "0.22.1" }

@@ -95,6 +95,7 @@ dependencies {
 }
 
 cargo {
+	extraCargoBuildArguments = listOf("--package", "tuta-sdk")
 	module = "../../rust"
 	libname = "tutasdk"
 	prebuiltToolchains = true
@@ -114,7 +115,20 @@ tasks.register("generateBinding") {
 			exec {
 				this.workingDir("../../rust")
 				this.executable("cargo")
-				this.args("run", "--bin", "uniffi-bindgen", "generate", "--library", "${layout.buildDirectory.asFile.get()}/rustJniLibs/android/${dir}/libtutasdk.so", "--language", "kotlin", "--out-dir", "${layout.buildDirectory.asFile.get()}/generated-sources/tuta-sdk")
+				this.args(
+					"run",
+					"--package",
+					"uniffi-bindgen",
+					"--bin",
+					"uniffi-bindgen",
+					"generate",
+					"--library",
+					"${layout.buildDirectory.asFile.get()}/rustJniLibs/android/${dir}/libtutasdk.so",
+					"--language",
+					"kotlin",
+					"--out-dir",
+					"${layout.buildDirectory.asFile.get()}/generated-sources/tuta-sdk"
+				)
 			}
 		}
 	}
