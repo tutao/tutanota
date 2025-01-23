@@ -1,7 +1,7 @@
 use crate::importer::filename_producer::FileNameProducer;
 use crate::importer::importable_mail::ImportableMail;
 use crate::importer::messages::{FileIterationError, PreparationError};
-use crate::importer::{Importer, FAILED_MAILS_SUB_DIR, STATE_ID_FILE_NAME};
+use crate::importer::{FAILED_MAILS_SUB_DIR, STATE_ID_FILE_NAME};
 use mail_parser::mailbox::mbox::MessageIterator;
 use mail_parser::MessageParser;
 use std::fs;
