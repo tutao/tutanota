@@ -225,7 +225,14 @@ export class HtmlSanitizer {
 		const typedConfig = config as SanitizeConfig
 		// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 		// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
-		let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
+		let allowedClasses = [
+			"tutanota_indented",
+			"tutanota_quote",
+			"MsoListParagraph",
+			"MsoListParagraphCxSpFirst",
+			"MsoListParagraphCxSpMiddle",
+			"MsoListParagraphCxSpLast",
+		]
 
 		if (currentNode.classList) {
 			let cl = currentNode.classList

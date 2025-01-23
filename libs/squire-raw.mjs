@@ -115,6 +115,10 @@ var ctrlKey = isMac || isIOS ? "Meta-" : "Ctrl-";
 var cantFocusEmptyTextNodes = isWebKit;
 var supportsInputEvents = "onbeforeinput" in document && "inputType" in new InputEvent("input");
 var notWS = /[^ \t\r\n]/;
+var indentedNodeAttributes = {
+	class: "tutanota_indented",
+	style: "margin-left: 40px"
+}
 
 // source/node/Category.ts
 var inlineNodeNames = /^(?:#text|A(?:BBR|CRONYM)?|B(?:R|D[IO])?|C(?:ITE|ODE)|D(?:ATA|EL|FN)|EM|FONT|HR|I(?:FRAME|MG|NPUT|NS)?|KBD|Q|R(?:P|T|UBY)|S(?:AMP|MALL|PAN|TR(?:IKE|ONG)|U[BP])?|TIME|U|VAR|WBR)$/;
@@ -519,7 +523,7 @@ var split = (node, offset, stopNode, root) => {
 		clone.appendChild(nodeAfterSplit);
 		nodeAfterSplit = next;
 	}
-	if (node instanceof HTMLOListElement && getNearest(node, root, "BLOCKQUOTE")) {
+	if (node instanceof HTMLOListElement && getNearest(node, root, "DIV", indentedNodeAttributes)) {
 		clone.start = (+node.start || 1) + node.childNodes.length - 1;
 	}
 	fixCursor(node);
@@ -1733,8 +1737,8 @@ var Backspace = (self, event, range) => {
 			if (getNearest(current, root, "UL") || getNearest(current, root, "OL")) {
 				self.decreaseListLevel(range);
 				return;
-			} else if (getNearest(current, root, "BLOCKQUOTE")) {
-				self.removeQuote(range);
+			} else if (getNearest(current, root, "DIV", indentedNodeAttributes)) {
+				self.removeIndentation(range);
 				return;
 			}
 			self.setSelection(range);
@@ -2029,19 +2033,19 @@ keyHandlers[ctrlKey + "Shift-9"] = (self, event) => {
 keyHandlers[ctrlKey + "["] = (self, event) => {
 	event.preventDefault();
 	const path = self.getPath();
-	if (/(?:^|>)BLOCKQUOTE/.test(path) || !/(?:^|>)[OU]L/.test(path)) {
-		self.decreaseQuoteLevel();
-	} else {
+	if (/(?:^|>)[OU]L/.test(path)) {
 		self.decreaseListLevel();
+	} else {
+		self.decreaseIndentationLevel();
 	}
 };
 keyHandlers[ctrlKey + "]"] = (self, event) => {
 	event.preventDefault();
 	const path = self.getPath();
-	if (/(?:^|>)BLOCKQUOTE/.test(path) || !/(?:^|>)[OU]L/.test(path)) {
-		self.increaseQuoteLevel();
-	} else {
+	if (/(?:^|>)[OU]L/.test(path)) {
 		self.increaseListLevel();
+	} else {
+		self.increaseIndentationLevel();
 	}
 };
 keyHandlers[ctrlKey + "d"] = (self, event) => {
@@ -3613,8 +3617,8 @@ var Squire = class {
 			if (getNearest(block, root, "UL") || getNearest(block, root, "OL")) {
 				this.decreaseListLevel(range);
 				return this;
-			} else if (getNearest(block, root, "BLOCKQUOTE")) {
-				this.removeQuote(range);
+			} else if (getNearest(block, root, "DIV", indentedNodeAttributes)) {
+				this.removeIndentation(range);
 				return this;
 			}
 		}
@@ -3956,22 +3960,22 @@ var Squire = class {
 	}
 
 	// ---
-	increaseQuoteLevel(range) {
+	increaseIndentationLevel(range) {
 		this.modifyBlocks(
-				(frag) => createElement(
-						"BLOCKQUOTE",
-						this._config.tagAttributes.blockquote,
-						[frag]
-				),
-				range
+			(frag) => createElement(
+				"DIV",
+				indentedNodeAttributes,
+				[frag]
+			),
+			range
 		);
 		return this.focus();
 	}
 
-	decreaseQuoteLevel(range) {
+	decreaseIndentationLevel(range) {
 		this.modifyBlocks((frag) => {
-			Array.from(frag.querySelectorAll("blockquote")).filter((el) => {
-				return !getNearest(el.parentNode, frag, "BLOCKQUOTE");
+			Array.from(frag.querySelectorAll("." + indentedNodeAttributes.class)).filter((el) => {
+				return !getNearest(el.parentNode, frag, "DIV", indentedNodeAttributes);
 			}).forEach((el) => {
 				replaceWith(el, empty(el));
 			});
@@ -3980,7 +3984,7 @@ var Squire = class {
 		return this.focus();
 	}
 
-	removeQuote(range) {
+	removeIndentation(range) {
 		this.modifyBlocks(
 				() => this.createDefaultBlock([
 					createElement("INPUT", {
