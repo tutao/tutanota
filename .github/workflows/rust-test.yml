@@ -5,7 +5,8 @@ on:
     types: [ opened, synchronize, edited ]
     paths:
       - 'tuta-sdk/**'
-      - '.github/workflows/tuta-sdk-test.yml'
+      - 'packages/node-mimimi/**'
+      - '.github/workflows/rust-test.yml'
   push:
     branches:
       - dev-*
@@ -35,9 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       - uses: ./.github/shared/setup-rust
-      - name: sdk format
+      - name: rust format
         run: cargo fmt --check
-      - name: sdk warning check with clippy
-        run: cargo clippy --no-deps -- -Dwarnings # -Dwarnings changes warnings to errors so that the check fails
-      - name: sdk tests
-        run: cargo test
+      - name: rust warning check with clippy
+        run: cargo clippy --all --no-deps -- -Dwarnings # -Dwarnings changes warnings to errors so that the check fails
+      - name: rust tests
+        run: cargo test --all
