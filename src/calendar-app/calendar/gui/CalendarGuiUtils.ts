@@ -85,7 +85,7 @@ import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
 import { theme } from "../../../common/gui/theme.js"
-import { WeekdaySelectorItem } from "../../../common/gui/base/icons/WeekdaySelector.js"
+import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { Type } from "cborg"
 import map = Type.map
 import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
@@ -448,56 +448,95 @@ export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<End
 	]
 }
 
-export const createWeekdaySelectorItems = (): Array<WeekdaySelectorItem> => {
+export const weekdayToTranslation = (): Array<WeekdayToTranslation> => {
 	return [
 		{
 			value: Weekdays.MONDAY,
-			label: lang.get("monday_label").slice(0, 1),
+			label: lang.get("monday_label"),
 		},
 		{
 			value: Weekdays.TUESDAY,
-			label: lang.get("tuesday_label").slice(0, 1),
+			label: lang.get("tuesday_label"),
 		},
 		{
 			value: Weekdays.WEDNESDAY,
-			label: lang.get("wednesday_label").slice(0, 1),
+			label: lang.get("wednesday_label"),
 		},
 		{
 			value: Weekdays.THURSDAY,
-			label: lang.get("thursday_label").slice(0, 1),
+			label: lang.get("thursday_label"),
 		},
 		{
 			value: Weekdays.FRIDAY,
-			label: lang.get("friday_label").slice(0, 1),
+			label: lang.get("friday_label"),
 		},
 		{
 			value: Weekdays.SATURDAY,
-			label: lang.get("saturday_label").slice(0, 1),
+			label: lang.get("saturday_label"),
 		},
 		{
 			value: Weekdays.SUNDAY,
-			label: lang.get("sunday_label").slice(0, 1),
+			label: lang.get("sunday_label"),
 		},
 	]
 }
 
-export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
-	return [
+export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).map((n) => ({ name: String(n), value: n, ariaValue: String(n) }))
+
+/**
+ * Returns an array of IntervalOptions based on the given Weekday.
+ * The Weekday confines to the official TS Date.getDay() documentation.
+ * (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+ *
+ * @param weekday
+ * @param numberOfWeekdaysInMonth how many times this Weekday occurs in the current month. Per default assume 4.
+ */
+export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekdaysInMonth: number = 4): IntervalOption[] => {
+	const weekdayLabel = weekdayToTranslation()[weekday - 1].label
+	const options: IntervalOption[] = [
 		{
-			name: lang.get("calendarRepeatStopConditionNever_label"),
-			value: EndType.Never,
+			value: 1,
+			ariaValue: "first",
+			name: lang.get("firstOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 		},
 		{
-			name: lang.get("calendarRepeatStopConditionOccurrences_label"),
-			value: EndType.Count,
+			value: 2,
+			ariaValue: "second",
+			name: lang.get("secondOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 		},
 		{
-			name: lang.get("calendarRepeatStopConditionDate_label"),
-			value: EndType.UntilDate,
+			value: 3,
+			ariaValue: "third",
+			name: lang.get("thirdOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		},
+		{
+			value: -1,
+			ariaValue: "last",
+			name: lang.get("lastOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 		},
 	]
+
+	if (numberOfWeekdaysInMonth > 4) {
+		options.splice(3, 0, {
+			value: 4,
+			ariaValue: "fourth",
+			name: lang.get("nthOfPeriod_label", {
+				"{n}": "4",
+				"{day}": weekdayLabel,
+			}),
+		})
+	}
+
+	return options
 }
-export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).map((n) => ({ name: String(n), value: n, ariaValue: String(n) }))
 
 /**
  * From a given Array of AdvancedRules, collect all BYDAY Rules and cast them to Weekday enum.

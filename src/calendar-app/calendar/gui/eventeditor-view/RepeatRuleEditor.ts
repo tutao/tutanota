@@ -9,9 +9,10 @@ import {
 	createCustomEndTypeOptions,
 	createIntervalValues,
 	createRepeatRuleOptions,
-	createWeekdaySelectorItems,
+	weekdayToTranslation,
 	getByDayRulesFromAdvancedRules,
 	IntervalOption,
+	createRepetitionValuesForWeekday,
 } from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
@@ -21,7 +22,9 @@ import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
 import { theme } from "../../../../common/gui/theme.js"
 import { Divider } from "../../../../common/gui/Divider.js"
-import { WeekdaySelector, WeekdaySelectorItem } from "../../../../common/gui/base/icons/WeekdaySelector.js"
+import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
+import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
+import { DateTime } from "luxon"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -37,7 +40,9 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
 	private repeatInterval: number = 0
 	private intervalOptions: stream<IntervalOption[]> = stream([])
-	private readonly weekdayItems: Array<WeekdaySelectorItem> = createWeekdaySelectorItems()
+	private readonly weekdayItems: Array<WeekdayToTranslation> = weekdayToTranslation().map((wd) => {
+		return { value: wd.value, label: wd.label.slice(0, 1) }
+	})
 
 	private byDayRules: Weekdays[] | null = null
 	private numberValues: IntervalOption[] = createIntervalValues()
@@ -79,6 +84,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 							selectedOption: this.repeatRuleType,
 							onOptionSelected: (option: RepeatRuleOption) => {
 								this.repeatRuleType = option
+								attrs.model.advancedRules = []
 								if (option === null) {
 									attrs.model.repeatInterval = 1
 									attrs.model.repeatEndType = EndType.Never
@@ -153,13 +159,23 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private renderRepetitionArea(attrs: RepeatRuleEditorAttrs): Children {
 		return [
 			this.renderIntervalPicker(attrs),
-			this.repeatRuleType === RepeatPeriod.WEEKLY || this.repeatRuleType === RepeatPeriod.MONTHLY
+			this.repeatRuleType === RepeatPeriod.WEEKLY
 				? [
 						m(Divider, { color: theme.button_bubble_bg }),
 						m(WeekdaySelector, {
 							items: this.weekdayItems,
 							selectedDays: this.byDayRules,
 							gatherSelectedDays: attrs.writeWeekdaysToModel,
+						}),
+				  ]
+				: this.repeatRuleType === RepeatPeriod.MONTHLY
+				? [
+						m(Divider, { color: theme.button_bubble_bg }),
+						m(WeekRepetitionSelector, {
+							repetitionOptions: createRepetitionValuesForWeekday(
+								attrs.model.startDate.getDay(),
+								this.calculateWeekdayOccurrencesInMonth(attrs.model.startDate),
+							),
 						}),
 				  ]
 				: null,
@@ -330,5 +346,17 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				),
 			keepFocus: true,
 		} satisfies SelectAttributes<IntervalOption, number>)
+	}
+
+	/**
+	 * Calculates the amount of occurrences of the given weekday in the month.
+	 * The amount of occurrences in the entire month is a sum of:
+	 *  o difference of Days between given date and first day of month, rounded down
+	 *  o remaining days in month, rounded down
+	 *  o the date itself
+	 */
+	private calculateWeekdayOccurrencesInMonth(date: Date) {
+		const numberOfDaysInMonth: number = DateTime.fromJSDate(date).daysInMonth as number
+		return Math.floor((date.getDate() - 1) / 7) + Math.floor((numberOfDaysInMonth - 20) / 7) + 1
 	}
 }
