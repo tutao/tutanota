@@ -45,7 +45,7 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 				class: attrs.class,
 				style: attrs.style,
 				role: attrs.role,
-				"data-testid": lang.getTestId(attrs.label),
+				"data-testid": `btn:${lang.getTestId(attrs.label)}`,
 			},
 			[attrs.icon ? this.renderIcon(attrs.icon, attrs.iconWrapperSelector) : null, attrs.text ?? null, children],
 		)

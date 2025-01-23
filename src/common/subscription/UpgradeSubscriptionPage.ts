@@ -88,7 +88,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
 			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),
 		}
-		return m(".pt", { "data-testid": "upgrade-account-dialog" }, [
+		return m(".pt", [
 			m(SubscriptionSelector, {
 				options: data.options,
 				priceInfoTextId: data.priceInfoTextId,

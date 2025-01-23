@@ -1,8 +1,7 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
-import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { theme } from "./theme"
-import { lazy } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 
@@ -22,6 +21,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 		return m(
 			".sidebar-section",
 			{
+				"data-testid": `section:${lang.getTestId(name)}`,
 				style: {
 					color: theme.navigation_button,
 				},

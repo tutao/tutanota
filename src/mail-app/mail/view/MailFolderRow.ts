@@ -5,11 +5,14 @@ import { CounterBadge } from "../../../common/gui/base/CounterBadge"
 import { getNavButtonIconBackground, theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { stateBgHover } from "../../../common/gui/builtinThemes.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import { getFolderIcon } from "./MailGuiUtils"
+import { getFolderName } from "../model/MailUtils"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -18,7 +21,7 @@ export type MailFolderRowAttrs = {
 	expanded: boolean | null
 	indentationLevel: number
 	onExpanderClick: () => unknown
-	icon: AllIcons
+	folder: MailFolder
 	hasChildren: boolean
 	onSelectedPath: boolean
 	numberOfPreviousRows: number
@@ -37,7 +40,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 	}
 
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, icon, hasChildren, editMode } = vnode.attrs
+		const { count, button, rightButton, expanded, indentationLevel, folder, hasChildren, editMode } = vnode.attrs
+		const icon = getFolderIcon(folder)
 		const onHover = () => {
 			vnode.attrs.onHover()
 			this.hovered = true
@@ -101,6 +105,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 							// the zIndex is so the hierarchy lines never get drawn over the icon
 							zIndex: 3,
 						},
+						"data-testid": `btn:icon:${getFolderName(folder)}`,
+						"data-expanded": vnode.attrs.expanded ? "true" : "false",
 						onclick: vnode.attrs.onExpanderClick,
 						onkeydown: handleBackwardsTab,
 					},

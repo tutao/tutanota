@@ -132,7 +132,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			onfocus: a.onfocus,
 			onblur: a.onblur,
 			onkeydown: a.onkeydown,
-			"data-testid": lang.getTestId(a.label),
+			"data-testid": `btn:${lang.getTestId(a.label)}`,
 		}
 
 		if (a.dropHandler) {

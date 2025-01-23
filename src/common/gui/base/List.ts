@@ -127,6 +127,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		return m(
 			".list-container.overflow-y-scroll.nofocus.overflow-x-hidden.fill-absolute",
 			{
+				"data-testid": "unordered_list",
 				oncreate: ({ dom }: VnodeDOM) => {
 					this.containerDom = dom as HTMLElement
 
@@ -149,7 +150,6 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.renderSwipeItems(attrs),
 			// we need rel for the status indicator
 			m("ul.list.rel.click", {
-				"data-testid": "unordered_list",
 				oncreate: ({ dom }) => {
 					this.innerDom = dom as HTMLElement
 					this.initializeDom(dom as HTMLElement, attrs)

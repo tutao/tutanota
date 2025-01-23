@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
@@ -31,7 +31,6 @@ import {
 import { px } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
-import { client } from "../misc/ClientDetector"
 import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
 import { theme } from "../gui/theme.js"
 
@@ -192,6 +191,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			m(
 				".flex.center-horizontally.wrap",
 				{
+					"data-testid": "dialog:select-subscription",
 					oncreate: (vnode) => {
 						this.containerDOM = vnode.dom as HTMLElement
 						m.redraw()

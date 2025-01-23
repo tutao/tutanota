@@ -15,7 +15,7 @@ export const SelectAllCheckbox = pureComponent((attrs: SelectAllCheckboxAttrs) =
 		{ style: attrs.style },
 		m("input.checkbox", {
 			type: "checkbox",
-			"data-testid": "selectAllLoaded_action",
+			"data-testid": "cb:selectAllLoaded_action",
 			title: lang.get("selectAllLoaded_action"),
 			// I'm not sure this is the best condition but it will do for now
 			checked: attrs.selected,
