@@ -9,11 +9,15 @@ import {
 	AesKey,
 	encryptEccKey,
 	encryptKey,
+	encryptRsaKey,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
+	RsaKeyPair,
+	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
 import {
+	createKeyPair,
 	Group,
 	GroupKey,
 	GroupKeysRefTypeRef,
@@ -31,13 +35,14 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { matchers, object, reset, verify, when } from "testdouble"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { assertNotNull, freshVersioned } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, hexToUint8Array } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
@@ -185,6 +190,46 @@ o.spec("KeyLoaderFacadeTest", function () {
 			o(keypair).deepEquals(formerKeyPairsDecrypted[requestedVersion])
 			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
 		})
+
+		o("rsa key pair in version > 0 is rejected", async function () {
+			currentGroupKey.version = 1
+			group.groupKeyVersion = String(currentGroupKey.version)
+			group.currentKeys = createKeyPair({
+				pubEccKey: currentKeyPair.eccKeyPair.publicKey,
+				symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+				pubKyberKey: null,
+				symEncPrivKyberKey: null,
+				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
+				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+			})
+			keyCache = object()
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
+			when(keyCache.getCurrentGroupKey(group._id, matchers.anything())).thenResolve(currentGroupKey)
+
+			await assertThrows(CryptoError, async () => keyLoaderFacade.loadKeypair(group._id, currentGroupKey.version))
+		})
+
+		o("rsa key pair in version  0 is loaded", async function () {
+			currentGroupKey.version = 0
+			group.groupKeyVersion = String(currentGroupKey.version)
+			group.currentKeys = createKeyPair({
+				pubEccKey: currentKeyPair.eccKeyPair.publicKey,
+				symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+				pubKyberKey: null,
+				symEncPrivKyberKey: null,
+				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
+				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+			})
+			keyCache = object()
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
+			when(keyCache.getCurrentGroupKey(group._id, matchers.anything())).thenResolve(currentGroupKey)
+
+			const loadedKeypair: RsaKeyPair = (await keyLoaderFacade.loadKeypair(group._id, currentGroupKey.version)) as RsaKeyPair
+			o(loadedKeypair.publicKey).deepEquals(RSA_TEST_KEYPAIR.publicKey)
+			o(loadedKeypair.privateKey).deepEquals(RSA_TEST_KEYPAIR.privateKey)
+		})
 	})
 
 	o.spec("loadCurrentKeyPair", function () {
@@ -192,6 +237,25 @@ o.spec("KeyLoaderFacadeTest", function () {
 			const loadedCurrentKeyPair = await keyLoaderFacade.loadCurrentKeyPair(group._id)
 			o(loadedCurrentKeyPair.object).deepEquals(currentKeyPair)
 			o(loadedCurrentKeyPair.version).equals(currentGroupKeyVersion)
+		})
+
+		o("rsa key pair in version > 0 is rejected", async function () {
+			currentGroupKey.version = 1
+			group.groupKeyVersion = String(currentGroupKey.version)
+			group.currentKeys = createKeyPair({
+				pubEccKey: currentKeyPair.eccKeyPair.publicKey,
+				symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+				pubKyberKey: null,
+				symEncPrivKyberKey: null,
+				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
+				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+			})
+			keyCache = object()
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
+			when(keyCache.getCurrentGroupKey(group._id, matchers.anything())).thenResolve(currentGroupKey)
+
+			await assertThrows(CryptoError, async () => keyLoaderFacade.loadCurrentKeyPair(group._id))
 		})
 	})
 

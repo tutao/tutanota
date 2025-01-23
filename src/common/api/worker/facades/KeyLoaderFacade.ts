@@ -1,5 +1,5 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs } from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs, isRsaOrRsaEccKeyPair } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
 import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
@@ -106,17 +106,17 @@ export class KeyLoaderFacade {
 				throw new Error(`inconsistent key version state in cache and key cache for group ${groupId}`)
 			}
 		}
-		return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, currentGroupKey.object), version: parseKeyVersion(group.groupKeyVersion) }
+		return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, currentGroupKey), version: parseKeyVersion(group.groupKeyVersion) }
 	}
 
 	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey) {
 		const keyPairGroupId = group._id
 		let keyPair: KeyPair | null
-		let symGroupKey: AesKey
+		let symGroupKey: VersionedKey
 		if (requestedVersion > currentGroupKey.version) {
 			throw new Error(`Not possible to get newer key version than is cached for group ${keyPairGroupId}`)
 		} else if (requestedVersion === currentGroupKey.version) {
-			symGroupKey = currentGroupKey.object
+			symGroupKey = currentGroupKey
 			if (parseKeyVersion(group.groupKeyVersion) === currentGroupKey.version) {
 				keyPair = group.currentKeys
 			} else {
@@ -128,7 +128,7 @@ export class KeyLoaderFacade {
 			// load a former key pair: groupKeyVersion < groupKey.version
 			const { symmetricGroupKey, groupKeyInstance } = await this.findFormerGroupKey(group, currentGroupKey, requestedVersion)
 			keyPair = groupKeyInstance.keyPair
-			symGroupKey = symmetricGroupKey
+			symGroupKey = { object: symmetricGroupKey, version: requestedVersion }
 		}
 		return this.validateAndDecryptKeyPair(keyPair, keyPairGroupId, symGroupKey)
 	}
@@ -198,12 +198,16 @@ export class KeyLoaderFacade {
 		return parseKeyVersion(customIdToString(id))
 	}
 
-	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: AesKey) {
+	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey) {
 		if (keyPair == null) {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
-		return decryptKeyPair(groupKey, keyPair as EncryptedKeyPairs)
+		const decryptedKeyPair = decryptKeyPair(groupKey.object, keyPair as EncryptedKeyPairs)
+		if (groupKey.version !== 0 && isRsaOrRsaEccKeyPair(decryptedKeyPair)) {
+			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
+		}
+		return decryptedKeyPair
 	}
 }
 
