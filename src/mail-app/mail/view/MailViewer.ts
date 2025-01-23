@@ -175,7 +175,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return m(
 			"h4.font-weight-600.mt.mb.text-break.selectable." + responsiveCardHMargin(),
 			{
-				"data-testid": "subject",
+				"data-testid": `h:${lang.getTestId("subject_label")}`,
 			},
 			attrs.viewModel.getSubject(),
 		)
@@ -388,7 +388,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 		const wrapNode = document.createElement("div")
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
-		wrapNode.setAttribute("data-testid", "mail-body")
+		wrapNode.setAttribute("data-testid", "mailBody_label")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
 

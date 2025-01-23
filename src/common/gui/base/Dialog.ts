@@ -3,7 +3,7 @@ import type { ModalComponent } from "./Modal"
 import { modal } from "./Modal"
 import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { Shortcut } from "../../misc/KeyManager"
 import { focusNext, focusPrevious, keyManager } from "../../misc/KeyManager"
@@ -362,7 +362,7 @@ export class Dialog implements ModalComponent {
 			}
 
 			let lines = lang.getTranslationText(messageIdOrMessageFunction).split("\n")
-			let testId = lang.getTestId(messageIdOrMessageFunction)
+			let testId = `dialog:${lang.getTestId(messageIdOrMessageFunction)}`
 
 			if (typeof infoToAppend === "string") {
 				lines.push(infoToAppend)

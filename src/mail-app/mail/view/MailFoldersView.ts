@@ -142,7 +142,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					m(MailFolderRow, {
 						count: attrs.inEditMode ? 0 : summedCount,
 						button,
-						icon: getFolderIcon(system.folder),
+						folder: system.folder,
 						rightButton,
 						expanded: hasChildren ? currentExpansionState : null,
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),

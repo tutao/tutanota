@@ -200,7 +200,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						marginTop: px(inputMarginTop),
 						lineHeight: px(inputLineHeight),
 					},
-					"data-testid": lang.getTestId(a.label),
+					"data-testid": `tf:${lang.getTestId(a.label)}`,
 				},
 				a.value,
 			)
@@ -300,7 +300,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							lineHeight: px(inputLineHeight),
 							fontSize: a.fontSize,
 						},
-						"data-testid": lang.getTestId(a.label),
+						"data-testid": `tf:${lang.getTestId(a.label)}`,
 					}),
 				]),
 			)

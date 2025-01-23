@@ -94,7 +94,6 @@ export async function showSwitchDialog(
 		view: () =>
 			m(
 				".pt",
-				{ "data-testid": "upgrade-account-dialog" },
 				m(SubscriptionSelector, {
 					options: {
 						businessUse,
