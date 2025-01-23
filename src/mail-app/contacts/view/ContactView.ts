@@ -120,7 +120,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_max_width,
+				minWidth: size.first_col_min_width,
 				maxWidth: size.first_col_max_width,
 				headerCenter: "folderTitle_label",
 			},
