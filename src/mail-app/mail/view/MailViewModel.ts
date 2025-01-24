@@ -10,7 +10,14 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { elementIdPart, firstBiggerThanSecond, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import {
+	deconstructMailSetEntryId,
+	elementIdPart,
+	firstBiggerThanSecond,
+	getElementId,
+	isSameId,
+	listIdPart,
+} from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	assertNotNull,
 	count,
@@ -503,8 +510,8 @@ export class MailViewModel {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(folder.entries, update.instanceListId)) {
 				if (update.operation === OperationType.DELETE && this.stickyMailId != null) {
-					const entry = listModel.getMailSetEntry(update.instanceId)
-					if (entry && isSameId(entry.mail, this.stickyMailId)) {
+					const { mailId } = deconstructMailSetEntryId(update.instanceId)
+					if (isSameId(mailId, elementIdPart(this.stickyMailId))) {
 						// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
 						this.stickyMailId = null
 					}
