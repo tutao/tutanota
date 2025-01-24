@@ -5,7 +5,6 @@ use crate::reduce_to_chunks::{AttachmentUploadData, KeyedImportMailData};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use file_reader::FileImport;
-use imap_reader::ImapImportConfig;
 use importable_mail::ImportableMail;
 use std::ffi::OsStr;
 use std::fs;
@@ -37,7 +36,6 @@ pub mod messages;
 
 pub mod file_reader;
 mod filename_producer;
-pub mod imap_reader;
 pub mod importable_mail;
 
 #[cfg(not(test))]
@@ -58,14 +56,9 @@ pub struct ImportMailStateId {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum ImportParams {
-	Imap {
-		imap_import_config: ImapImportConfig,
-	},
-	LocalFile {
-		file_path: String,
-		is_mbox: bool,
-	},
+pub struct LocalFileImportParams {
+	file_path: String,
+	is_mbox: bool,
 }
 
 /// current state of the imap_reader import for this tuta account

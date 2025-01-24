@@ -8,7 +8,6 @@ pub mod logging;
 mod reduce_to_chunks;
 #[cfg(test)]
 mod test_utils;
-mod tuta_imap;
 
 pub trait BufReadExtension {
 	/// Same as `std::io::BufRead::read_until`
