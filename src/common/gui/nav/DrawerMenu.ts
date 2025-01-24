@@ -105,10 +105,12 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							width: 300,
 							lazyButtons: () => [
 								{
+									icon: Icons.SpeechBubbleFill,
 									label: "supportMenu_label",
 									click: () => showSupportDialog(logins),
 								},
 								{
+									icon: Icons.KeyboardFill,
 									label: "keyboardShortcuts_title",
 									click: () => keyManager.openF1Help(true),
 								},

@@ -38,6 +38,9 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
 import { SettingsNavButton, SettingsNavButtonAttrs } from "../../gui/SettingsNavButton.js"
 import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils.js"
+import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { showSupportDialog } from "../../../common/support/SupportDialog.js"
 
 assertMainOrNode()
 
@@ -167,7 +170,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						columnLayout: m(".flex.flex-grow.col.full-height", [
 							this.renderSettingsNavigation(this.userFolders, "userSettings_label"),
 							this.renderLoggedInNavigationLinks(),
-							calendarLocator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain ? this._aboutThisSoftwareLink() : null,
+							this.bottomSection(),
 						]),
 						mobileHeader: () =>
 							m(MobileHeader, {
@@ -189,6 +192,43 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				maxWidth: size.first_col_max_width,
 				headerCenter: "settings_label",
 			},
+		)
+	}
+
+	private bottomSection() {
+		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
+		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
+
+		return m(
+			".pb.pt-l.flex-no-shrink.flex.col.justify-end.items-center.gap-vpad",
+			{
+				style: {
+					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.vpad),
+				},
+			},
+			[
+				// Support button
+				m(BaseButton, {
+					class: "flash flex justify-center center-vertically pt-s pb-s plr-2l border-radius",
+					style: {
+						marginInline: "auto",
+						border: `1px solid ${theme.navigation_button}`,
+						color: theme.navigation_button,
+					},
+					label: "supportMenu_label",
+					text: m(".pl-m", lang.getTranslation("supportMenu_label").text),
+					icon: m(Icon, {
+						icon: Icons.SpeechBubbleFill,
+						size: IconSize.Medium,
+						class: "center-h",
+						container: "div",
+						style: { fill: theme.navigation_button },
+					}),
+					onclick: () => void showSupportDialog(locator.logins),
+				}),
+				// About button
+				isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
+			],
 		)
 	}
 
@@ -445,58 +485,49 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	_aboutThisSoftwareLink(): Children {
 		const label = lang.get("about_label")
 		const versionLabel = `Tuta v${env.versionNumber}`
-		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
-		return m(
-			".pb.pt-l.flex-no-shrink.flex.col.justify-end",
-			{
-				style: {
-					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.vpad),
-				},
-			},
-			[
-				m(
-					"button.text-center.small.no-text-decoration",
-					{
-						style: {
-							backgroundColor: "transparent",
-						},
-						href: "#",
-						"aria-label": label,
-						"aria-description": versionLabel,
-						"aria-haspopup": "dialog",
-						onclick: () => {
-							setTimeout(() => {
-								const dialog = Dialog.showActionDialog({
-									title: "about_label",
-									child: () =>
-										m(AboutDialog, {
-											onShowSetupWizard: () => {
-												dialog.close()
-												calendarLocator.showSetupWizard()
-											},
-										}),
-									allowOkWithReturn: true,
-									okAction: (dialog: Dialog) => dialog.close(),
-									allowCancel: false,
-								})
-							}, 200)
-						},
+		return m("", [
+			m(
+				"button.text-center.small.no-text-decoration",
+				{
+					style: {
+						backgroundColor: "transparent",
 					},
-					[
-						m("", versionLabel),
-						m(
-							".b",
-							{
-								style: {
-									color: theme.navigation_button_selected,
-								},
+					href: "#",
+					"aria-label": label,
+					"aria-description": versionLabel,
+					"aria-haspopup": "dialog",
+					onclick: () => {
+						setTimeout(() => {
+							const dialog = Dialog.showActionDialog({
+								title: "about_label",
+								child: () =>
+									m(AboutDialog, {
+										onShowSetupWizard: () => {
+											dialog.close()
+											calendarLocator.showSetupWizard()
+										},
+									}),
+								allowOkWithReturn: true,
+								okAction: (dialog: Dialog) => dialog.close(),
+								allowCancel: false,
+							})
+						}, 200)
+					},
+				},
+				[
+					m("", versionLabel),
+					m(
+						".b",
+						{
+							style: {
+								color: theme.navigation_button_selected,
 							},
-							label,
-						),
-					],
-				),
-			],
-		)
+						},
+						label,
+					),
+				],
+			),
+		])
 	}
 
 	handleBackButton() {
