@@ -1,7 +1,5 @@
 import { Argument, program } from "commander"
-import { $, cd, usePowerShell } from "zx"
-import path from "node:path"
-import url from "node:url"
+import { usePowerShell } from "zx"
 import { rm } from "node:fs/promises"
 import { NapiCli } from "@napi-rs/cli"
 
@@ -10,7 +8,6 @@ await program
 	.addArgument(new Argument("platform").choices(["win", "linux", "darwin", "native"]).default("native").argOptional())
 	.option("-c, --clean", "clean build artifacts")
 	.option("-r, --release", "run a release build")
-	.option("--greenmail", "also run the greenmail build")
 	.action(run)
 	.parseAsync(process.argv)
 
@@ -35,18 +32,11 @@ function getTargets(platform) {
 	}
 }
 
-async function run(platform, { clean, release, greenmail }) {
+async function run(platform, { clean, release }) {
 	if (clean) {
 		await rm("./build", { recursive: true, force: true })
 		await rm("./target", { recursive: true, force: true })
 		await rm("./dist", { recursive: true, force: true })
-	}
-
-	if (greenmail) {
-		const currentPath = path.dirname(url.fileURLToPath(import.meta.url))
-		cd(path.join(currentPath, "java"))
-		await $`/opt/gradle-8.5/bin/gradle jar`
-		cd("..")
 	}
 
 	const targets = getTargets(platform)

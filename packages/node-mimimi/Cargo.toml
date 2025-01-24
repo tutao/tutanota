@@ -23,17 +23,8 @@ napi = { version = "2.16.13", default-features = false, features = ["napi9", "as
 napi-derive = { version = "2.16.13", optional = true }
 base64 = "0.22.1"
 log = { version = "0.4.22" }
-
-# used for tuta-imap
-serde = { version = "1.0.210", features = ["derive"] }
-rustls = { version = "0.23.13", features = ["std"] }
 regex = "1.11.1"
-
-[dependencies.imap-codec]
-git = "https://github.com/duesee/imap-codec.git"
-rev = "16a5c182285c7a895b06276f68a116caf2cb294f"
-features = ["serde", "starttls", "ext_id", "ext_metadata"]
-
+serde = { version = "1.0.210", features = ["derive"] }
 
 [build-dependencies]
 napi-build = { version = "2.1.4" }
@@ -44,10 +35,6 @@ tokio = { version = "1", features = ["full"] }
 serde_json = "1"
 tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net", "testing"] }
 mail-builder = { version = "0.3.2" }
-
-# tuta-imap
-j4rs = { version = "0.22" }
-lazy_static = { version = "1.5" }
 
 [features]
 default = ["javascript"]

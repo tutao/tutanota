@@ -1,5 +1,4 @@
 use crate::importer::ImportEssential;
-use crate::tuta_imap::client::types::ImapMail;
 use extend_mail_parser::MakeString;
 use mail_parser::decoders::base64::base64_decode;
 use mail_parser::decoders::quoted_printable::quoted_printable_decode;
@@ -656,27 +655,6 @@ enum ContentTransferEncoding {
 	Base64,
 	QuotedPrintable,
 	Other,
-}
-
-impl TryFrom<ImapMail> for ImportableMail {
-	type Error = MailParseError;
-	fn try_from(imap_mail: ImapMail) -> Result<Self, Self::Error> {
-		let ImapMail { rfc822_full } = imap_mail;
-
-		// parse the full mime message
-		let imap_mail = mail_parser::MessageParser::default()
-			.parse(rfc822_full.as_slice())
-			.ok_or(MailParseError::InvalidMimeMessage)?;
-
-		let mut importable_mail = Self::convert_from(&imap_mail, None);
-
-		// example:
-		// add more details from imap if given,
-		importable_mail.is_phishing = false;
-		importable_mail.unread = true;
-
-		Ok(importable_mail)
-	}
 }
 
 #[derive(Debug, Clone, PartialEq)]
