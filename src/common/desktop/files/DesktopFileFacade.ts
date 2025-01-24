@@ -124,7 +124,7 @@ export class DesktopFileFacade implements FileFacade {
 		const outStream = this.fs.createWriteStream(fileUri, { autoClose: false })
 
 		for (const infile of files) {
-			await new Promise((resolve, reject) => {
+			await new Promise<void>((resolve, reject) => {
 				const readStream = this.fs.createReadStream(infile)
 				readStream.on("end", resolve)
 				readStream.on("error", reject)
