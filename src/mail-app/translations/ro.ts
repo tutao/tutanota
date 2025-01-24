@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2025-01-21T15:34:37Z",
+	"updated_at": "2025-01-24T14:39:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1851,6 +1851,7 @@ export default {
 		"viewPrevPeriod_action": "Vezi perioada precedentă",
 		"viewToday_action": "Arată perioada actuală",
 		"view_label": "Vezi",
+		"vitor_alt": "Imagine alb-negru cu contrast ridicat a unui bărbat care soarbe dintr-o ceașcă de cafea știind că datele sale sunt în siguranță.",
 		"waitingForApproval_msg": "Ne pare rău, dar momentan nu ți se permite trimiterea sau primirea e-mailurilor, deoarece contul tău este în curs de aprobare. Acest proces este necesar pentru a oferi o înscriere favorabilă vieții private și pentru a preveni înscrieri în masă. Contul tău va fi aprobat automat după 48 de ore. Îți mulțumim.",
 		"waitingForU2f_msg": "Se așteaptă parola de protecție...",
 		"wantToSendReport_msg": "Ceva neprevăzut nu a mers bine. Vreți să trimiteți un raport cu eroarea?\nPuteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.",

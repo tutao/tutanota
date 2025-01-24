@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-01-21T13:59:36Z",
+	"updated_at": "2025-01-24T14:39:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -724,6 +724,7 @@ export default {
 		"icsInSharingFiles_msg": "Tiedosto(ja) tunnistettiin kalenteritiedostoiksi. Haluatko tuoda ne vai liittää ne?",
 		"importantLabel_label": "Tärkeä",
 		"importCalendar_label": "Tuodaan kalenteria",
+		"importComplete_msg": "Kaikki valitut sähköpostiviestit tuotiin postilaatikkoosi.",
 		"importComplete_title": "Tuonti valmis",
 		"importContactRemoveDuplicatesConfirm_msg": "Synkronoinnin aikaan laitteeltasi löytyi {count} yhteystietojen kaksoiskappaletta. Haluatko poistaa ne laitteeltasi? Huomaathan, että tätä ei voi perua.",
 		"importContactRemoveImportedContactsConfirm_msg": "Haluatko poistaa tuodut yhteystiedot laitteeltasi? Huomaathan, että tätä ei voi perua.",
@@ -736,7 +737,7 @@ export default {
 		"importEventsError_msg": "{amount}/{total} tapahtuman tuonti epäonnistui. ",
 		"importEvents_label": "Tuo tapahtumia",
 		"importFromContactBook_label": "Tuo yhteystietoja laitteeltasi",
-		"importIncomplete_msg": "Jotkin sähköpostiviestit ovat viallisia. Napsauta tarkistaaksesi.",
+		"importIncomplete_msg": "Tuonti on valmis, mutta joitain viestejä ei voitu tuoda.",
 		"importIncomplete_title": "Tuonti ei onnistunut kokonaan",
 		"importInvalidDatesInEvent_msg": "{amount} tapahtumaa {total} tapahtumasta ei tuoda, koska niissä on virheellisiä päivämääriä.",
 		"importPre1970StartInEvent_msg": "{amount} tapahtumaa {total} tapahtumasta ei tuoda, koska niissä on päivämääriä ennen vuotta 1970.",
@@ -1846,6 +1847,7 @@ export default {
 		"viewPrevPeriod_action": "Katso edellinen jakso",
 		"viewToday_action": "Tämän hetken tarkastelu",
 		"view_label": "Näkymä",
+		"vitor_alt": "Mustavalkoinen, korkeakontrastikuva miehestä, joka juo kahvia kupista ja tietää tietonsa olevan turvassa.",
 		"waitingForApproval_msg": "Valitettavasti et voi tällä hetkellä lähettää tai vastaanottaa sähköposteja, koska tilisi pitää erikseen hyväksyä. Tätä menettelytapaa tarvitaan yksityisyyden takaavan rekisteröinnin varmistamiseksi ja massarekisteröintien estämiseksi. Yleensä tilisi hyväksytään automaattisesti kahden vuorokauden kuluttua. Kiitos kärsivällisyydestäsi!",
 		"waitingForU2f_msg": "Odotetaan turva-avainta...",
 		"wantToSendReport_msg": "Jotakin odottamatonta meni pieleen. Haluatko lähettää virheilmoituksen?  Voit liittää ilmoitukseen myös oman viestisi auttaaksesi meitä korjaamaan virheen.",

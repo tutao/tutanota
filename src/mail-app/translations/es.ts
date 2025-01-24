@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-01-21T13:59:36Z",
+	"updated_at": "2025-01-24T14:39:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1851,6 +1851,7 @@ export default {
 		"viewPrevPeriod_action": "Ver periodo anterior",
 		"viewToday_action": "Ver periodo actual",
 		"view_label": "Ver",
+		"vitor_alt": "Imagen en blanco y negro de alto contraste de un hombre tomando una taza de café, sabiendo que sus datos están seguros.",
 		"waitingForApproval_msg": "Lo sentimos, actualmente no tienes permitido enviar o recibir correos debido a que tu cuenta está pendiente de aprobación. Este proceso es necesario para ofrecer un registro amigable con la privacidad y prevenir al mismo tiempo los registros masivos. Tu cuenta será aprobada normalmente, de forma automática, en un lapso de 48 horas. ¡Gracias por tu paciencia!",
 		"waitingForU2f_msg": "Esperando la clave de seguridad...",
 		"wantToSendReport_msg": "Algo inesperado salió mal. ¿Deseas enviar un informe de errores? Puedes añadir un mensaje que nos ayude a corregir este error.",

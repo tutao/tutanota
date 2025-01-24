@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-01-21T13:59:36Z",
+	"updated_at": "2025-01-24T14:39:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -980,7 +980,7 @@ export default {
 		"mailImportStatusPausing_label": "Pauza...",
 		"mailImportStatusResuming_label": "Pokračování...",
 		"mailImportStatusRunning_label": "Importování e-mailů...",
-		"mailImportStatusStarting_label": "Začíná...",
+		"mailImportStatusStarting_label": "Začíná se...",
 		"mailImportTargetFolder_label": "Import do složky",
 		"mailMoved_msg": "Tento e-mail byl přesunut do jiné složky.",
 		"mailName_label": "Jméno odesílatele",
@@ -1847,6 +1847,7 @@ export default {
 		"viewPrevPeriod_action": "Zobrazit předchozí období",
 		"viewToday_action": "Zobrazit aktuální období",
 		"view_label": "Zobrazit",
+		"vitor_alt": "Černobílý kontrastní obrázek muže, který usrkává z šálku kávy a ví, že jeho data jsou v bezpečí.",
 		"waitingForApproval_msg": "Je nám líto, ale momentálně nemáte povoleno posílat nebo přijímat e-maily, protože váš účet musí být schválen. Tento proces je nezbytný, abychom mohli nabízet registraci v soukromí a předešli hromadným registracím v jednu chvíli. Váš účet bude automaticky schválen do 48 hodin. Děkujeme vám za vaši trpělivost!",
 		"waitingForU2f_msg": "Čeká se na bezpečnostní klíč...",
 		"wantToSendReport_msg": "Vyskytla se neočekávaná chyba. Chceš odeslat zprávu o chybě? Můžeš přidat zprávu a pomoci nám tak chybu odstranit.",

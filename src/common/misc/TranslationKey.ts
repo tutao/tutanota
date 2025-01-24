@@ -594,6 +594,7 @@ export type TranslationKeyType =
 	| "exportFinished_label"
 	| "exportingEmails_label"
 	| "exportMailbox_label"
+	| "exportRunningElsewhere_label"
 	| "exportUsers_action"
 	| "exportVCard_action"
 	| "export_action"
@@ -1831,6 +1832,7 @@ export type TranslationKeyType =
 	| "viewPrevPeriod_action"
 	| "viewToday_action"
 	| "view_label"
+	| "vitor_alt"
 	| "waitingForApproval_msg"
 	| "waitingForU2f_msg"
 	| "wantToSendReport_msg"
@@ -1872,7 +1874,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	| "vitor_alt"
 	// Put in temporarily, will be removed soon
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-01-21T17:13:44Z",
+	"updated_at": "2025-01-24T14:39:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -376,7 +376,7 @@ export default {
 		"credentialsEncryptionModeDeviceCredentials_label": "系統密碼或者生物認證",
 		"credentialsEncryptionModeDeviceLockHelp_msg": "DEPRECATED do not translate",
 		"credentialsEncryptionModeDeviceLock_label": "自動解鎖",
-		"credentialsEncryptionModeSelection_msg": "登入資料已加密儲存在您的裝置上。您將來要如何解鎖？",
+		"credentialsEncryptionModeSelection_msg": "登入資料已加密儲存在您的裝置上。您將來要如何解鎖該等資料？",
 		"credentialsEncryptionMode_label": "解鎖方式",
 		"credentialsKeyInvalidated_msg": "系統鑰匙圈已失效。刪除已儲存的登入資料中。",
 		"creditCardCardHolderName_label": "持卡人姓名",
@@ -1845,6 +1845,7 @@ export default {
 		"viewPrevPeriod_action": "查看上期",
 		"viewToday_action": "查看本期",
 		"view_label": "查看",
+		"vitor_alt": "黑白高對比的圖像，圖像中一個男人在喝咖啡，他知道他的數據是安全的。",
 		"waitingForApproval_msg": "抱歉，您目前不能發送或接收電郵，因為您的帳戶被標記為尚待核准。此程序有助我們提供私隱友善的註冊流程，同時預防大規模帳戶註冊。正常情況下，您的帳戶將會在48小時後自動獲批。謝謝您的耐心！",
 		"waitingForU2f_msg": "等待安全鑰匙中…",
 		"wantToSendReport_msg": "發生未預期的問題。您想發送錯誤報告嗎？您可以附加訊息來幫助我們修正此錯誤。",
