@@ -643,9 +643,9 @@ export class MailIndexer {
 	async processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
 		await promiseMap(events, async (event) => {
-			// we can only process update event,
-			// and we don't have to look for delete
-			if (event.operation === OperationType.UPDATE) {
+			// we can only process create and update events (create is because of EntityEvent optimization
+			// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
+			if (event.operation === OperationType.CREATE || event.operation === OperationType.UPDATE) {
 				let mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId])
 
 				await this.preloadMails(mailIds)
