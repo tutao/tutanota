@@ -70,6 +70,9 @@ import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.j
 import { DesktopMailImportSettingsViewer } from "./DesktopMailImportSettingsViewer.js"
 import { mailLocator } from "../mailLocator"
 import { WebMailImportSettingsViewer } from "./WebMailImportSettingsViewer.js"
+import { BaseButton } from "../../common/gui/base/buttons/BaseButton"
+import { showSupportDialog } from "../../common/support/SupportDialog"
+import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { MailExportViewer } from "./MailExportViewer"
 
 assertMainOrNode()
@@ -282,7 +285,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 										this._renderSidebarSectionChildren(this._knowledgeBaseFolders),
 								  )
 								: null,
-							locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain ? this._aboutThisSoftwareLink() : null,
+							this._bottomSection(),
 						]),
 						ariaLabel: "settings_label",
 					})
@@ -743,53 +746,79 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		return this.viewSlider
 	}
 
+	_bottomSection(): Children {
+		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
+
+		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end.gap-vpad", [
+			// Support button
+			m(BaseButton, {
+				class: "flash flex justify-center center-vertically pt-s pb-s plr-2l border-radius",
+				style: {
+					marginInline: "auto",
+					border: `1px solid ${theme.navigation_button}`,
+					color: theme.navigation_button,
+				},
+				label: "supportMenu_label",
+				text: m(".pl-m", lang.getTranslation("supportMenu_label").text),
+				icon: m(Icon, {
+					icon: Icons.SpeechBubbleFill,
+					size: IconSize.Medium,
+					class: "center-h",
+					container: "div",
+					style: { fill: theme.navigation_button },
+				}),
+				onclick: () => void showSupportDialog(locator.logins),
+			}),
+			// About button
+			isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
+		])
+	}
+
 	_aboutThisSoftwareLink(): Children {
 		const label = lang.get("about_label")
 		const versionLabel = `Tuta v${env.versionNumber}`
-		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
-			m(
-				"button.text-center.small.no-text-decoration",
-				{
-					style: {
-						backgroundColor: "transparent",
-					},
-					href: "#",
-					"aria-label": label,
-					"aria-description": versionLabel,
-					"aria-haspopup": "dialog",
-					onclick: () => {
-						this.viewSlider.focusNextColumn()
-						setTimeout(() => {
-							const dialog = Dialog.showActionDialog({
-								title: "about_label",
-								child: () =>
-									m(AboutDialog, {
-										onShowSetupWizard: () => {
-											dialog.close()
-											locator.showSetupWizard()
-										},
-									}),
-								allowOkWithReturn: true,
-								okAction: (dialog: Dialog) => dialog.close(),
-								allowCancel: false,
-							})
-						}, 200)
-					},
+		return m(
+			"button.text-center.small.no-text-decoration",
+			{
+				style: {
+					backgroundColor: "transparent",
 				},
-				[
-					m("", versionLabel),
-					m(
-						".b",
-						{
-							style: {
-								color: theme.navigation_button_selected,
-							},
+				href: "#",
+				"aria-label": label,
+				"aria-description": versionLabel,
+				"aria-haspopup": "dialog",
+				onclick: () => {
+					this.viewSlider.focusNextColumn()
+					setTimeout(() => {
+						const dialog = Dialog.showActionDialog({
+							title: "about_label",
+							child: () =>
+								m(AboutDialog, {
+									onShowSetupWizard: () => {
+										dialog.close()
+										locator.showSetupWizard()
+									},
+								}),
+							allowOkWithReturn: true,
+							okAction: (dialog: Dialog) => dialog.close(),
+							allowCancel: false,
+						})
+					}, 200)
+				},
+			},
+			[
+				m("", versionLabel),
+				m(
+					".b",
+					{
+						style: {
+							color: theme.navigation_button_selected,
 						},
-						label,
-					),
-				],
-			),
-		])
+					},
+					label,
+				),
+			],
+		)
 	}
 
 	async _makeTemplateFolders(): Promise<Array<SettingsFolder<TemplateGroupInstance>>> {
