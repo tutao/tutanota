@@ -80,6 +80,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				this.mailViewModel.getSelectedMailSetKind() === MailSetKind.LABEL,
 				(mail) => this.mailViewModel.getLabelsForMail(mail),
 				(entity) => this.attrs.onSingleExclusiveSelection(entity),
+				(entity) => this.attrs.onRangeSelectionTowards(entity),
 			)
 			m.render(dom, mailRow.render())
 			return mailRow

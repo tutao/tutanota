@@ -24,6 +24,7 @@ import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label"
 import { colorForBg } from "../../../common/gui/base/GuiUtils"
 import { theme } from "../../../common/gui/theme"
+import { ChangeEvent } from "rollup"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -64,11 +65,13 @@ export class MailRow implements VirtualRow<Mail> {
 	private checkboxDom!: HTMLInputElement
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
 	private selectionSetter!: SelectableRowSelectedSetter
+	private shiftKey: boolean = false
 
 	constructor(
 		private readonly showFolderIcon: boolean,
 		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailFolder>,
 		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
+		private readonly onRangeSelection?: (mail: Mail) => unknown,
 	) {
 		this.top = 0
 		this.entity = null
@@ -226,10 +229,17 @@ export class MailRow implements VirtualRow<Mail> {
 						},
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
+							this.shiftKey = e.shiftKey
 							// e.redraw = false
 						},
 						onchange: () => {
-							if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
+							if (this.entity) {
+								if (this.shiftKey && this.onRangeSelection != null) {
+									this.onRangeSelection(this.entity)
+								} else {
+									this.onSelected(this.entity, this.checkboxDom.checked)
+								}
+							}
 						},
 						oncreate: (vnode) => {
 							this.checkboxDom = vnode.dom as HTMLInputElement
