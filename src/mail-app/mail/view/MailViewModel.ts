@@ -516,7 +516,10 @@ export class MailViewModel {
 						this.stickyMailId = null
 					}
 				}
-			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update) && update.operation == OperationType.UPDATE) {
+			} else if (
+				isUpdateForTypeRef(ImportMailStateTypeRef, update) &&
+				(update.operation == OperationType.CREATE || update.operation == OperationType.UPDATE)
+			) {
 				importMailStateUpdates.push(update)
 			}
 
