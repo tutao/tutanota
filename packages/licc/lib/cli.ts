@@ -60,7 +60,9 @@ await program
 
 async function run(from_dir: string, conf: Record<Platform, string>): Promise<void> {
 	const inputFiles = await globby(["*/**/*.json", "*/**/*.json5"].map((glob) => path.join(process.cwd(), from_dir, glob)))
-	const inputMap = new Map(inputFiles.map((n: string) => [path.basename(n, n.endsWith("5") ? ".json5" : ".json"), fs.readFileSync(n, "utf8")]))
+	const inputMap: Map<string, string> = new Map(
+		inputFiles.map((n: string) => [path.basename(n, n.endsWith("5") ? ".json5" : ".json"), fs.readFileSync(n, "utf8")]),
+	)
 
 	// doing it here because some platforms generate into the same dir.
 	for (let outDir of Object.values(conf)) {
