@@ -42,7 +42,11 @@ export class LoginController {
 	private fullyLoggedIn: boolean = false
 	private atLeastPartiallyLoggedIn: boolean = false
 
-	constructor(private readonly loginFacade: LoginFacade, private readonly loginListener: lazyAsync<PageContextLoginListener>) {}
+	constructor(
+		private readonly loginFacade: LoginFacade,
+		private readonly loginListener: lazyAsync<PageContextLoginListener>,
+		private readonly resetAppState: () => Promise<unknown>,
+	) {}
 
 	init() {
 		this.waitForFullLogin().then(async () => {
@@ -158,17 +162,26 @@ export class LoginController {
 			return resumeResult
 		} else {
 			const { user, userGroupInfo, sessionId } = resumeResult.data
-			await this.onPartialLoginSuccess(
-				{
-					user,
-					accessToken: credentials.accessToken,
-					userGroupInfo,
-					sessionId,
-					sessionType: SessionType.Persistent,
-					loginUsername: credentials.login,
-				},
-				SessionType.Persistent,
-			)
+			try {
+				await this.onPartialLoginSuccess(
+					{
+						user,
+						accessToken: credentials.accessToken,
+						userGroupInfo,
+						sessionId,
+						sessionType: SessionType.Persistent,
+						loginUsername: credentials.login,
+					},
+					SessionType.Persistent,
+				)
+			} catch (e) {
+				// Some parts of initialization can fail and we should reset the state, both on this side and the worker
+				// side, otherwise login cannot be attempted again
+				console.log("Error finishing login, logging out now!", e)
+				await this.logout(false)
+				throw e
+			}
+
 			return { type: "success" }
 		}
 	}
@@ -220,18 +233,26 @@ export class LoginController {
 		}
 	}
 
+	/**
+	 * Reset login state, delete session, if not {@link SessionType.Persistent}.
+	 * @param sync whether to try and close the session before the window is closed
+	 */
 	async logout(sync: boolean): Promise<void> {
+		// make all parts of LoginController usable for another login
 		if (this.userController) {
 			await this.userController.deleteSession(sync)
-			this.userController = null
-			this.partialLogin = defer()
-			this.fullyLoggedIn = false
-			const loginListener = await this.loginListener()
-			loginListener.reset()
-			this.init()
 		} else {
 			console.log("No session to delete")
 		}
+		// Using this over LoginFacade.resetSession() to reset all app state that might have been already bound to
+		// a user on the worker side.
+		await this.resetAppState()
+		this.userController = null
+		this.partialLogin = defer()
+		this.fullyLoggedIn = false
+		const loginListener = await this.loginListener()
+		loginListener.reset()
+		this.init()
 	}
 
 	async _determineIfWhitelabel(): Promise<void> {

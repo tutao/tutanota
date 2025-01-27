@@ -251,7 +251,6 @@ export class UserController {
 			if (this.sessionType !== SessionType.Persistent) {
 				await locator.loginFacade.deleteSession(this.accessToken).catch((e) => console.log("Error ignored on Logout:", e))
 			}
-			await locator.worker.reset()
 		}
 	}
 

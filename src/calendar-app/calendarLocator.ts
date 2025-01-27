@@ -590,7 +590,11 @@ class CalendarLocator {
 		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
-		this.logins = new LoginController(this.loginFacade, async () => this.loginListener)
+		this.logins = new LoginController(
+			this.loginFacade,
+			async () => this.loginListener,
+			() => this.worker.reset(),
+		)
 		// Should be called elsewhere later e.g. in CommonLocator
 		this.logins.init()
 		this.eventController = new EventController(calendarLocator.logins)
