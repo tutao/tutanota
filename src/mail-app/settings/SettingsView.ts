@@ -177,7 +177,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		this._userFolders.push(
 			new SettingsFolder(
-				"mailExport_label",
+				"mailExportSettings_label",
 				() => Icons.Export,
 				"mailExport",
 				() => new MailExportViewer(),
