@@ -250,15 +250,17 @@ impl ImportableMail {
 				.expect("Expected multipart part to be there?");
 
 			// for now, we can only decide between alternative between text/plain and text/html
-			let alternative_content_type = alternative_part
-				.content_type()
-				.expect("All multipart alternative should have a Content-Type header");
-
 			// todo: handle other content type. example: choosing one image from list of alternatives?
-			let is_text_plain = alternative_content_type.c_type == "text"
-				&& alternative_content_type.subtype() == Some("plain");
-			let is_text_html = alternative_content_type.c_type == "text"
-				&& alternative_content_type.subtype() == Some("html");
+			let (is_text_plain, is_text_html) = alternative_part
+				.content_type()
+				.map(|content_type| {
+					let is_plain = content_type.c_type == "plain";
+					let is_text_plain = is_plain && content_type.subtype() == Some("text");
+					let is_text_html = is_plain && content_type.subtype() == Some("text");
+
+					(is_text_plain, is_text_html)
+				})
+				.unwrap_or((false, false));
 
 			if is_text_plain {
 				// always ignore plain. we can display html everytime
@@ -272,12 +274,9 @@ impl ImportableMail {
 				}
 				best_alternative_yet = Some(*multipart_id);
 			} else {
-				// "Can only choose multipart/alternative between text/plain and text/html"
-				// todo: this is not a good case
-				if let Some(last_choice) = best_alternative_yet {
-					multipart_ignored_alternative.insert(last_choice);
-				}
-				best_alternative_yet = Some(*multipart_id);
+				// Can only choose multipart/alternative between text/plain and text/html
+				// if there is any other format, ignore it
+				multipart_ignored_alternative.insert(*multipart_id);
 			}
 		}
 
@@ -285,19 +284,17 @@ impl ImportableMail {
 		// don't have to do anything with chosen multipart,
 		// it will anyway be included in next iteration
 		if best_alternative_yet.is_none() {
-			let last_choice = multi_part_ids
-				.last()
-				.expect("Wait. how can i choose between empty sets of alternatives?");
-
-			// do we remove the last_choice from ignored list?
-			// the problem is:
-			// will the same alternative part can be referenced by multiple multipart block?
-			// if so, if we remove last_choice now, and this was also ignored by another multipart,
-			// we will display it anyhow. probably this is right, right?
-			assert!(
-				multipart_ignored_alternative.remove(last_choice),
-				"if we did not put last_choice in ignore list. why best_alternative_yet is none?"
-			);
+			if let Some(last_choice) = multi_part_ids.last() {
+				// do we remove the last_choice from ignored list?
+				// the problem is:
+				// will the same alternative part can be referenced by multiple multipart block?
+				// if so, if we remove last_choice now, and this was also ignored by another multipart,
+				// we will display it anyhow. probably this is right, right?
+				assert!(
+					multipart_ignored_alternative.remove(last_choice),
+					"if we did not put last_choice in ignore list. why best_alternative_yet is none?"
+				);
+			}
 		}
 
 		// ps: we assume that the order is:
