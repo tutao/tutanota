@@ -127,6 +127,7 @@ export class CalendarEventPopup implements ModalComponent {
 						// use the version of the event the popup was opened with, which means the next
 						// click uses an outdated version.
 						participation: this.model.getParticipationSetterAndThen(() => this.close()),
+						calendarEventPreviewModel: this.model,
 					} satisfies EventPreviewViewAttrs),
 				]),
 			],
