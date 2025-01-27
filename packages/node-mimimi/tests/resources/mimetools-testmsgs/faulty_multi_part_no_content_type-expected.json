@@ -1,0 +1,34 @@
+{
+  "exception" : null,
+  "result" : {
+    "id" : "CAP4CaRo=fQu-7TkamEOH87i2CQyNznk6tUoUsoHpV5aU-TMqKQ@mail.gmail.com",
+    "boundary" : null,
+    "alternativeBoundary" : "0000000000002f88560628478f99",
+    "sender" : {
+      "name" : "Bed: für Test!",
+      "mailAddress" : "this-is-a-test-email-address@gmail.com",
+      "valid" : true
+    },
+    "toRecipients" : [ {
+      "name" : "",
+      "mailAddress" : "this-is-a-test-email-address@tutao.de",
+      "valid" : true
+    } ],
+    "ccRecipients" : [ ],
+    "bccRecipients" : [ ],
+    "replyTo" : [ ],
+    "inReplyTo" : null,
+    "references" : [ ],
+    "autoSubmitted" : null,
+    "sentDate" : 1733137670000,
+    "subject" : "test",
+    "plainBodyText" : "\r\n<div dir=\"ltr\">test<br></div>\r\n",
+    "htmlBodyText" : null,
+    "attachedMessages" : [ ],
+    "attachedFiles" : [ ],
+    "mailHeaders" : "From 1817326565723760995@xxx Mon Dec 02 11:07:50 +0000 2024\nX-GM-THRID: 1817326560552955180\nX-Gmail-Labels: Archived,Sent\nMIME-Version: 1.0\nDate: Mon, 2 Dec 2024 12:07:50 +0100\nMessage-ID: <CAP4CaRo=fQu-7TkamEOH87i2CQyNznk6tUoUsoHpV5aU-TMqKQ@mail.gmail.com>\nSubject: test\nFrom: \"Bed: für Test!\" <this-is-a-test-email-address@gmail.com>\nTo: this-is-a-test-email-address@tutao.de\nContent-Type: multipart/alternative; boundary=\"0000000000002f88560628478f99\"",
+    "spfResult" : "None",
+    "listUnsubscribe" : false,
+    "mailAuthenticationResult" : null
+  }
+}
