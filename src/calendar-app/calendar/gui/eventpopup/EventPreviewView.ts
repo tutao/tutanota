@@ -5,7 +5,7 @@ import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { getRepeatEndTimeForDisplay, getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
+import { getRepeatEndTimeForDisplay, getTimeZone, RENDER_TYPE_TRANSLATION_MAP, RenderType } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
@@ -21,8 +21,10 @@ import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 
 import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
+import { px, size } from "../../../../common/gui/size.js"
 
 export type EventPreviewViewAttrs = {
+	calendarEventPreviewModel: CalendarEventPreviewViewModel
 	event: Omit<CalendarEvent, "description">
 	sanitizedDescription: string | null
 	participation?: ReturnType<typeof CalendarEventPreviewViewModel.prototype.getParticipationSetterAndThen>
@@ -82,13 +84,20 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	view(vnode: Vnode<EventPreviewViewAttrs>): Children {
-		const { event, sanitizedDescription, participation } = vnode.attrs
+		const { event, sanitizedDescription, participation, calendarEventPreviewModel } = vnode.attrs
 		const attendees = prepareAttendees(event.attendees, event.organizer)
 		const eventTitle = getDisplayEventTitle(event.summary)
 
+		const renderInfo = calendarEventPreviewModel.getCalendarRenderInfo()
+
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
-			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)]),
-			this.renderRow(Icons.Time, [formatEventDuration(event, getTimeZone(), false), this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))]),
+			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)], true, true),
+			this.renderCalendar(renderInfo.name, renderInfo.color, RENDER_TYPE_TRANSLATION_MAP.get(renderInfo.renderType) ?? "yourCalendars_label"),
+			this.renderRow(
+				Icons.Time,
+				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
+				true,
+			),
 			this.renderLocation(event.location),
 			this.renderAttendeesSection(attendees, participation),
 			this.renderAttendanceSection(event, attendees, participation),
@@ -96,14 +105,11 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		])
 	}
 
-	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft?: boolean): Children {
-		return m(
-			".flex.pb-s",
-			{
-				class: isAlignedLeft ? "items-start" : "items-center",
-			},
-			[this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: "2px" } : undefined), m(".selectable.text-break.full-width", children)],
-		)
+	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft: boolean = false, isEventTitle: boolean = false): Children {
+		return m(".flex.pb-s", [
+			this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: isEventTitle ? "6px" : "2px" } : undefined),
+			m(".selectable.text-break.full-width.align-self-center", children),
+		])
 	}
 
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
@@ -201,6 +207,29 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	private renderDescription(sanitizedDescription: string | null) {
 		if (sanitizedDescription == null || sanitizedDescription.length === 0) return null
 		return this.renderRow(Icons.AlignLeft, [m.trust(sanitizedDescription)], true)
+	}
+
+	private renderCalendar(calendarName: string, calendarColor: string, calendarRenderType: TranslationKey) {
+		return m(".flex.pb-s", [
+			m(
+				".flex.items-center.justify-center.mr",
+				{
+					style: {
+						width: "24px",
+						height: "24px",
+					},
+				},
+				m("", {
+					style: {
+						borderRadius: "50%",
+						width: px(size.hpad_large),
+						height: px(size.hpad_large),
+						backgroundColor: calendarColor,
+					},
+				}),
+			),
+			m(".flex.col", [calendarName, m("small.text-fade", lang.get(calendarRenderType!))]),
+		])
 	}
 }
 

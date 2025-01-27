@@ -12,7 +12,7 @@ import {
 	Require,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
-import { CalendarMethod, EXTERNAL_CALENDAR_SYNC_INTERVAL, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { CalendarMethod, defaultCalendarColor, EXTERNAL_CALENDAR_SYNC_INTERVAL, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
 import { EventController } from "../../../common/api/main/EventController"
 import {
 	createDateWrapper,
@@ -76,17 +76,21 @@ import {
 	assignEventId,
 	CalendarEventValidity,
 	checkEventValidity,
+	getCalendarRenderType,
 	getTimeZone,
 	hasSourceUrl,
+	isClientOnlyCalendar,
+	RenderType,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
+import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
+import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
+import { getClientOnlyCalendars } from "../gui/CalendarGuiUtils.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -96,6 +100,12 @@ export type CalendarInfo = {
 	shared: boolean
 	userIsOwner: boolean
 	isExternal: boolean
+}
+
+export type CalendarRenderInfo = {
+	name: string
+	color: string
+	renderType: RenderType
 }
 
 export function assertEventValidity(event: CalendarEvent) {
@@ -168,6 +178,31 @@ export class CalendarModel {
 
 	getCalendarInfosStream(): Stream<ReadonlyMap<Id, CalendarInfo>> {
 		return this.calendarInfos.stream
+	}
+
+	getCalendarRenderInfo(calendarId: Id, existingGroupSettings?: GroupSettings | null): CalendarRenderInfo {
+		if (isClientOnlyCalendar(calendarId)) {
+			const clientOnlyCalendar = getClientOnlyCalendars(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars()).find(
+				(calendar) => calendar.id === calendarId,
+			)
+			return {
+				name: clientOnlyCalendar?.name ?? "",
+				color: clientOnlyCalendar?.color ?? "",
+				renderType: RenderType.ClientOnly,
+			}
+		}
+
+		const calendarInfo = this.calendarInfos.stream().get(calendarId)
+		if (!calendarInfo) throw new Error("Calendar infos not loaded")
+		let groupSettings = existingGroupSettings
+		if (!groupSettings) {
+			const { userSettingsGroupRoot } = this.logins.getUserController()
+			groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
+		}
+		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
+		const name = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), calendarInfo.shared)
+		const renderType = getCalendarRenderType(calendarInfo)
+		return { name, color, renderType }
 	}
 
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
