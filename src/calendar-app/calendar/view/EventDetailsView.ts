@@ -32,6 +32,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 					event: this.model.calendarEvent,
 					sanitizedDescription: this.model.getSanitizedDescription(),
 					participation: this.model.getParticipationSetterAndThen(() => null),
+					calendarEventPreviewModel: this.model,
 				}),
 			),
 			m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton()]),
