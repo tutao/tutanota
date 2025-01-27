@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-26T11:15:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -615,6 +615,7 @@ export default {
 		"exportFinished_label": "Exportación completada",
 		"exportingEmails_label": "Exportando emails: {count}",
 		"exportMailbox_label": "Exportar buzón",
+		"exportRunningElsewhere_label": "La exportación puede estar ejecutándose en otra ventana.",
 		"exportUsers_action": "Exportar usuarios",
 		"exportVCard_action": "Exportar vCard",
 		"export_action": "Exportar",

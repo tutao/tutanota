@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-24T16:36:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -613,6 +613,7 @@ export default {
 		"exportFinished_label": "Експорт виконано",
 		"exportingEmails_label": "Експорт листів: {count}",
 		"exportMailbox_label": "Експорт поштової скриньки",
+		"exportRunningElsewhere_label": "Експорт може виконуватися в іншому вікні.",
 		"exportUsers_action": "Експортувати користувачів",
 		"exportVCard_action": "Експортувати vCard",
 		"export_action": "Експорт",
@@ -955,7 +956,7 @@ export default {
 		"mailExportMode_label": "Формат файлу для експорту електронної пошти",
 		"mailExportOnlyOnDesktop_label": "Наразі експорт електронних листів доступний лише в нашому настільному клієнті.",
 		"mailExportProgress_msg": "Підготовка {current} з {total} листів до експорту...",
-		"mailExport_label": "Експорт електронної пошти",
+		"mailExport_label": "Експорт пошти",
 		"mailFolder_label": "Папка е-пошти",
 		"mailHeaders_title": "Заголовки електронної пошти",
 		"mailImportDownloadDesktopClient_label": "Завантажити клієнт для настільних ПК",

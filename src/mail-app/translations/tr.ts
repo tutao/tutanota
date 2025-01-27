@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-25T07:46:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -615,6 +615,7 @@ export default {
 		"exportFinished_label": "Dışa aktarma tamamlandı",
 		"exportingEmails_label": "E-postalar dışa aktarılıyor: {count}",
 		"exportMailbox_label": "Posta Kutusunu Dışa Aktar",
+		"exportRunningElsewhere_label": "Dışa aktamalar başka bir pencerede çalışıyor olabilir.",
 		"exportUsers_action": "Kullanıcıları dışa aktar",
 		"exportVCard_action": "vCard'ı dışa aktar",
 		"export_action": "Dışa aktar",

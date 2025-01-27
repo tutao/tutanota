@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-25T00:30:23Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -611,6 +611,7 @@ export default {
 		"exportFinished_label": "Vienti on valmis",
 		"exportingEmails_label": "Sähköposteja viedään: {count}",
 		"exportMailbox_label": "Vie postilaatikko",
+		"exportRunningElsewhere_label": "Toisessa ikkunassa saattaa olla vienti meneillään.",
 		"exportUsers_action": "Vie käyttäjiä",
 		"exportVCard_action": "Vie tietoja vCard-muodossa",
 		"export_action": "Vie talteen",

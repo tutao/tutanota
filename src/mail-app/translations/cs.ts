@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-27T07:56:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -613,6 +613,7 @@ export default {
 		"exportFinished_label": "Export dokončen",
 		"exportingEmails_label": "Exportované e-maily: {count}",
 		"exportMailbox_label": "Exportovat schránku",
+		"exportRunningElsewhere_label": "Export může probíhat v jiném okně.",
 		"exportUsers_action": "Exportovat uživatele",
 		"exportVCard_action": "Exportovat vCard",
 		"export_action": "Exportovat",

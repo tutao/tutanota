@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-24T16:03:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -611,6 +611,7 @@ export default {
 		"exportFinished_label": "Exporten slutförd",
 		"exportingEmails_label": "Exporterar mejl: {count}",
 		"exportMailbox_label": "Exportera brevlåda",
+		"exportRunningElsewhere_label": "Exporten kan vara igång i ett annat fönster.",
 		"exportUsers_action": "Exportera användare",
 		"exportVCard_action": "Exportera vCard",
 		"export_action": "Exportera",

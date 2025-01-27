@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-01-24T14:39:30Z",
+	"updated_at": "2025-01-26T09:38:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -617,6 +617,7 @@ export default {
 		"exportFinished_label": "Zakończono eksportowanie",
 		"exportingEmails_label": "Eksportowanie wiadomości e-mail: {count}",
 		"exportMailbox_label": "Eksportuj skrzynkę pocztową",
+		"exportRunningElsewhere_label": "Eksportowanie może działać w innym oknie.",
 		"exportUsers_action": "Eksportuj użytkowników",
 		"exportVCard_action": "Eksportuj vCard",
 		"export_action": "Eksportuj",
@@ -1851,6 +1852,7 @@ export default {
 		"viewPrevPeriod_action": "Pokaż poprzedni okres",
 		"viewToday_action": "Pokaż bieżący okres",
 		"view_label": "Widok",
+		"vitor_alt": "Czarno-biały, kontrastowy obraz mężczyzny popijającego kawę, wiedzącego, że jego dane są bezpieczne.",
 		"waitingForApproval_msg": "Niestety, obecnie nie możesz wysyłać ani odbierać wiadomości ponieważ twoje konto zostało oznaczone do zatwierdzenia. Ten proces jest konieczny, aby zapewnić rejestrację przyjazną dla prywatności i jednocześnie zapobiec masowym rejestracjom. Twoje konto zostanie automatycznie zatwierdzone po 48 godzinach. Dziękujemy za cierpliwość!",
 		"waitingForU2f_msg": "Czekanie na klucz bezpieczeństwa...",
 		"wantToSendReport_msg": "Coś poszło nie tak. Chcesz wysłać raport o błędzie? Możesz dodać wiadomość, która pomoże nam naprawić ten błąd.",
