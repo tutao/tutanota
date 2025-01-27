@@ -6,6 +6,7 @@ import {
 	downcast,
 	filterInt,
 	findAllAndRemove,
+	freezeMap,
 	getFirstOrThrow,
 	getFromMap,
 	getStartOfDay,
@@ -48,6 +49,7 @@ import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/Calend
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
+import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -982,6 +984,40 @@ export enum CalendarType {
 	NORMAL,
 	URL, // External calendar
 	CLIENT_ONLY,
+}
+
+export enum RenderType {
+	Private,
+	Shared,
+	External,
+	ClientOnly,
+}
+
+export const RENDER_TYPE_TRANSLATION_MAP: ReadonlyMap<RenderType, TranslationKey> = freezeMap(
+	new Map([
+		[RenderType.Private, "yourCalendars_label"],
+		[RenderType.External, "calendarSubscriptions_label"],
+		[RenderType.Shared, "calendarShared_label"],
+	]),
+)
+
+export function isPrivateRenderType(calendarInfo: CalendarInfo) {
+	return calendarInfo.userIsOwner && !calendarInfo.isExternal && !isClientOnlyCalendar(calendarInfo.group._id)
+}
+
+export function isSharedRenderType(calendarInfo: CalendarInfo) {
+	return !calendarInfo.userIsOwner
+}
+
+export function isExternalRenderType(calendarInfo: CalendarInfo) {
+	return calendarInfo.userIsOwner && calendarInfo.isExternal
+}
+
+export function getCalendarRenderType(calendarInfo: CalendarInfo): RenderType {
+	if (isPrivateRenderType(calendarInfo)) return RenderType.Private
+	if (isSharedRenderType(calendarInfo)) return RenderType.Shared
+	if (isExternalRenderType(calendarInfo)) return RenderType.External
+	throw new Error("Unknown calendar Render Type")
 }
 
 export function isClientOnlyCalendar(calendarId: Id) {
