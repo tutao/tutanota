@@ -268,11 +268,8 @@ impl KeyLoaderFacade {
 				reason: "not yet implemented".to_string(),
 			});
 		}
-		let key_pair = Self::validate_and_decrypt_key_pair(
-			group.currentKeys,
-			group_id,
-			current_group_key.object,
-		)?;
+		let key_pair =
+			Self::validate_and_decrypt_key_pair(group.currentKeys, group_id, &current_group_key)?;
 		Ok(Versioned {
 			object: key_pair,
 			version: convert_version_to_u64(group.groupKeyVersion),
@@ -287,14 +284,14 @@ impl KeyLoaderFacade {
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		let key_pair_group_id = &group._id.clone().unwrap();
 		let key_pair: Option<KeyPair>;
-		let sym_group_key: GenericAesKey;
+		let sym_group_key: VersionedAesKey;
 		match requested_version.cmp(&current_group_key.version) {
 			Ordering::Greater => {
-				return Err(KeyLoadError{reason: format!("Not possible to get newer key version than is cached for group {key_pair_group_id}")});
+				return Err(KeyLoadError { reason: format!("Not possible to get newer key version than is cached for group {key_pair_group_id}") });
 			},
 			Ordering::Equal => {
-				sym_group_key = current_group_key.object;
-				if convert_version_to_u64(group.groupKeyVersion) == current_group_key.version {
+				sym_group_key = current_group_key;
+				if convert_version_to_u64(group.groupKeyVersion) == sym_group_key.version {
 					key_pair = group.currentKeys
 				} else {
 					let former_keys_list = group.formerGroupKeys.unwrap().list;
@@ -303,7 +300,7 @@ impl KeyLoaderFacade {
 						.entity_client
 						.load(&IdTupleCustom::new(
 							former_keys_list,
-							CustomId::from_custom_string(&current_group_key.version.to_string()),
+							CustomId::from_custom_string(&sym_group_key.version.to_string()),
 						))
 						.await?;
 					key_pair = former_group_key.keyPair
@@ -317,23 +314,42 @@ impl KeyLoaderFacade {
 				} = self
 					.find_former_group_key(&group, &current_group_key, requested_version)
 					.await?;
-				sym_group_key = symmetric_group_key;
+				sym_group_key = VersionedAesKey {
+					object: symmetric_group_key,
+					version: requested_version,
+				};
 				key_pair = group_key_instance.keyPair;
 			},
 		}
-		KeyLoaderFacade::validate_and_decrypt_key_pair(key_pair, key_pair_group_id, sym_group_key)
+		KeyLoaderFacade::validate_and_decrypt_key_pair(key_pair, key_pair_group_id, &sym_group_key)
 	}
 
 	pub fn validate_and_decrypt_key_pair(
 		key_pair: Option<KeyPair>,
 		group_id: &GeneratedId,
-		group_key: GenericAesKey,
+		group_key: &VersionedAesKey,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
 		match key_pair {
 			None => Err(KeyLoadError {
 				reason: format!("no key pair on group {group_id}"),
 			}),
-			Some(kp) => Ok(decrypt_key_pair(&group_key, &kp)?),
+			Some(kp) => {
+				let decrypted_key_pair = decrypt_key_pair(&group_key.object, &kp)?;
+				match decrypted_key_pair {
+					AsymmetricKeyPair::RSAEccKeyPair(_) | AsymmetricKeyPair::RSAKeyPair(_) => {
+						if group_key.version != 0 {
+							return Err(KeyLoadError {
+								reason: format!(
+									"received an rsa key pair in a version other than 0: {}",
+									group_key.version.to_string()
+								),
+							});
+						}
+					},
+					AsymmetricKeyPair::PQKeyPairs(_) => {},
+				}
+				Ok(decrypted_key_pair)
+			},
 		}
 	}
 }
@@ -348,6 +364,7 @@ mod tests {
 	use super::*;
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
+	use crate::crypto::rsa::RSAKeyPair;
 	use crate::crypto::{aes::Iv, Aes256Key, PQKeyPairs};
 	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership, KeyPair};
 	use crate::key_cache::MockKeyCache;
@@ -372,42 +389,65 @@ mod tests {
 	}
 
 	fn generate_group_with_keys(
-		current_key_pair: &PQKeyPairs,
+		current_key_pair: &AsymmetricKeyPair,
 		current_group_key: &VersionedAesKey,
 		randomizer_facade: &RandomizerFacade,
 	) -> Group {
-		let PQKeyPairs {
-			ecc_keys,
-			kyber_keys,
-		} = current_key_pair;
 		let group_key = &current_group_key.object;
-		let sym_enc_priv_ecc_key = group_key
-			.encrypt_data(
-				ecc_keys.private_key.as_bytes(),
-				Iv::generate(randomizer_facade),
-			)
-			.unwrap();
-		let sync_enc_priv_kyber_key = group_key
-			.encrypt_data(
-				&kyber_keys.private_key.serialize(),
-				Iv::generate(randomizer_facade),
-			)
-			.unwrap();
-		generate_random_group(
-			Some(KeyPair {
-				_id: Default::default(),
-				pubEccKey: Some(ecc_keys.public_key.as_bytes().to_vec()),
-				pubKyberKey: Some(kyber_keys.public_key.serialize()),
-				pubRsaKey: None,
-				symEncPrivEccKey: Some(sym_enc_priv_ecc_key),
-				symEncPrivKyberKey: Some(sync_enc_priv_kyber_key),
-				symEncPrivRsaKey: None,
-			}),
+		let mut current_keys = KeyPair {
+			_id: Default::default(),
+			pubEccKey: None,
+			pubKyberKey: None,
+			pubRsaKey: None,
+			symEncPrivEccKey: None,
+			symEncPrivKyberKey: None,
+			symEncPrivRsaKey: None,
+		};
+		match current_key_pair {
+			AsymmetricKeyPair::RSAEccKeyPair(_) => {
+				panic!("not implemented")
+			},
+			AsymmetricKeyPair::RSAKeyPair(rsa_kp) => {
+				let sym_enc_priv_rsa_key = group_key
+					.encrypt_data(
+						rsa_kp.private_key.serialize().as_slice(),
+						Iv::generate(randomizer_facade),
+					)
+					.unwrap();
+				current_keys.pubRsaKey = Some(rsa_kp.public_key.serialize());
+				current_keys.symEncPrivRsaKey = Some(sym_enc_priv_rsa_key);
+			},
+			AsymmetricKeyPair::PQKeyPairs(pq_key_pairs) => {
+				let ecc_keys = &pq_key_pairs.ecc_keys;
+				let kyber_keys = &pq_key_pairs.kyber_keys;
+				let sym_enc_priv_ecc_key = group_key
+					.encrypt_data(
+						ecc_keys.private_key.as_bytes(),
+						Iv::generate(randomizer_facade),
+					)
+					.unwrap();
+				let sync_enc_priv_kyber_key = group_key
+					.encrypt_data(
+						&kyber_keys.private_key.serialize(),
+						Iv::generate(randomizer_facade),
+					)
+					.unwrap();
+				current_keys.pubEccKey = Some(ecc_keys.public_key.as_bytes().to_vec());
+				current_keys.pubKyberKey = Some(kyber_keys.public_key.serialize());
+				current_keys.symEncPrivEccKey = Some(sym_enc_priv_ecc_key);
+				current_keys.symEncPrivKyberKey = Some(sync_enc_priv_kyber_key);
+			},
+		}
+
+		let mut group = generate_random_group(
+			Some(current_keys),
 			Some(GroupKeysRef {
 				_id: Default::default(),
 				list: GeneratedId("list".to_owned()), // Refers to `former_keys`
 			}),
-		)
+		);
+		group.groupKeyVersion = current_group_key.version as i64;
+		group
 	}
 
 	const FORMER_KEYS: usize = 2;
@@ -682,7 +722,11 @@ mod tests {
 		let current_group_key = generate_group_key(current_group_key_version);
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
 
-		let group = generate_group_with_keys(&current_key_pair, &current_group_key, &randomizer);
+		let group = generate_group_with_keys(
+			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&current_group_key,
+			&randomizer,
+		);
 
 		let (former_keys, former_key_pairs_decrypted, _) =
 			generate_former_keys(&current_group_key, &randomizer);
@@ -710,7 +754,9 @@ mod tests {
 		let user_group_key = generate_group_key(1);
 		let randomizer = make_thread_rng_facade();
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
-		let user_group = generate_group_with_keys(&current_key_pair, &user_group_key, &randomizer);
+		let asymmetric_key_pair = AsymmetricKeyPair::PQKeyPairs(current_key_pair.clone());
+		let user_group =
+			generate_group_with_keys(&asymmetric_key_pair, &user_group_key, &randomizer);
 
 		let mut user_facade_mock = MockUserFacade::default();
 		{
@@ -759,6 +805,165 @@ mod tests {
 	}
 
 	#[tokio::test]
+	async fn load_current_key_pair_acceptss_rsa_key_version_0() {
+		let user_group_key = generate_group_key(0);
+		let randomizer = make_thread_rng_facade();
+		let current_key_pair = RSAKeyPair::generate(&randomizer);
+		let user_group = generate_group_with_keys(
+			&AsymmetricKeyPair::RSAKeyPair(current_key_pair.clone()),
+			&user_group_key,
+			&randomizer,
+		);
+
+		let mut user_facade_mock = MockUserFacade::default();
+		{
+			let user_group_id = user_group._id.clone();
+			user_facade_mock
+				.expect_get_user_group_id()
+				.returning(move || user_group_id.clone().unwrap());
+		}
+		{
+			let user_group_key = user_group_key.clone();
+			user_facade_mock
+				.expect_get_current_user_group_key()
+				.returning(move || Some(user_group_key.clone()));
+		}
+
+		let mut typed_entity_client_mock = MockTypedEntityClient::default();
+		{
+			let user_group = user_group.clone();
+			let group_id = user_group._id.clone();
+			typed_entity_client_mock
+				.expect_load::<Group, GeneratedId>()
+				.withf(move |id| *id == group_id.clone().unwrap())
+				.returning(move |_| Ok(user_group.clone()));
+		}
+
+		let key_loader_facade = KeyLoaderFacade::new(
+			Arc::new(user_facade_mock),
+			Arc::new(typed_entity_client_mock),
+		);
+
+		let result = key_loader_facade
+			.load_current_key_pair(&user_group._id.unwrap())
+			.await
+			.unwrap();
+		assert_eq!(result.version, user_group_key.version);
+		match result.object {
+			AsymmetricKeyPair::RSAKeyPair(loaded_current_key_pair) => {
+				assert_eq!(loaded_current_key_pair, current_key_pair);
+			},
+			AsymmetricKeyPair::RSAEccKeyPair(_) | AsymmetricKeyPair::PQKeyPairs(_) => {
+				panic!("Expected RSA key pair!")
+			},
+		}
+	}
+
+	#[tokio::test]
+	async fn load_current_key_pair_rejects_rsa_key_not_0() {
+		let user_group_key = generate_group_key(1);
+		let randomizer = make_thread_rng_facade();
+		let current_key_pair = RSAKeyPair::generate(&randomizer);
+		let user_group = generate_group_with_keys(
+			&AsymmetricKeyPair::RSAKeyPair(current_key_pair),
+			&user_group_key,
+			&randomizer,
+		);
+
+		let mut user_facade_mock = MockUserFacade::default();
+		{
+			let user_group_id = user_group._id.clone();
+			user_facade_mock
+				.expect_get_user_group_id()
+				.returning(move || user_group_id.clone().unwrap());
+		}
+		{
+			let user_group_key = user_group_key.clone();
+			user_facade_mock
+				.expect_get_current_user_group_key()
+				.returning(move || Some(user_group_key.clone()));
+		}
+
+		let mut typed_entity_client_mock = MockTypedEntityClient::default();
+		{
+			let user_group = user_group.clone();
+			let group_id = user_group._id.clone();
+			typed_entity_client_mock
+				.expect_load::<Group, GeneratedId>()
+				.withf(move |id| *id == group_id.clone().unwrap())
+				.returning(move |_| Ok(user_group.clone()));
+		}
+
+		let key_loader_facade = KeyLoaderFacade::new(
+			Arc::new(user_facade_mock),
+			Arc::new(typed_entity_client_mock),
+		);
+
+		let result = key_loader_facade
+			.load_current_key_pair(&user_group._id.unwrap())
+			.await;
+		assert!(result.is_err());
+		let err = result.err().unwrap();
+		assert!(matches!(err, KeyLoadError { .. }));
+		assert_eq!(
+			err.reason,
+			"received an rsa key pair in a version other than 0: 1"
+		);
+	}
+
+	#[tokio::test]
+	async fn load_key_pair_rejects_rsa_key_not_0() {
+		let user_group_key = generate_group_key(1);
+		let randomizer = make_thread_rng_facade();
+		let current_key_pair = RSAKeyPair::generate(&randomizer);
+		let user_group = generate_group_with_keys(
+			&AsymmetricKeyPair::RSAKeyPair(current_key_pair),
+			&user_group_key,
+			&randomizer,
+		);
+
+		let mut user_facade_mock = MockUserFacade::default();
+		{
+			let user_group_id = user_group._id.clone();
+			user_facade_mock
+				.expect_get_user_group_id()
+				.returning(move || user_group_id.clone().unwrap());
+		}
+		{
+			let user_group_key = user_group_key.clone();
+			user_facade_mock
+				.expect_get_current_user_group_key()
+				.returning(move || Some(user_group_key.clone()));
+		}
+
+		let mut typed_entity_client_mock = MockTypedEntityClient::default();
+		{
+			let user_group = user_group.clone();
+			let group_id = user_group._id.clone();
+			typed_entity_client_mock
+				.expect_load::<Group, GeneratedId>()
+				.withf(move |id| *id == group_id.clone().unwrap())
+				.returning(move |_| Ok(user_group.clone()));
+		}
+
+		let key_loader_facade = KeyLoaderFacade::new(
+			Arc::new(user_facade_mock),
+			Arc::new(typed_entity_client_mock),
+		);
+
+		let result = key_loader_facade
+			.load_key_pair(&user_group._id.unwrap(), user_group_key.version)
+			.await;
+		assert!(result.is_err());
+		let err = result.err().unwrap();
+		assert!(matches!(err, KeyLoadError { .. }));
+		assert_eq!(
+			err.reason,
+			"received an rsa key pair in a version other than 0: 1"
+		);
+	}
+
+	#[tokio::test]
 	async fn load_and_decrypt_former_group_key() {
 		let randomizer = make_thread_rng_facade();
 
@@ -769,7 +974,11 @@ mod tests {
 			generate_former_keys(&current_group_key, &randomizer);
 
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
-		let group = generate_group_with_keys(&current_key_pair, &current_group_key, &randomizer);
+		let group = generate_group_with_keys(
+			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&current_group_key,
+			&randomizer,
+		);
 
 		let key_loader_facade =
 			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
@@ -796,7 +1005,11 @@ mod tests {
 		let current_group_key = generate_group_key(current_group_key_version);
 
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
-		let group = generate_group_with_keys(&current_key_pair, &current_group_key, &randomizer);
+		let group = generate_group_with_keys(
+			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&current_group_key,
+			&randomizer,
+		);
 
 		let (user_facade_mock, typed_entity_client_mock) =
 			make_mocks(&group, &current_group_key, &randomizer);
@@ -826,7 +1039,11 @@ mod tests {
 		let current_group_key = generate_group_key(current_group_key_version);
 
 		let current_key_pair = PQKeyPairs::generate(&randomizer);
-		let group = generate_group_with_keys(&current_key_pair, &current_group_key, &randomizer);
+		let group = generate_group_with_keys(
+			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&current_group_key,
+			&randomizer,
+		);
 
 		let (_, _, former_keys_decrypted) = generate_former_keys(&current_group_key, &randomizer);
 
