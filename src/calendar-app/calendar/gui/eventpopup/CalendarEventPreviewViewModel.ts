@@ -229,4 +229,9 @@ export class CalendarEventPreviewViewModel {
 	getSanitizedDescription() {
 		return this.sanitizedDescription
 	}
+
+	getCalendarRenderInfo() {
+		if (!this.calendarEvent._ownerGroup) throw new Error("Event without an owner group")
+		return this.calendarModel.getCalendarRenderInfo(this.calendarEvent._ownerGroup)
+	}
 }
