@@ -120,7 +120,13 @@ export class CalendarModel {
 	 * We use the counter to remove the pending request from map when all alarms are processed. We want to do that in case the event gets updated and we need
 	 * to wait for the new version of the event.
 	 */
-	private pendingAlarmRequests: Map<string, { pendingAlarmCounter: number; deferred: DeferredObject<void> }> = new Map()
+	private pendingAlarmRequests: Map<
+		string,
+		{
+			pendingAlarmCounter: number
+			deferred: DeferredObject<void>
+		}
+	> = new Map()
 	private readonly userAlarmToAlarmInfo: Map<string, string> = new Map()
 	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
 
@@ -394,7 +400,7 @@ export class CalendarModel {
 				assertEventValidity(event)
 				operationsLog.created.push(event)
 			}
-			this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
+			await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
 			console.log(TAG, `${operationsLog.created.length} events created`)
 
 			// Remove rest
@@ -402,7 +408,7 @@ export class CalendarModel {
 				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
 			)
 			for (const event of eventsToRemove) {
-				this.deleteEvent(event).catch((err) => {
+				await this.deleteEvent(event).catch((err) => {
 					if (err instanceof NotFoundError) {
 						return console.log(`Already deleted event`, event)
 					}
