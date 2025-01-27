@@ -530,18 +530,14 @@ export class MailViewModel {
 
 	private async processImportedMails(update: EntityUpdateData) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+		const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
+
 		let status = parseInt(importMailState.status) as ImportStatus
 		if (status === ImportStatus.Finished || status === ImportStatus.Canceled) {
 			let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
-
-			const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
-
-			if (importedMailEntries.length === 0) {
-				return Promise.resolve()
-			}
+			if (importedMailEntries.length === 0) return Promise.resolve()
 
 			let mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
-
 			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
 			if (isNotEmpty(importedMailSetEntries)) {
@@ -550,10 +546,11 @@ export class MailViewModel {
 
 				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
 					return listModelOfImport.handleEntityUpdate({
-						...update,
 						instanceListId: listIdPart(importedMailSetEntry._id),
 						instanceId: elementIdPart(importedMailSetEntry._id),
 						operation: OperationType.CREATE,
+						type: MailSetEntryTypeRef.type,
+						application: MailSetEntryTypeRef.app,
 					})
 				})
 			}
