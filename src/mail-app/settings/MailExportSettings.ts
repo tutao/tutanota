@@ -9,10 +9,14 @@ import { LoginController } from "../../common/api/main/LoginController"
 import { MailExportController } from "../native/main/MailExportController.js"
 import Stream from "mithril/stream"
 import { Button, ButtonType } from "../../common/gui/base/Button"
-import { formatDate } from "../../common/misc/Formatter"
 import { IconButton } from "../../common/gui/base/IconButton"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
+import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
+import { Icon, IconSize } from "../../common/gui/base/Icon"
+import { BootIcons } from "../../common/gui/base/icons/BootIcons"
+import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
+import { formatDate } from "../../common/misc/Formatter"
 
 interface MailExportSettingsAttrs {
 	mailboxDetails: MailboxDetail[]
@@ -23,6 +27,7 @@ interface MailExportSettingsAttrs {
 export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 	private selectedMailbox: MailboxDetail | null = null
 	private controllerSubscription: Stream<void> | null = null
+	private isExportHistoryExpanded: boolean = false
 
 	oncreate(vnode: Vnode<MailExportSettingsAttrs>) {
 		this.controllerSubscription = vnode.attrs.mailExportController.state.map(m.redraw)
@@ -53,6 +58,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				disabled: state.type === "exporting",
 			} satisfies DropDownSelectorAttrs<MailboxDetail>),
 			this.renderState(vnode.attrs.mailExportController),
+			this.renderExportHistory(vnode.attrs.mailExportController),
 		]
 	}
 
@@ -61,15 +67,18 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 		switch (state.type) {
 			case "exporting":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s", [
-						m(".flex-grow.mr", [
-							m(
-								"small.noselect",
-								lang.get("exportingEmails_label", {
-									"{count}": state.exportedMails,
-								}),
-							),
-						]),
+					m(
+						".flex-start.mt-m.small",
+						lang.get("exportingEmails_label", {
+							"{count}": state.exportedMails,
+						}),
+					),
+					m(".flex-space-between.border-radius-big.mt-s.rel.nav-bg.full-width.center-vertically", [
+						m(Icon, {
+							icon: BootIcons.Progress,
+							class: "flex-center items-center icon-progress-tiny icon-progress ml-s",
+							size: IconSize.Medium,
+						}),
 						m(IconButton, {
 							title: "cancel_action",
 							icon: Icons.Cancel,
@@ -82,25 +91,19 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "idle":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s", [
-						m(
-							"small.noselect",
-							controller.lastExport
-								? lang.get("lastExportTime_Label", {
-										"{date}": formatDate(controller.lastExport),
-								  })
-								: null,
-						),
-						m(Button, {
+					m(".flex-start.mt-m", this.renderExportInfoText()),
+					m(
+						".flex-start.mt-s",
+						m(LoginButton, {
+							type: LoginButtonType.FlexWidth,
 							label: "export_action",
-							click: () => {
+							onclick: () => {
 								if (this.selectedMailbox) {
 									controller.startExport(this.selectedMailbox)
 								}
 							},
-							type: ButtonType.Secondary,
 						}),
-					]),
+					),
 				]
 			case "error":
 				return [
@@ -120,14 +123,15 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "finished":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s", [
-						m("small.noselect", lang.get("exportFinished_label")),
-						m(Button, {
+					m("small.noselect", lang.get("exportFinished_label")),
+					m(
+						".flex-start.mt-s",
+						m(LoginButton, {
+							type: LoginButtonType.FlexWidth,
 							label: "open_action",
-							click: () => this.onOpenClicked(controller),
-							type: ButtonType.Secondary,
+							onclick: () => this.onOpenClicked(controller),
 						}),
-					]),
+					),
 				]
 			case "locked":
 				return [
@@ -141,5 +145,38 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 	private async onOpenClicked(controller: MailExportController) {
 		await controller.openExportDirectory()
 		await controller.cancelExport()
+	}
+
+	private renderExportInfoText() {
+		return [m(".small", lang.get("mailExportInfoText_label"))]
+	}
+
+	private renderExportHistory(controller: MailExportController) {
+		return [
+			m(".flex-space-between.items-center.mt-l.mb-s", [
+				m(".h4", lang.get("mailExportHistory_label")),
+				m(ExpanderButton, {
+					label: "show_action",
+					expanded: this.isExportHistoryExpanded,
+					onExpandedChange: () => {
+						this.isExportHistoryExpanded = !this.isExportHistoryExpanded
+					},
+				}),
+			]),
+			m(
+				ExpanderPanel,
+				{
+					expanded: this.isExportHistoryExpanded,
+				},
+				m(
+					"small.noselect",
+					controller.lastExport
+						? lang.get("lastExportTime_Label", {
+								"{date}": formatDate(controller.lastExport),
+						  })
+						: null,
+				),
+			),
+		]
 	}
 }

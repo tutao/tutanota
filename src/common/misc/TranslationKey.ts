@@ -1874,6 +1874,9 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "mailExportSettings_label"
+	| "mailExportInfoText_label"
+	| "mailExportHistory_label"
 	// Put in temporarily, will be removed soon
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"

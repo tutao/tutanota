@@ -1890,6 +1890,9 @@ export default {
         "yourFolders_action": "YOUR FOLDERS",
         "yourMessage_label": "Your message",
         "you_label": "You",
+        "mailExportSettings_label": "Email export",
+        "mailExportInfoText_label": "You can export EML files.",
+        "mailExportHistory_label": "Export history",
         // Put in temporarily, will be removed soon
         "localAdminGroup_label": "Local admin group",
         "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
