@@ -147,13 +147,14 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			filePaths.slice(),
 			this.configDirectory,
 		)
+		// we want an unconditional error handler, but also don't want to change the type of the promise.
+		importerApiPromise.catch((_) => this.importerApis.delete(mailboxId))
 		this.importerApis.set(mailboxId, importerApiPromise)
-
 		let importerApi: ImporterApi | null = null
 		try {
 			importerApi = await importerApiPromise
 		} catch (e) {
-			this.importerApis.delete(mailboxId)
+			this.showImportFailNotification(null)
 			throw new MailImportError(mimimiErrorToImportErrorData(e))
 		}
 		importerApi.setMessageHook((message: MailImportMessage) => this.processMimimiMessage(mailboxId, message))
@@ -229,17 +230,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		if (errorData.category === ImportErrorCategories.ImportIncomplete) {
 			this.importerApis.delete(mailboxId)
 		}
-
-		this.notifier
-			.showOneShot({
-				title: this.lang.get("importIncomplete_title"),
-				body: this.lang.get("importIncomplete_msg"),
-			})
-			.then((res) => {
-				if (res === NotificationResult.Click) {
-					this.electron.shell.showItemInFolder(path.join(this.configDirectory, "current_imports", mailboxId, "dummy.eml"))
-				}
-			})
+		this.showImportFailNotification(mailboxId)
 
 		let listeners = this.currentListeners.get(mailboxId)
 		if (listeners != null) {
@@ -249,6 +240,25 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 			}
 			clear(listeners)
 		}
+	}
+
+	/**
+	 * show a system notification (even if there are currently no windows)
+	 *
+	 * @param mailboxId this is the name of the import  subdirectory we show on click. if null, the notification does nothing,
+	 * for example if the directory hasn't been created yet.
+	 */
+	private showImportFailNotification(mailboxId: string | null) {
+		this.notifier
+			.showOneShot({
+				title: this.lang.get("importIncomplete_title"),
+				body: this.lang.get("importIncomplete_msg"),
+			})
+			.then((res) => {
+				if (res === NotificationResult.Click && mailboxId != null) {
+					this.electron.shell.showItemInFolder(path.join(this.configDirectory, "current_imports", mailboxId, "dummy.eml"))
+				}
+			})
 	}
 
 	private createTutaCredentials(unencTutaCredentials: UnencryptedCredentials, apiUrl: string) {

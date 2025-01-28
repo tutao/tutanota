@@ -22,7 +22,7 @@ impl<'a> FileNameProducer<'a> {
 	}
 
 	pub fn new_plain_eml(&mut self, eml_path: &Path) -> PathBuf {
-		let original_filename = Self::format_new_file_name(&eml_path, self.eml_file_count, ".eml");
+		let original_filename = Self::format_new_file_name(eml_path, self.eml_file_count, ".eml");
 
 		self.eml_file_count += 1;
 
@@ -30,7 +30,8 @@ impl<'a> FileNameProducer<'a> {
 	}
 
 	pub fn new_mbox(&mut self, mbox_path: &Path) {
-		let original_filename = Self::format_new_file_name(&mbox_path, self.mbox_file_count, ".mbox-item-");
+		let original_filename =
+			Self::format_new_file_name(mbox_path, self.mbox_file_count, ".mbox-item-");
 
 		self.mbox_file_count += 1;
 

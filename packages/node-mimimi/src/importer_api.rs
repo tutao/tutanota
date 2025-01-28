@@ -98,23 +98,28 @@ impl ImporterApi {
 			GeneratedId(target_mailset_eid),
 		);
 
-		let import_directory =
-			FileImport::prepare_file_import(&config_directory, &mailbox_id, source_paths)?;
-
-		let logged_in_sdk = Importer::create_sdk(tuta_credentials).await?;
-		let importer = Importer::create_new_file_importer(
-			logged_in_sdk,
+		let preparation_result = Self::prepare_new_import_inner(
+			&mailbox_id,
+			tuta_credentials,
 			target_owner_group,
 			target_mailset,
-			import_directory,
+			source_paths,
+			&config_directory,
 		)
-		.await?;
-
-		Ok(ImporterApi {
-			importer: Arc::new(importer),
-			importer_loop_handle: None,
-			message_handler: None,
-		})
+		.await;
+		match preparation_result {
+			Ok(importer) => Ok(ImporterApi {
+				importer: Arc::new(importer),
+				importer_loop_handle: None,
+				message_handler: None,
+			}),
+			Err(prep_err) => {
+				let import_directory_path =
+					FileImport::make_import_directory_path(&config_directory, &mailbox_id);
+				FileImport::delete_dir_if_exists(&import_directory_path).ok();
+				Err(prep_err.into())
+			},
+		}
 	}
 
 	/// set a new state for the next import loop. the current upload will be finished before
@@ -221,6 +226,28 @@ impl ImporterApi {
 }
 
 impl ImporterApi {
+	/// extracts the fallible operations out so we can do some common cleanup if one of them fails
+	async fn prepare_new_import_inner(
+		mailbox_id: &str,
+		tuta_credentials: TutaCredentials,
+		target_owner_group: GeneratedId,
+		target_mailset: IdTupleGenerated,
+		source_paths: impl Iterator<Item = PathBuf>,
+		config_directory: &str,
+	) -> Result<Importer, PreparationError> {
+		let import_directory =
+			FileImport::prepare_file_import(config_directory, mailbox_id, source_paths)?;
+
+		let logged_in_sdk = Importer::create_sdk(tuta_credentials).await?;
+		Importer::create_new_file_importer(
+			logged_in_sdk,
+			target_owner_group,
+			target_mailset,
+			import_directory.clone(),
+		)
+		.await
+	}
+
 	fn spawn_importer_task(&mut self) -> napi::tokio::task::JoinHandle<ImportLoopResult> {
 		let importer = Arc::clone(&self.importer);
 		let error_handler = self.message_handler.clone();

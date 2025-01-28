@@ -154,7 +154,7 @@ impl FileImport {
 	}
 
 	/// recursively deletes the given directory and its contents
-	pub fn delete_dir_if_exists(target_dir: &PathBuf) -> std::io::Result<()> {
+	pub fn delete_dir_if_exists(target_dir: &Path) -> std::io::Result<()> {
 		target_dir
 			.exists()
 			.then(|| fs::remove_dir_all(target_dir))
