@@ -1905,9 +1905,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		// Put in temporarily, will be removed soon
-		"localAdminGroup_label": "Local admin group",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups"
+		"deprecatedKeyWarning_msg": "This message was encrypted with an older key. While it may be legitimate, it's less secure."
 	}
 }

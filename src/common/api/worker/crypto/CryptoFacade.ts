@@ -4,6 +4,7 @@ import {
 	downcast,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
+	lazy,
 	neverNull,
 	ofClass,
 	promiseMap,
@@ -58,7 +59,18 @@ import type { Entity, Instance, SomeEntity, TypeModel } from "../../common/Entit
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
-import { Aes256Key, aes256RandomKey, aesEncrypt, AesKey, bitArrayToUint8Array, decryptKey, EccPublicKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
+import {
+	Aes256Key,
+	aes256RandomKey,
+	aesEncrypt,
+	AesKey,
+	bitArrayToUint8Array,
+	decryptKey,
+	EccPublicKey,
+	encryptKey,
+	isPqKeyPairs,
+	sha256Hash,
+} from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
@@ -74,6 +86,7 @@ import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from 
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 
 assertWorkerOrNode()
 
@@ -101,6 +114,7 @@ export class CryptoFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 	) {}
 
 	async applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
@@ -473,6 +487,7 @@ export class CryptoFacade {
 					resolvedSessionKeyForInstance,
 					instanceSessionKeyWithOwnerEncSessionKey,
 					decryptedSessionKey,
+					bucketKey.keyGroup,
 				)
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.symEncSessionKey = ownerEncSessionKey.key
@@ -489,26 +504,34 @@ export class CryptoFacade {
 
 	private async authenticateMainInstance(
 		typeModel: TypeModel,
-		encryptionAuthStatus:
-			| EncryptionAuthStatus
-			| null
-			| EncryptionAuthStatus.RSA_NO_AUTHENTICATION
-			| EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-			| EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-			| EncryptionAuthStatus.AES_NO_AUTHENTICATION,
+		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: Uint8Array | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: Record<string, any>,
 		resolvedSessionKeyForInstance: number[],
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: number[],
+		keyGroup: Id | null,
 	) {
 		// we only authenticate mail instances
 		const isMailInstance = isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)
 		if (isMailInstance) {
 			if (!encryptionAuthStatus) {
 				if (!pqMessageSenderKey) {
+					// This message was encrypted with RSA. We check if TutaCrypt could have been used instead.
+					const recipientGroup = assertNotNull(
+						keyGroup,
+						"trying to authenticate an asymmetrically encrypted message, but we can't determine the recipient's group ID",
+					)
+					const currentKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(recipientGroup)
 					encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
+					if (isPqKeyPairs(currentKeyPair.object)) {
+						const keyRotationFacade = this.keyRotationFacade()
+						const rotatedGroups = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+						if (!rotatedGroups.includes(recipientGroup)) {
+							encryptionAuthStatus = EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT
+						}
+					}
 				} else {
 					const mail = this.isLiteralInstance(instance)
 						? ((await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail)

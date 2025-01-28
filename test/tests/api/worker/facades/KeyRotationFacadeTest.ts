@@ -641,6 +641,9 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(update.groupMembershipUpdateData[0].userId).equals(userId)
 				o(update.groupMembershipUpdateData[0].userEncGroupKey).deepEquals(userEncNewGroupKey.key)
 				o(update.groupMembershipUpdateData[0].userKeyVersion).equals("0")
+
+				const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+				o(groupIds).deepEquals([groupId])
 			})
 
 			o.spec("Rotated group is a shared group", function () {
@@ -892,6 +895,9 @@ o.spec("KeyRotationFacadeTest", function () {
 				const secondUpdate = sentData.groupKeyUpdates[1]
 				o(secondUpdate.group).equals(secondGroupId)
 				o(secondUpdate.groupKeyVersion).equals("1")
+
+				const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+				o(groupIds.sort()).deepEquals([groupId, secondGroupId].sort())
 			})
 
 			o("Rotate group user area group of non admin", async function () {
@@ -1006,6 +1012,9 @@ o.spec("KeyRotationFacadeTest", function () {
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
+
+				const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+				o(groupIds).deepEquals([userGroupId])
 			})
 
 			o("Successful rotation - no recover code", async function () {
@@ -1290,6 +1299,9 @@ o.spec("KeyRotationFacadeTest", function () {
 							}),
 						),
 					)
+
+					const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+					o(groupIds).deepEquals([userGroupId])
 				})
 
 				o("should abort key rotation if one of the hashes has been encrypted with an unvalid key", async function () {
@@ -1496,6 +1508,9 @@ o.spec("KeyRotationFacadeTest", function () {
 
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
+
+				const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+				o(groupIds).deepEquals([userGroupId])
 			})
 
 			o("Successful rotation - no recover code", async function () {
@@ -1962,6 +1977,9 @@ o.spec("KeyRotationFacadeTest", function () {
 				const thirdUpdate = sentData.groupKeyUpdates[2]
 				o(thirdUpdate.group).equals(thirdGroupId)
 				o(thirdUpdate.groupKeyVersion).equals("1")
+
+				const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
+				o(groupIds.sort()).deepEquals([groupId, secondGroupId, thirdGroupId].sort())
 			})
 		})
 		o.spec("processPendingKeyRotationsAndUpdates error handling", function () {

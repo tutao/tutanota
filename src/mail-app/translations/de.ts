@@ -1909,9 +1909,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		// Put in temporarily, will be removed soon
-		"localAdminGroup_label": "Local admin group",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups"
+		"deprecatedKeyWarning_msg": "Für diese Nachricht wurde ein veraltetes Verschlüsselungsprotokoll verwendet und sie stammt möglicherweise nicht von diesem Benutzer",
 	}
 }
