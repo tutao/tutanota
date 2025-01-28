@@ -140,14 +140,18 @@ impl FileImport {
 		loop {
 			match self.next_importable_mail() {
 				Ok(maybe_importable_mail) => return maybe_importable_mail,
-				Err(FileIterationError::FileReadError(_)) => {
-					// we don't have to do anything here,
-					// if user restarts the app, this file will be picked up again and retried
-					// if use do not restart app, they will have option to open the import directory,
-					// they can see for themselves
-				},
-				Err(FileIterationError::ParseError(malformed_file)) => {
-					Self::move_failed_eml_file(&malformed_file).ok();
+
+				Err(FileIterationError::ParseError(failed_eml_path))
+				| Err(FileIterationError::FileReadError(failed_eml_path)) => {
+					// to-review:
+					// since we do not account for the case where we can't move the file,
+					// it's possible that when we exhaust all sources we will still have some eml files
+					// in current_imports/mailbox_id
+					// and currently, in Importer::update_failed_mails_counter we only account for mails that
+					// we managed to move to failed dir,
+					//
+					// would be nice to also count at the end not just in failed-dir put also in parent dir
+					Self::move_failed_eml_file(&failed_eml_path).ok();
 				},
 			}
 		}

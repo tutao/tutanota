@@ -138,14 +138,6 @@ impl ImportEssential {
 		&self,
 		updater: impl Fn(&mut ImportMailState) -> bool,
 	) -> Result<(), MailImportErrorMessage> {
-		// to-review:
-		// we should prevent race condition while reading and writing remote state
-		// example: we might update spawn new task in ImporterApi::set_progress_action which
-		// finished immediately and tried to update the server, and in ImporterApi::set_progress_action itself,
-		// we also try to update the remote server. and these two update might not be synchronised
-		// hence: we should keep some mutex lock while we have importMailState
-		// and should only update when that lock is free
-
 		let mut server_state = self
 			.load_remote_state()
 			.await
@@ -469,15 +461,16 @@ impl Importer {
 	}
 
 	/// check the given directory for any failed mail files that have been left behind during iteration
-	pub(crate) fn have_failed_mails(import_directory: &Path) -> std::io::Result<bool> {
+	pub(crate) fn get_failed_mails_count(import_directory: &Path) -> std::io::Result<usize> {
 		let failed_sub_dir = import_directory.join(FAILED_MAILS_SUB_DIR);
-		let have_failed_mails = fs::read_dir(failed_sub_dir)?
+		let failed_mails_count = fs::read_dir(failed_sub_dir)?
 			.collect::<std::io::Result<Vec<DirEntry>>>()?
 			.iter()
 			.map(DirEntry::path)
-			.any(|path| path.extension() == Some(OsStr::new("eml")));
+			.filter(|path| path.extension() == Some(OsStr::new("eml")))
+			.count();
 
-		Ok(have_failed_mails)
+		Ok(failed_mails_count)
 	}
 
 	pub(super) async fn resume_file_importer(
@@ -615,23 +608,14 @@ impl Importer {
 			None => Ok(None),
 
 			// this chunk was too big to import
-			Some(Err(too_big_chunk)) => {
-				self.essentials
-					.update_remote_state(|remote_state| {
-						remote_state.failedMails += 1;
-						true
-					})
-					.await?;
-
-				Err(MailImportErrorMessage {
-					kind: ImportErrorKind::TooBigChunk,
-					path: too_big_chunk
-						.keyed_import_mail_data
-						.eml_file_path
-						.map(|path| path.to_string_lossy().to_string())
-						.clone(),
-				})?
-			},
+			Some(Err(too_big_chunk)) => Err(MailImportErrorMessage {
+				kind: ImportErrorKind::TooBigChunk,
+				path: too_big_chunk
+					.keyed_import_mail_data
+					.eml_file_path
+					.map(|path| path.to_string_lossy().to_string())
+					.clone(),
+			})?,
 
 			// these chunks can be imported in single request
 			Some(Ok(chunked_import_data)) => {
@@ -692,6 +676,7 @@ impl Importer {
 					return Ok(ImportOkKind::UserPauseInterruption);
 				},
 				ImportProgressAction::Stop => {
+					self.update_failed_mails_counter().await;
 					return Ok(ImportOkKind::UserCancelInterruption);
 				},
 
@@ -699,6 +684,10 @@ impl Importer {
 					let import_chunk_res = self.import_next_chunk().await;
 					match import_chunk_res {
 						Ok(None) => {
+							self.update_failed_mails_counter().await;
+							self.set_remote_import_status(ImportStatus::Finished)
+								.await?;
+
 							// deleting the state file is enough to mark there is no import running,
 							// do not delete the whole directory because we will leave some un-importable file
 							// in the directory. and users should be able to inspect those
@@ -709,14 +698,14 @@ impl Importer {
 										self.essentials.import_directory.clone(),
 									)
 								})?;
-							self.set_remote_import_status(ImportStatus::Finished)
-								.await?;
 
-							return if Importer::have_failed_mails(&self.essentials.import_directory)
-								// if we can not read import directory to check for failed files,
-								// pretend we have some failed mail
-								.unwrap_or(true)
-							{
+							let have_failed_mails =
+								Importer::get_failed_mails_count(&self.essentials.import_directory)
+									.map(|failed_mail_count| failed_mail_count > 0)
+									// if we can not read import directory to check for failed files,
+									// pretend we have some failed mail
+									.unwrap_or(true);
+							return if have_failed_mails {
 								Err(ImportErrorKind::SourceExhaustedSomeError.into())
 							} else {
 								Ok(ImportOkKind::SourceExhaustedNoError)
@@ -728,7 +717,8 @@ impl Importer {
 						},
 
 						Err(chunk_import_error) => {
-							self.handle_err_while_importing_chunk(chunk_import_error)?;
+							self.handle_err_while_importing_chunk(chunk_import_error)
+								.await?;
 						},
 					}
 				},
@@ -752,10 +742,11 @@ impl Importer {
 	/// called if any chunk fails to import for any reason. if it returns `Ok`, we should continue with the next
 	/// chunk, if it returns `Err`, the error should be propagated to the node process to maybe be displayed and
 	/// the import should stop for now.
-	fn handle_err_while_importing_chunk(
+	async fn handle_err_while_importing_chunk(
 		&self,
 		import_error: MailImportErrorMessage,
 	) -> Result<(), MailImportErrorMessage> {
+		self.update_failed_mails_counter().await;
 		match import_error.kind {
 			// if the import is (temporary) disabled, we should give up and let user try again later
 			ImportErrorKind::ImportFeatureDisabled => Err(ImportErrorKind::ImportFeatureDisabled)?,
@@ -794,6 +785,29 @@ impl Importer {
 			// exists only to pass over to api
 			ImportErrorKind::SourceExhaustedSomeError => unreachable!(),
 		}
+	}
+
+	/// We have some case where we don't update failedMails counter on failure,
+	/// but only move them to FAILED_EML_SUB_DIR directory ( example: we failed to parse eml while importing ),
+	/// we should also include those in state for user visibility,
+	/// so it is safe to always override the counter with number of failed mails file,
+	/// all failure case should make sure to move the failed emls in that sub-dir
+	async fn update_failed_mails_counter(&self) {
+		self.essentials
+				.update_remote_state(|remote_state| {
+					match Importer::get_failed_mails_count(&self.essentials.import_directory) {
+						Ok(failed_mail_count) => {
+							remote_state.failedMails = failed_mail_count as i64;
+							true
+						}
+						Err(e) => {
+							log::error!("Not incrementing failedMails on import state. Can not count failed emails: {e:?}");
+							false
+						}
+					}
+				})
+				.await
+				.ok();
 	}
 
 	pub(super) fn get_existing_import_id(
