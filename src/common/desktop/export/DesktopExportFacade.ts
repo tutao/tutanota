@@ -22,6 +22,7 @@ import { formatSortableDate } from "@tutao/tutanota-utils"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { ExportError, ExportErrorReason } from "../../api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "./DesktopExportLock"
+import { elementIdPart } from "../../api/common/utils/EntityUtils"
 
 const EXPORT_DIR = "export"
 
@@ -172,7 +173,7 @@ export class DesktopExportFacade implements ExportFacade {
 		if (exportState == null || exportState.type !== "running") {
 			throw new ProgrammingError("Export is not running")
 		}
-		const filename = generateExportFileName(bundle.subject, new Date(bundle.sentOn), "eml")
+		const filename = generateExportFileName(elementIdPart(bundle.mailId), bundle.subject, new Date(bundle.sentOn), "eml")
 		const fullPath = path.join(exportState.exportDirectoryPath, filename)
 		const file = mailToEmlFile(bundle, filename)
 		try {

@@ -12,6 +12,7 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError.
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { MailBundle, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { generateExportFileName, mailToEmlFile } from "./emlUtils.js"
+import { elementIdPart } from "../../../common/api/common/utils/EntityUtils"
 
 export async function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
 	return mode === "eml" ? mailToEmlFile(bundle, fileName) : locator.fileApp.mailToMsg(bundle, fileName)
@@ -90,7 +91,11 @@ export async function exportMails(
 			if (!bundle) continue
 
 			checkAbortSignal()
-			const mailFile = await generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.receivedOn), mode), mode)
+			const mailFile = await generateMailFile(
+				bundle,
+				generateExportFileName(elementIdPart(bundle.mailId), bundle.subject, new Date(bundle.receivedOn), mode),
+				mode,
+			)
 			dataFiles.push(mailFile)
 			updateProgress()
 		}

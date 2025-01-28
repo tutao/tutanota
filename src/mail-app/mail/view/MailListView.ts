@@ -12,7 +12,7 @@ import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
 import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -224,7 +224,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		const handleNotDownloaded = (mail: Mail) => {
 			notDownloaded.push({
 				mail,
-				fileName: generateExportFileName(mail.subject, mail.receivedDate, exportMode),
+				fileName: generateExportFileName(getElementId(mail), mail.subject, mail.receivedDate, exportMode),
 			})
 		}
 

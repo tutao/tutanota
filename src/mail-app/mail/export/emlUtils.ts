@@ -129,8 +129,8 @@ function breakIntoLines(string: string): Array<string> {
 	return string.length > 0 ? assertNotNull(string.match(/.{1,78}/g)) : []
 }
 
-export function generateExportFileName(subject: string, sentOn: Date, mode: MailExportMode): string {
-	let filename = [...formatSortableDateTime(sentOn).split(" "), subject].join("-")
+export function generateExportFileName(id: string, subject: string, sentOn: Date, mode: MailExportMode): string {
+	let filename = [...formatSortableDateTime(sentOn).split(" "), id, subject].join("-")
 	filename = filename.trim()
 
 	if (filename.length === 0) {

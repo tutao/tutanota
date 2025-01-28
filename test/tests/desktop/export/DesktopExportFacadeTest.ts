@@ -12,6 +12,7 @@ import path from "node:path"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import { ExportError } from "../../../../src/common/api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "../../../../src/common/desktop/export/DesktopExportLock"
+import { elementIdPart } from "../../../../src/common/api/common/utils/EntityUtils.js"
 
 function enoentError() {
 	const err = new Error()
@@ -186,7 +187,7 @@ o.spec("DesktopExportFacade", function () {
 			}
 			when(persistence.getStateForUser(userId)).thenResolve(runningState)
 			await facade.saveMailboxExport(mailBundleStub, userId, mailBagId, mailId)
-			const fileName = generateExportFileName(mailBundleStub.subject, sentOn, "eml")
+			const fileName = generateExportFileName(elementIdPart(mailBundleStub.mailId), mailBundleStub.subject, sentOn, "eml")
 			const fullPath = path.join(runningState.exportDirectoryPath, fileName)
 			const bundleData = mailToEmlFile(mailBundleStub, fileName)
 
