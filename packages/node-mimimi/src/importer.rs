@@ -487,7 +487,8 @@ impl Importer {
 		tuta_credentials: TutaCredentials,
 		import_state_id: IdTupleGenerated,
 	) -> Result<Importer, PreparationError> {
-		let import_directory = FileImport::make_import_directory(&config_directory, mailbox_id);
+		let import_directory =
+			FileImport::make_import_directory_path(&config_directory, mailbox_id);
 
 		let eml_files_to_import = Self::eml_files_in_directory(import_directory.as_path())
 			.map_err(|_| PreparationError::FailedToReadEmls)?;

@@ -45,7 +45,8 @@ impl ImporterApi {
 		tuta_credentials: TutaCredentials,
 	) -> napi::Result<Option<ImporterApi>> {
 		let target_owner_group = GeneratedId(target_owner_group);
-		let import_directory = FileImport::make_import_directory(&config_directory, &mailbox_id);
+		let import_directory =
+			FileImport::make_import_directory_path(&config_directory, &mailbox_id);
 		let existing_import = Importer::get_existing_import_id(&import_directory)
 			.map_err(|_| PreparationError::CannotReadOldStateId)?;
 
