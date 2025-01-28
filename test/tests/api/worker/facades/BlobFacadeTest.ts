@@ -48,7 +48,6 @@ o.spec("BlobFacade test", function () {
 	]
 	let archiveDataType = ArchiveDataType.Attachments
 	let cryptoFacadeMock: CryptoFacade
-	let dateProvider: DateProvider
 	let file: TutanotaFile
 	let anotherFile: TutanotaFile
 
@@ -537,7 +536,7 @@ o.spec("BlobFacade test", function () {
 				]),
 			)
 		})
-		o.test("when passed multiple instances of the same archives but one blob is missing it downloads and decrypts the rest", async function () {
+		o.test("when passed multiple instances of the same archive but one blob is missing it downloads and decrypts the rest", async function () {
 			const sessionKey = aes256RandomKey()
 			const anothersessionKey = aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
@@ -549,6 +548,71 @@ o.spec("BlobFacade test", function () {
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
 			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+
+			const blobId3 = "--------0s-3"
+			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+
+			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "someBaseUrl" })],
+			})
+			when(
+				blobAccessTokenFacade.requestReadTokenMultipleInstances(
+					archiveDataType,
+					[wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)],
+					matchers.anything(),
+				),
+			).thenResolve(blobAccessInfo)
+			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({
+				baseUrl: "someBaseUrl",
+				blobAccessToken: blobAccessInfo.blobAccessToken,
+			})
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			const requestBody = { "request-body": true }
+			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
+			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
+			const blobResponse = concat(
+				// number of blobs
+				new Uint8Array([0, 0, 0, 2]),
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId1)),
+				// blob hash
+				new Uint8Array([1, 2, 3, 4, 5, 6]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData1,
+				// blob id
+				base64ToUint8Array(base64ExtToBase64(blobId2)),
+				// blob hash
+				new Uint8Array([6, 5, 4, 3, 2, 1]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData2,
+			)
+			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+
+			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
+
+			o(result).deepEquals(new Map([[getElementId(file), concat(blobData1, blobData2)]]))
+		})
+
+		o.test("when passed multiple instances of the same archive but one blob is corrupted it downloads and decrypts the rest", async function () {
+			const sessionKey = aes256RandomKey()
+			const anothersessionKey = aes256RandomKey()
+			const blobData1 = new Uint8Array([1, 2, 3])
+			const blobId1 = "--------0s-1"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+
+			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
+			const blobId2 = "--------0s-2"
+			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			encryptedBlobData2[16] = ~encryptedBlobData2[16]
 
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))

@@ -38,6 +38,7 @@ import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { SomeEntity } from "../../../common/EntityTypes.js"
 import { encryptBytes } from "../../crypto/CryptoWrapper.js"
 import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -207,7 +208,18 @@ export class BlobFacade {
 				console.log(TAG, `Did not find blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`)
 				return null
 			}
-			decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
+			try {
+				decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
+			} catch (e) {
+				// If decrypting one chunk of an instance fails it doesn't make sense to return any data for
+				// that instance
+				if (e instanceof CryptoError) {
+					console.log(TAG, `Could not decrypt blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`, e)
+					return null
+				} else {
+					throw e
+				}
+			}
 		}
 		return concat(...decryptedChunks)
 	}
