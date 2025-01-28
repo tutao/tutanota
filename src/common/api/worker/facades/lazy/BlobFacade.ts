@@ -463,7 +463,10 @@ export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id
 	const dataView = new DataView(concatBinaryData.buffer)
 	const result = new Map<Id, Uint8Array>()
 	const blobCount = dataView.getInt32(0)
-	if (blobCount <= 0) {
+	if (blobCount === 0) {
+		return result
+	}
+	if (blobCount < 0) {
 		throw new Error(`Invalid blob count: ${blobCount}`)
 	}
 	let offset = 4

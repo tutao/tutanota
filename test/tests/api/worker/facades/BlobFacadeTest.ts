@@ -278,7 +278,10 @@ o.spec("BlobFacade test", function () {
 			const size = 3
 
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
-			when(fileAppMock.download(anything(), anything(), anything())).thenResolve({ statusCode: 200, encryptedFileUri })
+			when(fileAppMock.download(anything(), anything(), anything())).thenResolve({
+				statusCode: 200,
+				encryptedFileUri,
+			})
 			when(aesAppMock.aesDecryptFile(sessionKey, encryptedFileUri)).thenResolve(decryptedChunkUri)
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
@@ -322,7 +325,10 @@ o.spec("BlobFacade test", function () {
 			const size = 3
 
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
-			when(fileAppMock.download(anything(), blobs[0].blobId + ".blob", anything())).thenResolve({ statusCode: 200, encryptedFileUri })
+			when(fileAppMock.download(anything(), blobs[0].blobId + ".blob", anything())).thenResolve({
+				statusCode: 200,
+				encryptedFileUri,
+			})
 			when(fileAppMock.download(anything(), blobs[1].blobId + ".blob", anything())).thenReject(new ProgrammingError("test download error"))
 			when(aesAppMock.aesDecryptFile(sessionKey, encryptedFileUri)).thenResolve(decryptedChunkUri)
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
@@ -431,7 +437,13 @@ o.spec("BlobFacade test", function () {
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
-			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65), archiveId: "archiveId2" }))
+			anotherFile.blobs.push(
+				createTestEntity(BlobTypeRef, {
+					blobId: blobId3,
+					size: String(65),
+					archiveId: "archiveId2",
+				}),
+			)
 			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
@@ -661,6 +673,17 @@ o.spec("BlobFacade test", function () {
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
 			o(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array(blobDataNumbers)]]))
+		})
+
+		o.test("parse empty blob response", function () {
+			const blobDataNumbers = Array(384).fill(1)
+			const binaryData = new Int8Array([
+				// number of blobs [0-3]
+				0, 0, 0, 0,
+			])
+
+			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
+			o(result).deepEquals(new Map<Id, Uint8Array>())
 		})
 	})
 })
