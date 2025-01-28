@@ -41,7 +41,7 @@ import {
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -83,7 +83,7 @@ const IGNORED_TYPES = [
  * OfflineStorage.ensureBase64Ext). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
  * are other ways to cache customId types (see implementation of CustomCacheHandler)
  */
-const CACHABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
+const CACHEABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
 
 export interface EntityRestCache extends EntityRestInterface {
 	/**
@@ -413,7 +413,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
 		}
 
-		const useCache = await this.shouldUseCache(typeRef, opts)
+		const typeModel = await resolveTypeReference(typeRef)
+		const useCache = (await this.shouldUseCache(typeRef, opts)) && isCachedRangeType(typeModel, typeRef)
+
 		if (!useCache) {
 			return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
 		}
@@ -427,7 +429,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		await this.storage.lockRangesDbAccess(listId)
 
 		try {
-			const typeModel = await resolveTypeReference(typeRef)
 			const range = await this.storage.getRangeForList(typeRef, listId)
 
 			if (behavior.writesToCache) {
@@ -974,20 +975,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * @param opts entity rest client options, if any
 	 * @return true if the cache can be used, false if a direct network request should be performed
 	 */
-	private async shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): Promise<boolean> {
+	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
 		// some types won't be cached
 		if (isIgnoredType(typeRef)) {
 			return false
 		}
 
 		// if a specific version is requested we have to load again and do not want to store it in the cache
-		if (opts?.queryParams?.version != null) {
-			return false
-		}
-
-		// otherwise we should ignore certain custom id types
-		const typeModel = await resolveTypeReference(typeRef)
-		return isCachedType(typeModel, typeRef)
+		return opts?.queryParams?.version == null
 	}
 }
 
@@ -1050,8 +1045,8 @@ function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, sta
 /**
  * some types are completely ignored by the cache and always served from a request.
  * Note:
- * isCachedType(ref) ---> !isIgnoredType(ref) but
- * isIgnoredType(ref) -/-> !isCachedType(ref) because of opted-in CustomId types.
+ * isCachedRangeType(ref) ---> !isIgnoredType(ref) but
+ * isIgnoredType(ref) -/-> !isCachedRangeType(ref) because of opted-in CustomId types.
  */
 function isIgnoredType(typeRef: TypeRef<unknown>): boolean {
 	return typeRef.app === "monitor" || IGNORED_TYPES.some((ref) => isSameTypeRef(typeRef, ref))
@@ -1061,16 +1056,16 @@ function isIgnoredType(typeRef: TypeRef<unknown>): boolean {
  * Checks if for the given type, that contains a customId,  caching is enabled.
  */
 function isCachableCustomIdType(typeRef: TypeRef<unknown>): boolean {
-	return CACHABLE_CUSTOMID_TYPES.some((ref) => isSameTypeRef(typeRef, ref))
+	return CACHEABLE_CUSTOMID_TYPES.some((ref) => isSameTypeRef(typeRef, ref))
 }
 
 /**
- * customId types are normally not cached, but some are opted in.
+ * Ranges for customId types are normally not cached, but some are opted in.
  * Note:
- * isCachedType(ref) ---> !isIgnoredType(ref) but
- * isIgnoredType(ref) -/-> !isCachedType(ref)
+ * isCachedRangeType(ref) ---> !isIgnoredType(ref) but
+ * isIgnoredType(ref) -/-> !isCachedRangeType(ref)
  */
-function isCachedType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boolean {
+function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boolean {
 	return (!isIgnoredType(typeRef) && isGeneratedIdType(typeModel)) || isCachableCustomIdType(typeRef)
 }
 

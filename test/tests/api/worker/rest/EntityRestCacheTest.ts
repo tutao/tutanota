@@ -25,7 +25,9 @@ import {
 	GroupMembershipTypeRef,
 	GroupRootTypeRef,
 	InstanceSessionKeyTypeRef,
+	MailAddressToGroupTypeRef,
 	PermissionTypeRef,
+	RootInstanceTypeRef,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CacheMode, EntityRestClient, typeRefToPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
@@ -1304,7 +1306,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			unmockAttribute(mock)
 		})
 
-		o("custom id range caching", async function () {
+		o("when custom id type is cacheable, the range is cached", async function () {
 			let ref = clone(createTestEntity(GroupKeyTypeRef))
 			ref._id = ["listId1", stringToCustomId("1")]
 			const loadRange = spy(function (typeRef, listId, start, count, reverse) {
@@ -1711,6 +1713,87 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			await cache.load(PermissionTypeRef, permissionId)
 			// @ts-ignore
 			o(client.load.callCount).equals(2)("The permission was loaded both times from the server")
+		})
+
+		o.test("when loading single ET custom id entity it is cached", async function () {
+			const id = stringToCustomId("1")
+			const client: EntityRestClient = object()
+			const entity = createTestEntity(MailAddressToGroupTypeRef, {
+				_id: id,
+			})
+			when(client.load(MailAddressToGroupTypeRef, id, anything())).thenResolve(entity)
+			const cache = new DefaultEntityRestCache(client, storage)
+
+			const loadedEntity = await cache.load(MailAddressToGroupTypeRef, id)
+			await cache.load(MailAddressToGroupTypeRef, id)
+
+			o(loadedEntity).deepEquals(entity)
+			verify(client.load(MailAddressToGroupTypeRef, id), { ignoreExtraArgs: true, times: 1 })
+		})
+
+		o.test("when loading single LET custom id entity it is cached", async function () {
+			const id: IdTuple = [createId("0"), stringToCustomId("1")]
+			const client: EntityRestClient = object()
+			const entity = createTestEntity(RootInstanceTypeRef, {
+				_id: id,
+			})
+			when(client.load(RootInstanceTypeRef, id, anything())).thenResolve(entity)
+			const cache = new DefaultEntityRestCache(client, storage)
+
+			const loadedEntity = await cache.load(RootInstanceTypeRef, id)
+			await cache.load(RootInstanceTypeRef, id)
+
+			o(loadedEntity).deepEquals(entity)
+			verify(client.load(RootInstanceTypeRef, id), { ignoreExtraArgs: true, times: 1 })
+		})
+
+		o.test("when loading multiple ET custom id entities are cached", async function () {
+			const ids = [stringToCustomId("1"), stringToCustomId("2")]
+			const client: EntityRestClient = object()
+			const firstEntity = createTestEntity(MailAddressToGroupTypeRef, {
+				_id: ids[0],
+			})
+			const secondEntity = createTestEntity(MailAddressToGroupTypeRef, {
+				_id: ids[1],
+			})
+
+			when(client.loadMultiple(MailAddressToGroupTypeRef, null, ids), { ignoreExtraArgs: true }).thenResolve([firstEntity, secondEntity])
+			const cache = new DefaultEntityRestCache(client, storage)
+
+			const loadedEntity = await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
+			await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
+
+			o(loadedEntity).deepEquals([firstEntity, secondEntity])
+			verify(client.loadMultiple(MailAddressToGroupTypeRef, null, ids), { ignoreExtraArgs: true, times: 1 })
+		})
+
+		o.test("when loading multiple LET custom id entities are cached", async function () {
+			const listId = createId("0")
+			const ids: IdTuple[] = [
+				[listId, stringToCustomId("1")],
+				[listId, stringToCustomId("2")],
+			]
+			const client: EntityRestClient = object()
+			const firstEntity = createTestEntity(RootInstanceTypeRef, {
+				_id: ids[0],
+			})
+			const secondEntity = createTestEntity(RootInstanceTypeRef, {
+				_id: ids[1],
+			})
+
+			when(client.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])], anything()), {
+				ignoreExtraArgs: true,
+			}).thenResolve([firstEntity, secondEntity])
+			const cache = new DefaultEntityRestCache(client, storage)
+
+			const loadedEntity = await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
+			await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
+
+			o(loadedEntity).deepEquals([firstEntity, secondEntity])
+			verify(client.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])]), {
+				ignoreExtraArgs: true,
+				times: 1,
+			})
 		})
 
 		o.spec("no user id", function () {
