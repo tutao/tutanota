@@ -48,7 +48,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				}
 			}
 		}
-		openedDb.query("PRAGMA busy_timeout = 100")
+		openedDb.query("PRAGMA busy_timeout = 1000")
 	}
 
 	private fun getDbFile(userId: String): File {
