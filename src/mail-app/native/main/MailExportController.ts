@@ -36,13 +36,8 @@ const TAG = "MailboxExport"
  */
 export class MailExportController {
 	private _state: Stream<MailExportState> = stream({ type: "idle" })
-	private _lastExport: Date | null = null
 	private servers?: BlobServerUrl[]
 	private serverIndex: number = 0
-
-	get lastExport(): Date | null {
-		return this._lastExport
-	}
 
 	constructor(
 		private readonly mailExportFacade: MailExportFacade,
@@ -83,7 +78,6 @@ export class MailExportController {
 		}
 
 		this._state({ type: "exporting", mailboxDetail: mailboxDetail, progress: 0, exportedMails: 0 })
-		this._lastExport = new Date()
 
 		await this.runExport(mailboxDetail, allMailBags, GENERATED_MAX_ID)
 	}
@@ -105,7 +99,6 @@ export class MailExportController {
 					progress: 0,
 					exportedMails: exportState.exportedMails,
 				})
-				this._lastExport = new Date()
 				await this.resumeExport(mailboxDetail, exportState.mailBagId, exportState.mailId)
 			} else if (exportState.type === "finished") {
 				const mailboxDetail = await this.mailboxModel.getMailboxDetailByMailboxId(exportState.mailboxId)
@@ -146,11 +139,10 @@ export class MailExportController {
 	}
 
 	private async runExport(mailboxDetail: MailboxDetail, mailBags: MailBag[], mailId: Id) {
-		const startTime = assertNotNull(this._lastExport)
 		this.servers = await this.mailExportFacade.getExportServers(mailboxDetail.mailGroup)
 		for (const mailBag of mailBags) {
 			await this.exportMailBag(mailBag, mailId)
-			if (this._state().type !== "exporting" || this._lastExport !== startTime) {
+			if (this._state().type !== "exporting") {
 				return
 			}
 		}
@@ -212,9 +204,8 @@ export class MailExportController {
 				} else if (e instanceof SuspensionError) {
 					const timeToWait = Math.max(filterInt(assertNotNull(e.data)), 1)
 					console.log(TAG, `Pausing for ${Math.floor(timeToWait / 1000 + 0.5)} seconds`)
-					const currentExportTime = this._lastExport
 					await delay(timeToWait)
-					if (this._state().type !== "exporting" || this._lastExport !== currentExportTime) {
+					if (this._state().type !== "exporting") {
 						return
 					}
 				} else {

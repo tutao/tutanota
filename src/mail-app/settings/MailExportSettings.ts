@@ -58,7 +58,6 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				disabled: state.type === "exporting",
 			} satisfies DropDownSelectorAttrs<MailboxDetail>),
 			this.renderState(vnode.attrs.mailExportController),
-			this.renderExportHistory(vnode.attrs.mailExportController),
 		]
 	}
 
@@ -149,34 +148,5 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 
 	private renderExportInfoText() {
 		return [m(".small", lang.get("mailExportInfoText_label"))]
-	}
-
-	private renderExportHistory(controller: MailExportController) {
-		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
-				m(".h4", lang.get("mailExportHistory_label")),
-				m(ExpanderButton, {
-					label: "show_action",
-					expanded: this.isExportHistoryExpanded,
-					onExpandedChange: () => {
-						this.isExportHistoryExpanded = !this.isExportHistoryExpanded
-					},
-				}),
-			]),
-			m(
-				ExpanderPanel,
-				{
-					expanded: this.isExportHistoryExpanded,
-				},
-				m(
-					"small.noselect",
-					controller.lastExport
-						? lang.get("lastExportTime_Label", {
-								"{date}": formatDate(controller.lastExport),
-						  })
-						: null,
-				),
-			),
-		]
 	}
 }
