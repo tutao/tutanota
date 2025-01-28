@@ -41,6 +41,7 @@ import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
+export const TAG = "BlobFacade"
 
 export interface BlobLoadOptions {
 	extraHeaders?: Dict
@@ -185,26 +186,30 @@ export class BlobFacade {
 			}
 			const encryptedBlobsOfAllInstances = await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 			// sort blobs by the instance
-			instanceLoop: for (const instance of instances) {
-				// get the key of the instance
-				const sessionKey = await this.resolveSessionKey(instance.entity)
-				// decrypt blobs of the instance and concatenate them
-				const decryptedChunks: Uint8Array[] = []
-				for (const blob of instance.blobs) {
-					const encryptedChunk = encryptedBlobsOfAllInstances.get(blob.blobId)
-					if (encryptedChunk == null) {
-						result.set(instance.elementId, null)
-						continue instanceLoop
-					}
-					decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
-				}
-				const decryptedData = concat(...decryptedChunks)
+			for (const instance of instances) {
+				const decryptedData = await this.decryptInstanceData(instance, encryptedBlobsOfAllInstances)
 				// return Map of instance id -> blob data
 				result.set(instance.elementId, decryptedData)
 			}
 		}
 
 		return result
+	}
+
+	private async decryptInstanceData(instance: BlobReferencingInstance, blobs: Map<Id, Uint8Array>): Promise<Uint8Array | null> {
+		// get the key of the instance
+		const sessionKey = await this.resolveSessionKey(instance.entity)
+		// decrypt blobs of the instance and concatenate them
+		const decryptedChunks: Uint8Array[] = []
+		for (const blob of instance.blobs) {
+			const encryptedChunk = blobs.get(blob.blobId)
+			if (encryptedChunk == null) {
+				console.log(TAG, `Did not find blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`)
+				return null
+			}
+			decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
+		}
+		return concat(...decryptedChunks)
 	}
 
 	/**
