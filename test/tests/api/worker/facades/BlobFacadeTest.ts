@@ -8,7 +8,6 @@ import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/Inst
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
@@ -19,12 +18,9 @@ import { FileReference } from "../../../../../src/common/api/common/utils/FileUt
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobGetIn, BlobPostOutTypeRef, BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import type { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
-import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 
 const { anything, captor } = matchers
@@ -32,8 +28,6 @@ const { anything, captor } = matchers
 o.spec("BlobFacade test", function () {
 	let blobFacade: BlobFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
-	let authDataProvider: AuthDataProvider
-	let serviceMock: ServiceExecutor
 	let restClientMock: RestClient
 	let suspensionHandlerMock: SuspensionHandler
 	let fileAppMock: NativeFileApp
@@ -52,8 +46,6 @@ o.spec("BlobFacade test", function () {
 	let anotherFile: TutanotaFile
 
 	o.beforeEach(function () {
-		authDataProvider = object<AuthDataProvider>()
-		serviceMock = object<ServiceExecutor>()
 		restClientMock = instance(RestClient)
 		suspensionHandlerMock = instance(SuspensionHandler)
 		fileAppMock = instance(NativeFileApp)
@@ -67,18 +59,7 @@ o.spec("BlobFacade test", function () {
 		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
 		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
 
-		blobFacade = new BlobFacade(
-			authDataProvider,
-			serviceMock,
-			restClientMock,
-			suspensionHandlerMock,
-			fileAppMock,
-			aesAppMock,
-			instanceMapperMock,
-			cryptoFacadeMock,
-			blobAccessTokenFacade,
-			object<DefaultEntityRestCache>(),
-		)
+		blobFacade = new BlobFacade(restClientMock, suspensionHandlerMock, fileAppMock, aesAppMock, instanceMapperMock, cryptoFacadeMock, blobAccessTokenFacade)
 	})
 
 	o.afterEach(function () {

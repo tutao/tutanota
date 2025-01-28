@@ -61,8 +61,6 @@ export interface BlobLoadOptions {
  */
 export class BlobFacade {
 	constructor(
-		private readonly authDataProvider: AuthDataProvider,
-		private readonly serviceExecutor: IServiceExecutor,
 		private readonly restClient: RestClient,
 		private readonly suspensionHandler: SuspensionHandler,
 		private readonly fileApp: NativeFileApp,
@@ -70,7 +68,6 @@ export class BlobFacade {
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
-		private readonly entityRestCache: DefaultEntityRestCache | null,
 	) {}
 
 	/**
