@@ -202,10 +202,11 @@ export class MailImporter {
 	}
 
 	private async handleError(err: MailImportError) {
+		if (this.activeImport) {
+			this.activeImport.uiStatus = UiImportStatus.Paused
+			this.activeImport.progressMonitor.pauseEstimation()
+		}
 		if (err.data.category == ImportErrorCategories.ImportFeatureDisabled) {
-			if (this.activeImport) {
-				this.activeImport.uiStatus = UiImportStatus.Paused
-			}
 			await Dialog.message("mailImportErrorServiceUnavailable_msg")
 		} else if (err.data.category == ImportErrorCategories.ConcurrentImport) {
 			console.log("Tried to start concurrent import")
@@ -263,6 +264,9 @@ export class MailImporter {
 				apiUrl,
 			)
 		} catch (e) {
+			this.resetStatus()
+			m.redraw()
+
 			if (e instanceof MailImportError) {
 				this.handleError(e).catch()
 			} else {
@@ -413,6 +417,7 @@ export class MailImporter {
 	}
 
 	private resetStatus() {
+		this.activeImport?.progressMonitor?.pauseEstimation()
 		this.activeImport = null
 	}
 
