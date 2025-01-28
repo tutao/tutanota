@@ -373,10 +373,13 @@ export async function showMailFolderDropdown(
 		(f) =>
 			({
 				// We need to pass in the raw folder name to avoid including it in searches
-				label: lang.getTranslation("folderDepth_label", {
-					"dropdown-folder:{folderName}": getFolderName(f.folder),
-					"{depth}": f.level,
-				}),
+				label: lang.makeTranslation(
+					`dropdown-folder:${getFolderName(f.folder)}`,
+					lang.get("folderDepth_label", {
+						"{folderName}": getFolderName(f.folder),
+						"{depth}": f.level,
+					}),
+				),
 				text: lang.makeTranslation("folder_name", getIndentedFolderNameForDropdown(f)),
 				click: () => {
 					onSelected()
