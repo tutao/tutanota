@@ -160,6 +160,12 @@ export class KeyRotationFacade {
 	 * @VisibleForTesting
 	 */
 	pendingKeyRotations: PendingKeyRotation
+	/**
+	 * Keeps track of which User and Team groups have performed Key Rotation (only for the current session).
+	 * Other group types may be included, but it is not guaranteed.
+	 * @private
+	 */
+	private groupIdsThatPerformedKeyRotations: Set<Id>
 	private readonly facadeInitializedDeferredObject: DeferredObject<void>
 	private pendingGroupKeyUpdateIds: IdTuple[] // already rotated groups for which we need to update the memberships (GroupKeyUpdateIds all in one list)
 
@@ -186,6 +192,7 @@ export class KeyRotationFacade {
 		}
 		this.facadeInitializedDeferredObject = defer<void>()
 		this.pendingGroupKeyUpdateIds = []
+		this.groupIdsThatPerformedKeyRotations = new Set<Id>()
 	}
 
 	/**
@@ -310,6 +317,10 @@ export class KeyRotationFacade {
 		}
 		await this.serviceExecutor.post(GroupKeyRotationService, serviceData)
 
+		for (const groupKeyUpdate of serviceData.groupKeyUpdates) {
+			this.groupIdsThatPerformedKeyRotations.add(groupKeyUpdate.group)
+		}
+
 		if (!isEmpty(invitationData)) {
 			const shareFacade = await this.shareFacade()
 			await promiseMap(invitationData, (preparedInvite) => shareFacade.sendGroupInvitationRequest(preparedInvite))
@@ -329,7 +340,8 @@ export class KeyRotationFacade {
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
 		const adminKeyRotationData = await this.prepareKeyRotationForSingleAdmin(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
 
-		return this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData.keyRotationData)
+		await this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData.keyRotationData)
+		this.groupIdsThatPerformedKeyRotations.add(user.userGroup.group)
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
@@ -978,6 +990,7 @@ export class KeyRotationFacade {
 				userGroupKeyData,
 			}),
 		)
+		this.groupIdsThatPerformedKeyRotations.add(userGroupId)
 	}
 
 	private async handleUserGroupKeyRotationAsUser(
@@ -1321,6 +1334,7 @@ export class KeyRotationFacade {
 
 		// call service
 		await this.serviceExecutor.post(AdminGroupKeyRotationService, keyRotationData)
+		this.groupIdsThatPerformedKeyRotations.add(user.userGroup.group)
 	}
 
 	/**
@@ -1357,6 +1371,13 @@ export class KeyRotationFacade {
 		} else {
 			return MultiAdminGroupKeyAdminActionPath.IMPOSSIBLE_STATE
 		}
+	}
+
+	/**
+	 * Gets a list of the groups for which we have rotated keys in the session, so far.
+	 */
+	public async getGroupIdsThatPerformedKeyRotations(): Promise<Array<Id>> {
+		return Array.from(this.groupIdsThatPerformedKeyRotations.values())
 	}
 }
 

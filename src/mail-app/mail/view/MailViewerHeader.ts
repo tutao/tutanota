@@ -282,9 +282,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return [
 			m(
 				"." + responsiveCardHMargin(),
-				this.renderPhishingWarning(viewModel) ||
-					this.renderHardAuthenticationFailWarning(viewModel) ||
-					this.renderSoftAuthenticationFailWarning(viewModel),
+				this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed()
+					? null
+					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
 			),
 			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
@@ -625,7 +625,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const authFailed =
 			viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.HARD_FAIL) ||
 			viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-		if (!viewModel.isWarningDismissed() && authFailed) {
+
+		if (authFailed) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
@@ -642,7 +643,20 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderSoftAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
-		if (!viewModel.isWarningDismissed() && viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) {
+		const buttons: ReadonlyArray<BannerButtonAttrs | null> = [
+			{
+				label: "close_alt",
+				click: () => viewModel.setWarningDismissed(true),
+			},
+		]
+		if (viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT) {
+			return m(InfoBanner, {
+				message: () => lang.get("deprecatedKeyWarning_msg"),
+				icon: Icons.Warning,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.DeprecatedKey : null,
+				buttons: buttons,
+			})
+		} else if (viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) {
 			return m(InfoBanner, {
 				message: () =>
 					viewModel.mail.differentEnvelopeSender
@@ -652,12 +666,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
 				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
-				buttons: [
-					{
-						label: "close_alt",
-						click: () => viewModel.setWarningDismissed(true),
-					},
-				],
+				buttons: buttons,
 			})
 		} else {
 			return null

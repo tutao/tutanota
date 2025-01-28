@@ -1875,6 +1875,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"deprecatedKeyWarning_msg": "Für diese Nachricht wurde ein veraltetes Verschlüsselungsprotokoll verwendet und sie stammt möglicherweise nicht von diesem Benutzer",
 	}
 }

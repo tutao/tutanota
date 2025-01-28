@@ -73,6 +73,7 @@ import {
 	encryptRsaKey,
 	generateEccKeyPair,
 	IV_BYTE_LENGTH,
+	KeyPairType,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,
@@ -100,6 +101,7 @@ import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { PublicKeyProvider, PublicKeys } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 
 const { captor, anything, argThat } = matchers
 
@@ -194,12 +196,12 @@ o.spec("CryptoFacadeTest", function () {
 	let userFacade: UserFacade
 	let keyLoaderFacade: KeyLoaderFacade
 	let cache: DefaultEntityRestCache
+	let keyRotationFacade: KeyRotationFacade
 
 	o.before(function () {
 		restClient = object()
 		when(restClient.request(anything(), anything(), anything())).thenResolve(undefined)
 		userFacade = object()
-		keyLoaderFacade = object()
 		cache = object()
 	})
 
@@ -209,6 +211,8 @@ o.spec("CryptoFacadeTest", function () {
 		asymmetricCryptoFacade = object()
 		ownerEncSessionKeysUpdateQueue = object()
 		publicKeyProvider = object()
+		keyLoaderFacade = object()
+		keyRotationFacade = object()
 		crypto = new CryptoFacade(
 			userFacade,
 			entityClient,
@@ -220,6 +224,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
 			publicKeyProvider,
+			() => keyRotationFacade,
 		)
 	})
 
@@ -615,6 +620,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
 			publicKeyProvider,
+			() => keyRotationFacade,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"
@@ -733,6 +739,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
 			publicKeyProvider,
+			() => keyRotationFacade,
 		)
 		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"
@@ -934,6 +941,68 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 		Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		o(sessionKey).deepEquals(testData.sk)
+
+		const updatedInstanceSessionKeysCaptor = captor()
+		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
+		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+		)
+
+		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
+	})
+
+	o("authenticateSender | RSA was used despite recipient having tutacrypt", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
+		Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+		when(keyLoaderFacade.loadCurrentKeyPair(anything())).thenResolve({
+			version: 1,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				kyberKeyPair: object(),
+				eccKeyPair: object(),
+			},
+		})
+
+		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([])
+
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		o(sessionKey).deepEquals(testData.sk)
+
+		const updatedInstanceSessionKeysCaptor = captor()
+		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
+		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
+		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+		)
+
+		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		o(actualAutStatus).deepEquals(EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT)
+	})
+
+	o("authenticateSender | RSA was used right after a key rotation", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
+		Object.assign(testData.mailLiteral, { body: "bodyId" })
+
+		when(keyLoaderFacade.loadCurrentKeyPair(anything())).thenResolve({
+			version: 1,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				kyberKeyPair: object(),
+				eccKeyPair: object(),
+			},
+		})
+
+		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([testData.userGroupId])
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 		o(sessionKey).deepEquals(testData.sk)
@@ -1396,6 +1465,7 @@ o.spec("CryptoFacadeTest", function () {
 		bk: Aes256Key
 		mailGroupKey: Aes256Key
 		MailTypeModel: TypeModel
+		userGroupId: Id
 	}> {
 		// configure test user
 		const recipientUser = createTestUser("Bob", entityClient)
@@ -1462,6 +1532,14 @@ o.spec("CryptoFacadeTest", function () {
 			senderKeyVersion: null,
 			recipientKeyVersion: "0",
 		})
+		when(keyLoaderFacade.loadCurrentKeyPair(recipientUser.userGroup._id)).thenResolve({
+			object: {
+				keyPairType: KeyPairType.RSA,
+				publicKey: RSA_TEST_KEYPAIR.publicKey,
+				privateKey: RSA_TEST_KEYPAIR.privateKey,
+			},
+			version: 0,
+		})
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
 		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
@@ -1483,6 +1561,7 @@ o.spec("CryptoFacadeTest", function () {
 			bk,
 			mailGroupKey: recipientUser.mailGroupKey,
 			MailTypeModel,
+			userGroupId: recipientUser.userGroup._id,
 		}
 	}
 

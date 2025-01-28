@@ -1008,6 +1008,8 @@ export enum EncryptionAuthStatus {
 	AES_NO_AUTHENTICATION = "3",
 	/** the entity was sent by us encrypted with TutaCrypt, so it is authenticated */
 	TUTACRYPT_SENDER = "4",
+	/** the entity was encrypted with RSA although TutaCrypt keys were available */
+	RSA_DESPITE_TUTACRYPT = "5",
 }
 
 export const enum MailReportType {

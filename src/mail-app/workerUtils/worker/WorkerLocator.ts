@@ -266,6 +266,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyLoader,
 		locator.asymmetricCrypto,
 		locator.publicKeyProvider,
+		lazyMemoized(() => locator.keyRotation),
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
