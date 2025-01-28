@@ -65,7 +65,8 @@ impl FileImport {
 		mailbox_id: &str,
 		source_paths: impl Iterator<Item = PathBuf>,
 	) -> Result<PathBuf, PreparationError> {
-		let import_directory_path = FileImport::make_import_directory(config_directory, mailbox_id);
+		let import_directory_path =
+			FileImport::make_import_directory_path(config_directory, mailbox_id);
 		let failed_sub_directory_path = import_directory_path.join(FAILED_MAILS_SUB_DIR);
 		let mut filename_producer = FileNameProducer::new(import_directory_path.as_path());
 
@@ -167,7 +168,7 @@ impl FileImport {
 		fs::remove_file(import_dir.join(STATE_ID_FILE_NAME))
 	}
 
-	pub fn make_import_directory(config_directory: &str, mailbox_id: &str) -> PathBuf {
+	pub fn make_import_directory_path(config_directory: &str, mailbox_id: &str) -> PathBuf {
 		[
 			config_directory.to_string(),
 			"current_imports".into(),
