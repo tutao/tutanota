@@ -341,7 +341,7 @@ impl KeyLoaderFacade {
 							return Err(KeyLoadError {
 								reason: format!(
 									"received an rsa key pair in a version other than 0: {}",
-									group_key.version.to_string()
+									group_key.version
 								),
 							});
 						}
