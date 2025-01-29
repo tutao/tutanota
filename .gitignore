@@ -1,4 +1,5 @@
 build
+target
 build-calendar-app
 dist
 node_modules
@@ -24,3 +25,5 @@ tuta-sdk/out
 app-android/app/src/main/jniLibs
 app-android/app/src/main/java/de/tutao/tutasdk
 DerivedData/
+tuta-sdk/rust/out
+tuta-sdk/android

@@ -13,7 +13,7 @@ PATH="$(bash -l -c 'echo $PATH')"
 
 for target in "${TARGETS[@]}"; do
   OUT_DIR="out/${target}"
-  RELEASE_DIR="target/${target}/release"
+  RELEASE_DIR="../../target/${target}/release"
 
   SWIFTC_TARGET=""
   case "${target}" in
@@ -67,7 +67,7 @@ for target in "${TARGETS[@]}"; do
   # Would be great to expose maven library for Android.
   # Ad-hoc:
   mkdir -p "../ios/lib/${target}"
-  cp "target/${target}/release/libtutasdk.a" "../ios/lib/${target}/libtutasdk.a"
+  cp "../../target/${target}/release/libtutasdk.a" "../ios/lib/${target}/libtutasdk.a"
   cp "${OUT_DIR}/tutasdkFFI.h" "../ios/lib"
   cp "${OUT_DIR}/tutasdk.swift" "../ios/lib"
 

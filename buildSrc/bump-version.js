@@ -25,11 +25,10 @@ await program
 async function run({ platform }) {
 	console.log(`bumping version for ${platform ?? "all"}`)
 	const { currentVersion, currentVersionString, newVersionString } = await calculateClientVersions()
-	await bumpSdkVersion(newVersionString)
+	await bumpVersionInCargoWorkspace(newVersionString)
 
 	if (platform === "all" || platform === "webdesktop") {
 		await bumpWorkspaces(newVersionString)
-		await bumpNodeMimimiVersion(newVersionString)
 		await $`npm version --no-git-tag-version ${newVersionString}`
 
 		// Need to clean and re-install to make sure that all packages
@@ -54,31 +53,25 @@ async function run({ platform }) {
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
 }
 
-async function bumpSdkVersion(newVersionString) {
-	await updateCargoFile(newVersionString, "tuta-sdk", "tuta-sdk/rust/sdk/Cargo.toml")
-	await updateCargoFile(newVersionString, "tuta-sdk", "tuta-sdk/rust/Cargo.lock")
-}
-
-async function bumpNodeMimimiVersion(newVersionString) {
-	await updateCargoFile(newVersionString, "tuta-sdk", "packages/node-mimimi/Cargo.lock")
-	await updateCargoFile(newVersionString, "tutao_node-mimimi", "packages/node-mimimi/Cargo.toml")
-	await updateCargoFile(newVersionString, "tutao_node-mimimi", "packages/node-mimimi/Cargo.lock")
-}
-
-async function updateCargoFile(newVersionString, packageName, fileName) {
-	const versionRegex = new RegExp(`name = "${packageName}"\nversion = ".*"`)
-	const contents = await fs.promises.readFile(fileName, "utf8")
+/**
+ * @param newVersionString {string}
+ * @return {Promise<void>}
+ */
+async function bumpVersionInCargoWorkspace(newVersionString) {
+	const workspaceFilePath = "Cargo.toml"
+	const versionRegex = /\[workspace\.package]\nversion = ".*"/
+	const contents = await fs.promises.readFile(workspaceFilePath, "utf8")
 	let found = 0
 	const newContents = contents.replace(versionRegex, (_, __, ___, ____) => {
 		found += 1
-		return `name = "${packageName}"\nversion = "${newVersionString}"`
+		return `[workspace.package]\nversion = "${newVersionString}"`
 	})
 
 	if (found !== 1) {
-		console.warn(`${fileName} had an unexpected format and couldn't be updated. Is it corrupted?`)
+		console.warn(`${workspaceFilePath} had an unexpected format and couldn't be updated. Is it corrupted?`)
 	} else {
-		console.log(`rust: Updated ${fileName} for ${packageName} to ${newVersionString}`)
-		await fs.promises.writeFile(fileName, newContents)
+		console.log(`rust: Updated ${workspaceFilePath} package.version to ${newVersionString}`)
+		await fs.promises.writeFile(workspaceFilePath, newContents)
 	}
 }
 
