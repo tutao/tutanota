@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2025-01-25T06:39:38Z",
+	"updated_at": "2025-01-27T13:05:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -613,6 +613,7 @@ export default {
 		"exportFinished_label": "Izvoz končan",
 		"exportingEmails_label": "Izvažam sporočila: {count}",
 		"exportMailbox_label": "Izvozi poštni predal",
+		"exportRunningElsewhere_label": "Izvoz se mogoče izvaja v drugem oknu.",
 		"exportUsers_action": "Izvoz uporabnikov",
 		"exportVCard_action": "Izvozi vCard",
 		"export_action": "Izvozi",
@@ -1849,6 +1850,7 @@ export default {
 		"viewPrevPeriod_action": "Ogled prejšnjega obdobja",
 		"viewToday_action": "Ogled trenutnega obdobja",
 		"view_label": "Pogled",
+		"vitor_alt": "Visoko kontrastna črno-bela slika človeka, ki srka kavo, ker ve da so njegovi podatki varni.",
 		"waitingForApproval_msg": "Se opravičujemo, vendar trenutno ne morete pošiljati ali prejemati pošte, ker je vaš račun označen za potrditev. Ta postopek je nujen, da lahko zagotovimo varno registracijo in hkrati preprečimo masovne registracije. Vaš račun bo samodejno potrjen čez 48. ur. Hvala za potrpljenje.",
 		"waitingForU2f_msg": "Čakam na varnostni ključ...",
 		"wantToSendReport_msg": "Nekaj nepričakovanega se je zgodilo. Ali želite poslati poročilo? Lahko dodate sporočila, da nam pomagate popraviti to napako.",
