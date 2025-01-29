@@ -50,8 +50,8 @@ export class MailExportFacade {
 		)
 	}
 
-	async loadMailDetails(mails: readonly Mail[]): Promise<MailWithMailDetails[]> {
-		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadMailDetails(mails, this.options(token)))
+	async loadMailDetails(mails: readonly Mail[], baseUrl: string): Promise<MailWithMailDetails[]> {
+		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadMailDetails(mails, { baseUrl, ...this.options(token) }))
 	}
 
 	async loadAttachments(mails: readonly Mail[], baseUrl: string): Promise<TutanotaFile[]> {

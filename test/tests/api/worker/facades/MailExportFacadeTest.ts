@@ -57,9 +57,15 @@ o.spec("MailExportFacade", () => {
 			{ mail: mail1, mailDetails: details1 },
 			{ mail: mail2, mailDetails: details2 },
 		]
-		when(bulkMailLoader.loadMailDetails([mail1, mail2], { extraHeaders: tokenHeaders, suspensionBehavior: SuspensionBehavior.Throw })).thenResolve(expected)
+		when(
+			bulkMailLoader.loadMailDetails([mail1, mail2], {
+				baseUrl: "baseUrl",
+				extraHeaders: tokenHeaders,
+				suspensionBehavior: SuspensionBehavior.Throw,
+			}),
+		).thenResolve(expected)
 
-		const result = await facade.loadMailDetails([mail1, mail2])
+		const result = await facade.loadMailDetails([mail1, mail2], "baseUrl")
 
 		o(result).deepEquals(expected)
 	})
