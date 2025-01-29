@@ -30,4 +30,3 @@ See [BUILDING.md](doc/BUILDING.md).
 ### Developing Tuta Mail
 
 See [HACKING.md](doc/HACKING.md).
-
