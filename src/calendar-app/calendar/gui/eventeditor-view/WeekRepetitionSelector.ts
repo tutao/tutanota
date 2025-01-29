@@ -1,22 +1,26 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { TabIndex, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import { IntervalOption } from "../CalendarGuiUtils.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import stream from "mithril/stream"
 
 export interface WeekRepetitionSelectorAttrs {
-	repetitionOptions: IntervalOption[]
+	repetitionOptionsAndWeekday: { options: IntervalOption[]; weekday: number }
+	gatherSelectedDay: (weekday: Weekday[], interval: number) => void
+	interval: number
 }
 
-/**
- */
 export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorAttrs> {
-	private weekRepetition: number | null = null // if null, repetition occurs on same day
+	private weekRepetition: number = 0 // if 0, repetition occurs on same day
 	private repetitionOptions: stream<IntervalOption[]> = stream([])
+	private weekday: number
 
 	constructor(vnode: Vnode<WeekRepetitionSelectorAttrs>) {
-		this.repetitionOptions = stream(vnode.attrs.repetitionOptions)
+		const { options, weekday } = vnode.attrs.repetitionOptionsAndWeekday
+		this.repetitionOptions = stream(options)
+		this.weekday = weekday - 1 // decrement to account for the offset from DateTime.weekday()
+		this.weekRepetition = vnode.attrs.interval
 	}
 
 	view(vnode: Vnode<WeekRepetitionSelectorAttrs>): Children {
@@ -37,7 +41,7 @@ export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorA
 						}
 
 						this.weekRepetition = newValue.value
-						// this.updateCustomRule(attrs.model, { interval: this.repeatInterval }) TODO write to model
+						vnode.attrs.gatherSelectedDay([Object.values(Weekday)[this.weekday]], this.weekRepetition)
 						m.redraw.sync()
 					},
 					onclose: () => {},

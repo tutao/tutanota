@@ -1942,7 +1942,8 @@ export type TranslationKeyType =
 	| "withCustomRules_label"
 	| "secondOfPeriod_label"
 	| "thirdOfPeriod_label"
-	| "nthOfPeriod_label"
+	| "fourthOfPeriod_label"
+	| "sameDay_label"
 	| "unsupportedAdvancedRules_msg"
 	// Put in temporarily, will be removed soon
 	| "localAdminGroup_label"

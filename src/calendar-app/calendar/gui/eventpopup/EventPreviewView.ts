@@ -328,12 +328,11 @@ function buildAdvancedRepetitionRuleDescription(advancedRules: AdvancedRepeatRul
 		} else if (leadingValue === -1) {
 			translationKey = "lastOfPeriod_label"
 		} else if (!Number.isNaN(leadingValue)) {
-			translationKey = "nthOfPeriod_label"
+			translationKey = "fourthOfPeriod_label"
 		}
 
 		return lang.get(translationKey, {
-			"{days}": day,
-			"{n}": leadingValue,
+			"{day}": day,
 		})
 	}
 
