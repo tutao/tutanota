@@ -1,17 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
+import { Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { px } from "../../../../common/gui/size.js"
 
 export interface WeekdayToTranslation {
-	value: Weekdays
+	value: Weekday
 	label: string
 }
 
 export interface WeekdaySelectorAttrs {
 	items: Array<WeekdayToTranslation>
-	selectedDays: Weekdays[] | null
-	gatherSelectedDays: (value: Weekdays[]) => void
+	selectedDays: Weekday[]
+	gatherSelectedDays: (value: Weekday[]) => void
 }
 
 const WEEKDAY_BUTTON_MOBILE_DIMENSIONS: string = px(36)
@@ -22,10 +22,10 @@ const WEEKDAY_BUTTON_MOBILE_DIMENSIONS: string = px(36)
  */
 export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 	private isMobile: boolean = client.isMobileDevice()
-	private selectedDays: Weekdays[] = []
+	private selectedDays: Weekday[] = []
 
 	constructor(vnode: Vnode<WeekdaySelectorAttrs>) {
-		this.selectedDays = vnode.attrs.selectedDays ?? []
+		this.selectedDays = vnode.attrs.selectedDays
 	}
 
 	view(vnode: Vnode<WeekdaySelectorAttrs>): Children {
@@ -39,7 +39,7 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 					weekday: item,
 					buttonDimensions: WEEKDAY_BUTTON_MOBILE_DIMENSIONS,
 					selected: vnode.attrs.selectedDays?.includes(item.value) ?? false,
-					onSelectionChanged: (weekday: Weekdays) => {
+					onSelectionChanged: (weekday: Weekday) => {
 						this.selectedDays.includes(weekday) ? delete this.selectedDays[this.selectedDays.indexOf(weekday)] : this.selectedDays.push(weekday)
 						vnode.attrs.gatherSelectedDays(this.selectedDays)
 					},
@@ -53,7 +53,7 @@ interface WeekdaySelectorButtonAttrs {
 	weekday: WeekdayToTranslation
 	buttonDimensions: string
 	selected: boolean
-	onSelectionChanged: (weekday: Weekdays) => void
+	onSelectionChanged: (weekday: Weekday) => void
 }
 
 /**
@@ -61,7 +61,7 @@ interface WeekdaySelectorButtonAttrs {
  */
 class WeekdaySelectorButton implements Component<WeekdaySelectorButtonAttrs> {
 	private isToggled: boolean
-	private readonly value: Weekdays
+	private readonly value: Weekday
 
 	constructor({ attrs }: Vnode<WeekdaySelectorButtonAttrs>) {
 		this.isToggled = attrs.selected
