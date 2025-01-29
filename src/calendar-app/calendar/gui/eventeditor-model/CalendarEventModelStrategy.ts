@@ -218,7 +218,6 @@ export class CalendarEventApplyStrategies {
 					CalendarOperation.DeleteThis,
 				)
 				const recurrenceIds = await this.lazyRecurrenceIds(progenitor.uid)
-				recurrenceIds.push(existingInstance.startTime)
 				await this.notificationModel.send(newEvent, recurrenceIds, sendModels)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, calendar.groupRoot, progenitor)
 			})(),
