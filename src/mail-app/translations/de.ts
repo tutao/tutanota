@@ -1891,12 +1891,13 @@ export default {
 		"saturday_label": "Samstag",
 		"sunday_label": "Sonntag",
 		"and_label": "und",
-		"firstOfPeriod_label": "Am ersten {day} des Monats",
-		"secondOfPeriod_label": "Am zweiten {day} des Monats",
-		"thirdOfPeriod_label": "Am dritten {day} des Monats",
-		"nthOfPeriod_label": "Am {n}-ten {day} des Monats",
-		"lastOfPeriod_label": "Am letzten {day} des Monats",
+		"firstOfPeriod_label": "Ersten {day}",
+		"secondOfPeriod_label": "Zweiten {day}",
+		"thirdOfPeriod_label": "Dritten {day}",
+		"fourthOfPeriod_label": "Vierten {day}",
+		"lastOfPeriod_label": "Letzten {day}",
 		"withCustomRules_label": "Mit benutzerdefinierten Wiederholungsregeln",
-		"unsupportedAdvancedRules_msg": "Dieses Ereignis enthält eine oder mehrere nicht unterstützte erweiterte Wiederholungsregeln; jede Änderung führt zum Verlust dieser Regeln."
+		"unsupportedAdvancedRules_msg": "Dieses Ereignis enthält eine oder mehrere nicht unterstützte erweiterte Wiederholungsregeln; jede Änderung führt zum Verlust dieser Regeln.",
+		"sameDay_label": "Selben Tag"
 	}
 }

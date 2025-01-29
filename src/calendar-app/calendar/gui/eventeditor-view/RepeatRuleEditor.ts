@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { EndType, RepeatPeriod, TabIndex, Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
+import { EndType, RepeatPeriod, TabIndex, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
@@ -31,10 +31,19 @@ export type RepeatRuleEditorAttrs = {
 	startOfTheWeekOffset: number
 	width: number
 	backAction: () => void
-	writeWeekdaysToModel: (weekdays: Weekdays[]) => void
+	writeWeekdaysToModel: (weekdays: Weekday[], interval?: number) => void
 }
 
 type RepeatRuleOption = RepeatPeriod | null
+
+/** Wrapper class for BYDAY Rules.
+ * For monthly frequencies, an interval is required, and only one Weekday may be set.
+ * For weekly frequencies, no interval is required, and atleast one and a maximum of 7 Weekdays have to be set.
+ */
+export type ByDayRule = {
+	weekdays: Weekday[]
+	interval?: number
+}
 
 export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	private repeatRuleType: RepeatRuleOption | null = null
@@ -44,7 +53,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		return { value: wd.value, label: wd.label.slice(0, 1) }
 	})
 
-	private byDayRules: Weekdays[] | null = null
+	private byDayRules: ByDayRule | null = null
 	private numberValues: IntervalOption[] = createIntervalValues()
 	private occurrencesExpanded: boolean = false
 	private repeatOccurrences: number
@@ -164,7 +173,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						m(Divider, { color: theme.button_bubble_bg }),
 						m(WeekdaySelector, {
 							items: this.weekdayItems,
-							selectedDays: this.byDayRules,
+							selectedDays: this.byDayRules?.weekdays ?? [],
 							gatherSelectedDays: attrs.writeWeekdaysToModel,
 						}),
 				  ]
@@ -172,10 +181,12 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				? [
 						m(Divider, { color: theme.button_bubble_bg }),
 						m(WeekRepetitionSelector, {
-							repetitionOptions: createRepetitionValuesForWeekday(
-								attrs.model.startDate.getDay(),
+							repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(
+								DateTime.fromJSDate(attrs.model.startDate).weekday,
 								this.calculateWeekdayOccurrencesInMonth(attrs.model.startDate),
 							),
+							interval: this.byDayRules?.interval ?? 0,
+							gatherSelectedDay: attrs.writeWeekdaysToModel,
 						}),
 				  ]
 				: null,

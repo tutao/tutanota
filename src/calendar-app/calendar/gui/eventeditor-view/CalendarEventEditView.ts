@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { defaultCalendarColor, TabIndex, TimeFormat, Weekdays } from "../../../../common/api/common/TutanotaConstants.js"
+import { defaultCalendarColor, TabIndex, TimeFormat, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -521,8 +521,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			backAction: () => {
 				navigationCallback(EditorPages.MAIN)
 			},
-			writeWeekdaysToModel: (weekdays: Weekdays[]) => {
-				this.createAdvancedRulesFromWeekdays(weekdays).then((advancedRules) => {
+			writeWeekdaysToModel: (weekdays: Weekday[], interval?: number) => {
+				this.createAdvancedRulesFromWeekdays(weekdays, interval).then((advancedRules) => {
 					whenModel.advancedRules = advancedRules
 					m.redraw()
 				})
@@ -530,12 +530,18 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
-	private async createAdvancedRulesFromWeekdays(weekdays: Weekdays[]): Promise<AdvancedRepeatRule[]> {
-		if (weekdays.length == 0) return Promise.resolve([])
+	/**
+	 * Returns an Array of AdvancedRepeatRules that can be written to the CalendarWhenModel, which then writes them to the CalendarEvent.
+	 * @param weekdays Either the weekdays a weekly event - or a singular weekday (first, second, ..., last) in a month that a monthly event should repeat on.
+	 * @param interval will only be set if weekdays.length() == 1. In this case we are writing a BYDAY Rule for FREQ=MONTHLY, in which case
+	 * 	we only specify what weekday of the month this event repeats on. (Ex.: BYDAY=2TH = Repeats on second THURSDAY of every month)
+	 */
+	private async createAdvancedRulesFromWeekdays(weekdays: Weekday[], interval?: number): Promise<AdvancedRepeatRule[]> {
+		if (weekdays.length == 0 && interval == 0) return Promise.resolve([])
 		return Promise.resolve(
 			weekdays.map((wd) => {
 				return createAdvancedRepeatRule({
-					interval: wd,
+					interval: interval?.toString() + wd,
 					ruleType: ByRule.BYDAY,
 				})
 			}),

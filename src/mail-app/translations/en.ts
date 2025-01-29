@@ -1888,12 +1888,13 @@ export default {
 		"sunday_label": "Sunday",
 		"onDays_label": "On {days}",
 		"and_label": "and",
-		"firstOfPeriod_label": "first {day}",
-		"secondOfPeriod_label": "second {day}",
-		"thirdOfPeriod_label": "third {day}",
-		"nthOfPeriod_label": "{n}th {day}",
-		"lastOfPeriod_label": "last {day}",
+		"firstOfPeriod_label": "First {day}",
+		"secondOfPeriod_label": "Second {day}",
+		"thirdOfPeriod_label": "Third {day}",
+		"fourthOfPeriod_label": "Fourth {day}",
+		"lastOfPeriod_label": "Last {day}",
 		"withCustomRules_label": "With custom repeat rules",
-		"unsupportedAdvancedRules_msg": "This event contains one or more unsupported Advanced Recurrence Rules, any changes will result in the loss of these rules"
+		"unsupportedAdvancedRules_msg": "This event contains one or more unsupported Advanced Recurrence Rules, any changes will result in the loss of these rules",
+		"sameDay_label": "Same day"
 	}
 }

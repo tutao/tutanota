@@ -608,7 +608,7 @@ export enum RepeatPeriod {
 	ANNUALLY = "3",
 }
 
-export enum Weekdays {
+export enum Weekday {
 	MONDAY = "MO",
 	TUESDAY = "TU",
 	WEDNESDAY = "WE",
