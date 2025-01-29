@@ -401,6 +401,6 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 	 */
 	private calculateWeekdayOccurrencesInMonth(date: Date) {
 		const numberOfDaysInMonth: number = DateTime.fromJSDate(date).daysInMonth as number
-		return Math.floor((date.getDate() - 1) / 7) + Math.floor((numberOfDaysInMonth - 20) / 7) + 1
+		return Math.floor((date.getDate() - 1) / 7) + Math.floor((numberOfDaysInMonth - date.getDate()) / 7) + 1
 	}
 }
