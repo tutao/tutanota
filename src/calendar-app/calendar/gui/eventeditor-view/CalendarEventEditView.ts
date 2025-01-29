@@ -541,7 +541,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return Promise.resolve(
 			weekdays.map((wd) => {
 				return createAdvancedRepeatRule({
-					interval: interval?.toString() + wd,
+					interval: interval ? interval.toString() + wd : wd,
 					ruleType: ByRule.BYDAY,
 				})
 			}),
