@@ -92,7 +92,7 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 						label: "updateAllCalendarEvents_action",
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
-							previewModel?.editAll()
+							previewModel?.editAll().catch()
 						},
 					},
 				]),

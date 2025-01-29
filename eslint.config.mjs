@@ -3,9 +3,9 @@ import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
 import tsParser from "@typescript-eslint/parser"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
+import {fileURLToPath} from "node:url"
 import js from "@eslint/js"
-import { FlatCompat } from "@eslint/eslintrc"
+import {FlatCompat} from "@eslint/eslintrc"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -18,6 +18,25 @@ const compat = new FlatCompat({
 export default [
 	{
 		ignores: [
+			"buildSrc/",
+			".github/",
+			".rollup.cache/",
+			".run",
+			"app-android/",
+			"app-ios/",
+			"artifacts/",
+			"cache/",
+			"ci/",
+			"doc",
+			"fdroid-metadata-workaround/",
+			"githooks/",
+			"native-cache/",
+			"packages/node-mimimi/",
+			"packages/tutanota-crypto/lib/internal/",
+			"resources/",
+			"schemas/",
+			"tuta-sdk/",
+
 			"**/entities/",
 			"**/translations/",
 			"**/node_modules/",
@@ -25,11 +44,6 @@ export default [
 			"**/build-calendar-app/",
 			"**/dist/",
 			"**/libs/",
-			"**/app-android/",
-			"**/app-ios/",
-			"packages/tutanota-crypto/lib/internal/",
-			"**/fdroid-metadata-workaround/",
-			"buildSrc/",
 		],
 	},
 	...compat.extends("eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"),
