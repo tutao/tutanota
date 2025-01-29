@@ -1,11 +1,9 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component } from "mithril"
 import { Card } from "../../gui/base/Card.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 
-type SupportRequestSentPageAttrs = {}
-
-export class SupportRequestSentPage implements Component<SupportRequestSentPageAttrs> {
-	view(vnode: Vnode<SupportRequestSentPageAttrs>): Children {
+export class SupportRequestSentPage implements Component {
+	view(): Children {
 		return m(
 			".pt.pb",
 			m(
