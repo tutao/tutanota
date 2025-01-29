@@ -130,7 +130,12 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify({ instance: "calendar" }))
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
-			o(result as any).deepEquals({ instance: "calendar", decrypted: true, migrated: true, migratedForInstance: true })
+			o(result as any).deepEquals({
+				instance: "calendar",
+				decrypted: true,
+				migrated: true,
+				migratedForInstance: true,
+			})
 		})
 
 		o("loading an element ", async function () {
@@ -145,7 +150,12 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify({ instance: "customer" }))
 
 			const result = await entityRestClient.load(CustomerTypeRef, id1)
-			o(result as any).deepEquals({ instance: "customer", decrypted: true, migrated: true, migratedForInstance: true })
+			o(result as any).deepEquals({
+				instance: "customer",
+				decrypted: true,
+				migrated: true,
+				migratedForInstance: true,
+			})
 		})
 
 		o("query parameters and additional headers + access token and version are always passed to the rest client", async function () {
@@ -160,7 +170,10 @@ o.spec("EntityRestClient", function () {
 				}),
 			).thenResolve(JSON.stringify({ instance: "calendar" }))
 
-			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { queryParams: { foo: "bar" }, extraHeaders: { baz: "quux" } })
+			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
+				queryParams: { foo: "bar" },
+				extraHeaders: { baz: "quux" },
+			})
 		})
 
 		o("when loading encrypted instance and not being logged in it throws an error", async function () {
@@ -190,7 +203,12 @@ o.spec("EntityRestClient", function () {
 			const typeModel = await resolveTypeReference(CalendarEventTypeRef)
 			verify(instanceMapperMock.decryptAndMapToInstance(typeModel, anything(), sessionKey))
 			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })
-			o(result as any).deepEquals({ _ownerEncSessionKey: "some key", decrypted: true, migrated: true, migratedForInstance: true })
+			o(result as any).deepEquals({
+				_ownerEncSessionKey: "some key",
+				decrypted: true,
+				migrated: true,
+				migratedForInstance: true,
+			})
 		})
 	})
 
@@ -206,6 +224,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { start: startId, count: String(count), reverse: String(false) },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
 
@@ -235,6 +254,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: "0,1,2,3,4" },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
 
@@ -257,6 +277,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: ids.join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
@@ -279,6 +300,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 1 }]))
@@ -289,6 +311,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: "100" },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 2 }]))
@@ -309,6 +332,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 1 }]))
@@ -319,6 +343,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: countFrom(100, 100).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 2 }]))
@@ -329,6 +354,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: countFrom(200, 11).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
+					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([{ instance: 3 }]))
@@ -422,19 +448,31 @@ o.spec("EntityRestClient", function () {
 			when(
 				restClient.request(anything(), HttpMethod.GET, {
 					headers: {},
-					queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
+					queryParams: {
+						ids: "0,1,2,3,4",
+						...authHeader,
+						blobAccessToken,
+						v: String(tutanotaModelInfo.version),
+					},
 					responseType: MediaType.Json,
 					noCORS: true,
 					baseUrl: firstServer,
+					suspensionBehavior: undefined,
 				}),
 			).thenReject(new ConnectionError("test connection error for retry"))
 			when(
 				restClient.request(anything(), HttpMethod.GET, {
 					headers: {},
-					queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
+					queryParams: {
+						ids: "0,1,2,3,4",
+						...authHeader,
+						blobAccessToken,
+						v: String(tutanotaModelInfo.version),
+					},
 					responseType: MediaType.Json,
 					noCORS: true,
 					baseUrl: otherServer,
+					suspensionBehavior: undefined,
 				}),
 			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
 

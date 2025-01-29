@@ -13,6 +13,7 @@ import { elementIdPart } from "../../../common/utils/EntityUtils"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade"
 import { BlobServerUrl } from "../../../entities/storage/TypeRefs"
 import { Group } from "../../../entities/sys/TypeRefs"
+import { SuspensionBehavior } from "../../rest/RestClient"
 
 assertWorkerOrNode()
 
@@ -87,11 +88,12 @@ export class MailExportFacade {
 		return attachmentData.filter(isNotNull)
 	}
 
-	private options(token: string): { extraHeaders: Dict } {
+	private options(token: string): { extraHeaders: Dict; suspensionBehavior: SuspensionBehavior.Throw } {
 		return {
 			extraHeaders: {
 				[MAIL_EXPORT_TOKEN_HEADER]: token,
 			},
+			suspensionBehavior: SuspensionBehavior.Throw,
 		}
 	}
 }

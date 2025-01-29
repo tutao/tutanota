@@ -1,4 +1,4 @@
-import type { RestClient } from "./RestClient"
+import { RestClient, SuspensionBehavior } from "./RestClient"
 import type { CryptoFacade } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
@@ -76,7 +76,10 @@ export const enum CacheMode {
  * Get the behavior of the cache mode for the options
  * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
-export function getCacheModeBehavior(cacheMode: CacheMode | undefined): { readsFromCache: boolean; writesToCache: boolean } {
+export function getCacheModeBehavior(cacheMode: CacheMode | undefined): {
+	readsFromCache: boolean
+	writesToCache: boolean
+} {
 	switch (cacheMode ?? CacheMode.ReadAndWrite) {
 		case CacheMode.ReadAndWrite:
 			return { readsFromCache: true, writesToCache: true }
@@ -95,6 +98,7 @@ export interface EntityRestClientLoadOptions {
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode?: CacheMode
 	baseUrl?: string
+	suspensionBehavior?: SuspensionBehavior
 }
 
 export interface OwnerEncSessionKeyProvider {
@@ -261,6 +265,7 @@ export class EntityRestClient implements EntityRestInterface {
 			headers,
 			responseType: MediaType.Json,
 			baseUrl: opts.baseUrl,
+			suspensionBehavior: opts.suspensionBehavior,
 		})
 		return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 	}
@@ -282,13 +287,14 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			let json: string
 			if (typeModel.type === Type.BlobElement) {
-				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef)
+				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts.suspensionBehavior)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
 					queryParams,
 					headers,
 					responseType: MediaType.Json,
 					baseUrl: opts.baseUrl,
+					suspensionBehavior: opts.suspensionBehavior,
 				})
 			}
 			return this._handleLoadMultipleResult(typeRef, JSON.parse(json), ownerEncSessionKeyProvider)
@@ -302,6 +308,7 @@ export class EntityRestClient implements EntityRestInterface {
 		headers: Dict | undefined,
 		path: string,
 		typeRef: TypeRef<any>,
+		suspensionBehavior?: SuspensionBehavior,
 	): Promise<string> {
 		if (archiveId == null) {
 			throw new Error("archiveId must be set to load BlobElementTypes")
@@ -323,6 +330,7 @@ export class EntityRestClient implements EntityRestInterface {
 						responseType: MediaType.Json,
 						baseUrl: serverUrl,
 						noCORS: true,
+						suspensionBehavior,
 					}),
 				`can't load instances from server `,
 			)
