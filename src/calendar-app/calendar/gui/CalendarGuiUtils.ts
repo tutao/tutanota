@@ -61,7 +61,7 @@ import {
 	EventTextTimeOption,
 	RepeatPeriod,
 	ShareCapability,
-	Weekdays,
+	Weekday,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
@@ -89,6 +89,7 @@ import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { Type } from "cborg"
 import map = Type.map
 import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
+import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 
 export interface IntervalOption {
 	value: number
@@ -494,31 +495,31 @@ export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<End
 export const weekdayToTranslation = (): Array<WeekdayToTranslation> => {
 	return [
 		{
-			value: Weekdays.MONDAY,
+			value: Weekday.MONDAY,
 			label: lang.get("monday_label"),
 		},
 		{
-			value: Weekdays.TUESDAY,
+			value: Weekday.TUESDAY,
 			label: lang.get("tuesday_label"),
 		},
 		{
-			value: Weekdays.WEDNESDAY,
+			value: Weekday.WEDNESDAY,
 			label: lang.get("wednesday_label"),
 		},
 		{
-			value: Weekdays.THURSDAY,
+			value: Weekday.THURSDAY,
 			label: lang.get("thursday_label"),
 		},
 		{
-			value: Weekdays.FRIDAY,
+			value: Weekday.FRIDAY,
 			label: lang.get("friday_label"),
 		},
 		{
-			value: Weekdays.SATURDAY,
+			value: Weekday.SATURDAY,
 			label: lang.get("saturday_label"),
 		},
 		{
-			value: Weekdays.SUNDAY,
+			value: Weekday.SUNDAY,
 			label: lang.get("sunday_label"),
 		},
 	]
@@ -534,9 +535,14 @@ export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).
  * @param weekday
  * @param numberOfWeekdaysInMonth how many times this Weekday occurs in the current month. Per default assume 4.
  */
-export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekdaysInMonth: number = 4): IntervalOption[] => {
+export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekdaysInMonth: number = 4): { options: IntervalOption[]; weekday: number } => {
 	const weekdayLabel = weekdayToTranslation()[weekday - 1].label
 	const options: IntervalOption[] = [
+		{
+			value: 0,
+			ariaValue: "same day",
+			name: lang.get("sameDay_label"),
+		},
 		{
 			value: 1,
 			ariaValue: "first",
@@ -568,17 +574,16 @@ export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekda
 	]
 
 	if (numberOfWeekdaysInMonth > 4) {
-		options.splice(3, 0, {
+		options.splice(4, 0, {
 			value: 4,
 			ariaValue: "fourth",
-			name: lang.get("nthOfPeriod_label", {
-				"{n}": "4",
+			name: lang.get("fourthOfPeriod_label", {
 				"{day}": weekdayLabel,
 			}),
 		})
 	}
 
-	return options
+	return { options, weekday }
 }
 
 /**
@@ -586,9 +591,22 @@ export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekda
  * this is necessary for opening the RepeatEditor for a given event that has AdvancedRules configured.
  * @param advancedRepeatRules AdvancedRepeatRules that have been written on the Event already.
  */
-export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): Weekdays[] | null => {
+export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): ByDayRule | null => {
 	if (advancedRepeatRules.length == 0) return null
-	return advancedRepeatRules.filter((rr) => rr.ruleType === ByRule.BYDAY).map((rr) => <Weekdays>rr.interval)
+
+	let interval: number = 0
+	const weekdays = advancedRepeatRules
+		.filter((rr) => rr.ruleType === ByRule.BYDAY)
+		.map((rr) => {
+			if (rr.interval.length > 2) {
+				// if length > 2, interval is specified on the BYDAY rule
+				interval = parseInt(rr.interval.slice(0, rr.interval.length - 2)) // get interval
+				return <Weekday>rr.interval.substring(rr.interval.length - 2) // get Weekday shorthand
+			} else {
+				return <Weekday>rr.interval
+			}
+		})
+	return { weekdays, interval }
 }
 
 export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
