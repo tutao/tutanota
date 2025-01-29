@@ -1,0 +1,51 @@
+[workspace.package]
+version = "267.250206.0"
+rust-version = "1.84.0"
+edition = "2021"
+homepage = "https://tutao.de"
+repository = "https://github.com/tutao/tutanota"
+license-file = "./Lisence.txt"
+publish = false
+
+[profile]
+# these config should be configured in .cargo/config.toml
+
+[workspace]
+resolver = "2" # todo: can use resolver 3 after 1.84.0+
+members = [
+	"tuta-sdk/rust/uniffi-bindgen",
+	"tuta-sdk/rust/sdk",
+	"packages/node-mimimi"
+]
+
+[workspace.dependencies]
+tuta-sdk = { path = "tuta-sdk/rust/sdk", default-features = false }
+thiserror = { version = "2.0" }
+base64 = { version = "0.22.1" }
+log = { version = "0.4.22" }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = { version = "1.0.117" }
+tokio = { version = "1.43", default-features = false }
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", default-features = false }
+
+# --------- lints
+
+# lints.cargo not supported on stable yet.
+# [workspace.lints.cargo]
+
+[workspace.lints.clippy]
+new_without_default = "allow"     # we don't want to implement Default for everything
+enum_variant_names = "allow"      # creates more problems than it solves
+let_and_return = "allow"          # we commonly use this style
+too_many_arguments = "allow"      # this is fine
+
+# "pedantic" lints worth warning on
+manual_let_else = "warn"
+must_use_candidate = "warn"
+unused_async = "warn"
+implicit_clone = "warn"
+explicit_iter_loop = "warn"
+
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ci)'] }

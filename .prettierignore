@@ -9,5 +9,5 @@ app-android/
 app-ios/
 fdroid-metadata-workaround/
 packages/tutanota-crypto/lib/internal/
-tuta-sdk/rust/target
-packages/node-mimimi
+target/
+packages/node-mimimi/tests
