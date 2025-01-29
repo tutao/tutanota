@@ -96,7 +96,7 @@ o.spec("MailExportController", function () {
 		const attachmentData = new Uint8Array([1, 2, 3])
 		const dataFile = createDataFile("test", "application/octet-stream", attachmentData)
 		when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, startId, matchers.anything())).thenResolve([mail])
-		when(mailExportFacade.loadMailDetails([mail])).thenResolve([{ mail, mailDetails }])
+		when(mailExportFacade.loadMailDetails([mail], matchers.anything())).thenResolve([{ mail, mailDetails }])
 		when(mailExportFacade.loadAttachments([mail], matchers.anything())).thenResolve([attachmentInfo])
 		when(mailExportFacade.loadAttachmentData(mail, [attachmentInfo])).thenResolve([dataFile])
 
@@ -217,7 +217,13 @@ o.spec("MailExportController", function () {
 			const archivedMailBag2 = mailboxDetail.mailbox.archivedMailBags[1]
 			const { mail: mail3, mailBundle: mailBundle3 } = prepareMailData(archivedMailBag2, GENERATED_MAX_ID, 3)
 			when(mailExportFacade.loadFixedNumberOfMailsWithCache(archivedMailBag2.mails, getElementId(mail3), "baseUrl")).thenResolve([])
-			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([{ _id: "id", url: "baseUrl", _type: BlobServerUrlTypeRef }])
+			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([
+				{
+					_id: "id",
+					url: "baseUrl",
+					_type: BlobServerUrlTypeRef,
+				},
+			])
 
 			await controller.startExport(mailboxDetail)
 
@@ -241,14 +247,21 @@ o.spec("MailExportController", function () {
 			await controller.startExport(mailboxDetail)
 
 			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(currentMailBag.mails, GENERATED_MAX_ID, "baseUrl2"))
-			verify(mailExportFacade.loadAttachments([mail1], "baseUrl3"))
+			verify(mailExportFacade.loadMailDetails([mail1], "baseUrl3"))
+			verify(mailExportFacade.loadAttachments([mail1], "baseUrl1"))
 			verify(mailExportFacade.loadAttachmentData(mail1, matchers.anything()))
 		})
 	})
 
 	o.spec("handle errors", function () {
 		o.test("SuspensionError", async () => {
-			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([{ _id: "id", url: "baseUrl", _type: BlobServerUrlTypeRef }])
+			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([
+				{
+					_id: "id",
+					url: "baseUrl",
+					_type: BlobServerUrlTypeRef,
+				},
+			])
 			let wasThrown = false
 			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => {
 				if (wasThrown) {
