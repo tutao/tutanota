@@ -93,6 +93,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	/** for block quotes in mail bodies, whether to display placeholder or original quote */
 	private quoteState: "noquotes" | "unset" | "collapsed" | "expanded" = "unset"
 
+	/** most recent resize animation frame request ID */
+	private resizeRaf: number | undefined
+
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
 
@@ -420,7 +423,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
 			this.resizeObserverZoomable = new ResizeObserver((entries) => {
-				this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
+				if (this.resizeRaf) {
+					// did we already schedule a reset for pinch to zoom in the frame
+					cancelAnimationFrame(this.resizeRaf)
+				}
+				this.resizeRaf = requestAnimationFrame(() => {
+					this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
+				})
 			})
 			this.resizeObserverZoomable.observe(wrapNode)
 		} else {
