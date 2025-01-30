@@ -74,7 +74,6 @@ export class MailImporter {
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
 		const mailbox = await this.getMailbox()
 		this.foldersForMailbox = this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup))
-		this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
 
 		let activeImportId: IdTuple | null = null
 		if (this.activeImport === null) {
@@ -82,6 +81,7 @@ export class MailImporter {
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
 
 			try {
 				activeImportId = await importFacade.getResumableImport(mailbox._id, mailOwnerGroupId, unencryptedCredentials, apiUrl)
