@@ -6,6 +6,10 @@ rust-version.workspace = true
 license-file.workspace = true
 homepage.workspace = true
 
+[lib]
+name = "tutasdk"
+crate-type = ["cdylib", "staticlib", "lib"]
+
 [dependencies]
 async-trait = "0.1.77"
 thiserror = "2.0"
@@ -34,7 +38,7 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 
 log = { workspace = true }
 base64 = { workspace = true }
-tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
+tokio = { workspace = true, features = ["time", "rt-multi-thread", "sync"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 uniffi = { workspace = true }
@@ -65,12 +69,9 @@ logging = ["dep:simple_logger"]
 testing = ["logging"]
 
 [dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tuta-sdk = { path = ".", features = ["net", "testing"] }
 mockall = { version = "0.13.0" }
 mockall_double = { version = "0.3.1" }
-rand = { version = "0.8.5" }
-
-[lib]
-crate-type = ["cdylib", "staticlib", "lib"]
-name = "tutasdk"
+rand = { workspace = true }
 
