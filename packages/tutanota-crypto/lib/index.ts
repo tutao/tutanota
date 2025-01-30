@@ -21,7 +21,7 @@ export {
 	generateKeyPair as generateKeyPairKyber,
 	encapsulate as encapsulateKyber,
 	decapsulate as decapsulateKyber,
-	KYBER_RAND_AMOUNT_OF_ENTROPY,
+	ML_KEM_RAND_AMOUNT_OF_ENTROPY,
 	KYBER_POLYVECBYTES,
 	KYBER_SYMBYTES,
 } from "./encryption/Liboqs/Kyber.js"

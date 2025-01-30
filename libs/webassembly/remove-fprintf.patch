@@ -1,0 +1,16 @@
+ src/common/common.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/common/common.h b/src/common/common.h
+index e264db71..703b3b37 100644
+--- a/src/common/common.h
++++ b/src/common/common.h
+@@ -82,8 +82,6 @@ extern "C" {
+ #define OQS_EXIT_IF_NULLPTR(x, loc)                                            \
+   do {                                                                         \
+     if ((x) == (void *)0) {                                                    \
+-      fprintf(stderr, "Unexpected NULL returned from %s API. Exiting.\n",      \
+-              loc);                                                            \
+       exit(EXIT_FAILURE);                                                      \
+     }                                                                          \
+   } while (0)

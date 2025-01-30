@@ -7,17 +7,17 @@ import { WASMExports } from "@tutao/tutanota-utils/dist/WebAssembly.js"
 /**
  * Number of random bytes required for a Kyber operation
  */
-export const KYBER_RAND_AMOUNT_OF_ENTROPY = 64
+export const ML_KEM_RAND_AMOUNT_OF_ENTROPY = 64
 
-const KYBER_ALGORITHM = "Kyber1024"
+const ML_KEM_1024_ALGORITHM = "ML-KEM-1024"
 const KYBER_K = 4
 const KYBER_POLYBYTES = 384
 export const KYBER_POLYVECBYTES = KYBER_K * KYBER_POLYBYTES
 export const KYBER_SYMBYTES = 32
-const OQS_KEM_kyber_1024_length_public_key = 1568
-const OQS_KEM_kyber_1024_length_secret_key = 3168
-const OQS_KEM_kyber_1024_length_ciphertext = 1568
-const OQS_KEM_kyber_1024_length_shared_secret = 32
+const OQS_KEM_ml_kem_1024_length_public_key = 1568
+const OQS_KEM_ml_kem_1024_length_secret_key = 3168
+const OQS_KEM_ml_kem_1024_length_ciphertext = 1568
+const OQS_KEM_ml_kem_1024_length_shared_secret = 32
 
 type KemPtr = Ptr
 
@@ -26,9 +26,9 @@ export interface LibOQSExports extends WASMExports {
 
 	TUTA_inject_entropy(data: Ptr, size: number): number
 
-	OQS_KEM_encaps(kem: KemPtr, ciphertext: Ptr, sharedSecret: Ptr, publicKey: Ptr): number
+	TUTA_KEM_encaps(kem: KemPtr, ciphertext: Ptr, sharedSecret: Ptr, publicKey: Ptr): number
 
-	OQS_KEM_decaps(kem: KemPtr, shared_secret: Ptr, ciphertext: Ptr, secret_key: Ptr): number
+	TUTA_KEM_decaps(kem: KemPtr, shared_secret: Ptr, ciphertext: Ptr, secret_key: Ptr): number
 
 	OQS_KEM_free(kem: KemPtr | null): void
 
@@ -42,8 +42,8 @@ export function generateKeyPair(kyberWasm: LibOQSExports, randomizer: Randomizer
 	const OQS_KEM = createKem(kyberWasm)
 	try {
 		fillEntropyPool(kyberWasm, randomizer)
-		const publicKey = new Uint8Array(OQS_KEM_kyber_1024_length_public_key)
-		const privateKey = new Uint8Array(OQS_KEM_kyber_1024_length_secret_key)
+		const publicKey = new Uint8Array(OQS_KEM_ml_kem_1024_length_public_key)
+		const privateKey = new Uint8Array(OQS_KEM_ml_kem_1024_length_secret_key)
 		const result = callWebAssemblyFunctionWithArguments(
 			kyberWasm.OQS_KEM_keypair,
 			kyberWasm,
@@ -70,17 +70,17 @@ export function generateKeyPair(kyberWasm: LibOQSExports, randomizer: Randomizer
  * @return the plaintext secret key and the encapsulated key for use with AES or as input to a KDF
  */
 export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey, randomizer: Randomizer): KyberEncapsulation {
-	if (publicKey.raw.length != OQS_KEM_kyber_1024_length_public_key) {
-		throw new CryptoError(`Invalid public key length; expected ${OQS_KEM_kyber_1024_length_public_key}, got ${publicKey.raw.length}`)
+	if (publicKey.raw.length != OQS_KEM_ml_kem_1024_length_public_key) {
+		throw new CryptoError(`Invalid public key length; expected ${OQS_KEM_ml_kem_1024_length_public_key}, got ${publicKey.raw.length}`)
 	}
 
 	const OQS_KEM = createKem(kyberWasm)
 	try {
 		fillEntropyPool(kyberWasm, randomizer)
-		const ciphertext = new Uint8Array(OQS_KEM_kyber_1024_length_ciphertext)
-		const sharedSecret = new Uint8Array(OQS_KEM_kyber_1024_length_shared_secret)
+		const ciphertext = new Uint8Array(OQS_KEM_ml_kem_1024_length_ciphertext)
+		const sharedSecret = new Uint8Array(OQS_KEM_ml_kem_1024_length_shared_secret)
 		const result = callWebAssemblyFunctionWithArguments(
-			kyberWasm.OQS_KEM_encaps,
+			kyberWasm.TUTA_KEM_encaps,
 			kyberWasm,
 			OQS_KEM,
 			mutableSecureFree(ciphertext),
@@ -88,7 +88,7 @@ export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey,
 			mutableSecureFree(publicKey.raw),
 		)
 		if (result != 0) {
-			throw new Error(`OQS_KEM_encaps returned ${result}`)
+			throw new Error(`TUTA_KEM_encaps returned ${result}`)
 		}
 		return { ciphertext, sharedSecret }
 	} finally {
@@ -103,18 +103,18 @@ export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey,
  * @return the plaintext secret key
  */
 export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKey, ciphertext: Uint8Array): Uint8Array {
-	if (privateKey.raw.length != OQS_KEM_kyber_1024_length_secret_key) {
-		throw new CryptoError(`Invalid private key length; expected ${OQS_KEM_kyber_1024_length_secret_key}, got ${privateKey.raw.length}`)
+	if (privateKey.raw.length != OQS_KEM_ml_kem_1024_length_secret_key) {
+		throw new CryptoError(`Invalid private key length; expected ${OQS_KEM_ml_kem_1024_length_secret_key}, got ${privateKey.raw.length}`)
 	}
-	if (ciphertext.length != OQS_KEM_kyber_1024_length_ciphertext) {
-		throw new CryptoError(`Invalid ciphertext length; expected ${OQS_KEM_kyber_1024_length_ciphertext}, got ${ciphertext.length}`)
+	if (ciphertext.length != OQS_KEM_ml_kem_1024_length_ciphertext) {
+		throw new CryptoError(`Invalid ciphertext length; expected ${OQS_KEM_ml_kem_1024_length_ciphertext}, got ${ciphertext.length}`)
 	}
 
 	const OQS_KEM = createKem(kyberWasm)
 	try {
-		const sharedSecret = new Uint8Array(OQS_KEM_kyber_1024_length_shared_secret)
+		const sharedSecret = new Uint8Array(OQS_KEM_ml_kem_1024_length_shared_secret)
 		const result = callWebAssemblyFunctionWithArguments(
-			kyberWasm.OQS_KEM_decaps,
+			kyberWasm.TUTA_KEM_decaps,
 			kyberWasm,
 			OQS_KEM,
 			mutableSecureFree(sharedSecret),
@@ -122,7 +122,7 @@ export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKe
 			secureFree(privateKey.raw),
 		)
 		if (result != 0) {
-			throw new Error(`OQS_KEM_decaps returned ${result}`)
+			throw new Error(`TUTA_KEM_decaps returned ${result}`)
 		}
 		return sharedSecret
 	} finally {
@@ -136,12 +136,12 @@ function freeKem(kyberWasm: LibOQSExports, OQS_KEM: KemPtr) {
 
 // The returned pointer needs to be freed once not needed anymore by the caller
 function createKem(kyberWasm: LibOQSExports): KemPtr {
-	return callWebAssemblyFunctionWithArguments(kyberWasm.OQS_KEM_new, kyberWasm, KYBER_ALGORITHM)
+	return callWebAssemblyFunctionWithArguments(kyberWasm.OQS_KEM_new, kyberWasm, ML_KEM_1024_ALGORITHM)
 }
 
 // Add bytes externally to the random number generator
 function fillEntropyPool(exports: LibOQSExports, randomizer: Randomizer) {
-	const entropyAmount = randomizer.generateRandomData(KYBER_RAND_AMOUNT_OF_ENTROPY)
+	const entropyAmount = randomizer.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY)
 	const remaining = callWebAssemblyFunctionWithArguments(exports.TUTA_inject_entropy, exports, entropyAmount, entropyAmount.length)
 	if (remaining < 0) {
 		console.warn(`tried to copy too much entropy: overflowed with ${-remaining} bytes; fix RAND_AMOUNT_OF_ENTROPY/generateRandomData to silence this`)
