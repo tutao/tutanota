@@ -13,7 +13,7 @@ export default {
         "other"
     ],
     "created_at": "2015-01-13T20:10:13Z",
-    "updated_at": "2025-01-28T12:40:44Z",
+    "updated_at": "2025-01-30T11:39:45Z",
     "source_locale": null,
     "fallback_locale": null,
     "keys": {
@@ -950,10 +950,13 @@ export default {
         "mailBody_label": "Email body",
         "mailboxToExport_label": "Mailbox to Export",
         "mailbox_label": "Mailbox",
+        "mailExportHistory_label": "Export history",
+        "mailExportInfoText_label": "You can export EML files.",
         "mailExportModeHelp_msg": "Email file format to use when exporting or drag & dropping",
         "mailExportMode_label": "Email export file format",
         "mailExportOnlyOnDesktop_label": "Email export is currently only available in our desktop client.",
         "mailExportProgress_msg": "Preparing {current} of {total} emails for export...",
+        "mailExportSettings_label": "Email export",
         "mailExport_label": "E-Mail export",
         "mailFolder_label": "Email folder",
         "mailHeaders_title": "Email headers",
@@ -1902,9 +1905,6 @@ export default {
         "yourFolders_action": "YOUR FOLDERS",
         "yourMessage_label": "Your message",
         "you_label": "You",
-        "mailExportSettings_label": "Email export",
-        "mailExportInfoText_label": "You can export EML files.",
-        "mailExportHistory_label": "Export history",
         // Put in temporarily, will be removed soon
         "localAdminGroup_label": "Local admin group",
         "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
