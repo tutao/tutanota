@@ -118,10 +118,9 @@ impl KyberPublicKey {
 
 /// This is a redundant step to bind the derived shared secret to the ciphertext.
 /// It was part of the original round 3 Kyber submission specification and the reference implementation.
-/// It was removed from the NIST ML-KEM draft for efficiency because the re-encryption step in decapsulation prevents any attacks.
+/// It was removed from the NIST ML-KEM draft for efficiency because the re-encryption step in decapsulation prevents any ciphertext modification attacks (IND-CCA).
 /// Therefore, pqcrypto updated the implementation, and we keep this step for compatibility in order to avoid rolling out a new protocol version.
-/// returns KDF(unbound_shared_secret || H(ciphertext))
-/// @return a shared_secret that is bound to the ciphertext and derived from the unbound_shared_secret
+/// @return a shared_secret that is bound to the ciphertext and derived from the unbound_shared_secret: KDF(unbound_shared_secret || H(ciphertext))
 fn bind_shared_secret_to_ciphertext(
 	unbound_shared_secret: PQCryptoMlKem1024SharedSecret,
 	ciphertext: PQCryptoMlKem1024Ciphertext,
