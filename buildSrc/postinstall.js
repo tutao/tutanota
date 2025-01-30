@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process"
 
 dumpResolvedModuleVersions()
 await tryToUpdateLibs()
+updateSubmodules()
 
 /**
  * Dumps the dependency tree into `node_modules/.npm-deps-resolved`.
@@ -28,4 +29,9 @@ async function tryToUpdateLibs() {
 	}
 	const { updateLibs } = await import("./updateLibs.js")
 	await updateLibs()
+}
+
+function updateSubmodules() {
+	const command = "git submodule update --init"
+	spawnSync(command, { shell: true, stdio: "inherit" })
 }

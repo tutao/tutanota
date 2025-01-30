@@ -23,12 +23,14 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	const isCalendarBuild = app === "calendar"
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
+	const liboqsIncludeDir = "libs/webassembly/include"
 
 	console.log("Building dev for", app)
 
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir(buildDir)
+			await fs.rm(liboqsIncludeDir, { recursive: true, force: true })
 		})
 	}
 
