@@ -8,3 +8,6 @@ homepage.workspace = true
 
 [dependencies]
 uniffi = { workspace = true, features = ["cli"] }
+
+[lints]
+workspace = true

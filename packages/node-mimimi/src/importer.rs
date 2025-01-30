@@ -278,7 +278,7 @@ impl ImportEssential {
 		Ok(unit_import_results)
 	}
 
-	async fn make_serialized_chunk(
+	fn make_serialized_chunk(
 		&self,
 		importable_chunk: Vec<KeyedImportMailData>,
 	) -> Result<ImportMailPostIn, MailImportErrorMessage> {
@@ -636,7 +636,6 @@ impl Importer {
 					.inspect_err(|_e| failed_count += import_count_in_this_chunk)?;
 				let importable_post_data = import_essentials
 					.make_serialized_chunk(unit_import_data)
-					.await
 					.inspect_err(|_e| failed_count += import_count_in_this_chunk)?;
 
 				import_essentials

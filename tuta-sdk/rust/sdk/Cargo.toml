@@ -75,3 +75,5 @@ mockall = { version = "0.13.0" }
 mockall_double = { version = "0.3.1" }
 rand = { workspace = true }
 
+[lints]
+workspace = true

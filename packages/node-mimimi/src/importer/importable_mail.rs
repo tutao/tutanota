@@ -81,6 +81,7 @@ pub struct KeyedImportableMailAttachment {
 }
 
 impl ImportableMailAttachment {
+	#[must_use]
 	pub fn make_keyed_importable_mail_attachment(
 		self,
 		essentials: &ImportEssential,
@@ -96,6 +97,7 @@ impl ImportableMailAttachment {
 }
 
 impl ImportableMailAttachmentMetaData {
+	#[must_use]
 	pub fn make_import_attachment_data(
 		self,
 		essentials: &ImportEssential,
@@ -315,7 +317,7 @@ impl ImportableMail {
 			.unwrap_or_else(|| Self::default_content_type().make_string().into_owned())
 			.to_string();
 
-		let content = content.to_vec();
+		let content = content.clone();
 		let attachment = ImportableMailAttachment {
 			meta_data: ImportableMailAttachmentMetaData {
 				filename,

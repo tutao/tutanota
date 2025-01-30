@@ -298,7 +298,7 @@ impl From<TutaCredentials> for Credentials {
 			login: tuta_credentials.login,
 			user_id: GeneratedId(tuta_credentials.user_id),
 			access_token: tuta_credentials.access_token,
-			encrypted_passphrase_key: tuta_credentials.encrypted_passphrase_key.clone().to_vec(),
+			encrypted_passphrase_key: tuta_credentials.encrypted_passphrase_key.clone().clone(),
 			credential_type,
 		}
 	}

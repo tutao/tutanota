@@ -34,3 +34,6 @@ serde_json = { workspace = true }
 serde = { workspace = true }
 tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net", "testing"] }
 mail-builder = { version = "0.4.0" }
+
+[lints]
+workspace = true
