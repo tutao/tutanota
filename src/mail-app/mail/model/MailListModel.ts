@@ -118,7 +118,7 @@ export class MailListModel {
 	}
 
 	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder> {
-		return assertNotNull(this.getLoadedMailByMailInstance(mail)).labels
+		return this.getLoadedMailByMailInstance(mail)?.labels ?? []
 	}
 
 	getMailSetEntry(mailSetEntryId: Id): MailSetEntry | null {
