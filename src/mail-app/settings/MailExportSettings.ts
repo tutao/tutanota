@@ -15,8 +15,6 @@ import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
-import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
-import { formatDate } from "../../common/misc/Formatter"
 
 interface MailExportSettingsAttrs {
 	mailboxDetails: MailboxDetail[]
@@ -44,6 +42,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 		const { mailboxDetails } = vnode.attrs
 		this.selectedMailbox = this.selectedMailbox ?? first(mailboxDetails)
 		const state = vnode.attrs.mailExportController.state()
+		const emptyLabel = m("br")
 		return [
 			m(DropDownSelector, {
 				label: "mailboxToExport_label",
@@ -56,6 +55,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				},
 				dropdownWidth: 300,
 				disabled: state.type === "exporting",
+				helpLabel: () => emptyLabel,
 			} satisfies DropDownSelectorAttrs<MailboxDetail>),
 			this.renderState(vnode.attrs.mailExportController),
 		]
