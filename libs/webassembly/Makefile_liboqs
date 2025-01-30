@@ -8,45 +8,59 @@ TOTAL_MEMORY=48MB
 CC=emcc
 WASM2JS=wasm2js
 TUTA_CRYPTO_LIB=../../packages/tutanota-crypto/lib/encryption/Liboqs
+FPRINTF_PATCH=remove-fprintf.patch
+LIBOQS_DIR=liboqs
+INCLUDE_OQS_DIR=include/oqs
 
 SRC_FILES = \
 	"${LIBOQS_DIR}/src/kem/kem.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/kem.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/verify.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/indcpa.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/symmetric-shake.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/poly.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/polyvec.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/cbd.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/ntt.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref/reduce.c" \
-	"${LIBOQS_DIR}/src/kem/kyber/kem_kyber_1024.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/kem.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/verify.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/indcpa.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/symmetric-shake.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/poly.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/polyvec.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/cbd.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/ntt.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref/reduce.c" \
+	"${LIBOQS_DIR}/src/kem/ml_kem/kem_ml_kem_1024.c" \
+	"${LIBOQS_DIR}/src/sig_stfl/sig_stfl.c" \
+    "${LIBOQS_DIR}/src/common/aes/aes.c" \
+    "${LIBOQS_DIR}/src/common/sha2/sha2.c" \
+    "${LIBOQS_DIR}/src/common/sha3/sha3.c" \
+    "${LIBOQS_DIR}/src/common/sha3/sha3x4.c" \
 	"${LIBOQS_DIR}/src/common/pqclean_shims/fips202.c" \
 	"${LIBOQS_DIR}/src/common/sha3/xkcp_sha3.c" \
 	"${LIBOQS_DIR}/src/common/sha3/xkcp_low/KeccakP-1600/plain-64bits/KeccakP-1600-opt64.c" \
 	"${LIBOQS_DIR}/src/common/common.c" \
 	"${TUTA_CRYPTO_LIB}/rand.c" \
-	"${TUTA_CRYPTO_LIB}/exit.c"
-
-LIBOQS_DIR=liboqs
+	"${TUTA_CRYPTO_LIB}/exit.c" \
+	"${TUTA_CRYPTO_LIB}/tuta_kem.c"
 
 clean:
 	rm -f ${WASM}
 	rm -rf include
 
 include:
-	mkdir -p include/oqs
-	cp "${LIBOQS_DIR}/src/oqs.h" include/oqs
-	cp "${LIBOQS_DIR}/src/common/common.h" include/oqs
-	cp "${LIBOQS_DIR}/src/common/rand/rand.h" include/oqs
-	cp "${LIBOQS_DIR}/src/common/aes/aes.h" include/oqs
-	cp "${LIBOQS_DIR}/src/common/sha2/sha2.h" include/oqs
-	cp "${LIBOQS_DIR}/src/common/sha3/sha3.h" include/oqs
-	cp "${LIBOQS_DIR}/src/common/sha3/sha3x4.h" include/oqs
-	cp "${LIBOQS_DIR}/src/kem/kyber/kem_kyber.h" include/oqs
-	cp "${LIBOQS_DIR}/src/kem/kem.h" include/oqs
-	cp "${LIBOQS_DIR}/src/sig/sig.h" include/oqs
-	touch include/oqs/oqsconfig.h
+	mkdir -p ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/sig_stfl/sig_stfl.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/aes/aes_ops.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/sha2/sha2_ops.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/sha3/sha3_ops.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/sha3/sha3x4_ops.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/oqs.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/common.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/rand/rand.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/aes/aes.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/sha2/sha2.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/sha3/sha3.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/common/sha3/sha3x4.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/kem/ml_kem/kem_ml_kem.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/kem/kem.h" ${INCLUDE_OQS_DIR}
+	cp "${LIBOQS_DIR}/src/sig/sig.h" ${INCLUDE_OQS_DIR}
+	cp "${TUTA_CRYPTO_LIB}/tuta_kem.h" ${INCLUDE_OQS_DIR}
+	touch ${INCLUDE_OQS_DIR}/oqsconfig.h
+	patch ${INCLUDE_OQS_DIR}/common.h ${FPRINTF_PATCH}
 
 build: $(WASM)
 
@@ -54,11 +68,11 @@ $(WASM): include
 	${CC} \
 		$(SRC_FILES) \
     	-I "include" \
-    	-I "${LIBOQS_DIR}/src/kem/kyber/pqcrystals-kyber_kyber1024_ref" \
+    	-I "${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref" \
     	-I "${LIBOQS_DIR}/src/common/pqclean_shims" \
-    	-DOQS_VERSION_TEXT=\"tutakyber\" \
-    	-DOQS_ENABLE_KEM_kyber_1024=1 \
-    	-DOQS_ENABLE_KEM_KYBER=1 \
+    	-DOQS_VERSION_TEXT=\"tutamlkem\" \
+    	-DOQS_ENABLE_KEM_ml_kem_1024=1 \
+    	-DOQS_ENABLE_KEM_ML_KEM=1 \
     	-DOQS_DIST_BUILD=1 \
     	-DKYBER_K=4 \
     	-flto \
@@ -66,7 +80,7 @@ $(WASM): include
     	-s STANDALONE_WASM \
     	--no-entry \
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
-    	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_OQS_KEM_encaps', '_OQS_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
+    	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_TUTA_KEM_encaps', '_TUTA_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
     	-o $(WASM)
 
 fallback: $(WASM_FALLBACK)

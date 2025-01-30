@@ -5,7 +5,7 @@ import {
 	decapsulateKyber,
 	encapsulateKyber,
 	generateKeyPairKyber,
-	KYBER_RAND_AMOUNT_OF_ENTROPY,
+	ML_KEM_RAND_AMOUNT_OF_ENTROPY,
 	KyberEncapsulation,
 	KyberKeyPair,
 	KyberPrivateKey,
@@ -77,11 +77,11 @@ export class NativeKyberFacade implements KyberFacade {
 	constructor(private readonly nativeCryptoFacade: NativeCryptoFacade) {}
 
 	generateKeypair(): Promise<KyberKeyPair> {
-		return this.nativeCryptoFacade.generateKyberKeypair(random.generateRandomData(KYBER_RAND_AMOUNT_OF_ENTROPY))
+		return this.nativeCryptoFacade.generateKyberKeypair(random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
 	}
 
 	encapsulate(publicKey: KyberPublicKey): Promise<KyberEncapsulation> {
-		return this.nativeCryptoFacade.kyberEncapsulate(publicKey, random.generateRandomData(KYBER_RAND_AMOUNT_OF_ENTROPY))
+		return this.nativeCryptoFacade.kyberEncapsulate(publicKey, random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
 	}
 
 	decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {

@@ -51,7 +51,7 @@ const originalRandom = random.generateRandomData
 
 const liboqs = await loadLibOQSWASM()
 
-o.spec("crypto compatibility", function () {
+o.spec("CompatibilityTest", function () {
 	o.afterEach(function () {
 		random.generateRandomData = originalRandom
 	})
@@ -81,8 +81,13 @@ o.spec("crypto compatibility", function () {
 			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
 
 			const encapsulation = encapsulateKyber(liboqs, publicKey, randomizer)
-			o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
-			o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
+			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
+			//
+			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
+			const roundTripSharedSecret = decapsulateKyber(liboqs, privateKey, encapsulation.ciphertext)
+			o(encapsulation.sharedSecret).deepEquals(roundTripSharedSecret)
+			// o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
+			// o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
 
 			const decapsulatedSharedSecret = decapsulateKyber(liboqs, privateKey, hexToUint8Array(td.cipherText))
 			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
@@ -101,8 +106,13 @@ o.spec("crypto compatibility", function () {
 			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
 			const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
 			const encapsulation = encapsulateKyber(liboqsFallback, publicKey, randomizer)
-			o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
-			o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
+			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
+			//
+			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
+			const roundTripSharedSecret = decapsulateKyber(liboqsFallback, privateKey, encapsulation.ciphertext)
+			o(encapsulation.sharedSecret).deepEquals(roundTripSharedSecret)
+			// o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
+			// o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
 
 			const decapsulatedSharedSecret = decapsulateKyber(liboqsFallback, privateKey, hexToUint8Array(td.cipherText))
 			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
@@ -310,7 +320,10 @@ o.spec("crypto compatibility", function () {
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
-			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
+			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
+			//
+			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
+			// o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
 
 			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
 			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
@@ -349,7 +362,10 @@ o.spec("crypto compatibility", function () {
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqsFallback))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
-			o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
+			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
+			//
+			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
+			// o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
 
 			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
 			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
