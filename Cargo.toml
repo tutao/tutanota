@@ -13,20 +13,23 @@ publish = false
 [workspace]
 resolver = "2" # todo: can use resolver 3 after 1.84.0+
 members = [
-	"tuta-sdk/rust/uniffi-bindgen",
-	"tuta-sdk/rust/sdk",
-	"packages/node-mimimi"
+    "tuta-sdk/rust/sdk",
+    "packages/node-mimimi",
+    # uniffi-bindgen is a seperate crate as uniffi-bindgen does not have a cli yet:
+    # https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary
+    # note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
+    "tuta-sdk/rust/uniffi-bindgen",
 ]
 
 [workspace.dependencies]
-tuta-sdk = { path = "tuta-sdk/rust/sdk", default-features = false }
 thiserror = { version = "2.0" }
 base64 = { version = "0.22.1" }
 log = { version = "0.4.22" }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.117" }
 tokio = { version = "1.43", default-features = false }
-uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", default-features = false }
+uniffi = { version = "0.28.3", default-features = false }
+rand = { version = "0.8" }
 
 # --------- lints
 
