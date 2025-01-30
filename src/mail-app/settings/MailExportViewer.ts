@@ -29,15 +29,19 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 			m(
 				".fill-absolute.scroll.plr-l.pb-xl",
 				m(".h4.mt-l", lang.get("mailExportSettings_label")),
-				this.mailExportController
-					? m(MailExportSettings, {
-							mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
-							logins: mailLocator.logins,
-							mailExportController: this.mailExportController,
-					  })
-					: this.renderExportOnlyOnDesktopText(),
+				isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
 			),
 		]
+	}
+
+	private renderMailExportSettings() {
+		return this.mailExportController != null
+			? m(MailExportSettings, {
+					mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
+					logins: mailLocator.logins,
+					mailExportController: this.mailExportController,
+			  })
+			: null
 	}
 
 	private renderExportOnlyOnDesktopText() {
