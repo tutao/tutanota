@@ -32,6 +32,8 @@ pub struct Suspension {
 pub struct SuspendableRestClient {
 	inner: Arc<dyn RestClient>,
 	date_provider: Arc<dyn DateProvider>,
+	// we use a RwLock so we can have a dedicated writer task that lifts the suspension when it's over but an arbitrary
+	// amount of waiting requests.
 	suspension: Arc<RwLock<Option<Suspension>>>,
 }
 
