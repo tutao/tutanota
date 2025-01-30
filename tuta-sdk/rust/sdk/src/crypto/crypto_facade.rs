@@ -330,7 +330,7 @@ mod test {
 		let sender_keypair = EccKeyPair::generate(&randomizer_facade);
 
 		let protocol_version = CryptoProtocolVersion::TutaCrypt;
-		let mut raw_mail = make_raw_mail(
+		let raw_mail = make_raw_mail(
 			&constants,
 			constants.pub_enc_bucket_key.clone(),
 			protocol_version.clone() as i64,
@@ -362,7 +362,7 @@ mod test {
 		);
 
 		let key = crypto_facade
-			.resolve_session_key(&mut raw_mail, &mail_type_model)
+			.resolve_session_key(&raw_mail, &mail_type_model)
 			.await
 			.expect("should not have errored")
 			.expect("where is the key");
@@ -379,7 +379,7 @@ mod test {
 
 		let constants = BucketKeyConstants::new(&randomizer_facade);
 		let crypto_protocol_version = CryptoProtocolVersion::Rsa;
-		let mut raw_mail = make_raw_mail(
+		let raw_mail = make_raw_mail(
 			&constants,
 			constants.pub_enc_bucket_key.clone(),
 			crypto_protocol_version.clone() as i64,
@@ -410,7 +410,7 @@ mod test {
 
 		let mail_type_model = get_mail_type_model();
 		let key = crypto_facade
-			.resolve_session_key(&mut raw_mail, &mail_type_model)
+			.resolve_session_key(&raw_mail, &mail_type_model)
 			.await
 			.expect("should not have errored")
 			.expect("where is the key");
@@ -522,11 +522,7 @@ mod test {
 			})
 			.once();
 
-		let asymmetric_crypto_facade = if let Some(asymmetric_crypto) = asymmetric_crypto_facade {
-			asymmetric_crypto
-		} else {
-			MockAsymmetricCryptoFacade::default()
-		};
+		let asymmetric_crypto_facade = asymmetric_crypto_facade.unwrap_or_default();
 
 		CryptoFacade {
 			key_loader_facade: Arc::new(key_loader),

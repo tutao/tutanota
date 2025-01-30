@@ -32,6 +32,7 @@ impl FileImport {
 }
 
 impl FileImport {
+	#[must_use]
 	pub fn new(eml_sources: Vec<PathBuf>) -> Self {
 		let message_parser = MessageParser::default();
 		Self {
@@ -172,6 +173,7 @@ impl FileImport {
 		fs::remove_file(import_dir.join(STATE_ID_FILE_NAME))
 	}
 
+	#[must_use]
 	pub fn make_import_directory_path(config_directory: &str, mailbox_id: &str) -> PathBuf {
 		[
 			config_directory.to_string(),

@@ -172,6 +172,7 @@ impl ImportErrorKind {
 }
 
 impl MailImportErrorMessage {
+	#[must_use]
 	pub fn sdk(action: &'static str, error: ApiCallError) -> Self {
 		log::error!("ImportError::SdkError: {action} ({error})");
 
@@ -184,6 +185,7 @@ impl MailImportErrorMessage {
 		Self { kind, path: None }
 	}
 
+	#[must_use]
 	pub fn with_path(kind: ImportErrorKind, path: PathBuf) -> Self {
 		Self {
 			kind,
@@ -199,6 +201,7 @@ impl From<ImportErrorKind> for MailImportErrorMessage {
 }
 
 impl MailImportMessage {
+	#[must_use]
 	pub fn ok(ok_message: ImportOkKind) -> Self {
 		Self {
 			ok_message: Some(ok_message),
@@ -206,6 +209,7 @@ impl MailImportMessage {
 		}
 	}
 
+	#[must_use]
 	pub fn err(err_message: MailImportErrorMessage) -> Self {
 		Self {
 			ok_message: None,

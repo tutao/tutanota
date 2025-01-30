@@ -571,7 +571,7 @@ mod tests {
 	}
 
 	fn make_blob_service_response(
-		expected_reference_tokens: &Vec<BlobReferenceTokenWrapper>,
+		expected_reference_tokens: Vec<BlobReferenceTokenWrapper>,
 		type_model_provider: &Arc<TypeModelProvider>,
 	) -> Vec<u8> {
 		let blob_service_response = BlobPostOut {
@@ -664,7 +664,7 @@ mod tests {
 
 		let type_model_provider = Arc::new(init_type_model_provider());
 		let response_binary =
-			make_blob_service_response(&expected_reference_tokens, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens, &type_model_provider);
 
 		let mut rest_client = MockRestClient::default();
 		rest_client
@@ -703,19 +703,19 @@ mod tests {
 			.unwrap();
 		assert_eq!(
 			vec![first_attachment_token],
-			reference_tokens.get(0).unwrap().to_vec()
+			reference_tokens.first().unwrap().clone()
 		);
 		assert_eq!(
 			vec![second_attachment_token],
-			reference_tokens.get(1).unwrap().to_vec()
+			reference_tokens.get(1).unwrap().clone()
 		);
 		assert_eq!(
 			vec![third_attachment_token],
-			reference_tokens.get(2).unwrap().to_vec()
+			reference_tokens.get(2).unwrap().clone()
 		);
 		assert_eq!(
 			vec![fourth_attachment_token],
-			reference_tokens.get(3).unwrap().to_vec()
+			reference_tokens.get(3).unwrap().clone()
 		);
 	}
 
@@ -732,7 +732,7 @@ mod tests {
 		let first_attachment: Vec<u8> = vec![0; 12 * 1024 * 1024];
 		let second_attachment: Vec<u8> = vec![0; 2 * 1024 * 1024];
 		let third_attachment: Vec<u8> = vec![0; 2 * 1024 * 1024];
-		let fourth_attachment: Vec<u8> = vec![0; 1 * 1024 * 1024];
+		let fourth_attachment: Vec<u8> = vec![0; 1024 * 1024];
 
 		let randomizer_facade1 = RandomizerFacade::from_core(DeterministicRng(1));
 		let randomizer_facade2 = RandomizerFacade::from_core(DeterministicRng(2));
@@ -793,9 +793,9 @@ mod tests {
 
 		let type_model_provider = Arc::new(init_type_model_provider());
 		let binary1: Vec<u8> =
-			make_blob_service_response(&expected_reference_tokens1, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens1, &type_model_provider);
 		let binary2: Vec<u8> =
-			make_blob_service_response(&expected_reference_tokens2, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens2, &type_model_provider);
 
 		let mut rest_client = MockRestClient::default();
 		// first request
@@ -809,11 +809,7 @@ mod tests {
 				let RestClientOptions { body, .. } = options;
 				let body = body.clone().unwrap();
 				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
-				if new_blob_wrappers.len() == 1 {
-					true
-				} else {
-					false
-				}
+				new_blob_wrappers.len() == 1
 			})
 			.return_const(Ok(RestResponse {
 				status: 200,
@@ -832,11 +828,7 @@ mod tests {
 				let RestClientOptions { body, .. } = options;
 				let body = body.clone().unwrap();
 				let new_blob_wrappers = deserialize_new_blobs(body).unwrap();
-				if new_blob_wrappers.len() == 4 {
-					true
-				} else {
-					false
-				}
+				new_blob_wrappers.len() == 4
 			})
 			.return_const(Ok(RestResponse {
 				status: 200,
@@ -860,19 +852,19 @@ mod tests {
 			.unwrap();
 		assert_eq!(
 			vec![first_attachment_first_token, first_attachment_second_token],
-			reference_tokens.get(0).unwrap().to_vec()
+			reference_tokens.first().unwrap().clone()
 		);
 		assert_eq!(
 			vec![second_attachment_token,],
-			reference_tokens.get(1).unwrap().to_vec()
+			reference_tokens.get(1).unwrap().clone()
 		);
 		assert_eq!(
 			vec![third_attachment_token,],
-			reference_tokens.get(2).unwrap().to_vec()
+			reference_tokens.get(2).unwrap().clone()
 		);
 		assert_eq!(
 			vec![fourth_attachment_token,],
-			reference_tokens.get(3).unwrap().to_vec()
+			reference_tokens.get(3).unwrap().clone()
 		);
 	}
 
@@ -940,13 +932,13 @@ mod tests {
 
 		let type_model_provider = Arc::new(init_type_model_provider());
 		let binary1: Vec<u8> =
-			make_blob_service_response(&expected_reference_tokens1, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens1, &type_model_provider);
 		let binary2: Vec<u8> =
-			make_blob_service_response(&expected_reference_tokens2, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens2, &type_model_provider);
 		let binary3: Vec<u8> =
-			make_blob_service_response(&expected_reference_tokens3, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens3, &type_model_provider);
 		let binary4: Vec<u8> =
-			make_blob_service_response(&expected_reference_tokens4, &type_model_provider);
+			make_blob_service_response(expected_reference_tokens4, &type_model_provider);
 
 		let mut rest_client = MockRestClient::default();
 

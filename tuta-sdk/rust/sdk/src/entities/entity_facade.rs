@@ -1197,7 +1197,6 @@ mod tests {
 					.assert_dict_mut_ref()
 					.insert(String::from(ID_FIELD), expected_aggregate_id.clone());
 			}
-			let encrypted_mail = encrypted_mail;
 
 			let mut decrypted_mail = entity_facade
 				.decrypt_and_map(
@@ -1320,7 +1319,7 @@ mod tests {
 
 		let encrypted_subject = encrypted_mail.get("subject").unwrap();
 		let subject_and_iv = sk
-			.decrypt_data_and_iv(&encrypted_subject.assert_bytes())
+			.decrypt_data_and_iv(encrypted_subject.assert_bytes())
 			.unwrap();
 
 		assert_eq!(
@@ -1337,7 +1336,7 @@ mod tests {
 			.get("name")
 			.unwrap()
 			.assert_bytes()
-			.to_vec();
+			.clone();
 		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
 		assert_eq!(original_iv.get_inner().to_vec(), recipient_and_iv.iv)
 	}
