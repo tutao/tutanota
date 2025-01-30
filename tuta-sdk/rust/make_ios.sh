@@ -45,10 +45,10 @@ for target in "${TARGETS[@]}"; do
       SWIFTC_SDK_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk"
   esac
 
-  cargo build --lib --target "${target}" --release
+  cargo build --package tuta-sdk --lib --target "${target}" --release
 
   # generate bindings for our target
-  cargo run --bin uniffi-bindgen generate --library "${RELEASE_DIR}/libtutasdk.dylib" --language swift --out-dir "${OUT_DIR}/"
+  cargo run --package uniffi-bindgen generate --library "${RELEASE_DIR}/libtutasdk.dylib" --language swift --out-dir "${OUT_DIR}/"
 
   # generate swift module from dynamic library and bindings
 #   swiftc \

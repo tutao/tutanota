@@ -1,3 +1,4 @@
 target/
 ios/tutasdk/generated-src/
 *.xcodeproj
+ios/lib
