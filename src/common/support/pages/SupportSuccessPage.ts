@@ -44,14 +44,6 @@ export class SupportSuccessPage implements Component {
 					},
 				}),
 				m(SectionButton, {
-					text: { text: "X", testId: "" },
-					leftIcon: { icon: Icons.X, title: "twitter_label" },
-					rightIcon: { icon: Icons.Open, title: "open_action" },
-					onclick: () => {
-						windowFacade.openLink("https://x.com/TutaPrivacy")
-					},
-				}),
-				m(SectionButton, {
 					text: { text: "Mastodon", testId: "" },
 					rightIcon: { icon: Icons.Open, title: "open_action" },
 					injectionLeft: m(
