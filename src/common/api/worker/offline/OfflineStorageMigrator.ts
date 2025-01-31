@@ -41,7 +41,7 @@ import { tutanota79 } from "./migrations/tutanota-v79.js"
 import { offline3 } from "./migrations/offline3"
 import { sys118 } from "./migrations/sys-v118.js"
 import { tutanota80 } from "./migrations/tutanota-v80.js"
-import { storage11 } from "./migrations/storage-v11"
+import { storage11 } from "./migrations/storage-v11.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
