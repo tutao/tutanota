@@ -168,6 +168,7 @@ def buildWebapp(String stage) {
 		sh "pwd"
 		sh "echo $PATH"
     	sh "npm ci"
+    	sh "node buildSrc/checkOfflineDbMigratons.js"
     	sh 'npm run build-packages'
     	sh "node --max-old-space-size=8192 webapp ${stage}"
     	sh "node buildSrc/prepareMobileBuild.js dist"
