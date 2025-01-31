@@ -11,9 +11,11 @@ import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
 import { LabelsPopup } from "./LabelsPopup.js"
+import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
+	actionApplyMails: () => Promise<readonly Mail[]>
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -69,7 +71,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ viewModel }: MobileMailActionBarAttrs) {
+	private moreButton({ viewModel, actionApplyMails }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -86,7 +88,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 									this.dropdownWidth() ?? 200,
 									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
 									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
-									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
+									(addedLabels, removedLabels) => viewModel.mailModel.loadAndApplyLabels(actionApplyMails, addedLabels, removedLabels),
 								)
 								setTimeout(() => {
 									popup.show()

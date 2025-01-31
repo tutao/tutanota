@@ -8,9 +8,8 @@ import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { ConversationType, MailSetKind, MailState, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/misc/DeviceConfig.js"
 
 import { MailModel } from "../model/MailModel.js"
 
@@ -25,6 +24,8 @@ export interface ConversationPrefProvider {
 	getConversationViewShowOnlySelectedMail(): boolean
 
 	getMailAutoSelectBehavior(): ListAutoSelectBehavior
+
+	getMailListDisplayMode(): MailListDisplayMode
 }
 
 export type ConversationViewModelFactory = (options: CreateMailViewerOptions) => ConversationViewModel
@@ -36,6 +37,7 @@ export class ConversationViewModel {
 	private loadingPromise: Promise<void> | null = null
 	/** Is not set until {@link loadConversation is finished. Until it is finished we display primary mail and subject. */
 	private conversation: ConversationItem[] | null = null
+	private allConversationMails: Mail[] | null = null
 
 	constructor(
 		private options: CreateMailViewerOptions,
@@ -104,7 +106,11 @@ export class ConversationViewModel {
 				} else {
 					index = index + 1
 				}
-				conversation.splice(index, 0, { type: "mail", viewModel: this.viewModelFactory({ ...this.options, mail }), entryId: entry._id })
+				conversation.splice(index, 0, {
+					type: "mail",
+					viewModel: this.viewModelFactory({ ...this.options, mail }),
+					entryId: entry._id,
+				})
 				this.onUiUpdate()
 			}
 		} catch (e) {
@@ -188,6 +194,7 @@ export class ConversationViewModel {
 		try {
 			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
 				this.conversation = this.conversationItemsForSelectedMailOnly()
+				this.allConversationMails = [this._primaryViewModel.mail]
 			} else {
 				// Catch errors but only for loading conversation entries.
 				// if success, proceed with loading mails
@@ -199,6 +206,7 @@ export class ConversationViewModel {
 							return this.conversationItemsForSelectedMailOnly()
 						} else {
 							const allMails = await this.loadMails(entries)
+							this.allConversationMails = Array.from(allMails.values())
 							return this.createConversationItems(entries, allMails)
 						}
 					},
@@ -227,7 +235,12 @@ export class ConversationViewModel {
 			if (mail) {
 				newConversation.push({
 					type: "mail",
-					viewModel: isSameId(mail._id, this.options.mail._id) ? this._primaryViewModel : this.viewModelFactory({ ...this.options, mail }),
+					viewModel: isSameId(mail._id, this.options.mail._id)
+						? this._primaryViewModel
+						: this.viewModelFactory({
+								...this.options,
+								mail,
+						  }),
 					entryId: c._id,
 				})
 			}
@@ -235,7 +248,7 @@ export class ConversationViewModel {
 		return newConversation
 	}
 
-	private async loadMails(conversationEntries: ConversationEntry[]) {
+	private async loadMails(conversationEntries: ConversationEntry[]): Promise<Map<Id, Mail>> {
 		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
 		const allMails: Map<Id, Mail> = new Map()
 		for (const [listId, conversations] of byList.entries()) {
@@ -271,8 +284,26 @@ export class ConversationViewModel {
 		return this.conversation ?? this.conversationItemsForSelectedMailOnly()
 	}
 
+	/*
+		If ConversationInListView is active, all mails in the conversation are returned (so they can be processed in a group)
+		If not, only the primary mail is returned, since that is the one being looked at/interacted with.
+	 */
+	getActionableMails(): ReadonlyArray<Mail> {
+		if (this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && this.allConversationMails) {
+			return this.allConversationMails
+		} else {
+			return [this._primaryViewModel.mail]
+		}
+	}
+
 	private conversationItemsForSelectedMailOnly(): ConversationItem[] {
-		return [{ type: "mail", viewModel: this._primaryViewModel, entryId: this._primaryViewModel.mail.conversationEntry }]
+		return [
+			{
+				type: "mail",
+				viewModel: this._primaryViewModel,
+				entryId: this._primaryViewModel.mail.conversationEntry,
+			},
+		]
 	}
 
 	get primaryMail(): Mail {

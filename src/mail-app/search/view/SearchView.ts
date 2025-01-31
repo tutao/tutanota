@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import type { TranslationKey, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode } from "../../../common/api/common/Env"
@@ -407,6 +407,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					mails: selectedMails,
+					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
+					//    mails are always shown. So the action applies only to the selected mails
+					actionApplyMails: async () => selectedMails,
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 				})
 				return m(BackgroundColumnLayout, {
@@ -442,6 +445,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
 					mailViewerViewModel: conversationViewModel.primaryViewModel(),
 					mails: [conversationViewModel.primaryMail],
+					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
+					//    mails are always shown. So the action applies only to the shown mail
+					actionApplyMails: async () => [conversationViewModel.primaryMail],
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -598,7 +604,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
 
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && this.searchViewModel.conversationViewModel) {
-			return m(MobileMailActionBar, { viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel() })
+			return m(MobileMailActionBar, {
+				viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel(),
+				// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
+				//    mails are always shown. So the action applies only to the shown mail
+				actionApplyMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail],
+			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
 				return m(MobileActionBar, {
@@ -657,6 +668,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 					mailModel: mailLocator.mailModel,
 					mailboxModel: locator.mailboxModel,
+					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
+					//    mails are always shown. So the action applies only to the selected mails
+					actionApplyMails: async () => this.searchViewModel.getSelectedMails(),
 				})
 			} else if (this.viewSlider.focusedColumn === this.resultListColumn) {
 				return m(

@@ -51,6 +51,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { isSpamOrTrashFolder } from "./MailChecks.js"
+import { MailItem } from "../view/ConversationViewModel"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -445,8 +446,15 @@ export class MailModel {
 		)
 	}
 
+	async loadAndApplyLabels(mails: () => Promise<readonly Mail[]>, addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]) {
+		this.applyLabels(await mails(), addedLabels, removedLabels)
+	}
+
 	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
-		const groupedByListIds = groupBy(mails, (mail) => listIdPart(mail._id))
+		const groupedByListIds = groupBy(
+			mails.map((m) => m._id),
+			(mailId) => listIdPart(mailId),
+		)
 		for (const [_, groupedMails] of groupedByListIds) {
 			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, groupedMails)
 			for (const mailChunk of mailChunks) {
