@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-01-28T13:55:19Z",
+	"updated_at": "2025-01-30T16:06:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -950,10 +950,13 @@ export default {
 		"mailBody_label": "Viestin tekstisisältö",
 		"mailboxToExport_label": "Vietävä postilaatikko",
 		"mailbox_label": "Postilaatikko",
+		"mailExportHistory_label": "Vientihistoria",
+		"mailExportInfoText_label": "Voit viedä EML-tiedostoja.",
 		"mailExportModeHelp_msg": "Vetämällä ja pudottamalla vietävien sähköpostien tiedostomuoto",
 		"mailExportMode_label": "Vietävien sähköpostien tiedostomuoto",
 		"mailExportOnlyOnDesktop_label": "Sähköpostiviestejä voi toistaiseksi viedä vain työpöytäsovelluksillamme.",
 		"mailExportProgress_msg": "Valmistellaan {current}/{total} sähköpostiviestin vientiä...",
+		"mailExportSettings_label": "Sähköpostien vienti",
 		"mailExport_label": "Sähköpostien vienti",
 		"mailFolder_label": "Sähköpostikansio",
 		"mailHeaders_title": "Viestin otsakkeet",

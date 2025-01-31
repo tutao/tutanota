@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2025-01-28T18:03:24Z",
+	"updated_at": "2025-01-30T20:54:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -40,6 +40,7 @@ export default {
 		"active_label": "Aktiv",
 		"actor_label": "Aktør",
 		"addAliasUserDisabled_msg": "Dette e-mail alias kunne ikke tilføjes til brugeren eller gruppen fordi det i øjeblikket er deaktivieret.",
+		"addCalendarFromURL_action": "Fra URL",
 		"addCalendar_action": "Tilføj kalender",
 		"addContactList_action": "Tilføj liste med kontakter",
 		"addCustomDomainAddresses_title": "Tilføj en email adresse for dit brugerdefinerede domæne",
@@ -731,6 +732,7 @@ export default {
 		"matchCase_alt": "Match tilfælde",
 		"matchingKeywords_label": "Tilsvarende nøgleord:",
 		"maximumLabelsPerMailReached_msg": "Det maksimalt tilladte antal etiketter pr. e-mail er nået.",
+		"maybeAttending_label": "Deltager måske",
 		"maybe_label": "Måske",
 		"menu_label": "Menu",
 		"mergeAllSelectedContacts_msg": "Er du sikker på du vil sammenflette de valgte kontakter?",
