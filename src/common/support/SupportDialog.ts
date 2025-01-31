@@ -29,7 +29,6 @@ export interface SupportDialogState {
 	categories: SupportCategory[]
 	htmlEditor: HtmlEditor
 	shouldIncludeLogs: Stream<boolean>
-	userAttachments: Stream<DataFile[]>
 	logs: Stream<DataFile[]>
 }
 
@@ -85,7 +84,6 @@ export async function showSupportDialog(logins: LoginController) {
 		categories: supportData.categories.filter((cat) => cat.topics.length > 0),
 		htmlEditor: new HtmlEditor().setMinHeight(250).setEnabled(true),
 		shouldIncludeLogs: Stream(true),
-		userAttachments: Stream([]),
 		logs: Stream([]),
 	}
 
