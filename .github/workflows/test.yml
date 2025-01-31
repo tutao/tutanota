@@ -116,3 +116,19 @@ jobs:
         run: |
           npm run build-packages
           node webapp --disable-minify --app calendar
+
+  build-desktop: # will check that offline migrations are there
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: build desktop
+        run: |
+          npm run build-packages
+          node desktop --disable-minify
