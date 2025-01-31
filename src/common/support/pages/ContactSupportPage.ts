@@ -2,15 +2,14 @@ import m, { Children, Component, Vnode } from "mithril"
 import { getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
 import { DataFile } from "../../api/common/DataFile.js"
-import { remove, Thunk } from "@tutao/tutanota-utils"
+import { Thunk } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/CommonLocator.js"
-import { showFileChooser } from "../../file/FileController.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { Card } from "../../gui/base/Card.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { MailMethod, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
-import { Attachment, SendMailModel } from "../../mailFunctionality/SendMailModel.js"
+import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { Switch } from "../../gui/base/Switch.js"
@@ -20,6 +19,7 @@ import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { ButtonColor, getColors } from "../../gui/base/Button.js"
 import { px, size } from "../../gui/size.js"
+import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
 
 export type Props = {
 	data: SupportDialogState
@@ -27,11 +27,57 @@ export type Props = {
 }
 
 export class ContactSupportPage implements Component<Props> {
+	private sendMailModel: SendMailModel | undefined
+
 	oninit({ attrs: { data } }: Vnode<Props>) {
 		this.collectLogs().then((logs) => {
 			data.logs(logs)
 			m.redraw()
 		})
+	}
+
+	async oncreate(): Promise<void> {
+		this.sendMailModel = await createSendMailModel()
+		await this.sendMailModel.initWithTemplate(
+			{
+				to: [
+					{
+						name: null,
+						address: "helpdesk@tutao.de",
+					},
+				],
+			},
+			"",
+			"",
+			[],
+			false,
+		)
+	}
+
+	/**
+	 * Gets the subject of the support request considering the users current plan and the path they took to get to the contact form.
+	 * Appends the category and topic if present.
+	 *
+	 * **Example output: `Support Request - Unlimited - Account: I cannot login.`**
+	 */
+	private async getSubject(data: SupportDialogState) {
+		const MAX_ISSUE_LENGTH = 60
+		let subject = `Support Request (${PlanTypeToName[await locator.logins.getUserController().getPlanType()]})`
+
+		const selectedCategory = data.selectedCategory()
+		const selectedTopic = data.selectedTopic()
+
+		if (selectedCategory != null && selectedTopic != null) {
+			const localizedTopic = getLocalisedTopicIssue(selectedTopic, lang.languageTag)
+			const issue = localizedTopic.length > MAX_ISSUE_LENGTH ? localizedTopic.substring(0, MAX_ISSUE_LENGTH) + "..." : localizedTopic
+			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
+		}
+
+		if (selectedCategory != null && selectedTopic == null) {
+			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
+		}
+
+		return subject
 	}
 
 	view({ attrs: { data, goToSuccessPage } }: Vnode<Props>): Children {
@@ -65,16 +111,12 @@ export class ContactSupportPage implements Component<Props> {
 						m(SectionButton, {
 							text: "attachFiles_action",
 							rightIcon: { icon: Icons.Attachment, title: "attachFiles_action" },
-							onclick: () => {
-								showFileChooser(true).then((chosenFiles) => {
-									const tmp = data.userAttachments()
-									tmp.push(...chosenFiles)
-									data.userAttachments(tmp)
-									m.redraw()
-								})
+							onclick: async (_, dom) => {
+								await chooseAndAttachFile(this.sendMailModel!, dom.getBoundingClientRect())
+								m.redraw()
 							},
 						}),
-						data.userAttachments().map((attachment) =>
+						(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
 							m(
 								".flex.center-vertically.flex-space-between.pb-s.pt-s",
 								{ style: { paddingInline: px(size.vpad_small) } },
@@ -84,9 +126,8 @@ export class ContactSupportPage implements Component<Props> {
 									{
 										label: "remove_action",
 										onclick: () => {
-											const tmp = data.userAttachments()
-											remove(tmp, attachment)
-											data.userAttachments(tmp)
+											this.sendMailModel?.removeAttachment(attachment)
+											m.redraw()
 										},
 										class: "flex justify-between flash",
 									},
@@ -124,11 +165,25 @@ export class ContactSupportPage implements Component<Props> {
 					m(LoginButton, {
 						label: "send_action",
 						onclick: async () => {
+							if (!this.sendMailModel) {
+								return
+							}
+
 							const message = data.htmlEditor.getValue()
 							const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
-							const attachments = data.shouldIncludeLogs() ? [...data.userAttachments(), ...data.logs()] : data.userAttachments()
 
-							await send(mailBody, attachments, data)
+							const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
+								blockExternalContent: true,
+							}).html
+
+							this.sendMailModel.setBody(sanitisedBody)
+							this.sendMailModel.setSubject(await this.getSubject(data))
+
+							if (data.shouldIncludeLogs()) {
+								this.sendMailModel.attachFiles(data.logs())
+							}
+
+							await this.sendMailModel.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
 
 							goToSuccessPage()
 						},
@@ -141,63 +196,6 @@ export class ContactSupportPage implements Component<Props> {
 	private async collectLogs(): Promise<DataFile[]> {
 		return await getLogAttachments(new Date())
 	}
-}
-
-/**
- * Sends an email to the support address
- * @param rawBody The unsanitised HTML string to be sanitised then used as the emails body
- * @param attachments The files to be added as attachments to the email
- * @param data The dialog data required to get the selected category and topic if present.
- */
-async function send(rawBody: string, attachments: Attachment[], data: SupportDialogState) {
-	const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(rawBody), {
-		blockExternalContent: true,
-	}).html
-
-	const planType = await locator.logins.getUserController().getPlanType()
-
-	/**
-	 * Gets the subject of the support request considering the users current plan and the path they took to get to the contact form.
-	 * Appends the category and topic if present.
-	 *
-	 * **Example output: `Support Request - Unlimited - Account: I cannot login.`**
-	 */
-	function getSubject() {
-		const MAX_ISSUE_LENGTH = 60
-		let subject = `Support Request (${PlanTypeToName[planType]})`
-
-		const selectedCategory = data.selectedCategory()
-		const selectedTopic = data.selectedTopic()
-
-		if (selectedCategory != null && selectedTopic != null) {
-			const localizedTopic = getLocalisedTopicIssue(selectedTopic, lang.languageTag)
-			const issue = localizedTopic.length > MAX_ISSUE_LENGTH ? localizedTopic.substring(0, MAX_ISSUE_LENGTH) + "..." : localizedTopic
-			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
-		}
-
-		if (selectedCategory != null && selectedTopic == null) {
-			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
-		}
-
-		return subject
-	}
-
-	const sendMailModel = await createSendMailModel()
-	const model = await sendMailModel.initWithTemplate(
-		{
-			to: [
-				{
-					name: null,
-					address: "helpdesk@tutao.de",
-				},
-			],
-		},
-		getSubject(),
-		sanitisedBody,
-		attachments,
-		false,
-	)
-	await model.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
 }
 
 async function createSendMailModel(): Promise<SendMailModel> {
