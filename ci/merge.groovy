@@ -151,11 +151,11 @@ pipeline {
 							./lint.sh style:check
 
 							# xcodegen is not installed on m1
-							/usr/local/bin/xcodegen --spec calendar-project.yml
-							/usr/local/bin/xcodegen --spec mail-project.yml
+							xcodegen --spec calendar-project.yml
+							xcodegen --spec mail-project.yml
 
 							cd ../tuta-sdk/ios
-							/usr/local/bin/xcodegen
+							xcodegen
 
 						'''
 					}
