@@ -255,7 +255,6 @@ class MailLocator {
 			this.inboxRuleHanlder(),
 			router,
 			await this.redraw(),
-			deviceConfig,
 		)
 	})
 
