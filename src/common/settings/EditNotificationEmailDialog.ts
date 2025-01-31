@@ -163,7 +163,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		m.redraw()
 	})
 	// Even though savedHtml is always sanitized changing it might lead to mXSS
-	const sanitizePreview = memoized<string, string>((html) => {
+	const sanitizePreview = memoized<(html: string) => string>((html) => {
 		return htmlSanitizer.sanitizeHTML(html).html
 	})
 
