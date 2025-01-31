@@ -1,6 +1,8 @@
 import o from "@tutao/otest"
-import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
+import { clone, deepEqual, getChangedProps, memoized } from "../lib/Utils.js"
 import { arrayEquals } from "../lib/index.js"
+import { func, matchers, when } from "testdouble"
+import { verify } from "@tutao/tutanota-test-utils"
 
 o.spec("utils", function () {
 	o("deep clone an instance", function () {
@@ -141,5 +143,47 @@ o.spec("utils", function () {
 		o(getChangedProps(null, undefined)).deepEquals([])
 		o(getChangedProps(undefined, undefined)).deepEquals([])
 		o(getChangedProps(null, null)).deepEquals([])
+	})
+
+	o.spec("memoized", function () {
+		o.test("when called twice with the same argument it is called once", function () {
+			const fnToMemoize = func<(_: number) => number>()
+			when(fnToMemoize(matchers.anything())).thenReturn(42)
+			const memoizedFn = memoized(fnToMemoize)
+			o(memoizedFn(1)).equals(42)
+			o(memoizedFn(1)).equals(42)
+			verify(fnToMemoize(matchers.anything()), { times: 1 })
+		})
+
+		o.test("when called twice with the different arguments it is called twice", function () {
+			const fnToMemoize = func<(_: number) => number>()
+			when(fnToMemoize(1)).thenReturn(11)
+			when(fnToMemoize(2)).thenReturn(12)
+			const memoizedFn = memoized(fnToMemoize)
+			o(memoizedFn(1)).equals(11)
+			o(memoizedFn(2)).equals(12)
+			verify(fnToMemoize(1), { times: 1 })
+			verify(fnToMemoize(2), { times: 1 })
+		})
+
+		o.test("when called twice with the same arguments it is called once", function () {
+			const fnToMemoize = func<(l: number, r: number) => number>()
+			when(fnToMemoize(matchers.anything(), matchers.anything())).thenReturn(42)
+			const memoizedFn = memoized(fnToMemoize)
+			o(memoizedFn(1, 2)).equals(42)
+			o(memoizedFn(1, 2)).equals(42)
+			verify(fnToMemoize(matchers.anything(), matchers.anything()), { times: 1 })
+		})
+
+		o.test("when called twice with different arguments it is called twice", function () {
+			const fnToMemoize = func<(l: number, r: number) => number>()
+			when(fnToMemoize(1, 1)).thenReturn(11)
+			when(fnToMemoize(1, 2)).thenReturn(12)
+			const memoizedFn = memoized(fnToMemoize)
+			o(memoizedFn(1, 1)).equals(11)
+			o(memoizedFn(1, 2)).equals(12)
+			verify(fnToMemoize(1, 1), { times: 1 })
+			verify(fnToMemoize(1, 2), { times: 1 })
+		})
 	})
 })

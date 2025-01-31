@@ -1,4 +1,5 @@
 import { TypeRef } from "./TypeRef.js"
+import { arrayEquals } from "./ArrayUtils.js"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -234,19 +235,21 @@ export function makeSingleUse<T>(fn: Callback<T>): Callback<T> {
  * If the cached argument has changed then {@param fn} will be called with new argument and result will be cached again.
  * Only remembers the last argument.
  */
-export function memoized<T, R>(fn: (arg0: T) => R): (arg0: T) => R {
-	let lastArg: T
-	let lastResult: R
+export function memoized<F extends (...args: any[]) => any>(fn: F): F {
+	let lastArgs: unknown[]
+	let lastResult: Parameters<F>
 	let didCache = false
-	return (arg) => {
-		if (!didCache || arg !== lastArg) {
-			lastArg = arg
+
+	const memoizedFunction = (...args: Parameters<F>) => {
+		if (!didCache || !arrayEquals(lastArgs, args)) {
+			lastArgs = args
 			didCache = true
-			lastResult = fn(arg)
+			lastResult = fn(...args)
 		}
 
 		return lastResult
 	}
+	return memoizedFunction as F
 }
 
 /**
