@@ -58,7 +58,7 @@ const TAG = "MailVM"
  */
 const MAIL_LIST_FOLDERS: MailSetKind[] = [MailSetKind.DRAFT, MailSetKind.SENT]
 
-export interface MailListViewPrefProvider {
+export interface MailListDisplayModePrefProvider {
 	getMailListDisplayMode(): MailListDisplayMode
 }
 
@@ -83,7 +83,7 @@ export class MailViewModel {
 	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
 	private listStreamSubscription: Stream<unknown> | null = null
 	private conversationPref: boolean = false
-	private groupMailsByConversationPref: boolean = false
+	private mailListDisplayModePref: boolean = false
 	/** A slightly hacky marker to avoid concurrent URL updates. */
 	private currentShowTargetMarker: object = {}
 
@@ -100,7 +100,7 @@ export class MailViewModel {
 		private readonly inboxRuleHandler: InboxRuleHandler,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
-		private readonly mailListViewPrefProvider: MailListViewPrefProvider,
+		private readonly mailListDisplayModePrefProvider: MailListDisplayModePrefProvider,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {
@@ -340,7 +340,7 @@ export class MailViewModel {
 	init() {
 		this.onceInit()
 		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
-		const mailListViewPref = this.mailListViewPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
+		const mailListModePref = this.mailListDisplayModePrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
 		if (this.conversationViewModel && this.conversationPref !== conversationDisabled) {
 			const mail = this.conversationViewModel.primaryMail
 			this.createConversationViewModel({
@@ -353,9 +353,9 @@ export class MailViewModel {
 
 		this.conversationPref = conversationDisabled
 
-		const oldGroupMailsByConversationPref = this.groupMailsByConversationPref
-		this.groupMailsByConversationPref = mailListViewPref
-		if (oldGroupMailsByConversationPref !== mailListViewPref) {
+		const oldGroupMailsByConversationPref = this.mailListDisplayModePref
+		this.mailListDisplayModePref = mailListModePref
+		if (oldGroupMailsByConversationPref !== mailListModePref) {
 			// if the preference for conversation in list has changed we need to re-create the list model
 			this.updateListModel()
 		}
@@ -413,7 +413,7 @@ export class MailViewModel {
 			const folder = this._folder
 
 			let listModel: MailSetListModel
-			if (this.groupMailsByConversationPref && !this.folderNeverGroupsMails(folder)) {
+			if (this.mailListDisplayModePref && !this.folderNeverGroupsMails(folder)) {
 				listModel = new ConversationListModel(
 					folder,
 					this.conversationPrefProvider,
