@@ -1083,9 +1083,9 @@ export class MailFacade {
 		)
 	}
 
-	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]) {
+	async applyLabels(mailIds: IdTuple[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]) {
 		const postIn = createApplyLabelServicePostIn({
-			mails: mails.map((mail) => mail._id),
+			mails: mailIds,
 			addedLabels: addedLabels.map((label) => label._id),
 			removedLabels: removedLabels.map((label) => label._id),
 		})

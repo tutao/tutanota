@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { ConversationEntryTypeRef, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
@@ -25,6 +25,8 @@ import { MailModel } from "../model/MailModel.js"
 import { LabelsPopup } from "./LabelsPopup.js"
 import { allInSameMailbox } from "../model/MailUtils"
 import { styles } from "../../../common/gui/styles"
+import { MailItem } from "./ConversationViewModel"
+import { listIdPart } from "../../../common/api/common/utils/EntityUtils"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -35,6 +37,7 @@ export interface MailViewerToolbarAttrs {
 	mailViewerViewModel?: MailViewerViewModel
 	mails: Mail[]
 	selectNone?: () => void
+	actionApplyMails: () => Promise<readonly Mail[]>
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -57,14 +60,16 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
 				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
-				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.mails) : null,
+				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.mails, attrs.actionApplyMails) : null,
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.mails.length > 0) {
 			return [
 				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
 				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
-				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.mails) ? this.renderLabelButton(mailModel, attrs.mails) : null,
+				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.mails)
+					? this.renderLabelButton(mailModel, attrs.mails, attrs.actionApplyMails)
+					: null,
 				this.renderReadButton(attrs),
 				this.renderExportButton(attrs),
 			]
@@ -110,7 +115,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderLabelButton(mailModel: MailModel, mails: Mail[]): Children {
+	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionApplyMails: () => Promise<readonly Mail[]>): Children {
 		return m(IconButton, {
 			title: "assignLabel_action",
 			icon: Icons.Label,
@@ -121,7 +126,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 					styles.isDesktopLayout() ? 300 : 200,
 					mailModel.getLabelsForMails(mails),
 					mailModel.getLabelStatesForMails(mails),
-					(addedLabels, removedLabels) => mailModel.applyLabels(mails, addedLabels, removedLabels),
+					(addedLabels, removedLabels) => mailModel.loadAndApplyLabels(actionApplyMails, addedLabels, removedLabels),
 				)
 				popup.show()
 			},

@@ -1,6 +1,8 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
+	ConversationEntry,
+	ConversationEntryTypeRef,
 	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
 	Mail,
@@ -57,10 +59,6 @@ const TAG = "MailVM"
  */
 const MAIL_LIST_FOLDERS: MailSetKind[] = [MailSetKind.DRAFT, MailSetKind.SENT]
 
-export interface MailListDisplayModePrefProvider {
-	getMailListDisplayMode(): MailListDisplayMode
-}
-
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	private _folder: MailFolder | null = null
@@ -99,7 +97,6 @@ export class MailViewModel {
 		private readonly inboxRuleHandler: InboxRuleHandler,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
-		private readonly mailListDisplayModePrefProvider: MailListDisplayModePrefProvider,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {
@@ -329,6 +326,54 @@ export class MailViewModel {
 		}
 	}
 
+	/*
+		If ConversationInListView is active, all mails in the conversation are returned (so they can be processed in a group)
+		If not, only the primary mail is returned, since that is the one being looked at/interacted with.
+	 */
+	async getActionableMails(mails: Mail[]): Promise<ReadonlyArray<Mail>> {
+		if (this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS) {
+			return this.loadConversationsForAllMails(mails)
+		} else {
+			return mails
+		}
+	}
+
+	async loadConversationsForAllMails(mails: Mail[]): Promise<ReadonlyArray<Mail>> {
+		let conversationEntries: ConversationEntry[] = []
+		for (const mail of mails) {
+			await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(mail.conversationEntry)).then(
+				async (entries) => {
+					conversationEntries.push(...entries)
+				},
+				async (e) => {
+					if (e instanceof NotAuthorizedError) {
+						// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
+						// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
+						// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
+						//FIXME: not sure what to do here
+						//return this.conversationItemsForSelectedMailOnly()
+					} else {
+						throw e
+					}
+				},
+			)
+		}
+
+		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
+		const allMails: Mail[] = []
+		for (const [listId, conversations] of byList.entries()) {
+			if (!listId) continue
+			const loaded = await this.entityClient.loadMultiple(
+				MailTypeRef,
+				listId,
+				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
+			)
+
+			allMails.push(...loaded)
+		}
+		return allMails
+	}
+
 	private async getFolderForUserInbox(): Promise<MailFolder> {
 		const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
 		const folders = await this.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
@@ -339,7 +384,7 @@ export class MailViewModel {
 	init() {
 		this.onceInit()
 		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
-		const mailListModePref = this.mailListDisplayModePrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
+		const mailListModePref = this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
 		if (this.conversationViewModel && this.conversationPref !== conversationDisabled) {
 			const mail = this.conversationViewModel.primaryMail
 			this.createConversationViewModel({
