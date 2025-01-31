@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -39,7 +39,7 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { conversationCardMargin, ConversationViewer } from "./ConversationViewer.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { MailViewerActions } from "./MailViewerToolbar.js"
+import { MailViewerActions, MailViewerToolbarAttrs } from "./MailViewerToolbar.js"
 import { theme } from "../../../common/gui/theme.js"
 import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionActionBar.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
@@ -68,7 +68,6 @@ import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
-import { MailImporter } from "../import/MailImporter.js"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { LabelsPopup } from "./LabelsPopup"
 
@@ -263,6 +262,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailModel: viewModel.primaryViewModel().mailModel,
 			mailViewerViewModel: viewModel.primaryViewModel(),
 			mails: [viewModel.primaryMail],
+			actionApplyMails: async () => viewModel.getActionableMails(),
 		})
 	}
 
@@ -298,6 +298,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailModel: mailLocator.mailModel,
 			mails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
 			selectNone: () => this.mailViewModel.listModel?.selectNone(),
+			actionApplyMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 		})
 	}
 
@@ -368,13 +369,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
-						? m(MobileMailActionBar, { viewModel: this.conversationViewModel.primaryViewModel() })
+						? m(MobileMailActionBar, {
+								viewModel: this.conversationViewModel.primaryViewModel(),
+								actionApplyMails: async () => assertNotNull(this.conversationViewModel).getActionableMails(),
+						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
 								mails: this.mailViewModel.listModel.getSelectedAsArray(),
 								selectNone: () => this.mailViewModel.listModel?.selectNone(),
 								mailModel: mailLocator.mailModel,
 								mailboxModel: locator.mailboxModel,
+								actionApplyMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 						  })
 						: m(BottomNav),
 			}),
@@ -568,7 +573,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	/**
-	 *Shortcut Method to show Labels dropdown only when atleast one mail is selected.
+	 *Shortcut Method to show Labels dropdown only when at least one mail is selected.
 	 */
 	private labels() {
 		const mailList = this.mailViewModel.listModel
@@ -588,7 +593,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			styles.isDesktopLayout() ? 300 : 200,
 			mailLocator.mailModel.getLabelsForMails(selectedMails),
 			mailLocator.mailModel.getLabelStatesForMails(selectedMails),
-			(addedLabels, removedLabels) => mailLocator.mailModel.applyLabels(selectedMails, addedLabels, removedLabels),
+			(addedLabels, removedLabels) =>
+				mailLocator.mailModel.loadAndApplyLabels(() => this.mailViewModel.getActionableMails(selectedMails), addedLabels, removedLabels),
 		)
 		popup.show()
 	}

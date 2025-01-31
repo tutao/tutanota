@@ -15,6 +15,7 @@ export interface MobileMailMultiselectionActionBarAttrs {
 	mailModel: MailModel
 	mailboxModel: MailboxModel
 	selectNone: () => unknown
+	actionApplyMails: () => Promise<readonly Mail[]>
 }
 
 // Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
@@ -22,7 +23,7 @@ export class MobileMailMultiselectionActionBar {
 	private dom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<MobileMailMultiselectionActionBarAttrs>): Children {
-		const { mails, selectNone, mailModel, mailboxModel } = attrs
+		const { mails, selectNone, mailModel, mailboxModel, actionApplyMails } = attrs
 		return m(
 			MobileBottomActionBar,
 			{
@@ -60,7 +61,7 @@ export class MobileMailMultiselectionActionBar {
 										referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
 										mailModel.getLabelsForMails(mails),
 										mailModel.getLabelStatesForMails(mails),
-										(addedLabels, removedLabels) => mailModel.applyLabels(mails, addedLabels, removedLabels),
+										(addedLabels, removedLabels) => mailModel.loadAndApplyLabels(actionApplyMails, addedLabels, removedLabels),
 									)
 									popup.show()
 								}
