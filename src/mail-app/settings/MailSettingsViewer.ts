@@ -312,7 +312,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 350,
 		}
-		const mailListView: DropDownSelectorAttrs<MailListDisplayMode> = {
+		const mailListDisplayMode: DropDownSelectorAttrs<MailListDisplayMode> = {
 			label: "mailListGrouping_label",
 			// Don't group means normal view instead of conversation
 			items: [
@@ -359,7 +359,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						: null,
 					m(".h4.mt-l", lang.get("general_label")),
 					m(DropDownSelector, conversationViewDropdownAttrs),
-					m(DropDownSelector, mailListView),
+					m(DropDownSelector, mailListDisplayMode),
 					m(DropDownSelector, enableMailIndexingAttrs),
 					m(DropDownSelector, behaviorAfterMoveEmailAction),
 					m(".h4.mt-l", lang.get("emailSending_label")),
