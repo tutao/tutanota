@@ -36,7 +36,7 @@ export class SupportSuccessPage implements Component {
 						rel: "noreferrer",
 						loading: "lazy",
 						decoding: "async",
-						style: { width: "24px", height: "24px" },
+						style: { width: "20px", height: "20px", padding: "2px" },
 					}),
 					rightIcon: { icon: Icons.Open, title: "close_alt" },
 					onclick: () => {
