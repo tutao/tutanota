@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-01-28T14:07:01Z",
+	"updated_at": "2025-01-30T14:19:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -950,10 +950,13 @@ export default {
 		"mailBody_label": "E-postmeddelande",
 		"mailboxToExport_label": "Brevlåda som ska exporteras",
 		"mailbox_label": "Brevlåda",
+		"mailExportHistory_label": "Exporthistorik",
+		"mailExportInfoText_label": "Du kan exportera EML filer.",
 		"mailExportModeHelp_msg": "Filformat för e-post som ska användas vid export eller dra och släpp",
 		"mailExportMode_label": "E-post export filformat",
 		"mailExportOnlyOnDesktop_label": "Export av e-post är för närvarande endast tillgängligt i vår stationära klient.",
 		"mailExportProgress_msg": "Förbereder {current} av {total} mejl för export...",
+		"mailExportSettings_label": "E-post export",
 		"mailExport_label": "E-post export",
 		"mailFolder_label": "E-postmapp",
 		"mailHeaders_title": "E-post sidhuvud",
