@@ -96,8 +96,21 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							},
 							icon: Icons.Label,
 						})
+						if (viewModel.isUnread()) {
+							moreButtons.push({
+								label: "markRead_action",
+								click: () => viewModel.mailModel.loadAndMarkMails(actionApplyMails, false),
+								icon: Icons.Eye,
+							})
+						} else {
+							moreButtons.push({
+								label: "markUnread_action",
+								click: () => viewModel.mailModel.loadAndMarkMails(actionApplyMails, true),
+								icon: Icons.NoEye,
+							})
+						}
 					}
-					return [...moreButtons, ...mailViewerMoreActions(viewModel)]
+					return [...moreButtons, ...mailViewerMoreActions(viewModel, false)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,

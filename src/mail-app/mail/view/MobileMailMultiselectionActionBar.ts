@@ -72,14 +72,14 @@ export class MobileMailMultiselectionActionBar {
 					icon: Icons.Eye,
 					title: "markRead_action",
 					click: () => {
-						mailModel.markMails(mails, false)
+						mailModel.loadAndMarkMails(actionApplyMails, false)
 					},
 				}),
 				m(IconButton, {
 					icon: Icons.NoEye,
 					title: "markUnread_action",
 					click: () => {
-						mailModel.markMails(mails, true)
+						mailModel.loadAndMarkMails(actionApplyMails, true)
 					},
 				}),
 			],
