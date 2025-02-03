@@ -676,6 +676,14 @@ impl Importer {
 				},
 				ImportProgressAction::Stop => {
 					self.update_failed_mails_counter().await;
+					FileImport::delete_state_file(&self.essentials.import_directory).map_err(
+						|_del_err| {
+							MailImportErrorMessage::with_path(
+								ImportErrorKind::FileDeletionError,
+								self.essentials.import_directory.clone(),
+							)
+						},
+					)?;
 					return Ok(ImportOkKind::UserCancelInterruption);
 				},
 
