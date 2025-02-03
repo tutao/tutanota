@@ -1586,7 +1586,7 @@ dependencies = [
 [[package]]
 name = "pqcrypto-internals"
 version = "0.2.7"
-source = "git+https://github.com/rustpq/pqcrypto?rev=b39937410b149156de81fc8e3150753aff925aa4#b39937410b149156de81fc8e3150753aff925aa4"
+source = "git+https://github.com/vaf-hub/pqcrypto?rev=ffbce29b21665135e0d3fadc120bd04f079829a8#ffbce29b21665135e0d3fadc120bd04f079829a8"
 dependencies = [
  "cc",
  "dunce",

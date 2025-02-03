@@ -13,12 +13,12 @@ publish = false
 [workspace]
 resolver = "2" # todo: can use resolver 3 after 1.84.0+
 members = [
-	"tuta-sdk/rust/sdk",
-	"packages/node-mimimi",
-	# uniffi-bindgen is a seperate crate as uniffi-bindgen does not have a cli yet:
-	# https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary
-	# note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
-	"tuta-sdk/rust/uniffi-bindgen",
+    "tuta-sdk/rust/sdk",
+    "packages/node-mimimi",
+    # uniffi-bindgen is a seperate crate as uniffi-bindgen does not have a cli yet:
+    # https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary
+    # note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
+    "tuta-sdk/rust/uniffi-bindgen",
 ]
 
 # in most cases, we don't want to build everything.
@@ -60,4 +60,4 @@ explicit_iter_loop = "warn"
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ci)'] }
 
 [patch.'https://github.com/rust-lang/crates.io-index']
-pqcrypto-internals = { git = 'https://github.com/rustpq/pqcrypto', rev = 'b39937410b149156de81fc8e3150753aff925aa4' }
+pqcrypto-internals = { git = 'https://github.com/vaf-hub/pqcrypto', rev = 'ffbce29b21665135e0d3fadc120bd04f079829a8' }
