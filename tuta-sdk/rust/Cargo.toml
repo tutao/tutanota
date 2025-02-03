@@ -6,3 +6,6 @@ members = [
     "sdk",
     "uniffi-bindgen",
 ]
+
+[patch.'https://github.com/rust-lang/crates.io-index']
+pqcrypto-internals = { git = 'https://github.com/rustpq/pqcrypto', rev = 'b39937410b149156de81fc8e3150753aff925aa4' }
