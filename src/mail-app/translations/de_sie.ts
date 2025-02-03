@@ -1946,6 +1946,7 @@ export default {
 		"lastOfPeriod_label": "Am letzten {day} des Monats",
 		"withCustomRules_label": "Mit benutzerdefinierten Wiederholungsregeln",
 		"unsupportedAdvancedRules_msg": "Dieses Ereignis enthält eine oder mehrere nicht unterstützte erweiterte Wiederholungsregeln; jede Änderung führt zum Verlust dieser Regeln.",
+		"onDays_label": "Am {days}",
 		// Put in temporarily, will be removed soon
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",

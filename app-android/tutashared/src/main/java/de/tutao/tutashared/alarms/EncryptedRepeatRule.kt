@@ -1,6 +1,5 @@
 package de.tutao.tutashared.alarms
 
-import android.util.Log
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import de.tutao.tutasdk.ByRule
@@ -85,14 +84,14 @@ fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: B
 
 fun ByRuleType.Companion.fromValue(value: Int) = run {
 	when (value) {
-		0 -> ByRuleType.BYMINUTE
-		1 -> ByRuleType.BYHOUR
-		2 -> ByRuleType.BYDAY
-		3 -> ByRuleType.BYMONTHDAY
-		4 -> ByRuleType.BYYEARDAY
-		5 -> ByRuleType.BYWEEKNO
-		6 -> ByRuleType.BYMONTH
-		7 -> ByRuleType.BYSETPOS
+		0 -> ByRuleType.BY_MINUTE
+		1 -> ByRuleType.BY_HOUR
+		2 -> ByRuleType.BY_DAY
+		3 -> ByRuleType.BY_MONTHDAY
+		4 -> ByRuleType.BY_YEAR_DAY
+		5 -> ByRuleType.BY_WEEK_NO
+		6 -> ByRuleType.BY_MONTH
+		7 -> ByRuleType.BY_SET_POS
 		8 -> ByRuleType.WKST
 
 		else -> {

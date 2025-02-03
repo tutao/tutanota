@@ -11,7 +11,7 @@ import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { getRepeatEndTimeForDisplay, getTimeZone, RENDER_TYPE_TRANSLATION_MAP, RenderType } from "../../../../common/calendar/date/CalendarUtils.js"
+import { ByRule, getRepeatEndTimeForDisplay, getTimeZone, RENDER_TYPE_TRANSLATION_MAP, RenderType } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
@@ -28,7 +28,6 @@ import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
-import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
