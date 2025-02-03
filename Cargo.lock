@@ -612,6 +612,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b42b6fa04a440b495c8b04d0e71b707c585f83cb9cb28cf8cd0d976c315e31b4"
 dependencies = [
  "powerfmt",
+ "serde",
 ]
 
 [[package]]
@@ -2365,6 +2366,7 @@ dependencies = [
  "sha3",
  "simple_logger",
  "thiserror 2.0.11",
+ "time",
  "tokio",
  "tuta-sdk",
  "uniffi",
