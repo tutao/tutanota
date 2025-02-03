@@ -72,14 +72,14 @@ public struct AdvancedRule: Codable, Hashable {
 extension ByRuleType {
 	func toSDKType() -> tutasdk.ByRuleType {
 		switch self {
-		case .byminute: return tutasdk.ByRuleType.byminute
-		case .byhour: return tutasdk.ByRuleType.byhour
-		case .byday: return tutasdk.ByRuleType.byday
-		case .bymonth: return tutasdk.ByRuleType.bymonth
-		case .bymonthday: return tutasdk.ByRuleType.bymonthday
-		case .byyearday: return tutasdk.ByRuleType.byyearday
-		case .byweekno: return tutasdk.ByRuleType.byweekno
-		case .bysetpos: return tutasdk.ByRuleType.bysetpos
+		case .byminute: return tutasdk.ByRuleType.byMinute
+		case .byhour: return tutasdk.ByRuleType.byHour
+		case .byday: return tutasdk.ByRuleType.byDay
+		case .bymonth: return tutasdk.ByRuleType.byMonth
+		case .bymonthday: return tutasdk.ByRuleType.byMonthday
+		case .byyearday: return tutasdk.ByRuleType.byYearDay
+		case .byweekno: return tutasdk.ByRuleType.byWeekNo
+		case .bysetpos: return tutasdk.ByRuleType.bySetPos
 		case .wkst: return tutasdk.ByRuleType.wkst
 		}
 	}

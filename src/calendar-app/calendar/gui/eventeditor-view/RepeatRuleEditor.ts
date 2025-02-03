@@ -15,9 +15,9 @@ import stream from "mithril/stream"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { isApp } from "../../../../common/api/common/Env.js"
-import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
+import { ByRule } from "../../../../common/calendar/date/CalendarUtils.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
