@@ -67,21 +67,21 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.logins = vnode.attrs.logins
 		this.userFolders = [
 			new SettingsFolder(
-				"login_label",
+				() => "login_label",
 				() => BootIcons.Contacts,
 				"login",
 				() => new LoginSettingsViewer(calendarLocator.credentialsProvider, isApp() ? calendarLocator.systemFacade : null),
 				undefined,
 			),
 			new SettingsFolder(
-				"appearanceSettings_label",
+				() => "appearanceSettings_label",
 				() => Icons.Palette,
 				"appearance",
 				() => new AppearanceSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
-				"notificationSettings_action",
+				() => "notificationSettings_action",
 				() => Icons.Bell,
 				"notifications",
 				() => new NotificationSettingsViewer(),
@@ -143,7 +143,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 											this.viewSlider.focusPreviousColumn()
 										},
 										columnType: "first",
-										title: this.selectedFolder.name,
+										title: this.selectedFolder.name(),
 										actions: [],
 										useBackButton: true,
 										primaryAction: () => null,
@@ -252,7 +252,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.subscriptionFolders.push(
 			new SettingsFolder<void>(
-				"adminSubscription_action",
+				() => "adminSubscription_action",
 				() => BootIcons.Premium,
 				"subscription",
 				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
@@ -262,7 +262,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.subscriptionFolders.push(
 			new SettingsFolder<void>(
-				"adminPayment_action",
+				() => "adminPayment_action",
 				() => Icons.CreditCard,
 				"invoice",
 				() => new PaymentViewer(),
@@ -272,7 +272,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.subscriptionFolders.push(
 			new SettingsFolder(
-				"referralSettings_label",
+				() => "referralSettings_label",
 				() => BootIcons.Share,
 				"referral",
 				() => new ReferralSettingsViewer(),
@@ -292,7 +292,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.adminFolders.push(
 			new SettingsFolder(
-				"globalSettings_label",
+				() => "globalSettings_label",
 				() => BootIcons.Settings,
 				"global",
 				() => new GlobalSettingsViewer(),
@@ -303,7 +303,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !isIOSApp()) {
 			this.adminFolders.push(
 				new SettingsFolder(
-					"whitelabel_label",
+					() => "whitelabel_label",
 					() => Icons.Wand,
 					"whitelabel",
 					() => new WhitelabelSettingsViewer(calendarLocator.entityClient, this.logins),
@@ -348,7 +348,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
 		return {
-			label: folder.name,
+			label: folder.name(),
 			icon: folder.icon,
 			href: folder.url,
 			colors: NavButtonColor.Nav,

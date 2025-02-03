@@ -15,7 +15,7 @@ export class SettingsFolder<T> {
 	private _isVisibleHandler: lazy<boolean>
 
 	constructor(
-		readonly name: MaybeTranslation,
+		readonly name: () => MaybeTranslation,
 		readonly icon: lazyIcon,
 		readonly path: SettingsFolderPath,
 		readonly viewerCreator: lazy<UpdatableSettingsViewer>,
