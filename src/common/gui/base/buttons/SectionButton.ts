@@ -76,7 +76,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 				role: AriaRole.MenuItem,
 				onclick,
 			},
-			m(Card, { classes: ["flex", "justify-between", "flex-grow", "items-start"] }, [
+			m(Card, { classes: ["flex", "justify-between", "flex-grow", "items-center"] }, [
 				leftIcon || injectionLeft ? m(".flex.items-center.mr-s", [leftPart]) : null,
 				m("span.flex-grow.full-width.white-space", lang.getTranslationText(text)),
 				rightPart,

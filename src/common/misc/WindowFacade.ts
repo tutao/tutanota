@@ -93,11 +93,10 @@ export class WindowFacade {
 	}
 
 	openLink(href: string) {
-		if (env.mode === Mode.App) {
-			window.open(href, "_system")
-		} else {
-			window.open(href, "_blank")
-		}
+		const tmpAnchorEl = document.createElement("a")
+		tmpAnchorEl.href = href
+		tmpAnchorEl.target = env.mode === Mode.App ? "_system" : "_blank"
+		tmpAnchorEl.click()
 	}
 
 	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel, appBasedVisibilityChage: ((visible: boolean) => void) | null) {

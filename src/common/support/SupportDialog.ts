@@ -2,7 +2,7 @@ import m from "mithril"
 import { assertMainOrNode, isWebClient } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
-import { SupportCategory, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
+import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
 import { SupportLandingPage } from "./pages/SupportLandingPage.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -12,7 +12,6 @@ import { ContactSupportPage } from "./pages/ContactSupportPage.js"
 import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
-import { HtmlEditor } from "../gui/editor/HtmlEditor.js"
 import { DataFile } from "../api/common/DataFile.js"
 import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
 import { Dialog } from "../gui/base/Dialog.js"
@@ -22,67 +21,25 @@ import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { CacheMode } from "../api/worker/rest/EntityRestClient.js"
 
+assertMainOrNode()
+
 export interface SupportDialogState {
 	canHaveEmailSupport: boolean
 	selectedCategory: Stream<SupportCategory | null>
 	selectedTopic: Stream<SupportTopic | null>
 	categories: SupportCategory[]
-	htmlEditor: HtmlEditor
+	supportRequest: string
 	shouldIncludeLogs: Stream<boolean>
 	logs: Stream<DataFile[]>
 }
 
-assertMainOrNode()
-
-enum SupportPages {
-	CATEGORIES,
-	CATEGORY_DETAIL,
-	TOPIC_DETAIL,
-	CONTACT_SUPPORT,
-	SUPPORT_REQUEST_SENT,
-	EMAIL_SUPPORT_BEHIND_PAYWALL,
-	SOLUTION_WAS_HELPFUL,
-}
-
-function isEnabled(visibility: number, mask: SupportVisibilityMask) {
-	return !!(visibility & mask)
-}
-
 export async function showSupportDialog(logins: LoginController) {
-	const supportData = await locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly })
-
-	const categories = supportData.categories
-
-	for (const key in supportData.categories) {
-		const filteredTopics: SupportTopic[] = []
-		const supportCategory = categories[key]
-		for (const topic of supportCategory.topics) {
-			const visibility = Number(topic.visibility)
-
-			const meetsPlatform =
-				(isEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
-				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
-
-			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
-			const meetsCustomerStatus =
-				(isEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
-				(isEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
-
-			if (meetsPlatform && meetsCustomerStatus) {
-				filteredTopics.push(topic)
-			}
-		}
-
-		supportCategory.topics = filteredTopics
-	}
-
 	const data: SupportDialogState = {
 		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
 		selectedCategory: Stream<SupportCategory | null>(null),
 		selectedTopic: Stream<SupportTopic | null>(null),
-		categories: supportData.categories.filter((cat) => cat.topics.length > 0),
-		htmlEditor: new HtmlEditor().setMinHeight(250).setEnabled(true),
+		categories: [],
+		supportRequest: "",
 		shouldIncludeLogs: Stream(true),
 		logs: Stream([]),
 	}
@@ -161,19 +118,7 @@ export async function showSupportDialog(logins: LoginController) {
 						case SupportPages.CONTACT_SUPPORT:
 							return {
 								type: ButtonType.Secondary,
-								click: async () => {
-									if (data.htmlEditor.getTrimmedValue().length > 10) {
-										const confirmed = await Dialog.confirm({
-											testId: "close_alt",
-											text: lang.get("supportBackLostRequest_msg"),
-										})
-										if (confirmed) {
-											goBack()
-										}
-									} else {
-										goBack()
-									}
-								},
+								click: () => goBack(),
 								label: "back_action",
 								title: "back_action",
 							}
@@ -202,6 +147,15 @@ export async function showSupportDialog(logins: LoginController) {
 			exec: () => multiPageDialog.close(),
 		})
 		.show()
+
+	const supportData = await locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly })
+	data.categories = filterCategories(supportData)
+	// redraw is needed to tell the SupportLandingPage to change the progress icon to the actual data
+	m.redraw()
+}
+
+export function getLocalisedTopicIssue(topic: SupportTopic, languageTag: string): string {
+	return languageTag.includes("de") ? topic.issueDE : topic.issueEN
 }
 
 export function getLocalisedCategoryName(category: SupportCategory, languageTag: string): string {
@@ -212,6 +166,46 @@ export function getLocalisedCategoryIntroduction(category: SupportCategory, lang
 	return languageTag.includes("de") ? category.introductionDE : category.introductionEN
 }
 
-export function getLocalisedTopicIssue(topic: SupportTopic, languageTag: string): string {
-	return languageTag.includes("de") ? topic.issueDE : topic.issueEN
+function filterCategories(supportData: SupportData) {
+	const categories = supportData.categories
+
+	for (const key in supportData.categories) {
+		const filteredTopics: SupportTopic[] = []
+		const supportCategory = categories[key]
+		for (const topic of supportCategory.topics) {
+			const visibility = Number(topic.visibility)
+
+			const meetsPlatform =
+				(isEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
+				(isEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
+				(isEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
+
+			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
+			const meetsCustomerStatus =
+				(isEnabled(visibility, SupportVisibilityMask.FreeUsers) && isFreeAccount) ||
+				(isEnabled(visibility, SupportVisibilityMask.PaidUsers) && !isFreeAccount)
+
+			if (meetsPlatform && meetsCustomerStatus) {
+				filteredTopics.push(topic)
+			}
+		}
+
+		supportCategory.topics = filteredTopics
+	}
+
+	return categories
+}
+
+enum SupportPages {
+	CATEGORIES,
+	CATEGORY_DETAIL,
+	TOPIC_DETAIL,
+	CONTACT_SUPPORT,
+	SUPPORT_REQUEST_SENT,
+	EMAIL_SUPPORT_BEHIND_PAYWALL,
+	SOLUTION_WAS_HELPFUL,
+}
+
+function isEnabled(visibility: number, mask: SupportVisibilityMask) {
+	return !!(visibility & mask)
 }
