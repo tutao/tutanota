@@ -8,75 +8,23 @@ use crate::date::DateTime;
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone)]
 pub enum ByRuleType {
-	BYMINUTE,
-	BYHOUR,
-	BYDAY,
-	BYMONTHDAY,
-	BYYEARDAY,
-	BYWEEKNO,
-	BYMONTH,
-	BYSETPOS,
-	WKST,
-}
-
-impl ByRuleType {
-	fn value(&self) -> &str {
-		match *self {
-			ByRuleType::BYMINUTE => "0",
-			ByRuleType::BYHOUR => "1",
-			ByRuleType::BYDAY => "2",
-			ByRuleType::BYMONTHDAY => "3",
-			ByRuleType::BYYEARDAY => "4",
-			ByRuleType::BYWEEKNO => "5",
-			ByRuleType::BYMONTH => "6",
-			ByRuleType::BYSETPOS => "7",
-			ByRuleType::WKST => "8",
-		}
-	}
-
-	fn from_str(value: &str) -> ByRuleType {
-		match value {
-			"0" => ByRuleType::BYMINUTE,
-			"1" => ByRuleType::BYHOUR,
-			"2" => ByRuleType::BYDAY,
-			"3" => ByRuleType::BYMONTHDAY,
-			"4" => ByRuleType::BYYEARDAY,
-			"5" => ByRuleType::BYWEEKNO,
-			"6" => ByRuleType::BYMONTH,
-			"7" => ByRuleType::BYSETPOS,
-			"8" => ByRuleType::WKST,
-			_ => panic!("Invalid ByRule {value}"),
-		}
-	}
+	ByMinute,
+	ByHour,
+	ByDay,
+	ByMonthday,
+	ByYearDay,
+	ByWeekNo,
+	ByMonth,
+	BySetPos,
+	Wkst,
 }
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone)]
 pub enum RepeatPeriod {
-	DAILY,
-	WEEKLY,
-	MONTHLY,
-	ANNUALLY,
-}
-
-impl RepeatPeriod {
-	fn value(&self) -> &str {
-		match *self {
-			RepeatPeriod::DAILY => "0",
-			RepeatPeriod::WEEKLY => "1",
-			RepeatPeriod::MONTHLY => "2",
-			RepeatPeriod::ANNUALLY => "3",
-		}
-	}
-
-	fn from_str(value: &str) -> RepeatPeriod {
-		match value {
-			"0" => RepeatPeriod::DAILY,
-			"1" => RepeatPeriod::WEEKLY,
-			"2" => RepeatPeriod::MONTHLY,
-			"3" => RepeatPeriod::ANNUALLY,
-			_ => panic!("Invalid RepeatPeriod {value}"),
-		}
-	}
+	Daily,
+	Weekly,
+	Monthly,
+	Annually,
 }
 
 #[derive(Clone, uniffi::Record)]
@@ -177,44 +125,45 @@ impl EventFacade {
 		date: DateTime,
 		repeat_rule: EventRepeatRule,
 	) -> Vec<DateTime> {
-		let parsed_date: OffsetDateTime = date.as_system_time().into();
+		let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_millis() as i64) else {
+			return Vec::new();
+		};
+
 		let date = PrimitiveDateTime::new(parsed_date.date(), parsed_date.time());
 
 		let by_month_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYMONTH)
+			.filter(|&x| x.by_rule == ByRuleType::ByMonth)
 			.collect();
 		let by_day_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByDay)
 			.collect();
 		let by_month_day_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYMONTHDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByMonthday)
 			.collect();
 		let by_year_day_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYYEARDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByYearDay)
 			.collect();
 		let by_week_no_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYWEEKNO)
+			.filter(|&x| x.by_rule == ByRuleType::ByWeekNo)
 			.collect();
 
-		let week_start: Weekday;
-
-		if repeat_rule.frequency == RepeatPeriod::ANNUALLY
-			|| repeat_rule.frequency == RepeatPeriod::WEEKLY
+		let week_start: Weekday = if repeat_rule.frequency == RepeatPeriod::Annually
+			|| repeat_rule.frequency == RepeatPeriod::Weekly
 		{
-			week_start = match repeat_rule
+			match repeat_rule
 				.by_rules
 				.iter()
-				.find(|&x| x.by_rule == ByRuleType::WKST)
+				.find(|&x| x.by_rule == ByRuleType::Wkst)
 			{
 				Some(rule) => match rule.interval.as_str() {
 					"MO" => Weekday::Monday,
@@ -227,10 +176,10 @@ impl EventFacade {
 					_ => Weekday::Monday,
 				},
 				None => Weekday::Monday,
-			};
+			}
 		} else {
-			week_start = Weekday::Monday
-		}
+			Weekday::Monday
+		};
 
 		let valid_months: Vec<u8> = by_month_rules
 			.iter()
@@ -252,19 +201,19 @@ impl EventFacade {
 			self.apply_month_rules(&vec![date], &by_month_rules, &repeat_rule.frequency);
 
 		let week_no_applied_events: Vec<PrimitiveDateTime> =
-			if repeat_rule.frequency == RepeatPeriod::ANNUALLY {
+			if repeat_rule.frequency == RepeatPeriod::Annually {
 				self.apply_week_no_rules(month_applied_events, &by_week_no_rules, week_start)
 			} else {
 				month_applied_events
 			};
 
 		let year_day_applied_events: Vec<PrimitiveDateTime> =
-			if repeat_rule.frequency == RepeatPeriod::ANNUALLY {
+			if repeat_rule.frequency == RepeatPeriod::Annually {
 				self.apply_year_day_rules(
 					week_no_applied_events,
 					&by_year_day_rules,
-					by_week_no_rules.len() > 0,
-					by_month_rules.len() > 0,
+					!by_week_no_rules.is_empty(),
+					!by_month_rules.is_empty(),
 				)
 			} else {
 				week_no_applied_events
@@ -273,7 +222,7 @@ impl EventFacade {
 		let month_day_applied_events: Vec<PrimitiveDateTime> = self.apply_month_day_rules(
 			year_day_applied_events,
 			&by_month_day_rules,
-			&repeat_rule.frequency == &RepeatPeriod::DAILY,
+			repeat_rule.frequency == RepeatPeriod::Daily,
 		);
 		let day_applied_events: Vec<PrimitiveDateTime> = self.apply_day_rules(
 			month_day_applied_events,
@@ -281,7 +230,7 @@ impl EventFacade {
 			&repeat_rule.frequency,
 			valid_months.clone(),
 			week_start,
-			by_week_no_rules.len() > 0,
+			!by_week_no_rules.is_empty(),
 			valid_month_days,
 			valid_year_days,
 		);
@@ -305,7 +254,7 @@ impl EventFacade {
 		rules: &Vec<&ByRule>,
 		frequency: &RepeatPeriod,
 	) -> Vec<PrimitiveDateTime> {
-		if rules.len() == 0 {
+		if rules.is_empty() {
 			return dates.clone();
 		}
 
@@ -318,7 +267,7 @@ impl EventFacade {
 					_ => continue,
 				};
 
-				if frequency == &RepeatPeriod::WEEKLY {
+				if frequency == &RepeatPeriod::Weekly {
 					let week_start = PrimitiveDateTime::new(
 						Date::from_iso_week_date(date.year(), date.iso_week(), Weekday::Monday)
 							.unwrap(),
@@ -339,22 +288,19 @@ impl EventFacade {
 					let is_target_month =
 						week_end_month == target_month || week_start_month == target_month;
 
-					if week_start_year == week_end_year
+					if (week_start_year == week_end_year
 						&& week_start_month < week_end_month
-						&& is_target_month
+						&& is_target_month)
+						|| week_start_year < week_end_year && is_target_month
 					{
-						new_dates.push(date.clone());
-						continue;
-					} else if week_start_year < week_end_year && is_target_month {
-						new_dates.push(date.clone());
+						new_dates.push(*date);
 						continue;
 					}
-				} else if frequency == &RepeatPeriod::ANNUALLY {
-					let new_date =
-						match date.clone().replace_month(Month::from_number(target_month)) {
-							Ok(dt) => dt,
-							_ => continue,
-						};
+				} else if frequency == &RepeatPeriod::Annually {
+					let Ok(new_date) = (*date).replace_month(Month::from_number(target_month))
+					else {
+						continue;
+					};
 
 					let years_to_add = if date.year() == new_date.year()
 						&& date.month().to_number() > target_month
@@ -375,7 +321,7 @@ impl EventFacade {
 				}
 
 				if date.month().to_number() == target_month {
-					new_dates.push(date.clone());
+					new_dates.push(*date);
 				}
 			}
 		}
@@ -389,7 +335,7 @@ impl EventFacade {
 		rules: &Vec<&ByRule>,
 		week_start: Weekday,
 	) -> Vec<PrimitiveDateTime> {
-		if rules.len() == 0 {
+		if rules.is_empty() {
 			return dates.clone();
 		}
 
@@ -402,7 +348,7 @@ impl EventFacade {
 					_ => continue,
 				};
 
-				let mut new_date = date.clone();
+				let mut new_date = *date;
 
 				let total_weeks = weeks_in_year(date.year());
 
@@ -452,7 +398,7 @@ impl EventFacade {
 		evaluate_same_week: bool,
 		evaluate_same_month: bool,
 	) -> Vec<PrimitiveDateTime> {
-		if rules.len() == 0 {
+		if rules.is_empty() {
 			return dates.clone();
 		}
 
@@ -513,7 +459,7 @@ impl EventFacade {
 		rules: &Vec<&ByRule>,
 		is_daily_event: bool,
 	) -> Vec<PrimitiveDateTime> {
-		if rules.len() == 0 {
+		if rules.is_empty() {
 			return dates.clone();
 		}
 
@@ -529,10 +475,10 @@ impl EventFacade {
 					date.month().length(date.year()) as i8 - target_day.unsigned_abs() as i8 + 1;
 
 				if is_daily_event {
-					if target_day.is_positive() && date.day() == target_day.unsigned_abs() {
-						new_dates.push(date.clone());
-					} else if target_day.is_negative() && days_diff == date.day() as i8 {
-						new_dates.push(date.clone());
+					if (target_day.is_positive() && date.day() == target_day.unsigned_abs())
+						|| (target_day.is_negative() && days_diff == date.day() as i8)
+					{
+						new_dates.push(*date);
 					}
 
 					continue;
@@ -540,18 +486,16 @@ impl EventFacade {
 
 				if target_day >= 0 && target_day.unsigned_abs() <= date.month().length(date.year())
 				{
-					let date = match date.replace_day(target_day.unsigned_abs()) {
-						Ok(date) => date,
-						_ => continue,
+					let Ok(date) = date.replace_day(target_day.unsigned_abs()) else {
+						continue;
 					};
 
 					new_dates.push(date);
 				} else if days_diff > 0
 					&& target_day.unsigned_abs() <= date.month().length(date.year())
 				{
-					let date = match date.replace_day(days_diff.unsigned_abs()) {
-						Ok(date) => date,
-						_ => continue,
+					let Ok(date) = date.replace_day(days_diff.unsigned_abs()) else {
+						continue;
 					};
 
 					new_dates.push(date);
@@ -573,7 +517,7 @@ impl EventFacade {
 		valid_month_days: Vec<i8>,
 		valid_year_days: Vec<i16>,
 	) -> Vec<PrimitiveDateTime> {
-		if rules.len() == 0 {
+		if rules.is_empty() {
 			return dates.clone();
 		}
 
@@ -588,12 +532,12 @@ impl EventFacade {
 				let target_week_day = parsed_rule.get(2);
 				let leading_value = parsed_rule.get(1);
 
-				if frequency == &RepeatPeriod::DAILY
+				if frequency == &RepeatPeriod::Daily
 					&& target_week_day.is_some()
 					&& date.weekday() == Weekday::from_short(target_week_day.unwrap().as_str())
 				{
-					new_dates.push(date.clone())
-				} else if frequency == &RepeatPeriod::WEEKLY && target_week_day.is_some() {
+					new_dates.push(*date)
+				} else if frequency == &RepeatPeriod::Weekly && target_week_day.is_some() {
 					let mut new_date = date.replace_date(
 						Date::from_iso_week_date(
 							date.year(),
@@ -619,19 +563,17 @@ impl EventFacade {
 						new_date = new_date.add(Duration::weeks(1));
 					}
 
-					if valid_months.len() == 0
+					if valid_months.is_empty()
 						|| valid_months.contains(&new_date.month().to_number())
 					{
 						new_dates.push(new_date)
 					}
-				} else if frequency == &RepeatPeriod::MONTHLY && target_week_day.is_some() {
+				} else if frequency == &RepeatPeriod::Monthly && target_week_day.is_some() {
 					let mut allowed_days: Vec<u8> = Vec::new();
 
-					let week_change =
-						match leading_value.map_or(Ok(0), |m| m.as_str().parse::<i8>()) {
-							Ok(val) => val,
-							_ => 0,
-						};
+					let week_change = leading_value
+						.map_or(Ok(0), |m| m.as_str().parse::<i8>())
+						.unwrap_or_default();
 
 					let base_date = date.replace_day(1).unwrap();
 					let stop_condition =
@@ -649,7 +591,7 @@ impl EventFacade {
 					}
 
 					let is_allowed_in_month_day = |day: u8| -> bool {
-						if allowed_days.len() == 0 {
+						if allowed_days.is_empty() {
 							return true;
 						}
 
@@ -721,25 +663,20 @@ impl EventFacade {
 							if new_date.assume_utc().unix_timestamp()
 								>= base_date.assume_utc().unix_timestamp()
 								&& is_allowed_in_month_day(new_date.day())
+								&& ((!valid_months.is_empty()
+									&& valid_months.contains(&new_date.month().to_number()))
+									|| valid_months.is_empty())
 							{
-								if valid_months.len() > 0
-									&& valid_months.contains(&new_date.month().to_number())
-								{
-									new_dates.push(new_date)
-								} else if valid_months.len() == 0 {
-									new_dates.push(new_date)
-								}
+								new_dates.push(new_date)
 							}
 
 							current_date = new_date.add(Duration::days(7));
 						}
 					}
-				} else if frequency == &RepeatPeriod::ANNUALLY {
-					let week_change =
-						match leading_value.map_or(Ok(0), |m| m.as_str().parse::<i64>()) {
-							Ok(val) => val,
-							_ => 0,
-						};
+				} else if frequency == &RepeatPeriod::Annually {
+					let week_change = leading_value
+						.map_or(Ok(0), |m| m.as_str().parse::<i64>())
+						.unwrap_or_default();
 
 					if has_week_no && week_change != 0 {
 						println!(
@@ -751,7 +688,7 @@ impl EventFacade {
 					if week_change != 0 && !has_week_no {
 						let mut new_date: PrimitiveDateTime;
 
-						if !target_week_day.is_some() {
+						if target_week_day.is_none() {
 							if week_change > 0 {
 								new_date = date
 									.replace_day(1)
@@ -806,7 +743,7 @@ impl EventFacade {
 							new_dates.push(new_date)
 						}
 					} else if has_week_no {
-						if !target_week_day.is_some() {
+						if target_week_day.is_none() {
 							continue;
 						}
 
@@ -835,20 +772,17 @@ impl EventFacade {
 							new_dates.push(new_date);
 						}
 					} else {
-						if !target_week_day.is_some() {
+						if target_week_day.is_none() {
 							continue;
 						}
 
 						let day_one = date.replace_day(1).unwrap();
 						let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
 
-						let stop_date = match Date::from_calendar_date(
-							date.year() + 1,
-							date.month(),
-							date.day(),
-						) {
-							Ok(date) => date,
-							_ => continue,
+						let Ok(stop_date) =
+							Date::from_calendar_date(date.year() + 1, date.month(), date.day())
+						else {
+							continue;
 						};
 
 						let stop_condition = date.replace_date(stop_date);
@@ -880,11 +814,11 @@ impl EventFacade {
 			}
 		}
 
-		if frequency == &RepeatPeriod::ANNUALLY {
+		if frequency == &RepeatPeriod::Annually {
 			return new_dates
 				.iter()
 				.filter(|date| self.is_valid_day_in_year(**date, valid_year_days.clone()))
-				.map(|date| *date)
+				.copied()
 				.collect();
 		}
 
@@ -899,7 +833,7 @@ impl EventFacade {
 
 		for allowed_day in valid_year_days {
 			if allowed_day > &0 {
-				allowed_days.push(allowed_day.abs() as u16);
+				allowed_days.push(allowed_day.unsigned_abs());
 				continue;
 			}
 
@@ -913,15 +847,13 @@ impl EventFacade {
 	fn is_valid_day_in_year(&self, date: PrimitiveDateTime, valid_year_days: Vec<i16>) -> bool {
 		let valid_days = self.get_valid_days_in_year(date.year(), &valid_year_days);
 
-		if valid_days.len() == 0 {
+		if valid_days.is_empty() {
 			return true;
 		}
 
 		let day_in_year = date.ordinal();
 
-		let is_valid = valid_days.contains(&day_in_year);
-
-		return is_valid;
+		valid_days.contains(&day_in_year)
 	}
 
 	fn finish_rules(
@@ -932,11 +864,11 @@ impl EventFacade {
 	) -> Vec<PrimitiveDateTime> {
 		let mut clean_dates;
 
-		if valid_months.len() > 0 {
+		if !valid_months.is_empty() {
 			clean_dates = dates
 				.iter()
 				.filter(|date| valid_months.contains(&date.month().to_number()))
-				.map(|date| *date)
+				.copied()
 				.collect();
 		} else {
 			clean_dates = dates
@@ -949,7 +881,7 @@ impl EventFacade {
 					let date_unix_timestamp = date.assume_utc().unix_timestamp();
 					date_unix_timestamp >= event_start_time.unwrap()
 				})
-				.map(|date| *date)
+				.copied()
 				.collect();
 		}
 
@@ -998,15 +930,15 @@ mod tests {
 				&vec![valid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::WEEKLY,
+				&RepeatPeriod::Weekly,
 			),
 			vec![valid_date]
 		);
@@ -1016,15 +948,15 @@ mod tests {
 				&vec![invalid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::WEEKLY,
+				&RepeatPeriod::Weekly,
 			),
 			vec![]
 		);
@@ -1049,15 +981,15 @@ mod tests {
 				&vec![valid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::MONTHLY,
+				&RepeatPeriod::Monthly,
 			),
 			vec![valid_date]
 		);
@@ -1067,15 +999,15 @@ mod tests {
 				&vec![invalid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::MONTHLY,
+				&RepeatPeriod::Monthly,
 			),
 			vec![]
 		);
@@ -1100,15 +1032,15 @@ mod tests {
 				&vec![valid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 			),
 			vec![
 				valid_date,
@@ -1122,15 +1054,15 @@ mod tests {
 				&vec![to_next_year],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 			),
 			vec![
 				to_next_year
@@ -1166,15 +1098,15 @@ mod tests {
 				&vec![valid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::DAILY,
+				&RepeatPeriod::Daily,
 			),
 			vec![valid_date]
 		);
@@ -1184,15 +1116,15 @@ mod tests {
 				&vec![invalid_date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "1".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTH,
+						by_rule: ByRuleType::ByMonth,
 						interval: "2".to_string(),
 					},
 				],
-				&RepeatPeriod::DAILY,
+				&RepeatPeriod::Daily,
 			),
 			vec![]
 		);
@@ -1221,7 +1153,7 @@ mod tests {
 			event_recurrence.apply_week_no_rules(
 				vec![valid_date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "5".to_string(),
 				},],
 				Weekday::Monday,
@@ -1253,7 +1185,7 @@ mod tests {
 			event_recurrence.apply_week_no_rules(
 				vec![valid_date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "5".to_string(),
 				},],
 				Weekday::Tuesday,
@@ -1285,7 +1217,7 @@ mod tests {
 			event_recurrence.apply_week_no_rules(
 				vec![valid_date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "-5".to_string(),
 				},],
 				Weekday::Monday,
@@ -1317,7 +1249,7 @@ mod tests {
 			event_recurrence.apply_week_no_rules(
 				vec![valid_date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "-1".to_string(),
 				},],
 				Weekday::Monday,
@@ -1349,7 +1281,7 @@ mod tests {
 			event_recurrence.apply_week_no_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "5".to_string(),
 				},],
 				Weekday::Monday,
@@ -1372,7 +1304,7 @@ mod tests {
 			event_recurrence.apply_year_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYYEARDAY,
+					by_rule: ByRuleType::ByYearDay,
 					interval: "40".to_string(),
 				}],
 				false,
@@ -1396,7 +1328,7 @@ mod tests {
 			event_recurrence.apply_year_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYYEARDAY,
+					by_rule: ByRuleType::ByYearDay,
 					interval: "40".to_string(),
 				}],
 				true,
@@ -1420,7 +1352,7 @@ mod tests {
 			event_recurrence.apply_year_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYYEARDAY,
+					by_rule: ByRuleType::ByYearDay,
 					interval: "40".to_string(),
 				}],
 				true,
@@ -1444,7 +1376,7 @@ mod tests {
 			event_recurrence.apply_year_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYYEARDAY,
+					by_rule: ByRuleType::ByYearDay,
 					interval: "40".to_string(),
 				}],
 				false,
@@ -1468,7 +1400,7 @@ mod tests {
 			event_recurrence.apply_year_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYYEARDAY,
+					by_rule: ByRuleType::ByYearDay,
 					interval: "-1".to_string(),
 				}],
 				false,
@@ -1497,11 +1429,11 @@ mod tests {
 				vec![date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYMONTHDAY,
+						by_rule: ByRuleType::ByMonthday,
 						interval: "10".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYMONTHDAY,
+						by_rule: ByRuleType::ByMonthday,
 						interval: "20".to_string(),
 					},
 				],
@@ -1525,7 +1457,7 @@ mod tests {
 			event_recurrence.apply_month_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "30".to_string(),
 				},],
 				false,
@@ -1548,7 +1480,7 @@ mod tests {
 			event_recurrence.apply_month_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "20".to_string(),
 				}],
 				false,
@@ -1571,7 +1503,7 @@ mod tests {
 			event_recurrence.apply_month_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "-1".to_string(),
 				},],
 				false,
@@ -1594,7 +1526,7 @@ mod tests {
 			event_recurrence.apply_month_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "32".to_string(),
 				},],
 				false,
@@ -1617,10 +1549,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				}],
-				&RepeatPeriod::DAILY,
+				&RepeatPeriod::Daily,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1645,10 +1577,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				}],
-				&RepeatPeriod::DAILY,
+				&RepeatPeriod::Daily,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1674,15 +1606,15 @@ mod tests {
 				vec![date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYDAY,
+						by_rule: ByRuleType::ByDay,
 						interval: "FR".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYDAY,
+						by_rule: ByRuleType::ByDay,
 						interval: "SA".to_string(),
 					},
 				],
-				&RepeatPeriod::WEEKLY,
+				&RepeatPeriod::Weekly,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1708,10 +1640,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "MO".to_string(),
 				},],
-				&RepeatPeriod::MONTHLY,
+				&RepeatPeriod::Monthly,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1739,21 +1671,21 @@ mod tests {
 
 		let rules = vec![
 			ByRule {
-				by_rule: ByRuleType::BYDAY,
+				by_rule: ByRuleType::ByDay,
 				interval: "MO".to_string(),
 			},
 			ByRule {
-				by_rule: ByRuleType::BYMONTHDAY,
+				by_rule: ByRuleType::ByMonthday,
 				interval: "7".to_string(),
 			},
 		];
 		let by_day_rules: Vec<&ByRule> = rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByDay)
 			.collect();
 		let by_month_day_rules: Vec<&ByRule> = rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYMONTHDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByMonthday)
 			.collect();
 
 		let valid_month_days: Vec<i8> = by_month_day_rules
@@ -1766,7 +1698,7 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&by_day_rules,
-				&RepeatPeriod::MONTHLY,
+				&RepeatPeriod::Monthly,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1792,10 +1724,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "2MO".to_string(),
 				},],
-				&RepeatPeriod::MONTHLY,
+				&RepeatPeriod::Monthly,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1818,21 +1750,21 @@ mod tests {
 
 		let rules = vec![
 			ByRule {
-				by_rule: ByRuleType::BYDAY,
+				by_rule: ByRuleType::ByDay,
 				interval: "2MO".to_string(),
 			},
 			ByRule {
-				by_rule: ByRuleType::BYMONTHDAY,
+				by_rule: ByRuleType::ByMonthday,
 				interval: "7".to_string(),
 			},
 		];
 		let by_day_rules: Vec<&ByRule> = rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByDay)
 			.collect();
 		let by_month_day_rules: Vec<&ByRule> = rules
 			.iter()
-			.filter(|&x| x.by_rule == ByRuleType::BYMONTHDAY)
+			.filter(|&x| x.by_rule == ByRuleType::ByMonthday)
 			.collect();
 
 		let valid_month_days: Vec<i8> = by_month_day_rules
@@ -1845,7 +1777,7 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&by_day_rules,
-				&RepeatPeriod::MONTHLY,
+				&RepeatPeriod::Monthly,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1880,10 +1812,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "MO".to_string(),
 				},],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1909,10 +1841,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "2MO".to_string(),
 				},],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1938,10 +1870,10 @@ mod tests {
 			event_recurrence.apply_day_rules(
 				vec![date],
 				&vec![&ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "35".to_string(),
 				},],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 				vec![],
 				Weekday::Monday,
 				false,
@@ -1971,15 +1903,15 @@ mod tests {
 				vec![date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYDAY,
+						by_rule: ByRuleType::ByDay,
 						interval: "MO".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYWEEKNO,
+						by_rule: ByRuleType::ByWeekNo,
 						interval: "6".to_string(),
 					},
 				],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 				vec![],
 				Weekday::Monday,
 				true,
@@ -2005,15 +1937,15 @@ mod tests {
 				vec![date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYDAY,
+						by_rule: ByRuleType::ByDay,
 						interval: "35".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYWEEKNO,
+						by_rule: ByRuleType::ByWeekNo,
 						interval: "7".to_string(),
 					},
 				],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 				vec![],
 				Weekday::Monday,
 				true,
@@ -2040,15 +1972,15 @@ mod tests {
 				vec![date],
 				&vec![
 					&ByRule {
-						by_rule: ByRuleType::BYDAY,
+						by_rule: ByRuleType::ByDay,
 						interval: "2MO".to_string(),
 					},
 					&ByRule {
-						by_rule: ByRuleType::BYWEEKNO,
+						by_rule: ByRuleType::ByWeekNo,
 						interval: "6".to_string(),
 					},
 				],
-				&RepeatPeriod::ANNUALLY,
+				&RepeatPeriod::Annually,
 				vec![],
 				Weekday::Monday,
 				true,
@@ -2068,18 +2000,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::DAILY,
+			frequency: RepeatPeriod::Daily,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "2".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "3".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "6".to_string(),
 				},
 			],
@@ -2122,18 +2054,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::DAILY,
+			frequency: RepeatPeriod::Daily,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "2".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2155,22 +2087,22 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::DAILY,
+			frequency: RepeatPeriod::Daily,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "2".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "14".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2184,7 +2116,7 @@ mod tests {
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_day(13).unwrap().to_date_time(),
-				repeat_rule.clone()
+				repeat_rule.clone(),
 			),
 			[]
 		);
@@ -2199,9 +2131,9 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::WEEKLY,
+			frequency: RepeatPeriod::Weekly,
 			by_rules: vec![ByRule {
-				by_rule: ByRuleType::BYMONTH,
+				by_rule: ByRuleType::ByMonth,
 				interval: "2".to_string(),
 			}],
 		};
@@ -2229,18 +2161,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::WEEKLY,
+			frequency: RepeatPeriod::Weekly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "2".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2265,14 +2197,14 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::WEEKLY,
+			frequency: RepeatPeriod::Weekly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2297,18 +2229,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::WEEKLY,
+			frequency: RepeatPeriod::Weekly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::WKST,
+					by_rule: ByRuleType::Wkst,
 					interval: "FR".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2333,9 +2265,9 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![ByRule {
-				by_rule: ByRuleType::BYDAY,
+				by_rule: ByRuleType::ByDay,
 				interval: "FR".to_string(),
 			}],
 		};
@@ -2360,9 +2292,9 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![ByRule {
-				by_rule: ByRuleType::BYDAY,
+				by_rule: ByRuleType::ByDay,
 				interval: "2FR".to_string(),
 			}],
 		};
@@ -2383,14 +2315,14 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "-1FR".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "-2FR".to_string(),
 				},
 			],
@@ -2419,9 +2351,9 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![ByRule {
-				by_rule: ByRuleType::BYMONTH,
+				by_rule: ByRuleType::ByMonth,
 				interval: "2".to_string(),
 			}],
 		};
@@ -2447,14 +2379,14 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "25".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "28".to_string(),
 				},
 			],
@@ -2479,18 +2411,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "25".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYMONTHDAY,
+					by_rule: ByRuleType::ByMonthday,
 					interval: "28".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2512,18 +2444,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::MONTHLY,
+			frequency: RepeatPeriod::Monthly,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "2".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2571,14 +2503,14 @@ mod tests {
 		}
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::ANNUALLY,
+			frequency: RepeatPeriod::Annually,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],
@@ -2600,14 +2532,14 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::ANNUALLY,
+			frequency: RepeatPeriod::Annually,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYYEARDAY,
+					by_rule: ByRuleType::ByYearDay,
 					interval: "44".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 			],
@@ -2637,14 +2569,14 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::ANNUALLY,
+			frequency: RepeatPeriod::Annually,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "8".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 			],
@@ -2688,9 +2620,9 @@ mod tests {
 		}
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::ANNUALLY,
+			frequency: RepeatPeriod::Annually,
 			by_rules: vec![ByRule {
-				by_rule: ByRuleType::BYWEEKNO,
+				by_rule: ByRuleType::ByWeekNo,
 				interval: "-5".to_string(),
 			}],
 		};
@@ -2712,14 +2644,14 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::ANNUALLY,
+			frequency: RepeatPeriod::Annually,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYWEEKNO,
+					by_rule: ByRuleType::ByWeekNo,
 					interval: "8".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::WKST,
+					by_rule: ByRuleType::Wkst,
 					interval: "TU".to_string(),
 				},
 			],
@@ -2749,18 +2681,18 @@ mod tests {
 		);
 
 		let repeat_rule = EventRepeatRule {
-			frequency: RepeatPeriod::ANNUALLY,
+			frequency: RepeatPeriod::Annually,
 			by_rules: vec![
 				ByRule {
-					by_rule: ByRuleType::BYMONTH,
+					by_rule: ByRuleType::ByMonth,
 					interval: "2".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "TH".to_string(),
 				},
 				ByRule {
-					by_rule: ByRuleType::BYDAY,
+					by_rule: ByRuleType::ByDay,
 					interval: "FR".to_string(),
 				},
 			],

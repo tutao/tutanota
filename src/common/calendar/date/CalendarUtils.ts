@@ -53,7 +53,6 @@ import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { ByRule, BYRULE_MAP } from "../import/ImportExportUtils.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -181,45 +180,6 @@ const WEEKDAY_TO_NUMBER = {
 	SA: 6,
 	SU: 7,
 } as Record<string, WeekdayNumbers>
-
-function applyMinuteRules(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]): DateTime[] {
-	if (parsedRules.length === 0) {
-		return dates
-	}
-
-	const newDates: DateTime[] = []
-	for (const date of dates) {
-		for (const rule of parsedRules) {
-			newDates.push(
-				date.set({
-					//FIXME Check if rule accepts negative values
-					minute: Number.parseInt(rule.interval),
-				}),
-			)
-		}
-	}
-
-	return newDates
-}
-
-function applyHourRules(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[]) {
-	if (parsedRules.length === 0) {
-		return dates
-	}
-
-	const newDates: DateTime[] = []
-	for (const date of dates) {
-		for (const rule of parsedRules) {
-			newDates.push(
-				date.set({
-					hour: Number.parseInt(rule.interval),
-				}),
-			)
-		}
-	}
-
-	return newDates
-}
 
 function applyByDayRules(
 	dates: DateTime[],
@@ -1239,6 +1199,11 @@ function* generateEventOccurrences(event: CalendarEvent, timeZone: string, maxDa
 		let eventCount = 0
 
 		for (const event of events) {
+			if (iteration === 1 && event.toJSDate().getTime() === eventStartTime.getTime()) {
+				// Already yielded
+				continue
+			}
+
 			const newStartTime = event.toJSDate()
 			const newEndTime = allDay
 				? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
@@ -1286,7 +1251,7 @@ export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, altered
 		return true
 	} else {
 		// we need to count occurrences and match them up against altered instances & exclusions.
-		const excludedTimestamps = excludedDates.map(({ date }) => date.getTime())
+		const excludedTimestamps = excludedDates.map(({ date }) => date.getTime()).sort()
 		let i = 0
 		// in our model, we have an extra exclusion for each altered instance. this code
 		// assumes that this invariant is upheld here and does not match each recurrenceId
@@ -1347,9 +1312,9 @@ export function findNextAlarmOccurrence(
 	repeatRule: RepeatRule,
 ): AlarmOccurrence | null {
 	let occurrenceNumber = 0
-	const exclusions = repeatRule.excludedDates.map(({ date }) => date)
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
-	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
+	const exclusions = repeatRule.excludedDates.map(({ date }) => date)
+	let calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
 	assertDateIsValid(calcEventStart)
 
 	const endDate =
@@ -1377,7 +1342,7 @@ export function findNextAlarmOccurrence(
 				endTime: eventEnd,
 				repeatRule,
 			} as StrippedEntity<CalendarEvent>),
-			timeZone,
+			localTimeZone,
 			maxDate,
 		)
 
@@ -1711,3 +1676,51 @@ export function extractContactIdFromEvent(id: string | null | undefined): string
 
 	return decodeBase64("utf-8", id)
 }
+
+export enum ByRule {
+	BYMINUTE = "0",
+	BYHOUR = "1",
+	BYDAY = "2",
+	BYMONTHDAY = "3",
+	BYYEARDAY = "4",
+	BYWEEKNO = "5",
+	BYMONTH = "6",
+	BYSETPOS = "7",
+	WKST = "8",
+}
+
+export const BYRULE_MAP = freezeMap(
+	new Map([
+		["BYMINUTE", ByRule.BYMINUTE],
+		["BYHOUR", ByRule.BYHOUR],
+		["BYDAY", ByRule.BYDAY],
+		["BYMONTHDAY", ByRule.BYMONTHDAY],
+		["BYYEARDAY", ByRule.BYYEARDAY],
+		["BYWEEKNO", ByRule.BYWEEKNO],
+		["BYMONTH", ByRule.BYMONTH],
+		["BYSETPOS", ByRule.BYSETPOS],
+		["WKST", ByRule.WKST],
+	]),
+)
+
+export const enum WeekDaysJsValue {
+	SU,
+	MO,
+	TU,
+	WE,
+	TH,
+	FR,
+	SA,
+}
+
+export const BYRULE_WEEKDAYS_JS_VALUE = freezeMap(
+	new Map([
+		["SU", WeekDaysJsValue.SU],
+		["MO", WeekDaysJsValue.MO],
+		["TU", WeekDaysJsValue.TU],
+		["WE", WeekDaysJsValue.WE],
+		["TH", WeekDaysJsValue.TH],
+		["FR", WeekDaysJsValue.FR],
+		["SA", WeekDaysJsValue.SA],
+	]),
+)

@@ -111,7 +111,8 @@ class AlarmManagerTest: XCTestCase {
 				interval: 1,
 				timeZone: dateProvider.timeZone.identifier,
 				endCondition: .count(times: 2),
-				excludedDates: []
+				excludedDates: [],
+				advancedRules: []
 			),
 			identifier: "alarm2"
 		)

@@ -10,7 +10,7 @@ import {
 import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { AlarmIntervalUnit, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
+import { AlarmIntervalUnit, ByRule, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { createFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { convertToDataFile, DataFile } from "../../../common/api/common/DataFile"
@@ -18,7 +18,6 @@ import type { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo
 import { DateTime } from "luxon"
 import { getLetId } from "../../../common/api/common/utils/EntityUtils"
 import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController.js"
-import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
 export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
@@ -165,8 +164,11 @@ export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent
 		const advancedRepeatRules = serializeAdvancedRepeatRules(repeatRule.advancedRules)
 
 		return [
-			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` + `;INTERVAL=${repeatRule.interval}` + endType,
-		].concat(advancedRepeatRules, excludedDates)
+			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` +
+				`;INTERVAL=${repeatRule.interval}` +
+				endType +
+				advancedRepeatRules.trim(),
+		].concat(excludedDates)
 	} else {
 		return []
 	}

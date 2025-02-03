@@ -1938,7 +1938,6 @@ export default {
 		"lastOfPeriod_label": "On last {day} of the month",
 		"withCustomRules_label": "With custom repeat rules",
 		"unsupportedAdvancedRules_msg": "This event contains one or more unsupported Advanced Recurrence Rules, any changes will result in the loss of these rules",
-		"beforeEndOfPeriod_label": "{days} occurrence before end of the {period}",
 		// Put in temporarily, will be removed soon
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
