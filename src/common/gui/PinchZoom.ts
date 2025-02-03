@@ -40,7 +40,10 @@ export class PinchZoom {
 
 	/// zooming
 	private pinchTouchIDs: Set<number> = new Set<number>()
-	private lastPinchTouchPositions: { pointer1: CoordinatePair; pointer2: CoordinatePair } = { pointer1: { x: 0, y: 0 }, pointer2: { x: 0, y: 0 } }
+	private lastPinchTouchPositions: { pointer1: CoordinatePair; pointer2: CoordinatePair } = {
+		pointer1: { x: 0, y: 0 },
+		pointer2: { x: 0, y: 0 },
+	}
 	private initialZoomablePosition = { x: 0, y: 0 }
 	private initialViewportPosition = { x: 0, y: 0 }
 	private pinchSessionTranslation: CoordinatePair = { x: 0, y: 0 }
@@ -85,6 +88,10 @@ export class PinchZoom {
 		private readonly initiallyZoomToViewportWidth: boolean,
 		private readonly singleClickAction: (e: Event, target: EventTarget | null) => void,
 	) {
+		if (this.isOverScalingThreshold(zoomable, viewport)) {
+			this.zoomable.style.overflowWrap = "anywhere"
+		}
+
 		this.viewport.style.overflow = "hidden" // disable default scroll behavior
 		this.update({ x: 0, y: 0 }) // transform origin needs to be initially set. can lead to wrong transform origins otherwise
 		this.zoomable.style.touchAction = "pan-y pan-x" // makes zooming smooth
@@ -290,6 +297,14 @@ export class PinchZoom {
 		}
 	}
 
+	/**
+	 * Returns whether scaling would cause text to be too small to read
+	 */
+	private isOverScalingThreshold(zoomable: HTMLElement, viewport: HTMLElement): boolean {
+		// assuming a fontSize of 16px, 0.65 scaling would result in a fontSize of 10.4px
+		return viewport.offsetWidth / zoomable.scrollWidth < 0.65
+	}
+
 	/// zooming
 
 	/**
@@ -400,8 +415,13 @@ export class PinchZoom {
 
 		// Calculate the scaleDifference (1 = no scaleDifference, 0 = maximum pinched in, <1 pinching in -> zoom out, >1 pinching out -> zoom in
 		const scaleDifference =
-			this.pointDistance({ x: ev.touches[0].clientX, y: ev.touches[0].clientY }, { x: ev.touches[1].clientX, y: ev.touches[1].clientY }) /
-			this.pointDistance(this.lastPinchTouchPositions.pointer1, this.lastPinchTouchPositions.pointer2)
+			this.pointDistance(
+				{ x: ev.touches[0].clientX, y: ev.touches[0].clientY },
+				{
+					x: ev.touches[1].clientX,
+					y: ev.touches[1].clientY,
+				},
+			) / this.pointDistance(this.lastPinchTouchPositions.pointer1, this.lastPinchTouchPositions.pointer2)
 		const newAbsoluteScale = this.currentScale + (scaleDifference - 1)
 
 		this.lastPinchTouchPositions = {
@@ -411,7 +431,13 @@ export class PinchZoom {
 
 		// calculate new session (in theory it is not necessary to calculate a new sessionsTranslation every time, but there are a few edge cases ->
 		// since it doesn't hurt we decided to recalculate it always)
-		const pinchCenter = this.centerOfPoints({ x: ev.touches[0].clientX, y: ev.touches[0].clientY }, { x: ev.touches[1].clientX, y: ev.touches[1].clientY })
+		const pinchCenter = this.centerOfPoints(
+			{
+				x: ev.touches[0].clientX,
+				y: ev.touches[0].clientY,
+			},
+			{ x: ev.touches[1].clientX, y: ev.touches[1].clientY },
+		)
 		const startedPinchSession = this.calculateSessionsTranslationAndTransformOrigin(pinchCenter)
 		transformOrigin = startedPinchSession.newTransformOrigin
 		pinchSessionTranslation = startedPinchSession.sessionTranslation
@@ -436,7 +462,10 @@ export class PinchZoom {
 			) {
 				this.draggingOrZooming = true
 			}
-			let delta = { x: ev.touches[0].clientX - this.lastDragTouchPosition.x, y: ev.touches[0].clientY - this.lastDragTouchPosition.y }
+			let delta = {
+				x: ev.touches[0].clientX - this.lastDragTouchPosition.x,
+				y: ev.touches[0].clientY - this.lastDragTouchPosition.y,
+			}
 			this.lastDragTouchPosition = { x: ev.touches[0].clientX, y: ev.touches[0].clientY }
 
 			let currentRect = this.getCoords(this.zoomable)
@@ -456,7 +485,10 @@ export class PinchZoom {
 			// dragging via adjusting the transform origin does not work for scale=1
 			if (this.currentScale === 1) {
 				newTransformOrigin = { x: 0, y: 0 } // otherwise NaN but the value does not have any impact
-				newPinchSessionTranslation = { x: newPinchSessionTranslation.x + delta.x, y: newPinchSessionTranslation.y + delta.y }
+				newPinchSessionTranslation = {
+					x: newPinchSessionTranslation.x + delta.x,
+					y: newPinchSessionTranslation.y + delta.y,
+				}
 			}
 
 			let result = this.setCurrentSafePosition(
