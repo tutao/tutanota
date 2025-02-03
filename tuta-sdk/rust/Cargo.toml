@@ -8,4 +8,4 @@ members = [
 ]
 
 [patch.'https://github.com/rust-lang/crates.io-index']
-pqcrypto-internals = { git = 'https://github.com/rustpq/pqcrypto', rev = 'b39937410b149156de81fc8e3150753aff925aa4' }
+pqcrypto-internals = { git = 'https://github.com/vaf-hub/pqcrypto', rev = 'ffbce29b21665135e0d3fadc120bd04f079829a8' }
