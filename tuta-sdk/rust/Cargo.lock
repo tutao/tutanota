@@ -1460,8 +1460,7 @@ dependencies = [
 [[package]]
 name = "pqcrypto-internals"
 version = "0.2.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62cd8ebf02b43967cda06e6a3f54d0bd9659459c3003d16aeedd07b44c6db06c"
+source = "git+https://github.com/rustpq/pqcrypto?rev=b39937410b149156de81fc8e3150753aff925aa4#b39937410b149156de81fc8e3150753aff925aa4"
 dependencies = [
  "cc",
  "dunce",
