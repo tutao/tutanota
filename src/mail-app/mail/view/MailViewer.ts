@@ -390,6 +390,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.shadowDomRoot.firstChild.remove()
 		}
 		const wrapNode = document.createElement("div")
+		wrapNode.id = "shadow-mail-body"
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.setAttribute("data-testid", "mailBody_label")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
