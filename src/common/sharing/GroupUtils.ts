@@ -17,6 +17,7 @@ import { downcast, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import type { EntityClient } from "../api/common/EntityClient"
 import { NotFoundError } from "../api/common/error/RestError"
 import { UserController } from "../api/main/UserController"
+import { UserSettingsGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -138,6 +139,15 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
 })
 
 export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot }: UserController, allowGroupNameOverride: boolean): string {
+	return getNullableSharedGroupName(groupInfo, userSettingsGroupRoot, allowGroupNameOverride) ?? getDefaultGroupName(downcast(groupInfo.groupType))
+}
+
+/**
+ * Get shared group name or default to null.
+ * Needed in order to make translations of default template group names work in SettingsView
+ */
+export function getNullableSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string | null {
 	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
-	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
+	// return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
+	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || null
 }

@@ -37,11 +37,11 @@ import { showGroupSharingDialog } from "../../common/sharing/view/GroupSharingDi
 import { createMoreActionButtonAttrs, getConfirmation } from "../../common/gui/base/GuiUtils"
 import { SidebarSection } from "../../common/gui/SidebarSection"
 import { ReceivedGroupInvitationsModel } from "../../common/sharing/model/ReceivedGroupInvitationsModel"
-import { getDefaultGroupName, getSharedGroupName, isSharedGroupOwner } from "../../common/sharing/GroupUtils"
+import { getNullableSharedGroupName, getSharedGroupName, isSharedGroupOwner } from "../../common/sharing/GroupUtils"
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "../../common/settings/SettingsFolderRow.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import { createGroupSettings, createUserAreaGroupDeleteData } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { createGroupSettings, createUserAreaGroupDeleteData, UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitationFolderRow"
 import { TemplateGroupService } from "../../common/api/entities/tutanota/Services"
 import { exportUserCsv } from "../../common/settings/UserDataExporter.js"
@@ -104,35 +104,35 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this.logins = vnode.attrs.logins
 		this._userFolders = [
 			new SettingsFolder(
-				"login_label",
+				() => "login_label",
 				() => BootIcons.Contacts,
 				"login",
 				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
 				undefined,
 			),
 			new SettingsFolder(
-				"email_label",
+				() => "email_label",
 				() => BootIcons.Mail,
 				"mail",
 				() => new MailSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
-				"contacts_label",
+				() => "contacts_label",
 				() => BootIcons.Contacts,
 				"contacts",
 				() => new ContactsSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
-				"appearanceSettings_label",
+				() => "appearanceSettings_label",
 				() => Icons.Palette,
 				"appearance",
 				() => new AppearanceSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(
-				"notificationSettings_action",
+				() => "notificationSettings_action",
 				() => Icons.Bell,
 				"notifications",
 				() => new NotificationSettingsViewer(),
@@ -143,7 +143,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (isDesktop()) {
 			this._userFolders.push(
 				new SettingsFolder(
-					"desktop_label",
+					() => "desktop_label",
 					() => Icons.Desktop,
 					"desktop",
 					() => {
@@ -162,7 +162,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			if (first(mailboxes)?.mailbox.currentMailBag != null) {
 				this._userFolders.push(
 					new SettingsFolder(
-						"mailImportSettings_label",
+						() => "mailImportSettings_label",
 						() => Icons.Import,
 						"mailImport",
 						() => {
@@ -180,7 +180,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		this._userFolders.push(
 			new SettingsFolder(
-				"mailExportSettings_label",
+				() => "mailExportSettings_label",
 				() => Icons.Export,
 				"mailExport",
 				() => new MailExportViewer(),
@@ -197,7 +197,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		})
 
 		this._dummyTemplateFolder = new SettingsFolder<void>(
-			lang.makeTranslation("group_name", getDefaultGroupName(GroupType.Template)),
+			() => "templateGroupDefaultName_label",
 			() => Icons.ListAlt,
 			{
 				folder: "templates",
@@ -317,7 +317,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								...vnode.attrs.header,
 								backAction: () => this.viewSlider.focusPreviousColumn(),
 								columnType: "first",
-								title: this._selectedFolder.name,
+								title: this._selectedFolder.name(),
 								actions: [],
 								primaryAction: () => null,
 							}),
@@ -342,7 +342,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								...vnode.attrs.header,
 								backAction: () => this.viewSlider.focusPreviousColumn(),
 								columnType: "other",
-								title: this._selectedFolder.name,
+								title: this._selectedFolder.name(),
 								actions: [],
 								primaryAction: () => null,
 							}),
@@ -378,7 +378,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (await this.logins.getUserController().canHaveUsers()) {
 			this._adminFolders.push(
 				new SettingsFolder(
-					"adminUserList_action",
+					() => "adminUserList_action",
 					() => BootIcons.Contacts,
 					"users",
 					() =>
@@ -395,7 +395,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
 				this._adminFolders.push(
 					new SettingsFolder(
-						"sharedMailboxes_label",
+						() => "sharedMailboxes_label",
 						() => Icons.People,
 						"groups",
 						() =>
@@ -412,7 +412,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (this.logins.getUserController().isGlobalAdmin()) {
 			this._adminFolders.push(
 				new SettingsFolder(
-					"globalSettings_label",
+					() => "globalSettings_label",
 					() => BootIcons.Settings,
 					"global",
 					() => new GlobalSettingsViewer(),
@@ -423,7 +423,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !isIOSApp()) {
 				this._adminFolders.push(
 					new SettingsFolder(
-						"whitelabel_label",
+						() => "whitelabel_label",
 						() => Icons.Wand,
 						"whitelabel",
 						() => new WhitelabelSettingsViewer(locator.entityClient, this.logins),
@@ -437,7 +437,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			if (this.logins.getUserController().isGlobalAdmin()) {
 				this._adminFolders.push(
 					new SettingsFolder<void>(
-						"adminSubscription_action",
+						() => "adminSubscription_action",
 						() => BootIcons.Premium,
 						"subscription",
 						() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
@@ -447,7 +447,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				this._adminFolders.push(
 					new SettingsFolder<void>(
-						"adminPayment_action",
+						() => "adminPayment_action",
 						() => Icons.CreditCard,
 						"invoice",
 						() => new PaymentViewer(),
@@ -457,7 +457,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				this._adminFolders.push(
 					new SettingsFolder(
-						"referralSettings_label",
+						() => "referralSettings_label",
 						() => BootIcons.Share,
 						"referral",
 						() => new ReferralSettingsViewer(),
@@ -467,7 +467,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				this._adminFolders.push(
 					new SettingsFolder(
-						"affiliateSettings_label",
+						() => "affiliateSettings_label",
 						() => BootIcons.Share,
 						"affiliate",
 						() =>
@@ -529,7 +529,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
 		return {
-			label: folder.name,
+			label: folder.name(),
 			icon: folder.icon,
 			href: folder.url,
 			colors: NavButtonColor.Nav,
@@ -705,9 +705,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				// template group memberships may have changed
 				if (this._templateFolders.length !== this.logins.getUserController().getTemplateMemberships().length) {
-					const [templates, knowledgeBases] = await Promise.all([this._makeTemplateFolders(), this._makeKnowledgeBaseFolders()])
-					this._templateFolders = templates
-					this._knowledgeBaseFolders = knowledgeBases
+					const templates = await this.reloadTemplateData()
 					const currentRoute = m.route.get()
 
 					if (currentRoute.startsWith(SETTINGS_PREFIX)) {
@@ -734,12 +732,22 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				await this._customDomains.getAsync()
 				m.redraw()
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				await this.reloadTemplateData()
+				m.redraw()
 			}
 		}
 
 		await this._currentViewer?.entityEventsReceived(updates)
 
 		await this.detailsViewer?.entityEventsReceived(updates)
+	}
+
+	private async reloadTemplateData(): Promise<SettingsFolder<TemplateGroupInstance>[]> {
+		const [templates, knowledgeBases] = await Promise.all([this._makeTemplateFolders(), this._makeKnowledgeBaseFolders()])
+		this._templateFolders = templates
+		this._knowledgeBaseFolders = knowledgeBases
+		return templates
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -824,27 +832,26 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	async _makeTemplateFolders(): Promise<Array<SettingsFolder<TemplateGroupInstance>>> {
 		const userController = this.logins.getUserController()
 		const templateMemberships = userController.getTemplateMemberships()
-		return promiseMap(
-			await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
-			(groupInstance) =>
-				new SettingsFolder(
-					lang.makeTranslation("group_name", getSharedGroupName(groupInstance.groupInfo, userController, true)),
-					() => Icons.ListAlt,
-					{
-						folder: "templates",
-						id: getEtId(groupInstance.group),
-					},
-					() =>
-						new TemplateListView(
-							groupInstance,
-							locator.entityClient,
-							this.logins,
-							(viewer) => this.replaceDetailsViewer(viewer),
-							() => this.focusSettingsDetailsColumn(),
-						),
-					groupInstance,
-				),
-		)
+		return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient), (groupInstance) => {
+			const sharedGroupName = getNullableSharedGroupName(groupInstance.groupInfo, userController.userSettingsGroupRoot, true)
+			return new SettingsFolder(
+				() => (sharedGroupName ? lang.makeTranslation("templateGroupDefaultName_label", sharedGroupName) : "templateGroupDefaultName_label"),
+				() => Icons.ListAlt,
+				{
+					folder: "templates",
+					id: getEtId(groupInstance.group),
+				},
+				() =>
+					new TemplateListView(
+						groupInstance,
+						locator.entityClient,
+						this.logins,
+						(viewer) => this.replaceDetailsViewer(viewer),
+						() => this.focusSettingsDetailsColumn(),
+					),
+				groupInstance,
+			)
+		})
 	}
 
 	async _makeKnowledgeBaseFolders(): Promise<Array<SettingsFolder<void>>> {
@@ -853,28 +860,27 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		if (isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
 			const templateMemberships = (this.logins.getUserController() && this.logins.getUserController().getTemplateMemberships()) || []
-			return promiseMap(
-				await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
-				(groupInstance) =>
-					new SettingsFolder(
-						lang.makeTranslation("group_name", getSharedGroupName(groupInstance.groupInfo, userController, true)),
-						() => Icons.Book,
-						{
-							folder: "knowledgebase",
-							id: getEtId(groupInstance.group),
-						},
-						() =>
-							new KnowledgeBaseListView(
-								locator.entityClient,
-								this.logins,
-								groupInstance.groupRoot,
-								groupInstance.group,
-								(viewer) => this.replaceDetailsViewer(viewer),
-								() => this.focusSettingsDetailsColumn(),
-							),
-						undefined,
-					),
-			)
+			return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient), (groupInstance) => {
+				const sharedGroupName = getNullableSharedGroupName(groupInstance.groupInfo, userController.userSettingsGroupRoot, true)
+				return new SettingsFolder(
+					() => (sharedGroupName ? lang.makeTranslation("templateGroupDefaultName_label", sharedGroupName) : "templateGroupDefaultName_label"),
+					() => Icons.Book,
+					{
+						folder: "knowledgebase",
+						id: getEtId(groupInstance.group),
+					},
+					() =>
+						new KnowledgeBaseListView(
+							locator.entityClient,
+							this.logins,
+							groupInstance.groupRoot,
+							groupInstance.group,
+							(viewer) => this.replaceDetailsViewer(viewer),
+							() => this.focusSettingsDetailsColumn(),
+						),
+					undefined,
+				)
+			})
 		} else {
 			return []
 		}
