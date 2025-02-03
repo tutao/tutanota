@@ -252,7 +252,7 @@ styles.registerStyle("main", () => {
 		".border-top": {
 			"border-top": `1px solid ${theme.content_border}`,
 		},
-		"#mail-body.break-pre pre": {
+		"#shadow-mail-body.break-pre pre": {
 			"white-space": "pre-wrap",
 			"word-break": "normal",
 			"overflow-wrap": "anywhere",
