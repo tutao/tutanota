@@ -5,6 +5,7 @@ import {
 	AlarmInterval,
 	AlarmIntervalUnit,
 	AlarmOccurrence,
+	ByRule,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
 	CalendarMonth,
@@ -27,7 +28,7 @@ import {
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, RepeatRule, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
@@ -39,10 +40,12 @@ import {
 } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
 import {
+	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	CalendarRepeatRuleTypeRef,
+	createAdvancedRepeatRule,
 	createCalendarRepeatRule,
 	EncryptedMailAddressTypeRef,
 	UserSettingsGroupRootTypeRef,
@@ -59,6 +62,7 @@ import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-mo
 import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
+import { StrippedEntity } from "../../../src/common/api/common/utils/EntityUtils.js"
 
 const zone = "Europe/Berlin"
 
@@ -551,14 +555,18 @@ o.spec("calendar utils tests", function () {
 				timeZone,
 				eventStart,
 				eventEnd,
-				RepeatPeriod.WEEKLY,
-				1,
-				EndType.Never,
-				0,
-				[],
 				StandardAlarmInterval.ONE_HOUR,
 				timeZone,
 				10,
+				createCalendarRepeatRule({
+					timeZone: timeZone,
+					frequency: RepeatPeriod.WEEKLY,
+					interval: String(1),
+					endValue: null,
+					endType: "0",
+					excludedDates: [],
+					advancedRules: [],
+				}),
 			)
 			o(occurrences.slice(0, 4)).deepEquals([
 				DateTime.fromObject(
@@ -599,6 +607,302 @@ o.spec("calendar utils tests", function () {
 				).toJSDate(),
 			])
 		})
+		o("weekly never ends with by rules", function () {
+			const now = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 0,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventStart = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 12,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventEnd = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 14,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const occurrences = iterateAlarmOccurrences(
+				now,
+				timeZone,
+				eventStart,
+				eventEnd,
+				StandardAlarmInterval.ONE_HOUR,
+				timeZone,
+				10,
+				createCalendarRepeatRule({
+					timeZone: timeZone,
+					frequency: RepeatPeriod.WEEKLY,
+					interval: String(1),
+					endValue: null,
+					endType: "0",
+					excludedDates: [],
+					advancedRules: [
+						createAdvancedRepeatRule({
+							interval: "TU",
+							ruleType: ByRule.BYDAY,
+						} as StrippedEntity<AdvancedRepeatRule>),
+						createAdvancedRepeatRule({
+							interval: "MO",
+							ruleType: ByRule.BYDAY,
+						} as StrippedEntity<AdvancedRepeatRule>),
+					],
+				}),
+			)
+			o(occurrences.slice(0, 5)).deepEquals([
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 1,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 3,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 4,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 10,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 11,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+			])
+		})
+		o("monthly never ends with by rules", function () {
+			const now = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 0,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventStart = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 12,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventEnd = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 14,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const occurrences = iterateAlarmOccurrences(
+				now,
+				timeZone,
+				eventStart,
+				eventEnd,
+				StandardAlarmInterval.ONE_HOUR,
+				timeZone,
+				10,
+				createCalendarRepeatRule({
+					timeZone: timeZone,
+					frequency: RepeatPeriod.MONTHLY,
+					interval: String(1),
+					endValue: null,
+					endType: "0",
+					excludedDates: [],
+					advancedRules: [
+						createAdvancedRepeatRule({
+							interval: "TU",
+							ruleType: ByRule.BYDAY,
+						} as StrippedEntity<AdvancedRepeatRule>),
+						createAdvancedRepeatRule({
+							interval: "MO",
+							ruleType: ByRule.BYDAY,
+						} as StrippedEntity<AdvancedRepeatRule>),
+					],
+				}),
+			)
+			o(occurrences.slice(0, 5)).deepEquals([
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 1,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 3,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 4,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 10,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 11,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+			])
+		})
+		o("monthly never ends on firsth monday", function () {
+			const now = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 0,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventStart = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 12,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const eventEnd = DateTime.fromObject(
+				{
+					year: 2025,
+					month: 2,
+					day: 1,
+					hour: 14,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const occurrences = iterateAlarmOccurrences(
+				now,
+				timeZone,
+				eventStart,
+				eventEnd,
+				StandardAlarmInterval.ONE_HOUR,
+				timeZone,
+				10,
+				createCalendarRepeatRule({
+					timeZone: timeZone,
+					frequency: RepeatPeriod.MONTHLY,
+					interval: String(1),
+					endValue: null,
+					endType: "0",
+					excludedDates: [],
+					advancedRules: [
+						createAdvancedRepeatRule({
+							interval: "1MO",
+							ruleType: ByRule.BYDAY,
+						} as StrippedEntity<AdvancedRepeatRule>),
+					],
+				}),
+			)
+			o(occurrences.slice(0, 4)).deepEquals([
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 1,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 2,
+						day: 3,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 3,
+						day: 3,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				DateTime.fromObject(
+					{
+						year: 2025,
+						month: 4,
+						day: 7,
+						hour: 11,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+			])
+		})
 		o("ends for all-day event correctly", function () {
 			const repeatRuleTimeZone = "Asia/Anadyr" // +12
 
@@ -610,6 +914,7 @@ o.spec("calendar utils tests", function () {
 				},
 				{ zone: timeZone },
 			).toJSDate()
+
 			// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
 			const eventStart = getAllDayDateUTC(
 				DateTime.fromObject({
@@ -637,14 +942,18 @@ o.spec("calendar utils tests", function () {
 				repeatRuleTimeZone,
 				eventStart,
 				eventEnd,
-				RepeatPeriod.DAILY,
-				1,
-				EndType.UntilDate,
-				repeatEnd.getTime(),
-				[],
 				StandardAlarmInterval.ONE_DAY,
 				timeZone,
 				10,
+				createCalendarRepeatRule({
+					timeZone: repeatRuleTimeZone,
+					frequency: RepeatPeriod.DAILY,
+					interval: String(1),
+					endValue: repeatEnd.getTime().toString(),
+					endType: EndType.UntilDate,
+					excludedDates: [],
+					advancedRules: [],
+				}),
 			)
 			o(occurrences).deepEquals([
 				DateTime.fromObject(
@@ -1914,21 +2223,15 @@ function iterateAlarmOccurrences(
 	timeZone: string,
 	eventStart: Date,
 	eventEnd: Date,
-	repeatPeriod: RepeatPeriod,
-	interval: number,
-	endType: EndType,
-	endValue: number,
-	exclusions: Array<Date>,
 	alarmInterval: AlarmInterval,
 	calculationZone: string,
 	maxOccurrences: number,
+	repeatRule: RepeatRule,
 ): Date[] {
 	const occurrences: Date[] = []
 
 	while (occurrences.length < maxOccurrences) {
-		const next: AlarmOccurrence = neverNull(
-			findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, repeatPeriod, interval, endType, endValue, exclusions, alarmInterval, calculationZone),
-		)
+		const next: AlarmOccurrence = neverNull(findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, alarmInterval, calculationZone, repeatRule))
 
 		if (next) {
 			occurrences.push(next.alarmTime)

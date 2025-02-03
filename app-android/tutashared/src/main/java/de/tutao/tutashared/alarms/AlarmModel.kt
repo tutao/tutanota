@@ -53,7 +53,7 @@ object AlarmModel {
 			null
 		}
 		val calendar = Calendar.getInstance(if (isAllDayEvent) localTimeZone else timeZone)
-		val setPosRules = byRules.filter { rule -> rule.byRule == ByRuleType.BYSETPOS }
+		val setPosRules = byRules.filter { rule -> rule.byRule == ByRuleType.BY_SET_POS }
 		val eventFacade = EventFacade()
 
 		var occurrences = 0
@@ -69,7 +69,7 @@ object AlarmModel {
 			incrementByRepeatPeriod(calendar, frequency, interval * intervalOccurrences)
 
 			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
-				calendar.timeInMillis.toULong(),
+				(calendar.timeInMillis / 1000).toULong(),
 				EventRepeatRule(frequency.toSdkPeriod(), byRules)
 			)
 
