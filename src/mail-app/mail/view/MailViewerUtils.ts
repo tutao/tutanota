@@ -27,6 +27,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { ListFilter } from "../../../common/misc/ListModel.js"
 import { isDesktop } from "../../../common/api/common/Env.js"
 import { isDraft } from "../model/MailChecks.js"
+import { MailModel } from "../model/MailModel"
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
