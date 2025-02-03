@@ -133,19 +133,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderReadButton({ mailModel, mailViewerViewModel, mails }: MailViewerToolbarAttrs): Children {
-		const markAction: (unread: boolean) => unknown = mailViewerViewModel
-			? (unread) => mailViewerViewModel.setUnread(unread)
-			: (unread) => mailModel.markMails(mails, unread)
-
+	private renderReadButton({ mailModel, mailViewerViewModel, actionApplyMails }: MailViewerToolbarAttrs): Children {
 		const markReadButton = m(IconButton, {
 			title: "markRead_action",
-			click: () => markAction(false),
+			click: () => mailModel.loadAndMarkMails(actionApplyMails, false),
 			icon: Icons.Eye,
 		})
 		const markUnreadButton = m(IconButton, {
 			title: "markUnread_action",
-			click: () => markAction(true),
+			click: () => mailModel.loadAndMarkMails(actionApplyMails, true),
 			icon: Icons.NoEye,
 		})
 
