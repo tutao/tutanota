@@ -172,11 +172,15 @@ dependencies {
 	// JVM-based unit tests (that don't need a real device or emulator)
 	testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
 
+	androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.1") {
+		exclude group: 'org.mockito', module: 'mockito-core'
+	}
+	androidTestImplementation "org.mockito:mockito-core:5.15.2"
+	androidTestImplementation "org.mockito.kotlin:mockito-kotlin:5.4.0"
 	androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 	androidTestImplementation 'androidx.test:runner:1.6.1'
 	androidTestImplementation 'androidx.test.ext:junit-ktx:1.2.1'
 	androidTestImplementation 'androidx.test:rules:1.6.1'
-	androidTestImplementation 'org.mockito:mockito-android:5.12.0'
 	androidTestImplementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
 	androidTestImplementation 'androidx.room:room-testing:2.6.1'
 }

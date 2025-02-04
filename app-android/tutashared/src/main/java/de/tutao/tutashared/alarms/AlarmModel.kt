@@ -59,23 +59,25 @@ object AlarmModel {
 		var occurrences = 0
 		var futureOccurrences = 0
 		var intervalOccurrences = 0
+		val startTimeInSeconds = (calcEventStart.time / 1000).toULong()
 
 		while (
 			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD &&
-			(endType != EndType.COUNT || occurrences < endValue!!)
+			(endType != EndType.COUNT || occurrences < endValue!!) &&
+			intervalOccurrences < OCCURRENCES_SCHEDULED_AHEAD
 		) {
 			calendar.time = calcEventStart
 
 			incrementByRepeatPeriod(calendar, frequency, interval * intervalOccurrences)
 
 			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
-				(calendar.timeInMillis / 1000).toULong(),
+				(calendar.time.time / 1000).toULong(),
 				EventRepeatRule(frequency.toSdkPeriod(), byRules)
 			)
 
 			// Add the progenitor if it isn't included in the expansion
-			if (intervalOccurrences == 0 && !expandedEvents.contains(calcEventStart.time.toULong())) {
-				expandedEvents = expandedEvents.plus(calcEventStart.time.toULong())
+			if (intervalOccurrences == 0 && !expandedEvents.contains(startTimeInSeconds)) {
+				expandedEvents = expandedEvents.plus(startTimeInSeconds)
 			}
 
 			// This map + filter prevent an infinity loop trap by removing invalid rules like POS 320 for freq. weekly
@@ -93,8 +95,13 @@ object AlarmModel {
 			}
 
 			for (index in expandedEvents.indices) {
-				if (endValue != null && occurrences >= endValue) {
-					break
+				if (endValue != null) {
+					if (
+						(endType === EndType.COUNT && occurrences >= endValue) ||
+						(endType === EndType.UNTIL && expandedEvents[index] >= endValue.toULong())
+					) {
+						break
+					}
 				}
 
 				if (parsedSetPos.isNotEmpty() && !parsedSetPos.contains(index)) {

@@ -8,7 +8,6 @@ import android.util.Log
 import de.tutao.tutanota.BuildConfig
 import java.util.Date
 
-
 class SystemAlarmFacade(private val context: Context) {
 	fun scheduleAlarmOccurrenceWithSystem(
 		alarmTime: Date,
