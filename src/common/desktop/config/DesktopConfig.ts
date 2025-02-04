@@ -128,6 +128,10 @@ export class DesktopConfig {
 		await this.saveAndNotify(key, value)
 	}
 
+	async delete(): Promise<void> {
+		await this.desktopConfigFile.delete()
+	}
+
 	private async saveAndNotify(key: AllConfigKeys, value: ConfigValue | null): Promise<void> {
 		const desktopConfig = await this.desktopConfig.promise
 		await this.desktopConfigFile.writeJSON(desktopConfig)

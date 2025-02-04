@@ -1889,6 +1889,10 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "secretStorageError_msg"
+	| "continue_action"
+	| "restart_action"
+	| "clearLocalData_action"
 	// Put in temporarily, will be removed soon
 	| "localAdminGroup_label"
 	| "assignAdminRightsToLocallyAdministratedUserError_msg"

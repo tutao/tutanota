@@ -18,7 +18,6 @@ import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFa
 import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { handleProtocols } from "./net/ProtocolProxy.js"
-import { PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -192,6 +191,13 @@ export class ApplicationWindow {
 
 	get interWindowEventSender(): InterWindowEventFacadeSendDispatcher {
 		return this._interWindowEventSender
+	}
+
+	close(): Promise<void> {
+		return new Promise((resolve) => {
+			this._browserWindow.once("closed", resolve)
+			this._browserWindow.close()
+		})
 	}
 
 	private initFacades() {

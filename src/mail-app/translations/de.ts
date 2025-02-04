@@ -1909,6 +1909,10 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
+		"secretStorageError_msg": "Could not decrypt local data using secret storage. Please see the FAQ at {url}",
+		"continue_action": "Continue",
+		"restart_action": "Restart",
+		"clearLocalData_action": "Clear local data",
 		// Put in temporarily, will be removed soon
 		"localAdminGroup_label": "Local admin group",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
