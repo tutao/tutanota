@@ -25,7 +25,6 @@
 	"scripts": {
 		"build": "node make",
 		"prepublishOnly": "napi prepublish -t npm",
-		"test": "node make && cargo test",
 		"universal": "napi universal",
 		"version": "napi version"
 	}

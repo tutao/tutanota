@@ -47,6 +47,11 @@ pipeline {
 				defaultValue: false,
 				description: "run the tests, but don't push to TARGET_BRANCH"
 		)
+		booleanParam(
+				name: 'FORCE_RUN_ALL',
+				defaultValue: false,
+				description: "run ALL the tests, even if they would normally be pruned because there are no relevant changes."
+		)
 	}
 
 	stages {
@@ -110,6 +115,9 @@ pipeline {
 					agent {
 						label "mac-m1"
 					}
+					when {
+						expression { hasRelevantChangesIn(changeset, "app-ios") }
+					}
 					steps {
 						prepareSwiftLint(true)
 					}
@@ -117,6 +125,9 @@ pipeline {
 				stage("prepare swift on intel") {
 					agent {
 						label "mac-intel"
+					}
+					when {
+						expression { hasRelevantChangesIn(changeset, "app-ios") }
 					}
 					steps {
 						prepareSwiftLint(false)
@@ -127,6 +138,9 @@ pipeline {
 		stage("Testing and Building") {
 			parallel {
 				stage("packages test") {
+					when {
+						expression { hasRelevantChangesIn(changeset, "packages") }
+					}
 					steps {
 						sh 'npm run --if-present test -ws'
 					}
@@ -155,6 +169,9 @@ pipeline {
 					agent {
 						label "mac-m1"
 					}
+					when {
+						expression { hasRelevantChangesIn(changeset, "app-ios", "tuta-sdk") }
+					}
 					steps {
 						testFastlane("test_tuta_app")
 					}
@@ -163,11 +180,25 @@ pipeline {
 					agent {
 						label "mac-intel"
 					}
+					when {
+						expression { hasRelevantChangesIn(changeset, "app-ios", "tuta-sdk") }
+					}
 					steps {
 						testFastlane("test_tuta_shared_framework")
 					}
 				}
+				stage("sdk tests") {
+					when {
+						expression { hasRelevantChangesIn(changeset, "tuta-sdk")}
+					}
+					steps {
+						sh "cargo test --package tuta-sdk"
+					}
+				}
 				stage("android tests") {
+					when {
+						expression { hasRelevantChangesIn(changeset, "app-android") }
+					}
 					steps {
 						testAndroid()
 					}
@@ -265,6 +296,21 @@ void getChangeset(HashSet<String> changeset, String targetBranch) {
 		changeset.add(line.trim())
 	}
 	println "changeset:\n\n${changeset.join("\n")}"
+}
+
+// return whether any file in the given paths changed (recursively)
+boolean hasRelevantChangesIn(HashSet<String> changeset, String... paths) {
+	boolean relevant = false
+	for (String path in paths) {
+		relevant = relevant || changeset.any { f -> f.startsWith(path) }
+	}
+
+	return relevant || extensionChanged(changeset, "groovy") || params.FORCE_RUN_ALL
+}
+
+// return whether any file with the given extension changed
+boolean extensionChanged(HashSet<String> changeset, String ext) {
+	changeset.any { f -> f.endsWith(ext) }
 }
 
 boolean shouldRunNpmCi() {
