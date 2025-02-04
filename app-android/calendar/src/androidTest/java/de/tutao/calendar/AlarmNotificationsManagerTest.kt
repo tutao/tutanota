@@ -1,8 +1,8 @@
-package de.tutao.tutanota
+package de.tutao.calendar
 
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.calendar.alarms.AlarmNotificationsManager
+import de.tutao.calendar.alarms.SystemAlarmFacade
+import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.IdTuple
@@ -21,25 +21,18 @@ import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.stubbing.Answer
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import org.robolectric.annotation.ConscryptMode
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-@RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE)
-@ConscryptMode(ConscryptMode.Mode.OFF)
 class AlarmNotificationsManagerTest {
 
 	private lateinit var manager: AlarmNotificationsManager
@@ -67,7 +60,6 @@ class AlarmNotificationsManagerTest {
 		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
 			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
-		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(true)
 	}
 
 	@Test
@@ -154,17 +146,6 @@ class AlarmNotificationsManagerTest {
 		// s - event start, n - now. s+2 is before n+2 so it will occur but s+3 is already too far
 		Mockito.verify(systemAlarmFacade, Mockito.times(2))
 			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId))
-	}
-
-	@Test
-	fun testNotScheduleAlarmForMailAppWithReceiveCalendarNotificationsFalse() {
-		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(false)
-		val identifier = "newAlarm"
-		val startDate = Date()
-		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null)
-		manager.scheduleNewAlarms(listOf(alarmNotifications))
-		Mockito.verify(systemAlarmFacade, Mockito.never())
-			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
 	}
 
 	private fun createEncryptedAlarmNotification(
