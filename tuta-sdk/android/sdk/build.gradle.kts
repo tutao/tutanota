@@ -51,7 +51,7 @@ fun getABITargets(): List<String> {
 		abi = findProperty("targetABI") as String?
 
 	return if (abi.isNullOrBlank())
-		listOf("arm", "arm64", "x86_64")
+		listOf("arm", "arm64")
 	else
 		listOf(abi)
 }
