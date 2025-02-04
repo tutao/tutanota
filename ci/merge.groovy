@@ -37,7 +37,12 @@ pipeline {
 		booleanParam(
 				name: 'CLEAN_WORKSPACE',
 				defaultValue: false,
-				description: "run 'git clean -x' as the first step of the pipeline"
+				description: "run 'git clean -fx' as the first step of the pipeline"
+		)
+		booleanParam(
+				name: 'DRY_RUN',
+				defaultValue: true,
+				description: "run the tests, but don't push to TARGET_BRANCH"
 		)
 	}
 
@@ -49,6 +54,9 @@ pipeline {
 						label 'linux'
 					}
 					steps {
+						script {
+							currentBuild.displayName = "${params.SOURCE_BRANCH} -> ${params.TARGET_BRANCH}${params.DRY_RUN ? " DRY_RUN" : ""}"
+						}
 						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
 					}
 				}
@@ -160,12 +168,23 @@ pipeline {
 				}
 			}
 		}
+		stage("finalize") {
+			agent {
+				label 'linux'
+			}
+			steps {
+				finalize(params.DRY_RUN)
+			}
+		}
 	}
 }
 
 void initWorkspace(HashSet<String> changeset, String srcBranch, String targetBranch, boolean shouldClean) {
 	if (shouldClean) {
-		sh "git clean -fx"
+		sh """
+			git clean -fx
+			cargo clean
+		"""
 	}
 	sh "git status && git remote -v"
 	fetch(srcBranch, targetBranch)
@@ -292,4 +311,15 @@ void testFastlane(String task) {
 		cd app-ios
 		fastlane ${task}
 	"""
+}
+
+void finalize(boolean dryRun) {
+	if (dryRun) {
+		echo """everything is fine, but I'm not pushing (DRY_RUN)!
+			use the following link to re-run and merge:
+			https://next.tutao.de/jenkins/job/${env.JOB_NAME}/parambuild?TARGET_BRANCH=${params.TARGET_BRANCH}&SOURCE_BRANCH=${params.SOURCE_BRANCH}&CLEAN_WORKSPACE=false&DRY_RUN=false
+		"""
+	} else {
+		sh "git push origin HEAD:${params.TARGET_BRANCH}"
+	}
 }

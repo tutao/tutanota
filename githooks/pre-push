@@ -1,0 +1,16 @@
+#! /bin/sh
+
+# this hook prints a message that can be used to start a jenkins job on our CI server
+
+echo "inspect stdin (see 'man githooks'):"
+while read line
+do
+  echo "stdin: $line"
+done < "/dev/stdin"
+
+TARGET_BRANCH="master"
+SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+TUTA_JENKINS_BASE_URL="https://next.tutao.de/jenkins/"
+
+echo "use this link to start the job to check your work and merge it into ${TARGET_BRANCH}:"
+echo "${TUTA_JENKINS_BASE_URL}job/merge-tutanota-to-master/parambuild?TARGET_BRANCH=${TARGET_BRANCH}&SOURCE_BRANCH=${SOURCE_BRANCH}&CLEAN_WORKSPACE=false&DRY_RUN=false"
