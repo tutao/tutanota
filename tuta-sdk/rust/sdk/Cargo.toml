@@ -38,7 +38,7 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 
 log = { workspace = true }
 base64 = { workspace = true }
-tokio = { workspace = true, features = ["time", "rt-multi-thread", "sync"] }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 uniffi = { workspace = true }
