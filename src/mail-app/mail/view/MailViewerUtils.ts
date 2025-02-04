@@ -1,7 +1,7 @@
 import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
@@ -25,9 +25,16 @@ import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.j
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
 import { ListFilter } from "../../../common/misc/ListModel.js"
-import { isDesktop } from "../../../common/api/common/Env.js"
+import { isApp, isDesktop } from "../../../common/api/common/Env.js"
 import { isDraft } from "../model/MailChecks.js"
 import { MailModel } from "../model/MailModel"
+import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
+import { IconButton } from "../../../common/gui/base/IconButton"
+import { exportMails } from "../export/Exporter"
+import stream from "mithril/stream"
+import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander"
+import { ColumnWidth, Table } from "../../../common/gui/base/Table"
+import { MailViewerToolbarAttrs } from "./MailViewerToolbar"
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
@@ -121,23 +128,148 @@ export async function showSourceDialog(rawHtml: string) {
 	return Dialog.viewerDialog("emailSourceCode_title", SourceCodeViewer, { rawHtml })
 }
 
-export function mailViewerMoreActions(viewModel: MailViewerViewModel, showReadButton: boolean = true): Array<DropdownButtonAttrs> {
-	const moreButtons: Array<DropdownButtonAttrs> = []
-	if (showReadButton) {
-		if (viewModel.isUnread()) {
-			moreButtons.push({
-				label: "markRead_action",
-				click: () => viewModel.setUnread(false),
-				icon: Icons.Eye,
-			})
-		} else {
-			moreButtons.push({
-				label: "markUnread_action",
-				click: () => viewModel.setUnread(true),
-				icon: Icons.NoEye,
-			})
-		}
+export function exportAction(actionableMails: () => Promise<readonly Mail[]>): DropdownButtonAttrs {
+	const operation = locator.operationProgressTracker.startNewOperation()
+	const ac = new AbortController()
+	const headerBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "cancel_action",
+				click: () => ac.abort(),
+				type: ButtonType.Secondary,
+			},
+		],
+		middle: "emptyString_msg",
 	}
+
+	return {
+		label: "export_action",
+		click: () => {
+			actionableMails().then((mails) => {
+				showProgressDialog(
+					lang.getTranslation("mailExportProgress_msg", {
+						"{current}": Math.round((operation.progress() / 100) * mails.length).toFixed(0),
+						"{total}": mails.length,
+					}),
+					exportMails(mails, locator.mailFacade, locator.entityClient, locator.fileController, locator.cryptoFacade, operation.id, ac.signal)
+						.then((result) => handleExportEmailsResult(result.failed))
+						.finally(operation.done),
+					operation.progress,
+					true,
+					headerBarAttrs,
+				)
+			})
+		},
+		icon: Icons.Export,
+	}
+}
+
+function handleExportEmailsResult(mailList: Mail[]) {
+	if (mailList && mailList.length > 0) {
+		const lines = mailList.map((mail) => ({
+			cells: [mail.sender.address, mail.subject],
+			actionButtonAttrs: null,
+		}))
+
+		const expanded = stream<boolean>(false)
+		const dialog = Dialog.createActionDialog({
+			title: "failedToExport_title",
+			child: () =>
+				m("", [
+					m(".pt-m", lang.get("failedToExport_msg")),
+					m(".flex-start.items-center", [
+						m(ExpanderButton, {
+							label: lang.makeTranslation(
+								"hide_show",
+								`${lang.get(expanded() ? "hide_action" : "show_action")} ${lang.get("failedToExport_label", { "{0}": mailList.length })}`,
+							),
+							expanded: expanded(),
+							onExpandedChange: expanded,
+						}),
+					]),
+					m(
+						ExpanderPanel,
+						{
+							expanded: expanded(),
+						},
+						m(Table, {
+							columnHeading: ["email_label", "subject_label"],
+							columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
+							showActionButtonColumn: false,
+							lines,
+						}),
+					),
+				]),
+			okAction: () => dialog.close(),
+			allowCancel: false,
+			okActionTextId: "ok_action",
+			type: DialogType.EditMedium,
+		})
+
+		dialog.show()
+	}
+}
+
+export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel, actionableMails: () => Promise<readonly Mail[]>): Array<DropdownButtonAttrs> {
+	const moreButtons: Array<DropdownButtonAttrs> = []
+
+	if (viewModel.isUnread()) {
+		moreButtons.push({
+			label: "markRead_action",
+			click: async () => viewModel.mailModel.markMails(await actionableMails(), false),
+			icon: Icons.Eye,
+		})
+	} else {
+		moreButtons.push({
+			label: "markUnread_action",
+			click: async () => viewModel.mailModel.markMails(await actionableMails(), true),
+			icon: Icons.NoEye,
+		})
+	}
+
+	if (!client.isMobileDevice() && viewModel.canExport()) {
+		moreButtons.push(exportAction(actionableMails))
+	}
+
+	moreButtons.push(...mailViewerMoreActions(viewModel))
+
+	return moreButtons
+}
+
+export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
+	const moreButtons: Array<DropdownButtonAttrs> = []
+	if (viewModel.isUnread()) {
+		moreButtons.push({
+			label: "markRead_action",
+			click: () => viewModel.setUnread(false),
+			icon: Icons.Eye,
+		})
+	} else {
+		moreButtons.push({
+			label: "markUnread_action",
+			click: () => viewModel.setUnread(true),
+			icon: Icons.NoEye,
+		})
+	}
+
+	if (!client.isMobileDevice() && viewModel.canExport()) {
+		moreButtons.push({
+			label: "export_action",
+			click: () => showProgressDialog("pleaseWait_msg", viewModel.exportMail()),
+			icon: Icons.Export,
+		})
+	}
+
+	moreButtons.push(...mailViewerMoreActions(viewModel))
+
+	// adding more optional buttons? put them above the report action so the new button
+	// is not sometimes where the report action usually sits.
+
+	return moreButtons
+}
+
+function mailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
+	const moreButtons: Array<DropdownButtonAttrs> = []
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
 		moreButtons.push({
@@ -160,14 +292,6 @@ export function mailViewerMoreActions(viewModel: MailViewerViewModel, showReadBu
 			label: "unsubscribe_action",
 			click: () => unsubscribe(viewModel),
 			icon: Icons.Cancel,
-		})
-	}
-
-	if (!client.isMobileDevice() && viewModel.canExport()) {
-		moreButtons.push({
-			label: "export_action",
-			click: () => showProgressDialog("pleaseWait_msg", viewModel.exportMail()),
-			icon: Icons.Export,
 		})
 	}
 
