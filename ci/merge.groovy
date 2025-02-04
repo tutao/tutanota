@@ -9,8 +9,7 @@ pipeline {
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten:/usr/lib/bin:/opt/homebrew/bin"
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
-		RUSTFLAGS = "--cfg ci"
-	}
+ 	}
 
 	agent {
 		label 'linux'
