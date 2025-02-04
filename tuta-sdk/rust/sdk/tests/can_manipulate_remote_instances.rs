@@ -1,4 +1,4 @@
-#![cfg(not(ci))]
+#![cfg(not_ci)]
 use std::sync::Arc;
 use tutasdk::crypto::aes::Iv;
 use tutasdk::crypto::key::GenericAesKey;

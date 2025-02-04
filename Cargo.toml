@@ -57,7 +57,7 @@ explicit_iter_loop = "warn"
 
 
 [workspace.lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ci)'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(not_ci)'] }
 
 [patch.'https://github.com/rust-lang/crates.io-index']
 pqcrypto-internals = { git = 'https://github.com/vaf-hub/pqcrypto', rev = 'ffbce29b21665135e0d3fadc120bd04f079829a8' }

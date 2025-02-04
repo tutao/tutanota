@@ -9,7 +9,7 @@ pipeline {
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten:/usr/lib/bin:/opt/homebrew/bin"
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
- 	}
+	}
 
 	agent {
 		label 'linux'
@@ -28,10 +28,13 @@ pipeline {
 				defaultValue: 'test-jenkins-merge',
 				description: "Branch that gets merged into TARGET_BRANCH"
 		)
-		string(
+		validatingString(
 				name: 'TARGET_BRANCH',
-				defaultValue: 'dev-infra',
-				description: "Branch that gets updated"
+				defaultValue: '? TARGET_BRANCH',
+				description: "Branch that gets updated",
+				// no question marks, no spaces
+				regex: /[^\?\s]*$/,
+				failedValidationMessage: "please provide one target branch name!",
 		)
 		booleanParam(
 				name: 'CLEAN_WORKSPACE',
@@ -53,6 +56,8 @@ pipeline {
 						label 'linux'
 					}
 					steps {
+						// extra insurance
+						assertTargetWasSet("TARGET_BRANCH", params.TARGET_BRANCH)
 						script {
 							currentBuild.displayName = "${params.SOURCE_BRANCH} -> ${params.TARGET_BRANCH}${params.DRY_RUN ? " DRY_RUN" : ""}"
 						}
@@ -175,6 +180,12 @@ pipeline {
 				finalize(params.DRY_RUN)
 			}
 		}
+	}
+}
+
+void assertTargetWasSet(String name, String param) {
+	if (param.trim().equals("?")) {
+		error("Parameter ${name} must be set to a valid branch name, not '?'.")
 	}
 }
 
