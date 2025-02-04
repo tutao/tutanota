@@ -1438,7 +1438,7 @@ styles.registerStyle("main", () => {
 			"border-top": `1px solid ${theme.navigation_border}`,
 			height: positionValue(size.bottom_nav_bar),
 			background: theme.header_bg,
-			"margin-bottom": "env(safe-area-inset-bottom)",
+			"padding-bottom": "env(safe-area-inset-bottom)",
 			"z-index": 2,
 		},
 		".notification-overlay-content": {
