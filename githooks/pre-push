@@ -13,4 +13,4 @@ SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 TUTA_JENKINS_BASE_URL="https://next.tutao.de/jenkins/"
 
 echo "use this link to start the job to check your work and merge it into ${TARGET_BRANCH}:"
-echo "${TUTA_JENKINS_BASE_URL}job/merge-tutanota-to-master/parambuild?TARGET_BRANCH=${TARGET_BRANCH}&SOURCE_BRANCH=${SOURCE_BRANCH}&CLEAN_WORKSPACE=false&DRY_RUN=false"
+echo "${TUTA_JENKINS_BASE_URL}job/bootleg-ci/parambuild?TARGET_BRANCH=${TARGET_BRANCH}&SOURCE_BRANCH=${SOURCE_BRANCH}&CLEAN_WORKSPACE=false&DRY_RUN=false"

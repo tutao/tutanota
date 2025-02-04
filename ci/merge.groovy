@@ -315,6 +315,9 @@ void testFastlane(String task) {
 
 void finalize(boolean dryRun) {
 	if (dryRun) {
+		catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+			sh "exit 1"
+		}
 		echo """everything is fine, but I'm not pushing (DRY_RUN)!
 			use the following link to re-run and merge:
 			https://next.tutao.de/jenkins/job/${env.JOB_NAME}/parambuild?TARGET_BRANCH=${params.TARGET_BRANCH}&SOURCE_BRANCH=${params.SOURCE_BRANCH}&CLEAN_WORKSPACE=false&DRY_RUN=false
