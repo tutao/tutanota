@@ -1,5 +1,5 @@
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
+import org.gradle.configurationcache.extensions.capitalized
 
 plugins {
 	id("com.android.application")
@@ -98,10 +98,10 @@ android {
 			val taskName = StringBuilder("sign").run {
 				//Add a task to rename the output file
 				productFlavors.forEach {
-					append(it.name.capitalizeAsciiOnly())
+					append(it.name.capitalized())
 				}
 
-				append(buildType.name.capitalizeAsciiOnly())
+				append(buildType.name.capitalized())
 				append("Bundle")
 
 				toString()
@@ -212,11 +212,15 @@ dependencies {
 	// JVM-based unit tests (that don't need a real device or emulator)
 	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
 
+	androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.1") {
+		exclude(group = "org.mockito", module = "mockito-core")
+	}
+	androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+	androidTestImplementation("org.mockito:mockito-core:5.15.2")
 	androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 	androidTestImplementation("androidx.test:runner:1.4.0")
 	androidTestImplementation("androidx.test.ext:junit-ktx:1.1.3")
 	androidTestImplementation("androidx.test:rules:1.4.0")
-	androidTestImplementation("org.mockito:mockito-android:5.11.0")
 	androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
 	androidTestImplementation("androidx.room:room-testing:2.4.2")
 }
