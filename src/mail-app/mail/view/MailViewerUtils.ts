@@ -287,6 +287,14 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 		})
 	}
 
+	if (viewModel.canShowHeaders()) {
+		moreButtons.push({
+			label: "showHeaders_action",
+			click: () => showHeaderDialog(viewModel.getHeaders()),
+			icon: Icons.ListUnordered,
+		})
+	}
+
 	moreButtons.push(...mailViewerMoreActions(viewModel))
 
 	// adding more optional buttons? put them above the report action so the new button
@@ -327,14 +335,6 @@ function mailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownBu
 			label: "print_action",
 			click: () => window.print(),
 			icon: Icons.Print,
-		})
-	}
-
-	if (viewModel.canShowHeaders()) {
-		moreButtons.push({
-			label: "showHeaders_action",
-			click: () => showHeaderDialog(viewModel.getHeaders()),
-			icon: Icons.ListUnordered,
 		})
 	}
 
