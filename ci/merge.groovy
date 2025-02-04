@@ -1,18 +1,12 @@
 import groovy.json.JsonSlurper
 
-def targetBranch = "master"
-def targetMac = "mac-intel"
-
-HashSet<String> changedPaths = new HashSet<>()
+HashSet<String> changeset = new HashSet<String>()
 
 pipeline {
-	options {
-		parallelsAlwaysFailFast()
-	}
 	environment {
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		APK_SIGN_STORE = '/opt/android-keystore/android.jks'
-		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
+		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten:/usr/lib/bin:/opt/homebrew/bin"
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
 		RUSTFLAGS = "--cfg ci"
@@ -27,96 +21,62 @@ pipeline {
 	}
 
 	parameters {
-		string(name: 'BRANCH_NAME', defaultValue: 'test-jenkins-merge', description: 'Branch to merge to master')
+		string(
+				// this branch will be the initial branch checked out on the job.
+				// this is important because if we update the jenkinsfile in a commit
+				// we need to run the new version, not the one from master.
+				name: 'SOURCE_BRANCH',
+				defaultValue: 'test-jenkins-merge',
+				description: "Branch that gets merged into TARGET_BRANCH"
+		)
+		string(
+				name: 'TARGET_BRANCH',
+				defaultValue: 'dev-infra',
+				description: "Branch that gets updated"
+		)
+		booleanParam(
+				name: 'CLEAN_WORKSPACE',
+				defaultValue: false,
+				description: "run 'git clean -x' as the first step of the pipeline"
+		)
 	}
 
 	stages {
-		stage("git") {
+		stage("repo prep") {
 			parallel {
-				stage("git checkout mac") {
-					when {
-						expression {
-							return true
-						}
-					}
+				stage("checkout linux") {
 					agent {
-						label targetMac
+						label 'linux'
 					}
 					steps {
-						git(
-								url: "git@github.com:tutao/tutanota.git",
-								branch: params.BRANCH_NAME,
-								changelog: true,
-								poll: true
-						)
+						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
 					}
 				}
-
-				stage("git fetch and switch to branch") {
-
-					steps {
-						git(
-								url: "git@github.com:tutao/tutanota.git",
-								branch: params.BRANCH_NAME,
-								changelog: true,
-								poll: true
-						)
-
-					}
-				}
-			}
-		}
-		stage("sync submodules") {
-			steps {
-				sh '''
-				                git submodule init
-	                     		git submodule sync --recursive
-				                git submodule update
-			                   	'''
-				script {
-					def successfulMasterFetch = sh(returnStatus: true, script: "git fetch origin master:master").toInteger()
-					if (successfulMasterFetch != 0) {
-						abortJob("Failed to fetch master. Please wipe jenkins workspace and try again.")
-					}
-
-					def isOnTopOfTarget = sh(returnStatus: true, script: "git merge-base --is-ancestor ${targetBranch} ${params.BRANCH_NAME}").toInteger()
-					if (isOnTopOfTarget == 1) {
-						abortJob("branch ${params.BRANCH_NAME} is not rebased on top of ${targetBranch}. Please rebase and run again...")
-					}
-					initialize(changedPaths, targetBranch)
-				}
-			}
-		}
-
-		stage("Source code checks") {
-			parallel {
-				stage("npm ci") {
-					when {
-						expression {
-							return shouldRunNpmCi()
-						}
+				stage("checkout mac m1") {
+					agent {
+						label "mac-m1"
 					}
 					steps {
-						sh 'npm ci'
+						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
 					}
 				}
-				stage("find FIXMEs") {
-					steps {
-						sh '''
-								if grep "FIXME\\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
-									echo 'FIXMEs in src';
-									exit 1;
-								else
-									echo 'No FIXMEs in src';
-								fi
-								'''
+				stage("checkout mac intel") {
+					agent {
+						label "mac-intel"
 					}
-
+					steps {
+						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
+					}
 				}
 			}
 		}
 		stage("Lint and Style") {
 			parallel {
+				stage("find FIXMEs") {
+					steps {
+						findFixmes()
+					}
+				}
 				stage("lint:check") {
 					steps {
 						sh 'npm run lint:check'
@@ -132,144 +92,70 @@ pipeline {
 						sh 'npm run build-packages'
 					}
 				}
-				stage("prepare/lint mac") {
+				stage("prepare, then lint swift on m1") {
 					agent {
-						label targetMac
-					}
-					when {
-						expression {
-							return shouldRunOnMac(changedPaths)
-						}
+						label "mac-m1"
 					}
 					steps {
-						sh '''
-							mkdir -p ./build-calendar-app
-							mkdir -p ./build
-
-							cd app-ios
-							#./lint.sh lint:check
-							./lint.sh style:check
-
-							# xcodegen is not installed on m1
-							xcodegen --spec calendar-project.yml
-							xcodegen --spec mail-project.yml
-
-							cd ../tuta-sdk/ios
-							xcodegen
-
-						'''
+						prepareSwiftLint(true)
 					}
 				}
-
+				stage("prepare swift on intel") {
+					agent {
+						label "mac-intel"
+					}
+					steps {
+						prepareSwiftLint(false)
+					}
+				}
 			}
 		}
-		stage("Parallelize everything") {
+		stage("Testing and Building") {
 			parallel {
 				stage("packages test") {
-					when {
-						expression {
-							return runByDefault()
-						}
-					}
 					steps {
 						sh 'npm run --if-present test -ws'
 					}
 				}
 				stage("node tests") {
-					when {
-						expression {
-							return runByDefault()
-						}
-					}
 					steps {
 						sh 'cd test && node test'
 					}
 				}
 				stage("browser tests") {
-					when {
-						expression {
-							return runByDefault()
-						}
-					}
 					steps {
 						sh 'npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 					}
 				}
 				stage("build web app") {
-					when {
-						expression {
-							return runByDefault()
-						}
-					}
 					steps {
 						sh 'node webapp --disable-minify'
 					}
 				}
 				stage("build web app calendar") {
-					when {
-						expression {
-							return runByDefault()
-						}
-					}
 					steps {
 						sh 'node webapp --disable-minify --app calendar'
 					}
 				}
-				stage("mac mail tests") {
+				stage("ios app tests") {
 					agent {
-						label targetMac
-					}
-					when {
-						expression {
-							return shouldRunOnMac(changedPaths)
-						}
-					}
-					environment {
-						LC_ALL = "en_US.UTF-8"
-						LANG = "en_US.UTF-8"
+						label "mac-m1"
 					}
 					steps {
-						dir("app-ios") {
-							sh 'fastlane test_github'
-						}
+						testFastlane("test_tuta_app")
 					}
 				}
-				stage("mac calendar tests") {
+				stage("ios framework tests") {
 					agent {
-						label targetMac
-					}
-					when {
-						expression {
-							return shouldRunOnMac(changedPaths)
-						}
-					}
-					environment {
-						LC_ALL = "en_US.UTF-8"
-						LANG = "en_US.UTF-8"
+						label "mac-intel"
 					}
 					steps {
-						dir("app-ios") {
-							sh 'fastlane test_calendar_github'
-						}
+						testFastlane("test_tuta_shared_framework")
 					}
 				}
 				stage("android tests") {
-//					when {
-//						expression {
-//							return runByDefault()
-//						}
-//					}
-					environment {
-						TZ = "Europe/Berlin" // We have some tests for same day alarms that depends on this TimeZone
-					}
 					steps {
-						sh '''
-mkdir -p build
-mkdir -p build-calendar-app
-cd app-android
-./gradlew lint --quiet
-./gradlew test
-'''
+						testAndroid()
 					}
 				}
 			}
@@ -277,9 +163,77 @@ cd app-android
 	}
 }
 
-void abortJob(String errorMsg) {
-	print(errorMsg)
-	error(errorMsg)
+void initWorkspace(HashSet<String> changeset, String srcBranch, String targetBranch, boolean shouldClean) {
+	if (shouldClean) {
+		sh "git clean -fx"
+	}
+	sh "git status && git remote -v"
+	fetch(srcBranch, targetBranch)
+	merge(srcBranch, targetBranch)
+	submodules()
+	sh "git status && git remote -v"
+	getChangeset(changeset, targetBranch)
+	if (shouldRunNpmCi()) {
+		sh "npm ci"
+	}
+}
+
+void fetch(String srcBranch, String targetBranch) {
+	sh """
+		git switch --detach HEAD~1
+		git branch -D ${targetBranch} ${srcBranch} || true
+		git fetch
+		git switch ${srcBranch}
+		git switch ${targetBranch}
+	"""
+}
+
+void submodules() {
+	sh """
+		git submodule init
+	    git submodule sync --recursive
+		git submodule update
+	"""
+}
+
+void prepareSwiftLint(boolean shouldRunLint) {
+	sh '''
+		mkdir -p ./build-calendar-app
+		mkdir -p ./build
+	'''
+	if (shouldRunLint) {
+		sh '''
+			cd app-ios
+			./lint.sh lint:check
+			./lint.sh style:check
+		'''
+	}
+
+	sh '''
+		cd app-ios
+		xcodegen --spec calendar-project.yml
+		xcodegen --spec mail-project.yml
+
+		cd ../tuta-sdk/ios
+		xcodegen
+	'''
+}
+
+void merge(String srcBranch, String targetBranch) {
+	def sucessfulMerge = sh(returnStatus: true, script: "git merge --ff-only ${srcBranch}").toInteger()
+	if (sucessfulMerge != 0) {
+		error("Failed to merge branch ${srcBranch} into ${targetBranch}. Please rebase and try again.")
+	}
+}
+
+// must be called while checked out on targetBranch, after ff-merging srcBranch.
+void getChangeset(HashSet<String> changeset, String targetBranch) {
+	def out = sh(returnStdout: true, script: "git diff --name-only ${targetBranch} origin/${targetBranch}")
+	def lines = out.split('\n')
+	for (String line : lines) {
+		changeset.add(line.trim())
+	}
+	println "changeset:\n\n${changeset.join("\n")}"
 }
 
 boolean shouldRunNpmCi() {
@@ -308,45 +262,34 @@ boolean shouldRunNpmCi() {
 	}
 }
 
-
-void initialize(HashSet<String> changedPaths, String targetBranch) {
-	def out = sh(returnStdout: true, script: "git diff --name-status ${targetBranch}")
-	def lines = out.split('\n')
-	for (String line : lines) {
-		def split = line.split("\t")
-		// lines with moved files contain three parts
-		if (split.length > 3) {
-			abortJob("unexpected line: " + line)
-		}
-		changedPaths.add(split[split.length - 1].trim())
-	}
+void findFixmes() {
+	sh '''
+		if grep "FIXME\\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
+			echo 'FIXMEs in src';
+			exit 1;
+		else
+			echo 'No FIXMEs in src';
+		fi
+	'''
 }
 
-boolean hasChangeForPath(HashSet<String> changedPaths, String pathPrefix, String ignoredSuffix) {
-	for (String p : changedPaths) {
-		if (p.startsWith(pathPrefix) && !p.endsWith(ignoredSuffix)) {
-			return true
-		}
-	}
-	return false
+void testAndroid() {
+	sh '''
+		# We have some tests for same day alarms that depends on this TimeZone
+		export TZ=Europe/Berlin
+		mkdir -p build
+		mkdir -p build-calendar-app
+		cd app-android
+		./gradlew lint --quiet
+		./gradlew test
+	'''
 }
 
-boolean shouldRunOnMac(HashSet<String> changedPaths) {
-	return hasChangeForPath(changedPaths, "app-ios", "Info.plist")
-	return true
+void testFastlane(String task) {
+	sh """
+		export LC_ALL="en_US.UTF-8"
+		export LANG="en_US.UTF-8"
+		cd app-ios
+		fastlane ${task}
+	"""
 }
-
-boolean runByDefault() {
-//	return true
-	return false
-}
-
-//TODO
-// why do we build web app and web app calendar? Is running tsc enough? -> willow?
-
-// swift and kotlin tests
-// why does cargo compiles every run
-
-
-
-
