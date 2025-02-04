@@ -10,7 +10,7 @@ import { ElectronUpdater } from "./ElectronUpdater.js"
 import { Socketeer } from "./Socketeer"
 import { DesktopAlarmStorage } from "./sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "./sse/DesktopAlarmScheduler"
-import { lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { DesktopNetworkClient } from "./net/DesktopNetworkClient.js"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { DesktopTray } from "./tray/DesktopTray"
@@ -75,6 +75,7 @@ import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
 
 mp()
 
@@ -344,9 +345,8 @@ async function startupInstance(components: Components) {
 
 async function onAppReady(components: Components) {
 	const { wm, keyStoreFacade, conf } = components
-	keyStoreFacade.getDeviceKey().catch(() => {
-		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tuta.com/faq/#secretstorage")
-	})
+	// We await for it to not open any windows on top of keychain dialogs
+	await unlockDeviceKeychain(keyStoreFacade, wm, conf)
 	app.on("window-all-closed", async () => {
 		if (!(await conf.getVar(DesktopConfigKey.runAsTrayApp))) {
 			app.quit()
@@ -394,4 +394,47 @@ function manageDownloadsForSession(session: Session, dictUrl: string) {
 		.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
 		.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
 		.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
+}
+
+async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig) {
+	await keyStoreFacade.getDeviceKey().catch(async () => {
+		const { response } = await electron.dialog.showMessageBox({
+			type: "error",
+			title: "Tuta Mail",
+			message: lang.getTranslation("secretStorageError_msg", { "{url}": InfoLink.SecretStorage }).text,
+			buttons: [
+				lang.getTranslation("continue_action").text,
+				lang.getTranslation("clearLocalData_action").text,
+				lang.getTranslation("restart_action").text,
+			],
+			defaultId: 2,
+			cancelId: 0,
+		})
+		switch (response) {
+			case 0:
+				break
+			case 1:
+				app.relaunch()
+				for (const window of wm.getAll()) {
+					log.debug("Closing window ", window.id)
+					// ideally we would destroy the window but it leads to obscure segfaults
+					await window.close()
+				}
+
+				log.debug("Deleting conf")
+				await conf.delete()
+				log.debug("Invalidating keychain")
+				await keyStoreFacade.invalidateKeychain()
+				log.debug("Quitting app")
+				app.quit()
+				log.debug("App exited")
+				break
+			case 2:
+				app.relaunch()
+				app.quit()
+				break
+			default:
+				throw new ProgrammingError("Invalid choice")
+		}
+	})
 }
