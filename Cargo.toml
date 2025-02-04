@@ -27,13 +27,14 @@ members = [
 default-members = []
 
 [workspace.dependencies]
+tuta-sdk = { path = "tuta-sdk/rust/sdk", default-features = false }
 thiserror = { version = "2.0" }
 base64 = { version = "0.22.1" }
 log = { version = "0.4.22" }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.117" }
 tokio = { version = "1.43", default-features = false }
-uniffi = { version = "0.28.3", default-features = false }
+uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "13a1c559cb3708eeca40dcf95dc8b3ccccf3b88c", default-features = false }
 rand = { version = "0.8" }
 
 # --------- lints
@@ -57,3 +58,6 @@ explicit_iter_loop = "warn"
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ci)'] }
+
+[patch.'https://github.com/rust-lang/crates.io-index']
+pqcrypto-internals = { git = 'https://github.com/rustpq/pqcrypto', rev = 'b39937410b149156de81fc8e3150753aff925aa4' }

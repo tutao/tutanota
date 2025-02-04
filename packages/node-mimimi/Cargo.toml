@@ -19,7 +19,7 @@ javascript = ["dep:napi-derive"]
 napi = { version = "2.16.13", default-features = false, features = ["napi9", "async", "tokio_rt"] }
 napi-derive = { version = "2.16.13", optional = true }
 mail-parser = { version = "0.10.2", features = ["full_encoding"] }
-tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net"] }
+tuta-sdk = { workspace = true, features = ["net"] }
 rand = { workspace = true }
 log = { workspace = true }
 base64 = { workspace = true }
@@ -29,10 +29,10 @@ regex = { version = "1.11.1" }
 napi-build = { version = "2.1.4" }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true }
-tuta-sdk = { path = "../../tuta-sdk/rust/sdk", features = ["net", "testing"] }
+tuta-sdk = { workspace = true, features = ["net", "testing"] }
 mail-builder = { version = "0.4.0" }
 
 [lints]
