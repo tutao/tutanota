@@ -1,32 +1,20 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { ConversationEntryTypeRef, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { editDraft, mailViewerMoreActions } from "./MailViewerUtils.js"
-import { ButtonType } from "../../../common/gui/base/Button.js"
+import { editDraft, exportAction, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { isApp } from "../../../common/api/common/Env.js"
-import { locator } from "../../../common/api/main/CommonLocator.js"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar.js"
-import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
-import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
-import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
-import stream from "mithril/stream"
-import { exportMails } from "../export/Exporter.js"
 import { MailModel } from "../model/MailModel.js"
 import { LabelsPopup } from "./LabelsPopup.js"
 import { allInSameMailbox } from "../model/MailUtils"
 import { styles } from "../../../common/gui/styles"
-import { MailItem } from "./ConversationViewModel"
-import { listIdPart } from "../../../common/api/common/utils/EntityUtils"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -35,9 +23,9 @@ export interface MailViewerToolbarAttrs {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
 	mailViewerViewModel?: MailViewerViewModel
-	mails: Mail[]
+	selectedMails: Mail[]
 	selectNone?: () => void
-	actionApplyMails: () => Promise<readonly Mail[]>
+	actionableMails: () => Promise<readonly Mail[]>
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -47,28 +35,28 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			this.renderSingleMailActions(vnode.attrs),
 			vnode.attrs.mailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),
-			this.renderMoreButton(vnode.attrs.mailViewerViewModel),
+			this.renderMoreButton(vnode.attrs.mailViewerViewModel, vnode.attrs.actionableMails),
 		])
 	}
 
 	private renderActions(attrs: MailViewerToolbarAttrs): Children {
 		const mailModel = attrs.mailViewerViewModel ? attrs.mailViewerViewModel.mailModel : attrs.mailModel
 
-		if (!mailModel || !attrs.mails) {
+		if (!mailModel || !attrs.selectedMails) {
 			return null
 		} else if (attrs.mailViewerViewModel) {
 			return [
-				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
-				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
-				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.mails, attrs.actionApplyMails) : null,
+				this.renderDeleteButton(mailModel, attrs.selectedMails, attrs.selectNone ?? noOp),
+				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.selectedMails) : null,
+				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails) : null,
 				attrs.mailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
-		} else if (attrs.mails.length > 0) {
+		} else if (attrs.selectedMails.length > 0) {
 			return [
-				this.renderDeleteButton(mailModel, attrs.mails, attrs.selectNone ?? noOp),
-				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.mails) : null,
-				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.mails)
-					? this.renderLabelButton(mailModel, attrs.mails, attrs.actionApplyMails)
+				this.renderDeleteButton(mailModel, attrs.selectedMails, attrs.selectNone ?? noOp),
+				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.selectedMails) : null,
+				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.selectedMails)
+					? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails)
 					: null,
 				this.renderReadButton(attrs),
 				this.renderExportButton(attrs),
@@ -115,7 +103,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionApplyMails: () => Promise<readonly Mail[]>): Children {
+	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionableMails: () => Promise<readonly Mail[]>): Children {
 		return m(IconButton, {
 			title: "assignLabel_action",
 			icon: Icons.Label,
@@ -126,22 +114,22 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 					styles.isDesktopLayout() ? 300 : 200,
 					mailModel.getLabelsForMails(mails),
 					mailModel.getLabelStatesForMails(mails),
-					(addedLabels, removedLabels) => mailModel.loadAndApplyLabels(actionApplyMails, addedLabels, removedLabels),
+					async (addedLabels, removedLabels) => mailModel.applyLabels(await actionableMails(), addedLabels, removedLabels),
 				)
 				popup.show()
 			},
 		})
 	}
 
-	private renderReadButton({ mailModel, mailViewerViewModel, actionApplyMails }: MailViewerToolbarAttrs): Children {
+	private renderReadButton({ mailModel, mailViewerViewModel, actionableMails }: MailViewerToolbarAttrs): Children {
 		const markReadButton = m(IconButton, {
 			title: "markRead_action",
-			click: () => mailModel.loadAndMarkMails(actionApplyMails, false),
+			click: async () => mailModel.markMails(await actionableMails(), false),
 			icon: Icons.Eye,
 		})
 		const markUnreadButton = m(IconButton, {
 			title: "markUnread_action",
-			click: () => mailModel.loadAndMarkMails(actionApplyMails, true),
+			click: async () => mailModel.markMails(await actionableMails(), true),
 			icon: Icons.NoEye,
 		})
 
@@ -159,90 +147,13 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 	private renderExportButton(attrs: MailViewerToolbarAttrs) {
 		if (!isApp() && attrs.mailModel.isExportingMailsAllowed()) {
-			const operation = locator.operationProgressTracker.startNewOperation()
-			const ac = new AbortController()
-			const headerBarAttrs: DialogHeaderBarAttrs = {
-				left: [
-					{
-						label: "cancel_action",
-						click: () => ac.abort(),
-						type: ButtonType.Secondary,
-					},
-				],
-				middle: "emptyString_msg",
-			}
-
+			const exportAttrs = exportAction(attrs.actionableMails)
 			return m(IconButton, {
-				title: "export_action",
-				click: () =>
-					showProgressDialog(
-						lang.getTranslation("mailExportProgress_msg", {
-							"{current}": Math.round((operation.progress() / 100) * attrs.mails.length).toFixed(0),
-							"{total}": attrs.mails.length,
-						}),
-						exportMails(
-							attrs.mails,
-							locator.mailFacade,
-							locator.entityClient,
-							locator.fileController,
-							locator.cryptoFacade,
-							operation.id,
-							ac.signal,
-						)
-							.then((result) => this.handleExportEmailsResult(result.failed))
-							.finally(operation.done),
-						operation.progress,
-						true,
-						headerBarAttrs,
-					),
+				title: exportAttrs.label,
 				icon: Icons.Export,
+				// we know where we got this from, and we know it has the click attribute
+				click: assertNotNull(exportAttrs.click),
 			})
-		}
-	}
-
-	private handleExportEmailsResult(mailList: Mail[]) {
-		if (mailList && mailList.length > 0) {
-			const lines = mailList.map((mail) => ({
-				cells: [mail.sender.address, mail.subject],
-				actionButtonAttrs: null,
-			}))
-
-			const expanded = stream<boolean>(false)
-			const dialog = Dialog.createActionDialog({
-				title: "failedToExport_title",
-				child: () =>
-					m("", [
-						m(".pt-m", lang.get("failedToExport_msg")),
-						m(".flex-start.items-center", [
-							m(ExpanderButton, {
-								label: lang.makeTranslation(
-									"hide_show",
-									`${lang.get(expanded() ? "hide_action" : "show_action")} ${lang.get("failedToExport_label", { "{0}": mailList.length })}`,
-								),
-								expanded: expanded(),
-								onExpandedChange: expanded,
-							}),
-						]),
-						m(
-							ExpanderPanel,
-							{
-								expanded: expanded(),
-							},
-							m(Table, {
-								columnHeading: ["email_label", "subject_label"],
-								columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-								showActionButtonColumn: false,
-								lines,
-							}),
-						),
-					]),
-				okAction: () => dialog.close(),
-				allowCancel: false,
-				okActionTextId: "ok_action",
-				type: DialogType.EditMedium,
-			})
-
-			dialog.show()
 		}
 	}
 
@@ -276,11 +187,11 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderMoreButton(viewModel: MailViewerViewModel | undefined): Children {
+	private renderMoreButton(viewModel: MailViewerViewModel | undefined, actionableMails: () => Promise<readonly Mail[]>): Children {
 		let actions: DropdownButtonAttrs[] = []
 
 		if (viewModel) {
-			actions = mailViewerMoreActions(viewModel, false)
+			actions = multipleMailViewerMoreActions(viewModel, actionableMails)
 		}
 
 		return actions.length > 0

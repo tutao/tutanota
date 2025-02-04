@@ -37,7 +37,6 @@ export class ConversationViewModel {
 	private loadingPromise: Promise<void> | null = null
 	/** Is not set until {@link loadConversation is finished. Until it is finished we display primary mail and subject. */
 	private conversation: ConversationItem[] | null = null
-	private allConversationMails: Mail[] | null = null
 
 	constructor(
 		private options: CreateMailViewerOptions,
@@ -194,7 +193,6 @@ export class ConversationViewModel {
 		try {
 			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
 				this.conversation = this.conversationItemsForSelectedMailOnly()
-				this.allConversationMails = [this._primaryViewModel.mail]
 			} else {
 				// Catch errors but only for loading conversation entries.
 				// if success, proceed with loading mails
@@ -206,7 +204,6 @@ export class ConversationViewModel {
 							return this.conversationItemsForSelectedMailOnly()
 						} else {
 							const allMails = await this.loadMails(entries)
-							this.allConversationMails = Array.from(allMails.values())
 							return this.createConversationItems(entries, allMails)
 						}
 					},
@@ -282,18 +279,6 @@ export class ConversationViewModel {
 
 	conversationItems(): ReadonlyArray<ConversationItem> {
 		return this.conversation ?? this.conversationItemsForSelectedMailOnly()
-	}
-
-	/*
-		If ConversationInListView is active, all mails in the conversation are returned (so they can be processed in a group)
-		If not, only the primary mail is returned, since that is the one being looked at/interacted with.
-	 */
-	getActionableMails(): ReadonlyArray<Mail> {
-		if (this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && this.allConversationMails) {
-			return this.allConversationMails
-		} else {
-			return [this._primaryViewModel.mail]
-		}
 	}
 
 	private conversationItemsForSelectedMailOnly(): ConversationItem[] {

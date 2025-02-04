@@ -11,11 +11,11 @@ import { LabelsPopup } from "./LabelsPopup.js"
 import { allInSameMailbox } from "../model/MailUtils"
 
 export interface MobileMailMultiselectionActionBarAttrs {
-	mails: readonly Mail[]
+	selectedMails: readonly Mail[]
 	mailModel: MailModel
 	mailboxModel: MailboxModel
 	selectNone: () => unknown
-	actionApplyMails: () => Promise<readonly Mail[]>
+	actionableMails: () => Promise<readonly Mail[]>
 }
 
 // Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
@@ -23,7 +23,7 @@ export class MobileMailMultiselectionActionBar {
 	private dom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<MobileMailMultiselectionActionBarAttrs>): Children {
-		const { mails, selectNone, mailModel, mailboxModel, actionApplyMails } = attrs
+		const { selectedMails, selectNone, mailModel, mailboxModel, actionableMails } = attrs
 		return m(
 			MobileBottomActionBar,
 			{
@@ -33,7 +33,7 @@ export class MobileMailMultiselectionActionBar {
 				m(IconButton, {
 					icon: Icons.Trash,
 					title: "delete_action",
-					click: () => promptAndDeleteMails(mailModel, mails, selectNone),
+					click: () => promptAndDeleteMails(mailModel, selectedMails, selectNone),
 				}),
 				mailModel.isMovingMailsAllowed()
 					? m(IconButton, {
@@ -41,27 +41,27 @@ export class MobileMailMultiselectionActionBar {
 							title: "move_action",
 							click: (e, dom) => {
 								const referenceDom = this.dom ?? dom
-								showMoveMailsDropdown(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), mails, {
+								showMoveMailsDropdown(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), selectedMails, {
 									onSelected: () => selectNone,
 									width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
 								})
 							},
 					  })
 					: null,
-				mailModel.canAssignLabels() && allInSameMailbox(mails)
+				mailModel.canAssignLabels() && allInSameMailbox(selectedMails)
 					? m(IconButton, {
 							icon: Icons.Label,
 							title: "assignLabel_action",
 							click: (e, dom) => {
 								const referenceDom = this.dom ?? dom
-								if (mails.length !== 0) {
+								if (selectedMails.length !== 0) {
 									const popup = new LabelsPopup(
 										referenceDom,
 										referenceDom.getBoundingClientRect(),
 										referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
-										mailModel.getLabelsForMails(mails),
-										mailModel.getLabelStatesForMails(mails),
-										(addedLabels, removedLabels) => mailModel.loadAndApplyLabels(actionApplyMails, addedLabels, removedLabels),
+										mailModel.getLabelsForMails(selectedMails),
+										mailModel.getLabelStatesForMails(selectedMails),
+										async (addedLabels, removedLabels) => mailModel.applyLabels(await actionableMails(), addedLabels, removedLabels),
 									)
 									popup.show()
 								}
@@ -71,16 +71,12 @@ export class MobileMailMultiselectionActionBar {
 				m(IconButton, {
 					icon: Icons.Eye,
 					title: "markRead_action",
-					click: () => {
-						mailModel.loadAndMarkMails(actionApplyMails, false)
-					},
+					click: async () => mailModel.markMails(await actionableMails(), false),
 				}),
 				m(IconButton, {
 					icon: Icons.NoEye,
 					title: "markUnread_action",
-					click: () => {
-						mailModel.loadAndMarkMails(actionApplyMails, true)
-					},
+					click: async () => mailModel.markMails(await actionableMails(), true),
 				}),
 			],
 		)
