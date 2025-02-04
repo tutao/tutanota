@@ -37,7 +37,7 @@ export async function getMailExportMode(): Promise<MailExportMode> {
  * was instructed to open the new zip File containing the exported files
  */
 export async function exportMails(
-	mails: Array<Mail>,
+	mails: ReadonlyArray<Mail>,
 	mailFacade: MailFacade,
 	entityClient: EntityClient,
 	fileController: FileController,

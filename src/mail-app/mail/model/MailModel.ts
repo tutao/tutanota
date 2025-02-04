@@ -17,6 +17,8 @@ import {
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import {
+	ConversationEntry,
+	ConversationEntryTypeRef,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -41,7 +43,7 @@ import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { LockedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { InboxRuleHandler } from "./InboxRuleHandler.js"
@@ -51,7 +53,6 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { isSpamOrTrashFolder } from "./MailChecks.js"
-import { MailItem } from "../view/ConversationViewModel"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -433,11 +434,6 @@ export class MailModel {
 		return !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
 
-	async loadAndMarkMails(mails: () => Promise<readonly Mail[]>, unread: boolean): Promise<void> {
-		const loadedMails = await mails()
-		this.markMails(loadedMails, unread)
-	}
-
 	async markMails(mails: readonly Mail[], unread: boolean): Promise<void> {
 		await promiseMap(
 			mails,
@@ -449,10 +445,6 @@ export class MailModel {
 			},
 			{ concurrency: 5 },
 		)
-	}
-
-	async loadAndApplyLabels(mails: () => Promise<readonly Mail[]>, addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]) {
-		this.applyLabels(await mails(), addedLabels, removedLabels)
 	}
 
 	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
@@ -647,5 +639,44 @@ export class MailModel {
 
 	getImportedMailSets(): Array<MailFolder> {
 		return [...this.mailSets.values()].filter((f) => f.folders.importedMailSet).map((f) => f.folders.importedMailSet!)
+	}
+
+	async loadConversationsForAllMails(mails: ReadonlyArray<Mail>): Promise<ReadonlyArray<Mail>> {
+		let conversationEntries: ConversationEntry[] = []
+		for (const mail of mails) {
+			await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(mail.conversationEntry)).then(
+				async (entries) => {
+					conversationEntries.push(...entries)
+				},
+				async (e) => {
+					// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
+					// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
+					// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
+					if (!(e instanceof NotAuthorizedError)) {
+						throw e
+					}
+				},
+			)
+		}
+
+		// If there are no conversationEntries (somehow they didn't load), just return the mails back
+		if (conversationEntries.length < 0) {
+			return mails
+		}
+
+		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
+		const allMails: Mail[] = []
+		for (const [listId, conversations] of byList.entries()) {
+			if (!listId) continue
+			const loaded = await this.entityClient.loadMultiple(
+				MailTypeRef,
+				listId,
+				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
+			)
+
+			allMails.push(...loaded)
+		}
+
+		return allMails
 	}
 }
