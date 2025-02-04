@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "tutao_node-mimimi"
-version = "266.250203.0"
+version = "266.250204.0"
 
 [lib]
 crate-type = ["cdylib"]
