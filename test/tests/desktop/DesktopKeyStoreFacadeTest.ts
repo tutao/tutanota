@@ -35,6 +35,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 					},
 
 					async setPassword(service: string, account: string, password: string): Promise<void> {},
+					async deletePassword(service: string, account: string) {},
 				})
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
 				const actualKey = await keyStoreFacade[opName]()
@@ -50,6 +51,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 					},
 
 					async setPassword(service: string, account: string, password: string): Promise<void> {},
+					async deletePassword(service: string, account: string) {},
 				})
 				cryptoFacadeSpy = {
 					generateDeviceKey() {
@@ -68,6 +70,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 					},
 
 					async setPassword(service: string, account: string, password: string): Promise<void> {},
+					async deletePassword(service: string, account: string) {},
 				})
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
 				const actualKey = await keyStoreFacade[opName]()
@@ -98,6 +101,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 					},
 
 					async setPassword(service: string, account: string, password: string): Promise<void> {},
+					async deletePassword(service: string, account: string) {},
 				})
 
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
@@ -112,6 +116,23 @@ o.spec("DesktopKeyStoreFacade", function () {
 		})
 	}
 
+	o("should invalidate the key", async function () {
+		const secretStorageSpy = spyify<SecretStorage>({
+			async getPassword(service: string, account: string): Promise<string | null> {
+				return null
+			},
+
+			async setPassword(service: string, account: string, password: string): Promise<void> {},
+			async deletePassword(service: string, account: string) {},
+		})
+		const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+		await keyStoreFacade.invalidateKeychain()
+
+		const deletePasswordCalls = Object.values(toSpec).map(({ serviceName, accountName }) => [serviceName, accountName])
+		o(secretStorageSpy.deletePassword.callCount).equals(deletePasswordCalls.length)
+		o(secretStorageSpy.deletePassword.calls).deepEquals(deletePasswordCalls)
+	})
+
 	o.spec("key storage errors get propagated properly", function () {
 		async function testErrorWrapping({ onget, onset, expectError }) {
 			const secretStorageSpy = spyify<SecretStorage>({
@@ -121,6 +142,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 				async setPassword(service: string, account: string, password: string): Promise<void> {
 					return onset()
 				},
+				async deletePassword(service: string, account: string) {},
 			})
 
 			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)

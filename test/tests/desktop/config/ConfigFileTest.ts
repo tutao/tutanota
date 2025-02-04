@@ -25,6 +25,9 @@ export const fsMock = {
 		mkdir: function (p: string, o: any) {
 			Promise.resolve()
 		},
+		unlink: function (p: string) {
+			return rndDelay().then(() => delete this.fs[p])
+		},
 	},
 }
 
@@ -90,5 +93,16 @@ o.spec("ConfigFileTest", function () {
 		first.t = true
 		// @ts-ignore
 		o(second.t).equals(true)
+	})
+
+	o("delete works", async function () {
+		const v = { a: "bye", b: "hello" }
+		const cf = getConfigFile("path", "to-be-deleted.json", n.mock<typeof import("fs")>("fs", fsMock).set())
+		await cf.writeJSON(v)
+		const present = await cf.readJSON()
+		o(present).deepEquals(v)
+		await cf.delete()
+		const deleted = await cf.readJSON()
+		o(deleted).equals(undefined)
 	})
 })

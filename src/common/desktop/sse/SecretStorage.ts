@@ -1,6 +1,7 @@
 import * as PathModule from "node:path"
 import * as FsModule from "node:fs"
 import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError.js"
+import { log } from "../DesktopLog"
 
 export function preselectGnomeLibsecret(electron: typeof Electron.CrossProcessExports) {
 	// this is how chromium selects a backend:
@@ -20,6 +21,8 @@ export interface SecretStorage {
 	getPassword(service: string, account: string): Promise<string | null>
 
 	setPassword(service: string, account: string, password: string): Promise<void>
+
+	deletePassword(service: string, account: string): Promise<void>
 }
 
 /**
@@ -59,6 +62,12 @@ export class SafeStorageSecretStorage implements SecretStorage {
 		const keyPath = this.getKeyPath(service, account)
 		const cypherBuffer = this.electron.safeStorage.encryptString(password)
 		return this.fs.promises.writeFile(keyPath, cypherBuffer)
+	}
+
+	async deletePassword(service: string, account: string) {
+		const keyPath = this.getKeyPath(service, account)
+		log.debug("Deleting keychain file for", service, account)
+		await this.fs.promises.unlink(keyPath)
 	}
 
 	private getKeyPath(service: string, account: string): string {
