@@ -328,51 +328,15 @@ export class MailViewModel {
 	}
 
 	/*
-		If ConversationInListView is active, all mails in the conversation are returned (so they can be processed in a group)
-		If not, only the primary mail is returned, since that is the one being looked at/interacted with.
-	 */
+        If ConversationInListView is active, all mails in the conversation are returned (so they can be processed in a group)
+        If not, only the primary mail is returned, since that is the one being looked at/interacted with.
+     */
 	async getActionableMails(mails: Mail[]): Promise<ReadonlyArray<Mail>> {
 		if (this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS) {
-			return this.loadConversationsForAllMails(mails)
+			return this.mailModel.loadConversationsForAllMails(mails)
 		} else {
 			return mails
 		}
-	}
-
-	async loadConversationsForAllMails(mails: Mail[]): Promise<ReadonlyArray<Mail>> {
-		let conversationEntries: ConversationEntry[] = []
-		for (const mail of mails) {
-			await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(mail.conversationEntry)).then(
-				async (entries) => {
-					conversationEntries.push(...entries)
-				},
-				async (e) => {
-					if (e instanceof NotAuthorizedError) {
-						// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
-						// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
-						// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
-						//FIXME: not sure what to do here
-						//return this.conversationItemsForSelectedMailOnly()
-					} else {
-						throw e
-					}
-				},
-			)
-		}
-
-		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
-		const allMails: Mail[] = []
-		for (const [listId, conversations] of byList.entries()) {
-			if (!listId) continue
-			const loaded = await this.entityClient.loadMultiple(
-				MailTypeRef,
-				listId,
-				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
-			)
-
-			allMails.push(...loaded)
-		}
-		return allMails
 	}
 
 	private async getFolderForUserInbox(): Promise<MailFolder> {
