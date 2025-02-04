@@ -106,6 +106,12 @@ pipeline {
 						sh 'npm run style:check'
 					}
 				}
+				stage("check rust formatting") {
+					// this is so quick, we can run it every time.
+					steps {
+						sh "cargo fmt --check"
+					}
+				}
 				stage("build-packages") {
 					steps {
 						sh 'npm run build-packages'
@@ -189,10 +195,19 @@ pipeline {
 				}
 				stage("sdk tests") {
 					when {
-						expression { hasRelevantChangesIn(changeset, "tuta-sdk")}
+						expression { hasRelevantChangesIn(changeset, "tuta-sdk") }
 					}
 					steps {
 						sh "cargo test --package tuta-sdk"
+					}
+				}
+				stage("clippy lints") {
+					when {
+						expression { extensionChanged(changeset, ".rs", ".toml") }
+					}
+					steps {
+						// -Dwarnings changes warnings to errors so that the check fails
+						sh "cargo clippy --all --no-deps -- -Dwarnings"
 					}
 				}
 				stage("android tests") {
@@ -308,9 +323,13 @@ boolean hasRelevantChangesIn(HashSet<String> changeset, String... paths) {
 	return relevant || extensionChanged(changeset, "groovy") || params.FORCE_RUN_ALL
 }
 
-// return whether any file with the given extension changed
-boolean extensionChanged(HashSet<String> changeset, String ext) {
-	changeset.any { f -> f.endsWith(ext) }
+// return whether any file with the given extensions changed
+boolean extensionChanged(HashSet<String> changeset, String... exts) {
+	boolean changed = false
+	for (String ext in exts) {
+		changed = changed || changeset.any { f -> f.endsWith(ext) }
+	}
+	return changed
 }
 
 boolean shouldRunNpmCi() {
