@@ -46,14 +46,11 @@ fun getActiveBuildType(): String {
 }
 
 fun getABITargets(): List<String> {
-	var abi = project.gradle.parent?.startParameter?.projectProperties?.get("targetABI")
-	if (abi.isNullOrBlank())
-		abi = findProperty("targetABI") as String?
-
-	return if (abi.isNullOrBlank())
-		listOf("arm", "arm64")
-	else
-		listOf(abi)
+	val targetAbiPropertyValue = findProperty("targetABI") as String?
+	if(targetAbiPropertyValue == null) {
+	    return listOf("arm", "arm64", "x86_64")
+	}
+	return targetAbiPropertyValue.orEmpty().split(",")
 }
 
 fun abiTargetToJniTarget(abiTarget: String): String {
@@ -121,8 +118,10 @@ tasks.register("generateBinding") {
 
 	if (!sdkUniffiConfigFile.asFile.exists()) throw RuntimeException("I would expect uniffi.toml for rust-sdk")
 
-
-	getABITargets().forEach { abiTargetName ->
+    val targets = getABITargets()
+    println("abi: $targets")
+	targets.forEach { abiTargetName ->
+	    println("abi: $abiTargetName ")
 		val jniTargetName = abiTargetToJniTarget(abiTargetName)
 		val rustTargetName = jniTargetToRustTargetName(jniTargetName)
 

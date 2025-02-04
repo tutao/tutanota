@@ -20,20 +20,21 @@ pipeline {
 	}
 
 	parameters {
-		string(
+		validatingString(
 				// this branch will be the initial branch checked out on the job.
 				// this is important because if we update the jenkinsfile in a commit
 				// we need to run the new version, not the one from master.
 				name: 'SOURCE_BRANCH',
-				defaultValue: 'test-jenkins-merge',
-				description: "Branch that gets merged into TARGET_BRANCH"
+				defaultValue: 'dummy-do-not-use',
+				description: "Branch that gets merged into TARGET_BRANCH",
+				regex: /^(?!dummy-do-not-use$).*$/,
+				failedValidationMessage: "please provide one source branch name!",
 		)
 		validatingString(
 				name: 'TARGET_BRANCH',
-				defaultValue: '? TARGET_BRANCH',
+				defaultValue: 'dummy-do-not-use',
 				description: "Branch that gets updated",
-				// no question marks, no spaces
-				regex: /[^\?\s]*$/,
+				regex: /^(?!dummy-do-not-use$).*$/,
 				failedValidationMessage: "please provide one target branch name!",
 		)
 		booleanParam(
@@ -43,7 +44,7 @@ pipeline {
 		)
 		booleanParam(
 				name: 'DRY_RUN',
-				defaultValue: true,
+				defaultValue: false,
 				description: "run the tests, but don't push to TARGET_BRANCH"
 		)
 	}
@@ -57,9 +58,10 @@ pipeline {
 					}
 					steps {
 						// extra insurance
-						assertTargetWasSet("TARGET_BRANCH", params.TARGET_BRANCH)
+						assertBranchWasSet("TARGET_BRANCH", params.TARGET_BRANCH)
+						assertBranchWasSet("SOURCE_BRANCH", params.SOURCE_BRANCH)
 						script {
-							currentBuild.displayName = "${params.SOURCE_BRANCH} -> ${params.TARGET_BRANCH}${params.DRY_RUN ? " DRY_RUN" : ""}"
+							currentBuild.displayName = "${params.DRY_RUN ? "DRY_RUN " : ""}${params.SOURCE_BRANCH} -> ${params.TARGET_BRANCH}"
 						}
 						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
 					}
@@ -183,9 +185,9 @@ pipeline {
 	}
 }
 
-void assertTargetWasSet(String name, String param) {
-	if (param.trim().equals("?")) {
-		error("Parameter ${name} must be set to a valid branch name, not '?'.")
+void assertBranchWasSet(String name, String param) {
+	if (param.contains("dummy-do-not-use")) {
+		error("Parameter ${name} must be set to a valid branch name, not '${param}'.")
 	}
 }
 
@@ -309,8 +311,8 @@ void testAndroid() {
 		mkdir -p build
 		mkdir -p build-calendar-app
 		cd app-android
-		./gradlew lint --quiet
-		./gradlew test
+		./gradlew lint -PtargetABI=arm64 --quiet
+		./gradlew test -PtargetABI=arm64
 	'''
 }
 
