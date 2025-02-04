@@ -50,7 +50,6 @@ private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
-
 class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) {
 	companion object {
 		private const val TAG = "LocalNotifications"
