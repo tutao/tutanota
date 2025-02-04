@@ -261,8 +261,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailboxModel: viewModel.primaryViewModel().mailboxModel,
 			mailModel: viewModel.primaryViewModel().mailModel,
 			mailViewerViewModel: viewModel.primaryViewModel(),
-			mails: [viewModel.primaryMail],
-			actionApplyMails: async () => viewModel.getActionableMails(),
+			selectedMails: [viewModel.primaryMail],
+			actionableMails: async () => this.mailViewModel.getActionableMails([viewModel.primaryMail]),
 		})
 	}
 
@@ -296,9 +296,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailViewerActions, {
 			mailboxModel: locator.mailboxModel,
 			mailModel: mailLocator.mailModel,
-			mails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
+			selectedMails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
 			selectNone: () => this.mailViewModel.listModel?.selectNone(),
-			actionApplyMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
+			actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 		})
 	}
 
@@ -371,15 +371,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
 								viewModel: this.conversationViewModel.primaryViewModel(),
-								actionApplyMails: async () => assertNotNull(this.conversationViewModel).getActionableMails(),
+								actionableMails: () =>
+									this.mailViewModel.getActionableMails(this.conversationViewModel ? [this.conversationViewModel.primaryMail] : []),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
-								mails: this.mailViewModel.listModel.getSelectedAsArray(),
+								selectedMails: this.mailViewModel.listModel.getSelectedAsArray(),
 								selectNone: () => this.mailViewModel.listModel?.selectNone(),
 								mailModel: mailLocator.mailModel,
 								mailboxModel: locator.mailboxModel,
-								actionApplyMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
+								actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 						  })
 						: m(BottomNav),
 			}),
@@ -593,8 +594,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			styles.isDesktopLayout() ? 300 : 200,
 			mailLocator.mailModel.getLabelsForMails(selectedMails),
 			mailLocator.mailModel.getLabelStatesForMails(selectedMails),
-			(addedLabels, removedLabels) =>
-				mailLocator.mailModel.loadAndApplyLabels(() => this.mailViewModel.getActionableMails(selectedMails), addedLabels, removedLabels),
+			async (addedLabels, removedLabels) =>
+				mailLocator.mailModel.applyLabels(await this.mailViewModel.getActionableMails(selectedMails), addedLabels, removedLabels),
 		)
 		popup.show()
 	}
