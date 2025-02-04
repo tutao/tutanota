@@ -25,9 +25,9 @@ export class ConfigFile {
 	private accessPromise: Promise<any>
 
 	/**
-	 * @param filePath path to the file the json objects should be stored in
+	 * @param dirPath path to the file the json objects should be stored in
 	 **/
-	constructor(private readonly filePath: string, private readonly fullpath: string, private readonly fs: FsExports) {
+	constructor(private readonly dirPath: string, private readonly fullpath: string, private readonly fs: FsExports) {
 		this.accessPromise = Promise.resolve()
 	}
 
@@ -63,11 +63,20 @@ export class ConfigFile {
 	 */
 	writeJSON(obj: any): Promise<void> {
 		this.accessPromise = this.accessPromise
-			.then(() => this.fs.promises.mkdir(this.filePath, { recursive: true }))
+			.then(() => this.fs.promises.mkdir(this.dirPath, { recursive: true }))
 			.then(() => JSON.stringify(obj, null, 2))
 			.then((json) => this.fs.promises.writeFile(this.fullpath, json))
 			.catch((e) => {
 				console.error("failed to write conf:", e)
+			})
+		return this.accessPromise
+	}
+
+	delete(): Promise<void> {
+		this.accessPromise = this.accessPromise
+			.then(() => this.fs.promises.unlink(this.fullpath))
+			.catch((e) => {
+				console.error("failed to delete conf:", e)
 			})
 		return this.accessPromise
 	}

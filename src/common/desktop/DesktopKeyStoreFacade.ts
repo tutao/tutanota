@@ -53,6 +53,11 @@ export class DesktopKeyStoreFacade {
 		return this.resolveKey(CredentialsKeySpec)
 	}
 
+	async invalidateKeychain(): Promise<void> {
+		await this.secretStorage.deletePassword(DeviceKeySpec.serviceName, DeviceKeySpec.accountName)
+		await this.secretStorage.deletePassword(CredentialsKeySpec.serviceName, CredentialsKeySpec.accountName)
+	}
+
 	private resolveKey(spec: NativeKeySpec): Promise<Aes256Key> {
 		// Asking for the same key in parallel easily breaks gnome-keyring so we cache the promise.
 		const entry = getFromMap(this.resolvedKeys, spec, () => this.fetchOrGenerateKey(spec))

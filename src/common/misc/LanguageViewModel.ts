@@ -247,6 +247,7 @@ export const enum InfoLink {
 	PasswordGenerator = "https://tuta.com/faq#passphrase-generator",
 	HomePageFreeSignup = "https://tuta.com/free-email",
 	DeprecatedKey = "https://tuta.com/support#deprecated-key-warning",
+	SecretStorage = "https://tuta.com/faq/#secretstorage",
 }
 
 /**
@@ -585,7 +586,10 @@ export class LanguageViewModel {
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguageNoDefault(restrictions?: LanguageCode[]): { code: LanguageCode; languageTag: string } | null {
+export function getLanguageNoDefault(restrictions?: LanguageCode[]): {
+	code: LanguageCode
+	languageTag: string
+} | null {
 	// navigator.languages can be an empty array on android 5.x devices
 	let languageTags
 
