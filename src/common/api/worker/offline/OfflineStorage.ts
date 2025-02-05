@@ -164,30 +164,29 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
-		let typeModel: TypeModel
-		typeModel = await resolveTypeReference(typeRef)
-		elementId = ensureBase64Ext(typeModel, elementId)
+		const typeModel: TypeModel = await resolveTypeReference(typeRef)
+		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`DELETE
 									 FROM element_entities
 									 WHERE type = ${type}
-									   AND elementId = ${elementId}`
+									   AND elementId = ${encodedElementId}`
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`DELETE
 									 FROM list_entities
 									 WHERE type = ${type}
 									   AND listId = ${listId}
-									   AND elementId = ${elementId}`
+									   AND elementId = ${encodedElementId}`
 				break
 			case TypeId.BlobElement:
 				formattedQuery = sql`DELETE
 									 FROM blob_element_entities
 									 WHERE type = ${type}
 									   AND listId = ${listId}
-									   AND elementId = ${elementId}`
+									   AND elementId = ${encodedElementId}`
 				break
 			default:
 				throw new Error("must be a persistent type")
@@ -234,28 +233,28 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
 		const type = getTypeId(typeRef)
 		const typeModel = await resolveTypeReference(typeRef)
-		elementId = ensureBase64Ext(typeModel, elementId)
+		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`SELECT entity
 									 from element_entities
 									 WHERE type = ${type}
-									   AND elementId = ${elementId}`
+									   AND elementId = ${encodedElementId}`
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`SELECT entity
 									 from list_entities
 									 WHERE type = ${type}
 									   AND listId = ${listId}
-									   AND elementId = ${elementId}`
+									   AND elementId = ${encodedElementId}`
 				break
 			case TypeId.BlobElement:
 				formattedQuery = sql`SELECT entity
 									 from blob_element_entities
 									 WHERE type = ${type}
 									   AND listId = ${listId}
-									   AND elementId = ${elementId}`
+									   AND elementId = ${encodedElementId}`
 				break
 			default:
 				throw new Error("must be a persistent type")
@@ -267,12 +266,12 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
 		if (elementIds.length === 0) return []
 		const typeModel = await resolveTypeReference(typeRef)
-		elementIds = elementIds.map((el) => ensureBase64Ext(typeModel, el))
+		const encodedElementIds = elementIds.map((elementId) => ensureBase64Ext(typeModel, elementId))
 
 		const type = getTypeId(typeRef)
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(
 			MAX_SAFE_SQL_VARS - 2,
-			elementIds,
+			encodedElementIds,
 			(c) => sql`SELECT entity
 					   FROM list_entities
 					   WHERE type = ${type}
@@ -318,15 +317,15 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
 		const typeModel = await resolveTypeReference(typeRef)
-		elementId = ensureBase64Ext(typeModel, elementId)
+		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 
 		const range = await this.getRange(typeRef, listId)
-		return range != null && !firstBiggerThanSecond(elementId, range.upper) && !firstBiggerThanSecond(range.lower, elementId)
+		return range != null && !firstBiggerThanSecond(encodedElementId, range.upper) && !firstBiggerThanSecond(range.lower, encodedElementId)
 	}
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		const typeModel = await resolveTypeReference(typeRef)
-		start = ensureBase64Ext(typeModel, start)
+		const encodedStartId = ensureBase64Ext(typeModel, start)
 		const type = getTypeId(typeRef)
 		let formattedQuery
 		if (reverse) {
@@ -334,14 +333,14 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 								 FROM list_entities
 								 WHERE type = ${type}
 								   AND listId = ${listId}
-								   AND ${firstIdBigger(start, "elementId")}
+								   AND ${firstIdBigger(encodedStartId, "elementId")}
 								 ORDER BY LENGTH(elementId) DESC, elementId DESC LIMIT ${count}`
 		} else {
 			formattedQuery = sql`SELECT entity
 								 FROM list_entities
 								 WHERE type = ${type}
 								   AND listId = ${listId}
-								   AND ${firstIdBigger("elementId", start)}
+								   AND ${firstIdBigger("elementId", encodedStartId)}
 								 ORDER BY LENGTH(elementId) ASC, elementId ASC LIMIT ${count}`
 		}
 		const { query, params } = formattedQuery
@@ -354,18 +353,18 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async put(originalEntity: SomeEntity): Promise<void> {
 		const serializedEntity = this.serialize(originalEntity)
-		let { listId, elementId } = expandId(originalEntity._id)
+		const { listId, elementId } = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
 		const ownerGroup = originalEntity._ownerGroup
 		const typeModel = await resolveTypeReference(originalEntity._type)
-		elementId = ensureBase64Ext(typeModel, elementId)
+		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery: FormattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`INSERT
 				OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (
 				${type},
-				${elementId},
+				${encodedElementId},
 				${ownerGroup},
 				${serializedEntity}
 				)`
@@ -375,7 +374,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (
 				${type},
 				${listId},
-				${elementId},
+				${encodedElementId},
 				${ownerGroup},
 				${serializedEntity}
 				)`
@@ -385,7 +384,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (
 				${type},
 				${listId},
-				${elementId},
+				${encodedElementId},
 				${ownerGroup},
 				${serializedEntity}
 				)`
@@ -654,7 +653,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 	}
 
-	async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
+	private async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
 		const type = getTypeId(typeRef)
 		const { query, params } = sql`SELECT upper, lower
 									  FROM ranges
@@ -668,11 +667,12 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
 		if (elementIds.length === 0) return
 		const typeModel = await resolveTypeReference(typeRef)
+		const encodedElementIds = elementIds.map((elementIds) => ensureBase64Ext(typeModel, elementIds))
 		switch (typeModel.type) {
 			case TypeId.Element:
 				return await this.runChunked(
 					MAX_SAFE_SQL_VARS - 1,
-					elementIds,
+					encodedElementIds,
 					(c) => sql`DELETE
 							   FROM element_entities
 							   WHERE type = ${getTypeId(typeRef)}
@@ -681,7 +681,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			case TypeId.ListElement:
 				return await this.runChunked(
 					MAX_SAFE_SQL_VARS - 2,
-					elementIds,
+					encodedElementIds,
 					(c) => sql`DELETE
 							   FROM list_entities
 							   WHERE type = ${getTypeId(typeRef)}
@@ -691,7 +691,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			case TypeId.BlobElement:
 				return await this.runChunked(
 					MAX_SAFE_SQL_VARS - 2,
-					elementIds,
+					encodedElementIds,
 					(c) => sql`DELETE
 							   FROM blob_element_entities
 							   WHERE type = ${getTypeId(typeRef)}
@@ -723,7 +723,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async updateRangeForListAndDeleteObsoleteData<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await resolveTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
-		const convertedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
+		const encodedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
 
 		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
@@ -738,17 +738,17 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		if (range.lower === expectedMinId) {
 			const entities = await this.provideFromRange(typeRef, listId, expectedMinId, 1, false)
 			const id = mapNullable(entities[0], getElementId)
-			const rangeWontBeModified = id == null || firstBiggerThanSecond(id, convertedCutoffId) || id === convertedCutoffId
+			const rangeWontBeModified = id == null || firstBiggerThanSecond(id, encodedCutoffId) || id === encodedCutoffId
 			if (rangeWontBeModified) {
 				return
 			}
 		}
 
-		if (firstBiggerThanSecond(convertedCutoffId, range.lower)) {
+		if (firstBiggerThanSecond(encodedCutoffId, range.lower)) {
 			// If the upper id of the range is below the cutoff, then the entire range will be deleted from the storage
 			// so we just delete the range as well
 			// Otherwise, we only want to modify
-			if (firstBiggerThanSecond(convertedCutoffId, range.upper)) {
+			if (firstBiggerThanSecond(encodedCutoffId, range.upper)) {
 				await this.deleteRange(typeRef, listId)
 			} else {
 				await this.setLowerRangeForList(typeRef, listId, rawCutoffId)

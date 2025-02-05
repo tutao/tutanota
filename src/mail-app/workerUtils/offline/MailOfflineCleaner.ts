@@ -6,6 +6,7 @@ import {
 	DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP,
 	elementIdPart,
 	firstBiggerThanSecond,
+	firstBiggerThanSecondCustomId,
 	GENERATED_MAX_ID,
 	getElementId,
 	listIdPart,
@@ -155,7 +156,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		const mailSetEntriesToDelete: IdTuple[] = []
 		const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)
 		for (let mailSetEntry of mailSetEntries) {
-			if (firstBiggerThanSecond(cutoffId, getElementId(mailSetEntry))) {
+			if (firstBiggerThanSecondCustomId(cutoffId, getElementId(mailSetEntry))) {
 				mailSetEntriesToDelete.push(mailSetEntry._id)
 			}
 		}
