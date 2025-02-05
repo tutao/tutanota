@@ -9860,15 +9860,6 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"pubKeyMac": {
-				"final": false,
-				"name": "pubKeyMac",
-				"id": 2543,
-				"since": 120,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
 			"pubKyberKey": {
 				"final": true,
 				"name": "pubKyberKey",
@@ -9880,6 +9871,16 @@ export const typeModels = {
 			}
 		},
 		"associations": {
+			"pubKeyMac": {
+				"final": false,
+				"name": "pubKeyMac",
+				"id": 2543,
+				"since": 120,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "KeyMac",
+				"dependency": null
+			},
 			"userGroupId": {
 				"final": false,
 				"name": "userGroupId",

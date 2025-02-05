@@ -1260,7 +1260,7 @@ export class KeyRotationFacade {
 
 			const userGroupId = distributionKey.userGroupId
 			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupId)
-			const givenTag = distributionKey.pubKeyMac as MacTag
+			const givenTag = brandKeyMac(distributionKey.pubKeyMac).tag
 
 			this.keyAuthenticationFacade.verifyTag(
 				{

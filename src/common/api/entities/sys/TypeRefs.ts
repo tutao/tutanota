@@ -2424,9 +2424,9 @@ export type PubDistributionKey = {
 
 	_id: Id;
 	pubEccKey: Uint8Array;
-	pubKeyMac: Uint8Array;
 	pubKyberKey: Uint8Array;
 
+	pubKeyMac: KeyMac;
 	userGroupId: Id;
 }
 export const PubEncKeyDataTypeRef: TypeRef<PubEncKeyData> = new TypeRef("sys", "PubEncKeyData")
