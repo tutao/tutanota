@@ -14,9 +14,9 @@ type AuthenticationBindingData = {
 
 type BaseKeyAuthenticationParams = {
 	tagType: keyof typeof systemMap
-	sourceOfTrust: {}
+	sourceOfTrust: { [name: string]: AesKey }
 	// this can be a user group key, an admin group key, an admin group public key or a distribution public key
-	untrustedKey: {}
+	untrustedKey: { [name: string]: AesKey | PQPublicKeys }
 	bindingData: AuthenticationBindingData
 }
 
