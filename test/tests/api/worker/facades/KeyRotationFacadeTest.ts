@@ -1230,8 +1230,8 @@ o.spec("KeyRotationFacadeTest", function () {
 
 					const otherAdmin = "otherAdmin"
 					const distributionKeys = [
-						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin }),
-						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: user.userGroup.group }),
+						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin, pubKeyMac: object() }),
+						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: user.userGroup.group, pubKeyMac: object() }),
 					]
 					const userGroupIdsMissingDistributionKeys = []
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
@@ -1355,7 +1355,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					})
 
 					const otherAdmin = "otherAdmin"
-					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin })]
+					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin, pubKeyMac: object() })]
 					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
 						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),

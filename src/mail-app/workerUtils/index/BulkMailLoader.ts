@@ -31,8 +31,7 @@ export class BulkMailLoader {
 		private readonly mailEntityClient: EntityClient,
 		private readonly mailDataEntityClient: EntityClient,
 		private readonly cachedStorage: ExposedCacheStorage | null,
-	) {
-	}
+	) {}
 
 	loadMailsInRangeWithCache(
 		mailListId: Id,
