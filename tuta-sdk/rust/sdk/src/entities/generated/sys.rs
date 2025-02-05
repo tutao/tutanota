@@ -3009,9 +3009,8 @@ pub struct PubDistributionKey {
 	#[serde(with = "serde_bytes")]
 	pub pubEccKey: Vec<u8>,
 	#[serde(with = "serde_bytes")]
-	pub pubKeyMac: Vec<u8>,
-	#[serde(with = "serde_bytes")]
 	pub pubKyberKey: Vec<u8>,
+	pub pubKeyMac: KeyMac,
 	pub userGroupId: GeneratedId,
 }
 
