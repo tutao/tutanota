@@ -1,4 +1,5 @@
 // for exposing date_provider::stub
+pub mod calendar_facade;
 #[cfg(test)]
 pub(crate) mod date_provider;
 #[cfg(not(test))]
