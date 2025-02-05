@@ -154,7 +154,14 @@ export class MailViewerViewModel {
 		for (const update of events) {
 			if (isUpdateForTypeRef(MailTypeRef, update)) {
 				const { instanceListId, instanceId, operation } = update
-				if (operation === OperationType.UPDATE && isSameId(this.mail._id, [instanceListId, instanceId])) {
+				// we need to process create events here because update and create events are optimized into a single create event during processing
+				// when opening a mail from a notification while offline the view otherwise would not be updated when going online again,
+				// and we would keep displaying an outdated view of the mail instance. timeline:
+				// CREATE > Loaded and cached > Opened offline > Online > UPDATE (e.g. ownerEncSessionKey) > entity event processing starts
+				// CREATE and UPDATE are merged into single CREATE event > CREATE event is processed here
+				// and would be ignored even though the update is from after we loaded the mail.
+				// This is critical as it also concerns encryptionAuthStatus
+				if ((operation === OperationType.UPDATE || operation === OperationType.CREATE) && isSameId(this.mail._id, [instanceListId, instanceId])) {
 					try {
 						const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
 						this.updateMail({ mail: updatedMail })
