@@ -259,6 +259,9 @@ export class CalendarModel {
 	private async loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
 		const userController = this.logins.getUserController()
 
+		console.log({ user: userController.user })
+		console.log({ userSettingsGroupRoot: userController.userSettingsGroupRoot })
+
 		const notFoundMemberships: GroupMembership[] = []
 		const groupInstances: Array<[CalendarGroupRoot, GroupInfo, Group]> = []
 		for (const membership of userController.getCalendarMemberships()) {
@@ -282,6 +285,7 @@ export class CalendarModel {
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
 		const groupSettings = userController.userSettingsGroupRoot.groupSettings
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
+			console.log({ groupInfo })
 			try {
 				const groupMembers = await loadGroupMembers(group, this.entityClient)
 				const shared = groupMembers.length > 1
