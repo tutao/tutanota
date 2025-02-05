@@ -86,6 +86,7 @@ mod user_facade;
 mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
+use crate::date::calendar_facade::CalendarFacade;
 use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::entities::Entity;
 use crate::groups::GroupType;
@@ -483,6 +484,11 @@ impl LoggedInSdk {
 			self.user_facade.clone(),
 			self.service_executor.clone(),
 		)
+	}
+
+	#[must_use]
+	pub fn calendar_facade(&self) -> CalendarFacade {
+		CalendarFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
 	}
 
 	#[must_use]
