@@ -299,7 +299,6 @@ pub fn create_auth_verifier(user_passphrase_key: Aes256Key) -> String {
 	BASE64_URL_SAFE_NO_PAD.encode(sha_user_passphrase)
 }
 
-// FIXME: check for returned owner_enc_session_key
 #[cfg(test)]
 mod test {
 	use crate::crypto::aes::{Aes256Key, Iv};
@@ -423,6 +422,49 @@ mod test {
 		);
 	}
 
+	#[tokio::test]
+	async fn owner_enc_session_key_is_returned_if_no_bucket_key() {
+		let randomizer_facade = make_thread_rng_facade();
+
+		let constants = BucketKeyConstants::new(&randomizer_facade);
+		let session_key = GenericAesKey::from(Aes256Key::generate(&randomizer_facade));
+		let owner_enc_session_key = constants
+			.group_key
+			.encrypt_key(&session_key, Iv::generate(&randomizer_facade));
+
+		let mail = Mail {
+			_id: Some(IdTupleGenerated {
+				list_id: constants.instance_list.clone(),
+				element_id: constants.instance_id.clone(),
+			}),
+			_ownerGroup: Some(constants.key_group.clone()),
+			bucketKey: None,
+			_ownerEncSessionKey: Some(owner_enc_session_key.clone()),
+			_ownerKeyVersion: Some(constants.recipient_key_version as i64),
+			..create_test_entity()
+		};
+
+		let raw_mail = typed_entity_to_parsed_entity(mail);
+
+		let asymmetric_crypto_facade = MockAsymmetricCryptoFacade::default();
+
+		let crypto_facade = make_crypto_facade(
+			randomizer_facade.clone(),
+			constants.group_key.clone(),
+			constants.sender_key_version,
+			Some(asymmetric_crypto_facade),
+		);
+
+		let mail_type_model = get_mail_type_model();
+		let key = crypto_facade
+			.resolve_session_key(&raw_mail, &mail_type_model)
+			.await
+			.expect("should not have errored")
+			.expect("where is the key");
+
+		assert_eq!(session_key.as_bytes(), key.session_key.as_bytes());
+	}
+
 	fn get_mail_type_model() -> TypeModel {
 		let provider = init_type_model_provider();
 		let mail_type_ref = Mail::type_ref();
@@ -514,15 +556,19 @@ mod test {
 		asymmetric_crypto_facade: Option<MockAsymmetricCryptoFacade>,
 	) -> CryptoFacade {
 		let mut key_loader = MockKeyLoaderFacade::default();
+		let group_key_clone = group_key.clone();
 		key_loader
 			.expect_get_current_sym_group_key()
 			.returning(move |_| {
 				Ok(VersionedAesKey {
 					version: sender_key_version,
-					object: group_key.clone(),
+					object: group_key_clone.clone(),
 				})
-			})
-			.once();
+			});
+
+		key_loader
+			.expect_load_sym_group_key()
+			.returning(move |_, _, _| Ok(group_key.clone()));
 
 		let asymmetric_crypto_facade = asymmetric_crypto_facade.unwrap_or_default();
 

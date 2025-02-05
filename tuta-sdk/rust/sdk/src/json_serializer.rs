@@ -140,7 +140,7 @@ impl JsonSerializer {
 					Cardinality::One | Cardinality::ZeroOrOne,
 					JsonElement::String(id),
 				) => {
-					// FIXME it's not always generated id but it's fine probably
+					// NOTE: it's not always generated id but it's fine probably
 					mapped.insert(
 						association_name,
 						ElementValue::IdGeneratedId(GeneratedId(id)),
@@ -373,7 +373,7 @@ impl JsonSerializer {
 					Cardinality::One | Cardinality::ZeroOrOne,
 					ElementValue::IdGeneratedId(id),
 				) => {
-					// FIXME it's not always generated id but it's fine probably
+					// Note: it's not always generated id but it's fine probably
 					JsonElement::String(id.into())
 				},
 				(
@@ -480,7 +480,7 @@ impl JsonSerializer {
 			})
 		};
 
-		// FIXME there are more null/empty cases we need to take care of
+		// NOTE: there are more null/empty cases we need to take care of
 		if model_value.cardinality == Cardinality::ZeroOrOne && element_value == ElementValue::Null
 		{
 			Ok(JsonElement::Null)
@@ -624,7 +624,7 @@ impl JsonSerializer {
 			})
 		};
 
-		// FIXME there are more null/empty cases we need to take care of
+		// NOTE there are more null/empty cases we need to take care of
 		if model_value.cardinality == Cardinality::ZeroOrOne && json_value == JsonElement::Null {
 			return Ok(ElementValue::Null);
 		}

@@ -13,6 +13,47 @@ pub struct FileImport {
 	message_parser: MessageParser,
 }
 
+/// mail programs have different ways to structure their exports
+/// we want to normalize these into either eml or mbox files,
+/// so we take the path given to us by the user and apply
+/// transformations that make the path point at the actual
+/// mail content
+#[cfg_attr(test, derive(PartialEq, Debug))]
+enum ExportContent {
+	/// contains a single mail
+	Eml(PathBuf),
+	/// contains a bunch of mails
+	Mbox(PathBuf),
+}
+
+impl ExportContent {
+	/// convert a user-provided path into a form that can be given to the importer
+	pub fn try_from_path(path: PathBuf) -> Option<Self> {
+		if path.is_file() {
+			let ext = path.extension();
+			if ext == Some("mbox".as_ref()) {
+				Some(Self::Mbox(path))
+			} else if ext == Some("eml".as_ref()) {
+				Some(Self::Eml(path))
+			} else {
+				None
+			}
+		} else if path.is_dir() && path.extension() == Some("mbox".as_ref()) {
+			// apple mail exports are
+			// a directory with an .mbox extension that contains a file named mbox
+			// that contains the bunch of mails
+			let actual_mbox = path.join("mbox");
+			if actual_mbox.is_file() {
+				Some(Self::Mbox(actual_mbox))
+			} else {
+				None
+			}
+		} else {
+			None
+		}
+	}
+}
+
 impl FileImport {
 	fn next_importable_mail(&mut self) -> Result<Option<ImportableMail>, FileIterationError> {
 		let Some(eml_path) = self.queued_eml_paths.pop() else {
@@ -83,51 +124,53 @@ impl FileImport {
 			.map_err(|_| PreparationError::CanNotCreateImportDir)?;
 
 		for source_path in source_paths {
-			let is_mbox_file = source_path.extension() == Some("mbox".as_ref());
-			let is_eml_file = source_path.extension() == Some("eml".as_ref());
+			let export_content = ExportContent::try_from_path(source_path);
+			match export_content {
+				Some(ExportContent::Mbox(content)) => {
+					filename_producer.new_mbox(&content);
 
-			if is_mbox_file {
-				filename_producer.new_mbox(&source_path);
+					let file_buf_reader =
+						fs::File::open(&content)
+							.map(BufReader::new)
+							.map_err(|read_err| {
+								log::error!("Can not read file: {content:?}. Error: {read_err:?}");
+								PreparationError::FileReadError
+							})?;
 
-				let file_buf_reader =
-					fs::File::open(&source_path)
-						.map(BufReader::new)
-						.map_err(|read_err| {
-							log::error!("Can not read file: {source_path:?}. Error: {read_err:?}");
-							PreparationError::FileReadError
+					let msg_iterator = MessageIterator::new(file_buf_reader);
+					for parsed_message in msg_iterator {
+						let eml_filepath = filename_producer.new_file_of_current_mbox();
+
+						let parsed_message = parsed_message.map_err(|parse_err| {
+							log::error!("Can not parse a message from mbox: {parse_err:?}");
+							PreparationError::NotAValidEmailFile
 						})?;
 
-				let msg_iterator = MessageIterator::new(file_buf_reader);
-				for parsed_message in msg_iterator {
-					let eml_filepath = filename_producer.new_file_of_current_mbox();
-
-					let parsed_message = parsed_message.map_err(|parse_err| {
-						log::error!("Can not parse a message from mbox: {parse_err:?}");
-						PreparationError::NotAValidEmailFile
-					})?;
-
-					fs::write(
-						import_directory_path.join(eml_filepath.clone()),
-						parsed_message.contents(),
-					)
-					.map_err(|write_e| {
-						log::error!(
+						fs::write(
+							import_directory_path.join(eml_filepath.clone()),
+							parsed_message.contents(),
+						)
+						.map_err(|write_e| {
+							log::error!(
 							"Can not write deconstructed eml: {eml_filepath:?}. Error: {write_e:?}"
 						);
+							PreparationError::EmlFileWriteFailure
+						})?;
+					}
+				},
+				Some(ExportContent::Eml(content)) => {
+					let target_eml_file_path = filename_producer.new_plain_eml(&content);
+
+					fs::copy(&content, &target_eml_file_path).map_err(|copy_err| {
+						log::error!("Can not copy eml: {content:?}. Error: {copy_err:?}");
 						PreparationError::EmlFileWriteFailure
 					})?;
-				}
-			} else if is_eml_file {
-				let target_eml_file_path = filename_producer.new_plain_eml(&source_path);
-
-				fs::copy(&source_path, &target_eml_file_path).map_err(|copy_err| {
-					log::error!("Can not copy eml: {source_path:?}. Error: {copy_err:?}");
-					PreparationError::EmlFileWriteFailure
-				})?;
-			} else {
-				// we're ignoring files that are not eml or mbox because we try to
-				// configure the dialog to only allow selecting those.
-				// user probably uses some weird setup.
+				},
+				None => {
+					// we're ignoring files that are not eml or mbox because we try to
+					// configure the dialog to only allow selecting those.
+					// user probably uses some weird setup.
+				},
 			}
 		}
 
@@ -187,9 +230,9 @@ impl FileImport {
 
 #[cfg(test)]
 mod test {
-	use crate::importer::file_reader::FileImport;
+	use crate::importer::file_reader::{ExportContent, FileImport};
 	use crate::importer::{Importer, STATE_ID_FILE_NAME};
-	use crate::test_utils::get_test_id;
+	use crate::test_utils::{get_test_id, CleanDir};
 	use std::fs;
 	use std::fs::File;
 	use std::io::Write;
@@ -380,6 +423,46 @@ Yeah, but I really did not like it. Had higher hopes after watching that Simpson
 		}
 	}
 
+	#[test]
+	fn should_find_mbox_in_apple_exported_directory() {
+		let test_dir = PathBuf::from("/tmp/should_find_mbox_in_apple_exported_directory");
+		let _teardown = CleanDir {
+			dir: test_dir.clone(),
+		};
+		fs::create_dir(&test_dir).unwrap();
+
+		let apple_export = test_dir.join("apple-export.mbox");
+		fs::create_dir(&apple_export).unwrap();
+		fs::write(test_dir.join("apple-export.mbox/mbox"), "").unwrap();
+
+		let export_content = ExportContent::try_from_path(apple_export).unwrap();
+		assert_eq!(
+			ExportContent::Mbox(PathBuf::from(
+				"/tmp/should_find_mbox_in_apple_exported_directory/apple-export.mbox/mbox"
+			)),
+			export_content
+		);
+	}
+
+	#[test]
+	fn should_ignore_all_other_dirs() {
+		let test_dir = PathBuf::from("/tmp/should_ignore_all_other_dirs");
+		let _teardown = CleanDir {
+			dir: test_dir.clone(),
+		};
+		fs::create_dir(&test_dir).unwrap();
+
+		let apple_export = test_dir.join("apple-export.mbox");
+		fs::create_dir(&apple_export).unwrap();
+		fs::write(test_dir.join("apple-export.mbox/mbux"), "").unwrap();
+
+		let apple_export2 = test_dir.join("apple-export2.mbux");
+		fs::create_dir(&apple_export2).unwrap();
+		fs::write(test_dir.join("apple-export2.mbux/mbox"), "").unwrap();
+
+		assert_eq!(None, ExportContent::try_from_path(apple_export));
+		assert_eq!(None, ExportContent::try_from_path(apple_export2));
+	}
 	#[tokio::test]
 	async fn should_remove_previous_emls_while_preparing_new_import() {
 		let config_dir_string = "/tmp/should_remove_previous_emls_while_preparing_new_import";
