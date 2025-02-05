@@ -68,17 +68,19 @@ pipeline {
 						expression { params.STAGING }
 					}
 					steps {
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
+						lock('ios-build-intel') {
+							script {
+								def util = load "ci/jenkins-lib/util.groovy"
 
-							buildWebapp("test")
-							generateXCodeProjects()
+								buildWebapp("test")
+								generateXCodeProjects()
 
-							util.runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
-							if (params.RELEASE) {
-								util.runFastlane("de.tutao.calendar.test", "calendar_testflight_staging")
+								util.runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
+								if (params.RELEASE) {
+									util.runFastlane("de.tutao.calendar.test", "calendar_testflight_staging")
+								}
+								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 							}
-							stash includes: "app-ios/releases/calendar-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 						}
 					}
 				}
@@ -87,18 +89,20 @@ pipeline {
 						expression { params.PROD }
 					}
 					steps {
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
+						lock('ios-build-intel') {
+							script {
+								def util = load "ci/jenkins-lib/util.groovy"
 
-							buildWebapp("prod")
-							generateXCodeProjects()
-							util.runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
+								buildWebapp("prod")
+								generateXCodeProjects()
+								util.runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
 
-							if (params.RELEASE) {
-								util.runFastlane("de.tutao.calendar", "build_calendar_prod")
-								stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
-							} else {
-								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
+								if (params.RELEASE) {
+									util.runFastlane("de.tutao.calendar", "build_calendar_prod")
+									stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
+								} else {
+									stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-production'
+								}
 							}
 						}
 					}

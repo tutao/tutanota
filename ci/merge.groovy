@@ -180,7 +180,7 @@ pipeline {
 						label "mac-m1"
 					}
 					when {
-						expression { hasRelevantChangesIn(changeset, "app-ios", "tuta-sdk") }
+						expression { hasRelevantChangesIn(changeset, "app-ios") }
 					}
 					steps {
 						lock("ios-build-m1") {
@@ -193,7 +193,7 @@ pipeline {
 						label "mac-intel"
 					}
 					when {
-						expression { hasRelevantChangesIn(changeset, "app-ios", "tuta-sdk") }
+						expression { hasRelevantChangesIn(changeset, "app-ios") }
 					}
 					steps {
 						lock("ios-build-infra") {
