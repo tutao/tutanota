@@ -363,7 +363,7 @@ impl ImportEssential {
 			newImportedMailSetName: "@internal-mailset".to_string(),
 			ownerEncSessionKey: owner_enc_sk_for_import_state_get.object,
 			ownerGroup: target_owner_group,
-			ownerKeyVersion: owner_enc_sk_for_import_state_get.version,
+			ownerKeyVersion: owner_enc_sk_for_import_state_get.version as i64,
 			totalMails: total_importable_mails,
 			targetMailFolder: target_mailset,
 			_errors: None,
