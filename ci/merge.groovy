@@ -125,7 +125,9 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "app-ios") }
 					}
 					steps {
-						prepareSwiftLint(true)
+						lock("ios-build-m1") {
+							prepareSwiftLint(true)
+						}
 					}
 				}
 				stage("prepare swift on intel") {
@@ -136,7 +138,9 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "app-ios") }
 					}
 					steps {
-						prepareSwiftLint(false)
+						lock("ios-build-intel") {
+							prepareSwiftLint(false)
+						}
 					}
 				}
 			}
@@ -179,7 +183,9 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "app-ios", "tuta-sdk") }
 					}
 					steps {
-						testFastlane("test_tuta_app")
+						lock("ios-build-m1") {
+							testFastlane("test_tuta_app")
+						}
 					}
 				}
 				stage("ios framework tests") {
@@ -190,7 +196,9 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "app-ios", "tuta-sdk") }
 					}
 					steps {
-						testFastlane("test_tuta_shared_framework")
+						lock("ios-build-infra") {
+							testFastlane("test_tuta_shared_framework")
+						}
 					}
 				}
 				stage("sdk tests") {
