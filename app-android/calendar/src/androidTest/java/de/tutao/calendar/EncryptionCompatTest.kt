@@ -193,18 +193,12 @@ class CompatibilityTest {
 	}
 
 	@Test
-	suspend fun argon2idTest() {
+	fun argon2idTest() = runBlocking {
 		for (td in testData.argon2idTests) {
 			val key = hexToBytes(td.keyHex)
 			val salt = hexToBytes(td.saltHex)
-			val result = crypto.argon2idGeneratePassphraseKey(
-				td.password,
-				salt.wrap()
-			)
-			assertArrayEquals(
-				key,
-				result.data
-			)
+			val password = td.password
+			assertArrayEquals(key, crypto.argon2idGeneratePassphraseKey(password, salt.wrap()).data)
 		}
 	}
 
@@ -218,9 +212,8 @@ class CompatibilityTest {
 				hexToBytes(testData.input).wrap(),
 				hexToBytes(testData.seed).wrap()
 			).data
-			//String hexResult = bytesToHex(encryptedResultBytes);
-			//assertEquals(testData.getResult(), hexResult);
-			//cannot compare encrypted test data because default android implementation ignores randomizer
+			val hexResult = bytesToHex(encryptedResult)
+			assertEquals(testData.result, hexResult)
 			val plainText = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), encryptedResult.wrap()).data
 			assertEquals(testData.input, bytesToHex(plainText))
 			val plainTextFromTestData =
@@ -230,15 +223,23 @@ class CompatibilityTest {
 	}
 
 	@Test
-	@Throws(CryptoError::class)
-	fun kyber() = runBlocking {
+	fun kyber_roundtrip() = runBlocking {
 		for (td in testData.kyberEncryptionTests) {
-			// we need to use the same seed so that we always obtain the same encapsulation
 			val privateKey: KyberPrivateKey = hexToKyberPrivateKey(td.privateKey)
 			val publicKey: KyberPublicKey = hexToKyberPublicKey(td.publicKey)
 			val encapsulation = crypto.kyberEncapsulate(publicKey, hexToBytes(td.seed).wrap())
-			assertEquals(td.cipherText, bytesToHex(encapsulation.ciphertext.data))
-			assertEquals(td.sharedSecret, bytesToHex(encapsulation.sharedSecret.data))
+			val sharedSecret = crypto.kyberDecapsulate(privateKey, encapsulation.ciphertext)
+			assertEquals(encapsulation.sharedSecret, sharedSecret)
+		}
+	}
+
+	@Test
+	@Throws(CryptoError::class)
+	fun kyber() = runBlocking {
+		for (td in testData.kyberEncryptionTests) {
+			// we can't test encapsulation because we can't inject entropy in our current impl, only test decapsulation
+			// and roundtrip in another test
+			val privateKey: KyberPrivateKey = hexToKyberPrivateKey(td.privateKey)
 			val sharedSecret = crypto.kyberDecapsulate(privateKey, hexToBytes(td.cipherText).wrap())
 			assertEquals(td.sharedSecret, bytesToHex(sharedSecret.data))
 		}
@@ -380,10 +381,6 @@ class CompatibilityTest {
 					}
 				}
 			}
-		}
-
-		init {
-			System.loadLibrary("tutanota")
 		}
 	}
 }
