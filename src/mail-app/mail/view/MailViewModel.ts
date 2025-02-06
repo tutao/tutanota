@@ -1,8 +1,6 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
-	ConversationEntry,
-	ConversationEntryTypeRef,
 	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
 	Mail,
@@ -79,8 +77,11 @@ export class MailViewModel {
 	 */
 	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
 	private listStreamSubscription: Stream<unknown> | null = null
+
+	/** These values are used to detect settings changes in init(). */
 	private conversationPref: boolean = false
-	private mailListDisplayModePref: boolean = false
+	private currentMailListDisplayMode: MailListDisplayMode | null = null
+
 	/** A slightly hacky marker to avoid concurrent URL updates. */
 	private currentShowTargetMarker: object = {}
 
@@ -331,7 +332,7 @@ export class MailViewModel {
         If not, only the primary mail is returned, since that is the one being looked at/interacted with.
      */
 	async getActionableMails(mails: Mail[]): Promise<ReadonlyArray<Mail>> {
-		if (this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS) {
+		if (this.preferredListingMode() === MailListDisplayMode.CONVERSATIONS) {
 			return this.mailModel.loadConversationsForAllMails(mails)
 		} else {
 			return mails
@@ -348,7 +349,7 @@ export class MailViewModel {
 	init() {
 		this.onceInit()
 		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
-		const mailListModePref = this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
+		const expectedMailListDisplayMode = this.preferredListingMode()
 		if (this.conversationViewModel && this.conversationPref !== conversationDisabled) {
 			const mail = this.conversationViewModel.primaryMail
 			this.createConversationViewModel({
@@ -361,9 +362,7 @@ export class MailViewModel {
 
 		this.conversationPref = conversationDisabled
 
-		const oldGroupMailsByConversationPref = this.mailListDisplayModePref
-		this.mailListDisplayModePref = mailListModePref
-		if (oldGroupMailsByConversationPref !== mailListModePref) {
+		if (this.currentMailListDisplayMode !== expectedMailListDisplayMode) {
 			// if the preference for conversation in list has changed we need to re-create the list model
 			this.updateListModel()
 		}
@@ -414,32 +413,38 @@ export class MailViewModel {
 		if (this._folder == null) {
 			this.listStreamSubscription?.end(true)
 			this.listStreamSubscription = null
+			this.currentMailListDisplayMode = null
 			this._listModel = null
 		} else {
 			// Capture state to avoid race conditions.
 			// We need to populate mail set entries cache when loading mails so that we can react to updates later.
 			const folder = this._folder
+			this.currentMailListDisplayMode = assertNotNull(this.preferredListingMode())
 
 			let listModel: MailSetListModel
-			if (this.mailListDisplayModePref && !this.folderNeverGroupsMails(folder)) {
-				listModel = new ConversationListModel(
-					folder,
-					this.conversationPrefProvider,
-					this.entityClient,
-					this.mailModel,
-					this.inboxRuleHandler,
-					this.cacheStorage,
-				)
-			} else {
-				listModel = new MailListModel(
-					folder,
-					this.conversationPrefProvider,
-					this.entityClient,
-					this.mailModel,
-					this.inboxRuleHandler,
-					this.cacheStorage,
-				)
+			switch (this.currentMailListDisplayMode) {
+				case MailListDisplayMode.CONVERSATIONS:
+					listModel = new ConversationListModel(
+						folder,
+						this.conversationPrefProvider,
+						this.entityClient,
+						this.mailModel,
+						this.inboxRuleHandler,
+						this.cacheStorage,
+					)
+					break
+				case MailListDisplayMode.MAILS:
+					listModel = new MailListModel(
+						folder,
+						this.conversationPrefProvider,
+						this.entityClient,
+						this.mailModel,
+						this.inboxRuleHandler,
+						this.cacheStorage,
+					)
+					break
 			}
+
 			this.listStreamSubscription?.end(true)
 			this.listStreamSubscription = listModel.stateStream.map((state: ListState<Mail>) => this.onListStateChange(listModel, state))
 			listModel.loadInitial().then(() => {
@@ -761,7 +766,22 @@ export class MailViewModel {
 		await this.mailModel.deleteLabel(label)
 	}
 
-	private folderNeverGroupsMails(mailSet: MailFolder): boolean {
-		return MAIL_LIST_FOLDERS.includes(mailSet.folderType as MailSetKind)
+	/**
+	 * @return the listing mode to be used for the current folder, or null if no folder is loaded
+	 */
+	private preferredListingMode(): MailListDisplayMode | null {
+		return this._folder && listingModeForFolder(this._folder, this.conversationPrefProvider)
+	}
+}
+
+/**
+ * @return the listing mode that will be used for the given folder for a conversation
+ */
+export function listingModeForFolder(folder: MailFolder, conversationPrefProvider: ConversationPrefProvider): MailListDisplayMode {
+	const conversationDisabled = conversationPrefProvider.getConversationViewShowOnlySelectedMail()
+	if (conversationDisabled || MAIL_LIST_FOLDERS.includes(folder.folderType as MailSetKind)) {
+		return MailListDisplayMode.MAILS
+	} else {
+		return conversationPrefProvider.getMailListDisplayMode()
 	}
 }
