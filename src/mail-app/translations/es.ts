@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-01-30T12:22:16Z",
+	"updated_at": "2025-02-04T14:41:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1276,6 +1276,7 @@ export default {
 		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>Usa tus propias direcciones de dominio de correo personalizadas (yo@miempresa.com).</p>\n",
 		"pricing.comparisonDomainPremium_msg": "1 dominio personalizado",
 		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>Usa tus propias direcciones de dominio de correo personalizadas (yo@ minombre.com)</p>\n",
+		"pricing.comparisonEmailImport_msg": "Importación de correo electrónico",
 		"pricing.comparisonEventInvites_msg": "Invitaciones a eventos",
 		"pricing.comparisonEventInvites_tooltip": "Envía recibe invitaciones de calendario. Opcionalmente, envía las invitaciones cifradas a usuarios externos con la ayuda de una contraseña compartida.",
 		"pricing.comparisonInboxRulesPremium_msg": "Reglas de buzón ilimitado",
@@ -1657,7 +1658,7 @@ export default {
 		"subscriptionSettings_label": "Ajustes de suscripción",
 		"subscription_label": "Suscripción",
 		"supportBackLostRequest_msg": "¿Seguro que quieres volver? Tu solicitud se perderá.",
-		"supportForm_msg": "Por favor, facilítanos más detalles para que podamos ayudarte mejor.",
+		"supportForm_msg": "Por favor, facilítanos más detalles (en inglés o alemán) para que podamos ayudarte mejor.",
 		"supportForm_title": "Vayamos al fondo del asunto",
 		"supportMenu_label": "Soporte",
 		"supportNoDirectSupport_msg": "Puedes obtener más ayuda a través de nuestra página oficial de preguntas frecuentes. Alternativamente, puedes actualizar para obtener soporte directo por correo electrónico.",
