@@ -129,6 +129,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 
 	mutating func next() -> EventOccurrence? {
 		if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
+		if intervalNumber > EVENTS_SCHEDULED_AHEAD { return nil }
 
 		if expandedEvents.isEmpty {
 			let nextExpansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
@@ -136,7 +137,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			let eventFacade = EventFacade()
 			let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
 			let generatedEvents = eventFacade.generateFutureInstances(
-				date: progenitorTime * 1000,
+				date: progenitorTime,
 				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)
 			)
 			self.expandedEvents.append(contentsOf: generatedEvents)
@@ -162,7 +163,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 
 				return true
 			}
-			.map { (_, event) in event }
+			.map { (_, event) in event }.sorted { $1 < $0 }
 
 		if let date = expandedEvents.popLast() {
 			occurrenceNumber += 1
