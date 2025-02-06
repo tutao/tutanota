@@ -62,7 +62,7 @@ type PrivateListState<ItemType> = Omit<ListState<ItemType>, "items" | "activeInd
 export class ListModel<ItemType, IdType> {
 	constructor(private readonly config: ListModelConfig<ItemType, IdType>) {}
 
-	private loadState: "created" | "initialized" = "created"
+	private initialLoading: Promise<unknown> | null = null
 	private loading: Promise<unknown> = Promise.resolve()
 	private filter: ListFilter<ItemType> | null = null
 	private rangeSelectionAnchorItem: ItemType | null = null
@@ -115,7 +115,7 @@ export class ListModel<ItemType, IdType> {
 	private waitUtilInit(): Promise<unknown> {
 		const deferred = defer()
 		const subscription = this.rawStateStream.map(() => {
-			if (this.loadState === "initialized") {
+			if (this.initialLoading != null) {
 				Promise.resolve().then(() => {
 					subscription.end(true)
 					deferred.resolve(undefined)
@@ -126,25 +126,25 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	async loadInitial() {
-		if (this.loadState !== "created") {
-			return
+		// execute the loading only once
+		if (this.initialLoading == null) {
+			this.initialLoading = this.doLoad()
 		}
-		this.loadState = "initialized"
-		await this.doLoad()
+		await this.initialLoading
 	}
 
 	async loadMore() {
 		if (this.rawState.loadingStatus === ListLoadingState.Loading) {
 			return this.loading
 		}
-		if (this.loadState !== "initialized" || this.rawState.loadingStatus !== ListLoadingState.Idle) {
+		if (this.initialLoading == null || this.rawState.loadingStatus !== ListLoadingState.Idle) {
 			return
 		}
 		await this.doLoad()
 	}
 
 	async retryLoading() {
-		if (this.loadState !== "initialized" || this.rawState.loadingStatus !== ListLoadingState.ConnectionLost) {
+		if (this.initialLoading == null || this.rawState.loadingStatus !== ListLoadingState.ConnectionLost) {
 			return
 		}
 		await this.doLoad()
