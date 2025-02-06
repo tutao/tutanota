@@ -29,8 +29,10 @@ impl AttachmentUploadData {
 
 		let eml_file_path = importable_mail.eml_file_path.clone();
 		let attachments = importable_mail.take_out_attachments();
-		let import_mail_data = importable_mail
-			.make_import_mail_data(owner_enc_session_key.object, owner_enc_session_key.version as i64);
+		let import_mail_data = importable_mail.make_import_mail_data(
+			owner_enc_session_key.object,
+			owner_enc_session_key.version as i64,
+		);
 
 		AttachmentUploadData {
 			keyed_import_mail_data: KeyedImportMailData {
