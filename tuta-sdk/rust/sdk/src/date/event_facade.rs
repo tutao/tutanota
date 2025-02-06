@@ -538,29 +538,49 @@ impl EventFacade {
 				{
 					new_dates.push(*date)
 				} else if frequency == &RepeatPeriod::Weekly && target_week_day.is_some() {
-					let mut new_date = date.replace_date(
-						Date::from_iso_week_date(
-							date.year(),
-							date.iso_week(),
-							Weekday::from_short(target_week_day.unwrap().as_str()),
-						)
-						.unwrap(),
-					);
-					let interval_start = date.replace_date(
-						Date::from_iso_week_date(date.year(), date.iso_week(), week_start).unwrap(),
-					);
+					let parsed_target_week_day =
+						Weekday::from_short(target_week_day.unwrap().as_str());
+					let mut interval_start = *date;
+					while interval_start.date().weekday() != week_start {
+						interval_start = interval_start.sub(Duration::days(1));
+					}
+
+					let mut new_date = interval_start;
+					while new_date.weekday() != parsed_target_week_day {
+						new_date = new_date.add(Duration::days(1))
+					}
+
+					/*
+									   if interval_start.assume_utc().unix_timestamp()
+										   < date.assume_utc().unix_timestamp()
+									   {
+										   interval_start = interval_start.add(Duration::weeks(1))
+									   }
+					*/
+					let next_event = date.add(Duration::weeks(1)).assume_utc().unix_timestamp();
 
 					if new_date.assume_utc().unix_timestamp()
-						> interval_start
+						>= interval_start
 							.add(Duration::weeks(1))
 							.assume_utc()
 							.unix_timestamp()
 					{
 						continue;
 					} else if new_date.assume_utc().unix_timestamp()
-						< interval_start.assume_utc().unix_timestamp()
+						< date.assume_utc().unix_timestamp()
 					{
 						new_date = new_date.add(Duration::weeks(1));
+					}
+
+					if (new_date.assume_utc().unix_timestamp() >= next_event)
+						|| (week_start != Weekday::Monday // We have WKST
+                        && new_date.assume_utc().unix_timestamp()
+                        >= interval_start
+                        .add(Duration::weeks(1))
+                        .assume_utc()
+                        .unix_timestamp())
+					{
+						continue;
 					}
 
 					if valid_months.is_empty()
@@ -2221,7 +2241,39 @@ mod tests {
 	}
 
 	#[test]
-	fn test_flow_weekly_with_by_day_and_wkst() {
+	fn test_flow_weekly_with_by_day_edge() {
+		let time = Time::from_hms(13, 23, 00).unwrap();
+		let date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::February, 2).unwrap(),
+			time,
+		);
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Weekly,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "MO".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "TU".to_string(),
+				},
+			],
+		};
+
+		let event_recurrence = EventFacade {};
+		assert_eq!(
+			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			[
+				date.replace_day(3).unwrap().to_date_time(),
+				date.replace_day(4).unwrap().to_date_time()
+			]
+		);
+	}
+
+	#[test]
+	fn test_flow_weekly_with_by_day_and_wkst_edge() {
 		let time = Time::from_hms(13, 23, 00).unwrap();
 		let date = PrimitiveDateTime::new(
 			Date::from_calendar_date(2025, Month::February, 10).unwrap(),
@@ -2249,9 +2301,42 @@ mod tests {
 		let event_recurrence = EventFacade {};
 		assert_eq!(
 			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			[date.replace_day(13).unwrap().to_date_time(),]
+		);
+	}
+
+	#[test]
+	fn test_flow_weekly_with_by_day_and_wkst() {
+		let time = Time::from_hms(13, 23, 00).unwrap();
+		let date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::February, 7).unwrap(),
+			time,
+		);
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Weekly,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::Wkst,
+					interval: "FR".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "TH".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "FR".to_string(),
+				},
+			],
+		};
+
+		let event_recurrence = EventFacade {};
+		assert_eq!(
+			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
 			[
-				date.replace_day(14).unwrap().to_date_time(),
-				date.replace_day(20).unwrap().to_date_time()
+				date.replace_day(7).unwrap().to_date_time(),
+				date.replace_day(13).unwrap().to_date_time(),
 			]
 		);
 	}
