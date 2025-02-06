@@ -126,15 +126,15 @@ class AlarmManagerTest: XCTestCase {
 			[
 				ScheduledAlarmInfo(
 					alarmTime: start2.advanced(by: 24, .hours).advanced(by: -10, .minutes),
-					occurrence: 1,
-					identifier: ocurrenceIdentifier(alarmIdentifier: alarm2.identifier, occurrence: 1),
+					occurrence: 2,
+					identifier: ocurrenceIdentifier(alarmIdentifier: alarm2.identifier, occurrence: 2),
 					summary: alarm2.summary,
 					eventDate: start2.advanced(by: 24, .hours)
 				),
 				ScheduledAlarmInfo(
 					alarmTime: start2.advanced(by: -10, .minutes),
-					occurrence: 0,
-					identifier: ocurrenceIdentifier(alarmIdentifier: alarm2.identifier, occurrence: 0),
+					occurrence: 1,
+					identifier: ocurrenceIdentifier(alarmIdentifier: alarm2.identifier, occurrence: 1),
 					summary: alarm2.summary,
 					eventDate: start2
 				),
