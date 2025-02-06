@@ -421,7 +421,7 @@ export class MailViewModel {
 			const folder = this._folder
 
 			let listModel: MailSetListModel
-			if (this._groupMailsByConversation(folder)) {
+			if (this.groupMailsByConversation(folder)) {
 				listModel = new ConversationListModel(
 					folder,
 					this.conversationPrefProvider,
@@ -772,21 +772,24 @@ export class MailViewModel {
 	}
 
 	/**
-	 * Returns true if mails should be grouped by conversation in mail list based on user preference and current folder
+	 * Returns true if mails should be grouped by conversation in mail list based on user preference and a folder
+	 * @param folder the folder to check or, by default, the current folder
 	 */
-	groupMailsByConversation() {
-		return this._groupMailsByConversation(this._folder)
+	groupMailsByConversation(folder: MailFolder | null = this._folder) {
+		return listByConversationInFolder(this.conversationPrefProvider, folder)
 	}
+}
 
-	private _groupMailsByConversation(folder: MailFolder | null): boolean {
-		const onlySelectedMailInViewer = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
-		const prefersConversationInList =
-			!onlySelectedMailInViewer && this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
+/**
+ * @return true if mails should be grouped by conversation in mail list based on user preference and a given {@param folder}
+ */
+export function listByConversationInFolder(conversationPrefProvider: ConversationPrefProvider, folder: MailFolder | null): boolean {
+	const onlySelectedMailInViewer = conversationPrefProvider.getConversationViewShowOnlySelectedMail()
+	const prefersConversationInList = !onlySelectedMailInViewer && conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
 
-		if (folder != null) {
-			return !MAIL_LIST_FOLDERS.includes(folder.folderType as MailSetKind) && prefersConversationInList
-		} else {
-			return prefersConversationInList
-		}
+	if (folder != null) {
+		return prefersConversationInList && !MAIL_LIST_FOLDERS.includes(folder.folderType as MailSetKind)
+	} else {
+		return prefersConversationInList
 	}
 }
