@@ -72,7 +72,7 @@ class AlarmModelTest: XCTestCase {
 		let result = plan(alarms: [alarm])
 
 		XCTAssertEqual(result.count, 3)
-		XCTAssertEqual(result[2].occurrenceNumber, 2)
+		XCTAssertEqual(result[2].occurrenceNumber, 3)
 	}
 
 	func testWhenRepeatedAlarmStartsBeforeNowOnlyFutureOcurrencesArePlanned() {
@@ -93,7 +93,7 @@ class AlarmModelTest: XCTestCase {
 		let result = plan(alarms: [alarm])
 
 		XCTAssertEqual(result.count, 2)
-		XCTAssertEqual(result[1].occurrenceNumber, 2)
+		XCTAssertEqual(result[1].occurrenceNumber, 3)
 	}
 
 	func testWhenMultipleAlarmsArePresentOnlyTheNewestOccurrencesArePlanned() {
@@ -169,8 +169,8 @@ class AlarmModelTest: XCTestCase {
 		let occurrences = prefix(seq: seq, 5).map { $0.eventOccurrenceTime }
 
 		let expected = [
-			date(2025, 2, 2, 11, timeZone), date(2025, 2, 3, 11, timeZone), date(2025, 2, 4, 11, timeZone), date(2025, 2, 10, 11, timeZone),
-			date(2025, 2, 11, 11, timeZone),
+			date(2025, 2, 2, 12, timeZone), date(2025, 2, 3, 12, timeZone), date(2025, 2, 4, 12, timeZone), date(2025, 2, 10, 12, timeZone),
+			date(2025, 2, 11, 12, timeZone),
 		]
 		XCTAssertEqual(occurrences, expected)
 	}
