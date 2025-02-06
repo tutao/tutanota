@@ -242,20 +242,6 @@ o.spec("SearchFacade test", () => {
 			[["listId2", id2]],
 		)
 	})
-	o("find folderId legacy MailFolders (non-static mail listIds)", () => {
-		let mail1 = createTestEntity(MailTypeRef, { _id: ["mailListId1", id1] })
-		when(entityClient.load(MailTypeRef, mail1._id)).thenReturn(Promise.resolve(mail1))
-		let mail2 = createTestEntity(MailTypeRef, { _id: ["mailListId2", id2] })
-		when(entityClient.load(MailTypeRef, mail2._id)).thenReturn(Promise.resolve(mail2))
-
-		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
-			[mail1._id, mail2._id],
-			"test",
-			createMailRestriction(null, listIdPart(mail2._id)),
-			[mail2._id],
-		)
-	})
 	o("find folderId new MailSets (static mail listIds)", () => {
 		const mail1 = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", id1],

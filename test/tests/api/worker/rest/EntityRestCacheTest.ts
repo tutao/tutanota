@@ -16,7 +16,6 @@ import {
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { arrayOf, clone, deepEqual, downcast, isSameTypeRef, last, neverNull, TypeRef } from "@tutao/tutanota-utils"
 import {
-	BucketKeyTypeRef,
 	CustomerTypeRef,
 	EntityUpdate,
 	EntityUpdateTypeRef,
@@ -24,7 +23,6 @@ import {
 	GroupKeyTypeRef,
 	GroupMembershipTypeRef,
 	GroupRootTypeRef,
-	InstanceSessionKeyTypeRef,
 	MailAddressToGroupTypeRef,
 	PermissionTypeRef,
 	RootInstanceTypeRef,
@@ -47,6 +45,7 @@ import {
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
@@ -580,6 +579,32 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				unmockAttribute(loadMock)
 			})
 
+			o("MailSetEntry should not be loaded when a move event is received", async function () {
+				const instance = createTestEntity(MailSetEntryTypeRef, { _id: ["listId1", "id1"] })
+				await storage.put(instance)
+
+				const newListId = "listid2"
+				const newInstance = clone(instance)
+				newInstance._id = [newListId, getElementId(instance)]
+
+				// The moved mail will not be loaded from the server
+				await cache.entityEventsReceived(
+					makeBatch([
+						createUpdate(MailSetEntryTypeRef, getListId(instance), getElementId(instance), OperationType.DELETE),
+						createUpdate(MailSetEntryTypeRef, newListId, getElementId(instance), OperationType.CREATE),
+					]),
+				)
+
+				const load = spy(() => Promise.reject(new Error("error from test")))
+				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
+				const thrown = await assertThrows(Error, () => cache.load(MailSetEntryTypeRef, [getListId(instance), getElementId(instance)]))
+				o(thrown.message).equals("error from test")
+				o(load.callCount).equals(1)("load is called once")
+				const result2 = await cache.load(MailSetEntryTypeRef, [newListId, getElementId(instance)])
+				o(result2).deepEquals(newInstance)("Cached instance is a newInstance")
+				unmockAttribute(loadMock)
+			})
+
 			o("element should be deleted from the cache when a delete event is received", async function () {
 				const archiveId = "archiveId"
 				const mailDetailsId = "detailsId1"
@@ -599,76 +624,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// we tried to reload the mail body using the rest client, because it was removed from the cache
 				o(load.callCount).equals(1)
 			})
-
-			o("Mail should not be loaded when a move event is received", async function () {
-				const instance = createMailInstance("listId1", "id1", "henlo")
-				await storage.put(instance)
-
-				const newListId = "listid2"
-				const newInstance = clone(instance)
-				newInstance._id = [newListId, getElementId(instance)]
-
-				// The moved mail will not be loaded from the server
-				await cache.entityEventsReceived(
-					makeBatch([
-						createUpdate(MailTypeRef, getListId(instance), getElementId(instance), OperationType.DELETE),
-						createUpdate(MailTypeRef, newListId, getElementId(instance), OperationType.CREATE),
-					]),
-				)
-
-				const load = spy(() => Promise.reject(new Error("error from test")))
-				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
-				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, [getListId(instance), getElementId(instance)]))
-				o(thrown.message).equals("error from test")
-				o(load.callCount).equals(1)("load is called once")
-				const result2 = await cache.load(MailTypeRef, [newListId, getElementId(instance)])
-				o(result2).deepEquals(newInstance)("Cached instance is a newInstance")
-				unmockAttribute(loadMock)
-			})
-			o("Mail should not be loaded when a move event is received - update bucket key", async function () {
-				const instance = createMailInstance("listId1", "id1", "henlo")
-				instance.bucketKey = createTestEntity(BucketKeyTypeRef, {
-					bucketEncSessionKeys: [
-						createTestEntity(InstanceSessionKeyTypeRef, {
-							instanceList: "listId1",
-							instanceId: getElementId(instance),
-						}),
-					],
-				})
-				await storage.put(instance)
-
-				const newListId = "listId2"
-
-				// The moved mail will not be loaded from the server
-				await cache.entityEventsReceived(
-					makeBatch([
-						createUpdate(MailTypeRef, getListId(instance), getElementId(instance), OperationType.DELETE),
-						createUpdate(MailTypeRef, newListId, getElementId(instance), OperationType.CREATE),
-					]),
-				)
-
-				const load = spy(() => Promise.reject(new Error("error from test")))
-				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
-				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, [getListId(instance), getElementId(instance)]))
-				o(thrown.message).equals("error from test")
-				o(load.callCount).equals(1)("load is called once")
-				const result2 = await cache.load(MailTypeRef, [newListId, getElementId(instance)])
-				o(result2.bucketKey?.bucketEncSessionKeys[0].instanceList).deepEquals(newListId)("Cached instance has updated InstanceSessionKey")
-				unmockAttribute(loadMock)
-			})
-
 			o("id is in range but instance doesn't exist after moving lower range", async function () {
 				const listId = "listId1"
 
-				const mails = [1, 2, 3].map((i) => createMailInstance(listId, "id" + i, "mail" + i))
+				const mailSetEntries = [1, 2, 3].map((i) => createTestEntity(MailSetEntryTypeRef, { _id: [listId, "id" + i] }))
 				const newListId = "listId2"
 
-				const loadRange = spy(() => Promise.resolve(mails))
+				const loadRange = spy(() => Promise.resolve(mailSetEntries))
 				const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
 				storage.lockRangesDbAccess = spy(storage.lockRangesDbAccess)
 				storage.unlockRangesDbAccess = spy(storage.unlockRangesDbAccess)
 
-				await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 3, false)
+				await cache.loadRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false)
 
 				// Verify that we lock/unlock the ranges database when loading the range
 				o(storage.lockRangesDbAccess.invocations).deepEquals([[listId]])
@@ -680,31 +647,28 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
 					makeBatch([
-						createUpdate(MailTypeRef, getListId(mails[0]), getElementId(mails[0]), OperationType.DELETE),
-						createUpdate(MailTypeRef, newListId, getElementId(mails[0]), OperationType.CREATE),
+						createUpdate(MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0]), OperationType.DELETE),
+						createUpdate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), OperationType.CREATE),
 					]),
 				)
 
-				// id3 was moved to another list, which means it is no longer cached, which means we should try to load it again (causing NotFoundError)
-				const load = spy(() => Promise.reject(new Error("This is not the mail you're looking for")))
+				// id1 was moved to another list, which means it is no longer cached, which means we should try to load it again (causing NotFoundError)
+				const load = spy(() => Promise.reject(new Error("This is not the mailSetEntry you're looking for")))
 				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
-				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, [listId, getElementId(mails[0])]))
-				o(thrown.message).equals("This is not the mail you're looking for")
+				const thrown = await assertThrows(Error, () => cache.load(MailSetEntryTypeRef, [listId, getElementId(mailSetEntries[0])]))
+				o(thrown.message).equals("This is not the mailSetEntry you're looking for")
 				o(load.callCount).equals(1)
 				unmockAttribute(loadMock)
 			})
 
 			o("id is in range but instance doesn't exist after moving upper range", async function () {
-				const mails = [
-					createMailInstance("listId1", "id1", "mail 1"),
-					createMailInstance("listId1", "id2", "mail 2"),
-					createMailInstance("listId1", "id3", "mail 3"),
-				]
+				const listId = "listId1"
+				const mailSetEntries = [1, 2, 3].map((i) => createTestEntity(MailSetEntryTypeRef, { _id: [listId, "id" + i] }))
 
-				const loadRange = spy(async () => Promise.resolve(mails))
+				const loadRange = spy(async () => Promise.resolve(mailSetEntries))
 				const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
 
-				await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+				await cache.loadRange(MailSetEntryTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
 				o(loadRange.callCount).equals(1)
 
 				unmockAttribute(loadRangeMock)
@@ -712,19 +676,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
 					makeBatch([
-						createUpdate(MailTypeRef, "listId1", getElementId(mails[2]), OperationType.DELETE),
-						createUpdate(MailTypeRef, "listId2", getElementId(mails[2]), OperationType.CREATE),
+						createUpdate(MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2]), OperationType.DELETE),
+						createUpdate(MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2]), OperationType.CREATE),
 					]),
 				)
 
 				// id3 was moved to another list, which means it is no longer cached, which means we should try to load it again when requested (causing NotFoundError)
 				const load = spy(async function () {
-					throw new Error("This is not the mail you're looking for")
+					throw new Error("This is not the mailSetEntry you're looking for")
 				})
 				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
-				const thrown = await assertThrows(Error, () => cache.load(MailTypeRef, ["listId1", getElementId(mails[2])]))
-				o(thrown.message).equals("This is not the mail you're looking for")
-				//load was called when we tried to load the moved mail when we tried to load the moved mail
+				const thrown = await assertThrows(Error, () => cache.load(MailSetEntryTypeRef, ["listId1", getElementId(mailSetEntries[2])]))
+				o(thrown.message).equals("This is not the mailSetEntry you're looking for")
+				// load was called when we tried to load the moved mailSetEntry when we tried to load the moved mail
 				o(load.callCount).equals(1)
 				unmockAttribute(loadMock)
 			})

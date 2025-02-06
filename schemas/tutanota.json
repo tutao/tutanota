@@ -560,6 +560,21 @@
 					"info": "AddValue ImportMailState/totalMails/1600."
 				}
 			]
+		},
+		{
+			"version": 83,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "MailFolder",
+					"info": "RemoveAssociation MailFolder/mails."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "MailFolder",
+					"info": "RemoveValue MailFolder/isMailSet/1458."
+				}
+			]
 		}
 	]
 }

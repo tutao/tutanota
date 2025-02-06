@@ -653,7 +653,7 @@ export class MailFacade {
 	}
 
 	async fixupCounterForFolder(groupId: Id, folder: MailFolder, unreadMails: number): Promise<void> {
-		const counterId = folder.isMailSet ? getElementId(folder) : folder.mails
+		const counterId = getElementId(folder)
 		const data = createWriteCounterData({
 			counterType: CounterType.UnreadMails,
 			row: groupId,

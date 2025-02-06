@@ -19,7 +19,6 @@ o.spec("FolderSystem", function () {
 		folderType: MailSetKind.CUSTOM,
 		parentFolder: customFolder._id,
 		name: "AA",
-		mails: "customSubMailList",
 	})
 	const customSubSubfolder = createTestEntity(MailFolderTypeRef, {
 		_id: [listId, "customSubSub"],

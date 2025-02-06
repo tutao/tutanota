@@ -67,13 +67,9 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 	}
 
 	async function loadAllMailsOfFolder(folder: MailFolder, reportableMails: Array<Mail>) {
-		if (folder.isMailSet) {
-			const mailIdsPerBag = await getMailIdsGroupedByListId(folder)
-			for (const [mailListId, mailIds] of mailIdsPerBag) {
-				reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, mailListId, mailIds)))
-			}
-		} else {
-			reportableMails.push(...(await locator.entityClient.loadAll(MailTypeRef, folder.mails)))
+		const mailIdsPerBag = await getMailIdsGroupedByListId(folder)
+		for (const [mailListId, mailIds] of mailIdsPerBag) {
+			reportableMails.push(...(await locator.entityClient.loadMultiple(MailTypeRef, mailListId, mailIds)))
 		}
 	}
 

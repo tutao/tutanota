@@ -9,7 +9,6 @@ import {
 	getDayShifted,
 	getStartOfDay,
 	isEmpty,
-	isNotEmpty,
 	isNotNull,
 	isSameTypeRef,
 	neverNull,
@@ -50,7 +49,7 @@ import {
 	typeRefToTypeInfo,
 } from "../../../common/api/worker/search/IndexUtils.js"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants.js"
-import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, getListId, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
+import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
 import { INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
 import { AssociationType, Cardinality, ValueType } from "../../../common/api/common/EntityConstants.js"
@@ -678,14 +677,7 @@ export class SearchFacade {
 					return mails
 						.filter(isNotNull)
 						.filter((mail) => {
-							let folderIds: Array<Id>
-							if (isNotEmpty(mail.sets)) {
-								// new mailSet folders
-								folderIds = mail.sets.map((setId) => elementIdPart(setId))
-							} else {
-								// legacy mail folder (mail list)
-								folderIds = [getListId(mail)]
-							}
+							let folderIds: Array<Id> = mail.sets.map((setId) => elementIdPart(setId))
 							return folderIds.some((folderId) => searchResult.restriction.folderIds.includes(folderId))
 						})
 						.map((mail) => mail._id)

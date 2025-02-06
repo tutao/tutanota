@@ -588,13 +588,7 @@ export class MailIndexer {
 	 * Provides all mail list ids of the given mailbox
 	 */
 	async _loadMailListIds(mailbox: MailBox): Promise<Id[]> {
-		const isMailsetMigrated = mailbox.currentMailBag != null
-		if (isMailsetMigrated) {
-			return [mailbox.currentMailBag!, ...mailbox.archivedMailBags].map((mailbag) => mailbag.mails)
-		} else {
-			const folders = await this.entityClient.loadAll(MailFolderTypeRef, neverNull(mailbox.folders).folders)
-			return folders.map((f) => f.mails)
-		}
+		return [mailbox.currentMailBag!, ...mailbox.archivedMailBags].map((mailbag) => mailbag.mails)
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {

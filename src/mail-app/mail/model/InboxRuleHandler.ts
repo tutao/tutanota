@@ -26,8 +26,7 @@ async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
 		await promiseMap(mailChunks, (mailChunk) => {
 			moveToTargetFolder.mails = mailChunk
-			const sourceFolder = assertNotNull(moveToTargetFolder.sourceFolder) // old clients don't send sourceFolder. assertNotNull can be removed once sourceFolder cardinality is ONE
-			return mailFacade.moveMails(mailChunk, sourceFolder, moveToTargetFolder.targetFolder)
+			return mailFacade.moveMails(mailChunk, moveToTargetFolder.sourceFolder, moveToTargetFolder.targetFolder)
 		})
 			.catch(
 				ofClass(LockedError, (e) => {

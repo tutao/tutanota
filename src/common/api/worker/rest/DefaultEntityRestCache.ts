@@ -10,7 +10,7 @@ import {
 } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -30,15 +30,8 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import {
-	CalendarEventUidIndexTypeRef,
-	Mail,
-	MailDetailsBlobTypeRef,
-	MailFolderTypeRef,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-} from "../../entities/tutanota/TypeRefs.js"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId } from "../../common/utils/EntityUtils"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
@@ -717,12 +710,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			// monitor application is ignored
 			if (update.application === "monitor") continue
-			// mails are ignored because move operations are handled as a special event (and no post multiple is possible)
-			if (update.operation === OperationType.CREATE && getUpdateInstanceId(update).instanceListId != null && !isSameTypeRef(typeRef, MailTypeRef)) {
+			// mailSetEntries are ignored because move operations are handled as a special event (and no post multiple is possible)
+			if (
+				update.operation === OperationType.CREATE &&
+				getUpdateInstanceId(update).instanceListId != null &&
+				!isSameTypeRef(typeRef, MailTypeRef) &&
+				!isSameTypeRef(typeRef, MailSetEntryTypeRef)
+			) {
 				createUpdatesForLETs.push(update)
 			} else {
 				regularUpdates.push(update)
-				await this.checkForMailSetMigration(typeRef, update)
 			}
 		}
 
@@ -785,7 +782,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				}
 				case OperationType.DELETE: {
 					if (
-						isSameTypeRef(MailTypeRef, typeRef) &&
+						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
 						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
 					) {
 						// move for mail is handled in create event.
@@ -827,14 +824,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// We put new instances into cache only when it's a new instance in the cached range which is only for the list instances.
 		if (instanceListId != null) {
 			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
-
-			const mail = deleteEvent && isSameTypeRef(MailTypeRef, typeRef) ? await this.storage.get(MailTypeRef, deleteEvent.instanceListId, instanceId) : null
-			// avoid downloading new mail element for non-mailSet user.
-			// can be removed once all mailbox have been migrated to mailSet (once lastNonOutdatedClientVersion is >= v242)
-			if (deleteEvent != null && mail != null && isEmpty(mail.sets)) {
-				// It is a move event for cached mail
+			const mailSetEntry =
+				deleteEvent && isSameTypeRef(MailSetEntryTypeRef, typeRef)
+					? await this.storage.get(MailSetEntryTypeRef, deleteEvent.instanceListId, instanceId)
+					: null
+			// avoid downloading new mailSetEntry in case of move event (DELETE + CREATE)
+			if (deleteEvent != null && mailSetEntry != null) {
+				// It is a move event for cached mailSetEntry
 				await this.storage.deleteIfExists(typeRef, deleteEvent.instanceListId, instanceId)
-				await this.updateListIdOfMailAndUpdateCache(mail, instanceListId, instanceId)
+				await this.updateListIdOfMailSetEntryAndUpdateCache(mailSetEntry, instanceListId, instanceId)
 				return update
 			} else {
 				// If there is a custom handler we follow its decision.
@@ -867,22 +865,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/**
-	 * Updates the given mail with the new list id and add it to the cache.
+	 * Updates the given mailSetEntry with the new list id and add it to the cache.
 	 */
-	private async updateListIdOfMailAndUpdateCache(mail: Mail, newListId: Id, elementId: Id) {
-		// In case of a move operation we have to replace the list id always, as the mail is stored in another folder.
-		mail._id = [newListId, elementId]
-		if (mail.bucketKey != null) {
-			// With the simplified permission system (MailDetails) we also have to update the bucketEncSessionKey for the mail,
-			// which also references the mail list id. We need this for some cases when the move operation was executed
-			// before the UpdateSessionKeyService has been executed, e.g. when using inbox rules.
-			// The UpdateSessionKeyService would remove the bucketKey from the mail and there is no need to synchronize it anymore.
-			const mailSessionKey = mail.bucketKey.bucketEncSessionKeys.find((bucketEncSessionKey) => isSameId(bucketEncSessionKey.instanceId, elementId))
-			if (mailSessionKey) {
-				mailSessionKey.instanceList = newListId
-			}
-		}
-		await this.storage.put(mail)
+	private async updateListIdOfMailSetEntryAndUpdateCache(mailSetEntry: MailSetEntry, newListId: Id, elementId: Id) {
+		// In case of a move operation we have to replace the list id always, as the mailSetEntry is stored in another folder.
+		mailSetEntry._id = [newListId, elementId]
+		await this.storage.put(mailSetEntry)
 	}
 
 	/** Returns {null} when the update should be skipped. */
@@ -949,24 +937,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 		return ret
-	}
-
-	/**
-	 * to avoid excessive entity updates and inconsistent offline storages, we don't send entity updates for each mail set migrated mail.
-	 * instead we detect the mail set migration for each folder and drop its whole list from offline.
-	 */
-	private async checkForMailSetMigration(typeRef: TypeRef<unknown>, update: EntityUpdate): Promise<void> {
-		if (update.operation !== OperationType.UPDATE || !isSameTypeRef(typeRef, MailFolderTypeRef)) return
-		// load the old version of the folder now to check if it was migrated to mail set
-		const oldFolder = await this.storage.get(MailFolderTypeRef, update.instanceListId, update.instanceId)
-		// if it already is a mail set, we're done.
-		// we also delete the mails in the case where we don't have the folder itself in the cache.
-		// because we cache after loading the folder, we won't do it again on the next update event.
-		if (oldFolder != null && oldFolder.isMailSet) return
-		const updatedFolder = await this.entityRestClient.load(MailFolderTypeRef, [update.instanceListId, update.instanceId])
-		if (!updatedFolder.isMailSet) return
-		await this.storage.deleteWholeList(MailTypeRef, updatedFolder.mails)
-		await this.storage.put(updatedFolder)
 	}
 
 	/**

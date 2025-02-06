@@ -268,11 +268,11 @@ export class MailViewModel {
 			return
 		}
 
-		// If the user has migrated to mailsets, simply checking if Mail exists won't be enough.
-		// Instead, we check against the sets in the Mail and see if it's moved folders since the last sync.
-		// We have to do this because if the mail did move since the last sync, it will still disappear from view.
+		// Simply checking if Mail exists is not enough. Instead, we check against the sets in the Mail
+		// and see if it's moved folders since the last sync. We have to do this because if the mail
+		// did move since the last sync, it will still disappear from view.
 		let movedSetsSinceLastSync = false
-		if (mail != null && cached != null && cached.sets.length > 0) {
+		if (mail != null && cached != null) {
 			// This will most likely be the inbox
 			const currentFolderId = elementIdPart(assertNotNull(this._folder, "cached was displayed earlier, thus folder would have been set")._id)
 			// This can be false if the mail was moved while the user is logged in, which is fine, and we don't need to check the loaded mail

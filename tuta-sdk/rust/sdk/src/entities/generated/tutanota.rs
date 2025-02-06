@@ -1895,10 +1895,8 @@ pub struct MailFolder {
 	pub _permissions: GeneratedId,
 	pub color: Option<String>,
 	pub folderType: i64,
-	pub isMailSet: bool,
 	pub name: String,
 	pub entries: GeneratedId,
-	pub mails: GeneratedId,
 	pub parentFolder: Option<IdTupleGenerated>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
@@ -2077,7 +2075,7 @@ impl Entity for ManageLabelServicePostIn {
 pub struct MoveMailData {
 	pub _format: i64,
 	pub mails: Vec<IdTupleGenerated>,
-	pub sourceFolder: Option<IdTupleGenerated>,
+	pub sourceFolder: IdTupleGenerated,
 	pub targetFolder: IdTupleGenerated,
 }
 

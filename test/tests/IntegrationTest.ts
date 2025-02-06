@@ -7,7 +7,7 @@ import {
 	ContactTypeRef,
 	MailBoxTypeRef,
 	MailFolderTypeRef,
-	MailTypeRef,
+	MailSetEntryTypeRef,
 } from "../../src/common/api/entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
@@ -36,8 +36,8 @@ o.spec("integration test", function () {
 		o.timeout(20000)
 		await locator.login.createSession("map-free@tutanota.de", "map", "Linux node", SessionType.Temporary, null)
 		const folders = await loadMailboxSystemFolders()
-		const mails = await locator.cachingEntityClient.loadAll(MailTypeRef, folders[0].mails)
-		o(mails.length).equals(8)
+		const mailSetEntries = await locator.cachingEntityClient.loadAll(MailSetEntryTypeRef, folders[0].entries)
+		o(mailSetEntries.length).equals(8)
 		const contactList = await loadContactList()
 		// create new contact
 		let address = createTestEntity(ContactAddressTypeRef)

@@ -20,6 +20,7 @@ import {
 	FileTypeRef,
 	Mail,
 	MailAddressTypeRef,
+	MailBagTypeRef,
 	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
@@ -374,7 +375,6 @@ o.spec("MailIndexer test", () => {
 		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.Mail
 		let spamFolder = createTestEntity(MailFolderTypeRef)
-		spamFolder.mails = "mail-list-id"
 		let db: Db = {
 			key: aes256RandomKey(),
 			dbFacade: {
@@ -469,7 +469,7 @@ o.spec("MailIndexer test", () => {
 	function _addFolder(mailbox: MailBox): MailFolder {
 		const folder = createTestEntity(MailFolderTypeRef)
 		folder._id = [neverNull(mailbox.folders).folders, entityMock.getNextId()]
-		folder.mails = entityMock.getNextId()
+		folder.entries = entityMock.getNextId()
 		return folder
 	}
 
@@ -485,11 +485,13 @@ o.spec("MailIndexer test", () => {
 		const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 		const mailGroup = "mail-group-id"
 		let mailbox: MailBox
-		let folder1, folder2
+		let folder1: MailFolder, folder2: MailFolder
 		let mail0, details0, mail1, details1, mail2, details2, files, mail3, details3, mail4, details4
 		let transaction, core, indexer, db
 		o.beforeEach(() => {
 			mailbox = createTestEntity(MailBoxTypeRef)
+			const mailBagMailListId = "mailBagMailListId"
+			mailbox.currentMailBag = createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId })
 			mailbox._id = "mailbox-id"
 			mailbox._ownerGroup = mailGroup
 			const folderRef = createTestEntity(MailFolderRefTypeRef)
@@ -499,12 +501,12 @@ o.spec("MailIndexer test", () => {
 			folder2 = _addFolder(mailbox)
 			;({ mail: mail0, mailDetailsBlob: details0 } = createMailInstances(
 				mailFacade,
-				[folder1.mails, timestampToGeneratedId(rangeEndShifted2Days, 1)],
+				[mailBagMailListId, timestampToGeneratedId(rangeEndShifted2Days, 1)],
 				["details-list-id", entityMock.getNextId()],
 			))
 			;({ mail: mail1, mailDetailsBlob: details1 } = createMailInstances(
 				mailFacade,
-				[folder1.mails, timestampToGeneratedId(rangeEnd - 1, 1)],
+				[mailBagMailListId, timestampToGeneratedId(rangeEnd - 1, 1)],
 				["details-list-id", entityMock.getNextId()],
 			))
 			;({
@@ -513,19 +515,19 @@ o.spec("MailIndexer test", () => {
 				files,
 			} = createMailInstances(
 				mailFacade,
-				[folder1.mails, timestampToGeneratedId(rangeEnd + 1, 1)],
+				[mailBagMailListId, timestampToGeneratedId(rangeEnd + 1, 1)],
 				["details-list-id", entityMock.getNextId()],
 				["attachment-listId", entityMock.getNextId()],
 				["attachment-listId1", entityMock.getNextId()],
 			))
 			;({ mail: mail3, mailDetailsBlob: details3 } = createMailInstances(
 				mailFacade,
-				[folder1.mails, timestampToGeneratedId(rangeEnd + 3 * 24 * 60 * 60 * 1000, 1)],
+				[mailBagMailListId, timestampToGeneratedId(rangeEnd + 3 * 24 * 60 * 60 * 1000, 1)],
 				["details-list-id", entityMock.getNextId()],
 			))
 			;({ mail: mail4, mailDetailsBlob: details4 } = createMailInstances(
 				mailFacade,
-				[folder2.mails, timestampToGeneratedId(rangeEnd + 5, 1)],
+				[mailBagMailListId, timestampToGeneratedId(rangeEnd + 5, 1)],
 				["details-list-id", entityMock.getNextId()],
 			))
 			entityMock.addBlobInstances(details0, details1, details2, details3, details4)

@@ -86,25 +86,6 @@ impl MailFacade {
 		self.crypto_entity_client.clone()
 	}
 
-	pub async fn load_mails_in_folder(
-		&self,
-		folder: &MailFolder,
-	) -> Result<Vec<Mail>, ApiCallError> {
-		// TODO: real arguments
-		// TODO: this is a placeholder impl that doesn't work with mail sets
-		let mail_list_id = &folder.mails;
-		let mails = self
-			.crypto_entity_client
-			.load_range(
-				mail_list_id,
-				&GeneratedId::max_id(),
-				20,
-				ListLoadDirection::DESC,
-			)
-			.await?;
-		Ok(mails)
-	}
-
 	/// Invoke the SimpleMoveMail service to move mail(s) to the first folder of a given folder
 	/// type in their respective mailboxes.
 	///

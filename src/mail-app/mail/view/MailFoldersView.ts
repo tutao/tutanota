@@ -120,7 +120,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			}
 			const currentExpansionState = attrs.inEditMode ? true : attrs.expandedFolders.has(getElementId(system.folder)) ?? false //default is false
 			const hasChildren = system.children.length > 0
-			const counterId = system.folder.isMailSet ? getElementId(system.folder) : system.folder.mails
+			const counterId = getElementId(system.folder)
 			const summedCount = !currentExpansionState && hasChildren ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[counterId]
 			const childResult =
 				hasChildren && currentExpansionState
@@ -182,7 +182,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	}
 
 	private getTotalFolderCounter(counters: Counters, system: FolderSubtree): number {
-		const counterId = system.folder.isMailSet ? getElementId(system.folder) : system.folder.mails
+		const counterId = getElementId(system.folder)
 		return (counters[counterId] ?? 0) + system.children.reduce((acc, child) => acc + this.getTotalFolderCounter(counters, child), 0)
 	}
 

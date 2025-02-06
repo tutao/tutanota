@@ -703,7 +703,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			for (const folderInfo of mailFolders) {
 				if (folderInfo.folder.folderType !== MailSetKind.SPAM) {
 					const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
-					const folderId = folderInfo.folder.isMailSet ? getElementId(folderInfo.folder) : folderInfo.folder.mails
+					const folderId = getElementId(folderInfo.folder)
 					availableMailFolders.push({
 						name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
 						value: folderId,

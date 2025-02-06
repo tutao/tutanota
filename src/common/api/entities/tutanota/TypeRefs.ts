@@ -1505,11 +1505,9 @@ export type MailFolder = {
 	_permissions: Id;
 	color: null | string;
 	folderType: NumberString;
-	isMailSet: boolean;
 	name: string;
 
 	entries: Id;
-	mails: Id;
 	parentFolder: null | IdTuple;
 }
 export const MailFolderRefTypeRef: TypeRef<MailFolderRef> = new TypeRef("tutanota", "MailFolderRef")
@@ -1652,7 +1650,7 @@ export type MoveMailData = {
 	_format: NumberString;
 
 	mails: IdTuple[];
-	sourceFolder: null | IdTuple;
+	sourceFolder: IdTuple;
 	targetFolder: IdTuple;
 }
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", "NewDraftAttachment")

@@ -159,23 +159,21 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		}
 
 		mailLocator.mailboxModel.getMailboxDetails().then((mailboxes) => {
-			if (first(mailboxes)?.mailbox.currentMailBag != null) {
-				this._userFolders.push(
-					new SettingsFolder(
-						() => "mailImportSettings_label",
-						() => Icons.Import,
-						"mailImport",
-						() => {
-							if (isDesktop()) {
-								return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
-							} else {
-								return new WebMailImportSettingsViewer()
-							}
-						},
-						undefined,
-					),
-				)
-			}
+			this._userFolders.push(
+				new SettingsFolder(
+					() => "mailImportSettings_label",
+					() => Icons.Import,
+					"mailImport",
+					() => {
+						if (isDesktop()) {
+							return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
+						} else {
+							return new WebMailImportSettingsViewer()
+						}
+					},
+					undefined,
+				),
+			)
 		})
 
 		this._userFolders.push(

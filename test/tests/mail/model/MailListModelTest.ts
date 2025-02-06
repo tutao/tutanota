@@ -1,7 +1,6 @@
 import o from "../../../../packages/otest/dist/otest"
 import { LoadedMail, MailListModel } from "../../../../src/mail-app/mail/model/MailListModel"
 import {
-	createMailFolder,
 	createMailSetEntry,
 	Mail,
 	MailboxGroupRootTypeRef,
@@ -56,7 +55,6 @@ o.spec("MailListModelTest", () => {
 			_id: ["mailFolderList", "tutaRed"],
 			color: tutaRed,
 			folderType: MailSetKind.LABEL,
-			isMailSet: true,
 			name: "Tuta Red Label",
 			parentFolder: null,
 		}),
@@ -64,7 +62,6 @@ o.spec("MailListModelTest", () => {
 			_id: ["mailFolderList", "tutaDunkel"],
 			color: tutaDunkel,
 			folderType: MailSetKind.LABEL,
-			isMailSet: true,
 			name: "Tuta Dunkel Label",
 			parentFolder: null,
 		}),
@@ -81,7 +78,6 @@ o.spec("MailListModelTest", () => {
 		mailSet = createTestEntity(MailFolderTypeRef, {
 			_id: ["mailFolderList", "mailFolderId"],
 			folderType: MailSetKind.CUSTOM,
-			isMailSet: true,
 			name: "My Folder",
 			entries: mailSetEntriesListId,
 			parentFolder: null,

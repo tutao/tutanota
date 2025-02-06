@@ -3,7 +3,7 @@ import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../c
 import { assertNotNull, DAY_IN_MILLIS, groupByAndMap } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
-	DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP,
+	CUSTOM_MAX_ID,
 	elementIdPart,
 	firstBiggerThanSecond,
 	firstBiggerThanSecondCustomId,
@@ -44,29 +44,21 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			const isMailsetMigrated = mailBox.currentMailBag != null
 			const folders = await offlineStorage.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
 			if (isMailsetMigrated) {
-				// deleting mailsetentries first to make sure that once we start deleting mail
-				// we don't have any entries that reference that mail
+				// Deleting MailSetEntries first to make sure that once we start deleting Mail
+				// we don't have any MailSetEntries that reference that Mail anymore.
 				const folderSystem = new FolderSystem(folders)
 				for (const mailSet of folders) {
 					if (isSpamOrTrashFolder(folderSystem, mailSet)) {
-						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, DEFAULT_MAILSET_ENTRY_CUSTOM_CUTOFF_TIMESTAMP)
+						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, CUSTOM_MAX_ID)
 					} else {
-						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, cutoffTimestamp)
+						const customCutoffId = constructMailSetEntryId(new Date(cutoffTimestamp), GENERATED_MAX_ID)
+						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
 					}
 				}
-
+				// TODO MailSet cleanup
 				const mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
 				for (const mailListId of mailListIds) {
 					await this.deleteMailListLegacy(offlineStorage, mailListId, cutoffId)
-				}
-			} else {
-				const folderSystem = new FolderSystem(folders)
-				for (const folder of folders) {
-					if (isSpamOrTrashFolder(folderSystem, folder)) {
-						await this.deleteMailListLegacy(offlineStorage, folder.mails, GENERATED_MAX_ID)
-					} else {
-						await this.deleteMailListLegacy(offlineStorage, folder.mails, cutoffId)
-					}
 				}
 			}
 		}
@@ -85,9 +77,9 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 * will no longer be valid. (this is future proofing, because as of now there is not going to be a Range set for the
 	 * File list anyway, since we currently do not do range requests for Files.
 	 *
-	 * 	We do not delete ConversationEntries because:
-	 * 	1. They are in the same list for the whole conversation so we can't adjust the range
-	 * 	2. We might need them in the future for showing the whole thread
+	 * We do not delete ConversationEntries because:
+	 *  1. They are in the same list for the whole conversation so we can't adjust the range
+	 *  2. We might need them in the future for showing the whole thread
 	 */
 	private async deleteMailListLegacy(offlineStorage: OfflineStorage, listId: Id, cutoffId: Id): Promise<void> {
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
@@ -143,8 +135,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 * offline list range invariant by deleting data from the middle of a mail range. cleaning up mails is done
 	 * the legacy way currently even for mailset users.
 	 */
-	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffTimestamp: number) {
-		const cutoffId = constructMailSetEntryId(new Date(cutoffTimestamp), GENERATED_MAX_ID)
+	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
 		await offlineStorage.lockRangesDbAccess(entriesListId)
 		try {
 			await offlineStorage.updateRangeForListAndDeleteObsoleteData(MailSetEntryTypeRef, entriesListId, cutoffId)
@@ -160,6 +151,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 				mailSetEntriesToDelete.push(mailSetEntry._id)
 			}
 		}
+
 		await offlineStorage.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
 	}
 }

@@ -20,16 +20,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	let inbox = folders
 		.system_folder_by_type(MailSetKind::Inbox)
 		.expect("inbox exists");
-	let inbox_mails = mail_facade.load_mails_in_folder(inbox).await?;
 
-	println!("Inbox:");
-	for mail in inbox_mails {
-		let sender_arg = if mail.sender.name.is_empty() {
-			format!("<{}>", mail.sender.address)
-		} else {
-			format!("{} <{}>", mail.sender.name, mail.sender.address)
-		};
-		println!("{0: <40}\t{1: <40}", sender_arg, mail.subject)
-	}
+	println!("Inbox exists");
 	Ok(())
 }
