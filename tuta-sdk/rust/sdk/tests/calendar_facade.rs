@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use tutasdk::date::calendar_facade::{DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::Sdk;
 
@@ -14,9 +15,17 @@ async fn load_user_calendars() {
 		.unwrap();
 
 	let calendar_facade = session.calendar_facade();
-	let calendars = calendar_facade.fetch_calendars_data().await.unwrap();
 
 	// FIXME The user wont have a calendar before the first login on the client
-	// FIXME Birthdays calendar wont show up since its generated and managed client side only
-	assert_eq!(calendars.len(), 0);
+
+	let calendars = calendar_facade.fetch_calendars_data().await.unwrap();
+
+	// assert!(calendars.is_empty());
+	// After login for the first time/creating the first private calendar, fetching should return only the private calendar
+	assert!(!calendars.is_empty());
+	assert_eq!(calendars.len(), 1);
+	let default_private_calendar = calendars.values().next().unwrap();
+	assert_eq!(default_private_calendar.name, DEFAULT_CALENDAR_NAME);
+	assert_eq!(default_private_calendar.color, DEFAULT_CALENDAR_COLOR);
+	println!("[Test] Calendar Facade loaded user calendars correctly!");
 }
