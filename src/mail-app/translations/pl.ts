@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-01-29T18:13:21Z",
+	"updated_at": "2025-02-04T14:39:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -955,10 +955,13 @@ export default {
 		"mailBody_label": "Treść wiadomości e-mail",
 		"mailboxToExport_label": "Skrzynka pocztowa do wyeksportowania",
 		"mailbox_label": "Skrzynka odbiorcza",
+		"mailExportHistory_label": "Eksportuj historię",
+		"mailExportInfoText_label": "Może eksportować pliki EML.",
 		"mailExportModeHelp_msg": "Format pliku e-mail do użycia podczas eksportowania lub \"przeciągania i upuszczania\"",
 		"mailExportMode_label": "Format pliku eksportowanej wiadomości e-mail",
 		"mailExportOnlyOnDesktop_label": "Eksport wiadomości e-mail jest obecnie dostępny tylko w naszym kliencie na komputery stacjonarne.",
 		"mailExportProgress_msg": "Przygotowanie {current} z {total} wiadomości e-mail do eksportu...",
+		"mailExportSettings_label": "Eksportuj wiadomości e-mail",
 		"mailExport_label": "Eksport wiadomości e-mail",
 		"mailFolder_label": "Folder maili",
 		"mailHeaders_title": "Nagłówki e-mail",
