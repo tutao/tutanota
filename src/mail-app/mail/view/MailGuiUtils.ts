@@ -18,7 +18,7 @@ import {
 import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
-import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { FileController } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
@@ -35,62 +35,83 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 
-export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
-	let trashMails: Mail[] = []
-	let moveMails: Mail[] = []
-	for (let mail of mails) {
-		const folder = mailLocator.mailModel.getMailFolderForMail(mail)
-		const folders = await mailLocator.mailModel.getMailboxFoldersForMail(mail)
-		if (folders == null) {
-			continue
-		}
-		const isFinalDelete = folder && isSpamOrTrashFolder(folders, folder)
-		if (isFinalDelete) {
-			trashMails.push(mail)
-		} else {
-			moveMails.push(mail)
-		}
-	}
+/**
+ * A function that returns an array of mails, or a promise that eventually returns one.
+ */
+export type LazyMailResolver = () => readonly Mail[] | Promise<readonly Mail[]>
 
-	let confirmationTextId: TranslationKey | null = null
-
-	if (trashMails.length > 0) {
-		if (moveMails.length > 0) {
-			confirmationTextId = "finallyDeleteSelectedEmails_msg"
-		} else {
-			confirmationTextId = "finallyDeleteEmails_msg"
+/**
+ * Moves all mails to the trash folder if they are not currently in a trash or spam folder.
+ *
+ * If `currentFolder` is a spam or trash folder, mails are instead deleted (if they are actually in trash or spam folders).
+ *
+ * @param mailModel
+ * @param mailResolver
+ * @param currentFolder
+ * @param onConfirm
+ */
+export async function trashOrDeleteMails(
+	mailModel: MailModel,
+	mailResolver: LazyMailResolver,
+	currentFolder: MailFolder | null,
+	onConfirm: () => void,
+): Promise<boolean> {
+	let isDeletion
+	if (currentFolder != null) {
+		const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
+		if (folderSystem == null) {
+			return false
 		}
-	}
-
-	if (confirmationTextId != null) {
-		return Dialog.confirm(confirmationTextId, "ok_action")
+		isDeletion = isSpamOrTrashFolder(folderSystem, currentFolder)
 	} else {
-		return Promise.resolve(true)
+		isDeletion = false
+	}
+
+	try {
+		if (isDeletion) {
+			const shouldDelete = await Dialog.confirm("finallyDeleteEmails_msg", "ok_action")
+			if (!shouldDelete) {
+				return false
+			}
+			const mails = await mailResolver()
+			onConfirm()
+			await mailModel.deleteMails(mails)
+			return true
+		} else {
+			const mails = await mailResolver()
+			onConfirm()
+			await mailModel.trashMails(mails)
+			return true
+		}
+	} catch (e) {
+		if (e instanceof PreconditionFailedError || e instanceof LockedError) {
+			await Dialog.message("operationStillActive_msg")
+			return false
+		} else {
+			throw e
+		}
 	}
 }
 
 /**
- * @return whether emails were deleted
+ * Convenience method for getting the current folder of `mail` and then invoking `trashOrDeleteMails`.
+ *
+ * See `trashOrDeleteMails` for more information on what this does.
+ *
+ * This method should only be used if deleting a single mail is desired. Use `trashOrDeleteMails` to delete multiple
+ * emails or delete emails from a list.
+ *
+ * @param mailModel
+ * @param mail
+ * @param onConfirm
  */
-export function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
-	return showDeleteConfirmationDialog(mails).then((confirmed) => {
-		if (confirmed) {
-			onConfirm()
-			return mailModel
-				.deleteMails(mails)
-				.then(() => true)
-				.catch((e) => {
-					//LockedError should no longer be thrown!?!
-					if (e instanceof PreconditionFailedError || e instanceof LockedError) {
-						return Dialog.message("operationStillActive_msg").then(() => false)
-					} else {
-						throw e
-					}
-				})
-		} else {
-			return Promise.resolve(false)
-		}
-	})
+export async function trashOrDeleteSingleMail(mailModel: MailModel, mail: Mail, onConfirm: () => void): Promise<boolean> {
+	const folder = mailModel.getMailFolderForMail(mail)
+	if (folder != null) {
+		return trashOrDeleteMails(mailModel, () => [mail], folder, onConfirm)
+	} else {
+		return false
+	}
 }
 
 interface MoveMailsParams {

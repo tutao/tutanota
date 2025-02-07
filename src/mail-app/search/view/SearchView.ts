@@ -51,14 +51,7 @@ import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselect
 import { MobileHeader, MobileHeaderMenuButton } from "../../../common/gui/MobileHeader.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
-import {
-	archiveMails,
-	getConversationTitle,
-	getMoveMailBounds,
-	moveToInbox,
-	showDeleteConfirmationDialog,
-	showMoveMailsDropdown,
-} from "../../mail/view/MailGuiUtils.js"
+import { archiveMails, getConversationTitle, getMoveMailBounds, moveToInbox, showMoveMailsDropdown, trashOrDeleteMails } from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
@@ -406,6 +399,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				const actions = m(MailViewerActions, {
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
+					folder: null,
 					selectedMails: selectedMails,
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
@@ -445,6 +439,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
 					primaryMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					selectedMails: [conversationViewModel.primaryMail],
+					folder: null,
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the shown mail
 					actionableMails: async () => [conversationViewModel.primaryMail._id],
@@ -670,6 +665,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 					mailModel: mailLocator.mailModel,
 					mailboxModel: locator.mailboxModel,
+					folder: null,
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
 					actionableMails: async () => this.searchViewModel.getSelectedMails().map((m) => m._id),
@@ -1045,16 +1041,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.searchViewModel.listModel.state.selectedItems.size > 0) {
 			if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 				const selected = this.searchViewModel.getSelectedMails()
-				showDeleteConfirmationDialog(selected).then((confirmed) => {
-					if (confirmed) {
+				trashOrDeleteMails(
+					mailLocator.mailModel,
+					() => selected,
+					null,
+					() => {
 						if (selected.length > 1) {
 							// is needed for correct selection behavior on mobile
 							this.searchViewModel.listModel.selectNone()
 						}
-
-						mailLocator.mailModel.deleteMails(selected)
-					}
-				})
+					},
+				)
 				return false
 			} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
 				Dialog.confirm("deleteContacts_msg").then((confirmed) => {

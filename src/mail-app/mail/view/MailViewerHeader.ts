@@ -19,7 +19,7 @@ import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewMode
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown, trashOrDeleteSingleMail } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { editDraft, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
@@ -747,7 +747,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					})
 					actionButtons.push({
 						label: "delete_action",
-						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						click: () => trashOrDeleteSingleMail(viewModel.mailModel, viewModel.mail, noOp),
 						icon: Icons.Trash,
 					})
 				} else {
@@ -801,7 +801,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 					actionButtons.push({
 						label: "delete_action",
-						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						click: () => trashOrDeleteSingleMail(viewModel.mailModel, viewModel.mail, noOp),
 						icon: Icons.Trash,
 					})
 

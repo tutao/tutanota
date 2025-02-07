@@ -5,7 +5,7 @@ import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { showMoveMailsDropdown, trashOrDeleteSingleMail } from "./MailGuiUtils.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
@@ -109,7 +109,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	private deleteButton({ viewModel }: MobileMailActionBarAttrs): Children {
 		return m(IconButton, {
 			title: "delete_action",
-			click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+			click: () => trashOrDeleteSingleMail(viewModel.mailModel, viewModel.mail, noOp),
 			icon: Icons.Trash,
 		})
 	}

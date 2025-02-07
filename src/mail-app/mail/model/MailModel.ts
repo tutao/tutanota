@@ -7,6 +7,7 @@ import {
 	collectToMap,
 	getFirstOrThrow,
 	groupBy,
+	isEmpty,
 	isNotNull,
 	lazyMemoized,
 	neverNull,
@@ -343,12 +344,12 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally deletes the given mails if they are already in the trash or spam folders,
-	 * otherwise moves them to the trash folder.
-	 * A deletion confirmation must have been show before.
+	 * Moves all mails to the trash if any are not currently in the spam or trash folder.
+	 *
+	 * No confirmation is required for this action.
 	 */
-	async deleteMails(mails: ReadonlyArray<Mail>): Promise<void> {
-		if (mails.length === 0) {
+	async trashMails(mails: readonly Mail[]): Promise<void> {
+		if (isEmpty(mails)) {
 			return
 		}
 
@@ -366,12 +367,45 @@ export class MailModel {
 			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
 
 			const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
-			for (const [listId, mailsInList] of mailsPerList) {
+			for (const [_, mailsInList] of mailsPerList) {
+				if (sourceMailFolder) {
+					if (!isSpamOrTrashFolder(folders, sourceMailFolder)) {
+						await this._moveMails(mailsInList, trashFolder)
+					}
+				} else {
+					console.log("Trash mail: no mail folder for list id", folder)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Permanently deletes all mails if they are in a spam or trash folder.
+	 *
+	 * Before calling this, the user should be shown a dialog confirming they want to do this.
+	 */
+	async deleteMails(mails: readonly Mail[]): Promise<void> {
+		if (isEmpty(mails)) {
+			return
+		}
+
+		const mailsPerFolder = groupBy(mails, (mail) => {
+			return this.getMailFolderForMail(mail)?._id?.[1]
+		})
+
+		const folders = await this.getMailboxFoldersForMail(mails[0])
+		if (folders == null) {
+			return
+		}
+
+		for (const [folder, mailsInFolder] of mailsPerFolder) {
+			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
+
+			const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
+			for (const [_, mailsInList] of mailsPerList) {
 				if (sourceMailFolder) {
 					if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
 						await this.finallyDeleteMails(mailsInList)
-					} else {
-						await this._moveMails(mailsInList, trashFolder)
 					}
 				} else {
 					console.log("Delete mail: no mail folder for list id", folder)

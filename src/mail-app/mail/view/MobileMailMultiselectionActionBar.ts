@@ -1,8 +1,8 @@
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import m, { Children, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { showMoveMailsDropdown, trashOrDeleteMails } from "./MailGuiUtils.js"
 import { DROPDOWN_MARGIN } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -15,6 +15,7 @@ export interface MobileMailMultiselectionActionBarAttrs {
 	mailModel: MailModel
 	mailboxModel: MailboxModel
 	selectNone: () => unknown
+	folder: MailFolder | null
 	actionableMails: () => Promise<readonly IdTuple[]>
 }
 
@@ -23,7 +24,7 @@ export class MobileMailMultiselectionActionBar {
 	private dom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<MobileMailMultiselectionActionBarAttrs>): Children {
-		const { selectedMails, selectNone, mailModel, mailboxModel, actionableMails } = attrs
+		const { selectedMails, selectNone, mailModel, mailboxModel, folder, actionableMails } = attrs
 		return m(
 			MobileBottomActionBar,
 			{
@@ -33,7 +34,7 @@ export class MobileMailMultiselectionActionBar {
 				m(IconButton, {
 					icon: Icons.Trash,
 					title: "delete_action",
-					click: async () => promptAndDeleteMails(mailModel, await actionableMails(), selectNone),
+					click: async () => trashOrDeleteMails(mailModel, actionableMails, folder, selectNone),
 				}),
 				mailModel.isMovingMailsAllowed()
 					? m(IconButton, {

@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
+import { moveMails, trashOrDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -420,8 +420,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const actionableMails = await this.mailViewModel.getActionableMails([listElement])
-		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMails, () => this.mailViewModel.listModel?.selectNone())
+		const actionableMails = () => this.mailViewModel.getActionableMails([listElement])
+		const wereDeleted = await trashOrDeleteMails(mailLocator.mailModel, actionableMails, this.mailViewModel.getFolder(), () =>
+			this.mailViewModel.listModel?.selectNone(),
+		)
 		return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 	}
 
