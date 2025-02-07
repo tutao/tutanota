@@ -1,5 +1,8 @@
 #![deny(clippy::all)]
 
+//! Node mimimi
+//!
+
 pub mod importer;
 #[cfg(feature = "javascript")]
 mod importer_api;

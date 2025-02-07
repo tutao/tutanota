@@ -4,10 +4,8 @@ use crate::importer::messages::{FileIterationError, PreparationError};
 use crate::importer::{FAILED_MAILS_SUB_DIR, STATE_ID_FILE_NAME};
 use mail_parser::mailbox::mbox::MessageIterator;
 use mail_parser::MessageParser;
-use std::fmt::Debug;
 use std::fs;
 use std::io::BufReader;
-use std::ops::BitAnd;
 use std::path::{Path, PathBuf};
 
 pub struct FileImport {
