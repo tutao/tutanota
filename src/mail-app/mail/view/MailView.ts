@@ -566,15 +566,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private moveMails() {
+	private async moveMails() {
 		const mailList = this.mailViewModel.listModel
 		if (mailList == null) {
 			return
 		}
 
 		const selectedMails = mailList.getSelectedAsArray()
-
-		showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails)
+		const actionableMails = await this.mailViewModel.getActionableMails(selectedMails)
+		await showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), actionableMails)
 	}
 
 	/**

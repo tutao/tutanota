@@ -39,9 +39,9 @@ export class MobileMailMultiselectionActionBar {
 					? m(IconButton, {
 							icon: Icons.Folder,
 							title: "move_action",
-							click: (e, dom) => {
+							click: async (_, dom) => {
 								const referenceDom = this.dom ?? dom
-								showMoveMailsDropdown(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), selectedMails, {
+								await showMoveMailsDropdown(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), await actionableMails(), {
 									onSelected: () => selectNone,
 									width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
 								})
