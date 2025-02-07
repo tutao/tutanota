@@ -1,8 +1,6 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
-	ConversationEntry,
-	ConversationEntryTypeRef,
 	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
 	Mail,
@@ -58,7 +56,7 @@ const TAG = "MailVM"
  * These folders will always use the mail list model instead of the conversation list model regardless of the user's
  * settings.
  */
-const MAIL_LIST_FOLDERS: MailSetKind[] = [MailSetKind.DRAFT, MailSetKind.SENT]
+const MAIL_LIST_FOLDERS: ReadonlyArray<MailSetKind> = Object.freeze([MailSetKind.DRAFT, MailSetKind.SENT])
 
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
@@ -297,7 +295,7 @@ export class MailViewModel {
 
 	private async displayExplicitMailTarget(mail: Mail) {
 		await this.resetOrInitializeList(mail._id)
-		this.createConversationViewModel({ mail, showFolder: false })
+		this.createConversationViewModel({ mail, showFolder: false, loadLatestMail: this.groupMailsByConversation() })
 		this.updateUi()
 	}
 
@@ -349,12 +347,13 @@ export class MailViewModel {
 	init() {
 		this.onceInit()
 		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
-		const mailListModePref = this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS && !conversationDisabled
+		const mailListModePref = !conversationDisabled && this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
 		if (this.conversationViewModel && this.conversationPref !== conversationDisabled) {
 			const mail = this.conversationViewModel.primaryMail
 			this.createConversationViewModel({
 				mail,
 				showFolder: false,
+				loadLatestMail: this.groupMailsByConversation(),
 				delayBodyRenderingUntil: Promise.resolve(),
 			})
 			this.mailOpenedListener.onEmailOpened(mail)
@@ -422,7 +421,7 @@ export class MailViewModel {
 			const folder = this._folder
 
 			let listModel: MailSetListModel
-			if (this.mailListDisplayModePref && !this.folderNeverGroupsMails(folder)) {
+			if (this._groupMailsByConversation(folder)) {
 				listModel = new ConversationListModel(
 					folder,
 					this.conversationPrefProvider,
@@ -502,6 +501,7 @@ export class MailViewModel {
 					this.createConversationViewModel({
 						mail: targetItem,
 						showFolder: false,
+						loadLatestMail: this.groupMailsByConversation(),
 					})
 					this.mailOpenedListener.onEmailOpened(targetItem)
 				}
@@ -772,7 +772,22 @@ export class MailViewModel {
 		await this.mailModel.deleteLabel(label)
 	}
 
-	private folderNeverGroupsMails(mailSet: MailFolder): boolean {
-		return MAIL_LIST_FOLDERS.includes(mailSet.folderType as MailSetKind)
+	/**
+	 * Returns true if mails should be grouped by conversation in mail list based on user preference and current folder
+	 */
+	groupMailsByConversation() {
+		return this._groupMailsByConversation(this._folder)
+	}
+
+	private _groupMailsByConversation(folder: MailFolder | null): boolean {
+		const onlySelectedMailInViewer = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
+		const prefersConversationInList =
+			!onlySelectedMailInViewer && this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
+
+		if (folder != null) {
+			return !MAIL_LIST_FOLDERS.includes(folder.folderType as MailSetKind) && prefersConversationInList
+		} else {
+			return prefersConversationInList
+		}
 	}
 }

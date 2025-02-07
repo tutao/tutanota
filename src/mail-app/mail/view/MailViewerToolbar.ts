@@ -22,10 +22,11 @@ import { styles } from "../../../common/gui/styles"
 export interface MailViewerToolbarAttrs {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
-	mailViewerViewModel?: MailViewerViewModel
 	selectedMails: Mail[]
-	selectNone?: () => void
 	actionableMails: () => Promise<readonly Mail[]>
+	mailViewerViewModel?: MailViewerViewModel
+	actionableMailViewerViewModel?: MailViewerViewModel
+	selectNone?: () => void
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -70,15 +71,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	 * */
 	private renderSingleMailActions(attrs: MailViewerToolbarAttrs): Children {
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
-		if (attrs.mailViewerViewModel) {
+		if (attrs.mailViewerViewModel && attrs.actionableMailViewerViewModel) {
 			if (attrs.mailViewerViewModel.isAnnouncement()) {
 				return []
 			} else if (attrs.mailViewerViewModel.isDraftMail()) {
 				return [this.renderEditButton(attrs.mailViewerViewModel)]
-			} else if (attrs.mailViewerViewModel.canForwardOrMove()) {
-				return [this.renderReplyButton(attrs.mailViewerViewModel), this.renderForwardButton(attrs.mailViewerViewModel)]
+			} else if (attrs.actionableMailViewerViewModel.canForwardOrMove()) {
+				return [this.renderReplyButton(attrs.actionableMailViewerViewModel), this.renderForwardButton(attrs.actionableMailViewerViewModel)]
 			} else {
-				return [this.renderReplyButton(attrs.mailViewerViewModel)]
+				return [this.renderReplyButton(attrs.actionableMailViewerViewModel)]
 			}
 		} else {
 			return []
