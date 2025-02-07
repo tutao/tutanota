@@ -1,10 +1,19 @@
 #!/bin/sh
 
 # pre-commit hook to check & fix formatting. does not deal with spaces in paths.
+# this runs very quickly, so no need to filter the files
+cargo fmt --all
 
+# prettier is another thing though:
 #     get staged files     exclude deleted files    | only match what prettier matches  | transform newline & whitespace into spaces
 CHG=$(git diff --name-only --diff-filter=d --cached | grep -E ".*\.(ts|js|json|json5)$" | tr [:space:] " ")
-# run prettier fix on them
+
+if [ "x$CHG" = "x" ]; then
+   echo "no js/ts/json files to format"
+   exit 0
+fi
+
+# run prettier fix on the changed files
 npx prettier -w  $CHG > /dev/null
 # re-add the fixed files
 git add $CHG > /dev/null

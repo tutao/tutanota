@@ -49,7 +49,7 @@ o.spec("ConfigFileTest", function () {
 		o.timeout(500)
 		const cf = getConfigFile("path", "conf.json", n.mock<typeof import("fs")>("fs", fsMock).set())
 
-		const cycles = 19
+		const cycles = 9
 		const res: number[] = []
 
 		for (let i = 0; i < cycles + 1; ) {

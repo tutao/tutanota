@@ -24,9 +24,9 @@
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
 		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema",
-		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\"",
+		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\" --cache --cache-location cache/prettier",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",
-		"lint:check": "eslint .",
+		"lint:check": "eslint . --cache --cache-location cache/eslint",
 		"lint:fix": "eslint --fix .",
 		"check": "npm run style:check && npm run lint:check",
 		"fix": "npm run style:fix && npm run lint:fix"

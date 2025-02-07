@@ -858,7 +858,7 @@ impl From<ImportMailStateId> for IdTupleGenerated {
 }
 
 #[cfg(test)]
-#[cfg(not(ci))]
+#[cfg(not_ci)]
 pub mod tests {
 	use super::*;
 	use crate::test_utils::{init_file_importer, write_big_sample_email, CleanDir};

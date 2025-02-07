@@ -140,44 +140,40 @@ platform :ios do
 		)
 	end
 
-	desc "Run iOS test cases (Jenkins version)"
-	lane :test do
+	desc "Run iOS mail test cases"
+	lane :test_tuta_app do
 		# Create tutanota-3/build if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build"
 
 		# Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build-calendar-app"
 
- 		sh "if xcrun simctl list | grep iphone-15-ios-17-4; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-17-4 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-17-4; fi"
+ 		sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
 
  		clear_derived_data
 
-		# Test both apps so we make sure that changes made in one doesn't break the other one
+		# Test only one app because both link to the same test suite
 		run_tests(
 				scheme: "tuta debug",
-				devices: ["iphone-15-ios-17-4"]
-		)
-
-		run_tests(
-				scheme: "calendar debug",
-				devices: ["iphone-15-ios-17-4"]
-		)
-
-		run_tests(
-				scheme: "TutanotaSharedFramework",
-				devices: ["iphone-15-ios-17-4"]
 		)
  	end
 
-	desc "Run iOS test cases (Github actions version)"
-	lane :test_github do
-		run_tests(
-				scheme: "tuta debug",
-		)
-		run_tests(
-				scheme: "TutanotaSharedFramework",
-		)
-	end
+	 desc "Run iOS shared framework test cases"
+	 lane :test_tuta_shared_framework do
+		 # Create tutanota-3/build if it's not there because we try to copy it during build
+		 sh "mkdir -p ../../build"
+ 
+		 # Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
+		 sh "mkdir -p ../../build-calendar-app"
+ 
+		sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
+ 
+		clear_derived_data
+ 
+		 run_tests(
+				 scheme: "TutanotaSharedFramework",
+		 )
+	  end
 
  	desc "Renew prod adhoc cert"
  	lane :renew_adhoc_cert_prod do
@@ -233,16 +229,6 @@ platform :ios do
 		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
 		   platform: "ios"
 	   )
-   end
-
-   desc "Run iOS test cases for Calendar app (Github actions version)"
-   lane :test_calendar_github do
-   		run_tests(
-   				scheme: "calendar debug",
-   		)
-   		run_tests(
-   				scheme: "TutanotaSharedFramework",
-   		)
    end
 
    desc "Build a new staging Calendar release for ad-hoc"

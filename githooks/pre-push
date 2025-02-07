@@ -1,0 +1,18 @@
+#! /bin/sh
+
+# this hook prints a message that can be used to start a jenkins job on our CI server
+
+echo "inspect stdin (see 'man githooks'):"
+while read line
+do
+  echo "stdin: $line"
+done < "/dev/stdin"
+
+# we could try and figure out which remote branch is the closest
+# ancestor to make an educated guess at a default target branch.
+# TARGET_BRANCH=$( ?? )
+SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+TUTA_JENKINS_BASE_URL="https://next.tutao.de/jenkins/"
+
+echo "use this link to start the job to check your work and merge it into your target branch:"
+echo "${TUTA_JENKINS_BASE_URL}job/bootleg-ci-merge/parambuild?SOURCE_BRANCH=${SOURCE_BRANCH}&CLEAN_WORKSPACE=false&DRY_RUN=false"

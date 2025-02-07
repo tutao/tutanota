@@ -29,10 +29,6 @@ export ANDROID_NDK_HOME=/opt/android-sdk-linux/ndk/26.1.10909125
 # add NDK toolchain to path
 export PATH=${PATH}:${ANDROID_NDK_ROOT}/toolchains/llvm/prebuilt/linux-x86_64/bin/
 
-# build the sdk for android
-cd tuta-sdk/rust
-./make_android.sh
-
 # setup the sdk project
 - open tutanota-3/tutasdk/android in Android Studio
 - Ctrl + A -> Project Structure -> Modules -> SDK -> select the NDK

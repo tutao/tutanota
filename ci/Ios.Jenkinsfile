@@ -43,24 +43,6 @@ pipeline {
 				}
 			}
     	}
-		stage("Run tests") {
-			agent {
-				label 'mac'
-			}
-			environment {
-				LC_ALL = "en_US.UTF-8"
-				LANG = "en_US.UTF-8"
-			}
-			steps {
-				script {
-					generateXCodeProjects()
-					dir('app-ios') {
-						sh 'fastlane test'
-					}
-				}
-			} // steps
-		} // stage run tests
-
 		stage("Build") {
 			environment {
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
@@ -78,16 +60,18 @@ pipeline {
 						label 'mac-intel'
 					}
 					steps {
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
-							buildWebapp("test")
-							generateXCodeProjects()
-							util.runFastlane("de.tutao.tutanota.test", "adhoc_staging")
-							if (params.UPLOAD) {
-								util.runFastlane("de.tutao.tutanota.test", "build_mail_staging")
-                                stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+						lock("ios-build-intel") {
+							script {
+								def util = load "ci/jenkins-lib/util.groovy"
+								buildWebapp("test")
+								generateXCodeProjects()
+								util.runFastlane("de.tutao.tutanota.test", "adhoc_staging")
+								if (params.UPLOAD) {
+									util.runFastlane("de.tutao.tutanota.test", "build_mail_staging")
+									stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+								}
+								stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
 							}
-							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
 						}
 					}
 				} // stage staging
@@ -101,16 +85,18 @@ pipeline {
 						label 'mac-intel'
 					}
 					steps {
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
-							buildWebapp("prod")
-							generateXCodeProjects()
-							util.runFastlane("de.tutao.tutanota", "adhoc_prod")
-							if (params.UPLOAD) {
-								util.runFastlane("de.tutao.tutanota", "build_mail_prod")
-							 	stash includes: "app-ios/releases/tutanota-${VERSION}.ipa", name: 'ipa-production'
+						lock("ios-build-intel") {
+							script {
+								def util = load "ci/jenkins-lib/util.groovy"
+								buildWebapp("prod")
+								generateXCodeProjects()
+								util.runFastlane("de.tutao.tutanota", "adhoc_prod")
+								if (params.UPLOAD) {
+									util.runFastlane("de.tutao.tutanota", "build_mail_prod")
+									stash includes: "app-ios/releases/tutanota-${VERSION}.ipa", name: 'ipa-production'
+								}
+								stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 							}
-							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 						}
 					} // steps
 				} // stage production

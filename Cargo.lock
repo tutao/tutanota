@@ -2799,8 +2799,3 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[patch.unused]]
-name = "pqcrypto-internals"
-version = "0.2.7"
-source = "git+https://github.com/rustpq/pqcrypto?rev=b39937410b149156de81fc8e3150753aff925aa4#b39937410b149156de81fc8e3150753aff925aa4"

@@ -6,6 +6,31 @@ plugins {
 	id("org.jetbrains.kotlin.android")
 }
 
+dependencies {
+	implementation("net.java.dev.jna:jna:5.14.0@aar")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+	implementation("androidx.annotation:annotation:1.8.0")
+	testImplementation("junit:junit:4.13.2")
+	androidTestImplementation("androidx.test.ext:junit:1.2.1")
+	androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+}
+
+val tutanota3Root = layout.projectDirectory
+	.dir("..") // tutanota-3/tuta-sdk/android
+	.dir("..") // tutanota-3/tuta-sdk/
+	.dir("..") // tutanota-3
+val rustSdkCratePath = tutanota3Root.dir("tuta-sdk").dir("rust").dir("sdk")
+val sdkUniffiConfigFile = tutanota3Root.dir("tuta-sdk").dir("rust").dir("sdk").file("uniffi.toml")
+
+cargo {
+	module = rustSdkCratePath.toString()
+	libname = "tutasdk"
+	prebuiltToolchains = true
+	pythonCommand = "python3"
+	targets = getABITargets()
+	profile = getActiveBuildType()
+}
+
 fun getActiveBuildType(): String {
 	var buildType = "debug"
 	val taskNames = gradle.parent?.startParameter?.taskNames
@@ -21,25 +46,28 @@ fun getActiveBuildType(): String {
 }
 
 fun getABITargets(): List<String> {
-	var abi = project.gradle.parent?.startParameter?.projectProperties?.get("targetABI")
-	if (abi.isNullOrBlank())
-		abi = findProperty("targetABI") as String?
-
-	return if (abi.isNullOrBlank())
-		listOf("arm", "arm64", "x86_64")
-	else
-		listOf(abi)
+	val targetAbiPropertyValue = findProperty("targetABI") as String?
+	if(targetAbiPropertyValue == null) {
+	    return listOf("arm", "arm64", "x86_64")
+	}
+	return targetAbiPropertyValue.orEmpty().split(",")
 }
 
-fun getJNILibsDirs(): List<String> {
-	val abiTargets = getABITargets()
-	return abiTargets.map {
-		when (it) {
-			"arm" -> "armeabi-v7a"
-			"arm64" -> "arm64-v8a"
-			"x86_64" -> "x86_64"
-			else -> "arm64-v8a"
-		}
+fun abiTargetToJniTarget(abiTarget: String): String {
+	return when (abiTarget) {
+		"arm" -> "armeabi-v7a"
+		"arm64" -> "arm64-v8a"
+		"x86_64" -> "x86_64"
+		else -> throw RuntimeException("unknown abi target: $abiTarget")
+	}
+}
+
+fun jniTargetToRustTargetName(jniTargetName: String): String {
+	return when (jniTargetName) {
+		"arm64-v8a" -> "aarch64-linux-android"
+		"armeabi-v7a" -> "armv7-linux-androideabi"
+		"x86_64" -> "x86_64-linux-android"
+		else -> throw RuntimeException("unknwon jni name $jniTargetName")
 	}
 }
 
@@ -85,49 +113,45 @@ android {
 	ndkVersion = "26.1.10909125"
 }
 
-dependencies {
-	implementation("net.java.dev.jna:jna:5.14.0@aar")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-	implementation("androidx.annotation:annotation:1.8.0")
-	testImplementation("junit:junit:4.13.2")
-	androidTestImplementation("androidx.test.ext:junit:1.2.1")
-	androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-}
-
-cargo {
-	extraCargoBuildArguments = listOf("--package", "tuta-sdk")
-	module = "../../rust"
-	libname = "tutasdk"
-	prebuiltToolchains = true
-	pythonCommand = "python3"
-	targets = getABITargets()
-	profile = getActiveBuildType()
-}
-
 tasks.register("generateBinding") {
 	dependsOn("cargoBuild")
-	getJNILibsDirs().forEach { dir ->
+
+	if (!sdkUniffiConfigFile.asFile.exists()) throw RuntimeException("I would expect uniffi.toml for rust-sdk")
+
+    val targets = getABITargets()
+    println("abi: $targets")
+	targets.forEach { abiTargetName ->
+	    println("abi: $abiTargetName ")
+		val jniTargetName = abiTargetToJniTarget(abiTargetName)
+		val rustTargetName = jniTargetToRustTargetName(jniTargetName)
+
+		val tutasdkSharedObjectPath =
+			tutanota3Root.dir("target").dir(rustTargetName).dir(getActiveBuildType()).file("libtutasdk.so")
+		val kotlinHeaderTargetDir = file("${layout.buildDirectory.asFile.get()}/generated-sources/tuta-sdk")
+
 		doLast {
 			exec {
-				this.executable("mkdir")
-				this.args("-p", "${layout.buildDirectory.asFile.get()}/rustJniLibs/android/${dir}")
+				workingDir = tutanota3Root.asFile
+				executable = "cargo"
+				args = listOf("build", "--lib", "--package", "tuta-sdk")
 			}
+
 			exec {
-				this.workingDir("../../rust")
-				this.executable("cargo")
-				this.args(
+				workingDir = tutanota3Root.asFile
+				executable = "cargo"
+				args = listOf(
 					"run",
 					"--package",
 					"uniffi-bindgen",
-					"--bin",
-					"uniffi-bindgen",
 					"generate",
-					"--library",
-					"${layout.buildDirectory.asFile.get()}/rustJniLibs/android/${dir}/libtutasdk.so",
 					"--language",
 					"kotlin",
 					"--out-dir",
-					"${layout.buildDirectory.asFile.get()}/generated-sources/tuta-sdk"
+					kotlinHeaderTargetDir.toString(),
+					"--library",
+					tutasdkSharedObjectPath.toString(),
+					"--config",
+					sdkUniffiConfigFile.toString(),
 				)
 			}
 		}

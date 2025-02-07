@@ -24,7 +24,7 @@ format() {
   fi
   
   if which swift-format > /dev/null; then
-    FILES=$(find "${1}" -name "*.swift" -type f -not -path "*/GeneratedIpc/*")
+    FILES=$(find "${1}" -name "*.swift" -type f -not -path "*/GeneratedIpc/*" -not -name "*.generated.swift")
     capture_errors swift-format $fix_command --configuration .swift-format.json --recursive --parallel $FILES
   else
     echo "warning: swift-format not installed, download from https://github.com/apple/swift-format"
