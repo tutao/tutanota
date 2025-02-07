@@ -50,7 +50,7 @@ impl UserSelectedFileType {
 				&& source_path.extension() == Some("mbox".as_ref())
 				&& apple_mbox_file.is_file();
 
-			is_apple_mbox.then_some(Self::Mbox(apple_mbox_file))
+			is_apple_mbox.then_some(Self::AppleMbox(apple_mbox_file))
 		}
 	}
 }
