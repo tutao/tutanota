@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -39,7 +39,7 @@ import { ConversationViewModel } from "./ConversationViewModel.js"
 import { conversationCardMargin, ConversationViewer } from "./ConversationViewer.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { MailViewerActions, MailViewerToolbarAttrs } from "./MailViewerToolbar.js"
+import { MailViewerActions } from "./MailViewerToolbar.js"
 import { theme } from "../../../common/gui/theme.js"
 import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionActionBar.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
@@ -263,6 +263,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailViewerViewModel: viewModel.primaryViewModel(),
 			selectedMails: [viewModel.primaryMail],
 			actionableMails: async () => this.mailViewModel.getActionableMails([viewModel.primaryMail]),
+			actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel(),
 		})
 	}
 
@@ -286,6 +287,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				// Re-create the whole viewer and its vnode tree if email has changed
 				key: getElementId(viewModel.primaryMail),
 				viewModel: viewModel,
+				actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation()
+					? () => viewModel.getLatestMail()?.viewModel
+					: () => viewModel.primaryViewModel(),
 				// this assumes that the viewSlider focus animation is already started
 				delayBodyRendering: this.viewSlider.waitForAnimation(),
 			}),

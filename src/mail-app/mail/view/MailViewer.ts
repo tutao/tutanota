@@ -22,7 +22,6 @@ import { copyToClipboard } from "../../../common/misc/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
 import { createEmailSenderListElement } from "../../../common/api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../common/api/main/UserError"
-import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { MailViewerHeader } from "./MailViewerHeader.js"
@@ -95,11 +94,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private quoteState: "noquotes" | "unset" | "collapsed" | "expanded" = "unset"
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
-		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
+		this.setViewModel(vnode.attrs.viewModel)
 
 		this.resizeListener = () => this.domBodyDeferred.promise.then((dom) => this.updateLineHeight(dom))
 
-		this.shortcuts = this.setupShortcuts(vnode.attrs)
+		this.shortcuts = this.setupShortcuts()
 	}
 
 	oncreate({ attrs }: Vnode<MailViewerAttrs>) {
@@ -124,7 +123,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 	}
 
-	private setViewModel(viewModel: MailViewerViewModel, isPrimary: boolean) {
+	private setViewModel(viewModel: MailViewerViewModel) {
 		// Figuring out whether we have a new email assigned.
 		const oldViewModel = this.viewModel
 		this.viewModel = viewModel
@@ -254,7 +253,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	onbeforeupdate(vnode: Vnode<MailViewerAttrs>): boolean | void {
 		// Setting viewModel here to have viewModel that we will use for render already and be able to make a decision
 		// about skipping rendering
-		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
+		this.setViewModel(vnode.attrs.viewModel)
 		// We skip rendering progress indicator when switching between emails.
 		// However if we already loaded the mail then we can just render it.
 		const shouldSkipRender = this.viewModel.isLoading() && this.delayProgressSpinner
@@ -525,9 +524,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private setupShortcuts(attrs: MailViewerAttrs): Array<Shortcut> {
-		const userController = locator.logins.getUserController()
-		const shortcuts: Shortcut[] = [
+	private setupShortcuts(): Array<Shortcut> {
+		return [
 			{
 				key: Keys.E,
 				enabled: () => this.viewModel.isDraftMail(),
@@ -552,38 +550,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 				help: "showSource_action",
 			},
-			{
-				key: Keys.R,
-				exec: () => {
-					this.viewModel.reply(false)
-				},
-				enabled: () => !this.viewModel.isDraftMail(),
-				help: "reply_action",
-			},
-			{
-				key: Keys.R,
-				shift: true,
-				exec: () => {
-					this.viewModel.reply(true)
-				},
-				enabled: () => !this.viewModel.isDraftMail(),
-				help: "replyAll_action",
-			},
 		]
-
-		if (userController.isInternalUser()) {
-			shortcuts.push({
-				key: Keys.F,
-				shift: true,
-				enabled: () => !this.viewModel.isDraftMail(),
-				exec: () => {
-					this.viewModel.forward().catch(ofClass(UserError, showUserError))
-				},
-				help: "forward_action",
-			})
-		}
-
-		return shortcuts
 	}
 
 	private updateLineHeight(dom: HTMLElement) {
@@ -766,6 +733,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 export type CreateMailViewerOptions = {
 	mail: Mail
 	showFolder: boolean
+	/** latestMail is needed when conversation actions are preformed on it */
+	loadLatestMail: boolean
 	delayBodyRenderingUntil?: Promise<void>
 }
 

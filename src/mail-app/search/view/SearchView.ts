@@ -448,6 +448,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the shown mail
 					actionableMails: async () => [conversationViewModel.primaryMail],
+					actionableMailViewerViewModel: conversationViewModel.primaryViewModel(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -466,6 +467,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						// Re-create the whole viewer and its vnode tree if email has changed
 						key: getElementId(conversationViewModel.primaryMail),
 						viewModel: conversationViewModel,
+						actionableMailViewerViewModel: () => conversationViewModel.primaryViewModel(),
 						delayBodyRendering: Promise.resolve(),
 					}),
 				})
