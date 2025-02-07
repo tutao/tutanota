@@ -12,9 +12,14 @@ import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
+import { UserError } from "../../../common/api/main/UserError"
+import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
+	actionableMailViewerViewModel: () => MailViewerViewModel | undefined
 	delayBodyRendering: Promise<unknown>
 }
 
@@ -30,29 +35,67 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private didScroll = false
 	/** items from the last render, we need them to calculate the right subject based on the scroll position without the full re-render. */
 	private lastItems: readonly ConversationItem[] | null = null
+	private readonly shortcuts: Array<Shortcut>
 
-	private readonly shortcuts: Shortcut[] = [
-		{
-			key: Keys.PAGE_UP,
-			exec: () => this.scrollUp(),
-			help: "scrollUp_action",
-		},
-		{
-			key: Keys.PAGE_DOWN,
-			exec: () => this.scrollDown(),
-			help: "scrollDown_action",
-		},
-		{
-			key: Keys.HOME,
-			exec: () => this.scrollToTop(),
-			help: "scrollToTop_action",
-		},
-		{
-			key: Keys.END,
-			exec: () => this.scrollToBottom(),
-			help: "scrollToBottom_action",
-		},
-	]
+	constructor(vnode: Vnode<ConversationViewerAttrs>) {
+		this.view = this.view.bind(this)
+		this.shortcuts = this.setupShortcuts(vnode.attrs.actionableMailViewerViewModel)
+	}
+
+	private setupShortcuts(viewModel: () => MailViewerViewModel | undefined): Array<Shortcut> {
+		const userController = locator.logins.getUserController()
+		const shortcuts: Shortcut[] = [
+			{
+				key: Keys.PAGE_UP,
+				exec: () => this.scrollUp(),
+				help: "scrollUp_action",
+			},
+			{
+				key: Keys.PAGE_DOWN,
+				exec: () => this.scrollDown(),
+				help: "scrollDown_action",
+			},
+			{
+				key: Keys.HOME,
+				exec: () => this.scrollToTop(),
+				help: "scrollToTop_action",
+			},
+			{
+				key: Keys.END,
+				exec: () => this.scrollToBottom(),
+				help: "scrollToBottom_action",
+			},
+			{
+				key: Keys.R,
+				exec: () => {
+					assertNotNull(viewModel()).reply(false)
+				},
+				enabled: () => !viewModel()?.isDraftMail(),
+				help: "reply_action",
+			},
+			{
+				key: Keys.R,
+				shift: true,
+				exec: () => {
+					assertNotNull(viewModel()).reply(true)
+				},
+				enabled: () => !viewModel()?.isDraftMail(),
+				help: "replyAll_action",
+			},
+		]
+		if (userController.isInternalUser()) {
+			shortcuts.push({
+				key: Keys.F,
+				shift: true,
+				enabled: () => !viewModel()?.isDraftMail(),
+				exec: () => {
+					assertNotNull(viewModel()).forward().catch(ofClass(UserError, showUserError))
+				},
+				help: "forward_action",
+			})
+		}
+		return shortcuts
+	}
 
 	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
@@ -210,7 +253,10 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 	private scrollToBottom(): void {
 		if (this.containerDom) {
-			this.containerDom.scrollTo({ top: this.containerDom.scrollHeight - this.containerDom.offsetHeight, behavior: "smooth" })
+			this.containerDom.scrollTo({
+				top: this.containerDom.scrollHeight - this.containerDom.offsetHeight,
+				behavior: "smooth",
+			})
 		}
 	}
 }

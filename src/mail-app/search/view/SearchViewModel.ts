@@ -869,7 +869,11 @@ export class SearchViewModel {
 
 	private updateDisplayedConversation(mail: Mail): void {
 		if (this.conversationViewModelFactory && this.mailOpenedListener) {
-			this._conversationViewModel = this.conversationViewModelFactory({ mail, showFolder: true })
+			this._conversationViewModel = this.conversationViewModelFactory({
+				mail,
+				showFolder: true,
+				loadLatestMail: false,
+			})
 			// Notify the admin client about the mail being selected
 			this.mailOpenedListener.onEmailOpened(mail)
 		}
