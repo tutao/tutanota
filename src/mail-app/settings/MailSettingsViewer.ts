@@ -319,7 +319,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				{ name: lang.get("mailListGroupingDontGroup_label"), value: MailListDisplayMode.MAILS },
 				{ name: lang.get("mailListGroupingGroupByConversation_label"), value: MailListDisplayMode.CONVERSATIONS },
 			],
-			selectedValue: deviceConfig.getMailListDisplayMode(),
+			selectedValue: deviceConfig.getConversationViewShowOnlySelectedMail() ? MailListDisplayMode.MAILS : deviceConfig.getMailListDisplayMode(),
+			disabled: deviceConfig.getConversationViewShowOnlySelectedMail(),
 			helpLabel: () => lang.get("mailListGroupingHelp_msg"),
 			selectionChangedHandler: (arg: MailListDisplayMode) => {
 				deviceConfig.setMailListDisplayMode(arg)
