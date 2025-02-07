@@ -2,7 +2,7 @@ import { ConversationEntry, ConversationEntryTypeRef, Mail, MailTypeRef } from "
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { elementIdPart, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { assertNotNull, findLastIndex, groupBy, makeSingleUse, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, findLast, findLastIndex, groupBy, makeSingleUse, memoizedWithHiddenArgument, ofClass } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
@@ -54,6 +54,10 @@ export class ConversationViewModel {
 		this.loadingPromise = this.loadingState.trackPromise(this.loadConversation())
 		this.eventController.addEntityListener(this.onEntityEvent)
 		this._primaryViewModel.expandMail(delayBodyRendering)
+
+		if (this.options.loadLatestMail) {
+			this.loadLatestMail()
+		}
 	})
 
 	private readonly onEntityEvent: EntityEventsListener = async (updates, eventOwnerGroupId) => {
@@ -266,6 +270,27 @@ export class ConversationViewModel {
 		}
 		return allMails
 	}
+
+	async loadLatestMail() {
+		await this.loadingPromise
+		const latestMail = this.getLatestMail()
+		if (latestMail == null) {
+			return
+		}
+
+		await latestMail.viewModel.loadAll(Promise.resolve(), { notify: false })
+	}
+
+	readonly getLatestMail: () => MailItem | null = memoizedWithHiddenArgument(
+		() => this.conversation,
+		(conversation) => {
+			if (conversation == null) {
+				return null
+			}
+
+			return findLast(conversation, ({ viewModel }) => !viewModel.isDraftMail()) ?? null
+		},
+	)
 
 	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
