@@ -443,7 +443,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				const actions = m(MailViewerActions, {
 					mailboxModel: conversationViewModel.primaryViewModel().mailboxModel,
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
-					mailViewerViewModel: conversationViewModel.primaryViewModel(),
+					primaryMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					selectedMails: [conversationViewModel.primaryMail],
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the shown mail

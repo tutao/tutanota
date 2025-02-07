@@ -24,7 +24,7 @@ export interface MailViewerToolbarAttrs {
 	mailModel: MailModel
 	selectedMails: Mail[]
 	actionableMails: () => Promise<readonly Mail[]>
-	mailViewerViewModel?: MailViewerViewModel
+	primaryMailViewerViewModel?: MailViewerViewModel
 	actionableMailViewerViewModel?: MailViewerViewModel
 	selectNone?: () => void
 }
@@ -34,23 +34,23 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	view(vnode: Vnode<MailViewerToolbarAttrs>) {
 		return m(".flex.ml-between-s.items-center", { "data-testid": "nav:action_bar" }, [
 			this.renderSingleMailActions(vnode.attrs),
-			vnode.attrs.mailViewerViewModel ? m(".nav-bar-spacer") : null,
+			vnode.attrs.primaryMailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),
-			this.renderMoreButton(vnode.attrs.mailViewerViewModel, vnode.attrs.actionableMails),
+			this.renderMoreButton(vnode.attrs.primaryMailViewerViewModel, vnode.attrs.actionableMails),
 		])
 	}
 
 	private renderActions(attrs: MailViewerToolbarAttrs): Children {
-		const mailModel = attrs.mailViewerViewModel ? attrs.mailViewerViewModel.mailModel : attrs.mailModel
+		const mailModel = attrs.primaryMailViewerViewModel ? attrs.primaryMailViewerViewModel.mailModel : attrs.mailModel
 
 		if (!mailModel || !attrs.selectedMails) {
 			return null
-		} else if (attrs.mailViewerViewModel) {
+		} else if (attrs.primaryMailViewerViewModel) {
 			return [
 				this.renderDeleteButton(mailModel, attrs.selectedMails, attrs.selectNone ?? noOp),
-				attrs.mailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.selectedMails) : null,
+				attrs.primaryMailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.selectedMails) : null,
 				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails) : null,
-				attrs.mailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
+				attrs.primaryMailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.selectedMails.length > 0) {
 			return [
@@ -71,11 +71,11 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	 * */
 	private renderSingleMailActions(attrs: MailViewerToolbarAttrs): Children {
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
-		if (attrs.mailViewerViewModel && attrs.actionableMailViewerViewModel) {
-			if (attrs.mailViewerViewModel.isAnnouncement()) {
+		if (attrs.primaryMailViewerViewModel && attrs.actionableMailViewerViewModel) {
+			if (attrs.primaryMailViewerViewModel.isAnnouncement()) {
 				return []
-			} else if (attrs.mailViewerViewModel.isDraftMail()) {
-				return [this.renderEditButton(attrs.mailViewerViewModel)]
+			} else if (attrs.primaryMailViewerViewModel.isDraftMail()) {
+				return [this.renderEditButton(attrs.primaryMailViewerViewModel)]
 			} else if (attrs.actionableMailViewerViewModel.canForwardOrMove()) {
 				return [this.renderReplyButton(attrs.actionableMailViewerViewModel), this.renderForwardButton(attrs.actionableMailViewerViewModel)]
 			} else {
@@ -122,7 +122,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderReadButton({ mailModel, mailViewerViewModel, actionableMails }: MailViewerToolbarAttrs): Children {
+	private renderReadButton({ mailModel, primaryMailViewerViewModel, actionableMails }: MailViewerToolbarAttrs): Children {
 		const markReadButton = m(IconButton, {
 			title: "markRead_action",
 			click: async () => mailModel.markMails(await actionableMails(), false),
@@ -135,8 +135,8 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
-		if (mailViewerViewModel) {
-			if (mailViewerViewModel.isUnread()) {
+		if (primaryMailViewerViewModel) {
+			if (primaryMailViewerViewModel.isUnread()) {
 				return markReadButton
 			} else {
 				return markUnreadButton
