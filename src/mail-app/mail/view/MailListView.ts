@@ -420,7 +420,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, [listElement], () => this.mailViewModel.listModel?.selectNone())
+		const actionableMails = await this.mailViewModel.getActionableMails([listElement])
+		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMails, () => this.mailViewModel.listModel?.selectNone())
 		return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 	}
 

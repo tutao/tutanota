@@ -33,7 +33,7 @@ export class MobileMailMultiselectionActionBar {
 				m(IconButton, {
 					icon: Icons.Trash,
 					title: "delete_action",
-					click: () => promptAndDeleteMails(mailModel, selectedMails, selectNone),
+					click: async () => promptAndDeleteMails(mailModel, await actionableMails(), selectNone),
 				}),
 				mailModel.isMovingMailsAllowed()
 					? m(IconButton, {

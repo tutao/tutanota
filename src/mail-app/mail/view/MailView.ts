@@ -888,8 +888,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await mailLocator.mailModel.markMails(mailIds, !selectedMails[0].unread)
 	}
 
-	private deleteMails(mails: Mail[]): Promise<boolean> {
-		return promptAndDeleteMails(mailLocator.mailModel, mails, noOp)
+	private async deleteMails(mails: Mail[]): Promise<boolean> {
+		const actionableMails = await this.mailViewModel.getActionableMails(mails)
+		return promptAndDeleteMails(mailLocator.mailModel, actionableMails, noOp)
 	}
 
 	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) {
