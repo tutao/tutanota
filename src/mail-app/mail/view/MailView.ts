@@ -260,7 +260,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailViewerActions, {
 			mailboxModel: viewModel.primaryViewModel().mailboxModel,
 			mailModel: viewModel.primaryViewModel().mailModel,
-			mailViewerViewModel: viewModel.primaryViewModel(),
+			primaryMailViewerViewModel: viewModel.primaryViewModel(),
 			selectedMails: [viewModel.primaryMail],
 			actionableMails: async () => this.mailViewModel.getActionableMails([viewModel.primaryMail]),
 			actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel(),
