@@ -19,7 +19,15 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
-import { archiveMails, getConversationTitle, getMoveMailBounds, moveMails, moveToInbox, showMoveMailsDropdown, trashOrDeleteMails } from "./MailGuiUtils"
+import {
+	archiveMails,
+	getConversationTitle,
+	getMoveMailBounds,
+	moveMails,
+	moveToInbox,
+	showMoveMailsDropdownForMailInFolder,
+	trashOrDeleteMails,
+} from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
@@ -377,6 +385,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
 								viewModel: this.conversationViewModel.primaryViewModel(),
+								folder: this.mailViewModel.getFolder(),
 								actionableMails: () =>
 									this.mailViewModel.getActionableMails(this.conversationViewModel ? [this.conversationViewModel.primaryMail] : []),
 						  })
@@ -576,8 +585,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const selectedMails = mailList.getSelectedAsArray()
-		const actionableMails = await this.mailViewModel.getActionableMails(selectedMails)
-		await showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), actionableMails)
+		const actionableMails = () => this.mailViewModel.getActionableMails(selectedMails)
+		const folder = this.mailViewModel.getFolder()
+		if (folder != null) {
+			await showMoveMailsDropdownForMailInFolder(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), actionableMails, folder)
+		}
 	}
 
 	/**

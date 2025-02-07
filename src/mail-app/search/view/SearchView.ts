@@ -51,7 +51,14 @@ import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselect
 import { MobileHeader, MobileHeaderMenuButton } from "../../../common/gui/MobileHeader.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
-import { archiveMails, getConversationTitle, getMoveMailBounds, moveToInbox, showMoveMailsDropdown, trashOrDeleteMails } from "../../mail/view/MailGuiUtils.js"
+import {
+	archiveMails,
+	getConversationTitle,
+	getMoveMailBounds,
+	moveToInbox,
+	showMoveMailsDropdownForMailInFolder,
+	trashOrDeleteMails,
+} from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
@@ -603,6 +610,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && this.searchViewModel.conversationViewModel) {
 			return m(MobileMailActionBar, {
 				viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel(),
+				folder: null,
 				// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 				//    mails are always shown. So the action applies only to the shown mail
 				actionableMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail._id],
@@ -1015,7 +1023,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails, {
+			showMoveMailsDropdownForMailInFolder(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), () => selectedMails, null, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()

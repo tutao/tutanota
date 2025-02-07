@@ -2,7 +2,7 @@ import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs
 import m, { Children, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { showMoveMailsDropdown, trashOrDeleteMails } from "./MailGuiUtils.js"
+import { showMoveMailsDropdownForMailInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
 import { DROPDOWN_MARGIN } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -42,10 +42,19 @@ export class MobileMailMultiselectionActionBar {
 							title: "move_action",
 							click: async (_, dom) => {
 								const referenceDom = this.dom ?? dom
-								await showMoveMailsDropdown(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), await actionableMails(), {
-									onSelected: () => selectNone,
+								const opts = {
+									onSelected: selectNone,
 									width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
-								})
+								}
+
+								await showMoveMailsDropdownForMailInFolder(
+									mailboxModel,
+									mailModel,
+									referenceDom.getBoundingClientRect(),
+									actionableMails,
+									folder,
+									opts,
+								)
 							},
 					  })
 					: null,

@@ -5,16 +5,17 @@ import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { showMoveMailsDropdown, trashOrDeleteSingleMail } from "./MailGuiUtils.js"
+import { showMoveMailsDropdownForMailInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
 import { LabelsPopup } from "./LabelsPopup.js"
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
+	folder: MailFolder | null
 	actionableMails: () => Promise<readonly IdTuple[]>
 }
 
@@ -55,11 +56,11 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private moveButton({ viewModel }: MobileMailActionBarAttrs) {
+	private moveButton({ actionableMails, viewModel, folder }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "move_action",
-			click: (e, dom) =>
-				showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], {
+			click: (_, dom) =>
+				showMoveMailsDropdownForMailInFolder(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), actionableMails, folder, {
 					width: this.dropdownWidth(),
 					withBackground: true,
 				}),
@@ -106,10 +107,10 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private deleteButton({ viewModel }: MobileMailActionBarAttrs): Children {
+	private deleteButton({ viewModel, actionableMails, folder }: MobileMailActionBarAttrs): Children {
 		return m(IconButton, {
 			title: "delete_action",
-			click: () => trashOrDeleteSingleMail(viewModel.mailModel, viewModel.mail, noOp),
+			click: () => trashOrDeleteMails(viewModel.mailModel, actionableMails, folder, noOp),
 			icon: Icons.Trash,
 		})
 	}

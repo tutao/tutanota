@@ -6,7 +6,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { assertNotNull, endsWith, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, endsWith, getFirstOrThrow, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -29,7 +29,14 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel } from "../model/MailModel.js"
 import { hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { assertSystemFolderOfType, FolderInfo, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
+import {
+	assertSystemFolderOfType,
+	FolderInfo,
+	getFolderName,
+	getIndentedFolderNameForDropdown,
+	getMoveTargetFolderSystems,
+	getMoveTargetFolderSystemsForMailsInFolder,
+} from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
@@ -56,6 +63,9 @@ export async function trashOrDeleteMails(
 	currentFolder: MailFolder | null,
 	onConfirm: () => void,
 ): Promise<boolean> {
+	let mails: readonly Mail[] | null = null
+
+	// Determine if current folder is trash or spam.
 	let isDeletion
 	if (currentFolder != null) {
 		const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
@@ -64,7 +74,24 @@ export async function trashOrDeleteMails(
 		}
 		isDeletion = isSpamOrTrashFolder(folderSystem, currentFolder)
 	} else {
-		isDeletion = false
+		// currentFolder may be null if we are deleting from somewhere that isn't a folder (search view), thus we have
+		// to determine the folder. This will (hopefully) be synchronous.
+
+		mails = await mailResolver()
+		if (isEmpty(mails)) {
+			return false
+		}
+
+		const firstMail = getFirstOrThrow(mails)
+		const folderSystem = await mailModel.getMailboxFoldersForMail(firstMail)
+		if (folderSystem == null) {
+			return false
+		}
+
+		isDeletion = mails.every((mail) => {
+			const folder = mailModel.getMailFolderForMail(mail)
+			return folder != null && isSpamOrTrashFolder(folderSystem, folder)
+		})
 	}
 
 	try {
@@ -73,12 +100,12 @@ export async function trashOrDeleteMails(
 			if (!shouldDelete) {
 				return false
 			}
-			const mails = await mailResolver()
+			mails = mails ?? (await mailResolver())
 			onConfirm()
 			await mailModel.deleteMails(mails)
 			return true
 		} else {
-			const mails = await mailResolver()
+			mails = mails ?? (await mailResolver())
 			onConfirm()
 			await mailModel.trashMails(mails)
 			return true
@@ -359,22 +386,40 @@ export function getReferencedAttachments(attachments: Array<TutanotaFile>, refer
 	return attachments.filter((file) => referencedCids.find((rcid) => file.cid === rcid))
 }
 
-export async function showMoveMailsDropdown(
+export async function showMoveMailsDropdownForMailInFolder(
 	mailboxModel: MailboxModel,
 	model: MailModel,
 	origin: PosRect,
-	mails: readonly Mail[],
+	mails: LazyMailResolver,
+	currentFolder: MailFolder | null,
 	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
 ): Promise<void> {
-	const folders = await getMoveTargetFolderSystems(model, mails)
+	// Determine what folders to show in dropdown.
+	// If there's a current folder than we are likely in the list and we will show all other folders for that mailbox.
+	// Otherwise we are likely in search and we just show all folders of the mailbox.
+	let resolvedMails: readonly Mail[] | null = null
+	let folders: readonly FolderInfo[]
+	if (currentFolder != null) {
+		folders = await getMoveTargetFolderSystemsForMailsInFolder(model, currentFolder)
+	} else {
+		resolvedMails = await mails()
+		if (isEmpty(resolvedMails)) {
+			return
+		}
+		const folderSystem = await model.getMailboxFoldersForMail(getFirstOrThrow(resolvedMails))
+		if (folderSystem == null) {
+			return
+		}
+		folders = folderSystem.getIndentedList()
+	}
 	await showMailFolderDropdown(
 		origin,
 		folders,
-		(f) =>
+		async (f) =>
 			moveMails({
 				mailboxModel,
 				mailModel: model,
-				mails: mails,
+				mails: resolvedMails ?? (await mails()),
 				targetMailFolder: f.folder,
 			}),
 		opts,

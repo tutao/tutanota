@@ -19,7 +19,7 @@ import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewMode
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown, trashOrDeleteSingleMail } from "./MailGuiUtils.js"
+import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdownForMailInFolder, trashOrDeleteSingleMail } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { editDraft, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
@@ -742,7 +742,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					actionButtons.push({
 						label: "move_action",
 						click: (_: MouseEvent, dom: HTMLElement) =>
-							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+							showMoveMailsDropdownForMailInFolder(
+								viewModel.mailboxModel,
+								viewModel.mailModel,
+								dom.getBoundingClientRect(),
+								() => [viewModel.mail],
+								null,
+							),
 						icon: Icons.Folder,
 					})
 					actionButtons.push({
@@ -774,7 +780,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						actionButtons.push({
 							label: "move_action",
 							click: (_: MouseEvent, dom: HTMLElement) =>
-								showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+								showMoveMailsDropdownForMailInFolder(
+									viewModel.mailboxModel,
+									viewModel.mailModel,
+									dom.getBoundingClientRect(),
+									() => [viewModel.mail],
+									null,
+								),
 							icon: Icons.Folder,
 						})
 					}
