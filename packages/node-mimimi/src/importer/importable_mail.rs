@@ -203,7 +203,11 @@ pub struct ImportableMail {
 	pub(super) message_id: Option<String>,
 	pub(super) in_reply_to: Option<String>,
 	pub(super) references: Vec<String>,
-	pub(crate) eml_file_path: Option<PathBuf>,
+}
+
+pub struct ImportableMailWithPath {
+	pub importable_mail: ImportableMail,
+	pub path: PathBuf,
 }
 
 impl ImportableMail {
@@ -584,7 +588,6 @@ impl ImportableMail {
 			in_reply_to,
 			references,
 			attachments: _,
-			eml_file_path: _,
 		} = self;
 
 		let reply_tos = reply_to_addresses
@@ -663,10 +666,7 @@ pub enum MailParseError {
 
 /// allow to convert from parsed message
 impl ImportableMail {
-	pub fn convert_from(
-		parsed_message: &mail_parser::Message,
-		eml_file_path: Option<PathBuf>,
-	) -> Self {
+	pub fn from_parsed_message(parsed_message: &mail_parser::Message) -> Self {
 		let subject = parsed_message.subject().unwrap_or_default().to_string();
 
 		let date = parsed_message
@@ -782,7 +782,6 @@ impl ImportableMail {
 			unread: false,
 			mail_state: Default::default(),
 			is_phishing: false,
-			eml_file_path,
 		}
 	}
 }

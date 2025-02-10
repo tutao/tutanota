@@ -1,4 +1,6 @@
-use crate::importer::importable_mail::{ImportableMail, ImportableMailAttachment};
+use crate::importer::importable_mail::{
+	ImportableMail, ImportableMailAttachment, ImportableMailWithPath,
+};
 use std::iter::Peekable;
 use std::path::PathBuf;
 use tutasdk::crypto::aes;
@@ -14,20 +16,23 @@ pub struct AttachmentUploadData {
 pub struct KeyedImportMailData {
 	pub session_key: GenericAesKey,
 	pub import_mail_data: ImportMailData,
-	pub eml_file_path: Option<PathBuf>,
+	pub eml_file_path: PathBuf,
 }
 
 impl AttachmentUploadData {
 	pub fn create_from_importable_mail(
 		randomizer_facade: &RandomizerFacade,
 		mail_group_key: &VersionedAesKey,
-		mut importable_mail: ImportableMail,
+		importable_mail: ImportableMailWithPath,
 	) -> Self {
 		let session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(randomizer_facade));
 		let owner_enc_session_key =
 			mail_group_key.encrypt_key(&session_key, aes::Iv::generate(randomizer_facade));
 
-		let eml_file_path = importable_mail.eml_file_path.clone();
+		let ImportableMailWithPath {
+			mut importable_mail,
+			path: eml_file_path,
+		} = importable_mail;
 		let attachments = importable_mail.take_out_attachments();
 		let import_mail_data = importable_mail.make_import_mail_data(
 			owner_enc_session_key.object,

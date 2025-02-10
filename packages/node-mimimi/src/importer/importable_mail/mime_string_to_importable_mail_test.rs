@@ -6,7 +6,7 @@ use mail_parser::{MessageParser, MimeHeaders};
 use tutasdk::date::DateTime;
 
 fn parse_mail(msg: &str) -> ImportableMail {
-	ImportableMail::convert_from(&MessageParser::default().parse(msg).unwrap(), None)
+	ImportableMail::from_parsed_message(&MessageParser::default().parse(msg).unwrap())
 }
 
 // to be able to convert any (str/string, str/string).into() => MailContact
@@ -252,7 +252,7 @@ Date: Thu, 7 Nov 2024 15:54:04 +0100
 
 #[test]
 fn from_encoded_word_qencoding() {
-	// the rust mime parser is not able to handle chars splitted in two q-encoding blocks
+	// the rust mime parser is not able to handle chars split in two q-encoding blocks
 	// while our server side parser handles those cases
 	let msg = r#"Subject: =?utf-8?Q?=D0=9E=D0=B1=D1=8A=D0=B5=D0=B4=D0=B8=D0=BD=D0=B5=D0=BD=D0=BD=D1=8B=D0=B5?==?utf-8?Q?_=D0=B4=D0=B5=D0=BC=D0=BE=D0=BA=D1=80=D0=B0=D1=82=D1=8B?=
 From: =?utf-8?Q?=D0=9E=D0=B1=D1=8A=D0=B5=D0=B4=D0=B8=D0=BD=D0=B5=D0=BD=D0=BD=D1=8B=D0=B5?==?utf-8?Q?_=D0=B4=D0=B5=D0=BC=D0=BE=D0=BA=D1=80=D0=B0=D1=82=D1=8B?=<team@od.spb.ru>

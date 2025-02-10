@@ -69,7 +69,7 @@ fn mime_tools_test_messages() {
 			result: expected_result,
 			exception: _,
 		} = FileContent::read_from_file(expected_json_file_name.as_str()).unwrap();
-		let mut parsed_message = ImportableMail::convert_from(&parsed_message, None);
+		let mut parsed_message = ImportableMail::from_parsed_message(&parsed_message);
 
 		if expected_result.is_none() {
 			eprintln!("above file has `error` field set in in -expected.json ......");
@@ -209,7 +209,6 @@ impl From<ExpectedMessage> for ImportableMail {
 			message_id: expected_message.id,
 			in_reply_to: expected_message.in_reply_to,
 			references: expected_message.references,
-			eml_file_path: None,
 		}
 	}
 }

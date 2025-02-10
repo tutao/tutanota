@@ -1,5 +1,5 @@
 use crate::importer::filename_producer::FileNameProducer;
-use crate::importer::importable_mail::ImportableMail;
+use crate::importer::importable_mail::{ImportableMail, ImportableMailWithPath};
 use crate::importer::messages::{FileIterationError, PreparationError};
 use crate::importer::{FAILED_MAILS_SUB_DIR, STATE_ID_FILE_NAME};
 use mail_parser::mailbox::mbox::MessageIterator;
@@ -54,7 +54,9 @@ impl UserSelectedFileType {
 }
 
 impl FileImport {
-	fn next_importable_mail(&mut self) -> Result<Option<ImportableMail>, FileIterationError> {
+	fn next_importable_mail(
+		&mut self,
+	) -> Result<Option<ImportableMailWithPath>, FileIterationError> {
 		let Some(eml_path) = self.queued_eml_paths.pop() else {
 			return Ok(None);
 		};
@@ -66,8 +68,11 @@ impl FileImport {
 			.parse(eml_content.as_slice())
 			.ok_or(FileIterationError::ParseError(eml_path.clone()))?;
 
-		let importable_mail = ImportableMail::convert_from(&parsed_mail, Some(eml_path));
-		Ok(Some(importable_mail))
+		let importable_mail = ImportableMail::from_parsed_message(&parsed_mail);
+		Ok(Some(ImportableMailWithPath {
+			importable_mail,
+			path: eml_path,
+		}))
 	}
 }
 
@@ -193,7 +198,7 @@ impl FileImport {
 		Ok(())
 	}
 
-	pub fn get_next_importable_mail(&mut self) -> Option<ImportableMail> {
+	pub fn get_next_importable_mail(&mut self) -> Option<ImportableMailWithPath> {
 		// try to get next mail from sources,
 		// if it fails put the error in list ( which also contains the path itself )
 		// and try to get next one again until we run out of all sources

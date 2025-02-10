@@ -1,5 +1,6 @@
 use crate::importer::importable_mail::{
-	ImportableMailAttachment, ImportableMailAttachmentMetaData, KeyedImportableMailAttachment,
+	ImportableMailAttachment, ImportableMailAttachmentMetaData, ImportableMailWithPath,
+	KeyedImportableMailAttachment,
 };
 use crate::reduce_to_chunks::{AttachmentUploadData, KeyedImportMailData};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
@@ -109,7 +110,7 @@ pub enum ImportSource {
 }
 
 impl Iterator for ImportSource {
-	type Item = ImportableMail;
+	type Item = ImportableMailWithPath;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		match self {
@@ -610,11 +611,14 @@ impl Importer {
 			// this chunk was too big to import
 			Some(Err(too_big_chunk)) => Err(MailImportErrorMessage {
 				kind: ImportErrorKind::TooBigChunk,
-				path: too_big_chunk
-					.keyed_import_mail_data
-					.eml_file_path
-					.map(|path| path.to_string_lossy().to_string())
-					.clone(),
+				path: Some(
+					too_big_chunk
+						.keyed_import_mail_data
+						.eml_file_path
+						.to_string_lossy()
+						.to_string()
+						.clone(),
+				),
 			})?,
 
 			// these chunks can be imported in single request
@@ -624,9 +628,9 @@ impl Importer {
 					.try_into()
 					.expect("item count in single chunk will never exceed i64::max");
 
-				let eml_file_paths: Vec<PathBuf> = chunked_import_data
+				let eml_file_paths = chunked_import_data
 					.iter()
-					.filter_map(|id| id.keyed_import_mail_data.eml_file_path.clone())
+					.map(|id| id.keyed_import_mail_data.eml_file_path.clone())
 					.collect();
 
 				let mut failed_count: i64 = 0;
