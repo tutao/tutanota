@@ -43,6 +43,24 @@ pipeline {
 				}
 			}
     	}
+		stage("Run tests") {
+			agent {
+				label 'mac'
+			}
+			environment {
+				LC_ALL = "en_US.UTF-8"
+				LANG = "en_US.UTF-8"
+			}
+			steps {
+				script {
+					generateXCodeProjects()
+					dir('app-ios') {
+						sh 'fastlane test'
+					}
+				}
+			} // steps
+		} // stage run tests
+
 		stage("Build") {
 			environment {
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"

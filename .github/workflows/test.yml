@@ -1,0 +1,133 @@
+name: Node CI
+
+on:
+  pull_request:
+    types: [ opened, synchronize, edited ]
+  push:
+    branches:
+      - dev-*
+      - '*/dev'
+env:
+  emscripten_version: 3.1.59
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      - uses: "./.github/shared/setup"
+      - name: lint, formatting
+        run: |
+          npm run check
+      - name: check for FIXMEs
+        run: |
+          if grep "FIXME\|[fF]ixme" -r src buildSrc test/tests packages/*/lib app-android/app/src app-ios/tutanota/Sources; then
+            echo 'FIXMEs in src';
+            exit 1;
+          else
+            echo 'No FIXMEs in src';
+          fi
+
+
+  test-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: run tests
+        run: |
+          npm run build-packages
+          npm run test-ci
+
+  test-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: install chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@facf10a55b9caf92e0cc749b4f82bf8220989148 #v1.7.2
+        with:
+          chrome-version: stable
+      - name: run test in browser
+        timeout-minutes: 10
+        # --no-sandbox is needed because it fails to create sandbox in container otherwise.
+        # It is fine as we run our own tests in a throwaway container anyway
+        run: |
+          echo Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}
+          npm run test:app -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
+
+  build-webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: build webapp
+        run: |
+          npm run build-packages
+          node webapp --disable-minify
+
+  build-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: build webapp
+        run: |
+          npm run build-packages
+          node webapp --disable-minify --app calendar
+
+  build-desktop: # will check that offline migrations are there
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - uses: "./.github/shared/setup"
+      - uses: "./.github/shared/setup-rust"
+      - uses: "./.github/shared/setup-emscripten"
+        with:
+          emscripten-version: ${{ env.emscripten_version }}
+      - name: build desktop
+        run: |
+          npm run build-packages
+          node desktop --disable-minify

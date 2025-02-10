@@ -1,0 +1,61 @@
+name: Kotlin CI
+
+on:
+  pull_request:
+    types: [ opened, synchronize, edited ]
+    paths:
+      - 'app-android/**'
+      - '.github/workflows/kotlin-test.yml'
+  push:
+    branches:
+      - dev-*
+      - '*/dev'
+    paths:
+      - 'app-android/**'
+  workflow_dispatch:
+
+jobs:
+  test-kotlin:
+    runs-on: ubuntu-latest
+    env:
+      java-version: 21
+      java-distribution: 'temurin'
+      TZ: "Europe/Berlin" # We have some tests for same day alarms that depends on this TimeZone
+      rust-targets: "aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android"
+    permissions:
+      actions: none
+      checks: none
+      contents: read
+      deployments: none
+      id-token: none
+      issues: none
+      discussions: none
+      packages: none
+      pages: none
+      pull-requests: none
+      repository-projects: none
+      security-events: none
+      statuses: none
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          submodules: 'true'
+      - name: Create dummy build folder
+        run: mkdir build && mkdir build-calendar-app # We need this because gradlew lint searches for the app assets
+      - name: Set up JDK ${{ env.java-version }}
+        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 #4.2.1
+        with:
+          java-version: ${{ env.java-version }}
+          distribution: ${{ env.java-distribution }}
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@07976c6290703d34c16d382cb36445f98bb43b1f #3.2.0
+      - name: Setup Android NDK
+        run: sdkmanager "ndk;26.1.10909125"
+      - uses: ./.github/shared/setup-rust
+      - name: Lint
+        working-directory: ./app-android
+        run: ./gradlew lint --quiet
+      - name: Test
+        working-directory: ./app-android
+        run: ./gradlew test
