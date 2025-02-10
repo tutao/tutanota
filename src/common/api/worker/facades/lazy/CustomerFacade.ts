@@ -72,6 +72,7 @@ import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from 
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
+import { PublicKeyProvider } from "../PublicKeyProvider"
 
 assertWorkerOrNode()
 
@@ -92,6 +93,7 @@ export class CustomerFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly recoverCodeFacade: RecoverCodeFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -133,23 +135,12 @@ export class CustomerFacade {
 		let sessionKey = aes256RandomKey()
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-		const pubRsaKey = keyData.systemAdminPubRsaKey
-		const pubEccKey = keyData.systemAdminPubEccKey
-		const pubKyberKey = keyData.systemAdminPubKyberKey
-		const systemAdminPubKeys = {
-			object: {
-				pubEccKey,
-				pubKyberKey,
-				pubRsaKey,
-			},
-			version: parseKeyVersion(keyData.systemAdminPubKeyVersion),
-		}
+		const systemAdminPubKeys = this.publicKeyProvider.convertFromSystemKeysReturn(keyData)
 		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.asymEncryptSymKey(
 			sessionKey,
 			systemAdminPubKeys,
 			this.userFacade.getUserGroupId(),
 		)
-
 		const data = createBrandingDomainData({
 			domain: domainName,
 			systemAdminPubEncSessionKey: pubEncSymKeyBytes,

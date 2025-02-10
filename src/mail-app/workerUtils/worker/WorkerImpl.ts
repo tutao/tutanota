@@ -40,6 +40,7 @@ import { ExposedEventBus, MainInterface, WorkerRandomizer } from "../../../commo
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
@@ -62,6 +63,7 @@ export interface WorkerInterface {
 	readonly searchFacade: SearchFacade
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade
+	readonly keyVerificationFacade: KeyVerificationFacade
 	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
@@ -193,6 +195,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async mailAddressFacade() {
 				return locator.mailAddress()
+			},
+
+			async keyVerificationFacade() {
+				return locator.keyVerification()
 			},
 
 			async blobAccessTokenFacade() {

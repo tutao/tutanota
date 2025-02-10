@@ -8,6 +8,9 @@ import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
+import { KeyVerificationFacade, KeyVerificationState } from "../worker/facades/lazy/KeyVerificationFacade"
+import { IServiceExecutor } from "../common/ServiceRequest"
+import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -44,6 +47,9 @@ export class RecipientsModel {
 		private readonly loginController: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
+		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	/**
@@ -57,6 +63,9 @@ export class RecipientsModel {
 			this.loginController,
 			(mailAddress) => this.executor.run(this.resolveRecipientType(mailAddress)),
 			this.entityClient,
+			this.keyVerificationFacade,
+			this.serviceExecutor,
+			this.publicKeyProvider,
 			resolveMode,
 		)
 	}
@@ -70,8 +79,10 @@ export class RecipientsModel {
 class ResolvableRecipientImpl implements ResolvableRecipient {
 	private _address: string
 	private _name: string | null
+
 	private readonly lazyType: LazyLoaded<RecipientType>
 	private readonly lazyContact: LazyLoaded<Contact | null>
+	private readonly lazyVerificationState: LazyLoaded<KeyVerificationState>
 
 	private readonly initialType: RecipientType = RecipientType.UNKNOWN
 	private readonly initialContact: Contact | null = null
@@ -94,12 +105,19 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		return this.lazyContact.getSync() ?? this.initialContact
 	}
 
+	get verificationState(): KeyVerificationState {
+		return this.lazyVerificationState.getSync() ?? KeyVerificationState.NO_ENTRY
+	}
+
 	constructor(
 		arg: PartialRecipient,
 		private readonly contactModel: ContactModel,
 		private readonly loginController: LoginController,
 		private readonly typeResolver: (mailAddress: string) => Promise<RecipientType>,
 		private readonly entityClient: EntityClient,
+		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly publicKeyProvider: PublicKeyProvider,
 		resolveMode: ResolveMode,
 	) {
 		if (isTutaMailAddress(arg.address) || arg.type === RecipientType.INTERNAL) {
@@ -128,10 +146,14 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 			}
 			return contact
 		})
+		this.lazyVerificationState = new LazyLoaded(async () => {
+			return await this.resolveVerification(arg.address)
+		})
 
 		if (resolveMode === ResolveMode.Eager) {
 			this.lazyType.load()
 			this.lazyContact.load()
+			this.lazyVerificationState.load()
 		}
 	}
 
@@ -145,12 +167,13 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	async resolved(): Promise<Recipient> {
-		await Promise.all([this.lazyType.getAsync(), this.lazyContact.getAsync()])
+		await Promise.all([this.lazyType.getAsync(), this.lazyContact.getAsync(), this.lazyVerificationState.getAsync()])
 		return {
 			address: this.address,
 			name: this.name,
 			type: this.type,
 			contact: this.contact,
+			verificationState: this.verificationState,
 		}
 	}
 
@@ -213,5 +236,9 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 			console.log("error resolving contact", e)
 			return null
 		}
+	}
+
+	private async resolveVerification(mailAddress: string): Promise<KeyVerificationState> {
+		return this.keyVerificationFacade.resolveVerificationState(mailAddress, null)
 	}
 }

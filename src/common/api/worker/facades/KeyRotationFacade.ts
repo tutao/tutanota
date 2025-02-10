@@ -68,14 +68,15 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./
 import {
 	Aes256Key,
 	AesKey,
+	PublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	EccKeyPair,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
 	isEncryptedPqKeyPairs,
+	isVersionedPqPublicKey,
 	KEY_LENGTH_BYTES_AES_256,
-	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
 	uint8ArrayToKey,
@@ -102,8 +103,8 @@ import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundEr
 import { LockedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
-import { asPQPublicKeys, brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
-import { PublicKeyProvider, PublicKeys } from "./PublicKeyProvider.js"
+import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
+import { PublicKeyProvider } from "./PublicKeyProvider.js"
 
 assertWorkerOrNode()
 
@@ -412,8 +413,9 @@ export class KeyRotationFacade {
 
 		const newAdminGroupKeys = await this.generateGroupKeys(adminGroup)
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
+		const adminPubKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminKeyPair, newAdminGroupKeys.symGroupKey.version)
 		const adminPubKeyMacList = await this.generatePubKeyTagsForNonAdminUsers(
-			asPQPublicKeys(adminKeyPair),
+			adminPubKey.object,
 			newAdminGroupKeys.symGroupKey.version,
 			adminGroupId,
 			assertNotNull(user.customer),
@@ -1025,11 +1027,15 @@ export class KeyRotationFacade {
 			throw new Error("the public key service did not return the tagged key version to verify the admin public key")
 		}
 
+		if (!isVersionedPqPublicKey(currentAdminPubKeys)) {
+			throw new Error("the public key is not a pq public key")
+		}
+
 		this.keyAuthenticationFacade.verifyTag(
 			{
 				tagType: "NEW_ADMIN_PUB_KEY_TAG",
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
-				untrustedKey: { newAdminPubKey: asPQPublicKeys(currentAdminPubKeys.object) },
+				untrustedKey: { newAdminPubKey: currentAdminPubKeys.object },
 				bindingData: {
 					userGroupId,
 					adminGroupId,
@@ -1114,7 +1120,7 @@ export class KeyRotationFacade {
 	private async encryptUserGroupKeyForAdminAsymmetrically(
 		userGroupId: Id,
 		newUserGroupKeys: GeneratedGroupKeys,
-		adminPubKeys: Versioned<PublicKeys>,
+		adminPubKeys: Versioned<PublicKey>,
 		adminGroupId: Id,
 		currentUserGroupKey: VersionedKey,
 	): Promise<PubEncKeyData> {
@@ -1177,12 +1183,13 @@ export class KeyRotationFacade {
 			pwKey,
 		)
 		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
+		const adminDistPublicKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({
 			tagType: "PUB_DIST_KEY_TAG",
 			sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 			untrustedKey: {
-				distPubKey: asPQPublicKeys(adminDistributionKeyPair),
+				distPubKey: adminDistPublicKey.object,
 			},
 			bindingData: {
 				userGroupId,
@@ -1266,12 +1273,13 @@ export class KeyRotationFacade {
 			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupId)
 			const givenTag = brandKeyMac(distributionKey.pubKeyMac).tag
 
+			const distributionPublicKey = this.publicKeyProvider.convertFromPubDistributionKey(distributionKey)
 			this.keyAuthenticationFacade.verifyTag(
 				{
 					tagType: "PUB_DIST_KEY_TAG",
 					sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 					untrustedKey: {
-						distPubKey: asPQPublicKeys(distributionKey),
+						distPubKey: distributionPublicKey.object,
 					},
 					bindingData: {
 						userGroupId,
@@ -1283,18 +1291,9 @@ export class KeyRotationFacade {
 				givenTag,
 			)
 
-			const recipientPublicDistKeys: Versioned<PublicKeys> = {
-				version: 0,
-				object: {
-					pubRsaKey: null,
-					pubEccKey: distributionKey.pubEccKey,
-					pubKyberKey: distributionKey.pubKyberKey,
-				},
-			}
-
 			const encryptedAdminGroupKeyForThisAdmin = await this.asymmetricCryptoFacade.tutaCryptEncryptSymKey(
 				newSymAdminGroupKey.object,
-				recipientPublicDistKeys,
+				distributionPublicKey,
 				generatedEccKeyPair,
 			)
 

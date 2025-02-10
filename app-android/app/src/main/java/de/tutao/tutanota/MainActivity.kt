@@ -24,6 +24,8 @@ import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
+import android.webkit.PermissionRequest
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -286,6 +288,17 @@ class MainActivity : FragmentActivity() {
 
 			override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
 				Log.e(TAG, "Error loading WebView ${error?.errorCode} | ${error?.description} @ ${request?.url?.path}")
+			}
+		}
+
+		// When creating a video element in the WebView, we are receiving an android.webkit.resource.VIDEO_CAPTURE
+		// permission request. We accept this by default as we have to request Manifest.permission.CAMERA anyway and
+		// we are doing this before creating the video element.
+		webView.webChromeClient = object : WebChromeClient() {
+			override fun onPermissionRequest(request: PermissionRequest) {
+				if (request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
+					request.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+				}
 			}
 		}
 

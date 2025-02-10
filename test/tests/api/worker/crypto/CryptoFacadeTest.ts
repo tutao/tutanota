@@ -48,6 +48,7 @@ import {
 	GroupTypeRef,
 	InstanceSessionKey,
 	InstanceSessionKeyTypeRef,
+	KeyPair,
 	KeyPairTypeRef,
 	PermissionTypeRef,
 	TypeInfoTypeRef,
@@ -77,8 +78,10 @@ import {
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,
+	PQPublicKeys,
 	random,
-	rsaPrivateKeyToHex,
+	RsaKeyPair,
+	RsaPublicKey,
 	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
@@ -87,7 +90,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { getListId, isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { HttpMethod, resolveTypeReference, typeModels } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
@@ -98,9 +101,10 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
-import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { PublicKeyProvider, PublicKeys } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 
 const { captor, anything, argThat } = matchers
@@ -132,9 +136,10 @@ async function prepareBucketKeyInstance(
 	recipientUser: TestUser,
 	instanceMapper: InstanceMapper,
 	mailLiteral: Record<string, any>,
-	senderPubEccKey?: Versioned<EccPublicKey>,
-	recipientKeyVersion: NumberString = "0",
-	protocolVersion: CryptoProtocolVersion = CryptoProtocolVersion.TUTA_CRYPT,
+	senderPubEccKey: Versioned<EccPublicKey> | undefined,
+	recipientKeyVersion: NumberString,
+	protocolVersion: CryptoProtocolVersion,
+	asymmetricCryptoFacade: AsymmetricCryptoFacade,
 ) {
 	const MailTypeModel = await resolveTypeReference(MailTypeRef)
 
@@ -195,7 +200,9 @@ o.spec("CryptoFacadeTest", function () {
 	let crypto: CryptoFacade
 	let userFacade: UserFacade
 	let keyLoaderFacade: KeyLoaderFacade
+	let keyVerificationFacade: KeyVerificationFacade
 	let cache: DefaultEntityRestCache
+	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let keyRotationFacade: KeyRotationFacade
 
 	o.before(function () {
@@ -210,6 +217,7 @@ o.spec("CryptoFacadeTest", function () {
 		entityClient = object()
 		asymmetricCryptoFacade = object()
 		ownerEncSessionKeysUpdateQueue = object()
+		keyVerificationFacade = object()
 		publicKeyProvider = object()
 		keyLoaderFacade = object()
 		keyRotationFacade = object()
@@ -223,6 +231,7 @@ o.spec("CryptoFacadeTest", function () {
 			cache,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
+			async () => keyVerificationFacade,
 			publicKeyProvider,
 			() => keyRotationFacade,
 		)
@@ -552,6 +561,7 @@ o.spec("CryptoFacadeTest", function () {
 			},
 			"1",
 			protocolVersion,
+			asymmetricCryptoFacade,
 		)
 
 		when(
@@ -608,21 +618,7 @@ o.spec("CryptoFacadeTest", function () {
 		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
 	})
 
-	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender and recipient", async () => {
-		const cryptoFacadeTmp = new CryptoFacade(
-			userFacade,
-			entityClient,
-			restClient,
-			serviceExecutor,
-			instanceMapper,
-			ownerEncSessionKeysUpdateQueue,
-			cache,
-			keyLoaderFacade,
-			asymmetricCryptoFacade,
-			publicKeyProvider,
-			() => keyRotationFacade,
-		)
-		let senderMailAddress = "alice@tutanota.com"
+	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender and recipient", async function () {
 		let recipientMailAddress = "bob@tutanota.com"
 		let senderGroupKey = aes256RandomKey()
 		let bk = aes256RandomKey()
@@ -688,21 +684,26 @@ o.spec("CryptoFacadeTest", function () {
 			encapsulation: pqEncapsulation,
 		})
 
-		const recipientPublicKeys: Versioned<PublicKeys> = {
+		const recipientPublicKeys: Versioned<PQPublicKeys> = {
 			version: 0,
 			object: {
-				pubEccKey: recipientKeyPair.pubEccKey,
-				pubKyberKey: recipientKeyPair.pubKyberKey,
-				pubRsaKey: null,
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: recipientKeyPair.pubEccKey!,
+				kyberPublicKey: {
+					raw: recipientKeyPair.pubKyberKey!,
+				},
 			},
 		}
 		when(publicKeyProvider.loadCurrentPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress })).thenResolve(
 			recipientPublicKeys,
 		)
-		when(publicKeyProvider.loadVersionedPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress }, 0)).thenResolve({
-			pubEccKey: senderKeyPair.pubEccKey,
-			pubKyberKey: senderKeyPair.pubKyberKey,
-			pubRsaKey: null,
+		when(publicKeyProvider.loadPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress }, 0)).thenResolve({
+			version: 0,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: senderKeyPair.pubEccKey!,
+				kyberPublicKey: { raw: senderKeyPair.pubKyberKey! },
+			},
 		})
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
@@ -713,7 +714,7 @@ o.spec("CryptoFacadeTest", function () {
 			cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 		})
 
-		const internalRecipientKeyData = (await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
+		const internalRecipientKeyData = (await crypto.encryptBucketKeyForInternalRecipient(
 			senderUserGroup._id,
 			bk,
 			recipientMailAddress,
@@ -728,47 +729,28 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender", async () => {
-		const cryptoFacadeTmp = new CryptoFacade(
-			userFacade,
-			entityClient,
-			restClient,
-			serviceExecutor,
-			instanceMapper,
-			ownerEncSessionKeysUpdateQueue,
-			cache,
-			keyLoaderFacade,
-			asymmetricCryptoFacade,
-			publicKeyProvider,
-			() => keyRotationFacade,
-		)
-		let senderMailAddress = "alice@tutanota.com"
 		let recipientMailAddress = "bob@tutanota.com"
 		let senderGroupKey = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const recipientKeyPairs = RSA_TEST_KEYPAIR
+		// const senderKeyPairs = await pqFacade.generateKeyPairs()
+		//
+		// const senderKeyPair = createKeyPair({
+		// 	_id: "senderKeyPairId",
+		// 	pubEccKey: senderKeyPairs.eccKeyPair.publicKey,
+		// 	symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.eccKeyPair.privateKey),
+		// 	pubKyberKey: kyberPublicKeyToBytes(senderKeyPairs.kyberKeyPair.publicKey),
+		// 	symEncPrivKyberKey: aesEncrypt(senderGroupKey, kyberPrivateKeyToBytes(senderKeyPairs.kyberKeyPair.privateKey)),
+		// 	pubRsaKey: null,
+		// 	symEncPrivRsaKey: null,
+		// })
 
-		const recipientKeyPair = createKeyPair({
-			_id: "recipientKeyPairId",
-			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(recipientKeyPairs.publicKey)),
-			symEncPrivRsaKey: aesEncrypt(senderGroupKey, hexToUint8Array(rsaPrivateKeyToHex(recipientKeyPairs.privateKey))),
-			pubEccKey: null,
-			pubKyberKey: null,
-			symEncPrivEccKey: null,
-			symEncPrivKyberKey: null,
-		})
+		let senderMailAddress = "alice@tutanota.com"
 
-		const senderKeyPairs = await pqFacade.generateKeyPairs()
+		const senderKeyPair: KeyPair = object()
 
-		const senderKeyPair = createKeyPair({
-			_id: "senderKeyPairId",
-			pubEccKey: senderKeyPairs.eccKeyPair.publicKey,
-			symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.eccKeyPair.privateKey),
-			pubKyberKey: kyberPublicKeyToBytes(senderKeyPairs.kyberKeyPair.publicKey),
-			symEncPrivKyberKey: aesEncrypt(senderGroupKey, kyberPrivateKeyToBytes(senderKeyPairs.kyberKeyPair.privateKey)),
-			pubRsaKey: null,
-			symEncPrivRsaKey: null,
-		})
+		const senderAsymmetricKeyPair: Versioned<RsaKeyPair> = object()
+		const senderPublicKey: Versioned<RsaPublicKey> = object()
 
 		const senderUserGroup = createGroup({
 			_id: "userGroupId",
@@ -791,28 +773,31 @@ o.spec("CryptoFacadeTest", function () {
 			formerGroupKeys: null,
 			pubAdminGroupEncGKey: null,
 		})
-		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve({ version: 0, object: senderKeyPairs })
+
+		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve(senderAsymmetricKeyPair)
+
 		const notFoundRecipients = []
 
-		const recipientPublicKeys: Versioned<PublicKeys> = {
+		const recipientPublicKeys: Versioned<RsaPublicKey> = {
 			version: 0,
-			object: {
-				pubRsaKey: recipientKeyPair.pubRsaKey,
-				pubEccKey: null,
-				pubKyberKey: null,
-			},
+			object: object(),
 		}
 		when(publicKeyProvider.loadCurrentPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress })).thenResolve(
 			recipientPublicKeys,
 		)
-		when(publicKeyProvider.loadCurrentPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: senderMailAddress })).thenResolve({
+
+		const senderPublicKeys: Versioned<PQPublicKeys> = {
 			version: 0,
-			object: {
-				pubEccKey: senderKeyPair.pubEccKey,
-				pubKyberKey: senderKeyPair.pubKyberKey,
-				pubRsaKey: null,
-			},
-		})
+			object: object(),
+		}
+
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				identifier: senderMailAddress,
+			}),
+		).thenResolve(senderPublicKeys)
+
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
 		const pubEncBucketKey = object<Uint8Array>()
@@ -823,7 +808,7 @@ o.spec("CryptoFacadeTest", function () {
 			cryptoProtocolVersion: CryptoProtocolVersion.RSA,
 		})
 
-		const internalRecipientKeyData = (await cryptoFacadeTmp.encryptBucketKeyForInternalRecipient(
+		const internalRecipientKeyData = (await crypto.encryptBucketKeyForInternalRecipient(
 			senderUserGroup._id,
 			bk,
 			recipientMailAddress,
@@ -1640,6 +1625,10 @@ o.spec("CryptoFacadeTest", function () {
 			recipientUser,
 			instanceMapper,
 			mailLiteral,
+			undefined,
+			"0",
+			CryptoProtocolVersion.TUTA_CRYPT,
+			asymmetricCryptoFacade,
 		)
 
 		when(

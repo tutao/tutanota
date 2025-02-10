@@ -86,6 +86,7 @@ import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
@@ -142,6 +143,7 @@ export type WorkerLocatorType = {
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
 	cacheManagement: lazyAsync<CacheManagementFacade>
+	keyVerification: lazyAsync<KeyVerificationFacade>
 
 	// misc & native
 	configFacade: lazyAsync<ConfigurationDatabase>
@@ -277,12 +279,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
 
+	locator.keyVerification = lazyMemoized(async () => {
+		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.publicKeyProvider)
+	})
+
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,
 		locator.pqFacade,
 		locator.keyLoader,
 		locator.cryptoWrapper,
 		locator.serviceExecutor,
+		locator.keyVerification,
 		locator.publicKeyProvider,
 	)
 
@@ -296,6 +304,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		cache,
 		locator.keyLoader,
 		locator.asymmetricCrypto,
+		locator.keyVerification,
 		locator.publicKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
 	)
@@ -438,6 +447,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.keyLoader,
 			await locator.recoverCode(),
 			locator.asymmetricCrypto,
+			locator.publicKeyProvider,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

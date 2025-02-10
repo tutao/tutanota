@@ -15,7 +15,10 @@ enum class PermissionType(val value: String) {
 	IGNORE_BATTERY_OPTIMIZATION("1"),
 	
 	@SerialName("2")
-	NOTIFICATION("2");
+	NOTIFICATION("2"),
+	
+	@SerialName("3")
+	CAMERA("3");
 	
 	companion object {
 		 fun fromValue(
@@ -25,6 +28,7 @@ enum class PermissionType(val value: String) {
 			"0" -> CONTACTS
 			"1" -> IGNORE_BATTERY_OPTIMIZATION
 			"2" -> NOTIFICATION
+			"3" -> CAMERA
 			else -> null
 		}
 	}

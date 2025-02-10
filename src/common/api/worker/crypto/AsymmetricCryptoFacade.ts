@@ -2,17 +2,16 @@ import { assertWorkerOrNode } from "../../common/Env"
 import {
 	AesKey,
 	AsymmetricKeyPair,
-	AsymmetricPublicKey,
+	PublicKey,
 	bitArrayToUint8Array,
 	EccKeyPair,
 	EccPublicKey,
-	hexToRsaPublicKey,
 	isPqKeyPairs,
-	isPqPublicKey,
 	isRsaEccKeyPair,
 	isRsaOrRsaEccKeyPair,
-	isRsaPublicKey,
-	KeyPairType,
+	isVersionedPqPublicKey,
+	isVersionedRsaEccPublicKey,
+	isVersionedRsaOrRsaEccPublicKey,
 	PQPublicKeys,
 	RsaPrivateKey,
 	uint8ArrayToBitArray,
@@ -20,15 +19,16 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus } from "../../common/TutanotaConstants.js"
-import { arrayEquals, assertNotNull, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { arrayEquals, assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { PublicKeyIdentifier, PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
+import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
+import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
@@ -56,22 +56,52 @@ export class AsymmetricCryptoFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
+	getSenderEccKey(publicKey: Versioned<PublicKey>): EccPublicKey | null {
+		if (isVersionedPqPublicKey(publicKey)) {
+			return publicKey.object.eccPublicKey
+		} else if (isVersionedRsaEccPublicKey(publicKey)) {
+			return publicKey.object.publicEccKey
+		} else {
+			return null
+		}
+	}
+
 	/**
-	 * Verifies whether the key that the public key service returns is the same as the one used for encryption.
-	 * When we have key verification we should stop verifying against the PublicKeyService but against the verified key.
+	 * Verifies whether the key returned by the public key service and the pinned one are the same as the one used for encryption.
 	 *
 	 * @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
 	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
 	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: KeyVersion): Promise<EncryptionAuthStatus> {
-		const publicKeys = await this.publicKeyProvider.loadVersionedPubKey(identifier, senderKeyVersion)
-		return publicKeys.pubEccKey != null && arrayEquals(publicKeys.pubEccKey, senderIdentityPubKey)
-			? EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-			: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+
+		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+
+		const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
+
+		const publicEccKey = this.getSenderEccKey(publicKey)
+
+		if (publicEccKey != null) {
+			if (!arrayEquals(publicEccKey, senderIdentityPubKey)) {
+				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			}
+
+			// Compare against trusted identity (if possible)
+			if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
+				if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
+					authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				}
+			}
+		} else {
+			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+		}
+
+		return authStatus
 	}
 
 	/**
@@ -156,52 +186,41 @@ export class AsymmetricCryptoFacade {
 	/**
 	 * Encrypts the symKey asymmetrically with the provided public keys.
 	 * @param symKey the symmetric key  to be encrypted
-	 * @param recipientPublicKeys the public key(s) of the recipient in the current version
+	 * @param recipientPublicKey the public key(s) of the recipient in the current version
 	 * @param senderGroupId the group id of the sender. will only be used in case we also need the sender's key pair, e.g. with TutaCrypt.
 	 */
-	async asymEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderGroupId: Id): Promise<PubEncSymKey> {
-		const recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
-		const keyPairType = recipientPublicKey.keyPairType
-
-		if (isPqPublicKey(recipientPublicKey)) {
+	async asymEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderGroupId: Id): Promise<PubEncSymKey> {
+		if (isVersionedPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
 			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
-			return this.tutaCryptEncryptSymKeyImpl({ object: recipientPublicKey, version: recipientPublicKeys.version }, symKey, {
+			return this.tutaCryptEncryptSymKeyImpl(recipientPublicKey, symKey, {
 				object: senderEccKeyPair,
 				version: senderKeyPair.version,
 			})
-		} else if (isRsaPublicKey(recipientPublicKey)) {
-			const pubEncSymKeyBytes = await this.rsa.encrypt(recipientPublicKey, bitArrayToUint8Array(symKey))
+		} else if (isVersionedRsaOrRsaEccPublicKey(recipientPublicKey)) {
+			const pubEncSymKeyBytes = await this.rsa.encrypt(recipientPublicKey.object, bitArrayToUint8Array(symKey))
 			return {
 				pubEncSymKeyBytes,
 				cryptoProtocolVersion: CryptoProtocolVersion.RSA,
 				senderKeyVersion: null,
-				recipientKeyVersion: recipientPublicKeys.version,
+				recipientKeyVersion: recipientPublicKey.version,
 			}
 		}
-		throw new CryptoError("unknown public key type: " + keyPairType)
+		throw new CryptoError("unknown public key type: " + recipientPublicKey.object.keyPairType)
 	}
 
 	/**
 	 * Encrypts the symKey asymmetrically with the provided public keys using the TutaCrypt protocol.
 	 * @param symKey the key to be encrypted
-	 * @param recipientPublicKeys MUST be a pq key pair
+	 * @param recipientPublicKey MUST be a pq key pair
 	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
 	 * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
 	 */
-	async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKeys: Versioned<PublicKeys>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
-		const recipientPublicKey = this.extractRecipientPublicKey(recipientPublicKeys.object)
-		if (!isPqPublicKey(recipientPublicKey)) {
+	async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
+		if (!isVersionedPqPublicKey(recipientPublicKey)) {
 			throw new ProgrammingError("the recipient does not have pq key pairs")
 		}
-		return this.tutaCryptEncryptSymKeyImpl(
-			{
-				object: recipientPublicKey,
-				version: recipientPublicKeys.version,
-			},
-			symKey,
-			senderEccKeyPair,
-		)
+		return this.tutaCryptEncryptSymKeyImpl(recipientPublicKey, symKey, senderEccKeyPair)
 	}
 
 	private async tutaCryptEncryptSymKeyImpl(
@@ -217,23 +236,11 @@ export class AsymmetricCryptoFacade {
 			bitArrayToUint8Array(symKey),
 		)
 		const senderKeyVersion = senderEccKeyPair.version
-		return { pubEncSymKeyBytes, cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT, senderKeyVersion, recipientKeyVersion: recipientPublicKey.version }
-	}
-
-	private extractRecipientPublicKey(publicKeys: PublicKeys): AsymmetricPublicKey {
-		if (publicKeys.pubRsaKey) {
-			// we ignore ecc keys as this is only used for the recipient keys
-			return hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
-		} else if (publicKeys.pubKyberKey && publicKeys.pubEccKey) {
-			const eccPublicKey = publicKeys.pubEccKey
-			const kyberPublicKey = this.cryptoWrapper.bytesToKyberPublicKey(publicKeys.pubKyberKey)
-			return {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				eccPublicKey,
-				kyberPublicKey,
-			}
-		} else {
-			throw new Error("Inconsistent Keypair")
+		return {
+			pubEncSymKeyBytes,
+			cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+			senderKeyVersion,
+			recipientKeyVersion: recipientPublicKey.version,
 		}
 	}
 
