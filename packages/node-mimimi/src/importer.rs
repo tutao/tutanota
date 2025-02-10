@@ -2,11 +2,10 @@ use crate::importer::importable_mail::{
 	ImportableMailAttachment, ImportableMailAttachmentMetaData, ImportableMailWithPath,
 	KeyedImportableMailAttachment,
 };
-use crate::reduce_to_chunks::{AttachmentUploadData, KeyedImportMailData};
+use crate::reduce_to_chunks::{KeyedImportMailData, MailUploadDataWithAttachment};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use file_reader::FileImport;
-use importable_mail::ImportableMail;
 use std::ffi::OsStr;
 use std::fs;
 use std::fs::DirEntry;
@@ -159,7 +158,7 @@ impl ImportEssential {
 
 	async fn upload_attachments_for_chunk(
 		&self,
-		importable_chunk: Vec<AttachmentUploadData>,
+		importable_chunk: Vec<MailUploadDataWithAttachment>,
 	) -> Result<Vec<KeyedImportMailData>, MailImportErrorMessage> {
 		let mut upload_data_per_mail: Vec<(Vec<FileData>, Vec<ImportableMailAttachmentMetaData>)> =
 			Vec::with_capacity(importable_chunk.len());
@@ -391,7 +390,7 @@ pub struct Importer {
 	pub(super) essentials: ImportEssential,
 	next_progress_action: napi::tokio::sync::Mutex<ImportProgressAction>,
 	chunked_import_source: napi::tokio::sync::Mutex<
-		super::reduce_to_chunks::Butcher<{ MAX_REQUEST_SIZE }, AttachmentUploadData>,
+		super::reduce_to_chunks::Butcher<{ MAX_REQUEST_SIZE }, MailUploadDataWithAttachment>,
 	>,
 }
 impl Importer {
@@ -538,7 +537,7 @@ impl Importer {
 		let mail_group_key_clone = mail_group_key.clone();
 		let attachment_upload_data = import_source.into_iter().map(move |importable_mail| {
 			let my_key = mail_group_key_clone.clone();
-			AttachmentUploadData::create_from_importable_mail(
+			MailUploadDataWithAttachment::create_from_importable_mail(
 				&RandomizerFacade::from_core(rand::rngs::OsRng),
 				&my_key,
 				importable_mail,
