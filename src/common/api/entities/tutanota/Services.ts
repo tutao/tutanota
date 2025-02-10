@@ -35,6 +35,8 @@ import { NewsOutTypeRef } from "./TypeRefs.js"
 import { NewsInTypeRef } from "./TypeRefs.js"
 import { ReceiveInfoServiceDataTypeRef } from "./TypeRefs.js"
 import { ReportMailPostDataTypeRef } from "./TypeRefs.js"
+import { ResolveConversationsServiceGetInTypeRef } from "./TypeRefs.js"
+import { ResolveConversationsServiceGetOutTypeRef } from "./TypeRefs.js"
 import { SendDraftDataTypeRef } from "./TypeRefs.js"
 import { SendDraftReturnTypeRef } from "./TypeRefs.js"
 import { SimpleMoveMailPostInTypeRef } from "./TypeRefs.js"
@@ -219,6 +221,15 @@ export const ReportMailService = Object.freeze({
 	name: "ReportMailService",
 	get: null,
 	post: { data: ReportMailPostDataTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const ResolveConversationsService = Object.freeze({
+	app: "tutanota",
+	name: "ResolveConversationsService",
+	get: { data: ResolveConversationsServiceGetInTypeRef, return: ResolveConversationsServiceGetOutTypeRef },
+	post: null,
 	put: null,
 	delete: null,
 } as const)
