@@ -1,12 +1,15 @@
 #! /bin/sh
 
 # this hook prints a message that can be used to start a jenkins job on our CI server
+# also prevents repository admins from pushing directly to master by accident
 
-echo "inspect stdin (see 'man githooks'):"
-while read line
-do
-  echo "stdin: $line"
-done < "/dev/stdin"
+read ref name remote_ref remote_name
+
+if test "$ref" = refs/heads/master; then
+    echo do not push directly to master >&2
+    echo make a branch and use the bootleg-ci-merge jenkins job >&2
+    exit 1
+fi
 
 # we could try and figure out which remote branch is the closest
 # ancestor to make an educated guess at a default target branch.
