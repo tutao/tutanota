@@ -455,7 +455,7 @@ Yeah, but I really did not like it. Had higher hopes after watching that Simpson
 
 		let export_content = UserSelectedFileType::from_path(apple_export).unwrap();
 		assert_eq!(
-			UserSelectedFileType::Mbox(PathBuf::from(
+			UserSelectedFileType::AppleMbox(PathBuf::from(
 				"/tmp/should_find_mbox_in_apple_exported_directory/apple-export.mbox/mbox"
 			)),
 			export_content
