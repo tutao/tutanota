@@ -9,6 +9,7 @@ import {
 	ManageLabelService,
 	MoveMailService,
 	ReportMailService,
+	ResolveConversationsService,
 	SendDraftService,
 	UnreadMailStateService,
 } from "../../../entities/tutanota/Services.js"
@@ -25,6 +26,7 @@ import {
 	MailMethod,
 	MailReportType,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	MAX_NBR_OF_CONVERSATIONS,
 	OperationType,
 	PhishingMarkerStatus,
 	PublicKeyIdentifierType,
@@ -53,6 +55,7 @@ import {
 	createMoveMailData,
 	createNewDraftAttachment,
 	createReportMailPostData,
+	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
 	createUnreadMailStatePostIn,
@@ -78,13 +81,16 @@ import {
 } from "../../../entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { NotFoundError } from "../../../common/error/RestError.js"
-import type { EntityUpdate, ExternalUserReference, User } from "../../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
+	createGeneratedIdWrapper,
+	EntityUpdate,
+	ExternalUserReference,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
 	GroupTypeRef,
+	User,
 	UserTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import {
@@ -102,8 +108,8 @@ import {
 	ofClass,
 	promiseFilter,
 	promiseMap,
-	Versioned,
 	splitInChunks,
+	Versioned,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -1112,6 +1118,22 @@ export class MailFacade {
 				),
 			{ concurrency: 5 },
 		)
+	}
+
+	/** Resolve conversation list ids to the IDs of mails in those conversations. */
+	async resolveConversations(conversationListIds: readonly Id[]): Promise<IdTuple[]> {
+		const result = await promiseMap(
+			splitInChunks(MAX_NBR_OF_CONVERSATIONS, conversationListIds),
+			async (conversationListIds) =>
+				this.serviceExecutor.get(
+					ResolveConversationsService,
+					createResolveConversationsServiceGetIn({
+						conversationLists: conversationListIds.map((id) => createGeneratedIdWrapper({ value: id })),
+					}),
+				),
+			{ concurrency: 2 },
+		)
+		return result.flatMap((response) => response.mailIds).map((idTupleWrapper) => [idTupleWrapper.listId, idTupleWrapper.listElementId])
 	}
 }
 

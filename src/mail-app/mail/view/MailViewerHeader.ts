@@ -788,7 +788,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									styles.isDesktopLayout() ? 300 : 200,
 									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
 									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
-									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail], addedLabels, removedLabels),
+									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail._id], addedLabels, removedLabels),
 								)
 								// waiting for the dropdown to be closed
 								setTimeout(() => {
