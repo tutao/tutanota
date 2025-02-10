@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
-import type { Spy } from "@tutao/tutanota-test-utils"
-import { spy } from "@tutao/tutanota-test-utils"
+import { Spy, spy, verify } from "@tutao/tutanota-test-utils"
 import { MailSetKind, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { MailFolderTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
@@ -32,13 +31,14 @@ o.spec("MailModelTest", function () {
 	let mailboxDetails: Partial<MailboxDetail>[]
 	let logins: LoginController
 	let inboxRuleHandler: InboxRuleHandler
+	let mailFacade: MailFacade
 	const restClient: EntityRestClientMock = new EntityRestClientMock()
 
 	o.beforeEach(function () {
 		notifications = {}
 		const mailboxModel = instance(MailboxModel)
 		const eventController = instance(EventController)
-		const mailFacade = instance(MailFacade)
+		mailFacade = instance(MailFacade)
 		showSpy = notifications.showNotification = spy()
 		logins = object()
 		let userController = object<UserController>()
@@ -78,6 +78,31 @@ o.spec("MailModelTest", function () {
 			}),
 		])
 		o(showSpy.invocations.length).equals(0)
+	})
+
+	o("markMails", async function () {
+		const mails = [
+			createTestEntity(MailTypeRef, {
+				_id: ["mailbag id1", "mail id1"],
+			}),
+			createTestEntity(MailTypeRef, {
+				_id: ["mailbag id2", "mail id2"],
+			}),
+			createTestEntity(MailTypeRef, {
+				_id: ["mailbag id3", "mail id3"],
+			}),
+		]
+		await model.markMails(mails, true)
+		verify(
+			mailFacade.markMails(
+				[
+					["mailbag id1", "mail id1"],
+					["mailbag id2", "mail id2"],
+					["mailbag id3", "mail id3"],
+				],
+				true,
+			),
+		)
 	})
 
 	function makeUpdate(arg: { instanceListId: string; instanceId: Id; operation: OperationType }): EntityUpdateData {

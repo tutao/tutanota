@@ -13,7 +13,6 @@ import {
 	noOp,
 	ofClass,
 	partition,
-	promiseMap,
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import {
@@ -43,7 +42,7 @@ import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { InboxRuleHandler } from "./InboxRuleHandler.js"
@@ -435,15 +434,9 @@ export class MailModel {
 	}
 
 	async markMails(mails: readonly Mail[], unread: boolean): Promise<void> {
-		await promiseMap(
-			mails,
-			async (mail) => {
-				if (mail.unread !== unread) {
-					mail.unread = unread
-					return this.entityClient.update(mail).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
-				}
-			},
-			{ concurrency: 5 },
+		await this.mailFacade.markMails(
+			mails.map(({ _id }) => _id),
+			unread,
 		)
 	}
 
