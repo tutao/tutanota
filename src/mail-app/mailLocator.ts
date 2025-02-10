@@ -127,8 +127,11 @@ import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
+import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
+import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "./mail/import/MailImporter.js"
+import { PublicKeyConverter } from "../common/api/worker/crypto/PublicKeyConverter"
 import type { MailExportController } from "./native/main/MailExportController.js"
 import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.js"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
@@ -167,6 +170,8 @@ class MailLocator {
 	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
+	keyVerificationFacade!: KeyVerificationFacade
+	publicKeyConverter!: PublicKeyConverter
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -203,7 +208,15 @@ class MailLocator {
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
-		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
+		return new RecipientsModel(
+			this.contactModel,
+			this.logins,
+			this.mailFacade,
+			this.entityClient,
+			this.keyVerificationFacade,
+			this.serviceExecutor,
+			this.publicKeyConverter,
+		)
 	})
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
@@ -712,6 +725,7 @@ class MailLocator {
 			searchFacade,
 			bookingFacade,
 			mailAddressFacade,
+			keyVerificationFacade,
 			blobFacade,
 			userManagementFacade,
 			recoverCodeFacade,
@@ -741,6 +755,8 @@ class MailLocator {
 		this.searchFacade = searchFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
+		this.keyVerificationFacade = keyVerificationFacade
+		this.publicKeyConverter = new PublicKeyConverter()
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade

@@ -68,6 +68,7 @@ import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsVie
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
 import { DesktopMailImportSettingsViewer } from "./DesktopMailImportSettingsViewer.js"
+import { KeyManagementSettingsViewer } from "../../common/settings/keymanagement/KeyManagementSettingsViewer.js"
 import { mailLocator } from "../mailLocator"
 import { WebMailImportSettingsViewer } from "./WebMailImportSettingsViewer.js"
 import { BaseButton } from "../../common/gui/base/buttons/BaseButton"
@@ -136,6 +137,22 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.Bell,
 				"notifications",
 				() => new NotificationSettingsViewer(),
+				undefined,
+			),
+			new SettingsFolder(
+				"keyManagement_label",
+				() => Icons.Key,
+				"keymanagement",
+				() => {
+					var settingsViewer = new KeyManagementSettingsViewer(
+						locator.keyVerificationFacade,
+						locator.systemFacade,
+						locator.logins.getUserController(),
+						locator.usageTestController,
+					)
+					settingsViewer.init()
+					return settingsViewer
+				},
 				undefined,
 			),
 		]
