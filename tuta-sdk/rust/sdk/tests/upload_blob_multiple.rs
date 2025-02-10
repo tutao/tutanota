@@ -86,7 +86,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	let result = logged_in_sdk
 		.blob_facade()
-		.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+		.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
 		.await?;
 	for (index, token_vector_per_file_data) in result.iter().enumerate() {
 		println!("tokens for file {} :", index + 1);

@@ -91,7 +91,7 @@ impl BlobFacade {
 		&self,
 		archive_data_type: ArchiveDataType,
 		owner_group_id: &GeneratedId,
-		file_data: Vec<&FileData>,
+		file_data: &[&FileData],
 	) -> Result<Vec<Vec<BlobReferenceTokenWrapper>>, ApiCallError> {
 		let mut session_key_to_reference_tokens: HashMap<
 			&GenericAesKey,
@@ -102,7 +102,7 @@ impl BlobFacade {
 				.map(|wrapper| (&wrapper.session_key, vec![])),
 		);
 
-		let keyed_new_blob_wrappers = self.encrypt_multiple_file_data(file_data.as_slice())?;
+		let keyed_new_blob_wrappers = self.encrypt_multiple_file_data(file_data)?;
 		let serialized_binaries = serialize_new_blobs_in_binary_chunks(
 			keyed_new_blob_wrappers,
 			MAX_BLOB_SERVICE_BYTES,
@@ -698,7 +698,7 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
 			.await
 			.unwrap();
 		assert_eq!(
@@ -847,7 +847,7 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
 			.await
 			.unwrap();
 		assert_eq!(
@@ -1035,7 +1035,7 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, file_data)
+			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
 			.await
 			.unwrap();
 		assert_eq!(

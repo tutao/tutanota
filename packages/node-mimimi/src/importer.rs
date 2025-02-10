@@ -160,8 +160,6 @@ impl ImportEssential {
 		&self,
 		importable_chunk: Vec<MailUploadDataWithAttachment>,
 	) -> Result<Vec<KeyedImportMailData>, MailImportErrorMessage> {
-		let mut upload_data_per_mail: Vec<(Vec<FileData>, Vec<ImportableMailAttachmentMetaData>)> =
-			Vec::with_capacity(importable_chunk.len());
 		let attachments_count_per_mail: Vec<usize> = importable_chunk
 			.iter()
 			.map(|mail| mail.attachments.len())
@@ -176,36 +174,12 @@ impl ImportEssential {
 			.map(|mail| (mail.attachments, mail.keyed_import_mail_data))
 			.unzip();
 
-		for attachments_next_mail in attachments_per_mail {
-			if !attachments_next_mail.is_empty() {
-				let keyed_attachments: Vec<KeyedImportableMailAttachment> = attachments_next_mail
-					.into_iter()
-					.map(|attachment| attachment.make_keyed_importable_mail_attachment(self))
-					.collect();
-
-				let (attachments_file_data, attachments_meta_data): (
-					Vec<FileData>,
-					Vec<ImportableMailAttachmentMetaData>,
-				) = keyed_attachments
-					.into_iter()
-					.map(|keyed_attachment| {
-						let file_datum = FileData {
-							session_key: keyed_attachment.attachment_session_key,
-							data: keyed_attachment.content,
-						};
-						(file_datum, keyed_attachment.meta_data)
-					})
-					.unzip();
-				upload_data_per_mail.push((attachments_file_data, attachments_meta_data))
-			} else {
-				// attachments_next_mail is empty we push empty vectors in order to maintain
-				// correct order of blob reference tokens across different attachments and mails
-				// these empty vectors indicate
-				// * an empty list of attachments
-				// * and an empty list of corresponding attachment metadata for this mail
-				upload_data_per_mail.push((vec![], vec![]));
-			}
-		}
+		let upload_data_per_mail = attachments_per_mail
+			.into_iter()
+			.map(|upload_data_for_mail| {
+				Self::get_upload_data_for_mail(&self.randomizer_facade, upload_data_for_mail)
+			})
+			.collect::<Vec<_>>();
 
 		let (attachments_file_data_per_mail, attachments_meta_data_per_mail): (
 			Vec<Vec<FileData>>,
@@ -223,7 +197,7 @@ impl ImportEssential {
 			.encrypt_and_upload_multiple(
 				ArchiveDataType::Attachments,
 				&self.target_owner_group,
-				attachments_file_data_flattened,
+				attachments_file_data_flattened.as_slice(),
 			)
 			.await
 			.map_err(|e| MailImportErrorMessage::sdk("fail to upload multiple attachments", e))?;
@@ -231,14 +205,10 @@ impl ImportEssential {
 		// reference mails and received reference tokens, by using the attachments count per mail
 		let mut all_reference_tokens_per_mail: Vec<Vec<Vec<BlobReferenceTokenWrapper>>> = vec![];
 		for attachments_count in attachments_count_per_mail {
-			if attachments_count == 0 {
-				all_reference_tokens_per_mail.push(vec![]);
-			} else {
-				let reference_tokens_per_mail = reference_tokens_per_attachment_flattened
-					.drain(..attachments_count)
-					.collect();
-				all_reference_tokens_per_mail.push(reference_tokens_per_mail);
-			}
+			let reference_tokens_per_mail = reference_tokens_per_attachment_flattened
+				.drain(..attachments_count)
+				.collect();
+			all_reference_tokens_per_mail.push(reference_tokens_per_mail);
 		}
 
 		let import_attachments_per_mail: Vec<Vec<ImportAttachment>> =
@@ -276,6 +246,31 @@ impl ImportEssential {
 			.collect();
 
 		Ok(unit_import_results)
+	}
+
+	fn get_upload_data_for_mail(
+		randomizer_facade: &RandomizerFacade,
+		attachments_next_mail: Vec<ImportableMailAttachment>,
+	) -> (Vec<FileData>, Vec<ImportableMailAttachmentMetaData>) {
+		let keyed_attachments = attachments_next_mail
+			.into_iter()
+			.map(|attachment| attachment.make_keyed_importable_mail_attachment(randomizer_facade))
+			.collect::<Vec<_>>();
+
+		let (attachments_file_data, attachments_meta_data): (
+			Vec<FileData>,
+			Vec<ImportableMailAttachmentMetaData>,
+		) = keyed_attachments
+			.into_iter()
+			.map(|keyed_attachment| {
+				let file_datum = FileData {
+					session_key: keyed_attachment.attachment_session_key,
+					data: keyed_attachment.content,
+				};
+				(file_datum, keyed_attachment.meta_data)
+			})
+			.unzip();
+		(attachments_file_data, attachments_meta_data)
 	}
 
 	fn make_serialized_chunk(

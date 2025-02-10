@@ -7,8 +7,10 @@ use regex::Regex;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::path::PathBuf;
+use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::key::GenericAesKey;
+use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::date::DateTime;
 use tutasdk::entities::generated::sys::BlobReferenceTokenWrapper;
 use tutasdk::entities::generated::tutanota::{
@@ -84,10 +86,10 @@ impl ImportableMailAttachment {
 	#[must_use]
 	pub fn make_keyed_importable_mail_attachment(
 		self,
-		essentials: &ImportEssential,
+		randomizer_facade: &RandomizerFacade,
 	) -> KeyedImportableMailAttachment {
 		let attachment_session_key =
-			GenericAesKey::Aes256(aes::Aes256Key::generate(&essentials.randomizer_facade));
+			GenericAesKey::Aes256(aes::Aes256Key::generate(randomizer_facade));
 		KeyedImportableMailAttachment {
 			attachment_session_key,
 			meta_data: self.meta_data,
