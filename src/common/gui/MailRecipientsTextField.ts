@@ -15,6 +15,7 @@ import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtil
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
+import { KeyVerificationState } from "../api/worker/facades/lazy/KeyVerificationFacade"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -75,8 +76,19 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			items: attrs.recipients.map((recipient) => recipient.address),
 			renderBubbleText: (address: string) => {
-				const name = findRecipientWithAddress(attrs.recipients, address)?.name ?? null
-				return lang.makeTranslation(address, getMailAddressDisplayText(name, address, false))
+				const recipient = findRecipientWithAddress(attrs.recipients, address)
+				if (recipient == null) {
+					return lang.makeTranslation(address, getMailAddressDisplayText(null, address, false))
+				} else {
+					const name = recipient.name
+					let verified: string = ""
+					if (recipient.verificationState === KeyVerificationState.MISMATCH) {
+						verified = " ✘"
+					} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
+						verified = " ✔"
+					}
+					return lang.makeTranslation(address, getMailAddressDisplayText(name, address, false) + verified)
+				}
 			},
 			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
 			onBackspace: () => {

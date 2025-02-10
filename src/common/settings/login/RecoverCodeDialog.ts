@@ -13,6 +13,7 @@ import { GroupType } from "../../api/common/TutanotaConstants.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
+import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -114,7 +115,7 @@ export class RecoverCodeField {
 					  ])
 					: this.renderRecoveryText()
 				: m("", lang.get("emptyString_msg")),
-			m(".text-break.monospace.selectable.flex.flex-wrap.border.pt.pb.plr", splitRecoverCode),
+			m(MonospaceTextDisplay, { text: splitRecoverCode }),
 			showButtons
 				? m(".flex.flex-end.mt-m", [
 						m(IconButton, {

@@ -61,7 +61,6 @@ import {
 	KeyVersion,
 	lazyAsync,
 	promiseMap,
-	Versioned,
 } from "@tutao/tutanota-utils"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
@@ -101,6 +100,7 @@ import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
+import { PublicKeyConverter } from "../crypto/PublicKeyConverter"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { asPQPublicKeys, brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { PublicKeyProvider, PublicKeys } from "./PublicKeyProvider.js"
@@ -181,6 +181,7 @@ export class KeyRotationFacade {
 		private readonly shareFacade: lazyAsync<ShareFacade>,
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly publicKeyConverter: PublicKeyConverter,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {
@@ -1118,6 +1119,7 @@ export class KeyRotationFacade {
 		adminGroupId: Id,
 		currentUserGroupKey: VersionedKey,
 	): Promise<PubEncKeyData> {
+		const adminPubKeys = this.publicKeyConverter.convertFromPublicKeyGetOut(publicKeyGetOut)
 		// we want to authenticate with new sender key pair. so we just decrypt it again
 		const pqKeyPair: PQKeyPairs = this.cryptoWrapper.decryptKeyPair(newUserGroupKeys.symGroupKey.object, assertNotNull(newUserGroupKeys.encryptedKeyPair))
 

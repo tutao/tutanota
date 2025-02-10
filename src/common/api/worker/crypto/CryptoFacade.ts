@@ -4,6 +4,7 @@ import {
 	downcast,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
+	lazyAsync,
 	lazy,
 	neverNull,
 	ofClass,
@@ -84,6 +85,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
+import { UnverifiedRecipientError } from "../../common/error/UnverifiedRecipientError"
+import { PublicKeyConverter } from "./PublicKeyConverter"
 import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
@@ -113,6 +117,8 @@ export class CryptoFacade {
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
+		private readonly publicKeyConverter: PublicKeyConverter,
+		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 		private readonly publicKeyProvider: PublicKeyProvider,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 	) {}
@@ -725,6 +731,14 @@ export class CryptoFacade {
 			if (notFoundRecipients.length !== 0) {
 				return null
 			}
+
+			// Check if recipient is still verified for recipientMailAddress
+			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+			const publicKey = this.publicKeyConverter.convertFromPublicKeyGetOut(publicKeyGetOut)
+			if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) == KeyVerificationState.MISMATCH) {
+				throw new UnverifiedRecipientError(recipientMailAddress)
+			}
+
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetricly when old clients are deactivated that don't support tuta-crypt.

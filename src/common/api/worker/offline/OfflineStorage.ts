@@ -78,7 +78,7 @@ export interface OfflineDbMeta extends VersionMetadataEntries {
 	timeRangeDays: number
 }
 
-const TableDefinitions = Object.freeze({
+export const TableDefinitions = Object.freeze({
 	// plus ownerGroup added in a migration
 	list_entities:
 		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
@@ -89,6 +89,9 @@ const TableDefinitions = Object.freeze({
 	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
 	blob_element_entities:
 		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
+	trusted_identities:
+		"mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, keyVersion INTEGER NOT NULL, keyType INTEGER NOT NULL, " +
+		"PRIMARY KEY (mailAddress, keyVersion)",
 } as const)
 
 type Range = { lower: Id; upper: Id }

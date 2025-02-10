@@ -55,6 +55,7 @@ import { ContactStoreError } from "../error/ContactStoreError.js"
 import { MobilePaymentError } from "../error/MobilePaymentError"
 import { MailImportError } from "../error/MailImportError.js"
 import { ExportError } from "../error/ExportError"
+import { UnverifiedRecipientError } from "../error/UnverifiedRecipientError"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -132,6 +133,7 @@ const ErrorNameToType = {
 	ParserError,
 	KeyPermanentlyInvalidatedError,
 	MailImportError,
+	UnverifiedRecipientError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.SocketException": ConnectionError,

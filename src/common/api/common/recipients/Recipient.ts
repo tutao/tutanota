@@ -1,4 +1,5 @@
 import { Contact } from "../../entities/tutanota/TypeRefs"
+import { KeyVerificationState } from "../../worker/facades/lazy/KeyVerificationFacade"
 
 export const enum RecipientType {
 	UNKNOWN = "unknown",
@@ -11,6 +12,7 @@ export interface Recipient {
 	readonly name: string
 	readonly type: RecipientType
 	readonly contact: Contact | null
+	readonly verificationState: KeyVerificationState
 }
 
 /**

@@ -36,6 +36,7 @@ import { ProgrammingError } from "../../../../src/common/api/common/error/Progra
 import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
+import { KeyVerificationState } from "../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
@@ -281,6 +282,7 @@ o.spec("CalendarEventWhoModel", function () {
 					type: RecipientType.EXTERNAL,
 					contact: otherRecipient.contact,
 					status: CalendarAttendeeStatus.ADDED,
+					verificationState: KeyVerificationState.NO_ENTRY,
 				},
 			])("the single non-organizer guest is in guests array")
 			o(model.ownGuest).deepEquals(model.organizer)("the own guest is the organizer")
@@ -318,6 +320,7 @@ o.spec("CalendarEventWhoModel", function () {
 				type: RecipientType.INTERNAL,
 				status: CalendarAttendeeStatus.ACCEPTED,
 				contact: null,
+				verificationState: KeyVerificationState.NO_ENTRY,
 			})
 			const result = model.result
 			o(result.attendees.map((a) => a.address)).deepEquals([ownerAddress, otherAddress])
@@ -403,6 +406,7 @@ o.spec("CalendarEventWhoModel", function () {
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 					type: RecipientType.UNKNOWN,
 					contact: null,
+					verificationState: KeyVerificationState.NO_ENTRY,
 				},
 			])
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "", strength: 0 })("password is not set")
@@ -414,6 +418,7 @@ o.spec("CalendarEventWhoModel", function () {
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 					type: RecipientType.EXTERNAL,
 					contact: otherRecipient.contact,
+					verificationState: KeyVerificationState.NO_ENTRY,
 				},
 			])
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "otherPassword", strength: 1 })

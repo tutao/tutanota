@@ -492,6 +492,29 @@ export enum SecondFactorType {
 	webauthn = "2", // actually refers to u2f in client
 }
 
+export enum KeyVerificationSourceOfTruth {
+	LocalTrusted = "LocalTrusted",
+	PublicKeyService = "PublicKeyService",
+}
+
+export enum KeyVerificationMethodType {
+	text = "0",
+	qr = "1",
+}
+
+export const enum KeyVerificationResultType {
+	QR_OK = "0",
+	QR_MALFORMED_PAYLOAD = "1",
+	QR_MAIL_ADDRESS_NOT_FOUND = "2",
+	QR_FINGERPRINT_MISMATCH = "3",
+}
+
+// TODO: DRY! There is a similar object in KeyVerificationProcessModel.
+export const KeyVerificationMethodOptions = Object.freeze([
+	{ name: "Text", value: KeyVerificationMethodType.text },
+	{ name: "QR code", value: KeyVerificationMethodType.qr },
+])
+
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE

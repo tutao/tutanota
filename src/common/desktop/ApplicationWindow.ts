@@ -310,7 +310,19 @@ export class ApplicationWindow {
 		})
 
 		const session = this._browserWindow.webContents.session
-		session.setPermissionRequestHandler((webContents, permission, callback: (_: boolean) => void) => callback(false))
+		const permHandler = (webContents: Electron.WebContents, permission: string, grant: (granted: boolean) => void) => {
+			console.log("[Permission handler]", permission)
+
+			// Allow camera access for QR code scanning during key verification
+			if (permission === "media") {
+				return grant(true)
+			}
+
+			// Disallow everything else
+			return grant(false)
+		}
+
+		session.setPermissionRequestHandler(permHandler)
 
 		handleProtocols(session, this.absoluteAssetsPath)
 
