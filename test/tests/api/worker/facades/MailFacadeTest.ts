@@ -9,8 +9,13 @@ import {
 	SendDraftDataTypeRef,
 	SymEncInternalRecipientKeyDataTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CryptoProtocolVersion, MailAuthenticationStatus, ReportedMailFieldType } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { object } from "testdouble"
+import {
+	CryptoProtocolVersion,
+	MailAuthenticationStatus,
+	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	ReportedMailFieldType,
+} from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { matchers, object } from "testdouble"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
@@ -24,6 +29,8 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { verify } from "@tutao/tutanota-test-utils"
+import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -383,7 +390,14 @@ o.spec("MailFacade test", function () {
 				}),
 			])
 
-			o(await facade.checkMailForPhishing(mail, [{ href: "https://example.com", innerHTML: "https://evil-domain.com" }])).equals(true)
+			o(
+				await facade.checkMailForPhishing(mail, [
+					{
+						href: "https://example.com",
+						innerHTML: "https://evil-domain.com",
+					},
+				]),
+			).equals(true)
 		})
 
 		o("link is not suspicious if on the same domain", async function () {
@@ -401,7 +415,14 @@ o.spec("MailFacade test", function () {
 				}),
 			])
 
-			o(await facade.checkMailForPhishing(mail, [{ href: "https://example.com", innerHTML: "https://example.com/test" }])).equals(false)
+			o(
+				await facade.checkMailForPhishing(mail, [
+					{
+						href: "https://example.com",
+						innerHTML: "https://example.com/test",
+					},
+				]),
+			).equals(false)
 		})
 	})
 
@@ -515,6 +536,60 @@ o.spec("MailFacade test", function () {
 					}),
 				),
 			).equals(false)
+		})
+	})
+	o.spec("markMails", () => {
+		o.test("test with single mail", async () => {
+			const testIds: IdTuple[] = [["a", "b"]]
+			await facade.markMails(testIds, true)
+			verify(
+				serviceExecutor.post(
+					UnreadMailStateService,
+					matchers.contains({
+						mails: testIds,
+						unread: true,
+					}),
+				),
+			)
+		})
+
+		o.test("test with a few mails", async () => {
+			const testIds: IdTuple[] = [
+				["a", "b"],
+				["c", "d"],
+			]
+			await facade.markMails(testIds, true)
+			verify(
+				serviceExecutor.post(
+					UnreadMailStateService,
+					matchers.contains({
+						mails: testIds,
+						unread: true,
+					}),
+				),
+			)
+		})
+
+		o.test("batches large amounts of mails", async () => {
+			const expectedBatches = 4
+			const testIds: IdTuple[] = []
+			for (let i = 0; i < MAX_NBR_MOVE_DELETE_MAIL_SERVICE * expectedBatches; i++) {
+				testIds.push([`${i}`, `${i}`])
+			}
+			await facade.markMails(testIds, true)
+			for (let i = 0; i < expectedBatches; i++) {
+				verify(
+					serviceExecutor.post(
+						UnreadMailStateService,
+						matchers.contains({
+							mails: testIds.slice(i * MAX_NBR_MOVE_DELETE_MAIL_SERVICE, (i + 1) * MAX_NBR_MOVE_DELETE_MAIL_SERVICE),
+							unread: true,
+						}),
+					),
+				)
+			}
+
+			verify(serviceExecutor.post(UnreadMailStateService, matchers.anything()), { times: expectedBatches })
 		})
 	})
 })
