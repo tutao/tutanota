@@ -81,28 +81,11 @@ o.spec("MailModelTest", function () {
 	})
 
 	o("markMails", async function () {
-		const mails = [
-			createTestEntity(MailTypeRef, {
-				_id: ["mailbag id1", "mail id1"],
-			}),
-			createTestEntity(MailTypeRef, {
-				_id: ["mailbag id2", "mail id2"],
-			}),
-			createTestEntity(MailTypeRef, {
-				_id: ["mailbag id3", "mail id3"],
-			}),
-		]
-		await model.markMails(mails, true)
-		verify(
-			mailFacade.markMails(
-				[
-					["mailbag id1", "mail id1"],
-					["mailbag id2", "mail id2"],
-					["mailbag id3", "mail id3"],
-				],
-				true,
-			),
-		)
+		const mailId1: IdTuple = ["mailbag id1", "mail id1"]
+		const mailId2: IdTuple = ["mailbag id2", "mail id2"]
+		const mailId3: IdTuple = ["mailbag id3", "mail id3"]
+		await model.markMails([mailId1, mailId2, mailId3], true)
+		verify(mailFacade.markMails([mailId1, mailId2, mailId3], true))
 	})
 
 	function makeUpdate(arg: { instanceListId: string; instanceId: Id; operation: OperationType }): EntityUpdateData {

@@ -15,7 +15,7 @@ import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
-	actionableMails: () => Promise<readonly Mail[]>
+	actionableMails: () => Promise<readonly IdTuple[]>
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
