@@ -433,18 +433,12 @@ export class MailModel {
 		return !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
 
-	async markMails(mails: readonly Mail[], unread: boolean): Promise<void> {
-		await this.mailFacade.markMails(
-			mails.map(({ _id }) => _id),
-			unread,
-		)
+	async markMails(mails: readonly IdTuple[], unread: boolean): Promise<void> {
+		await this.mailFacade.markMails(mails, unread)
 	}
 
-	async applyLabels(mails: readonly Mail[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
-		const groupedByListIds = groupBy(
-			mails.map((m) => m._id),
-			(mailId) => listIdPart(mailId),
-		)
+	async applyLabels(mails: readonly IdTuple[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
+		const groupedByListIds = groupBy(mails, (mailId) => listIdPart(mailId))
 		for (const [_, groupedMails] of groupedByListIds) {
 			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, groupedMails)
 			for (const mailChunk of mailChunks) {
@@ -671,5 +665,10 @@ export class MailModel {
 		}
 
 		return allMails
+	}
+
+	/** Resolve conversation list ids to the IDs of mails in those conversations. */
+	async resolveConversationsForMails(mails: readonly Mail[]): Promise<IdTuple[]> {
+		return await this.mailFacade.resolveConversations(mails.map((m) => listIdPart(m.conversationEntry)))
 	}
 }
