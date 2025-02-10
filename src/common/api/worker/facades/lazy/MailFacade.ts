@@ -10,6 +10,7 @@ import {
 	MoveMailService,
 	ReportMailService,
 	SendDraftService,
+	UnreadMailStateService,
 } from "../../../entities/tutanota/Services.js"
 import {
 	ArchiveDataType,
@@ -23,6 +24,7 @@ import {
 	MailAuthenticationStatus,
 	MailMethod,
 	MailReportType,
+	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
 	PhishingMarkerStatus,
 	PublicKeyIdentifierType,
@@ -53,6 +55,7 @@ import {
 	createReportMailPostData,
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
+	createUnreadMailStatePostIn,
 	createUpdateMailFolderData,
 	DraftAttachment,
 	DraftRecipient,
@@ -100,6 +103,7 @@ import {
 	promiseFilter,
 	promiseMap,
 	Versioned,
+	splitInChunks,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -1088,6 +1092,26 @@ export class MailFacade {
 			removedLabels: removedLabels.map((label) => label._id),
 		})
 		await this.serviceExecutor.post(ApplyLabelService, postIn)
+	}
+
+	/**
+	 * Mark the given mails as read/unread
+	 * @param mails mail ids to mark as unread
+	 * @param unread new unread status (mails that are already this status will not be modified)
+	 */
+	async markMails(mails: readonly IdTuple[], unread: boolean) {
+		await promiseMap(
+			splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails),
+			async (mails) =>
+				this.serviceExecutor.post(
+					UnreadMailStateService,
+					createUnreadMailStatePostIn({
+						unread,
+						mails,
+					}),
+				),
+			{ concurrency: 5 },
+		)
 	}
 }
 
