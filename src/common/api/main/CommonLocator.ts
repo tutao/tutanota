@@ -68,7 +68,8 @@ import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
-import { MailImporter } from "../../../mail-app/mail/import/MailImporter.js"
+import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
+import { PublicKeyConverter } from "../worker/crypto/PublicKeyConverter"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -99,6 +100,8 @@ export interface CommonLocator {
 	counterFacade: CounterFacade
 	bookingFacade: BookingFacade
 	mailAddressFacade: MailAddressFacade
+	keyVerificationFacade: KeyVerificationFacade
+	publicKeyConverter: PublicKeyConverter
 	blobFacade: BlobFacade
 	userManagementFacade: UserManagementFacade
 	recoverCodeFacade: RecoverCodeFacade

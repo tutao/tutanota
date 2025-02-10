@@ -62,7 +62,7 @@ export {
 } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export { encode, hexToRsaPublicKey, rsaDecrypt, hexToRsaPrivateKey, rsaPrivateKeyToHex, rsaPublicKeyToHex, rsaEncrypt } from "./encryption/Rsa.js"
-export { RsaKeyPair, RsaEccKeyPair, RsaPrivateKey, RsaPublicKey } from "./encryption/RsaKeyPair.js"
+export { RsaKeyPair, RsaEccKeyPair, RsaPrivateKey, RsaPublicKey, RsaEccPublicKey } from "./encryption/RsaKeyPair.js"
 export {
 	KeyPairType,
 	AsymmetricKeyPair,
@@ -72,6 +72,10 @@ export {
 	isRsaEccKeyPair,
 	isPqPublicKey,
 	isPqKeyPairs,
+	isVersionedRsaPublicKey,
+	isVersionedRsaEccPublicKey,
+	isVersionedPqPublicKey,
+	isVersionedRsaOrRsaEccPublicKey,
 } from "./encryption/AsymmetricKeyPair.js"
 export { PQKeyPairs, PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"

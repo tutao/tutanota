@@ -27,3 +27,6 @@ export type RsaPublicKey = AbstractPublicKey & {
 	modulus: Base64
 	publicExponent: number
 }
+export type RsaEccPublicKey = RsaPublicKey & {
+	publicEccKey: EccPublicKey
+}

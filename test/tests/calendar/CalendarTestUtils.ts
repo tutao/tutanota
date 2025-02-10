@@ -24,8 +24,6 @@ import {
 	ContactTypeRef,
 	EncryptedMailAddress,
 	EncryptedMailAddressTypeRef,
-	MailboxGroupRootTypeRef,
-	MailBoxTypeRef,
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRoot,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -34,9 +32,8 @@ import { Recipient, RecipientType } from "../../../src/common/api/common/recipie
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
-import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem.js"
+import { KeyVerificationState } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -51,6 +48,7 @@ export const ownerRecipient: Recipient = {
 	name: ownerAddress.name,
 	type: RecipientType.INTERNAL,
 	contact: null,
+	verificationState: KeyVerificationState.NO_ENTRY,
 }
 export const ownerAlias = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: "calendarowneralias@tutanota.de",
@@ -61,6 +59,7 @@ export const ownerAliasRecipient: Recipient = {
 	name: ownerAlias.name,
 	type: RecipientType.INTERNAL,
 	contact: null,
+	verificationState: KeyVerificationState.NO_ENTRY,
 }
 export const otherAddress = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: "someone@tutanota.de",
@@ -80,6 +79,7 @@ export const otherRecipient: Recipient = {
 			}),
 		],
 	}),
+	verificationState: KeyVerificationState.NO_ENTRY,
 }
 export const otherAddress2 = createTestEntity(EncryptedMailAddressTypeRef, {
 	address: "someoneelse@tutanota.de",
@@ -99,6 +99,7 @@ export const otherRecipient2: Recipient = {
 			}),
 		],
 	}),
+	verificationState: KeyVerificationState.NO_ENTRY,
 }
 
 export const thirdAddress = createTestEntity(EncryptedMailAddressTypeRef, { address: "somethirdaddress@tuta.com", name: "thirdperson" })
@@ -116,6 +117,7 @@ export const thirdRecipient: Recipient = {
 			}),
 		],
 	}),
+	verificationState: KeyVerificationState.NO_ENTRY,
 }
 
 export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([

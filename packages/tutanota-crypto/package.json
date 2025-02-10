@@ -25,11 +25,11 @@
 		"tsconfig.json"
 	],
 	"dependencies": {
-		"@tutao/tutanota-error": "270.250214.0"
+		"@tutao/tutanota-error": "270.250214.0",
+		"@tutao/tutanota-utils": "270.250214.0"
 	},
 	"devDependencies": {
 		"typescript": "5.3.3",
-		"@tutao/tutanota-utils": "270.250214.0",
 		"@tutao/otest": "270.250214.0"
 	}
 }

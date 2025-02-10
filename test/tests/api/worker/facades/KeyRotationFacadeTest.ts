@@ -45,10 +45,12 @@ import {
 	createAuthVerifier,
 	EncryptedPqKeyPairs,
 	KEY_LENGTH_BYTES_AES_256,
+	KeyPairType,
 	KyberPrivateKey,
 	KyberPublicKey,
 	MacTag,
 	PQKeyPairs,
+	PQPublicKeys,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
@@ -69,7 +71,7 @@ import {
 	UserGroupKeyRotationService,
 } from "../../../../../src/common/api/entities/sys/Services.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/tutanota-utils"
 import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade, RecoverData } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
@@ -79,7 +81,9 @@ import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
 import { assertThrows, mockAttribute, spy } from "@tutao/tutanota-test-utils"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
-import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { PublicKeyConverter } from "../../../../../src/common/api/worker/crypto/PublicKeyConverter"
+import { PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import {
@@ -428,6 +432,7 @@ o.spec("KeyRotationFacadeTest", function () {
 	let groupInfo: GroupInfo
 	let groupKeyVersion0: AesKey
 	let customer: Customer
+	let publicKeyConverter: PublicKeyConverter
 
 	o.beforeEach(async () => {
 		entityClientMock = instance(EntityClient)
@@ -443,6 +448,7 @@ o.spec("KeyRotationFacadeTest", function () {
 		shareFacade = object()
 		groupManagementFacade = object()
 		asymmetricCryptoFacade = object()
+		publicKeyConverter = object()
 		keyAuthenticationFacade = object()
 		publicKeyProvider = object()
 		keyRotationFacade = new KeyRotationFacade(
@@ -457,6 +463,7 @@ o.spec("KeyRotationFacadeTest", function () {
 			async () => shareFacade,
 			async () => groupManagementFacade,
 			asymmetricCryptoFacade,
+			publicKeyConverter,
 			keyAuthenticationFacade,
 			publicKeyProvider,
 		)

@@ -28,6 +28,7 @@ import { getContactDisplayName } from "../../../../common/contactsFunctionality/
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { hasSourceUrl } from "../../../../common/calendar/date/CalendarUtils"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { KeyVerificationState } from "../../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
@@ -395,6 +396,7 @@ export class CalendarEventWhoModel {
 				status: a.status as CalendarAttendeeStatus,
 				type: RecipientType.UNKNOWN,
 				contact: null,
+				verificationState: KeyVerificationState.NO_ENTRY,
 			}
 		}
 	}
