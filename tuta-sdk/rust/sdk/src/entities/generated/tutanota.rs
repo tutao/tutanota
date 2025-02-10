@@ -2074,8 +2074,8 @@ impl Entity for ManageLabelServicePostIn {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MoveMailData {
 	pub _format: i64,
+	pub excludeMailSet: Option<IdTupleGenerated>,
 	pub mails: Vec<IdTupleGenerated>,
-	pub sourceFolder: IdTupleGenerated,
 	pub targetFolder: IdTupleGenerated,
 }
 
@@ -2397,6 +2397,38 @@ impl Entity for ReportedMailFieldMarker {
 		TypeRef {
 			app: "tutanota",
 			type_: "ReportedMailFieldMarker",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ResolveConversationsServiceGetIn {
+	pub _format: i64,
+	pub conversationLists: Vec<super::sys::GeneratedIdWrapper>,
+}
+
+impl Entity for ResolveConversationsServiceGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ResolveConversationsServiceGetIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ResolveConversationsServiceGetOut {
+	pub _format: i64,
+	pub mailIds: Vec<super::sys::IdTupleWrapper>,
+}
+
+impl Entity for ResolveConversationsServiceGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ResolveConversationsServiceGetOut",
 		}
 	}
 }

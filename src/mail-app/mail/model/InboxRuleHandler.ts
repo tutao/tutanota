@@ -2,7 +2,7 @@ import type { InboxRule, Mail, MailFolder, MoveMailData } from "../../../common/
 import { createMoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
@@ -26,7 +26,7 @@ async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
 		await promiseMap(mailChunks, (mailChunk) => {
 			moveToTargetFolder.mails = mailChunk
-			return mailFacade.moveMails(mailChunk, moveToTargetFolder.sourceFolder, moveToTargetFolder.targetFolder)
+			return mailFacade.moveMails(mailChunk, moveToTargetFolder.targetFolder, moveToTargetFolder.excludeMailSet)
 		})
 			.catch(
 				ofClass(LockedError, (e) => {
@@ -123,7 +123,7 @@ export class InboxRuleHandler {
 						moveMailData.mails.push(mail._id)
 					} else {
 						moveMailData = createMoveMailData({
-							sourceFolder: inboxFolder._id,
+							excludeMailSet: inboxFolder._id,
 							targetFolder: inboxRule.targetFolder,
 							mails: [mail._id],
 						})

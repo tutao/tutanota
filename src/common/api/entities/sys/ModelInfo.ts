@@ -1,5 +1,5 @@
 const modelInfo = {
-	version: 122,
+	version: 123,
 	compatibleSince: 121,
 }
 
