@@ -126,18 +126,18 @@ fn bind_shared_secret_to_ciphertext(
 	ciphertext: PQCryptoMlKem1024Ciphertext,
 ) -> KyberSharedSecret {
 	let hashed_ciphertext = sha::sha3_256(ciphertext.as_bytes());
-	let kdf_input = vec![
+	let kdf_input = [
 		unbound_shared_secret.as_bytes(),
 		hashed_ciphertext.as_slice(),
 	];
-	let shared_secret = shake256(kdf_input);
+	let shared_secret = shake256(kdf_input.as_slice());
 	KyberSharedSecret(shared_secret)
 }
 
-fn shake256(input: Vec<&[u8]>) -> [u8; SHAKE_BYTE_LENGTH] {
+fn shake256(input: &[&[u8]]) -> [u8; SHAKE_BYTE_LENGTH] {
 	let mut hasher = Shake256::default();
-	for data in &input {
-		hasher.update(data);
+	for data in input {
+		hasher.update(*data);
 	}
 	let mut reader = hasher.finalize_xof();
 	let mut output = [0; SHAKE_BYTE_LENGTH];
