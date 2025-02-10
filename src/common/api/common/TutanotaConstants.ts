@@ -11,6 +11,7 @@ import { ProgrammingError } from "./error/ProgrammingError"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
+export const MAX_NBR_OF_CONVERSATIONS = 50
 
 // visible for testing
 export const MAX_BLOB_SIZE_BYTES = 1024 * 1024 * 10

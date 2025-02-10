@@ -15,7 +15,7 @@ export interface MobileMailMultiselectionActionBarAttrs {
 	mailModel: MailModel
 	mailboxModel: MailboxModel
 	selectNone: () => unknown
-	actionableMails: () => Promise<readonly Mail[]>
+	actionableMails: () => Promise<readonly IdTuple[]>
 }
 
 // Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed

@@ -1,5 +1,5 @@
 import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, groupByAndMap, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
@@ -20,21 +20,21 @@ import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { getMailAddressDisplayText, hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
 import { ListFilter } from "../../../common/misc/ListModel.js"
-import { isApp, isDesktop } from "../../../common/api/common/Env.js"
+import { isDesktop } from "../../../common/api/common/Env.js"
 import { isDraft } from "../model/MailChecks.js"
-import { MailModel } from "../model/MailModel"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
-import { IconButton } from "../../../common/gui/base/IconButton"
 import { exportMails } from "../export/Exporter"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
-import { MailViewerToolbarAttrs } from "./MailViewerToolbar"
+import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
@@ -128,7 +128,7 @@ export async function showSourceDialog(rawHtml: string) {
 	return Dialog.viewerDialog("emailSourceCode_title", SourceCodeViewer, { rawHtml })
 }
 
-export function exportAction(actionableMails: () => Promise<readonly Mail[]>): DropdownButtonAttrs {
+export function exportAction(actionableMails: () => Promise<readonly IdTuple[]>): DropdownButtonAttrs {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const ac = new AbortController()
 	const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -145,23 +145,50 @@ export function exportAction(actionableMails: () => Promise<readonly Mail[]>): D
 	return {
 		label: "export_action",
 		click: () => {
-			actionableMails().then((mails) => {
-				showProgressDialog(
-					lang.getTranslation("mailExportProgress_msg", {
-						"{current}": Math.round((operation.progress() / 100) * mails.length).toFixed(0),
-						"{total}": mails.length,
-					}),
-					exportMails(mails, locator.mailFacade, locator.entityClient, locator.fileController, locator.cryptoFacade, operation.id, ac.signal)
-						.then((result) => handleExportEmailsResult(result.failed))
-						.finally(operation.done),
-					operation.progress,
-					true,
-					headerBarAttrs,
-				)
-			})
+			// We are doing a little backflip here to start showing progress while we still determine the number of
+			// mails to export.
+			const numberOfMailsStream = stream<number>()
+			numberOfMailsStream.map(m.redraw)
+			showProgressDialog(
+				() => {
+					const numberOfMails = numberOfMailsStream()
+					if (isNaN(numberOfMails)) {
+						return lang.getTranslation("mailExportProgress_msg", {
+							"{current}": 0,
+							"{total}": "?",
+						})
+					} else {
+						return lang.getTranslation("mailExportProgress_msg", {
+							"{current}": Math.round((operation.progress() / 100) * numberOfMails).toFixed(0),
+							"{total}": numberOfMails,
+						})
+					}
+				},
+				doExport(actionableMails, numberOfMailsStream, operation, ac),
+				operation.progress,
+				true,
+				headerBarAttrs,
+			)
 		},
 		icon: Icons.Export,
 	}
+}
+
+async function doExport(
+	actionableMails: () => $Promisable<readonly IdTuple[]>,
+	numberOfMailsStream: Stream<number>,
+	operation: OperationHandle,
+	ac: AbortController,
+) {
+	const mailIdsToLoad = await actionableMails()
+	numberOfMailsStream(mailIdsToLoad.length)
+	const mailIdsPerList = groupByAndMap(mailIdsToLoad, listIdPart, elementIdPart)
+	const mails = (
+		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
+	).flat()
+	return exportMails(mails, locator.mailFacade, locator.entityClient, locator.fileController, locator.cryptoFacade, operation.id, ac.signal)
+		.then((result) => handleExportEmailsResult(result.failed))
+		.finally(operation.done)
 }
 
 function handleExportEmailsResult(mailList: Mail[]) {
@@ -210,7 +237,7 @@ function handleExportEmailsResult(mailList: Mail[]) {
 	}
 }
 
-export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel, actionableMails: () => Promise<readonly Mail[]>): Array<DropdownButtonAttrs> {
+export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel, actionableMails: () => Promise<readonly IdTuple[]>): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
 	if (viewModel.isUnread()) {

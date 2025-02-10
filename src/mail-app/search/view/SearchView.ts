@@ -409,7 +409,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectedMails: selectedMails,
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
-					actionableMails: async () => selectedMails,
+					actionableMails: async () => selectedMails.map((m) => m._id),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 				})
 				return m(BackgroundColumnLayout, {
@@ -447,7 +447,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectedMails: [conversationViewModel.primaryMail],
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the shown mail
-					actionableMails: async () => [conversationViewModel.primaryMail],
+					actionableMails: async () => [conversationViewModel.primaryMail._id],
 					actionableMailViewerViewModel: conversationViewModel.primaryViewModel(),
 				})
 				return m(BackgroundColumnLayout, {
@@ -610,7 +610,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel(),
 				// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 				//    mails are always shown. So the action applies only to the shown mail
-				actionableMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail],
+				actionableMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail._id],
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
@@ -672,7 +672,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailboxModel: locator.mailboxModel,
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
-					actionableMails: async () => this.searchViewModel.getSelectedMails(),
+					actionableMails: async () => this.searchViewModel.getSelectedMails().map((m) => m._id),
 				})
 			} else if (this.viewSlider.focusedColumn === this.resultListColumn) {
 				return m(
@@ -1033,7 +1033,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		let selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			mailLocator.mailModel.markMails(selectedMails, !selectedMails[0].unread)
+			mailLocator.mailModel.markMails(
+				selectedMails.map((m) => m._id),
+				!selectedMails[0].unread,
+			)
 		}
 	}
 

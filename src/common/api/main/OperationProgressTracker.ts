@@ -6,6 +6,17 @@ export type OperationId = number
 export type ExposedOperationProgressTracker = Pick<OperationProgressTracker, "onProgress">
 
 /**
+ *  - id for sending updates
+ *  - progress, a stream to observe
+ *  - done, a handle to stop tracking the operation progress
+ */
+export interface OperationHandle {
+	id: OperationId
+	progress: Stream<number>
+	done: () => unknown
+}
+
+/**
  * This is a multiplexer for tracking individual remote async operations.
  * Unlike {@link ProgressTracker} does not accumulate the progress and doesn't compute the percentage from units of work.
  *
@@ -16,12 +27,9 @@ export class OperationProgressTracker {
 	private operationId = 0
 
 	/**
-	 * Prepares a new operation and gives a handle for it which contains:
-	 *   - id for sending updates
-	 *   - progress, a stream to observe
-	 *   - done, a handle to stop tracking the operation progress
+	 * Prepares a new operation and gives a handle.
 	 */
-	startNewOperation(): { id: OperationId; progress: Stream<number>; done: () => unknown } {
+	startNewOperation(): OperationHandle {
 		const id = this.operationId++
 		const progress = stream<number>(0)
 		this.progressPerOp.set(id, progress)

@@ -23,10 +23,10 @@ export interface MailViewerToolbarAttrs {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
 	selectedMails: Mail[]
-	actionableMails: () => Promise<readonly Mail[]>
 	primaryMailViewerViewModel?: MailViewerViewModel
 	actionableMailViewerViewModel?: MailViewerViewModel
 	selectNone?: () => void
+	actionableMails: () => Promise<readonly IdTuple[]>
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -104,7 +104,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionableMails: () => Promise<readonly Mail[]>): Children {
+	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionableMails: () => Promise<readonly IdTuple[]>): Children {
 		return m(IconButton, {
 			title: "assignLabel_action",
 			icon: Icons.Label,
@@ -188,7 +188,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderMoreButton(viewModel: MailViewerViewModel | undefined, actionableMails: () => Promise<readonly Mail[]>): Children {
+	private renderMoreButton(viewModel: MailViewerViewModel | undefined, actionableMails: () => Promise<readonly IdTuple[]>): Children {
 		let actions: DropdownButtonAttrs[] = []
 
 		if (viewModel) {
