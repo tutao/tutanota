@@ -486,7 +486,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.U,
 				exec: () => {
-					if (this.mailViewModel.listModel) this.toggleUnreadMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) this.toggleUnreadMails()
 				},
 				help: "toggleUnread_action",
 			},
@@ -877,12 +877,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		m.route.set("/")
 	}
 
-	private async toggleUnreadMails(mails: Mail[]): Promise<void> {
-		if (mails.length == 0) {
+	private async toggleUnreadMails(): Promise<void> {
+		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(selectedMails)) {
 			return
 		}
+		const mailIds = await this.mailViewModel.getActionableMails(selectedMails)
+
 		// set all selected emails to the opposite of the first email's unread state
-		await mailLocator.mailModel.markMails(mails, !mails[0].unread)
+		await mailLocator.mailModel.markMails(mailIds, !selectedMails[0].unread)
 	}
 
 	private deleteMails(mails: Mail[]): Promise<boolean> {
