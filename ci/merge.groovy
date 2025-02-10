@@ -450,7 +450,7 @@ void merge(String srcBranch, String targetBranch) {
 
 // must be called while checked out on targetBranch, after ff-merging srcBranch.
 void getChangeset(HashSet<String> changeset, String targetBranch) {
-	def out = sh(returnStdout: true, script: "git diff --name-only ${targetBranch} origin/${targetBranch}")
+	def out = sh(returnStdout: true, script: "git diff --name-only ${targetBranch} origin/${targetBranch} --")
 	def lines = out.split('\n')
 	for (String line in lines) {
 		changeset.add(line.trim())
