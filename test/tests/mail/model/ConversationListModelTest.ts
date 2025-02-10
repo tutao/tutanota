@@ -58,7 +58,6 @@ o.spec("ConversationListModelTest", () => {
 			_id: ["mailFolderList", "tutaRed"],
 			color: tutaRed,
 			folderType: MailSetKind.LABEL,
-			isMailSet: true,
 			name: "Tuta Red Label",
 			parentFolder: null,
 		}),
@@ -66,7 +65,6 @@ o.spec("ConversationListModelTest", () => {
 			_id: ["mailFolderList", "tutaDunkel"],
 			color: tutaDunkel,
 			folderType: MailSetKind.LABEL,
-			isMailSet: true,
 			name: "Tuta Dunkel Label",
 			parentFolder: null,
 		}),
@@ -83,7 +81,6 @@ o.spec("ConversationListModelTest", () => {
 		mailSet = createTestEntity(MailFolderTypeRef, {
 			_id: ["mailFolderList", "mailFolderId"],
 			folderType: MailSetKind.CUSTOM,
-			isMailSet: true,
 			name: "My Folder",
 			entries: mailSetEntriesListId,
 			parentFolder: null,

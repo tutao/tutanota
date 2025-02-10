@@ -6,6 +6,8 @@ import { Blob } from '../sys/TypeRefs.js'
 import { StringWrapper } from '../sys/TypeRefs.js'
 import { BucketKey } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
+import { IdTupleWrapper } from '../sys/TypeRefs.js'
 
 export const AdvancedRepeatRuleTypeRef: TypeRef<AdvancedRepeatRule> = new TypeRef("tutanota", "AdvancedRepeatRule")
 
@@ -1649,8 +1651,8 @@ export type MoveMailData = {
 
 	_format: NumberString;
 
+	excludeMailSet: null | IdTuple;
 	mails: IdTuple[];
-	sourceFolder: IdTuple;
 	targetFolder: IdTuple;
 }
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", "NewDraftAttachment")
@@ -1826,6 +1828,18 @@ export type ReceiveInfoServiceData = {
 	_format: NumberString;
 	language: string;
 }
+export const ReceiveInfoServicePostOutTypeRef: TypeRef<ReceiveInfoServicePostOut> = new TypeRef("tutanota", "ReceiveInfoServicePostOut")
+
+export function createReceiveInfoServicePostOut(values: StrippedEntity<ReceiveInfoServicePostOut>): ReceiveInfoServicePostOut {
+	return Object.assign(create(typeModels.ReceiveInfoServicePostOut, ReceiveInfoServicePostOutTypeRef), values)
+}
+
+export type ReceiveInfoServicePostOut = {
+	_type: TypeRef<ReceiveInfoServicePostOut>;
+
+	_format: NumberString;
+	outdatedVersion: boolean;
+}
 export const RecipientsTypeRef: TypeRef<Recipients> = new TypeRef("tutanota", "Recipients")
 
 export function createRecipients(values: StrippedEntity<Recipients>): Recipients {
@@ -1885,6 +1899,32 @@ export type ReportedMailFieldMarker = {
 	_id: Id;
 	marker: string;
 	status: NumberString;
+}
+export const ResolveConversationsServiceGetInTypeRef: TypeRef<ResolveConversationsServiceGetIn> = new TypeRef("tutanota", "ResolveConversationsServiceGetIn")
+
+export function createResolveConversationsServiceGetIn(values: StrippedEntity<ResolveConversationsServiceGetIn>): ResolveConversationsServiceGetIn {
+	return Object.assign(create(typeModels.ResolveConversationsServiceGetIn, ResolveConversationsServiceGetInTypeRef), values)
+}
+
+export type ResolveConversationsServiceGetIn = {
+	_type: TypeRef<ResolveConversationsServiceGetIn>;
+
+	_format: NumberString;
+
+	conversationLists: GeneratedIdWrapper[];
+}
+export const ResolveConversationsServiceGetOutTypeRef: TypeRef<ResolveConversationsServiceGetOut> = new TypeRef("tutanota", "ResolveConversationsServiceGetOut")
+
+export function createResolveConversationsServiceGetOut(values: StrippedEntity<ResolveConversationsServiceGetOut>): ResolveConversationsServiceGetOut {
+	return Object.assign(create(typeModels.ResolveConversationsServiceGetOut, ResolveConversationsServiceGetOutTypeRef), values)
+}
+
+export type ResolveConversationsServiceGetOut = {
+	_type: TypeRef<ResolveConversationsServiceGetOut>;
+
+	_format: NumberString;
+
+	mailIds: IdTupleWrapper[];
 }
 export const SecureExternalRecipientKeyDataTypeRef: TypeRef<SecureExternalRecipientKeyData> = new TypeRef("tutanota", "SecureExternalRecipientKeyData")
 
