@@ -5,7 +5,6 @@ import {
 	aesEncrypt,
 	AesKey,
 	AsymmetricKeyPair,
-	bytesToKyberPublicKey,
 	decryptKey,
 	decryptKeyPair,
 	EccKeyPair,
@@ -94,10 +93,6 @@ export class CryptoWrapper {
 
 	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array {
 		return kyberPublicKeyToBytes(kyberPublicKey)
-	}
-
-	bytesToKyberPublicKey(encodedPublicKey: Uint8Array): KyberPublicKey {
-		return bytesToKyberPublicKey(encodedPublicKey)
 	}
 
 	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {

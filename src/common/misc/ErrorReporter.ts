@@ -23,6 +23,7 @@ import { ErrorReportClientType } from "./ClientConstants.js"
 import { client } from "./ClientDetector.js"
 import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
 import { getTimeZone } from "../calendar/date/CalendarUtils.js"
+import { KeyVerificationState } from "../api/worker/facades/lazy/KeyVerificationFacade"
 
 type FeedbackContent = {
 	message: string
@@ -284,6 +285,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 				address: mailAddress,
 				type: RecipientType.INTERNAL,
 				contact: null,
+				verificationState: KeyVerificationState.NO_ENTRY,
 			},
 		],
 		"de",

@@ -48,6 +48,9 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		webViewConfig.setURLSchemeHandler(apiSchemeHandler, forURLScheme: "apis")
 		webViewConfig.setURLSchemeHandler(AssetSchemeHandler(folderPath: folderPath), forURLScheme: "asset")
 
+		// Necessary for decent UX during key verification
+		webViewConfig.allowsInlineMediaPlayback = true
+
 		self.webView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
 		webView.navigationDelegate = self
 		webView.scrollView.bounces = false

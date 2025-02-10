@@ -112,6 +112,8 @@ import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
+import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
+import { PublicKeyConverter } from "../common/api/worker/crypto/PublicKeyConverter"
 
 assertMainOrNode()
 
@@ -140,6 +142,8 @@ class CalendarLocator {
 	counterFacade!: CounterFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
+	keyVerificationFacade!: KeyVerificationFacade
+	publicKeyConverter!: PublicKeyConverter
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -172,7 +176,15 @@ class CalendarLocator {
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
-		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
+		return new RecipientsModel(
+			this.contactModel,
+			this.logins,
+			this.mailFacade,
+			this.entityClient,
+			this.keyVerificationFacade,
+			this.serviceExecutor,
+			this.publicKeyConverter,
+		)
 	})
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
