@@ -313,7 +313,7 @@ export class MailModel {
 			)
 
 			for (const mailChunk of mailChunks) {
-				await this.mailFacade.moveMails(mailChunk, sourceMailFolder._id, targetMailFolder._id)
+				await this.mailFacade.moveMails(mailChunk, targetMailFolder._id, sourceMailFolder._id)
 			}
 		}
 	}
