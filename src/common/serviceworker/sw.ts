@@ -7,10 +7,13 @@ declare var filesToCache: () => Array<string>
 declare var version: () => string
 // eslint-disable-next-line no-var
 declare var customDomainCacheExclusions: () => Array<string>
-// eslint-disable-next-line no-var
-declare var shouldTakeOverImmediately: () => boolean
+
 // test case
 const versionString = typeof version === "undefined" ? "test" : version()
+
+// The client prior or equal to this build date have incomplete service worker caches (missing liboqs.wasm and argon2.wasm)
+// We want to enforce service worker updates for them.
+const LAST_INCOMPLETE_CACHE_DATE = 250206
 
 // either tuta.com or tutanota.com without or with a subdomain or a domain without dots (e.g. localhost).
 // otherwise it is a custom domain
@@ -181,6 +184,23 @@ export class ServiceWorker {
 		const pathElements = url.substring(this._selfLocation.length).split("/")
 		return pathElements.length > 0 ? pathElements[0] : ""
 	}
+
+	async shouldTakeOverImmediately(cacheStorage: CacheStorage): Promise<boolean> {
+		const allCacheName = await cacheStorage.keys()
+		const oldCacheEntries = allCacheName.filter((c) => c !== this._cacheName)
+		if (oldCacheEntries.length === 0) return false
+		const oldCacheEntry = oldCacheEntries[0]
+		const oldCacheEntryNameParts = oldCacheEntry.split(".")
+		if (oldCacheEntryNameParts.length !== 3) {
+			// Cache name does not have the expected format.
+			return false
+		} else {
+			// the cache name is constructed based on the client version number. CODE_CACHE-v<major>.<minor>.<patch>
+			// The minor part contains the build date, and we are interested in that to compare against MINIUM_INSTALLATION_DATE
+			const oldClientBuildDate = Number(oldCacheEntryNameParts[1])
+			return oldClientBuildDate <= LAST_INCOMPLETE_CACHE_DATE
+		}
+	}
 }
 
 const init = (sw: ServiceWorker) => {
@@ -190,8 +210,8 @@ const init = (sw: ServiceWorker) => {
 	scope.addEventListener("install", (evt: ExtendableEvent) => {
 		console.log("SW: being installed", versionString)
 		evt.waitUntil(
-			sw.precache().then(() => {
-				if (shouldTakeOverImmediately()) {
+			sw.precache().then(async () => {
+				if (await sw.shouldTakeOverImmediately(scope.caches)) {
 					scope.skipWaiting()
 				}
 			}),

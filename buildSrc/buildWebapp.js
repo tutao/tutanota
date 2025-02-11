@@ -198,10 +198,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 				banner() {
 					return `function filesToCache() { return ${JSON.stringify(filesToCache)} }
 					function version() { return "${version}" }
-					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }
-					function shouldTakeOverImmediately() {
-						return self.location.hostname.endsWith(".tutanota.com") && Date.now() > new Date("2023-11-07T13:00:00.000Z").getTime()
-					}`
+					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
 				},
 			},
 		],
