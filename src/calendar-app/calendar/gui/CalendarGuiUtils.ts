@@ -86,8 +86,6 @@ import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
-import { Type } from "cborg"
-import map = Type.map
 import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 
@@ -486,8 +484,7 @@ export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).
 
 /**
  * Returns an array of IntervalOptions based on the given Weekday.
- * The Weekday confines to the official TS Date.getDay() documentation.
- * (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+ * (1 = Monday, ..., 7 = Sunday). Since our internal format Starts with 0 = Monday, we have to decrement the weekday number.
  *
  * @param weekday
  * @param numberOfWeekdaysInMonth how many times this Weekday occurs in the current month. Per default assume 4.

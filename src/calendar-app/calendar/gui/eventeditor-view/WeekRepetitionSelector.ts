@@ -11,6 +11,10 @@ export interface WeekRepetitionSelectorAttrs {
 	interval: number
 }
 
+/**
+ * Component for selecting what specific Weekday an event should repeat on.
+ * The weekday is always passed in from the outside, as a number.
+ */
 export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorAttrs> {
 	private weekRepetition: number = 0 // if 0, repetition occurs on same day
 	private repetitionOptions: stream<IntervalOption[]> = stream([])
