@@ -1,5 +1,7 @@
 import o from "@tutao/otest"
 import { ServiceWorker } from "../../../src/common/serviceworker/sw.js"
+import { object, when } from "testdouble"
+
 o.spec(
 	"ServiveWorkerTest ",
 	node(function () {
@@ -44,6 +46,34 @@ o.spec(
 			sw = new ServiceWorker([], caches, "testCache", root, applicationPaths, false)
 			exclusions.push("index.html")
 			o(sw._shouldRedirectToDefaultPage(root + "mail/blah")).equals(true)
+		})
+
+		o("shouldTakeOverImmediately - empty cache", async function () {
+			sw = new ServiceWorker([], caches, "CODE_CACHE-v267.250206.0", root, applicationPaths, false)
+			const cacheStorage: CacheStorage = object()
+			when(cacheStorage.keys()).thenResolve([])
+			o(await sw.shouldTakeOverImmediately(cacheStorage)).equals(false)
+		})
+
+		o("shouldTakeOverImmediately - version is below or equal minim installation version", async function () {
+			sw = new ServiceWorker([], caches, "CODE_CACHE-v267.250206.0", root, applicationPaths, false)
+			const cacheStorage: CacheStorage = object()
+			when(cacheStorage.keys()).thenResolve(["CODE_CACHE-v266.250202.0", "CODE_CACHE-v267.250206.0"])
+			o(await sw.shouldTakeOverImmediately(cacheStorage)).equals(true)
+		})
+
+		o("shouldTakeOverImmediately - version higher than minimum installation version", async function () {
+			sw = new ServiceWorker([], caches, "CODE_CACHE-v267.250208.0", root, applicationPaths, false)
+			const cacheStorage: CacheStorage = object()
+			when(cacheStorage.keys()).thenResolve(["CODE_CACHE-v267.250207.0", "CODE_CACHE-v267.250208.0"])
+			o(await sw.shouldTakeOverImmediately(cacheStorage)).equals(false)
+		})
+
+		o("shouldTakeOverImmediately - invalid cache name", async function () {
+			sw = new ServiceWorker([], caches, "testCache", root, applicationPaths, false)
+			const cacheStorage: CacheStorage = object()
+			when(cacheStorage.keys()).thenResolve(["invalidName", "testCache"])
+			o(await sw.shouldTakeOverImmediately(cacheStorage)).equals(false)
 		})
 	}),
 )

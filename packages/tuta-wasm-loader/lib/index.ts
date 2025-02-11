@@ -1,6 +1,7 @@
 import path from "node:path"
 import { generateImportCode, runCommand } from "./WasmHandler.js"
 import * as fs from "node:fs"
+import { PluginContext } from "rollup"
 
 export interface FallbackOptions {
 	command: string
@@ -107,7 +108,7 @@ export function rollupWasmLoader(options: PluginOptions) {
 				}
 			}
 		},
-		async load(id: string) {
+		async load(this: PluginContext, id: string) {
 			if (id.startsWith("\0wasm-loader")) {
 				const wasmLib = id.replaceAll("\0wasm-loader:", "")
 
@@ -117,7 +118,12 @@ export function rollupWasmLoader(options: PluginOptions) {
 					workingDir: lib.workingDir,
 					env: { WASM: lib.outputPath },
 				})
-				return await generateImportCode(path.join("wasm", wasmLib), lib.fallback != null)
+				this.emitFile({
+					type: "asset",
+					fileName: wasmLib,
+					source: await fs.promises.readFile(lib.outputPath),
+				})
+				return await generateImportCode(wasmLib, lib.fallback != null)
 			} else if (id.startsWith("\0wasm-fallback")) {
 				const wasmLib = id.replaceAll("\0wasm-fallback:", "")
 				const lib = findLib(normalizedOptions, wasmLib)
