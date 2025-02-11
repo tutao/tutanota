@@ -44,7 +44,7 @@ pub struct BlobFacade {
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct FileData<'a> {
-	pub session_key: &'a GenericAesKey,
+	pub session_key: GenericAesKey,
 	pub data: &'a [u8],
 }
 
@@ -97,7 +97,7 @@ impl BlobFacade {
 			HashMap::<&GenericAesKey, Vec<BlobReferenceTokenWrapper>>::from_iter(
 				file_data
 					.clone()
-					.map(|wrapper| (wrapper.session_key, vec![])),
+					.map(|wrapper| (&wrapper.session_key, vec![])),
 			);
 
 		let keyed_new_blob_wrappers = self.encrypt_multiple_file_data(file_data.clone())?;
@@ -146,7 +146,7 @@ impl BlobFacade {
 		// We need to return our token vectors in the same order we got the file_data
 		for file_datum in file_data {
 			let reference_tokens = session_key_to_reference_tokens
-				.remove(file_datum.session_key)
+				.remove(&file_datum.session_key)
 				.expect("file session key is missing when sorting reference tokens");
 			reference_tokens_per_file_data.push(reference_tokens);
 		}
@@ -617,19 +617,19 @@ mod tests {
 		let session_key_fourth_attachment = make_session_key(randomizer_facade4);
 
 		let file_data1 = FileData {
-			session_key: &session_key_first_attachment,
+			session_key: session_key_first_attachment,
 			data: &first_attachment,
 		};
 		let file_data2 = FileData {
-			session_key: &session_key_second_attachment,
+			session_key: session_key_second_attachment,
 			data: &second_attachment,
 		};
 		let file_data3 = FileData {
-			session_key: &session_key_third_attachment,
+			session_key: session_key_third_attachment,
 			data: &third_attachment,
 		};
 		let file_data4 = FileData {
-			session_key: &session_key_fourth_attachment,
+			session_key: session_key_fourth_attachment,
 			data: &fourth_attachment,
 		};
 		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3, &file_data4];
@@ -745,19 +745,19 @@ mod tests {
 		let session_key_fourth_attachment = make_session_key(randomizer_facade4);
 
 		let file_data1 = FileData {
-			session_key: &session_key_first_attachment,
+			session_key: session_key_first_attachment,
 			data: &first_attachment,
 		};
 		let file_data2 = FileData {
-			session_key: &session_key_second_attachment,
+			session_key: session_key_second_attachment,
 			data: &second_attachment,
 		};
 		let file_data3 = FileData {
-			session_key: &session_key_third_attachment,
+			session_key: session_key_third_attachment,
 			data: &third_attachment,
 		};
 		let file_data4 = FileData {
-			session_key: &session_key_fourth_attachment,
+			session_key: session_key_fourth_attachment,
 			data: &fourth_attachment,
 		};
 		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3, &file_data4];
@@ -897,15 +897,15 @@ mod tests {
 		let session_key_third_attachment = make_session_key(randomizer_facade3);
 
 		let file_data1 = FileData {
-			session_key: &session_key_first_attachment,
+			session_key: session_key_first_attachment,
 			data: &first_attachment,
 		};
 		let file_data2 = FileData {
-			session_key: &session_key_second_attachment,
+			session_key: session_key_second_attachment,
 			data: &second_attachment,
 		};
 		let file_data3 = FileData {
-			session_key: &session_key_third_attachment,
+			session_key: session_key_third_attachment,
 			data: &third_attachment.clone(),
 		};
 

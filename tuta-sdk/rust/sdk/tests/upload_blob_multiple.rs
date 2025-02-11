@@ -57,23 +57,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	.unwrap();
 
 	let file_data1 = FileData {
-		session_key: &new_aes_256_key_1,
+		session_key: new_aes_256_key_1,
 		data: &[0; 24 * 1024 * 1024],
 	};
 	let file_data2 = FileData {
-		session_key: &new_aes_256_key_2,
+		session_key: new_aes_256_key_2,
 		data: &[0; 4 * 1024 * 1024],
 	};
 	let file_data3 = FileData {
-		session_key: &new_aes_256_key_3,
+		session_key: new_aes_256_key_3,
 		data: &[0; 2 * 1024 * 1024],
 	};
 	let file_data4 = FileData {
-		session_key: &new_aes_256_key_4,
+		session_key: new_aes_256_key_4,
 		data: &[0; 1024],
 	};
 	let file_data5 = FileData {
-		session_key: &new_aes_256_key_5,
+		session_key: new_aes_256_key_5,
 		data: &[0; 2048],
 	};
 	let file_data = vec![
