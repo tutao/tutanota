@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-use regex::Regex;
+use regex::{Match, Regex};
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Weekday};
 
@@ -522,6 +522,9 @@ impl EventFacade {
 		}
 
 		let mut new_dates: Vec<PrimitiveDateTime> = Vec::new();
+
+		// Gets the nth number and the day of the week for a given rule value
+		// e.g. 312TH would return ["312TH", "312", "TH"]
 		let regex = Regex::new(r"^([-+]?\d{0,3})([a-zA-Z]{2})?$").unwrap();
 
 		for &rule in rules {
@@ -536,300 +539,34 @@ impl EventFacade {
 					&& target_week_day.is_some()
 					&& date.weekday() == Weekday::from_short(target_week_day.unwrap().as_str())
 				{
+					// Only filters weekdays that don't match the rule
 					new_dates.push(*date)
 				} else if frequency == &RepeatPeriod::Weekly && target_week_day.is_some() {
-					let parsed_target_week_day =
-						Weekday::from_short(target_week_day.unwrap().as_str());
-					let mut interval_start = *date;
-					while interval_start.date().weekday() != week_start {
-						interval_start = interval_start.sub(Duration::days(1));
-					}
-
-					let mut new_date = interval_start;
-					while new_date.weekday() != parsed_target_week_day {
-						new_date = new_date.add(Duration::days(1))
-					}
-
-					/*
-									   if interval_start.assume_utc().unix_timestamp()
-										   < date.assume_utc().unix_timestamp()
-									   {
-										   interval_start = interval_start.add(Duration::weeks(1))
-									   }
-					*/
-					let next_event = date.add(Duration::weeks(1)).assume_utc().unix_timestamp();
-
-					if new_date.assume_utc().unix_timestamp()
-						>= interval_start
-							.add(Duration::weeks(1))
-							.assume_utc()
-							.unix_timestamp()
-					{
-						continue;
-					} else if new_date.assume_utc().unix_timestamp()
-						< date.assume_utc().unix_timestamp()
-					{
-						new_date = new_date.add(Duration::weeks(1));
-					}
-
-					if (new_date.assume_utc().unix_timestamp() >= next_event)
-						|| (week_start != Weekday::Monday // We have WKST
-                        && new_date.assume_utc().unix_timestamp()
-                        >= interval_start
-                        .add(Duration::weeks(1))
-                        .assume_utc()
-                        .unix_timestamp())
-					{
-						continue;
-					}
-
-					if valid_months.is_empty()
-						|| valid_months.contains(&new_date.month().to_number())
-					{
-						new_dates.push(new_date)
-					}
+					self.expand_by_day_rules_for_weekly_events(
+						&valid_months,
+						week_start,
+						&mut new_dates,
+						date,
+						target_week_day,
+					)
 				} else if frequency == &RepeatPeriod::Monthly && target_week_day.is_some() {
-					let mut allowed_days: Vec<u8> = Vec::new();
-
-					let week_change = leading_value
-						.map_or(Ok(0), |m| m.as_str().parse::<i8>())
-						.unwrap_or_default();
-
-					let base_date = date.replace_day(1).unwrap();
-					let stop_condition =
-						PrimitiveDateTime::new(base_date.date().add_month(), base_date.time());
-
-					for allowed_day in &valid_month_days {
-						if allowed_day.is_positive() {
-							allowed_days.push(allowed_day.unsigned_abs());
-							continue;
-						}
-
-						let day =
-							base_date.month().length(date.year()) - allowed_day.unsigned_abs() + 1;
-						allowed_days.push(day);
-					}
-
-					let is_allowed_in_month_day = |day: u8| -> bool {
-						if allowed_days.is_empty() {
-							return true;
-						}
-
-						allowed_days.contains(&day)
-					};
-
-					let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
-
-					if week_change != 0 {
-						let mut new_date = base_date;
-						if week_change.is_negative() {
-							new_date = new_date
-								.replace_day(new_date.month().length(new_date.year()))
-								.unwrap();
-							new_date = new_date.replace_date(
-								Date::from_iso_week_date(
-									new_date.year(),
-									new_date.iso_week(),
-									parsed_weekday,
-								)
-								.unwrap(),
-							);
-
-							let new_week = new_date.iso_week() - week_change.unsigned_abs() + 1;
-							new_date = new_date.replace_date(
-								Date::from_iso_week_date(
-									new_date.year(),
-									new_week,
-									new_date.weekday(),
-								)
-								.unwrap(),
-							)
-						} else {
-							while new_date.weekday() != parsed_weekday {
-								new_date = new_date.add(Duration::days(1));
-							}
-
-							new_date = new_date.replace_date(
-								Date::from_iso_week_date(
-									new_date.year(),
-									new_date.iso_week() + week_change.unsigned_abs() - 1,
-									new_date.weekday(),
-								)
-								.unwrap(),
-							)
-						}
-
-						if new_date.assume_utc().unix_timestamp()
-							>= base_date.assume_utc().unix_timestamp()
-							&& new_date.assume_utc().unix_timestamp()
-								<= stop_condition.assume_utc().unix_timestamp()
-							&& is_allowed_in_month_day(new_date.day())
-						{
-							new_dates.push(new_date)
-						}
-					} else {
-						let mut current_date = base_date;
-						while current_date.assume_utc().unix_timestamp()
-							< stop_condition.assume_utc().unix_timestamp()
-						{
-							let new_date = current_date.replace_date(
-								Date::from_iso_week_date(
-									current_date.year(),
-									current_date.iso_week(),
-									parsed_weekday,
-								)
-								.unwrap(),
-							);
-							if new_date.assume_utc().unix_timestamp()
-								>= base_date.assume_utc().unix_timestamp()
-								&& is_allowed_in_month_day(new_date.day())
-								&& ((!valid_months.is_empty()
-									&& valid_months.contains(&new_date.month().to_number()))
-									|| valid_months.is_empty())
-							{
-								new_dates.push(new_date)
-							}
-
-							current_date = new_date.add(Duration::days(7));
-						}
-					}
+					self.expand_by_day_rule_for_monthly_events(
+						&valid_months,
+						&valid_month_days,
+						&mut new_dates,
+						date,
+						target_week_day,
+						leading_value,
+					);
 				} else if frequency == &RepeatPeriod::Annually {
-					let week_change = leading_value
-						.map_or(Ok(0), |m| m.as_str().parse::<i64>())
-						.unwrap_or_default();
-
-					if has_week_no && week_change != 0 {
-						println!(
-							"Invalid repeat rule, can't use BYWEEKNO with Week Offset on BYDAY"
-						);
-						continue;
-					}
-
-					if week_change != 0 && !has_week_no {
-						let mut new_date: PrimitiveDateTime;
-
-						if target_week_day.is_none() {
-							if week_change > 0 {
-								new_date = date
-									.replace_day(1)
-									.unwrap()
-									.replace_month(Month::January)
-									.unwrap()
-									.add(Duration::days(week_change - 1))
-							} else {
-								new_date = date
-									.replace_month(Month::December)
-									.unwrap()
-									.replace_day(31)
-									.unwrap()
-									.sub(Duration::days(week_change.abs() - 1))
-							}
-						} else {
-							let parsed_weekday =
-								Weekday::from_short(target_week_day.unwrap().as_str());
-
-							if week_change > 0 {
-								new_date = date
-									.replace_day(1)
-									.unwrap()
-									.replace_month(Month::January)
-									.unwrap()
-									.add(Duration::weeks(week_change - 1));
-
-								while new_date.weekday() != parsed_weekday {
-									new_date = new_date.add(Duration::days(1));
-								}
-							} else {
-								new_date = date
-									.replace_month(Month::December)
-									.unwrap()
-									.replace_day(31)
-									.unwrap()
-									.sub(Duration::weeks(week_change.abs() - 1));
-								while new_date.weekday() != parsed_weekday {
-									new_date = new_date.sub(Duration::days(1));
-								}
-							}
-						}
-
-						if new_date.assume_utc().unix_timestamp()
-							< date.assume_utc().unix_timestamp()
-						{
-							match new_date.replace_year(new_date.year() + 1) {
-								Ok(dt) => new_dates.push(dt),
-								_ => continue,
-							}
-						} else {
-							new_dates.push(new_date)
-						}
-					} else if has_week_no {
-						if target_week_day.is_none() {
-							continue;
-						}
-
-						let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
-						let new_date = date.replace_date(
-							Date::from_iso_week_date(date.year(), date.iso_week(), parsed_weekday)
-								.unwrap(),
-						);
-
-						let interval_start = date.replace_date(
-							Date::from_iso_week_date(date.year(), date.iso_week(), week_start)
-								.unwrap(),
-						);
-						let week_ahead = interval_start.add(Duration::days(7));
-
-						if new_date.assume_utc().unix_timestamp()
-							> week_ahead.assume_utc().unix_timestamp()
-							|| new_date.assume_utc().unix_timestamp()
-								< date.assume_utc().unix_timestamp()
-						{
-						} else if new_date.assume_utc().unix_timestamp()
-							< interval_start.assume_utc().unix_timestamp()
-						{
-							new_dates.push(interval_start.add(Duration::days(7)));
-						} else {
-							new_dates.push(new_date);
-						}
-					} else {
-						if target_week_day.is_none() {
-							continue;
-						}
-
-						let day_one = date.replace_day(1).unwrap();
-						let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
-
-						let Ok(stop_date) =
-							Date::from_calendar_date(date.year() + 1, date.month(), date.day())
-						else {
-							continue;
-						};
-
-						let stop_condition = date.replace_date(stop_date);
-						let mut current_date = date.replace_date(
-							Date::from_iso_week_date(
-								date.year(),
-								day_one.iso_week(),
-								parsed_weekday,
-							)
-							.unwrap(),
-						);
-
-						if current_date.assume_utc().unix_timestamp()
-							>= day_one.assume_utc().unix_timestamp()
-						{
-							new_dates.push(current_date);
-						}
-
-						current_date = current_date.add(Duration::days(7));
-
-						while current_date.assume_utc().unix_timestamp()
-							< stop_condition.assume_utc().unix_timestamp()
-						{
-							new_dates.push(current_date);
-							current_date = current_date.add(Duration::days(7));
-						}
-					}
+					self.expand_by_day_rule_for_annually_events(
+						week_start,
+						has_week_no,
+						&mut new_dates,
+						date,
+						target_week_day,
+						leading_value,
+					)
 				}
 			}
 		}
@@ -843,6 +580,305 @@ impl EventFacade {
 		}
 
 		new_dates
+	}
+
+	fn expand_by_day_rule_for_annually_events(
+		&self,
+		week_start: Weekday,
+		has_week_no: bool,
+		new_dates: &mut Vec<PrimitiveDateTime>,
+		date: &PrimitiveDateTime,
+		target_week_day: Option<Match>,
+		leading_value: Option<Match>,
+	) {
+		let week_change = leading_value
+			.map_or(Ok(0), |m| m.as_str().parse::<i64>())
+			.unwrap_or_default();
+
+		if has_week_no && week_change != 0 {
+			println!("Invalid repeat rule, can't use BYWEEKNO with Week Offset on BYDAY");
+			return;
+		}
+
+		if week_change != 0 && !has_week_no {
+			let mut new_date: PrimitiveDateTime;
+
+			// If there's no target week day, we just set the day of the year.
+			if target_week_day.is_none() {
+				if week_change > 0 {
+					new_date = date
+						.replace_day(1)
+						.unwrap()
+						.replace_month(Month::January)
+						.unwrap()
+						.add(Duration::days(week_change - 1))
+				} else {
+					new_date = date
+						.replace_month(Month::December)
+						.unwrap()
+						.replace_day(31)
+						.unwrap()
+						.sub(Duration::days(week_change.abs() - 1))
+				}
+			} else {
+				let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
+
+				// There's a target week day so the occurrenceNumber indicates the week of the year
+				// that the event will happen
+				if week_change > 0 {
+					new_date = date
+						.replace_day(1)
+						.unwrap()
+						.replace_month(Month::January)
+						.unwrap()
+						.add(Duration::weeks(week_change - 1));
+
+					while new_date.weekday() != parsed_weekday {
+						new_date = new_date.add(Duration::days(1));
+					}
+				} else {
+					new_date = date
+						.replace_month(Month::December)
+						.unwrap()
+						.replace_day(31)
+						.unwrap()
+						.sub(Duration::weeks(week_change.abs() - 1));
+					while new_date.weekday() != parsed_weekday {
+						new_date = new_date.sub(Duration::days(1));
+					}
+				}
+			}
+
+			if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() {
+				if let Ok(dt) = new_date.replace_year(new_date.year() + 1) {
+					new_dates.push(dt)
+				}
+			} else {
+				new_dates.push(new_date)
+			}
+		} else if has_week_no {
+			// There's no week number or occurrenceNumber, so it will happen on all
+			// weekdays that are the same as targetWeekDay
+
+			if target_week_day.is_none() {
+				return;
+			}
+
+			let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
+			let new_date = date.replace_date(
+				Date::from_iso_week_date(date.year(), date.iso_week(), parsed_weekday).unwrap(),
+			);
+
+			let interval_start = date.replace_date(
+				Date::from_iso_week_date(date.year(), date.iso_week(), week_start).unwrap(),
+			);
+			let week_ahead = interval_start.add(Duration::days(7));
+
+			if new_date.assume_utc().unix_timestamp() > week_ahead.assume_utc().unix_timestamp()
+				|| new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp()
+			{
+			} else if new_date.assume_utc().unix_timestamp()
+				< interval_start.assume_utc().unix_timestamp()
+			{
+				new_dates.push(interval_start.add(Duration::days(7)));
+			} else {
+				new_dates.push(new_date);
+			}
+		} else {
+			if target_week_day.is_none() {
+				return;
+			}
+
+			let day_one = date.replace_day(1).unwrap();
+			let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
+
+			let Ok(stop_date) = Date::from_calendar_date(date.year() + 1, date.month(), date.day())
+			else {
+				return;
+			};
+
+			let stop_condition = date.replace_date(stop_date);
+			let mut current_date = date.replace_date(
+				Date::from_iso_week_date(date.year(), day_one.iso_week(), parsed_weekday).unwrap(),
+			);
+
+			if current_date.assume_utc().unix_timestamp() >= day_one.assume_utc().unix_timestamp() {
+				new_dates.push(current_date);
+			}
+
+			current_date = current_date.add(Duration::days(7));
+
+			while current_date.assume_utc().unix_timestamp()
+				< stop_condition.assume_utc().unix_timestamp()
+			{
+				new_dates.push(current_date);
+				current_date = current_date.add(Duration::days(7));
+			}
+		}
+	}
+
+	fn expand_by_day_rule_for_monthly_events(
+		&self,
+		valid_months: &[u8],
+		valid_month_days: &Vec<i8>,
+		new_dates: &mut Vec<PrimitiveDateTime>,
+		date: &PrimitiveDateTime,
+		target_week_day: Option<Match>,
+		leading_value: Option<Match>,
+	) {
+		let mut allowed_days: Vec<u8> = Vec::new();
+
+		let week_change = leading_value
+			.map_or(Ok(0), |m| m.as_str().parse::<i8>())
+			.unwrap_or_default();
+
+		let base_date = date.replace_day(1).unwrap();
+		let stop_condition = PrimitiveDateTime::new(base_date.date().add_month(), base_date.time());
+
+		// Calculate allowed days parsing negative values
+		// to valid days in the month. e.g -1 to 31 in JAN
+		for allowed_day in valid_month_days {
+			if allowed_day.is_positive() {
+				allowed_days.push(allowed_day.unsigned_abs());
+				continue;
+			}
+
+			let day = base_date.month().length(date.year()) - allowed_day.unsigned_abs() + 1;
+			allowed_days.push(day);
+		}
+
+		// Simply checks if there's a list with allowed day and check if it includes a given day
+		let is_allowed_in_month_day = |day: u8| -> bool {
+			if allowed_days.is_empty() {
+				return true;
+			}
+
+			allowed_days.contains(&day)
+		};
+
+		let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
+
+		// If there's a leading value in the rule we have to change the week.
+		// e.g. 2TH means second thursday, consequently, second week of the month
+		if week_change != 0 {
+			let mut new_date = base_date;
+			if week_change.is_negative() {
+				new_date = new_date
+					.replace_day(new_date.month().length(new_date.year()))
+					.unwrap();
+				new_date = new_date.replace_date(
+					Date::from_iso_week_date(new_date.year(), new_date.iso_week(), parsed_weekday)
+						.unwrap(),
+				);
+
+				let new_week = new_date.iso_week() - week_change.unsigned_abs() + 1;
+				new_date = new_date.replace_date(
+					Date::from_iso_week_date(new_date.year(), new_week, new_date.weekday())
+						.unwrap(),
+				)
+			} else {
+				while new_date.weekday() != parsed_weekday {
+					new_date = new_date.add(Duration::days(1));
+				}
+
+				new_date = new_date.replace_date(
+					Date::from_iso_week_date(
+						new_date.year(),
+						new_date.iso_week() + week_change.unsigned_abs() - 1,
+						new_date.weekday(),
+					)
+					.unwrap(),
+				)
+			}
+
+			if new_date.assume_utc().unix_timestamp() >= base_date.assume_utc().unix_timestamp()
+				&& new_date.assume_utc().unix_timestamp()
+					<= stop_condition.assume_utc().unix_timestamp()
+				&& is_allowed_in_month_day(new_date.day())
+			{
+				new_dates.push(new_date)
+			}
+		} else {
+			// If there's no week change, just iterate to the target day
+			let mut current_date = base_date;
+			while current_date.assume_utc().unix_timestamp()
+				< stop_condition.assume_utc().unix_timestamp()
+			{
+				let new_date = current_date.replace_date(
+					Date::from_iso_week_date(
+						current_date.year(),
+						current_date.iso_week(),
+						parsed_weekday,
+					)
+					.unwrap(),
+				);
+				if new_date.assume_utc().unix_timestamp() >= base_date.assume_utc().unix_timestamp()
+					&& is_allowed_in_month_day(new_date.day())
+					&& ((!valid_months.is_empty()
+						&& valid_months.contains(&new_date.month().to_number()))
+						|| valid_months.is_empty())
+				{
+					new_dates.push(new_date)
+				}
+
+				current_date = new_date.add(Duration::days(7));
+			}
+		}
+	}
+
+	fn expand_by_day_rules_for_weekly_events(
+		&self,
+		valid_months: &[u8],
+		week_start: Weekday,
+		new_dates: &mut Vec<PrimitiveDateTime>,
+		date: &PrimitiveDateTime,
+		target_week_day: Option<Match>,
+	) {
+		let parsed_target_week_day = Weekday::from_short(target_week_day.unwrap().as_str());
+
+		// Go back to week start, so we don't miss any events
+		let mut interval_start = *date;
+		while interval_start.date().weekday() != week_start {
+			interval_start = interval_start.sub(Duration::days(1));
+		}
+
+		// Move forward until we reach the target day
+		let mut new_date = interval_start;
+		while new_date.weekday() != parsed_target_week_day {
+			new_date = new_date.add(Duration::days(1))
+		}
+
+		// Calculate next event to avoid creating events too ahead in the future
+		let next_event = date.add(Duration::weeks(1)).assume_utc().unix_timestamp();
+
+		if new_date.assume_utc().unix_timestamp()
+			>= interval_start
+				.add(Duration::weeks(1))
+				.assume_utc()
+				.unix_timestamp()
+		{
+			// The event is actually next week, so discard
+			return;
+		} else if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() {
+			// Event is behind progenitor, go forward one week
+			new_date = new_date.add(Duration::weeks(1));
+		}
+
+		if (new_date.assume_utc().unix_timestamp() >= next_event)
+			|| (week_start != Weekday::Monday // We have WKST
+			&& new_date.assume_utc().unix_timestamp()
+			>= interval_start
+			.add(Duration::weeks(1))
+			.assume_utc()
+			.unix_timestamp())
+		{
+			// Or we created an event after the first event or within the next week
+			return;
+		}
+
+		if valid_months.is_empty() || valid_months.contains(&new_date.month().to_number()) {
+			new_dates.push(new_date)
+		}
 	}
 
 	fn get_valid_days_in_year(&self, year: i32, valid_year_days: &Vec<i16>) -> Vec<u16> {

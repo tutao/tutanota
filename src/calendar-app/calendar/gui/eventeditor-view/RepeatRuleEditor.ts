@@ -17,7 +17,8 @@ import { theme } from "../../../../common/gui/theme.js"
 import { isApp } from "../../../../common/api/common/Env.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { ByRule } from "../../../../common/calendar/date/CalendarUtils.js"
+import { areAllAdvancedRepeatRulesValid, ByRule } from "../../../../common/calendar/date/CalendarUtils.js"
+import { isNotEmpty } from "@tutao/tutanota-utils"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -50,11 +51,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 		this.repeatInterval = attrs.model.repeatInterval
 		this.repeatOccurrences = attrs.model.repeatEndOccurrences
-		this.hasUnsupportedRules = attrs.model.advancedRules.some((rule) => {
-			const isValidRule =
-				(attrs.model.repeatPeriod === RepeatPeriod.WEEKLY || attrs.model.repeatPeriod === RepeatPeriod.MONTHLY) && rule.ruleType === ByRule.BYDAY
-			return !isValidRule
-		})
+
+		this.hasUnsupportedRules = !areAllAdvancedRepeatRulesValid(attrs.model.advancedRules, attrs.model.repeatPeriod)
 	}
 
 	private getRepeatType(period: RepeatPeriod, interval: number, endTime: EndType) {
