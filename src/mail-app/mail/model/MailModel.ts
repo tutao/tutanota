@@ -7,6 +7,7 @@ import {
 	collectToMap,
 	getFirstOrThrow,
 	groupBy,
+	groupByAndMap,
 	isEmpty,
 	isNotNull,
 	lazyMemoized,
@@ -14,6 +15,7 @@ import {
 	noOp,
 	ofClass,
 	partition,
+	promiseMap,
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import {
@@ -302,17 +304,9 @@ export class MailModel {
 	 * * one folder (because we send one source folder)
 	 * * from one list (for locking it on the server)
 	 */
-	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		// Do not move if target is the same as the current mailFolder
-		const sourceMailFolder = this.getMailFolderForMail(mails[0])
-		let moveMails = mails.filter((m) => sourceMailFolder !== targetMailFolder && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
-
-		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
-			const mailChunks = splitInChunks(
-				MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
-				mails.map((m) => m._id),
-			)
-
+	async _moveMails(mails: readonly IdTuple[], sourceMailFolder: MailFolder, targetMailFolder: MailFolder): Promise<void> {
+		if (mails.length > 0 && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
+			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
 			for (const mailChunk of mailChunks) {
 				await this.mailFacade.moveMails(mailChunk, sourceMailFolder._id, targetMailFolder._id)
 			}
@@ -323,7 +317,7 @@ export class MailModel {
 	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
 	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
 	 */
-	async moveMails(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
+	async moveMailsFromMultipleFolders(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return this.getMailFolderForMail(mail)?._id?.[1]
 		})
@@ -333,14 +327,22 @@ export class MailModel {
 
 			if (sourceMailFolder) {
 				// group another time because mails in the same Set can be from different mail bags.
-				const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
+				const mailsPerList = groupByAndMap(mailsInFolder, getListId, (mail) => mail._id)
 				for (const [listId, mailsInList] of mailsPerList) {
-					await this._moveMails(mailsInList, targetMailFolder)
+					await this._moveMails(mailsInList, sourceMailFolder, targetMailFolder)
 				}
 			} else {
 				console.log("Move mail: no mail folder for folder id", folderId)
 			}
 		}
+	}
+
+	/**
+	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
+	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
+	 */
+	async moveMailsFromFolder(mails: ReadonlyArray<IdTuple>, sourceMailFolder: MailFolder, targetMailFolder: MailFolder): Promise<void> {
+		await this._moveMails(mails, sourceMailFolder, targetMailFolder)
 	}
 
 	/**
@@ -366,11 +368,11 @@ export class MailModel {
 		for (const [folder, mailsInFolder] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
 
-			const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
+			const mailsPerList = groupByAndMap(mailsInFolder, getListId, (mail) => mail._id)
 			for (const [_, mailsInList] of mailsPerList) {
 				if (sourceMailFolder) {
 					if (!isSpamOrTrashFolder(folders, sourceMailFolder)) {
-						await this._moveMails(mailsInList, trashFolder)
+						await this._moveMails(mailsInList, sourceMailFolder, trashFolder)
 					}
 				} else {
 					console.log("Trash mail: no mail folder for list id", folder)
@@ -445,8 +447,9 @@ export class MailModel {
 		}
 	}
 
-	async reportMails(reportType: MailReportType, mails: ReadonlyArray<Mail>): Promise<void> {
-		for (const mail of mails) {
+	async reportMails(reportType: MailReportType, mails: () => Promise<ReadonlyArray<Mail>>): Promise<void> {
+		const mailsToReport = await mails()
+		for (const mail of mailsToReport) {
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
 	}
@@ -708,5 +711,12 @@ export class MailModel {
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */
 	async resolveConversationsForMails(mails: readonly Mail[]): Promise<IdTuple[]> {
 		return await this.mailFacade.resolveConversations(mails.map((m) => listIdPart(m.conversationEntry)))
+	}
+
+	async loadAllMails(mailIds: readonly IdTuple[]): Promise<Mail[]> {
+		const mailIdsPerList = groupByAndMap(mailIds, listIdPart, elementIdPart)
+		return (
+			await promiseMap(mailIdsPerList, ([listId, elementIds]) => this.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
+		).flat()
 	}
 }

@@ -44,7 +44,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, isMailContrastFixNeeded, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { getReferencedAttachments, isMailContrastFixNeeded, isTutanotaTeamMail, loadInlineImages, moveResolvedMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -507,7 +507,7 @@ export class MailViewerViewModel {
 
 	async reportMail(reportType: MailReportType): Promise<void> {
 		try {
-			await this.mailModel.reportMails(reportType, [this.mail])
+			await this.mailModel.reportMails(reportType, async () => [this.mail])
 			if (reportType === MailReportType.PHISHING) {
 				this.setPhishingStatus(MailPhishingStatus.SUSPICIOUS)
 				await this.entityClient.update(this.mail)
@@ -518,12 +518,12 @@ export class MailViewerViewModel {
 			}
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
-			// do not report moved mails again
-			await moveMails({
+			await moveResolvedMails({
 				mailboxModel: this.mailboxModel,
 				mailModel: this.mailModel,
 				mails: [this.mail],
 				targetMailFolder: spamFolder,
+				// do not report moved mails again
 				isReportable: false,
 			})
 		} catch (e) {

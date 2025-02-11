@@ -64,7 +64,7 @@ export async function reportMailsAutomatically(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 	mailboxDetails: MailboxDetail,
-	mails: ReadonlyArray<Mail>,
+	mails: () => Promise<ReadonlyArray<Mail>>,
 ): Promise<void> {
 	if (mailReportType !== MailReportType.SPAM) {
 		return

@@ -5,13 +5,13 @@ import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { showMoveMailsDropdownForMailInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
+import { showMoveMailsDropdownForMails, showMoveMailsDropdownForMailsInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
 import { LabelsPopup } from "./LabelsPopup.js"
-import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
@@ -59,11 +59,28 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	private moveButton({ actionableMails, viewModel, folder }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "move_action",
-			click: (_, dom) =>
-				showMoveMailsDropdownForMailInFolder(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), actionableMails, folder, {
-					width: this.dropdownWidth(),
-					withBackground: true,
-				}),
+			click: async (_, dom) => {
+				if (folder != null) {
+					await showMoveMailsDropdownForMailsInFolder(
+						viewModel.mailboxModel,
+						viewModel.mailModel,
+						dom.getBoundingClientRect(),
+						actionableMails,
+						folder,
+						{
+							width: this.dropdownWidth(),
+							withBackground: true,
+						},
+					)
+				} else {
+					const mailIds = await actionableMails()
+					const mails = await viewModel.mailModel.loadAllMails(mailIds)
+					await showMoveMailsDropdownForMails(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), mails, {
+						width: this.dropdownWidth(),
+						withBackground: true,
+					})
+				}
+			},
 			icon: Icons.Folder,
 		})
 	}

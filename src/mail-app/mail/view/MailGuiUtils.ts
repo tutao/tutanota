@@ -1,12 +1,12 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { createMail, File as TutanotaFile, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { File as TutanotaFile, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { assertNotNull, endsWith, getFirstOrThrow, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, endsWith, getFirstOrThrow, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -15,7 +15,6 @@ import {
 	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/api/common/TutanotaConstants"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -34,7 +33,6 @@ import {
 	FolderInfo,
 	getFolderName,
 	getIndentedFolderNameForDropdown,
-	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
 } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
@@ -45,7 +43,7 @@ import type { FolderSystem, IndentedFolder } from "../../../common/api/common/ma
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
  */
-export type LazyMailResolver = () => readonly Mail[] | Promise<readonly Mail[]>
+export type LazyMailIdResolver = () => $Promisable<readonly IdTuple[]>
 
 /**
  * Moves all mails to the trash folder if they are not currently in a trash or spam folder.
@@ -59,11 +57,11 @@ export type LazyMailResolver = () => readonly Mail[] | Promise<readonly Mail[]>
  */
 export async function trashOrDeleteMails(
 	mailModel: MailModel,
-	mailResolver: LazyMailResolver,
+	mailResolver: LazyMailIdResolver,
 	currentFolder: MailFolder | null,
 	onConfirm: () => void,
 ): Promise<boolean> {
-	let mails: readonly Mail[] | null = null
+	let mails: readonly IdTuple[] | null = null
 
 	// Determine if current folder is trash or spam.
 	let isDeletion
@@ -135,7 +133,7 @@ export async function trashOrDeleteMails(
 export async function trashOrDeleteSingleMail(mailModel: MailModel, mail: Mail, onConfirm: () => void): Promise<boolean> {
 	const folder = mailModel.getMailFolderForMail(mail)
 	if (folder != null) {
-		return trashOrDeleteMails(mailModel, () => [mail], folder, onConfirm)
+		return trashOrDeleteMails(mailModel, () => [mail._id], folder, onConfirm)
 	} else {
 		return false
 	}
@@ -149,40 +147,71 @@ interface MoveMailsParams {
 	isReportable?: boolean
 }
 
+async function reportMails(
+	system: FolderSystem,
+	targetMailFolder: MailFolder,
+	isReportable: boolean,
+	mails: () => Promise<readonly Mail[]>,
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+): Promise<boolean> {
+	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
+		const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
+		await reportMailsAutomatically(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails, mails)
+	}
+	return true
+}
+
 /**
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({ mailboxModel, mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
-	const details = await mailModel.getMailboxDetailsForMailFolder(targetMailFolder)
-	if (details == null || details.mailbox.folders == null) {
+export async function moveResolvedMails({ mailboxModel, mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
+	if (system == null) {
 		return false
 	}
-	const system = await mailModel.getMailboxFoldersForId(details.mailbox.folders._id)
-	return mailModel
-		.moveMails(mails, targetMailFolder)
-		.then(async () => {
-			if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
-				const reportableMails = mails.map((mail) => {
-					// mails have just been moved
-					const reportableMail = createMail(mail)
-					reportableMail._id = targetMailFolder.isMailSet ? mail._id : [targetMailFolder.mails, getElementId(mail)]
-					return reportableMail
-				})
-				const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
-				await reportMailsAutomatically(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails, reportableMails)
-			}
+	try {
+		await mailModel.moveMailsFromMultipleFolders(mails, targetMailFolder)
+		return await reportMails(system, targetMailFolder, isReportable, async () => mails, mailboxModel, mailModel)
+	} catch (e) {
+		//LockedError should no longer be thrown!?!
+		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
+			return Dialog.message("operationStillActive_msg").then(() => false)
+		} else {
+			throw e
+		}
+	}
+}
 
-			return true
-		})
-		.catch((e) => {
-			//LockedError should no longer be thrown!?!
-			if (e instanceof LockedError || e instanceof PreconditionFailedError) {
-				return Dialog.message("operationStillActive_msg").then(() => false)
-			} else {
-				throw e
-			}
-		})
+/**
+ * Moves the mails and reports them as spam if the user or settings allow it.
+ * @return whether mails were actually moved
+ */
+export async function moveMails(
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+	mails: readonly IdTuple[],
+	sourceMailFolder: MailFolder,
+	targetMailFolder: MailFolder,
+	isReportable: boolean = true,
+): Promise<boolean> {
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
+	if (system == null) {
+		return false
+	}
+	try {
+		await mailModel.moveMailsFromFolder(mails, sourceMailFolder, targetMailFolder)
+		const resolveMails = () => mailModel.loadAllMails(mails)
+		return await reportMails(system, targetMailFolder, isReportable, resolveMails, mailboxModel, mailModel)
+	} catch (e) {
+		//LockedError should no longer be thrown!?!
+		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
+			return Dialog.message("operationStillActive_msg").then(() => false)
+		} else {
+			throw e
+		}
+	}
 }
 
 export function archiveMails(mails: Mail[]): Promise<void> {
@@ -190,7 +219,7 @@ export function archiveMails(mails: Mail[]): Promise<void> {
 		// assume all mails in the array belong to the same Mailbox
 		return mailLocator.mailModel.getMailboxFoldersForMail(mails[0]).then((folders: FolderSystem) => {
 			if (folders) {
-				moveMails({
+				moveResolvedMails({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					mails: mails,
@@ -208,7 +237,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 		// assume all mails in the array belong to the same Mailbox
 		return mailLocator.mailModel.getMailboxFoldersForMail(mails[0]).then((folders: FolderSystem) => {
 			if (folders) {
-				moveMails({
+				moveResolvedMails({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					mails: mails,
@@ -386,40 +415,51 @@ export function getReferencedAttachments(attachments: Array<TutanotaFile>, refer
 	return attachments.filter((file) => referencedCids.find((rcid) => file.cid === rcid))
 }
 
-export async function showMoveMailsDropdownForMailInFolder(
+// always has folder and lazy mails
+export async function showMoveMailsDropdownForMailsInFolder(
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+	origin: PosRect,
+	mails: LazyMailIdResolver,
+	currentFolder: MailFolder,
+	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
+) {
+	const folders = await getMoveTargetFolderSystemsForMailsInFolder(mailModel, currentFolder)
+	await showMailFolderDropdown(
+		origin,
+		folders,
+		async (f) => {
+			const resolvedMails = await mails()
+			return moveMails(mailboxModel, mailModel, resolvedMails, currentFolder, f.folder)
+		},
+		opts,
+	)
+}
+
+// no folder, just mails
+export async function showMoveMailsDropdownForMails(
 	mailboxModel: MailboxModel,
 	model: MailModel,
 	origin: PosRect,
-	mails: LazyMailResolver,
-	currentFolder: MailFolder | null,
+	mails: readonly Mail[],
 	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
-): Promise<void> {
-	// Determine what folders to show in dropdown.
-	// If there's a current folder than we are likely in the list and we will show all other folders for that mailbox.
-	// Otherwise we are likely in search and we just show all folders of the mailbox.
-	let resolvedMails: readonly Mail[] | null = null
-	let folders: readonly FolderInfo[]
-	if (currentFolder != null) {
-		folders = await getMoveTargetFolderSystemsForMailsInFolder(model, currentFolder)
-	} else {
-		resolvedMails = await mails()
-		if (isEmpty(resolvedMails)) {
-			return
-		}
-		const folderSystem = await model.getMailboxFoldersForMail(getFirstOrThrow(resolvedMails))
-		if (folderSystem == null) {
-			return
-		}
-		folders = folderSystem.getIndentedList()
+) {
+	if (isEmpty(mails)) {
+		return
 	}
+	const folderSystem = await model.getMailboxFoldersForMail(getFirstOrThrow(mails))
+	if (folderSystem == null) {
+		return
+	}
+	const folders = folderSystem.getIndentedList()
 	await showMailFolderDropdown(
 		origin,
 		folders,
 		async (f) =>
-			moveMails({
+			moveResolvedMails({
 				mailboxModel,
 				mailModel: model,
-				mails: resolvedMails ?? (await mails()),
+				mails: mails,
 				targetMailFolder: f.folder,
 			}),
 		opts,

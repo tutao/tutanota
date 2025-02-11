@@ -56,7 +56,7 @@ import {
 	getConversationTitle,
 	getMoveMailBounds,
 	moveToInbox,
-	showMoveMailsDropdownForMailInFolder,
+	showMoveMailsDropdownForMails,
 	trashOrDeleteMails,
 } from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
@@ -1023,7 +1023,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdownForMailInFolder(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), () => selectedMails, null, {
+			showMoveMailsDropdownForMails(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()

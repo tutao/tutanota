@@ -113,11 +113,15 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 
 					// get mails to report before moving to mail model
 					const descendants = folders.getDescendantFoldersOfParent(editedFolder._id).sort((l: IndentedFolder, r: IndentedFolder) => r.level - l.level)
-					let reportableMails: Array<Mail> = []
-					await loadAllMailsOfFolder(editedFolder, reportableMails)
-					for (const descendant of descendants) {
-						await loadAllMailsOfFolder(descendant.folder, reportableMails)
+					const reportableMails = async () => {
+						const reportableMails: Array<Mail> = []
+						await loadAllMailsOfFolder(editedFolder, reportableMails)
+						for (const descendant of descendants) {
+							await loadAllMailsOfFolder(descendant.folder, reportableMails)
+						}
+						return reportableMails
 					}
+
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, mailBoxDetail, reportableMails)
 
 					await locator.mailFacade.updateMailFolderName(editedFolder, folderNameValue)

@@ -1,5 +1,5 @@
 import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { $Promisable, assertNotNull, groupByAndMap, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
@@ -20,7 +20,7 @@ import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { getMailAddressDisplayText, hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
@@ -33,8 +33,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
-import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
+import { loadAllMails } from "../model/MailUtils"
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
@@ -182,10 +182,7 @@ async function doExport(
 ) {
 	const mailIdsToLoad = await actionableMails()
 	numberOfMailsStream(mailIdsToLoad.length)
-	const mailIdsPerList = groupByAndMap(mailIdsToLoad, listIdPart, elementIdPart)
-	const mails = (
-		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
-	).flat()
+	const mails = await mailLocator.mailModel.loadAllMails(mailIdsToLoad)
 	return exportMails(mails, locator.mailFacade, locator.entityClient, locator.fileController, locator.cryptoFacade, operation.id, ac.signal)
 		.then((result) => handleExportEmailsResult(result.failed))
 		.finally(operation.done)

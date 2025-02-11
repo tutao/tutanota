@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMails, trashOrDeleteMails } from "./MailGuiUtils"
+import { moveResolvedMails, trashOrDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -440,7 +440,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				const targetMailFolder = this.showingSpamOrTrash
 					? this.getRecoverFolder(listElement, folders)
 					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailSetKind.INBOX : MailSetKind.ARCHIVE))
-				const wereMoved = await moveMails({
+				const wereMoved = await moveResolvedMails({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					mails: [listElement],

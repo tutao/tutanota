@@ -2,7 +2,7 @@ import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs
 import m, { Children, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { showMoveMailsDropdownForMailInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
+import { showMoveMailsDropdownForMails, showMoveMailsDropdownForMailsInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
 import { DROPDOWN_MARGIN } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -46,15 +46,18 @@ export class MobileMailMultiselectionActionBar {
 									onSelected: selectNone,
 									width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
 								}
-
-								await showMoveMailsDropdownForMailInFolder(
-									mailboxModel,
-									mailModel,
-									referenceDom.getBoundingClientRect(),
-									actionableMails,
-									folder,
-									opts,
-								)
+								if (folder != null) {
+									await showMoveMailsDropdownForMailsInFolder(
+										mailboxModel,
+										mailModel,
+										referenceDom.getBoundingClientRect(),
+										actionableMails,
+										folder,
+										opts,
+									)
+								} else {
+									await showMoveMailsDropdownForMails(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), selectedMails, opts)
+								}
 							},
 					  })
 					: null,

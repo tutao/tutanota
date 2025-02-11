@@ -23,9 +23,9 @@ import {
 	archiveMails,
 	getConversationTitle,
 	getMoveMailBounds,
-	moveMails,
+	moveResolvedMails,
 	moveToInbox,
-	showMoveMailsDropdownForMailInFolder,
+	showMoveMailsDropdownForMailsInFolder,
 	trashOrDeleteMails,
 } from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
@@ -588,7 +588,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const actionableMails = () => this.mailViewModel.getActionableMails(selectedMails)
 		const folder = this.mailViewModel.getFolder()
 		if (folder != null) {
-			await showMoveMailsDropdownForMailInFolder(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), actionableMails, folder)
+			await showMoveMailsDropdownForMailsInFolder(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), actionableMails, folder)
 		}
 	}
 
@@ -803,7 +803,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}
 		}
 
-		moveMails({
+		moveResolvedMails({
 			mailboxModel: locator.mailboxModel,
 			mailModel: mailLocator.mailModel,
 			mails: mailsToMove,

@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { LazyMailResolver, showMoveMailsDropdownForMailInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
+import { LazyMailIdResolver, showMoveMailsDropdownForMails, showMoveMailsDropdownForMailsInFolder, trashOrDeleteMails } from "./MailGuiUtils.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
@@ -49,7 +49,9 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		} else if (attrs.primaryMailViewerViewModel) {
 			return [
 				this.renderDeleteButton(mailModel, attrs.actionableMails, attrs.folder, attrs.selectNone ?? noOp),
-				attrs.primaryMailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.actionableMails, attrs.folder) : null,
+				attrs.primaryMailViewerViewModel.canForwardOrMove()
+					? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.actionableMails, attrs.folder)
+					: null,
 				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails) : null,
 				attrs.primaryMailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
@@ -87,7 +89,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private renderDeleteButton(mailModel: MailModel, actionableMails: LazyMailResolver, folder: MailFolder | null, selectNone: () => void): Children {
+	private renderDeleteButton(mailModel: MailModel, actionableMails: LazyMailIdResolver, folder: MailFolder | null, selectNone: () => void): Children {
 		return m(IconButton, {
 			title: "delete_action",
 			click: () => trashOrDeleteMails(mailModel, actionableMails, folder, selectNone),
@@ -95,11 +97,18 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderMoveButton(mailboxModel: MailboxModel, mailModel: MailModel, actionableMails: LazyMailResolver, folder: MailFolder | null): Children {
+	private renderMoveButton(mailboxModel: MailboxModel, mailModel: MailModel, actionableMails: LazyMailIdResolver, folder: MailFolder | null): Children {
 		return m(IconButton, {
 			title: "move_action",
 			icon: Icons.Folder,
-			click: (e, dom) => showMoveMailsDropdownForMailInFolder(mailboxModel, mailModel, dom.getBoundingClientRect(), actionableMails, folder),
+			click: async (e, dom) => {
+				if (folder != null) {
+					await showMoveMailsDropdownForMailsInFolder(mailboxModel, mailModel, dom.getBoundingClientRect(), actionableMails, folder)
+				} else {
+					const allMails = await mailModel.loadAllMails(await actionableMails())
+					await showMoveMailsDropdownForMails(mailboxModel, mailModel, dom.getBoundingClientRect(), allMails)
+				}
+			},
 		})
 	}
 
