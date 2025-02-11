@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { defaultCalendarColor, TabIndex, TimeFormat, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
+import { defaultCalendarColor, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -28,6 +28,7 @@ import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
+import { DateTime } from "luxon"
 import { SectionButton } from "../../../../common/gui/base/buttons/SectionButton.js"
 
 export type CalendarEventEditViewAttrs = {
@@ -241,14 +242,34 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
 		const padding = px(size.vpad_small)
+		const { whenModel } = attrs.model.editModels
 		return m(
 			Card,
 			{ style: { padding: `${padding} 0 ${padding} ${padding}` } },
 			m(EventTimeEditor, {
-				editModel: attrs.model.editModels.whenModel,
+				editModel: whenModel,
 				timeFormat: this.timeFormat,
 				startOfTheWeekOffset: this.startOfTheWeekOffset,
 				disabled: !attrs.model.isFullyWritable(),
+				dateSelectionChanged: (date: Date) => {
+					whenModel.startDate = date
+
+					// for monthly, we have to re-create our advanced repeat rules, as they are weekday bound.
+					// If we do not reset them, it would lead to inconsistencies.
+					if (whenModel.repeatPeriod == RepeatPeriod.MONTHLY && whenModel.advancedRules.length != 0) {
+						const bydayRules = whenModel.advancedRules.filter((rule) => rule.ruleType == ByRule.BYDAY)
+						if (bydayRules.length == 1) {
+							const weekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(date).weekday - 1]
+							const regex = /^-?\d/g // Regex for extracting the first digit from interval
+							const interval = Array.from(bydayRules[0].interval.matchAll(regex)).flat()[0] // collect interval
+
+							this.createAdvancedRulesFromWeekdays([weekday], parseInt(interval)).then((advancedRules) => {
+								whenModel.advancedRules = advancedRules
+								m.redraw()
+							})
+						}
+					}
+				},
 			} satisfies EventTimeEditorAttrs),
 		)
 	}
@@ -483,9 +504,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	 * @param weekdays Either the weekdays a weekly event - or a singular weekday (first, second, ..., last) in a month that a monthly event should repeat on.
 	 * @param interval will only be set if weekdays.length() == 1. In this case we are writing a BYDAY Rule for FREQ=MONTHLY, in which case
 	 * 	we only specify what weekday of the month this event repeats on. (Ex.: BYDAY=2TH = Repeats on second THURSDAY of every month)
+	 * 	In case weekdays.length() == 0 && interval == 0, no BYDAY Rule shall be written, as the event will repeat on the same DAY every month.
 	 */
 	private async createAdvancedRulesFromWeekdays(weekdays: Weekday[], interval?: number): Promise<AdvancedRepeatRule[]> {
-		if (weekdays.length == 0 && interval == 0) return Promise.resolve([])
+		if (weekdays.length == 0 || interval == 0) return Promise.resolve([])
 		return Promise.resolve(
 			weekdays.map((wd) => {
 				return createAdvancedRepeatRule({
