@@ -116,7 +116,7 @@ function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[
 			const type = byRuleValueToKey[r.ruleType as ByRule]
 			BYRULES.set(type, BYRULES.get(type) ? `${BYRULES.get(type)},${r.interval}` : r.interval)
 		}
-		for (const [interval, type] of BYRULES) {
+		for (const [type, interval] of BYRULES) {
 			advancedRepeatRules += `;${type.toUpperCase()}=${interval}`
 		}
 	}
@@ -167,7 +167,7 @@ export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent
 			`RRULE:FREQ=${repeatPeriodToIcalFrequency(assertEnumValue(RepeatPeriod, repeatRule.frequency))}` +
 				`;INTERVAL=${repeatRule.interval}` +
 				endType +
-				advancedRepeatRules.trim(),
+				advancedRepeatRules,
 		].concat(excludedDates)
 	} else {
 		return []

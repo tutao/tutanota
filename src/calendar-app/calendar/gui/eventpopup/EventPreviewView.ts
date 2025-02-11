@@ -11,7 +11,14 @@ import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { ByRule, getRepeatEndTimeForDisplay, getTimeZone, RENDER_TYPE_TRANSLATION_MAP, RenderType } from "../../../../common/calendar/date/CalendarUtils.js"
+import {
+	areAllAdvancedRepeatRulesValid,
+	ByRule,
+	getRepeatEndTimeForDisplay,
+	getTimeZone,
+	RENDER_TYPE_TRANSLATION_MAP,
+	RenderType,
+} from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
@@ -265,7 +272,7 @@ export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null
 
 		if (frequency) {
 			const freq = frequency.name
-			const readable = buildReadableAdvancedRepetitionRule(repeatRule.advancedRules, downcast(repeatRule.frequency))
+			const readable = buildAdvancedRepetitionRuleDescription(repeatRule.advancedRules, downcast(repeatRule.frequency))
 
 			return `${freq}. ${readable}`.trim()
 		}
@@ -275,7 +282,7 @@ export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null
 			"{timeUnit}": getFrequencyTimeUnit(downcast(repeatRule.frequency)),
 		})
 
-		const advancedRule = buildReadableAdvancedRepetitionRule(repeatRule.advancedRules, downcast(repeatRule.frequency))
+		const advancedRule = buildAdvancedRepetitionRuleDescription(repeatRule.advancedRules, downcast(repeatRule.frequency))
 
 		return `${repeatMessage}. ${advancedRule}`.trim()
 	}
@@ -283,10 +290,8 @@ export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null
 	return null
 }
 
-function buildReadableAdvancedRepetitionRule(advancedRule: AdvancedRepeatRule[], frequency: RepeatPeriod): string {
-	const hasInvalidRules = advancedRule.some(
-		(rule) => !((frequency === RepeatPeriod.WEEKLY || frequency === RepeatPeriod.MONTHLY) && rule.ruleType === ByRule.BYDAY),
-	)
+function buildAdvancedRepetitionRuleDescription(advancedRules: AdvancedRepeatRule[], frequency: RepeatPeriod): string {
+	const hasInvalidRules = !areAllAdvancedRepeatRulesValid(advancedRules, frequency)
 
 	let translationKey: TranslationKey = "withCustomRules_label"
 	if (hasInvalidRules) {
@@ -295,7 +300,7 @@ function buildReadableAdvancedRepetitionRule(advancedRule: AdvancedRepeatRule[],
 
 	const days: string[] = []
 
-	for (const item of advancedRule) {
+	for (const item of advancedRules) {
 		switch (item.ruleType) {
 			case ByRule.BYDAY:
 				days.push(item.interval)
@@ -308,7 +313,9 @@ function buildReadableAdvancedRepetitionRule(advancedRule: AdvancedRepeatRule[],
 	if (days.length === 0) return ""
 
 	if (frequency === RepeatPeriod.MONTHLY) {
-		const ruleRegex = /^([-+]?\d{0,3})([a-zA-Z]{2})?$/g
+		// Gets the number and the day of the week for a given rule value
+		// e.g. 2TH would return ["2TH", "2", "TH"]
+		const ruleRegex = /^([-+]?\d{0,2})([a-zA-Z]{2})?$/g
 
 		const parsedRuleValue = Array.from(days[0].matchAll(ruleRegex)).flat()
 
@@ -332,7 +339,7 @@ function buildReadableAdvancedRepetitionRule(advancedRule: AdvancedRepeatRule[],
 	}
 
 	return lang.get("onDays_label", {
-		"{days}": joinWithAnd(
+		"{days}": joinAndEndWithString(
 			days.map((day) => parseShortDay(day)),
 			", ",
 			lang.get("and_label"),
@@ -340,7 +347,11 @@ function buildReadableAdvancedRepetitionRule(advancedRule: AdvancedRepeatRule[],
 	})
 }
 
-function joinWithAnd(items: any[], separator: string, lastSeparator: string) {
+/*
+ * Concatenates elements of an array using a specified separator, and
+ * appends the final element with an alternative separator
+ */
+function joinAndEndWithString(items: any[], separator: string, lastSeparator: string) {
 	if (items.length > 1) {
 		const last = items.pop()
 		const joinedString = items.join(separator)
@@ -398,24 +409,17 @@ function getFrequencyTimeUnit(frequency: RepeatPeriod): string {
 }
 
 function parseShortDay(day: string) {
-	switch (day) {
-		case "MO":
-			return lang.get("monday_label")
-		case "TU":
-			return lang.get("tuesday_label")
-		case "WE":
-			return lang.get("wednesday_label")
-		case "TH":
-			return lang.get("thursday_label")
-		case "FR":
-			return lang.get("friday_label")
-		case "SA":
-			return lang.get("saturday_label")
-		case "SU":
-			return lang.get("sunday_label")
-		default:
-			return ""
+	const days: Record<string, TranslationKey> = {
+		MO: "monday_label",
+		TU: "tuesday_label",
+		WE: "wednesday_label",
+		TH: "thursday_label",
+		FR: "friday_label",
+		SA: "saturday_label",
+		SU: "sunday_label",
 	}
+
+	return lang.get(days[day]) || ""
 }
 
 function prepareAttendees(attendees: Array<CalendarEventAttendee>, organizer: EncryptedMailAddress | null): Array<CalendarEventAttendee> {
