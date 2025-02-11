@@ -117,26 +117,26 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 	private key: number = 0
 
 	view({
-			 attrs: {
-				 onchange,
-				 options,
-				 renderOption,
-				 renderDisplay,
-				 classes,
-				 selected,
-				 placeholder,
-				 expanded,
-				 disabled,
-				 ariaLabel,
-				 iconColor,
-				 id,
-				 noIcon,
-				 tabIndex,
-				 onclose,
-				 oncreate,
-				 dropdownPosition,
-			 },
-		 }: Vnode<SelectAttributes<U, T>, this>) {
+		attrs: {
+			onchange,
+			options,
+			renderOption,
+			renderDisplay,
+			classes,
+			selected,
+			placeholder,
+			expanded,
+			disabled,
+			ariaLabel,
+			iconColor,
+			id,
+			noIcon,
+			tabIndex,
+			onclose,
+			oncreate,
+			dropdownPosition,
+		},
+	}: Vnode<SelectAttributes<U, T>, this>) {
 		return m(".rel.flex.full-width.height-100p", [
 			m(
 				"button.tutaui-select-trigger.clickable",
@@ -169,14 +169,14 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 					selected != null ? renderDisplay(selected) : this.renderPlaceholder(placeholder),
 					noIcon !== true
 						? m(Icon, {
-							icon: BootIcons.Expand,
-							container: "div",
-							class: `fit-content transition-transform`,
-							size: IconSize.Medium,
-							style: {
-								fill: iconColor ?? getColors(ButtonColor.Content).button,
-							},
-						})
+								icon: BootIcons.Expand,
+								container: "div",
+								class: `fit-content transition-transform`,
+								size: IconSize.Medium,
+								style: {
+									fill: iconColor ?? getColors(ButtonColor.Content).button,
+								},
+						  })
 						: null,
 				],
 			),
@@ -365,7 +365,10 @@ class OptionListContainer implements ClassComponent {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 								this.maxHeight = Math.min(
 									250 + size.vpad,
-									children.reduce((accumulator, children, currentIndex) => currentIndex > 0 ? accumulator + children.offsetHeight : accumulator, 0) + size.vpad,
+									children.reduce(
+										(accumulator, children, currentIndex) => (currentIndex > 0 ? accumulator + children.offsetHeight : accumulator),
+										0,
+									) + size.vpad,
 								) // size.pad accounts for top and bottom padding
 								if (this.origin) {
 									// Set the scroll before showing the dropdown to avoid flickering issues
@@ -374,7 +377,9 @@ class OptionListContainer implements ClassComponent {
 										this.domDropdown.scroll({ top: selectedOption.offsetTop, behavior: "instant" })
 									}
 
-									this.displayDropdown(assertNotNull(this.domDropdown), this.origin, this.maxHeight, dropdownPosition).then(() => this.isDropdownOpen = true)
+									this.displayDropdown(assertNotNull(this.domDropdown), this.origin, this.maxHeight, dropdownPosition).then(
+										() => (this.isDropdownOpen = true),
+									)
 									m.redraw()
 								}
 							} else {
@@ -481,7 +486,10 @@ class OptionListContainer implements ClassComponent {
 		const lowerSpace = window.innerHeight - this.origin.bottom - getSafeAreaInsetBottom()
 
 		const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-		const contentHeight = Math.min(250 + size.vpad, children.reduce((accumulator, children, currentIndex) => currentIndex > 0 ? accumulator + children.offsetHeight : accumulator, 0) + size.vpad)
+		const contentHeight = Math.min(
+			250 + size.vpad,
+			children.reduce((accumulator, children, currentIndex) => (currentIndex > 0 ? accumulator + children.offsetHeight : accumulator), 0) + size.vpad,
+		)
 
 		this.maxHeight = lowerSpace > upperSpace ? Math.min(contentHeight, lowerSpace) : Math.min(contentHeight, upperSpace)
 		const newHeight = px(this.maxHeight)
@@ -512,8 +520,7 @@ class OptionListContainer implements ClassComponent {
 	 * myInstanceOfOptionListContainer.onClose = () => console.log("Closing")
 	 * ...
 	 */
-	onClose(): void {
-	}
+	onClose(): void {}
 
 	callingElement(): HTMLElement | null {
 		return this.focusedBeforeShown
