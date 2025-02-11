@@ -120,9 +120,6 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					}
 				},
 				onfocus: (_, input) => {
-					if (!disabled) {
-						this.showingDropdown = true
-					}
 					this.textFieldHasFocus = true
 				},
 				oncreate: (input: any) => {
