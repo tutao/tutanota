@@ -47,6 +47,11 @@ pipeline {
             defaultValue: true,
             description: "Build the desktop app"
         )
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from, will be propagated to the sub-jobs."
+        )
     }
 
     agent {
@@ -89,6 +94,7 @@ pipeline {
 									steps {
 										build job: 'tutanota-3-webapp', parameters: [
 											booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging"))
+											string(name: "branch", value: params.branch)
 										]
 									} // steps
 								} // stage build
@@ -100,10 +106,12 @@ pipeline {
 											booleanParam(name: 'PUBLISH_NPM_MODULES', value: false),
 											booleanParam(name: 'GITHUB_RELEASE', value: true),
 											text(name: "releaseNotes", value: releaseNotes.web),
+											string(name: "branch", value: params.branch)
 										] : [
 											booleanParam(name: 'DEB', value: true),
 											booleanParam(name: 'PUBLISH_NPM_MODULES', value: params.target.equals("buildAndPublishToStaging")),
 											booleanParam(name: 'GITHUB_RELEASE', value: false),
+											string(name: "branch", value: params.branch)
 										]
 									} // steps
 								} // stage publish
@@ -116,6 +124,7 @@ pipeline {
 								script {
 									build job: 'tutanota-3-desktop-dictionaries', parameters: [
 										booleanParam(name: "RELEASE", value: !params.target.equals("dryRun"))
+										text(name: "branch", value: params.branch)
 									]
 								} // script
 							} // steps
@@ -133,6 +142,7 @@ pipeline {
 												booleanParam(name: "WINDOWS", value: true),
 												booleanParam(name: "MAC", value: true),
 												booleanParam(name: "LINUX", value: true),
+											    string(name: "branch", value: params.branch)
 											]
 										} // script
 									} // steps
@@ -145,9 +155,11 @@ pipeline {
 												booleanParam(name: "DEB", value: true),
 												booleanParam(name: "GITHUB_RELEASE", value: true),
 												text(name: "releaseNotes", value: releaseNotes.desktop),
+											    string(name: "branch", value: params.branch)
 											] : [
 												booleanParam(name: "DEB", value: true),
 												booleanParam(name: "GITHUB_RELEASE", value: false),
+												string(name: "branch", value: params.branch)
 											]
 										} // script
 									} // steps
@@ -170,6 +182,7 @@ pipeline {
 												booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
 												booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
 												booleanParam(name: "PROD", value: true),
+											    string(name: "branch", value: params.branch)
 											]
 										} // script
 									} // steps
@@ -184,11 +197,13 @@ pipeline {
 												 booleanParam(name: "APP_STORE_NOTES", value: true),
 												 booleanParam(name: "GITHUB_RELEASE", value: true),
 												 text(name: "releaseNotes", value: releaseNotes.ios),
+											     string(name: "branch", value: params.branch)
 											 ] : [
 												 booleanParam(name: "STAGING", value: true),
 												 booleanParam(name: "PROD", value: false),
 												 booleanParam(name: "APP_STORE_NOTES", value: false),
 												 booleanParam(name: "GITHUB_RELEASE", value: false),
+    											 string(name: "branch", value: params.branch)
 											 ]
 										} // script
 									} // steps
@@ -207,6 +222,7 @@ pipeline {
 												booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
 												booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
 												booleanParam(name: "PROD", value: true),
+											    string(name: "branch", value: params.branch)
 											]
 										} // script
 									} // steps
@@ -220,10 +236,12 @@ pipeline {
 												 booleanParam(name: "PROD", value: true),
 												 booleanParam(name: "GITHUB_RELEASE", value: true),
 												 text(name: "releaseNotes", value: releaseNotes.android),
+											     string(name: "branch", value: params.branch)
 											 ] : [
 												 booleanParam(name: "STAGING", value: true),
 												 booleanParam(name: "PROD", value: false),
 												 booleanParam(name: "GITHUB_RELEASE", value: false),
+											     string(name: "branch", value: params.branch)
 											 ]
 										} // script
 									} // steps

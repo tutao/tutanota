@@ -21,6 +21,11 @@ pipeline {
 			defaultValue: '',
 			description: "release notes for this build"
 		)
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from."
+        )
 	}
 
 	agent {

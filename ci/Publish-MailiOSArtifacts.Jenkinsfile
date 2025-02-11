@@ -28,6 +28,11 @@ pipeline {
 			defaultValue: "",
 			description: "iOS release notes"
 		)
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from"
+        )
     }
 
 	environment {

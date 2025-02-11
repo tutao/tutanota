@@ -20,6 +20,11 @@ pipeline {
 			name: 'RELEASE', defaultValue: false,
 			description: "Build a test and release version of the app. Uploads both to Nexus."
 		)
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from."
+        )
 	}
 
 	stages {

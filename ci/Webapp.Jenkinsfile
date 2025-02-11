@@ -11,6 +11,11 @@ pipeline {
 			defaultValue: false,
 			description: "Upload release version to Nexus"
 		)
+        text(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from."
+        )
     }
     agent {
         label 'master'

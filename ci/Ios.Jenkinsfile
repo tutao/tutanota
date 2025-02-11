@@ -21,6 +21,11 @@ pipeline {
 			name: 'STAGING',
 			defaultValue: true
 		)
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from"
+        )
 	}
 
 	stages {

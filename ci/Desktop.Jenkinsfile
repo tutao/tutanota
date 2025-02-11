@@ -29,6 +29,11 @@ pipeline {
 			defaultValue: true,
 			description: "Build Linux client"
 		)
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from"
+        )
 	}
 
 	agent {

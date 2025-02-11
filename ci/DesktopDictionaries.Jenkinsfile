@@ -12,6 +12,11 @@ pipeline {
             defaultValue: false,
             description: "Prepare a release version (doesn't publish to production, this is done manually)"
         )
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from."
+        )
     }
 
     agent {
