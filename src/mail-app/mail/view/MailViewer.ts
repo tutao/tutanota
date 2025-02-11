@@ -34,6 +34,7 @@ import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/g
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { createNewContact } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingRuleForType } from "../model/MailUtils.js"
+import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 
@@ -92,9 +93,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private currentQuoteBehavior: "none" | "collapse" | "expand" = "none"
 	/** for block quotes in mail bodies, whether to display placeholder or original quote */
 	private quoteState: "noquotes" | "unset" | "collapsed" | "expanded" = "unset"
-
-	/** most recent resize animation frame request ID */
-	private resizeRaf: number | undefined
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel, vnode.attrs.isPrimary)
@@ -298,7 +296,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
 				if (client.isMobileDevice()) {
 					this.resizeObserverViewport?.disconnect()
-					this.resizeObserverViewport = new ResizeObserver((entries) => {
+					this.resizeObserverViewport = createResizeObserver(() => {
 						if (this.pinchZoomable) {
 							// recreate if the orientation of the device changes -> size of the viewport / mail-body changes
 							this.createPinchZoom(this.pinchZoomable.getZoomable(), vnode.dom as HTMLElement)
@@ -423,14 +421,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		if (client.isMobileDevice()) {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
-			this.resizeObserverZoomable = new ResizeObserver((entries) => {
-				if (this.resizeRaf) {
-					// did we already schedule a reset for pinch to zoom in the frame
-					cancelAnimationFrame(this.resizeRaf)
-				}
-				this.resizeRaf = requestAnimationFrame(() => {
-					this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
-				})
+			this.resizeObserverZoomable = createResizeObserver(() => {
+				this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
 			})
 			this.resizeObserverZoomable.observe(wrapNode)
 		} else {

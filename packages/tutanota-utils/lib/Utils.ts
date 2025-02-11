@@ -616,3 +616,21 @@ export function assertValidURL(url: string) {
 		return false
 	}
 }
+
+/**
+ * Excessive resizing of an observed element can result in one or more resize events being deferred to the next render cycle.
+ * When this happens, the browser sends a `ResizeObserver loop completed with undelivered notifications` error.
+ * To avoid this, we handle resize events in a `requestAnimationFrame` making sure to cancel any pending requests
+ */
+export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver {
+	let afRequestId: number | null = null
+
+	return new ResizeObserver((entries, observer) => {
+		if (afRequestId != null) {
+			cancelAnimationFrame(afRequestId)
+		}
+		afRequestId = requestAnimationFrame(() => {
+			cb(entries, observer)
+		})
+	})
+}
