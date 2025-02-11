@@ -43,9 +43,9 @@ pub struct BlobFacade {
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct FileData {
-	pub session_key: GenericAesKey,
-	pub data: Vec<u8>,
+pub struct FileData<'a> {
+	pub session_key: &'a GenericAesKey,
+	pub data: &'a [u8],
 }
 
 impl BlobFacade {
@@ -87,22 +87,20 @@ impl BlobFacade {
 	/// * request 1: [a1.1: 10MiB] -> [a1:token1]
 	/// * request 2: [a1.2: 3MiB, a2: 2MiB, a3: 3MiB] -> [a1: token2, a2:token1, a3:token1]
 	///
-	pub async fn encrypt_and_upload_multiple(
+	pub async fn encrypt_and_upload_multiple<'a>(
 		&self,
 		archive_data_type: ArchiveDataType,
 		owner_group_id: &GeneratedId,
-		file_data: &[&FileData],
+		file_data: impl Clone + Iterator<Item = &'a FileData<'a>>,
 	) -> Result<Vec<Vec<BlobReferenceTokenWrapper>>, ApiCallError> {
-		let mut session_key_to_reference_tokens: HashMap<
-			&GenericAesKey,
-			Vec<BlobReferenceTokenWrapper>,
-		> = HashMap::from_iter(
-			file_data
-				.iter()
-				.map(|wrapper| (&wrapper.session_key, vec![])),
-		);
+		let mut session_key_to_reference_tokens =
+			HashMap::<&GenericAesKey, Vec<BlobReferenceTokenWrapper>>::from_iter(
+				file_data
+					.clone()
+					.map(|wrapper| (wrapper.session_key, vec![])),
+			);
 
-		let keyed_new_blob_wrappers = self.encrypt_multiple_file_data(file_data)?;
+		let keyed_new_blob_wrappers = self.encrypt_multiple_file_data(file_data.clone())?;
 		let serialized_binaries = serialize_new_blobs_in_binary_chunks(
 			keyed_new_blob_wrappers,
 			MAX_BLOB_SERVICE_BYTES,
@@ -130,16 +128,15 @@ impl BlobFacade {
 				Ok(tokens) => tokens,
 			};
 
-			for it in serialized_binary
+			for (session_key, reference_token) in serialized_binary
 				.session_keys
 				.iter()
 				.zip(blob_reference_tokens.into_iter())
 			{
-				let (session_key, reference_token) = it;
-				let vec = session_key_to_reference_tokens
+				session_key_to_reference_tokens
 					.get_mut(session_key)
-					.expect("file session key is missing");
-				vec.push(reference_token);
+					.expect("file session key is missing")
+					.push(reference_token);
 			}
 		}
 
@@ -148,9 +145,8 @@ impl BlobFacade {
 
 		// We need to return our token vectors in the same order we got the file_data
 		for file_datum in file_data {
-			let session_key = &file_datum.session_key;
 			let reference_tokens = session_key_to_reference_tokens
-				.remove(&session_key)
+				.remove(file_datum.session_key)
 				.expect("file session key is missing when sorting reference tokens");
 			reference_tokens_per_file_data.push(reference_tokens);
 		}
@@ -158,13 +154,13 @@ impl BlobFacade {
 		Ok(reference_tokens_per_file_data)
 	}
 
-	pub fn encrypt_multiple_file_data(
+	pub fn encrypt_multiple_file_data<'a>(
 		&self,
-		file_data: &[&FileData],
+		file_data: impl Iterator<Item = &'a FileData<'a>>,
 	) -> Result<Vec<KeyedNewBlobWrapper>, ApiCallError> {
 		let mut keyed_new_blob_wrappers = Vec::new();
 		for file_datum in file_data {
-			let blobs = chunk_data(file_datum.data.as_slice(), MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
+			let blobs = chunk_data(file_datum.data, MAX_UNENCRYPTED_BLOB_SIZE_BYTES);
 			for blob in blobs {
 				let encrypted_blob = file_datum
 					.session_key
@@ -621,20 +617,20 @@ mod tests {
 		let session_key_fourth_attachment = make_session_key(randomizer_facade4);
 
 		let file_data1 = FileData {
-			session_key: session_key_first_attachment,
-			data: first_attachment,
+			session_key: &session_key_first_attachment,
+			data: &first_attachment,
 		};
 		let file_data2 = FileData {
-			session_key: session_key_second_attachment,
-			data: second_attachment,
+			session_key: &session_key_second_attachment,
+			data: &second_attachment,
 		};
 		let file_data3 = FileData {
-			session_key: session_key_third_attachment,
-			data: third_attachment,
+			session_key: &session_key_third_attachment,
+			data: &third_attachment,
 		};
 		let file_data4 = FileData {
-			session_key: session_key_fourth_attachment,
-			data: fourth_attachment,
+			session_key: &session_key_fourth_attachment,
+			data: &fourth_attachment,
 		};
 		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3, &file_data4];
 
@@ -698,7 +694,11 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
+			.encrypt_and_upload_multiple(
+				ArchiveDataType::Attachments,
+				&owner_group_id,
+				file_data.into_iter(),
+			)
 			.await
 			.unwrap();
 		assert_eq!(
@@ -745,20 +745,20 @@ mod tests {
 		let session_key_fourth_attachment = make_session_key(randomizer_facade4);
 
 		let file_data1 = FileData {
-			session_key: session_key_first_attachment,
-			data: first_attachment,
+			session_key: &session_key_first_attachment,
+			data: &first_attachment,
 		};
 		let file_data2 = FileData {
-			session_key: session_key_second_attachment,
-			data: second_attachment,
+			session_key: &session_key_second_attachment,
+			data: &second_attachment,
 		};
 		let file_data3 = FileData {
-			session_key: session_key_third_attachment,
-			data: third_attachment,
+			session_key: &session_key_third_attachment,
+			data: &third_attachment,
 		};
 		let file_data4 = FileData {
-			session_key: session_key_fourth_attachment,
-			data: fourth_attachment,
+			session_key: &session_key_fourth_attachment,
+			data: &fourth_attachment,
 		};
 		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3, &file_data4];
 
@@ -847,7 +847,11 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
+			.encrypt_and_upload_multiple(
+				ArchiveDataType::Attachments,
+				&owner_group_id,
+				file_data.into_iter(),
+			)
 			.await
 			.unwrap();
 		assert_eq!(
@@ -893,16 +897,16 @@ mod tests {
 		let session_key_third_attachment = make_session_key(randomizer_facade3);
 
 		let file_data1 = FileData {
-			session_key: session_key_first_attachment,
-			data: first_attachment.clone(),
+			session_key: &session_key_first_attachment,
+			data: &first_attachment,
 		};
 		let file_data2 = FileData {
-			session_key: session_key_second_attachment,
-			data: second_attachment.clone(),
+			session_key: &session_key_second_attachment,
+			data: &second_attachment,
 		};
 		let file_data3 = FileData {
-			session_key: session_key_third_attachment,
-			data: third_attachment.clone(),
+			session_key: &session_key_third_attachment,
+			data: &third_attachment.clone(),
 		};
 
 		let file_data: Vec<&FileData> = vec![&file_data1, &file_data2, &file_data3];
@@ -1035,7 +1039,11 @@ mod tests {
 		};
 
 		let reference_tokens = blob_facade
-			.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
+			.encrypt_and_upload_multiple(
+				ArchiveDataType::Attachments,
+				&owner_group_id,
+				file_data.into_iter(),
+			)
 			.await
 			.unwrap();
 		assert_eq!(

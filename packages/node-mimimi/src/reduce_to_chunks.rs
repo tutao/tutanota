@@ -1,10 +1,6 @@
-use crate::importer::importable_mail::{
-	ImportableMailAttachment, ImportableMailAttachmentMetaData, ImportableMailWithPath,
-	KeyedImportableMailAttachment,
-};
+use crate::importer::importable_mail::{ImportableMailAttachment, ImportableMailWithPath};
 use std::iter::Peekable;
 use std::path::PathBuf;
-use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::key::{GenericAesKey, VersionedAesKey};
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
@@ -110,10 +106,6 @@ impl<const CHUNK_LIMIT: usize, ResolvingElement> Iterator
 
 		let item = if imports_in_this_chunk.is_empty() {
 			let too_big_import = self.provider.next()?;
-			log::info!(
-				"Max limit: {CHUNK_LIMIT}. our size: {}",
-				sizer(&too_big_import)
-			);
 			// not a single item was added to chunk,
 			// because single chunk was too big, return as-is as failure,
 			Err(too_big_import)

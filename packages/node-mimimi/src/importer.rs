@@ -1,7 +1,4 @@
-use crate::importer::importable_mail::{
-	ImportableMailAttachment, ImportableMailAttachmentMetaData, ImportableMailWithPath,
-	KeyedImportableMailAttachment,
-};
+use crate::importer::importable_mail::{ImportableMailWithPath, KeyedImportableMailAttachment};
 use crate::reduce_to_chunks::{KeyedImportMailData, MailUploadDataWithAttachment};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -156,121 +153,104 @@ impl ImportEssential {
 		}
 	}
 
+	/// Upload all attachments for this chunk,
+	/// steps:
+	/// 1. flatten all attachment of all mail in this chunk
+	/// 2. upload it via `BlobFacade::encrypt_and_upload_multiple` and get back reference tokens for all blobs
+	/// 3. Assemble reference token to correct attachment
 	async fn upload_attachments_for_chunk(
 		&self,
 		importable_chunk: Vec<MailUploadDataWithAttachment>,
 	) -> Result<Vec<KeyedImportMailData>, MailImportErrorMessage> {
-		let attachments_count_per_mail: Vec<usize> = importable_chunk
-			.iter()
-			.map(|mail| mail.attachments.len())
-			.collect();
+		let session_keys_for_all_attachments = std::iter::repeat_with(|| {
+			GenericAesKey::Aes256(aes::Aes256Key::generate(&self.randomizer_facade))
+		})
+		.take(importable_chunk.iter().map(|u| u.attachments.len()).sum())
+		.collect::<Vec<_>>();
 
 		// aggregate attachment data from multiple mails to upload in fewer request to the BlobService
-		let (attachments_per_mail, keyed_import_mail_data): (
-			Vec<Vec<ImportableMailAttachment>>,
-			Vec<KeyedImportMailData>,
-		) = importable_chunk
-			.into_iter()
-			.map(|mail| (mail.attachments, mail.keyed_import_mail_data))
-			.unzip();
-
-		let upload_data_per_mail = attachments_per_mail
-			.into_iter()
-			.map(|upload_data_for_mail| {
-				Self::get_upload_data_for_mail(&self.randomizer_facade, upload_data_for_mail)
-			})
-			.collect::<Vec<_>>();
-
-		let (attachments_file_data_per_mail, attachments_meta_data_per_mail): (
-			Vec<Vec<FileData>>,
-			Vec<Vec<ImportableMailAttachmentMetaData>>,
-		) = upload_data_per_mail.into_iter().unzip();
-
-		let attachments_file_data_flattened: Vec<&FileData> =
-			attachments_file_data_per_mail.iter().flatten().collect();
+		let flattened_attachments = Self::flatten_attachments_for_chunk(
+			session_keys_for_all_attachments.iter(),
+			&importable_chunk,
+		);
 
 		// upload all attachments in this chunk in one call to the blob_facade
 		// the blob_facade chunks them into efficient request to the BlobService
-		let mut reference_tokens_per_attachment_flattened = self
+		let reference_tokens_per_attachment_flattened = self
 			.logged_in_sdk
 			.blob_facade()
 			.encrypt_and_upload_multiple(
 				ArchiveDataType::Attachments,
 				&self.target_owner_group,
-				attachments_file_data_flattened.as_slice(),
+				flattened_attachments.iter().map(|a| &a.file_data),
 			)
 			.await
 			.map_err(|e| MailImportErrorMessage::sdk("fail to upload multiple attachments", e))?;
 
-		// reference mails and received reference tokens, by using the attachments count per mail
-		let mut all_reference_tokens_per_mail: Vec<Vec<Vec<BlobReferenceTokenWrapper>>> = vec![];
-		for attachments_count in attachments_count_per_mail {
-			let reference_tokens_per_mail = reference_tokens_per_attachment_flattened
-				.drain(..attachments_count)
-				.collect();
-			all_reference_tokens_per_mail.push(reference_tokens_per_mail);
-		}
+		let keyed_import_mail_data = self.assemble_import_mail_data_with_attachments(
+			importable_chunk,
+			session_keys_for_all_attachments,
+			reference_tokens_per_attachment_flattened,
+		);
 
-		let import_attachments_per_mail: Vec<Vec<ImportAttachment>> =
-			attachments_file_data_per_mail
-				.into_iter()
-				.zip(
-					attachments_meta_data_per_mail
-						.into_iter()
-						.zip(all_reference_tokens_per_mail),
-				)
-				.map(
-					|(file_data, (meta_data, reference_tokens_per_attachment))| {
-						file_data
-							.into_iter()
-							.zip(meta_data.into_iter().zip(reference_tokens_per_attachment))
-							.map(|(file_datum, (meta_datum, reference_tokens))| {
-								meta_datum.make_import_attachment_data(
-									self,
-									&file_datum.session_key,
-									reference_tokens,
-								)
-							})
-							.collect()
-					},
-				)
-				.collect();
-
-		let unit_import_results = keyed_import_mail_data
-			.into_iter()
-			.zip(import_attachments_per_mail)
-			.map(|(mut unit_import, import_attachments)| {
-				unit_import.import_mail_data.importedAttachments = import_attachments;
-				unit_import
-			})
-			.collect();
-
-		Ok(unit_import_results)
+		Ok(keyed_import_mail_data)
 	}
 
-	fn get_upload_data_for_mail(
-		randomizer_facade: &RandomizerFacade,
-		attachments_next_mail: Vec<ImportableMailAttachment>,
-	) -> (Vec<FileData>, Vec<ImportableMailAttachmentMetaData>) {
-		let keyed_attachments = attachments_next_mail
-			.into_iter()
-			.map(|attachment| attachment.make_keyed_importable_mail_attachment(randomizer_facade))
-			.collect::<Vec<_>>();
-
-		let (attachments_file_data, attachments_meta_data): (
-			Vec<FileData>,
-			Vec<ImportableMailAttachmentMetaData>,
-		) = keyed_attachments
-			.into_iter()
-			.map(|keyed_attachment| {
-				let file_datum = FileData {
-					session_key: keyed_attachment.attachment_session_key,
-					data: keyed_attachment.content,
-				};
-				(file_datum, keyed_attachment.meta_data)
+	fn flatten_attachments_for_chunk<'a>(
+		mut session_keys: impl Iterator<Item = &'a GenericAesKey>,
+		importable_chunk: &'a [MailUploadDataWithAttachment],
+	) -> Vec<KeyedImportableMailAttachment<'a>> {
+		importable_chunk
+			.iter()
+			.flat_map(|mail_upload_data_with_attachment| {
+				mail_upload_data_with_attachment
+					.attachments
+					.iter()
+					.map(|attachment| KeyedImportableMailAttachment {
+						file_data: FileData {
+							session_key: session_keys.next().expect("Not enough session keys"),
+							data: &attachment.content,
+						},
+						meta_data: &attachment.meta_data,
+					})
+					.collect::<Vec<_>>()
 			})
-			.unzip();
-		(attachments_file_data, attachments_meta_data)
+			.collect::<Vec<_>>()
+	}
+
+	fn assemble_import_mail_data_with_attachments(
+		&self,
+		importable_chunk: Vec<MailUploadDataWithAttachment>,
+		session_keys_for_all_attachments: Vec<GenericAesKey>,
+		mut reference_tokens_per_attachment_flattened: Vec<Vec<BlobReferenceTokenWrapper>>,
+	) -> Vec<KeyedImportMailData> {
+		importable_chunk
+			.into_iter()
+			.map(|mail_upload_data| {
+				let mut attachment_session_keys_iter = session_keys_for_all_attachments.iter();
+				let mut attachments_reference_tokens_iter =
+					reference_tokens_per_attachment_flattened
+						.drain(0..mail_upload_data.attachments.len());
+
+				let import_attachments = mail_upload_data
+					.attachments
+					.into_iter()
+					.map(|attachment| {
+						let session_key = attachment_session_keys_iter
+							.next()
+							.expect("More attachments than we have session keys for");
+						let reference_tokens = attachments_reference_tokens_iter
+							.next()
+							.expect("Not enough reference tokens");
+						attachment.make_import_attachment_data(self, session_key, reference_tokens)
+					})
+					.collect::<Vec<ImportAttachment>>();
+
+				let mut keyed_import_data = mail_upload_data.keyed_import_mail_data;
+				keyed_import_data.import_mail_data.importedAttachments = import_attachments;
+				keyed_import_data
+			})
+			.collect::<Vec<_>>()
 	}
 
 	fn make_serialized_chunk(
@@ -603,17 +583,24 @@ impl Importer {
 			None => Ok(None),
 
 			// this chunk was too big to import
-			Some(Err(too_big_chunk)) => Err(MailImportErrorMessage {
-				kind: ImportErrorKind::TooBigChunk,
-				path: Some(
-					too_big_chunk
-						.keyed_import_mail_data
-						.eml_file_path
-						.to_string_lossy()
-						.to_string()
-						.clone(),
-				),
-			})?,
+			Some(Err(too_big_chunk)) => {
+				log::debug!(
+					"Too big chunk while uploading mail: {:?}",
+					too_big_chunk.keyed_import_mail_data.eml_file_path
+				);
+
+				Err(MailImportErrorMessage {
+					kind: ImportErrorKind::TooBigChunk,
+					path: Some(
+						too_big_chunk
+							.keyed_import_mail_data
+							.eml_file_path
+							.to_string_lossy()
+							.to_string()
+							.clone(),
+					),
+				})?
+			},
 
 			// these chunks can be imported in single request
 			Some(Ok(chunked_import_data)) => {
@@ -627,7 +614,7 @@ impl Importer {
 					.map(|id| id.keyed_import_mail_data.eml_file_path.clone())
 					.collect();
 
-				let mut failed_count: i64 = 0;
+				let mut failed_count = 0;
 				let unit_import_data = import_essentials
 					.upload_attachments_for_chunk(chunked_import_data)
 					.await
@@ -710,11 +697,9 @@ impl Importer {
 									// if we can not read import directory to check for failed files,
 									// pretend we have some failed mail
 									.unwrap_or(true);
-							return if have_failed_mails {
-								Err(ImportErrorKind::SourceExhaustedSomeError.into())
-							} else {
-								Ok(ImportOkKind::SourceExhaustedNoError)
-							};
+							return have_failed_mails
+								.then_some(ImportOkKind::SourceExhaustedNoError)
+								.ok_or(ImportErrorKind::SourceExhaustedSomeError.into());
 						},
 
 						Ok(Some(completed_paths)) => {

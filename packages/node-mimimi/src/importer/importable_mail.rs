@@ -10,7 +10,6 @@ use std::path::PathBuf;
 use tutasdk::blobs::blob_facade::FileData;
 use tutasdk::crypto::aes;
 use tutasdk::crypto::key::GenericAesKey;
-use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::date::DateTime;
 use tutasdk::entities::generated::sys::BlobReferenceTokenWrapper;
 use tutasdk::entities::generated::tutanota::{
@@ -68,37 +67,7 @@ pub struct ImportableMailAttachment {
 	pub content: Vec<u8>,
 }
 
-#[cfg_attr(test, derive(PartialEq, Debug, Clone))]
-pub struct ImportableMailAttachmentMetaData {
-	pub filename: String,
-	pub content_id: Option<String>,
-	pub content_type: String,
-}
-
-#[cfg_attr(test, derive(PartialEq, Debug, Clone))]
-pub struct KeyedImportableMailAttachment {
-	pub attachment_session_key: GenericAesKey,
-	pub meta_data: ImportableMailAttachmentMetaData,
-	pub content: Vec<u8>,
-}
-
 impl ImportableMailAttachment {
-	#[must_use]
-	pub fn make_keyed_importable_mail_attachment(
-		self,
-		randomizer_facade: &RandomizerFacade,
-	) -> KeyedImportableMailAttachment {
-		let attachment_session_key =
-			GenericAesKey::Aes256(aes::Aes256Key::generate(randomizer_facade));
-		KeyedImportableMailAttachment {
-			attachment_session_key,
-			meta_data: self.meta_data,
-			content: self.content,
-		}
-	}
-}
-
-impl ImportableMailAttachmentMetaData {
 	#[must_use]
 	pub fn make_import_attachment_data(
 		self,
@@ -113,17 +82,17 @@ impl ImportableMailAttachmentMetaData {
 
 		let enc_file_name = file_session_key
 			.encrypt_data(
-				self.filename.as_ref(),
+				self.meta_data.filename.as_ref(),
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
 		let enc_mime_type = file_session_key
 			.encrypt_data(
-				self.content_type.as_ref(),
+				self.meta_data.content_type.as_ref(),
 				aes::Iv::generate(&essentials.randomizer_facade),
 			)
 			.unwrap();
-		let enc_cid = self.content_id.map(|cid| {
+		let enc_cid = self.meta_data.content_id.map(|cid| {
 			file_session_key
 				.encrypt_data(
 					cid.as_bytes(),
@@ -148,6 +117,19 @@ impl ImportableMailAttachmentMetaData {
 			}),
 		}
 	}
+}
+
+#[cfg_attr(test, derive(PartialEq, Debug, Clone))]
+pub struct ImportableMailAttachmentMetaData {
+	pub filename: String,
+	pub content_id: Option<String>,
+	pub content_type: String,
+}
+
+#[cfg_attr(test, derive(PartialEq, Debug, Clone))]
+pub struct KeyedImportableMailAttachment<'a> {
+	pub meta_data: &'a ImportableMailAttachmentMetaData,
+	pub file_data: FileData<'a>,
 }
 
 #[derive(Default, PartialEq)]

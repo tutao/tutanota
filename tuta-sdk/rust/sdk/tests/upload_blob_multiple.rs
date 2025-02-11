@@ -57,24 +57,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
 	.unwrap();
 
 	let file_data1 = FileData {
-		session_key: new_aes_256_key_1,
-		data: vec![0; 24 * 1024 * 1024],
+		session_key: &new_aes_256_key_1,
+		data: &[0; 24 * 1024 * 1024],
 	};
 	let file_data2 = FileData {
-		session_key: new_aes_256_key_2,
-		data: vec![0; 4 * 1024 * 1024],
+		session_key: &new_aes_256_key_2,
+		data: &[0; 4 * 1024 * 1024],
 	};
 	let file_data3 = FileData {
-		session_key: new_aes_256_key_3,
-		data: vec![0; 2 * 1024 * 1024],
+		session_key: &new_aes_256_key_3,
+		data: &[0; 2 * 1024 * 1024],
 	};
 	let file_data4 = FileData {
-		session_key: new_aes_256_key_4,
-		data: vec![0; 1024],
+		session_key: &new_aes_256_key_4,
+		data: &[0; 1024],
 	};
 	let file_data5 = FileData {
-		session_key: new_aes_256_key_5,
-		data: vec![0; 2048],
+		session_key: &new_aes_256_key_5,
+		data: &[0; 2048],
 	};
 	let file_data = vec![
 		&file_data1,
@@ -86,7 +86,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 	let result = logged_in_sdk
 		.blob_facade()
-		.encrypt_and_upload_multiple(ArchiveDataType::Attachments, &owner_group_id, &file_data)
+		.encrypt_and_upload_multiple(
+			ArchiveDataType::Attachments,
+			&owner_group_id,
+			file_data.into_iter(),
+		)
 		.await?;
 	for (index, token_vector_per_file_data) in result.iter().enumerate() {
 		println!("tokens for file {} :", index + 1);
