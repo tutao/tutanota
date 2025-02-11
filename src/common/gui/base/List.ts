@@ -12,6 +12,7 @@ import { theme, ThemeId } from "../theme.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { Coordinate2D } from "./SwipeHandler.js"
 import { styles } from "../styles.js"
+import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>
@@ -134,9 +135,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					// Some of the tech-savvy users like to disable *all* "experimental features" in their Safari devices and there's also a toggle to disable
 					// ResizeObserver. Since the app works without it anyway we just fall back to not handling the resize events.
 					if (typeof ResizeObserver !== "undefined") {
-						new ResizeObserver(() => {
-							this.updateSize()
-						}).observe(this.containerDom)
+						createResizeObserver(() => this.updateSize()).observe(this.containerDom)
 					} else {
 						requestAnimationFrame(() => this.updateSize())
 					}
