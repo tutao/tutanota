@@ -29,6 +29,7 @@ cargo {
 	pythonCommand = "python3"
 	targets = getABITargets()
 	profile = getActiveBuildType()
+	targetDirectory = tutanota3Root.dir("target").toString()
 }
 
 fun getActiveBuildType(): String {
@@ -47,8 +48,8 @@ fun getActiveBuildType(): String {
 
 fun getABITargets(): List<String> {
 	val targetAbiPropertyValue = findProperty("targetABI") as String?
-	if(targetAbiPropertyValue == null) {
-	    return listOf("arm", "arm64", "x86_64")
+	if (targetAbiPropertyValue == null) {
+		return listOf("arm", "arm64", "x86_64")
 	}
 	return targetAbiPropertyValue.orEmpty().split(",")
 }
@@ -118,10 +119,10 @@ tasks.register("generateBinding") {
 
 	if (!sdkUniffiConfigFile.asFile.exists()) throw RuntimeException("I would expect uniffi.toml for rust-sdk")
 
-    val targets = getABITargets()
-    println("abi: $targets")
+	val targets = getABITargets()
+	println("abi: $targets")
 	targets.forEach { abiTargetName ->
-	    println("abi: $abiTargetName ")
+		println("abi: $abiTargetName ")
 		val jniTargetName = abiTargetToJniTarget(abiTargetName)
 		val rustTargetName = jniTargetToRustTargetName(jniTargetName)
 
