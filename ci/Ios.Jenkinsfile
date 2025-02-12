@@ -60,7 +60,7 @@ pipeline {
 				script {
 					generateXCodeProjects()
 					dir('app-ios') {
-						sh 'fastlane test'
+						sh 'fastlane test_tuta_app'
 					}
 				}
 			} // steps
