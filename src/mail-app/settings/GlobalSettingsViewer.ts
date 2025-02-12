@@ -423,22 +423,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					.removeDomain(domainInfo.domain)
 					.catch(
 						ofClass(PreconditionFailedError, () => {
-							let registrationDomains =
-								this.props() != null ? this.props().whitelabelRegistrationDomains.map((domainWrapper) => domainWrapper.value) : []
-
-							if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-								Dialog.message(
-									lang.getTranslation("customDomainDeletePreconditionWhitelabelFailed_msg", {
-										"{domainName}": domainInfo.domain,
-									}),
-								)
-							} else {
-								Dialog.message(
-									lang.getTranslation("customDomainDeletePreconditionFailed_msg", {
-										"{domainName}": domainInfo.domain,
-									}),
-								)
-							}
+							Dialog.message(
+								lang.getTranslation("customDomainDeletePreconditionFailed_msg", {
+									"{domainName}": domainInfo.domain,
+								}),
+							)
 						}),
 					)
 					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))

@@ -54,7 +54,13 @@ o.spec("TutaSseFacade", () => {
 			verify(
 				sseClient.connect(
 					matchers.argThat((opts: SseConnectOptions) => {
-						return opts.url.toString() === url.toString() && deepEqual(opts.headers, { v: typeModels.MissedNotification.version, cv: APP_V })
+						return (
+							opts.url.toString() === url.toString() &&
+							deepEqual(opts.headers, {
+								v: typeModels.MissedNotification.version,
+								cv: APP_V,
+							})
+						)
 					}),
 				),
 			)
@@ -106,8 +112,6 @@ o.spec("TutaSseFacade", () => {
 				_ownerEncSessionKey: null,
 				_ownerGroup: "ownerGroupId",
 				_permissions: "permissionsId",
-				changeTime: new Date("2024-04-22"),
-				confirmationId: "confirmationId",
 				lastProcessedNotificationId: "lastProcessedNotificationId",
 				alarmNotifications: [],
 				notificationInfos: [notificationInfo],
@@ -143,8 +147,6 @@ o.spec("TutaSseFacade", () => {
 				_ownerEncSessionKey: null,
 				_ownerGroup: "ownerGroupId",
 				_permissions: "permissionsId",
-				changeTime: new Date("2024-04-22"),
-				confirmationId: "confirmationId",
 				lastProcessedNotificationId: newLastProcessedNotificationId,
 				alarmNotifications: [],
 				notificationInfos: [],

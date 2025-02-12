@@ -1212,9 +1212,7 @@ pub struct CustomerServerProperties {
 	pub _permissions: GeneratedId,
 	pub requirePasswordUpdateAfterReset: bool,
 	pub saveEncryptedIpAddressInSession: bool,
-	pub whitelabelCode: String,
 	pub emailSenderList: Vec<EmailSenderListElement>,
-	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
@@ -1249,7 +1247,6 @@ impl Entity for DateWrapper {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DebitServicePutData {
 	pub _format: i64,
-	pub invoice: Option<IdTupleGenerated>,
 }
 
 impl Entity for DebitServicePutData {
@@ -1307,7 +1304,6 @@ impl Entity for DnsRecord {
 pub struct DomainInfo {
 	pub _id: Option<CustomId>,
 	pub domain: String,
-	pub validatedMxRecord: bool,
 	pub catchAllMailGroup: Option<GeneratedId>,
 	pub whitelabelConfig: Option<GeneratedId>,
 }
@@ -2199,7 +2195,6 @@ pub struct InvoiceInfo {
 	pub specialPriceSharingPerUser: Option<i64>,
 	pub specialPriceUserSingle: Option<i64>,
 	pub specialPriceUserTotal: Option<i64>,
-	pub invoices: GeneratedId,
 	pub paymentErrorInfo: Option<PaymentErrorInfo>,
 }
 
@@ -2545,8 +2540,6 @@ pub struct MissedNotification {
 	pub _ownerGroup: Option<GeneratedId>,
 	pub _ownerKeyVersion: Option<i64>,
 	pub _permissions: GeneratedId,
-	pub changeTime: DateTime,
-	pub confirmationId: GeneratedId,
 	pub lastProcessedNotificationId: Option<GeneratedId>,
 	pub alarmNotifications: Vec<AlarmNotification>,
 	pub notificationInfos: Vec<NotificationInfo>,
@@ -3361,7 +3354,6 @@ impl Entity for RegistrationReturn {
 pub struct RegistrationServiceData {
 	pub _format: i64,
 	pub source: Option<String>,
-	pub starterDomain: String,
 	pub state: i64,
 }
 
@@ -3781,23 +3773,6 @@ impl Entity for SseConnectData {
 		TypeRef {
 			app: "sys",
 			type_: "SseConnectData",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct StringConfigValue {
-	pub _id: Option<CustomId>,
-	pub name: String,
-	pub value: String,
-}
-
-impl Entity for StringConfigValue {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_: "StringConfigValue",
 		}
 	}
 }
@@ -4636,7 +4611,6 @@ pub struct WhitelabelConfig {
 	pub privacyStatementUrl: Option<String>,
 	pub whitelabelCode: String,
 	pub bootstrapCustomizations: Vec<BootstrapFeature>,
-	pub certificateInfo: Option<CertificateInfo>,
 	pub whitelabelRegistrationDomains: Vec<StringWrapper>,
 }
 

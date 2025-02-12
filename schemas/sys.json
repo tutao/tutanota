@@ -565,6 +565,51 @@
 					"info": "AddAssociation PubEncKeyData/symKeyMac/AGGREGATION/2553."
 				}
 			]
+		},
+		{
+			"version": 121,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "InvoiceInfo",
+					"info": "RemoveAssociation InvoiceInfo/invoices."
+				},
+				{
+					"name": "ChangeResourceVisibility",
+					"sourceType": "MissedNotification",
+					"info": "ChangeResourceVisibility MissedNotification/de.tutao.applications.metamodel.Visibility@25bc."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "MissedNotification",
+					"info": "RemoveValue MissedNotification/confirmationId/1700."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "MissedNotification",
+					"info": "RemoveValue MissedNotification/changeTime/1701."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "DomainInfo",
+					"info": "RemoveValue DomainInfo/validatedMxRecord/699."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "WhitelabelConfig",
+					"info": "RemoveAssociation WhitelabelConfig/certificateInfo."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "CustomerServerProperties",
+					"info": "RemoveValue CustomerServerProperties/whitelabelCode/1278."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "CustomerServerProperties",
+					"info": "RemoveAssociation CustomerServerProperties/whitelabelRegistrationDomains."
+				}
+			]
 		}
 	]
 }

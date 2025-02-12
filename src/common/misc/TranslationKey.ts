@@ -399,7 +399,6 @@ export type TranslationKeyType =
 	| "customColors_label"
 	| "customColor_label"
 	| "customDomainDeletePreconditionFailed_msg"
-	| "customDomainDeletePreconditionWhitelabelFailed_msg"
 	| "customDomainErrorDnsLookupFailure_msg"
 	| "customDomainErrorDomainNotAvailable_msg"
 	| "customDomainErrorDomainNotFound_msg"

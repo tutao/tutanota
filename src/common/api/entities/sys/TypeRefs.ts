@@ -982,10 +982,8 @@ export type CustomerServerProperties = {
 	_permissions: Id;
 	requirePasswordUpdateAfterReset: boolean;
 	saveEncryptedIpAddressInSession: boolean;
-	whitelabelCode: string;
 
 	emailSenderList: EmailSenderListElement[];
-	whitelabelRegistrationDomains: StringWrapper[];
 }
 export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", "DateWrapper")
 
@@ -1009,8 +1007,6 @@ export type DebitServicePutData = {
 	_type: TypeRef<DebitServicePutData>;
 
 	_format: NumberString;
-
-	invoice: null | IdTuple;
 }
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
 
@@ -1055,7 +1051,6 @@ export type DomainInfo = {
 
 	_id: Id;
 	domain: string;
-	validatedMxRecord: boolean;
 
 	catchAllMailGroup: null | Id;
 	whitelabelConfig: null | Id;
@@ -1774,7 +1769,6 @@ export type InvoiceInfo = {
 	specialPriceUserSingle: null | NumberString;
 	specialPriceUserTotal: null | NumberString;
 
-	invoices: Id;
 	paymentErrorInfo: null | PaymentErrorInfo;
 }
 export const InvoiceItemTypeRef: TypeRef<InvoiceItem> = new TypeRef("sys", "InvoiceItem")
@@ -2048,8 +2042,6 @@ export type MissedNotification = {
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	_permissions: Id;
-	changeTime: Date;
-	confirmationId: Id;
 	lastProcessedNotificationId: null | Id;
 
 	alarmNotifications: AlarmNotification[];
@@ -2697,7 +2689,6 @@ export type RegistrationServiceData = {
 
 	_format: NumberString;
 	source: null | string;
-	starterDomain: string;
 	state: NumberString;
 }
 export const RejectedSenderTypeRef: TypeRef<RejectedSender> = new TypeRef("sys", "RejectedSender")
@@ -3024,19 +3015,6 @@ export type SseConnectData = {
 	identifier: string;
 
 	userIds: GeneratedIdWrapper[];
-}
-export const StringConfigValueTypeRef: TypeRef<StringConfigValue> = new TypeRef("sys", "StringConfigValue")
-
-export function createStringConfigValue(values: StrippedEntity<StringConfigValue>): StringConfigValue {
-	return Object.assign(create(typeModels.StringConfigValue, StringConfigValueTypeRef), values)
-}
-
-export type StringConfigValue = {
-	_type: TypeRef<StringConfigValue>;
-
-	_id: Id;
-	name: string;
-	value: string;
 }
 export const StringWrapperTypeRef: TypeRef<StringWrapper> = new TypeRef("sys", "StringWrapper")
 
@@ -3711,7 +3689,6 @@ export type WhitelabelConfig = {
 	whitelabelCode: string;
 
 	bootstrapCustomizations: BootstrapFeature[];
-	certificateInfo: null | CertificateInfo;
 	whitelabelRegistrationDomains: StringWrapper[];
 }
 export const WhitelabelParentTypeRef: TypeRef<WhitelabelParent> = new TypeRef("sys", "WhitelabelParent")
