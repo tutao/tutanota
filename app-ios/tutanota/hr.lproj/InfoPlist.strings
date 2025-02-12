@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Snimite fotografiju ili videozapis za dodavanje kao privitak.";
 NSPhotoLibraryUsageDescription = "Dodajte sliku iz svoje biblioteke kao privitak.";
 NSMicrophoneUsageDescription = "Koristi se prilikom snimanja video privitka.";
-NSContactsUsageDescription = "1. Pronađite adresu e-pošte primatelja u kontaktima.\n2. Po želji sinkronizirajte Tuta kontakte s uređajem.";
+NSContactsUsageDescription = "1. Pronađite adresu e-pošte primatelja u kontaktima.\n2. Po želji sinkronizirajte Tuta kontakte sa svojim uređajem.";
 NSRemindersUsageDescription = "Prikaz obavijesti kad stigne novi email.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Slike";
