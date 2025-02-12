@@ -93,7 +93,7 @@ pipeline {
 									when { expression { return BUILD.toBoolean() } }
 									steps {
 										build job: 'tutanota-3-webapp', parameters: [
-											booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging"))
+											booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
 											string(name: "branch", value: params.branch)
 										]
 									} // steps
@@ -123,8 +123,8 @@ pipeline {
 							steps {
 								script {
 									build job: 'tutanota-3-desktop-dictionaries', parameters: [
-										booleanParam(name: "RELEASE", value: !params.target.equals("dryRun"))
-										text(name: "branch", value: params.branch)
+										booleanParam(name: "RELEASE", value: !params.target.equals("dryRun")),
+										string(name: "branch", value: params.branch)
 									]
 								} // script
 							} // steps
