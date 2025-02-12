@@ -11,7 +11,7 @@ pipeline {
 			defaultValue: false,
 			description: "Upload release version to Nexus"
 		)
-        text(
+        string(
             name: 'branch',
             defaultValue: "*/master",
             description: "the branch to build the release from."
