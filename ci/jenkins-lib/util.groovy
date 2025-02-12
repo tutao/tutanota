@@ -24,12 +24,13 @@ def downloadFromNexus(Map params) {
 }
 
 def checkGithub() {
-	sh '''
-	    branch=$(git rev-parse --abbrev-ref HEAD)
-	    if test "master" != $branch; then
-	        # the user explicitly set the job to not build master, accept that.
+    sh """
+        if test "*/master" != "${params.branch}"; then
+            echo "this build was explicitly requested to not build off master"
             exit 0
-	    fi
+        fi
+    """
+	sh '''
 	    # this fails if the public repository master's tip is not in our master.
 	    # we may have more commits, though.
 		# get the commit hash of the public repositories master
