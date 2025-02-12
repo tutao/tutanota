@@ -72,6 +72,8 @@ async function bumpVersionInCargoWorkspace(newVersionString) {
 	} else {
 		console.log(`rust: Updated ${workspaceFilePath} package.version to ${newVersionString}`)
 		await fs.promises.writeFile(workspaceFilePath, newContents)
+		// regenerate the lockfile
+		await $`cargo update && cargo check --all`
 	}
 }
 

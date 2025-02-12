@@ -45,14 +45,14 @@ pipeline {
 				// we need to run the new version, not the one from master.
 				name: 'SOURCE_BRANCH',
 				defaultValue: 'dummy-do-not-use',
-				description: "Branch that gets merged into TARGET_BRANCH",
+				description: "Branch name (no 'origin' or similar) that gets merged into TARGET_BRANCH",
 				regex: /^(?!dummy-do-not-use$).*$/,
 				failedValidationMessage: "please provide one source branch name!",
 		)
 		validatingString(
 				name: 'TARGET_BRANCH',
 				defaultValue: 'dummy-do-not-use',
-				description: "Branch that gets updated",
+				description: "Branch name (no 'origin' or similar) that gets updated",
 				regex: /^(?!dummy-do-not-use$).*$/,
 				failedValidationMessage: "please provide one target branch name!",
 		)
