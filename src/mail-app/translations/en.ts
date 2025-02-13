@@ -416,6 +416,7 @@ export default {
 		"customColors_label": "Custom colors",
 		"customColor_label": "Custom color",
 		"customDomainDeletePreconditionFailed_msg": "Please deactivate all users and email addresses containing the domain: {domainName}.",
+		"customDomainDeletePreconditionWhitelabelFailed_msg": "Please deactivate all users and email addresses containing the domain: {domainName} and remove the domain as registration email domain.\n",
 		"customDomainErrorDnsLookupFailure_msg": "DNS lookup failed.",
 		"customDomainErrorDomainNotAvailable_msg": "Domain is not available.",
 		"customDomainErrorDomainNotFound_msg": "We could not find this domain in the DNS. Please check the spelling.",
