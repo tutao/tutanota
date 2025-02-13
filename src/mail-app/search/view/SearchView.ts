@@ -55,8 +55,10 @@ import {
 	archiveMails,
 	getConversationTitle,
 	getMoveMailBounds,
+	LabelsPopupOpts,
 	moveToInbox,
 	promptAndDeleteMails,
+	showLabelsPopup,
 	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
 } from "../../mail/view/MailGuiUtils.js"
@@ -87,7 +89,7 @@ import { EventEditorDialog } from "../../../calendar-app/calendar/gui/eventedito
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
-import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
+import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
@@ -408,12 +410,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				const actions = m(MailViewerActions, {
 					mailModel: mailLocator.mailModel,
 					selectedMails: selectedMails,
-					deleteMailsAction: () => this.deleteSelected(),
-					moveMailsAction: this.getMoveMailsAction(),
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
 					actionableMails: async () => selectedMails.map((m) => m._id),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
+					deleteMailsAction: () => this.deleteSelected(),
+					moveMailsAction: this.getMoveMailsAction(),
+					applyLabelsAction: this.getLabelsAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -447,12 +450,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
 					primaryMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					selectedMails: [conversationViewModel.primaryMail],
-					deleteMailsAction: () => this.deleteSelected(),
-					moveMailsAction: this.getMoveMailsAction(),
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the shown mail
 					actionableMails: async () => [conversationViewModel.primaryMail._id],
 					actionableMailViewerViewModel: conversationViewModel.primaryViewModel(),
+					deleteMailsAction: () => this.deleteSelected(),
+					moveMailsAction: this.getMoveMailsAction(),
+					applyLabelsAction: this.getLabelsAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -521,6 +525,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
 		const mailModel = mailLocator.mailModel
 		return mailModel.isMovingMailsAllowed() ? (origin) => this.moveMails(origin) : null
+	}
+
+	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
+		const mailModel = mailLocator.mailModel
+		const selectedMails = this.searchViewModel.getSelectedMails()
+
+		return mailModel.canAssignLabels() && allInSameMailbox(selectedMails)
+			? (dom, opts) => {
+					showLabelsPopup(mailModel, selectedMails, async () => selectedMails.map((m) => m._id), dom, opts)
+			  }
+			: null
 	}
 
 	private invalidateBirthdayPreview() {
@@ -617,11 +632,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && this.searchViewModel.conversationViewModel) {
 			return m(MobileMailActionBar, {
 				viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel(),
-				deleteMailsAction: () => this.deleteSelected(),
-				moveMailsAction: this.getMoveMailsAction(),
 				// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 				//    mails are always shown. So the action applies only to the shown mail
 				actionableMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail._id],
+				deleteMailsAction: () => this.deleteSelected(),
+				moveMailsAction: this.getMoveMailsAction(),
+				applyLabelsAction: this.getLabelsAction(),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
@@ -680,11 +696,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectedMails: this.searchViewModel.getSelectedMails(),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 					mailModel: mailLocator.mailModel,
-					deleteMailsAction: () => this.deleteSelected(),
-					moveMailsAction: this.getMoveMailsAction(),
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
 					actionableMails: async () => this.searchViewModel.getSelectedMails().map((m) => m._id),
+					deleteMailsAction: () => this.deleteSelected(),
+					moveMailsAction: this.getMoveMailsAction(),
+					applyLabelsAction: this.getLabelsAction(),
 				})
 			} else if (this.viewSlider.focusedColumn === this.resultListColumn) {
 				return m(

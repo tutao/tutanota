@@ -13,9 +13,10 @@ export interface MobileMailMultiselectionActionBarAttrs {
 	selectedMails: readonly Mail[]
 	mailModel: MailModel
 	selectNone: () => unknown
+	actionableMails: () => Promise<readonly IdTuple[]>
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
-	actionableMails: () => Promise<readonly IdTuple[]>
+	applyLabelsAction: ((dom: HTMLElement) => void) | null
 }
 
 // Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
@@ -23,7 +24,7 @@ export class MobileMailMultiselectionActionBar {
 	private dom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<MobileMailMultiselectionActionBarAttrs>): Children {
-		const { selectedMails, selectNone, mailModel, actionableMails, moveMailsAction, deleteMailsAction } = attrs
+		const { selectedMails, selectNone, mailModel, actionableMails, moveMailsAction, deleteMailsAction, applyLabelsAction } = attrs
 		return m(
 			MobileBottomActionBar,
 			{
@@ -48,23 +49,12 @@ export class MobileMailMultiselectionActionBar {
 							})
 						},
 					}),
-				mailModel.canAssignLabels() && allInSameMailbox(selectedMails)
+				applyLabelsAction
 					? m(IconButton, {
 							icon: Icons.Label,
 							title: "assignLabel_action",
 							click: (e, dom) => {
-								const referenceDom = this.dom ?? dom
-								if (selectedMails.length !== 0) {
-									const popup = new LabelsPopup(
-										referenceDom,
-										referenceDom.getBoundingClientRect(),
-										referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
-										mailModel.getLabelsForMails(selectedMails),
-										mailModel.getLabelStatesForMails(selectedMails),
-										async (addedLabels, removedLabels) => mailModel.applyLabels(await actionableMails(), addedLabels, removedLabels),
-									)
-									popup.show()
-								}
+								applyLabelsAction(dom)
 							},
 					  })
 					: null,

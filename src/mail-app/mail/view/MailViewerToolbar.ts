@@ -27,6 +27,7 @@ export interface MailViewerToolbarAttrs {
 	actionableMails: () => Promise<readonly IdTuple[]>
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
+	applyLabelsAction: ((dom: HTMLElement) => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -48,17 +49,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		} else if (attrs.primaryMailViewerViewModel) {
 			return [
 				this.renderDeleteButton(attrs),
-				attrs.primaryMailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs) : null,
-				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails) : null,
+				this.renderMoveButton(attrs),
+				this.renderLabelButton(attrs),
 				attrs.primaryMailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.selectedMails.length > 0) {
 			return [
 				this.renderDeleteButton(attrs),
 				this.renderMoveButton(attrs),
-				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.selectedMails)
-					? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails)
-					: null,
+				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
 				this.renderExportButton(attrs),
 			]
@@ -108,22 +107,17 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		)
 	}
 
-	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionableMails: () => Promise<readonly IdTuple[]>): Children {
-		return m(IconButton, {
-			title: "assignLabel_action",
-			icon: Icons.Label,
-			click: (_, dom) => {
-				const popup = new LabelsPopup(
-					dom,
-					dom.getBoundingClientRect(),
-					styles.isDesktopLayout() ? 300 : 200,
-					mailModel.getLabelsForMails(mails),
-					mailModel.getLabelStatesForMails(mails),
-					async (addedLabels, removedLabels) => mailModel.applyLabels(await actionableMails(), addedLabels, removedLabels),
-				)
-				popup.show()
-			},
-		})
+	private renderLabelButton({ applyLabelsAction }: MailViewerToolbarAttrs): Children {
+		return (
+			applyLabelsAction &&
+			m(IconButton, {
+				title: "assignLabel_action",
+				icon: Icons.Label,
+				click: (_, dom) => {
+					applyLabelsAction(dom)
+				},
+			})
+		)
 	}
 
 	private renderReadButton({ mailModel, primaryMailViewerViewModel, actionableMails }: MailViewerToolbarAttrs): Children {
