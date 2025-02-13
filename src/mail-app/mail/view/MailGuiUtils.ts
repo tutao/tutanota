@@ -6,7 +6,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { assertNotNull, endsWith, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, endsWith, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -34,6 +34,8 @@ import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
+import { LabelsPopup } from "./LabelsPopup"
+import { styles } from "../../../common/gui/styles"
 
 async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
@@ -470,4 +472,35 @@ export function isMailContrastFixNeeded(editorDom: ParentNode): boolean {
 			(s) => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
 		) || editorDom.querySelectorAll("font[color]").length > 0
 	)
+}
+
+export interface LabelsPopupOpts {
+	origin?: PosRect
+	width?: number
+}
+/**
+ *Shortcut Method to show Labels dropdown only when at least one mail is selected.
+ */
+export function showLabelsPopup(
+	mailModel: MailModel,
+	selectedMails: Mail[],
+	getActionableMails: (mails: Mail[]) => Promise<ReadonlyArray<IdTuple>>,
+	dom: HTMLElement | null,
+	opts?: LabelsPopupOpts,
+) {
+	const labels = mailModel.getLabelStatesForMails(selectedMails)
+
+	if (isEmpty(labels) || isEmpty(selectedMails)) {
+		return
+	}
+
+	const popup = new LabelsPopup(
+		dom ?? (document.activeElement as HTMLElement),
+		opts?.origin ?? dom?.getBoundingClientRect() ?? getMoveMailBounds(),
+		opts?.width ?? (styles.isDesktopLayout() ? 300 : 200),
+		mailModel.getLabelsForMails(selectedMails),
+		mailModel.getLabelStatesForMails(selectedMails),
+		async (addedLabels, removedLabels) => mailModel.applyLabels(await getActionableMails(selectedMails), addedLabels, removedLabels),
+	)
+	setTimeout(() => popup.show(), 16)
 }

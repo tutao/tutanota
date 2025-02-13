@@ -23,9 +23,11 @@ import {
 	archiveMails,
 	getConversationTitle,
 	getMoveMailBounds,
+	LabelsPopupOpts,
 	moveMails,
 	moveToInbox,
 	promptAndDeleteMails,
+	showLabelsPopup,
 	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
 } from "./MailGuiUtils"
@@ -78,7 +80,6 @@ import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
-import { LabelsPopup } from "./LabelsPopup"
 
 assertMainOrNode()
 
@@ -271,10 +272,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailModel,
 			primaryMailViewerViewModel: viewModel.primaryViewModel(),
 			selectedMails: [viewModel.primaryMail],
-			moveMailsAction: this.getMoveMailsAction(),
-			deleteMailsAction: () => this.deleteSelectedMails(),
 			actionableMails: async () => this.mailViewModel.getActionableMails([viewModel.primaryMail]),
 			actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel(),
+			moveMailsAction: this.getMoveMailsAction(),
+			deleteMailsAction: () => this.deleteSelectedMails(),
+			applyLabelsAction: this.getLabelsAction(),
 		})
 	}
 
@@ -312,10 +314,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailViewerActions, {
 			mailModel,
 			selectedMails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
-			deleteMailsAction: () => this.deleteSelectedMails(),
-			moveMailsAction: this.getMoveMailsAction(),
 			selectNone: () => this.mailViewModel.listModel?.selectNone(),
 			actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
+			deleteMailsAction: () => this.deleteSelectedMails(),
+			moveMailsAction: this.getMoveMailsAction(),
+			applyLabelsAction: this.getLabelsAction(),
 		})
 	}
 
@@ -388,19 +391,21 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
 								viewModel: this.conversationViewModel.primaryViewModel(),
-								deleteMailsAction: () => this.deleteSelectedMails(),
-								moveMailsAction: this.getMoveMailsAction(),
 								actionableMails: () =>
 									this.mailViewModel.getActionableMails(this.conversationViewModel ? [this.conversationViewModel.primaryMail] : []),
+								deleteMailsAction: () => this.deleteSelectedMails(),
+								moveMailsAction: this.getMoveMailsAction(),
+								applyLabelsAction: this.getLabelsAction(),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
 								selectedMails: this.mailViewModel.listModel.getSelectedAsArray(),
 								selectNone: () => this.mailViewModel.listModel?.selectNone(),
 								mailModel: mailLocator.mailModel,
+								actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 								deleteMailsAction: () => this.deleteSelectedMails(),
 								moveMailsAction: this.getMoveMailsAction(),
-								actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
+								applyLabelsAction: this.getLabelsAction(),
 						  })
 						: m(BottomNav),
 			}),
@@ -494,7 +499,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.L,
 				exec: () => {
-					this.labels()
+					const labelsCall = this.getLabelsAction()
+					labelsCall?.(null)
 					return true
 				},
 				help: "labels_label",
@@ -592,31 +598,18 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, origin, selectedMails, opts)
 	}
 
-	/**
-	 *Shortcut Method to show Labels dropdown only when at least one mail is selected.
-	 */
-	private labels() {
-		const mailList = this.mailViewModel.listModel
-		if (mailList == null || !mailLocator.mailModel.canAssignLabels()) {
-			return
-		}
-		const labels = mailLocator.mailModel.getLabelStatesForMails(mailList.getSelectedAsArray())
-		const selectedMails = mailList.getSelectedAsArray()
+	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
+		const mailModel = mailLocator.mailModel
 
-		if (isEmpty(labels) || isEmpty(selectedMails)) {
-			return
-		}
-
-		const popup = new LabelsPopup(
-			document.activeElement as HTMLElement,
-			getMoveMailBounds(),
-			styles.isDesktopLayout() ? 300 : 200,
-			mailLocator.mailModel.getLabelsForMails(selectedMails),
-			mailLocator.mailModel.getLabelStatesForMails(selectedMails),
-			async (addedLabels, removedLabels) =>
-				mailLocator.mailModel.applyLabels(await this.mailViewModel.getActionableMails(selectedMails), addedLabels, removedLabels),
-		)
-		popup.show()
+		return mailModel.canAssignLabels()
+			? (dom, opts) => {
+					const mailList = this.mailViewModel.listModel
+					if (mailList == null) {
+						return
+					}
+					showLabelsPopup(mailModel, mailList.getSelectedAsArray(), (mails: Mail[]) => this.mailViewModel.getActionableMails(mails), dom, opts)
+			  }
+			: null
 	}
 
 	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs) {
