@@ -1,21 +1,22 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
+import { ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
 import { LabelsPopup } from "./LabelsPopup.js"
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
+import { MailViewerViewModel } from "./MailViewerViewModel"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
 	actionableMails: () => Promise<readonly IdTuple[]>
+	deleteMailsAction: (() => void) | null
+	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -55,16 +56,19 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private moveButton({ viewModel }: MobileMailActionBarAttrs) {
-		return m(IconButton, {
-			title: "move_action",
-			click: (e, dom) =>
-				showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], {
-					width: this.dropdownWidth(),
-					withBackground: true,
-				}),
-			icon: Icons.Folder,
-		})
+	private moveButton({ moveMailsAction }: MobileMailActionBarAttrs) {
+		return (
+			moveMailsAction &&
+			m(IconButton, {
+				title: "move_action",
+				click: (e, dom) =>
+					moveMailsAction(dom.getBoundingClientRect(), {
+						width: this.dropdownWidth(),
+						withBackground: true,
+					}),
+				icon: Icons.Folder,
+			})
+		)
 	}
 
 	private dropdownWidth() {
@@ -106,12 +110,15 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private deleteButton({ viewModel }: MobileMailActionBarAttrs): Children {
-		return m(IconButton, {
-			title: "delete_action",
-			click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
-			icon: Icons.Trash,
-		})
+	private deleteButton({ deleteMailsAction }: MobileMailActionBarAttrs): Children {
+		return (
+			deleteMailsAction &&
+			m(IconButton, {
+				title: "delete_action",
+				click: deleteMailsAction,
+				icon: Icons.Trash,
+			})
+		)
 	}
 
 	private forwardButton({ viewModel }: MobileMailActionBarAttrs): Children {
