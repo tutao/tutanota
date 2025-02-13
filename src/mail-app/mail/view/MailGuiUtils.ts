@@ -34,7 +34,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 
-export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
+async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
 	let trashMails: Mail[] = []
 	let moveMails: Mail[] = []
 	for (let mail of mails) {
@@ -71,25 +71,25 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
 /**
  * @return whether emails were deleted
  */
-export function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
-	return showDeleteConfirmationDialog(mails).then((confirmed) => {
-		if (confirmed) {
-			onConfirm()
-			return mailModel
-				.deleteMails(mails)
-				.then(() => true)
-				.catch((e) => {
-					//LockedError should no longer be thrown!?!
-					if (e instanceof PreconditionFailedError || e instanceof LockedError) {
-						return Dialog.message("operationStillActive_msg").then(() => false)
-					} else {
-						throw e
-					}
-				})
+export async function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
+	const confirmed = await showDeleteConfirmationDialog(mails)
+	if (!confirmed) {
+		return false
+	}
+
+	onConfirm()
+
+	try {
+		await mailModel.deleteMails(mails)
+		return true
+	} catch (e) {
+		//LockedError should no longer be thrown!?!
+		if (e instanceof PreconditionFailedError || e instanceof LockedError) {
+			return Dialog.message("operationStillActive_msg").then(() => false)
 		} else {
-			return Promise.resolve(false)
+			throw e
 		}
-	})
+	}
 }
 
 interface MoveMailsParams {
@@ -337,12 +337,18 @@ export function getReferencedAttachments(attachments: Array<TutanotaFile>, refer
 	return attachments.filter((file) => referencedCids.find((rcid) => file.cid === rcid))
 }
 
+export interface ShowMoveMailsDropdownOpts {
+	width?: number
+	withBackground?: boolean
+	onSelected?: () => unknown
+}
+
 export async function showMoveMailsDropdown(
 	mailboxModel: MailboxModel,
 	model: MailModel,
 	origin: PosRect,
 	mails: readonly Mail[],
-	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
+	opts?: ShowMoveMailsDropdownOpts,
 ): Promise<void> {
 	const folders = await getMoveTargetFolderSystems(model, mails)
 	await showMailFolderDropdown(

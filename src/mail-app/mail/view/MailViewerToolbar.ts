@@ -1,32 +1,32 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { editDraft, exportAction, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { isApp } from "../../../common/api/common/Env.js"
 import { MailModel } from "../model/MailModel.js"
 import { LabelsPopup } from "./LabelsPopup.js"
 import { allInSameMailbox } from "../model/MailUtils"
 import { styles } from "../../../common/gui/styles"
+import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
  */
 export interface MailViewerToolbarAttrs {
-	mailboxModel: MailboxModel
 	mailModel: MailModel
 	selectedMails: Mail[]
 	primaryMailViewerViewModel?: MailViewerViewModel
 	actionableMailViewerViewModel?: MailViewerViewModel
 	selectNone?: () => void
 	actionableMails: () => Promise<readonly IdTuple[]>
+	deleteMailsAction: (() => void) | null
+	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -47,15 +47,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			return null
 		} else if (attrs.primaryMailViewerViewModel) {
 			return [
-				this.renderDeleteButton(mailModel, attrs.selectedMails, attrs.selectNone ?? noOp),
-				attrs.primaryMailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.selectedMails) : null,
+				this.renderDeleteButton(attrs),
+				attrs.primaryMailViewerViewModel.canForwardOrMove() ? this.renderMoveButton(attrs) : null,
 				attrs.mailModel.canAssignLabels() ? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails) : null,
 				attrs.primaryMailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
 			]
 		} else if (attrs.selectedMails.length > 0) {
 			return [
-				this.renderDeleteButton(mailModel, attrs.selectedMails, attrs.selectNone ?? noOp),
-				attrs.mailModel.isMovingMailsAllowed() ? this.renderMoveButton(attrs.mailboxModel, mailModel, attrs.selectedMails) : null,
+				this.renderDeleteButton(attrs),
+				this.renderMoveButton(attrs),
 				attrs.mailModel.canAssignLabels() && allInSameMailbox(attrs.selectedMails)
 					? this.renderLabelButton(mailModel, attrs.selectedMails, attrs.actionableMails)
 					: null,
@@ -86,22 +86,26 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private renderDeleteButton(mailModel: MailModel, mails: Mail[], selectNone: () => void): Children {
-		return m(IconButton, {
-			title: "delete_action",
-			click: () => {
-				promptAndDeleteMails(mailModel, mails, selectNone)
-			},
-			icon: Icons.Trash,
-		})
+	private renderDeleteButton({ deleteMailsAction }: MailViewerToolbarAttrs): Children {
+		return (
+			deleteMailsAction &&
+			m(IconButton, {
+				title: "delete_action",
+				click: deleteMailsAction,
+				icon: Icons.Trash,
+			})
+		)
 	}
 
-	private renderMoveButton(mailboxModel: MailboxModel, mailModel: MailModel, mails: Mail[]): Children {
-		return m(IconButton, {
-			title: "move_action",
-			icon: Icons.Folder,
-			click: (e, dom) => showMoveMailsDropdown(mailboxModel, mailModel, dom.getBoundingClientRect(), mails),
-		})
+	private renderMoveButton({ moveMailsAction }: MailViewerToolbarAttrs): Children {
+		return (
+			moveMailsAction &&
+			m(IconButton, {
+				title: "move_action",
+				icon: Icons.Folder,
+				click: (e, dom) => moveMailsAction(dom.getBoundingClientRect()),
+			})
+		)
 	}
 
 	private renderLabelButton(mailModel: MailModel, mails: readonly Mail[], actionableMails: () => Promise<readonly IdTuple[]>): Children {

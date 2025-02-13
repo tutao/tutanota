@@ -14,7 +14,7 @@ import { px, size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, getFirstOrThrow, isSameTypeRef, last, LazyLoaded, lazyMemoized, memoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, isSameTypeRef, last, LazyLoaded, lazyMemoized, memoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
@@ -56,8 +56,9 @@ import {
 	getConversationTitle,
 	getMoveMailBounds,
 	moveToInbox,
-	showDeleteConfirmationDialog,
+	promptAndDeleteMails,
 	showMoveMailsDropdown,
+	ShowMoveMailsDropdownOpts,
 } from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
@@ -90,6 +91,7 @@ import { getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
+import { PosRect } from "../../../common/gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -404,9 +406,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const conversationViewModel = this.searchViewModel.conversationViewModel
 			if (this.searchViewModel.listModel?.state.inMultiselect || !conversationViewModel) {
 				const actions = m(MailViewerActions, {
-					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
 					selectedMails: selectedMails,
+					deleteMailsAction: () => this.deleteSelected(),
+					moveMailsAction: this.getMoveMailsAction(),
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
 					actionableMails: async () => selectedMails.map((m) => m._id),
@@ -441,10 +444,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				})
 			} else {
 				const actions = m(MailViewerActions, {
-					mailboxModel: conversationViewModel.primaryViewModel().mailboxModel,
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
 					primaryMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					selectedMails: [conversationViewModel.primaryMail],
+					deleteMailsAction: () => this.deleteSelected(),
+					moveMailsAction: this.getMoveMailsAction(),
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the shown mail
 					actionableMails: async () => [conversationViewModel.primaryMail._id],
@@ -512,6 +516,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				),
 			)
 		}
+	}
+
+	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
+		const mailModel = mailLocator.mailModel
+		return mailModel.isMovingMailsAllowed() ? (origin) => this.moveMails(origin) : null
 	}
 
 	private invalidateBirthdayPreview() {
@@ -608,6 +617,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && this.searchViewModel.conversationViewModel) {
 			return m(MobileMailActionBar, {
 				viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel(),
+				deleteMailsAction: () => this.deleteSelected(),
+				moveMailsAction: this.getMoveMailsAction(),
 				// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 				//    mails are always shown. So the action applies only to the shown mail
 				actionableMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail._id],
@@ -669,7 +680,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					selectedMails: this.searchViewModel.getSelectedMails(),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 					mailModel: mailLocator.mailModel,
-					mailboxModel: locator.mailboxModel,
+					deleteMailsAction: () => this.deleteSelected(),
+					moveMailsAction: this.getMoveMailsAction(),
 					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
 					//    mails are always shown. So the action applies only to the selected mails
 					actionableMails: async () => this.searchViewModel.getSelectedMails().map((m) => m._id),
@@ -689,6 +701,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 
 		return m(BottomNav)
+	}
+
+	private async moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
+		const selection = this.searchViewModel.getSelectedMails()
+		if (!isEmpty(selection)) {
+			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, origin, selection, opts)
+		}
 	}
 
 	private searchBarPlaceholder() {
@@ -1045,14 +1064,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (this.searchViewModel.listModel.state.selectedItems.size > 0) {
 			if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 				const selected = this.searchViewModel.getSelectedMails()
-				showDeleteConfirmationDialog(selected).then((confirmed) => {
-					if (confirmed) {
-						if (selected.length > 1) {
-							// is needed for correct selection behavior on mobile
-							this.searchViewModel.listModel.selectNone()
-						}
-
-						mailLocator.mailModel.deleteMails(selected)
+				console.log(`Deleting ${selected.length} mails!`)
+				promptAndDeleteMails(mailLocator.mailModel, selected, () => {
+					if (selected.length > 1) {
+						// is needed for correct selection behavior on mobile
+						this.searchViewModel.listModel.selectNone()
 					}
 				})
 				return false
