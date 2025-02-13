@@ -1,4 +1,4 @@
-import type { MenuItemConstructorOptions } from "electron"
+import type { BaseWindow, KeyboardEvent, MenuItemConstructorOptions } from "electron"
 import type { WindowManager } from "../DesktopWindowManager"
 import { lang } from "../../misc/LanguageViewModel"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
@@ -114,10 +114,32 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 						role: "front",
 					},
 					{
-						role: "zoomIn",
+						click: (_, window, event) => this.emitZoomEvent(wm, window, event, "in"),
+						label: lang.get("zoomIn_action"),
+						accelerator: "Command+=",
+						enabled: true,
 					},
 					{
-						role: "zoomOut",
+						click: (_, window, event) => this.emitZoomEvent(wm, window, event, "out"),
+						label: lang.get("zoomOut_action"),
+						accelerator: "Command+-",
+						enabled: true,
+					},
+					{
+						click: (_, window, event) => this.emitZoomEvent(wm, window, event, "in"),
+						label: lang.get("zoomIn_action"),
+						accelerator: "Command+Shift+=",
+						enabled: true,
+						visible: false,
+						acceleratorWorksWhenHidden: true,
+					},
+					{
+						click: (_, window, event) => this.emitZoomEvent(wm, window, event, "out"),
+						label: lang.get("zoomOut_action"),
+						accelerator: "Command+Shift+-",
+						enabled: true,
+						visible: false,
+						acceleratorWorksWhenHidden: true,
 					},
 					{
 						role: "resetZoom",
@@ -139,6 +161,13 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 		this._electron.Menu.setApplicationMenu(menu)
 
 		return Promise.resolve()
+	}
+
+	private emitZoomEvent(wm: WindowManager, baseWindow: BaseWindow | undefined, event: KeyboardEvent, direction: "in" | "out"): void {
+		if (baseWindow == null) {
+			return
+		}
+		wm.get(baseWindow.id)?._browserWindow.webContents.emit("zoom-changed", event, direction)
 	}
 
 	isIntegrated(): Promise<boolean> {
