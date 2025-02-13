@@ -371,6 +371,8 @@ void initWorkspace(HashSet<String> changeset, String srcBranch, String targetBra
 		sh """
 		    git submodule deinit --all --force
 			git clean -dfx
+			git fetch
+			git reset --hard origin/${srcBranch}
 			cargo clean
 		"""
 	}
