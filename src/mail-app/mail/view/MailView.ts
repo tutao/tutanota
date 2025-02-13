@@ -19,7 +19,16 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
-import { archiveMails, getConversationTitle, getMoveMailBounds, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
+import {
+	archiveMails,
+	getConversationTitle,
+	getMoveMailBounds,
+	moveMails,
+	moveToInbox,
+	promptAndDeleteMails,
+	showMoveMailsDropdown,
+	ShowMoveMailsDropdownOpts,
+} from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
@@ -62,7 +71,7 @@ import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
-import { attachDropdown } from "../../../common/gui/base/Dropdown"
+import { attachDropdown, PosRect } from "../../../common/gui/base/Dropdown"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
@@ -257,11 +266,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private mailViewerSingleActions(viewModel: ConversationViewModel) {
+		const mailModel = viewModel.primaryViewModel().mailModel
 		return m(MailViewerActions, {
-			mailboxModel: viewModel.primaryViewModel().mailboxModel,
-			mailModel: viewModel.primaryViewModel().mailModel,
+			mailModel,
 			primaryMailViewerViewModel: viewModel.primaryViewModel(),
 			selectedMails: [viewModel.primaryMail],
+			moveMailsAction: this.getMoveMailsAction(),
+			deleteMailsAction: () => this.deleteSelectedMails(),
 			actionableMails: async () => this.mailViewModel.getActionableMails([viewModel.primaryMail]),
 			actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel(),
 		})
@@ -297,10 +308,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private mailViewerMultiActions() {
+		const mailModel = mailLocator.mailModel
 		return m(MailViewerActions, {
-			mailboxModel: locator.mailboxModel,
-			mailModel: mailLocator.mailModel,
+			mailModel,
 			selectedMails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
+			deleteMailsAction: () => this.deleteSelectedMails(),
+			moveMailsAction: this.getMoveMailsAction(),
 			selectNone: () => this.mailViewModel.listModel?.selectNone(),
 			actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 		})
@@ -375,6 +388,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
 								viewModel: this.conversationViewModel.primaryViewModel(),
+								deleteMailsAction: () => this.deleteSelectedMails(),
+								moveMailsAction: this.getMoveMailsAction(),
 								actionableMails: () =>
 									this.mailViewModel.getActionableMails(this.conversationViewModel ? [this.conversationViewModel.primaryMail] : []),
 						  })
@@ -383,12 +398,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								selectedMails: this.mailViewModel.listModel.getSelectedAsArray(),
 								selectNone: () => this.mailViewModel.listModel?.selectNone(),
 								mailModel: mailLocator.mailModel,
-								mailboxModel: locator.mailboxModel,
+								deleteMailsAction: () => this.deleteSelectedMails(),
+								moveMailsAction: this.getMoveMailsAction(),
 								actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 						  })
 						: m(BottomNav),
 			}),
 		)
+	}
+
+	private getMoveMailsAction(): ((origin: PosRect, opts: ShowMoveMailsDropdownOpts) => void) | null {
+		return mailLocator.mailModel.isMovingMailsAllowed() ? (origin, opts) => this.moveMails(origin, opts) : null
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -438,16 +458,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			{
 				key: Keys.DELETE,
-				exec: () => {
-					if (this.mailViewModel.listModel) this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
-				},
+				exec: () => this.deleteSelectedMails(),
 				help: "deleteEmails_action",
 			},
 			{
 				key: Keys.BACKSPACE,
-				exec: () => {
-					if (this.mailViewModel.listModel) this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
-				},
+				exec: () => this.deleteSelectedMails(),
 				help: "deleteEmails_action",
 			},
 			{
@@ -470,7 +486,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.V,
 				exec: () => {
-					this.moveMails()
+					this.moveMails(getMoveMailBounds())
 					return true
 				},
 				help: "move_action",
@@ -566,15 +582,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private moveMails() {
+	private moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
 		const mailList = this.mailViewModel.listModel
 		if (mailList == null) {
 			return
 		}
 
 		const selectedMails = mailList.getSelectedAsArray()
-
-		showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails)
+		showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, origin, selectedMails, opts)
 	}
 
 	/**
@@ -890,6 +905,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private deleteMails(mails: Mail[]): Promise<boolean> {
 		return promptAndDeleteMails(mailLocator.mailModel, mails, noOp)
+	}
+
+	private deleteSelectedMails() {
+		if (this.mailViewModel.listModel != null) {
+			this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+		}
 	}
 
 	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) {
