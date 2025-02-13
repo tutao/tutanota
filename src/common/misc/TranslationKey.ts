@@ -1941,3 +1941,12 @@ export type TranslationKeyType =
 	| "fourthOfPeriod_label"
 	| "sameDay_label"
 	| "unsupportedAdvancedRules_msg"
+	// Put in temporarily, will be removed soon
+	| "localAdminGroup_label"
+	| "assignAdminRightsToLocallyAdministratedUserError_msg"
+	| "localAdminGroups_label"
+	| "threeDays_label"
+	| "prevThreeDays_label"
+	| "nextThreeDays_label"
+	| "weekScrollTime_label"
+	| "weekScrollTime_msg"

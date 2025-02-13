@@ -6,7 +6,7 @@ import { defaultCalendarColor, RepeatPeriod, TabIndex, TimeFormat, Weekday } fro
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { AlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, ByRule } from "../../../../common/calendar/date/CalendarUtils.js"
 import { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
@@ -27,7 +27,6 @@ import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/Ev
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 import { DateTime } from "luxon"
 import { SectionButton } from "../../../../common/gui/base/buttons/SectionButton.js"
 

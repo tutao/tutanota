@@ -34,6 +34,7 @@ import {
 	AlarmInterval,
 	alarmIntervalToLuxonDurationLikeObject,
 	AlarmIntervalUnit,
+	ByRule,
 	CalendarDay,
 	CalendarMonth,
 	eventEndsAfterDay,
@@ -86,7 +87,6 @@ import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
-import { ByRule } from "../../../common/calendar/import/ImportExportUtils.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 
 export interface IntervalOption {
@@ -425,7 +425,7 @@ export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod
 		},
 	]
 }
-export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | "CUSTOM" | null>> => {
+export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | null>> => {
 	return [
 		{
 			name: "calendarRepeatIntervalNoRepeat_label",
@@ -446,10 +446,6 @@ export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<Repeat
 		{
 			name: "calendarRepeatIntervalAnnually_label",
 			value: RepeatPeriod.ANNUALLY,
-		},
-		{
-			name: "custom_label",
-			value: "CUSTOM",
 		},
 	]
 }
