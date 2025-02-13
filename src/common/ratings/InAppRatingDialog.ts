@@ -2,12 +2,12 @@ import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import m from "mithril"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { createEvent, getRatingAllowed, isEventHappyMoment, RatingCheckResult } from "./InAppRatingUtils.js"
-import { isIOSApp } from "../api/common/Env.js"
+import { isApp, isIOSApp } from "../api/common/Env.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations.js"
 import { neverNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
-import { Keys } from "../api/common/TutanotaConstants.js"
+import { Keys, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "../api/common/TutanotaConstants.js"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
 import { BaseButton, BaseButtonAttrs } from "../gui/base/buttons/BaseButton.js"
 import { theme } from "../gui/theme.js"
@@ -15,6 +15,7 @@ import { px, size } from "../gui/size.js"
 import { client } from "../misc/ClientDetector.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { DateTime } from "luxon"
+import { windowFacade } from "../misc/WindowFacade"
 
 const enum AppRatingValue {
 	Happy = "happy",
@@ -85,7 +86,7 @@ export async function showAppRatingDialog(): Promise<void> {
 										}),
 									),
 									m("h1.text-center", lang.get("ratingHowAreWeDoing_title")),
-									m("p.text-center", lang.get("ratingExplanation_msg")),
+									isIOSApp() ? m("p.text-center", lang.get("ratingExplanation_msg")) : m("p", "hogehoge android"),
 								),
 							),
 							m(
@@ -93,7 +94,7 @@ export async function showAppRatingDialog(): Promise<void> {
 								{ style: { gap: "1em" } },
 								m(BaseButton, {
 									label: "ratingLoveIt_label",
-									text: lang.get("ratingLoveIt_label"),
+									text: isIOSApp() ? lang.get("ratingLoveIt_label") : "Rate on Google Play Store",
 									onclick: () => choose(AppRatingValue.Happy),
 									class: `full-width border-radius-small center b flash accent-bg button-content`,
 									style: {
@@ -139,8 +140,11 @@ function handleRatingDialogSelection(selectedValue: AppRatingValue) {
 			break
 		case AppRatingValue.Happy: {
 			deviceConfig.setLastRatingPromptedDate(new Date())
-
-			void locator.systemFacade.requestInAppRating()
+			if (isIOSApp()) {
+				void locator.systemFacade.requestInAppRating()
+			} else {
+				windowFacade.openLink(client.isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
+			}
 			break
 		}
 	}
@@ -150,15 +154,13 @@ function handleRatingDialogSelection(selectedValue: AppRatingValue) {
  * If the client is on iOS, we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
  */
 export async function handleRatingByEvent() {
-	const isTheIOSApp = isIOSApp()
-
-	if (isTheIOSApp) {
+	if (isApp()) {
 		createEvent(deviceConfig)
 	}
 
 	const now = new Date()
 
-	if ((await getRatingAllowed(now, deviceConfig, isTheIOSApp)) === RatingCheckResult.RATING_ALLOWED) {
+	if ((await getRatingAllowed(now, deviceConfig, isApp())) === RatingCheckResult.RATING_ALLOWED) {
 		if (isEventHappyMoment(now, deviceConfig)) {
 			void showAppRatingDialog()
 		}

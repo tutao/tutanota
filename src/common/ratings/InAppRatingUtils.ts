@@ -31,8 +31,8 @@ export enum RatingCheckResult {
  * 3. The dialog must not have been shown within the last year (When the dialog is dismissed with the cancel button it is not considered being shown).
  * 4. The retry prompt timer (if set) must have expired.
  */
-export async function getRatingAllowed(now: Date, deviceConfig: DeviceConfig, isIOSApp: boolean): Promise<RatingCheckResult> {
-	if (!isIOSApp) {
+export async function getRatingAllowed(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingCheckResult> {
+	if (!isApp) {
 		return RatingCheckResult.UNSUPPORTED_PLATFORM
 	}
 

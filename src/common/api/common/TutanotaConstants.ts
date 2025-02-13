@@ -1261,3 +1261,6 @@ export const enum ImportStatus {
 	Canceled = 2,
 	Finished = 3,
 }
+
+export const TUTA_MAIL_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
+export const TUTA_CALENDAR_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
