@@ -4,12 +4,11 @@ import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, PosRect
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
+import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { editDraft, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
-import { LabelsPopup } from "./LabelsPopup.js"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 
 export interface MobileMailActionBarAttrs {
@@ -17,6 +16,7 @@ export interface MobileMailActionBarAttrs {
 	actionableMails: () => Promise<readonly IdTuple[]>
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
+	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -75,28 +75,21 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ viewModel, actionableMails }: MobileMailActionBarAttrs) {
+	private moreButton({ viewModel, actionableMails, applyLabelsAction }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
 				lazyButtons: () => {
 					const moreButtons: DropdownButtonAttrs[] = []
-					if (viewModel.mailModel.canAssignLabels()) {
+					if (applyLabelsAction) {
 						moreButtons.push({
 							label: "assignLabel_action",
-							click: (event, dom) => {
+							click: (_, dom) => {
 								const referenceDom = this.dom ?? dom
-								const popup = new LabelsPopup(
-									referenceDom,
-									referenceDom.getBoundingClientRect(),
-									this.dropdownWidth() ?? 200,
-									viewModel.mailModel.getLabelsForMails([viewModel.mail]),
-									viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
-									async (addedLabels, removedLabels) => viewModel.mailModel.applyLabels(await actionableMails(), addedLabels, removedLabels),
-								)
-								setTimeout(() => {
-									popup.show()
-								}, 16)
+								applyLabelsAction(referenceDom, {
+									width: this.dropdownWidth(),
+									origin: referenceDom.getBoundingClientRect(),
+								})
 							},
 							icon: Icons.Label,
 						})
