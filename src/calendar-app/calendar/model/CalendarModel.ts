@@ -108,6 +108,12 @@ export type CalendarRenderInfo = {
 	renderType: RenderType
 }
 
+type ExternalCalendarQueueItem = {
+	url: string
+	group: string
+	name: string | null
+}
+
 export function assertEventValidity(event: CalendarEvent) {
 	switch (checkEventValidity(event)) {
 		case CalendarEventValidity.InvalidContainsInvalidDate:
@@ -151,6 +157,11 @@ export class CalendarModel {
 		monitor.completed()
 		return calendarInfoPromise
 	}, new Map())
+
+	/**
+	 * Stores the queued calendars to be synchronized
+	 */
+	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -321,6 +332,25 @@ export class CalendarModel {
 		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
 	}
 
+	private async collectExternalCalendarsToSync(groupSettings: GroupSettings[] | null = null) {
+		const userController = this.logins.getUserController()
+		let existingGroupSettings = groupSettings
+
+		if (!existingGroupSettings) {
+			const { groupSettings: gSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
+			existingGroupSettings = gSettings
+		}
+
+		for (const { sourceUrl, group, name } of existingGroupSettings) {
+			if (!sourceUrl) continue
+
+			const calendar: ExternalCalendarQueueItem = { url: sourceUrl, group, name }
+			if (this.externalCalendarSyncQueue.some((queueItem) => deepEqual(calendar, queueItem))) continue
+
+			this.externalCalendarSyncQueue.push(calendar)
+		}
+	}
+
 	public async syncExternalCalendars(
 		groupSettings: GroupSettings[] | null = null,
 		syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL,
@@ -331,28 +361,26 @@ export class CalendarModel {
 			return
 		}
 
-		let existingGroupSettings = groupSettings
-		const userController = this.logins.getUserController()
+		await this.collectExternalCalendarsToSync(groupSettings)
+		return this.processExternalCalendarQueue(forceSync, syncInterval, longErrorMessage)
+	}
 
-		const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
-		let calendarGroupRootsList: CalendarGroupRoot[] = []
-		for (const membership of userController.getCalendarMemberships()) {
-			groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
-		}
-		calendarGroupRootsList = await Promise.all(groupRootsPromises)
-
-		if (!existingGroupSettings) {
-			const { groupSettings: gSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
-			existingGroupSettings = gSettings
-		}
-
+	private async processExternalCalendarQueue(forceSync: boolean, syncInterval: number, longErrorMessage: boolean) {
 		const skippedCalendars: Map<Id, { calendarName: string; error: Error }> = new Map()
-		for (const { sourceUrl, group, name } of existingGroupSettings) {
-			if (!sourceUrl) {
-				continue
-			}
 
-			const lastSyncEntry = this.deviceConfig.getLastExternalCalendarSync().get(group)
+		while (this.externalCalendarSyncQueue.length > 0) {
+			const calendar = this.externalCalendarSyncQueue.pop()
+			if (!calendar) break
+
+			const userController = this.logins.getUserController()
+			const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
+			let calendarGroupRootsList: CalendarGroupRoot[] = []
+			for (const membership of userController.getCalendarMemberships()) {
+				groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
+			}
+			calendarGroupRootsList = await Promise.all(groupRootsPromises)
+
+			const lastSyncEntry = this.deviceConfig.getLastExternalCalendarSync().get(calendar.group)
 			const offset = 1000 // Add an offset to account for cpu speed when storing or generating timestamps
 			const shouldSkipSync =
 				!forceSync &&
@@ -361,23 +389,23 @@ export class CalendarModel {
 				Date.now() + offset - lastSyncEntry.lastSuccessfulSync < syncInterval
 			if (shouldSkipSync) continue
 
-			const currentCalendarGroupRoot = calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, group)) ?? null
+			const currentCalendarGroupRoot = calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, calendar.group)) ?? null
 			if (!currentCalendarGroupRoot) {
-				console.error(`Trying to sync a calendar the user isn't subscribed to anymore: ${group}`)
+				console.error(`Trying to sync a calendar the user isn't subscribed to anymore: ${calendar.group}`)
 				continue
 			}
 
 			let parsedExternalEvents: ParsedEvent[] = []
 			try {
-				const externalCalendar = await this.fetchExternalCalendar(sourceUrl)
+				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
 				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
 			} catch (error) {
-				let calendarName = name
+				let calendarName = calendar.name
 				if (!calendarName) {
 					const calendars = await this.getCalendarInfos()
-					calendarName = calendars.get(group)?.groupInfo.name!
+					calendarName = calendars.get(calendar.group)?.groupInfo.name!
 				}
-				skippedCalendars.set(group, { calendarName, error })
+				skippedCalendars.set(calendar.group, { calendarName, error })
 				continue
 			}
 
@@ -454,7 +482,7 @@ export class CalendarModel {
 			}
 			console.log(TAG, `${operationsLog.deleted.length} events removed`)
 
-			this.deviceConfig.updateLastSync(group)
+			this.deviceConfig.updateLastSync(calendar.group)
 		}
 
 		if (skippedCalendars.size) {
