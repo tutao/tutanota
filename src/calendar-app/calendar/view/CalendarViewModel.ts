@@ -113,6 +113,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private _isNewPaidPlan: boolean = false
 	private localCalendars: Map<Id, CalendarInfo> = new Map<Id, CalendarInfo>()
 	private _calendarColors: GroupColors = new Map()
+	isCreatingExternalCalendar: boolean = false
 
 	constructor(
 		private readonly logins: LoginController,

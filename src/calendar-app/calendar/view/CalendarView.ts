@@ -749,6 +749,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			dialog.close()
 		}
 		const createExternalCalendar = async (dialog: Dialog, properties: CalendarProperties, calendarModel: CalendarModel) => {
+			if (this.viewModel.isCreatingExternalCalendar) {
+				return
+			}
+			this.viewModel.isCreatingExternalCalendar = true
+
 			const iCalStr = await handleUrlSubscription(calendarModel, properties.sourceUrl!)
 			if (iCalStr instanceof Error) throw iCalStr
 
@@ -757,6 +762,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				events = parseCalendarStringData(iCalStr, getTimeZone()).contents
 			} catch (e) {
 				await Dialog.message("invalidICal_error", e.message)
+				this.viewModel.isCreatingExternalCalendar = false
 				return
 			}
 
@@ -764,6 +770,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const calendarGroupRoot = await locator.entityClient.load(CalendarGroupRootTypeRef, calendarGroup._id)
 			deviceConfig.updateLastSync(calendarGroup._id)
 			await handleCalendarImport(calendarGroupRoot, events, CalendarType.URL)
+			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}
 
