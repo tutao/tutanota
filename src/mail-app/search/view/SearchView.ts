@@ -110,6 +110,9 @@ import { PosRect } from "../../../common/gui/base/Dropdown"
 import { editDraft, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { client } from "../../../common/misc/ClientDetector"
+import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
+import { UserError } from "../../../common/api/main/UserError"
+import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -321,7 +324,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderMobileListHeader(header: AppHeaderAttrs) {
-		return this.searchViewModel.listModel && this.searchViewModel.listModel?.state.inMultiselect
+		return this.searchViewModel.listModel && this.searchViewModel.listModel.state.inMultiselect
 			? this.renderMultiSelectMobileHeader()
 			: this.renderMobileListActionsHeader(header)
 	}
@@ -337,7 +340,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			rightActions.push(
 				m(EnterMultiselectIconButton, {
 					clickAction: () => {
-						this.searchViewModel.listModel?.enterMultiselect()
+						this.searchViewModel.listModel.enterMultiselect()
 					},
 				}),
 			)
@@ -392,7 +395,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				onMerge: confirmMerge,
 				onExport: exportContacts,
 			})
-			const isMultiselect = this.searchViewModel.listModel?.state.inMultiselect || selectedContacts.length === 0
+			const isMultiselect = this.searchViewModel.listModel.state.inMultiselect || selectedContacts.length === 0
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.navigation_bg,
 				desktopToolbar: () => m(DesktopViewerToolbar, actions),
@@ -422,7 +425,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const selectedMails = this.searchViewModel.getSelectedMails()
 
 			const conversationViewModel = this.searchViewModel.conversationViewModel
-			if (this.searchViewModel.listModel?.state.inMultiselect || !conversationViewModel) {
+			if (this.searchViewModel.listModel.state.inMultiselect || !conversationViewModel) {
 				const actions = m(MailViewerActions, {
 					mailModel: mailLocator.mailModel,
 					selectedMails: selectedMails,
@@ -434,6 +437,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					getUnreadState: null,
 					editDraftAction: this.getEditDraftAction(),
 					exportAction: this.getExportAction(),
+					replyAction: null,
+					replyAllAction: null,
+					forwardAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -456,7 +462,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						loadingAll:
 							this.searchViewModel.loadingAllForSearchResult != null
 								? "loading"
-								: this.searchViewModel.listModel?.isLoadedCompletely()
+								: this.searchViewModel.listModel.isLoadedCompletely()
 								? "loaded"
 								: "can_load",
 						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
@@ -475,6 +481,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					getUnreadState: () => this.getUnreadState(),
 					editDraftAction: this.getEditDraftAction(),
 					exportAction: this.getExportAction(),
+					replyAction: this.getReplyAction(conversationViewModel, false),
+					replyAllAction: this.getReplyAction(conversationViewModel, true),
+					forwardAction: this.getForwardAction(conversationViewModel),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -540,8 +549,26 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
+	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
+		const viewModel = conversationViewModel.primaryViewModel()
+		if (isDraft(viewModel.mail) || viewModel.isAnnouncement() || !viewModel.canForwardOrMove()) {
+			return null
+		} else {
+			return () => viewModel.forward().catch(ofClass(UserError, showUserError))
+		}
+	}
+
+	private getReplyAction(conversationViewModel: ConversationViewModel, replyAll: boolean): (() => void) | null {
+		const viewModel = conversationViewModel.primaryViewModel()
+		if (isDraft(viewModel.mail) || viewModel.isAnnouncement()) {
+			return null
+		} else {
+			return () => viewModel.reply(replyAll)
+		}
+	}
+
 	private getExportAction(): (() => void) | null {
-		const mails = this.searchViewModel.listModel?.getSelectedAsArray() ?? []
+		const mails = this.searchViewModel.listModel.getSelectedAsArray() ?? []
 		if (client.isMobileDevice() || !mailLocator.mailModel.isExportingMailsAllowed() || isEmpty(mails)) {
 			return null
 		}
@@ -550,7 +577,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getEditDraftAction(): (() => void) | null {
-		const mails = this.searchViewModel.listModel?.getSelectedAsArray() ?? []
+		const mails = this.searchViewModel.listModel.getSelectedAsArray() ?? []
 		if (mails.length !== 1) {
 			return null
 		}
@@ -669,7 +696,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (!styles.isSingleColumnLayout()) return m(BottomNav)
 
 		const { conversationViewModel } = this.searchViewModel
-		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
+		const isInMultiselect = this.searchViewModel.listModel.state.inMultiselect ?? false
 
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && conversationViewModel) {
 			return m(MobileMailActionBar, {
@@ -681,6 +708,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				getUnreadState: () => this.getUnreadState(),
 				editDraftAction: this.getEditDraftAction(),
 				exportAction: this.getExportAction(),
+				replyAction: this.getReplyAction(conversationViewModel, false),
+				replyAllAction: this.getReplyAction(conversationViewModel, true),
+				forwardAction: this.getForwardAction(conversationViewModel),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

@@ -2,14 +2,12 @@ import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { UserError } from "../../../common/api/main/UserError.js"
-import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
-import { ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MailViewerViewModel } from "./MailViewerViewModel"
+import { noOp } from "@tutao/tutanota-utils"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
@@ -20,6 +18,9 @@ export interface MobileMailActionBarAttrs {
 	getUnreadState: (() => boolean) | null
 	editDraftAction: (() => void) | null
 	exportAction: (() => void) | null
+	replyAction: (() => void) | null
+	replyAllAction: (() => void) | null
+	forwardAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -132,50 +133,48 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		)
 	}
 
-	private forwardButton({ viewModel, editDraftAction }: MobileMailActionBarAttrs): Children {
-		const disabled = !viewModel.canForwardOrMove() || editDraftAction != null
-
+	private forwardButton({ forwardAction }: MobileMailActionBarAttrs): Children {
+		const disabled = forwardAction == null
 		return m(IconButton, {
 			title: "forward_action",
-			click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
+			click: !disabled ? forwardAction : noOp,
 			icon: Icons.Forward,
 			disabled,
 		})
 	}
 
-	private replyButton({ viewModel, editDraftAction }: MobileMailActionBarAttrs) {
-		// FIXME: don't do the check in here; instead check for the reply action when it's added
-		if (viewModel.isAnnouncement() || editDraftAction != null) {
-			return null
-		}
+	private replyButton({ replyAction, replyAllAction }: MobileMailActionBarAttrs) {
+		return (
+			replyAction &&
+			m(IconButton, {
+				title: "reply_action",
+				click:
+					replyAllAction != null
+						? (e, dom) => {
+								const dropdown = new Dropdown(() => {
+									const buttons: DropdownButtonAttrs[] = []
+									buttons.push({
+										label: "replyAll_action",
+										icon: Icons.ReplyAll,
+										click: replyAllAction,
+									})
 
-		return m(IconButton, {
-			title: "reply_action",
-			click: viewModel.canReplyAll()
-				? (e, dom) => {
-						const dropdown = new Dropdown(() => {
-							const buttons: DropdownButtonAttrs[] = []
-							buttons.push({
-								label: "replyAll_action",
-								icon: Icons.ReplyAll,
-								click: () => viewModel.reply(true),
-							})
+									buttons.push({
+										label: "reply_action",
+										icon: Icons.Reply,
+										click: replyAction,
+									})
+									return buttons
+								}, this.dropdownWidth() ?? 300)
 
-							buttons.push({
-								label: "reply_action",
-								icon: Icons.Reply,
-								click: () => viewModel.reply(false),
-							})
-							return buttons
-						}, this.dropdownWidth() ?? 300)
-
-						const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
-						dropdown.setOrigin(domRect)
-						modal.displayUnique(dropdown, true)
-				  }
-				: () => viewModel.reply(false),
-			icon: viewModel.canReplyAll() ? Icons.ReplyAll : Icons.Reply,
-		})
+								const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
+								dropdown.setOrigin(domRect)
+								modal.displayUnique(dropdown, true)
+						  }
+						: replyAction,
+				icon: replyAllAction == null ? Icons.ReplyAll : Icons.Reply,
+			})
+		)
 	}
 
 	private editButton({ editDraftAction }: MobileMailActionBarAttrs) {
