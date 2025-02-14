@@ -63,7 +63,12 @@ export async function handleUncaughtErrorImpl(e: Error) {
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		if (!invalidSoftwareVersionActive) {
 			invalidSoftwareVersionActive = true
-			Dialog.message("outdatedClient_msg").then(() => (invalidSoftwareVersionActive = false))
+			return Dialog.updateReminder(lang.get("updateNeeded_msg"), lang.get("outdatedClient_msg"), false).then((confirmed) => {
+				if (confirmed) {
+					locator.updateClients()
+					invalidSoftwareVersionActive = false
+				}
+			})
 		}
 	} else if (
 		e instanceof NotAuthenticatedError ||
