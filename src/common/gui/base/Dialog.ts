@@ -27,6 +27,7 @@ import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "../../api/common/Env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
+import { client } from "../../misc/ClientDetector"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -665,7 +666,53 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static reminder(title: string, message: string): Promise<boolean> {
+	static async updateReminder(allowDefer: boolean, updateConfirm: () => unknown): Promise<void> {
+		const { ImageWithOptionsDialog } = await import("../dialogs/ImageWithOptionsDialog")
+
+		return new Promise((resolve) => {
+			let dialog: Dialog
+
+			const closeAction = () => {
+				dialog.close()
+				setTimeout(() => resolve(), DefaultAnimationTime)
+			}
+
+			dialog = new Dialog(DialogType.EditMedium, {
+				view: () =>
+					m(
+						".plr-l",
+						m(ImageWithOptionsDialog, {
+							image: `${window.tutao.appState.prefixWithoutFile}/images/update_needed_illu_${client.isCalendarApp() ? "calendar" : "mail"}.svg`,
+							titleText: "updateNeeded_msg",
+							messageText: "outdatedClient_msg",
+							mainActionText: "update_action",
+							mainActionClick: () => {
+								updateConfirm()
+								closeAction()
+							},
+							subActionText: allowDefer ? "upgradeReminderCancel_action" : null,
+							subActionClick: () => {
+								closeAction()
+							},
+						}),
+					),
+			})
+
+			if (allowDefer) {
+				dialog
+					.setCloseHandler(() => closeAction())
+					.addShortcut({
+						key: Keys.ESC,
+						shift: false,
+						exec: () => closeAction(),
+						help: "cancel_action",
+					})
+			}
+			dialog.show()
+		})
+	}
+
+	static upgradeReminder(title: string, message: string): Promise<boolean> {
 		return new Promise((resolve) => {
 			let dialog: Dialog
 
@@ -686,25 +733,8 @@ export class Dialog implements ModalComponent {
 					type: ButtonType.Primary,
 				},
 			]
-			dialog = new Dialog(DialogType.Reminder, {
-				view: () => [
-					m(".dialog-contentButtonsBottom.text-break.scroll", [
-						m(".h2.pb", title),
-						m(".flex-direction-change.items-center", [
-							m("#dialog-message.pb", message),
-							m("img[src=" + HabReminderImage + "].dialog-img.mb.bg-white.border-radius", {
-								style: {
-									"min-width": "150px",
-								},
-							}),
-						]),
-					]),
-					m(
-						".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-						buttonAttrs.map((a) => m(Button, a)),
-					),
-				],
-			})
+			dialog = this.reminderDialog(title, message, HabReminderImage, buttonAttrs)
+			dialog
 				.setCloseHandler(() => closeAction(false))
 				.addShortcut({
 					key: Keys.ESC,
@@ -713,6 +743,29 @@ export class Dialog implements ModalComponent {
 					help: "cancel_action",
 				})
 				.show()
+		})
+	}
+
+	static reminderDialog(title: string, message: string | lazy<Children>, image: string, buttonAttrs: Array<ButtonAttrs>): Dialog {
+		return new Dialog(DialogType.Reminder, {
+			view: () => [
+				m(".dialog-contentButtonsBottom.text-break.scroll", [
+					m(".h2.pb", title),
+					m(".flex-direction-change.items-center", [
+						m("#dialog-message.pb.selectable", typeof message == "function" ? message() : message),
+						m("img.dialog-img.mb.bg-white.border-radius", {
+							style: {
+								"min-width": "150px",
+							},
+							src: image,
+						}),
+					]),
+				]),
+				m(
+					".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
+					buttonAttrs.map((a) => m(Button, a)),
+				),
+			],
 		})
 	}
 

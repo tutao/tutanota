@@ -34,7 +34,7 @@ import { showUserError } from "./ErrorHandlerImpl"
 import type { SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import { locator } from "../api/main/CommonLocator"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
-import type { Params } from "mithril"
+import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 
 /**
@@ -92,7 +92,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 				return false
 			} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
 				const message = lang.get("upgradeNeeded_msg")
-				return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message).then((confirmed) => {
+				return Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), message).then((confirmed) => {
 					if (confirmed) {
 						import("../subscription/UpgradeSubscriptionWizard").then((m) => m.showUpgradeWizard(logins))
 					}

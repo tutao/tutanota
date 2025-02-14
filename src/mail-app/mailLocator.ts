@@ -1118,6 +1118,7 @@ class MailLocator {
 			this.syncTracker,
 			() => this.showSetupWizard(),
 			() => this.setUpClientOnlyCalendars(),
+			() => this.updateClients(),
 		)
 	})
 
@@ -1148,6 +1149,26 @@ class MailLocator {
 					name: lang.get(name),
 					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
 				})
+		}
+	}
+
+	async updateClients(): Promise<void> {
+		if (isDesktop()) {
+			await this.desktopSettingsFacade.manualUpdate()
+		} else if (isApp()) {
+			if (isAndroidApp()) {
+				this.nativeInterfaces?.mobileSystemFacade.openLink("market://details?id=de.tutao.tutanota")
+			} else if (isIOSApp()) {
+				this.nativeInterfaces?.mobileSystemFacade.openLink("itms-apps://itunes.apple.com/app/id922429609")
+			}
+		} else {
+			// web version
+			const registration = await navigator.serviceWorker?.getRegistration()
+			if (registration?.waiting) {
+				registration.waiting.postMessage("update")
+			} else {
+				windowFacade.reload({})
+			}
 		}
 	}
 

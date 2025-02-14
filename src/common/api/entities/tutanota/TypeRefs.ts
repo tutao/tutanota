@@ -1826,6 +1826,18 @@ export type ReceiveInfoServiceData = {
 	_format: NumberString;
 	language: string;
 }
+export const ReceiveInfoServicePostOutTypeRef: TypeRef<ReceiveInfoServicePostOut> = new TypeRef("tutanota", "ReceiveInfoServicePostOut")
+
+export function createReceiveInfoServicePostOut(values: StrippedEntity<ReceiveInfoServicePostOut>): ReceiveInfoServicePostOut {
+	return Object.assign(create(typeModels.ReceiveInfoServicePostOut, ReceiveInfoServicePostOutTypeRef), values)
+}
+
+export type ReceiveInfoServicePostOut = {
+	_type: TypeRef<ReceiveInfoServicePostOut>;
+
+	_format: NumberString;
+	outdatedVersion: boolean;
+}
 export const RecipientsTypeRef: TypeRef<Recipients> = new TypeRef("tutanota", "Recipients")
 
 export function createRecipients(values: StrippedEntity<Recipients>): Recipients {
