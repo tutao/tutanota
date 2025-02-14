@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../common/gui/base/Select.js"
-import { TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
 import { debounceStart, getFirstOrThrow } from "@tutao/tutanota-utils"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
@@ -15,6 +15,7 @@ import { Icon } from "../../../../common/gui/base/Icon.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { keyboardEventToKeyPress } from "../../../../common/misc/KeyManager.js"
 
 export interface GuestPickerAttrs {
 	ariaLabel: TranslationKey
@@ -59,11 +60,11 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 			tabIndex: Number(TabIndex.Programmatic),
 			placeholder: this.renderSearchInput(attrs),
 			renderDisplay: () => this.renderSearchInput(attrs),
-			renderOption: (option) => this.renderSuggestionItem(option === this.selected, option),
+			renderOption: (option) => this.renderSuggestionItem(option),
 		} satisfies SelectAttributes<GuestItem, RecipientSearchResultItem>)
 	}
 
-	private renderSuggestionItem(selected: boolean, option: GuestItem) {
+	private renderSuggestionItem(option: GuestItem) {
 		const firstRow =
 			option.value.type === "recipient"
 				? option.value.value.name
@@ -76,15 +77,13 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 				  })
 		const secondRow = option.value.type === "recipient" ? option.value.value.address : option.value.value.name
 		return m(
-			"button.pt-s.pb-s.click.content-hover.state-bg",
+			"button.pt-s.pb-s.click.content-hover.state-bg.button-min-height.flex.col",
 			{
-				class: selected ? "content-accent-fg row-selected icon-accent" : "",
 				style: {
-					"padding-left": selected ? px(size.hpad_large - 3) : px(size.hpad_large),
-					"border-left": selected ? "3px solid" : null,
+					"padding-left": px(size.hpad_large),
 				},
 			},
-			[m(".small.full-width.text-ellipsis", firstRow), m(".name.full-width.text-ellipsis", secondRow)],
+			[m("span.small.full-width.text-ellipsis.box-content", firstRow), m("span.name.full-width.text-ellipsis.box-content", secondRow)],
 		)
 	}
 
@@ -158,8 +157,19 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 
 				e.redraw = false
 			},
+			onkeydown: (event: KeyboardEvent) => this.handleKeyDown(event, attrs),
 			type: TextFieldType.Text,
 		})
+	}
+
+	private handleKeyDown(event: KeyboardEvent, attrs: GuestPickerAttrs) {
+		const keyPress = keyboardEventToKeyPress(event)
+
+		if (keyPress.key.toLowerCase() === Keys.RETURN.code) {
+			this.resolveInput(attrs, true)
+		}
+
+		return true
 	}
 
 	private doSearch = debounceStart(DefaultAnimationTime, (val: string, attrs: GuestPickerAttrs) => {
