@@ -7,7 +7,7 @@ import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
-import { editDraft, exportAction, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
+import { exportAction, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { isApp } from "../../../common/api/common/Env.js"
 import { MailModel } from "../model/MailModel.js"
 import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
@@ -25,8 +25,9 @@ export interface MailViewerToolbarAttrs {
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement) => void) | null
-	setUnreadStateAction: (unread: boolean) => void
+	setUnreadStateAction: ((unread: boolean) => void) | null
 	getUnreadState: (() => boolean) | null
+	editDraftAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -45,20 +46,14 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 		if (!mailModel || !attrs.selectedMails) {
 			return null
-		} else if (attrs.primaryMailViewerViewModel) {
-			return [
-				this.renderDeleteButton(attrs),
-				this.renderMoveButton(attrs),
-				this.renderLabelButton(attrs),
-				attrs.primaryMailViewerViewModel.isDraftMail() ? null : this.renderReadButton(attrs),
-			]
 		} else if (attrs.selectedMails.length > 0) {
 			return [
 				this.renderDeleteButton(attrs),
 				this.renderMoveButton(attrs),
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
-				this.renderExportButton(attrs),
+				// FIXME: put this check outside!
+				attrs.selectedMails.length > 1 ? this.renderExportButton(attrs) : null,
 			]
 		}
 	}
@@ -71,13 +66,14 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
 		if (attrs.primaryMailViewerViewModel && attrs.actionableMailViewerViewModel) {
 			if (attrs.primaryMailViewerViewModel.isAnnouncement()) {
+				/* FIXME: move this check to the outside */
 				return []
-			} else if (attrs.primaryMailViewerViewModel.isDraftMail()) {
-				return [this.renderEditButton(attrs.primaryMailViewerViewModel)]
-			} else if (attrs.actionableMailViewerViewModel.canForwardOrMove()) {
-				return [this.renderReplyButton(attrs.actionableMailViewerViewModel), this.renderForwardButton(attrs.actionableMailViewerViewModel)]
 			} else {
-				return [this.renderReplyButton(attrs.actionableMailViewerViewModel)]
+				return [
+					this.renderEditButton(attrs),
+					this.renderReplyButton(attrs.actionableMailViewerViewModel),
+					this.renderForwardButton(attrs.actionableMailViewerViewModel),
+				]
 			}
 		} else {
 			return []
@@ -120,6 +116,10 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	}
 
 	private renderReadButton({ setUnreadStateAction, getUnreadState }: MailViewerToolbarAttrs): Children {
+		if (setUnreadStateAction == null) {
+			return null
+		}
+
 		const markReadButton = m(IconButton, {
 			title: "markRead_action",
 			click: () => setUnreadStateAction(false),
@@ -178,23 +178,20 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	}
 
 	private renderForwardButton(viewModel: MailViewerViewModel) {
-		return m(IconButton, {
-			title: "forward_action",
-			click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
-			icon: Icons.Forward,
-		})
+		return viewModel.canForwardOrMove()
+			? m(IconButton, {
+					title: "forward_action",
+					click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
+					icon: Icons.Forward,
+			  })
+			: null
 	}
 
-	private renderMoreButton({
-		primaryMailViewerViewModel: viewModel,
-		actionableMails,
-		setUnreadStateAction,
-		getUnreadState,
-	}: MailViewerToolbarAttrs): Children {
+	private renderMoreButton({ primaryMailViewerViewModel: viewModel, actionableMails }: MailViewerToolbarAttrs): Children {
 		let actions: DropdownButtonAttrs[] = []
 
 		if (viewModel) {
-			actions = multipleMailViewerMoreActions(viewModel, actionableMails, setUnreadStateAction, assertNotNull(getUnreadState))
+			actions = multipleMailViewerMoreActions(viewModel, actionableMails)
 		}
 
 		return actions.length > 0
@@ -209,11 +206,13 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			: null
 	}
 
-	private renderEditButton(viewModel: MailViewerViewModel) {
-		return m(IconButton, {
-			title: "edit_action",
-			click: () => editDraft(viewModel),
-			icon: Icons.Edit,
-		})
+	private renderEditButton({ editDraftAction }: MailViewerToolbarAttrs) {
+		return editDraftAction
+			? m(IconButton, {
+					title: "edit_action",
+					click: editDraftAction,
+					icon: Icons.Edit,
+			  })
+			: null
 	}
 }
