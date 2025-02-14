@@ -10,9 +10,6 @@ import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gu
 import { editDraft, exportAction, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { isApp } from "../../../common/api/common/Env.js"
 import { MailModel } from "../model/MailModel.js"
-import { LabelsPopup } from "./LabelsPopup.js"
-import { allInSameMailbox } from "../model/MailUtils"
-import { styles } from "../../../common/gui/styles"
 import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 
 /*
@@ -28,6 +25,8 @@ export interface MailViewerToolbarAttrs {
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement) => void) | null
+	setUnreadStateAction: (unread: boolean) => void
+	getUnreadState: (() => boolean) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -37,7 +36,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			this.renderSingleMailActions(vnode.attrs),
 			vnode.attrs.primaryMailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),
-			this.renderMoreButton(vnode.attrs.primaryMailViewerViewModel, vnode.attrs.actionableMails),
+			this.renderMoreButton(vnode.attrs),
 		])
 	}
 
@@ -120,28 +119,28 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		)
 	}
 
-	private renderReadButton({ mailModel, primaryMailViewerViewModel, actionableMails }: MailViewerToolbarAttrs): Children {
+	private renderReadButton({ setUnreadStateAction, getUnreadState }: MailViewerToolbarAttrs): Children {
 		const markReadButton = m(IconButton, {
 			title: "markRead_action",
-			click: async () => mailModel.markMails(await actionableMails(), false),
+			click: () => setUnreadStateAction(false),
 			icon: Icons.Eye,
 		})
 		const markUnreadButton = m(IconButton, {
 			title: "markUnread_action",
-			click: async () => mailModel.markMails(await actionableMails(), true),
+			click: () => setUnreadStateAction(true),
 			icon: Icons.NoEye,
 		})
 
-		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
-		if (primaryMailViewerViewModel) {
-			if (primaryMailViewerViewModel.isUnread()) {
+		// getUnreadState means we are viewing one mail; otherwise, it is coming from a MultiViewer
+		if (getUnreadState != null) {
+			if (getUnreadState()) {
 				return markReadButton
 			} else {
 				return markUnreadButton
 			}
+		} else {
+			return [markReadButton, markUnreadButton]
 		}
-
-		return [markReadButton, markUnreadButton]
 	}
 
 	private renderExportButton(attrs: MailViewerToolbarAttrs) {
@@ -186,11 +185,16 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		})
 	}
 
-	private renderMoreButton(viewModel: MailViewerViewModel | undefined, actionableMails: () => Promise<readonly IdTuple[]>): Children {
+	private renderMoreButton({
+		primaryMailViewerViewModel: viewModel,
+		actionableMails,
+		setUnreadStateAction,
+		getUnreadState,
+	}: MailViewerToolbarAttrs): Children {
 		let actions: DropdownButtonAttrs[] = []
 
 		if (viewModel) {
-			actions = multipleMailViewerMoreActions(viewModel, actionableMails)
+			actions = multipleMailViewerMoreActions(viewModel, actionableMails, setUnreadStateAction, assertNotNull(getUnreadState))
 		}
 
 		return actions.length > 0
