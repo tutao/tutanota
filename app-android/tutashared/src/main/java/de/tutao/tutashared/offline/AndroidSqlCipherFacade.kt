@@ -2,21 +2,19 @@ package de.tutao.tutashared.offline
 
 import android.content.Context
 import android.database.Cursor
+import android.database.SQLException
 import android.util.Log
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.ipc.wrap
 import kotlinx.coroutines.CompletableDeferred
-import net.sqlcipher.SQLException
-import net.sqlcipher.database.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteDatabase
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
 
 class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	init {
-		SQLiteDatabase.loadLibs(context)
+		System.loadLibrary("sqlcipher")
 	}
 
 	// Set db to volatile because we only wrap modifications to db in synchronized yet we still want all access
@@ -29,7 +27,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	private val listIdLocks: MutableMap<String, CompletableDeferred<Unit>> = ConcurrentHashMap()
 
 	override suspend fun openDb(userId: String, dbKey: DataWrapper) {
-		Log.d(TAG, "Open db $userId")
 		// db is volatile so we see the latest value but it doesn't mean that we won't try to open/delete it in parallel
 		// so we need synchronized.
 		// Wrap the whole method into synchronized to ensure that no other check or modification can happen in between
@@ -38,7 +35,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				Log.w(TAG, "opening new database while old one is open")
 				closeDbSync()
 			}
-			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
+			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId), dbKey.data, null, null)
 		}
 
 		// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
@@ -49,8 +46,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				if (cursor.getInt(0) != 2) {
 					db?.query("PRAGMA auto_vacuum = incremental")
 					Log.d(TAG, "PRAGMA vacuum")
-					val duration = measureTime { db?.query("PRAGMA vacuum") }
-					Log.d(TAG, "PRAGMA vacuum done ${duration.inWholeMilliseconds}ms")
+					
 				}
 			}
 		}
@@ -97,12 +93,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 
 	override suspend fun run(query: String, params: List<TaggedSqlValue>) {
 		try {
-			val duration = measureTime {
-				openedDb.execSQL(query, params.prepare())
-			}
-			if (duration > 1.seconds) {
-				Log.e(TAG, "Running $query took ${duration.inWholeMilliseconds}ms")
-			}
+			openedDb.execSQL(query, params.prepare())
 		} catch (e: SQLException) {
 			Log.e(TAG, "Error when running SQL query `$query`, args[0] ${params.getOrNull(0)}")
 			throw e

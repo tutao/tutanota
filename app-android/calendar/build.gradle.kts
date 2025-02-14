@@ -179,14 +179,6 @@ dependencies {
 	// For Kotlin use kapt instead of annotationProcessor
 	kapt("androidx.room:room-compiler:$room_version")
 
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		val includes: Map<String, Any> = mapOf("include" to arrayOf("*.aar"), "dir" to "../libs")
-		implementation(fileTree(includes))
-	} else {
-		implementation("net.zetetic:android-database-sqlcipher:4.5.0")
-	}
-	implementation("androidx.sqlite:sqlite:2.0.1")
-
 	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 	implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
 

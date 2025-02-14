@@ -93,12 +93,19 @@ dependencies {
 	// For Kotlin use kapt instead of annotationProcessor
 	ksp("androidx.room:room-compiler:$room_version")
 
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		// We are not allowed to depend on an aar lib from an library, but, we can
-		// use compileOnly IF we still include the library in our applications
-		compileOnly(files("../libs/android-database-sqlcipher-4.5.0.aar"))
+	if (file("../libs/sqlcipher-android-4.6.0.aar").exists()) {
+		logger.lifecycle("Using prebuild sqlcipher file in ../libs")
+		// If we would build a standalone AAR out of tutashared we would run into this error:
+		// "Direct local .aar file dependencies are not supported when building an AAR. The resulting AAR would be
+		// broken because the classes and Android resources from any local .aar file dependencies would not be packaged
+		// in the resulting AAR. Previous versions of the Android Gradle Plugin produce broken AARs in this case too
+		// (despite not throwing this error)."
+		// This is not really a problem for us because we never build a separate AAR out of tutashared, it is just a
+		// module.
+		api(files("../libs/sqlcipher-android-4.6.0.aar"))
 	} else {
-		implementation("net.zetetic:android-database-sqlcipher:4.5.0")
+		logger.lifecycle("Using sqlcipher from remote repository")
+		implementation("net.zetetic:sqlcipher-android:4.6.0@aar")
 	}
 	implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 
