@@ -107,6 +107,8 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
 import { PosRect } from "../../../common/gui/base/Dropdown"
+import { editDraft } from "../../mail/view/MailViewerUtils"
+import { isDraft } from "../../mail/model/MailChecks"
 
 assertMainOrNode()
 
@@ -432,6 +434,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 					getUnreadState: null,
+					editDraftAction: this.getEditDraftAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -474,6 +477,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 					getUnreadState: () => this.getUnreadState(),
+					editDraftAction: this.getEditDraftAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -537,6 +541,20 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				),
 			)
 		}
+	}
+
+	private getEditDraftAction(): (() => void) | null {
+		const mails = this.searchViewModel.listModel?.getSelectedAsArray() ?? []
+		if (mails.length !== 1) {
+			return null
+		}
+
+		const conversationViewModel = assertNotNull(this.searchViewModel.conversationViewModel)
+		if (!isDraft(conversationViewModel.primaryMail)) {
+			return null
+		}
+
+		return () => editDraft(conversationViewModel.primaryViewModel())
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
@@ -657,6 +675,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				applyLabelsAction: this.getLabelsAction(),
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
 				getUnreadState: () => this.getUnreadState(),
+				editDraftAction: this.getEditDraftAction(),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

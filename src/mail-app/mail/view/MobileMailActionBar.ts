@@ -7,7 +7,7 @@ import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { ofClass } from "@tutao/tutanota-utils"
 import { modal } from "../../../common/gui/base/Modal.js"
-import { editDraft, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
+import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 
@@ -17,8 +17,9 @@ export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
-	setUnreadStateAction: (unread: boolean) => void
-	getUnreadState: () => boolean
+	setUnreadStateAction: ((unread: boolean) => void) | null
+	getUnreadState: (() => boolean) | null
+	editDraftAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -26,18 +27,6 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 
 	view(vnode: Vnode<MobileMailActionBarAttrs>): Children {
 		const { attrs } = vnode
-		const { viewModel } = attrs
-		let actions: Children[]
-
-		if (viewModel.isAnnouncement()) {
-			actions = [this.placeholder(), this.placeholder(), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
-		} else if (viewModel.isDraftMail()) {
-			actions = [this.placeholder(), this.placeholder(), this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
-		} else if (viewModel.canForwardOrMove()) {
-			actions = [this.replyButton(attrs), this.forwardButton(attrs), this.deleteButton(attrs), this.moveButton(attrs), this.moreButton(attrs)]
-		} else {
-			actions = [this.replyButton(attrs), this.placeholder(), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
-		}
 
 		return m(
 			".bottom-nav.bottom-action-bar.flex.items-center.plr-l.justify-between",
@@ -46,7 +35,13 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 					this.dom = vnode.dom as HTMLElement
 				},
 			},
-			[actions],
+			[
+				this.editButton(attrs) || this.replyButton(attrs) || this.placeholder(),
+				this.forwardButton(attrs),
+				this.deleteButton(attrs),
+				this.moveButton(attrs) || this.placeholder(),
+				this.moreButton(attrs),
+			],
 		)
 	}
 
@@ -96,7 +91,28 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							icon: Icons.Label,
 						})
 					}
-					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, actionableMails, setUnreadStateAction, getUnreadState)]
+					if (setUnreadStateAction != null) {
+						const readButton: DropdownButtonAttrs = {
+							label: "markRead_action",
+							click: () => setUnreadStateAction(false),
+							icon: Icons.Eye,
+						}
+						const unreadButton: DropdownButtonAttrs = {
+							label: "markUnread_action",
+							click: () => setUnreadStateAction(true),
+							icon: Icons.NoEye,
+						}
+						if (getUnreadState != null) {
+							if (getUnreadState()) {
+								moreButtons.push(readButton)
+							} else {
+								moreButtons.push(unreadButton)
+							}
+						} else {
+							moreButtons.push(readButton, unreadButton)
+						}
+					}
+					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, actionableMails)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,
@@ -116,15 +132,23 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		)
 	}
 
-	private forwardButton({ viewModel }: MobileMailActionBarAttrs): Children {
+	private forwardButton({ viewModel, editDraftAction }: MobileMailActionBarAttrs): Children {
+		const disabled = !viewModel.canForwardOrMove() || editDraftAction != null
+
 		return m(IconButton, {
 			title: "forward_action",
 			click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
 			icon: Icons.Forward,
+			disabled,
 		})
 	}
 
-	private replyButton({ viewModel }: MobileMailActionBarAttrs) {
+	private replyButton({ viewModel, editDraftAction }: MobileMailActionBarAttrs) {
+		// FIXME: don't do the check in here; instead check for the reply action when it's added
+		if (viewModel.isAnnouncement() || editDraftAction != null) {
+			return null
+		}
+
 		return m(IconButton, {
 			title: "reply_action",
 			click: viewModel.canReplyAll()
@@ -154,11 +178,14 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private editButton(attrs: MobileMailActionBarAttrs) {
-		return m(IconButton, {
-			title: "edit_action",
-			icon: Icons.Edit,
-			click: () => editDraft(attrs.viewModel),
-		})
+	private editButton({ editDraftAction }: MobileMailActionBarAttrs) {
+		return (
+			editDraftAction &&
+			m(IconButton, {
+				title: "edit_action",
+				icon: Icons.Edit,
+				click: editDraftAction,
+			})
+		)
 	}
 }
