@@ -107,8 +107,9 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
 import { PosRect } from "../../../common/gui/base/Dropdown"
-import { editDraft } from "../../mail/view/MailViewerUtils"
+import { editDraft, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft } from "../../mail/model/MailChecks"
+import { client } from "../../../common/misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -425,9 +426,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				const actions = m(MailViewerActions, {
 					mailModel: mailLocator.mailModel,
 					selectedMails: selectedMails,
-					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
-					//    mails are always shown. So the action applies only to the selected mails
-					actionableMails: async () => selectedMails.map((m) => m._id),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 					deleteMailsAction: () => this.deleteSelected(),
 					moveMailsAction: this.getMoveMailsAction(),
@@ -435,6 +433,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 					getUnreadState: null,
 					editDraftAction: this.getEditDraftAction(),
+					exportAction: this.getExportAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -468,9 +467,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailModel: conversationViewModel.primaryViewModel().mailModel,
 					primaryMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					selectedMails: [conversationViewModel.primaryMail],
-					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
-					//    mails are always shown. So the action applies only to the shown mail
-					actionableMails: async () => [conversationViewModel.primaryMail._id],
 					actionableMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					deleteMailsAction: () => this.deleteSelected(),
 					moveMailsAction: this.getMoveMailsAction(),
@@ -478,6 +474,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 					getUnreadState: () => this.getUnreadState(),
 					editDraftAction: this.getEditDraftAction(),
+					exportAction: this.getExportAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -541,6 +538,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				),
 			)
 		}
+	}
+
+	private getExportAction(): (() => void) | null {
+		const mails = this.searchViewModel.listModel?.getSelectedAsArray() ?? []
+		if (client.isMobileDevice() || !mailLocator.mailModel.isExportingMailsAllowed() || isEmpty(mails)) {
+			return null
+		}
+
+		return () => startExport(async () => mails.map(({ _id }) => _id))
 	}
 
 	private getEditDraftAction(): (() => void) | null {
@@ -662,20 +668,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private renderBottomNav() {
 		if (!styles.isSingleColumnLayout()) return m(BottomNav)
 
+		const { conversationViewModel } = this.searchViewModel
 		const isInMultiselect = this.searchViewModel.listModel?.state.inMultiselect ?? false
 
-		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && this.searchViewModel.conversationViewModel) {
+		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && conversationViewModel) {
 			return m(MobileMailActionBar, {
-				viewModel: this.searchViewModel.conversationViewModel?.primaryViewModel(),
-				// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
-				//    mails are always shown. So the action applies only to the shown mail
-				actionableMails: async () => [assertNotNull(this.searchViewModel.conversationViewModel).primaryViewModel().mail._id],
+				viewModel: conversationViewModel.primaryViewModel(),
 				deleteMailsAction: () => this.deleteSelected(),
 				moveMailsAction: this.getMoveMailsAction(),
 				applyLabelsAction: this.getLabelsAction(),
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
 				getUnreadState: () => this.getUnreadState(),
 				editDraftAction: this.getEditDraftAction(),
+				exportAction: this.getExportAction(),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

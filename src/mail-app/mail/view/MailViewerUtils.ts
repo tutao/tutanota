@@ -128,7 +128,7 @@ export async function showSourceDialog(rawHtml: string) {
 	return Dialog.viewerDialog("emailSourceCode_title", SourceCodeViewer, { rawHtml })
 }
 
-export function exportAction(actionableMails: () => Promise<readonly IdTuple[]>): DropdownButtonAttrs {
+export function startExport(actionableMails: () => Promise<readonly IdTuple[]>) {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const ac = new AbortController()
 	const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -142,36 +142,30 @@ export function exportAction(actionableMails: () => Promise<readonly IdTuple[]>)
 		middle: "emptyString_msg",
 	}
 
-	return {
-		label: "export_action",
-		click: () => {
-			// We are doing a little backflip here to start showing progress while we still determine the number of
-			// mails to export.
-			const numberOfMailsStream = stream<number>()
-			numberOfMailsStream.map(m.redraw)
-			showProgressDialog(
-				() => {
-					const numberOfMails = numberOfMailsStream()
-					if (isNaN(numberOfMails)) {
-						return lang.getTranslation("mailExportProgress_msg", {
-							"{current}": 0,
-							"{total}": "?",
-						})
-					} else {
-						return lang.getTranslation("mailExportProgress_msg", {
-							"{current}": Math.round((operation.progress() / 100) * numberOfMails).toFixed(0),
-							"{total}": numberOfMails,
-						})
-					}
-				},
-				doExport(actionableMails, numberOfMailsStream, operation, ac),
-				operation.progress,
-				true,
-				headerBarAttrs,
-			)
+	// We are doing a little backflip here to start showing progress while we still determine the number of
+	// mails to export.
+	const numberOfMailsStream = stream<number>()
+	numberOfMailsStream.map(m.redraw)
+	showProgressDialog(
+		() => {
+			const numberOfMails = numberOfMailsStream()
+			if (isNaN(numberOfMails)) {
+				return lang.getTranslation("mailExportProgress_msg", {
+					"{current}": 0,
+					"{total}": "?",
+				})
+			} else {
+				return lang.getTranslation("mailExportProgress_msg", {
+					"{current}": Math.round((operation.progress() / 100) * numberOfMails).toFixed(0),
+					"{total}": numberOfMails,
+				})
+			}
 		},
-		icon: Icons.Export,
-	}
+		doExport(actionableMails, numberOfMailsStream, operation, ac),
+		operation.progress,
+		true,
+		headerBarAttrs,
+	)
 }
 
 async function doExport(
@@ -237,14 +231,20 @@ function handleExportEmailsResult(mailList: Mail[]) {
 	}
 }
 
-export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel, actionableMails: () => Promise<readonly IdTuple[]>): Array<DropdownButtonAttrs> {
+export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel | undefined, exportAction: (() => void) | null): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
-	if (!client.isMobileDevice() && viewModel.canExport()) {
-		moreButtons.push(exportAction(actionableMails))
+	if (exportAction) {
+		moreButtons.push({
+			label: "export_action",
+			click: exportAction,
+			icon: Icons.Export,
+		})
 	}
 
-	moreButtons.push(...mailViewerMoreActions(viewModel))
+	if (viewModel != null) {
+		moreButtons.push(...mailViewerMoreActions(viewModel))
+	}
 
 	return moreButtons
 }
