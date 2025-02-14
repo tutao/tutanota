@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-02-07T17:24:30Z",
+	"updated_at": "2025-02-14T12:52:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1921,6 +1921,8 @@ export default {
 		"yourCalendars_label": "Dina kalendrar",
 		"yourFolders_action": "DINA MAPPAR",
 		"yourMessage_label": "Ditt meddelande",
-		"you_label": "Du"
+		"you_label": "Du",
+		"zoomIn_action": "Zooma in",
+		"zoomOut_action": "Zooma ut"
 	}
 }

@@ -1905,4 +1905,6 @@ export type TranslationKeyType =
 	| "yourFolders_action"
 	| "yourMessage_label"
 	| "you_label"
+	| "zoomIn_action"
+	| "zoomOut_action"
 	| "emptyString_msg"

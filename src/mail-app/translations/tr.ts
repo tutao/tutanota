@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-02-07T16:21:58Z",
+	"updated_at": "2025-02-14T13:12:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -243,6 +243,7 @@ export default {
 		"cancelSharedMailbox_label": "Paylaşılan posta kutusunu iptal et",
 		"cancelUserAccounts_label": "{1} kullanıcı hesabını iptal et",
 		"cancel_action": "İptal et",
+		"cannotAddAdminWhenMultiAdminKeyRotationScheduled_msg": "Şu anda yeni bir yönetici eklemek mümkün değildir. Tuta istemcisi, hesabınızın güvenliğini yükseltmeyi tamamlayabilmek için mevcut tüm yöneticilerin bağlanmasını bekliyor. Tüm yöneticiler giriş yaptıktan sonra yeni bir yönetici oluşturabilirsiniz.",
 		"cannotEditEvent_msg": "Bu etkinliğin yalnızca bazı bölümlerini düzenleyebilirsiniz.",
 		"cannotEditFullEvent_msg": "Takviminizde oluşturulmadığı için bu etkinliğin yalnızca bazı bölümlerini düzenleyebilirsiniz.",
 		"cannotEditNotOrganizer_msg": "Bu etkinliği düzenleyemezsiniz çünkü düzenleyicisi siz değilsiniz.",
@@ -683,6 +684,7 @@ export default {
 		"generatePassphrase_action": "İsteğe bağlı: Şifre oluştur",
 		"germanLanguageFile_label": "Almanca dosya",
 		"getLogs_action": "Günlükleri alın",
+		"getTutaMail_action": "Tuta Mail Edin",
 		"giftCardCopied_msg": "Hediye kartı bağlantısı panoya kopyalandı!",
 		"giftCardCreditNotify_msg": "Hesabınız {credit} krediye sahip olacaktır.",
 		"giftCardLoginError_msg": "Hesabınız oluşturuldu fakat oturum açmada bir sorun yaşandığı için hediye kartınız kullanılmadı. Hediye kartınızı kullanmak için daha sonra tekrar oturum açmayı deneyin.",
@@ -1401,6 +1403,8 @@ export default {
 		"quitDNSSetup_msg": "Lütfen tüm DNS kayıtlarını belirtildiği şekilde ayarlayın. Aksi takdirde, Tuta'da özel alan adınızı kullanamazsınız.",
 		"quitSetup_title": "Kurulumdan çık?",
 		"quit_action": "Çıkış",
+		"rateAppStore_action": "App Store'da Oyla",
+		"rateGooglePlay_action": "Google Play'de Oyla",
 		"ratingExplanation_msg": "Tuta'yı beğenip beğenmediğinizi veya onu iyileştirmemiz gerektiğini bize söyleyin!",
 		"ratingHowAreWeDoing_title": "Tuta'yı nasıl buluyorsunuz?",
 		"ratingLoveIt_label": "Beğeniyorum!",
@@ -1667,12 +1671,14 @@ export default {
 		"subscriptionSettings_label": "Abonelik Ayarları",
 		"subscription_label": "Abonelik",
 		"supportBackLostRequest_msg": "Geri dönmek istediğinizden emin misiniz? Talebiniz silinecektir.",
+		"supportDownloadMailApp_msg": "Destek Tuta Mail'de yanıt verdikten sonra Tuta Takvim kimlik bilgilerinizi kullanarak yanıta erişebilirsiniz.",
 		"supportForm_msg": "Lütfen (İngilizce veya Almanca) daha fazla ayrıntı verin, böylece size daha iyi yardımcı olabiliriz.",
 		"supportForm_title": "Hadi işin özüne inelim",
 		"supportMenu_label": "Destek",
 		"supportNoDirectSupport_msg": "Yine de daha fazla yardım için SSS sayfamıza bakabilirsiniz. Alternatif olarak, doğrudan e-posta desteği için hesabınızı yükseltebilirsiniz.",
 		"supportNoDirectSupport_title": "Özür dileriz, Free plan doğrudan e-posta desteği sunmuyor.",
-		"supportRequestReceived_msg": "Ekibimiz talebinizi inceliyor ve en kısa sürede sizinle bağlantıya geçecek.",
+		"supportRatingRequest_msg": "Gününüzü biraz bile kolaylaştırdıysak, hızlı bir puanlama ile sevginizi paylaşın!",
+		"supportRequestReceived_msg": "Ekibimiz talebinizi inceliyor ve en kısa sürede sizinle bağlantıya geçecek. Gözünüz Tuta Mail gelen kutunuzda olsun!",
 		"supportRequestReceived_title": "Talebinizi aldık!",
 		"supportSocialsInfo_msg": "Daha fazla ipucu ve güncelleme için blogumuzu veya sosyal medya hesaplarımızı takip edebilirsiniz.",
 		"supportStartPage_msg": "Başlamak için aşağıdan bir seçenek seçin.",
@@ -1873,6 +1879,7 @@ export default {
 		"verifyDomainOwnership_title": "Yetkilendirme kontrolü",
 		"verifyOwnershipTXTrecord_msg": "Lütfen aşağıda gösterilen değerle TXT türünde yeni bir DNS kaydı yapılandırın.",
 		"viewEvent_action": "Etkinliği görüntüle",
+		"viewInWeb_action": "Tarayıcıda aç",
 		"viewNextPeriod_action": "Sonraki periyodu görüntüle",
 		"viewPrevPeriod_action": "Önceki periyodu görüntüle",
 		"viewToday_action": "Şu anki periyodu görüntüle",
@@ -1918,6 +1925,8 @@ export default {
 		"yourCalendars_label": "Takvimleriniz",
 		"yourFolders_action": "KLASÖRLERİN",
 		"yourMessage_label": "Mesajınız",
-		"you_label": "Sen"
+		"you_label": "Sen",
+		"zoomIn_action": "Yakınlaştır",
+		"zoomOut_action": "Uzaklaştır"
 	}
 }

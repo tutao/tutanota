@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-02-07T14:39:29Z",
+	"updated_at": "2025-02-14T11:39:35Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1925,6 +1925,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"zoomIn_action": "Hereinzoomen",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-02-07T14:39:27Z",
+	"updated_at": "2025-02-14T11:39:33Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1921,6 +1921,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"zoomIn_action": "Zoom In",
+		"zoomOut_action": "Zoom Out"
 	}
 }
