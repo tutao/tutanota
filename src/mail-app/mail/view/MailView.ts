@@ -69,7 +69,7 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
-import { canDoDragAndDropExport, editDraft } from "./MailViewerUtils.js"
+import { canDoDragAndDropExport, editDraft, startExport } from "./MailViewerUtils.js"
 import { isDraft, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
@@ -80,6 +80,7 @@ import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
+import { client } from "../../../common/misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -272,7 +273,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailModel,
 			primaryMailViewerViewModel: viewModel.primaryViewModel(),
 			selectedMails: [viewModel.primaryMail],
-			actionableMails: async () => this.mailViewModel.getActionableMails([viewModel.primaryMail]),
 			actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel(),
 			moveMailsAction: this.getMoveMailsAction(),
 			deleteMailsAction: () => this.deleteSelectedMails(),
@@ -280,6 +280,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			setUnreadStateAction: this.getSetUnreadStateAction(),
 			getUnreadState: this.getGetUnreadState(),
 			editDraftAction: this.getEditDraftAction(viewModel),
+			exportAction: this.getExportAction(),
 		})
 	}
 
@@ -318,13 +319,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailModel,
 			selectedMails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
 			selectNone: () => this.mailViewModel.listModel?.selectNone(),
-			actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 			deleteMailsAction: () => this.deleteSelectedMails(),
 			moveMailsAction: this.getMoveMailsAction(),
 			applyLabelsAction: this.getLabelsAction(),
 			setUnreadStateAction: this.getSetUnreadStateAction(),
 			getUnreadState: null,
 			editDraftAction: null,
+			exportAction: this.getExportAction(),
 		})
 	}
 
@@ -397,14 +398,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
 								viewModel: this.conversationViewModel.primaryViewModel(),
-								actionableMails: () =>
-									this.mailViewModel.getActionableMails(this.conversationViewModel ? [this.conversationViewModel.primaryMail] : []),
 								deleteMailsAction: () => this.deleteSelectedMails(),
 								moveMailsAction: this.getMoveMailsAction(),
 								applyLabelsAction: this.getLabelsAction(),
 								setUnreadStateAction: this.getSetUnreadStateAction(),
 								getUnreadState: this.getGetUnreadState(),
 								editDraftAction: this.getEditDraftAction(this.conversationViewModel),
+								exportAction: this.getExportAction(),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
@@ -918,6 +918,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	logout() {
 		m.route.set("/")
+	}
+
+	private getExportAction(): (() => void) | null {
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (client.isMobileDevice() || !mailLocator.mailModel.isExportingMailsAllowed() || isEmpty(mails)) {
+			return null
+		}
+
+		return () => startExport(() => this.mailViewModel.getActionableMails(mails))
 	}
 
 	private async toggleUnreadMails(): Promise<void> {
