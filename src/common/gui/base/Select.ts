@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../size.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
-import { focusNext, focusPrevious, isKeyPressed } from "../../misc/KeyManager.js"
+import { focusNext, focusPrevious, isKeyPressed, keyManager, Shortcut, ShortcutType } from "../../misc/KeyManager.js"
 import { DomRectReadOnlyPolyfilled } from "./Dropdown.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { Icon, IconSize } from "./Icon.js"
@@ -289,7 +289,6 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
  * @param {Stream<Array<unknown>>} items - The options to display.
  * @param {(option: unknown) => Children} buildFunction - The function to build and render each option.
  * @param {number} width - The width of the dropdown.
- * @param {boolean} keepFocus - Whether to keep focus on the dropdown.
  * @param {"top" | "bottom"} dropdownPosition - The position of the dropdown.
  *  */
 class OptionListContainer implements ClassComponent {
@@ -313,9 +312,16 @@ class OptionListContainer implements ClassComponent {
 	private domDropdown: HTMLElement | null = null
 	private domDropdownContents: HTMLElement | null = null
 	private maxHeight: number | null = null
-	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 	private children: Children[] = []
 	private isDropdownOpen = false
+	private oldShortcut = keyManager.getShortcutForKey(Keys.ESC)
+	private shortcuts: Shortcut[] = [
+		{
+			key: Keys.ESC,
+			exec: () => this.onClose(),
+			help: "close_alt",
+		},
+	]
 
 	constructor(
 		private readonly items: Stream<Array<unknown>>,
@@ -355,21 +361,28 @@ class OptionListContainer implements ClassComponent {
 						oncreate: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents = vnode.dom as HTMLElement
 							this.domDropdownContents.addEventListener("focusout", this.handleDropdownLoseFocus)
+							keyManager.registerModalShortcuts(this.shortcuts)
 						},
 						onremove: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents?.removeEventListener("focusout", this.handleDropdownLoseFocus)
+							keyManager.unregisterModalShortcuts(this.shortcuts)
+
+							this.handleShortcutRestore()
 							this.isDropdownOpen = false
 						},
 						onupdate: (vnode: VnodeDOM<HTMLElement>) => {
 							if (this.maxHeight == null) {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
+								const indexToNotCount = children.length - 1
 								this.maxHeight = Math.min(
 									250 + size.vpad,
 									children.reduce(
-										(accumulator, children, currentIndex) => (currentIndex > 0 ? accumulator + children.offsetHeight : accumulator),
+										(accumulator, children, currentIndex, array) =>
+											currentIndex < indexToNotCount ? accumulator + children.offsetHeight : accumulator,
 										0,
 									) + size.vpad,
-								) // size.pad accounts for top and bottom padding
+								)
+
 								if (this.origin) {
 									// Set the scroll before showing the dropdown to avoid flickering issues
 									const selectedOption = vnode.dom.querySelector("[data-target='true'], [aria-selected='true']") as HTMLElement | null
@@ -409,7 +422,7 @@ class OptionListContainer implements ClassComponent {
 		return this.isDropdownOpen
 	}
 
-	handleDropdownLoseFocus = (e: FocusEvent) => {
+	private handleDropdownLoseFocus = (e: FocusEvent) => {
 		if (this.domDropdown == null) {
 			return
 		}
@@ -420,6 +433,13 @@ class OptionListContainer implements ClassComponent {
 		}
 
 		this.onClose()
+	}
+
+	private handleShortcutRestore() {
+		if (!this.oldShortcut) return
+
+		if (this.oldShortcut.type === ShortcutType.MODAL) keyManager.registerModalShortcuts([this.oldShortcut.shortcut])
+		else keyManager.registerShortcuts([this.oldShortcut.shortcut])
 	}
 
 	displayDropdown(domDropdown: HTMLElement, origin: DomRectReadOnlyPolyfilled, contentHeight: number, position?: "top" | "bottom") {
@@ -486,9 +506,13 @@ class OptionListContainer implements ClassComponent {
 		const lowerSpace = window.innerHeight - this.origin.bottom - getSafeAreaInsetBottom()
 
 		const children = Array.from(vnode.dom.children) as Array<HTMLElement>
+		const indexToNotCount = children.length - 1
 		const contentHeight = Math.min(
 			250 + size.vpad,
-			children.reduce((accumulator, children, currentIndex) => (currentIndex > 0 ? accumulator + children.offsetHeight : accumulator), 0) + size.vpad,
+			children.reduce(
+				(accumulator, children, currentIndex, array) => (currentIndex < indexToNotCount ? accumulator + children.offsetHeight : accumulator),
+				0,
+			) + size.vpad,
 		)
 
 		this.maxHeight = lowerSpace > upperSpace ? Math.min(contentHeight, lowerSpace) : Math.min(contentHeight, upperSpace)
@@ -508,10 +532,6 @@ class OptionListContainer implements ClassComponent {
 		return this
 	}
 
-	hideAnimation(): Promise<void> {
-		return Promise.resolve()
-	}
-
 	/**
 	 * Has to be overwritten when an instance of OptionListContainer is created
 	 * @example
@@ -521,8 +541,4 @@ class OptionListContainer implements ClassComponent {
 	 * ...
 	 */
 	onClose(): void {}
-
-	callingElement(): HTMLElement | null {
-		return this.focusedBeforeShown
-	}
 }
