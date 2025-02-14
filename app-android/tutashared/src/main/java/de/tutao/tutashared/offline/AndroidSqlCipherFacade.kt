@@ -7,9 +7,12 @@ import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.ipc.wrap
 import kotlinx.coroutines.CompletableDeferred
+import net.sqlcipher.SQLException
 import net.sqlcipher.database.SQLiteDatabase
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	init {
@@ -26,6 +29,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	private val listIdLocks: MutableMap<String, CompletableDeferred<Unit>> = ConcurrentHashMap()
 
 	override suspend fun openDb(userId: String, dbKey: DataWrapper) {
+		Log.d(TAG, "Open db $userId")
 		// db is volatile so we see the latest value but it doesn't mean that we won't try to open/delete it in parallel
 		// so we need synchronized.
 		// Wrap the whole method into synchronized to ensure that no other check or modification can happen in between
@@ -44,11 +48,19 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			if (cursor.moveToFirst()) {
 				if (cursor.getInt(0) != 2) {
 					db?.query("PRAGMA auto_vacuum = incremental")
-					db?.query("PRAGMA vacuum")
+					Log.d(TAG, "PRAGMA vacuum")
+					val duration = measureTime { db?.query("PRAGMA vacuum") }
+					Log.d(TAG, "PRAGMA vacuum done ${duration.inWholeMilliseconds}ms")
 				}
 			}
 		}
-		openedDb.query("PRAGMA busy_timeout = 1000")
+		// There are rare occurrences when opening the DB takes a long time.
+		// One case is when we open DB from notification process. It might take a few seconds (usually around 2) and
+		// during this time writes to the database take longer, sometimes more than a second.
+		// This is not a perfect solution but in this particular case it does not matter if the write takes longer.
+		openedDb.query("PRAGMA busy_timeout = 5000")
+
+		Log.d(TAG, "DB opened $userId")
 	}
 
 	private fun getDbFile(userId: String): File {
@@ -84,7 +96,17 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	}
 
 	override suspend fun run(query: String, params: List<TaggedSqlValue>) {
-		openedDb.execSQL(query, params.prepare())
+		try {
+			val duration = measureTime {
+				openedDb.execSQL(query, params.prepare())
+			}
+			if (duration > 1.seconds) {
+				Log.e(TAG, "Running $query took ${duration.inWholeMilliseconds}ms")
+			}
+		} catch (e: SQLException) {
+			Log.e(TAG, "Error when running SQL query `$query`, args[0] ${params.getOrNull(0)}")
+			throw e
+		}
 	}
 
 	override suspend fun get(query: String, params: List<TaggedSqlValue>): Map<String, TaggedSqlValue>? {
