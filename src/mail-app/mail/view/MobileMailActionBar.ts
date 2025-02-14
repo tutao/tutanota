@@ -17,6 +17,8 @@ export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
+	setUnreadStateAction: (unread: boolean) => void
+	getUnreadState: () => boolean
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -75,7 +77,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ viewModel, actionableMails, applyLabelsAction }: MobileMailActionBarAttrs) {
+	private moreButton({ viewModel, actionableMails, applyLabelsAction, setUnreadStateAction, getUnreadState }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -94,7 +96,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							icon: Icons.Label,
 						})
 					}
-					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, actionableMails)]
+					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, actionableMails, setUnreadStateAction, getUnreadState)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,
