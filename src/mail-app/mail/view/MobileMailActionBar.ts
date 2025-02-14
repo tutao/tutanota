@@ -13,13 +13,13 @@ import { MailViewerViewModel } from "./MailViewerViewModel"
 
 export interface MobileMailActionBarAttrs {
 	viewModel: MailViewerViewModel
-	actionableMails: () => Promise<readonly IdTuple[]>
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
 	getUnreadState: (() => boolean) | null
 	editDraftAction: (() => void) | null
+	exportAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -72,7 +72,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ viewModel, actionableMails, applyLabelsAction, setUnreadStateAction, getUnreadState }: MobileMailActionBarAttrs) {
+	private moreButton({ viewModel, exportAction, applyLabelsAction, setUnreadStateAction, getUnreadState }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -112,7 +112,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							moreButtons.push(readButton, unreadButton)
 						}
 					}
-					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, actionableMails)]
+					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, exportAction)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,

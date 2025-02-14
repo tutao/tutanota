@@ -1,14 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, ofClass } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
-import { exportAction, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
-import { isApp } from "../../../common/api/common/Env.js"
+import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { MailModel } from "../model/MailModel.js"
 import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 
@@ -21,13 +20,13 @@ export interface MailViewerToolbarAttrs {
 	primaryMailViewerViewModel?: MailViewerViewModel
 	actionableMailViewerViewModel?: MailViewerViewModel
 	selectNone?: () => void
-	actionableMails: () => Promise<readonly IdTuple[]>
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
 	getUnreadState: (() => boolean) | null
 	editDraftAction: (() => void) | null
+	exportAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -37,23 +36,19 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			this.renderSingleMailActions(vnode.attrs),
 			vnode.attrs.primaryMailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),
-			this.renderMoreButton(vnode.attrs),
 		])
 	}
 
 	private renderActions(attrs: MailViewerToolbarAttrs): Children {
 		const mailModel = attrs.primaryMailViewerViewModel ? attrs.primaryMailViewerViewModel.mailModel : attrs.mailModel
 
-		if (!mailModel || !attrs.selectedMails) {
-			return null
-		} else if (attrs.selectedMails.length > 0) {
+		if (mailModel && attrs.selectedMails.length > 0) {
 			return [
 				this.renderDeleteButton(attrs),
 				this.renderMoveButton(attrs),
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
-				// FIXME: put this check outside!
-				attrs.selectedMails.length > 1 ? this.renderExportButton(attrs) : null,
+				this.renderExtraButtons(attrs.primaryMailViewerViewModel, attrs.exportAction),
 			]
 		}
 	}
@@ -143,18 +138,6 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private renderExportButton(attrs: MailViewerToolbarAttrs) {
-		if (!isApp() && attrs.mailModel.isExportingMailsAllowed()) {
-			const exportAttrs = exportAction(attrs.actionableMails)
-			return m(IconButton, {
-				title: exportAttrs.label,
-				icon: Icons.Export,
-				// we know where we got this from, and we know it has the click attribute
-				click: assertNotNull(exportAttrs.click),
-			})
-		}
-	}
-
 	private renderReplyButton(viewModel: MailViewerViewModel) {
 		const actions: Children = []
 		actions.push(
@@ -187,23 +170,28 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			: null
 	}
 
-	private renderMoreButton({ primaryMailViewerViewModel: viewModel, actionableMails }: MailViewerToolbarAttrs): Children {
-		let actions: DropdownButtonAttrs[] = []
+	private renderExtraButtons(viewModel: MailViewerViewModel | undefined, exportAction: (() => void) | null): Children {
+		let actions: DropdownButtonAttrs[] = multipleMailViewerMoreActions(viewModel, exportAction)
 
-		if (viewModel) {
-			actions = multipleMailViewerMoreActions(viewModel, actionableMails)
+		if (isEmpty(actions)) {
+			return null
+		} else if (actions.length === 1) {
+			const { label, icon, click } = getFirstOrThrow(actions)
+			return m(IconButton, {
+				title: label,
+				icon: assertNotNull(icon),
+				click: assertNotNull(click),
+			})
+		} else {
+			return m(IconButton, {
+				title: "more_label",
+				icon: Icons.More,
+				click: createDropdown({
+					lazyButtons: () => actions,
+					width: 300,
+				}),
+			})
 		}
-
-		return actions.length > 0
-			? m(IconButton, {
-					title: "more_label",
-					icon: Icons.More,
-					click: createDropdown({
-						lazyButtons: () => actions,
-						width: 300,
-					}),
-			  })
-			: null
 	}
 
 	private renderEditButton({ editDraftAction }: MailViewerToolbarAttrs) {
