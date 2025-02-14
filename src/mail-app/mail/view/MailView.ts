@@ -81,6 +81,8 @@ import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { client } from "../../../common/misc/ClientDetector"
+import { UserError } from "../../../common/api/main/UserError"
+import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -281,6 +283,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			getUnreadState: this.getGetUnreadState(),
 			editDraftAction: this.getEditDraftAction(viewModel),
 			exportAction: this.getExportAction(),
+			replyAction: this.getReplyAction(viewModel, false),
+			replyAllAction: this.getReplyAction(viewModel, true),
+			forwardAction: this.getForwardAction(viewModel),
 		})
 	}
 
@@ -326,6 +331,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			getUnreadState: null,
 			editDraftAction: null,
 			exportAction: this.getExportAction(),
+			replyAction: null,
+			replyAllAction: null,
+			forwardAction: null,
 		})
 	}
 
@@ -405,6 +413,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								getUnreadState: this.getGetUnreadState(),
 								editDraftAction: this.getEditDraftAction(this.conversationViewModel),
 								exportAction: this.getExportAction(),
+								replyAction: this.getReplyAction(this.conversationViewModel, false),
+								replyAllAction: this.getReplyAction(this.conversationViewModel, true),
+								forwardAction: this.getForwardAction(this.conversationViewModel),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
@@ -417,6 +428,27 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						: m(BottomNav),
 			}),
 		)
+	}
+
+	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
+		const viewModel = this.mailViewModel.groupMailsByConversation()
+			? conversationViewModel.getLatestMail()?.viewModel
+			: conversationViewModel.primaryViewModel()
+
+		if (viewModel == null || isDraft(viewModel.mail) || viewModel.isAnnouncement() || !viewModel.canForwardOrMove()) {
+			return null
+		} else {
+			return () => viewModel.forward().catch(ofClass(UserError, showUserError))
+		}
+	}
+
+	private getReplyAction(viewModel: ConversationViewModel, replyAll: boolean): (() => void) | null {
+		const replyMailModel = this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel()
+		if (replyMailModel == null || replyMailModel.isAnnouncement()) {
+			return null
+		} else {
+			return () => replyMailModel.reply(replyAll)
+		}
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts: ShowMoveMailsDropdownOpts) => void) | null {

@@ -1,11 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { assertNotNull, getFirstOrThrow, isEmpty, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isEmpty } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
-import { UserError } from "../../../common/api/main/UserError.js"
-import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { MailModel } from "../model/MailModel.js"
@@ -27,6 +25,9 @@ export interface MailViewerToolbarAttrs {
 	getUnreadState: (() => boolean) | null
 	editDraftAction: (() => void) | null
 	exportAction: (() => void) | null
+	replyAction: (() => void) | null
+	replyAllAction: (() => void) | null
+	forwardAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -58,21 +59,8 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	 * Will only return actions if there is a mailViewerViewModel
 	 * */
 	private renderSingleMailActions(attrs: MailViewerToolbarAttrs): Children {
-		// mailViewerViewModel means we are viewing one mail; if there is only the mailModel, it is coming from a MultiViewer
-		if (attrs.primaryMailViewerViewModel && attrs.actionableMailViewerViewModel) {
-			if (attrs.primaryMailViewerViewModel.isAnnouncement()) {
-				/* FIXME: move this check to the outside */
-				return []
-			} else {
-				return [
-					this.renderEditButton(attrs),
-					this.renderReplyButton(attrs.actionableMailViewerViewModel),
-					this.renderForwardButton(attrs.actionableMailViewerViewModel),
-				]
-			}
-		} else {
-			return []
-		}
+		const { replyAction, replyAllAction, forwardAction } = attrs
+		return [this.renderEditButton(attrs), this.renderReplyButton(replyAction, replyAllAction), this.renderForwardButton(forwardAction)]
 	}
 
 	private renderDeleteButton({ deleteMailsAction }: MailViewerToolbarAttrs): Children {
@@ -138,21 +126,26 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		}
 	}
 
-	private renderReplyButton(viewModel: MailViewerViewModel) {
+	private renderReplyButton(replyAction: (() => void) | null, replyAllAction: (() => void) | null) {
 		const actions: Children = []
+
+		if (replyAction == null) {
+			return actions
+		}
+
 		actions.push(
 			m(IconButton, {
 				title: "reply_action",
-				click: () => viewModel.reply(false),
+				click: replyAction,
 				icon: Icons.Reply,
 			}),
 		)
 
-		if (viewModel.canReplyAll()) {
+		if (replyAllAction != null) {
 			actions.push(
 				m(IconButton, {
 					title: "replyAll_action",
-					click: () => viewModel.reply(true),
+					click: replyAllAction,
 					icon: Icons.ReplyAll,
 				}),
 			)
@@ -160,14 +153,15 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return actions
 	}
 
-	private renderForwardButton(viewModel: MailViewerViewModel) {
-		return viewModel.canForwardOrMove()
-			? m(IconButton, {
-					title: "forward_action",
-					click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
-					icon: Icons.Forward,
-			  })
-			: null
+	private renderForwardButton(forwardAction: (() => void) | null) {
+		return (
+			forwardAction &&
+			m(IconButton, {
+				title: "forward_action",
+				click: forwardAction,
+				icon: Icons.Forward,
+			})
+		)
 	}
 
 	private renderExtraButtons(viewModel: MailViewerViewModel | undefined, exportAction: (() => void) | null): Children {
