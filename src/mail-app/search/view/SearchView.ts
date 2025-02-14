@@ -14,7 +14,20 @@ import { px, size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, getFirstOrThrow, isEmpty, isSameTypeRef, last, LazyLoaded, lazyMemoized, memoized, noOp, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	first,
+	getFirstOrThrow,
+	isEmpty,
+	isSameTypeRef,
+	last,
+	LazyLoaded,
+	lazyMemoized,
+	memoized,
+	noOp,
+	ofClass,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
@@ -417,6 +430,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					deleteMailsAction: () => this.deleteSelected(),
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
+					setUnreadStateAction: (unread) => this.setUnreadState(unread),
+					getUnreadState: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -457,6 +472,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					deleteMailsAction: () => this.deleteSelected(),
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
+					setUnreadStateAction: (unread) => this.setUnreadState(unread),
+					getUnreadState: () => this.getUnreadState(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -638,6 +655,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				deleteMailsAction: () => this.deleteSelected(),
 				moveMailsAction: this.getMoveMailsAction(),
 				applyLabelsAction: this.getLabelsAction(),
+				setUnreadStateAction: (unread) => this.setUnreadState(unread),
+				getUnreadState: () => this.getUnreadState(),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
@@ -693,15 +712,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		} else if (isInMultiselect) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
 				return m(MobileMailMultiselectionActionBar, {
-					selectedMails: this.searchViewModel.getSelectedMails(),
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
-					mailModel: mailLocator.mailModel,
-					// note on actionApplyMails: in search view, conversations are not grouped in the list and individual
-					//    mails are always shown. So the action applies only to the selected mails
-					actionableMails: async () => this.searchViewModel.getSelectedMails().map((m) => m._id),
 					deleteMailsAction: () => this.deleteSelected(),
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
+					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 				})
 			} else if (this.viewSlider.focusedColumn === this.resultListColumn) {
 				return m(
@@ -720,7 +735,22 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(BottomNav)
 	}
 
-	private async moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
+	private getUnreadState(): boolean {
+		const selection = this.searchViewModel.getSelectedMails()
+		return first(selection)?.unread ?? false
+	}
+
+	private setUnreadState(unread: boolean) {
+		const selection = this.searchViewModel.getSelectedMails()
+		if (!isEmpty(selection)) {
+			mailLocator.mailModel.markMails(
+				selection.map(({ _id }) => _id),
+				unread,
+			)
+		}
+	}
+
+	private moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
 		const selection = this.searchViewModel.getSelectedMails()
 		if (!isEmpty(selection)) {
 			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, origin, selection, opts)

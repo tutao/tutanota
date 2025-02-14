@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { first, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -277,6 +277,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			moveMailsAction: this.getMoveMailsAction(),
 			deleteMailsAction: () => this.deleteSelectedMails(),
 			applyLabelsAction: this.getLabelsAction(),
+			setUnreadStateAction: (unread) => this.setUnreadState(unread),
+			getUnreadState: () => this.getUnreadState(),
 		})
 	}
 
@@ -319,6 +321,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			deleteMailsAction: () => this.deleteSelectedMails(),
 			moveMailsAction: this.getMoveMailsAction(),
 			applyLabelsAction: this.getLabelsAction(),
+			setUnreadStateAction: (unread) => this.setUnreadState(unread),
+			getUnreadState: null,
 		})
 	}
 
@@ -396,16 +400,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								deleteMailsAction: () => this.deleteSelectedMails(),
 								moveMailsAction: this.getMoveMailsAction(),
 								applyLabelsAction: this.getLabelsAction(),
+								setUnreadStateAction: (unread) => this.setUnreadState(unread),
+								getUnreadState: () => this.getUnreadState(),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
-								selectedMails: this.mailViewModel.listModel.getSelectedAsArray(),
 								selectNone: () => this.mailViewModel.listModel?.selectNone(),
-								mailModel: mailLocator.mailModel,
-								actionableMails: () => this.mailViewModel.getActionableMails(this.mailViewModel.listModel?.getSelectedAsArray() ?? []),
 								deleteMailsAction: () => this.deleteSelectedMails(),
 								moveMailsAction: this.getMoveMailsAction(),
 								applyLabelsAction: this.getLabelsAction(),
+								setUnreadStateAction: (unread) => this.setUnreadState(unread),
 						  })
 						: m(BottomNav),
 			}),
@@ -436,6 +440,20 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		} else {
 			return false
 		}
+	}
+
+	private getUnreadState(): boolean {
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		return first(mails)?.unread ?? false
+	}
+
+	private async setUnreadState(unread: boolean) {
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return
+		}
+		const actionableMails = await this.mailViewModel.getActionableMails(mails)
+		await mailLocator.mailModel.markMails(actionableMails, unread)
 	}
 
 	private renderHeaderRightView(): Children {
