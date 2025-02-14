@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
-import { lang } from "../../misc/LanguageViewModel"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -17,6 +16,7 @@ export interface IconButtonAttrs {
 	colors?: ButtonColor
 	size?: ButtonSize
 	onkeydown?: (event: KeyboardEvent) => unknown
+	hidden?: boolean
 	disabled?: boolean
 }
 
@@ -31,15 +31,15 @@ export class IconButton implements Component<IconButtonAttrs> {
 				size: attrs.size === ButtonSize.Large ? IconSize.XL : IconSize.Medium,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
-					visibility: attrs.disabled ? "hidden" : "visible",
+					visibility: attrs.hidden ? "hidden" : "visible",
 				},
 			}),
 			onclick: attrs.click,
 			onkeydown: attrs.onkeydown,
-			class: `icon-button state-bg ${IconButton.getSizeClass(attrs.size)}`,
-			disabled: attrs.disabled,
+			class: `icon-button ${attrs.disabled ? "disabled" : "state-bg"} ${IconButton.getSizeClass(attrs.size)}`,
+			disabled: attrs.hidden || attrs.disabled,
 			style: {
-				visibility: attrs.disabled ? "hidden" : "visible",
+				visibility: attrs.hidden ? "hidden" : "visible",
 			},
 		} satisfies BaseButtonAttrs)
 	}
