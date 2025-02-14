@@ -10,7 +10,7 @@ export interface MobileMailMultiselectionActionBarAttrs {
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement) => void) | null
-	setUnreadStateAction: (unread: boolean) => void
+	setUnreadStateAction: ((unread: boolean) => void) | null
 }
 
 // Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
@@ -51,7 +51,7 @@ export class MobileMailMultiselectionActionBar {
 							applyLabelsAction(dom)
 						},
 					}),
-				[
+				setUnreadStateAction && [
 					m(IconButton, {
 						icon: Icons.Eye,
 						title: "markRead_action",
