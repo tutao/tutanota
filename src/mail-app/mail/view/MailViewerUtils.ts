@@ -237,27 +237,8 @@ function handleExportEmailsResult(mailList: Mail[]) {
 	}
 }
 
-export function multipleMailViewerMoreActions(
-	viewModel: MailViewerViewModel,
-	actionableMails: () => Promise<readonly IdTuple[]>,
-	setUnreadStateAction: (unread: boolean) => void,
-	getUnreadState: () => boolean,
-): Array<DropdownButtonAttrs> {
+export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel, actionableMails: () => Promise<readonly IdTuple[]>): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
-
-	if (getUnreadState()) {
-		moreButtons.push({
-			label: "markRead_action",
-			click: () => setUnreadStateAction(false),
-			icon: Icons.Eye,
-		})
-	} else {
-		moreButtons.push({
-			label: "markUnread_action",
-			click: () => setUnreadStateAction(true),
-			icon: Icons.NoEye,
-		})
-	}
 
 	if (!client.isMobileDevice() && viewModel.canExport()) {
 		moreButtons.push(exportAction(actionableMails))
