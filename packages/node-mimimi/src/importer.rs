@@ -589,13 +589,13 @@ impl Importer {
 									)
 								})?;
 
-							let have_failed_mails =
+							let no_failed_mails =
 								Importer::get_failed_mails_count(&self.essentials.import_directory)
-									.map(|failed_mail_count| failed_mail_count > 0)
-									// if we can not read import directory to check for failed files,
+									.map(|failed_mails_count| failed_mails_count == 0)
+									// if we cannot read import directory to check for failed files,
 									// pretend we have some failed mail
-									.unwrap_or(true);
-							return have_failed_mails
+									.unwrap_or_default();
+							return no_failed_mails
 								.then_some(ImportOkKind::SourceExhaustedNoError)
 								.ok_or(ImportErrorKind::SourceExhaustedSomeError.into());
 						},
