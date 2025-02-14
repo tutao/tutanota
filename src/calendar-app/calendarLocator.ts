@@ -900,6 +900,7 @@ class CalendarLocator {
 			this.syncTracker,
 			() => this.showSetupWizard(),
 			() => this.setUpClientOnlyCalendars(),
+			() => this.updateClients(),
 		)
 	})
 
@@ -930,6 +931,16 @@ class CalendarLocator {
 					name: lang.get(name),
 					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
 				})
+		}
+	}
+
+	async updateClients(): Promise<void> {
+		if (isApp()) {
+			if (isAndroidApp()) {
+				this.nativeInterfaces?.mobileSystemFacade.openLink("market://details?id=de.tutao.calendar")
+			} else if (isIOSApp()) {
+				this.nativeInterfaces?.mobileSystemFacade.openLink("itms-apps://itunes.apple.com/app/id6657977811")
+			}
 		}
 	}
 

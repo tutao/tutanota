@@ -167,6 +167,8 @@ export interface CommonLocator {
 	nativeCredentialsFacade: NativeCredentialsFacade
 	mobilePaymentsFacade: MobilePaymentsFacade
 	deviceConfig: DeviceConfig
+
+	updateClients(): Promise<void>
 }
 
 export let locator: CommonLocator = new Proxy<CommonLocator>({} as unknown as CommonLocator, {
