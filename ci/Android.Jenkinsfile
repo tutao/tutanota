@@ -107,7 +107,7 @@ pipeline {
 							util.downloadFromNexus(	groupId: "lib",
 													artifactId: "android-database-sqlcipher",
 													version: "4.5.0",
-													outFile: "${WORKSPACE}/app-android/libs/android-database-sqlcipher-4.5.0.aar",
+													outFile: "${WORKSPACE}/app-android/libs/sqlcipher-android-4.6.0.aar",
 													fileExtension: 'aar')
 						}
 						withCredentials([

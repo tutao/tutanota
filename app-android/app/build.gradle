@@ -137,22 +137,8 @@ dependencies {
 	implementation "androidx.core:core-splashscreen:1.0.1"
 	implementation "androidx.datastore:datastore-preferences:1.1.1"
 
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		implementation fileTree(include: ['*.aar'], dir: '../libs')
-	} else {
-		implementation "net.zetetic:android-database-sqlcipher:4.5.0"
-	}
-	implementation 'androidx.sqlite:sqlite-ktx:2.4.0'
-
 	implementation "androidx.room:room-ktx:$room_version"
 	ksp "androidx.room:room-compiler:$room_version"
-
-	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
-		implementation fileTree(include: ['*.aar'], dir: '../libs')
-	} else {
-		implementation "net.zetetic:android-database-sqlcipher:4.5.0"
-	}
-	implementation 'androidx.sqlite:sqlite-ktx:2.4.0'
 
 	implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.3'
 

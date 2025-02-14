@@ -1,5 +1,6 @@
 package de.tutao.tutanota.push
 
+import android.database.SQLException
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.tutanota.R
@@ -19,7 +20,6 @@ import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import net.sqlcipher.SQLException
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
