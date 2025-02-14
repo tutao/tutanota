@@ -94,11 +94,6 @@ function isFocusable(e: HTMLElement) {
 	)
 }
 
-export function canFocus(element: HTMLElement, dom: HTMLElement): boolean {
-	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(isFocusable) as HTMLElement[]
-	return tabbable.includes(element)
-}
-
 export function focusPrevious(dom: HTMLElement): boolean {
 	const tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(isFocusable) as HTMLElement[]
 
@@ -257,6 +252,27 @@ class KeyManager {
 	}
 
 	/**
+	 * Gets the registered shortcut for a given key.
+	 * Modal Shortcuts have priority over common shortcuts.
+	 * @param key Key that triggers the shortcut
+	 * @returns An object containing the type of the shortcut {@link ShortcutType }
+	 * and the {@link Shortcut} or undefined if no shortcut is registered
+	 */
+	getShortcutForKey(key: Key): { type: ShortcutType; shortcut: Shortcut } | undefined {
+		if (this.keyToModalShortcut.has(key.code)) {
+			return {
+				type: ShortcutType.MODAL,
+				shortcut: this.keyToModalShortcut.get(key.code)!,
+			}
+		} else if (this.keyToShortcut.has(key.code)) {
+			return {
+				type: ShortcutType.NORMAL,
+				shortcut: this.keyToShortcut.get(key.code)!,
+			}
+		}
+	}
+
+	/**
 	 *
 	 * @param shortcuts list of shortcuts to operate on
 	 * @param operation operation to execute for every shortcut and its ID
@@ -279,6 +295,11 @@ export function isKeyPressed(key: string | undefined, ...keys: Array<Key>): bool
 		return keys.some((k) => k.code === key.toLowerCase())
 	}
 	return false
+}
+
+export enum ShortcutType {
+	MODAL,
+	NORMAL,
 }
 
 export const keyManager: KeyManager = new KeyManager()
