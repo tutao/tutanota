@@ -1,0 +1,12 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region src/common/api/common/error/OutOfSyncError.ts
+var OutOfSyncError = class extends TutanotaError {
+	constructor(message) {
+		super("OutOfSyncError", message);
+	}
+};
+
+//#endregion
+export { OutOfSyncError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiT3V0T2ZTeW5jRXJyb3ItY2h1bmsuanMiLCJuYW1lcyI6WyJtZXNzYWdlOiBzdHJpbmciXSwic291cmNlcyI6WyIuLi9zcmMvY29tbW9uL2FwaS9jb21tb24vZXJyb3IvT3V0T2ZTeW5jRXJyb3IudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLy9AYnVuZGxlSW50bzpjb21tb24tbWluXG5cbmltcG9ydCB7IFR1dGFub3RhRXJyb3IgfSBmcm9tIFwiQHR1dGFvL3R1dGFub3RhLWVycm9yXCJcblxuZXhwb3J0IGNsYXNzIE91dE9mU3luY0Vycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG5cdGNvbnN0cnVjdG9yKG1lc3NhZ2U6IHN0cmluZykge1xuXHRcdHN1cGVyKFwiT3V0T2ZTeW5jRXJyb3JcIiwgbWVzc2FnZSlcblx0fVxufVxuIl0sIm1hcHBpbmdzIjoiOzs7SUFJYSxpQkFBTixjQUE2QixjQUFjO0NBQ2pELFlBQVlBLFNBQWlCO0FBQzVCLFFBQU0sa0JBQWtCLFFBQVE7Q0FDaEM7QUFDRCJ9

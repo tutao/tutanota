@@ -1,0 +1,12 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region src/common/api/common/error/WebauthnError.ts
+var WebauthnError = class extends TutanotaError {
+	constructor(error) {
+		super("WebauthnError", `${error.name} ${String(error)}`);
+	}
+};
+
+//#endregion
+export { WebauthnError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiV2ViYXV0aG5FcnJvci1jaHVuay5qcyIsIm5hbWVzIjpbImVycm9yOiBFcnJvciJdLCJzb3VyY2VzIjpbIi4uL3NyYy9jb21tb24vYXBpL2NvbW1vbi9lcnJvci9XZWJhdXRobkVycm9yLnRzIl0sInNvdXJjZXNDb250ZW50IjpbIi8vQGJ1bmRsZUludG86Y29tbW9uLW1pblxuXG5pbXBvcnQgeyBUdXRhbm90YUVycm9yIH0gZnJvbSBcIkB0dXRhby90dXRhbm90YS1lcnJvclwiXG5cbmV4cG9ydCBjbGFzcyBXZWJhdXRobkVycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG5cdGNvbnN0cnVjdG9yKGVycm9yOiBFcnJvcikge1xuXHRcdHN1cGVyKFwiV2ViYXV0aG5FcnJvclwiLCBgJHtlcnJvci5uYW1lfSAke1N0cmluZyhlcnJvcil9YClcblx0fVxufVxuIl0sIm1hcHBpbmdzIjoiOzs7SUFJYSxnQkFBTixjQUE0QixjQUFjO0NBQ2hELFlBQVlBLE9BQWM7QUFDekIsUUFBTSxrQkFBa0IsRUFBRSxNQUFNLEtBQUssR0FBRyxPQUFPLE1BQU0sQ0FBQyxFQUFFO0NBQ3hEO0FBQ0QifQ==

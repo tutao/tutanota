@@ -1,0 +1,12 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region src/common/api/common/error/RecipientsNotFoundError.ts
+var RecipientsNotFoundError = class extends TutanotaError {
+	constructor(m) {
+		super("RecipientsNotFoundError", m);
+	}
+};
+
+//#endregion
+export { RecipientsNotFoundError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiUmVjaXBpZW50c05vdEZvdW5kRXJyb3ItY2h1bmsuanMiLCJuYW1lcyI6WyJtOiBzdHJpbmciXSwic291cmNlcyI6WyIuLi9zcmMvY29tbW9uL2FwaS9jb21tb24vZXJyb3IvUmVjaXBpZW50c05vdEZvdW5kRXJyb3IudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLy9AYnVuZGxlSW50bzpjb21tb24tbWluXG5cbmltcG9ydCB7IFR1dGFub3RhRXJyb3IgfSBmcm9tIFwiQHR1dGFvL3R1dGFub3RhLWVycm9yXCJcblxuZXhwb3J0IGNsYXNzIFJlY2lwaWVudHNOb3RGb3VuZEVycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG5cdGNvbnN0cnVjdG9yKG06IHN0cmluZykge1xuXHRcdHN1cGVyKFwiUmVjaXBpZW50c05vdEZvdW5kRXJyb3JcIiwgbSlcblx0fVxufVxuIl0sIm1hcHBpbmdzIjoiOzs7SUFJYSwwQkFBTixjQUFzQyxjQUFjO0NBQzFELFlBQVlBLEdBQVc7QUFDdEIsUUFBTSwyQkFBMkIsRUFBRTtDQUNuQztBQUNEIn0=

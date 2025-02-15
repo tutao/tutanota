@@ -1,0 +1,24 @@
+import "./dist-chunk.js";
+import "./ProgrammingError-chunk.js";
+import "./Env-chunk.js";
+import "./dist2-chunk.js";
+import "./ParserCombinator-chunk.js";
+import "./ErrorUtils-chunk.js";
+import "./RestError-chunk.js";
+import "./OutOfSyncError-chunk.js";
+import "./CancelledError-chunk.js";
+import "./SuspensionError-chunk.js";
+import "./LoginIncompleteError-chunk.js";
+import "./CryptoError-chunk.js";
+import "./RecipientsNotFoundError-chunk.js";
+import "./DbError-chunk.js";
+import "./QuotaExceededError-chunk.js";
+import "./DeviceStorageUnavailableError-chunk.js";
+import "./MailBodyTooLargeError-chunk.js";
+import "./ImportError-chunk.js";
+import "./WebauthnError-chunk.js";
+import "./PermissionError-chunk.js";
+import "./MessageDispatcher-chunk.js";
+import { decodeNativeMessage, decodeValueFromNative, encodeNativeMessage, encodeValueForNative, replaceBytesWithWrapper, replaceWrapperByBytes } from "./NativeLineProtocol-chunk.js";
+
+export { decodeValueFromNative, encodeValueForNative };

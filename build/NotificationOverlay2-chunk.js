@@ -1,0 +1,20 @@
+import "./dist-chunk.js";
+import "./ProgrammingError-chunk.js";
+import "./Env-chunk.js";
+import "./ClientDetector-chunk.js";
+import "./mithril-chunk.js";
+import "./dist2-chunk.js";
+import "./WhitelabelCustomizations-chunk.js";
+import "./LanguageViewModel-chunk.js";
+import "./styles-chunk.js";
+import "./theme-chunk.js";
+import "./TutanotaConstants-chunk.js";
+import "./KeyManager-chunk.js";
+import "./WindowFacade-chunk.js";
+import "./RootView-chunk.js";
+import "./size-chunk.js";
+import "./HtmlUtils-chunk.js";
+import "./Button-chunk.js";
+import { show } from "./NotificationOverlay-chunk.js";
+
+export { show };

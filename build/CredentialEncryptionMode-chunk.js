@@ -1,0 +1,30 @@
+
+//#region src/common/misc/credentials/CredentialEncryptionMode.ts
+let CredentialEncryptionMode = function(CredentialEncryptionMode$1) {
+	/**
+	* Credentials key can be decrypted without user interaction if the device is in an unlocked state.
+	*/
+	CredentialEncryptionMode$1["DEVICE_LOCK"] = "DEVICE_LOCK";
+	/**
+	* Credentials key can only be decrypted after authenticating using the system password/device pin.
+	* Depending on the platform authenticating using system password will keep the user authenticated for
+	* a certain period of time, i.e. the user might NOT have to enter the system password each time.
+	*/
+	CredentialEncryptionMode$1["SYSTEM_PASSWORD"] = "SYSTEM_PASSWORD";
+	/**
+	* Credentials key can only be decrypted using biometric evidence. Depending on the device, there might be
+	* a fallback option to use the system password/device pin as an alternative. In contrast to SYSTEM_PASSWORD
+	* mode every access to the credentials key must be individually authenticated - even when using the fallback.
+	*/
+	CredentialEncryptionMode$1["BIOMETRICS"] = "BIOMETRICS";
+	/**
+	* Credentials key is secured with a separate password / pin that is independent of the state of the system
+	* keychain.
+	*/
+	CredentialEncryptionMode$1["APP_PASSWORD"] = "APP_PASSWORD";
+	return CredentialEncryptionMode$1;
+}({});
+
+//#endregion
+export { CredentialEncryptionMode };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ3JlZGVudGlhbEVuY3J5cHRpb25Nb2RlLWNodW5rLmpzIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi4uL3NyYy9jb21tb24vbWlzYy9jcmVkZW50aWFscy9DcmVkZW50aWFsRW5jcnlwdGlvbk1vZGUudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBFbnVtIHRoYXQgZGVzY3JpYmVzIHRoZSBkaWZmZXJlbnQgbWV0aG9kcyBmb3IgZW5jcnlwdGluZyB0aGUgaW50ZXJtZWRpYXRlIGtleSB1c2VkIGZvciBjcmVkZW50aWFscyBlbmNyeXB0aW9uLlxuICovXG5leHBvcnQgZW51bSBDcmVkZW50aWFsRW5jcnlwdGlvbk1vZGUge1xuXHQvKipcblx0ICogQ3JlZGVudGlhbHMga2V5IGNhbiBiZSBkZWNyeXB0ZWQgd2l0aG91dCB1c2VyIGludGVyYWN0aW9uIGlmIHRoZSBkZXZpY2UgaXMgaW4gYW4gdW5sb2NrZWQgc3RhdGUuXG5cdCAqL1xuXHRERVZJQ0VfTE9DSyA9IFwiREVWSUNFX0xPQ0tcIixcblxuXHQvKipcblx0ICogQ3JlZGVudGlhbHMga2V5IGNhbiBvbmx5IGJlIGRlY3J5cHRlZCBhZnRlciBhdXRoZW50aWNhdGluZyB1c2luZyB0aGUgc3lzdGVtIHBhc3N3b3JkL2RldmljZSBwaW4uXG5cdCAqIERlcGVuZGluZyBvbiB0aGUgcGxhdGZvcm0gYXV0aGVudGljYXRpbmcgdXNpbmcgc3lzdGVtIHBhc3N3b3JkIHdpbGwga2VlcCB0aGUgdXNlciBhdXRoZW50aWNhdGVkIGZvclxuXHQgKiBhIGNlcnRhaW4gcGVyaW9kIG9mIHRpbWUsIGkuZS4gdGhlIHVzZXIgbWlnaHQgTk9UIGhhdmUgdG8gZW50ZXIgdGhlIHN5c3RlbSBwYXNzd29yZCBlYWNoIHRpbWUuXG5cdCAqL1xuXHRTWVNURU1fUEFTU1dPUkQgPSBcIlNZU1RFTV9QQVNTV09SRFwiLFxuXG5cdC8qKlxuXHQgKiBDcmVkZW50aWFscyBrZXkgY2FuIG9ubHkgYmUgZGVjcnlwdGVkIHVzaW5nIGJpb21ldHJpYyBldmlkZW5jZS4gRGVwZW5kaW5nIG9uIHRoZSBkZXZpY2UsIHRoZXJlIG1pZ2h0IGJlXG5cdCAqIGEgZmFsbGJhY2sgb3B0aW9uIHRvIHVzZSB0aGUgc3lzdGVtIHBhc3N3b3JkL2RldmljZSBwaW4gYXMgYW4gYWx0ZXJuYXRpdmUuIEluIGNvbnRyYXN0IHRvIFNZU1RFTV9QQVNTV09SRFxuXHQgKiBtb2RlIGV2ZXJ5IGFjY2VzcyB0byB0aGUgY3JlZGVudGlhbHMga2V5IG11c3QgYmUgaW5kaXZpZHVhbGx5IGF1dGhlbnRpY2F0ZWQgLSBldmVuIHdoZW4gdXNpbmcgdGhlIGZhbGxiYWNrLlxuXHQgKi9cblx0QklPTUVUUklDUyA9IFwiQklPTUVUUklDU1wiLFxuXG5cdC8qKlxuXHQgKiBDcmVkZW50aWFscyBrZXkgaXMgc2VjdXJlZCB3aXRoIGEgc2VwYXJhdGUgcGFzc3dvcmQgLyBwaW4gdGhhdCBpcyBpbmRlcGVuZGVudCBvZiB0aGUgc3RhdGUgb2YgdGhlIHN5c3RlbVxuXHQgKiBrZXljaGFpbi5cblx0ICovXG5cdEFQUF9QQVNTV09SRCA9IFwiQVBQX1BBU1NXT1JEXCIsXG59XG4iXSwibWFwcGluZ3MiOiI7O0lBR1ksZ0VBQUw7Ozs7QUFJTjs7Ozs7O0FBT0E7Ozs7OztBQU9BOzs7OztBQU1BOztBQUNBIn0=

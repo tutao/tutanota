@@ -1,0 +1,12 @@
+import { mithril_default } from "./mithril-chunk.js";
+
+//#region src/common/gui/base/Badge.ts
+var Badge = class {
+	view(vnode) {
+		return mithril_default(".b.teamLabel.pl-s.pr-s.border-radius.no-wrap" + (vnode.attrs.classes || ""), vnode.children);
+	}
+};
+
+//#endregion
+export { Badge };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQmFkZ2UtY2h1bmsuanMiLCJuYW1lcyI6WyJ2bm9kZTogVm5vZGU8QmFkZ2VBdHRycz4iXSwic291cmNlcyI6WyIuLi9zcmMvY29tbW9uL2d1aS9iYXNlL0JhZGdlLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBtLCB7IENoaWxkcmVuLCBDb21wb25lbnQsIFZub2RlIH0gZnJvbSBcIm1pdGhyaWxcIlxuXG50eXBlIEJhZGdlQXR0cnMgPSB7XG5cdGNsYXNzZXM/OiBzdHJpbmdcbn1cbmV4cG9ydCBkZWZhdWx0IGNsYXNzIEJhZGdlIGltcGxlbWVudHMgQ29tcG9uZW50PEJhZGdlQXR0cnM+IHtcblx0dmlldyh2bm9kZTogVm5vZGU8QmFkZ2VBdHRycz4pOiBDaGlsZHJlbiB7XG5cdFx0cmV0dXJuIG0oXCIuYi50ZWFtTGFiZWwucGwtcy5wci1zLmJvcmRlci1yYWRpdXMubm8td3JhcFwiICsgKHZub2RlLmF0dHJzLmNsYXNzZXMgfHwgXCJcIiksIHZub2RlLmNoaWxkcmVuKVxuXHR9XG59XG4iXSwibWFwcGluZ3MiOiI7OztJQUtxQixRQUFOLE1BQTZDO0NBQzNELEtBQUtBLE9BQW9DO0FBQ3hDLFNBQU8sZ0JBQUUsa0RBQWtELE1BQU0sTUFBTSxXQUFXLEtBQUssTUFBTSxTQUFTO0NBQ3RHO0FBQ0QifQ==

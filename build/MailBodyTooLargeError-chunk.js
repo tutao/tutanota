@@ -1,0 +1,12 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region src/common/api/common/error/MailBodyTooLargeError.ts
+var MailBodyTooLargeError = class extends TutanotaError {
+	constructor(message) {
+		super("MailBodyTooLargeError", message);
+	}
+};
+
+//#endregion
+export { MailBodyTooLargeError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiTWFpbEJvZHlUb29MYXJnZUVycm9yLWNodW5rLmpzIiwibmFtZXMiOlsibWVzc2FnZTogc3RyaW5nIl0sInNvdXJjZXMiOlsiLi4vc3JjL2NvbW1vbi9hcGkvY29tbW9uL2Vycm9yL01haWxCb2R5VG9vTGFyZ2VFcnJvci50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvL0BidW5kbGVJbnRvOmNvbW1vbi1taW5cblxuaW1wb3J0IHsgVHV0YW5vdGFFcnJvciB9IGZyb20gXCJAdHV0YW8vdHV0YW5vdGEtZXJyb3JcIlxuXG5leHBvcnQgY2xhc3MgTWFpbEJvZHlUb29MYXJnZUVycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG5cdGNvbnN0cnVjdG9yKG1lc3NhZ2U6IHN0cmluZykge1xuXHRcdHN1cGVyKFwiTWFpbEJvZHlUb29MYXJnZUVycm9yXCIsIG1lc3NhZ2UpXG5cdH1cbn1cbiJdLCJtYXBwaW5ncyI6Ijs7O0lBSWEsd0JBQU4sY0FBb0MsY0FBYztDQUN4RCxZQUFZQSxTQUFpQjtBQUM1QixRQUFNLHlCQUF5QixRQUFRO0NBQ3ZDO0FBQ0QifQ==

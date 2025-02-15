@@ -1,0 +1,12 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region src/common/api/common/error/PermissionError.ts
+var PermissionError = class extends TutanotaError {
+	constructor(m) {
+		super("PermissionError", m);
+	}
+};
+
+//#endregion
+export { PermissionError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiUGVybWlzc2lvbkVycm9yLWNodW5rLmpzIiwibmFtZXMiOlsibTogc3RyaW5nIl0sInNvdXJjZXMiOlsiLi4vc3JjL2NvbW1vbi9hcGkvY29tbW9uL2Vycm9yL1Blcm1pc3Npb25FcnJvci50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvL0BidW5kbGVJbnRvOmNvbW1vbi1taW5cblxuaW1wb3J0IHsgVHV0YW5vdGFFcnJvciB9IGZyb20gXCJAdHV0YW8vdHV0YW5vdGEtZXJyb3JcIlxuXG5leHBvcnQgY2xhc3MgUGVybWlzc2lvbkVycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG5cdGNvbnN0cnVjdG9yKG06IHN0cmluZykge1xuXHRcdHN1cGVyKFwiUGVybWlzc2lvbkVycm9yXCIsIG0pXG5cdH1cbn1cbiJdLCJtYXBwaW5ncyI6Ijs7O0lBSWEsa0JBQU4sY0FBOEIsY0FBYztDQUNsRCxZQUFZQSxHQUFXO0FBQ3RCLFFBQU0sbUJBQW1CLEVBQUU7Q0FDM0I7QUFDRCJ9

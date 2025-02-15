@@ -1,0 +1,178 @@
+import "./dist-chunk.js";
+import "./ProgrammingError-chunk.js";
+import "./Env-chunk.js";
+import "./ClientDetector-chunk.js";
+import "./mithril-chunk.js";
+import { incrementDate } from "./dist2-chunk.js";
+import "./WhitelabelCustomizations-chunk.js";
+import { InfoLink, lang } from "./LanguageViewModel-chunk.js";
+import "./styles-chunk.js";
+import "./theme-chunk.js";
+import { TerminationPeriodOptions } from "./TutanotaConstants-chunk.js";
+import "./KeyManager-chunk.js";
+import "./WindowFacade-chunk.js";
+import "./RootView-chunk.js";
+import "./size-chunk.js";
+import "./HtmlUtils-chunk.js";
+import "./EntityUtils-chunk.js";
+import "./TypeModels-chunk.js";
+import "./TypeRefs-chunk.js";
+import "./CommonCalendarUtils-chunk.js";
+import "./TypeModels2-chunk.js";
+import { CustomerAccountTerminationRequestTypeRef, createCustomerAccountTerminationPostIn } from "./TypeRefs2-chunk.js";
+import "./ParserCombinator-chunk.js";
+import "./FormatValidator-chunk.js";
+import "./stream-chunk.js";
+import "./Logger-chunk.js";
+import "./TypeModels3-chunk.js";
+import "./ErrorUtils-chunk.js";
+import { PreconditionFailedError } from "./RestError-chunk.js";
+import "./OutOfSyncError-chunk.js";
+import "./CancelledError-chunk.js";
+import "./SuspensionError-chunk.js";
+import "./LoginIncompleteError-chunk.js";
+import "./CryptoError-chunk.js";
+import "./RecipientsNotFoundError-chunk.js";
+import "./DbError-chunk.js";
+import "./QuotaExceededError-chunk.js";
+import "./DeviceStorageUnavailableError-chunk.js";
+import "./MailBodyTooLargeError-chunk.js";
+import "./ImportError-chunk.js";
+import "./WebauthnError-chunk.js";
+import "./PermissionError-chunk.js";
+import { SessionType } from "./SessionType-chunk.js";
+import { CustomerAccountTerminationService } from "./Services-chunk.js";
+import "./GroupUtils-chunk.js";
+import "./Button-chunk.js";
+import "./Icons-chunk.js";
+import "./DialogHeaderBar-chunk.js";
+import "./CountryList-chunk.js";
+import "./Dialog-chunk.js";
+import "./Icon-chunk.js";
+import "./AriaUtils-chunk.js";
+import "./IconButton-chunk.js";
+import "./Formatter-chunk.js";
+import "./CommonLocator-chunk.js";
+import "./UserError-chunk.js";
+import "./MailAddressParser-chunk.js";
+import "./BlobUtils-chunk.js";
+import "./FileUtils-chunk.js";
+import "./ProgressDialog-chunk.js";
+import "./SharedMailUtils-chunk.js";
+import "./PasswordUtils-chunk.js";
+import "./Recipient-chunk.js";
+import "./SubscriptionDialogs-chunk.js";
+import "./ExternalLink-chunk.js";
+import "./ToggleButton-chunk.js";
+import "./SnackBar-chunk.js";
+import "./Credentials-chunk.js";
+import "./NotificationOverlay-chunk.js";
+import "./Checkbox-chunk.js";
+import "./Expander-chunk.js";
+import "./ClipboardUtils-chunk.js";
+import "./Services4-chunk.js";
+import "./BubbleButton-chunk.js";
+import "./ErrorReporter-chunk.js";
+import "./PasswordField-chunk.js";
+import "./PasswordRequestDialog-chunk.js";
+import "./ErrorHandlerImpl-chunk.js";
+import "./LoginScreenHeader-chunk.js";
+import "./LoginButton-chunk.js";
+import { LoginState, getLoginErrorStateAndMessage } from "./LoginUtils-chunk.js";
+
+//#region src/common/termination/TerminationViewModel.ts
+var TerminationViewModel = class {
+	mailAddress;
+	password;
+	date;
+	terminationPeriodOption;
+	acceptedTerminationRequest;
+	helpText;
+	loginState;
+	constructor(loginController, secondFactorHandler, serviceExecutor, entityClient) {
+		this.loginController = loginController;
+		this.secondFactorHandler = secondFactorHandler;
+		this.serviceExecutor = serviceExecutor;
+		this.entityClient = entityClient;
+		this.mailAddress = "";
+		this.password = "";
+		this.date = incrementDate(new Date(), 1);
+		this.acceptedTerminationRequest = null;
+		this.terminationPeriodOption = TerminationPeriodOptions.EndOfCurrentPeriod;
+		this.helpText = "emptyString_msg";
+		this.loginState = LoginState.NotAuthenticated;
+	}
+	async createAccountTerminationRequest(surveyData = null) {
+		await this.authenticate();
+		if (this.loginState == LoginState.LoggedIn) await this.createTerminationRequest(surveyData);
+	}
+	/**
+	* Creates the termination request based on the date option selected by the user and assument that the authentication was successfull.
+	*/
+	async createTerminationRequest(surveyData) {
+		try {
+			const inputData = createCustomerAccountTerminationPostIn({
+				terminationDate: this.getTerminationDate(),
+				surveyData
+			});
+			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData);
+			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest);
+		} catch (e) {
+			if (e instanceof PreconditionFailedError) switch (e.data) {
+				case "invalidTerminationDate":
+					this.onTerminationRequestFailed("terminationInvalidDate_msg");
+					break;
+				case "alreadyCancelled":
+					this.onTerminationRequestFailed("terminationAlreadyCancelled_msg");
+					break;
+				case "noActiveSubscription":
+					this.onTerminationRequestFailed("terminationNoActiveSubscription_msg");
+					break;
+				case "hasAppStoreSubscription":
+					this.onTerminationRequestFailed(lang.getTranslation("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }));
+					break;
+				default: throw e;
+			}
+else throw e;
+		} finally {
+			await this.loginController.logout(false);
+			this.loginState = LoginState.NotAuthenticated;
+		}
+	}
+	onTerminationRequestFailed(errorMessage) {
+		this.helpText = errorMessage;
+	}
+	onAuthentication() {
+		this.helpText = "emptyString_msg";
+		this.loginState = LoginState.LoggedIn;
+	}
+	onError(helpText, state) {
+		this.helpText = helpText;
+		this.loginState = state;
+	}
+	getTerminationDate() {
+		return this.terminationPeriodOption === TerminationPeriodOptions.EndOfCurrentPeriod ? null : this.date;
+	}
+	async authenticate() {
+		const mailAddress = this.mailAddress;
+		const password = this.password;
+		if (mailAddress === "" || password === "") {
+			this.onError("loginFailed_msg", LoginState.InvalidCredentials);
+			return;
+		}
+		this.helpText = "emptyString_msg";
+		try {
+			await this.loginController.createSession(mailAddress, password, SessionType.Temporary);
+			this.onAuthentication();
+		} catch (e) {
+			const { errorMessage, state } = getLoginErrorStateAndMessage(e);
+			this.onError(errorMessage, state);
+		} finally {
+			await this.secondFactorHandler.closeWaitingForSecondFactorDialog();
+		}
+	}
+};
+
+//#endregion
+export { TerminationViewModel };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVGVybWluYXRpb25WaWV3TW9kZWwtY2h1bmsuanMiLCJuYW1lcyI6WyJsb2dpbkNvbnRyb2xsZXI6IExvZ2luQ29udHJvbGxlciIsInNlY29uZEZhY3RvckhhbmRsZXI6IFNlY29uZEZhY3RvckhhbmRsZXIiLCJzZXJ2aWNlRXhlY3V0b3I6IElTZXJ2aWNlRXhlY3V0b3IiLCJlbnRpdHlDbGllbnQ6IEVudGl0eUNsaWVudCIsInN1cnZleURhdGE6IFN1cnZleURhdGEgfCBudWxsIiwiZXJyb3JNZXNzYWdlOiBNYXliZVRyYW5zbGF0aW9uIiwiaGVscFRleHQ6IE1heWJlVHJhbnNsYXRpb24iLCJzdGF0ZTogTG9naW5TdGF0ZSJdLCJzb3VyY2VzIjpbIi4uL3NyYy9jb21tb24vdGVybWluYXRpb24vVGVybWluYXRpb25WaWV3TW9kZWwudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgU2Vzc2lvblR5cGUgfSBmcm9tIFwiLi4vYXBpL2NvbW1vbi9TZXNzaW9uVHlwZS5qc1wiXG5pbXBvcnQgeyBMb2dpblN0YXRlIH0gZnJvbSBcIi4uL2xvZ2luL0xvZ2luVmlld01vZGVsLmpzXCJcbmltcG9ydCB7IEluZm9MaW5rLCBsYW5nLCBNYXliZVRyYW5zbGF0aW9uIH0gZnJvbSBcIi4uL21pc2MvTGFuZ3VhZ2VWaWV3TW9kZWwuanNcIlxuaW1wb3J0IHsgTG9naW5Db250cm9sbGVyIH0gZnJvbSBcIi4uL2FwaS9tYWluL0xvZ2luQ29udHJvbGxlci5qc1wiXG5pbXBvcnQgeyBnZXRMb2dpbkVycm9yU3RhdGVBbmRNZXNzYWdlIH0gZnJvbSBcIi4uL21pc2MvTG9naW5VdGlscy5qc1wiXG5pbXBvcnQgeyBTZWNvbmRGYWN0b3JIYW5kbGVyIH0gZnJvbSBcIi4uL21pc2MvMmZhL1NlY29uZEZhY3RvckhhbmRsZXIuanNcIlxuaW1wb3J0IHsgVGVybWluYXRpb25QZXJpb2RPcHRpb25zIH0gZnJvbSBcIi4uL2FwaS9jb21tb24vVHV0YW5vdGFDb25zdGFudHMuanNcIlxuaW1wb3J0IHsgSVNlcnZpY2VFeGVjdXRvciB9IGZyb20gXCIuLi9hcGkvY29tbW9uL1NlcnZpY2VSZXF1ZXN0LmpzXCJcbmltcG9ydCB7IEN1c3RvbWVyQWNjb3VudFRlcm1pbmF0aW9uU2VydmljZSB9IGZyb20gXCIuLi9hcGkvZW50aXRpZXMvc3lzL1NlcnZpY2VzLmpzXCJcbmltcG9ydCB7XG5cdGNyZWF0ZUN1c3RvbWVyQWNjb3VudFRlcm1pbmF0aW9uUG9zdEluLFxuXHRDdXN0b21lckFjY291bnRUZXJtaW5hdGlvblJlcXVlc3QsXG5cdEN1c3RvbWVyQWNjb3VudFRlcm1pbmF0aW9uUmVxdWVzdFR5cGVSZWYsXG5cdFN1cnZleURhdGEsXG59IGZyb20gXCIuLi9hcGkvZW50aXRpZXMvc3lzL1R5cGVSZWZzLmpzXCJcbmltcG9ydCB7IEVudGl0eUNsaWVudCB9IGZyb20gXCIuLi9hcGkvY29tbW9uL0VudGl0eUNsaWVudC5qc1wiXG5pbXBvcnQgeyBQcmVjb25kaXRpb25GYWlsZWRFcnJvciB9IGZyb20gXCIuLi9hcGkvY29tbW9uL2Vycm9yL1Jlc3RFcnJvci5qc1wiXG5pbXBvcnQgeyBpbmNyZW1lbnREYXRlIH0gZnJvbSBcIkB0dXRhby90dXRhbm90YS11dGlsc1wiXG5cbmV4cG9ydCBjbGFzcyBUZXJtaW5hdGlvblZpZXdNb2RlbCB7XG5cdG1haWxBZGRyZXNzOiBzdHJpbmdcblx0cGFzc3dvcmQ6IHN0cmluZ1xuXHRkYXRlOiBEYXRlXG5cdHRlcm1pbmF0aW9uUGVyaW9kT3B0aW9uOiBUZXJtaW5hdGlvblBlcmlvZE9wdGlvbnNcblx0YWNjZXB0ZWRUZXJtaW5hdGlvblJlcXVlc3Q6IEN1c3RvbWVyQWNjb3VudFRlcm1pbmF0aW9uUmVxdWVzdCB8IG51bGxcblx0aGVscFRleHQ6IE1heWJlVHJhbnNsYXRpb25cblx0bG9naW5TdGF0ZTogTG9naW5TdGF0ZVxuXG5cdGNvbnN0cnVjdG9yKFxuXHRcdHByaXZhdGUgcmVhZG9ubHkgbG9naW5Db250cm9sbGVyOiBMb2dpbkNvbnRyb2xsZXIsXG5cdFx0cHJpdmF0ZSByZWFkb25seSBzZWNvbmRGYWN0b3JIYW5kbGVyOiBTZWNvbmRGYWN0b3JIYW5kbGVyLFxuXHRcdHByaXZhdGUgcmVhZG9ubHkgc2VydmljZUV4ZWN1dG9yOiBJU2VydmljZUV4ZWN1dG9yLFxuXHRcdHByaXZhdGUgcmVhZG9ubHkgZW50aXR5Q2xpZW50OiBFbnRpdHlDbGllbnQsXG5cdCkge1xuXHRcdHRoaXMubWFpbEFkZHJlc3MgPSBcIlwiXG5cdFx0dGhpcy5wYXNzd29yZCA9IFwiXCJcblx0XHR0aGlzLmRhdGUgPSBpbmNyZW1lbnREYXRlKG5ldyBEYXRlKCksIDEpXG5cdFx0dGhpcy5hY2NlcHRlZFRlcm1pbmF0aW9uUmVxdWVzdCA9IG51bGxcblx0XHR0aGlzLnRlcm1pbmF0aW9uUGVyaW9kT3B0aW9uID0gVGVybWluYXRpb25QZXJpb2RPcHRpb25zLkVuZE9mQ3VycmVudFBlcmlvZFxuXHRcdHRoaXMuaGVscFRleHQgPSBcImVtcHR5U3RyaW5nX21zZ1wiXG5cdFx0dGhpcy5sb2dpblN0YXRlID0gTG9naW5TdGF0ZS5Ob3RBdXRoZW50aWNhdGVkXG5cdH1cblxuXHRhc3luYyBjcmVhdGVBY2NvdW50VGVybWluYXRpb25SZXF1ZXN0KHN1cnZleURhdGE6IFN1cnZleURhdGEgfCBudWxsID0gbnVsbCk6IFByb21pc2U8dm9pZD4ge1xuXHRcdGF3YWl0IHRoaXMuYXV0aGVudGljYXRlKClcblx0XHRpZiAodGhpcy5sb2dpblN0YXRlID09IExvZ2luU3RhdGUuTG9nZ2VkSW4pIHtcblx0XHRcdGF3YWl0IHRoaXMuY3JlYXRlVGVybWluYXRpb25SZXF1ZXN0KHN1cnZleURhdGEpXG5cdFx0fVxuXHR9XG5cblx0LyoqXG5cdCAqIENyZWF0ZXMgdGhlIHRlcm1pbmF0aW9uIHJlcXVlc3QgYmFzZWQgb24gdGhlIGRhdGUgb3B0aW9uIHNlbGVjdGVkIGJ5IHRoZSB1c2VyIGFuZCBhc3N1bWVudCB0aGF0IHRoZSBhdXRoZW50aWNhdGlvbiB3YXMgc3VjY2Vzc2Z1bGwuXG5cdCAqL1xuXHRwcml2YXRlIGFzeW5jIGNyZWF0ZVRlcm1pbmF0aW9uUmVxdWVzdChzdXJ2ZXlEYXRhOiBTdXJ2ZXlEYXRhIHwgbnVsbCkge1xuXHRcdHRyeSB7XG5cdFx0XHRjb25zdCBpbnB1dERhdGEgPSBjcmVhdGVDdXN0b21lckFjY291bnRUZXJtaW5hdGlvblBvc3RJbih7XG5cdFx0XHRcdHRlcm1pbmF0aW9uRGF0ZTogdGhpcy5nZXRUZXJtaW5hdGlvbkRhdGUoKSxcblx0XHRcdFx0c3VydmV5RGF0YTogc3VydmV5RGF0YSxcblx0XHRcdH0pXG5cdFx0XHRsZXQgc2VydmljZVJlc3BvbnNlID0gYXdhaXQgdGhpcy5zZXJ2aWNlRXhlY3V0b3IucG9zdChDdXN0b21lckFjY291bnRUZXJtaW5hdGlvblNlcnZpY2UsIGlucHV0RGF0YSlcblx0XHRcdHRoaXMuYWNjZXB0ZWRUZXJtaW5hdGlvblJlcXVlc3QgPSBhd2FpdCB0aGlzLmVudGl0eUNsaWVudC5sb2FkKEN1c3RvbWVyQWNjb3VudFRlcm1pbmF0aW9uUmVxdWVzdFR5cGVSZWYsIHNlcnZpY2VSZXNwb25zZS50ZXJtaW5hdGlvblJlcXVlc3QpXG5cdFx0fSBjYXRjaCAoZSkge1xuXHRcdFx0aWYgKGUgaW5zdGFuY2VvZiBQcmVjb25kaXRpb25GYWlsZWRFcnJvcikge1xuXHRcdFx0XHRzd2l0Y2ggKGUuZGF0YSkge1xuXHRcdFx0XHRcdGNhc2UgXCJpbnZhbGlkVGVybWluYXRpb25EYXRlXCI6XG5cdFx0XHRcdFx0XHR0aGlzLm9uVGVybWluYXRpb25SZXF1ZXN0RmFpbGVkKFwidGVybWluYXRpb25JbnZhbGlkRGF0ZV9tc2dcIilcblx0XHRcdFx0XHRcdGJyZWFrXG5cdFx0XHRcdFx0Y2FzZSBcImFscmVhZHlDYW5jZWxsZWRcIjpcblx0XHRcdFx0XHRcdHRoaXMub25UZXJtaW5hdGlvblJlcXVlc3RGYWlsZWQoXCJ0ZXJtaW5hdGlvbkFscmVhZHlDYW5jZWxsZWRfbXNnXCIpXG5cdFx0XHRcdFx0XHRicmVha1xuXHRcdFx0XHRcdGNhc2UgXCJub0FjdGl2ZVN1YnNjcmlwdGlvblwiOlxuXHRcdFx0XHRcdFx0dGhpcy5vblRlcm1pbmF0aW9uUmVxdWVzdEZhaWxlZChcInRlcm1pbmF0aW9uTm9BY3RpdmVTdWJzY3JpcHRpb25fbXNnXCIpXG5cdFx0XHRcdFx0XHRicmVha1xuXHRcdFx0XHRcdGNhc2UgXCJoYXNBcHBTdG9yZVN1YnNjcmlwdGlvblwiOlxuXHRcdFx0XHRcdFx0dGhpcy5vblRlcm1pbmF0aW9uUmVxdWVzdEZhaWxlZChcblx0XHRcdFx0XHRcdFx0bGFuZy5nZXRUcmFuc2xhdGlvbihcImRlbGV0ZUFjY291bnRXaXRoQXBwU3RvcmVTdWJzY3JpcHRpb25fbXNnXCIsIHsgXCJ7QXBwU3RvcmVQYXltZW50fVwiOiBJbmZvTGluay5BcHBTdG9yZVBheW1lbnQgfSksXG5cdFx0XHRcdFx0XHQpXG5cdFx0XHRcdFx0XHRicmVha1xuXHRcdFx0XHRcdGRlZmF1bHQ6XG5cdFx0XHRcdFx0XHR0aHJvdyBlXG5cdFx0XHRcdH1cblx0XHRcdH0gZWxzZSB7XG5cdFx0XHRcdHRocm93IGVcblx0XHRcdH1cblx0XHR9IGZpbmFsbHkge1xuXHRcdFx0YXdhaXQgdGhpcy5sb2dpbkNvbnRyb2xsZXIubG9nb3V0KGZhbHNlKVxuXHRcdFx0dGhpcy5sb2dpblN0YXRlID0gTG9naW5TdGF0ZS5Ob3RBdXRoZW50aWNhdGVkXG5cdFx0fVxuXHR9XG5cblx0cHJpdmF0ZSBvblRlcm1pbmF0aW9uUmVxdWVzdEZhaWxlZChlcnJvck1lc3NhZ2U6IE1heWJlVHJhbnNsYXRpb24pIHtcblx0XHR0aGlzLmhlbHBUZXh0ID0gZXJyb3JNZXNzYWdlXG5cdH1cblxuXHRwcml2YXRlIG9uQXV0aGVudGljYXRpb24oKSB7XG5cdFx0dGhpcy5oZWxwVGV4dCA9IFwiZW1wdHlTdHJpbmdfbXNnXCJcblx0XHR0aGlzLmxvZ2luU3RhdGUgPSBMb2dpblN0YXRlLkxvZ2dlZEluXG5cdH1cblxuXHRwcml2YXRlIG9uRXJyb3IoaGVscFRleHQ6IE1heWJlVHJhbnNsYXRpb24sIHN0YXRlOiBMb2dpblN0YXRlKSB7XG5cdFx0dGhpcy5oZWxwVGV4dCA9IGhlbHBUZXh0XG5cdFx0dGhpcy5sb2dpblN0YXRlID0gc3RhdGVcblx0fVxuXG5cdHByaXZhdGUgZ2V0VGVybWluYXRpb25EYXRlKCk6IERhdGUgfCBudWxsIHtcblx0XHRyZXR1cm4gdGhpcy50ZXJtaW5hdGlvblBlcmlvZE9wdGlvbiA9PT0gVGVybWluYXRpb25QZXJpb2RPcHRpb25zLkVuZE9mQ3VycmVudFBlcmlvZFxuXHRcdFx0PyAvLyBUaGUgc2VydmVyIHdpbGwgdXNlIHRoZSBlbmQgb2YgdGhlIGN1cnJlbnQgc3Vic2NyaXB0aW9uIHBlcmlvZCB0byBjYW5jZWwgdGhlIGFjY291bnQgaWYgdGhlIHRlcm1pbmF0aW9uRGF0ZSBpcyBudWxsLlxuXHRcdFx0ICBudWxsXG5cdFx0XHQ6IHRoaXMuZGF0ZVxuXHR9XG5cblx0YXN5bmMgYXV0aGVudGljYXRlKCk6IFByb21pc2U8dm9pZD4ge1xuXHRcdGNvbnN0IG1haWxBZGRyZXNzID0gdGhpcy5tYWlsQWRkcmVzc1xuXHRcdGNvbnN0IHBhc3N3b3JkID0gdGhpcy5wYXNzd29yZFxuXG5cdFx0aWYgKG1haWxBZGRyZXNzID09PSBcIlwiIHx8IHBhc3N3b3JkID09PSBcIlwiKSB7XG5cdFx0XHR0aGlzLm9uRXJyb3IoXCJsb2dpbkZhaWxlZF9tc2dcIiwgTG9naW5TdGF0ZS5JbnZhbGlkQ3JlZGVudGlhbHMpXG5cdFx0XHRyZXR1cm5cblx0XHR9XG5cdFx0dGhpcy5oZWxwVGV4dCA9IFwiZW1wdHlTdHJpbmdfbXNnXCJcblx0XHR0cnkge1xuXHRcdFx0YXdhaXQgdGhpcy5sb2dpbkNvbnRyb2xsZXIuY3JlYXRlU2Vzc2lvbihtYWlsQWRkcmVzcywgcGFzc3dvcmQsIFNlc3Npb25UeXBlLlRlbXBvcmFyeSlcblx0XHRcdHRoaXMub25BdXRoZW50aWNhdGlvbigpXG5cdFx0fSBjYXRjaCAoZSkge1xuXHRcdFx0Y29uc3QgeyBlcnJvck1lc3NhZ2UsIHN0YXRlIH0gPSBnZXRMb2dpbkVycm9yU3RhdGVBbmRNZXNzYWdlKGUpXG5cdFx0XHR0aGlzLm9uRXJyb3IoZXJyb3JNZXNzYWdlLCBzdGF0ZSlcblx0XHR9IGZpbmFsbHkge1xuXHRcdFx0YXdhaXQgdGhpcy5zZWNvbmRGYWN0b3JIYW5kbGVyLmNsb3NlV2FpdGluZ0ZvclNlY29uZEZhY3RvckRpYWxvZygpXG5cdFx0fVxuXHR9XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBbUJhLHVCQUFOLE1BQTJCO0NBQ2pDO0NBQ0E7Q0FDQTtDQUNBO0NBQ0E7Q0FDQTtDQUNBO0NBRUEsWUFDa0JBLGlCQUNBQyxxQkFDQUMsaUJBQ0FDLGNBQ2hCO0VBa0dGLEtBdEdrQjtFQXNHakIsS0FyR2lCO0VBcUdoQixLQXBHZ0I7RUFvR2YsS0FuR2U7QUFFakIsT0FBSyxjQUFjO0FBQ25CLE9BQUssV0FBVztBQUNoQixPQUFLLE9BQU8sY0FBYyxJQUFJLFFBQVEsRUFBRTtBQUN4QyxPQUFLLDZCQUE2QjtBQUNsQyxPQUFLLDBCQUEwQix5QkFBeUI7QUFDeEQsT0FBSyxXQUFXO0FBQ2hCLE9BQUssYUFBYSxXQUFXO0NBQzdCO0NBRUQsTUFBTSxnQ0FBZ0NDLGFBQWdDLE1BQXFCO0FBQzFGLFFBQU0sS0FBSyxjQUFjO0FBQ3pCLE1BQUksS0FBSyxjQUFjLFdBQVcsU0FDakMsT0FBTSxLQUFLLHlCQUF5QixXQUFXO0NBRWhEOzs7O0NBS0QsTUFBYyx5QkFBeUJBLFlBQStCO0FBQ3JFLE1BQUk7R0FDSCxNQUFNLFlBQVksdUNBQXVDO0lBQ3hELGlCQUFpQixLQUFLLG9CQUFvQjtJQUM5QjtHQUNaLEVBQUM7R0FDRixJQUFJLGtCQUFrQixNQUFNLEtBQUssZ0JBQWdCLEtBQUssbUNBQW1DLFVBQVU7QUFDbkcsUUFBSyw2QkFBNkIsTUFBTSxLQUFLLGFBQWEsS0FBSywwQ0FBMEMsZ0JBQWdCLG1CQUFtQjtFQUM1SSxTQUFRLEdBQUc7QUFDWCxPQUFJLGFBQWEsd0JBQ2hCLFNBQVEsRUFBRSxNQUFWO0FBQ0MsU0FBSztBQUNKLFVBQUssMkJBQTJCLDZCQUE2QjtBQUM3RDtBQUNELFNBQUs7QUFDSixVQUFLLDJCQUEyQixrQ0FBa0M7QUFDbEU7QUFDRCxTQUFLO0FBQ0osVUFBSywyQkFBMkIsc0NBQXNDO0FBQ3RFO0FBQ0QsU0FBSztBQUNKLFVBQUssMkJBQ0osS0FBSyxlQUFlLDZDQUE2QyxFQUFFLHFCQUFxQixTQUFTLGdCQUFpQixFQUFDLENBQ25IO0FBQ0Q7QUFDRCxZQUNDLE9BQU07R0FDUDtJQUVELE9BQU07RUFFUCxVQUFTO0FBQ1QsU0FBTSxLQUFLLGdCQUFnQixPQUFPLE1BQU07QUFDeEMsUUFBSyxhQUFhLFdBQVc7RUFDN0I7Q0FDRDtDQUVELEFBQVEsMkJBQTJCQyxjQUFnQztBQUNsRSxPQUFLLFdBQVc7Q0FDaEI7Q0FFRCxBQUFRLG1CQUFtQjtBQUMxQixPQUFLLFdBQVc7QUFDaEIsT0FBSyxhQUFhLFdBQVc7Q0FDN0I7Q0FFRCxBQUFRLFFBQVFDLFVBQTRCQyxPQUFtQjtBQUM5RCxPQUFLLFdBQVc7QUFDaEIsT0FBSyxhQUFhO0NBQ2xCO0NBRUQsQUFBUSxxQkFBa0M7QUFDekMsU0FBTyxLQUFLLDRCQUE0Qix5QkFBeUIscUJBRTlELE9BQ0EsS0FBSztDQUNSO0NBRUQsTUFBTSxlQUE4QjtFQUNuQyxNQUFNLGNBQWMsS0FBSztFQUN6QixNQUFNLFdBQVcsS0FBSztBQUV0QixNQUFJLGdCQUFnQixNQUFNLGFBQWEsSUFBSTtBQUMxQyxRQUFLLFFBQVEsbUJBQW1CLFdBQVcsbUJBQW1CO0FBQzlEO0VBQ0E7QUFDRCxPQUFLLFdBQVc7QUFDaEIsTUFBSTtBQUNILFNBQU0sS0FBSyxnQkFBZ0IsY0FBYyxhQUFhLFVBQVUsWUFBWSxVQUFVO0FBQ3RGLFFBQUssa0JBQWtCO0VBQ3ZCLFNBQVEsR0FBRztHQUNYLE1BQU0sRUFBRSxjQUFjLE9BQU8sR0FBRyw2QkFBNkIsRUFBRTtBQUMvRCxRQUFLLFFBQVEsY0FBYyxNQUFNO0VBQ2pDLFVBQVM7QUFDVCxTQUFNLEtBQUssb0JBQW9CLG1DQUFtQztFQUNsRTtDQUNEO0FBQ0QifQ==

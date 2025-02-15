@@ -1,0 +1,12 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region packages/tutanota-crypto/dist/misc/CryptoError.js
+var CryptoError = class extends TutanotaError {
+	constructor(message, error) {
+		super("CryptoError", error ? message + "> " + (error.stack ? error.stack : error.message) : message);
+	}
+};
+
+//#endregion
+export { CryptoError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ3J5cHRvRXJyb3ItY2h1bmsuanMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiLi4vcGFja2FnZXMvdHV0YW5vdGEtY3J5cHRvL2Rpc3QvbWlzYy9DcnlwdG9FcnJvci5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBUdXRhbm90YUVycm9yIH0gZnJvbSBcIkB0dXRhby90dXRhbm90YS1lcnJvclwiO1xuZXhwb3J0IGNsYXNzIENyeXB0b0Vycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG4gICAgY29uc3RydWN0b3IobWVzc2FnZSwgZXJyb3IpIHtcbiAgICAgICAgc3VwZXIoXCJDcnlwdG9FcnJvclwiLCBlcnJvciA/IG1lc3NhZ2UgKyBcIj4gXCIgKyAoZXJyb3Iuc3RhY2sgPyBlcnJvci5zdGFjayA6IGVycm9yLm1lc3NhZ2UpIDogbWVzc2FnZSk7XG4gICAgfVxufVxuIl0sIm1hcHBpbmdzIjoiOzs7SUFDYSxjQUFOLGNBQTBCLGNBQWM7Q0FDM0MsWUFBWSxTQUFTLE9BQU87QUFDeEIsUUFBTSxlQUFlLFFBQVEsVUFBVSxRQUFRLE1BQU0sUUFBUSxNQUFNLFFBQVEsTUFBTSxXQUFXLFFBQVE7Q0FDdkc7QUFDSiJ9

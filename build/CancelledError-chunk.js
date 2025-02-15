@@ -1,0 +1,17 @@
+import { TutanotaError } from "./dist-chunk.js";
+
+//#region src/common/api/common/error/CancelledError.ts
+var CancelledError = class extends TutanotaError {
+	/**
+	* A cancelled error is thrown when a async action is aborted
+	* @param message An information about the exception.
+	* @param error The original error that was thrown.
+	*/
+	constructor(message) {
+		super("CancelledError", message);
+	}
+};
+
+//#endregion
+export { CancelledError };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ2FuY2VsbGVkRXJyb3ItY2h1bmsuanMiLCJuYW1lcyI6WyJtZXNzYWdlOiBzdHJpbmciXSwic291cmNlcyI6WyIuLi9zcmMvY29tbW9uL2FwaS9jb21tb24vZXJyb3IvQ2FuY2VsbGVkRXJyb3IudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLy9AYnVuZGxlSW50bzpjb21tb24tbWluXG5cbmltcG9ydCB7IFR1dGFub3RhRXJyb3IgfSBmcm9tIFwiQHR1dGFvL3R1dGFub3RhLWVycm9yXCJcblxuZXhwb3J0IGNsYXNzIENhbmNlbGxlZEVycm9yIGV4dGVuZHMgVHV0YW5vdGFFcnJvciB7XG5cdC8qKlxuXHQgKiBBIGNhbmNlbGxlZCBlcnJvciBpcyB0aHJvd24gd2hlbiBhIGFzeW5jIGFjdGlvbiBpcyBhYm9ydGVkXG5cdCAqIEBwYXJhbSBtZXNzYWdlIEFuIGluZm9ybWF0aW9uIGFib3V0IHRoZSBleGNlcHRpb24uXG5cdCAqIEBwYXJhbSBlcnJvciBUaGUgb3JpZ2luYWwgZXJyb3IgdGhhdCB3YXMgdGhyb3duLlxuXHQgKi9cblx0Y29uc3RydWN0b3IobWVzc2FnZTogc3RyaW5nKSB7XG5cdFx0c3VwZXIoXCJDYW5jZWxsZWRFcnJvclwiLCBtZXNzYWdlKVxuXHR9XG59XG4iXSwibWFwcGluZ3MiOiI7OztJQUlhLGlCQUFOLGNBQTZCLGNBQWM7Ozs7OztDQU1qRCxZQUFZQSxTQUFpQjtBQUM1QixRQUFNLGtCQUFrQixRQUFRO0NBQ2hDO0FBQ0QifQ==
