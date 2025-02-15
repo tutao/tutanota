@@ -1,0 +1,1540 @@
+
+globalThis.env = {
+  "staticUrl": "http://localhost:9000",
+  "versionNumber": "264.250130.1",
+  "dist": false,
+  "mode": "Test",
+  "timeout": 20000,
+  "domainConfigs": {
+    "mail.tutanota.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.tuta.com",
+      "apiUrl": "https://mail.tutanota.com",
+      "paymentUrl": "https://pay.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://mail.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://mail.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tutanota.com",
+      "u2fAppId": "https://tutanota.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.tuta.com/signup",
+      "websiteBaseUrl": "https://tutanota.com"
+    },
+    "test.tutanota.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.test.tuta.com",
+      "apiUrl": "https://test.tutanota.com",
+      "paymentUrl": "https://pay.test.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.test.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://test.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.test.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://test.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tutanota.com",
+      "u2fAppId": "https://test.tutanota.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.test.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.test.tuta.com/signup",
+      "websiteBaseUrl": "https://tutanota.com"
+    },
+    "app.local.tutanota.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.local.tuta.com:9000",
+      "apiUrl": "https://app.local.tutanota.com:9000",
+      "paymentUrl": "https://local.tutanota.com:9000/client/build/braintree.html",
+      "webauthnUrl": "https://app.local.tuta.com:9000/client/build/webauthn",
+      "legacyWebauthnUrl": "https://local.tutanota.com:9000/client/build/webauthn",
+      "webauthnMobileUrl": "https://app.local.tuta.com:9000/client/build/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://local.tutanota.com:9000/client/build/webauthnmobile",
+      "webauthnRpId": "tutanota.com",
+      "u2fAppId": "https://local.tutanota.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.local.tuta.com:9000/giftcard",
+      "referralBaseUrl": "https://app.local.tuta.com:9000/signup",
+      "websiteBaseUrl": "https://local.tutanota.com:9000"
+    },
+    "app.tuta.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://mail.tutanota.com",
+      "apiUrl": "https://app.tuta.com",
+      "paymentUrl": "https://pay.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://mail.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://mail.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tuta.com",
+      "u2fAppId": "https://app.tuta.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.tuta.com/signup",
+      "websiteBaseUrl": "https://tuta.com"
+    },
+    "app.test.tuta.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://test.tutanota.com",
+      "apiUrl": "https://app.test.tuta.com",
+      "paymentUrl": "https://pay.test.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.test.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://test.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.test.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://test.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tuta.com",
+      "u2fAppId": "https://app.test.tuta.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.test.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.test.tuta.com/signup",
+      "websiteBaseUrl": "https://test.tuta.com"
+    },
+    "app.local.tuta.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.local.tutanota.com:9000",
+      "apiUrl": "https://app.local.tuta.com:9000",
+      "paymentUrl": "https://app.local.tuta.com:9000/braintree.html",
+      "webauthnUrl": "https://app.local.tuta.com:9000/webauthn",
+      "legacyWebauthnUrl": "https://local.tutanota.com:9000/webauthn",
+      "webauthnMobileUrl": "https://app.local.tuta.com:9000/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://local.tutanota.com:9000/webauthnmobile",
+      "webauthnRpId": "tuta.com",
+      "u2fAppId": "https://app.local.tuta.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.local.tuta.com:9000/giftcard",
+      "referralBaseUrl": "https://app.local.tuta.com:9000/signup",
+      "websiteBaseUrl": "https://local.tuta.com:9000"
+    },
+    "localhost": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "http://localhost:9000",
+      "apiUrl": "http://localhost:9000",
+      "paymentUrl": "http://localhost:9000/braintree.html",
+      "webauthnUrl": "http://localhost:9000/webauthn",
+      "legacyWebauthnUrl": "http://localhost:9000/webauthn",
+      "webauthnMobileUrl": "http://localhost:9000/webauthnmobile",
+      "legacyWebauthnMobileUrl": "http://localhost:9000/webauthnmobile",
+      "webauthnRpId": "localhost",
+      "u2fAppId": "http://localhost:9000/u2f-appid.json",
+      "giftCardBaseUrl": "http://localhost:9000/giftcard",
+      "referralBaseUrl": "http://localhost:9000/signup",
+      "websiteBaseUrl": "https://tuta.com"
+    },
+    "{hostname}": {
+      "firstPartyDomain": false,
+      "partneredDomainTransitionUrl": "{protocol}//{hostname}",
+      "apiUrl": "{protocol}//{hostname}",
+      "paymentUrl": "https://pay.tutanota.com/braintree.html",
+      "webauthnUrl": "{protocol}//{hostname}/webauthn",
+      "legacyWebauthnUrl": "{protocol}//{hostname}/webauthn",
+      "webauthnMobileUrl": "{protocol}//{hostname}/webauthnmobile",
+      "legacyWebauthnMobileUrl": "{protocol}//{hostname}/webauthnmobile",
+      "webauthnRpId": "{hostname}",
+      "u2fAppId": "{protocol}//{hostname}/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.tuta.com/signup",
+      "websiteBaseUrl": "https://tuta.com"
+    }
+  },
+  "platformId": null
+};
+const __NODE_GYP_better_sqlite3 = `./better-sqlite3.darwin-${typeof process !== 'undefined' ? process.arch : "unknown"}.node`
+
+//#region ../src/mail-app/translations/ar.ts
+var ar_default = {
+	"id": "d2556ba1f6042e2e81990398edd0828a",
+	"name": "ar",
+	"code": "ar",
+	"default": false,
+	"main": false,
+	"rtl": true,
+	"plural_forms": [
+		"zero",
+		"one",
+		"two",
+		"few",
+		"many",
+		"other"
+	],
+	"created_at": "2015-01-27T13:11:44Z",
+	"updated_at": "2025-01-07T10:43:45Z",
+	"source_locale": {
+		"id": "fcd7471b347c8e517663e194dcddf237",
+		"name": "en",
+		"code": "en"
+	},
+	"fallback_locale": null,
+	"keys": {
+		"about_label": "حول ",
+		"accentColor_label": "لون تمييز",
+		"acceptInvitation_action": "قبول الدعوة",
+		"acceptPrivacyPolicyReminder_msg": "يرجى قبول سياسة الخصوصية من خلال تحديد مربع الاختيار.",
+		"acceptPrivacyPolicy_msg": "لقد قرأت وأوافق على {privacyPolicy}.",
+		"acceptTemplateGroupEmailSubject_msg": "تم قبول دعوة قائمة النماذج",
+		"accept_action": "وافق",
+		"accountCreationCongratulation_msg": "مرحبا بك في العالم المشفر. 🔒",
+		"accountSwitchAliases_msg": "يرجى حذف جميع الأسماء المستعارة للمستخدم.",
+		"accountSwitchCustomMailAddress_msg": "يرجى تعطيل جميع الأسماء المستعارة للبريد الالكتروني للمجال المخصص. ",
+		"accountSwitchMultipleCalendars_msg": "يرجى حذف جميع التقويمات الإضافية.",
+		"accountSwitchNotPossible_msg": "تحتاج إلى إلغاء تنشيط جميع الميزات المدفوعة قبل الرجوع إلى حساب مجاني. {detailMsg}",
+		"accountSwitchSharedCalendar_msg": "الرجاء إزالة جميع التقويمات التي تمت مشاركتها معك.",
+		"accountSwitchTooManyActiveUsers_msg": "يرجى إلغاء تنشيط جميع المستخدمين الإضافيين قبل تبديل الاشتراك.",
+		"accountWasStillCreated_msg": "لقد تم إنشاء حسابك مسبقاً كحساب مجاني. يمكنك أيضًا إلغاء الدفع الآن، سَجِّل الدخول إلى حسابك وقم بترقيتة لاحقًا.",
+		"account_label": "مستخدم",
+		"action_label": "الإجراء",
+		"activated_label": "تم التفعيل",
+		"activate_action": "تفعيل",
+		"activeSessions_label": "جلسة نشطة",
+		"active_label": "نشِط",
+		"actor_label": "ممثل",
+		"addAliasUserDisabled_msg": "لا يمكن إضافة الاسم المستعار للبريد الإلكتروني إلى المستخدم أو المجموعة لأن المستخدم غير نشط حاليًا.",
+		"addCalendar_action": "إضافة تقويم",
+		"addCustomDomainAddresses_title": "أضف عناوين البريد الإلكتروني لنطاقك المخصص",
+		"addCustomDomain_action": "إضافة نطاق مخصص",
+		"addDNSValue_label": "إضافة قيمة",
+		"addEmailAlias_label": "إضافة اسم مستعار للبريد الإلكتروني",
+		"addEntry_label": "Add entry",
+		"addFolder_action": "إضافة مجلد",
+		"addGroup_label": "إضافة فريق",
+		"addGuest_label": "أضف ضيفا",
+		"addInboxRule_action": "أضف قاعدة للبريد الوارد",
+		"addLanguage_action": "أضف لغة",
+		"addNext_action": "أضف العنصر التالي إلى التحديد",
+		"addOpenOTPApp_action": "الإضافة لتطبيق التصديق",
+		"addParticipant_action": "إضافة مشارك",
+		"addPrevious_action": "إضافة عنصر سابق إلى التحديد",
+		"addResponsiblePerson_label": "أضف الشخص المسؤول",
+		"addressesAlreadyInUse_msg": "عناوين البريد الإلكتروني التالية هي بالفعل قيد الاستخدام :",
+		"address_label": "العنوان",
+		"addSecondFactor_action": "أضف العامل الثاني",
+		"addSpamRule_action": "أضف قاعدة لصندوق اسبام",
+		"addTemplate_label": "نموذج جديد",
+		"addToDict_action": "أضف \"{word}\" إلى القاموس",
+		"addUsers_action": "إضافة مستخدمين",
+		"addUserToGroup_label": "إضافة عضو",
+		"add_action": "إضافة",
+		"adminCustomDomain_label": "مجال مخصص",
+		"adminDeleteAccount_action": "حذف الحساب",
+		"adminEmailSettings_action": "بريد إلكتروني",
+		"administratedBy_label": "تدار من قبل",
+		"administratedGroups_label": "المجموعات المدارة",
+		"adminMaxNbrOfAliasesReached_msg": "تم الوصول إلى الحد الأقصى لعدد الأسماء المستعارة.",
+		"adminPayment_action": "بينات الدفع",
+		"adminPremiumFeatures_action": "ملحقات",
+		"adminSettings_label": "إعدادات المشرف",
+		"adminSpamRuleInfo_msg": "تفاصيل إعداد قوانين البريد المؤذي:",
+		"adminSpam_action": "قوانين البريد المؤذي",
+		"adminSubscription_action": "الاشتراك",
+		"adminUserList_action": "إدارة المستخدم",
+		"advanced_label": "متقدم",
+		"ageConfirmation_msg": "لا يقل عمري عن 16 سنة.",
+		"agenda_label": "اجندة ",
+		"allDay_label": "كل يوم",
+		"allowExternalContentSender_action": "الثقة الدائمة بالمرسل",
+		"allowOperation_msg": "هل تريد السماح بذلك؟",
+		"allowPushNotification_msg": "لتلقي إعلامات منبثقة لرسائل البريد الإلكتروني الجديدة بشكل موثوق به، يرجى الموافقة على تعطيل تحسينات البطارية لـ توتانوتا. يمكنك تغيير هذا لاحقًا في إعدادات النظام.",
+		"all_contacts_label": "كل جهات الإتصال",
+		"all_label": "كل",
+		"alreadyReplied_msg": "لقد رددت على هذه الدعوة.",
+		"alwaysAsk_action": "إسأل دوماً",
+		"alwaysReport_action": "الإبلاغ دائما",
+		"amountUsedAndActivatedOf_label": "{used} مستخدم ،  تفعيل {active} من {totalAmount}\n",
+		"amountUsedOf_label": "{amount} مستخدم من {totalAmount}",
+		"amount_label": "المبلغ",
+		"appearanceSettings_label": "المظهر ",
+		"appInfoAndroidImageAlt_alt": "تطبيق أندرويد على متجر GooglePlay",
+		"appInfoFDroidImageAlt_alt": "تطبيق الأندرويد على إف-درويد",
+		"appInfoIosImageAlt_alt": "تطبيق iOS على متجر أبل",
+		"apply_action": "تطبيق ",
+		"archive_action": "أرشيف",
+		"attachFiles_action": "إرفاق ملفات",
+		"attachmentAmount_label": "{amount} مرفقات",
+		"attachmentName_label": "اسم المرفق",
+		"attachmentWarning_msg": "يريد تطبيق آخر إرفاق الملفات التالية برسالة بريد إلكتروني جديدة :",
+		"attendeeNotFound_msg": "أنت لا تحضر هذا الحدث.",
+		"attending_label": "حضور",
+		"auditLogInfo_msg": "يحتوي سجل التدقيق على إجراءات إدارية مهمة.",
+		"auditLog_title": "سجل التدقيق",
+		"automatic_label": "اتوماتيكى",
+		"autoUpdate_label": "التحديثات التلقائية",
+		"available_label": "متوافر",
+		"back_action": "العودة",
+		"baseTheme_label": "نسق أساسي",
+		"bcc_label": "مخفية",
+		"birthday_alt": "تاريخ الميلاد",
+		"blockExternalContentSender_action": "حظر المرسل دائما ",
+		"blue_label": "أزرق",
+		"bookingItemUsersIncluding_label": "بما في ذلك المستخدمون :",
+		"bookingItemUsers_label": "المستخدمون",
+		"bookingOrder_label": "حجز",
+		"bookingSummary_label": "ملخص الحجز",
+		"boughtGiftCardPosting_label": "شراء بطاقة هدايا",
+		"breakLink_action": "حذف الرابط",
+		"buyGiftCard_label": "اشتري بطاقة هدية",
+		"buy_action": "شراء",
+		"by_label": "بواسطة",
+		"calendarCustomName_label": "اسمك المخصص لهذا التقويم : {customName}",
+		"calendarInvitationProgress_msg": "إرسال دعوة.",
+		"calendarInvitations_label": "دعوات التقويم",
+		"calendarName_label": "اسم التقويم",
+		"calendarParticipants_label": "المشاركون في التقويم \"{name}\"",
+		"calendarReminderIntervalFiveMinutes_label": "5 دقائق",
+		"calendarReminderIntervalOneDay_label": "يوم واحد",
+		"calendarReminderIntervalOneHour_label": "1 ساعة",
+		"calendarReminderIntervalOneWeek_label": "أسبوع واحد",
+		"calendarReminderIntervalTenMinutes_label": "10 دقائق",
+		"calendarReminderIntervalThirtyMinutes_label": "30 دقيقة",
+		"calendarReminderIntervalThreeDays_label": "3 أيام",
+		"calendarReminderIntervalTwoDays_label": "2 أيام",
+		"calendarRepeating_label": "تكرار",
+		"calendarRepeatIntervalAnnually_label": "سنويا",
+		"calendarRepeatIntervalDaily_label": "يومي ",
+		"calendarRepeatIntervalMonthly_label": "شهريا",
+		"calendarRepeatIntervalNoRepeat_label": "عدم تكرار",
+		"calendarRepeatIntervalWeekly_label": "كل أسبوع",
+		"calendarRepeatStopConditionDate_label": "في تاريخ",
+		"calendarRepeatStopConditionNever_label": "ابدا",
+		"calendarRepeatStopConditionOccurrences_label": "بعد التوقعات ",
+		"calendarRepeatStopCondition_label": "ينتهي",
+		"calendarView_action": "تبديل إلى عرض التقويم",
+		"calendar_label": "التقويم",
+		"callNumber_alt": "الاتصال بهذا الرقم",
+		"cameraUsageDescription_msg": "إلتقاط صورة أو فيديو للإضافة كمرفق.",
+		"cancelContactForm_label": "إلغاء نموذج الاتصال",
+		"cancelledBy_label": "(تم إلغائه من قبل {endOfSubscriptionPeriod})",
+		"cancelSharedMailbox_label": "إلغاء صندوق البريد المشترك",
+		"cancelUserAccounts_label": "إلغاء {1} حساب مستخدم (مستخدمين)",
+		"cancel_action": "إلغاء",
+		"canNotOpenFileOnDevice_msg": "لا يمكن فتح هذا الملف على هذا الجهاز.",
+		"captchaDisplay_label": "Captcha",
+		"captchaEnter_msg": "الرجاء إدخال الوقت بالساعات والدقائق.",
+		"captchaInfo_msg": "الرجاء إدخال الوقت المعروض لإثبات أنك لست كمبيوتر.",
+		"captchaInput_label": "الوقت",
+		"catchAllMailbox_label": "القبض على كل علبة البريد",
+		"cc_label": "نسخة كربونية",
+		"certificateError_msg": "تحتوي سلسلة الشهادات أو المفتاح الخاص على تنسيق غير صالح أو لا تتطابق مع نطاقك.",
+		"certificateExpiryDate_label": "تاريخ انتهاء صلاحية الشهادة: {date}",
+		"certificateStateInvalid_label": "فشلت المطالبة بالشهادة",
+		"certificateStateProcessing_label": "معالجة",
+		"certificateTypeAutomatic_label": "تلقائي (دعونا نُشفّر)",
+		"certificateTypeManual_label": "يدويا",
+		"changeAdminPassword_msg": "عذرا، لا يسمح لك بتغيير كلمات مرور المشرفين الأخرىن.",
+		"changeMailSettings_msg": "يمكنك لاحقًا تغيير قرارك في إعدادات البريد الإلكتروني.",
+		"changePassword_label": "تغيير كلمة المرور",
+		"changePermissions_msg": "لمنح حق الوصول يجب عليك تعديل تسريحات هذا الجهاز.",
+		"changeSpellCheckLang_action": "تغيير لغة التدقيق الإملائي ...",
+		"changeTimeFrame_msg": "ارتقي إلى بريميوم واضبط فترة البحث الخاصة بك! ",
+		"checkAgain_action": "تحقق مرة اخرى",
+		"checkDnsRecords_action": "تحقق من سجلات DNS",
+		"checkingForUpdate_action": "التحقق من وجود التحديث…",
+		"checkSpelling_action": "تحقق من الإملاء",
+		"chooseDirectory_action": "اختيار الدليل",
+		"chooseLanguage_action": "اختر اللغة",
+		"choosePhotos_action": "الصور",
+		"choose_label": "اختر ...",
+		"clearFolder_action": "مسح مجلد",
+		"clickToUpdate_msg": "انقر هنا للتحديث.",
+		"clientSuspensionWait_label": "الخادم يعالج طلبك ، يرجى التحلي بالصبر.",
+		"client_label": "عميل",
+		"closedSessions_label": "جلسات مغلقة",
+		"closeSession_action": "أغلاق الجلسة",
+		"closeTemplate_action": "أغلق نافذة النماذج المنبثقة",
+		"closeWindowConfirmation_msg": "هل تريد حقا إغلاق هذه النافذة بدون حفظ التغييرات؟",
+		"close_alt": "إغلاق",
+		"color_label": "اللون",
+		"comboBoxSelectionNone_msg": "لا شىء",
+		"comment_label": "تعليق",
+		"company_label": "الشركة",
+		"concealPassword_action": "إخفاء كلمة السرّ ",
+		"confidentialStatus_msg": "سيتم إرسال الرسالة مشفرة من الطرف إلى نهاية الطرف.",
+		"confidential_action": "سري",
+		"configureCustomDomainAfterSignup_msg": "يمكن تكوين المجالات المخصصة بمجرد إنشاء الحساب:",
+		"confirmCountry_msg": "لحساب ضريبة القيمة المضافة، نحتاج منك تأكيد بلدك: {1}.",
+		"confirmCustomDomainDeletion_msg": "هل تريد بالتأكيد إزالة مجال البريد الإلكتروني المخصص '{domain}'؟",
+		"confirmDeactivateCustomColors_msg": "هل تريد حقا إلغاء تفعيل الألوان المخصصة الخاصة بك؟",
+		"confirmDeactivateCustomLogo_msg": "هل حقا تريد إلغاء تنشيط شعارك المخصص؟",
+		"confirmDeactivateWhitelabelDomain_msg": "هل تريد حقا إلغاء تنشيط تسجيل الدخول إلى توتانوتا لنطاقك وحذف شهادة SSL والشعار المخصص والألوان المخصصة؟",
+		"confirmDeleteContactForm_msg": "هل تريد حقا حذف نموذج الاتصال هذا؟",
+		"confirmDeleteCustomFolder_msg": "هل تريد حقا نقل المجلد ' {1} ' بكل محتوياته (مثل رسائل البريد الإلكتروني والمجلدات الفرعية) إلى سلة المهملات؟\n\nسيتم حذف المجلدات التي لا تحتوي على رسائل بريد إلكتروني نهائيا.",
+		"confirmDeleteFinallyCustomFolder_msg": "هل تريد فعلًا حذف نهائيا المجلد '{1}' وجميع الرسائل الموجودة فيه ؟ هذه العملية قد تستغرق وقتا طويلا حسب عدد رسائل البريد الإلكتروني وسيتم تنفيذها في الخلفية.",
+		"confirmDeleteFinallySystemFolder_msg": "هل تريد فعلًا حذف نهائيا جميع رسائل البريد الإلكتروني من مجلد النظام '{1}'؟  حسب عدد رسائل البريد الإلكتروني، هذه العملية قد تستغرق وقتا طويلا وسيتم تنفيذها في الخلفية.",
+		"confirmDeleteSecondFactor_msg": "هل ترغب حقًا في حذف هذا العامل الثاني؟",
+		"confirmDeleteTemplateGroup_msg": "هل أنت متأكد أنك تريد حذف قائمة النماذج هذه؟ ستفقد جميع النماذج المضمنة ولا يمكن استعادتها.",
+		"confirmFreeAccount_label": "تأكيد لحساب مجاني",
+		"confirmNoOtherFreeAccount_msg": "لا أمتلك أي حساب مجاني آخر.",
+		"confirmPrivateUse_msg": "لن أستخدم هذا الحساب للعمل.",
+		"confirmSpamCustomFolder_msg": "هل تريد حقا نقل المجلد ' {1} ' بكل محتوياته (مثل رسائل البريد الإلكتروني والمجلدات الفرعية) إلى البريد العشوائي؟\n\nسيتم الإبلاغ عن جميع رسائل البريد الإلكتروني الواردة كرسائل غير مرغوب فيها.\n\nسيتم حذف المجلدات التي لا تحتوي على رسائل بريد إلكتروني نهائيا.",
+		"connectionLostLong_msg": "فقدان الاتصال بالخادم. الرجاء المحاولة مرة أخرى.",
+		"contactAdmin_msg": "الرجاء الاتصال بالمسؤول (الأدمين).",
+		"contactFormEnterPasswordInfo_msg": "يرجى إدخال كلمة مرور، حتى تتمكن من تسجيل الدخول في وقت لاحق وقراءة الجواب الشخصي.",
+		"contactFormMailAddressInfo_msg": "حالما نقوم بالرد على طلبك سوف تحصل على إشعار بالبريد الإلكتروني. هذا أمر طوعي.",
+		"contactFormPasswordNotSecure_msg": "كلمة المرور ليست آمنة بما فيه الكفاية. إرسال الطلب على أي حال؟",
+		"contactFormPlaceholder_label": "رسالتك…",
+		"contactFormSubmitConfirm_action": "لقد كتبت عنوان البريد الإلكتروني وكلمة المرور الخاصة بي!",
+		"contactFormSubmitConfirm_msg": "قد تم تسجيل طلبك بنجاح. يرجى تدوين عنوان البريد الإلكتروني التالي وكلمة المرور الخاصة بك لقراءة الجواب على طلبك.",
+		"contactFormSubmitError_msg": "عذرا، تعذر إكمال طلبك. الرجاء معاودة المحاولة في وقت لاحق.",
+		"contactForms_label": "نماذج الاتصال",
+		"contactForm_label": "نموذج اتصال",
+		"contactSupport_action": "اتصل بالدعم",
+		"contactsUsageDescription_msg": "إبحث عن عنوان المُتلقّي الإلكتروني في جهات الإتصال.",
+		"contacts_label": "المراسلون",
+		"contactView_action": "التبديل إلى عرض جهة الاتصال",
+		"contentBlocked_msg": "لم يتم تنزيل الصور تلقائيا لحماية خصوصيتك.",
+		"content_label": "Content",
+		"continueSearchMailbox_msg": "لتنفيذ هذا البحث يجب علينا تنزيل المزيد من رسائل البريد الإلكتروني من الخادم والتي قد تستغرق بعض الوقت.",
+		"contractorInfo_msg": "يرجى ملء اسم المقاول (الشركة) والعنوان.",
+		"contractor_label": "المقاول",
+		"copyLinkError_msg": "فشل نسخ الرابط",
+		"copyLink_action": "نسخ عنوان الرابط",
+		"copyToClipboard_action": "نسخ إلى الحافظة",
+		"copy_action": "نسخ",
+		"correctDNSValue_label": "موافق",
+		"correctValues_msg": "يرجى تصحيح القيم ذات التنسيق غير الصالح.",
+		"corruptedValue_msg": "لا يمكن عرض القيمة.",
+		"corrupted_msg": "لا يمكن عرض هذا العنصر بشكل صحيح. \n\nإذا أمكن ، يرجى مطالبة المرسل بإعادة إرسال هذه الرسالة.",
+		"couldNotAttachFile_msg": "لا يمكن تحميل الملف.",
+		"couldNotAuthU2f_msg": "تعذرت المصادقة باستخدام مفتاح الأمان.",
+		"couldNotOpenLink_msg": "تعذر العثور على تطبيق لفتح الرابط:\n{link}",
+		"couldNotUnlockCredentials_msg": "تعذر إلغاء تأمين بيانات الاعتماد: ‪{reason}‬",
+		"createAccountAccessDeactivated_msg": "التسجيل مُقفل مؤقّتًا لعنوان بروتوكول الإنترنت (IP) الخاص بك وذلك لتجنّب سوء المعاملة. الرجاء المحاولة لاحقًا أو إستعمال إتصال إنترنت مختلف.",
+		"createAccountInvalidCaptcha_msg": "للأسف، الجواب غير صحيح. حاول مرة أخرى.",
+		"createAccountRunning_msg": "جارٍ تحضير الحساب ...",
+		"createActionStatus_msg": "جاري إنشاء المستخدمين. انتهى {index} من {count} حسابات ...",
+		"createContactForm_label": "إنشاء نموذج الاتصال",
+		"createContactRequest_action": "كتابة رسالة",
+		"createContactsForRecipients_action": "خلق جهات إتصال لجميع المستلمين عند إرسال الرسالة",
+		"createContacts_label": "خلق جهات إتصال",
+		"createContact_action": "خلق جهة إتصال",
+		"createdUsersCount_msg": "تم إنشاء {1} مستخدم (مستخدمين).",
+		"created_label": "تم الإنشاء",
+		"createEntry_action": "إنشاء الإدخال",
+		"createEvent_label": "حدث ",
+		"createTemplate_action": "إنشاء نموذج",
+		"createUserFailed_msg": "لا يمكن إنشاء المستخدم. يرجى الاتصال بالدعم.",
+		"credentialsEncryptionModeBiometricsHelp_msg": "الخِيار الأكثر أمانا. يتم مسح بيانات الاعتماد المخزنة عند إضافة القياسات البيومترية أو إزالتها.",
+		"credentialsEncryptionModeBiometrics_label": "التعرف البيولوجي فقط",
+		"credentialsEncryptionModeDeviceCredentialsHelp_msg": "استخدم  رقم للنظام (PIN) أو كلمة المرور أو المصادقة البيومترية.",
+		"credentialsEncryptionModeDeviceCredentials_label": "كلمة مرور النظام أو عمليات التعرف البيولوجي",
+		"credentialsEncryptionModeDeviceLockHelp_msg": "إلغاء القفل تِلْقائيًا عند تشغيل الجهاز",
+		"credentialsEncryptionModeDeviceLock_label": "فتح تلقائي",
+		"credentialsEncryptionModeSelection_msg": "يتم تخزين بيانات الاعتماد بشكل مشفر على جهازك. كيف تريد فتحها في المستقبل؟",
+		"credentialsEncryptionMode_label": "طريقة فتح القفل",
+		"credentialsKeyInvalidated_msg": "تم إبطال سلسلة مفاتيح النظام. حذف بيانات الاعتماد المخزنة.",
+		"creditCardCardHolderName_label": "إسم صاحب البطاقة",
+		"creditCardCardHolderName_msg": "يرجى إدخال اسم حامل البطاقة.",
+		"creditCardCVVFormat_label": "الرجاء إدخال رمز الأمان المؤلف من 3 أو 4 أرقام (CVV).",
+		"creditCardCVVInvalid_msg": "رمز الحماية  (CVV) غير صالح.",
+		"creditCardCVV_label": "رمز الحماية (CVV)",
+		"creditCardDeclined_msg": "للأسف ، تم رفض بطاقتك الائتمانية. يرجى التحقق من صحة جميع المعلومات المدخلة ، أو الاتصال بالمصرف الذي تتعامل معه أو تحديد طريقة دفع مختلفة.",
+		"creditCardExpirationDateFormat_msg": "الرجاء إدخال تاريخ انتهاء صلاحية البطاقة الائتمانية الخاصة بك. الصيغة: MM/YYYY",
+		"creditCardExpirationDate_label": " تاريخ إنتهاء الصلاحية",
+		"creditCardExprationDateInvalid_msg": "تاريخ انتهاء الصلاحية غير خطأ.",
+		"creditCardNumberFormat_msg": "الرجاء إدخال رقم بطاقة الائتمان الخاصة بك.",
+		"creditCardNumberInvalid_msg": "رقم بطاقة الائتمان غير صالح.",
+		"creditCardNumber_label": "رقم بطاقة الائتمان",
+		"creditCardPaymentErrorVerificationNeeded_msg": "الرجاء تحديث تفاصيل الدفع الخاصة بك. سيؤدي هذا إلى التحقق من بطاقة الائتمان المطلوبة من قبل البنك الذي تتعامل معه.",
+		"creditCardPendingVerification_msg": "التحقق من بطاقتك الائتمانية لم يكتمل بعد. يرجى محاولة التحقق من بطاقتك في وقت لاحق إذا استمرت هذه المشكلة.",
+		"creditCardVerificationFailed_msg": "عذرا ، فشل التحقق من بطاقة الائتمان الخاصة بك. يمكنك المحاولة مرة أخرى أو تحديد طريقة دفع مختلفة.",
+		"creditCardVerificationLimitReached_msg": "لقد وصلت إلى حد التحقق من بطاقة الائتمان. يرجى المحاولة مرة أخرى في غضون ساعات قليلة والتأكد من صحة البيانات المدخلة. يرجى الاتصال بالمصرف الذي تتعامل معه إذا فشلت عمليات التحقق الأخرى.",
+		"creditCardVerificationNeededPopup_msg": "يجب التحقق من بطاقتك الائتمانية لدى البنك الذي تتعامل معه. سيتم فتح نافذة جديدة لهذا الغرض.",
+		"creditCardVerification_msg": "سيتم التحقق من بطاقتك الائتمانية الآن ...",
+		"creditUsageOptions_msg": "يمكن استخدام الرصيد لشراء باقات مختلفة (انتقل إلى 'الإعدادات' -> 'الاشتراك' بمجرد تسجيل الدخول) ، أو يمكن الاحتفاظ به حتى فترة الاشتراك التالية للدفع مقابل التجديد. لا تنتهي صلاحية الرصيد الذي تم إنشاؤه من بطاقات الهدايا !",
+		"credit_label": "رصيد دائن",
+		"currentBalance_label": "رصيد حسابك الحالي",
+		"currentlyBooked_label": "نظرة عامة للحجز",
+		"customColorsInfo_msg": "إذا تركت حقل فارغ، يتم استخدام اللون من موضوع اللون الافتراضي بدلا من ذلك.",
+		"customColors_label": "ألوان مخصصة",
+		"customDomainDeletePreconditionFailed_msg": "الرجاء إلغاء تفعيل جميع المستخدمين والعناوين الإلكترونيّة المستعارة التي تحتوي على المجال: {domainName}",
+		"customDomainDeletePreconditionWhitelabelFailed_msg": "يُرجى إلغاء تنشيط جميع المستخدمين والأسماء المستعارة للبريد الإلكتروني التي تحتوي على النطاق: {domainName} وإزالة النطاق كنطاق للبريد الإلكتروني للتسجيل.",
+		"customDomainErrorDnsLookupFailure_msg": "فشل البحث عن DNS.",
+		"customDomainErrorDomainNotAvailable_msg": "المجال غير متوفر.",
+		"customDomainErrorDomainNotFound_msg": "لم نتمكن من العثور على هذا المجال في DNS. يرجى التحقق من الإملاء.",
+		"customDomainErrorNameserverNotFound_msg": "لم نتمكن من العثور على اسم الخادم لهذا المجال. يرجى التأكد من صحة سجلات NS و SOA في DNS.",
+		"customDomainErrorOtherTxtRecords_msg": "ومع ذلك، وجدنا هذه السجلات TXT الأخرى :",
+		"customDomainErrorValidationFailed_msg": "فشل التحقق من نطاقك. يرجى التحقق من صحة سجل TXT للتحقق من صحته.",
+		"customDomainInvalid_msg": "مجال البريد الإلكتروني المخصص الذي أدخلته غير صالح.",
+		"customDomainNeutral_msg": "الرجاء إدخال مجال البريد الإلكتروني المخصص الخاص بك.",
+		"customDomain_label": "مجال البريد الإلكتروني المخصص",
+		"customEmailDomains_label": "مجالات البريد الإلكتروني المخصص",
+		"customerUsageDataGloballyDeactivated_label": "تم إلغاء التنشيط لجميع المستخدمين",
+		"customerUsageDataGloballyPossible_label": "السماح للمستخدمين باتخاذ القرار",
+		"customerUsageDataOptOut_label": "بيانات الاستخدام لجميع المستخدمين",
+		"customLabel_label": "علامة مميزة",
+		"customLogoInfo_msg": "أنواع الملفات المسموح بها: svg، png، jpg. أقصى حجم للملف: 100KB. ارتفاع العرض: 38 بكسل، أقصى عرض العرض: 280 بكسل.",
+		"customLogo_label": "شعار مخصص",
+		"customMetaTags_label": "علامات وصفية مخصصة",
+		"customName_label": "اسمك المخصص لهذا التقويم : {customName}",
+		"customNotificationEmailsHelp_msg": "يتم إرسال رسائل الاشعار إلى مستلمي رسائل البريد الإلكتروني السرية التي يتم استضافة صناديق البريد الخاصة بها على مزودي خدمات البريد الإلكتروني الآخرين. يمكنك تخصيص هذه الرسالة عن طريق إضافة قوالب للغات متعددة. بمجرد إضافة قالب، لن يتم استخدام القالب الافتراضي بعد الآن. سيتم تطبيق هذه القوالب على جميع مستخدمي حسابك.",
+		"customNotificationEmails_label": " الإشعار مخصص لرسائل البريد الإلكتروني",
+		"custom_label": "مخصص",
+		"cut_action": "قص",
+		"dark_label": "داكن ",
+		"dataExpiredOfflineDb_msg": "بياناتك المحلية غير متزامنة مع البيانات الموجودة على خوادم توتانوتا. سيتم تسجيل خروجك وسيتم مسح بياناتك المخزنة محليا وإعادة تنزيلها حسب الحاجة.",
+		"dataExpired_msg": "انتهت صلاحية البيانات المحملة وصارت غير متزامنة مع البيانات الموجودة على خوادم توتانوتا. يرجى الخروج وتسجيل الدخول مرة أخرى لتحديث بياناتك.",
+		"dataWillBeStored_msg": "سيتم تخزين البيانات على جهازك.",
+		"dateFrom_label": "مِن عند",
+		"dateTo_label": "إلى",
+		"date_label": "التاريخ",
+		"days_label": "أيام ",
+		"day_label": "اليوم ",
+		"deactivateAlias_msg": "سيُلغى تفعيل إسم البريد الإلكتروني المستعار '{1}'.\nيمكن إعادة تفعيل هذا العنوان أو لمستخدم آخر إعادة إستعماله.",
+		"deactivated_label": "تم التعطيل",
+		"deactivateOwnAccountInfo_msg": "لا يمكنك حذف حسابات المشرفين. الرجاء إزالة علامة المشرف أولاً.",
+		"deactivatePremiumWithCustomDomainError_msg": "لا يمكن التبديل إلى حساب توتانوتا مجاني عند تسجيلك في خدمة المستخدم المخصص.",
+		"deactivate_action": "تعطيل",
+		"decideLater_action": "قرر لاحقا",
+		"declineTemplateGroupEmailSubject_msg": "تم رفض دعوة مجموعة النماذج",
+		"decline_action": "رفض ",
+		"defaultColor_label": "اللون الافتراضي: {1}",
+		"defaultDownloadPath_label": "مسار التنزيل الافتراضي",
+		"defaultEmailSignature_msg": "--\n<br>\nتم الإرسال بواسطة  توتانوتا، استمتع برسائل بريد إلكتروني آمنة وخالية من الإعلانات.\n<br>‬",
+		"defaultExternalDeliveryInfo_msg": "الإعداد الافتراضي لإرسال رسالة بريد إلكتروني جديدة إلى مستلم خارجي: سرية (نهاية - إلى - نهاية مشفرة) أو غير سرية (ليست مشفرة نهاية - إلى - نهاية).",
+		"defaultExternalDelivery_label": "التسليم الافتراضي",
+		"defaultGiftCardMessage_msg": "أتمنى أن تستمتع بالأمان والخصوصية التي تحصل عليها مع توتانوتا!",
+		"defaultMailHandler_label": "معالج البريد الإلكتروني الافتراضي",
+		"defaultMailHandler_msg": "قم بتسجيل توتانوتا- سطح المكتب كمعالج البريد الإلكتروني الافتراضي، على سبيل المثال لفتح روابط عناوين البريد الإلكتروني. قد تتطلب هذه العملية أذونات المسؤول.",
+		"defaultSenderMailAddressInfo_msg": "عنوان البريد المرسل الافتراضي لرسائل البريد الإلكتروني الجديدة.",
+		"defaultSenderMailAddress_label": "المرسل الأساسى",
+		"defaultShareGiftCardBody_msg": "مرحبًا ،\nاشتريت لك بطاقة هدايا من توتانوتا ، استخدم هذا الرابط لاستردادها !\n\n{link}\n\nإذا لم يكن لديك حساب بعد ، يمكنك استخدام الرابط للتسجيل واستعادة خصوصيتك.\n\nاجازة سعيدة،\n{username}",
+		"deleteAccountConfirm_msg": "هل تريد فعلاً حذف حسابك؟ لن تتمكّن من استعادة الحساب وتسجيل نفس العنوان مرة أخرى.",
+		"deleteAccountReasonInfo_msg": "اختياري: سنقدّر لك ونمتنّ لو تفضلت علينا  وأعطيتنا سبب حذفك الحساب، لكى نتمكن من جعل توتانوتا أفضل.",
+		"deleteAccountReason_label": "لماذا؟",
+		"deleteAccountWithTakeoverConfirm_msg": "هل تريد فعلًا حذف حسابك؟ يمكن للحساب {1} الإستيلاء على عناوينك الإلكترونيّة .",
+		"deleteAlias_msg": "الاسم المستعار للبريد الإلكتروني '{1}' سيتم حذفه الآن. يمكنك استخدامه كاسم مستعار مرة أخرى كما يمكن استخدامه من قبل مستخدم جديد.",
+		"deleteCalendarConfirm_msg": "هل أنت متأكد من أنك تريد حذف التقويم \"{calendar}\" وجميع الأحداث فيه؟",
+		"deleteContacts_action": "حذف جهة (جهات) الاتصال المحددة",
+		"deleteContacts_msg": "هل أنت متأكد من أنك تريد حذف جهة (جهات) الاتصال المحددة؟",
+		"deleteContact_msg": "هل تريد تأكيد  حذف هذه الجهة فعلاً؟",
+		"deleteCredentials_action": "حذف بيانات الاعتماد",
+		"deletedFolder_label": "المجلد المحذوف",
+		"deleteEmails_action": "حذف رسائل البريد الإلكتروني المحددة",
+		"deleteEntryConfirm_msg": "هل أنت متأكد أنك تريد حذف هذا الإدخال؟",
+		"deleteEventConfirmation_msg": "هل أنت متأكد من حذف هذا الحدث؟",
+		"deleteLanguageConfirmation_msg": "هل أنت متأكد أنك تريد حذف الإدخال الخاص بـ '{language}'؟",
+		"deleteSharedCalendarConfirm_msg": "تتم مشاركة التقويم \"{calendar}\" مع مستخدمين آخرين.",
+		"deleteTemplateGroups_msg": "لا تزال هناك قوائم نماذج نشطة يجب حذفها قبل أن تتمكن من إلغاء ميزة الأعمال. قد يشمل ذلك قوائم النماذج المشتركة أو قوائم النماذج التي تخص المستخدمين.",
+		"deleteTemplate_msg": "هل أنت متأكد أنك تريد حذف هذا النموذج؟",
+		"delete_action": "حذف",
+		"describeProblem_msg": "يرجى إدخال سؤالك",
+		"description_label": "وصف",
+		"desktopIntegration_label": "التكامل مع سطح المكتب",
+		"desktopIntegration_msg": "هل ترغب في دمج برنامج توتانوتا في محيط سطح المكتب الخاص بك؟",
+		"desktopSettings_label": "إعدادات سطح المكتب",
+		"desktop_label": "سطح المكتب",
+		"details_label": "التفاصيل",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "لتنشيط تشفير الجهاز (إلغاء قفل رقم التعريف الشخصي/البيومترية)، تحتاج إلى تخزين بيانات الاعتماد الخاصة بك على الجهاز. يمكنك القيام بذلك في المرة التالية التي تقوم فيها بتسجيل الدخول.",
+		"differentSecurityKeyDomain_msg": "لم يتم تسجيل مفتاح الأمان الخاص بك في هذا المجال. الرجاء تسجيل الدخول على {domain}.",
+		"disallowExternalContent_action": "تجميد المحتوى الخارجي",
+		"display_action": "العرض",
+		"dnsRecordHostOrName_label": "المضيف / الاسم",
+		"dnsRecordValueOrPointsTo_label": "القيمة / أشر إلى",
+		"domainSetup_title": "إعداد المجال المخصص",
+		"domainStillHasContactForms_msg": "لا يمكن إلغاء تنشيط {domain} بسبب استمرار وجود نماذج جهات اتصال نشطة داخل  نطاق العلامة البيضاء. الرجاء حذف نماذج جهات الاتصال قبل إلغاء تنشيط {domain}.",
+		"domain_label": "مجال",
+		"done_action": "تم",
+		"doNotAskAgain_label": "لا تسأل مرة أخرى عن هذا الملف",
+		"downloadCompleted_msg": "اكتملت عملية التنزيل",
+		"download_action": "تحميل",
+		"draftNotSavedConnectionLost_msg": "لم يتم حفظ المسودة (غير متصل).",
+		"draftNotSaved_msg": "لم يتم حفظ المسودة.",
+		"draftSaved_msg": "تم حفظ المسودة.",
+		"draft_action": "المسودّات",
+		"dragAndDrop_action": "اسحب رسائل البريد المحددة إلى نظام الملفات أو التطبيقات الأخرى.",
+		"duplicatedMailAddressInUserList_msg": "ُأُُُدرجَ عنوان البريد الإلكتروني أكثر من مرة في بيانات الإدخال الخاصة بك.",
+		"duplicatesNotification_msg": "تم العثور على {1} جهات الاتصال المكررة وسيتم حذفها.",
+		"editContactForm_label": "تحرير نموذج الاتصال",
+		"editContact_label": "تحرير اتصال",
+		"editEntry_label": "تحرير الإدخال",
+		"editFolder_action": "تحرير المجلد",
+		"editInboxRule_action": "تحرير قاعدة البريد الوارد",
+		"editMail_action": "عدل البريد الإلكتروني المحدد",
+		"editMessage_label": "تحرير الرسالة",
+		"editTemplate_action": "تحرير النموذج",
+		"edit_action": "تحرير",
+		"emailAddressInUse_msg": "ما زال مستخدم آخر يستعمل عنوان البريد الإلكتروني هذا. الرجاء تعطيله هناك أولًّا.",
+		"emailProcessing_label": "معالجة البريد الإلكتروني",
+		"emailPushNotification_action": "أضف عنوان بريد إلكتروني للإشعار",
+		"emailPushNotification_msg": "يتم إرسال رسالة إشعار بالبريد الإلكتروني إلى هذا العنوان إذا تلقيت بريدًا إلكترونيًا جديدًا.",
+		"emailRecipient_label": "البريد الإلكتروني للمستلم",
+		"emailSenderBlacklist_action": "دائمًا بريد مؤذي",
+		"emailSenderDiscardlist_action": "نبذ",
+		"emailSenderExistingRule_msg": "توجد بالفعل قاعدة لمرسل البريد الإلكتروني هذا.",
+		"emailSenderInvalidRule_msg": "القاعدة لمُرسِل البريد الإلكتروني هذا غير مسموح بها.",
+		"emailSenderPlaceholder_label": "عنوان البريد الإلكتروني أو إسم النطاق",
+		"emailSenderRule_label": "قانون",
+		"emailSenderWhitelist_action": "بريد إلكتروني مرغوب فيه",
+		"emailSender_label": "مرسل البريد الإلكتروني",
+		"emailSending_label": "إرسال رسائل البريد الإلكتروني",
+		"emailSignatureTypeCustom_msg": "مخصّص",
+		"emailSignatureTypeDefault_msg": "الإفتراضي",
+		"emails_label": "الرسائل",
+		"email_label": "البريد",
+		"emptyShortcut_msg": "يرجى تقديم اختصار للنموذج",
+		"emptyTitle_msg": "العنوان مفقود.",
+		"enableSearchMailbox_msg": "يؤدي تمكين البحث، في صندوق بريدك، إلى استهلاك ذاكرة على جهازك وقد ينتج عنه حركة إضافية.\n",
+		"endOfCurrentSubscriptionPeriod": "نهاية فترة الدفع الحالية",
+		"endsWith_label": "ينتهي مع",
+		"enforceAliasSetup_msg": "يجب عليك إعداد اسم مستعار للبريد الإلكتروني أو مستخدم للنطاق المخصص قبل المتابعة.",
+		"enforcePasswordUpdate_msg": "إجبار المستخدمين على تحديث كلمة المرور بعد إعادة تعيينها بواسطة  المسؤول.",
+		"enforcePasswordUpdate_title": "فرض تحديث كلمة المرور",
+		"enterAsCSV_msg": "يرجى إدخال تفاصيل المستخدم الخاصة بك على شكل  ملف قيم مفصولة بفاصلة، أي بصيغة CSV.",
+		"enterCustomDomain_title": "أدخل المجال الخاص بك",
+		"enterDomainFieldHelp_label": "باستخدام مجال البريد الإلكتروني المخصص هذا ، يمكنك إنشاء عناوين بريد إلكتروني مثل hello@{domain}.",
+		"enterDomainGetReady_msg": "ستحتاج إلى إجراء تغييرات على تكوين DNS الخاص بك. يرجى فتح نافذة متصفح جديدة وتسجيل الدخول إلى لوحة الإدارة الخاصة بموفر النطاق لتطبيق التغييرات عند الضرورة. سيُظهر لك معالج الإعداد هذا سجلات DNS المطلوبة لكل خطوة.",
+		"enterDomainIntroduction_msg": "باستخدام توتانوتا ، يمكنك استخدام نطاق بريدك الإلكتروني المخصص في بضع خطوات فقط.",
+		"enterMissingPassword_msg": "لم يتم اكتشاف كلمة مرور. يرجى إدخال كلمة مرور.",
+		"enterName_msg": "الرجاء إدخال اسم.",
+		"enterPaymentDataFirst_msg": "يرجى إدخال بيانات الدفع أولا قبل طلب حزم إضافية.",
+		"enterPresharedPassword_msg": "يرجى إدخال كلمة المرور المتفق عليها مع المُرسِل.",
+		"envelopeSenderInfo_msg": "المرسل التقني مختلف عن عنوان البريد في 'من'. بما أنه يمكن تزييف 'من'، سيظهر المرسل التقني أيضًا لمعرفة من أرسل فعليًّا الرسالة.",
+		"errorAtLine_msg": "خطأ في السطر {error}: {index}",
+		"errorDuringFileOpen_msg": "فشل فتح المرفق.",
+		"errorDuringUpdate_msg": "حدث خطأ ما أثناء عملية التحديث، وسنحاول مرة أخرى لاحقًا.",
+		"errorReport_label": "كلا !",
+		"eventCancelled_msg": "تم الإلغاء: {event}",
+		"eventInviteMail_msg": "دعوة: {event}",
+		"eventNotificationUpdated_msg": "تم تحديث الحدث في التقويم الخاص بك.",
+		"eventUpdated_msg": "تم التحديث : {event}",
+		"everyone_label": "الجميع",
+		"executableOpen_label": "مرفق قابل للتنفيذ",
+		"executableOpen_msg": "هذا الملف يشبه البرنامج. هل أنت متأكد أنك تريد تنفيذه الآن؟",
+		"existingAccount_label": "استخدم حساب موجود",
+		"existingMailAddress_msg": "تعذر دعوة عناوين البريد الإلكتروني التالية لأن لديها فعلًا دعوة :\n",
+		"experienceSamplingAnswer_label": "الرجاء اختيار واحدة من الإجابات",
+		"experienceSamplingHeader_label": "استجوابات",
+		"experienceSamplingSelectAnswer_msg": "الرجاء اختيار واحدة من الإجابات لجميع الأسئلة.",
+		"experienceSamplingThankYou_msg": "شكرا لكم على مشاركتكم!",
+		"expiredLink_msg": "معذرة، هذا الرابط لم يعد صالحاً للإستخدام. المفترض أنك استلمت إخطاراً جديداً بالبريد مرفق به الرابط الصالح حالياً. الروابط السابقة تم إلفائها لأسباب أمنية.",
+		"exportUsers_action": "تصدير المستخدمين",
+		"exportVCard_action": "تصدير بطاقة vCard",
+		"export_action": "تصدير",
+		"externalFormattingInfo_msg": "ضبط إذا كان يجب إرسال جميع الرسائل بما يتضمن تنسيقات (HTML) أو تحويلها إلى نص عادي.",
+		"externalFormatting_label": "التنسيق",
+		"externalNotificationMailBody1_msg": "مرحباً،",
+		"externalNotificationMailBody2_msg": "لقد استلمت للتو رسالة مشفرة عبر توتانوتا ({1}). توتانوتا تشفّر البريد الإلكتروني تلقائيا (نهاية - إلى - نهاية)، بما في ذلك جميع المرفقات. يمكنك الوصول إلى صندوق البريد الخاص بك المشفّر والردّ أيضًا برسالة إلكترونيّة مشفّرة باتّباع الرابط التالي:",
+		"externalNotificationMailBody3_msg": "أظهر الرسالة المشفرة",
+		"externalNotificationMailBody4_msg": "أو انسخ هذا الرابط إلى المتصفح الخاص بك:",
+		"externalNotificationMailBody5_msg": "تم إنشاء هذا البريد الإلكتروني تلقائيا لإرسال الرابط. يبقى الرابط مفتوحا حتى تتلقى رسالة بريد إلكتروني سري جديد مني.",
+		"externalNotificationMailBody6_msg": "أطيب التمنيات،",
+		"externalNotificationMailSubject_msg": "البريد الإلكتروني سرية من {1}",
+		"facebook_label": "فيسبوك",
+		"failedDebitAttempt_msg": "إذا فشلت محاولة الخصم سوف نحاول مرة أخرى في غضون بضعة أيام. يرجى التأكد من أن حسابك لديه تغطية.",
+		"faqEntry_label": "إدخال الأسئلة الشائعة",
+		"fax_label": "فاكس",
+		"featureTutanotaOnly_msg": "لا يجوز لك استخدام هذه الميزة إلا مع مستخدمي توتانوتا الآخرين.",
+		"feedbackOnErrorInfo_msg": "الرجاء إخبارنا بالخطوات التي أدت إلى هذا الخطأ باللغة الإنجليزية أو الألمانية حتى نتمكن من إصلاحه. يتم إرسال رسالتك وتفاصيل الخطأ ومعرف المتصفح مشفرة إلى فريق توتانوتا. شكرا!",
+		"field_label": "حقل",
+		"fileAccessDeniedMobile_msg": "رُفض الوصول إلى التخزين الخارجي. يمكنك تمكينه في إعدادات جوالك.",
+		"filter_label": "مرشحات",
+		"finallyDeleteEmails_msg": "هل أنت متأكد من أنك تريد حذف نهائيا رسالة (رسائل) البريد الإلكتروني المختارة؟",
+		"finallyDeleteSelectedEmails_msg": "لقد حددت رسائل البريد الإلكتروني من مجلد المهملات، سيتم حذفها نهائيًا.",
+		"finish_action": "إنهاء",
+		"firstMergeContact_label": "جهة الاتصال 1",
+		"firstName_placeholder": "الاسم الأول",
+		"folderNameInvalidExisting_msg": "هذا الإسم موجود مسبقا.",
+		"folderNameNeutral_msg": "الرجاء إدخال اسم المجلد.",
+		"folderName_label": "الاسم",
+		"folderTitle_label": "ملفات",
+		"footer_label": "تذييل",
+		"formatTextAlignment_msg": "محاذاة",
+		"formatTextBold_msg": " اجعل النص المحدد داكنا.",
+		"formatTextCenter_msg": "الوسط",
+		"formatTextFontSize_msg": "حجم البنط",
+		"formatTextItalic_msg": "اجعل النص المحدد مائل.",
+		"formatTextJustify_msg": "مضبوط",
+		"formatTextLeft_msg": "اليسار",
+		"formatTextMonospace_msg": "أحادي المسافة",
+		"formatTextOl_msg": "قائمة مرتبة",
+		"formatTextRight_msg": "اليمين",
+		"formatTextUl_msg": "قائمة غير مرتبة",
+		"formatTextUnderline_msg": "ضع تحت النص المحدد خط.",
+		"forward_action": "تحويل",
+		"freeAccountInfo_msg": "يُسمح بحساب مجاني واحد فقط لكل شخص. لا يجوز استخدام الحسابات المجانية إلا للتواصل الخاص. إذا كنت ترغب في استخدام توتانوتا لعملك (أو كمستقل) يرجى طلب اشتراك مدفوع. يرجى أيضًا ملاحظة أنه يتم حذف الحسابات المجانية إذا لم يتم بتسجيل الدخول لمدة ستة أشهر.",
+		"from_label": "مِن",
+		"functionNotSupported_msg": "هذه الوظيفة غير مدعومة من جهازك أو متصفحك.",
+		"futureDate": "التاريخ المستقبلي",
+		"generatePassphrase_action": "إنشاء عبارة سرّ ",
+		"germanLanguageFile_label": "ملف اللغة الألمانية",
+		"giftCardCopied_msg": "تم نسخ رابط بطاقة هدية إلى الحافظة !",
+		"giftCardCreditNotify_msg": "سيحصل حسابك على رصيد بقيمة {credit}.",
+		"giftCardLoginError_msg": "تم إنشاء حسابك الجديد ولكن واجهنا مشكلة في تسجيل دخولك ولم يتم استرداد قيمة بطاقة الهدايا الخاصة بك. يرجى محاولة تسجيل الدخول لاحقًا باستخدام نفس رابط بطاقة الهدايا لاسترداد قيمة البطاقة.",
+		"giftCardSection_label": "شراء  وإدارة بطاقات الهدايا",
+		"giftCards_label": "بطاقات الهدايا ",
+		"giftCardTerms_label": "شروط وأحكام بطاقة الهدية",
+		"giftCardUpdateError_msg": "تعذر تحديث بطاقة هدية.",
+		"giftCard_label": "بطاقة هدية",
+		"globalAdmin_label": "مشرف عالمي",
+		"globalSettings_label": "الإعدادات العامة",
+		"goPremium_msg": "بصفتك مستخدم بريميوم، يمكنك ضبط فلاتر البحث في القائمة إلى اليسار.",
+		"gross_label": "شامل للضرائب",
+		"groupCapabilityInvite_label": "كتابة وإدارة المشاركة",
+		"groupCapabilityRead_label": "مقروء فقط",
+		"groupCapabilityWrite_label": "القراءة و الكتابة",
+		"groupMembers_label": "أعضاء الفريق",
+		"groupNotEmpty_msg": "لا يمكن إلغاء تنشيط الفِرَق غير الفارغة.",
+		"groups_label": "الفِرَق",
+		"groupType_label": "نوع المجموعة",
+		"group_label": "مجموعة",
+		"guests_label": "ضيوف ",
+		"guest_label": "ضيف",
+		"header_label": "رأس",
+		"helpPage_label": "صفحة المساعدة",
+		"help_label": "مساعدة",
+		"hideWindows_action": "إخفاء النوافذ",
+		"howCanWeHelp_title": "كيف يمكننا مساعدتك؟",
+		"htmlSourceCode_label": "شفرة مصدر HTML ",
+		"html_action": "HTML",
+		"importCalendar_label": "استيراد التقويم",
+		"importContactsError_msg": "تعذر استيراد {amount} من  {total} جهة اتصال.",
+		"importEndNotAfterStartInEvent_msg": "{amount} من أصل {total} حدث ليس لها تاريخ بدء قبل تاريخ انتهائها ولن يتم استيرادها.",
+		"importEventExistingUid_msg": "{amount} من {total} أحداث موجودة فعلًا ولا يتم الكتابة فوقها. سوف نستمر مع الأحداث المتبقية...",
+		"importEventsError_msg": "تعذر استيراد {amount} من {total} أحداث.",
+		"importInvalidDatesInEvent_msg": "يحتوي {amount} من أصل {total} حدث على تواريخ غير صالحة ولن يتم استيرادها.",
+		"importPre1970StartInEvent_msg": "{amount} من أصل {total} حدث تبدأ أو تنتهي قبل عام 1970 ولن يتم استيرادها.",
+		"importReadFileError_msg": "عذرًا ، الملف {filename} غير قابل للقراءة.",
+		"importUsers_action": "استيراد المستخدمين",
+		"importVCardError_msg": "لا يمكن قراءة ملف vCard.",
+		"importVCardSuccess_msg": "تم استيراد {1} جهات الاتصال بنجاح!",
+		"importVCard_action": "قم باستيراد vCard",
+		"import_action": "استيراد",
+		"imprintUrl_label": "الرابط نحو الإسم التجاري",
+		"imprint_label": "الإسم التجاري",
+		"inactiveAccount_msg": "عذرا ،  تم إغلاق حسابك لأنك لم تقم بتسجيل الدخول خلال الأشهر الستة الماضية. ",
+		"inboxRuleAlreadyExists_msg": "هذا القانون موجود أساسًا",
+		"inboxRuleBCCRecipientEquals_action": "متلقّي النسخة المخفيّة",
+		"inboxRuleCCRecipientEquals_action": "متلقّي النسخة",
+		"inboxRuleEnterValue_msg": "أدخل قيمة من فضلك.",
+		"inboxRuleField_label": "حقل",
+		"inboxRuleInvalidEmailAddress_msg": "عنوان البريد الإلكتروني أو النطاق غير صالح.",
+		"inboxRuleMailHeaderContains_action": "الرأسية تحتوي على",
+		"inboxRuleSenderEquals_action": "من / المرسل",
+		"inboxRulesSettings_action": "قوانين صندوق الواردات",
+		"inboxRuleSubjectContains_action": "الموضوع يحتوي على",
+		"inboxRuleTargetFolder_label": "الملف الهدف",
+		"inboxRuleToRecipientEquals_action": "إلى المستلم",
+		"inboxRuleValue_label": "القيمة",
+		"indexedMails_label": "رسائل البريد الإلكتروني المفهرسة: {count}",
+		"indexingFailedConnection_error": "فشلت الفهرسة بسبب فقدان الاتصال.",
+		"indexing_error": "تم إحباط الفهرسة بسبب خطأ",
+		"insertImage_action": "إدراج صورة",
+		"insertTemplate_action": "إدراج النموذج المحدد",
+		"insideOnly_label": "بالداخل فقط",
+		"insideOutside_label": "داخل /  خارج",
+		"installNow_action": "تثبيت الآن.",
+		"insufficientBalanceError_msg": "تعذر إكمال المعاملة بسبب عدم كفاية رصيد الحساب. يرجى تقديم طريقة دفع أخرى",
+		"insufficientStorageAdmin_msg": "تم تجاوز حد السعة التخزينية. لم يعد بإمكانك تلقي أو إرسال رسائل إلكترونية. يرجى تحرير بعض الذاكرة عن طريق حذف بعض محتوى صندوق البريد الخاص بك أو الترقية إلى حزمة تخزين أكبر.",
+		"insufficientStorageUser_msg": "تم تجاوز حد التخزين الخاص بك. لم يعد بإمكانك تلقي أو إرسال رسائل البريد الإلكتروني.",
+		"insufficientStorageWarning_msg": "وصل صندوق البريد تقريبا إلى حد السعة التخزينية. يرجى تحرير بعض الذاكرة عن طريق حذف بعض محتوى صندوق البريد الخاص بك أو الترقية إلى حزمة تخزين أكبر.",
+		"interval_title": "فاصل ",
+		"invalidBirthday_msg": "عيد ميلاد غير صالح. يرجى تحديث قيمة حقل تاريخ الميلاد.",
+		"invalidCnameRecord_msg": "لم يتم تعيين السجل CNAME لهذا المجال بشكل صحيح.",
+		"invalidDateFormat_msg": "تنسيق غير صالح. صالح:{1}. السنة اختيارية.",
+		"invalidDate_msg": "تاريخ غير صحيح",
+		"invalidGiftCardPaymentMethod_msg": "طريقة الدفع الخاصة بك لا تدعم شراء بطاقات الهدايا.",
+		"invalidGiftCard_msg": "لا يمكن استخدام بطاقة هدية هذه",
+		"invalidInputFormat_msg": "الصيغة غير صالحة.",
+		"invalidLink_msg": "عفوا، هذا الرابط غير صالح.",
+		"invalidMailAddress_msg": "لا يمكن دعوة عناوين البريد الإلكتروني التالية لأنها غير صالحة : ",
+		"invalidPassword_msg": "كلمة المرور غير صحيحة. يرجى التأكد منها ثم إعادة المحاولة.",
+		"invalidPastedRecipients_msg": "عناوين البريد الإلكتروني التالية غير صالحة:",
+		"invalidRecipients_msg": "يرجى تصحيح أو إزالة عناوين البريد الإلكتروني غير الصالحة : ",
+		"invalidRegexSyntax_msg": "بنية regex غير صالحة",
+		"invalidRegistrationCode_msg": "كود التسجيل هذا غير صالح.",
+		"invalidTimePeriod_msg": "الفترة الزمنية التي تم إدخالها غير صالحة.",
+		"invalidVatIdNumber_msg": "رقم تعريف الضريبة على القيمة المضافة (VAT-ID) غير صالح.",
+		"invalidVatIdValidationFailed_msg": "فشل التحقق من صحة رقم تعريف ضريبة القيمة المضافة. الرجاء معاودة المحاولة في وقت لاحق.",
+		"invitationMailBody_msg": "مرحبًا! <br> <br> هذا هو عنوان بريدي الإلكتروني الجديد. تقوم توتانوتا بتوفير حل البريد المشفر تماما، خالي من الإعلانات لحماية حقنا في الخصوصية. من خلال التشفير التلقائي يمكننا مشاركة رسائل البريد الإلكتروني بأمان وإرسال رسائل مختومة. أخيرًا، بياناتنا تخصنا نحن فقط ولا يمكن لأي شخص آخر الوصول إليها. <br> <br> انضم إلى توتانوتا الآن <br> {registrationLink} <br> <br> <br> أطيب التحيات ، <br> {username} < br> <br> ملحوظة: توتانوتا مجانية مع مساحة تخزين 1 جيجا بايت بالمجاني. بالإضافة إلى أنها مفتوحة المصدر {githubLink}",
+		"invitation_label": "دعوة",
+		"invitedToEvent_msg": "لقد تمت دعوتك للمشاركة في هذا الحدث. هل تريد الحضور؟",
+		"invited_label": "مدعو",
+		"invite_alt": "دعوة",
+		"invoiceAddressInfoBusiness_msg": "يرجى إدخال اسمك / شركتك وعنوان الفاتورة (بحد أقصى 5 صفوف).",
+		"invoiceAddressInfoPrivate_msg": "هذه المعلومات اختيارية للعملاء من القطاع الخاص (بحد أقصى 5 صفوف).",
+		"invoiceAddress_label": "اسم وعنوان الفاتورة",
+		"invoiceCountryInfoBusiness_msg": "الرجاء اختيار بلد إقامتك.",
+		"invoiceCountryInfoConsumer_msg": "هذا مطلوب لحساب ضريبة القيمة المضافة.",
+		"invoiceCountry_label": "البلد",
+		"invoiceData_msg": "بيانات الفاتورة",
+		"invoiceNotPaidUser_msg": "عذرا ، لا يسمح لك حاليا بإرسال رسائل البريد الإلكتروني.",
+		"invoiceNotPaid_msg": "عفوًا، لا يُسمح لك حاليًّا إرسال أو تلقي الرسائل الإلكترونيّة لأن إحد فواتيرك على الأقل غير مدفوعة. الرجاء تحديث بيانات الدفع في 'الإعدادات' ⇦ 'بيانات الدفع' وتشغيل الدفع بعد ذلك.\n",
+		"invoicePayConfirm_msg": "سنقوم الآن بخصم المبلغ التالي : ",
+		"invoicePaymentMethodInfo_msg": "يرجى اختيار طريقة الدفع. سيتم إضافة المزيد من الخيارات في المستقبل.",
+		"invoicePay_action": "إدفع",
+		"invoiceSettingDescription_msg": "قائمة بجميع الفواتير والمدفوعات الحالية.",
+		"invoiceVatIdNoInfoBusiness_msg": "اختياري. إذا لم يتم توفيرها ، تتم إضافة ضريبة القيمة المضافة إلى فواتيرك. يجب أن يبدأ ببادئة البلد المكونة من رقمين.",
+		"invoiceVatIdNo_label": "رقم تعريف VAT",
+		"invoice_label": "فاتورة",
+		"IpAddress_label": "عنوان IP",
+		"keyboardShortcuts_title": "اختصارات لوحة المفاتيح",
+		"keywords_label": "كلمات أساسية",
+		"knowledgebase_label": "قاعدة المعارف",
+		"knownCredentials_label": "الحسابات المحفوظة",
+		"languageAfrikaans_label": "أفريقانية",
+		"languageAlbanianref_label": "البروتستانتية الألبانية",
+		"languageAlbanian_label": "الألبانية",
+		"languageArabic_label": "العربية",
+		"languageArmenian_label": "أرميني",
+		"languageBelarusian_label": "بيلاروسي",
+		"languageBosnian_label": "البوسنية",
+		"languageBulgarian_label": "البلغارية",
+		"languageCatalan_label": "التشيكية",
+		"languageChineseSimplified_label": "الصينية، المبسطة",
+		"languageChineseTraditional_label": "الصينية التقليدية",
+		"languageCroatian_label": "الكرواتية",
+		"languageCzech_label": "التشيكية",
+		"languageDanish_label": "الدانماركية",
+		"languageDutch_label": "الهولندية",
+		"languageEnglishUk_label": "الإنجليزية (م م)",
+		"languageEnglish_label": "الإنجليزية",
+		"languageEstonian_label": "الإستونية",
+		"languageFaroese_label": "فارويز",
+		"languageFilipino_label": "الفلبينية",
+		"languageFinnish_label": "الفنلندية",
+		"languageFrench_label": "الفرنسية",
+		"languageGalician_label": "جاليقي",
+		"languageGeorgian_label": "جورجية",
+		"languageGermanSie_label": "الألمانية (Sie)",
+		"languageGerman_label": "الألمانية",
+		"languageGreek_label": "اليونانية",
+		"languageHebrew_label": "العبرية",
+		"languageHindi_label": "الهندية",
+		"languageHungarian_label": "المجرية",
+		"languageIndonesian_label": "الأندونيسية",
+		"languageItalian_label": "الإيطالية",
+		"languageJapanese_label": "اليابانية",
+		"languageKorean_label": "الكورية",
+		"languageLatvian_label": "اللاتفية",
+		"languageLithuanian_label": "اللّتوانية",
+		"languageMalay_label": "الماليزية ",
+		"languageNorwegianBokmal_label": "النرويجية بوكمال",
+		"languageNorwegian_label": "النرويجية",
+		"languagePersian_label": "الفارسية",
+		"languagePolish_label": "البولندية",
+		"languagePortugeseBrazil_label": "البرتغالية، البرازيل",
+		"languagePortugesePortugal_label": "البرتغالية، البرتغال",
+		"languagePortugese_label": "البرتغالية",
+		"languageRomanian_label": "الرومانية",
+		"languageRussian_label": "الروسية",
+		"languageSerbian_label": "الصربية",
+		"languageSerboCroatian_label": "صربية كرواتية",
+		"languageSinhalese_label": "سيريلانكي ",
+		"languageSlovak_label": "السلوفاكية",
+		"languageSlovenian_label": "السلوفينية",
+		"languageSpanish_label": "الأسبانية",
+		"languageSwahili_label": "سواهيلي",
+		"languageSwedish_label": "السويدية",
+		"languages_label": "اللغات",
+		"languageTajik_label": "طاجيكي",
+		"languageTamil_label": "التاميلية",
+		"languageTurkish_label": "التركية",
+		"languageUkrainian_label": "أوكراني",
+		"languageUrdu_label": "اوردو",
+		"languageVietnamese_label": "الفيتنامية",
+		"languageWelsh_label": "ويلش",
+		"language_label": "لغة",
+		"largeSignature_msg": "يتجاوز حجم التوقيع الذي حددته {1} كيلو بايت. سيتم إلحاقه بكل بريد إلكتروني بشكل افتراضي. هل تريد استخدامه على أي حال؟",
+		"lastAccess_label": "آخر دخول",
+		"lastName_placeholder": "اسم العائلة",
+		"lastSync_label": "آخر مزامنة: {date}",
+		"laterInvoicingInfo_msg": "معلومة: لن تتم الفوترة بشكلٍ مباشر للميزات التي يطلب إضافتها، بل يتم ذلك في بداية الاشتراك في الشهر التالي.",
+		"leaveGroup_action": "غادر المجموعة",
+		"light_label": "فاتح ",
+		"linkedin_label": "LinkedIn",
+		"linkTemplate_label": "رابط النموذج ",
+		"loadingDNSRecords_msg": "تحميل سجلات DNS ...",
+		"loadingTemplates_label": "تحميل النماذج...",
+		"loading_msg": "تحميل ...",
+		"loadMore_action": "تحميل المزيد",
+		"localDataSection_label": "بيانات محلية",
+		"location_label": "الموقع",
+		"loggingOut_msg": "جارٍ تسجيل الخروج…",
+		"loginAbuseDetected_msg": "لا يمكن استخدام حسابك بعد الآن لأنه قد تم انتهاك شروط واحكام  توتانوتا، على سبيل المثال، عن طريق إرسال رسائل البريد الإلكتروني غير المرغوب فيها.",
+		"loginCredentials_label": "بيانات تسجيل الدخول",
+		"loginFailedOften_msg": "أصبحت محاولات تسجيل الدخول الفاشلة كثيرة. يمكنك تسجيل الدخول بعد ساعة على الأقل.",
+		"loginFailed_msg": "بيانات الدخول خاطئة. رجاءاً أعِد المحاولة ثانية.",
+		"loginNameInfoAdmin_msg": "اختياري: اسم المستخدم.",
+		"loginOtherAccount_action": "حساب  آخر",
+		"login_action": "تسجيل الدخول",
+		"login_label": "تسجيل الدخول",
+		"login_msg": "جاري تسجيل الدخول…",
+		"logout_label": "تسجيل الخروج ",
+		"mailAddressAliases_label": "الأسماء المستعارة للبريد الإلكتروني",
+		"mailAddressAvailable_msg": "هذا العنوان متاح.",
+		"mailAddressBusy_msg": "جارٍ التحقق من عنوان البريد الإلكتروني…",
+		"mailAddressDelay_msg": "الطلبات كثيرة جدا، يرجى المحاولة لاحقا.",
+		"mailAddresses_label": "عناوين البريد الإلكتروني",
+		"mailAddressInvalid_msg": "عنوان البريد غير صالح.",
+		"mailAddressNANudge_msg": "عنوان البريد الإلكتروني غير متوفر. جرب نطاقا آخر من القائمة المنسدلة.",
+		"mailAddressNA_msg": "عنوان البريد الإلكتروني غير متوفر.",
+		"mailAddressNeutral_msg": "الرجاء إدخال البريد الإلكتروني",
+		"mailAddress_label": "عنوان البريد الإلكتروني",
+		"mailAuthFailed_msg": "كن حذرا عند الوثوق بهذه الرسالة ! فشل التحقق من المرسل أو المحتويات ، لذلك قد تكون هذه الرسالة مزورة!",
+		"mailAuthMissingWithTechnicalSender_msg": "لم نتمكن من إثبات صحة محتوى أو مرسل هذه الرسالة. المرسل التقني هو : {sender}.",
+		"mailAuthMissing_label": "لم نتمكن من إثبات أن محتوى هذه الرسالة أو مرسلها صالح.",
+		"mailBodyTooLarge_msg": "عذرًا ، تعذر إرسال البريد الإلكتروني لأن نص الرسالة  يتجاوز الحد الأقصى للحجم وهو 1 ميغابايت.",
+		"mailBody_label": "نص رسالة البريد الإلكتروني",
+		"mailbox_label": "صندوق البريد",
+		"mailExportModeHelp_msg": "تنسيق ملف البريد الإلكتروني المراد استخدامه عند التصدير أو السحب والإفلات",
+		"mailExportMode_label": "تنسيق ملف تصدير البريد الإلكتروني",
+		"mailFolder_label": "مجلد البريد الإلكتروني",
+		"mailHeaders_title": "رؤوس رسائل البريد",
+		"mailName_label": "اسم المرسل",
+		"mailPartsNotLoaded_msg": "فشل تحميل بعض أجزاء البريد بسبب فقدان الاتصال.",
+		"mailServer_label": "خادم البريد",
+		"mailViewerRecipients_label": "إلى :",
+		"mailView_action": "التبديل إلى عرض البريد الإلكتروني",
+		"makeLink_action": "إنشاء  رابط",
+		"manyRecipients_msg": "يحتوي هذا البريد الإلكتروني على الكثير من المستلمين الذين سيكونون مرئيين لبعضهم البعض. أرسل على كل حال؟",
+		"markAsNotPhishing_action": "تحديد بأنه ليس تصيد",
+		"markRead_action": "علِم كمقروء",
+		"markUnread_action": "علِم كغير مقروء",
+		"matchCase_alt": "مطابقة الحالة",
+		"matchingKeywords_label": "مطابقة الكلمات الأساسية :",
+		"maybe_label": "ربما ",
+		"mergeAllSelectedContacts_msg": "هل أنت متأكد من أنك تريد دمج جهات الاتصال المحددة؟",
+		"mergeContacts_action": "دمج جهات الاتصال",
+		"merge_action": "دمج",
+		"message_label": "رسالة ",
+		"microphoneUsageDescription_msg": "تُستعمل عند تسجيل فيديو كمُرفق.",
+		"mobile_label": "الجوال",
+		"modified_label": "تم التعديل",
+		"month_label": "الشهر ",
+		"moreInformation_action": "معلومات اكثر",
+		"moreInfo_msg": "معلومات إضافية:",
+		"moreResultsFound_msg": "تم العثور على مزيد من النتائج.{1}",
+		"more_label": "المزيد",
+		"moveDown_action": "الانتقال لأسفل",
+		"moveToBottom_action": "الانتقال إلى أسفل",
+		"moveToInbox_action": "الانتقال إلى البريد الوارد",
+		"moveToTop_action": "الانتقال إلى الأعلى",
+		"moveUp_action": "الذهاب لأعلى",
+		"move_action": "انتقل",
+		"name_label": "الاسم",
+		"nativeShareGiftCard_label": "مشاركة بطاقة الهدية من توتانوتا",
+		"nativeShareGiftCard_msg": "مرحبًا ، لقد حصلت لك على بطاقة هدية من توتانوتا، خدمة البريد الإلكتروني المشفرة الآمنة ! اتبع هذا الرابط لتخليصها ! {link}",
+		"nbrOfContactsSelected_msg": "جهات الاتصال المحددة.{1}",
+		"nbrOfInboxRules_msg": "لقد حددت {1} قواعد للبريد الوارد.",
+		"nbrOfMailsSelected_msg": "{1} رسالة محددة",
+		"needSavedCredentials_msg": "تحتاج إلى تخزين بيانات الاعتماد الخاصة بك أثناء تسجيل الدخول عن طريق تحديد \"{storePasswordAction}\" مربع الاختيار.",
+		"net_label": "شبكة",
+		"neverReport_action": "عدم  الإبلاغ ",
+		"newContact_action": "مُراسِل جديد",
+		"newEvent_action": "حدث جديد",
+		"newMails_msg": "لقد تم استلام رسالة جديدة من توتانوتا.",
+		"newMail_action": "بريد إلكتروني جديد",
+		"newPassword_label": "الكلمة السرية الجديدة",
+		"news_label": "اخبار ",
+		"nextChargeOn_label": "الشحن التالي في {chargeDate}",
+		"nextDay_label": " اليوم التالى",
+		"nextMonth_label": "الشهر القادم",
+		"nextSubscriptionPrice_msg": "هذا السعر صالح لفترة الاشتراك القادمة بعد الفترة الحالية.\n",
+		"nextWeek_label": " الأسبوع القادم",
+		"next_action": "التالي",
+		"nickname_placeholder": "كنية",
+		"noAppAvailable_msg": "لا يوجد تطبيق مثبت يمكنه القيام بهذا العمل.",
+		"noContacts_msg": "لا توجد جهات اتصال في هذه القائمة.",
+		"noContact_msg": "لم يتم اختيار أي جهة إتصال.",
+		"noEntries_msg": "<لا إدخالات>",
+		"noEntryFound_label": "لا توجد إدخالات",
+		"noInputWasMade_msg": "حقل الإدخال فارغ!",
+		"noMails_msg": "لا توجد رسائل هنا.",
+		"noMail_msg": "لم يتم اختيار أي بريد إلكتروني.",
+		"noMoreSimilarContacts_msg": "لم يتم العثور على مزيد من جهات الاتصال المماثلة.",
+		"nonConfidentialStatus_msg": "هذه الرسالة ليست مشفرة من الطرفين.",
+		"nonConfidential_action": "غير مشفرة",
+		"noNews_msg": "لا مزيد من التحديثات.",
+		"noPermission_title": "لا يوجد إذن",
+		"noPreSharedPassword_msg": "يرجى تقديم كلمة مرور المتفق عليها لجميع المستفيدين الخارجيين.",
+		"noReceivingMailbox_label": "يرجى تحديد صندوق استلام.",
+		"noRecipients_msg": "الرجاء إدخال عنوان البريد الإلكتروني الخاص بالمتلقي.",
+		"noSelection_msg": "لا شيء محدد.",
+		"noSimilarContacts_msg": "لم يتم العثور على جهات اتصال مشابهة.",
+		"noSolution_msg": "لم تجد حلا لمشكلتك؟",
+		"noSubject_msg": "العنوان غير موجود، هل تريد إرسال هذا البريد بلا عنوان؟ ",
+		"notASubdomain_msg": "هذا النطاق ليس نطاقًا فرعيًا.",
+		"notAvailableInApp_msg": "هذه الوظيفة غير متوفّرة في تطبيق الجوّال.",
+		"notFound404_msg": "عفوا، الصفحة التي تبحث عنها لم يتم العثور عليها. تأكد من صحة الرابط ومن ثم اضغط على زر التحديث من المتصفح.",
+		"noThanks_action": "لا، شكراً",
+		"nothingFound_label": "لم يتم العثور على نماذج",
+		"notificationMailLanguage_label": "لغة بريد الإشعار",
+		"notificationMailTemplateTooLarge_msg": "الإشعار نموذج الايميل كبير جداً.",
+		"notificationsDisabled_label": "معطل",
+		"notificationSettings_action": "الإشعارات",
+		"notificationSync_msg": "مزامنة الإشعارات",
+		"notSigned_msg": "غير مُوقّع",
+		"noUpdateAvailable_msg": "لم يتم العثور على تحديث.",
+		"noValidMembersToAdd_msg": "أنت لا تدير أي مستخدمين ليسوا أعضاء بالفعل في هذه المجموعة.",
+		"no_label": "لا",
+		"offlineLoginPremiumOnly_msg": "أنت غير متصل بالإنترنت. قم بالترقية إلى حساب مدفوع لتتمكن من تسجيل الدخول في وضع عدم الاتصال.",
+		"offline_label": "غير متصل",
+		"ok_action": "موافق",
+		"oldPasswordInvalid_msg": "الكلمة السرية القديمة غير صحيحة.",
+		"oldPasswordNeutral_msg": "الرجاء إدخال كلمة المرور القديمة.",
+		"oldPassword_label": "كلمة المرور القديمة",
+		"oneMailSelected_msg": "رسالة إلكترونيّة واحدة محدّدة.",
+		"online_label": "متصل",
+		"onlyAccountAdminFeature_msg": "فقط مسؤول الحساب يمكنه القيام بذلك",
+		"onlyPrivateAccountFeature_msg": "لا يجوز استرداد بطاقات الهدايا إلا من خلال حسابات خاصة",
+		"onlyPrivateComputer_msg": "فقط اختر هذا الخيار إذا كنت تستخدم جهاز خاص.",
+		"openCamera_action": "كاميرا",
+		"openKnowledgebase_action": "افتح نافذة قاعدة المعارف",
+		"openNewWindow_action": "إطار جديد",
+		"openTemplatePopup_msg": "افتح النماذج المنبثقة",
+		"open_action": "افتح",
+		"operationStillActive_msg": "لا يمكن تنفيذ هذه العملية في الوقت الحالي لأن عملية أخرى لا تزال قيد التشغيل. الرجاء معاودة المحاولة في وقت لاحق.",
+		"options_action": "خيارات",
+		"orderProcessingAgreementInfo_msg": "وفقًا لقانون حماية البيانات العامة للاتحاد الأوروبي (GDPR)، يلتزم عملاء الشركات بإبرام اتفاقية  لتحضير الطلبات معنا.",
+		"orderProcessingAgreement_label": "اتفاق لتحضير الطلبات",
+		"order_action": "الطلب",
+		"organizer_label": "منظم ",
+		"otherCalendars_label": "التقاويم الأخرى",
+		"otherPaymentProviderError_msg": "مزود خدمة الدفع عاد بخطأ. يرجى المحاولة لاحقا.",
+		"other_label": "آخر",
+		"outdatedClient_msg": "يرجى تحديث توتانوتا. الإصدار المثبت حاليا قديم جدا وانتهى دعمه.",
+		"outOfOfficeDefaultSubject_msg": "أنا خارج المكتب",
+		"outOfOfficeDefault_msg": "مرحبًا ، \n‪<br>\n<br>شكرا على رسالتك اللإلكترونية. أنا خارج المكتب وسأعود قريبًا. حتى ذلك الحين سيكون لدي وصول محدود إلى بريدي الإلكتروني. \n<br>\n<br>أطيب التحيات ",
+		"outOfOfficeEveryone_msg": "إلى الجميع",
+		"outOfOfficeExternal_msg": "خارج مؤسستك",
+		"outOfOfficeInternal_msg": "داخل مؤسستك",
+		"outOfOfficeMessageInvalid_msg": "الموضوع و / أو الرسالة غير صالحة. \nالموضوعات أو الرسائل الفارغة غير مسموح بها. \nالحد الأقصى لحجم الموضوع : 128 حرفًا. \nالحد الأقصى لحجم للرسالة : 20 كيلوبايت.",
+		"outOfOfficeNotification_title": "الإعلام بالتواجد خارج المكتب",
+		"outOfOfficeRecipientsEveryoneHelp_label": "يتم إرسال الإخطارات إلى الجميع.",
+		"outOfOfficeRecipientsInternalExternalHelp_label": "يتم إرسال إعلامات مميزة إلى المستلمين داخل مؤسستك وخارجها.",
+		"outOfOfficeRecipientsInternalOnlyHelp_label": "يتم إرسال الإخطارات فقط داخل مؤسستك.",
+		"outOfOfficeRecipients_label": "مستلمي الإخطار",
+		"outOfOfficeReminder_label": "تم تنشيط الإعلام بالتواجد خارج المكتب.",
+		"outOfOfficeTimeRangeHelp_msg": "تحقق لاختيار التواريخ.",
+		"outOfOfficeTimeRange_msg": "أرسل فقط خلال هذا النطاق الزمني :",
+		"outOfOfficeUnencrypted_msg": "يرجى ملاحظة أن الردود الآلية (الردود التلقائية) يتم إرسالها على شكل نص عادي.",
+		"outOfSync_label": "بيانات منتهية ",
+		"owner_label": "مالك ",
+		"pageBackward_label": "صفحة الى الوراء",
+		"pageForward_label": "صفحة إلى الأمام",
+		"pageTitle_label": "عنوان الصفحة",
+		"parentConfirmation_msg": "وفقًا لقانون حماية البيانات العامة للاتحاد الأوروبي (GDPR)، يحتاج الأطفال دون سن 16 عامًا إلى تأكيد من آبائهم للسماح بمعالجة بياناتهم الشخصية. لذا يرجى الحصول على عقد من أحد والديك أو الأوصياء القانونيين والسماح لهم بتأكيد ما يلي: \n\n\"أنا أحد الوالدين أو الوصي القانوني على طفلي وأسمح له باستخدام توتانوتا، التي تتضمن معالجة بياناته الشخصية.\"",
+		"parentFolder_label": "المجلد الأصل",
+		"participant_label": "مشارك",
+		"passphraseGeneratorHelp_msg": "هذه هي عبارة سرّ آمنة بحيث يكون من السهل تذكّرها، تم إنشاؤها من قاموس كبير.",
+		"password1InvalidSame_msg": "كلمة المرور الجديدة هي نفس القديمة.",
+		"password1InvalidUnsecure_msg": "كلمة المرور غير آمنة بما فيها الكفاية.",
+		"password1Neutral_msg": "الرجاء إدخال كلمة المرور الجديدة.",
+		"password2Invalid_msg": "لم تطابق كلمة المرور.",
+		"password2Neutral_msg": "يرجى التأكد من صحة الكلمة السرية.",
+		"passwordEnterNeutral_msg": "يرجى إدخال كلمة المرور للتأكيد.",
+		"passwordFor_label": "كلمة المرور ل {1}",
+		"passwordImportance_msg": "رجاءاً احتفظ بكلمة المرور في مكان آمن. لا يمكننا استعادة كلمة المرور الخاصة بك أو إعادة تعيين حسابك لأن جميع بياناتك مشفرة من الطرف للطرف بالكامل.",
+		"passwordResetFailed_msg": "حدث خطأ. لم يطرأ أي تغيير على الكلمة السرية.",
+		"passwordValid_msg": "كلمة المرور مناسبة.",
+		"passwordWrongInvalid_msg": "كلمة المرور خاطئة.",
+		"password_label": "كلمة المرور",
+		"paste_action": "لصق",
+		"pathAlreadyExists_msg": "هذا المسار موجود بالفعل.",
+		"payCardContactBankError_msg": "عذرا ، تم رفض معاملة الدفع من قبل البنك الذي تتعامل معه. يرجى التأكد من صحة تفاصيل بطاقتك الائتمانية أو الاتصال بالمصرف الذي تتعامل معه.",
+		"payCardExpiredError_msg": "عذرا ، لقد انتهت صلاحية بطاقة الائتمان. الرجاء تحديث تفاصيل الدفع الخاصة بك.",
+		"payCardInsufficientFundsError_msg": "عذرا ، تم رفض معاملة الدفع بسبب عدم كفاية الأموال.",
+		"payChangeError_msg": "عذرا ، فشلت عملية الدفع. الدفع باستخدام بالبيانات المقدمة غير ممكن. يرجى تغيير بيانات الدفع الخاصة بك.",
+		"payContactUsError_msg": "عذرا ، فشلت عملية الدفع. الرجاء التواصل معنا.",
+		"paymentAccountRejected_msg": "بطاقة الإئتمان أو حساب بايبال (PayPal) الخاص بك يُستعمل أساسًا لمدفوعات توتانوتا أخرى. لأسبابٍ أمنيّة، علينا تفعيل هذا أوّلًا. سنرسل لك رسالة بريد إلكتروني بمجرد تنشيط بيانات الدفع الخاصة بك. يمكنك بعد ذلك إدخاله مرة أخرى.",
+		"paymentDataPayPalFinished_msg": "الحساب باي بال المخصّص: {accountAddress}",
+		"paymentDataPayPalLogin_msg": "يرجى النقر على زر باي بال لتسجيل الدخول. ستتم إعادة توجيهك إلى موقع باي بال الإلكتروني.",
+		"paymentDataValidation_action": "تأكيد",
+		"paymentInterval_label": "الفاصل الزمني للدفع",
+		"paymentMethodAccountBalance_label": "رصيد الحساب",
+		"paymentMethodAccountBalance_msg": "لِسداد حسابك تستخدم رصيد الحساب. يمكنك زيادة رصيدك باستخدام بطاقات الهدايا.",
+		"paymentMethodCreditCard_label": "البطاقة الائتمانية",
+		"paymentMethodNotAvailable_msg": "طريقة الدفع هذه غير متوفرة في بلدك.",
+		"paymentMethodOnAccount_label": "الشراء على الحساب",
+		"paymentMethodOnAccount_msg": "يجب عليك دفع الفواتير عن طريق التحويل المصرفي وعليك أن تهتم بالدفع بنفسك. لن يتم خصم مبلغ الفاتورة تلقائيًا.",
+		"paymentMethod_label": "طريقة الدفع",
+		"paymentProcessingTime_msg": "قد يستغرق الأمر ما يصل إلى أسبوع حتى تظهر المدفوعات عبر التحويل المصرفي في حسابك.",
+		"paymentProviderNotAvailableError_msg": "عذرا ، مزود خدمة الدفع غير متوفر حاليا. يرجى المحاولة لاحقا.",
+		"payPalRedirect_msg": "ستتم إعادة توجيهك إلى موقع باي بال الإلكتروني",
+		"payPaypalChangeSourceError_msg": "عذرا ، فشلت عملية الدفع. يرجى اختيار طريقة مختلفة للدفع في PayPal.",
+		"payPaypalConfirmAgainError_msg": "عذرا ، فشلت عملية الدفع. يرجى تحديث وتأكيد تفاصيل الدفع الخاصة بك.",
+		"pending_label": "معلق ",
+		"periodOfTime_label": "الفترة الزمنية",
+		"permanentAliasWarning_msg": "هذا اسم مستعار لمجال توتانوتا، والذي، على النقيض من الأسماء المستعارة للمجالات المخصصة، يمكن إلغاء تنشيطه فقط وليس حذفه. سيتم احتسابه دائمًا ضمن حد الاسماة المستعارة الخاصة بك.\n",
+		"permissions_label": "الإذن",
+		"phishingMessageBody_msg": "هذا البريد الإلكتروني مشابه لرسائل البريد الإلكتروني الأخرى التي تم الإبلاغ عنها بأنها تصيد احتيالي.",
+		"phishingReport_msg": "سيتم إرسال محتويات الرسالة إلى الخادم في شكل غير مشفر حتى نتمكن من تحسين الحماية من التصيد الاحتيالي والرسائل غير المرغوب فيها. هل أنت متأكد من أنك تريد الإبلاغ عن هذه الرسالة؟",
+		"phone_label": "الهاتف",
+		"photoLibraryUsageDescription_msg": "إضافة صورة من مكتبتك كمُرفق.",
+		"pinBiometrics1_msg": "يركز توتانوتا على الأمن والخصوصية. إذن ، إليك تذكير صغير بأنه يمكنك تأمين تسجيل الدخول باستخدام رقم التعريف الشخصي أو القياسات الحيوية مثل بصمة الإصبع أو Face ID. ما عليك سوى تخزين كلمة المرور في التطبيق ثم تكوين طريقة إلغاء القفل في إعدادات تسجيل الدخول أو أدناه باستخدام \"{secureNowAction}\".",
+		"pinBiometrics2_msg": "هل تحب الأمان والخصوصية التي تحصل عليها مع توتانوتا؟ ثم قيم تطبيقنا الآن:",
+		"pinBiometrics3_msg": "من خلال تقييم تطبيقنا فإنك تساعدنا في محاربة هيمنة شركات التكنولوجيا الكبرى. شكرا جزيلا!",
+		"pinBiometrics_action": "تأمين تطبيقك !",
+		"plaintext_action": "نص عادي",
+		"pleaseEnterValidPath_msg": "الرجاء إدخال مسار صالح. الأحرف المسموح بها هي a-z و A-Z و '-' و '_'.",
+		"pleaseWait_msg": "يرجى الانتظار ...",
+		"postings_label": "الفواتير والمدفوعات",
+		"postpone_action": "تأجيل ",
+		"pre1970Start_msg": "التواريخ السابقة لعام 1970 هي خارج النطاق الصحيح.",
+		"premiumOffer_msg": "دعمك سيسرع من تطورنا لأنك ستمكننا من تنمية فريقنا. يحتاج مستخدمو الأعمال إلى الترقية إلى إصدار مدفوع من توتانوتا كما هو مذكور في شروطنا. اقرأ المزيد عما تحصل عليه من خلال اشتراكاتنا المدفوعة:",
+		"presharedPasswordNotStrongEnough_msg": "على الأقل واحد من كلمات المرور غير آمن بما فيها الكفاية. هل تريد إرسال البريد الإلكتروني رغم ذلك؟",
+		"presharedPasswordsUnequal_msg": "تحتوي جهات الاتصال المحددة على كلمات مرور مختلفة متفق عليها. لا يمكن دمجها!",
+		"presharedPassword_label": "كلمة المرور المتفق عليها",
+		"prevDay_label": " اليوم السابق",
+		"preview_label": "معاينة",
+		"previous_action": "السابق",
+		"prevMonth_label": " الشهر السابق",
+		"prevWeek_label": " الأسبوع السابق",
+		"priceChangeValidFrom_label": "سيسير مفعول تغيّر الأسعار في {1}.",
+		"priceFirstYear_label": "السعر في العام الأول",
+		"priceForCurrentAccountingPeriod_label": "السعر النسبة والتناسب لفترة الاشتراك الحالية هو {1}.",
+		"priceForNextYear_label": "السعر في العام التالي",
+		"priceFrom_label": "السعر اعتبارا من {date}",
+		"priceTill_label": "السعر حتى {date}",
+		"price_label": "السعر",
+		"pricing.addUsers_label": "إدارة المستخدمين وإضافتهم",
+		"pricing.addUsers_tooltip": "وحدة تحكم المشرف التي تتيح لك إدارة فريقك وإعادة تعيين كلمات المرور والعوامل الثانية وتحديد أدوار المشرف المتعددة والفوترة المركزية.",
+		"pricing.attachmentSize_label": "حجم المرفقات 25 ميجابايت",
+		"pricing.businessShareTemplates_msg": "مشاركة قوالب البريد الإلكتروني",
+		"pricing.businessShareTemplates_tooltip": "إنشاء قوالب البريد الإلكتروني وإدارتها للحصول على ردود متسقة على الطلبات المماثلة. أنشئ قائمة قوالب واحدة أو عدة قوائم يمكنك مشاركتها مع أعضاء الفريق الآخرين للتواصل المتسق عبر مؤسستك.",
+		"pricing.businessSLA_label": "اتفاقية مستوى الخدمة (SLA) 99.95%  ",
+		"pricing.businessSLA_tooltip": "تضمن بنيتنا التحتية القوية وقت تشغيل بنسبة 99.95٪.",
+		"pricing.businessTemplates_msg": "أضف قوالب البريد الإلكتروني",
+		"pricing.businessTemplates_tooltip": "إنشاء قوالب البريد الإلكتروني وإدارتها للحصول على ردود متسقة على الطلبات المماثلة.",
+		"pricing.businessUse_label": "الأعمال",
+		"pricing.calendarsPremium_label": "عدد غير محدود من التقاويم",
+		"pricing.catchall_label": "البريد الإلكتروني الشامل",
+		"pricing.catchall_tooltip": "تحقق من وصول جميع رسائل البريد الإلكتروني المرسلة إلى نطاقك المخصص إلى صندوق بريدك حتى إذا أخطأ المرسل في كتابة عنوان بريدك الإلكتروني.",
+		"pricing.comparisonAddUser_msg": "إضافة مستخدم ({1})",
+		"pricing.comparisonContactFormPro_msg": "نماذج الاتصال ({price})",
+		"pricing.comparisonDomainBusiness_msg": "مجالات مخصصة متعددة",
+		"pricing.comparisonDomainBusiness_tooltip_markdown": "<p>استخدام عناوين نطاق بريدك الإلكتروني المخصصة (you@yourbusiness.com).</p>\n",
+		"pricing.comparisonDomainPremium_msg": "1 مجال مخصص",
+		"pricing.comparisonDomainPremium_tooltip_markdown": "<p>استخدم عناوين نطاق البريد الإلكتروني المخصصة الخاصة بك (you@ yourname.com)</p>\n",
+		"pricing.comparisonEventInvites_msg": "دعوات الحدث",
+		"pricing.comparisonEventInvites_tooltip": "إرسال دعوات التقويم وتلقيها. يمكنك اختياريا إرسال الدعوات المشفرة إلى مستخدمين خارجيين بمساعدة كلمة مرور مشتركة.",
+		"pricing.comparisonInboxRulesPremium_msg": "قواعد صندوق البريد الوارد",
+		"pricing.comparisonInboxRules_tooltip": "حدد قواعد علبة الوارد لفرز رسائل البريد الإلكتروني الواردة تلقائيا في مجلدات محددة لتنظيم صندوق البريد الخاص بك بسرعة.",
+		"pricing.comparisonOneCalendar_msg": "تقويم واحد",
+		"pricing.comparisonOutOfOffice_msg": "إخطارات خارج المكتب",
+		"pricing.comparisonOutOfOffice_tooltip": "قم بإعداد إعلامات مخصصة خارج المكتب عندما تكون في أيام عطلات.",
+		"pricing.comparisonSharingCalendar_msg": "مشاركة التقاويم",
+		"pricing.comparisonSharingCalendar_tooltip": "شارك تقويمات توتانوتا كُلََّها مع مستخدمي توتانوتا الآخرين  مشفرة بشكل آمن ومع حقوق وصول مختلفة (للقراءة فقط، القراءة والكتابة، الكتابة وإدارة المشاركة).",
+		"pricing.comparisonStorage_msg": " سعة التخزين {amount} جيغا بت",
+		"pricing.comparisonSupportBusiness_tooltip": "تلقي الدعم عبر البريد الإلكتروني في أيام العمل في غضون 24 ساعة.",
+		"pricing.comparisonSupportFree_msg": "لا يوجد دعم مباشر",
+		"pricing.comparisonSupportFree_tooltip_markdown": "<p>يمكنك الوصول إلى قسم المساعدة الذكية الخاص بنا من داخل عميل توتانوتا الخاص بك أو احصل على المساعدة في [منتدى] ({redditLink}) دعم المجتمع. لا يوجد دعم عبر البريد الإلكتروني.</p>\n",
+		"pricing.comparisonSupportPremium_msg": "الدعم عبر البريد الإلكتروني",
+		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>إمكانية الوصول إلى قسم المساعدة الذكية الخاص بنا من داخل عميل توتانوتا الخاص بك مع خيار إرسال بريد إلكتروني مباشر إلى فريق الدعم لدينا. يكون الرد في غضون يوم عمل.</p>\n",
+		"pricing.comparisonSupportPro_msg": "دعم الأولوية",
+		"pricing.comparisonThemePro_msg": "الشعار المخصص والألوان",
+		"pricing.comparisonThemePro_tooltip": "العلامة البيضاء توتانوتا مع العلامة التجارية الخاصة بك بواسطة تحديد الشعارات والألوان لـتوتانوتا عملاء الويب والمحمول وسطح المكتب",
+		"pricing.comparisonUsersFree_msg": "مستخدم واحد",
+		"pricing.currentPlan_label": "الاشتراك الحالي",
+		"pricing.encryptedCalendar_label": "تقويم مشفر بالكامل",
+		"pricing.encryptedCalendar_tooltip": "يتم تشفير جميع البيانات في تقويمات توتانوتا الخاصة بك، حتى  الإشعارات يتم إرسالها مشفرة إلى جهازك.",
+		"pricing.encryptedContacts_label": "دفتر العناوين المشفر",
+		"pricing.encryptedContacts_tooltip": "يتم تشفير جميع البيانات الموجودة في دفتر عناوين توتانوتا الخاص بك ، حتى عناوين البريد الإلكتروني لجهات الاتصال الخاصة بك.",
+		"pricing.encryptedNoTracking_label": "مشفر بالكامل، بدون تتبع",
+		"pricing.encryption_label": "التشفير من طرف إلى طرف",
+		"pricing.encryption_tooltip": "يتم تشفير جميع البيانات في توتانوتا. لا تملك توتانوتا أي وصول إلى صندوق بريدك بحيث يمكن للمرسل والمستلم فقط قراءة رسائل البريد الإلكتروني المشفرة.",
+		"pricing.extEmailProtection_label": "رسائل البريد الإلكتروني المحمية بكلمة مرور",
+		"pricing.extEmailProtection_tooltip": "يتم تشفير جميع رسائل البريد الإلكتروني بين مستخدمي توتانوتا تلقائيا. يمكنك تبادل رسائل البريد الإلكتروني المشفرة مع أي شخص في العالم عبر كلمة مرور مشتركة.",
+		"pricing.gdprDataProcessing_label": "اتفاقية معالجة البيانات لللائحة العامة لحماية البيانات (GDPR)",
+		"pricing.gdpr_label": "متوافق مع اللائحة العامة لحماية البيانات (GDPR)",
+		"pricing.gdpr_tooltip": "يتم تخزين جميع البيانات وفقا للوائح الأوروبية الصارمة لحماية البيانات وفقا للائحة العامة لحماية البيانات.",
+		"pricing.login_title": "تسجيل الدخول على الموقع الخاص",
+		"pricing.login_tooltip": "ضع لموظفيك تسجيل الدخول إلى توتانوتا على موقع الويب الخاص بك.",
+		"pricing.mailAddressAliasesShort_label": "{amount} عنوان (عناوين) بريد إلكتروني إضافي",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>يمكن لعناوين البريد الإلكتروني المستعارة أن تقلل  من الرسائل غير المرغوب فيها وتساعد في تسريع فرز رسائل البريد الإلكتروني الواردة. اقرأ المزيد من النصائح <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">على مدونتنا</a>.</p>\n",
+		"pricing.mailAddressFree_label": "1 عنوان بريد إلكتروني مجاني في توتانوتا",
+		"pricing.monthly_label": "شهريا",
+		"pricing.months_label": "شهور",
+		"pricing.noAds_label": "بدون إعلانات وبدون تتبع ",
+		"pricing.offline_label": "الدعم دون اتصال ",
+		"pricing.offline_tooltip": "قم بتسجيل الدخول وعرض رسائل البريد الإلكتروني والتقويمات وجهات الاتصال الخاصة بك  متى وأينما شئت - حتى لو لم يكن لديك اتصال بالإنترنت مع جميع تطبيقاتنا (سطح المكتب، Android و iOS).",
+		"pricing.perMonthPaidYearly_label": "شهريًا - تدفع سنويًا",
+		"pricing.perMonth_label": "في الشهر",
+		"pricing.perYear_label": "في السنة",
+		"pricing.platforms_label": "تطبيقات الويب للجوال وسطح المكتب",
+		"pricing.privateUse_label": "خاص",
+		"pricing.select_action": "تحديد",
+		"pricing.servers_label": "خوادم مقرها في ألمانيا",
+		"pricing.servers_tooltip": "يتم تخزين جميع البيانات على خوادمنا الخاصة في مراكز البيانات المعتمدة من ISO ومقرها في ألمانيا.",
+		"pricing.sharedMailboxes_label": "صناديق البريد المشتركة",
+		"pricing.showAllFeatures": "عرض جميع الميزات",
+		"pricing.signature_label": "توقيعات HTML",
+		"pricing.signature_tooltip": "قم بتخصيص توقيعاتك باستخدام الصور والشعارات والروابط والمزيد.",
+		"pricing.subscriptionPeriodInfoBusiness_msg": "مدّة الاشتراك هي شهر واحد عند الدفع الشهري وسنة واحدة عند الدفع سنويا. سيتم تجديد الاشتراك تلقائيا في نهاية مدّة الاشتراك.",
+		"pricing.subscriptionPeriodInfoPrivate_msg": "مدّة الاشتراك هي شهر واحد عند الدفع الشهري وسنة واحدة عند الدفع سنويا. بعد المدّة الأولية، سيتحول الاشتراك إلى عقد غير محدد المدة ويمكن إلغاؤه في أي وقت.",
+		"pricing.upgradeLater_msg": "استخدم توتانوتا مجاناً وقم بالترقية في وقت لاحق. فقط للاستخدام الخاص.",
+		"pricing.yearly_label": "سنويا",
+		"primaryMailAddress_label": "أولي",
+		"print_action": "طباعة",
+		"privacyLink_label": "سياسة الخصوصية",
+		"privacyPolicyUrl_label": "رابط إلى سياسة الخصوصية",
+		"privateCalendar_label": "خاصّ ",
+		"private_label": " خاص",
+		"progressDeleting_msg": "حذف ...",
+		"providePaymentDetails_msg": "يرجى تقديم تفاصيل الدفع",
+		"purchaseDate_label": "تاريخ الشراء",
+		"pushIdentifierCurrentDevice_label": "هذا الجهاز",
+		"pushIdentifierInfoMessage_msg": "قائمة بجميع المستلمين الذين يتلقون إعلامات لهذا المستخدم. يمكنك إلغاء تنشيط الإدخالات إذا كنت لا ترغب في تلقي إعلامات أو حذفها من الأجهزة التي لم تعد تستخدمها بعد الآن.",
+		"pushNewMail_msg": "تم تلقي بريد إلكتروني جديد.",
+		"pwChangeValid_msg": "تم تغيير كلمة المرور بنجاح.",
+		"quitDNSSetup_msg": "يرجى إعداد جميع سجلات DNS كما هو موضح. وإلا فلن تتمكن من استخدام نطاقك المخصص مع توتانوتا.",
+		"quitSetup_title": "هل تريد إنهاء الإعداد؟",
+		"quit_action": "الخروج ",
+		"readResponse_action": "قراءة الرد",
+		"reallySubmitContent_msg": "هل تريد حقاً إرسال البيانات المدخلة إلى موقع خارجي؟",
+		"received_action": "البريد الوارد",
+		"receivingMailboxAlreadyUsed_msg": "صندوق البريد المحدد مستخدم بالفعل لنموذج اتصال مختلف.",
+		"receivingMailbox_label": "تلقي صندوق البريد",
+		"recipients_label": "المتلقّين",
+		"recommendedDNSValue_label": "القيمة الموصى بها",
+		"reconnecting_label": "إعادة الاتصال...",
+		"reconnect_action": "أعد الاتصال",
+		"recoverAccountAccess_action": "فقدان الوصول إلى الحساب",
+		"recoverResetFactors_action": "إعادة تعيين العامل الثاني",
+		"recoverSetNewPassword_action": "تعيين كلمة مرور جديدة",
+		"recoveryCodeConfirmation_msg": "يرجى التأكد من كتابة رمز الاسترداد الخاص بك.",
+		"recoveryCodeDisplay_action": "عرض رمز الاسترداد",
+		"recoveryCodeEmpty_msg": "يرجى إدخال كود الاسترجاع",
+		"recoveryCode_label": "كود الاسترجاع",
+		"recoveryCode_msg": "يرجى أخذ دقيقة واحدة لكتابة كود الاسترجاع. يعد كود الاسترجاع الخيار الوحيد لإعادة تعيين كلمة المرور أو العامل الثاني في حالة فقدان أحدهما.",
+		"recover_label": "استرجاع",
+		"redeemedGiftCardPosting_label": "بطاقة هدايا مستردة",
+		"redeem_label": "‪ استردّ",
+		"redo_action": "إعادة",
+		"refresh_action": "تحديث",
+		"refund_label": "استرداد",
+		"regeneratePassword_action": "تجديد",
+		"registeredU2fDevice_msg": "تم التعرف على مفتاح الأمان الخاص بك. يمكنك حفظه الآن.",
+		"registered_label": "مسجل",
+		"register_label": "انضم لنا",
+		"rejectedEmails_label": "رسائل البريد الإلكتروني المرفوضة",
+		"rejectedSenderListInfo_msg": "قائمة رسائل البريد الإلكتروني التي تم رفضها من قبل خوادم بريد توتانوتا. يمكنك إضافة قاعدة رسائل غير مرغوب فيها لإضافة مُرسِل بريد إلكتروني إلى القائمة البيضاء.",
+		"rejectReason_label": "سبب الرفض",
+		"releaseNotes_action": "ملاحظات الإصدار",
+		"reloadPage_action": "إعادة تحميل الصفحة",
+		"rememberDecision_msg": "تذكر القرار",
+		"reminderBeforeEvent_label": "تذكير قبل الحدث",
+		"remindersUsageDescription_msg": "أظهر الإشعار عند وصول رسالة جديدة.",
+		"reminder_label": "تذكير ",
+		"removeCalendarParticipantConfirm_msg": "هل تريد بالتأكيد إزالة {participant} من التقويم \"{calendarName}\"؟",
+		"removeDNSValue_label": "حذف القيمة",
+		"removeFormatting_action": "إزالة التنسيق من التحديد",
+		"removeGroup_action": "إزالة  الفريق",
+		"removeLanguage_action": "إزالة اللغة",
+		"removeOwnAdminFlagInfo_msg": "لا يمكن إزالة علم المشرف إلا بواسطة مشرف آخر ولكن ليس بنفسك.",
+		"removeUserFromGroupNotAdministratedError_msg": "لا يمكنك إزالة مستخدم لا تديره من مجموعة.",
+		"removeUserFromGroupNotAdministratedUserError_msg": "لا يمكنك إزالة مستخدم من مجموعة لا تديرها.",
+		"remove_action": "إزالة",
+		"renameTemplateList_label": "إعادة تسمية قائمة النماذج",
+		"rename_action": "إعادة التسمية",
+		"repeatedPassword_label": "أعد كتابة كلمة المرور",
+		"repetition_msg": "كلّ {interval} {timeUnit}",
+		"repliedToEventInvite_msg": "تم الرد: {event}",
+		"replyAll_action": "الرد على الكل",
+		"replyTo_label": "الردّ على",
+		"reply_action": "الرد",
+		"reportEmail_action": "الإعلان عن بريد الكتروني",
+		"reportPhishing_action": "تقرير التصيد",
+		"reportSpam_action": "الإعلان كبريد عشوائي",
+		"requestApproval_msg": "عذرًا، لا يُسمح حاليًا بإرسال أو تلقي رسائل البريد الإلكتروني (باستثناء إلى دعم توتانوتا ) لأنه تم وضع علامة 'للموافقة' على حسابك، وهذا لتجنب إساءة الاستخدام، مثل رسائل البريد الإلكتروني غير المرغوب فيها. يرجى الاتصال بنا مباشرة من حسابك في توتانوتا على approval@tutao.de ووصف غرض استخدام هذا الحساب. يرجى الكتابة باللغة الإنجليزية أو الألمانية، حتى نتمكن من فهمكم. شكر!",
+		"requestTimeout_msg": "استغرقت العملية وقتا طويلا بسبب بطء الاتصال بالإنترنت. يرجى المحاولة مرة أخرى في وقت لاحق.",
+		"requestTooLarge_msg": "كمية البيانات كبيرة جدًا. الرجاء تقصير النص.",
+		"requiresNewWindow_msg": "ستدخل حيز التنفيذ في أي نافذة جديدة.",
+		"resetZoomFactor_action": "إعادة تعيين عامل التكبير",
+		"responsiblePersonsInfo_msg": "حدد المستخدمين أن الرسالة من صندوق البريد المتلقي يمكن إعادة توجيهها إلى. لا توجد قيود إذا كانت القائمة فارغة.",
+		"responsiblePersons_label": "الأشخاص المسؤولين",
+		"restartBefore_action": "قم بإعادة تشغيل توتانوتا قبل الإرسال",
+		"resumeSetup_label": "استئناف الإعداد",
+		"retry_action": "حاول مرة أخرى",
+		"revealPassword_action": "الكشف عن كلمة السرّ ",
+		"richText_label": "النص الفنى",
+		"role_placeholder": "وظيفة",
+		"runInBackground_action": "تشغيل في الخلفية",
+		"runInBackground_msg": "تلقي الإخطارات أثناء تسجيل الخروج وإدارة النوافذ من الوعاء.",
+		"runOnStartup_action": "الاختبارعند بدء التشغيل",
+		"saveAll_action": "احفظ الكل",
+		"saveDownloadNotPossibleIos_msg": "لا يدعم هذا المتصفح حفظ المرفقات إلى القرص. بعض أنواع الملفات يمكن عرضها في المتصفح نفسه بالضغط على الرابط أعلاه. ",
+		"saveEncryptedIpAddress_label": "تمكين حفظ عناوين IP في الجلسات وسجل المراجعة. يتم تخزين عناوين IP مشفرة.",
+		"save_action": "حفظ",
+		"save_msg": "جارٍ حفظ البيانات…",
+		"scheduleAlarmError_msg": "لا يمكن إعداد التنبيه. يرجى تحديث التطبيق.",
+		"scrollDown_action": "انتقل إلى أسفل",
+		"scrollToBottom_action": "انتقل إلى الأسفل",
+		"scrollToTop_action": "انتقل إلى أعلى",
+		"scrollUp_action": "انتقل إلى الأعلى",
+		"searchContacts_placeholder": "البحث عن جهات الاتصال",
+		"searchDisabledApp_msg": "تم تعطيل البحث بسبب خطأ في النظام. يجب إعادة تشغيل التطبيق لتمكين البحث مرة أخرى.",
+		"searchDisabled_msg": "تم تعطيل البحث لأن متصفحك لا يدعم تخزين البيانات.",
+		"searchedUntil_msg": "بحثت حتى",
+		"searchEmails_placeholder": "البحث عن الرسائل",
+		"searchGroups_placeholder": "البحث عن المجموعات",
+		"searchMailbox_label": "البحث في صندوق البريد",
+		"searchNoResults_msg": "لا نتائج",
+		"searchPage_action": "صفحة البحث...",
+		"searchPage_label": "صفحة بحث",
+		"searchResult_label": "نتائج",
+		"searchUsers_placeholder": "البحث عن المستخدمين",
+		"search_label": "ابحث",
+		"secondFactorAuthentication_label": "العامل الثاني للاستيثاق",
+		"secondFactorConfirmLoginNoIp_msg": "هل تريد  السماح بتسجيل الدخول من العميل {clientIdentifier}؟",
+		"secondFactorConfirmLogin_label": "تأكيد تسجيل الدخول",
+		"secondFactorConfirmLogin_msg": "هل ترغب في السماح بتسجيل الدخول من قِبل العميل \"{clientIdentifier}\"  بالعنوان IP   {ipAddress}؟",
+		"secondFactorNameInfo_msg": "اسم لتحديد الهوية.",
+		"secondFactorPendingOtherClientOnly_msg": "يرجى قبول هذا الدخول من عميل آخر.",
+		"secondFactorPending_msg": "يرجى المصادقة على العامل الثاني الخاص بك أو قبول هذا الدخول من عميل آخر.\n",
+		"secondMergeContact_label": "جهة الاتصال 2",
+		"secureNow_action": "أطمئن الآن",
+		"security_title": "الأمان",
+		"selectionNotAvailable_msg": "لا يتوفر أي تحديد.",
+		"selectNextTemplate_action": "حدد النموذج التالي في القائمة",
+		"selectNext_action": "حدد التالي",
+		"selectPeriodOfTime_label": "حدد الفترة الزمنية",
+		"selectPreviousTemplate_action": "حدد النموذج السابق في القائمة",
+		"selectPrevious_action": "حدد السابق",
+		"selectTemplate_action": "تحديد",
+		"sendErrorReport_action": "إرسال التقرير عن الخطأ",
+		"sender_label": "المرسل",
+		"sendingUnencrypted_msg": "يتم إرسال رسالتك.",
+		"sending_msg": "رسالتكم ستشفر ثم يتم إرسالها.",
+		"sendLogsInfo_msg": "إرفاق ملفات السجل(log files) بتقرير الخطأ(error report). انقر أدناه لعرض المحتويات.",
+		"sendLogs_action": "إرسال السجلات",
+		"sendMail_alt": "أرسل رسالة إلى هذا العنوان",
+		"sendUpdates_label": "إرسال تحديثات إلى المدعوين",
+		"sendUpdates_msg": "إرسال إعلام بالتحديث إلى المدعوين؟",
+		"send_action": "إرسال",
+		"sent_action": "تم الإرسال",
+		"serverNotReachable_msg": "لا يمكن الوصول إلى الخادم، يبدو وكأنك غير متصل. يرجى المحاولة لاحقا.",
+		"serviceUnavailable_msg": "حدث خطأ مؤقت على الخادم. يرجى المحاولة مرة أخرى في وقت لاحق.",
+		"sessionsInfo_msg": "يتم تخزين العميل وعنوان IP فقط بشكل مُشفر.\n",
+		"sessionsWillBeDeleted_msg": "سيتم حذف هذه بعد أسبوعين من الإغلاق.",
+		"setCatchAllMailbox_action": "تعيين صندوق بريد لصيد الكل",
+		"setDnsRecords_msg": "يرجى ضبط سجلات DNS التالية:",
+		"setSenderName_action": "تعيين اسم المرسل",
+		"settingsForDevice_label": "الإعدادات لهذا الجهاز",
+		"settingsView_action": "التبديل إلى عرض الإعدادات",
+		"settings_label": "إعدادات",
+		"setUp_action": "الإعداد",
+		"shareCalendarAcceptEmailBody_msg": "مرحبًا {recipientName} ، <br/> لقد قَبِل {invitee} دعوتك للمشاركة في التقويم \"{calendarName}\". <br/><br/> هذه هي رسالة تلقائية.",
+		"shareCalendarAcceptEmailSubject_msg": "تم قبول دعوة التقويم",
+		"shareCalendarDeclineEmailBody_msg": "مرحبًا {recipientName} ، <br/>لم يقبل {invitee} دعوتك للمشاركة في التقويم\"{calendarName}\". <br/><br/> هذه هي رسالة تلقائية.",
+		"shareCalendarDeclineEmailSubject_msg": "تم رفض دعوة التقويم",
+		"shareCalendarInvitationEmailBody_msg": "مرحبًا ،<br/> أنت مدعو من طرف {inviter} للمشاركة في التقويم \"{calendarName}\". يمكنك التحقق من تفاصيل هذه الدعوة في عرض التقويم لقبولها أو رفضها. <br/><br/>هذه هي رسالة تلقائية.",
+		"shareCalendarInvitationEmailSubject_msg": "دعوة للمشاركة في التقويم",
+		"shareCalendarWarning_msg": "سيتمكن جميع المشاركين في التقويم من رؤية اسمك وعنوان بريدك الإلكتروني الرئيسي في صندوق البريد الخاص بك.",
+		"sharedCalendarAlreadyMember_msg": "أنت بالفعل مشارك في هذا التقويم. إذا كنت ترغب في قبول هذه الدعوة الجديدة ، فيجب عليك إزالة مشاركتك أولاً.",
+		"sharedMailboxes_label": "صناديق البريد المشتركة",
+		"sharedMailbox_label": "صندوق البريد المشترك",
+		"sharedTemplateGroupDefaultName_label": "نماذج {ownerName}",
+		"shareTemplateGroupEmailBody_msg": "مرحبًا ، <br/>لقد دعاك {inviter} إلى استخدام قائمة النماذج الخاصة بهم '{groupName}'. يمكنك التحقق من تفاصيل هذه الدعوة في الإعدادات واختيار قبولها أو رفضها.<br/><br/> هذه هي رسالة آلية.",
+		"shareTemplateGroupEmailSubject_msg": "دعوة لاستخدام قائمة النماذج",
+		"shareViaEmail_action": "مشاركة عبر البريد الإلكتروني",
+		"shareWarningAliases_msg": "سيتمكنون أيضًا من رؤية الأسماء المستعارة للبريد الإلكتروني المرتبطة بصندوق البريد الخاص بك.",
+		"shareWithEmailRecipient_label": "مشاركه مع مستلم البريد الكتروني",
+		"share_action": "شارك",
+		"sharing_label": "مشاركة ",
+		"shortcut_label": "الاختصار",
+		"showAddress_alt": "إظهار هذا العنوان في خرائط \"أوبن ستريت ماب\"",
+		"showBlockedContent_action": "عرض",
+		"showContact_action": "عرض جهة الإتصال",
+		"showHeaders_action": "إظهار رؤوس البريد الإلكتروني",
+		"showHelp_action": "إظهار التعليمات",
+		"showImages_action": "عرض الصور",
+		"showInboxRules_action": "عرض قواعد البريد الوارد",
+		"showingEventsUntil_msg": "عرض الأحداث حتى {untilDay}.",
+		"showMail_action": "عرض صندوق البريد المشفر",
+		"showMoreUpgrade_action": "خيارات الاشتراك",
+		"showMore_action": "أظهر المزيد",
+		"showRejectReason_action": "إظهار سبب الرفض",
+		"showRichTextToolbar_action": "عرض أدوات التنسيق",
+		"showURL_alt": "فتح الرابط",
+		"show_action": "عرض",
+		"signedOn_msg": "تم التوقيع في {date}.",
+		"signingNeeded_msg": "التوقيع مطلوب!",
+		"sign_action": "توقيع",
+		"skip_action": "تجاوز",
+		"social_label": "الشبكات الاجتماعية",
+		"sortBy_label": "فرز حسب",
+		"spamReports_label": "الإبلاغ عن رسالة عشوائية",
+		"spamRuleEnterValue_msg": "الرجاء إدخال قيمة.",
+		"spam_action": "بريد مؤذي",
+		"spelling_label": "الإملاء",
+		"startAfterEnd_label": "يجب ألا يكون تاريخ البدء بعد تاريخ الانتهاء.",
+		"state_label": "الحالة",
+		"stillReferencedFromContactForm_msg": "لا يمكن إلغاء تنشيط هذا العنصر لأنه لا يزال يشار إليه من جانب نموذج جهة الاتصال.",
+		"storageCapacityTooManyUsedForBooking_msg": "كُثرة التخزين المُستعمل تمنع معالج هذا الطلب. الرجاء تحرير بعض الذاكرة للمتابعة.",
+		"storageCapacityUsed_label": "التخزين المُستعمل",
+		"storageCapacity_label": "سعة التخزين",
+		"storageDeletion_msg": "سيتم حذف رسائل البريد الإلكتروني الموجودة في هذا المجلد تلقائيًا بعد 30 يومًا.",
+		"storageQuotaExceeded_msg": "لا توجد مساحة تخزين كافية على الجهاز لإنشاء فهرس البحث. لذلك لا يمكن عرض نتائج البحث بالكامل.",
+		"storedDataTimeRangeHelpText_msg": "سيتم حذف رسائل البريد الإلكتروني المخزنة التي هي أقدم مما قمت بإعدادها هنا تلقائيا من جهازك.",
+		"storedDataTimeRange_label": "الاحتفاظ برسائل البريد الإلكتروني من آخر {numDays} أيام ",
+		"storePassword_action": "حفظ كلمة المرور",
+		"subject_label": "الموضوع",
+		"subscriptionCancelledMessage_msg": "تم إلغاء اشتراكك. يرجى الاتصال بالدعم لإعادة تفعيل اشتراكك.",
+		"subscriptionChangePeriod_msg": "سيتم تغيير اشتراكك بعد انتهاء فترة الاشتراك الحالية ({1}).",
+		"subscriptionChange_msg": "سيتم تغيير اشتراكك بعد انتهاء فترة الاشتراك الحالية.",
+		"subscription_label": "اشتراك",
+		"supportMenu_label": "الدعم",
+		"switchAgendaView_action": "تبديل إلى عرض الأجندة ",
+		"switchArchive_action": "التبديل إلى مجلد الأرشيف",
+		"switchColorTheme_action": "تبديل موضوع اللون",
+		"switchDrafts_action": "التبديل إلى مجلد المسودات",
+		"switchInbox_action": "التبديل إلى مجلد البريد الوارد",
+		"switchMonthView_action": "تبديل إلى عرض الشهر",
+		"switchSearchInMenu_label": "يمكنك تبديل نوع البحث في القائمة",
+		"switchSentFolder_action": "التبديل إلى مجلد المرسل",
+		"switchSpam_action": "التبديل إلى مجلد بريد السخام",
+		"switchTrash_action": "التبديل إلى مجلد المهملات",
+		"switchWeekView_action": "تبديل إلى عرض الأسبوع",
+		"synchronizing_label": "مزامنة : {progress}",
+		"takeoverAccountInvalid_msg": "عنوان البريد الإلكتروني المحدد لإستلام البريد الألكتروني المستهدف لا ينتمي لمشرف بريميوم.",
+		"takeoverMailAddressInfo_msg": "اختياري : أدخل عنوان البريد الإلكتروني للمسؤول عن حسابك المدفوع لإعادة استخدام عناوين بريدك الإلكتروني في الحساب المستهدف.",
+		"takeoverSuccess_msg": "يمكنك الآن إعادة استخدام عنوانك القديم في الحساب المحدد كاسم مستعار للبريد الإلكتروني أو مستخدم إضافي.",
+		"takeOverUnusedAddress_msg": "يمكنك أخذ عنوان البريد الإلكتروني لحسابك المحذوف إلى حساب مدفوع آخر وإعادة استخدامه هناك. للقيام بذلك يرجى تحديد عنوان البريد الإلكتروني المسؤول عن الحساب المدفوع. \nيرجى ملاحظة أنه في حالة تكوين عامل ثانٍ للمصادقة ، يرجى تقديم رمز الاسترداد بدلاً من ذلك لأنه لا يمكن استخدام 2FA لحساب محذوف.",
+		"targetAddress_label": "عنوان الحساب المستهدف",
+		"templateGroupDefaultName_label": "نماذجي",
+		"templateGroupInvitations_label": "قائمة النماذج للدعوات ",
+		"templateGroupName_label": "اسم قائمة النماذج",
+		"templateGroup_label": "النموذج",
+		"templateHelp_msg": "في النموذج أدناه ، يمكنك تكوين قالب مخصص لرسائل البريد الإلكتروني الخاصة بالإشعارات التي تحتوي على رابط صندوق البريد المشفر. يجب أن يحتوي نص النموذج على \"{link}\" العنصر النائب  الذي سيتم استبداله بالرابط الفعلي للبريد. يمكنك أيضًا تضمين \"{sender}\" العنصر النائب  في نص البريد أو في الموضوع الذي سيتم استبداله باسم المرسل.",
+		"templateLanguageExists_msg": "نموذج اللغة المحددة موجود بالفعل.",
+		"templateMustContain_msg": "يجب أن يحتوي القالب على عنصر نائب {value}",
+		"templateNotExists_msg": "لم يعد هذا النموذج موجودًا !",
+		"templateShortcutExists_msg": "النموذج بهذا الاختصار موجود بالفعل !",
+		"terminationAlreadyCancelled_msg": "تم تقديم طلب إنهاء لهذا الحساب بالفعل.",
+		"terminationDateRequest_msg": "حدد تاريخا يجب فيه إنهاء الحساب.",
+		"terminationDateRequest_title": "تاريخ الإنهاء",
+		"terminationForm_title": "استمارة الإنهاء",
+		"terminationInvalidDate_msg": "يجب ألا يكون تاريخ الإنهاء اليوم أوفيما مضى.",
+		"terminationNoActiveSubscription_msg": "لا يوجد اشتراك نشط لهذا الحساب.",
+		"terminationOptionEndOfSubscriptionInfo_msg": "سيتم إنهاء حسابك بعد انتهاء فترة الدفع الحالية. لن يتم تجديد الاشتراك.",
+		"terminationOptionFutureDateInfo_msg": "سيتم إنهاء حسابك في التاريخ المشار إليه. بناءا على الفاصل الزمني للدفع، قد يستمر تحصيل الرسوم منك حتى ذلك التاريخ.",
+		"terminationSuccessful_msg": "تم استلام طلب إنهاء الحساب الخاص بك {accountName} في {receivedDate} وسيتم حذف حسابك في {deletionDate}.",
+		"terminationUseAccountUntilTermination_msg": "يمكنك استخدام الحساب حتى يتم إنهاؤه.",
+		"termination_action": "إنهاء الاشتراك",
+		"termination_text": "يرجى تقديم بيانات الاعتماد للحساب الذي تريد إنهاءه.",
+		"termsAcceptedNeutral_msg": "يرجى قبول الشروط والأحكام.",
+		"termsAndConditionsLink_label": "الأحكام والشروط العامة",
+		"termsAndConditions_label": "لقد قرأتُ ووافقتُ على الوثائق التالية:",
+		"textTooLong_msg": "النص الذي تم إدخاله طويل جدا",
+		"thisClient_label": "<هذا العميل>",
+		"timeFormatTwelveHour_label": "12 ساعة",
+		"timeFormatTwentyFourHour_label": "24 ساعة",
+		"timeFormat_label": "هيئة الوقت",
+		"times_msg": "{amount} مرات ",
+		"time_label": "الوقت",
+		"title_placeholder": "العنوان",
+		"today_label": "يوم",
+		"toggleDevTools_action": "تبديل وحدة التحكم",
+		"toggleFullScreen_action": " تبديل ملء الشاشة",
+		"toggleUnread_action": "تبديل غير مقروء",
+		"tomorrow_label": "غدا",
+		"tooBigAttachment_msg": "الملفات التالية لا يمكن إرفاقها لأن حجمها يتجاوز 25 ميجابايت:",
+		"tooBigInlineImages_msg": "يُسمح بملفات بحجم أقصى{size} كيلوبايت فقط.",
+		"tooManyAttempts_msg": "عدد المحاولات المسموح بها تم تجاوزها. يرجى المحاولة لاحقا.",
+		"tooManyCustomDomains_msg": "لديك عدد كبير جدًا من المجالات المخصصة النشطة. يتوفر واحد فقط عند تعطيل ميزة الأعمال.",
+		"tooManyGiftCards_msg": "لقد وصلت إلى حد الشراء البالغ {amount} من بطاقات الهدايا في آخر {period} .",
+		"tooManyMailsAuto_msg": "أخفق إرسال إشعار بريد إلكتروني تلقائيًا نظرًا لتجاوز عدد رسائل البريد الإلكتروني المسموح بها. يتم تخزين البريد الإلكتروني للإشعارات في مجلد المسودة ويمكنك محاولة إرساله لاحقًا.",
+		"tooManyMails_msg": "يبدو أنك تجاوزت عدد الرسائل الإلكترونية المسموح بها. الرجاء معاودة المحاولة في وقت لاحق.",
+		"totpAuthenticator_label": "المصدق (TOTP)",
+		"totpCodeConfirmed_msg": "الكود TOTP صالح. يمكنك الحفظ الآن لإنهاء الإعداد.",
+		"totpCodeEnter_msg": "الرجاء إدخال الرمز المكون من ستة أرقام الناتجة من المصدق الخاص بك لإنهاء الإعداد.",
+		"totpCodeWrong_msg": "كود الـ TOTP الذي أدخلته غير صالح. يرجى تصحيحه.",
+		"totpCode_label": "كود التحقق",
+		"totpSecret_label": "سرّيّ",
+		"totpTransferSecretApp_msg": "الرجاء تحديث تطبيق التصديق الخاص بك من خلال الضغط على الزر أدناه او إدخال المفتاح السري يدويًّا.",
+		"totpTransferSecret_msg": "يرجى تحديث تطبيق المصادق الخاص بك عن طريق مسح (QR) كود الاستجابة السريعة (أدناه) أو عن طريق إدخال المفتاح السري يدويًا.",
+		"to_label": "إلى",
+		"trash_action": "المحذوفات",
+		"tutanotaAddressDoesNotExist_msg": "عناوين توتانوتا للبريد الإلكتروني التالية غير موجودة.",
+		"tutaoInfo_msg": "Tutao GmbH هي الشركة التي توفر لك Tuta.",
+		"twitter_label": "تويتر",
+		"typeToFilter_label": "ابدء في الكتابة لتُرشّح ...",
+		"type_label": "نوع",
+		"u2fSecurityKey_label": "مفتاح الأمان (U2F)",
+		"unavailable_label": "غير متوافر",
+		"undecided_label": "غير مقرر",
+		"undoMailReport_msg": "سيتم الإبلاغ عن البريد الإلكتروني (رسائل)  في شكل غير مشفر.",
+		"undo_action": "تراجع",
+		"unencryptedTransmission_msg": "سيتم إرسال (رسائل) البريد الإلكتروني التي يتم نقلها إلى مجلد البريد العشوائي إلى الخادم في شكل غير مشفر لتحسين الحماية من البريد العشوائي.",
+		"unknownError_msg": "حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.",
+		"unknownRepetition_msg": "هذا الحدث هو جزء من سلاسل.",
+		"unlockCredentials_action": "إلغاء بيانات الاعتماد",
+		"unprocessedBookings_msg": "لديك بعض الطلبات غير المعالجة بقيمة إجمالية قدرها {amount}. سيتم خصم هذا من رصيدك و / أو طريقة الدفع المختارة في الفاتورة التالية",
+		"unrecognizedU2fDevice_msg": "لم يتم التعرف على مفتاح الأمان الخاص بك.",
+		"unregistered_label": "غير مسجل",
+		"unsubscribeConfirm_msg": "هل تريد حقًا إيقاف اشتراكك؟ سيتم إعادة تعيين حسابك إلى Free (مجانا) الآن وستفقد على الفور ميزاتك المدفوعة. يرجى أيضًا ملاحظة أنه يتم حذف الحسابات المجانية إذا لم يتم استخدامها لأكثر من ستة أشهر.",
+		"unsubscribeFailed_msg": " لا يمكن إلغاء النشرة الإخبارية أو القائمة البريدية.",
+		"unsubscribeSuccessful_msg": "تم إلغاء النشرة الإخبارية أو القائمة البريدية بنجاح!",
+		"unsubscribe_action": "إلغاء الاشتراك",
+		"unsuccessfulDrop_msg": "لم ينجح السحب والإفلات لأن البيانات لم تنته من التنزيل. يمكنك المحاولة مرة أخرى بمجرد انتهاء شريط التقدم.",
+		"until_label": "حتى",
+		"updateAdminshipGlobalAdmin_msg": "لا يمكنك تغيير إدارة المشرف العام.",
+		"updateAvailable_label": "يتوفر التحديث  لـ توتانوتا سطح المكتب({version})",
+		"updateFound_label": "الإصدار الجديد متوفر.",
+		"updateOwnAdminship_msg": "لا يمكنك تغيير إدارة مستخدمك الخاص.",
+		"updatePaymentDataBusy_msg": "التحقق من بيانات الدفع. يرجى التحلي بالصبر ، وهذا يمكن أن يستغرق ما يصل إلى دقيقة واحدة.",
+		"update_action": "تحديث",
+		"upgradeConfirm_msg": "قم بتأكيد طلبك!",
+		"upgradeNeeded_msg": "عذرًا ، لا يُسمح لك حاليًا بإرسال أو استقبال رسائل البريد الإلكتروني (باستثناء دعم مبيعات توتانوتا على sales@tutao.de) لأنك تحتاج أولاً إلى إنهاء طلب اشتراك مدفوع.",
+		"upgradePlan_msg": "ستتم ترقية اشتراكك إلى {plan}.",
+		"upgradePremium_label": "\"بريميوم\"",
+		"upgradeReminderCancel_action": "لاحقًا",
+		"upgradeReminderTitle_msg": "تطوّر إلى ممتاز!",
+		"upgrade_action": "ترقية",
+		"upToDate_label": "كل شيء محدث",
+		"urlPath_label": "مسار",
+		"url_label": "عنوان موقع (URL)",
+		"usageData_label": "بيانات الاستخدام",
+		"userAccountDeactivated_msg": "تم إلغاء تنشيط حساب المستخدم هذا.",
+		"userColumn_label": "المُستخدم",
+		"userEmailSignature_label": "إمضاء البريد الإلكتروني",
+		"userSettings_label": "إعدادات المستخدم",
+		"userUsageDataOptInExplanation_msg": "شارك بيانات الاستخدام المجهولة وساعدنا في اختبار الميزات الجديدة بالإضافة إلى العثور على المشكلات المتعلقة بالوظائف الحالية. سنقوم بإنشاء وتخزين معرف عشوائي على جهازك تتم مشاركته عبر جميع الحسابات التي تم تسجيل الدخول إليها.",
+		"userUsageDataOptInInfo_msg": "ما إذا كان عميلك يرسل إلينا بيانات الاستخدام لتحسين توتانوتا.",
+		"userUsageDataOptInStatement1_msg": "نحن لا نجمع أي معلومات تعريف شخصية",
+		"userUsageDataOptInStatement2_msg": "نحن لا نشارك بيانات الاستخدام الخاصة بك مع أي شخص",
+		"userUsageDataOptInStatement3_msg": "يمكن استعمال بيانات الاستخدام الخاصة بك لأغراض البحث",
+		"userUsageDataOptInStatement4_msg": "يمكنك إيقاف تشغيل هذا في أي وقت في الإعدادات",
+		"userUsageDataOptInThankYouOptedIn_msg": "شكرا لاشتراكك وإرسال بيانات الاستخدام الخاصة بك إلينا. يمكنك إيقاف تشغيل هذا في أي وقت في الإعدادات.",
+		"userUsageDataOptInThankYouOptedOut_msg": "تم تخزين قرارك بعدم إرسال بيانات الاستخدام الخاصة بك إلينا. يمكنك تمكينه في أي وقت في الإعدادات إذا غيرت رأيك.",
+		"userUsageDataOptIn_label": "قرار بيانات الاستخدام",
+		"userUsageDataOptIn_title": "ساعدنا في تحسين توتانوتا",
+		"useSecurityKey_action": "انقر لاستخدام مفتاح الأمان",
+		"validInputFormat_msg": "الصيغة مناسبة.",
+		"value_label": "القيمة",
+		"verifyDNSRecords_msg": "أخيرًا ، يجب عليك تكوين سجلات DNS المدرجة أدناه لتمكين تسليم البريد من وإلى خادم بريد توتانوتا.",
+		"verifyDNSRecords_title": "إعداد سجلات DNS",
+		"verifyDomainOwnershipExplanation_msg": "نحتاج إلى التحقق من أنك مالك المجال: {domain}",
+		"verifyDomainOwnership_title": "مراجعة التخويل ",
+		"verifyOwnershipTXTrecord_msg": "يرجى تكوين سجل DNS جديد من نوع TXT بالقيمة الموضحة أدناه.",
+		"viewEvent_action": "عرض الحدث ",
+		"viewNextPeriod_action": "عرض الفترة القادمة",
+		"viewPrevPeriod_action": "عرض الفترة السابقة",
+		"viewToday_action": "عرض الفترة الحالية",
+		"view_label": "عرض",
+		"waitingForApproval_msg": "عذرًا، لا يُسمح لك حاليًّا إرسال أو تلقّي رسائل إلكترونيّة لأن حسابك حُدِّد للموافقة. وهذه العملية ضرورية لتقديم تسجيل يتناسب مع الخصوصية ويمنع التسجيلات الجماعية في نفس الوقت. عادةً ستتم الموافقة على حسابك تلقائيًا بعد 48 ساعة. شكرا على صبرك!",
+		"waitingForU2f_msg": "في انتظار مفتاح الأمان ...",
+		"wantToSendReport_msg": "لقد حدث شيء خطأ وغير متوقع. هل تريد إرسال تقرير عن الخطأ؟ يمكنك إضافة رسالة لمساعدتنا في إصلاح هذا الخطأ.",
+		"weekNumber_label": "الأسبوع {week}",
+		"weekStart_label": "بداية الأسبوع",
+		"weeks_label": "أسابيع",
+		"week_label": "اسبوع",
+		"whatIsPhishing_msg": "ما المقصود بالتصيد االاحتيالي ؟",
+		"when_label": "متى",
+		"whitelabel.login_title": "تسجيل الدخول على الموقع الخاص",
+		"whitelabel.login_tooltip": "ضع لموظفيك تسجيل الدخول إلى توتانوتا على موقع الويب الخاص بك.",
+		"whitelabelDomainExisting_msg": "لا يزال المجال whitelable موجودًا. يرجى إزالة المجال whitelabel.",
+		"whitelabelDomainLinkInfo_msg": "عند طلب ميزة وايت لابل، يمكنك تنشيط تسجيل الدخول إلى توتانوتا على مجالك الخاص (مجال فرعي)، وتغيير مظهر توتانوتا وفقًا لاحتياجاتك (على سبيل المثال، هوية الشركة) وإنشاء نماذج اتصال لعملائك. يرجى الاطلاع على ",
+		"whitelabelDomainNeeded_msg": "يرجى أولاً تهيئة نطاق whitelabel الخاص بك.",
+		"whitelabelDomain_label": "مجال Whitelabel",
+		"whitelabelRegistrationCode_label": "كود التسجيل",
+		"whitelabelRegistrationEmailDomain_label": "تسجيل نطاق البريد الالكتروني",
+		"whitelabelThemeDetected_msg": "تم الكشف عن نسُق مخصص لهذا الحساب. هل تريد تطبيقه الآن؟",
+		"whitelabel_label": "البطاقة البيضاء",
+		"who_label": "من ",
+		"work_label": "العمل",
+		"wrongUserCsvFormat_msg": "يرجى تصحيح التنسيق CSV لبياناتك إلى :\n{format}",
+		"xing_label": "شينغ",
+		"years_label": "سنوات",
+		"yesterday_label": "أمس",
+		"yes_label": "نعم",
+		"yourCalendars_label": "التقويمات الخاصة بك",
+		"yourFolders_action": "المجلدات الخاصة بك",
+		"yourMessage_label": "رسالتك",
+		"you_label": "أنت "
+	}
+};
+
+//#endregion
+export { ar_default as default };
+//# sourceMappingURL=ar-DUl1Hb6A.js.map

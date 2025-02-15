@@ -1,0 +1,186 @@
+
+globalThis.env = {
+  "staticUrl": "http://localhost:9000",
+  "versionNumber": "264.250130.1",
+  "dist": false,
+  "mode": "Test",
+  "timeout": 20000,
+  "domainConfigs": {
+    "mail.tutanota.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.tuta.com",
+      "apiUrl": "https://mail.tutanota.com",
+      "paymentUrl": "https://pay.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://mail.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://mail.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tutanota.com",
+      "u2fAppId": "https://tutanota.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.tuta.com/signup",
+      "websiteBaseUrl": "https://tutanota.com"
+    },
+    "test.tutanota.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.test.tuta.com",
+      "apiUrl": "https://test.tutanota.com",
+      "paymentUrl": "https://pay.test.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.test.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://test.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.test.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://test.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tutanota.com",
+      "u2fAppId": "https://test.tutanota.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.test.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.test.tuta.com/signup",
+      "websiteBaseUrl": "https://tutanota.com"
+    },
+    "app.local.tutanota.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.local.tuta.com:9000",
+      "apiUrl": "https://app.local.tutanota.com:9000",
+      "paymentUrl": "https://local.tutanota.com:9000/client/build/braintree.html",
+      "webauthnUrl": "https://app.local.tuta.com:9000/client/build/webauthn",
+      "legacyWebauthnUrl": "https://local.tutanota.com:9000/client/build/webauthn",
+      "webauthnMobileUrl": "https://app.local.tuta.com:9000/client/build/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://local.tutanota.com:9000/client/build/webauthnmobile",
+      "webauthnRpId": "tutanota.com",
+      "u2fAppId": "https://local.tutanota.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.local.tuta.com:9000/giftcard",
+      "referralBaseUrl": "https://app.local.tuta.com:9000/signup",
+      "websiteBaseUrl": "https://local.tutanota.com:9000"
+    },
+    "app.tuta.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://mail.tutanota.com",
+      "apiUrl": "https://app.tuta.com",
+      "paymentUrl": "https://pay.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://mail.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://mail.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tuta.com",
+      "u2fAppId": "https://app.tuta.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.tuta.com/signup",
+      "websiteBaseUrl": "https://tuta.com"
+    },
+    "app.test.tuta.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://test.tutanota.com",
+      "apiUrl": "https://app.test.tuta.com",
+      "paymentUrl": "https://pay.test.tutanota.com/braintree.html",
+      "webauthnUrl": "https://app.test.tuta.com/webauthn",
+      "legacyWebauthnUrl": "https://test.tutanota.com/webauthn",
+      "webauthnMobileUrl": "https://app.test.tuta.com/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://test.tutanota.com/webauthnmobile",
+      "webauthnRpId": "tuta.com",
+      "u2fAppId": "https://app.test.tuta.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.test.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.test.tuta.com/signup",
+      "websiteBaseUrl": "https://test.tuta.com"
+    },
+    "app.local.tuta.com": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "https://app.local.tutanota.com:9000",
+      "apiUrl": "https://app.local.tuta.com:9000",
+      "paymentUrl": "https://app.local.tuta.com:9000/braintree.html",
+      "webauthnUrl": "https://app.local.tuta.com:9000/webauthn",
+      "legacyWebauthnUrl": "https://local.tutanota.com:9000/webauthn",
+      "webauthnMobileUrl": "https://app.local.tuta.com:9000/webauthnmobile",
+      "legacyWebauthnMobileUrl": "https://local.tutanota.com:9000/webauthnmobile",
+      "webauthnRpId": "tuta.com",
+      "u2fAppId": "https://app.local.tuta.com/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.local.tuta.com:9000/giftcard",
+      "referralBaseUrl": "https://app.local.tuta.com:9000/signup",
+      "websiteBaseUrl": "https://local.tuta.com:9000"
+    },
+    "localhost": {
+      "firstPartyDomain": true,
+      "partneredDomainTransitionUrl": "http://localhost:9000",
+      "apiUrl": "http://localhost:9000",
+      "paymentUrl": "http://localhost:9000/braintree.html",
+      "webauthnUrl": "http://localhost:9000/webauthn",
+      "legacyWebauthnUrl": "http://localhost:9000/webauthn",
+      "webauthnMobileUrl": "http://localhost:9000/webauthnmobile",
+      "legacyWebauthnMobileUrl": "http://localhost:9000/webauthnmobile",
+      "webauthnRpId": "localhost",
+      "u2fAppId": "http://localhost:9000/u2f-appid.json",
+      "giftCardBaseUrl": "http://localhost:9000/giftcard",
+      "referralBaseUrl": "http://localhost:9000/signup",
+      "websiteBaseUrl": "https://tuta.com"
+    },
+    "{hostname}": {
+      "firstPartyDomain": false,
+      "partneredDomainTransitionUrl": "{protocol}//{hostname}",
+      "apiUrl": "{protocol}//{hostname}",
+      "paymentUrl": "https://pay.tutanota.com/braintree.html",
+      "webauthnUrl": "{protocol}//{hostname}/webauthn",
+      "legacyWebauthnUrl": "{protocol}//{hostname}/webauthn",
+      "webauthnMobileUrl": "{protocol}//{hostname}/webauthnmobile",
+      "legacyWebauthnMobileUrl": "{protocol}//{hostname}/webauthnmobile",
+      "webauthnRpId": "{hostname}",
+      "u2fAppId": "{protocol}//{hostname}/u2f-appid.json",
+      "giftCardBaseUrl": "https://app.tuta.com/giftcard",
+      "referralBaseUrl": "https://app.tuta.com/signup",
+      "websiteBaseUrl": "https://tuta.com"
+    }
+  },
+  "platformId": null
+};
+const __NODE_GYP_better_sqlite3 = `./better-sqlite3.darwin-${typeof process !== 'undefined' ? process.arch : "unknown"}.node`
+import { __toESM } from "./chunk-D_5_n1c4.js";
+import { pMap } from "./dist-CJHwsXKY.js";
+import "./dist-Rk9U8Iqn.js";
+import "./ProgrammingError-D8yJGVtm.js";
+import "./Env-D5xGlXfw.js";
+import "./WhitelabelCustomizations-D1L5qbZi.js";
+import "./LanguageViewModel-BNC5ekpO.js";
+import { OperationType } from "./TutanotaConstants-3bwAESYA.js";
+import "./RestError-D17JEBMr.js";
+import { require_stream } from "./stream-u2PttBAC.js";
+import { getLetId, isSameId } from "./EntityUtils-RQxXZlcV.js";
+import "./TypeModels-BktRFNDN.js";
+import { ReceivedGroupInvitationTypeRef } from "./TypeRefs-BP1jvX9p.js";
+import { isUpdateForTypeRef } from "./EntityUpdateUtils-B5iTKMk4.js";
+import { getInvitationGroupType, loadReceivedGroupInvitations } from "./GroupUtils-CpT2lvVS.js";
+
+//#region ../src/common/sharing/model/ReceivedGroupInvitationsModel.ts
+var import_stream = __toESM(require_stream(), 1);
+var ReceivedGroupInvitationsModel = class {
+	invitations;
+	constructor(groupType, eventController, entityClient, logins) {
+		this.groupType = groupType;
+		this.eventController = eventController;
+		this.entityClient = entityClient;
+		this.logins = logins;
+		this.invitations = (0, import_stream.default)([]);
+	}
+	init() {
+		this.eventController.addEntityListener(this.entityEventsReceived);
+		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then((invitations) => this.invitations(invitations.filter((invitation) => this.hasMatchingGroupType(invitation))));
+	}
+	dispose() {
+		this.eventController.removeEntityListener(this.entityEventsReceived);
+		this.invitations.end(true);
+	}
+	entityEventsReceived = (updates) => {
+		return pMap(updates, (update) => {
+			if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
+				const updateId = [update.instanceListId, update.instanceId];
+				if (update.operation === OperationType.CREATE) return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then((invitation) => {
+					if (this.hasMatchingGroupType(invitation)) this.invitations(this.invitations().concat(invitation));
+				});
+else if (update.operation === OperationType.DELETE) this.invitations(this.invitations().filter((invitation) => !isSameId(getLetId(invitation), updateId)));
+			}
+		});
+	};
+	hasMatchingGroupType(invitation) {
+		return getInvitationGroupType(invitation) === this.groupType;
+	}
+};
+
+//#endregion
+export { ReceivedGroupInvitationsModel };
+//# sourceMappingURL=ReceivedGroupInvitationsModel-DKwkvrTP.js.map
