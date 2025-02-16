@@ -704,11 +704,18 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						},
 				  ]
 				: alwaysOrNeverAllowButtons
+		//		const mobyPhishButton: BannerButtonAttrs = { //original code begins here, edited by Sean 2/16/25
+		//		  label: "Moby-Phish",     click: () => {
+		//			const emailSigned = attrs.viewModel.isEmailSignedByTrustedSender(); // Replace with actual functionif (emailSigned)
+		//			{             alert("Email is from a trusted sender. Proceeding as usual.");         }
+		//			else
+		//			{ alert("Warning! This email is NOT from a trusted sender."); } }, };
+		//		console.log("this is a test of the button",[mobyPhishButton, showButton, ...maybeDropdownButtons] );
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
 			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
-			buttons: [showButton, ...maybeDropdownButtons],
+			buttons: [/*mobyPhishButton,*/ showButton, ...maybeDropdownButtons], //added mobyPhish 2/16/25
 		})
 	}
 
