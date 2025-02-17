@@ -81,7 +81,7 @@ export class MailImporter {
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
-			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
+			this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.ARCHIVE)
 
 			try {
 				activeImportId = await importFacade.getResumableImport(mailbox._id, mailOwnerGroupId, unencryptedCredentials, apiUrl)
@@ -104,7 +104,7 @@ export class MailImporter {
 				case ImportStatus.Finished:
 					activeImportId = null
 					this.activeImport = null
-					this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.INBOX)
+					this.selectedTargetFolder = this.foldersForMailbox.getSystemFolderByType(MailSetKind.ARCHIVE)
 					break
 
 				case ImportStatus.Paused:

@@ -5,7 +5,7 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/tutanota-utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { HighestTierPlans, ImportStatus, PlanType } from "../../common/api/common/TutanotaConstants"
+import { HighestTierPlans, ImportStatus, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
@@ -71,7 +71,17 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			const selectedTargetFolderPath = selectedTargetFolder ? getPathToFolderString(folders!, selectedTargetFolder) : ""
 			const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath == getFolderName(selectedTargetFolder) : false
 			const helpLabel = selectedTargetFolder ? (isNotSubfolder ? emptyLabel : selectedTargetFolderPath) : emptyLabel
-			let targetFolders: SelectorItemList<MailFolder | null> = folders.getIndentedList().map((folderInfo: IndentedFolder) => {
+
+			// do not allow importing to inbox folder,
+			// problem:
+			// if a folder receives/imports a very large amount of mails (hundreds of thousands) that all get moved/deleted at once,
+			// the backend will not be able to read any live data from that list for a while.
+			// if that happens, user will not see incoming mails in their inbox folder for that time,
+			// this problem can still happen on other folders,
+			// but at least we won't block inbox ( incoming new mails )
+			const selectableFolders = folders.getIndentedList().filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX)
+
+			let targetFolders: SelectorItemList<MailFolder | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
 				return {
 					name: getIndentedFolderNameForDropdown(folderInfo),
 					value: folderInfo.folder,
