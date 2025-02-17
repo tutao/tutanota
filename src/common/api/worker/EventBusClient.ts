@@ -39,6 +39,7 @@ import { resolveTypeReference } from "../common/EntityFunctions.js"
 import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
+import { SyncTracker } from "../main/SyncTracker.js"
 
 assertWorkerOrNode()
 
@@ -134,6 +135,12 @@ export class EventBusClient {
 	private serviceUnavailableRetry: Promise<void> | null = null
 	private failedConnectionAttempts: number = 0
 
+	/**
+	 * Represents the last item from the initial missed entity updates batches.
+	 * This will be used to determinate if the queue has finished processing missed updates
+	 */
+	private lastInitialEventBatch: Id | null = null
+
 	constructor(
 		private readonly listener: EventBusListener,
 		private readonly cache: EntityRestCache,
@@ -143,6 +150,7 @@ export class EventBusClient {
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,
+		private readonly syncTracker: SyncTracker,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -475,6 +483,7 @@ export class EventBusClient {
 			// If the cache is clean then this is a clean cache (either ephemeral after first connect or persistent with empty DB).
 			// We need to record the time even if we don't process anything to later know if we are out of sync or not.
 			await this.cache.recordSyncTime()
+			this.syncTracker.markSyncAsDone()
 		}
 	}
 
@@ -527,6 +536,8 @@ export class EventBusClient {
 			const filteredEntityUpdates = await this.removeUnknownTypes(batch.events)
 			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), filteredEntityUpdates, eventQueue)
 			if (batchWasAddedToQueue) {
+				// Set as last only if it was inserted with success
+				this.lastInitialEventBatch = getElementId(batch)
 				totalExpectedBatches++
 			}
 		}
@@ -537,6 +548,11 @@ export class EventBusClient {
 		console.log("ws", `progress monitor expects ${totalExpectedBatches} events`)
 		await progressMonitor.workDone(1) // show progress right away
 		eventQueue.setProgressMonitor(progressMonitor)
+
+		// We don't have any missing update, we can just set the sync as finished
+		if (totalExpectedBatches === 0) {
+			this.syncTracker.markSyncAsDone()
+		}
 
 		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
 		// It is possible that we will record the time before the batch will be processed but the risk is low.
@@ -560,6 +576,7 @@ export class EventBusClient {
 		// We try to detect whether event batches have already expired.
 		// If this happened we don't need to download anything, we need to purge the cache and start all over.
 		if (await this.cache.isOutOfSync()) {
+			this.syncTracker.markSyncAsDone()
 			// We handle it where we initialize the connection and purge the cache there.
 			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
 		}
@@ -662,6 +679,11 @@ export class EventBusClient {
 			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(batch)
 			if (!this.isTerminated()) await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId)
+
+			if (batch.batchId === this.lastInitialEventBatch) {
+				console.log("Reached final event, sync is done")
+				this.syncTracker.markSyncAsDone()
+			}
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {
 				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies

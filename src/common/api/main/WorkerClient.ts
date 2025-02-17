@@ -105,6 +105,9 @@ export class WorkerClient {
 				async infoMessageHandler() {
 					return locator.infoMessageHandler
 				},
+				async syncTracker() {
+					return locator.syncTracker
+				},
 			}),
 		}
 	}
