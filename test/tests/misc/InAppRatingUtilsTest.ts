@@ -23,7 +23,7 @@ o.spec("InAppRatingUtilsTest", () => {
 	})
 
 	o.spec("getRatingAllowed", () => {
-		o("Should not trigger if the app is not on iOS", async () => {
+		o("Should not trigger if the app is not on iOS or android", async () => {
 			// Arrange
 			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
 
