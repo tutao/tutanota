@@ -139,7 +139,6 @@ import "./mail/view/ConversationViewModelTest.js"
 import "./mail/view/MailViewerViewModelTest.js"
 import "./api/worker/facades/KeyCacheTest.js"
 import "./misc/InAppRatingUtilsTest.js"
-import "./api/worker/crypto/PublicKeyConverterTest.js"
 import "./native/main/MailExportControllerTest.js"
 import "./api/worker/facades/MailExportFacadeTest.js"
 

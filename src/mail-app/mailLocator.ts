@@ -131,11 +131,11 @@ import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVeri
 import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "./mail/import/MailImporter.js"
-import { PublicKeyConverter } from "../common/api/worker/crypto/PublicKeyConverter"
 import type { MailExportController } from "./native/main/MailExportController.js"
 import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.js"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
+import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
 
 assertMainOrNode()
 
@@ -170,7 +170,7 @@ class MailLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
-	publicKeyConverter!: PublicKeyConverter
+	publicKeyProvider!: PublicKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -213,7 +213,7 @@ class MailLocator {
 			this.entityClient,
 			this.keyVerificationFacade,
 			this.serviceExecutor,
-			this.publicKeyConverter,
+			this.publicKeyProvider,
 		)
 	})
 
@@ -754,7 +754,7 @@ class MailLocator {
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
-		this.publicKeyConverter = new PublicKeyConverter()
+		this.publicKeyProvider = new PublicKeyProvider(serviceExecutor)
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
