@@ -420,7 +420,6 @@ export default {
 		"customColors_label": "Eigene Farben",
 		"customColor_label": "Benutzerdefinierte Farbe",
 		"customDomainDeletePreconditionFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer*innen und alle E-Mail-Adressen mit der Domain: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer und alle E-Mail-Adressen mit der Domain: {domainName} und entfernen Sie die Domain als Registrierungs-Domain.",
 		"customDomainErrorDnsLookupFailure_msg": "Fehler beim Abfragen der DNS-Informationen.",
 		"customDomainErrorDomainNotAvailable_msg": "Diese Domain ist nicht verfügbar.",
 		"customDomainErrorDomainNotFound_msg": "Wir können diese Domain im DNS nicht finden. Bitte prüfen Sie den Domain-Namen.",
