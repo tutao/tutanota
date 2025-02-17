@@ -524,6 +524,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
+		mainInterface.syncTracker,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

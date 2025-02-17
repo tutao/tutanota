@@ -35,6 +35,8 @@ import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { showSnackBar } from "../gui/base/SnackBar"
+import { SyncTracker } from "../api/main/SyncTracker"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -51,8 +53,8 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly customerFacade: CustomerFacade,
 		private readonly themeController: ThemeController,
+		private readonly syncTracker: SyncTracker,
 		private readonly showSetupWizard: () => unknown,
-		private readonly syncExternalCalendars: () => unknown,
 		private readonly setUpClientOnlyCalendars: () => unknown,
 	) {}
 
@@ -172,7 +174,7 @@ export class PostLoginActions implements PostLoginAction {
 				console.log("Skipping registering for notifications while setup dialog is shown")
 			}
 
-			this.syncExternalCalendars()
+			this.handleExternalSync()
 		}
 
 		this.setUpClientOnlyCalendars()
@@ -311,6 +313,32 @@ export class PostLoginActions implements PostLoginAction {
 		const isSetupComplete = deviceConfig.getIsSetupComplete()
 		if (isApp() && !isSetupComplete) {
 			await this.showSetupWizard()
+		}
+	}
+
+	private async handleExternalSync() {
+		const calendarModel = await locator.calendarModel()
+		if (isApp() || isDesktop()) {
+			if (!this.syncTracker.isSyncDone()) {
+				return this.syncTracker.isSyncDone.map((isDone) => {
+					if (isDone) {
+						this.handleExternalSync()
+						this.syncTracker.isSyncDone.end(true)
+					}
+				})
+			}
+
+			calendarModel.syncExternalCalendars().catch(async (e) => {
+				showSnackBar({
+					message: lang.makeTranslation("exception_msg", e.message),
+					button: {
+						label: "ok_action",
+						click: noOp,
+					},
+					waitingTime: 1000,
+				})
+			})
+			calendarModel.scheduleExternalCalendarSync()
 		}
 	}
 }

@@ -37,6 +37,7 @@ import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel
 import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
+import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -688,6 +689,12 @@ function makeProgressTracker(): ProgressTracker {
 	return progressTracker
 }
 
+function makeSyncTracker(): SyncTracker {
+	const syncTracker: SyncTracker = object()
+	when(syncTracker.isSyncDone()).thenReturn(true)
+	return syncTracker
+}
+
 function makeEventController(): {
 	eventController: EventController
 	sendEvent: (arg0: EntityUpdateData) => Promise<void>
@@ -779,6 +786,7 @@ function init({
 	fileFacade = makeFileController(),
 	externalCalendarFacade = makeExternalCalendarFacade(),
 	deviceConfig = makeDeviceConfig(),
+	syncTracker = makeSyncTracker(),
 }): CalendarModel {
 	const lazyScheduler = async () => alarmScheduler
 
@@ -802,5 +810,6 @@ function init({
 				disabled: false,
 			}),
 		}),
+		syncTracker,
 	)
 }

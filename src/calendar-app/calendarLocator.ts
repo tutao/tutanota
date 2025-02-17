@@ -112,6 +112,7 @@ import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
+import { SyncTracker } from "../common/api/main/SyncTracker.js"
 
 assertMainOrNode()
 
@@ -165,6 +166,7 @@ class CalendarLocator {
 	infoMessageHandler!: InfoMessageHandler
 	themeController!: ThemeController
 	Const!: Record<string, any>
+	syncTracker!: SyncTracker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -599,6 +601,7 @@ class CalendarLocator {
 		this.logins.init()
 		this.eventController = new EventController(calendarLocator.logins)
 		this.progressTracker = new ProgressTracker()
+		this.syncTracker = new SyncTracker()
 		this.search = new CalendarSearchModel(() => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
@@ -820,6 +823,7 @@ class CalendarLocator {
 			!isBrowser() ? this.externalCalendarFacade : null,
 			deviceConfig,
 			!isBrowser() ? this.pushService : null,
+			this.syncTracker,
 		)
 	})
 
@@ -893,8 +897,8 @@ class CalendarLocator {
 			this.userManagementFacade,
 			this.customerFacade,
 			this.themeController,
+			this.syncTracker,
 			() => this.showSetupWizard(),
-			() => this.handleExternalSync(),
 			() => this.setUpClientOnlyCalendars(),
 		)
 	})
@@ -912,24 +916,6 @@ class CalendarLocator {
 				deviceConfig,
 				false,
 			)
-		}
-	}
-
-	async handleExternalSync() {
-		const calendarModel = await locator.calendarModel()
-
-		if (isApp() || isDesktop()) {
-			calendarModel.syncExternalCalendars().catch(async (e) => {
-				showSnackBar({
-					message: lang.makeTranslation("exception_msg", e.message),
-					button: {
-						label: "ok_action",
-						click: noOp,
-					},
-					waitingTime: 1000,
-				})
-			})
-			calendarModel.scheduleExternalCalendarSync()
 		}
 	}
 

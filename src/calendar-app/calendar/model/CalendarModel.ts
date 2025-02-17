@@ -91,6 +91,7 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { getClientOnlyCalendars } from "../gui/CalendarGuiUtils.js"
+import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 
 const TAG = "[CalendarModel]"
 export type CalendarInfo = {
@@ -178,6 +179,7 @@ export class CalendarModel {
 		private readonly externalCalendarFacade: ExternalCalendarFacade | null,
 		private readonly deviceConfig: DeviceConfig,
 		private readonly pushService: NativePushServiceApp | null,
+		private readonly syncTracker: SyncTracker,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
@@ -357,7 +359,7 @@ export class CalendarModel {
 		longErrorMessage: boolean = false,
 		forceSync: boolean = false,
 	) {
-		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn()) {
+		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn() || !this.syncTracker.isSyncDone()) {
 			return
 		}
 
