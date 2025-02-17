@@ -507,7 +507,7 @@ export class MailViewerViewModel {
 
 	async reportMail(reportType: MailReportType): Promise<void> {
 		try {
-			await this.mailModel.reportMails(reportType, [this.mail])
+			await this.mailModel.reportMails(reportType, async () => [this.mail])
 			if (reportType === MailReportType.PHISHING) {
 				this.setPhishingStatus(MailPhishingStatus.SUSPICIOUS)
 				await this.entityClient.update(this.mail)

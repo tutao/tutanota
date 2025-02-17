@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
+import { moveMailsFromFolder, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -437,12 +437,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 				const targetMailFolder = this.showingSpamOrTrash
 					? this.getRecoverFolder(listElement, folders)
 					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailSetKind.INBOX : MailSetKind.ARCHIVE))
-				const wereMoved = await moveMails({
-					mailboxModel: locator.mailboxModel,
-					mailModel: mailLocator.mailModel,
-					mails: [listElement],
-					targetMailFolder,
-				})
+				const currentFolder = assertNotNull(this.mailViewModel.getFolder())
+
+				const actionableMails = await this.mailViewModel.getActionableMails([listElement])
+				const wereMoved = await moveMailsFromFolder(locator.mailboxModel, mailLocator.mailModel, actionableMails, currentFolder, targetMailFolder)
 				return wereMoved ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 			} else {
 				return ListSwipeDecision.Cancel

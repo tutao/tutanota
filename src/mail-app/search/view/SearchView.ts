@@ -84,7 +84,7 @@ import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
-import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId, getIdTuples, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../common/gui/base/Checkbox.js"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
@@ -1117,7 +1117,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			archiveMails(selectedMails)
+			archiveMails(getIdTuples(selectedMails))
 		}
 	}
 
@@ -1129,7 +1129,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			moveToInbox(selectedMails)
+			moveToInbox(getIdTuples(selectedMails))
 		}
 	}
 

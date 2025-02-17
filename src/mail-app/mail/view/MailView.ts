@@ -24,12 +24,12 @@ import {
 	getConversationTitle,
 	getMoveMailBounds,
 	LabelsPopupOpts,
-	moveMails,
+	moveMailsFromFolder,
 	moveToInbox,
 	promptAndDeleteMails,
 	showLabelsPopup,
-	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
+	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
@@ -448,7 +448,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts: ShowMoveMailsDropdownOpts) => void) | null {
-		return mailLocator.mailModel.isMovingMailsAllowed() ? (origin, opts) => this.moveMails(origin, opts) : null
+		return mailLocator.mailModel.isMovingMailsAllowed() ? (origin, opts) => this.moveMailsFromFolder(origin, opts) : null
 	}
 
 	getViewSlider(): ViewSlider | null {
@@ -537,8 +537,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.A,
 				exec: () => {
-					if (this.mailViewModel.listModel) archiveMails(this.mailViewModel.listModel.getSelectedAsArray())
-					return true
+					this.moveMailsToArchive()
 				},
 				help: "archive_action",
 				enabled: () => locator.logins.isInternalUserLoggedIn(),
@@ -546,15 +545,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.I,
 				exec: () => {
-					if (this.mailViewModel.listModel) moveToInbox(this.mailViewModel.listModel.getSelectedAsArray())
-					return true
+					this.moveMailsToInbox()
 				},
 				help: "moveToInbox_action",
 			},
 			{
 				key: Keys.V,
 				exec: () => {
-					this.moveMails(getMoveMailBounds())
+					this.moveMailsFromFolder(getMoveMailBounds())
 					return true
 				},
 				help: "move_action",
@@ -651,14 +649,39 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
-		const mailList = this.mailViewModel.listModel
-		if (mailList == null) {
+	private async moveMailsToInbox() {
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
 			return
 		}
 
-		const selectedMails = mailList.getSelectedAsArray()
-		showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, origin, selectedMails, opts)
+		const actionableMails = await this.mailViewModel.getActionableMails(mails)
+		moveToInbox(actionableMails)
+	}
+
+	private async moveMailsToArchive() {
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return
+		}
+
+		const actionableMails = await this.mailViewModel.getActionableMails(mails)
+		archiveMails(actionableMails)
+	}
+
+	private moveMailsFromFolder(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
+		const currentFolder = this.mailViewModel.getFolder()
+		if (currentFolder == null) {
+			return
+		}
+
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return
+		}
+
+		const actionableMails = () => this.mailViewModel.getActionableMails(mails)
+		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, opts)
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
@@ -841,9 +864,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async handleFolderMailDrop(dropData: MailDropData, folder: MailFolder) {
+	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailFolder) {
 		const { mailId } = dropData
-		if (!this.mailViewModel.listModel) {
+		const currentFolder = this.mailViewModel.getFolder()
+		if (!this.mailViewModel.listModel || !currentFolder) {
 			return
 		}
 		let mailsToMove: Mail[] = []
@@ -859,12 +883,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}
 		}
 
-		moveMails({
-			mailboxModel: locator.mailboxModel,
-			mailModel: mailLocator.mailModel,
-			mails: mailsToMove,
-			targetMailFolder: folder,
-		})
+		if (!isEmpty(mailsToMove)) {
+			const actionableMails = await this.mailViewModel.getActionableMails(mailsToMove)
+			moveMailsFromFolder(locator.mailboxModel, mailLocator.mailModel, actionableMails, currentFolder, targetFolder)
+		}
 	}
 
 	private async handeFolderFileDrop(dropData: FileDropData, mailboxDetail: MailboxDetail, mailFolder: MailFolder) {

@@ -11,9 +11,8 @@ import { MailReportType, MailSetKind } from "../../../common/api/common/Tutanota
 import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { groupByAndMap } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap } from "@tutao/tutanota-utils"
 import { mailLocator } from "../../mailLocator.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
@@ -114,7 +113,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 					for (const descendant of descendants) {
 						await loadAllMailsOfFolder(descendant.folder, reportableMails)
 					}
-					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, mailBoxDetail, reportableMails)
+					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, mailBoxDetail, async () => reportableMails)
 
 					await locator.mailFacade.updateMailFolderName(editedFolder, folderNameValue)
 					await mailLocator.mailModel.sendFolderToSpam(editedFolder)
