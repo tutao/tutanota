@@ -5,7 +5,7 @@ import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -79,13 +79,29 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	}
 }
 
+export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailFolder): Promise<Array<FolderInfo>> {
+	const mailboxDetails = await foldersModel.getMailboxDetailsForMailFolder(currentFolder)
+	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
+		return []
+	}
+
+	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+	if (folders == null) {
+		return []
+	}
+
+	return folders.getIndentedList().filter((f: IndentedFolder) => {
+		return !isSameId(f.folder._id, currentFolder._id)
+	})
+}
+
 /**
  * Gets a system folder of the specified type and unwraps it.
  * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
  *
  * Use with caution.
  */
-export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
+export function assertSystemFolderOfType(system: FolderSystem, type: SystemFolderType): MailFolder {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
 }
 
@@ -122,4 +138,8 @@ export function allInSameMailbox(mails: readonly Mail[]): boolean {
 	const mailGroups = mails.map((m) => m._ownerGroup)
 	return mailGroups.every((mg) => mg === mailGroups[0])
 	// returns true if mails is empty
+}
+
+export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
+	return mail.sets.some((s) => isSameId(s, folderId))
 }

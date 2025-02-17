@@ -2,17 +2,16 @@ import m, { Children, Component, Vnode } from "mithril"
 import { CounterBadge } from "../../../common/gui/base/CounterBadge"
 import { getNavButtonIconBackground, theme } from "../../../common/gui/theme"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import type { MinimizedEditor, MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
 import { px } from "../../../common/gui/size"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
-import { promptAndDeleteMails } from "./MailGuiUtils"
+import { trashMails } from "./MailGuiUtils"
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { noOp, promiseMap } from "@tutao/tutanota-utils"
+import { promiseMap } from "@tutao/tutanota-utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
@@ -108,7 +107,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				const draft = model.draft
 
 				if (draft) {
-					await promptAndDeleteMails(mailLocator.mailModel, [draft], noOp)
+					await trashMails(mailLocator.mailModel, [draft._id])
 				}
 			}
 		})
