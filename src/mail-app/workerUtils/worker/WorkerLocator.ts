@@ -87,7 +87,6 @@ import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "../../../common/api/worker/crypto/PublicKeyConverter"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
@@ -118,7 +117,6 @@ export type WorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
-	publicKeyConverter: PublicKeyConverter
 
 	// login
 	user: UserFacade
@@ -279,13 +277,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
-	locator.publicKeyConverter = new PublicKeyConverter()
-
 	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
 
 	locator.keyVerification = lazyMemoized(async () => {
 		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.serviceExecutor, locator.sqlCipherFacade, locator.publicKeyConverter)
+		return new KeyVerificationFacade(locator.serviceExecutor, locator.sqlCipherFacade, locator.publicKeyProvider)
 	})
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
@@ -295,7 +291,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.cryptoWrapper,
 		locator.serviceExecutor,
 		locator.keyVerification,
-		locator.publicKeyConverter,
 		locator.publicKeyProvider,
 	)
 
@@ -309,7 +304,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		cache,
 		locator.keyLoader,
 		locator.asymmetricCrypto,
-		locator.publicKeyConverter,
 		locator.keyVerification,
 		locator.publicKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
@@ -355,7 +349,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.share,
 		locator.groupManagement,
 		locator.asymmetricCrypto,
-		locator.publicKeyConverter,
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
 	)
@@ -454,7 +447,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.keyLoader,
 			await locator.recoverCode(),
 			locator.asymmetricCrypto,
-			locator.publicKeyConverter,
+			locator.publicKeyProvider,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

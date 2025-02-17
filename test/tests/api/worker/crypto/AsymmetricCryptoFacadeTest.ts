@@ -15,6 +15,7 @@ import {
 	KyberPublicKey,
 	PQKeyPairs,
 	PQPublicKeys,
+	RsaEccPublicKey,
 	RsaKeyPair,
 	RsaPublicKey,
 	uint8ArrayToBitArray,
@@ -28,8 +29,7 @@ import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../..
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "../../../../../src/common/api/worker/crypto/PublicKeyConverter"
-import { PublicKeyIdentifier, PublicKeyProvider, PublicKeys } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
@@ -39,7 +39,6 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let cryptoWrapper: CryptoWrapper
 	let serviceExecutor: IServiceExecutor
 	let keyVerificationFacade: KeyVerificationFacade
-	let publicKeyConverter: PublicKeyConverter
 	let publicKeyProvider: PublicKeyProvider
 
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
@@ -51,7 +50,6 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		cryptoWrapper = object()
 		serviceExecutor = object()
 		keyVerificationFacade = object()
-		publicKeyConverter = object()
 		publicKeyProvider = object()
 		asymmetricCryptoFacade = new AsymmetricCryptoFacade(
 			rsa,
@@ -60,8 +58,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			cryptoWrapper,
 			serviceExecutor,
 			async () => keyVerificationFacade,
-			publicKeyConverter,
-			publicKeyProvider
+			publicKeyProvider,
 		)
 	})
 
@@ -84,7 +81,15 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_SUCCEEDED if the key matches", async function () {
-			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve({ pubEccKey: senderIdentityPubKey })
+			const rsaEccPublicKey: RsaEccPublicKey = {
+				keyLength: 0,
+				modulus: "",
+				publicExponent: 0,
+				version: 0,
+				keyPairType: KeyPairType.RSA_AND_ECC,
+				publicEccKey: senderIdentityPubKey,
+			}
+			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(rsaEccPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
 
@@ -92,11 +97,9 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if sender does not have an ecc identity key in the requested version", async function () {
-			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve({
-				pubEccKey: null,
-				pubRsaKey: new Uint8Array([4, 5, 6]),
-				pubKyberKey: null,
-			})
+			const rsaPublicKey: RsaPublicKey = object()
+			rsaPublicKey.keyPairType = KeyPairType.RSA
+			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(rsaPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
 
@@ -104,7 +107,15 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
-			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve({ pubEccKey: new Uint8Array([4, 5, 6]) })
+			const rsaEccPublicKey: RsaEccPublicKey = {
+				keyLength: 0,
+				modulus: "",
+				publicExponent: 0,
+				version: 0,
+				keyPairType: KeyPairType.RSA_AND_ECC,
+				publicEccKey: new Uint8Array([4, 5, 6]),
+			}
+			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(rsaEccPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
 
@@ -131,6 +142,14 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				recipientIdentifier,
 				recipientIdentifierType,
 			})
+			const rsaEccPublicKey: RsaEccPublicKey = {
+				keyLength: 0,
+				modulus: "",
+				publicExponent: 0,
+				version: 0,
+				keyPairType: KeyPairType.RSA_AND_ECC,
+				publicEccKey: new Uint8Array([4, 5, 6]),
+			}
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
 				decryptedSymKeyBytes: symKey,
 				senderIdentityPubKey: object(),
@@ -143,7 +162,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					},
 					parseKeyVersion(senderKeyVersion),
 				),
-			).thenResolve({ pubEccKey: new Uint8Array([4, 5, 6]) })
+			).thenResolve(rsaEccPublicKey)
 
 			await assertThrows(CryptoError, () =>
 				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData, {
