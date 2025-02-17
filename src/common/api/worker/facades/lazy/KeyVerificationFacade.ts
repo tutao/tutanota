@@ -1,7 +1,5 @@
 import { assertWorkerOrNode } from "../../../common/Env"
-import { createPublicKeyGetIn } from "../../../entities/sys/TypeRefs"
 import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
-import { PublicKeyService } from "../../../entities/sys/Services"
 import { assertNotNull, base64ToUint8Array, concat, Hex, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import {
 	AsymmetricPublicKey,
@@ -15,9 +13,9 @@ import { IServiceExecutor } from "../../../common/ServiceRequest"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
-import { PublicKeyConverter } from "../../crypto/PublicKeyConverter"
 import { TaggedSqlValue } from "../../offline/SqlValue"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
+import { PublicKeyProvider } from "../PublicKeyProvider"
 
 assertWorkerOrNode()
 
@@ -47,7 +45,7 @@ export class KeyVerificationFacade {
 	constructor(
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly sqlCipherFacade: SqlCipherFacade,
-		private readonly publicKeyConverter: PublicKeyConverter,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	deserializeDatabaseEntry(entry: Record<string, TaggedSqlValue>): [MailAddress, PublicKeyFingerprint] {
@@ -138,17 +136,11 @@ export class KeyVerificationFacade {
 				return publicKeyFingerprint
 			}
 		} else if (sourceOfTruth === KeyVerificationSourceOfTruth.PublicKeyService) {
-			const keyData = createPublicKeyGetIn({
-				identifier: mailAddress,
-				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-
-				// Fetch the latest version
-				version: null,
-			})
-
 			try {
-				const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-				const publicKey = this.publicKeyConverter.convertFromPublicKeyGetOut(publicKeyGetOut)
+				const publicKey = await this.publicKeyProvider.loadCurrentPubKey({
+					identifier: mailAddress,
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				})
 				return this.calculateFingerprint(publicKey)
 			} catch (e) {
 				if (e instanceof NotFoundError) {

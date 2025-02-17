@@ -114,7 +114,7 @@ import { ContactSuggestion } from "../common/native/common/generatedipc/ContactS
 import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "../common/api/worker/crypto/PublicKeyConverter"
+import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
 
 assertMainOrNode()
 
@@ -144,7 +144,7 @@ class CalendarLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
-	publicKeyConverter!: PublicKeyConverter
+	publicKeyProvider!: PublicKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -185,7 +185,7 @@ class CalendarLocator {
 			this.entityClient,
 			this.keyVerificationFacade,
 			this.serviceExecutor,
-			this.publicKeyConverter,
+			this.publicKeyProvider,
 		)
 	})
 

@@ -74,7 +74,6 @@ import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "../../../common/api/worker/crypto/PublicKeyConverter"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 
@@ -99,7 +98,6 @@ export type CalendarWorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
-	publicKeyConverter: PublicKeyConverter
 
 	// login
 	user: UserFacade
@@ -220,11 +218,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
-	locator.publicKeyConverter = new PublicKeyConverter()
-
 	locator.keyVerification = lazyMemoized(async () => {
 		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.serviceExecutor, locator.sqlCipherFacade, locator.publicKeyConverter)
+		return new KeyVerificationFacade(locator.serviceExecutor, locator.sqlCipherFacade, locator.publicKeyProvider)
 	})
 
 	const asymmetricCrypto = new AsymmetricCryptoFacade(
@@ -234,7 +230,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		cryptoWrapper,
 		locator.serviceExecutor,
 		locator.keyVerification,
-		locator.publicKeyConverter,
 		locator.publicKeyProvider,
 	)
 
@@ -248,7 +243,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
 		asymmetricCrypto,
-		locator.publicKeyConverter,
 		locator.keyVerification,
 		locator.publicKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
@@ -294,7 +288,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.share,
 		locator.groupManagement,
 		asymmetricCrypto,
-		locator.publicKeyConverter,
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
 	)
@@ -380,7 +373,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.keyLoader,
 			await locator.recoverCode(),
 			asymmetricCrypto,
-			locator.publicKeyConverter,
+			locator.publicKeyProvider,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

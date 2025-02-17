@@ -27,8 +27,7 @@ import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "./PublicKeyConverter"
-import { PublicKeyIdentifier, PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
+import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 assertWorkerOrNode()
@@ -57,7 +56,6 @@ export class AsymmetricCryptoFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
-		private readonly publicKeyConverter: PublicKeyConverter,
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
@@ -73,18 +71,21 @@ export class AsymmetricCryptoFacade {
 
 		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
 
-		const publicKeys = await this.publicKeyProvider.loadVersionedPubKey(identifier, senderKeyVersion)
+		const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
 
-		if (publicKeys.pubEccKey == null || !arrayEquals(publicKeys.pubEccKey, senderIdentityPubKey)) {
-			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-		}
-
-		// Compare against trusted identity (if possible)
-		if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
-			const publicKey = this.publicKeyConverter.convertFromPublicKeyGetOut(publicKeys)
-			if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
+		if (isVersionedPqPublicKey(publicKey)) {
+			if (!arrayEquals(publicKey.object.eccPublicKey, senderIdentityPubKey)) {
 				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			}
+
+			// Compare against trusted identity (if possible)
+			if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
+				if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
+					authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				}
+			}
+		} else {
+			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		}
 
 		return authStatus

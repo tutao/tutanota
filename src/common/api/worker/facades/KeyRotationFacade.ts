@@ -61,20 +61,22 @@ import {
 	KeyVersion,
 	lazyAsync,
 	promiseMap,
+	Versioned,
 } from "@tutao/tutanota-utils"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import {
 	Aes256Key,
 	AesKey,
+	AsymmetricPublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	EccKeyPair,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
 	isEncryptedPqKeyPairs,
+	isVersionedPqPublicKey,
 	KEY_LENGTH_BYTES_AES_256,
-	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
 	uint8ArrayToKey,
@@ -100,10 +102,9 @@ import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
-import { PublicKeyConverter } from "../crypto/PublicKeyConverter"
 import { TutanotaError } from "@tutao/tutanota-error"
-import { asPQPublicKeys, brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
-import { PublicKeyProvider, PublicKeys } from "./PublicKeyProvider.js"
+import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
+import { PublicKeyProvider } from "./PublicKeyProvider.js"
 
 assertWorkerOrNode()
 
@@ -181,7 +182,6 @@ export class KeyRotationFacade {
 		private readonly shareFacade: lazyAsync<ShareFacade>,
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
-		private readonly publicKeyConverter: PublicKeyConverter,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {
@@ -413,8 +413,9 @@ export class KeyRotationFacade {
 
 		const newAdminGroupKeys = await this.generateGroupKeys(adminGroup)
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
+		const adminPubKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminKeyPair, newAdminGroupKeys.symGroupKey.version)
 		const adminPubKeyMacList = await this.generatePubKeyTagsForNonAdminUsers(
-			asPQPublicKeys(adminKeyPair),
+			adminPubKey.object,
 			newAdminGroupKeys.symGroupKey.version,
 			adminGroupId,
 			assertNotNull(user.customer),
@@ -1026,11 +1027,15 @@ export class KeyRotationFacade {
 			throw new Error("the public key service did not return the tagged key version to verify the admin public key")
 		}
 
+		if (!isVersionedPqPublicKey(currentAdminPubKeys)) {
+			throw new Error("the public key is not a pq public key")
+		}
+
 		this.keyAuthenticationFacade.verifyTag(
 			{
 				tagType: "NEW_ADMIN_PUB_KEY_TAG",
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
-				untrustedKey: { newAdminPubKey: asPQPublicKeys(currentAdminPubKeys.object) },
+				untrustedKey: { newAdminPubKey: currentAdminPubKeys.object },
 				bindingData: {
 					userGroupId,
 					adminGroupId,
@@ -1115,11 +1120,10 @@ export class KeyRotationFacade {
 	private async encryptUserGroupKeyForAdminAsymmetrically(
 		userGroupId: Id,
 		newUserGroupKeys: GeneratedGroupKeys,
-		adminPubKeys: Versioned<PublicKeys>,
+		adminPubKeys: Versioned<AsymmetricPublicKey>,
 		adminGroupId: Id,
 		currentUserGroupKey: VersionedKey,
 	): Promise<PubEncKeyData> {
-		const adminPubKeys = this.publicKeyConverter.convertFromPublicKeyGetOut(publicKeyGetOut)
 		// we want to authenticate with new sender key pair. so we just decrypt it again
 		const pqKeyPair: PQKeyPairs = this.cryptoWrapper.decryptKeyPair(newUserGroupKeys.symGroupKey.object, assertNotNull(newUserGroupKeys.encryptedKeyPair))
 
@@ -1179,12 +1183,13 @@ export class KeyRotationFacade {
 			pwKey,
 		)
 		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
+		const adminDistPublicKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({
 			tagType: "PUB_DIST_KEY_TAG",
 			sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 			untrustedKey: {
-				distPubKey: asPQPublicKeys(adminDistributionKeyPair),
+				distPubKey: adminDistPublicKey.object,
 			},
 			bindingData: {
 				userGroupId,
@@ -1268,12 +1273,13 @@ export class KeyRotationFacade {
 			const targetUserGroupKey = await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupId)
 			const givenTag = brandKeyMac(distributionKey.pubKeyMac).tag
 
+			const distributionPublicKey = this.publicKeyProvider.convertFromPubDistributionKey(distributionKey)
 			this.keyAuthenticationFacade.verifyTag(
 				{
 					tagType: "PUB_DIST_KEY_TAG",
 					sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 					untrustedKey: {
-						distPubKey: asPQPublicKeys(distributionKey),
+						distPubKey: distributionPublicKey.object,
 					},
 					bindingData: {
 						userGroupId,
@@ -1285,18 +1291,9 @@ export class KeyRotationFacade {
 				givenTag,
 			)
 
-			const recipientPublicDistKeys: Versioned<PublicKeys> = {
-				version: 0,
-				object: {
-					pubRsaKey: null,
-					pubEccKey: distributionKey.pubEccKey,
-					pubKyberKey: distributionKey.pubKyberKey,
-				},
-			}
-
 			const encryptedAdminGroupKeyForThisAdmin = await this.asymmetricCryptoFacade.tutaCryptEncryptSymKey(
 				newSymAdminGroupKey.object,
-				recipientPublicDistKeys,
+				distributionPublicKey,
 				generatedEccKeyPair,
 			)
 

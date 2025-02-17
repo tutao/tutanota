@@ -140,7 +140,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				undefined,
 			),
 			new SettingsFolder(
-				"keyManagement_label",
+				() => "keyManagement_label",
 				() => Icons.Key,
 				"keymanagement",
 				() => {

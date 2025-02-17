@@ -70,7 +70,6 @@ import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "../worker/crypto/PublicKeyConverter"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -102,7 +101,6 @@ export interface CommonLocator {
 	bookingFacade: BookingFacade
 	mailAddressFacade: MailAddressFacade
 	keyVerificationFacade: KeyVerificationFacade
-	publicKeyConverter: PublicKeyConverter
 	blobFacade: BlobFacade
 	userManagementFacade: UserManagementFacade
 	recoverCodeFacade: RecoverCodeFacade

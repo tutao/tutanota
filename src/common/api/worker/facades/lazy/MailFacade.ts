@@ -113,6 +113,7 @@ import {
 	Aes128Key,
 	aes256RandomKey,
 	AesKey,
+	AsymmetricPublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	decryptKey,
@@ -137,7 +138,7 @@ import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { PublicKeyProvider, PublicKeys } from "../PublicKeyProvider.js"
+import { PublicKeyProvider } from "../PublicKeyProvider.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -812,7 +813,7 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<Versioned<PublicKeys> | null> {
+	getRecipientKeyData(mailAddress: string): Promise<Versioned<AsymmetricPublicKey> | null> {
 		return this.publicKeyProvider
 			.loadCurrentPubKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,

@@ -16,7 +16,7 @@ import { ContactModel } from "../../../src/common/contactsFunctionality/ContactM
 import { KeyVerificationFacade, KeyVerificationState } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { ServiceExecutor } from "../../../src/common/api/worker/rest/ServiceExecutor"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { PublicKeyConverter } from "../../../src/common/api/worker/crypto/PublicKeyConverter"
+import { PublicKeyProvider } from "../../../src/common/api/worker/facades/PublicKeyProvider"
 
 o.spec("RecipientsModel", function () {
 	const contactListId = "contactListId"
@@ -33,7 +33,7 @@ o.spec("RecipientsModel", function () {
 	let entityClientMock: EntityClient
 	let keyVerificationFacadeMock: KeyVerificationFacade
 	let serviceExecutorMock: IServiceExecutor
-	let publicKeyConverterMock: PublicKeyConverter
+	let publicKeyProviderMock: PublicKeyProvider
 
 	let model: RecipientsModel
 
@@ -60,7 +60,7 @@ o.spec("RecipientsModel", function () {
 		entityClientMock = instance(EntityClient)
 		keyVerificationFacadeMock = instance(KeyVerificationFacade)
 		serviceExecutorMock = instance(ServiceExecutor)
-		publicKeyConverterMock = object()
+		publicKeyProviderMock = object()
 
 		model = new RecipientsModel(
 			contactModelMock,
@@ -69,7 +69,7 @@ o.spec("RecipientsModel", function () {
 			entityClientMock,
 			keyVerificationFacadeMock,
 			serviceExecutorMock,
-			publicKeyConverterMock,
+			publicKeyProviderMock,
 		)
 	})
 
