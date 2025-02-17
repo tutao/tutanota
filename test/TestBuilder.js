@@ -80,6 +80,7 @@ export async function runTestBuild({ clean, fast = false }) {
 				"util",
 				"string_decoder",
 				"crypto", // oxmsg needs it
+				"memcpy", // optional dep of oxmsg
 			],
 			plugins: [
 				preludeEnvPlugin(localEnv),
