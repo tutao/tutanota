@@ -73,7 +73,6 @@ impl CalendarFacade {
 			.crypto_entity_client
 			.load(&user.userGroup.group)
 			.await?;
-
 		let mut calendars_data: HashMap<GeneratedId, CalendarData> = HashMap::new();
 		for membership in memberships {
 			let group_info: GroupInfo = self
