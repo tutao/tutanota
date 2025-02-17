@@ -36,6 +36,11 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
 
+type MailViewerMoreActionsNames = "disallowExternalContentAction" | "showImagesAction" | "unsubscribeAction" | "printAction" | "reportMailAction"
+export type MailViewerMoreActions = {
+	[key in MailViewerMoreActionsNames]?: () => void
+}
+
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
 
@@ -231,7 +236,7 @@ function handleExportEmailsResult(mailList: Mail[]) {
 	}
 }
 
-export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel | undefined, exportAction: (() => void) | null): Array<DropdownButtonAttrs> {
+export function multipleMailViewerMoreActions(exportAction: (() => void) | null, moreActions: MailViewerMoreActions | null): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
 	if (exportAction) {
@@ -242,8 +247,8 @@ export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel | u
 		})
 	}
 
-	if (viewModel != null) {
-		moreButtons.push(...mailViewerMoreActions(viewModel))
+	if (moreActions != null) {
+		moreButtons.push(...mailViewerMoreActions(moreActions))
 	}
 
 	return moreButtons
@@ -281,7 +286,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 		})
 	}
 
-	moreButtons.push(...mailViewerMoreActions(viewModel))
+	moreButtons.push(...mailViewerMoreActions(getMailViewerMoreActions(viewModel)))
 
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
@@ -289,45 +294,77 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 	return moreButtons
 }
 
-function mailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
-	const moreButtons: Array<DropdownButtonAttrs> = []
+export function getMailViewerMoreActions(viewModel: MailViewerViewModel): MailViewerMoreActions {
+	const actions: MailViewerMoreActions = {}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
-		moreButtons.push({
-			label: "disallowExternalContent_action",
-			click: () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block),
-			icon: Icons.Picture,
-		})
+		actions.disallowExternalContentAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
 	}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
+		actions.showImagesAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
+	}
+
+	if (viewModel.isListUnsubscribe()) {
+		actions.unsubscribeAction = () => unsubscribe(viewModel)
+	}
+
+	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+		actions.printAction = () => window.print()
+	}
+
+	if (viewModel.canReport()) {
+		actions.reportMailAction = () => reportMail(viewModel)
+	}
+
+	return actions
+}
+
+function mailViewerMoreActions({
+	disallowExternalContentAction,
+	showImagesAction,
+	unsubscribeAction,
+	printAction,
+	reportMailAction,
+}: MailViewerMoreActions): Array<DropdownButtonAttrs> {
+	const moreButtons: Array<DropdownButtonAttrs> = []
+
+	if (disallowExternalContentAction != null) {
 		moreButtons.push({
-			label: "showImages_action",
-			click: () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
+			label: "disallowExternalContent_action",
+			click: disallowExternalContentAction,
 			icon: Icons.Picture,
 		})
 	}
 
-	if (viewModel.isListUnsubscribe()) {
+	if (showImagesAction != null) {
+		moreButtons.push({
+			label: "showImages_action",
+			click: showImagesAction,
+			icon: Icons.Picture,
+		})
+	}
+
+	if (unsubscribeAction != null) {
 		moreButtons.push({
 			label: "unsubscribe_action",
-			click: () => unsubscribe(viewModel),
+			click: unsubscribeAction,
 			icon: Icons.Cancel,
 		})
 	}
 
-	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+	if (printAction != null) {
 		moreButtons.push({
 			label: "print_action",
-			click: () => window.print(),
+			click: printAction,
 			icon: Icons.Print,
 		})
 	}
 
-	if (viewModel.canReport()) {
+	if (reportMailAction != null) {
 		moreButtons.push({
 			label: "reportEmail_action",
-			click: () => reportMail(viewModel),
+			click: reportMailAction,
 			icon: Icons.Warning,
 		})
 	}
