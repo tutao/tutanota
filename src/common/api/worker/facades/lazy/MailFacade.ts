@@ -11,6 +11,7 @@ import {
 	ReportMailService,
 	ResolveConversationsService,
 	SendDraftService,
+	SimpleMoveMailService,
 	UnreadMailStateService,
 } from "../../../entities/tutanota/Services.js"
 import {
@@ -25,12 +26,14 @@ import {
 	MailAuthenticationStatus,
 	MailMethod,
 	MailReportType,
+	MailSetKind,
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	MAX_NBR_OF_CONVERSATIONS,
 	OperationType,
 	PhishingMarkerStatus,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
+	SimpleMoveMailTarget,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../../common/TutanotaConstants.js"
 import {
@@ -58,6 +61,7 @@ import {
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
+	createSimpleMoveMailPostIn,
 	createUnreadMailStatePostIn,
 	createUpdateMailFolderData,
 	DraftAttachment,
@@ -100,6 +104,7 @@ import {
 	contains,
 	defer,
 	freshVersioned,
+	groupBy,
 	isEmpty,
 	isNotNull,
 	isSameTypeRef,
@@ -367,8 +372,44 @@ export class MailFacade {
 		return deferredUpdatePromiseWrapper.promise
 	}
 
-	async moveMails(mails: IdTuple[], sourceFolder: IdTuple, targetFolder: IdTuple): Promise<void> {
-		await this.serviceExecutor.post(MoveMailService, createMoveMailData({ mails, sourceFolder, targetFolder }))
+	async moveMails(mails: readonly IdTuple[], sourceFolder: IdTuple, targetFolder: IdTuple): Promise<void> {
+		if (isEmpty(mails) || isSameId(sourceFolder, targetFolder)) {
+			return
+		}
+
+		// group by listId (for locking it on the server) because mails in the same Set can still be from different mail bags.
+		const mailsPerList = groupBy(mails, (mailId) => listIdPart(mailId))
+
+		for (const [_, mailsInList] of mailsPerList) {
+			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailsInList)
+			for (const mails of mailChunks) {
+				await this.serviceExecutor.post(
+					MoveMailService,
+					createMoveMailData({
+						mails,
+						sourceFolder,
+						targetFolder,
+					}),
+				)
+			}
+		}
+	}
+
+	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<void> {
+		if (isEmpty(mails)) {
+			return
+		}
+
+		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+		for (const mails of mailChunks) {
+			await this.serviceExecutor.post(
+				SimpleMoveMailService,
+				createSimpleMoveMailPostIn({
+					mails,
+					destinationSetType: targetFolderKind,
+				}),
+			)
+		}
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {

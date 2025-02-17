@@ -83,6 +83,22 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	}
 }
 
+export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailFolder): Promise<Array<FolderInfo>> {
+	const mailboxDetails = await foldersModel.getMailboxDetailsForMailFolder(currentFolder)
+	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
+		return []
+	}
+
+	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+	if (folders == null) {
+		return []
+	}
+
+	return folders.getIndentedList().filter((f: IndentedFolder) => {
+		return !isSameId(f.folder._id, currentFolder._id)
+	})
+}
+
 /**
  * Gets a system folder of the specified type and unwraps it.
  * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
