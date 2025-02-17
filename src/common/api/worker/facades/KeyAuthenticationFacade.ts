@@ -1,9 +1,8 @@
 import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
-import { assertNotNull, concat, KeyVersion } from "@tutao/tutanota-utils"
-import { Aes256Key, AesKey, bitArrayToUint8Array, EncryptedPqKeyPairs, KeyPairType, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
+import { concat, KeyVersion } from "@tutao/tutanota-utils"
+import { Aes256Key, AesKey, bitArrayToUint8Array, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
-import { KeyMac, PubDistributionKey } from "../../entities/sys/TypeRefs.js"
-import { PublicKeys } from "./PublicKeyProvider.js"
+import { KeyMac } from "../../entities/sys/TypeRefs.js"
 
 assertWorkerOrNode()
 
@@ -211,18 +210,4 @@ type BrandedKeyMac = Omit<KeyMac, "mac"> & { tag: MacTag }
  */
 export function brandKeyMac(keyMac: KeyMac): BrandedKeyMac {
 	return keyMac as BrandedKeyMac
-}
-
-/**
- * Converts some form of public PQ keys to the PQPublicKeys type. Assumes pubEccKey and pubKyberKey exist.
- * @param kp
- */
-export function asPQPublicKeys(kp: EncryptedPqKeyPairs | PubDistributionKey | PublicKeys): PQPublicKeys {
-	return {
-		keyPairType: KeyPairType.TUTA_CRYPT,
-		eccPublicKey: assertNotNull(kp.pubEccKey),
-		kyberPublicKey: {
-			raw: assertNotNull(kp.pubKyberKey),
-		},
-	}
 }

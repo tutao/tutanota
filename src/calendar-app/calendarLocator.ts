@@ -113,7 +113,7 @@ import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyConverter } from "../common/api/worker/crypto/PublicKeyConverter"
+import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
 
 assertMainOrNode()
 
@@ -143,7 +143,7 @@ class CalendarLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
-	publicKeyConverter!: PublicKeyConverter
+	publicKeyProvider!: PublicKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -183,7 +183,7 @@ class CalendarLocator {
 			this.entityClient,
 			this.keyVerificationFacade,
 			this.serviceExecutor,
-			this.publicKeyConverter,
+			this.publicKeyProvider,
 		)
 	})
 

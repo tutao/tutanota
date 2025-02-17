@@ -10,10 +10,8 @@ import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { KeyVerificationFacade, KeyVerificationState } from "../worker/facades/lazy/KeyVerificationFacade"
 import { PublicKeyIdentifierType } from "../common/TutanotaConstants"
-import { createPublicKeyGetIn } from "../entities/sys/TypeRefs"
-import { PublicKeyService } from "../entities/sys/Services"
 import { IServiceExecutor } from "../common/ServiceRequest"
-import { PublicKeyConverter } from "../worker/crypto/PublicKeyConverter"
+import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -52,7 +50,7 @@ export class RecipientsModel {
 		private readonly entityClient: EntityClient,
 		private readonly keyVerificationFacade: KeyVerificationFacade,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly publicKeyConverter: PublicKeyConverter,
+		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	/**
@@ -68,7 +66,7 @@ export class RecipientsModel {
 			this.entityClient,
 			this.keyVerificationFacade,
 			this.serviceExecutor,
-			this.publicKeyConverter,
+			this.publicKeyProvider,
 			resolveMode,
 		)
 	}
@@ -120,7 +118,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		private readonly entityClient: EntityClient,
 		private readonly keyVerificationFacade: KeyVerificationFacade,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly publicKeyConverter: PublicKeyConverter,
+		private readonly publicKeyProvider: PublicKeyProvider,
 		resolveMode: ResolveMode,
 	) {
 		if (isTutaMailAddress(arg.address) || arg.type === RecipientType.INTERNAL) {
@@ -243,16 +241,10 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 
 	private async resolveVerification(mailAddress: string): Promise<KeyVerificationState> {
 		if (await this.keyVerificationFacade.isTrusted(mailAddress)) {
-			const keyData = createPublicKeyGetIn({
+			const publicKey = await this.publicKeyProvider.loadCurrentPubKey({
 				identifier: mailAddress,
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-
-				// Fetch the latest version
-				version: null,
 			})
-
-			const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, keyData)
-			const publicKey = this.publicKeyConverter.convertFromPublicKeyGetOut(publicKeyGetOut)
 			return await this.keyVerificationFacade.resolveVerificationState(mailAddress, publicKey)
 		} else {
 			return KeyVerificationState.NO_ENTRY

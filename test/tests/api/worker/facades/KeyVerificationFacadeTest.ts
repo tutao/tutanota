@@ -10,7 +10,7 @@ import { KeyVerificationSourceOfTruth } from "../../../../../src/common/api/comm
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { AsymmetricPublicKey, KeyPairType, PQPublicKeys } from "@tutao/tutanota-crypto"
-import { PublicKeyConverter } from "../../../../../src/common/api/worker/crypto/PublicKeyConverter"
+import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
 
 const { anything } = matchers
 
@@ -44,15 +44,15 @@ o.spec("KeyVerificationFacadeTest", function () {
 	let keyVerification: KeyVerificationFacade
 	let serviceExecutor: IServiceExecutor
 	let sqlCipherFacade: SqlCipherFacade
-	let publicKeyConverter: PublicKeyConverter
+	let publicKeyProvider: PublicKeyProvider
 	let versionedRecipientPublicKey: Versioned<PQPublicKeys>
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		sqlCipherFacade = object()
-		publicKeyConverter = object()
+		publicKeyProvider = object()
 
-		keyVerification = new KeyVerificationFacade(serviceExecutor, sqlCipherFacade, publicKeyConverter)
+		keyVerification = new KeyVerificationFacade(serviceExecutor, sqlCipherFacade, publicKeyProvider)
 		when(sqlCipherFacade.get(anything(), anything())).thenResolve(null)
 		when(
 			sqlCipherFacade.get(
@@ -98,7 +98,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			throw new NotFoundError("")
 		})
 
-		when(publicKeyConverter.convertFromPublicKeyGetOut(PUBLIC_KEY_GET_OUT)).thenReturn(PUBLIC_KEY)
+		when(publicKeyProvider.convertFromPublicKeyGetOut(PUBLIC_KEY_GET_OUT)).thenReturn(PUBLIC_KEY)
 	})
 
 	o.spec("confirm trusted identity database works as intended", function () {

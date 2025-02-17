@@ -1,13 +1,21 @@
 import o from "@tutao/otest"
 import { matchers, object, when } from "testdouble"
-import { KeyVersion } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
-import { createPublicKeyGetOut } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	createPublicKeyGetOut,
+	createSystemKeysReturn,
+	PubDistributionKey,
+	PublicKeyGetOut,
+	SystemKeysReturn,
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError.js"
+import testData from "../crypto/CompatibilityTestData.json"
+import { bytesToKyberPublicKey, EncryptedPqKeyPairs, hexToRsaPublicKey, KeyPairType, PQPublicKeys, RsaEccPublicKey, RsaPublicKey } from "@tutao/tutanota-crypto"
 
 o.spec("PublicKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
@@ -31,20 +39,45 @@ o.spec("PublicKeyProviderTest", function () {
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
 				createPublicKeyGetOut({ pubKeyVersion: String(currentVersion), pubRsaKey: null, pubKyberKey, pubEccKey }),
 			)
+
+			const expectedPublicKey: Versioned<PQPublicKeys> = {
+				version: 2,
+				object: {
+					keyPairType: KeyPairType.TUTA_CRYPT,
+					eccPublicKey: pubEccKey,
+					kyberPublicKey: { raw: pubKyberKey },
+				},
+			}
 			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
-			o(pubKeys.version).equals(currentVersion)
-			o(pubKeys.object).deepEquals({ pubRsaKey: null, pubKyberKey, pubEccKey })
+			o(pubKeys).deepEquals(expectedPublicKey)
 		})
 
 		o("success rsa keys", async function () {
-			currentVersion = 0
-			const pubRsaKey = object<Uint8Array>()
-			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
-				createPublicKeyGetOut({ pubKeyVersion: String(currentVersion), pubRsaKey, pubKyberKey: null, pubEccKey: null }),
-			)
+			const rsaTestData = getFirstOrThrow(testData.rsaEncryptionTests)
+			const rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
+			const publicKeyGetOut = createPublicKeyGetOut({
+				pubEccKey: null,
+				pubKyberKey: null,
+				pubRsaKey: rsaPublicKey,
+				pubKeyVersion: "0",
+			})
+
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+
+			const decodedRsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(rsaPublicKey))
+
+			const expectedPublicKey: Versioned<RsaPublicKey> = {
+				version: 0,
+				object: {
+					keyPairType: KeyPairType.RSA,
+					version: 0,
+					keyLength: 2048,
+					modulus: decodedRsaPublicKey.modulus,
+					publicExponent: decodedRsaPublicKey.publicExponent,
+				},
+			}
 			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
-			o(pubKeys.version).equals(currentVersion)
-			o(pubKeys.object).deepEquals({ pubRsaKey, pubKyberKey: null, pubEccKey: null })
+			o(pubKeys).deepEquals(expectedPublicKey)
 		})
 
 		o("rsa key in version other than 0", async function () {
@@ -66,8 +99,18 @@ o.spec("PublicKeyProviderTest", function () {
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
 				createPublicKeyGetOut({ pubKeyVersion: String(requestedVersion), pubRsaKey: null, pubKyberKey, pubEccKey }),
 			)
+
+			const expectedPublicKey: Versioned<PQPublicKeys> = {
+				version: 1,
+				object: {
+					keyPairType: KeyPairType.TUTA_CRYPT,
+					eccPublicKey: pubEccKey,
+					kyberPublicKey: { raw: pubKyberKey },
+				},
+			}
+
 			const pubKeys = await publicKeyProvider.loadVersionedPubKey(publicKeyIdentifier, requestedVersion)
-			o(pubKeys).deepEquals({ pubRsaKey: null, pubKyberKey, pubEccKey })
+			o(pubKeys).deepEquals(expectedPublicKey.object)
 		})
 
 		o("invalid Version returned", async function () {
@@ -110,3 +153,187 @@ o.spec("PublicKeyProviderTest", function () {
 		})
 	})
 })
+
+o.spec("PublicKeyProvider - convert keys", function () {
+	let publicKeyProvider: PublicKeyProvider
+	let rsaPublicKey: Uint8Array
+	let eccPublicKey: Uint8Array
+	let kyberPublicKey: Uint8Array
+	let serviceExecutor: ServiceExecutor
+
+	o.beforeEach(function () {
+		serviceExecutor = object()
+		publicKeyProvider = new PublicKeyProvider(serviceExecutor)
+
+		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
+		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
+		const rsaTestData = getFirstOrThrow(testData.rsaEncryptionTests)
+		rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
+		const eccTestData = getFirstOrThrow(testData.x25519Tests)
+		eccPublicKey = hexToUint8Array(eccTestData.alicePublicKeyHex)
+	})
+
+	o("convert tuta-crypt public keys", async function () {
+		const publicKeyGetOut = createPublicKeyGetOut({
+			pubEccKey: eccPublicKey,
+			pubKyberKey: kyberPublicKey,
+			pubRsaKey: null,
+			pubKeyVersion: "1",
+		})
+
+		const fromPublicKeyGetOut = publicKeyProvider.convertFromPublicKeyGetOut(publicKeyGetOut)
+
+		const expectedPublicKey: Versioned<PQPublicKeys> = {
+			version: 1,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
+				eccPublicKey: eccPublicKey,
+			},
+		}
+		o(fromPublicKeyGetOut).deepEquals(expectedPublicKey)
+		o(publicKeyProvider.convertFromSystemKeysReturn(toSystemReturn(publicKeyGetOut))).deepEquals(expectedPublicKey)
+	})
+
+	o("convert rsa public keys", async function () {
+		const publicKeyGetOut = createPublicKeyGetOut({
+			pubEccKey: null,
+			pubKyberKey: null,
+			pubRsaKey: rsaPublicKey,
+			pubKeyVersion: "1",
+		})
+		const fromPublicKeyGetOut = publicKeyProvider.convertFromPublicKeyGetOut(publicKeyGetOut)
+
+		const decodedRsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(rsaPublicKey))
+		const expectedPublicKey: Versioned<RsaPublicKey> = {
+			version: 1,
+			object: {
+				keyPairType: KeyPairType.RSA,
+				version: 0,
+				keyLength: 2048,
+				modulus: decodedRsaPublicKey.modulus,
+				publicExponent: decodedRsaPublicKey.publicExponent,
+			},
+		}
+		o(fromPublicKeyGetOut).deepEquals(expectedPublicKey)
+		o(publicKeyProvider.convertFromSystemKeysReturn(toSystemReturn(publicKeyGetOut))).deepEquals(expectedPublicKey)
+	})
+
+	o("convert rsa ecc public keys", async function () {
+		const publicKeyGetOut = createPublicKeyGetOut({
+			pubEccKey: eccPublicKey,
+			pubKyberKey: null,
+			pubRsaKey: rsaPublicKey,
+			pubKeyVersion: "1",
+		})
+		const fromPublicKeyGetOut = publicKeyProvider.convertFromPublicKeyGetOut(publicKeyGetOut)
+
+		const decodedRsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(rsaPublicKey))
+		const expectedPublicKey: Versioned<RsaEccPublicKey> = {
+			version: 1,
+			object: {
+				keyPairType: KeyPairType.RSA_AND_ECC,
+				version: 0,
+				keyLength: 2048,
+				modulus: decodedRsaPublicKey.modulus,
+				publicExponent: decodedRsaPublicKey.publicExponent,
+				publicEccKey: eccPublicKey,
+			},
+		}
+		o(fromPublicKeyGetOut).deepEquals(expectedPublicKey)
+		o(publicKeyProvider.convertFromSystemKeysReturn(toSystemReturn(publicKeyGetOut))).deepEquals(expectedPublicKey)
+	})
+
+	o("inconsistent public key data", async function () {
+		// no public key
+		let error = await assertThrows(Error, async () =>
+			publicKeyProvider.convertFromPublicKeyGetOut(
+				createPublicKeyGetOut({
+					pubEccKey: null,
+					pubKyberKey: null,
+					pubRsaKey: null,
+					pubKeyVersion: "1",
+				}),
+			),
+		)
+		o(error.message).equals("Inconsistent public key")
+
+		// only one ecc public key
+		error = await assertThrows(Error, async () =>
+			publicKeyProvider.convertFromPublicKeyGetOut(
+				createPublicKeyGetOut({
+					pubEccKey: eccPublicKey,
+					pubKyberKey: null,
+					pubRsaKey: null,
+					pubKeyVersion: "1",
+				}),
+			),
+		)
+
+		o(error.message).equals("Inconsistent public key")
+
+		// only one kyber key
+		error = await assertThrows(Error, async () =>
+			publicKeyProvider.convertFromPublicKeyGetOut(
+				createPublicKeyGetOut({
+					pubEccKey: null,
+					pubKyberKey: kyberPublicKey,
+					pubRsaKey: null,
+					pubKeyVersion: "1",
+				}),
+			),
+		)
+		o(error.message).equals("Inconsistent public key")
+	})
+
+	o("convert from pub distribution key", async function () {
+		const pubDistributionKey: PubDistributionKey = object()
+		pubDistributionKey.pubKyberKey = kyberPublicKey
+		pubDistributionKey.pubEccKey = eccPublicKey
+
+		const fromDistributionKey = publicKeyProvider.convertFromPubDistributionKey(pubDistributionKey)
+		const expectedPublicKey: Versioned<PQPublicKeys> = {
+			version: 0, // always 0 for distribution keys.
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: eccPublicKey,
+				kyberPublicKey: { raw: kyberPublicKey },
+			},
+		}
+		o(fromDistributionKey).deepEquals(expectedPublicKey)
+	})
+
+	o("convert from encrypted pq key pairs", async function () {
+		const encryptedPqKeyPairs: EncryptedPqKeyPairs = object()
+		encryptedPqKeyPairs.pubKyberKey = kyberPublicKey
+		encryptedPqKeyPairs.pubEccKey = eccPublicKey
+
+		const fromEncryptedPqKeyPairs = publicKeyProvider.convertFromEncryptedPqKeyPairs(encryptedPqKeyPairs, 1)
+		const expectedPublicKey: Versioned<PQPublicKeys> = {
+			version: 1,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: eccPublicKey,
+				kyberPublicKey: { raw: kyberPublicKey },
+			},
+		}
+		o(fromEncryptedPqKeyPairs).deepEquals(expectedPublicKey)
+	})
+})
+
+function toSystemReturn(publicKeyGetOut: PublicKeyGetOut): SystemKeysReturn {
+	return createSystemKeysReturn({
+		systemAdminPubKeyVersion: publicKeyGetOut.pubKeyVersion,
+		systemAdminPubRsaKey: publicKeyGetOut.pubRsaKey,
+		systemAdminPubKyberKey: publicKeyGetOut.pubKyberKey,
+		systemAdminPubEccKey: publicKeyGetOut.pubEccKey,
+		_type: object(),
+		_format: object(),
+		freeGroupKey: object(),
+		freeGroupKeyVersion: object(),
+		premiumGroupKey: object(),
+		premiumGroupKeyVersion: object(),
+		freeGroup: object(),
+		premiumGroup: object(),
+	})
+}
