@@ -18,6 +18,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
 import java.security.SecureRandom
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 
 fun SecureRandom.bytes(numBytes: Int): ByteArray {
 	val array = ByteArray(numBytes)
@@ -158,4 +161,13 @@ inline fun Cursor.forEachRow(block: (cursor: Cursor) -> Unit) {
 inline fun <R, C : MutableCollection<in R>> Cursor.mapTo(collection: C, mapper: (cursor: Cursor) -> R): C {
 	forEachRow { collection.add(mapper(this)) }
 	return collection
+}
+
+fun isAllDayEventByTimes(startDate: Date, endDate: Date): Boolean {
+	val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+	calendar.time = startDate
+	val startFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
+	calendar.time = endDate
+	val endFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
+	return startFits && endFits
 }
