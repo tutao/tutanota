@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../common/misc/LanguageViewModel"
 
 import { Keys, MailSetKind, MailState } from "../../../common/api/common/TutanotaConstants"
-import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
 import { Icon } from "../../../common/gui/base/Icon"
@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
+import { moveMailsToSystemFolder, promptAndDeleteMails, trashMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -21,7 +21,6 @@ import { deduplicateFilenames } from "../../../common/api/common/utils/FileUtils
 import { downloadMailBundle } from "../export/Bundler"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../../common/gui/base/List.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
@@ -30,7 +29,6 @@ import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
-import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
@@ -115,14 +113,6 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 		// "this" is incorrectly bound if we don't do it this way
 		this.view = this.view.bind(this)
-	}
-
-	private getRecoverFolder(mail: Mail, folders: FolderSystem): MailFolder {
-		if (mail.state === MailState.DRAFT) {
-			return assertSystemFolderOfType(folders, MailSetKind.DRAFT)
-		} else {
-			return assertSystemFolderOfType(folders, MailSetKind.INBOX)
-		}
 	}
 
 	// NOTE we do all of the electron drag handling directly inside MailListView, because we currently have no need to generalise
@@ -420,8 +410,16 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, [listElement], () => this.mailViewModel.listModel?.selectNone())
-		return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
+		const actionableMails = await this.mailViewModel.getActionableMails([listElement])
+		const currentFolder = this.mailViewModel.getFolder()
+
+		if (currentFolder?.folderType === MailSetKind.TRASH) {
+			const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMails, () => this.mailViewModel.listModel?.selectNone())
+			return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
+		} else {
+			const wereTrashed = await trashMails(mailLocator.mailModel, actionableMails)
+			return wereTrashed ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
+		}
 	}
 
 	private async onSwipeRight(listElement: Mail): Promise<ListSwipeDecision> {
@@ -430,18 +428,26 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this.mailViewModel.listModel?.selectNone()
 			return ListSwipeDecision.Cancel
 		} else {
-			const folders = await mailLocator.mailModel.getMailboxFoldersForMail(listElement)
-			if (folders) {
+			const folder = this.mailViewModel.getFolder()
+			if (folder) {
 				//Check if the user is in the trash/spam folder or if it's in Inbox or Archive
 				//to determinate the target folder
-				const targetMailFolder = this.showingSpamOrTrash
-					? this.getRecoverFolder(listElement, folders)
-					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailSetKind.INBOX : MailSetKind.ARCHIVE))
-				const wereMoved = await moveMails({
+				const targetMailFolderType = this.showingSpamOrTrash
+					? listElement.state === MailState.DRAFT
+						? MailSetKind.DRAFT
+						: MailSetKind.INBOX
+					: this.showingArchive
+					? MailSetKind.INBOX
+					: MailSetKind.ARCHIVE
+
+				const actionableMails = await this.mailViewModel.getActionableMails([listElement])
+				const wereMoved = await moveMailsToSystemFolder({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
-					mails: [listElement],
-					targetMailFolder,
+					mailIds: actionableMails,
+					currentFolder: folder,
+					targetFolderType: targetMailFolderType,
+					moveMode: this.mailViewModel.getMoveMode(folder),
 				})
 				return wereMoved ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 			} else {

@@ -71,10 +71,11 @@ import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
-import { MailModel } from "../model/MailModel.js"
+import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { isDraft } from "../model/MailChecks"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -302,6 +303,11 @@ export class MailViewerViewModel {
 		return this.mail.state === MailState.DRAFT
 	}
 
+	isDeletableMail() {
+		const folderType = this.getFolderInfo()?.folderType
+		return folderType === MailSetKind.TRASH || folderType === MailSetKind.SPAM
+	}
+
 	isReceivedMail() {
 		return this.mail.state === MailState.RECEIVED
 	}
@@ -507,7 +513,7 @@ export class MailViewerViewModel {
 
 	async reportMail(reportType: MailReportType): Promise<void> {
 		try {
-			await this.mailModel.reportMails(reportType, [this.mail])
+			await this.mailModel.reportMails(reportType, async () => [this.mail])
 			if (reportType === MailReportType.PHISHING) {
 				this.setPhishingStatus(MailPhishingStatus.SUSPICIOUS)
 				await this.entityClient.update(this.mail)
@@ -522,8 +528,9 @@ export class MailViewerViewModel {
 			await moveMails({
 				mailboxModel: this.mailboxModel,
 				mailModel: this.mailModel,
-				mails: [this.mail],
-				targetMailFolder: spamFolder,
+				mailIds: [this.mail._id],
+				targetFolder: spamFolder,
+				moveMode: MoveMode.Mails,
 				isReportable: false,
 			})
 		} catch (e) {
@@ -1081,11 +1088,19 @@ export class MailViewerViewModel {
 		return attachmentType === AttachmentType.CONTACT || attachmentType === AttachmentType.CALENDAR
 	}
 
+	canReply(): boolean {
+		return !isDraft(this.mail) && !this.isAnnouncement()
+	}
+
 	canReplyAll(): boolean {
 		return (
 			this.logins.getUserController().isInternalUser() &&
 			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1
 		)
+	}
+
+	canForward(): boolean {
+		return !isDraft(this.mail) && !this.isAnnouncement() && this.canForwardOrMove()
 	}
 
 	canForwardOrMove(): boolean {

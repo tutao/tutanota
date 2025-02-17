@@ -1,4 +1,4 @@
-import type { Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Checkbox } from "../../../common/gui/base/Checkbox.js"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import m from "mithril"
@@ -64,7 +64,7 @@ export async function reportMailsAutomatically(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 	mailboxDetails: MailboxDetail,
-	mails: ReadonlyArray<Mail>,
+	mails: () => Promise<ReadonlyArray<Mail>>,
 ): Promise<void> {
 	if (mailReportType !== MailReportType.SPAM) {
 		return

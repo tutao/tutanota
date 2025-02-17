@@ -1,6 +1,6 @@
 import { groupBy, partition } from "@tutao/tutanota-utils"
 import { Mail, MailFolder } from "../../entities/tutanota/TypeRefs.js"
-import { isFolder, MailSetKind } from "../TutanotaConstants.js"
+import { isFolder, MailSetKind, SystemFolderType } from "../TutanotaConstants.js"
 import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
@@ -31,7 +31,7 @@ export class FolderSystem {
 	}
 
 	/** Search for a specific folder type. Some mailboxes might not have some system folders! */
-	getSystemFolderByType(type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder | null {
+	getSystemFolderByType(type: SystemFolderType): MailFolder | null {
 		return this.systemSubtrees.find((f) => f.folder.folderType === type)?.folder ?? null
 	}
 
