@@ -34,6 +34,7 @@ import {
 	isSameDayOfDate,
 	isSameTypeRef,
 	LazyLoaded,
+	memoizedWithHiddenArgument,
 	neverNull,
 	ofClass,
 	stringToBase64,
@@ -79,6 +80,7 @@ import { CalendarEventsRepository } from "../../../common/calendar/date/Calendar
 import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
+import { client } from "../../../common/misc/ClientDetector"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -256,6 +258,10 @@ export class SearchViewModel {
 
 	getRestriction(): SearchRestriction {
 		return this.router.getRestriction()
+	}
+
+	isExportingMailsAllowed(): boolean {
+		return mailLocator.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
 	}
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
@@ -817,12 +823,22 @@ export class SearchViewModel {
 		}
 	}
 
-	getSelectedMails(): Mail[] {
-		return this._listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(MailTypeRef))
-	}
+	readonly getSelectedMails: () => readonly Mail[] = memoizedWithHiddenArgument(
+		() => this._listModel.getSelectedAsArray(),
+		(selected) => {
+			return selected.map((e) => e.entry).filter(assertIsEntity2(MailTypeRef))
+		},
+	)
+
+	readonly areMailsDeletable: () => boolean = memoizedWithHiddenArgument(
+		() => this.getSelectedMails(),
+		(selectedMails) => {
+			return selectedMails.every((mail) => {
+				const folder = mailLocator.mailModel.getMailFolderForMail(mail)
+				return folder != null && (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM)
+			})
+		},
+	)
 
 	getSelectedContacts(): Contact[] {
 		return this._listModel

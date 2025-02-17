@@ -11,7 +11,7 @@ import { progressIcon } from "../../../common/gui/base/Icon.js"
 assertMainOrNode()
 
 export type MultiItemViewerAttrs<T> = {
-	selectedEntities: Array<T>
+	selectedEntities: readonly T[]
 	selectNone: () => unknown
 	loadingAll: "can_load" | "loading" | "loaded"
 	loadAll: () => unknown

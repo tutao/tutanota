@@ -106,9 +106,13 @@ export enum MailSetKind {
 	Imported = "9",
 }
 
+export type SystemFolderType = MailSetKind.INBOX | MailSetKind.SENT | MailSetKind.TRASH | MailSetKind.ARCHIVE | MailSetKind.SPAM | MailSetKind.DRAFT
+
 export function getMailSetKind(folder: MailFolder): MailSetKind {
 	return folder.folderType as MailSetKind
 }
+
+export type SimpleMoveMailTarget = MailSetKind.TRASH | MailSetKind.ARCHIVE | MailSetKind.SPAM | MailSetKind.INBOX
 
 export const enum ReplyType {
 	NONE = "0",

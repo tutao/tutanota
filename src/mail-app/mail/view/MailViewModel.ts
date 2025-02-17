@@ -24,7 +24,7 @@ import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { getMailSetKind, ImportStatus, MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { getMailSetKind, ImportStatus, MailSetKind, OperationType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -36,7 +36,7 @@ import { InboxRuleHandler } from "../model/InboxRuleHandler.js"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { MailModel } from "../model/MailModel.js"
+import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
@@ -45,6 +45,7 @@ import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
+import { client } from "../../../common/misc/ClientDetector"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -325,16 +326,46 @@ export class MailViewModel {
 		}
 	}
 
-	/*
-       If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
-       If not, only the primary mail is returned, since that is the one being looked at/interacted with.
-     */
-	async getActionableMails(mails: Mail[]): Promise<ReadonlyArray<IdTuple>> {
+	/**
+	 * If ConversationInListView is active in the current folder, Ids of all mails in the conversation are returned
+	 * If not, only Id of the primary mail is returned
+	 */
+	async getActionableMails(mails: readonly Mail[]): Promise<readonly IdTuple[]> {
 		if (this.groupMailsByConversation()) {
 			return this.mailModel.resolveConversationsForMails(mails)
 		} else {
 			return mails.map((m) => m._id)
 		}
+	}
+
+	async getSelectedActionableMails(): Promise<readonly IdTuple[]> {
+		const mails = this.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return []
+		}
+		return await this.getActionableMails(mails)
+	}
+
+	currentFolderDeletesPermanently(): boolean {
+		const folder = this.getFolder()
+		return folder != null && (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM)
+	}
+
+	/**
+	 * If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
+	 * If not, only the primary mail is returned, since that is the one being looked at/interacted with.
+	 */
+	async getLoadedActionableMails(mails: readonly Mail[]): Promise<ReadonlyArray<Mail>> {
+		if (this.groupMailsByConversation()) {
+			const actionableMailIds = await this.mailModel.resolveConversationsForMails(mails)
+			return this.mailModel.loadAllMails(actionableMailIds)
+		} else {
+			return mails
+		}
+	}
+
+	isExportingMailsAllowed(): boolean {
+		return this.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
 	}
 
 	private async getFolderForUserInbox(): Promise<MailFolder> {
@@ -628,7 +659,7 @@ export class MailViewModel {
 		}
 	}
 
-	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {
+	async switchToFolder(folderType: SystemFolderType): Promise<void> {
 		const state = {}
 		this.currentShowTargetMarker = state
 		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
@@ -777,6 +808,10 @@ export class MailViewModel {
 	 */
 	groupMailsByConversation(folder: MailFolder | null = this._folder) {
 		return listByConversationInFolder(this.conversationPrefProvider, folder)
+	}
+
+	getMoveMode(folder: MailFolder): MoveMode {
+		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
 	}
 }
 

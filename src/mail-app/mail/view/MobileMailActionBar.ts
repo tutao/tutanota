@@ -11,10 +11,11 @@ import { noOp } from "@tutao/tutanota-utils"
 
 export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
+	trashMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
-	getUnreadState: (() => boolean) | null
+	isUnread: boolean | null
 	editDraftAction: (() => void) | null
 	exportAction: (() => void) | null
 	replyAction: (() => void) | null
@@ -37,10 +38,10 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				},
 			},
 			[
-				this.editButton(attrs) || this.replyButton(attrs) || this.placeholder(),
+				this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
 				this.forwardButton(attrs),
-				this.deleteButton(attrs),
-				this.moveButton(attrs) || this.placeholder(),
+				this.deleteButton(attrs) ?? this.trashButton(attrs),
+				this.moveButton(attrs) ?? this.placeholder(),
 				this.moreButton(attrs),
 			],
 		)
@@ -73,7 +74,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, getUnreadState, mailViewerMoreActions }: MobileMailActionBarAttrs) {
+	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, isUnread, mailViewerMoreActions }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -103,8 +104,10 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							click: () => setUnreadStateAction(true),
 							icon: Icons.NoEye,
 						}
-						if (getUnreadState != null) {
-							if (getUnreadState()) {
+
+						// isUnread means we are viewing one mail; otherwise, it is coming from a MultiViewer
+						if (isUnread != null) {
+							if (isUnread) {
 								moreButtons.push(readButton)
 							} else {
 								moreButtons.push(unreadButton)
@@ -128,6 +131,17 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			m(IconButton, {
 				title: "delete_action",
 				click: deleteMailsAction,
+				icon: Icons.DeleteForever,
+			})
+		)
+	}
+
+	private trashButton({ trashMailsAction }: MobileMailActionBarAttrs): Children {
+		return (
+			trashMailsAction &&
+			m(IconButton, {
+				title: "trash_action",
+				click: trashMailsAction,
 				icon: Icons.Trash,
 			})
 		)

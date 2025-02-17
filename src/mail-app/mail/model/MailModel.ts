@@ -7,12 +7,14 @@ import {
 	collectToMap,
 	getFirstOrThrow,
 	groupBy,
+	groupByAndMap,
 	isNotNull,
 	lazyMemoized,
 	neverNull,
 	noOp,
 	ofClass,
 	partition,
+	promiseMap,
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import {
@@ -34,8 +36,9 @@ import {
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	OperationType,
 	ReportMovedMailsType,
+	SimpleMoveMailTarget,
 } from "../../../common/api/common/TutanotaConstants.js"
-import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -51,7 +54,6 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
-import { isSpamOrTrashFolder } from "./MailChecks.js"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -66,6 +68,11 @@ export const enum LabelState {
 	AppliedToSome,
 	/** Label was applied to none of the emails */
 	NotApplied,
+}
+
+export const enum MoveMode {
+	Mails,
+	Conversation,
 }
 
 export class MailModel {
@@ -297,101 +304,38 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally move all given mails. Caller must ensure that mails are only from
-	 * * one folder (because we send one source folder)
-	 * * from one list (for locking it on the server)
+	 * Move all given mails to the target folder kind in their respective mailbox(es)
+	 *
+	 * This will only work for mails in
+	 * @param mails
+	 * @param targetMailFolderKind
 	 */
-	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		// Do not move if target is the same as the current mailFolder
-		const sourceMailFolder = this.getMailFolderForMail(mails[0])
-		let moveMails = mails.filter((m) => sourceMailFolder !== targetMailFolder && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
-
-		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
-			const mailChunks = splitInChunks(
-				MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
-				mails.map((m) => m._id),
-			)
-
-			for (const mailChunk of mailChunks) {
-				await this.mailFacade.moveMails(mailChunk, targetMailFolder._id, sourceMailFolder._id)
-			}
-		}
+	async simpleMoveMails(mails: readonly IdTuple[], targetMailFolderKind: SimpleMoveMailTarget): Promise<void> {
+		await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
 	}
 
 	/**
-	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
-	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
+	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
-		const mailsPerFolder = groupBy(mails, (mail) => {
-			return this.getMailFolderForMail(mail)?._id?.[1]
-		})
-
-		for (const [folderId, mailsInFolder] of mailsPerFolder) {
-			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
-
-			if (sourceMailFolder) {
-				// group another time because mails in the same Set can be from different mail bags.
-				const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
-				for (const [listId, mailsInList] of mailsPerList) {
-					await this._moveMails(mailsInList, targetMailFolder)
-				}
-			} else {
-				console.log("Move mail: no mail folder for folder id", folderId)
-			}
+	async moveMails(mails: readonly IdTuple[], targetFolder: MailFolder, moveMode: MoveMode): Promise<void> {
+		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
+		if (folderSystem == null) {
+			return
 		}
+
+		const excludeFolder = moveMode === MoveMode.Conversation ? assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id : null
+		await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
 	}
 
-	/**
-	 * Finally deletes the given mails if they are already in the trash or spam folders,
-	 * otherwise moves them to the trash folder.
-	 * A deletion confirmation must have been show before.
-	 */
-	async deleteMails(mails: ReadonlyArray<Mail>): Promise<void> {
-		if (mails.length === 0) {
-			return
-		}
-
-		const mailsPerFolder = groupBy(mails, (mail) => {
-			return this.getMailFolderForMail(mail)?._id?.[1]
-		})
-
-		const folders = await this.getMailboxFoldersForMail(mails[0])
-		if (folders == null) {
-			return
-		}
-		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.TRASH))
-
-		for (const [folder, mailsInFolder] of mailsPerFolder) {
-			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
-
-			const mailsPerList = groupBy(mailsInFolder, (mail) => getListId(mail))
-			for (const [listId, mailsInList] of mailsPerList) {
-				if (sourceMailFolder) {
-					if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
-						await this.finallyDeleteMails(mailsInList)
-					} else {
-						await this._moveMails(mailsInList, trashFolder)
-					}
-				} else {
-					console.log("Delete mail: no mail folder for list id", folder)
-				}
-			}
-		}
+	async trashMails(mails: readonly IdTuple[]): Promise<void> {
+		await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH)
 	}
 
 	/**
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder and the folder must allow final delete operation.
 	 */
-	private async finallyDeleteMails(mails: Mail[]): Promise<void> {
-		if (!mails.length) return Promise.resolve()
-		const mailFolder = neverNull(this.getMailFolderForMail(mails[0]))
-		const mailIds = mails.map((m) => m._id)
-		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
-
-		for (const mailChunk of mailChunks) {
-			await this.mailFacade.deleteMails(mailChunk, mailFolder._id)
-		}
+	async finallyDeleteMails(mailIds: readonly IdTuple[]): Promise<void> {
+		await this.mailFacade.deleteMails(mailIds)
 	}
 
 	/**
@@ -411,8 +355,9 @@ export class MailModel {
 		}
 	}
 
-	async reportMails(reportType: MailReportType, mails: ReadonlyArray<Mail>): Promise<void> {
-		for (const mail of mails) {
+	async reportMails(reportType: MailReportType, mails: () => Promise<ReadonlyArray<Mail>>): Promise<void> {
+		const mailsToReport = await mails()
+		for (const mail of mailsToReport) {
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
 	}
@@ -670,5 +615,12 @@ export class MailModel {
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */
 	async resolveConversationsForMails(mails: readonly Mail[]): Promise<IdTuple[]> {
 		return await this.mailFacade.resolveConversations(mails.map((m) => listIdPart(m.conversationEntry)))
+	}
+
+	async loadAllMails(mailIds: readonly IdTuple[]): Promise<Mail[]> {
+		const mailIdsPerList = groupByAndMap(mailIds, listIdPart, elementIdPart)
+		return (
+			await promiseMap(mailIdsPerList, ([listId, elementIds]) => this.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
+		).flat()
 	}
 }
