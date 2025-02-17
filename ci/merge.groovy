@@ -485,6 +485,7 @@ boolean shouldRunNpmCi() {
 	try {
 		old = readFile(file: 'cache/package.json')
 	} catch (e) {
+	    print "package.json not found in cache, re-caching."
 		print e
 		return true
 	} finally {
