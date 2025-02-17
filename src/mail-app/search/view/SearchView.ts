@@ -107,7 +107,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
 import { PosRect } from "../../../common/gui/base/Dropdown"
-import { editDraft, startExport } from "../../mail/view/MailViewerUtils"
+import { editDraft, getMailViewerMoreActions, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { client } from "../../../common/misc/ClientDetector"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
@@ -427,7 +427,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const conversationViewModel = this.searchViewModel.conversationViewModel
 			if (this.searchViewModel.listModel.state.inMultiselect || !conversationViewModel) {
 				const actions = m(MailViewerActions, {
-					mailModel: mailLocator.mailModel,
 					selectedMails: selectedMails,
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
 					deleteMailsAction: () => this.deleteSelected(),
@@ -440,6 +439,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					replyAction: null,
 					replyAllAction: null,
 					forwardAction: null,
+					mailViewerMoreActions: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -470,10 +470,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				})
 			} else {
 				const actions = m(MailViewerActions, {
-					mailModel: conversationViewModel.primaryViewModel().mailModel,
-					primaryMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					selectedMails: [conversationViewModel.primaryMail],
-					actionableMailViewerViewModel: conversationViewModel.primaryViewModel(),
 					deleteMailsAction: () => this.deleteSelected(),
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
@@ -484,6 +481,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					replyAction: this.getReplyAction(conversationViewModel, false),
 					replyAllAction: this.getReplyAction(conversationViewModel, true),
 					forwardAction: this.getForwardAction(conversationViewModel),
+					mailViewerMoreActions: getMailViewerMoreActions(conversationViewModel.primaryViewModel()),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -700,7 +698,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && conversationViewModel) {
 			return m(MobileMailActionBar, {
-				viewModel: conversationViewModel.primaryViewModel(),
 				deleteMailsAction: () => this.deleteSelected(),
 				moveMailsAction: this.getMoveMailsAction(),
 				applyLabelsAction: this.getLabelsAction(),
@@ -711,6 +708,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				replyAction: this.getReplyAction(conversationViewModel, false),
 				replyAllAction: this.getReplyAction(conversationViewModel, true),
 				forwardAction: this.getForwardAction(conversationViewModel),
+				mailViewerMoreActions: getMailViewerMoreActions(conversationViewModel.primaryViewModel()),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

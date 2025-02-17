@@ -4,13 +4,12 @@ import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, PosRect
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { modal } from "../../../common/gui/base/Modal.js"
+import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
-import { MailViewerViewModel } from "./MailViewerViewModel"
 import { noOp } from "@tutao/tutanota-utils"
 
 export interface MobileMailActionBarAttrs {
-	viewModel: MailViewerViewModel
 	deleteMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
@@ -21,6 +20,7 @@ export interface MobileMailActionBarAttrs {
 	replyAction: (() => void) | null
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
+	mailViewerMoreActions: MailViewerMoreActions | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -73,7 +73,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ viewModel, exportAction, applyLabelsAction, setUnreadStateAction, getUnreadState }: MobileMailActionBarAttrs) {
+	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, getUnreadState, mailViewerMoreActions }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -113,7 +113,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							moreButtons.push(readButton, unreadButton)
 						}
 					}
-					return [...moreButtons, ...multipleMailViewerMoreActions(viewModel, exportAction)]
+					return [...moreButtons, ...multipleMailViewerMoreActions(exportAction, mailViewerMoreActions)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,

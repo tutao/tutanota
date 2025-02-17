@@ -69,7 +69,7 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
-import { canDoDragAndDropExport, editDraft, startExport } from "./MailViewerUtils.js"
+import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, startExport } from "./MailViewerUtils.js"
 import { isDraft, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
@@ -270,12 +270,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private mailViewerSingleActions(viewModel: ConversationViewModel) {
-		const mailModel = viewModel.primaryViewModel().mailModel
 		return m(MailViewerActions, {
-			mailModel,
-			primaryMailViewerViewModel: viewModel.primaryViewModel(),
 			selectedMails: [viewModel.primaryMail],
-			actionableMailViewerViewModel: this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel(),
 			moveMailsAction: this.getMoveMailsAction(),
 			deleteMailsAction: () => this.deleteSelectedMails(),
 			applyLabelsAction: this.getLabelsAction(),
@@ -286,6 +282,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			replyAction: this.getReplyAction(viewModel, false),
 			replyAllAction: this.getReplyAction(viewModel, true),
 			forwardAction: this.getForwardAction(viewModel),
+			mailViewerMoreActions: getMailViewerMoreActions(viewModel.primaryViewModel()),
 		})
 	}
 
@@ -319,9 +316,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private mailViewerMultiActions() {
-		const mailModel = mailLocator.mailModel
 		return m(MailViewerActions, {
-			mailModel,
 			selectedMails: this.mailViewModel.listModel?.getSelectedAsArray() ?? [],
 			selectNone: () => this.mailViewModel.listModel?.selectNone(),
 			deleteMailsAction: () => this.deleteSelectedMails(),
@@ -334,6 +329,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			replyAction: null,
 			replyAllAction: null,
 			forwardAction: null,
+			mailViewerMoreActions: null,
 		})
 	}
 
@@ -405,7 +401,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
-								viewModel: this.conversationViewModel.primaryViewModel(),
 								deleteMailsAction: () => this.deleteSelectedMails(),
 								moveMailsAction: this.getMoveMailsAction(),
 								applyLabelsAction: this.getLabelsAction(),
@@ -416,6 +411,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								replyAction: this.getReplyAction(this.conversationViewModel, false),
 								replyAllAction: this.getReplyAction(this.conversationViewModel, true),
 								forwardAction: this.getForwardAction(this.conversationViewModel),
+								mailViewerMoreActions: getMailViewerMoreActions(this.conversationViewModel.primaryViewModel()),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 						? m(MobileMailMultiselectionActionBar, {
