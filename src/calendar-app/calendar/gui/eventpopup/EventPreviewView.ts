@@ -17,7 +17,6 @@ import {
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 	RENDER_TYPE_TRANSLATION_MAP,
-	RenderType,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
@@ -35,7 +34,6 @@ import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
-import { ByRule } from "../../../../common/calendar/import/ImportExportUtils.js"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
