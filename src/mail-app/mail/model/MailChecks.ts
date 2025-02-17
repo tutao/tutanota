@@ -3,9 +3,9 @@
 import { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailModel } from "./MailModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 
-export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
+export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: SystemFolderType): boolean {
 	const systemFolder = system.getSystemFolderByType(type)
 	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
 }
@@ -37,6 +37,6 @@ export function isSpamOrTrashFolder(system: FolderSystem, folder: MailFolder): b
 	)
 }
 
-export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
+export function isOfTypeOrSubfolderOf(system: FolderSystem, folder: MailFolder, type: SystemFolderType): boolean {
 	return folder.folderType === type || isSubfolderOfType(system, folder, type)
 }

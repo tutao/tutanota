@@ -19,7 +19,7 @@ import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewMode
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown, trashMails } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { editDraft, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
@@ -32,6 +32,7 @@ import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.j
 import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
+import { MoveMode } from "../model/MailModel"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -733,6 +734,18 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
+				const deleteOrTrashAction: DropdownButtonAttrs = viewModel.isDeletableMail()
+					? {
+							label: "delete_action",
+							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail._id], noOp),
+							icon: Icons.DeleteForever,
+					  }
+					: {
+							label: "trash_action",
+							click: () => trashMails(viewModel.mailModel, [viewModel.mail._id]),
+							icon: Icons.Trash,
+					  }
+
 				if (viewModel.isDraftMail()) {
 					actionButtons.push({
 						label: "edit_action",
@@ -742,30 +755,27 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					actionButtons.push({
 						label: "move_action",
 						click: (_: MouseEvent, dom: HTMLElement) =>
-							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], MoveMode.Mails),
 						icon: Icons.Folder,
 					})
-					actionButtons.push({
-						label: "delete_action",
-						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
-						icon: Icons.Trash,
-					})
+					actionButtons.push(deleteOrTrashAction)
 				} else {
-					if (viewModel.canForwardOrMove()) {
+					if (viewModel.canReply()) {
 						actionButtons.push({
 							label: "reply_action",
 							click: () => viewModel.reply(false),
 							icon: Icons.Reply,
 						})
+					}
+					if (viewModel.canReplyAll()) {
+						actionButtons.push({
+							label: "replyAll_action",
+							click: () => viewModel.reply(true),
+							icon: Icons.ReplyAll,
+						})
+					}
 
-						if (viewModel.canReplyAll()) {
-							actionButtons.push({
-								label: "replyAll_action",
-								click: () => viewModel.reply(true),
-								icon: Icons.ReplyAll,
-							})
-						}
-
+					if (viewModel.canForwardOrMove()) {
 						actionButtons.push({
 							label: "forward_action",
 							click: () => viewModel.forward(),
@@ -774,7 +784,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						actionButtons.push({
 							label: "move_action",
 							click: (_: MouseEvent, dom: HTMLElement) =>
-								showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
+								showMoveMailsDropdown(
+									viewModel.mailboxModel,
+									viewModel.mailModel,
+									dom.getBoundingClientRect(),
+									[viewModel.mail],
+									MoveMode.Mails,
+								),
 							icon: Icons.Folder,
 						})
 					}
@@ -799,11 +815,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						})
 					}
 
-					actionButtons.push({
-						label: "delete_action",
-						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
-						icon: Icons.Trash,
-					})
+					actionButtons.push(deleteOrTrashAction)
 
 					actionButtons.push(...singleMailViewerMoreActions(viewModel))
 				}

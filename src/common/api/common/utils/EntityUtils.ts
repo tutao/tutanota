@@ -230,6 +230,18 @@ export function elementIdPart(id: IdTuple): Id {
 }
 
 /**
+ * Takes an iterator of list element entities and returns their ids in an array.
+ * @param entities
+ */
+export function getIds<T extends SomeEntity>(entities: Iterable<T>): Array<T["_id"]> {
+	const ids: Array<T["_id"]> = []
+	for (const entity of entities) {
+		ids.push(entity._id)
+	}
+	return ids
+}
+
+/**
  * Converts a string to a custom id. Attention: the custom id must be intended to be derived from a string.
  */
 export function stringToCustomId(string: string): string {
