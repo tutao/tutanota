@@ -1068,6 +1068,11 @@ export class CalendarModel {
 						break
 					}
 				}
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, entityEventData)) {
+				// Usually this type of update comes alone after all other calendar updates,
+				// and user might have subscribed to a new calendar, so we must reload
+				// calendar infos to make sure that the calendar has been put in the correct section
+				this.calendarInfos.reload()
 			}
 		}
 
