@@ -28,6 +28,7 @@ import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacad
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { WorkerFacade } from "./facades/WorkerFacade.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
+import { SyncTracker } from "../main/SyncTracker.js"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -46,6 +47,7 @@ export interface MainInterface {
 	readonly eventController: ExposedEventController
 	readonly operationProgressTracker: ExposedOperationProgressTracker
 	readonly infoMessageHandler: InfoMessageHandler
+	readonly syncTracker: SyncTracker
 }
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */

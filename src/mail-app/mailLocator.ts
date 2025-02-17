@@ -133,6 +133,7 @@ import type { MailExportController } from "./native/main/MailExportController.js
 import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.js"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
+import { SyncTracker } from "../common/api/main/SyncTracker.js"
 
 assertMainOrNode()
 
@@ -193,6 +194,7 @@ class MailLocator {
 	Const!: Record<string, any>
 	bulkMailLoader!: BulkMailLoader
 	mailExportFacade!: MailExportFacade
+	syncTracker!: SyncTracker
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -754,6 +756,7 @@ class MailLocator {
 		this.logins.init()
 		this.eventController = new EventController(mailLocator.logins)
 		this.progressTracker = new ProgressTracker()
+		this.syncTracker = new SyncTracker()
 		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
@@ -799,7 +802,6 @@ class MailLocator {
 			() => this.usageTestController,
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
-
 		this.Const = Const
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
@@ -990,6 +992,7 @@ class MailLocator {
 			!isBrowser() ? this.externalCalendarFacade : null,
 			deviceConfig,
 			!isBrowser() ? this.pushService : null,
+			this.syncTracker,
 		)
 	})
 
@@ -1112,8 +1115,8 @@ class MailLocator {
 			this.userManagementFacade,
 			this.customerFacade,
 			this.themeController,
+			this.syncTracker,
 			() => this.showSetupWizard(),
-			() => this.handleExternalSync(),
 			() => this.setUpClientOnlyCalendars(),
 		)
 	})
@@ -1131,24 +1134,6 @@ class MailLocator {
 				deviceConfig,
 				true,
 			)
-		}
-	}
-
-	async handleExternalSync() {
-		const calendarModel = await locator.calendarModel()
-
-		if (isApp() || isDesktop()) {
-			calendarModel.syncExternalCalendars().catch(async (e) => {
-				showSnackBar({
-					message: lang.makeTranslation("exception_msg", e.message),
-					button: {
-						label: "ok_action",
-						click: noOp,
-					},
-					waitingTime: 1000,
-				})
-			})
-			calendarModel.scheduleExternalCalendarSync()
 		}
 	}
 

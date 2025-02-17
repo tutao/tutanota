@@ -29,6 +29,7 @@ import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { TypeModel } from "../../../../src/common/api/common/EntityTypes.js"
+import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -40,12 +41,23 @@ o.spec("EventBusClientTest", function () {
 	let sleepDetector: SleepDetector
 	let listenerMock: EventBusListener
 	let progressTrackerMock: ExposedProgressTracker
+	let syncTrackerMock: SyncTracker
 	let socketFactory
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
 		const instanceMapper = new InstanceMapper()
-		ebc = new EventBusClient(listenerMock, cacheMock, userMock, entityClient, instanceMapper, socketFactory, sleepDetector, progressTrackerMock)
+		ebc = new EventBusClient(
+			listenerMock,
+			cacheMock,
+			userMock,
+			entityClient,
+			instanceMapper,
+			socketFactory,
+			sleepDetector,
+			progressTrackerMock,
+			syncTrackerMock,
+		)
 	}
 
 	o.before(function () {
@@ -65,6 +77,7 @@ o.spec("EventBusClientTest", function () {
 	o.beforeEach(async function () {
 		listenerMock = object()
 		progressTrackerMock = object()
+		syncTrackerMock = object()
 		cacheMock = object({
 			async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
 				return batch.events.slice()
