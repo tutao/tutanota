@@ -6,6 +6,7 @@ plugins {
 	id("org.jetbrains.kotlin.android")
 	id("kotlin-kapt")
 	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.21"
+	id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // this version matches the Kotlin version
 }
 
 group = "de.tutao"
@@ -79,7 +80,9 @@ android {
 	}
 
 	buildFeatures {
+		viewBinding = true
 		this.buildConfig = true
+		compose = true
 	}
 
 	applicationVariants.configureEach {
@@ -223,4 +226,31 @@ dependencies {
 	androidTestImplementation("androidx.test:rules:1.4.0")
 	androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
 	androidTestImplementation("androidx.room:room-testing:2.4.2")
+
+	// Setup for Jetpack Compose
+	val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
+	implementation(composeBom)
+	androidTestImplementation(composeBom)
+	implementation("androidx.compose.material3:material3")
+
+	// Android Studio Preview support
+	implementation("androidx.compose.ui:ui-tooling-preview")
+	debugImplementation("androidx.compose.ui:ui-tooling")
+
+	// UI Tests
+	androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+	debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+	// Optional - Icons
+	implementation("androidx.compose.material:material-icons-core")
+	// Optional - Add full set of material icons
+	implementation("androidx.compose.material:material-icons-extended")
+	// Optional - Add window size utils
+	// implementation("androidx.compose.material3.adaptive:adaptive")
+
+	// For AppWidgets support
+	implementation("androidx.glance:glance-appwidget:1.1.0")
+	// For interop APIs with Material 3
+	implementation("androidx.glance:glance-material3:1.1.0")
+
 }
