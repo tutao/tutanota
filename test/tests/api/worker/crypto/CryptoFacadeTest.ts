@@ -750,7 +750,7 @@ o.spec("CryptoFacadeTest", function () {
 		const senderKeyPair: KeyPair = object()
 
 		const senderAsymmetricKeyPair: Versioned<RsaKeyPair> = object()
-		const senderAsymmetricPublicKey: Versioned<RsaPublicKey> = object()
+		const senderPublicKey: Versioned<RsaPublicKey> = object()
 
 		const senderUserGroup = createGroup({
 			_id: "userGroupId",

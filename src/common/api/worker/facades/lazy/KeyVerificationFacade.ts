@@ -1,14 +1,7 @@
 import { assertWorkerOrNode } from "../../../common/Env"
 import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { assertNotNull, base64ToUint8Array, concat, Hex, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import {
-	AsymmetricPublicKey,
-	isVersionedPqPublicKey,
-	isVersionedRsaEccPublicKey,
-	isVersionedRsaPublicKey,
-	KeyPairType,
-	sha256Hash,
-} from "@tutao/tutanota-crypto"
+import { PublicKey, isVersionedPqPublicKey, isVersionedRsaEccPublicKey, isVersionedRsaPublicKey, KeyPairType, sha256Hash } from "@tutao/tutanota-crypto"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
@@ -165,7 +158,7 @@ export class KeyVerificationFacade {
 		return receivedFingerprint?.fingerprint === expectedFingerprint
 	}
 
-	public concatenateFingerprint(publicKey: Versioned<AsymmetricPublicKey>): Uint8Array {
+	public concatenateFingerprint(publicKey: Versioned<PublicKey>): Uint8Array {
 		let keyMetadata = concat(stringToUtf8Uint8Array(String(publicKey.version)), stringToUtf8Uint8Array(String(publicKey.object.keyPairType)))
 
 		if (isVersionedRsaPublicKey(publicKey)) {
@@ -182,7 +175,7 @@ export class KeyVerificationFacade {
 	/**
 	 * Returns a hashed concatenation of the given public keys.
 	 */
-	public calculateFingerprint(publicKey: Versioned<AsymmetricPublicKey>): PublicKeyFingerprint {
+	public calculateFingerprint(publicKey: Versioned<PublicKey>): PublicKeyFingerprint {
 		const publicKeysConcatenation = this.concatenateFingerprint(publicKey)
 		const hash = uint8ArrayToHex(sha256Hash(publicKeysConcatenation))
 		const publicKeyFingerprint: PublicKeyFingerprint = {
@@ -194,7 +187,7 @@ export class KeyVerificationFacade {
 		return publicKeyFingerprint
 	}
 
-	async resolveVerificationState(mailAddress: string, publicKey: Versioned<AsymmetricPublicKey>): Promise<KeyVerificationState> {
+	async resolveVerificationState(mailAddress: string, publicKey: Versioned<PublicKey>): Promise<KeyVerificationState> {
 		const trusted = await this.isTrusted(mailAddress)
 		if (!trusted) {
 			return KeyVerificationState.NO_ENTRY

@@ -2,7 +2,7 @@ import { assertWorkerOrNode } from "../../common/Env"
 import {
 	AesKey,
 	AsymmetricKeyPair,
-	AsymmetricPublicKey,
+	PublicKey,
 	bitArrayToUint8Array,
 	EccKeyPair,
 	EccPublicKey,
@@ -60,7 +60,7 @@ export class AsymmetricCryptoFacade {
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
-	getSenderEccKey(publicKey: Versioned<AsymmetricPublicKey>): EccPublicKey | null {
+	getSenderEccKey(publicKey: Versioned<PublicKey>): EccPublicKey | null {
 		if (isVersionedPqPublicKey(publicKey)) {
 			return publicKey.object.eccPublicKey
 		} else if (isVersionedRsaEccPublicKey(publicKey)) {
@@ -189,7 +189,7 @@ export class AsymmetricCryptoFacade {
 	 * @param recipientPublicKey the public key(s) of the recipient in the current version
 	 * @param senderGroupId the group id of the sender. will only be used in case we also need the sender's key pair, e.g. with TutaCrypt.
 	 */
-	async asymEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<AsymmetricPublicKey>, senderGroupId: Id): Promise<PubEncSymKey> {
+	async asymEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderGroupId: Id): Promise<PubEncSymKey> {
 		if (isVersionedPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
 			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
@@ -216,11 +216,7 @@ export class AsymmetricCryptoFacade {
 	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
 	 * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
 	 */
-	async tutaCryptEncryptSymKey(
-		symKey: AesKey,
-		recipientPublicKey: Versioned<AsymmetricPublicKey>,
-		senderEccKeyPair: Versioned<EccKeyPair>,
-	): Promise<PubEncSymKey> {
+	async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
 		if (!isVersionedPqPublicKey(recipientPublicKey)) {
 			throw new ProgrammingError("the recipient does not have pq key pairs")
 		}

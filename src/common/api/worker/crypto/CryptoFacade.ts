@@ -65,7 +65,7 @@ import {
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
-	AsymmetricPublicKey,
+	PublicKey,
 	bitArrayToUint8Array,
 	decryptKey,
 	EccPublicKey,
@@ -761,7 +761,7 @@ export class CryptoFacade {
 	private async createPubEncInternalRecipientKeyData(
 		bucketKey: AesKey,
 		recipientMailAddress: string,
-		recipientPublicKeys: Versioned<AsymmetricPublicKey>,
+		recipientPublicKeys: Versioned<PublicKey>,
 		senderGroupId: Id,
 	) {
 		const pubEncBucketKey = await this.asymmetricCryptoFacade.asymEncryptSymKey(bucketKey, recipientPublicKeys, senderGroupId)

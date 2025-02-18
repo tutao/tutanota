@@ -7,7 +7,7 @@ import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "../../../../../src/comm
 import { concat, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
-import { AsymmetricPublicKey, KeyPairType, PQPublicKeys } from "@tutao/tutanota-crypto"
+import { PublicKey, KeyPairType, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
 
 const { anything } = matchers
@@ -217,7 +217,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			}
 
 			let concatenation: Uint8Array
-			let publicKey: Versioned<AsymmetricPublicKey>
+			let publicKey: Versioned<PublicKey>
 
 			publicKey = {
 				version: 0,
