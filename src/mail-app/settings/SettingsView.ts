@@ -141,10 +141,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			),
 			new SettingsFolder(
 				() => "keyManagement_label",
-				() => Icons.Key,
+				() => Icons.KeySolid,
 				"keymanagement",
 				() => {
-					var settingsViewer = new KeyManagementSettingsViewer(
+					const settingsViewer = new KeyManagementSettingsViewer(
 						locator.keyVerificationFacade,
 						locator.systemFacade,
 						locator.logins.getUserController(),

@@ -14,11 +14,28 @@ export class MonospaceTextDisplay implements Component<MonospaceTextDisplayAttrs
 		const { text, placeholder, chunkSize, classes } = vnode.attrs
 		const border = vnode.attrs.border ?? true
 
-		let formattedText: string
+		let splitText: string = ""
 		if (chunkSize !== undefined && text !== "") {
-			formattedText = assertNotNull(text.match(new RegExp(`.{${chunkSize}}`, "g"))).join(" ")
+			const formattedText = assertNotNull(text.match(new RegExp(`.{${chunkSize}}`, "g"))).join(" ")
+			const chunks = formattedText.split(" ")
+			let chunkProcessed = 0
+
+			for (let i = 0; i < chunks.length; i++) {
+				if (chunkProcessed === 4) {
+					chunkProcessed = 0
+					splitText += "\n"
+				}
+				const currentChunk = chunks[i]
+				if (chunkProcessed > 0) {
+					splitText = `${splitText} ${currentChunk}`
+				} else {
+					splitText = `${splitText}${currentChunk}`
+				}
+
+				chunkProcessed += 1
+			}
 		} else {
-			formattedText = text
+			splitText = text
 		}
 
 		let extraClasses = classes ?? ""
@@ -28,8 +45,8 @@ export class MonospaceTextDisplay implements Component<MonospaceTextDisplayAttrs
 		}
 
 		// Display `formattedText` unless it is empty and a placeholder is given
-		const contents = formattedText != "" ? formattedText : placeholder !== undefined ? placeholder : ""
+		const contents = splitText != "" ? splitText : placeholder !== undefined ? placeholder : ""
 
-		return m(".text-break.monospace.selectable.flex.flex-wrap" + extraClasses, contents)
+		return m("pre.text-break.monospace.selectable.flex.flex-wrap.flex-center" + extraClasses, contents)
 	}
 }
