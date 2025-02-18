@@ -38,7 +38,7 @@ export async function getRatingAllowed(now: Date, deviceConfig: DeviceConfig, is
 
 	const lastRatingPromptedDate: Date | null = deviceConfig.getLastRatingPromptedDate()
 
-	if (lastRatingPromptedDate != null && DateTime.fromJSDate(now).diff(DateTime.fromJSDate(lastRatingPromptedDate), "years").years < 1) {
+	if (lastRatingPromptedDate != null && DateTime.fromJSDate(now).diff(DateTime.fromJSDate(lastRatingPromptedDate), "months").months < 3) {
 		return RatingCheckResult.LAST_RATING_TOO_YOUNG
 	}
 
