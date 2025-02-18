@@ -9,6 +9,7 @@ import { isIOSApp } from "../../api/common/Env.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { completeEvaluationStage, TriggerType } from "../InAppRatingUtils.js"
+import { DateTime } from "luxon"
 
 interface HowAreWeDoingPageAttrs {
 	triggerType: TriggerType
@@ -70,7 +71,7 @@ export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
 						label: "ratingNeedsWork_label",
 						text: lang.get("ratingNeedsWork_label"),
 						onclick: () => {
-							deviceConfig.setLastRatingPromptedDate(new Date())
+							deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 3 }).toJSDate())
 							completeEvaluationStage(triggerType, "NeedsWork")
 							dialog.close()
 						},
