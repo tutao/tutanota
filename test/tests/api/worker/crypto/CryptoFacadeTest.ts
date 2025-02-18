@@ -697,10 +697,13 @@ o.spec("CryptoFacadeTest", function () {
 		when(publicKeyProvider.loadCurrentPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress })).thenResolve(
 			recipientPublicKeys,
 		)
-		when(publicKeyProvider.loadVersionedPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress }, 0)).thenResolve({
-			keyPairType: KeyPairType.TUTA_CRYPT,
-			eccPublicKey: senderKeyPair.pubEccKey!,
-			kyberPublicKey: { raw: senderKeyPair.pubKyberKey! },
+		when(publicKeyProvider.loadPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress }, 0)).thenResolve({
+			version: 0,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				eccPublicKey: senderKeyPair.pubEccKey!,
+				kyberPublicKey: { raw: senderKeyPair.pubKyberKey! },
+			},
 		})
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })

@@ -1,13 +1,11 @@
 import o from "@tutao/otest"
 import { KeyVerificationFacade, KeyVerificationState, PublicKeyFingerprint } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { matchers, object, verify, when } from "testdouble"
 import { SqlType, TaggedSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
-import { PublicKeyGetIn, PublicKeyGetOut, PublicKeyGetOutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { concat, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
-import { KeyVerificationSourceOfTruth } from "../../../../../src/common/api/common/TutanotaConstants"
-import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services"
+import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { AsymmetricPublicKey, KeyPairType, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
@@ -42,17 +40,15 @@ const PUBLIC_KEY_FINGERPRINT: PublicKeyFingerprint = {
 
 o.spec("KeyVerificationFacadeTest", function () {
 	let keyVerification: KeyVerificationFacade
-	let serviceExecutor: IServiceExecutor
 	let sqlCipherFacade: SqlCipherFacade
 	let publicKeyProvider: PublicKeyProvider
 	let versionedRecipientPublicKey: Versioned<PQPublicKeys>
 
 	o.beforeEach(function () {
-		serviceExecutor = object()
 		sqlCipherFacade = object()
 		publicKeyProvider = object()
 
-		keyVerification = new KeyVerificationFacade(serviceExecutor, sqlCipherFacade, publicKeyProvider)
+		keyVerification = new KeyVerificationFacade(sqlCipherFacade, publicKeyProvider)
 		when(sqlCipherFacade.get(anything(), anything())).thenResolve(null)
 		when(
 			sqlCipherFacade.get(
@@ -79,26 +75,20 @@ o.spec("KeyVerificationFacadeTest", function () {
 				value: KeyPairType.TUTA_CRYPT,
 			},
 		})
-		when(
-			serviceExecutor.get(
-				PublicKeyService,
-				matchers.argThat((params: PublicKeyGetIn) => {
-					return params.identifier == "test@example.com"
-				}),
-			),
-		).thenResolve(PUBLIC_KEY_GET_OUT)
-		when(
-			serviceExecutor.get(
-				PublicKeyService,
-				matchers.argThat((params: PublicKeyGetIn) => {
-					return params.identifier == "missing@example.com"
-				}),
-			),
-		).thenDo(() => {
-			throw new NotFoundError("")
-		})
 
 		when(publicKeyProvider.convertFromPublicKeyGetOut(PUBLIC_KEY_GET_OUT)).thenReturn(PUBLIC_KEY)
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifier: "test@example.com",
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			}),
+		).thenResolve(PUBLIC_KEY)
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifier: "missing@example.com",
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			}),
+		).thenReject(new NotFoundError(""))
 	})
 
 	o.spec("confirm trusted identity database works as intended", function () {
@@ -200,18 +190,18 @@ o.spec("KeyVerificationFacadeTest", function () {
 			verify(sqlCipherFacade.get(query, params))
 		})
 
-		o("acquire existing fingerprint from public key service", async function () {
+		o("acquire existing fingerprint from public key provider", async function () {
 			const result = await keyVerification.getFingerprint("test@example.com", KeyVerificationSourceOfTruth.PublicKeyService)
 			o(result).deepEquals(PUBLIC_KEY_FINGERPRINT)
 
-			verify(serviceExecutor.get(PublicKeyService, anything()))
+			verify(publicKeyProvider.loadCurrentPubKey({ identifier: "test@example.com", identifierType: PublicKeyIdentifierType.MAIL_ADDRESS }))
 		})
 
-		o("acquire non-existing fingerprint from public key service", async function () {
+		o("acquire non-existing fingerprint from public key provider", async function () {
 			const result = await keyVerification.getFingerprint("missing@example.com", KeyVerificationSourceOfTruth.PublicKeyService)
 			o(result).equals(null)
 
-			verify(serviceExecutor.get(PublicKeyService, anything()))
+			verify(publicKeyProvider.loadCurrentPubKey({ identifier: "missing@example.com", identifierType: PublicKeyIdentifierType.MAIL_ADDRESS }))
 		})
 	})
 

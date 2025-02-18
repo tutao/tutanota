@@ -42,10 +42,6 @@ export class PublicKeyProvider {
 		return this.loadPubKey(pubKeyIdentifier, null)
 	}
 
-	async loadVersionedPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): Promise<AsymmetricPublicKey> {
-		return (await this.loadPubKey(pubKeyIdentifier, version)).object
-	}
-
 	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<Versioned<AsymmetricPublicKey>> {
 		const requestData = createPublicKeyGetIn({
 			version: version ? String(version) : null,

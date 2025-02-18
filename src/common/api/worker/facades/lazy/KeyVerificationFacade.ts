@@ -9,7 +9,6 @@ import {
 	KeyPairType,
 	sha256Hash,
 } from "@tutao/tutanota-crypto"
-import { IServiceExecutor } from "../../../common/ServiceRequest"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
@@ -42,11 +41,7 @@ export interface KeyVerificationDetails {
 }
 
 export class KeyVerificationFacade {
-	constructor(
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly sqlCipherFacade: SqlCipherFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
-	) {}
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly publicKeyProvider: PublicKeyProvider) {}
 
 	deserializeDatabaseEntry(entry: Record<string, TaggedSqlValue>): [MailAddress, PublicKeyFingerprint] {
 		const mailAddress = entry.mailAddress.value as string

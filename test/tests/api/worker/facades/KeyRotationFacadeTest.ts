@@ -47,7 +47,6 @@ import {
 	KEY_LENGTH_BYTES_AES_256,
 	KeyPairType,
 	KyberPrivateKey,
-	KyberPublicKey,
 	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -84,7 +83,6 @@ import { assertThrows, mockAttribute, spy } from "@tutao/tutanota-test-utils"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
 import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { TutanotaError } from "@tutao/tutanota-error"
 import {
 	AdminSymKeyAuthenticationParams,
 	brandKeyMac,
@@ -92,6 +90,7 @@ import {
 	PubDistKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
@@ -984,6 +983,8 @@ o.spec("KeyRotationFacadeTest", function () {
 					teamOrCustomerGroupKeyRotations: [],
 					userAreaGroupsKeyRotations: [],
 				})
+				const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+				when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.asymmetricPublicKey)
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
@@ -1038,6 +1039,9 @@ o.spec("KeyRotationFacadeTest", function () {
 
 				assertNotNull(user.auth).recoverCode = null
 
+				const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+				when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.asymmetricPublicKey)
+
 				await keyRotationFacade.processPendingKeyRotation(user)
 
 				verify(
@@ -1081,15 +1085,8 @@ o.spec("KeyRotationFacadeTest", function () {
 				when(keyAuthenticationFacade.computeTag(anything())).thenReturn(macTag)
 				when(groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(additionalUserGroupInfo.group)).thenResolve(additionalUserGroupKey)
 
-				const newAdminKeyPair = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)
-
-				const newAdminAsymmetricPublicKey: PQPublicKeys = {
-					keyPairType: KeyPairType.TUTA_CRYPT,
-					eccPublicKey: newAdminKeyPair?.newKeyPairs.eccKeyPair.publicKey!,
-					kyberPublicKey: newAdminKeyPair?.newKeyPairs.kyberKeyPair.publicKey!,
-				}
-
-				when(this.publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(newAdminAsymmetricPublicKey)
+				const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+				when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.asymmetricPublicKey)
 
 				await keyRotationFacade.processPendingKeyRotation(user)
 
@@ -1110,13 +1107,13 @@ o.spec("KeyRotationFacadeTest", function () {
 				)
 				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
-				verify(cryptoWrapperMock.kyberPublicKeyToBytes(newAdminKeyPair?.newKeyPairs.kyberKeyPair.publicKey!))
+				verify(cryptoWrapperMock.kyberPublicKeyToBytes(generatedAdminKeyPairs.newKeyPairs.kyberKeyPair.publicKey))
 				verify(
 					keyAuthenticationFacade.computeTag({
 						tagType: "NEW_ADMIN_PUB_KEY_TAG",
 						sourceOfTrust: { receivingUserGroupKey: additionalUserGroupKey.object },
 						untrustedKey: {
-							newAdminPubKey: newAdminAsymmetricPublicKey,
+							newAdminPubKey: generatedAdminKeyPairs.asymmetricPublicKey.object,
 						},
 						bindingData: {
 							userGroupId: additionalUserGroupId,
@@ -1146,15 +1143,17 @@ o.spec("KeyRotationFacadeTest", function () {
 
 					const mockedDistKeyPair = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, adminDistKeyPairDistributionKey).get(
 						adminDistKeyPairDistributionKey,
-					)
+					)!
+
+					when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(mockedDistKeyPair.asymmetricPublicKey)
 
 					const distKeyTag = object<MacTag>()
 					when(
 						keyAuthenticationFacade.computeTag(
 							matchers.argThat((params: PubDistKeyAuthenticationParams) => {
 								o(params.tagType).equals("PUB_DIST_KEY_TAG")
-								o(params.untrustedKey.distPubKey.eccPublicKey).equals(mockedDistKeyPair?.newKeyPairs.eccKeyPair.publicKey!)
-								o(params.untrustedKey.distPubKey.kyberPublicKey.raw).equals(mockedDistKeyPair?.kyberPublicKeyBytes!)
+								o(params.untrustedKey.distPubKey.eccPublicKey).equals(mockedDistKeyPair.asymmetricPublicKey.object.eccPublicKey)
+								o(params.untrustedKey.distPubKey.kyberPublicKey.raw).equals(mockedDistKeyPair.asymmetricPublicKey.object.kyberPublicKey.raw)
 								return true
 							}),
 						),
@@ -1283,6 +1282,13 @@ o.spec("KeyRotationFacadeTest", function () {
 
 					when(groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(otherAdmin)).thenResolve(otherAdminUserGroupKey)
 
+					const distributionPublicKey: Versioned<PQPublicKeys> = object()
+					distributionPublicKey.object = object<PQPublicKeys>()
+					when(publicKeyProvider.convertFromPubDistributionKey(anything())).thenReturn(distributionPublicKey)
+
+					const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+					when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.asymmetricPublicKey)
+
 					await keyRotationFacade.processPendingKeyRotation(user)
 
 					verify(
@@ -1344,6 +1350,8 @@ o.spec("KeyRotationFacadeTest", function () {
 						object: object<AesKey>(),
 						version: 12,
 					}
+					const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+					when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.asymmetricPublicKey)
 
 					when(keyLoaderFacadeMock.getCurrentSymGroupKey(anything())).thenResolve(currentAdminGroupKey)
 					when(cryptoWrapperMock.aesDecrypt(anything(), anything(), anything())).thenThrow(new CryptoError("unable to decrypt"))
@@ -1390,6 +1398,13 @@ o.spec("KeyRotationFacadeTest", function () {
 
 					encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes = object<Uint8Array>()
 					when(asymmetricCryptoFacade.tutaCryptEncryptSymKey(anything(), anything(), anything())).thenResolve(encryptedAdminGroupKeyForThisAdmin)
+
+					const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
+					when(publicKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.asymmetricPublicKey)
+
+					const distributionPublicKey: Versioned<PQPublicKeys> = object()
+					distributionPublicKey.object = object<PQPublicKeys>()
+					when(publicKeyProvider.convertFromPubDistributionKey(anything())).thenReturn(distributionPublicKey)
 
 					await assertThrows(TutanotaError, async () => await keyRotationFacade.processPendingKeyRotation(user))
 				})
@@ -2191,10 +2206,12 @@ function mockPrepareKeyForOtherMembers(user: User, groupManagementFacadeMock: Gr
 
 type MockedKeyPairs = {
 	newKeyPairs: PQKeyPairs
+	asymmetricPublicKey: Versioned<PQPublicKeys>
 	encryptedEccPrivKey: Uint8Array
 	encryptedKyberPrivKey: Uint8Array
 	kyberPublicKeyBytes: Uint8Array
 	eccPublicKeyBytes: Uint8Array
+	encryptedPqKeyPairs: EncryptedPqKeyPairs
 }
 
 function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoWrapper, ...newKeys: AesKey[]): Map<AesKey, MockedKeyPairs> {
@@ -2206,7 +2223,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 			privateKey: object<Uint8Array>(),
 		}
 		newKeyPairs.kyberKeyPair = {
-			publicKey: object<KyberPublicKey>(),
+			publicKey: { raw: object<Uint8Array>() },
 			privateKey: object<KyberPrivateKey>(),
 		}
 
@@ -2217,7 +2234,32 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 		const kyberPublicKeyBytes: Uint8Array = Uint8Array.from([3])
 		const eccPublicKeyBytes: Uint8Array = Uint8Array.from([1])
 		when(cryptoWrapperMock.kyberPublicKeyToBytes(newKeyPairs.kyberKeyPair.publicKey)).thenReturn(kyberPublicKeyBytes)
-		results.set(newKey, { newKeyPairs, encryptedEccPrivKey, encryptedKyberPrivKey, kyberPublicKeyBytes, eccPublicKeyBytes })
+		const asymmetricPublicKey: Versioned<PQPublicKeys> = object()
+		const pqPublicKey: PQPublicKeys = object()
+		pqPublicKey.keyPairType = KeyPairType.TUTA_CRYPT
+		pqPublicKey.eccPublicKey = object()
+		pqPublicKey.kyberPublicKey = object()
+		asymmetricPublicKey.version = 1
+		asymmetricPublicKey.object = pqPublicKey
+
+		const encryptedPqKeyPairs: EncryptedPqKeyPairs = {
+			pubEccKey: newKeyPairs.eccKeyPair.publicKey,
+			pubKyberKey: newKeyPairs.kyberKeyPair.publicKey.raw,
+			pubRsaKey: null,
+			symEncPrivEccKey: encryptedEccPrivKey,
+			symEncPrivKyberKey: encryptedKyberPrivKey,
+			symEncPrivRsaKey: null,
+		}
+
+		results.set(newKey, {
+			asymmetricPublicKey,
+			newKeyPairs,
+			encryptedEccPrivKey,
+			encryptedKyberPrivKey,
+			kyberPublicKeyBytes,
+			eccPublicKeyBytes,
+			encryptedPqKeyPairs,
+		})
 		when(
 			cryptoWrapperMock.decryptKeyPair(
 				newKey,
