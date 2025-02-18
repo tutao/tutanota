@@ -27,6 +27,7 @@ import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "../../.
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
+	areAllAdvancedRepeatRulesValid,
 	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
 	getMonthRange,
@@ -54,6 +55,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import type { GroupColors } from "./CalendarView.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { Dialog } from "../../../common/gui/base/Dialog.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -335,21 +337,36 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (this._draggedEvent == null) return
 
 			const { originalEvent, eventClone } = this._draggedEvent
-			this._draggedEvent = null
-			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+			const editModel = await this.createCalendarEventEditModel(mode, originalEvent)
 
-			this._addTransientEvent(eventClone)
+			let whenModel = editModel?.editModels.whenModel
+			let warningConfirmed: boolean = true
+			if (
+				editModel != null &&
+				whenModel != null &&
+				whenModel.advancedRules.length > 0 &&
+				!areAllAdvancedRepeatRulesValid(whenModel.advancedRules, whenModel.repeatPeriod)
+			) {
+				warningConfirmed = await Dialog.confirm("unsupportedAdvancedRules_msg")
+			}
 
-			try {
-				const didUpdate = await this.moveEvent(originalEvent, timeToMoveBy, mode)
+			if (warningConfirmed) {
+				this._draggedEvent = null
+				updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
 
-				if (didUpdate !== EventSaveResult.Saved) {
+				this._addTransientEvent(eventClone)
+
+				try {
+					const didUpdate = await this.moveEvent(originalEvent, editModel!, timeToMoveBy, mode)
+
+					if (didUpdate !== EventSaveResult.Saved) {
+						this._removeTransientEvent(eventClone)
+					}
+				} catch (e) {
 					this._removeTransientEvent(eventClone)
-				}
-			} catch (e) {
-				this._removeTransientEvent(eventClone)
 
-				throw e
+					throw e
+				}
 			}
 		} else {
 			this._draggedEvent = null
@@ -464,18 +481,21 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	/**
 	 * move an event to a new start time
 	 * @param event the actually dragged event (may be a repeated instance)
+	 * @param editModel passed in from the outside for corresponding event
 	 * @param diff the amount of milliseconds to shift the event by
 	 * @param mode which parts of the series should be rescheduled?
 	 */
-	private async moveEvent(event: CalendarEvent, diff: number, mode: CalendarOperation): Promise<EventSaveResult> {
+	private async moveEvent(event: CalendarEvent, editModel: CalendarEventModel, diff: number, mode: CalendarOperation): Promise<EventSaveResult> {
 		if (event.uid == null) {
 			throw new ProgrammingError("called moveEvent for an event without uid")
 		}
 
-		const editModel = await this.createCalendarEventEditModel(mode, event)
 		if (editModel == null) {
+			// this should technically never be null
 			return EventSaveResult.Failed
 		}
+
+		editModel.editModels.whenModel.resetByDayRulesByDiff({ millisecond: diff })
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
