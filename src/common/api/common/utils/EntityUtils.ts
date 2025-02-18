@@ -18,6 +18,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { Cardinality, ValueType } from "../EntityConstants.js"
 import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
+import { TimeRange } from "../../../../mail-app/workerUtils/index/BulkMailLoader"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -444,7 +445,11 @@ function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
 	_removeIdentityFields(entity)
 }
 
-/** construct a mail set entry Id for a given mail. see MailFolderHelper.java */
+/**
+ * Construct a MailSetEntry Id for a given mail. see MailFolderHelper.java
+ *
+ * Note: this precision is only preserved up to 1024ms.
+ */
 export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 	const buffer = new DataView(new ArrayBuffer(MAIL_SET_ENTRY_ID_BYTE_LENGTH))
 	const mailIdBytes = base64ToUint8Array(base64ExtToBase64(mailId))
