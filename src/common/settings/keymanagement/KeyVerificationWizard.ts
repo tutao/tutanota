@@ -1,13 +1,17 @@
-import { createWizardDialog, wizardPageWrapper } from "../../gui/base/WizardDialog"
-import { DialogType } from "../../gui/base/Dialog"
-import { MethodSelectionPage, MethodSelectionPageAttrs } from "./wizardpages/MethodSelectionPage"
-import { KeyVerificationMethodType, KeyVerificationResultType } from "../../api/common/TutanotaConstants"
-import { MethodExecutionPage, MethodExecutionPageAttrs } from "./wizardpages/MethodExecutionPage"
-import { VerificationResultPage, VerificationResultPageAttrs } from "./wizardpages/VerificationResultPage"
+import { Dialog } from "../../gui/base/Dialog"
+import { Keys, KeyVerificationMethodType, KeyVerificationResultType } from "../../api/common/TutanotaConstants"
 import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
-import { completeStageNow } from "./wizardpages/KeyVerificationWizardUtils"
+import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
+import m from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import { ButtonType } from "../../gui/base/Button"
+import { MethodSelectionPage } from "./dialogpages/MethodSelectionPage"
+import { VerificationByTextPage } from "./dialogpages/VerificationByTextPage"
+import { KeyVerificationModel } from "./KeyVerificationModel"
+import { VerificationResultPage } from "./wizardpages/VerificationResultPage"
+import { VerificationByQrCodePage } from "./dialogpages/VerificationByQrCodePage"
 
 export type KeyVerificationWizardData = {
 	keyVerificationFacade: KeyVerificationFacade
@@ -20,6 +24,13 @@ export type KeyVerificationWizardData = {
 	usageTest: UsageTest
 }
 
+enum KeyVerificationWizardPages {
+	CHOOSE_METHOD,
+	BY_TEXT_INPUT_METHOD,
+	BY_QR_CODE_INPUT_METHOD,
+	SUCCESS,
+}
+
 export async function showKeyVerificationWizard(
 	keyVerificationFacade: KeyVerificationFacade,
 	mobileSystemFacade: MobileSystemFacade,
@@ -27,10 +38,10 @@ export async function showKeyVerificationWizard(
 	reloadParent: () => Promise<void>,
 ): Promise<void> {
 	const usageTest = usageTestController.getTest("crypto.keyVerification")
-	const stage = usageTest.getStage(0)
-	await completeStageNow(stage)
-
-	const wizardData: KeyVerificationWizardData = {
+	// const stage = usageTest.getStage(0)
+	// await completeStageNow(stage)
+	//
+	const data: KeyVerificationWizardData = {
 		keyVerificationFacade: keyVerificationFacade,
 		mobileSystemFacade: mobileSystemFacade,
 		method: KeyVerificationMethodType.text, // will be overwritten by the wizard
@@ -40,25 +51,91 @@ export async function showKeyVerificationWizard(
 		result: null,
 		usageTest: usageTest,
 	}
-	const wizardPages = [
-		wizardPageWrapper(MethodSelectionPage, new MethodSelectionPageAttrs(wizardData)),
-		wizardPageWrapper(MethodExecutionPage, new MethodExecutionPageAttrs(wizardData)),
-		wizardPageWrapper(VerificationResultPage, new VerificationResultPageAttrs(wizardData)),
-	]
 
-	console.log("USAGE TEST:", usageTest)
-
-	return new Promise((resolve) => {
-		const wizardBuilder = createWizardDialog(
-			wizardData,
-			wizardPages,
-			() => {
-				return Promise.resolve()
+	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade)
+	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationWizardPages>(KeyVerificationWizardPages.CHOOSE_METHOD)
+		.buildDialog(
+			(currentPage, dialog, navigateToPage, _) => {
+				switch (currentPage) {
+					case KeyVerificationWizardPages.CHOOSE_METHOD:
+						return m(MethodSelectionPage, {
+							goToEmailInputPage: () => {
+								navigateToPage(KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD)
+							},
+							goToQrScanPage: () => navigateToPage(KeyVerificationWizardPages.BY_QR_CODE_INPUT_METHOD),
+						})
+					case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: // TODO: rename to EMAIL INPUT METHOD?
+						return m(VerificationByTextPage, {
+							model,
+							goToSuccessPage: () => navigateToPage(KeyVerificationWizardPages.SUCCESS),
+						})
+					case KeyVerificationWizardPages.BY_QR_CODE_INPUT_METHOD:
+						return m(VerificationByQrCodePage, {
+							model,
+							goToSuccessPage: () => navigateToPage(KeyVerificationWizardPages.SUCCESS),
+						})
+					case KeyVerificationWizardPages.SUCCESS:
+						return m(VerificationResultPage, {
+							model,
+							back: () => navigateToPage(KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD),
+						})
+				}
 			},
-			DialogType.EditSmall,
+			{
+				getPageTitle: (currentPage) => {
+					switch (currentPage) {
+						// case KeyVerificationWizardPages.CHOOSE_METHOD: {
+						// 	return { testId: "back_action", text: lang.get("keyManagement.selectMethodShort_label") }
+						// }
+						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: {
+							return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
+						}
+						default: {
+							return {
+								text: lang.get("keyManagement.keyVerification_label"),
+								testId: "back_action",
+							}
+						}
+					}
+				},
+				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case KeyVerificationWizardPages.CHOOSE_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => dialog.close(),
+								label: "close_alt",
+								title: "close_alt",
+							}
+						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => goBack(),
+								label: "back_action",
+								title: "back_action",
+							}
+						case KeyVerificationWizardPages.BY_QR_CODE_INPUT_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => goBack(),
+								label: "back_action",
+								title: "back_action",
+							}
+						case KeyVerificationWizardPages.SUCCESS:
+							return {
+								type: ButtonType.Secondary,
+								click: () => dialog.close(),
+								label: "close_alt",
+								title: "close_alt",
+							}
+					}
+				},
+			},
 		)
-
-		const wizard = wizardBuilder.dialog
-		wizard.show()
-	})
+		.addShortcut({
+			help: "close_alt",
+			key: Keys.ESC,
+			exec: () => multiPageDialog.close(),
+		})
+		.show()
 }

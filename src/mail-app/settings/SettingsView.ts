@@ -145,7 +145,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			this._userFolders.push(
 				new SettingsFolder(
 					() => "keyManagement_label",
-					() => Icons.Key,
+					() => Icons.KeySolid,
 					"keymanagement",
 					() => {
 						const settingsViewer = new KeyManagementSettingsViewer(

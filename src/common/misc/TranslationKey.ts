@@ -1981,3 +1981,7 @@ export type TranslationKeyType =
 	| "weekScrollTime_label"
 	| "weekScrollTime_msg"
 	| "frequency_title"
+	| "keyManagement.verificationByText_label"
+	| "keyManagement.verificationByTextMailAdress_label"
+	| "keyManagement.contactVerificationConfirmationTitle_label"
+	| "keyManagement.verificationByQrCodeScan_label"
