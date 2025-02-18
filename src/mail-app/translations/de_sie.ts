@@ -856,7 +856,6 @@ export default {
 		"keyManagement.selectMethodLong_label": "Verifikationsmethode auswählen",
 		"keyManagement.showFingerprintAs_label": "Zeige Fingerabdruck als",
 		"keyManagement.text_label": "Text",
-		"keyManagement.textVerification_label": "Text-Verifikation",
 		"keyManagement.unverifiedRecipient_msg": "Dieser Empfänger hat einen öffentlichen Schlüssel, der nicht mit dem hinterlegten übereinstimmt:",
 		"keyManagement.verificationPool_label": "Verifizierte E-Mail-Adressen",
 		"keyManagement.verifyMailAddress_action": "E-Mail-Adresse hinzufügen und verifizieren",

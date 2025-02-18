@@ -2865,5 +2865,14 @@ styles.registerStyle("main", () => {
 			"border-bottom-right-radius": px(0),
 			"border-bottom-left-radius": px(0),
 		},
+		".lh": {
+			"line-height": 1.375,
+		},
+		".lh-l": {
+			"line-height": 5 / 3,
+		},
+		pre: {
+			margin: 0,
+		},
 	}
 })
