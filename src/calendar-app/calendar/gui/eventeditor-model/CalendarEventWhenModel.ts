@@ -428,8 +428,12 @@ export class CalendarEventWhenModel {
 		return this.repeatRule?.excludedDates.map(({ date }) => date) ?? []
 	}
 
-	resetByDayRulesByDiff(diff: DurationLikeObject) {
-		const oldStartTime = this.startTime.toDateTime(this.startDate, this.zone)
+	/**
+	 * @param overrideDate currently, when moving an event that has been created as a result of an AdvancedRepeatRule, it would always move the original event.
+	 * 	In this case, we have to pass the date of the event that has actually been moved, as that is the Weekday we actually want to account for.
+	 */
+	resetByDayRulesByDiff(diff: DurationLikeObject, overrideDate?: Date) {
+		const oldStartTime = overrideDate ? DateTime.fromJSDate(overrideDate) : this.startTime.toDateTime(this.startDate, this.zone)
 		const newStartDate = oldStartTime.plus(diff)
 
 		if (this.repeatPeriod == RepeatPeriod.MONTHLY) {
