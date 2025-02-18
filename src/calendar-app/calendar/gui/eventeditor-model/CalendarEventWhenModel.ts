@@ -8,8 +8,10 @@ import {
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { DateTime, DurationLikeObject } from "luxon"
 import {
+	areAllAdvancedRepeatRulesValid,
 	areExcludedDatesEqual,
 	areRepeatRulesEqual,
+	ByRule,
 	getAllDayDateUTCFromZone,
 	getEventEnd,
 	getEventStart,
@@ -19,11 +21,12 @@ import {
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils"
-import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule, createAdvancedRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
-import { EndType, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
+import { EndType, RepeatPeriod, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "../../../../common/api/entities/sys/TypeRefs.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
+import m from "mithril"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {
 	repeatRule: CalendarRepeatRule | null
@@ -423,6 +426,78 @@ export class CalendarEventWhenModel {
 
 	get excludedDates(): ReadonlyArray<Date> {
 		return this.repeatRule?.excludedDates.map(({ date }) => date) ?? []
+	}
+
+	resetByDayRulesByDiff(diff: DurationLikeObject) {
+		const oldStartTime = this.startTime.toDateTime(this.startDate, this.zone)
+		const newStartDate = oldStartTime.plus(diff)
+
+		if (this.repeatPeriod == RepeatPeriod.MONTHLY) {
+			return this.resetMonthlyByDayRules(newStartDate.toJSDate())
+		} else if (this.repeatPeriod == RepeatPeriod.WEEKLY) {
+			return this.resetWeeklyByDayRules(oldStartTime.toJSDate(), newStartDate.toJSDate())
+		}
+	}
+
+	/**
+	 * In case we change the Date within the EventEditor, or we Drag & Drop an event to another date, advanced repeat rules will become inconsistent.
+	 * Monthly BYDAY Rules are bound to the weekday of the event date, so we have to change the advanced repeat rules accordingly.
+	 * This should only be done for valid rules, if unsupported rules exist on the event, the User receives a warning and the rules are purged.
+	 * @param date Date that the BYDAY rule shall be moved to
+	 */
+	resetMonthlyByDayRules(date: Date): void {
+		if (areAllAdvancedRepeatRulesValid(this.advancedRules, this.repeatPeriod)) {
+			const bydayRules = this.advancedRules.filter((rule) => rule.ruleType == ByRule.BYDAY)
+			const weekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(date).weekday - 1]
+			const regex = /^-?\d/g // Regex for extracting the first digit from interval
+			const interval = Array.from(bydayRules[0].interval.matchAll(regex)).flat()[0] // collect interval
+
+			this.advancedRules = this.createAdvancedRulesFromWeekdays([weekday], parseInt(interval))
+			m.redraw()
+		} else {
+			this.advancedRules = []
+		}
+	}
+
+	/**
+	 * In the rare case that a weekly event with atleast 1 BYDAY rule configured, is drag and dropped
+	 * to a different day, we also need to handle said BYDAY rules as it might lead to inconsistencies.
+	 * In this case, we have to remove the weekday that it has been moved from and add the one it has been
+	 * moved to. In case the event is dragged to a weekday that is already contained as a BYDAY Rule, it is
+	 * removed.
+	 */
+	resetWeeklyByDayRules(oldDate: Date, newDate: Date): void {
+		if (areAllAdvancedRepeatRulesValid(this.advancedRules, this.repeatPeriod)) {
+			const bydayRules = this.advancedRules.filter((rule) => rule.ruleType == ByRule.BYDAY)
+			const oldWeekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(oldDate).weekday - 1]
+			const newWeekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(newDate).weekday - 1]
+
+			const weekdays = bydayRules.map((weekday) => weekday.interval as Weekday)
+			if (weekdays.includes(oldWeekday)) weekdays.splice(weekdays.indexOf(oldWeekday), 1)
+			if (!weekdays.includes(newWeekday)) weekdays.push(newWeekday)
+
+			this.advancedRules = this.createAdvancedRulesFromWeekdays(weekdays)
+			m.redraw()
+		} else {
+			this.advancedRules = []
+		}
+	}
+
+	/**
+	 * Returns an Array of BYDAY Advanced Repeat Rules for a given set of weekdays.
+	 * @param weekdays Either the weekdays a weekly event - or a singular weekday (first, second, ..., last) in a month that a monthly event should repeat on.
+	 * @param interval will only be set if weekdays.length() == 1. In this case we are writing a BYDAY Rule for FREQ=MONTHLY, in which case
+	 * 	we only specify what weekday of the month this event repeats on. (Ex.: BYDAY=2TH = Repeats on second THURSDAY of every month)
+	 * 	In case weekdays.length() == 0 && interval == 0, no BYDAY Rule shall be written, as the event will repeat on the same DAY every month.
+	 */
+	createAdvancedRulesFromWeekdays(weekdays: Weekday[], interval?: number): AdvancedRepeatRule[] {
+		if (weekdays.length == 0 || interval == 0) return []
+		return weekdays.map((wd) => {
+			return createAdvancedRepeatRule({
+				interval: interval ? interval.toString() + wd : wd,
+				ruleType: ByRule.BYDAY,
+			})
+		})
 	}
 
 	/**
