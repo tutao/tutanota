@@ -81,15 +81,18 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_SUCCEEDED if the key matches", async function () {
-			const rsaEccPublicKey: RsaEccPublicKey = {
-				keyLength: 0,
-				modulus: "",
-				publicExponent: 0,
+			const versionedRsaEccPublicKey: Versioned<RsaEccPublicKey> = {
 				version: 0,
-				keyPairType: KeyPairType.RSA_AND_ECC,
-				publicEccKey: senderIdentityPubKey,
+				object: {
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+					keyPairType: KeyPairType.RSA_AND_ECC,
+					publicEccKey: senderIdentityPubKey,
+				},
 			}
-			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(rsaEccPublicKey)
+			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaEccPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
 
@@ -97,9 +100,17 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if sender does not have an ecc identity key in the requested version", async function () {
-			const rsaPublicKey: RsaPublicKey = object()
-			rsaPublicKey.keyPairType = KeyPairType.RSA
-			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(rsaPublicKey)
+			const versionedRsaPublicKey: Versioned<RsaPublicKey> = {
+				version: 0,
+				object: {
+					keyPairType: KeyPairType.RSA,
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+				},
+			}
+			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
 
@@ -107,15 +118,18 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
-			const rsaEccPublicKey: RsaEccPublicKey = {
-				keyLength: 0,
-				modulus: "",
-				publicExponent: 0,
+			const versionedRsaEccPublicKey: Versioned<RsaEccPublicKey> = {
 				version: 0,
-				keyPairType: KeyPairType.RSA_AND_ECC,
-				publicEccKey: new Uint8Array([4, 5, 6]),
+				object: {
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+					keyPairType: KeyPairType.RSA_AND_ECC,
+					publicEccKey: new Uint8Array([4, 5, 6]),
+				},
 			}
-			when(publicKeyProvider.loadVersionedPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(rsaEccPublicKey)
+			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaEccPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
 
@@ -142,27 +156,30 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				recipientIdentifier,
 				recipientIdentifierType,
 			})
-			const rsaEccPublicKey: RsaEccPublicKey = {
-				keyLength: 0,
-				modulus: "",
-				publicExponent: 0,
+			const versionedRsaEccPublicKey: Versioned<RsaEccPublicKey> = {
 				version: 0,
-				keyPairType: KeyPairType.RSA_AND_ECC,
-				publicEccKey: new Uint8Array([4, 5, 6]),
+				object: {
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+					keyPairType: KeyPairType.RSA_AND_ECC,
+					publicEccKey: new Uint8Array([4, 5, 6]),
+				},
 			}
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
 				decryptedSymKeyBytes: symKey,
 				senderIdentityPubKey: object(),
 			})
 			when(
-				publicKeyProvider.loadVersionedPubKey(
+				publicKeyProvider.loadPubKey(
 					{
 						identifierType: senderIdentifierType,
 						identifier: senderIdentifier,
 					},
 					parseKeyVersion(senderKeyVersion),
 				),
-			).thenResolve(rsaEccPublicKey)
+			).thenResolve(versionedRsaEccPublicKey)
 
 			await assertThrows(CryptoError, () =>
 				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData, {
