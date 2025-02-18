@@ -88,7 +88,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				const ratingCheckResult = await getRatingAllowed(new Date(), deviceConfig, isApp())
 				if (ratingCheckResult === RatingCheckResult.RATING_ALLOWED) {
 					setTimeout(async () => {
-						void showAppRatingDialog()
+						showAppRatingDialog()
 					}, 2000)
 				}
 			})
