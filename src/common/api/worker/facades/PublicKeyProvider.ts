@@ -8,7 +8,7 @@ import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import {
-	AsymmetricPublicKey,
+	PublicKey,
 	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
@@ -38,11 +38,11 @@ type PublicKeyRawData = {
 export class PublicKeyProvider {
 	constructor(private readonly serviceExecutor: IServiceExecutor) {}
 
-	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<AsymmetricPublicKey>> {
+	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<PublicKey>> {
 		return this.loadPubKey(pubKeyIdentifier, null)
 	}
 
-	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<Versioned<AsymmetricPublicKey>> {
+	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<Versioned<PublicKey>> {
 		const requestData = createPublicKeyGetIn({
 			version: version ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
@@ -62,7 +62,7 @@ export class PublicKeyProvider {
 	 *
 	 * Receiving a higher version would indicate a protocol downgrade/ MITM attack, and we reject such keys.
 	 */
-	private enforceRsaKeyVersionConstraint(pubKeys: Versioned<AsymmetricPublicKey>) {
+	private enforceRsaKeyVersionConstraint(pubKeys: Versioned<PublicKey>) {
 		if (pubKeys.version !== 0 && isVersionedRsaOrRsaEccPublicKey(pubKeys)) {
 			throw new CryptoError("rsa key in a version that is not 0")
 		}
@@ -70,7 +70,7 @@ export class PublicKeyProvider {
 
 	/// Public key converter
 
-	public convertFromPublicKeyGetOut(publicKeys: PublicKeyGetOut): Versioned<AsymmetricPublicKey> {
+	public convertFromPublicKeyGetOut(publicKeys: PublicKeyGetOut): Versioned<PublicKey> {
 		return this.convertFromPublicKeyRawData({
 			pubRsaKey: publicKeys.pubRsaKey,
 			pubEccKey: publicKeys.pubEccKey,
@@ -79,7 +79,7 @@ export class PublicKeyProvider {
 		})
 	}
 
-	public convertFromSystemKeysReturn(publicKeys: SystemKeysReturn): Versioned<AsymmetricPublicKey> {
+	public convertFromSystemKeysReturn(publicKeys: SystemKeysReturn): Versioned<PublicKey> {
 		return this.convertFromPublicKeyRawData({
 			pubRsaKey: publicKeys.systemAdminPubRsaKey,
 			pubEccKey: publicKeys.systemAdminPubEccKey,
@@ -126,7 +126,7 @@ export class PublicKeyProvider {
 		}
 	}
 
-	private convertFromPublicKeyRawData(publicKeys: PublicKeyRawData): Versioned<AsymmetricPublicKey> {
+	private convertFromPublicKeyRawData(publicKeys: PublicKeyRawData): Versioned<PublicKey> {
 		const version = parseKeyVersion(publicKeys.pubKeyVersion)
 		// const version = Number(publicKeys.pubKeyVersion)
 		if (publicKeys.pubRsaKey) {

@@ -68,7 +68,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./
 import {
 	Aes256Key,
 	AesKey,
-	AsymmetricPublicKey,
+	PublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	EccKeyPair,
@@ -1120,7 +1120,7 @@ export class KeyRotationFacade {
 	private async encryptUserGroupKeyForAdminAsymmetrically(
 		userGroupId: Id,
 		newUserGroupKeys: GeneratedGroupKeys,
-		adminPubKeys: Versioned<AsymmetricPublicKey>,
+		adminPubKeys: Versioned<PublicKey>,
 		adminGroupId: Id,
 		currentUserGroupKey: VersionedKey,
 	): Promise<PubEncKeyData> {
