@@ -78,25 +78,9 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 	view(vnode: Vnode<WizardPageAttrs<KeyVerificationWizardData>>): Children {
 		const attrs: MethodExecutionPageAttrs = vnode.attrs as MethodExecutionPageAttrs
 
-		const { method, mailAddress, publicKeyFingerprint } = attrs.data
-		const { keyVerificationFacade, reloadParent } = attrs.data
+		const { method } = attrs.data
 
-		if (method === KeyVerificationMethodType.text) {
-			return m(
-				KeyVerificationWizardPage,
-				{
-					nextButtonLabel: lang.getTranslation("keyManagement.markAsVerified_action"),
-					disableNextButton: this.disableNextButton,
-					beforeNextPageHook: async () => {
-						const fingerprint = assertNotNull(publicKeyFingerprint)
-						await keyVerificationFacade.trust(mailAddress, fingerprint.fingerprint, fingerprint.keyVersion, fingerprint.keyPairType)
-						await reloadParent()
-						return true
-					},
-				},
-				this.renderTextMethod(attrs),
-			)
-		} else if (method === KeyVerificationMethodType.qr) {
+		if (method === KeyVerificationMethodType.qr) {
 			return m(
 				KeyVerificationWizardPage,
 				{
@@ -107,65 +91,6 @@ export class MethodExecutionPage implements WizardPageN<KeyVerificationWizardDat
 		} else {
 			return "This should not happen. Please report."
 		}
-	}
-
-	private renderTextMethod(attrs: MethodExecutionPageAttrs): Children {
-		const { keyVerificationFacade } = attrs.data
-
-		return m(
-			".pb",
-			m("p", m("span", "This is some introduction text explaining how to use the ", m("span.b", "text method. "), "It can also be a few lines longer.")),
-			m(TextField, {
-				class: "mb",
-				label: "mailAddress_label",
-				value: attrs.data.mailAddress,
-				type: TextFieldType.Email,
-				oninput: async (newValue) => {
-					console.log("text input, new value: ", newValue)
-					attrs.data.mailAddress = newValue
-
-					let invalidMailAddress = true
-
-					if (this.validateMailAddress(attrs.data.mailAddress) == null) {
-						try {
-							attrs.data.publicKeyFingerprint = assertNotNull(
-								await keyVerificationFacade.getFingerprint(attrs.data.mailAddress, KeyVerificationSourceOfTruth.PublicKeyService),
-							)
-							invalidMailAddress = false
-						} catch (e) {
-							invalidMailAddress = true
-						}
-					}
-
-					if (invalidMailAddress) {
-						this.disableNextButton = true
-						attrs.data.publicKeyFingerprint = null
-					} else {
-						this.disableNextButton = false
-					}
-
-					m.redraw()
-				},
-			}),
-			m(MonospaceTextDisplay, {
-				text: attrs.data.publicKeyFingerprint?.fingerprint || "",
-				placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
-				chunkSize: 4,
-			}),
-		)
-	}
-
-	private validateMailAddress(mailAddress: string): TranslationKey | null {
-		/* TODO:
-        Properly validate mail address. Only Tuta domains are reasonable for this problem space
-        so only those should be considered valid. */
-
-		// validate email address (syntactically)
-		if (getCleanedMailAddress(mailAddress) == null) {
-			return "mailAddressInvalid_msg"
-		}
-
-		return null // null means OK
 	}
 
 	private renderQrMethod(attrs: MethodExecutionPageAttrs): Children {
