@@ -5,10 +5,10 @@ import { getLocalisedCategoryName, SupportDialogState } from "../SupportDialog.j
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { px } from "../../gui/size.js"
-import { Card } from "../../gui/base/Card.js"
-import { AllIcons, Icon, IconSize, progressIcon } from "../../gui/base/Icon.js"
+import { AllIcons, progressIcon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
+import { TitleSection } from "../../gui/TitleSection"
 
 type Props = {
 	data: SupportDialogState
@@ -38,30 +38,11 @@ export class SupportLandingPage implements Component<Props> {
 						".flex-center.items-center.full-height",
 						m("div", m(".flex-center", progressIcon()), m("p.m-0.mt-s", lang.getTranslationText("loading_msg"))),
 				  )
-				: m("", [
-						m(
-							Card,
-							{
-								classes: [],
-							},
-							m(
-								"",
-								{
-									style: {
-										padding: "0.5em",
-									},
-								},
-								m(
-									".center",
-									m(Icon, {
-										icon: Icons.SpeechBubbleOutline,
-										size: IconSize.XXL,
-									}),
-								),
-								m(".center.h4", lang.get("supportStartPage_title")),
-								m(".center", lang.get("supportStartPage_msg")),
-							),
-						),
+				: m("", [m(TitleSection, {
+				icon: Icons.SpeechBubbleOutline,
+				title: lang.get("supportStartPage_title"),
+				subTitle: lang.get("supportStartPage_msg"),
+						}),
 						m(
 							".pb.pt.flex.col.gap-vpad.fit-height.box-content",
 							categories.map((category) =>

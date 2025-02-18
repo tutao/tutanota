@@ -2891,5 +2891,14 @@ styles.registerStyle("main", () => {
 			transform: "translate(0)",
 			"text-align": "center",
 		},
+		".lh": {
+			"line-height": 1.375,
+		},
+		".lh-l": {
+			"line-height": 5 / 3,
+		},
+		pre: {
+			margin: 0,
+		},
 	}
 })
