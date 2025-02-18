@@ -6,13 +6,15 @@ import { windowFacade } from "../../misc/WindowFacade.js"
 import { TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "../../api/common/TutanotaConstants.js"
 import { px, size } from "../../gui/size.js"
 import { theme } from "../../gui/theme.js"
+import { completeRatingStage, TriggerType } from "../InAppRatingUtils.js"
 
 interface AndroidPlayStorePageAttrs {
+	triggerType: TriggerType
 	dialog: Dialog
 }
 
 export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs> {
-	view({ attrs: { dialog } }: Vnode<AndroidPlayStorePageAttrs>): Children {
+	view({ attrs: { dialog, triggerType } }: Vnode<AndroidPlayStorePageAttrs>): Children {
 		return m(".flex.flex-column.pb-ml.text-break", [
 			m(
 				"section",
@@ -39,9 +41,11 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 					label: { text: "Rate now", testId: "" },
 					text: "Rate now",
 					onclick: () => {
+						completeRatingStage(triggerType)
+						dialog.close()
 						windowFacade.openLink(client.isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
 					},
-					class: `full-width border-radius-small center b flash accent-bg button-content`,
+					class: "full-width border-radius-small center b flash accent-bg button-content",
 					style: {
 						height: px(size.button_height + size.vpad_xs * 1.5),
 					},
@@ -53,7 +57,7 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 					onclick: () => {
 						dialog.close()
 					},
-					class: `full-width border-radius-small center b flash`,
+					class: "full-width border-radius-small center b flash",
 					style: {
 						border: `2px solid ${theme.content_accent}`,
 						height: px(size.button_height + size.vpad_xs * 1.5),

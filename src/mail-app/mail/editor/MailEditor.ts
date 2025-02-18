@@ -835,7 +835,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				dispose()
 				dialog.close()
 
-				await handleRatingByEvent()
+				void handleRatingByEvent("Mail")
 			}
 		} catch (e) {
 			if (e instanceof UserError) {

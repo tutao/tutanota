@@ -8,14 +8,16 @@ import { Dialog } from "../../gui/base/Dialog.js"
 import { isIOSApp } from "../../api/common/Env.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { locator } from "../../api/main/CommonLocator.js"
+import { completeEvaluationStage, TriggerType } from "../InAppRatingUtils.js"
 
 interface HowAreWeDoingPageAttrs {
+	triggerType: TriggerType
 	dialog: Dialog
 	goToAndroidPlayStorePage: VoidFunction
 }
 
 export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
-	view({ attrs: { dialog, goToAndroidPlayStorePage } }: Vnode<HowAreWeDoingPageAttrs>): Children {
+	view({ attrs: { triggerType, dialog, goToAndroidPlayStorePage } }: Vnode<HowAreWeDoingPageAttrs>): Children {
 		return m(
 			".flex.flex-column.pb-ml.text-break",
 			{
@@ -50,6 +52,7 @@ export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
 						text: lang.get("ratingLoveIt_label"),
 						onclick: () => {
 							deviceConfig.setLastRatingPromptedDate(new Date())
+							completeEvaluationStage(triggerType, "LoveIt")
 							if (isIOSApp()) {
 								void locator.systemFacade.requestInAppRating()
 								dialog.close()
@@ -68,7 +71,7 @@ export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
 						text: lang.get("ratingNeedsWork_label"),
 						onclick: () => {
 							deviceConfig.setLastRatingPromptedDate(new Date())
-
+							completeEvaluationStage(triggerType, "NeedsWork")
 							dialog.close()
 						},
 						class: `full-width border-radius-small center b flash`,

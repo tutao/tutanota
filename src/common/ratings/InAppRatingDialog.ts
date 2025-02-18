@@ -1,6 +1,14 @@
 import m from "mithril"
 import { deviceConfig } from "../misc/DeviceConfig.js"
-import { createEvent, getRatingAllowed, isEventHappyMoment, RatingCheckResult } from "./InAppRatingUtils.js"
+import {
+	completeEvaluationStage,
+	completeTriggerStage,
+	createEvent,
+	getRatingAllowed,
+	isEventHappyMoment,
+	RatingCheckResult,
+	TriggerType,
+} from "./InAppRatingUtils.js"
 import { isApp } from "../api/common/Env.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
@@ -15,31 +23,36 @@ export enum RatingPages {
 	ANDROID_PLAY_STORE,
 }
 
-function handleNotNowClick(dialog: Dialog) {
+function handleNotNowClick(dialog: Dialog, triggerType: TriggerType) {
 	dialog.close()
 	deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
+	completeEvaluationStage(triggerType, "NotNow")
 }
 
-export function showAppRatingDialog(): void {
+export function showAppRatingDialog(triggerType: TriggerType): void {
+	completeTriggerStage(triggerType)
+
 	const dialog = new MultiPageDialog<RatingPages>(RatingPages.HOW_ARE_WE_DOING).buildDialog(
 		(currentPage, dialog, navigateToPage, goBack) => {
 			switch (currentPage) {
 				case RatingPages.HOW_ARE_WE_DOING:
-					return m(HowAreWeDoingPage, { dialog, goToAndroidPlayStorePage: () => navigateToPage(RatingPages.ANDROID_PLAY_STORE) })
+					return m(HowAreWeDoingPage, { triggerType, dialog, goToAndroidPlayStorePage: () => navigateToPage(RatingPages.ANDROID_PLAY_STORE) })
 				case RatingPages.ANDROID_PLAY_STORE:
-					return m(AndroidPlayStorePage, { dialog })
+					return m(AndroidPlayStorePage, { triggerType, dialog })
 			}
 		},
 		{
 			getPageTitle: (_) => {
 				return "emptyString_msg"
 			},
-			getRightAction: (_, dialog) => {
-				return {
-					label: "notNow_label",
-					click: () => handleNotNowClick(dialog),
-					title: "notNow_label",
-					type: ButtonType.Secondary,
+			getRightAction: (currentPage, dialog) => {
+				if (currentPage == RatingPages.HOW_ARE_WE_DOING) {
+					return {
+						label: "notNow_label",
+						click: () => handleNotNowClick(dialog, triggerType),
+						title: "notNow_label",
+						type: ButtonType.Secondary,
+					}
 				}
 			},
 		},
@@ -48,7 +61,7 @@ export function showAppRatingDialog(): void {
 	dialog.addShortcut({
 		help: "close_alt",
 		key: Keys.ESC,
-		exec: () => handleNotNowClick(dialog),
+		exec: () => handleNotNowClick(dialog, triggerType),
 	})
 
 	dialog.show()
@@ -57,7 +70,7 @@ export function showAppRatingDialog(): void {
 /**
  * If the client is on iOS, we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
  */
-export async function handleRatingByEvent() {
+export async function handleRatingByEvent(triggerType: TriggerType) {
 	if (isApp()) {
 		createEvent(deviceConfig)
 	}
@@ -66,7 +79,7 @@ export async function handleRatingByEvent() {
 
 	if ((await getRatingAllowed(now, deviceConfig, isApp())) === RatingCheckResult.RATING_ALLOWED) {
 		if (isEventHappyMoment(now, deviceConfig)) {
-			showAppRatingDialog()
+			showAppRatingDialog(triggerType)
 		}
 	}
 }
