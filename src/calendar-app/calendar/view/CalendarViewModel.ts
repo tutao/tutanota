@@ -495,7 +495,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return EventSaveResult.Failed
 		}
 
-		editModel.editModels.whenModel.resetByDayRulesByDiff({ millisecond: diff })
+		editModel.editModels.whenModel.resetByDayRulesByDiff({ millisecond: diff }, event.startTime)
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
