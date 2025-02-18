@@ -18,6 +18,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { Cardinality, ValueType } from "../EntityConstants.js"
 import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
+import { TimeRange } from "../../../../mail-app/workerUtils/index/BulkMailLoader"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -483,3 +484,8 @@ export const LEGACY_TO_RECIPIENTS_ID = 112
 export const LEGACY_CC_RECIPIENTS_ID = 113
 export const LEGACY_BCC_RECIPIENTS_ID = 114
 export const LEGACY_BODY_ID = 116
+
+// FIXME move this somewhere else
+export function timeRangeToString([rangeStart, rangeEnd]: TimeRange): string {
+	return `[${rangeStart} (${new Date(rangeStart).toDateString()})-${rangeEnd} (${new Date(rangeEnd).toDateString()})]`
+}

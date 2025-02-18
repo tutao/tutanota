@@ -13,10 +13,12 @@ import {
 	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
+	generatedIdToTimestamp,
 	getElementId,
 	getLetId,
 	listIdPart,
 	RANGE_ITEM_LIMIT,
+	timeRangeToString,
 } from "./utils/EntityUtils"
 import { Type, ValueType } from "./EntityConstants.js"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
@@ -69,7 +71,20 @@ export class EntityClient {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
 		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, typeModel))
-
+		// FIXME remove
+		if (typeRef.type === "Mail") {
+			console.log("loadReverseRangeBetween", listId, start, end, `loaded ${loadedEntities.length}, filtered: ${filteredEntities.length}`)
+		}
+		if (loadedEntities.length !== 0 && filteredEntities.length === 0) {
+			console.log(
+				"loadReverseRangeBetween",
+				"did throw away everything!",
+				listId,
+				timeRangeToString([generatedIdToTimestamp(start), generatedIdToTimestamp(end)]),
+				"first mail id time",
+				new Date(generatedIdToTimestamp(getElementId(loadedEntities[0]))).toDateString(),
+			)
+		}
 		if (filteredEntities.length === rangeItemLimit) {
 			const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
 			const { elements: remainingEntities, loadedCompletely } = await this.loadReverseRangeBetween<T>(typeRef, listId, lastElementId, end, rangeItemLimit)

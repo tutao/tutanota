@@ -27,6 +27,11 @@ import { isDraft, isSpamOrTrashFolder } from "../../mail/model/MailChecks.js"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void> {
+		// FIXME MailOfflineCleaner is currently wrecking the offline cache, especially if we indexed mail set entries
+		//  lists already
+		if (1 + 1 === 2) {
+			return
+		}
 		const user = await offlineStorage.get(UserTypeRef, null, userId)
 
 		// Free users always have default time range regardless of what is stored

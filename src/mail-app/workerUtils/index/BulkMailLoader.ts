@@ -1,7 +1,7 @@
 import { assertNotNull, groupBy, groupByAndMap, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, isSameId, listIdPart, timeRangeToString, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
 import { CacheMode, EntityRestClientLoadOptions, OwnerEncSessionKeyProvider } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import {
@@ -33,20 +33,19 @@ export class BulkMailLoader {
 		private readonly cachedStorage: ExposedCacheStorage | null,
 	) {}
 
-	loadMailsInRangeWithCache(
+	async loadMailsInRangeWithCache(
 		mailListId: Id,
 		[rangeStart, rangeEnd]: TimeRange,
 	): Promise<{
 		elements: Array<Mail>
 		loadedCompletely: boolean
 	}> {
-		return this.mailEntityClient.loadReverseRangeBetween(
-			MailTypeRef,
-			mailListId,
-			timestampToGeneratedId(rangeStart),
-			timestampToGeneratedId(rangeEnd),
-			MAIL_INDEXER_CHUNK,
-		)
+		const startId = timestampToGeneratedId(rangeStart)
+		const endId = timestampToGeneratedId(rangeEnd)
+		console.log("BulkMailLoader", `loading ${mailListId}`, timeRangeToString([rangeStart, rangeEnd]), `[${startId}-${endId}]`)
+		const result = await this.mailEntityClient.loadReverseRangeBetween(MailTypeRef, mailListId, startId, endId, MAIL_INDEXER_CHUNK)
+		console.log("BulkMailLoader", `downloaded ${mailListId}`, timeRangeToString([rangeStart, rangeEnd]), `[${startId}-${endId}]`, result.elements.length)
+		return result
 	}
 
 	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
