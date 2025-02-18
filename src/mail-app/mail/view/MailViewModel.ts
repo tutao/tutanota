@@ -525,36 +525,42 @@ export class MailViewModel {
 			}
 
 			await listModel.handleEntityUpdate(update)
-			await promiseMap(importMailStateUpdates, (update) => this.processImportedMails(update))
+			for (let importMailStateUpdate of importMailStateUpdates) {
+				await this.processImportedMails(importMailStateUpdate)
+			}
 		}
 	}
 
 	private async processImportedMails(update: EntityUpdateData) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 		const importedFolder = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
-		const listModelOfImport = this.listModelForFolder(elementIdPart(importMailState.targetFolder))
-
 		let status = parseInt(importMailState.status) as ImportStatus
+
 		if (status === ImportStatus.Finished || status === ImportStatus.Canceled) {
 			let importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
 			if (isEmpty(importedMailEntries)) return Promise.resolve()
-
 			let mailSetEntryIds = importedMailEntries.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+
 			const mailSetEntryListId = listIdPart(importedMailEntries[0].mailSetEntry)
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
 			if (isEmpty(importedMailSetEntries)) return Promise.resolve()
 
 			// put mails into cache before list model will download them one by one
 			await this.preloadMails(importedMailSetEntries)
-			await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
-				return listModelOfImport.handleEntityUpdate({
-					instanceId: elementIdPart(importedMailSetEntry._id),
-					instanceListId: importedFolder.entries,
-					operation: OperationType.CREATE,
-					type: MailSetEntryTypeRef.type,
-					application: MailSetEntryTypeRef.app,
+
+			let selectedFolder = this.getFolder()
+			if (selectedFolder != null && isSameId(importMailState.targetFolder, selectedFolder?._id)) {
+				const listModelOfImport = this.listModelForFolder(getElementId(selectedFolder))
+				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
+					return listModelOfImport.handleEntityUpdate({
+						instanceId: elementIdPart(importedMailSetEntry._id),
+						instanceListId: importedFolder.entries,
+						operation: OperationType.CREATE,
+						type: MailSetEntryTypeRef.type,
+						application: MailSetEntryTypeRef.app,
+					})
 				})
-			})
+			}
 		}
 	}
 
