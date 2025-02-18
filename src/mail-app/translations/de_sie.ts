@@ -1926,6 +1926,10 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"rateUs_action": "Bewerten Sie uns",
+		"maybeLater_action": "Vielleicht später",
+		"ratingGooglePlay_title": "Wir freuen uns, dass Ihnen Tuta so gut gefällt!",
+		"ratingGooglePlay_msg": "Möchten Sie die Liebe teilen? Bitte nehmen Sie sich einen Moment Zeit und bewerten Sie uns auf Google Play."
 	}
 }

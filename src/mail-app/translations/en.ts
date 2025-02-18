@@ -1922,6 +1922,10 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"rateUs_action": "Rate us",
+		"maybeLater_action": "Maybe later",
+		"ratingGooglePlay_title": "We’re so happy to hear you’re loving Tuta!",
+		"ratingGooglePlay_msg": "Feel like sharing the love? Please take a moment to rate us on Google Play."
 	}
 }

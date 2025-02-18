@@ -1907,3 +1907,7 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "rateUs_action"
+	| "maybeLater_action"
+	| "ratingGooglePlay_title"
+	| "ratingGooglePlay_msg"

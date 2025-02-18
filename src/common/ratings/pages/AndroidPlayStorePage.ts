@@ -7,6 +7,7 @@ import { TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "../../
 import { px, size } from "../../gui/size.js"
 import { theme } from "../../gui/theme.js"
 import { completeRatingStage, TriggerType } from "../InAppRatingUtils.js"
+import { lang } from "../../misc/LanguageViewModel.js"
 
 interface AndroidPlayStorePageAttrs {
 	triggerType: TriggerType
@@ -31,15 +32,15 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 						},
 					}),
 				),
-				m("h1.text-center", "lorem ipsum"),
-				m("p.text-center", "foo bar baz"),
+				m("h1.text-center", lang.getTranslationText("ratingGooglePlay_title")),
+				m("p.text-center", lang.getTranslationText("ratingGooglePlay_msg")),
 			),
 			m(
 				"section.flex.flex-column.mt",
 				{ style: { gap: "1em" } },
 				m(BaseButton, {
-					label: { text: "Rate now", testId: "" },
-					text: "Rate now",
+					label: "rateUs_action",
+					text: lang.getTranslationText("rateUs_action"),
 					onclick: () => {
 						completeRatingStage(triggerType)
 						dialog.close()
@@ -52,8 +53,8 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 				}),
 
 				m(BaseButton, {
-					label: { text: "Maybe later", testId: "" },
-					text: "Maybe later",
+					label: "maybeLater_action",
+					text: lang.getTranslationText("maybeLater_action"),
 					onclick: () => {
 						dialog.close()
 					},
