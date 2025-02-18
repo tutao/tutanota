@@ -9,7 +9,8 @@ await program
 	.addArgument(new Argument("host").argOptional())
 	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
 	.option("-c, --clean", "Clean build directory")
-	.option("-d, --desktop", "Assemble & start desktop client")
+	.option("-d, --start-desktop", "Assemble & start desktop client")
+	.option("--desktop-build-only", "Assemble desktop client without starting")
 	.option("-v, --verbose", "activate verbose loggin in desktop client")
 	.option("-s, --serve", "Start a local server to serve the website")
 	.option("--ignore-migrations", "Dont check offline database migrations.")
@@ -19,7 +20,7 @@ await program
 			process.exit(1)
 		}
 
-		const { clean, watch, serve, desktop, ignoreMigrations, app } = options
+		const { clean, watch, serve, startDesktop, desktopBuildOnly, ignoreMigrations, app } = options
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -32,12 +33,12 @@ await program
 				clean,
 				watch,
 				serve,
-				desktop,
+				desktop: startDesktop || desktopBuildOnly,
 				ignoreMigrations,
 				app,
 			})
 
-			if (desktop) {
+			if (startDesktop) {
 				const buildDir = app === "calendar" ? "build-calendar-app" : "build"
 				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE" })
 				// we don't want to quit here because we want to keep piping output to our stdout.
