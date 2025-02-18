@@ -23,7 +23,7 @@ o.spec("InAppRatingUtilsTest", () => {
 	})
 
 	o.spec("getRatingAllowed", () => {
-		o("Should return `UNSUPPORTED_PLATFORM` if the app is not on iOS or android", async () => {
+		o("Should not trigger if the app is not on iOS or android", async () => {
 			// Arrange
 			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
 
@@ -38,12 +38,12 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(RatingCheckResult.UNSUPPORTED_PLATFORM)
 		})
 
-		o("Should return `LAST_RATING_TOO_YOUNG` if the rating dialog was shown 2 months ago", async () => {
+		o("Should not trigger if the rating dialog was shown less than a year ago", async () => {
 			// Arrange
 			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
 
 			when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(null)
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2024-08-27T12:34:00Z"))
+			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2024-06-06T06:06:06Z"))
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
 
 			// Act
@@ -53,25 +53,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(RatingCheckResult.LAST_RATING_TOO_YOUNG)
 		})
 
-		o("Should not return `LAST_RATING_TOO_YOUNG` if the rating dialog was shown 4 months ago", async () => {
-			// Arrange
-			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
-			const customerCreationDate = new Date("2024-10-23T11:12:04Z")
-
-			when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(null)
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2024-06-27T12:34:00Z"))
-			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
-			when(locatorMock.logins.getUserController()).thenReturn(userControllerMock)
-			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
-
-			// Act
-			const res = await getRatingAllowed(now, deviceConfigMock, true)
-
-			// Assert
-			o(res).notEquals(RatingCheckResult.LAST_RATING_TOO_YOUNG)
-		})
-
-		o("Should return `APP_INSTALLATION_TOO_YOUNG` if the app was installed less than 7 days ago", async () => {
+		o("Should not trigger if the app was installed less than 7 days ago", async () => {
 			// Arrange
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(new Date("2024-10-23T11:12:04Z").getTime()))
@@ -83,7 +65,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(RatingCheckResult.APP_INSTALLATION_TOO_YOUNG)
 		})
 
-		o("Should return `ACCOUNT_TOO_YOUNG` if the customer account was created less than 7 days ago", async () => {
+		o("Should not trigger if the customer account was created less than 7 days ago", async () => {
 			// Arrange
 			const appInstallationDate = new Date("2024-10-11T11:12:04Z") // The app is installed long enough ago.
 			const customerCreationDate = new Date("2024-10-23T11:12:04Z")
@@ -100,7 +82,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(RatingCheckResult.ACCOUNT_TOO_YOUNG)
 		})
 
-		o("Should return `RATING_DISMISSED` if the retry prompt timer has not elapsed", async () => {
+		o("Should not trigger if the retry prompt timer has not elapsed", async () => {
 			// Arrange
 			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
 			const customerCreationDate = new Date("2024-10-11T11:12:04Z")
@@ -121,7 +103,7 @@ o.spec("InAppRatingUtilsTest", () => {
 	})
 
 	o.spec("isEventHappyMoment", () => {
-		o("Should equal true when three activities reached and retry timer has elapsed", () => {
+		o("Should trigger when three activities reached and retry timer has elapsed", () => {
 			// Arrange
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
 			when(deviceConfigMock.getEvents()).thenReturn([
@@ -137,7 +119,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(true)
 		})
 
-		o("Should equal true if there are at least 3 events/emails created and no previous prompt", () => {
+		o("Should trigger if there are at least 3 events/emails created and no previous prompt", () => {
 			// Arrange
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
 			when(deviceConfigMock.getEvents()).thenReturn([
@@ -154,7 +136,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(true)
 		})
 
-		o("Should equal false if there are at least 3 events/emails created and no previous prompt", () => {
+		o("Should not trigger if there are at least 3 events/emails created and no previous prompt", () => {
 			// Arrange
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2024-02-11T11:12:04Z"))
 			when(deviceConfigMock.getEvents()).thenReturn([
@@ -171,7 +153,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(false)
 		})
 
-		o("Should equal true if there are at least 10 recent activities in the last 28 days", () => {
+		o("Should trigger if there are at least 10 recent activities in the last 28 days", () => {
 			// Arrange
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2022-10-11T11:12:04Z"))
 			when(deviceConfigMock.getEvents()).thenReturn([
@@ -194,7 +176,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(true)
 		})
 
-		o("Should equal false if there are less than 10 recent activities in the last 28 days", () => {
+		o("Should not trigger if there are less than 10 recent activities in the last 28 days", () => {
 			// Arrange
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2022-10-11T11:12:04Z"))
 			when(deviceConfigMock.getEvents()).thenReturn([
@@ -217,7 +199,7 @@ o.spec("InAppRatingUtilsTest", () => {
 			o(res).equals(false)
 		})
 
-		o("Should equal false if less than 3 events/emails created", () => {
+		o("Should not trigger if less than 3 events/emails created", () => {
 			// Arrange
 			const events = [new Date("2024-10-11T11:12:04Z"), new Date("2024-10-10T11:12:04Z")]
 			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
