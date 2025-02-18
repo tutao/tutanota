@@ -10,6 +10,7 @@ import {
 	isRsaEccKeyPair,
 	isRsaOrRsaEccKeyPair,
 	isVersionedPqPublicKey,
+	isVersionedRsaEccPublicKey,
 	isVersionedRsaOrRsaEccPublicKey,
 	PQPublicKeys,
 	RsaPrivateKey,
@@ -59,6 +60,16 @@ export class AsymmetricCryptoFacade {
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
+	getSenderEccKey(publicKey: Versioned<AsymmetricPublicKey>): EccPublicKey | null {
+		if (isVersionedPqPublicKey(publicKey)) {
+			return publicKey.object.eccPublicKey
+		} else if (isVersionedRsaEccPublicKey(publicKey)) {
+			return publicKey.object.publicEccKey
+		} else {
+			return null
+		}
+	}
+
 	/**
 	 * Verifies whether the key returned by the public key service and the pinned one are the same as the one used for encryption.
 	 *
@@ -73,8 +84,10 @@ export class AsymmetricCryptoFacade {
 
 		const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
 
-		if (isVersionedPqPublicKey(publicKey)) {
-			if (!arrayEquals(publicKey.object.eccPublicKey, senderIdentityPubKey)) {
+		const publicEccKey = this.getSenderEccKey(publicKey)
+
+		if (publicEccKey != null) {
+			if (!arrayEquals(publicEccKey, senderIdentityPubKey)) {
 				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 			}
 
