@@ -66,7 +66,7 @@ export { RsaKeyPair, RsaEccKeyPair, RsaPrivateKey, RsaPublicKey, RsaEccPublicKey
 export {
 	KeyPairType,
 	AsymmetricKeyPair,
-	AsymmetricPublicKey,
+	PublicKey,
 	isRsaPublicKey,
 	isRsaOrRsaEccKeyPair,
 	isRsaEccKeyPair,
