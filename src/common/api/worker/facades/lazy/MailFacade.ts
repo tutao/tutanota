@@ -113,7 +113,7 @@ import {
 	Aes128Key,
 	aes256RandomKey,
 	AesKey,
-	AsymmetricPublicKey,
+	PublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	decryptKey,
@@ -813,7 +813,7 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<Versioned<AsymmetricPublicKey> | null> {
+	getRecipientKeyData(mailAddress: string): Promise<Versioned<PublicKey> | null> {
 		return this.publicKeyProvider
 			.loadCurrentPubKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
