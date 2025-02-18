@@ -15,8 +15,7 @@ import { px, size } from "../gui/size.js"
 import { client } from "../misc/ClientDetector.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { DateTime } from "luxon"
-import { showSnackBar } from "../gui/base/SnackBar.js"
-import { windowFacade } from "../misc/WindowFacade.js"
+import { windowFacade } from "../misc/WindowFacade"
 
 const enum AppRatingValue {
 	Happy = "happy",
@@ -87,7 +86,7 @@ export async function showAppRatingDialog(): Promise<void> {
 										}),
 									),
 									m("h1.text-center", lang.get("ratingHowAreWeDoing_title")),
-									m("p.text-center", lang.get("ratingExplanation_msg")),
+									isIOSApp() ? m("p.text-center", lang.get("ratingExplanation_msg")) : m("p", "hogehoge android"),
 								),
 							),
 							m(
@@ -95,7 +94,7 @@ export async function showAppRatingDialog(): Promise<void> {
 								{ style: { gap: "1em" } },
 								m(BaseButton, {
 									label: "ratingLoveIt_label",
-									text: lang.get("ratingLoveIt_label"),
+									text: isIOSApp() ? lang.get("ratingLoveIt_label") : "Rate on Google Play Store",
 									onclick: () => choose(AppRatingValue.Happy),
 									class: `full-width border-radius-small center b flash accent-bg button-content`,
 									style: {
@@ -144,15 +143,7 @@ function handleRatingDialogSelection(selectedValue: AppRatingValue) {
 			if (isIOSApp()) {
 				void locator.systemFacade.requestInAppRating()
 			} else {
-				void showSnackBar({
-					message: { testId: "", text: "Thank you for your feedback" },
-					button: {
-						label: { text: "Rate on Google Play", testId: "" },
-						click: () => {
-							windowFacade.openLink(client.isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
-						},
-					},
-				})
+				windowFacade.openLink(client.isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
 			}
 			break
 		}
