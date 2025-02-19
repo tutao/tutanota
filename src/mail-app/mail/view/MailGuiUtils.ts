@@ -16,7 +16,7 @@ import {
 } from "../../../common/api/common/TutanotaConstants"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
-import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { FileController } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
@@ -40,13 +40,23 @@ import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
+import { getIdTuples } from "../../../common/api/common/utils/EntityUtils"
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
  */
 export type LazyMailIdResolver = () => $Promisable<readonly IdTuple[]>
 
-async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
+export enum DeleteConfirmationResult {
+	Cancel,
+	TrashOnly,
+	FinallyDelete,
+}
+
+async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<{
+	action: DeleteConfirmationResult
+	actionableMails: Mail[]
+}> {
 	let trashMails: Mail[] = []
 	let moveMails: Mail[] = []
 	for (let mail of mails) {
@@ -63,36 +73,37 @@ async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise
 		}
 	}
 
-	let confirmationTextId: TranslationKey | null = null
-
-	if (trashMails.length > 0) {
-		if (moveMails.length > 0) {
-			confirmationTextId = "finallyDeleteSelectedEmails_msg"
+	// Avoid deleting and trashing mails at the same time...
+	if (isEmpty(moveMails) && !isEmpty(trashMails)) {
+		const shouldDeletePermanently = await Dialog.confirm("finallyDeleteSelectedEmails_msg", "ok_action")
+		if (shouldDeletePermanently) {
+			return { action: DeleteConfirmationResult.FinallyDelete, actionableMails: trashMails }
 		} else {
-			confirmationTextId = "finallyDeleteEmails_msg"
+			return { action: DeleteConfirmationResult.Cancel, actionableMails: [] }
 		}
 	}
 
-	if (confirmationTextId != null) {
-		return Dialog.confirm(confirmationTextId, "ok_action")
-	} else {
-		return Promise.resolve(true)
-	}
+	// We only want to return mails that need moved; mails in spam/trash should stay put.
+	return { action: DeleteConfirmationResult.TrashOnly, actionableMails: moveMails }
 }
 
 /**
  * @return whether emails were deleted
  */
 export async function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
-	const confirmed = await showDeleteConfirmationDialog(mails)
-	if (!confirmed) {
+	const { action, actionableMails } = await showDeleteConfirmationDialog(mails)
+	if (action === DeleteConfirmationResult.Cancel) {
 		return false
 	}
 
 	onConfirm()
 
 	try {
-		await mailModel.deleteMails(mails)
+		if (action === DeleteConfirmationResult.TrashOnly) {
+			await mailModel.simpleMoveMails(getIdTuples(actionableMails), MailSetKind.TRASH)
+		} else if (action === DeleteConfirmationResult.FinallyDelete) {
+			await mailModel.finallyDeleteMails(getIdTuples(actionableMails))
+		}
 		return true
 	} catch (e) {
 		//LockedError should no longer be thrown!?!

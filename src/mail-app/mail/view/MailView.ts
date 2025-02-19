@@ -68,7 +68,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
-import { getFolderName } from "../model/MailUtils.js"
+import { getFolderName, mailInFolder } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, startExport } from "./MailViewerUtils.js"
 import { isDraft, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
@@ -990,8 +990,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await mailLocator.mailModel.markMails(mailIds, !selectedMails[0].unread)
 	}
 
-	private deleteMails(mails: Mail[]): Promise<boolean> {
-		return promptAndDeleteMails(mailLocator.mailModel, mails, noOp)
+	private async deleteMails(mails: Mail[]): Promise<boolean> {
+		const actionableMails = await this.mailViewModel.getLoadedActionableMails(mails)
+		const currentFolder = this.mailViewModel.getFolder()
+		const actionableMailsInFolder = currentFolder ? actionableMails.filter((mail) => mailInFolder(mail, currentFolder._id)) : actionableMails
+		return promptAndDeleteMails(mailLocator.mailModel, actionableMailsInFolder, noOp)
 	}
 
 	private deleteSelectedMails() {

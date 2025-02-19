@@ -30,7 +30,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
-import { assertSystemFolderOfType } from "../model/MailUtils.js"
+import { assertSystemFolderOfType, mailInFolder } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
@@ -420,7 +420,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, [listElement], () => this.mailViewModel.listModel?.selectNone())
+		const actionableMails = await this.mailViewModel.getLoadedActionableMails([listElement])
+		const currentFolder = this.mailViewModel.getFolder()
+		const actionableMailsInFolder = currentFolder ? actionableMails.filter((mail) => mailInFolder(mail, currentFolder._id)) : actionableMails
+		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMailsInFolder, () => this.mailViewModel.listModel?.selectNone())
 		return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 	}
 
