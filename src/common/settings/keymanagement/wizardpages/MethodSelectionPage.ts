@@ -2,10 +2,11 @@ import { WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog"
 import { KeyVerificationWizardData } from "../KeyVerificationWizard"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
-import { RadioSelector, type RadioSelectorAttrs, RadioSelectorOption } from "../../../gui/base/RadioSelector"
+import { RadioSelectorOption } from "../../../gui/base/RadioSelector"
 import { MaybeTranslation } from "../../../misc/LanguageViewModel"
 import { KeyVerificationWizardPage } from "../KeyVerificationWizardPage"
 import { completeStageNow } from "./KeyVerificationWizardUtils"
+import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 
 export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardData> {
 	private dom: HTMLElement | null = null
@@ -42,15 +43,29 @@ export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardDat
 				"guide the user to some resources that might help them pick the right method. ",
 				"We could also display a cute little graphic. Test test 123 blah blah blah.",
 			), // TODO: translate
-			m(RadioSelector, {
-				name: "keyManagement.selectMethodLong_label",
-				options,
-				selectedOption: vnode.attrs.data.method,
-				onOptionSelected: (methodType: KeyVerificationMethodType) => {
-					vnode.attrs.data.method = methodType
-				},
-			} satisfies RadioSelectorAttrs<KeyVerificationMethodType>),
+			this.renderTextMethodButton(),
+			this.renderQRMethodButton(),
 		)
+	}
+
+	private renderTextMethodButton(): Children {
+		return m(SectionButton, {
+			text: "keyManagement.text_label",
+			onclick: () => {
+				// this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
+				console.log("go to text input page!")
+			},
+		})
+	}
+
+	private renderQRMethodButton(): Children {
+		return m(SectionButton, {
+			text: "keyManagement.qrCode_label",
+			onclick: () => {
+				// this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
+				console.log("go to QR Page!")
+			},
+		})
 	}
 }
 
