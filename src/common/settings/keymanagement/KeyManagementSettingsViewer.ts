@@ -72,7 +72,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, publicKeyFingerprint]: [string, PublicKeyFingerprint]) => {
 			return m(Card, [
-				m(".flex.items-center.selectable", [
+				m(".flex.items-center.selectable.pl-vpad-s.mb-s", [
 					m(".text-break.b.selectable", mailAddress),
 					m(".flex-grow"),
 					m(IconButton, {
@@ -89,10 +89,10 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					text: publicKeyFingerprint.fingerprint,
 					chunkSize: 4,
 					chunksPerLine: 8,
-					classes: ".small.flex-start.lh-l",
+					classes: ".small.flex-start.lh-l.pl-vpad-s.mb-s",
 					border: false,
 				}),
-				m(".small", this.renderFingerprintDetails(publicKeyFingerprint)),
+				m(".small.pl-vpad-s.mb-s", this.renderFingerprintDetails(publicKeyFingerprint)),
 			])
 		})
 
@@ -127,7 +127,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
 					m(
 						Card,
-						m(".full-width.flex-space-between.items-center", [
+						m(".full-width.flex-space-between.items-center.pl-vpad-s", [
 							lang.get("keyManagement.verifyMailAddress_action"),
 							m(IconButton, {
 								title: "keyManagement.verifyMailAddress_action",
@@ -179,6 +179,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				classes: ".center.lh",
 				border: false,
 			}),
+			m(".mb-s"),
 		])
 	}
 }
