@@ -422,12 +422,23 @@ export class MailFacade {
 		await this.serviceExecutor.post(ReportMailService, postData)
 	}
 
-	async deleteMails(mails: IdTuple[], folder: IdTuple): Promise<void> {
-		const deleteMailData = createDeleteMailData({
-			mails,
-			folder,
-		})
-		await this.serviceExecutor.delete(MailService, deleteMailData)
+	async deleteMails(mails: readonly IdTuple[]): Promise<void> {
+		if (isEmpty(mails)) {
+			return
+		}
+
+		// Must be split by list (mailbag)
+		const mailsGrouped = groupBy(mails, listIdPart)
+		for (const [_, mails] of mailsGrouped) {
+			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+			for (const mailChunk of mailChunks) {
+				const deleteMailData = createDeleteMailData({
+					mails: mailChunk,
+					folder: null,
+				})
+				await this.serviceExecutor.delete(MailService, deleteMailData)
+			}
+		}
 	}
 
 	/**

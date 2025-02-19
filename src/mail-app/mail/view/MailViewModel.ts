@@ -325,15 +325,28 @@ export class MailViewModel {
 		}
 	}
 
-	/*
-       If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
-       If not, only the primary mail is returned, since that is the one being looked at/interacted with.
-     */
-	async getActionableMails(mails: Mail[]): Promise<ReadonlyArray<IdTuple>> {
+	/**
+	 * If ConversationInListView is active in the current folder, Ids of all mails in the conversation are returned
+	 * If not, only Id of the primary mail is returned
+	 */
+	async getActionableMails(mails: readonly Mail[]): Promise<ReadonlyArray<IdTuple>> {
 		if (this.groupMailsByConversation()) {
 			return this.mailModel.resolveConversationsForMails(mails)
 		} else {
 			return mails.map((m) => m._id)
+		}
+	}
+
+	/**
+	 * If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
+	 * If not, only the primary mail is returned, since that is the one being looked at/interacted with.
+	 */
+	async getLoadedActionableMails(mails: readonly Mail[]): Promise<ReadonlyArray<Mail>> {
+		if (this.groupMailsByConversation()) {
+			const actionableMailIds = await this.mailModel.resolveConversationsForMails(mails)
+			return this.mailModel.loadAllMails(actionableMailIds)
+		} else {
+			return mails
 		}
 	}
 
