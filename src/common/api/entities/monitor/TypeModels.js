@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.	
+// You should not use it directly, please use `resolveTypReference()` instead.
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -92,7 +92,7 @@ export const typeModels = {
 			}
 		},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"CounterValue": {
 		"name": "CounterValue",
@@ -133,7 +133,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"ErrorReportData": {
 		"name": "ErrorReportData",
@@ -237,7 +237,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"ErrorReportFile": {
 		"name": "ErrorReportFile",
@@ -278,7 +278,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"ReadCounterData": {
 		"name": "ReadCounterData",
@@ -328,7 +328,7 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"ReadCounterReturn": {
 		"name": "ReadCounterReturn",
@@ -371,7 +371,7 @@ export const typeModels = {
 			}
 		},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"ReportErrorIn": {
 		"name": "ReportErrorIn",
@@ -415,7 +415,7 @@ export const typeModels = {
 			}
 		},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	},
 	"WriteCounterData": {
 		"name": "WriteCounterData",
@@ -474,6 +474,6 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "monitor",
-		"version": "30"
+		"version": "31"
 	}
 }
