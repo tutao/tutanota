@@ -16,7 +16,7 @@ interface AndroidPlayStorePageAttrs {
 
 export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs> {
 	view({ attrs: { dialog, triggerType } }: Vnode<AndroidPlayStorePageAttrs>): Children {
-		return m(".flex.flex-column.pb-ml.text-break", [
+		return m(".flex.flex-column.pb-ml.height-100p.text-break", [
 			m(
 				"section",
 				m(
