@@ -1737,7 +1737,7 @@ var Backspace = (self, event, range) => {
 			if (getNearest(current, root, "UL") || getNearest(current, root, "OL")) {
 				self.decreaseListLevel(range);
 				return;
-			} else if (getNearest(current, root, "DIV", indentedNodeAttributes)) {
+			} else if (getNearest(current, root, "DIV", indentedNodeAttributes) || getNearest(current, root, "BLOCKQUOTE")) {
 				self.removeIndentation(range);
 				return;
 			}
@@ -3617,7 +3617,7 @@ var Squire = class {
 			if (getNearest(block, root, "UL") || getNearest(block, root, "OL")) {
 				this.decreaseListLevel(range);
 				return this;
-			} else if (getNearest(block, root, "DIV", indentedNodeAttributes)) {
+			} else if (getNearest(block, root, "DIV", indentedNodeAttributes) || getNearest(block, root, "BLOCKQUOTE")) {
 				this.removeIndentation(range);
 				return this;
 			}
