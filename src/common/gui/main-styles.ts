@@ -2866,5 +2866,8 @@ styles.registerStyle("main", () => {
 		".lh-l": {
 			"line-height": 5 / 3,
 		},
+		pre: {
+			margin: 0,
+		},
 	}
 })
