@@ -1,7 +1,7 @@
-import { assertWorkerOrNode } from "../../../common/Env"
+import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
 import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { assertNotNull, base64ToUint8Array, concat, Hex, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { PublicKey, isVersionedPqPublicKey, isVersionedRsaEccPublicKey, isVersionedRsaPublicKey, KeyPairType, sha256Hash } from "@tutao/tutanota-crypto"
+import { isVersionedPqPublicKey, isVersionedRsaEccPublicKey, isVersionedRsaPublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
@@ -188,6 +188,11 @@ export class KeyVerificationFacade {
 	}
 
 	async resolveVerificationState(mailAddress: string, publicKey: Versioned<PublicKey>): Promise<KeyVerificationState> {
+		// This has to happen before we ask for the local trust status, as there is no SQLite in the browser environment.
+		if (isBrowser()) {
+			return KeyVerificationState.NO_ENTRY
+		}
+
 		const trusted = await this.isTrusted(mailAddress)
 		if (!trusted) {
 			return KeyVerificationState.NO_ENTRY
