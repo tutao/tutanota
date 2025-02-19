@@ -22,7 +22,7 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 				m(
 					".flex-center.mt-m",
 					m("img.pb.pt.block.height-100p", {
-						src: `placeholder-404.png`,
+						src: `${window.tutao.appState.prefixWithoutFile}/images/rating/rate-us-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
 						alt: "",
 						rel: "noreferrer",
 						loading: "lazy",
@@ -36,8 +36,8 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 				m("p.text-center", lang.getTranslationText("ratingGooglePlay_msg")),
 			),
 			m(
-				"section.flex.flex-column.mt",
-				{ style: { gap: "1em" } },
+				"section.flex.flex-column",
+				{ style: { gap: "1em", "margin-top": "auto" } },
 				m(BaseButton, {
 					label: "rateUs_action",
 					text: lang.getTranslationText("rateUs_action"),

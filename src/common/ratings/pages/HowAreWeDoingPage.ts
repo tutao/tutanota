@@ -32,7 +32,7 @@ export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
 					m(
 						".flex-center.mt-m",
 						m("img.pb.pt.block.height-100p", {
-							src: `${window.tutao.appState.prefixWithoutFile}/images/rating/${client.isCalendarApp() ? "calendar" : "mail"}.png`,
+							src: `${window.tutao.appState.prefixWithoutFile}/images/rating/your-opinion-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
 							alt: "",
 							rel: "noreferrer",
 							loading: "lazy",
@@ -46,8 +46,8 @@ export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
 					m("p.text-center", lang.get("ratingExplanation_msg")),
 				),
 				m(
-					"section.flex.flex-column.mt",
-					{ style: { gap: "1em" } },
+					"section.flex.flex-column",
+					{ style: { gap: "1em", "margin-top": "auto" } },
 					m(BaseButton, {
 						label: "ratingLoveIt_label",
 						text: lang.get("ratingLoveIt_label"),

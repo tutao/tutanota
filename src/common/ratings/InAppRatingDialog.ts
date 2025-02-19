@@ -64,6 +64,10 @@ export function showAppRatingDialog(triggerType: TriggerType): void {
 		exec: () => handleNotNowClick(dialog, triggerType),
 	})
 
+	dialog.setCloseHandler(() => {
+		handleNotNowClick(dialog, triggerType)
+	})
+
 	dialog.show()
 }
 
