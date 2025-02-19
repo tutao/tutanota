@@ -143,3 +143,7 @@ export function allInSameMailbox(mails: readonly Mail[]): boolean {
 	return mailGroups.every((mg) => mg === mailGroups[0])
 	// returns true if mails is empty
 }
+
+export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
+	return mail.sets.some((s) => isSameId(s, folderId))
+}

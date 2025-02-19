@@ -54,7 +54,6 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
-import { isSpamOrTrashFolder } from "./MailChecks.js"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -339,52 +338,10 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally deletes the given mails if they are already in the trash or spam folders,
-	 * otherwise moves them to the trash folder.
-	 * A deletion confirmation must have been show before.
-	 */
-	async deleteMails(mails: ReadonlyArray<Mail>): Promise<void> {
-		if (mails.length === 0) {
-			return
-		}
-
-		const mailsPerFolder = groupBy(mails, (mail) => {
-			return this.getMailFolderForMail(mail)?._id?.[1]
-		})
-
-		const folders = await this.getMailboxFoldersForMail(mails[0])
-		if (folders == null) {
-			return
-		}
-		const trashFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.TRASH))
-
-		for (const [folder, mailsInFolder] of mailsPerFolder) {
-			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
-
-			if (sourceMailFolder) {
-				if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
-					await this.finallyDeleteMails(mailsInFolder)
-				} else {
-					await this.moveMailsFromFolder(getIdTuples(mailsInFolder), sourceMailFolder._id, trashFolder._id)
-				}
-			} else {
-				console.log("Delete mail: no mail folder for list id", folder)
-			}
-		}
-	}
-
-	/**
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder and the folder must allow final delete operation.
 	 */
-	private async finallyDeleteMails(mails: Mail[]): Promise<void> {
-		if (!mails.length) return Promise.resolve()
-		const mailFolder = neverNull(this.getMailFolderForMail(mails[0]))
-		const mailIds = mails.map((m) => m._id)
-		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
-
-		for (const mailChunk of mailChunks) {
-			await this.mailFacade.deleteMails(mailChunk, mailFolder._id)
-		}
+	async finallyDeleteMails(mailIds: readonly IdTuple[]): Promise<void> {
+		await this.mailFacade.deleteMails(mailIds)
 	}
 
 	/**
