@@ -326,11 +326,11 @@ export class MailViewModel {
 	}
 
 	/*
-        If ConversationInListView is active, all mails in the conversation are returned (so they can be processed in a group)
-        If not, only the primary mail is returned, since that is the one being looked at/interacted with.
+       If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
+       If not, only the primary mail is returned, since that is the one being looked at/interacted with.
      */
 	async getActionableMails(mails: Mail[]): Promise<ReadonlyArray<IdTuple>> {
-		if (this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS) {
+		if (this.groupMailsByConversation()) {
 			return this.mailModel.resolveConversationsForMails(mails)
 		} else {
 			return mails.map((m) => m._id)
