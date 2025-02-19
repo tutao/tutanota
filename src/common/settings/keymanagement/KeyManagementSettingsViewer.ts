@@ -117,27 +117,29 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				[
 					m(TitleSection, {
 						icon: Icons.KeyRegular,
-						title: "Key verification",
-						subTitle: "Lorem ipsum blablablablablabla",
+						title: lang.get("keyManagement.keyVerification_label"),
+						subTitle: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
 					}),
 					this.renderQrTextMethod(selfMailAddress, selfFingerprint),
-					m(".small.text-break.text-center.mb-xl", lang.get("keyManagement.publicKeyFingerprintTextInfo_msg")),
+					m(".small.text-break.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
-					m(".full-width.flex-space-between.items-center.mb-s", [
-						lang.get("keyManagement.verifyMailAddress_action"),
-						m(IconButton, {
-							title: "keyManagement.verifyMailAddress_action",
-							click: async () => {
-								await showKeyVerificationWizard(this.keyVerificationFacade, this.mobileSystemFacade, this.usageTestController, () =>
-									obj.reload(),
-								)
-							},
-							icon: Icons.Add,
-							size: ButtonSize.Compact,
-						}),
-					]),
-
+					m(
+						Card,
+						m(".full-width.flex-space-between.items-center", [
+							lang.get("keyManagement.verifyMailAddress_action"),
+							m(IconButton, {
+								title: "keyManagement.verifyMailAddress_action",
+								click: async () => {
+									await showKeyVerificationWizard(this.keyVerificationFacade, this.mobileSystemFacade, this.usageTestController, () =>
+										obj.reload(),
+									)
+								},
+								icon: Icons.Add,
+								size: ButtonSize.Compact,
+							}),
+						]),
+					),
 					...addressRows,
 				],
 			),
