@@ -263,6 +263,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			leftIcon: { icon: Icons.Sync, title: "calendarRepeating_label" },
 			text: lang.makeTranslation(repeatRuleText, repeatRuleText),
 			isDisabled: !model.canEditSeries(),
+			classes: "overflow-hidden repeat-rule",
 			onclick: () => {
 				this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
 			},

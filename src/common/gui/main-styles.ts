@@ -2879,6 +2879,14 @@ styles.registerStyle("main", () => {
 			"border-bottom-right-radius": px(0),
 			"border-bottom-left-radius": px(0),
 		},
+		".repeat-rule span": {
+			"white-space": "nowrap",
+			overflow: "hidden",
+			"text-overflow": "ellipsis",
+		},
+		".repeat-rule > .tutaui-card-container": {
+			overflow: "hidden",
+		},
 		".tutaui-select-close:focus": {
 			position: "initial",
 			transform: "translate(0)",

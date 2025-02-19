@@ -429,6 +429,7 @@ export class CalendarEventWhenModel {
 	}
 
 	/**
+	 * @param diff Time difference between the original date and the new date
 	 * @param overrideDate currently, when moving an event that has been created as a result of an AdvancedRepeatRule, it would always move the original event.
 	 * 	In this case, we have to pass the date of the event that has actually been moved, as that is the Weekday we actually want to account for.
 	 */
@@ -438,8 +439,6 @@ export class CalendarEventWhenModel {
 
 		if (this.repeatPeriod == RepeatPeriod.MONTHLY) {
 			return this.resetMonthlyByDayRules(newStartDate.toJSDate())
-		} else if (this.repeatPeriod == RepeatPeriod.WEEKLY) {
-			return this.resetWeeklyByDayRules(oldStartTime.toJSDate(), newStartDate.toJSDate())
 		}
 	}
 
@@ -457,30 +456,6 @@ export class CalendarEventWhenModel {
 			const interval = Array.from(bydayRules[0].interval.matchAll(regex)).flat()[0] // collect interval
 
 			this.advancedRules = this.createAdvancedRulesFromWeekdays([weekday], parseInt(interval))
-			m.redraw()
-		} else {
-			this.advancedRules = []
-		}
-	}
-
-	/**
-	 * In the rare case that a weekly event with atleast 1 BYDAY rule configured, is drag and dropped
-	 * to a different day, we also need to handle said BYDAY rules as it might lead to inconsistencies.
-	 * In this case, we have to remove the weekday that it has been moved from and add the one it has been
-	 * moved to. In case the event is dragged to a weekday that is already contained as a BYDAY Rule, it is
-	 * removed.
-	 */
-	resetWeeklyByDayRules(oldDate: Date, newDate: Date): void {
-		if (areAllAdvancedRepeatRulesValid(this.advancedRules, this.repeatPeriod)) {
-			const bydayRules = this.advancedRules.filter((rule) => rule.ruleType == ByRule.BYDAY)
-			const oldWeekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(oldDate).weekday - 1]
-			const newWeekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(newDate).weekday - 1]
-
-			const weekdays = bydayRules.map((weekday) => weekday.interval as Weekday)
-			if (weekdays.includes(oldWeekday)) weekdays.splice(weekdays.indexOf(oldWeekday), 1)
-			if (!weekdays.includes(newWeekday)) weekdays.push(newWeekday)
-
-			this.advancedRules = this.createAdvancedRulesFromWeekdays(weekdays)
 			m.redraw()
 		} else {
 			this.advancedRules = []
