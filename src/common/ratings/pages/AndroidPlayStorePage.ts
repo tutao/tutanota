@@ -8,6 +8,8 @@ import { px, size } from "../../gui/size.js"
 import { theme } from "../../gui/theme.js"
 import { completeRatingStage, TriggerType } from "../InAppRatingUtils.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { deviceConfig } from "../../misc/DeviceConfig.js"
+import { DateTime } from "luxon"
 
 interface AndroidPlayStorePageAttrs {
 	triggerType: TriggerType
@@ -42,8 +44,8 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 					label: "rateUs_action",
 					text: lang.getTranslationText("rateUs_action"),
 					onclick: () => {
-						completeRatingStage(triggerType)
 						dialog.close()
+						completeRatingStage(triggerType)
 						windowFacade.openLink(client.isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
 					},
 					class: "full-width border-radius-small center b flash accent-bg button-content",
@@ -56,6 +58,7 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 					label: "maybeLater_action",
 					text: lang.getTranslationText("maybeLater_action"),
 					onclick: () => {
+						deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
 						dialog.close()
 					},
 					class: "full-width border-radius-small center b flash",

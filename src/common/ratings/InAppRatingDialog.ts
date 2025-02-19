@@ -10,31 +10,26 @@ import {
 	TriggerType,
 } from "./InAppRatingUtils.js"
 import { isApp } from "../api/common/Env.js"
-import { Keys } from "../api/common/TutanotaConstants.js"
-import { DateTime } from "luxon"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
 import { HowAreWeDoingPage } from "./pages/HowAreWeDoingPage.js"
 import { ButtonType } from "../gui/base/Button.js"
-import { Dialog } from "../gui/base/Dialog.js"
 import { AndroidPlayStorePage } from "./pages/AndroidPlayStorePage.js"
+import { DateTime } from "luxon"
 
 export enum RatingPages {
 	HOW_ARE_WE_DOING,
 	ANDROID_PLAY_STORE,
 }
 
-function handleNotNowClick(dialog: Dialog, triggerType: TriggerType) {
-	dialog.close()
-	deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
-	completeEvaluationStage(triggerType, "NotNow")
-}
-
 export function showAppRatingDialog(triggerType: TriggerType): void {
 	completeTriggerStage(triggerType)
 
-	const dialog = new MultiPageDialog<RatingPages>(RatingPages.HOW_ARE_WE_DOING).buildDialog(
-		(currentPage, dialog, navigateToPage, goBack) => {
-			switch (currentPage) {
+	let currentPage: RatingPages = RatingPages.HOW_ARE_WE_DOING
+
+	const dialog = new MultiPageDialog<RatingPages>(currentPage).buildDialog(
+		(page, dialog, navigateToPage) => {
+			currentPage = page
+			switch (page) {
 				case RatingPages.HOW_ARE_WE_DOING:
 					return m(HowAreWeDoingPage, { triggerType, dialog, goToAndroidPlayStorePage: () => navigateToPage(RatingPages.ANDROID_PLAY_STORE) })
 				case RatingPages.ANDROID_PLAY_STORE:
@@ -49,7 +44,11 @@ export function showAppRatingDialog(triggerType: TriggerType): void {
 				if (currentPage == RatingPages.HOW_ARE_WE_DOING) {
 					return {
 						label: "notNow_label",
-						click: () => handleNotNowClick(dialog, triggerType),
+						click: () => {
+							dialog.close()
+							deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
+							completeEvaluationStage(triggerType, "NotNow")
+						},
 						title: "notNow_label",
 						type: ButtonType.Secondary,
 					}
@@ -58,14 +57,19 @@ export function showAppRatingDialog(triggerType: TriggerType): void {
 		},
 	)
 
-	dialog.addShortcut({
-		help: "close_alt",
-		key: Keys.ESC,
-		exec: () => handleNotNowClick(dialog, triggerType),
-	})
-
 	dialog.setCloseHandler(() => {
-		handleNotNowClick(dialog, triggerType)
+		dialog.close()
+		switch (currentPage) {
+			case RatingPages.HOW_ARE_WE_DOING: {
+				deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
+				completeEvaluationStage(triggerType, "NotNow")
+				return
+			}
+			case RatingPages.ANDROID_PLAY_STORE: {
+				deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
+				return
+			}
+		}
 	})
 
 	dialog.show()
