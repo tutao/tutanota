@@ -24,7 +24,7 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { getRatingAllowed, RatingCheckResult } from "../ratings/InAppRatingUtils.js"
 import { showAppRatingDialog } from "../ratings/InAppRatingDialog.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
-import { isIOSApp } from "../api/common/Env.js"
+import { isApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { SubscriptionApp } from "./SubscriptionViewer.js"
 
@@ -85,10 +85,10 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				return this.close(data, this.dom)
 			})
 			.then(async () => {
-				const ratingCheckResult = await getRatingAllowed(new Date(), deviceConfig, isIOSApp())
+				const ratingCheckResult = await getRatingAllowed(new Date(), deviceConfig, isApp())
 				if (ratingCheckResult === RatingCheckResult.RATING_ALLOWED) {
 					setTimeout(async () => {
-						void showAppRatingDialog()
+						showAppRatingDialog("Upgrade")
 					}, 2000)
 				}
 			})

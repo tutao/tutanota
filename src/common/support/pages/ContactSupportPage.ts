@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
 import { DataFile } from "../../api/common/DataFile.js"
@@ -9,7 +9,7 @@ import { Card } from "../../gui/base/Card.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { MailMethod, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
-import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
+import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { Switch } from "../../gui/base/Switch.js"
@@ -19,15 +19,18 @@ import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { ButtonColor, getColors } from "../../gui/base/Button.js"
 import { px, size } from "../../gui/size.js"
+import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
 
-export type Props = {
+type Props = {
 	data: SupportDialogState
 	goToSuccessPage: Thunk
 }
 
 export class ContactSupportPage implements Component<Props> {
 	private sendMailModel: SendMailModel | undefined
+
+	private htmlEditor: HtmlEditor | null = null
 
 	oninit({ attrs: { data } }: Vnode<Props>) {
 		this.collectLogs().then((logs) => {
@@ -37,6 +40,8 @@ export class ContactSupportPage implements Component<Props> {
 	}
 
 	async oncreate(): Promise<void> {
+		const { HtmlEditor } = await import("../../gui/editor/HtmlEditor")
+		this.htmlEditor = new HtmlEditor().setMinHeight(250).setEnabled(true)
 		this.sendMailModel = await createSendMailModel()
 		await this.sendMailModel.initWithTemplate(
 			{
@@ -52,6 +57,11 @@ export class ContactSupportPage implements Component<Props> {
 			[],
 			false,
 		)
+		m.redraw()
+	}
+
+	onupdate(vnode: VnodeDOM<Props>): any {
+		vnode.attrs.data.supportRequest = this.htmlEditor?.getValue() ?? ""
 	}
 
 	/**
@@ -92,7 +102,7 @@ export class ContactSupportPage implements Component<Props> {
 						padding: "0",
 					},
 				},
-				m(data.htmlEditor),
+				this.htmlEditor == null ? null : m(this.htmlEditor),
 			),
 
 			m(
@@ -111,6 +121,7 @@ export class ContactSupportPage implements Component<Props> {
 						m(SectionButton, {
 							text: "attachFiles_action",
 							rightIcon: { icon: Icons.Attachment, title: "attachFiles_action" },
+							isDisabled: this.sendMailModel == null,
 							onclick: async (_, dom) => {
 								await chooseAndAttachFile(this.sendMailModel!, dom.getBoundingClientRect())
 								m.redraw()
@@ -164,13 +175,15 @@ export class ContactSupportPage implements Component<Props> {
 					".align-self-center.full-width",
 					m(LoginButton, {
 						label: "send_action",
+						disabled: this.sendMailModel == null,
 						onclick: async () => {
 							if (!this.sendMailModel) {
 								return
 							}
 
-							const message = data.htmlEditor.getValue()
-							const mailBody = data.shouldIncludeLogs() ? `${message}${clientInfoString(new Date(), true).message}` : message
+							const mailBody = data.shouldIncludeLogs()
+								? `${data.supportRequest}${clientInfoString(new Date(), true).message}`
+								: data.supportRequest
 
 							const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
 								blockExternalContent: true,

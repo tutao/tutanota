@@ -209,14 +209,14 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			[
 				// Support button
 				m(BaseButton, {
-					class: "flash flex justify-center center-vertically pt-s pb-s plr-2l border-radius",
+					class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
 					style: {
 						marginInline: "auto",
 						border: `1px solid ${theme.navigation_button}`,
 						color: theme.navigation_button,
 					},
 					label: "supportMenu_label",
-					text: m(".pl-m", lang.getTranslation("supportMenu_label").text),
+					text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
 					icon: m(Icon, {
 						icon: Icons.SpeechBubbleFill,
 						size: IconSize.Medium,

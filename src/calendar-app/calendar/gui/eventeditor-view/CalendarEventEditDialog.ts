@@ -191,7 +191,7 @@ export class EventEditorDialog {
 					finished = true
 					finish()
 
-					await handleRatingByEvent()
+					void handleRatingByEvent("Calendar")
 				}
 			} catch (e) {
 				if (e instanceof UserError) {

@@ -1,9 +1,16 @@
 import m, { Children, Component } from "mithril"
 import { Card } from "../../gui/base/Card.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
-import { BlueskyLogo, Icons, MastodonLogo } from "../../gui/base/icons/Icons.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { client } from "../../misc/ClientDetector"
+import {
+	TUTA_CALENDAR_APP_STORE_URL,
+	TUTA_CALENDAR_GOOGLE_PLAY_URL,
+	TUTA_MAIL_APP_STORE_URL,
+	TUTA_MAIL_GOOGLE_PLAY_URL,
+} from "../../api/common/TutanotaConstants"
 
 export class SupportSuccessPage implements Component {
 	view(): Children {
@@ -14,8 +21,8 @@ export class SupportSuccessPage implements Component {
 				{ shouldDivide: true },
 				m(
 					".plr",
-					m(".h4.pb-s.pt-s", lang.get("supportSuccess_msg")),
-					m("p.m-0", lang.get("supportSocialsInfo_msg")),
+					m(".h4.center.pb-s.pt-s", lang.get("supportSuccess_msg")),
+					m("p.center.m-0", lang.get("supportRatingRequest_msg")),
 					m(
 						".mt-l.mb-s",
 						{},
@@ -28,56 +35,41 @@ export class SupportSuccessPage implements Component {
 						}),
 					),
 				),
-				m(SectionButton, {
-					text: { text: "Tuta Blog", testId: "" },
-					injectionLeft: m("img", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/logo-favicon-152.png`,
-						alt: "Tuta.com logo",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-						style: { width: "20px", height: "20px", padding: "2px" },
-					}),
-					rightIcon: { icon: Icons.Open, title: "close_alt" },
-					onclick: () => {
-						windowFacade.openLink("https://tuta.com/blog")
-					},
-				}),
-				m(SectionButton, {
-					text: { text: "Mastodon", testId: "" },
-					rightIcon: { icon: Icons.Open, title: "open_action" },
-					injectionLeft: m(
-						".",
-						{
-							style: {
-								width: "24px",
-								height: "24px",
-							},
-						},
-						m.trust(MastodonLogo),
-					),
-					onclick: () => {
-						windowFacade.openLink("https://mastodon.social/@Tutanota")
-					},
-				}),
-				m(SectionButton, {
-					text: { text: "BlueSky", testId: "" },
-					injectionLeft: m(
-						".",
-						{
-							style: {
-								width: "24px",
-								height: "24px",
-							},
-						},
-						m.trust(BlueskyLogo),
-					),
-					rightIcon: { icon: Icons.Open, title: "open_action" },
-					onclick: () => {
-						windowFacade.openLink("https://bsky.app/profile/tutaprivacy.bsky.social")
-					},
-				}),
+				this.renderAppStoreLinks(),
 			),
 		)
+	}
+
+	/**
+	 * Desktop, Web -> Rate Tuta Mail on Google Play and App Store
+	 * Tuta Mail App -> Rate Tuta Mail on Google Play and App Store
+	 * Tuta Calendar App -> Rate Tuta Calendar on Google Play and App Store
+	 */
+	private renderAppStoreLinks() {
+		if (client.isCalendarApp()) {
+			return m.fragment({}, [this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL), this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL)])
+		} else {
+			return m.fragment({}, [this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL), this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL)])
+		}
+	}
+
+	private renderAppStoreLink(url: string) {
+		return m(SectionButton, {
+			text: "rateAppStore_action",
+			onclick: () => {
+				windowFacade.openLink(url)
+			},
+			rightIcon: { icon: Icons.Open, title: "open_action" },
+		})
+	}
+
+	private renderGooglePlayLink(url: string) {
+		return m(SectionButton, {
+			text: "rateGooglePlay_action",
+			onclick: () => {
+				windowFacade.openLink(url)
+			},
+			rightIcon: { icon: Icons.Open, title: "open_action" },
+		})
 	}
 }

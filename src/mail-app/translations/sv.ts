@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-02-18T16:26:48Z",
+	"updated_at": "2025-02-20T11:57:07Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -411,7 +411,7 @@ export default {
 		"credit_label": "Kredit",
 		"currentBalance_label": "Aktuellt kontosaldo",
 		"currentlyBooked_label": "Abonnemangsöversikt",
-		"currentPlanDiscontinued_msg": "Ditt nuvarande abonnemang är inte längre tillgänglig. Välj mellan de planer som visas nedan.",
+		"currentPlanDiscontinued_msg": "Din nuvarande plan är inte längre tillgänglig. Välj mellan de planer som visas nedan.",
 		"customColorsInfo_msg": "Om du lämnar ett tomt fält används färgen från standardtemat ljus istället.",
 		"customColors_label": "Anpassade färger",
 		"customColor_label": "Anpassad färg",

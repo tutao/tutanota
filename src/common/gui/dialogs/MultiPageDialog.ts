@@ -193,8 +193,6 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		if (parentElement) {
 			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
 		}
-		// Twice the page width plus the gap between pages (64px)
-		dom.style.width = px(this.pageWidth * 2 + size.vpad_xxl)
 	}
 
 	onremove(vnode: VnodeDOM<Props<TPages>>) {
@@ -205,7 +203,11 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	oncreate(vnode: VnodeDOM<Props<TPages>>): void {
 		this.pagesWrapperDomElement = vnode.dom as HTMLElement
 
-		vnode.dom.addEventListener("transitionend", () => {
+		vnode.dom.addEventListener("transitionend", (e) => {
+			// transitionend event is fired in the children, so that we need to filter them to only apply to the dialog
+			const targetEl = e.target as HTMLElement
+			if (targetEl.id !== "multi-page-dialog") return
+
 			this.transitionClass = ""
 			vnode.attrs.isAnimating(false)
 			this.transitionPage(null)
@@ -239,19 +241,15 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 	}
 
 	private renderPage(vnode: Vnode<Props<TPages>>) {
-		const updatedStackSize = vnode.attrs.stackStream().length
-
 		const fillerPageStream = this.getFillerPage(vnode.attrs.currentPageStream(), vnode.attrs.stackStream())
 
 		const pages = [this.wrap(vnode.attrs.renderContent(fillerPageStream)), this.wrap(vnode.attrs.renderContent(vnode.attrs.currentPageStream))]
 
-		const isOnRootPage = this.transitionPage() == null && updatedStackSize >= 2
-
-		if (vnode.attrs.isAnimating() && !isOnRootPage) {
+		if (vnode.attrs.isAnimating()) {
 			return this.slideDirection === SlideDirection.RIGHT ? pages : pages.reverse()
+		} else {
+			return this.wrap(vnode.attrs.renderContent(vnode.attrs.currentPageStream))
 		}
-
-		return this.slideDirection === SlideDirection.RIGHT ? pages.reverse() : pages
 	}
 
 	private goBack(vnode: Vnode<Props<TPages>>) {
@@ -261,12 +259,10 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		this.translate = -(this.pageWidth + size.vpad_xxl)
 		m.redraw.sync()
 
-		requestAnimationFrame(() => {
-			vnode.attrs.isAnimating(true)
-			this.transitionPage(target)
-			this.transitionClass = "transition-transform"
-			this.translate = 0
-		})
+		vnode.attrs.isAnimating(true)
+		this.transitionPage(target)
+		this.transitionClass = "transition-transform"
+		this.translate = 0
 	}
 
 	/**
@@ -283,22 +279,19 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 
 	private transitionTo(vnode: Vnode<Props<TPages>>, target: TPages) {
 		this.tryScrollToTop()
-
 		this.translate = 0
-		m.redraw.sync()
 
-		requestAnimationFrame(() => {
-			vnode.attrs.isAnimating(true)
-			this.transitionPage(target)
-			this.transitionClass = "transition-transform"
-			this.translate = -(this.pageWidth + size.vpad_xxl)
-		})
+		vnode.attrs.isAnimating(true)
+		this.transitionPage(target)
+		this.transitionClass = "transition-transform"
+		this.translate = -(this.pageWidth + size.vpad_xxl)
 	}
 
 	view(vnode: Vnode<Props<TPages>>): Children {
 		return m(
 			".flex.gap-vpad-xxl.fit-content",
 			{
+				id: "multi-page-dialog",
 				class: this.transitionClass,
 				style: {
 					transform: `translateX(${this.translate}px)`,

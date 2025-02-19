@@ -1,6 +1,8 @@
 import { DeviceConfig } from "../misc/DeviceConfig.js"
 import { DateTime } from "luxon"
 import { locator } from "../api/main/CommonLocator.js"
+import { isAndroidApp } from "../api/common/Env.js"
+import { Stage } from "@tutao/tutanota-usagetests"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
 	const retentionPeriod: number = 30
@@ -31,8 +33,8 @@ export enum RatingCheckResult {
  * 3. The dialog must not have been shown within the last year (When the dialog is dismissed with the cancel button it is not considered being shown).
  * 4. The retry prompt timer (if set) must have expired.
  */
-export async function getRatingAllowed(now: Date, deviceConfig: DeviceConfig, isIOSApp: boolean): Promise<RatingCheckResult> {
-	if (!isIOSApp) {
+export async function getRatingAllowed(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingCheckResult> {
+	if (!isApp) {
 		return RatingCheckResult.UNSUPPORTED_PLATFORM
 	}
 
@@ -88,4 +90,54 @@ export function isEventHappyMoment(now: Date, deviceConfig: DeviceConfig): boole
 	}
 	//endregion
 	return false
+}
+
+export type TriggerType = "Mail" | "Calendar" | "Upgrade"
+export type RatingButtonType = "LoveIt" | "NeedsWork" | "NotNow"
+
+enum RatingUsageTestStage {
+	TRIGGER,
+	EVALUATION,
+	RATING,
+}
+
+export function getRatingUsageTestStage(stage: RatingUsageTestStage): Stage {
+	const test = locator.usageTestController.getTest(isAndroidApp() ? "rating.android" : "rating.ios")
+	return test.getStage(stage)
+}
+
+export function completeTriggerStage(triggerType: TriggerType) {
+	const stage = getRatingUsageTestStage(RatingUsageTestStage.TRIGGER)
+
+	stage.setMetric({
+		name: "triggerType",
+		value: triggerType,
+	})
+
+	void stage.complete()
+}
+
+export function completeEvaluationStage(triggerType: TriggerType, buttonType: RatingButtonType) {
+	const stage = getRatingUsageTestStage(RatingUsageTestStage.EVALUATION)
+
+	stage.setMetric({
+		name: "triggerType",
+		value: triggerType,
+	})
+	stage.setMetric({
+		name: "button",
+		value: buttonType,
+	})
+	void stage.complete()
+}
+
+export function completeRatingStage(triggerType: TriggerType) {
+	const stage = getRatingUsageTestStage(RatingUsageTestStage.RATING)
+
+	stage.setMetric({
+		name: "triggerType",
+		value: triggerType,
+	})
+
+	void stage.complete()
 }

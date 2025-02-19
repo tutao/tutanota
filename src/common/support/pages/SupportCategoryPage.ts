@@ -5,7 +5,6 @@ import { getLocalisedCategoryIntroduction, getLocalisedCategoryName, getLocalise
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { Card } from "../../gui/base/Card.js"
-import { px, size } from "../../gui/size.js"
 
 type Props = {
 	data: SupportDialogState
@@ -23,20 +22,16 @@ export class SupportCategoryPage implements Component<Props> {
 	}: Vnode<Props>): Children {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
-		return m(".pt.pb", [
-			m(Card, { shouldDivide: true }, [
+
+		return m(".pt.pb.flex.col.gap-vpad", [
+			m(Card, [
 				m(
-					"section.pt-s.pb-s",
-					{
-						style: {
-							padding: px(size.vpad_small),
-						},
-					},
-					[
-						m(".h4.mb-0", getLocalisedCategoryName(selectedCategory()!, languageTag)),
-						m("p.mt-xs.mb-s", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
-					],
+					"",
+					m(".h4.mb-0", getLocalisedCategoryName(currentlySelectedCategory!, languageTag)),
+					m("p.mt-xs.mb-s", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 				),
+			]),
+			m(Card, { shouldDivide: true }, [
 				currentlySelectedCategory!.topics.map((topic) =>
 					m(SectionButton, {
 						text: { text: getLocalisedTopicIssue(topic, languageTag), testId: "" },

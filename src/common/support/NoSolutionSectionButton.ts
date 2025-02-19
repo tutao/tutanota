@@ -2,7 +2,7 @@ import { Thunk } from "@tutao/tutanota-utils"
 import m, { Children, Component, Vnode } from "mithril"
 import { SectionButton } from "../gui/base/buttons/SectionButton.js"
 
-export type Props = {
+type Props = {
 	onClick: Thunk
 }
 
