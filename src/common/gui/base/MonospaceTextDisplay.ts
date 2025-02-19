@@ -5,6 +5,7 @@ export type MonospaceTextDisplayAttrs = {
 	text: string
 	placeholder?: string
 	chunkSize?: number
+	chunksPerLine?: number
 	border?: boolean
 	classes?: string
 }
@@ -12,27 +13,19 @@ export type MonospaceTextDisplayAttrs = {
 export class MonospaceTextDisplay implements Component<MonospaceTextDisplayAttrs> {
 	view(vnode: Vnode<MonospaceTextDisplayAttrs>): Children {
 		const { text, placeholder, chunkSize, classes } = vnode.attrs
+		const chunksPerLine = vnode.attrs.chunksPerLine || 4 // 0 makes no sense
 		const border = vnode.attrs.border ?? true
 
 		let splitText: string = ""
 		if (chunkSize !== undefined && text !== "") {
 			const formattedText = assertNotNull(text.match(new RegExp(`.{${chunkSize}}`, "g"))).join(" ")
 			const chunks = formattedText.split(" ")
-			let chunkProcessed = 0
 
 			for (let i = 0; i < chunks.length; i++) {
-				if (chunkProcessed === 4) {
-					chunkProcessed = 0
-					splitText += "\n"
-				}
 				const currentChunk = chunks[i]
-				if (chunkProcessed > 0) {
-					splitText = `${splitText} ${currentChunk}`
-				} else {
-					splitText = `${splitText}${currentChunk}`
-				}
-
-				chunkProcessed += 1
+				const isFirstChunk = i === 0
+				const separator = i % chunksPerLine === 0 ? "\n" : " "
+				splitText = `${splitText}${isFirstChunk ? "" : separator}${currentChunk}`
 			}
 		} else {
 			splitText = text

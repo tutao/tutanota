@@ -71,7 +71,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const selfFingerprint = assertNotNull(this.publicKeyHash)
 
 		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, publicKeyFingerprint]: [string, PublicKeyFingerprint]) => {
-			return [
+			return m(Card, [
 				m(".flex.items-center.selectable", [
 					m(".text-break.b.selectable", mailAddress),
 					m(".flex-grow"),
@@ -88,11 +88,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				m(MonospaceTextDisplay, {
 					text: publicKeyFingerprint.fingerprint,
 					chunkSize: 4,
-					classes: ".small",
+					chunksPerLine: 8,
+					classes: ".small.flex-start.lh-l",
 					border: false,
 				}),
 				m(".small", this.renderFingerprintDetails(publicKeyFingerprint)),
-			]
+			])
 		})
 
 		const fingerprintRenderDropdownAttrs: DropDownSelectorAttrs<KeyVerificationMethodType> = {
@@ -175,7 +176,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m(MonospaceTextDisplay, {
 				text: renderFingerprintAsText(selfFingerprint),
 				chunkSize: 4,
-				classes: ".center",
+				classes: ".center.lh",
 				border: false,
 			}),
 		])
