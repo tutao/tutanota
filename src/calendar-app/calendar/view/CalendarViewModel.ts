@@ -17,6 +17,7 @@ import {
 	getWeekStart,
 	GroupType,
 	OperationType,
+	RepeatPeriod,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
@@ -495,7 +496,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return EventSaveResult.Failed
 		}
 
-		editModel.editModels.whenModel.resetByDayRulesByDiff({ millisecond: diff }, event.startTime)
+		if (editModel.editModels.whenModel.repeatPeriod === RepeatPeriod.MONTHLY) {
+			editModel.editModels.whenModel.resetByDayRulesByDiff({ millisecond: diff }, event.startTime)
+		}
+
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
