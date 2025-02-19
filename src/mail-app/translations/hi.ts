@@ -291,7 +291,6 @@ export default {
 		"customColorsInfo_msg": "यदि आप रिक्त फ़ील्ड को छोड़ते हैं तो डिफ़ॉल्ट प्रकाश थीम से रंग का उपयोग किया जाता है.",
 		"customColors_label": "रिवाज रंग",
 		"customDomainDeletePreconditionFailed_msg": "कृपया सभी उपयोगकर्ताओं और ईमेल उपनामों को डोमेन से निष्क्रिय करें:",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "कृपया सभी उपयोगकर्ताओं और ईमेल उपनामों को डोमेन से निष्क्रिय करें:\n{domainName} और पंजीकरण ईमेल डोमेन के रूप में डोमेन को हटा दें.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS लुकअप विफल",
 		"customDomainErrorDomainNotAvailable_msg": "डोमेन उपलब्ध नहीं है",
 		"customDomainErrorDomainNotFound_msg": "हमें DNS में यह डोमेन नहीं मिला। कृपया वर्तनी की जाँच करें।",

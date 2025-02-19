@@ -375,7 +375,6 @@ export default {
 		"customColorsInfo_msg": "Εάν αφήσετε ένα πεδίο κενό, το χρώμα που θα χρησιμοποιηθεί είναι από την προκαθορισμένη ανοιχτόχρωμη θεματολογία.",
 		"customColors_label": "Το χρώμα μου",
 		"customDomainDeletePreconditionFailed_msg": "Παρακαλούμε να απενεργοποιήσετε όλους τους χρήστες και τις διευθύνσεις ηλεκτρονικού ταχυδρομείου, οι οποίες περιέχουν το domain: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Παρακαλούμε να απενεργοποιήσετε όλους τους χρήστες και τις διευθύνσεις ηλεκτρονικού ταχυδρομείου που περιέχουν τον τομέα:{domainName} και καταργήστε τον τομέα ως τομέα ηλεκτρονικού ταχυδρομείου εγγραφής..",
 		"customDomainErrorDnsLookupFailure_msg": "Απέτυχε η αναζήτηση DNS",
 		"customDomainErrorDomainNotAvailable_msg": "To domain δεν είναι διαθέσιμο.",
 		"customDomainErrorDomainNotFound_msg": "Δεν μπορέσαμε να βρούμε αυτόν το domain στο DNS. Παρακαλούμε ελέγξτε αν το γράψατε σωστά.",

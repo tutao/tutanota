@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2025-02-11T16:26:43Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -412,7 +412,6 @@ export default {
 		"customColors_label": "Prilagođene boje",
 		"customColor_label": "Prilagođena boja",
 		"customDomainDeletePreconditionFailed_msg": "Molimo deaktivirajte sve korisnike i adrese e-pošte koje sadrže domenu: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Deaktivirajte sve korisnike i adrese e-pošte koje sadrže domenu: {domainName} i uklonite domenu kao domenu e-pošte za registraciju.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS pretraživanje neuspješno.",
 		"customDomainErrorDomainNotAvailable_msg": "Domena nije dostupna.",
 		"customDomainErrorDomainNotFound_msg": "Nismo mogli pronaći ovu domenu u DNS-u. Provjerite pravopis.",

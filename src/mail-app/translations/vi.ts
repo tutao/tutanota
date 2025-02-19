@@ -341,7 +341,6 @@ export default {
 		"customColorsInfo_msg": "Nếu bạn để trống một trường thì màu từ chủ đề sáng mặc định sẽ được dùng.",
 		"customColors_label": "Màu riêng",
 		"customDomainDeletePreconditionFailed_msg": "Vui lòng tắt tất cả người dùng và địa chỉ thư có chứa miền: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Vui lòng tắt tất cả người dùng và địa chỉ thư có chứa miền: {domainName} và loại bỏ miền đó khỏi miền thư đăng kí.",
 		"customDomainErrorDnsLookupFailure_msg": "Tra cứu DNS thất bại.",
 		"customDomainErrorDomainNotAvailable_msg": "Miền không khả dụng.",
 		"customDomainErrorDomainNotFound_msg": "Chúng tôi không thể tìm thấy miền này trong DNS. Vui lòng kiểm tra đánh vần.",

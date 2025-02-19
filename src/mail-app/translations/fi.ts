@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-02-08T19:58:17Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -416,7 +416,6 @@ export default {
 		"customColors_label": "Oma väriteema",
 		"customColor_label": "Mukautettu väri",
 		"customDomainDeletePreconditionFailed_msg": "Poista kaikki käyttäjät ja osoitteet verkkotunnuksella {domainName} käytöstä.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Poista kaikki käyttäjät ja osoitteet verkkotunnuksella {domainName} käytöstä ja poista tunnus rekisteröidyistä tunnuksista.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-haku epäonnistui.",
 		"customDomainErrorDomainNotAvailable_msg": "Verkkotunnus ei ole käytettävissä.",
 		"customDomainErrorDomainNotFound_msg": "Tätä verkkotunnusta ei löytynyt DNS:stä. Tarkista, että olet kirjoittanut sen oikein.",
@@ -1920,6 +1919,8 @@ export default {
 		"yourCalendars_label": "Kalenterisi",
 		"yourFolders_action": "OMAT KANSIOT",
 		"yourMessage_label": "Viestisi",
-		"you_label": "Sinä"
+		"you_label": "Sinä",
+		"zoomIn_action": "Lähennä",
+		"zoomOut_action": "Loitonna"
 	}
 }

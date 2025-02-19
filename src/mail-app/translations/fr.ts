@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -417,7 +417,6 @@ export default {
 		"customColors_label": "Couleurs personnalisées",
 		"customColor_label": "Couleur personnalisée",
 		"customDomainDeletePreconditionFailed_msg": "Veuillez désactiver tous les utilisateurs et tous les alias d'e-mail contenant le domaine : {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Veuillez désactiver tous les utilisateurs et toutes les adresses e-mail contenant le domaine : \"{domainName}\" et supprimer le domaine en tant que domaine de l'e-mail.",
 		"customDomainErrorDnsLookupFailure_msg": "Échec de la vérification DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Domaine non disponible.",
 		"customDomainErrorDomainNotFound_msg": "Nous ne parvenons pas à trouver ce domaine dans le DNS. Veuillez vérifier l'orthographe.",

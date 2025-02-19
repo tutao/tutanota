@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-02-07T16:42:16Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -415,7 +415,6 @@ export default {
 		"customColors_label": "自訂顏色",
 		"customColor_label": "自訂顏色",
 		"customDomainDeletePreconditionFailed_msg": "請停用所有包含{domainName}域名的所有用戶與電郵地址。",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "請停用所有包含{domainName}域名的所有用戶與電郵地址，並移除此域名作為註冊電郵域名的設定。",
 		"customDomainErrorDnsLookupFailure_msg": "DNS查找失敗。",
 		"customDomainErrorDomainNotAvailable_msg": "域名不可用。",
 		"customDomainErrorDomainNotFound_msg": "我們在DNS中找不到此域名。請檢查拼寫。",
@@ -1920,6 +1919,8 @@ export default {
 		"yourCalendars_label": "您的日曆",
 		"yourFolders_action": "您的資料夾",
 		"yourMessage_label": "您的訊息",
-		"you_label": "您"
+		"you_label": "您",
+		"zoomIn_action": "放大",
+		"zoomOut_action": "縮小"
 	}
 }

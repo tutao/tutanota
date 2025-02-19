@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2025-02-11T21:17:43Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -407,7 +407,6 @@ export default {
 		"customColors_label": "Aangepaste kleuren",
 		"customColor_label": "Aangepaste kleur",
 		"customDomainDeletePreconditionFailed_msg": "Deactiveer alle gebruikers en e-mailadressen die deel uitmaken van het domein: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Graag alle gebruikers en e-mailaliassen deactiveren voor domein: {domainName} en verwijder het domein als e-mailregistratiedomein.",
 		"customDomainErrorDnsLookupFailure_msg": "Fout bij het opvragen van de DNS-gegevens.",
 		"customDomainErrorDomainNotAvailable_msg": "Domein niet beschikbaar.",
 		"customDomainErrorDomainNotFound_msg": "We konden dit domein niet vinden in de DNS. Graag de spelling controleren.",

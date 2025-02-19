@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-02-07T19:50:33Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -418,7 +418,6 @@ export default {
 		"customColors_label": "Користувацькі кольори",
 		"customColor_label": "Користувацький колір",
 		"customDomainDeletePreconditionFailed_msg": "Будь ласка, деактивуйте всіх користувачів та адреси електронної пошти, що містять домен:{domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Деактивуйте, будь ласка, усіх користувачів та адреси електронної пошти, що містять цей домен: {domainName} і видаліть його, як домен реєстрації електронної пошти.\n\n",
 		"customDomainErrorDnsLookupFailure_msg": "Помилка пошуку DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Домен відсутній.",
 		"customDomainErrorDomainNotFound_msg": "Не вдалося знайти цей домен у DNS. Перевірте правопис.",
@@ -1921,6 +1920,8 @@ export default {
 		"yourCalendars_label": "Календарі",
 		"yourFolders_action": "ВАШІ ПАПКИ",
 		"yourMessage_label": "Ваше повідомлення",
-		"you_label": "Ви"
+		"you_label": "Ви",
+		"zoomIn_action": "Збільшити",
+		"zoomOut_action": "Зменшити"
 	}
 }

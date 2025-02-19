@@ -380,7 +380,6 @@ export default {
 		"customColorsInfo_msg": "空欄の場合、既定のライトテーマの色が代わりに使用されます。",
 		"customColors_label": "カスタムカラー",
 		"customDomainDeletePreconditionFailed_msg": "ドメイン {domainName} のすべてのユーザーとメールのエイリアスを無効にしてください。",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "ドメイン {domainName} のすべてのユーザーとメールのエイリアスを非アクティブにし、このドメインを登録メールドメインから削除してください。",
 		"customDomainErrorDnsLookupFailure_msg": "DNSのルックアップに失敗しました。",
 		"customDomainErrorDomainNotAvailable_msg": "ドメインが存在しません。",
 		"customDomainErrorDomainNotFound_msg": "DNSでこのドメインを見つけることができませんでした。入力したドメイン名をご確認ください。",

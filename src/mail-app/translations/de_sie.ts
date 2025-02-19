@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-02-14T11:39:35Z",
+	"updated_at": "2025-02-18T15:04:58Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1014,6 +1014,7 @@ export default {
 		"matchingKeywords_label": "Übereinstimmende Schlüsselwörter",
 		"maximumLabelsPerMailReached_msg": "Maximum der erlaubten Labels pro E-Mail erreicht.",
 		"maybeAttending_label": "Veilleicht teilnehmen",
+		"maybeLater_action": "Vielleicht später",
 		"maybe_label": "Vielleicht",
 		"menu_label": "Menü",
 		"mergeAllSelectedContacts_msg": "Sind Sie sicher, dass Sie die ausgewählten Kontakte zusammenführen möchten?",
@@ -1404,7 +1405,10 @@ export default {
 		"quit_action": "Beenden",
 		"rateAppStore_action": "Bewerten Sie im App-Store",
 		"rateGooglePlay_action": "Bewerten Sie auf Google Play",
+		"rateUs_action": "Bewerten Sie uns",
 		"ratingExplanation_msg": "Ob Sie Tuta lieben oder meinen, wir könnten etwas verbessern, lassen Sie es uns wissen!",
+		"ratingGooglePlay_msg": "Möchten Sie die Liebe teilen? Bitte nehmen Sie sich einen Moment Zeit und bewerten Sie uns auf Google Play.",
+		"ratingGooglePlay_title": "Wir freuen uns, dass Ihnen Tuta so gut gefällt!",
 		"ratingHowAreWeDoing_title": "Wie gefällt Ihnen Tuta?",
 		"ratingLoveIt_label": "Ich liebe es!",
 		"ratingNeedsWork_label": "Braucht Arbeit",

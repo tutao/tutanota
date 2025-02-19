@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -419,7 +419,6 @@ export default {
 		"customColors_label": "Собственные цвета",
 		"customColor_label": "Индивидуальный цвет",
 		"customDomainDeletePreconditionFailed_msg": "Пожалуйста, отключите всех пользователей и адреса электронной почты, содержащие домен: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Пожалуйста, деактивируйте всех пользователей и адреса электронной почты, содержащие домен: {domainName} и удалить домен в качестве регистрационного почтового домена.",
 		"customDomainErrorDnsLookupFailure_msg": "Найти DNS не удалось.",
 		"customDomainErrorDomainNotAvailable_msg": "Домен недоступен.",
 		"customDomainErrorDomainNotFound_msg": "Мы не смогли найти этот домен в DNS. Пожалуйста, проверьте правописание.",

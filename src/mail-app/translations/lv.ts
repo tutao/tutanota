@@ -250,7 +250,6 @@ export default {
 		"customColorsInfo_msg": "Ja atstāsiet tukšu krāsas lauciņu, tiks izmantota noklusētā krāsu tēma.",
 		"customColors_label": "Izvēlēta/pielāgota krāsu tēma",
 		"customDomainDeletePreconditionFailed_msg": "Lūdzu atspējojiet visus lietotājus un e-pasts aliases domēnam: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Lūdzu, atspējojiet visus lietotājus un aliases domēna vārdam: {domainName} un nodzēsiet domēna vārdu kā reģistrācijas e-pasta domēnu.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS meklēšana neveiksmīga.",
 		"customDomainErrorDomainNotAvailable_msg": "Domēns nav pieejams.",
 		"customDomainErrorDomainNotFound_msg": "Mēs nevarējām atrast šī domēna DNS. Lūdzu pārbaudiet pareizrakstību.",

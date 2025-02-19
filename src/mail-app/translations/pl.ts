@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-02-07T23:01:25Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -422,7 +422,6 @@ export default {
 		"customColors_label": "Własne kolory",
 		"customColor_label": "Własny kolor",
 		"customDomainDeletePreconditionFailed_msg": "Należy zdezaktywować wszystkich użytkowników i adresy e-mail zawierające domenę: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Zdezaktywuj wszystkich użytkowników i adresy e-mail zawierające domenę:  {domainName} i usuń domenę z zarejestrowanych.",
 		"customDomainErrorDnsLookupFailure_msg": "Wyszukiwanie DNS nie powiodło się.",
 		"customDomainErrorDomainNotAvailable_msg": "Domena nie jest dostępna.",
 		"customDomainErrorDomainNotFound_msg": "Nie mogliśmy znaleźć tej domeny w DNS. Sprawdź pisownię.",
@@ -1924,6 +1923,8 @@ export default {
 		"yourCalendars_label": "Twoje kalendarze",
 		"yourFolders_action": "TWOJE FOLDERY",
 		"yourMessage_label": "Twoja wiadomość",
-		"you_label": "Ty"
+		"you_label": "Ty",
+		"zoomIn_action": "Przybliż",
+		"zoomOut_action": "Oddal"
 	}
 }
