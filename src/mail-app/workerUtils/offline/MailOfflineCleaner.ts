@@ -86,7 +86,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		await offlineStorage.lockRangesDbAccess(listId)
 		try {
 			// This must be done before deleting mails to know what the new range has to be
-			await offlineStorage.updateRangeForListAndDeleteObsoleteData(MailTypeRef, listId, cutoffId)
+			await offlineStorage.updateRangeForList(MailTypeRef, listId, cutoffId)
 		} finally {
 			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
 			await offlineStorage.unlockRangesDbAccess(listId)
@@ -138,7 +138,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
 		await offlineStorage.lockRangesDbAccess(entriesListId)
 		try {
-			await offlineStorage.updateRangeForListAndDeleteObsoleteData(MailSetEntryTypeRef, entriesListId, cutoffId)
+			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 		} finally {
 			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
 			await offlineStorage.unlockRangesDbAccess(entriesListId)

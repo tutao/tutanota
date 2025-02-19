@@ -720,7 +720,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		await this.sqlCipherFacade.unlockRangesDbAccess(listId)
 	}
 
-	async updateRangeForListAndDeleteObsoleteData<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
+	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await resolveTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		const encodedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
@@ -730,7 +730,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			return
 		}
 
-		// If the range for a given list is complete from the beginning (starts at GENERATED_MIN_ID), then we only want to actually modify the
+		// If the range for a given list is complete from the beginning (starts at GENERATED_MIN_ID or CUSTOM_MIN_ID), then we only want to actually modify the
 		// saved range if we would be removing elements from the list, in order to not lose the information that the range is complete in storage.
 		// So we have to check how old the oldest element in said range is. If it is newer than cutoffId, then we will not modify the range,
 		// otherwise we will just modify it normally
@@ -738,7 +738,12 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		if (range.lower === expectedMinId) {
 			const entities = await this.provideFromRange(typeRef, listId, expectedMinId, 1, false)
 			const id = mapNullable(entities[0], getElementId)
-			const rangeWontBeModified = id == null || firstBiggerThanSecond(id, encodedCutoffId) || id === encodedCutoffId
+			// !!IMPORTANT!!
+			// Ids on entities with a customId are always base64Url encoded,
+			// !!however ids for entities with a customId used to QUERY the offline database
+			// MUST always be base64Ext encoded
+			// Therefore, we need to compare against the rawCutoffId here!
+			const rangeWontBeModified = id != null && (firstBiggerThanSecond(id, rawCutoffId) || id === rawCutoffId)
 			if (rangeWontBeModified) {
 				return
 			}

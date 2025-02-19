@@ -5,6 +5,7 @@ import { instance, object, when } from "testdouble"
 import * as cborg from "cborg"
 import {
 	constructMailSetEntryId,
+	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
 	deconstructMailSetEntryId,
 	elementIdPart,
@@ -549,15 +550,14 @@ o.spec("OfflineStorageDb", function () {
 			})
 			o("complete ranges won't be lost if entities are all newer than cutoff", async function () {
 				const twoDaysAfterTimeRangeDays = 2
-				const oneDayAfterTimeRangeDays = 1
 
-				const mailId: IdTuple = [mailBagMailListId, offsetId(oneDayAfterTimeRangeDays)]
+				const mailId: IdTuple = [mailBagMailListId, offsetId(twoDaysAfterTimeRangeDays)]
 				const mailSetEntryElementId = offsetMailSetEntryId(twoDaysAfterTimeRangeDays, elementIdPart(mailId))
 				const mailSetEntryId: IdTuple = ["mailSetEntriesListId", mailSetEntryElementId]
 				const mailDetailsBlobId: IdTuple = ["mailDetailsList", "mailDetailsBlobId"]
 
 				const lowerMailSetEntryIdForRange = CUSTOM_MIN_ID
-				const upperMailSetEntryIdForRange = offsetMailSetEntryId(twoDaysAfterTimeRangeDays, GENERATED_MIN_ID)
+				const upperMailSetEntryIdForRange = CUSTOM_MAX_ID
 
 				await insertRange(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 				const upper = offsetId(twoDaysAfterTimeRangeDays)
@@ -606,6 +606,65 @@ o.spec("OfflineStorageDb", function () {
 				o(allMailSetEntries).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, mailSetEntryElementId)])
 				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
 				o(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId)])
+			})
+			o("complete ranges will be modified if some entities are older than cutoff", async function () {
+				const twoDaysBeforeTimeRangeDays = -2
+
+				const mailId: IdTuple = [mailBagMailListId, offsetId(twoDaysBeforeTimeRangeDays)]
+				const mailSetEntryElementId = offsetMailSetEntryId(twoDaysBeforeTimeRangeDays, elementIdPart(mailId))
+				const mailSetEntryId: IdTuple = ["mailSetEntriesListId", mailSetEntryElementId]
+				const mailDetailsBlobId: IdTuple = ["mailDetailsList", "mailDetailsBlobId"]
+
+				const lowerMailSetEntryIdForRange = CUSTOM_MIN_ID
+				const upperMailSetEntryIdForRange = CUSTOM_MAX_ID
+
+				await insertRange(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
+				const upper = offsetId(twoDaysBeforeTimeRangeDays)
+				const lower = GENERATED_MIN_ID
+				await insertRange(MailTypeRef, mailBagMailListId, lower, upper)
+
+				const mail = createTestEntity(MailTypeRef, {
+					_id: mailId,
+					mailDetails: mailDetailsBlobId,
+					sets: [mailSetEntryId],
+				})
+				const mailFolder = createTestEntity(MailFolderTypeRef, {
+					_id: ["mailFolderList", "folderId"],
+					entries: listIdPart(mailSetEntryId),
+				})
+
+				await insertEntity(mailFolder)
+				await insertEntity(mail)
+				await insertEntity(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await insertEntity(
+					createTestEntity(MailDetailsBlobTypeRef, {
+						_id: mailDetailsBlobId,
+						details: createTestEntity(MailDetailsTypeRef),
+					}),
+				)
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
+				const newRange = await dbFacade.get("select * from ranges", [])
+				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
+				o(mapNullable(newRange, untagSqlObject)).deepEquals({
+					type: mailSetEntryType,
+					listId: listIdPart(mailSetEntryId),
+					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
+					lower: ensureBase64Ext(mailSetEntryTypeModel, cuttoffMailSetEntryId),
+					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
+				})
+
+				const allFolderIds = await getAllIdsForType(MailFolderTypeRef)
+				o(allFolderIds).deepEquals(["folderId", spamFolderId, trashFolderId])
+				const allMailIds = await getAllIdsForType(MailTypeRef)
+				o(allMailIds).deepEquals([])
+				const allMailSetEntries = await getAllIdsForType(MailSetEntryTypeRef)
+				// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
+				o(allMailSetEntries).deepEquals([])
+				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
+				o(allBlobDetails).deepEquals([])
 			})
 
 			o("trash and spam descendants are cleared but mails are only if before timeRangeDays", async function () {
