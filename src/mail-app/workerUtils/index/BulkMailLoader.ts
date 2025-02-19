@@ -1,7 +1,17 @@
-import { assertNotNull, groupBy, groupByAndMap, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, groupByAndMap, lastThrow, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import { elementIdPart, isSameId, listIdPart, timeRangeToString, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
+import {
+	constructMailSetEntryId,
+	deconstructMailSetEntryId,
+	elementIdPart,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	listIdPart,
+	timeRangeToString,
+	timestampToGeneratedId,
+} from "../../../common/api/common/utils/EntityUtils.js"
 import { CacheMode, EntityRestClientLoadOptions, OwnerEncSessionKeyProvider } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import {
@@ -11,6 +21,8 @@ import {
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
+	MailSetEntry,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SomeEntity } from "../../../common/api/common/EntityTypes.js"
@@ -150,4 +162,55 @@ export class BulkMailLoader {
 		)
 		return entityResults.flat()
 	}
+	async loadMailSetEntriesForTimeRange(mailSetListData: MailSetListData, timeRange: TimeRange): Promise<MailSetEntry[]> {
+		const [rangeStart, rangeEnd] = timeRange
+		// Look for an element that's newer than end of the range in the list
+		const newerItemIndex = mailSetListData.loadedButUnusedEntries.findIndex(
+			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() > rangeEnd,
+		)
+		// If there is one we can just use everything that's older than the item outside of range. We take out the
+		// part that we are going to use.
+		if (mailSetListData.lastLoadedId != null && newerItemIndex !== -1) {
+			// +-----------------|--------+
+			//                   index
+			// ^----------------^ <- what we can use
+			return mailSetListData.loadedButUnusedEntries.splice(0, newerItemIndex)
+		} else {
+			// Load from the last loaded element and always load MAIL_INDEXER_CHUNK items to avoid doing small requests.
+			// We would rather do few bigger requests than a lot of small ones.
+			// If start id is not there the indexing might have been just started or restarted. Approximate the start id.
+			const startId = mailSetListData.lastLoadedId ?? constructMailSetEntryId(new Date(rangeStart), GENERATED_MAX_ID)
+			const newItems = await this.mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)
+			if (newItems.length > 0) {
+				mailSetListData.lastLoadedId = getElementId(lastThrow(newItems))
+			}
+
+			// If we exhausted the list return everything that we've got so far
+			if (newItems.length < MAIL_INDEXER_CHUNK) {
+				const items = mailSetListData.loadedButUnusedEntries.splice(0, mailSetListData.loadedButUnusedEntries.length)
+				mailSetListData.loadedCompletely = true
+				return [...items, ...newItems]
+			} else {
+				// add loaded items again and try to provide the range again
+				mailSetListData.loadedButUnusedEntries.push(...newItems)
+				return this.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
+			}
+		}
+	}
+
+	async loadMailsFromMultipleLists(mailSetEntries: readonly MailSetEntry[]): Promise<Mail[]> {
+		const mailIdsByFolder = groupByAndMap(
+			mailSetEntries,
+			(entry) => listIdPart(entry.mail),
+			(entry) => elementIdPart(entry.mail),
+		)
+		const mails = await promiseMap(mailIdsByFolder, ([listId, mailIds]) => this.mailEntityClient.loadMultiple(MailTypeRef, listId, mailIds))
+		return mails.flat()
+	}
+}
+export interface MailSetListData {
+	listId: Id
+	lastLoadedId: Id | null
+	loadedButUnusedEntries: MailSetEntry[]
+	loadedCompletely: boolean
 }

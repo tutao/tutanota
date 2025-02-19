@@ -510,7 +510,7 @@ export class MailIndexer {
 						// Load mail set entries to cover the range until there are enough. Start loading from the last loaded point for each list.
 						// const { elements: mails, loadedCompletely } = await indexLoader.loadMailsInRangeWithCache(listId, timeRange)
 
-						const entries = await this.loadMailSetEntriesForTimeRange(mailListData, timeRange)
+						const entries = await indexLoader.loadMailSetEntriesForTimeRange(mailListData, timeRange)
 
 						this._core._stats.mailcount += entries.length
 
@@ -534,57 +534,9 @@ export class MailIndexer {
 		this._core._stats.preparingTime += getPerformanceTimestamp() - startTimeLoad
 	}
 
-	private async loadMailSetEntriesForTimeRange(mailSetListData: MailSetListData, timeRange: TimeRange): Promise<MailSetEntry[]> {
-		const [rangeStart, rangeEnd] = timeRange
-		// Look for an element that's newer than end of the range in the list
-		const newerItemIndex = mailSetListData.loadedButUnusedEntries.findIndex(
-			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() > rangeEnd,
-		)
-		// If there is one we can just use everything that's older than the item outside of range. We take out the
-		// part that we are going to use.
-		if (mailSetListData.lastLoadedId != null && newerItemIndex !== -1) {
-			// +-----------------|--------+
-			//                   index
-			// ^----------------^ <- what we can use
-			return mailSetListData.loadedButUnusedEntries.splice(0, newerItemIndex)
-		} else {
-			// Load from the last loaded element and always load MAIL_INDEXER_CHUNK items to avoid doing small requests.
-			// We would rather do few bigger requests than a lot of small ones.
-			// If start id is not there the indexing might have been just started or restarted. Approximate the start id.
-			const startId = mailSetListData.lastLoadedId ?? constructMailSetEntryId(new Date(rangeStart), GENERATED_MAX_ID)
-			// FIXME: probably not entity client
-			const newItems = await this.entityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)
-			if (newItems.length > 0) {
-				mailSetListData.lastLoadedId = getElementId(lastThrow(newItems))
-			}
-
-			// If we exhausted the list return everything that we've got so far
-			if (newItems.length < MAIL_INDEXER_CHUNK) {
-				const items = mailSetListData.loadedButUnusedEntries.splice(0, mailSetListData.loadedButUnusedEntries.length)
-				mailSetListData.loadedCompletely = true
-				return [...items, ...newItems]
-			} else {
-				// add loaded items again and try to provide the range again
-				mailSetListData.loadedButUnusedEntries.push(...newItems)
-				return this.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
-			}
-		}
-	}
-
-	private async loadMailsFromMultipleLists(mailSetEntries: readonly MailSetEntry[]): Promise<Mail[]> {
-		const mailIdsByFolder = groupByAndMap(
-			mailSetEntries,
-			(entry) => listIdPart(entry.mail),
-			(entry) => elementIdPart(entry.mail),
-		)
-		// FIXME: maybe not this entityClient
-		const mails = await promiseMap(mailIdsByFolder, ([listId, mailIds]) => this.entityClient.loadMultiple(MailTypeRef, listId, mailIds))
-		return mails.flat()
-	}
-
 	async _processIndexMails(mailSetEntries: Array<MailSetEntry>, indexUpdate: IndexUpdate, indexLoader: BulkMailLoader): Promise<number> {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
-		const mails = await this.loadMailsFromMultipleLists(mailSetEntries)
+		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries)
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
 		console.log(TAG, `_processIndexMails ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		const mailsWithMailDetails = await indexLoader.loadMailDetails(mailsWithoutErros)
