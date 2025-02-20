@@ -1,13 +1,13 @@
-import { createWizardDialog, wizardPageWrapper } from "../../gui/base/WizardDialog"
-import { DialogType } from "../../gui/base/Dialog"
-import { MethodSelectionPage, MethodSelectionPageAttrs } from "./wizardpages/MethodSelectionPage"
-import { KeyVerificationMethodType, KeyVerificationResultType } from "../../api/common/TutanotaConstants"
-import { MethodExecutionPage, MethodExecutionPageAttrs } from "./wizardpages/MethodExecutionPage"
-import { VerificationResultPage, VerificationResultPageAttrs } from "./wizardpages/VerificationResultPage"
+import { Dialog } from "../../gui/base/Dialog"
+import { Keys, KeyVerificationMethodType, KeyVerificationResultType } from "../../api/common/TutanotaConstants"
 import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
-import { completeStageNow } from "./wizardpages/KeyVerificationWizardUtils"
+import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
+import m from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import { ButtonType } from "../../gui/base/Button"
+import { MethodSelectionPage } from "./wizardpages/MethodSelectionPage"
 
 export type KeyVerificationWizardData = {
 	keyVerificationFacade: KeyVerificationFacade
@@ -20,6 +20,18 @@ export type KeyVerificationWizardData = {
 	usageTest: UsageTest
 }
 
+enum KeyVerificationWizardPages {
+	CHOOSE_METHOD,
+	BY_TEXT_INPUT_METHOD,
+	// CATEGORIES,
+	// CATEGORY_DETAIL,
+	// TOPIC_DETAIL,
+	// CONTACT_SUPPORT,
+	// SUPPORT_REQUEST_SENT,
+	// EMAIL_SUPPORT_BEHIND_PAYWALL,
+	// SOLUTION_WAS_HELPFUL,
+}
+
 export async function showKeyVerificationWizard(
 	keyVerificationFacade: KeyVerificationFacade,
 	mobileSystemFacade: MobileSystemFacade,
@@ -27,10 +39,10 @@ export async function showKeyVerificationWizard(
 	reloadParent: () => Promise<void>,
 ): Promise<void> {
 	const usageTest = usageTestController.getTest("crypto.keyVerification")
-	const stage = usageTest.getStage(0)
-	await completeStageNow(stage)
-
-	const wizardData: KeyVerificationWizardData = {
+	// const stage = usageTest.getStage(0)
+	// await completeStageNow(stage)
+	//
+	const data: KeyVerificationWizardData = {
 		keyVerificationFacade: keyVerificationFacade,
 		mobileSystemFacade: mobileSystemFacade,
 		method: KeyVerificationMethodType.text, // will be overwritten by the wizard
@@ -40,25 +52,77 @@ export async function showKeyVerificationWizard(
 		result: null,
 		usageTest: usageTest,
 	}
-	const wizardPages = [
-		wizardPageWrapper(MethodSelectionPage, new MethodSelectionPageAttrs(wizardData)),
-		wizardPageWrapper(MethodExecutionPage, new MethodExecutionPageAttrs(wizardData)),
-		wizardPageWrapper(VerificationResultPage, new VerificationResultPageAttrs(wizardData)),
-	]
+	// const wizardPages = [
+	// 	wizardPageWrapper(MethodSelectionPage, new MethodSelectionPageAttrs(wizardData)),
+	// 	wizardPageWrapper(MethodExecutionPage, new MethodExecutionPageAttrs(wizardData)),
+	// 	wizardPageWrapper(VerificationResultPage, new VerificationResultPageAttrs(wizardData)),
+	// ]
+	//
+	// console.log("USAGE TEST:", usageTest)
+	//
+	// return new Promise((resolve) => {
+	// 	const wizardBuilder = createWizardDialog(
+	// 		wizardData,
+	// 		wizardPages,
+	// 		() => {
+	// 			return Promise.resolve()
+	// 		},
+	// 		DialogType.EditSmall,
+	// 	)
+	//
+	// 	const wizard = wizardBuilder.dialog
+	// 	wizard.show()
+	// })
 
-	console.log("USAGE TEST:", usageTest)
-
-	return new Promise((resolve) => {
-		const wizardBuilder = createWizardDialog(
-			wizardData,
-			wizardPages,
-			() => {
-				return Promise.resolve()
+	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationWizardPages>(KeyVerificationWizardPages.CHOOSE_METHOD)
+		.buildDialog(
+			(currentPage, dialog, navigateToPage, _) => {
+				switch (currentPage) {
+					case KeyVerificationWizardPages.CHOOSE_METHOD:
+						return m(MethodSelectionPage, {
+							goToEmailInputPage: () => {
+								navigateToPage(KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD)
+							},
+							goToQrScanPage: () => alert("go to qr scan page"),
+						})
+					// case AddNewVerifiedKeyPages.BY_TEXT_INPUT_METHOD:
+					//     return m(SupportTopicPage, {
+					//         data,
+					//         dialog,
+					//         goToSolutionWasHelpfulPage: () => {
+					//             navigateToPage(SupportPages.SOLUTION_WAS_HELPFUL)
+					//         },
+					//         goToContactSupportPage: () => {
+					//             if (data.canHaveEmailSupport) {
+					//                 navigateToPage(SupportPages.CONTACT_SUPPORT)
+					//             } else {
+					//                 navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+					//             }
+					//         },
+					//     })
+				}
 			},
-			DialogType.EditSmall,
+			{
+				getPageTitle: (_) => {
+					return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
+				},
+				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case KeyVerificationWizardPages.CHOOSE_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => dialog.close(),
+								label: "close_alt",
+								title: "close_alt",
+							}
+					}
+				},
+			},
 		)
-
-		const wizard = wizardBuilder.dialog
-		wizard.show()
-	})
+		.addShortcut({
+			help: "close_alt",
+			key: Keys.ESC,
+			exec: () => multiPageDialog.close(),
+		})
+		.show()
 }

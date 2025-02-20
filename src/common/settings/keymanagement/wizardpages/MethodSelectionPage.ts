@@ -1,94 +1,76 @@
-import { WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog"
-import { KeyVerificationWizardData } from "../KeyVerificationWizard"
-import m, { Children, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
 import { RadioSelectorOption } from "../../../gui/base/RadioSelector"
 import { MaybeTranslation } from "../../../misc/LanguageViewModel"
-import { KeyVerificationWizardPage } from "../KeyVerificationWizardPage"
-import { completeStageNow } from "./KeyVerificationWizardUtils"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 
-export class MethodSelectionPage implements WizardPageN<KeyVerificationWizardData> {
+type MethodSelectionPageAttrs = {
+	goToEmailInputPage: () => void
+	goToQrScanPage: () => void
+}
+
+export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
 	private dom: HTMLElement | null = null
 
-	oncreate(vnode: VnodeDOM<WizardPageAttrs<KeyVerificationWizardData>>) {
-		this.dom = vnode.dom as HTMLElement
-	}
+	// oncreate(vnode: VnodeDOM<WizardPageAttrs<MethodSelectionPageAttrs>>) {
+	//     this.dom = vnode.dom as HTMLElement
+	// }
 
-	view(vnode: Vnode<WizardPageAttrs<KeyVerificationWizardData>>): Children {
+	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
 		const makeOption = (name: MaybeTranslation, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
 			name,
 			value,
 		})
 
-		const options = [
-			makeOption("keyManagement.text_label", KeyVerificationMethodType.text),
-			makeOption("keyManagement.qrCode_label", KeyVerificationMethodType.qr),
-		] as const
-
 		return m(
-			KeyVerificationWizardPage,
-			{
-				beforeNextPageHook: async () => {
-					const usageTest = vnode.attrs.data.usageTest
-					const stageNumber = vnode.attrs.data.method === KeyVerificationMethodType.text ? 1 : 2
-					const stage = usageTest.getStage(stageNumber)
-					await completeStageNow(stage)
-					return true
-				},
-			},
+			"",
+			{},
 			m(
 				"p",
 				"This would be a good place to explain how this process works and ",
 				"guide the user to some resources that might help them pick the right method. ",
 				"We could also display a cute little graphic. Test test 123 blah blah blah.",
 			), // TODO: translate
-			this.renderTextMethodButton(),
-			this.renderQRMethodButton(),
+			this.renderTextMethodButton(() => vnode.attrs.goToEmailInputPage()),
+			this.renderQRMethodButton(() => vnode.attrs.goToQrScanPage()),
 		)
 	}
 
-	private renderTextMethodButton(): Children {
+	private renderTextMethodButton(onclick: () => void): Children {
 		return m(SectionButton, {
 			text: "keyManagement.text_label",
-			onclick: () => {
-				// this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
-				console.log("go to text input page!")
-			},
+			onclick,
 		})
 	}
 
-	private renderQRMethodButton(): Children {
+	private renderQRMethodButton(onclick: () => void): Children {
 		return m(SectionButton, {
 			text: "keyManagement.qrCode_label",
-			onclick: () => {
-				// this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
-				console.log("go to QR Page!")
-			},
+			onclick,
 		})
 	}
 }
 
-export class MethodSelectionPageAttrs implements WizardPageAttrs<KeyVerificationWizardData> {
-	data: KeyVerificationWizardData
-
-	constructor(data: KeyVerificationWizardData) {
-		this.data = data
-	}
-
-	headerTitle(): MaybeTranslation {
-		return "keyManagement.selectMethodShort_label"
-	}
-
-	isEnabled(): boolean {
-		return true
-	}
-
-	isSkipAvailable(): boolean {
-		return false
-	}
-
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		return Promise.resolve(true)
-	}
-}
+// export class MethodSelectionPageAttrs implements WizardPageAttrs<KeyVerificationWizardData> {
+//     data: KeyVerificationWizardData
+//
+//     constructor(data: KeyVerificationWizardData) {
+//         this.data = data
+//     }
+//
+//     headerTitle(): MaybeTranslation {
+//         return "keyManagement.selectMethodShort_label"
+//     }
+//
+//     isEnabled(): boolean {
+//         return true
+//     }
+//
+//     isSkipAvailable(): boolean {
+//         return false
+//     }
+//
+//     nextAction(showErrorDialog: boolean): Promise<boolean> {
+//         return Promise.resolve(true)
+//     }
+// }
