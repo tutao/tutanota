@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
+use crate::TypeRef;
 use serde::Deserialize;
 
 /// A kind of element that can appear in the model
@@ -155,5 +156,13 @@ impl TypeModel {
 		} else {
 			self.encrypted
 		}
+	}
+
+	pub fn is_same_type(&self, type_ref: &TypeRef) -> bool {
+		self.app == type_ref.app && self.name == type_ref.type_
+	}
+
+	pub fn is_same_type_by_attr(&self, app: &str, name: &str) -> bool {
+		self.app == app && self.name == name
 	}
 }

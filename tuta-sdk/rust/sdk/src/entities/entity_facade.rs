@@ -34,6 +34,7 @@ pub const PERMISSIONS_FIELD: &str = "_permissions";
 pub const FORMAT_FIELD: &str = "_format";
 /// The name of the bucket key field in an entity
 pub const BUCKET_KEY_FIELD: &str = "bucketKey";
+pub const MAIL_CONFIDENTIAL_FIELD: &str = "confidential";
 pub const MAX_UNCOMPRESSED_INPUT_LZ4: usize = 0x7e000000;
 
 /// Provides high level functions to handle encryption/decryption of entities
@@ -801,6 +802,7 @@ mod tests {
 					session_key: sk,
 					owner_enc_session_key,
 					owner_key_version,
+					sender_identity_pub_key: None,
 				},
 			)
 			.unwrap();
@@ -1206,6 +1208,7 @@ mod tests {
 						session_key: sk.clone(),
 						owner_enc_session_key: owner_enc_session_key.to_vec(),
 						owner_key_version,
+						sender_identity_pub_key: None,
 					},
 				)
 				.unwrap();

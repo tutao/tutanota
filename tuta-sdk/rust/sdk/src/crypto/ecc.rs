@@ -69,6 +69,7 @@ impl EccKeyPair {
 
 impl EccPublicKey {
 	/// Get a reference to the underlying bytes.
+	#[must_use]
 	pub fn as_bytes(&self) -> &[u8] {
 		self.0.as_slice()
 	}

@@ -210,7 +210,7 @@ impl Sdk {
 			});
 		let user_facade = Arc::new(login_facade.resume_session(&credentials).await?);
 
-		let key_loader = Arc::new(KeyLoaderFacade::new(
+		let key_loader_facade = Arc::new(KeyLoaderFacade::new(
 			user_facade.clone(),
 			typed_entity_client.clone(),
 		));
@@ -226,13 +226,13 @@ impl Sdk {
 		));
 		let public_key_provider = Arc::new(PublicKeyProvider::new(service_executor.clone()));
 		let asymmetric_crypto_facade = Arc::new(AsymmetricCryptoFacade::new(
-			key_loader.clone(),
+			key_loader_facade.clone(),
 			RandomizerFacade::from_core(rand_core::OsRng),
 			service_executor.clone(),
 			public_key_provider.clone(),
 		));
 		let crypto_facade: Arc<CryptoFacade> = Arc::new(CryptoFacade::new(
-			key_loader.clone(),
+			key_loader_facade.clone(),
 			self.instance_mapper.clone(),
 			RandomizerFacade::from_core(rand_core::OsRng),
 			asymmetric_crypto_facade.clone(),
@@ -242,6 +242,8 @@ impl Sdk {
 			entity_facade.clone(),
 			crypto_facade.clone(),
 			self.instance_mapper.clone(),
+			asymmetric_crypto_facade.clone(),
+			key_loader_facade.clone(),
 		));
 
 		let service_executor = Arc::new(ResolvingServiceExecutor::new(
