@@ -52,6 +52,8 @@ import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
+const MINIMUM_DISPLAYED_STORAGE_IN_BYTES = 10000
+
 export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_signature: Stream<string>
 	_mailboxProperties: LazyLoaded<MailboxProperties>
@@ -125,7 +127,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	private async updateStorageField(customerInfo: CustomerInfo): Promise<void> {
 		const user = mailLocator.logins.getUserController().user
-		const usedStorage = formatStorageSize(Number(await mailLocator.userManagementFacade.readUsedUserStorage(user)))
+		let sizeInBytes = Number(await mailLocator.userManagementFacade.readUsedUserStorage(user))
+		// Done to avoid displaying negative storage capacity to the user, storage counter will be modified in the future to fix the negative values bug
+		let sizeInBytesCorrected = sizeInBytes > MINIMUM_DISPLAYED_STORAGE_IN_BYTES ? sizeInBytes : MINIMUM_DISPLAYED_STORAGE_IN_BYTES
+		const usedStorage = formatStorageSize(sizeInBytesCorrected)
 		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
 		this._storageFieldValue(
 			lang.get("amountUsedOf_label", {
