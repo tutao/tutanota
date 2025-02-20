@@ -3,6 +3,8 @@ import { TextField, TextFieldType } from "../../../gui/base/TextField"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { lang } from "../../../misc/LanguageViewModel"
 import { KeyVerificationFacade } from "../../../api/worker/facades/lazy/KeyVerificationFacade"
+import { TitleSection } from "../../../gui/TitleSection"
+import { Icons } from "../../../gui/base/icons/Icons"
 
 type VerificationByTextPageAttrs = {
 	keyVerificationFacade: KeyVerificationFacade
@@ -16,7 +18,7 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 
 		return m(
 			".pb",
-			m("p", m("span", "This is some introduction text explaining how to use the ", m("span.b", "text method. "), "It can also be a few lines longer.")),
+			m(TitleSection, { title: "Verify with text", subTitle: "Enter the Tuta email address of the contact you want to verify." }),
 			m(TextField, {
 				class: "mb",
 				label: "mailAddress_label",

@@ -118,6 +118,13 @@ export async function showKeyVerificationWizard(
 								label: "close_alt",
 								title: "close_alt",
 							}
+						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => goBack(),
+								label: "back_action",
+								title: "back_action",
+							}
 					}
 				},
 			},

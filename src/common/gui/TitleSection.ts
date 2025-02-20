@@ -3,7 +3,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "./base/Card"
 
 export type SettingsTitleSectionAttrsType = {
-	icon: AllIcons
+	icon?: AllIcons
 	title: string
 	subTitle: string
 }
@@ -23,10 +23,12 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 				},
 				m(
 					".center",
-					m(Icon, {
-						icon: attrs.icon,
-						size: IconSize.XXL,
-					}),
+					attrs.icon
+						? m(Icon, {
+								icon: attrs.icon,
+								size: IconSize.XXL,
+						  })
+						: null,
 				),
 				m(".center.h4", attrs.title),
 				m(".center", attrs.subTitle),
