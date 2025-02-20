@@ -74,11 +74,11 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	onclose?: () => void
 	oncreate?: (...args: any[]) => unknown
 	dropdownPosition?: "top" | "bottom"
+	/**
+	 * Resizes trigger width according to dropdown width
+	 */
+	responsive?: boolean
 }
-
-type HTMLElementWithAttrs = Partial<
-	Pick<m.Attributes, "class"> & Pick<m.Attributes, "onremove"> & Omit<HTMLButtonElement, "style"> & SelectAttributes<SelectOption<unknown>, unknown>
->
 
 export interface SelectState {
 	dropdownContainer?: OptionListContainer
@@ -135,53 +135,71 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 			onclose,
 			oncreate,
 			dropdownPosition,
+			responsive,
 		},
 	}: Vnode<SelectAttributes<U, T>, this>) {
-		return m(".rel.flex.full-width.height-100p", [
-			m(
-				"button.tutaui-select-trigger.clickable",
-				{
-					id,
-					oncreate: (vnode: VnodeDOM<HTMLElement>) => {
-						oncreate?.(vnode)
+		return m(
+			".rel.flex.full-width.height-100p",
+			{
+				class: responsive && this.dropdownContainer?.dom ? "justify-end" : "",
+				style: {
+					width: responsive && this.dropdownContainer?.dom ? px(this.dropdownContainer.dom.clientWidth) : undefined,
+				},
+			},
+			[
+				m(
+					"button.tutaui-select-trigger.clickable",
+					{
+						id,
+						oncreate: (vnode: VnodeDOM<HTMLElement>) => {
+							oncreate?.(vnode)
 
-						const dom = vnode.dom
-						dom.addEventListener("focusout", (e: FocusEvent) => this.handleSelectFocusOut(dom as HTMLElement, e))
+							const dom = vnode.dom
+							dom.addEventListener("focusout", (e: FocusEvent) => this.handleSelectFocusOut(dom as HTMLElement, e))
+						},
+						onremove: ({ dom }: VnodeDOM<HTMLElement>) => {
+							dom.removeEventListener("focusout", (e: FocusEvent) => this.handleSelectFocusOut(dom as HTMLElement, e))
+						},
+						class: this.resolveClasses(classes, disabled, expanded),
+						onclick: (event: MouseEvent) => {
+							if (event.currentTarget) {
+								this.renderDropdown(
+									options,
+									event.currentTarget as HTMLElement,
+									onchange,
+									renderOption,
+									selected?.value,
+									onclose,
+									dropdownPosition,
+								)
+								m.redraw.sync()
+							}
+						},
+						role: AriaRole.Combobox,
+						ariaLabel,
+						disabled: disabled,
+						ariaExpanded: String(this.dropdownContainer?.isOpen ?? false),
+						tabIndex: tabIndex ?? Number(disabled ? TabIndex.Programmatic : TabIndex.Default),
+						value: selected?.ariaValue,
 					},
-					onremove: ({ dom }: VnodeDOM<HTMLElement>) => {
-						dom.removeEventListener("focusout", (e: FocusEvent) => this.handleSelectFocusOut(dom as HTMLElement, e))
-					},
-					class: this.resolveClasses(classes, disabled, expanded),
-					onclick: (event: MouseEvent) => {
-						if (event.currentTarget) {
-							this.renderDropdown(options, event.currentTarget as HTMLElement, onchange, renderOption, selected?.value, onclose, dropdownPosition)
-							m.redraw.sync()
-						}
-					},
-					role: AriaRole.Combobox,
-					ariaLabel,
-					disabled: disabled,
-					ariaExpanded: String(this.dropdownContainer?.isOpen ?? false),
-					tabIndex: tabIndex ?? Number(disabled ? TabIndex.Programmatic : TabIndex.Default),
-					value: selected?.ariaValue,
-				} satisfies HTMLElementWithAttrs,
-				[
-					selected != null ? renderDisplay(selected) : this.renderPlaceholder(placeholder),
-					noIcon !== true
-						? m(Icon, {
-								icon: BootIcons.Expand,
-								container: "div",
-								class: `fit-content transition-transform`,
-								size: IconSize.Medium,
-								style: {
-									fill: iconColor ?? getColors(ButtonColor.Content).button,
-								},
-						  })
-						: null,
-				],
-			),
-			this.dropdownContainer != null ? m(this.dropdownContainer) : null,
-		])
+					[
+						selected != null ? renderDisplay(selected) : this.renderPlaceholder(placeholder),
+						noIcon !== true
+							? m(Icon, {
+									icon: BootIcons.Expand,
+									container: "div",
+									class: `fit-content transition-transform`,
+									size: IconSize.Medium,
+									style: {
+										fill: iconColor ?? getColors(ButtonColor.Content).button,
+									},
+							  })
+							: null,
+					],
+				),
+				this.dropdownContainer != null ? m(this.dropdownContainer) : null,
+			],
+		)
 	}
 
 	private handleSelectFocusOut = (dom: HTMLElement, e: FocusEvent) => {
@@ -462,7 +480,7 @@ class OptionListContainer implements ClassComponent {
 			maxHeight = Math.min(contentHeight, upperSpace)
 		}
 
-		domDropdown.style.width = px(origin.width)
+		domDropdown.style.minWidth = px(origin.width)
 		domDropdown.style.height = px(maxHeight)
 		domDropdown.style.transformOrigin = transformOrigin
 
