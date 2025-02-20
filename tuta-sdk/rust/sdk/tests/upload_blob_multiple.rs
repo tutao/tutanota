@@ -7,8 +7,12 @@ use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::tutanota_constants::ArchiveDataType;
 use tutasdk::Sdk;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
+#[tokio::test]
+async fn sdk_can_upload_multiple_blobs() -> Result<(), Box<dyn Error>> {
 	let rest_client = Arc::new(NativeRestClient::try_new().unwrap());
 
 	// this test expect local server with matching model versions to be live at: http://localhost:9000

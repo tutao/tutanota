@@ -627,10 +627,10 @@ impl Importer {
 		Ok(())
 	}
 
-	/// Decide weather this error should abort the import process, or it should move to import next chunk,
-	/// - if it returns `Ok`, we should continue with the next  chunk, if it returns `Err`, the error should
-	///   be propagated to the node process to maybe be displayed and  the import should stop for now.
-	/// - if mails involved in this error should not be picked when user retry, move them to FAILED_MAILS_SUB_DIR
+	/// Decide weather this error should abort the import process, or it should move to import the next chunk.
+	/// - If it returns `Ok`, we should continue with the next chunk, if it returns `Err`, the error should
+	///   be propagated to the node process to maybe be displayed, and the import should stop for now.
+	/// - If mails involved in this error should not be picked when user retry, move them to FAILED_MAILS_SUB_DIR
 	async fn handle_err_while_importing_chunk(
 		&self,
 		import_error: MailImportErrorMessage,
@@ -640,8 +640,8 @@ impl Importer {
 			// if the import is (temporary) disabled, we should give up and let user try again later
 			ImportErrorKind::ImportFeatureDisabled => Err(ImportErrorKind::ImportFeatureDisabled)?,
 
-			// If server do not give any available blob storage client ( which we also use to make service call )
-			// nothing we can do about, should error out in client
+			// If a server does not give any available blob storage client (which we also use to make service call),
+			// nothing we can do about should error out in a client
 			ImportErrorKind::EmptyBlobServerList => Err(ImportErrorKind::SdkError)?,
 
 			ImportErrorKind::SdkError => Err(import_error)?,
@@ -737,5 +737,180 @@ impl From<ImportMailStateId> for IdTupleGenerated {
 			list_id: GeneratedId::from(id_tuple.list_id),
 			element_id: GeneratedId::from(id_tuple.element_id),
 		}
+	}
+}
+
+#[cfg(test)]
+pub mod tests {
+	use super::*;
+	use crate::test_utils::{init_file_importer, write_big_sample_email, CleanDir};
+
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local http server."
+	)]
+	#[tokio::test]
+	async fn can_import_single_eml_file_without_attachment() {
+		let importer = init_file_importer(vec!["sample.eml"]).await;
+		importer.start_stateful_import().await.unwrap();
+
+		let remote_state = importer.essentials.load_remote_state().await.unwrap();
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
+	}
+
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local https server."
+	)]
+	#[tokio::test]
+	async fn can_import_single_eml_file_with_attachment() {
+		let importer = init_file_importer(vec!["attachment_sample.eml"]).await;
+		importer.start_stateful_import().await.unwrap();
+
+		let remote_state = importer.essentials.load_remote_state().await.unwrap();
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
+	}
+
+	#[test]
+	fn max_request_size_in_test_is_different() {
+		assert_eq!(1024 * 5, MAX_REQUEST_SIZE);
+	}
+
+	#[tokio::test]
+	async fn existing_import_should_be_none_if_no_state_file() {
+		let config_dir_string = "/tmp/existing_import_should_be_none_if_no_state_file";
+		let mailbox_id = "some_mailbox_id";
+		let import_dir: PathBuf = [
+			config_dir_string.to_string(),
+			"current_imports".to_string(),
+			mailbox_id.to_string(),
+		]
+		.iter()
+		.collect();
+
+		let result = Importer::get_existing_import_id(&import_dir);
+		assert!(matches!(result, Ok(None)));
+	}
+
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local http server."
+	)]
+	#[tokio::test]
+	async fn importing_too_big_eml_should_fail() {
+		let whither = "/tmp/toobig.eml";
+		write_big_sample_email(whither);
+
+		let importer = init_file_importer(vec![whither]).await;
+		let import_res = importer.start_stateful_import().await;
+		assert!(importer
+			.essentials
+			.import_directory
+			.join(FAILED_MAILS_SUB_DIR)
+			.join("toobig-0.eml")
+			.try_exists()
+			.unwrap());
+
+		assert_eq!(
+			ImportErrorKind::SourceExhaustedSomeError,
+			import_res.unwrap_err().kind
+		);
+
+		let remote_state = importer.essentials.load_remote_state().await.unwrap();
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 1);
+		assert_eq!(remote_state.successfulMails, 0);
+	}
+
+	#[test]
+	fn get_resumable_state_id_invalid_content() {
+		let config_dir_string = "/tmp/get_resumable_state_id_invalid_content";
+		let mailbox_id = "some_mailbox_id";
+		let import_dir: PathBuf = [
+			config_dir_string.to_string(),
+			"current_imports".to_string(),
+			mailbox_id.to_string(),
+		]
+		.iter()
+		.collect();
+		let config_dir = PathBuf::from(config_dir_string);
+
+		let _tear_down = CleanDir {
+			dir: config_dir.clone(),
+		};
+
+		if !import_dir.exists() {
+			fs::create_dir_all(&import_dir).unwrap();
+		}
+		let mut state_id_file_path = import_dir.clone();
+		state_id_file_path.push(STATE_ID_FILE_NAME);
+		let invalid_id = "blah";
+		fs::write(&state_id_file_path, invalid_id).unwrap();
+
+		let result = Importer::get_existing_import_id(&import_dir)
+			.unwrap_err()
+			.kind();
+		assert_eq!(result, std::io::ErrorKind::InvalidData);
+	}
+
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local https server."
+	)]
+	#[tokio::test]
+	async fn should_stop_if_on_stop_action() {
+		let importer = init_file_importer(vec!["sample.eml"; 1]).await;
+		importer
+			.set_next_progress_action(ImportProgressAction::Stop)
+			.await;
+		importer.start_stateful_import().await.unwrap();
+
+		let mut iterator = importer.chunked_import_source.lock().await;
+
+		// if we set progress action to stop, it should not have consumed any iterator
+		assert!(iterator.next().is_some());
+		assert!(iterator.next().is_none());
+	}
+
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local http server."
+	)]
+	#[tokio::test]
+	async fn should_pause_if_on_pause_action() {
+		let importer = init_file_importer(vec!["sample.eml"; 2]).await;
+		importer
+			.set_next_progress_action(ImportProgressAction::Pause)
+			.await;
+		importer.start_stateful_import().await.unwrap();
+
+		let mut iterator = importer.chunked_import_source.lock().await;
+
+		// if we set progress action to pause, it should not have consumed any iterator
+		assert!(iterator.next().is_some());
+		assert!(iterator.next().is_some());
+		assert!(iterator.next().is_none());
+	}
+
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local http server."
+	)]
+	#[tokio::test]
+	async fn should_continue_if_on_continue_action() {
+		let importer = init_file_importer(vec!["sample.eml"; 1]).await;
+		importer
+			.set_next_progress_action(ImportProgressAction::Continue)
+			.await;
+		importer.start_stateful_import().await.unwrap();
+
+		let mut iterator = importer.chunked_import_source.lock().await;
+
+		// if we set progress action to continue, it should have consumed all the chunks
+		assert!(iterator.next().is_none());
 	}
 }

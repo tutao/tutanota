@@ -4,9 +4,12 @@ use tutasdk::folder_system::MailSetKind;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::Sdk;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-	// replace with real values
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
+#[tokio::test]
+async fn sdk_can_get_default_folders() -> Result<(), Box<dyn Error>> {
 	let host = "http://localhost:9000";
 
 	let rest_client = NativeRestClient::try_new().unwrap();
