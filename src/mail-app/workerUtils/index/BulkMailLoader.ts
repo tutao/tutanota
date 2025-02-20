@@ -1,4 +1,4 @@
-import { assertNotNull, groupBy, groupByAndMap, lastThrow, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, findLastIndex, groupBy, groupByAndMap, last, lastThrow, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import {
@@ -27,6 +27,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SomeEntity } from "../../../common/api/common/EntityTypes.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -61,7 +62,10 @@ export class BulkMailLoader {
 	}
 
 	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
-		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, { ...options, cacheMode: CacheMode.ReadOnly })
+		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
+			...options,
+			cacheMode: CacheMode.ReadOnly,
+		})
 	}
 
 	async removeFromCache(id: IdTuple): Promise<void> {
@@ -153,7 +157,10 @@ export class BulkMailLoader {
 			byChunk,
 			(chunk) => {
 				return chunk.length > 0
-					? this.mailDataEntityClient.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider, { ...options, cacheMode: CacheMode.ReadOnly })
+					? this.mailDataEntityClient.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider, {
+							...options,
+							cacheMode: CacheMode.ReadOnly,
+					  })
 					: Promise.resolve([])
 			},
 			{
@@ -162,20 +169,53 @@ export class BulkMailLoader {
 		)
 		return entityResults.flat()
 	}
+
 	async loadMailSetEntriesForTimeRange(mailSetListData: MailSetListData, timeRange: TimeRange): Promise<MailSetEntry[]> {
 		const [rangeStart, rangeEnd] = timeRange
-		// Look for an element that's newer than end of the range in the list
-		const newerItemIndex = mailSetListData.loadedButUnusedEntries.findIndex(
-			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() > rangeEnd,
+		if (rangeStart < rangeEnd) {
+			throw new ProgrammingError("Range start must be bigger (after) the range end")
+		}
+		// FIXME what if the range start is newer than what we have?
+		// if (mailSetListData.lastLoadedId)
+
+		// Do we have an item that's newer than the start of the range? If yes, throw everything that's newer
+		// +--------------------+
+		// newest loaded  |      oldest loaded
+		//                rangeStart
+		const lastNewerThanStartIndex = findLastIndex(
+			mailSetListData.loadedButUnusedEntries,
+			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() > rangeStart,
+		)
+		if (lastNewerThanStartIndex != -1) {
+			const removed = mailSetListData.loadedButUnusedEntries.splice(0, lastNewerThanStartIndex + 1)
+			const lastRemovedItem = last(removed)
+			const lastRemovedDate = lastRemovedItem != null ? deconstructMailSetEntryId(getElementId(lastRemovedItem)).receiveDate : null
+			console.warn(
+				`Possibly not using loadMailSetEntriesForTimeRange correctly. Requested items from ${new Date(
+					rangeStart,
+				)} but previously items until ${lastRemovedDate}. Throwing away ${removed.length} items.`,
+			)
+		}
+
+		// Look for an element that's older than end of the range in the list.
+		// If it is there it means that we have loaded all the items for this time range, and we can return the part
+		// that is within the range.
+		const olderThanEndIndex = mailSetListData.loadedButUnusedEntries.findIndex(
+			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() < rangeEnd,
 		)
 		// If there is one we can just use everything that's older than the item outside of range. We take out the
 		// part that we are going to use.
-		if (mailSetListData.lastLoadedId != null && newerItemIndex !== -1) {
+		if (mailSetListData.lastLoadedId != null && olderThanEndIndex !== -1) {
 			// +-----------------|--------+
 			//                   index
 			// ^----------------^ <- what we can use
-			return mailSetListData.loadedButUnusedEntries.splice(0, newerItemIndex)
+			return mailSetListData.loadedButUnusedEntries.splice(0, olderThanEndIndex - 1)
+		} else if (mailSetListData.loadedCompletely) {
+			// At this point we know that all the items are within the range and there's nothing else to load.
+			// Return them and remove them.
+			return mailSetListData.loadedButUnusedEntries.splice(0, mailSetListData.loadedButUnusedEntries.length)
 		} else {
+			// There are no items outside the end range, we need to load more to ensure that we have everything.
 			// Load from the last loaded element and always load MAIL_INDEXER_CHUNK items to avoid doing small requests.
 			// We would rather do few bigger requests than a lot of small ones.
 			// If start id is not there the indexing might have been just started or restarted. Approximate the start id.
@@ -187,9 +227,10 @@ export class BulkMailLoader {
 
 			// If we exhausted the list return everything that we've got so far
 			if (newItems.length < MAIL_INDEXER_CHUNK) {
-				const items = mailSetListData.loadedButUnusedEntries.splice(0, mailSetListData.loadedButUnusedEntries.length)
 				mailSetListData.loadedCompletely = true
-				return [...items, ...newItems]
+				mailSetListData.loadedButUnusedEntries.push(...newItems)
+				return this.loadMailSetEntriesForTimeRange(mailSetListData, timeRange)
+				// return [...items, ...newItems]
 			} else {
 				// add loaded items again and try to provide the range again
 				mailSetListData.loadedButUnusedEntries.push(...newItems)
@@ -208,6 +249,7 @@ export class BulkMailLoader {
 		return mails.flat()
 	}
 }
+
 export interface MailSetListData {
 	listId: Id
 	lastLoadedId: Id | null
