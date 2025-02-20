@@ -52,9 +52,9 @@ export class HowAreWeDoingPage implements Component<HowAreWeDoingPageAttrs> {
 						label: "ratingLoveIt_label",
 						text: lang.get("ratingLoveIt_label"),
 						onclick: () => {
-							deviceConfig.setLastRatingPromptedDate(new Date())
 							completeEvaluationStage(triggerType, "LoveIt")
 							if (isIOSApp()) {
+								deviceConfig.setLastRatingPromptedDate(new Date())
 								void locator.systemFacade.requestInAppRating()
 								dialog.close()
 							} else {

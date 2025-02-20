@@ -45,6 +45,7 @@ export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs
 					text: lang.getTranslationText("rateUs_action"),
 					onclick: () => {
 						dialog.close()
+						deviceConfig.setLastRatingPromptedDate(new Date())
 						completeRatingStage(triggerType)
 						windowFacade.openLink(client.isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
 					},
