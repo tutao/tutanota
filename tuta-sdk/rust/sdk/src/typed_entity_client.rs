@@ -4,8 +4,8 @@ use crate::entity_client::EntityClient;
 use crate::id::id_tuple::{BaseIdType, IdType};
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::{ElementType, TypeModel};
-use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
+use crate::{GeneratedId, TypeRef};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -15,6 +15,7 @@ pub struct TypedEntityClient {
 }
 
 /// Similar to EntityClient, but return a typed object instead of a generic Map
+#[cfg_attr(test, mockall::automock)]
 impl TypedEntityClient {
 	#[allow(unused)]
 	pub(crate) fn new(
@@ -28,13 +29,32 @@ impl TypedEntityClient {
 	}
 
 	#[allow(clippy::unused_async, unused)]
-	pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(
+	pub async fn read<T: Entity + Deserialize<'static>, Id: IdType>(
 		&self,
 		id: &Id,
 	) -> Result<T, ApiCallError> {
 		let type_model = self.entity_client.get_type_model(&T::type_ref())?;
 		Self::check_if_encrypted(type_model)?;
-		let parsed_entity = self.entity_client.load::<Id>(&T::type_ref(), id).await?;
+		let parsed_entity = self.entity_client.read::<Id>(&T::type_ref(), id).await?;
+
+		if type_model.marked_encrypted() {
+			let typed_entity = self
+				.process_encrypted_entity(type_model, parsed_entity)
+				.await?;
+			Ok(typed_entity)
+		} else {
+			let typed_entity = self
+				.instance_mapper
+				.parse_entity::<T>(parsed_entity)
+				.map_err(|error| ApiCallError::InternalSdkError {
+					error_message: format!(
+						"Failed to parse unencrypted entity into proper types: {}",
+						error
+					),
+				})?;
+			Ok(typed_entity)
+		}
+
 		let typed_entity = self
 			.instance_mapper
 			.parse_entity::<T>(parsed_entity)
@@ -49,7 +69,7 @@ impl TypedEntityClient {
 
 	#[allow(dead_code)]
 	#[allow(clippy::unused_async)]
-	async fn load_all<T: Entity + Deserialize<'static>>(
+	async fn read_all<T: Entity + Deserialize<'static>>(
 		&self,
 		_list_id: &GeneratedId,
 		_start: Option<String>,
@@ -58,7 +78,7 @@ impl TypedEntityClient {
 	}
 
 	#[allow(clippy::unused_async, unused)]
-	pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
+	pub async fn read_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
 		&self,
 		list_id: &GeneratedId,
 		start_id: &Id,
@@ -76,7 +96,7 @@ impl TypedEntityClient {
 		}
 		let entities = self
 			.entity_client
-			.load_range(&T::type_ref(), list_id, start_id, count, direction)
+			.read_range(&T::type_ref(), list_id, start_id, count, direction)
 			.await?;
 		let typed_entities = entities
 			.into_iter()
@@ -91,7 +111,6 @@ impl TypedEntityClient {
 		Ok(typed_entities)
 	}
 
-	// TODO: enforce statically?
 	fn check_if_encrypted(type_model: &TypeModel) -> Result<(), ApiCallError> {
 		if type_model.is_encrypted() {
 			return Err(ApiCallError::InternalSdkError {
@@ -103,30 +122,8 @@ impl TypedEntityClient {
 		}
 		Ok(())
 	}
-}
 
-#[cfg(test)]
-mockall::mock! {
-	pub TypedEntityClient {
-		pub fn new(
-			entity_client: Arc<EntityClient>,
-			instance_mapper: Arc<InstanceMapper>,
-		) -> Self;
-		pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(
-			&self,
-			id: &Id,
-		 ) -> Result<T, ApiCallError>;
-		async fn load_all<T: Entity + Deserialize<'static>>(
-			&self,
-			list_id: &GeneratedId,
-			start: Option<String>,
-		) -> Result<Vec<T>, ApiCallError>;
-		pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
-			&self,
-			list_id: &GeneratedId,
-			start_id: &Id,
-			count: usize,
-			list_load_direction: ListLoadDirection,
-		) -> Result<Vec<T>, ApiCallError>;
+	pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&TypeModel, ApiCallError> {
+		self.entity_client.get_type_model(type_ref)
 	}
 }

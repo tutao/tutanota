@@ -13,11 +13,6 @@ pub const GENERATED_ID_BYTES_LENGTH: usize = 9;
 pub struct GeneratedId(pub String);
 
 impl GeneratedId {
-	#[must_use]
-	pub fn as_str(&self) -> &str {
-		&self.0
-	}
-
 	/// Generates and returns a random `CustomId`
 	#[cfg(test)]
 	#[must_use]
@@ -78,7 +73,12 @@ impl Debug for GeneratedId {
 }
 
 impl IdType for GeneratedId {}
-impl BaseIdType for GeneratedId {}
+
+impl BaseIdType for GeneratedId {
+	fn as_str(&self) -> &str {
+		&self.0
+	}
+}
 
 uniffi::custom_newtype!(GeneratedId, String);
 

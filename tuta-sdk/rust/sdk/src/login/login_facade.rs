@@ -94,7 +94,7 @@ impl LoginFacade {
 		// Cannot use typed client because session is encrypted, and we haven't init crypto client yet
 		let session: ParsedEntity = self
 			.entity_client
-			.load(&Session::type_ref(), &session_id)
+			.read(&Session::type_ref(), &session_id)
 			.await?;
 
 		let access_key = self.get_access_key(&session)?;
@@ -104,7 +104,7 @@ impl LoginFacade {
 				error_message: format!("Failed to decrypt key: {e}"),
 			})?;
 
-		let user: User = self.typed_entity_client.load(&credentials.user_id).await?;
+		let user: User = self.typed_entity_client.read(&credentials.user_id).await?;
 
 		let user_facade = self.init_session(user, passphrase_key)?;
 

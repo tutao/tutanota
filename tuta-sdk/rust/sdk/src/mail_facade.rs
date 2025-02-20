@@ -59,9 +59,9 @@ impl MailFacade {
 			.ok_or_else(|| ApiCallError::internal("User does not have mail group".to_owned()))?;
 		let group_root: MailboxGroupRoot = self
 			.crypto_entity_client
-			.load(&mail_group_ship.group)
+			.read(&mail_group_ship.group)
 			.await?;
-		let mailbox: MailBox = self.crypto_entity_client.load(&group_root.mailbox).await?;
+		let mailbox: MailBox = self.crypto_entity_client.read(&group_root.mailbox).await?;
 		Ok(mailbox)
 	}
 
@@ -72,7 +72,7 @@ impl MailFacade {
 		let folders_list = &mailbox.folders.as_ref().unwrap().folders;
 		let folders: Vec<MailFolder> = self
 			.crypto_entity_client
-			.load_range(
+			.read_range(
 				folders_list,
 				&GeneratedId::min_id(),
 				100,
@@ -128,7 +128,7 @@ impl MailFacade {
 		id_tuple: &IdTupleGenerated,
 	) -> Result<Mail, ApiCallError> {
 		self.crypto_entity_client
-			.load::<Mail, IdTupleGenerated>(id_tuple)
+			.read::<Mail, IdTupleGenerated>(id_tuple)
 			.await
 	}
 
@@ -145,14 +145,14 @@ impl MailFacade {
 		for mail_group_membership in mail_group_memberships.into_iter() {
 			let group: Group = self
 				.crypto_entity_client
-				.load(&mail_group_membership.group)
+				.read(&mail_group_membership.group)
 				.await?;
 
 			match (&group.user, &logged_in_user._id) {
 				(None, _) => {
 					let mail_group_info: GroupInfo = self
 						.crypto_entity_client
-						.load(&mail_group_membership.groupInfo)
+						.read(&mail_group_membership.groupInfo)
 						.await?;
 
 					let enabled_mail_addresses =
@@ -166,7 +166,7 @@ impl MailFacade {
 				{
 					let user_group_info: GroupInfo = self
 						.crypto_entity_client
-						.load(&logged_in_user.userGroup.groupInfo)
+						.read(&logged_in_user.userGroup.groupInfo)
 						.await?;
 					let enabled_mail_addresses =
 						get_enabled_mail_addresses_for_group_info(&user_group_info);

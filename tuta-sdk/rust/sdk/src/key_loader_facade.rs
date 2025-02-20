@@ -52,7 +52,7 @@ impl KeyLoaderFacade {
 			Ok(group_key.object)
 		} else {
 			// TODO: refresh if group_key.version < version
-			let group: Group = self.entity_client.load(&group_id.to_owned()).await?;
+			let group: Group = self.entity_client.read(&group_id.to_owned()).await?;
 			let FormerGroupKey {
 				symmetric_group_key,
 				..
@@ -78,7 +78,7 @@ impl KeyLoaderFacade {
 
 		let former_keys: Vec<GroupKey> = self
 			.entity_client
-			.load_range(
+			.read_range(
 				&list_id,
 				&start_id,
 				amount_of_keys_including_target,
@@ -227,7 +227,7 @@ impl KeyLoaderFacade {
 		key_pair_group_id: &GeneratedId,
 		requested_version: u64,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
-		let group: Group = self.entity_client.load(key_pair_group_id).await?;
+		let group: Group = self.entity_client.read(key_pair_group_id).await?;
 		let current_group_key = self
 			.get_current_sym_group_key(group._id.as_ref().expect("no id on group!"))
 			.await?;
@@ -249,7 +249,7 @@ impl KeyLoaderFacade {
 		&self,
 		group_id: &GeneratedId,
 	) -> Result<Versioned<AsymmetricKeyPair>, KeyLoadError> {
-		let group: Group = self.entity_client.load(group_id).await?;
+		let group: Group = self.entity_client.read(group_id).await?;
 
 		let current_group_key = self.get_current_sym_group_key(group_id).await?;
 		if convert_version_to_u64(group.groupKeyVersion) != current_group_key.version {
@@ -298,7 +298,7 @@ impl KeyLoaderFacade {
 					// we load by the version and thus can be sure that we are able to decrypt this key
 					let former_group_key: GroupKey = self
 						.entity_client
-						.load(&IdTupleCustom::new(
+						.read(&IdTupleCustom::new(
 							former_keys_list,
 							CustomId::from_custom_string(&sym_group_key.version.to_string()),
 						))

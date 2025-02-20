@@ -70,7 +70,11 @@ impl Debug for CustomId {
 }
 
 impl IdType for CustomId {}
-impl BaseIdType for CustomId {}
+impl BaseIdType for CustomId {
+	fn as_str(&self) -> &str {
+		&self.0
+	}
+}
 
 uniffi::custom_newtype!(CustomId, String);
 

@@ -10,7 +10,10 @@ pub const ID_TUPLE_CUSTOM_NAME: &str = "IdTupleCustom";
 pub trait IdType: Display + 'static {}
 
 /// Denotes a basic ID type such as GeneratedId or CustomID that can be serialised into a string and used to access resources
-pub trait BaseIdType: Display + IdType + 'static {}
+pub trait BaseIdType: Display + IdType + 'static {
+	#[must_use]
+	fn as_str(&self) -> &str;
+}
 pub trait IdTupleType: Display + IdType + 'static {}
 
 /// A set of keys used to identify an element within a List Element Type
