@@ -117,6 +117,18 @@
 				<data android:scheme="alarm"/>
 			</intent-filter>
 		</receiver>
+		<receiver
+				android:name=".widget.MyAppWidgetReceiver"
+				android:exported="true"
+				android:label="Hello World"
+				>
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+			</intent-filter>
+			<meta-data
+					android:name="android.appwidget.provider"
+					android:resource="@xml/my_app_widget_info"/>
+		</receiver>
 
 		<meta-data
 				android:name="android.webkit.WebView.MetricsOptOut"

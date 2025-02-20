@@ -15,10 +15,10 @@ import stream from "mithril/stream"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { isApp } from "../../../../common/api/common/Env.js"
+import { areAllAdvancedRepeatRulesValid } from "../../../../common/calendar/date/CalendarUtils.js"
+import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { areAllAdvancedRepeatRulesValid, ByRule } from "../../../../common/calendar/date/CalendarUtils.js"
-import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
