@@ -429,20 +429,6 @@ export class CalendarEventWhenModel {
 	}
 
 	/**
-	 * @param diff Time difference between the original date and the new date
-	 * @param overrideDate currently, when moving an event that has been created as a result of an AdvancedRepeatRule, it would always move the original event.
-	 * 	In this case, we have to pass the date of the event that has actually been moved, as that is the Weekday we actually want to account for.
-	 */
-	resetByDayRulesByDiff(diff: DurationLikeObject, overrideDate?: Date) {
-		const oldStartTime = overrideDate ? DateTime.fromJSDate(overrideDate) : this.startTime.toDateTime(this.startDate, this.zone)
-		const newStartDate = oldStartTime.plus(diff)
-
-		if (this.repeatPeriod == RepeatPeriod.MONTHLY) {
-			return this.resetMonthlyByDayRules(newStartDate.toJSDate())
-		}
-	}
-
-	/**
 	 * In case we change the Date within the EventEditor, or we Drag & Drop an event to another date, advanced repeat rules will become inconsistent.
 	 * Monthly BYDAY Rules are bound to the weekday of the event date, so we have to change the advanced repeat rules accordingly.
 	 * This should only be done for valid rules, if unsupported rules exist on the event, the User receives a warning and the rules are purged.

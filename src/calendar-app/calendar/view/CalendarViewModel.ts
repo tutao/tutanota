@@ -17,7 +17,6 @@ import {
 	getWeekStart,
 	GroupType,
 	OperationType,
-	RepeatPeriod,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
@@ -28,7 +27,6 @@ import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "../../.
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
-	areAllAdvancedRepeatRulesValid,
 	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
 	getMonthRange,
@@ -340,34 +338,27 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const { originalEvent, eventClone } = this._draggedEvent
 			const editModel = await this.createCalendarEventEditModel(mode, originalEvent)
 
-			let whenModel = editModel?.editModels.whenModel
-			let warningConfirmed: boolean = true
-			if (
-				editModel != null &&
-				whenModel != null &&
-				whenModel.advancedRules.length > 0 &&
-				!areAllAdvancedRepeatRulesValid(whenModel.advancedRules, whenModel.repeatPeriod)
-			) {
-				warningConfirmed = await Dialog.confirm("unsupportedAdvancedRules_msg")
+			// let whenModel = editModel?.editModels.whenModel
+			if (originalEvent.repeatRule && originalEvent.repeatRule.advancedRules.length > 0) {
+				this._draggedEvent = null
+				return Dialog.message("dragAndDropNotAllowedForAdvancedRecurrences_msg")
 			}
 
-			if (warningConfirmed) {
-				this._draggedEvent = null
-				updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+			this._draggedEvent = null
+			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
 
-				this._addTransientEvent(eventClone)
+			this._addTransientEvent(eventClone)
 
-				try {
+			try {
 					const didUpdate = await this.moveEvent(originalEvent, editModel!, timeToMoveBy, mode)
 
-					if (didUpdate !== EventSaveResult.Saved) {
-						this._removeTransientEvent(eventClone)
-					}
-				} catch (e) {
+				if (didUpdate !== EventSaveResult.Saved) {
 					this._removeTransientEvent(eventClone)
-
-					throw e
 				}
+			} catch (e) {
+				this._removeTransientEvent(eventClone)
+
+				throw e
 			}
 		} else {
 			this._draggedEvent = null
@@ -494,10 +485,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		if (editModel == null) {
 			// this should technically never be null
 			return EventSaveResult.Failed
-		}
-
-		if (editModel.editModels.whenModel.repeatPeriod === RepeatPeriod.MONTHLY) {
-			editModel.editModels.whenModel.resetByDayRulesByDiff({ millisecond: diff }, event.startTime)
 		}
 
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
