@@ -5,12 +5,15 @@ use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::tutanota_constants::ArchiveDataType;
 use tutasdk::Sdk;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
+#[tokio::test]
+async fn sdk_can_upload_single_blob_legacy() -> Result<(), Box<dyn Error>> {
 	let rest_client = Arc::new(NativeRestClient::try_new().unwrap());
 
-	// this test expect local server with matching model versions to be live at: http://localhost:9000
+	// this test expects local server with matching model versions to be live at: http://localhost:9000
 	let sdk = Sdk::new("http://localhost:9000".to_string(), rest_client.clone());
 
 	let logged_in_sdk = sdk

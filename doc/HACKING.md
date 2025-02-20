@@ -44,7 +44,8 @@ contains most of the logic for server communication, encryption, indexing etc.
 ### Communication
 
 Worker, main thread & apps communicate through the messages. Protocol is described in the
-[RemoteMessageDispatcher](../src/common/api/common/threading/MessageDispatcher.ts). See [WorkerClient](../src/common/api/main/WorkerClient.ts)
+[RemoteMessageDispatcher](../src/common/api/common/threading/MessageDispatcher.ts).
+See [WorkerClient](../src/common/api/main/WorkerClient.ts)
 and
 [WorkerImpl](../src/common/api/worker/WorkerImpl.ts) for the client and server part.
 
@@ -109,6 +110,7 @@ tp stay up-to-date with the server (for caching and indexing).
 See [HACKING](./HACKING.md) for build pre-requisites.
 
 Prepare the project:
+
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
 3. Initialize liboqs and argon2 submodules: `git submodule init`
@@ -178,7 +180,16 @@ For building calendar app run `node make prod -a calenar` instead.
 
 ### Tests
 
-To run tests:
+To run sdk and node mimimi test:
+
+```bash
+cargo test --all
+# Some sdk & node mimimi test requires actual local http server running, as we do not have "mock" server yet
+# If on dev-machine, to run test including tests that requires local http server running:
+cargo test --all --features test-with-local-http-server
+```
+
+To run all TypeScript tests:
 
 ```bash
 npm test
