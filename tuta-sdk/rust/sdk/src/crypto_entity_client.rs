@@ -305,8 +305,8 @@ impl CryptoEntityClient {
 			)
 			.await;
 		match result {
-			Err(_e) => {
-				// TODO log the error
+			Err(auth_error) => {
+				println!("Failed to authenticate sender: {auth_error}");
 				// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
 				// in those cases we will just show a warning banner but still want to display the mail
 				EncryptionAuthStatus::TutacryptAuthenticationFailed
