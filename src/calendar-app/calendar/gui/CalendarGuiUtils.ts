@@ -34,6 +34,7 @@ import {
 	AlarmInterval,
 	alarmIntervalToLuxonDurationLikeObject,
 	AlarmIntervalUnit,
+	ByRule,
 	CalendarDay,
 	CalendarMonth,
 	eventEndsAfterDay,
@@ -61,13 +62,14 @@ import {
 	EventTextTimeOption,
 	RepeatPeriod,
 	ShareCapability,
+	Weekday,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
 import { hslToHex, isColorLight, isValidColorCode, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
@@ -84,6 +86,8 @@ import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
 import { theme } from "../../../common/gui/theme.js"
+import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
+import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 
 export interface IntervalOption {
 	value: number
@@ -421,7 +425,7 @@ export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod
 		},
 	]
 }
-export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | "CUSTOM" | null>> => {
+export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | null>> => {
 	return [
 		{
 			name: "calendarRepeatIntervalNoRepeat_label",
@@ -442,10 +446,6 @@ export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<Repeat
 		{
 			name: "calendarRepeatIntervalAnnually_label",
 			value: RepeatPeriod.ANNUALLY,
-		},
-		{
-			name: "custom_label",
-			value: "CUSTOM",
 		},
 	]
 }
@@ -486,23 +486,121 @@ export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<End
 	]
 }
 
-export const createRepeatRuleEndTypeValues = (): SelectorItemList<EndType> => {
+export const weekdayToTranslation = (): Array<WeekdayToTranslation> => {
 	return [
 		{
-			name: lang.get("calendarRepeatStopConditionNever_label"),
-			value: EndType.Never,
+			value: Weekday.MONDAY,
+			label: lang.get("monday_label"),
 		},
 		{
-			name: lang.get("calendarRepeatStopConditionOccurrences_label"),
-			value: EndType.Count,
+			value: Weekday.TUESDAY,
+			label: lang.get("tuesday_label"),
 		},
 		{
-			name: lang.get("calendarRepeatStopConditionDate_label"),
-			value: EndType.UntilDate,
+			value: Weekday.WEDNESDAY,
+			label: lang.get("wednesday_label"),
+		},
+		{
+			value: Weekday.THURSDAY,
+			label: lang.get("thursday_label"),
+		},
+		{
+			value: Weekday.FRIDAY,
+			label: lang.get("friday_label"),
+		},
+		{
+			value: Weekday.SATURDAY,
+			label: lang.get("saturday_label"),
+		},
+		{
+			value: Weekday.SUNDAY,
+			label: lang.get("sunday_label"),
 		},
 	]
 }
+
 export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).map((n) => ({ name: String(n), value: n, ariaValue: String(n) }))
+
+/**
+ * Returns an array of IntervalOptions based on the given Weekday.
+ * (1 = Monday, ..., 7 = Sunday). Since our internal format Starts with 0 = Monday, we have to decrement the weekday number.
+ *
+ * @param weekday
+ * @param numberOfWeekdaysInMonth how many times this Weekday occurs in the current month. Per default assume 4.
+ */
+export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekdaysInMonth: number = 4): { options: IntervalOption[]; weekday: number } => {
+	const weekdayLabel = weekdayToTranslation()[weekday - 1].label
+	const options: IntervalOption[] = [
+		{
+			value: 0,
+			ariaValue: "same day",
+			name: lang.get("sameDay_label"),
+		},
+		{
+			value: 1,
+			ariaValue: "first",
+			name: lang.get("firstOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		},
+		{
+			value: 2,
+			ariaValue: "second",
+			name: lang.get("secondOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		},
+		{
+			value: 3,
+			ariaValue: "third",
+			name: lang.get("thirdOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		},
+		{
+			value: -1,
+			ariaValue: "last",
+			name: lang.get("lastOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		},
+	]
+
+	if (numberOfWeekdaysInMonth > 4) {
+		options.splice(4, 0, {
+			value: 4,
+			ariaValue: "fourth",
+			name: lang.get("fourthOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		})
+	}
+
+	return { options, weekday }
+}
+
+/**
+ * From a given Array of AdvancedRules, collect all BYDAY Rules and cast them to Weekday enum.
+ * this is necessary for opening the RepeatEditor for a given event that has AdvancedRules configured.
+ * @param advancedRepeatRules AdvancedRepeatRules that have been written on the Event already.
+ */
+export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): ByDayRule | null => {
+	if (advancedRepeatRules.length == 0) return null
+
+	let interval: number = 0
+	const weekdays = advancedRepeatRules
+		.filter((rr) => rr.ruleType === ByRule.BYDAY)
+		.map((rr) => {
+			if (rr.interval.length > 2) {
+				// if length > 2, interval is specified on the BYDAY rule
+				interval = parseInt(rr.interval.slice(0, rr.interval.length - 2)) // get interval
+				return <Weekday>rr.interval.substring(rr.interval.length - 2) // get Weekday shorthand
+			} else {
+				return <Weekday>rr.interval
+			}
+		})
+	return { weekdays, interval }
+}
 
 export function humanDescriptionForAlarmInterval<P>(value: AlarmInterval, locale: string): string {
 	if (value.value === 0) return lang.get("calendarReminderIntervalAtEventStart_label")

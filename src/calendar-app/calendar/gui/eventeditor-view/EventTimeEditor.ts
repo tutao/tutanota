@@ -17,6 +17,7 @@ export type EventTimeEditorAttrs = {
 	timeFormat: TimeFormat
 	editModel: CalendarEventWhenModel
 	disabled: boolean
+	dateSelectionChanged: (date: Date) => void
 }
 
 /**
@@ -62,7 +63,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.startDate,
-								onDateSelected: (date) => date && (editModel.startDate = date),
+								onDateSelected: (date) => date && vnode.attrs.dateSelectionChanged(date),
 								startOfTheWeekOffset,
 								label: "dateFrom_label",
 								useInputButton: true,

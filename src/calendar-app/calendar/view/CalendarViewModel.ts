@@ -54,6 +54,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import type { GroupColors } from "./CalendarView.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
+import { Dialog } from "../../../common/gui/base/Dialog.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -335,6 +336,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (this._draggedEvent == null) return
 
 			const { originalEvent, eventClone } = this._draggedEvent
+
+			if (originalEvent.repeatRule != null && originalEvent.repeatRule.advancedRules.length > 0) {
+				this._draggedEvent = null
+				return Dialog.message("dragAndDropNotAllowedForAdvancedRecurrences_msg")
+			}
+
 			this._draggedEvent = null
 			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
 
@@ -464,6 +471,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	/**
 	 * move an event to a new start time
 	 * @param event the actually dragged event (may be a repeated instance)
+	 * @param editModel passed in from the outside for corresponding event
 	 * @param diff the amount of milliseconds to shift the event by
 	 * @param mode which parts of the series should be rescheduled?
 	 */

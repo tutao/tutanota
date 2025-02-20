@@ -1684,7 +1684,6 @@ styles.registerStyle("main", () => {
 		},
 		".dropdown-panel-scrollable": {
 			position: "absolute",
-			width: "inherit",
 			"overflow-x": "hidden",
 			"overflow-y": "auto",
 			"z-index": 999,
@@ -2257,6 +2256,16 @@ styles.registerStyle("main", () => {
 		".calendar-selected-day-circle": {
 			"background-color": theme.content_accent,
 		},
+		".weekday-button-unselected-circle": {
+			border: `${px(1)} solid ${theme.content_accent}`,
+		},
+		".weekday-button-unselected-text": {
+			color: theme.content_accent,
+		},
+		".weekday-selector": {
+			margin: `${px(size.vpad_small)} 0`,
+			height: "44px",
+		},
 		".calendar-current-day-text": {
 			color: theme.content_bg,
 			"font-weight": "bold",
@@ -2802,6 +2811,11 @@ styles.registerStyle("main", () => {
 			"grid-gap": px(size.vpad_small),
 			"align-items": "center",
 		},
+		".repeats-every-grid": {
+			display: "grid",
+			"grid-template-columns": "6fr 3fr",
+			"column-gap": px(size.vpad_small),
+		},
 		".time-selection-grid > *": {
 			overflow: "hidden",
 			"white-space": "nowrap",
@@ -2858,6 +2872,14 @@ styles.registerStyle("main", () => {
 		".border-radius-bottom-0": {
 			"border-bottom-right-radius": px(0),
 			"border-bottom-left-radius": px(0),
+		},
+		".repeat-rule span": {
+			"white-space": "nowrap",
+			overflow: "hidden",
+			"text-overflow": "ellipsis",
+		},
+		".repeat-rule > .tutaui-card-container": {
+			overflow: "hidden",
 		},
 		".tutaui-select-close:focus": {
 			position: "initial",

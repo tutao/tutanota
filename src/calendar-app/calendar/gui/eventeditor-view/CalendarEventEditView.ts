@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { defaultCalendarColor, TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
+import { defaultCalendarColor, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -22,7 +22,7 @@ import { deepEqual } from "@tutao/tutanota-utils"
 import { ButtonColor, getColors } from "../../../../common/gui/base/Button.js"
 import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
-import type { CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
@@ -240,14 +240,19 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
 		const padding = px(size.vpad_small)
+		const { whenModel } = attrs.model.editModels
 		return m(
 			Card,
 			{ style: { padding: `${padding} 0 ${padding} ${padding}` } },
 			m(EventTimeEditor, {
-				editModel: attrs.model.editModels.whenModel,
+				editModel: whenModel,
 				timeFormat: this.timeFormat,
 				startOfTheWeekOffset: this.startOfTheWeekOffset,
 				disabled: !attrs.model.isFullyWritable(),
+				dateSelectionChanged: (date: Date) => {
+					whenModel.startDate = date
+					if (whenModel.repeatPeriod == RepeatPeriod.MONTHLY) whenModel.resetMonthlyByDayRules(date)
+				},
 			} satisfies EventTimeEditorAttrs),
 		)
 	}
@@ -258,6 +263,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			leftIcon: { icon: Icons.Sync, title: "calendarRepeating_label" },
 			text: lang.makeTranslation(repeatRuleText, repeatRuleText),
 			isDisabled: !model.canEditSeries(),
+			classes: "overflow-hidden repeat-rule",
 			onclick: () => {
 				this.transitionTo(EditorPages.REPEAT_RULES, navigationCallback)
 			},
@@ -465,7 +471,13 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			model: whenModel,
 			startOfTheWeekOffset: this.startOfTheWeekOffset,
 			width: this.pageWidth,
-			backAction: () => navigationCallback(EditorPages.MAIN),
+			backAction: () => {
+				navigationCallback(EditorPages.MAIN)
+			},
+			writeWeekdaysToModel: (weekdays: Weekday[], interval?: number) => {
+				whenModel.advancedRules = whenModel.createAdvancedRulesFromWeekdays(weekdays, interval)
+				m.redraw()
+			},
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
