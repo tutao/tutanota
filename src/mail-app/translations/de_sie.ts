@@ -1945,6 +1945,7 @@ export default {
         "withCustomRules_label": "Mit benutzerdefinierten Wiederholungsregeln",
         "unsupportedAdvancedRules_msg": "Dieses Ereignis enthält eine oder mehrere nicht unterstützte erweiterte Wiederholungsregeln; jede Änderung führt zum Verlust dieser Regeln.",
         "sameDay_label": "Selben Tag",
+        "dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & Drop ist für Ereignisse mit erweiterten Wiederholungsregeln nicht verfügbar",
         // Put in temporarily, will be removed soon
         "localAdminGroup_label": "Local admin group",
         "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
