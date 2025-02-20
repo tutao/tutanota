@@ -40,7 +40,11 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 					buttonDimensions: WEEKDAY_BUTTON_MOBILE_DIMENSIONS,
 					selected: vnode.attrs.selectedDays?.includes(item.value) ?? false,
 					onSelectionChanged: (weekday: Weekday) => {
-						this.selectedDays.includes(weekday) ? this.selectedDays.splice(this.selectedDays.indexOf(weekday), 1) : this.selectedDays.push(weekday)
+						if (this.selectedDays.includes(weekday)) {
+							this.selectedDays.splice(this.selectedDays.indexOf(weekday), 1)
+						} else {
+							this.selectedDays.push(weekday)
+						}
 						vnode.attrs.gatherSelectedDays(this.selectedDays)
 					},
 				} satisfies WeekdaySelectorButtonAttrs)
