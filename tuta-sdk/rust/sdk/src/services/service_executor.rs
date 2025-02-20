@@ -763,6 +763,7 @@ mod tests {
 					session_key: session_key_clone.clone(),
 					owner_enc_session_key: owner_enc_session_key.clone(),
 					owner_key_version,
+					sender_identity_pub_key: None,
 				}))
 			});
 

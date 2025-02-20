@@ -1,5 +1,6 @@
 use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
+use std::fmt::Debug;
 
 #[cfg(test)]
 pub mod entity_test_utils;
@@ -14,7 +15,8 @@ pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
 	copy
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this might print a key
 pub struct Versioned<T> {
 	pub object: T,
 	pub version: u64,
@@ -23,6 +25,12 @@ pub struct Versioned<T> {
 impl<T> Versioned<T> {
 	pub fn new(object: T, version: u64) -> Versioned<T> {
 		Versioned { object, version }
+	}
+	pub fn as_ref(&self) -> Versioned<&T> {
+		Versioned {
+			object: &self.object,
+			version: self.version,
+		}
 	}
 }
 
@@ -190,6 +198,13 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(
 			actual_size: ARR_SIZE,
 		})
 	}
+}
+
+/// Returns `T` if type `F` is the same type.
+#[must_use]
+pub fn downcast_mut<F: 'static, T: 'static>(of: &mut F) -> Option<&mut T> {
+	let a = of as &mut dyn std::any::Any;
+	a.downcast_mut()
 }
 
 #[cfg(test)]
