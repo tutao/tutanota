@@ -102,7 +102,7 @@ dependencies {
 		// (despite not throwing this error)."
 		// This is not really a problem for us because we never build a separate AAR out of tutashared, it is just a
 		// module.
-		api(files("../libs/sqlcipher-android-4.6.0.aar"))
+		compileOnly(files("../libs/sqlcipher-android-4.6.0.aar"))
 	} else {
 		logger.lifecycle("Using sqlcipher from remote repository")
 		implementation("net.zetetic:sqlcipher-android:4.6.0@aar")

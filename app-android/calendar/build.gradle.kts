@@ -179,6 +179,18 @@ dependencies {
 	// For Kotlin use kapt instead of annotationProcessor
 	kapt("androidx.room:room-compiler:$room_version")
 
+	if (file("../libs/sqlcipher-android-4.6.0.aar").exists()) {
+		logger.lifecycle("Using prebuild sqlcipher file in ../libs")
+		// "Direct local .aar file dependencies are not supported when building an AAR. The resulting AAR would be
+		// broken because the classes and Android resources from any local .aar file dependencies would not be packaged
+		// in the resulting AAR. Previous versions of the Android Gradle Plugin produce broken AARs in this case too
+		// (despite not throwing this error)."
+		implementation(files("../libs/sqlcipher-android-4.6.0.aar"))
+	} else {
+		logger.lifecycle("Using sqlcipher from remote repository")
+		implementation("net.zetetic:sqlcipher-android:4.6.0@aar")
+	}
+
 	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 	implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
 
