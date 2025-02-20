@@ -69,6 +69,7 @@ impl EccKeyPair {
 
 impl EccPublicKey {
 	/// Get a reference to the underlying bytes.
+	#[must_use]
 	pub fn as_bytes(&self) -> &[u8] {
 		self.0.as_slice()
 	}
@@ -78,6 +79,12 @@ impl EccPublicKey {
 	/// Returns `Err` on failure.
 	pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
 		Ok(Self(array_cast_slice(bytes, "EccPublicKey")?))
+	}
+
+	/// Convert an array of bytes into an ECC key.
+	#[cfg(test)]
+	pub const fn from_array(bytes: [u8; ECC_KEY_SIZE]) -> Self {
+		Self(bytes)
 	}
 }
 

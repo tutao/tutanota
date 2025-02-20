@@ -56,7 +56,8 @@ pub const MAX_BLOB_SERVICE_BYTES: usize = MAX_BLOB_SIZE_BYTES;
 /// Denotes if an entity was authenticated successfully.
 ///
 /// Not all decryption methods use authentication.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, TryFromPrimitive, PartialEq, Eq)]
+#[repr(i64)]
 pub enum EncryptionAuthStatus {
 	/// The entity was decrypted with RSA which does not use authentication.
 	RSANoAuthentication = 0,
@@ -72,7 +73,12 @@ pub enum EncryptionAuthStatus {
 
 	/// The entity was sent by the user and doesn't need authenticated.
 	TutacryptSender = 4,
+
+	/// the entity was encrypted with RSA although TutaCrypt keys were available.
+	RsaDespiteTutacrypt = 5,
 }
+
+pub const SYSTEM_GROUP_MAIL_ADDRESS: &str = "system@tutanota.de";
 
 /// Used for identifying the protocol version used for encrypting a session key.
 #[derive(Debug, Clone, TryFromPrimitive, PartialEq, Eq)]

@@ -258,7 +258,7 @@ export class CryptoFacade {
 	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 		let decryptedBucketKey: AesKey
-		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
+		let encryptionAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: EccPublicKey | null = null
 		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
@@ -284,7 +284,7 @@ export class CryptoFacade {
 			}
 
 			decryptedBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
-			unencryptedSenderAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
+			encryptionAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
 		}
@@ -294,7 +294,7 @@ export class CryptoFacade {
 			instanceElementId,
 			instance,
 			typeModel,
-			unencryptedSenderAuthStatus,
+			encryptionAuthStatus,
 			pqMessageSenderKey,
 		)
 
@@ -508,9 +508,9 @@ export class CryptoFacade {
 		pqMessageSenderKey: Uint8Array | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: Record<string, any>,
-		resolvedSessionKeyForInstance: number[],
+		resolvedSessionKeyForInstance: AesKey,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
-		decryptedSessionKey: number[],
+		decryptedSessionKey: AesKey,
 		keyGroup: Id | null,
 	) {
 		// we only authenticate mail instances
