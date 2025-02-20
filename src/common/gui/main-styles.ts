@@ -1684,7 +1684,6 @@ styles.registerStyle("main", () => {
 		},
 		".dropdown-panel-scrollable": {
 			position: "absolute",
-			width: "inherit",
 			"overflow-x": "hidden",
 			"overflow-y": "auto",
 			"z-index": 999,

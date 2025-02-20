@@ -2,17 +2,17 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { EndType, Weekday, Keys, RepeatPeriod, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
+import { EndType, Keys, RepeatPeriod, TabIndex, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
 	createCustomEndTypeOptions,
 	createIntervalValues,
 	createRepeatRuleOptions,
-	weekdayToTranslation,
+	createRepetitionValuesForWeekday,
 	getByDayRulesFromAdvancedRules,
 	IntervalOption,
-	createRepetitionValuesForWeekday,
+	weekdayToTranslation,
 } from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
@@ -24,15 +24,12 @@ import { theme } from "../../../../common/gui/theme.js"
 import { isApp } from "../../../../common/api/common/Env.js"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { areAllAdvancedRepeatRulesValid, ByRule } from "../../../../common/calendar/date/CalendarUtils.js"
+import { areAllAdvancedRepeatRulesValid } from "../../../../common/calendar/date/CalendarUtils.js"
 import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 import { Divider } from "../../../../common/gui/Divider.js"
 import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
 import { DateTime } from "luxon"
-import { areAllAdvancedRepeatRulesValid } from "../../../../common/calendar/date/CalendarUtils.js"
-import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -260,37 +257,40 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			},
 			[
 				m(".flex-grow", "Every"),
-				m(Select<IntervalOption, number>, {
-					onchange: (newValue) => {
-						if (this.repeatInterval === newValue.value) {
-							return
-						}
+				m(
+					".rel",
+					m(Select<IntervalOption, number>, {
+						onchange: (newValue) => {
+							if (this.repeatInterval === newValue.value) {
+								return
+							}
 
-						this.repeatInterval = newValue.value
-						this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
-						m.redraw.sync()
-					},
-					onclose: () => {},
-					selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
-					ariaLabel: lang.get("repeatsEvery_label"),
-					options: this.intervalOptions,
-					noIcon: false,
-					expanded: false,
-					tabIndex: Number(TabIndex.Programmatic),
-					classes: ["no-appearance"],
-					renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
-					renderOption: (option) =>
-						m(
-							"button.items-center.flex-grow",
-							{
-								...(option.value == this.repeatInterval ? { "aria-selected": "true" } : {}),
-								class:
-									"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
-									(option.value == this.repeatInterval ? "content-accent-fg row-selected icon-accent" : ""),
-							},
-							option.name,
-						),
-				} satisfies SelectAttributes<IntervalOption, number>),
+							this.repeatInterval = newValue.value
+							this.updateCustomRule(attrs.model, { interval: this.repeatInterval })
+							m.redraw.sync()
+						},
+						onclose: () => {},
+						selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
+						ariaLabel: lang.get("repeatsEvery_label"),
+						options: this.intervalOptions,
+						noIcon: false,
+						expanded: false,
+						tabIndex: Number(TabIndex.Programmatic),
+						classes: ["no-appearance"],
+						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
+						renderOption: (option) =>
+							m(
+								"button.items-center.flex-grow",
+								{
+									...(option.value == this.repeatInterval ? { "aria-selected": "true" } : {}),
+									class:
+										"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
+										(option.value == this.repeatInterval ? "content-accent-fg row-selected icon-accent" : ""),
+								},
+								option.name,
+							),
+					} satisfies SelectAttributes<IntervalOption, number>),
+				),
 			],
 		)
 	}

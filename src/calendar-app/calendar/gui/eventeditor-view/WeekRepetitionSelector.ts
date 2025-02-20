@@ -29,7 +29,7 @@ export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorA
 
 	view(vnode: Vnode<WeekRepetitionSelectorAttrs>): Children {
 		return m(
-			".flex",
+			".flex.justify-between",
 			{
 				style: {
 					padding: "8px 14px",
@@ -37,36 +37,39 @@ export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorA
 				},
 			},
 			[
-				m(".flex-grow", "On"),
-				m(Select<IntervalOption, number>, {
-					onchange: (newValue) => {
-						if (this.weekRepetition === newValue.value) {
-							return
-						}
+				m(".flex-grow", lang.getTranslation("onDays_label", { "{days}": "" }).text),
+				m(
+					".rel",
+					m(Select<IntervalOption, number>, {
+						onchange: (newValue) => {
+							if (this.weekRepetition === newValue.value) {
+								return
+							}
 
-						this.weekRepetition = newValue.value
-						vnode.attrs.gatherSelectedDay([Object.values(Weekday)[this.weekday]], this.weekRepetition)
-						m.redraw.sync()
-					},
-					onclose: () => {},
-					selected: this.repetitionOptions().filter((option) => option.value === this.weekRepetition)[0],
-					ariaLabel: lang.get("repeatsEvery_label"),
-					options: this.repetitionOptions,
-					noIcon: false,
-					expanded: false,
-					tabIndex: Number(TabIndex.Programmatic),
-					classes: ["no-appearance"],
-					renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", option.name)]),
-					renderOption: (option) =>
-						m(
-							"button.items-center.flex-grow",
-							{
-								class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
-							},
-							option.name,
-						),
-					keepFocus: true,
-				} satisfies SelectAttributes<IntervalOption, number>),
+							this.weekRepetition = newValue.value
+							vnode.attrs.gatherSelectedDay([Object.values(Weekday)[this.weekday]], this.weekRepetition)
+							m.redraw.sync()
+						},
+						onclose: () => {},
+						selected: this.repetitionOptions().filter((option) => option.value === this.weekRepetition)[0],
+						ariaLabel: lang.get("repeatsEvery_label"),
+						options: this.repetitionOptions,
+						noIcon: false,
+						expanded: false,
+						tabIndex: Number(TabIndex.Programmatic),
+						classes: ["no-appearance"],
+						responsive: true,
+						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", option.name)]),
+						renderOption: (option) =>
+							m(
+								"button.items-center.flex-grow",
+								{
+									class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
+								},
+								option.name,
+							),
+					} satisfies SelectAttributes<IntervalOption, number>),
+				),
 			],
 		)
 	}

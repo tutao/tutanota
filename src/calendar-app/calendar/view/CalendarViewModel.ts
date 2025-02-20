@@ -336,10 +336,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (this._draggedEvent == null) return
 
 			const { originalEvent, eventClone } = this._draggedEvent
-			const editModel = await this.createCalendarEventEditModel(mode, originalEvent)
 
-			// let whenModel = editModel?.editModels.whenModel
-			if (originalEvent.repeatRule && originalEvent.repeatRule.advancedRules.length > 0) {
+			if (originalEvent.repeatRule != null && originalEvent.repeatRule.advancedRules.length > 0) {
 				this._draggedEvent = null
 				return Dialog.message("dragAndDropNotAllowedForAdvancedRecurrences_msg")
 			}
@@ -350,7 +348,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this._addTransientEvent(eventClone)
 
 			try {
-					const didUpdate = await this.moveEvent(originalEvent, editModel!, timeToMoveBy, mode)
+				const didUpdate = await this.moveEvent(originalEvent, timeToMoveBy, mode)
 
 				if (didUpdate !== EventSaveResult.Saved) {
 					this._removeTransientEvent(eventClone)
@@ -477,16 +475,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * @param diff the amount of milliseconds to shift the event by
 	 * @param mode which parts of the series should be rescheduled?
 	 */
-	private async moveEvent(event: CalendarEvent, editModel: CalendarEventModel, diff: number, mode: CalendarOperation): Promise<EventSaveResult> {
+	private async moveEvent(event: CalendarEvent, diff: number, mode: CalendarOperation): Promise<EventSaveResult> {
 		if (event.uid == null) {
 			throw new ProgrammingError("called moveEvent for an event without uid")
 		}
 
+		const editModel = await this.createCalendarEventEditModel(mode, event)
 		if (editModel == null) {
-			// this should technically never be null
 			return EventSaveResult.Failed
 		}
-
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
