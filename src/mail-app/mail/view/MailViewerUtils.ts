@@ -36,6 +36,11 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
 
+type MailViewerMoreActionsNames = "disallowExternalContentAction" | "showImagesAction" | "unsubscribeAction" | "printAction" | "reportMailAction"
+export type MailViewerMoreActions = {
+	[key in MailViewerMoreActionsNames]?: () => void
+}
+
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 	let state: { state: "loading" } | { state: "loaded"; headers: string | null } = { state: "loading" }
 
@@ -128,7 +133,7 @@ export async function showSourceDialog(rawHtml: string) {
 	return Dialog.viewerDialog("emailSourceCode_title", SourceCodeViewer, { rawHtml })
 }
 
-export function exportAction(actionableMails: () => Promise<readonly IdTuple[]>): DropdownButtonAttrs {
+export function startExport(actionableMails: () => Promise<readonly IdTuple[]>) {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const ac = new AbortController()
 	const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -142,36 +147,30 @@ export function exportAction(actionableMails: () => Promise<readonly IdTuple[]>)
 		middle: "emptyString_msg",
 	}
 
-	return {
-		label: "export_action",
-		click: () => {
-			// We are doing a little backflip here to start showing progress while we still determine the number of
-			// mails to export.
-			const numberOfMailsStream = stream<number>()
-			numberOfMailsStream.map(m.redraw)
-			showProgressDialog(
-				() => {
-					const numberOfMails = numberOfMailsStream()
-					if (isNaN(numberOfMails)) {
-						return lang.getTranslation("mailExportProgress_msg", {
-							"{current}": 0,
-							"{total}": "?",
-						})
-					} else {
-						return lang.getTranslation("mailExportProgress_msg", {
-							"{current}": Math.round((operation.progress() / 100) * numberOfMails).toFixed(0),
-							"{total}": numberOfMails,
-						})
-					}
-				},
-				doExport(actionableMails, numberOfMailsStream, operation, ac),
-				operation.progress,
-				true,
-				headerBarAttrs,
-			)
+	// We are doing a little backflip here to start showing progress while we still determine the number of
+	// mails to export.
+	const numberOfMailsStream = stream<number>()
+	numberOfMailsStream.map(m.redraw)
+	showProgressDialog(
+		() => {
+			const numberOfMails = numberOfMailsStream()
+			if (isNaN(numberOfMails)) {
+				return lang.getTranslation("mailExportProgress_msg", {
+					"{current}": 0,
+					"{total}": "?",
+				})
+			} else {
+				return lang.getTranslation("mailExportProgress_msg", {
+					"{current}": Math.round((operation.progress() / 100) * numberOfMails).toFixed(0),
+					"{total}": numberOfMails,
+				})
+			}
 		},
-		icon: Icons.Export,
-	}
+		doExport(actionableMails, numberOfMailsStream, operation, ac),
+		operation.progress,
+		true,
+		headerBarAttrs,
+	)
 }
 
 async function doExport(
@@ -237,28 +236,20 @@ function handleExportEmailsResult(mailList: Mail[]) {
 	}
 }
 
-export function multipleMailViewerMoreActions(viewModel: MailViewerViewModel, actionableMails: () => Promise<readonly IdTuple[]>): Array<DropdownButtonAttrs> {
+export function multipleMailViewerMoreActions(exportAction: (() => void) | null, moreActions: MailViewerMoreActions | null): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
-	if (viewModel.isUnread()) {
+	if (exportAction) {
 		moreButtons.push({
-			label: "markRead_action",
-			click: async () => viewModel.mailModel.markMails(await actionableMails(), false),
-			icon: Icons.Eye,
-		})
-	} else {
-		moreButtons.push({
-			label: "markUnread_action",
-			click: async () => viewModel.mailModel.markMails(await actionableMails(), true),
-			icon: Icons.NoEye,
+			label: "export_action",
+			click: exportAction,
+			icon: Icons.Export,
 		})
 	}
 
-	if (!client.isMobileDevice() && viewModel.canExport()) {
-		moreButtons.push(exportAction(actionableMails))
+	if (moreActions != null) {
+		moreButtons.push(...mailViewerMoreActions(moreActions))
 	}
-
-	moreButtons.push(...mailViewerMoreActions(viewModel))
 
 	return moreButtons
 }
@@ -295,7 +286,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 		})
 	}
 
-	moreButtons.push(...mailViewerMoreActions(viewModel))
+	moreButtons.push(...mailViewerMoreActions(getMailViewerMoreActions(viewModel)))
 
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
@@ -303,45 +294,77 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 	return moreButtons
 }
 
-function mailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
-	const moreButtons: Array<DropdownButtonAttrs> = []
+export function getMailViewerMoreActions(viewModel: MailViewerViewModel): MailViewerMoreActions {
+	const actions: MailViewerMoreActions = {}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
-		moreButtons.push({
-			label: "disallowExternalContent_action",
-			click: () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block),
-			icon: Icons.Picture,
-		})
+		actions.disallowExternalContentAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
 	}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
+		actions.showImagesAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
+	}
+
+	if (viewModel.isListUnsubscribe()) {
+		actions.unsubscribeAction = () => unsubscribe(viewModel)
+	}
+
+	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+		actions.printAction = () => window.print()
+	}
+
+	if (viewModel.canReport()) {
+		actions.reportMailAction = () => reportMail(viewModel)
+	}
+
+	return actions
+}
+
+function mailViewerMoreActions({
+	disallowExternalContentAction,
+	showImagesAction,
+	unsubscribeAction,
+	printAction,
+	reportMailAction,
+}: MailViewerMoreActions): Array<DropdownButtonAttrs> {
+	const moreButtons: Array<DropdownButtonAttrs> = []
+
+	if (disallowExternalContentAction != null) {
 		moreButtons.push({
-			label: "showImages_action",
-			click: () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
+			label: "disallowExternalContent_action",
+			click: disallowExternalContentAction,
 			icon: Icons.Picture,
 		})
 	}
 
-	if (viewModel.isListUnsubscribe()) {
+	if (showImagesAction != null) {
+		moreButtons.push({
+			label: "showImages_action",
+			click: showImagesAction,
+			icon: Icons.Picture,
+		})
+	}
+
+	if (unsubscribeAction != null) {
 		moreButtons.push({
 			label: "unsubscribe_action",
-			click: () => unsubscribe(viewModel),
+			click: unsubscribeAction,
 			icon: Icons.Cancel,
 		})
 	}
 
-	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+	if (printAction != null) {
 		moreButtons.push({
 			label: "print_action",
-			click: () => window.print(),
+			click: printAction,
 			icon: Icons.Print,
 		})
 	}
 
-	if (viewModel.canReport()) {
+	if (reportMailAction != null) {
 		moreButtons.push({
 			label: "reportEmail_action",
-			click: () => reportMail(viewModel),
+			click: reportMailAction,
 			icon: Icons.Warning,
 		})
 	}

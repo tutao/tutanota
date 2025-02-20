@@ -1,21 +1,16 @@
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import m, { Children, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
-import { DROPDOWN_MARGIN } from "../../../common/gui/base/Dropdown.js"
+import { DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
-import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { MailModel } from "../model/MailModel.js"
-import { LabelsPopup } from "./LabelsPopup.js"
-import { allInSameMailbox } from "../model/MailUtils"
+import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 
 export interface MobileMailMultiselectionActionBarAttrs {
-	selectedMails: readonly Mail[]
-	mailModel: MailModel
-	mailboxModel: MailboxModel
 	selectNone: () => unknown
-	actionableMails: () => Promise<readonly IdTuple[]>
+	deleteMailsAction: (() => void) | null
+	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
+	applyLabelsAction: ((dom: HTMLElement) => void) | null
+	setUnreadStateAction: ((unread: boolean) => void) | null
 }
 
 // Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
@@ -23,61 +18,51 @@ export class MobileMailMultiselectionActionBar {
 	private dom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<MobileMailMultiselectionActionBarAttrs>): Children {
-		const { selectedMails, selectNone, mailModel, mailboxModel, actionableMails } = attrs
+		const { setUnreadStateAction, selectNone, moveMailsAction, deleteMailsAction, applyLabelsAction } = attrs
 		return m(
 			MobileBottomActionBar,
 			{
 				oncreate: ({ dom }) => (this.dom = dom as HTMLElement),
 			},
 			[
-				m(IconButton, {
-					icon: Icons.Trash,
-					title: "delete_action",
-					click: () => promptAndDeleteMails(mailModel, selectedMails, selectNone),
-				}),
-				mailModel.isMovingMailsAllowed()
-					? m(IconButton, {
-							icon: Icons.Folder,
-							title: "move_action",
-							click: (e, dom) => {
-								const referenceDom = this.dom ?? dom
-								showMoveMailsDropdown(mailboxModel, mailModel, referenceDom.getBoundingClientRect(), selectedMails, {
-									onSelected: () => selectNone,
-									width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
-								})
-							},
-					  })
-					: null,
-				mailModel.canAssignLabels() && allInSameMailbox(selectedMails)
-					? m(IconButton, {
-							icon: Icons.Label,
-							title: "assignLabel_action",
-							click: (e, dom) => {
-								const referenceDom = this.dom ?? dom
-								if (selectedMails.length !== 0) {
-									const popup = new LabelsPopup(
-										referenceDom,
-										referenceDom.getBoundingClientRect(),
-										referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
-										mailModel.getLabelsForMails(selectedMails),
-										mailModel.getLabelStatesForMails(selectedMails),
-										async (addedLabels, removedLabels) => mailModel.applyLabels(await actionableMails(), addedLabels, removedLabels),
-									)
-									popup.show()
-								}
-							},
-					  })
-					: null,
-				m(IconButton, {
-					icon: Icons.Eye,
-					title: "markRead_action",
-					click: async () => mailModel.markMails(await actionableMails(), false),
-				}),
-				m(IconButton, {
-					icon: Icons.NoEye,
-					title: "markUnread_action",
-					click: async () => mailModel.markMails(await actionableMails(), true),
-				}),
+				deleteMailsAction &&
+					m(IconButton, {
+						icon: Icons.Trash,
+						title: "delete_action",
+						click: deleteMailsAction,
+					}),
+				moveMailsAction &&
+					m(IconButton, {
+						icon: Icons.Folder,
+						title: "move_action",
+						click: (e, dom) => {
+							const referenceDom = this.dom ?? dom
+							moveMailsAction(referenceDom.getBoundingClientRect(), {
+								onSelected: selectNone,
+								width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
+							})
+						},
+					}),
+				applyLabelsAction &&
+					m(IconButton, {
+						icon: Icons.Label,
+						title: "assignLabel_action",
+						click: (e, dom) => {
+							applyLabelsAction(dom)
+						},
+					}),
+				setUnreadStateAction && [
+					m(IconButton, {
+						icon: Icons.Eye,
+						title: "markRead_action",
+						click: () => setUnreadStateAction(false),
+					}),
+					m(IconButton, {
+						icon: Icons.NoEye,
+						title: "markUnread_action",
+						click: () => setUnreadStateAction(true),
+					}),
+				],
 			],
 		)
 	}

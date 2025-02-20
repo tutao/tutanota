@@ -5,7 +5,7 @@ import { size } from "../size.js"
 import { theme } from "../theme.js"
 import { isColorLight } from "./Color.js"
 
-const supportsRelativeHslColors = CSS.supports("color", `hsl(from #ccc h calc(min(50, s)) l)`)
+const supportsRelativeHslColors = typeof CSS !== "undefined" ? CSS.supports("color", `hsl(from #ccc h calc(min(50, s)) l)`) : false
 
 export function getLabelColor(backgroundColor: string | null): string {
 	const labelColor = backgroundColor ?? theme.content_accent

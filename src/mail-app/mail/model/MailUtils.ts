@@ -83,6 +83,22 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 	}
 }
 
+export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailFolder): Promise<Array<FolderInfo>> {
+	const mailboxDetails = await foldersModel.getMailboxDetailsForMailFolder(currentFolder)
+	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
+		return []
+	}
+
+	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
+	if (folders == null) {
+		return []
+	}
+
+	return folders.getIndentedList().filter((f: IndentedFolder) => {
+		return !isSameId(f.folder._id, currentFolder._id)
+	})
+}
+
 /**
  * Gets a system folder of the specified type and unwraps it.
  * Some system folders don't exist in some cases, e.g. spam or archive for external mailboxes!
@@ -126,4 +142,8 @@ export function allInSameMailbox(mails: readonly Mail[]): boolean {
 	const mailGroups = mails.map((m) => m._ownerGroup)
 	return mailGroups.every((mg) => mg === mailGroups[0])
 	// returns true if mails is empty
+}
+
+export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
+	return mail.sets.some((s) => isSameId(s, folderId))
 }
