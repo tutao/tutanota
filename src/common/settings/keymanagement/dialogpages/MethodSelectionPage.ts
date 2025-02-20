@@ -12,10 +12,6 @@ type MethodSelectionPageAttrs = {
 export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
 	private dom: HTMLElement | null = null
 
-	// oncreate(vnode: VnodeDOM<WizardPageAttrs<MethodSelectionPageAttrs>>) {
-	//     this.dom = vnode.dom as HTMLElement
-	// }
-
 	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
 		const makeOption = (name: MaybeTranslation, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
 			name,
@@ -51,26 +47,6 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 	}
 }
 
-// export class MethodSelectionPageAttrs implements WizardPageAttrs<KeyVerificationWizardData> {
-//     data: KeyVerificationWizardData
-//
-//     constructor(data: KeyVerificationWizardData) {
-//         this.data = data
-//     }
-//
 //     headerTitle(): MaybeTranslation {
 //         return "keyManagement.selectMethodShort_label"
 //     }
-//
-//     isEnabled(): boolean {
-//         return true
-//     }
-//
-//     isSkipAvailable(): boolean {
-//         return false
-//     }
-//
-//     nextAction(showErrorDialog: boolean): Promise<boolean> {
-//         return Promise.resolve(true)
-//     }
-// }

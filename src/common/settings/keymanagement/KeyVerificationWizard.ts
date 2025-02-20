@@ -7,7 +7,8 @@ import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button"
-import { MethodSelectionPage } from "./wizardpages/MethodSelectionPage"
+import { MethodSelectionPage } from "./dialogpages/MethodSelectionPage"
+import { VerificationByTextPage } from "./dialogpages/VerificationByTextPage"
 
 export type KeyVerificationWizardData = {
 	keyVerificationFacade: KeyVerificationFacade
@@ -85,26 +86,28 @@ export async function showKeyVerificationWizard(
 							},
 							goToQrScanPage: () => alert("go to qr scan page"),
 						})
-					// case AddNewVerifiedKeyPages.BY_TEXT_INPUT_METHOD:
-					//     return m(SupportTopicPage, {
-					//         data,
-					//         dialog,
-					//         goToSolutionWasHelpfulPage: () => {
-					//             navigateToPage(SupportPages.SOLUTION_WAS_HELPFUL)
-					//         },
-					//         goToContactSupportPage: () => {
-					//             if (data.canHaveEmailSupport) {
-					//                 navigateToPage(SupportPages.CONTACT_SUPPORT)
-					//             } else {
-					//                 navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
-					//             }
-					//         },
-					//     })
+					case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: // TODO: rename to EMAIL INPUT METHOD?
+						return m(VerificationByTextPage, {
+							keyVerificationFacade,
+						})
 				}
 			},
 			{
-				getPageTitle: (_) => {
-					return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
+				getPageTitle: (currentPage) => {
+					switch (currentPage) {
+						case KeyVerificationWizardPages.CHOOSE_METHOD: {
+							return { testId: "back_action", text: lang.get("keyManagement.selectMethodShort_label") }
+						}
+						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: {
+							return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
+						}
+						default: {
+							return {
+								text: lang.get("keyManagement.keyVerification_label"),
+								testId: "back_action",
+							}
+						}
+					}
 				},
 				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
 					switch (currentPage) {
