@@ -1,18 +1,30 @@
 #[cfg_attr(test, mockall_double::double)]
+use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
+#[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
-use crate::crypto::key::GenericAesKey;
+use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+use crate::crypto::public_key_provider::PublicKeyIdentifier;
+use crate::crypto::EccPublicKey;
 use crate::element_value::ParsedEntity;
 use crate::entities::entity_facade::{EntityFacade, ID_FIELD};
 use crate::entities::generated::base::PersistenceResourcePostReturn;
+use crate::entities::generated::tutanota::Mail;
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
 use crate::id::id_tuple::IdType;
 use crate::instance_mapper::InstanceMapper;
+#[cfg_attr(test, mockall_double::double)]
+use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
+use crate::tutanota_constants::{
+	EncryptionAuthStatus, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS,
+};
+use crate::util::{convert_version_to_u64, Versioned};
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
 use serde::{Deserialize, Serialize};
+use std::any::Any;
 use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
@@ -21,6 +33,8 @@ pub struct CryptoEntityClient {
 	entity_facade: Arc<dyn EntityFacade>,
 	crypto_facade: Arc<CryptoFacade>,
 	instance_mapper: Arc<InstanceMapper>,
+	asymmetric_crypto_facade: Arc<AsymmetricCryptoFacade>,
+	key_loader_facade: Arc<KeyLoaderFacade>,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -30,12 +44,16 @@ impl CryptoEntityClient {
 		entity_facade: Arc<dyn EntityFacade>,
 		crypto_facade: Arc<CryptoFacade>,
 		instance_mapper: Arc<InstanceMapper>,
+		asymmetric_crypto_facade: Arc<AsymmetricCryptoFacade>,
+		key_loader_facade: Arc<KeyLoaderFacade>,
 	) -> Self {
 		CryptoEntityClient {
 			entity_client,
 			entity_facade,
 			crypto_facade,
 			instance_mapper,
+			asymmetric_crypto_facade,
+			key_loader_facade,
 		}
 	}
 
@@ -162,8 +180,10 @@ impl CryptoEntityClient {
 					),
 				}
 			})?;
+
 		match possible_session_key {
 			Some(session_key) => {
+				let sender_identity_pub_key = session_key.sender_identity_pub_key.clone();
 				let decrypted_entity =
 					self.entity_facade
 						.decrypt_and_map(type_model, parsed_entity, session_key)?;
@@ -176,6 +196,10 @@ impl CryptoEntityClient {
 							e
 						),
 					})?;
+				self.authenticate_if_needed::<T>(&typed_entity, sender_identity_pub_key)
+					.await;
+
+				// TODO use auth status
 				Ok(typed_entity)
 			},
 			// `resolve_session_key()` only returns none if the entity is unencrypted, so
@@ -183,6 +207,111 @@ impl CryptoEntityClient {
 			None => {
 				unreachable!()
 			},
+		}
+	}
+
+	async fn authenticate_if_needed<T: Entity + Deserialize<'static>>(
+		&self,
+		typed_entity: &T,
+		sender_identity_pub_key: Option<EccPublicKey>,
+	) -> Option<EncryptionAuthStatus> {
+		if T::type_ref() != Mail::type_ref() {
+			// we only authenticate mail instances currently
+			return None;
+		}
+		// what is the proper way to coerce this to mail
+		let mail: &Mail = (typed_entity as &dyn Any)
+			.downcast_ref::<Mail>()
+			.expect("downcast to mail should work if type ref is mail");
+
+		match &mail.bucketKey {
+			None => None,
+			Some(bucket_key) => Some(
+				self.authenticate_main_instance(
+					sender_identity_pub_key
+						.as_ref()
+						.map(|sender_identity_pub_key| Versioned {
+							version: convert_version_to_u64(bucket_key.senderKeyVersion.expect(
+								"sender key version should be set on TutaCrypt bucket key",
+							)),
+							object: sender_identity_pub_key,
+						}),
+					mail,
+					bucket_key
+						.keyGroup
+						.as_ref()
+						.expect("key group should be set on TutaCrypt bucket key"),
+				)
+				.await,
+			),
+		}
+	}
+
+	/// @return None if not a main instance, the EncryptionAuthStatus from the asymmetric decryption otherwise
+	async fn authenticate_main_instance<'a>(
+		&self,
+		sender_identity_pub_key: Option<Versioned<&'a EccPublicKey>>,
+		mail: &Mail,
+		recipient_group: &GeneratedId,
+	) -> EncryptionAuthStatus {
+		match sender_identity_pub_key {
+			None => {
+				// This message was encrypted with RSA. We check if TutaCrypt could have been used instead.
+				let current_key_pair: Versioned<AsymmetricKeyPair> = self
+					.key_loader_facade
+					.load_current_key_pair(recipient_group)
+					.await
+					.expect("loading our own current key pair");
+				match current_key_pair.object {
+					AsymmetricKeyPair::RSAKeyPair(_) | AsymmetricKeyPair::RSAEccKeyPair(_) => {
+						EncryptionAuthStatus::RSANoAuthentication
+					},
+					AsymmetricKeyPair::PQKeyPairs(_) => {
+						// theoretically we could check that we did not rotate during this session.
+						// However, we currently cannot rotate in the sdk. So it is not possible.
+						EncryptionAuthStatus::RsaDespiteTutacrypt
+					},
+				}
+			},
+			Some(sender_identity_pub_key) => {
+				// TutaCrypt: we try authenticating
+				let sender_verification_address = if mail.confidential {
+					mail.sender.address.clone()
+				} else {
+					SYSTEM_GROUP_MAIL_ADDRESS.to_string()
+				};
+				self.tuta_crypt_authenticate_sender_of_main_instance(
+					sender_verification_address,
+					sender_identity_pub_key,
+				)
+				.await
+			},
+		}
+	}
+
+	async fn tuta_crypt_authenticate_sender_of_main_instance<'a>(
+		&self,
+		sender_mail_address: String,
+		sender_identity_pub_key: Versioned<&'a EccPublicKey>,
+	) -> EncryptionAuthStatus {
+		let result = self
+			.asymmetric_crypto_facade
+			.authenticate_sender(
+				PublicKeyIdentifier {
+					identifier: sender_mail_address,
+					identifier_type: PublicKeyIdentifierType::MailAddress,
+				},
+				sender_identity_pub_key,
+			)
+			.await;
+		match result {
+			Err(_e) => {
+				// TODO log the error
+				// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
+				// in those cases we will just show a warning banner but still want to display the mail
+				EncryptionAuthStatus::TutacryptAuthenticationFailed
+			},
+			Ok(encryption_auth_status) => encryption_auth_status,
 		}
 	}
 
@@ -227,6 +356,7 @@ impl CryptoEntityClient {
 
 #[cfg(test)]
 mod tests {
+	use crate::crypto::asymmetric_crypto_facade::MockAsymmetricCryptoFacade;
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
@@ -237,6 +367,7 @@ mod tests {
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
+	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
 	use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 	use crate::util::entity_test_utils::generate_email_entity;
@@ -299,6 +430,7 @@ mod tests {
 					session_key: sk.clone(),
 					owner_enc_session_key: vec![1, 2, 3],
 					owner_key_version: 0u64,
+					sender_identity_pub_key: None,
 				}))
 			});
 
@@ -311,11 +443,16 @@ mod tests {
 			RandomizerFacade::from_core(rand_core::OsRng),
 		);
 
+		let asymmetric_crypto_facade = MockAsymmetricCryptoFacade::default();
+		let key_loader_facade = MockKeyLoaderFacade::default();
+
 		let crypto_entity_client = CryptoEntityClient::new(
 			Arc::new(mock_entity_client),
 			Arc::new(entity_facade),
 			Arc::new(mock_crypto_facade),
 			Arc::new(InstanceMapper::new()),
+			Arc::new(asymmetric_crypto_facade),
+			Arc::new(key_loader_facade),
 		);
 
 		let result: Mail = crypto_entity_client.load(&mail_id).await.unwrap();

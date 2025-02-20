@@ -137,7 +137,7 @@ fn bind_shared_secret_to_ciphertext(
 fn shake256(input: &[&[u8]]) -> [u8; SHAKE_BYTE_LENGTH] {
 	let mut hasher = Shake256::default();
 	for data in input {
-		hasher.update(*data);
+		hasher.update(data);
 	}
 	let mut reader = hasher.finalize_xof();
 	let mut output = [0; SHAKE_BYTE_LENGTH];
