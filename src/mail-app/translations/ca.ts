@@ -400,7 +400,6 @@ export default {
 		"customColorsInfo_msg": "Si deixeu un camp en blanc el color del tema clar s'empra en el seu lloc.",
 		"customColors_label": "Colors personalitzats",
 		"customDomainDeletePreconditionFailed_msg": "Si us plau, desactiveu tots els usuaris i adreces electròniques que continguin el domini: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Desactiveu tots els usuaris i adreces de correu electrònic que continguin el domini: {domainName} i elimineu el domini com a domini de correu electrònic de registre.\n",
 		"customDomainErrorDnsLookupFailure_msg": "Ha fallat la cerca de DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Domini no disponible.",
 		"customDomainErrorDomainNotFound_msg": "No hem pogut trobar aquest domini en el DNS. Si us plau comproveu l'ortografia.",

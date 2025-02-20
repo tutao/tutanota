@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-02-07T19:50:33Z",
+	"updated_at": "2025-02-19T14:53:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -418,7 +418,6 @@ export default {
 		"customColors_label": "Користувацькі кольори",
 		"customColor_label": "Користувацький колір",
 		"customDomainDeletePreconditionFailed_msg": "Будь ласка, деактивуйте всіх користувачів та адреси електронної пошти, що містять домен:{domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Деактивуйте, будь ласка, усіх користувачів та адреси електронної пошти, що містять цей домен: {domainName} і видаліть його, як домен реєстрації електронної пошти.\n\n",
 		"customDomainErrorDnsLookupFailure_msg": "Помилка пошуку DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Домен відсутній.",
 		"customDomainErrorDomainNotFound_msg": "Не вдалося знайти цей домен у DNS. Перевірте правопис.",
@@ -1013,6 +1012,7 @@ export default {
 		"matchingKeywords_label": "Відповідні ключові слова:",
 		"maximumLabelsPerMailReached_msg": "Досягнуто максимальної кількості дозволених позначок на одного листа.",
 		"maybeAttending_label": "Можливе відвідування",
+		"maybeLater_action": "Можливо пізніше",
 		"maybe_label": "Можливо",
 		"menu_label": "Меню",
 		"mergeAllSelectedContacts_msg": "Ви дійсно бажаєте об'єднати виділені контакти?",
@@ -1402,8 +1402,11 @@ export default {
 		"quit_action": "Вихід",
 		"rateAppStore_action": "Оцінити в магазині App Store",
 		"rateGooglePlay_action": "Оцінити в Google Play",
-		"ratingExplanation_msg": "Якщо вам подобається Tuta або ви вважаєте, що нам варто було б вдосконалитися, дайте нам знати!",
-		"ratingHowAreWeDoing_title": "І як вам подобається Tuta?",
+		"rateUs_action": "Оцініть нас",
+		"ratingExplanation_msg": "Незалежно від того чи подобається вам застосунок, чи ви вважаєте, що ми можемо покращити його, повідомте нам про це.",
+		"ratingGooglePlay_msg": "Бажаєте поділитися своєю любов'ю? Просимо вас оцінити нас на Google Play.",
+		"ratingGooglePlay_title": "Нам дуже приємно чути, що вам подобається Tuta!",
+		"ratingHowAreWeDoing_title": "Ваша думка має значення!",
 		"ratingLoveIt_label": "Я в захваті!",
 		"ratingNeedsWork_label": "Потребує доопрацювання",
 		"readResponse_action": "Прочитати відповідь",
@@ -1921,6 +1924,8 @@ export default {
 		"yourCalendars_label": "Календарі",
 		"yourFolders_action": "ВАШІ ПАПКИ",
 		"yourMessage_label": "Ваше повідомлення",
-		"you_label": "Ви"
+		"you_label": "Ви",
+		"zoomIn_action": "Збільшити",
+		"zoomOut_action": "Зменшити"
 	}
 }

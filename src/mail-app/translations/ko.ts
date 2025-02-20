@@ -337,7 +337,6 @@ export default {
 		"customColorsInfo_msg": "필드값을 선택하지 않으시면 기본값인 라이트 테마가 사용됩니다. ",
 		"customColors_label": "사용자 지정 색상",
 		"customDomainDeletePreconditionFailed_msg": "해당 도메인이 포함된 모든 사용자 및 이메일 별칭을 비활성화하세요: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "해당 도메인이 포함된 모든 사용자 및 이메일 별칭을 비활성화하세요: {domainName} 도메인을 비활성화하고 등록 이메일 도메인에서 해당 도메인을 제거하세요.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS 검색에 실패했습니다.",
 		"customDomainErrorDomainNotAvailable_msg": "도메인을 사용할 수 없습니다.",
 		"customDomainErrorDomainNotFound_msg": "DNS에서 이 도메인을 찾을 수 없습니다. 오타가 있는지 확인해주세요.",

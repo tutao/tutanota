@@ -369,7 +369,6 @@ export default {
 		"customColorsInfo_msg": "Ако оставиш полето празно ще бъде използван цвета от темата по подразбиране. ",
 		"customColors_label": "Специфични цветове",
 		"customDomainDeletePreconditionFailed_msg": "Деактивирайте всички потребители и имейли, съдържащи домейна: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Моля, деактивирайте всички потребители и псевдоними съдържащи: {domainName} и го премахнете като домейн за пощенска регистрация.\n",
 		"customDomainErrorDnsLookupFailure_msg": "Грешка при DNS проверката.",
 		"customDomainErrorDomainNotAvailable_msg": "Домейнът е недостъпен",
 		"customDomainErrorDomainNotFound_msg": "Не успяхме да намерим този домейн в DNS. Моля проверете изписването",

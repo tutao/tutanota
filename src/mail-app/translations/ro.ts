@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2025-02-08T15:23:27Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -421,7 +421,6 @@ export default {
 		"customColors_label": "Culori personalizate",
 		"customColor_label": "Culoare personalizată",
 		"customDomainDeletePreconditionFailed_msg": "Dezactivează toți utilizatorii și adresele de e-mail care conțin domeniul: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Dezactivează toți utilizatorii și adresele de e-mail care conțin domeniul: {domainName} și elimină domeniul ca domeniu înregistrat de e-mail.",
 		"customDomainErrorDnsLookupFailure_msg": "Căutarea DNS a eșuat.",
 		"customDomainErrorDomainNotAvailable_msg": "Domeniul nu este disponibil.",
 		"customDomainErrorDomainNotFound_msg": "Nu am putut găsi acest domeniu în DNS. Verifică ortografia.",

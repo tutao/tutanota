@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-02-12T09:26:35Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -418,7 +418,6 @@ export default {
 		"customColors_label": "Vlastní barvy",
 		"customColor_label": "Vlastní barva",
 		"customDomainDeletePreconditionFailed_msg": "Deaktivujte prosím všechny uživatele a e-mailové adresy obsahující doménu: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Deaktivujte prosím všechny uživatele a e-mailové adresy obsahující doménu {domainName} a odeberte tuto doménu jako registrační e-mailovou doménu.",
 		"customDomainErrorDnsLookupFailure_msg": "Vyhledávání DNS selhalo.",
 		"customDomainErrorDomainNotAvailable_msg": "Doména není dostupná.",
 		"customDomainErrorDomainNotFound_msg": "Nepodařilo se nám najít tuto doménu v DNS. Zkontrolujte prosím pravopis.",
@@ -1922,6 +1921,8 @@ export default {
 		"yourCalendars_label": "Vaše kalendáře",
 		"yourFolders_action": "VAŠE SLOŽKY",
 		"yourMessage_label": "Vaše zpráva",
-		"you_label": "Vy"
+		"you_label": "Vy",
+		"zoomIn_action": "Přiblížit",
+		"zoomOut_action": "Oddálit"
 	}
 }

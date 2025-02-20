@@ -324,7 +324,6 @@ export default {
 		"customColorsInfo_msg": "اگر فیلدی را خالی بگذارید، به جایش رنگ پیش‌فرض تم روشن استفاده می‌شود.",
 		"customColors_label": "رنگ‌های سفارشی",
 		"customDomainDeletePreconditionFailed_msg": "لطفا همه کاربران و ایمیل های مستعار شامل این دامنه را غیرفعال کنید:\n{domainName}",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "لطفاً همهٔ کاربران و نام‌های مستعار ایمیل شامل دامنهٔ: {domainName} را غیرفعال کنید و دامنه را به عنوان دامنهٔ ایمیل ثبت‌نام حذف کنید.",
 		"customDomainErrorDnsLookupFailure_msg": "برقراری ارتباط با DNS با مشکل مواجه شد.",
 		"customDomainErrorDomainNotAvailable_msg": "این دامنه در دسترس نیست.",
 		"customDomainErrorDomainNotFound_msg": "ما نمی توانیم این domain  را در DNS پیدا کنیم. لطفاً نوشته خود را بررسی کنید.",

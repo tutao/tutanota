@@ -269,7 +269,6 @@ export default {
 		"customColorsInfo_msg": "如果某区域被留白，则会被默认的明亮主题的颜色所替代。",
 		"customColors_label": "自定义颜色",
 		"customDomainDeletePreconditionFailed_msg": "请停用所有包含 {domainName} 域名的用户和邮件别名。",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "请停用所有使用 {domainName} 域名的用户和别名并移除以此域名注册的邮件域名",
 		"customDomainErrorDnsLookupFailure_msg": "DNS 查询失败。",
 		"customDomainErrorDomainNotAvailable_msg": "域名不可用。",
 		"customDomainErrorDomainNotFound_msg": "在DNS中无法找到这个域名。请检查拼写。",

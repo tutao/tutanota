@@ -321,7 +321,6 @@ export default {
 		"customColorsInfo_msg": "Ако оставите празно поље, боја из подразумеване светле теме ће се користити.",
 		"customColors_label": "Прилагођене боје",
 		"customDomainDeletePreconditionFailed_msg": "Деактивирајте све кориснике и алијасе поште који садрже домен: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Деактивирајте све кориснике и алијасе поште који садрже домен {domainName} и уклоните га као регистрациони домен.",
 		"customDomainErrorDnsLookupFailure_msg": "ДНС претрага није успела.",
 		"customDomainErrorDomainNotAvailable_msg": "Домен није доступан.",
 		"customDomainErrorDomainNotFound_msg": "Нисмо нашли домен у ДНС записима. Проверите исправност уноса.",

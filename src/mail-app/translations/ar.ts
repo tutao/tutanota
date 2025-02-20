@@ -304,7 +304,6 @@ export default {
 		"customColorsInfo_msg": "إذا تركت حقل فارغ، يتم استخدام اللون من موضوع اللون الافتراضي بدلا من ذلك.",
 		"customColors_label": "ألوان مخصصة",
 		"customDomainDeletePreconditionFailed_msg": "الرجاء إلغاء تفعيل جميع المستخدمين والعناوين الإلكترونيّة المستعارة التي تحتوي على المجال: {domainName}",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "يُرجى إلغاء تنشيط جميع المستخدمين والأسماء المستعارة للبريد الإلكتروني التي تحتوي على النطاق: {domainName} وإزالة النطاق كنطاق للبريد الإلكتروني للتسجيل.",
 		"customDomainErrorDnsLookupFailure_msg": "فشل البحث عن DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "المجال غير متوفر.",
 		"customDomainErrorDomainNotFound_msg": "لم نتمكن من العثور على هذا المجال في DNS. يرجى التحقق من الإملاء.",

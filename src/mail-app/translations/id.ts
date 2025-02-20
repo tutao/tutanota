@@ -375,7 +375,6 @@ export default {
 		"customColorsInfo_msg": "Jika Anda meninggalkan field yang kosong, warna dari tema terang default akan digunakan.",
 		"customColors_label": "Warna-warna custom",
 		"customDomainDeletePreconditionFailed_msg": "Harap menonaktifkan semua pengguna dan alias surel yang berisi domain: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Mohon nonaktifkan semua pengguna dan alias surel yang memiliki domain: {domainName} serta hapuskan domain tersebut dari domain surel registrasi. ",
 		"customDomainErrorDnsLookupFailure_msg": "Pencarian DNS gagal.",
 		"customDomainErrorDomainNotAvailable_msg": "Domain tidak tersedia.",
 		"customDomainErrorDomainNotFound_msg": "Kami tidak dapat menemukan domain ini dalan DNS. Mohon periksa kembali ejaan nya.",

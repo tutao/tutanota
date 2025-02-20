@@ -386,7 +386,6 @@ export default {
 		"customColorsInfo_msg": "Se lasci il campo vuoto viene utilizzato il colore del tema chiaro predefinito.",
 		"customColors_label": "Colori personalizzati",
 		"customDomainDeletePreconditionFailed_msg": "Per favore disattiva tutti gli utenti e gli alias email contenenti il dominio: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Si prega di disattivare tutti gli utenti e indirizzi email che utilizzino il dominio: {domainName} e di rimuovere il dominio dall'impostazione di dominio email personalizzato.",
 		"customDomainErrorDnsLookupFailure_msg": "Ricerca DNS non riuscita.",
 		"customDomainErrorDomainNotAvailable_msg": "Dominio non disponibile.",
 		"customDomainErrorDomainNotFound_msg": "Non abbiamo trovato questo dominio nel DNS. Per favore controlla l'ortografia.",

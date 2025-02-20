@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-02-07T23:01:25Z",
+	"updated_at": "2025-02-19T20:55:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -422,7 +422,6 @@ export default {
 		"customColors_label": "Własne kolory",
 		"customColor_label": "Własny kolor",
 		"customDomainDeletePreconditionFailed_msg": "Należy zdezaktywować wszystkich użytkowników i adresy e-mail zawierające domenę: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Zdezaktywuj wszystkich użytkowników i adresy e-mail zawierające domenę:  {domainName} i usuń domenę z zarejestrowanych.",
 		"customDomainErrorDnsLookupFailure_msg": "Wyszukiwanie DNS nie powiodło się.",
 		"customDomainErrorDomainNotAvailable_msg": "Domena nie jest dostępna.",
 		"customDomainErrorDomainNotFound_msg": "Nie mogliśmy znaleźć tej domeny w DNS. Sprawdź pisownię.",
@@ -1016,6 +1015,7 @@ export default {
 		"matchingKeywords_label": "Pasujące słowa kluczowe:",
 		"maximumLabelsPerMailReached_msg": "Osiągnięto maksymalną dozwoloną liczbę etykiet dla wiadomości e-mail.",
 		"maybeAttending_label": "Może uczestniczyć",
+		"maybeLater_action": "Może później",
 		"maybe_label": "Może",
 		"menu_label": "Menu",
 		"mergeAllSelectedContacts_msg": "Czy na pewno chcesz połączyć wybrane kontakty?",
@@ -1405,8 +1405,11 @@ export default {
 		"quit_action": "Wyjdź",
 		"rateAppStore_action": "Oceń w App Store",
 		"rateGooglePlay_action": "Oceń w Google Play",
-		"ratingExplanation_msg": "Niezależnie od tego, czy kochasz Tuta, czy uważasz, że moglibyśmy coś poprawić, daj nam znać!",
-		"ratingHowAreWeDoing_title": "Jak ci się podoba Tuta?",
+		"rateUs_action": "Oceń nas",
+		"ratingExplanation_msg": "Niezależnie od tego, czy podoba Ci się aplikacja, czy uważasz, że możemy zrobić to lepiej, daj nam znać.",
+		"ratingGooglePlay_msg": "Masz ochotę podzielić się miłością? Poświęć chwilę, aby ocenić nas w Google Play.",
+		"ratingGooglePlay_title": "Cieszymy się, że podoba ci się Tuta!",
+		"ratingHowAreWeDoing_title": "Twoja opinia ma znaczenie!",
 		"ratingLoveIt_label": "Uwielbiam to!",
 		"ratingNeedsWork_label": "Potrzebuje poprawy",
 		"readResponse_action": "Przeczytaj odpowiedź",
@@ -1924,6 +1927,8 @@ export default {
 		"yourCalendars_label": "Twoje kalendarze",
 		"yourFolders_action": "TWOJE FOLDERY",
 		"yourMessage_label": "Twoja wiadomość",
-		"you_label": "Ty"
+		"you_label": "Ty",
+		"zoomIn_action": "Przybliż",
+		"zoomOut_action": "Oddal"
 	}
 }

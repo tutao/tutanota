@@ -316,7 +316,6 @@ export default {
 		"customColorsInfo_msg": "Ak necháš pole prázdne, použije sa farba predvoleného svetlého motívu.",
 		"customColors_label": "Vlastné farby",
 		"customDomainDeletePreconditionFailed_msg": "Deaktivujte prosím všetkých užívateľov a e-mailové adresy obsahujúce doménu: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Deaktivujte prosím všetkých užívateľov a e-mailové aliasy obsahujúce doménu {domainName} a odstráňte túto doménu ako doménu registračného e-mailu.",
 		"customDomainErrorDnsLookupFailure_msg": "Vyhľadávanie DNS zlyhalo.",
 		"customDomainErrorDomainNotAvailable_msg": "Doména nie je dostupná.",
 		"customDomainErrorDomainNotFound_msg": "Nepodarilo sa nám nájsť túto doménu v DNS. Prosím, skontroluj pravopis.",

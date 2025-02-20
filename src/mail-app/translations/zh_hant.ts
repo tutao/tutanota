@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-02-07T16:42:16Z",
+	"updated_at": "2025-02-19T17:16:36Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -415,7 +415,6 @@ export default {
 		"customColors_label": "自訂顏色",
 		"customColor_label": "自訂顏色",
 		"customDomainDeletePreconditionFailed_msg": "請停用所有包含{domainName}域名的所有用戶與電郵地址。",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "請停用所有包含{domainName}域名的所有用戶與電郵地址，並移除此域名作為註冊電郵域名的設定。",
 		"customDomainErrorDnsLookupFailure_msg": "DNS查找失敗。",
 		"customDomainErrorDomainNotAvailable_msg": "域名不可用。",
 		"customDomainErrorDomainNotFound_msg": "我們在DNS中找不到此域名。請檢查拼寫。",
@@ -1010,6 +1009,7 @@ export default {
 		"matchingKeywords_label": "相符關鍵字：",
 		"maximumLabelsPerMailReached_msg": "已達到每封電郵允許的標籤數量上限。",
 		"maybeAttending_label": "或許出席",
+		"maybeLater_action": "或許稍後",
 		"maybe_label": "或許",
 		"menu_label": "選單",
 		"mergeAllSelectedContacts_msg": "您是否確定要合併所選聯絡人？",
@@ -1400,8 +1400,11 @@ export default {
 		"quit_action": "離開",
 		"rateAppStore_action": "在App Store評分",
 		"rateGooglePlay_action": "在Google Play評分",
-		"ratingExplanation_msg": "無論您是喜歡Tuta還是覺得我們可以改善，請讓我們知道！",
-		"ratingHowAreWeDoing_title": "您覺得Tuta如何？",
+		"rateUs_action": "為我們評分",
+		"ratingExplanation_msg": "無論您是喜歡這個應用程式還是覺得我們可以做得更好，都請讓我們知道。",
+		"ratingGooglePlay_msg": "想分享您的喜愛嗎？請花點時間在Google Play上為我們評分。",
+		"ratingGooglePlay_title": "我們很高興聽到您喜歡Tuta！",
+		"ratingHowAreWeDoing_title": "您的意見很重要！",
 		"ratingLoveIt_label": "喜歡！",
 		"ratingNeedsWork_label": "需要改進",
 		"readResponse_action": "閱讀回覆",
@@ -1920,6 +1923,8 @@ export default {
 		"yourCalendars_label": "您的日曆",
 		"yourFolders_action": "您的資料夾",
 		"yourMessage_label": "您的訊息",
-		"you_label": "您"
+		"you_label": "您",
+		"zoomIn_action": "放大",
+		"zoomOut_action": "縮小"
 	}
 }

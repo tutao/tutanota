@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-02-08T04:27:58Z",
+	"updated_at": "2025-02-18T15:38:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -416,7 +416,6 @@ export default {
 		"customColors_label": "Egyéni színek",
 		"customColor_label": "Egyedi szín",
 		"customDomainDeletePreconditionFailed_msg": "Kérjük, deaktiváljon minden olyan felhasználót és e-mail címet, amely tartalmazza a következő tartományt: {domainName}!",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Kérjük, deaktiváljon minden felhasználót és e-mail címet, amely tartalmazza a következő tartományt: {domainName} és távolítsa el a tartományt regisztrációs e-mail tartományként!",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-keresés sikertelen.",
 		"customDomainErrorDomainNotAvailable_msg": "A domain nem hozzáférhető.",
 		"customDomainErrorDomainNotFound_msg": "Nem találtuk ezt a domént a DNS-ben. Kérjük, ellenőrizze, helyesen van-e írva!",
@@ -1011,6 +1010,7 @@ export default {
 		"matchingKeywords_label": "Egyező/Megfelelő kulcsszavak:",
 		"maximumLabelsPerMailReached_msg": "Elérte a megengedett maximális e-mailenkénti címkeszámot",
 		"maybeAttending_label": "Talán részt vesz",
+		"maybeLater_action": "Talán később",
 		"maybe_label": "Talán",
 		"menu_label": "Menü",
 		"mergeAllSelectedContacts_msg": "Biztos benne, hogy szeretné összefésülni a kiválasztott névjegyeket?",
@@ -1401,8 +1401,11 @@ export default {
 		"quit_action": "Kilépés",
 		"rateAppStore_action": "Értékelés az App Store-ban",
 		"rateGooglePlay_action": "Értkelés a Google Play-ben",
-		"ratingExplanation_msg": "Akár szereted a Tutát, akár úgy érzed, hogy javíthatnánk rajta, tudasd velünk!",
-		"ratingHowAreWeDoing_title": "Hogy tetszik a Tuta?",
+		"rateUs_action": "Értékeljen minket!",
+		"ratingExplanation_msg": "Akár szereted az alkalmazást, akár úgy érzed, hogy javíthatnánk rajta, tudasd velünk!",
+		"ratingGooglePlay_msg": "Van kedved megosztani a szeretetet? Kérjük, szánj egy percet arra, hogy értékelj minket a Google Play-en!",
+		"ratingGooglePlay_title": "Örömmel halljuk, hogy szereted a Tutát!",
+		"ratingHowAreWeDoing_title": "Az Ön véleménye számít!",
 		"ratingLoveIt_label": "Imádja!",
 		"ratingNeedsWork_label": "Munkára szorul",
 		"readResponse_action": "Válasz olvasása",
@@ -1921,6 +1924,8 @@ export default {
 		"yourCalendars_label": "Személyes naptárjai",
 		"yourFolders_action": "AZ ÖN MAPPÁI",
 		"yourMessage_label": "Az Ön üzenete",
-		"you_label": "Ön"
+		"you_label": "Ön",
+		"zoomIn_action": "Nagyítás",
+		"zoomOut_action": "Kicsinyítés"
 	}
 }

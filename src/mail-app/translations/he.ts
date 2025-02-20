@@ -328,7 +328,6 @@ export default {
 		"customColorsInfo_msg": "אם תשאירו שדה ריק, ייעשה שימוש בצבע הבהיר מעיצוב ברירת המחדל.",
 		"customColors_label": "צבעים מותאמים אישית",
 		"customDomainDeletePreconditionFailed_msg": "אנא בטלו את כל המשתמשים וכינויי הדוא\"ל המכילים את הדומיין: {domainName}",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "אנא בטלו את כל המשתמשים ושמות הדוא\"ל המכילים את הדומיין: {domainName} והסירו את הדומיין כדומיין הרשמה לדוא\"ל.",
 		"customDomainErrorDnsLookupFailure_msg": "חיפוש DNS נכשל.",
 		"customDomainErrorDomainNotAvailable_msg": "הדומיין אינו זמין.",
 		"customDomainErrorDomainNotFound_msg": "לא יכולנו למצוא דומיין זה ב-DNS. אנא בדקו את האיות.",

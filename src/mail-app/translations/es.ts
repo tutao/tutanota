@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-02-07T16:08:06Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -420,7 +420,6 @@ export default {
 		"customColors_label": "Colores personalizados",
 		"customColor_label": "Color personalizado",
 		"customDomainDeletePreconditionFailed_msg": "Por favor desactiva todos los usuarios y alias de correo para el dominio: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Por favor desactiva todos los usuarios y direcciones de correo electrónico que contenga el dominio: {domainName} y elimina el dominio del registro de correo electrónico.",
 		"customDomainErrorDnsLookupFailure_msg": "Falló la búsqueda de DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Dominio no disponible.",
 		"customDomainErrorDomainNotFound_msg": "No hemos podido encontrar este dominio en el DNS. Por favor, comprueba que esté bien deletreado.",
@@ -1924,6 +1923,8 @@ export default {
 		"yourCalendars_label": "Tus calendarios",
 		"yourFolders_action": "TUS CARPETAS",
 		"yourMessage_label": "Tu mensaje",
-		"you_label": "Tú"
+		"you_label": "Tú",
+		"zoomIn_action": "Ampliar",
+		"zoomOut_action": "Alejar"
 	}
 }

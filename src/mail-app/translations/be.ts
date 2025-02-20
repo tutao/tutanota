@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-02-18T14:59:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -411,7 +411,6 @@ export default {
 		"customColors_label": "Уласныя колеры",
 		"customColor_label": "Карыстальніцкі колер",
 		"customDomainDeletePreconditionFailed_msg": "Калі ласка, адключы ўсіх карыстальнікаў ды імэйлавыя адрасы на наступным дамэйне: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Калі ласка, адключы ўсіх карыстальнікаў і адрасы э-пошты, якія зьмяшчаюць наступны дамэйн: {domainName} і выдалі дамэйн як дамэйн рэгістрацыі э-пошты.\n",
 		"customDomainErrorDnsLookupFailure_msg": "Памылка пры запыце DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Дамэйн недаступны.",
 		"customDomainErrorDomainNotFound_msg": "Мы не змаглі знайсьці гэты дамэйн у DNS. Калі ласка, правер правапіс.",

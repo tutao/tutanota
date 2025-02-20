@@ -159,7 +159,6 @@ export default {
 		"currentlyBooked_label": "Broneeringute ülevaade",
 		"customColorsInfo_msg": "Kui Te jätate tühja välja võetaks värv vaikimisi heledalt kujunduselt.",
 		"customColors_label": "Kohandatud värvid",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "Palun deaktiveerige kõik kasutajad ja e-maili aliased, mis sisaldavad domeeni: {domainName} ning eemaldage domeen registreeritava e-maili domeenina.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS otsing ebaõnnestus.",
 		"customDomainNeutral_msg": "Palun sisestage oma domeen.",
 		"customEmailDomains_label": "Kohandatud e-posti domeenid",

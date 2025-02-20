@@ -367,7 +367,6 @@ export default {
 		"customColorsInfo_msg": "ඔබ හිස් ක්‍ෂේත්‍රයක් තැබුවහොත් ඒ වෙනුවට පෙරනිමි ආලෝක තේමාවේ වර්ණය භාවිතා වේ.",
 		"customColors_label": "අභිරුචි වර්ණ",
 		"customDomainDeletePreconditionFailed_msg": "වසම අඩංගු සියළුම පරිශ්‍රීලකයින් සහ වි-තැපැල් ලිපින අක්‍රිය කරන්න: {domainName}.",
-		"customDomainDeletePreconditionWhitelabelFailed_msg": "වසමට අදාළ සියළුම පරිශ්‍රීලකයින් සහ වි-තැපැල් ලිපින අක්‍රිය කරන්න: {domainName} සහ වි-තැපැල් වසමක් ලෙස ලියාපදිංචියෙන් ඉවත් කරන්න.",
 		"customDomainErrorDnsLookupFailure_msg": "ව.නා.ප. බැලීමට අසමත් විය.",
 		"customDomainErrorDomainNotAvailable_msg": "වසම ලද නොහැකිය.",
 		"customDomainErrorDomainNotFound_msg": "මෙම වසම ව.නා.ප. හි සොයාගත නොහැකි විය. අකුරු වින්‍යාසය බලන්න.",
