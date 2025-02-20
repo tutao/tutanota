@@ -1952,6 +1952,7 @@ export default {
         "zoomIn_action": "Zoom In",
         "zoomOut_action": "Zoom Out",
         "weekScrollTime_label": "Default time",
-        "weekScrollTime_msg": "Default time for Three Days and Week views to scroll to"
-    }
+        "weekScrollTime_msg": "Default time for Three Days and Week views to scroll to",
+		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & Drop isn't available for events containing Advanced Recurrence Rules",
+	}
 }
