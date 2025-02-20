@@ -280,9 +280,12 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "tuta-sdk") }
 					}
 					steps {
+						// once we spin local http server, we should also include more test by:
+						// --features test-with-local-http-server
 						sh "cargo test --package tuta-sdk"
 					}
 				}
+
 				stage("clippy lints") {
 					agent {
 						node {
@@ -485,7 +488,7 @@ boolean shouldRunNpmCi() {
 	try {
 		old = readFile(file: 'cache/package.json')
 	} catch (e) {
-	    print "package.json not found in cache, re-caching."
+		print "package.json not found in cache, re-caching."
 		print e
 		return true
 	} finally {

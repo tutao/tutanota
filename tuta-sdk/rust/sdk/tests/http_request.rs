@@ -2,8 +2,8 @@ use tutasdk::bindings::rest_client::RestResponse;
 use tutasdk::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use tutasdk::net::native_rest_client::NativeRestClient;
 
-#[tokio::main]
-async fn main() {
+#[tokio::test]
+async fn native_rest_client_can_do_http_request() {
 	const URL: &str = "https://echo.free.beeceptor.com";
 	let rest_client: NativeRestClient =
 		NativeRestClient::try_new().expect("failed to get rest client");
