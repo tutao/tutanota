@@ -6,20 +6,29 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.components.Scaffold
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.absolutePadding
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -57,7 +66,8 @@ class MyAppWidget : GlanceAppWidget() {
 
 		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
 		var calendars = sdk.calendarFacade().getCalendarsRenderData();
-		var events = sdk.calendarFacade().getCalendarEvents(calendars.keys.first())
+		var events = sdk.calendarFacade()
+			.getCalendarEvents(calendars.keys.first()) // FIXME Change this to an static event array for UI development if needed
 
 		provideContent {
 			GlanceTheme {
@@ -83,49 +93,73 @@ fun MyContent(events: CalendarEventsList) {
 
 	// Apply transformations to each item in the list
 	val eventsData = data.value.map { event ->
-		val zoneId = ZoneId.systemDefault() // You can use a specific time zone, e.g., ZoneId.of("Europe/Berlin")
-		// Convert the timestamp to LocalDateTime
+		val zoneId = ZoneId.systemDefault()
 		val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime.toLong()), zoneId)
 		val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime.toLong()), zoneId)
-
-		// Define a custom date-time format
 		val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm")
-		// Format the start and end LocalDateTime values
-
 		EventData(event.summary, start.format(formatter), end.format(formatter))
 	}
 
-	Scaffold(modifier = GlanceModifier.padding(16.dp)) {
-		LazyColumn {
-			itemsIndexed(
-				eventsData,
-				itemId = { index, _ -> index.toLong() }) { index, event ->
-				Column(
-					modifier = GlanceModifier
-						.padding(bottom = 8.dp) // Optional: Add padding
-				) {
-					Column(
-						modifier = GlanceModifier
-							.background(ColorProvider(Color.LightGray))
-							.padding(8.dp) // Optional: Add padding
-					) {
+	Scaffold(
+		modifier = GlanceModifier.padding(vertical = 16.dp, horizontal = 20.dp).background(Color.LightGray),
+		titleBar = {
+			Row(modifier = GlanceModifier.padding(bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
 
-						Text(
-							"${event.summary}",
-							modifier = GlanceModifier.padding(8.dp).clickable(actionStartActivity<MainActivity>()),
-							style = TextStyle(color = ColorProvider(R.color.darkDarkest), fontWeight = FontWeight.Bold)
-						)
-						Row {
+				Image(
+					provider = ImageProvider(R.mipmap.ic_launcher),
+					contentDescription = null,
+					modifier = GlanceModifier.width(60.dp).height(60.dp).absolutePadding(right = 8.dp)
+				)
+				Column(modifier = GlanceModifier.clickable { println("Open agenda") }) {
+					Text(
+						style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp),
+						text = "20 February"
+					)
+
+					Text(
+						modifier = GlanceModifier.cornerRadius(8.dp),
+						text = "5 all day events"
+					)
+				}
+				Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+					// FIXME Missing Icon button
+				}
+			}
+		}) {
+		Column {
+			LazyColumn(
+				modifier = GlanceModifier.fillMaxWidth()
+			) {
+				itemsIndexed(eventsData, itemId = { index, _ -> index.toLong() }) { index, event ->
+					Column(
+						modifier = GlanceModifier.padding(bottom = 8.dp) // Optional: Add padding
+					) {
+						Column(
+							modifier = GlanceModifier.background(ColorProvider(R.color.white)).cornerRadius(8.dp)
+								.padding(8.dp) // Optional: Add padding
+						) {
+
 							Text(
-								"${event.startTime}",
+								"${event.summary}",
 								modifier = GlanceModifier.padding(8.dp).clickable(actionStartActivity<MainActivity>()),
-								style = TextStyle(color = ColorProvider(R.color.darkLighter))
+								style = TextStyle(
+									color = ColorProvider(R.color.darkDarkest), fontWeight = FontWeight.Bold
+								)
 							)
-							Text(
-								"${event.endTime}",
-								modifier = GlanceModifier.padding(8.dp).clickable(actionStartActivity<MainActivity>()),
-								style = TextStyle(color = ColorProvider(R.color.darkLighter))
-							)
+							Row {
+								Text(
+									"${event.startTime}",
+									modifier = GlanceModifier.padding(8.dp)
+										.clickable(actionStartActivity<MainActivity>()),
+									style = TextStyle(color = ColorProvider(R.color.darkLighter))
+								)
+								Text(
+									"${event.endTime}",
+									modifier = GlanceModifier.padding(8.dp)
+										.clickable(actionStartActivity<MainActivity>()),
+									style = TextStyle(color = ColorProvider(R.color.darkLighter))
+								)
+							}
 						}
 					}
 				}
