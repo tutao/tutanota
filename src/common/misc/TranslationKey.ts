@@ -1933,3 +1933,5 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "keyManagement.verificationByText_label"
+	| "keyManagement.verificationByTextMailAdress_label"

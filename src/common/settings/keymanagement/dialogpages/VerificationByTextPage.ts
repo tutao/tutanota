@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
-import { lang } from "../../../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
 import { Icons } from "../../../gui/base/icons/Icons"
@@ -20,8 +20,15 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
 		const { model } = vnode.attrs
 
+		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
 		return m(".pt.pb.flex.col.gap-vpad", [
-			m(Card, [m("", m(".h4.mb-0", "Verify with text"), m("p.mt-xs.mb-s", "Enter the Tuta email address of the contact you want to verify."))]),
+			m(Card, [
+				m(
+					"",
+					m(".h4.mb-0", lang.get("keyManagement.textVerification_label")),
+					m("p.mt-xs.mb-s", lang.get("keyManagement.verificationByTextMailAdress_label")),
+				),
+			]),
 			m(
 				Card,
 				{
@@ -60,10 +67,7 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 				? null
 				: m(
 						Card,
-						m(
-							"",
-							"Compare the fingerprint displayed below to the one you received from the contact. Click on “Mark as verified” only if both fingerprints match.",
-						),
+						m("", lang.get("keyManagement.verificationByText_label", { "{button}": lang.get(markAsVerifiedTranslationKey) })),
 						m(MonospaceTextDisplay, {
 							text: model.getFingerprint(),
 							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
@@ -74,7 +78,7 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 			m(
 				".align-self-center.full-width",
 				m(LoginButton, {
-					label: "keyManagement.markAsVerified_action",
+					label: markAsVerifiedTranslationKey,
 					onclick: () => model.trust(), // TODO also go to results page
 					disabled: !this.fingerprintLoaded,
 				}),
