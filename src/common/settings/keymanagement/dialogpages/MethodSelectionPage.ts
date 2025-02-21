@@ -3,11 +3,14 @@ import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants
 import { RadioSelectorOption } from "../../../gui/base/RadioSelector"
 import { MaybeTranslation } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
+import { px } from "../../../gui/size"
 
 type MethodSelectionPageAttrs = {
 	goToEmailInputPage: () => void
 	goToQrScanPage: () => void
 }
+
+const DEFAULT_HEIGHT = 666
 
 export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
 	private dom: HTMLElement | null = null
@@ -20,7 +23,11 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 
 		return m(
 			"",
-			{},
+			{
+				style: {
+					height: px(DEFAULT_HEIGHT),
+				},
+			},
 			m(
 				"p",
 				"This would be a good place to explain how this process works and ",
