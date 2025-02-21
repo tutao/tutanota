@@ -23,6 +23,7 @@ function getCspUrls(env) {
 
 /**
  * Renders the initial HTML page to bootstrap Tutanota for different environments
+ * @param scripts {{src: string, type?: string}[]}
  */
 export async function renderHtml(scripts, env) {
 	return `<!DOCTYPE html>
