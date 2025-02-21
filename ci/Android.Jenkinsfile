@@ -19,45 +19,45 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'UPLOAD',
-			defaultValue: false,
-			description: "Upload staging/prod to Nexus"
+				name: 'UPLOAD',
+				defaultValue: false,
+				description: "Upload staging/prod to Nexus"
 		)
 		booleanParam(
-			name: 'STAGING',
-			defaultValue: true
+				name: 'STAGING',
+				defaultValue: true
 		)
 		booleanParam(
-			name: 'PROD',
-			defaultValue: true
+				name: 'PROD',
+				defaultValue: true
 		)
-        string(
-            name: 'branch',
-            defaultValue: "*/master",
-            description: "the branch to build the release from."
-        )
+		string(
+				name: 'branch',
+				defaultValue: "*/master",
+				description: "the branch to build the release from."
+		)
 	}
 
 	stages {
-        stage("Checking params") {
-            steps {
-                script{
-                    if(!params.STAGING && !params.PROD) {
-                        currentBuild.result = 'ABORTED'
-                        error('No artifacts were selected.')
-                    }
-                }
-                echo "Params OKAY"
-            }
-        } // stage checking params
-    	stage('Check Github') {
+		stage("Checking params") {
+			steps {
+				script {
+					if (!params.STAGING && !params.PROD) {
+						currentBuild.result = 'ABORTED'
+						error('No artifacts were selected.')
+					}
+				}
+				echo "Params OKAY"
+			}
+		} // stage checking params
+		stage('Check Github') {
 			steps {
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}
-    	}
+		}
 		stage('Run Tests') {
 			steps {
 				dir("${WORKSPACE}/app-android/") {
@@ -76,14 +76,7 @@ pipeline {
 						echo "Building STAGING ${VERSION}"
 						sh 'npm ci'
 						sh 'npm run build-packages'
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
-							util.downloadFromNexus(	groupId: "lib",
-													artifactId: "android-database-sqlcipher",
-													version: "4.5.0",
-													outFile: "${WORKSPACE}/app-android/libs/android-database-sqlcipher-4.5.0.aar",
-													fileExtension: 'aar')
-						}
+						downloadSqlcipher()
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
@@ -102,14 +95,7 @@ pipeline {
 						echo "Building PROD ${VERSION}"
 						sh 'npm ci'
 						sh 'npm run build-packages'
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
-							util.downloadFromNexus(	groupId: "lib",
-													artifactId: "android-database-sqlcipher",
-													version: "4.5.0",
-													outFile: "${WORKSPACE}/app-android/libs/sqlcipher-android-4.6.0.aar",
-													fileExtension: 'aar')
-						}
+						downloadSqlcipher()
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
@@ -155,5 +141,17 @@ def uploadToNexus(String artifactId, String filePath) {
 				assetFilePath: "${WORKSPACE}/${filePath}",
 				fileExtension: 'apk'
 		)
+	}
+}
+
+def downloadSqlcipher() {
+	script {
+		def VERSION = "4.6.0"
+		def util = load "ci/jenkins-lib/util.groovy"
+		util.downloadFromNexus(groupId: "lib",
+				artifactId: "android-database-sqlcipher",
+				version: VERSION,
+				outFile: "${WORKSPACE}/app-android/libs/sqlcipher-android-${VERSION}.aar",
+				fileExtension: 'aar')
 	}
 }
