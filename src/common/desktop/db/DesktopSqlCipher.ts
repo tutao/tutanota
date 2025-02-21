@@ -82,9 +82,13 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		// integrity check breaks tests
 		integrityCheck: boolean
 	}) {
-		if (env.mode === Mode.Test) {
-			this.db.pragma("cipher_log_source = NONE")
-		}
+		// disable MEMORY sqlcipher logs
+		// see https://github.com/tutao/tutanota/issues/8589
+		this.db.pragma("cipher_log_source = NONE")
+		this.db.pragma("cipher_log_source = CORE")
+		this.db.pragma("cipher_log_source = PROVIDER")
+		this.db.pragma("cipher_log_source = MUTEX")
+
 		if (enableMemorySecurity) {
 			this.db.pragma("cipher_memory_security = ON")
 		}
