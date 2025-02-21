@@ -2,7 +2,7 @@ import { styles } from "./styles"
 import { px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
-import { noselect, position_absolute, positionValue } from "./mixins"
+import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
@@ -1435,8 +1435,13 @@ styles.registerStyle("main", () => {
 			"z-index": 2,
 		},
 		".bottom-nav": {
+			/* 
+            this class is sometimes on a nav element, which has a default box-sizing
+            to set all nav elements to border-box, we must make sure to not break any existing styling
+            */
+			"box-sizing": "border-box",
 			"border-top": `1px solid ${theme.navigation_border}`,
-			height: positionValue(size.bottom_nav_bar),
+			height: `calc(${size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
 			background: theme.header_bg,
 			"padding-bottom": "env(safe-area-inset-bottom)",
 			"z-index": 2,
