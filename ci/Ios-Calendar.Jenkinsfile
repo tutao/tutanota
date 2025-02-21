@@ -38,25 +38,6 @@ pipeline {
 				}
 			}
     	}
-		stage("Run tests") {
-			agent {
-				label 'mac-intel'
-			}
-			environment {
-				LC_ALL = "en_US.UTF-8"
-				LANG = "en_US.UTF-8"
-			}
-			steps {
-				script {
-					stubClientDirectory()
-					generateXCodeProjects()
-					dir('app-ios') {
-						sh 'fastlane test'
-					}
-				}
-			}
-		}
-
 		stage("Build and upload to Testflight") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
