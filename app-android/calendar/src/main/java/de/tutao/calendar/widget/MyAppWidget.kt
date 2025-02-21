@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -25,10 +26,12 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.absolutePadding
+import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
+import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -84,6 +87,33 @@ data class EventData(
 	val endTime: String,
 )
 
+/**
+ * idea: overload function to handle both CalendarEventsList and my DemoCalendarEventsList (needed for the preview)
+ * main function should take the Demo class, second overloading function should take original class and cast down to Demo class
+ * it should simulate this: fun MyContent(events: CalendarEventsList || DemoCalendarEventsList)
+ */
+//@Composable
+//fun MyContent(events: CalendarEventsList) {
+//	val shortEvents: List<DummyCalendarEvent> = mutableListOf()
+//	val longEvents: List<DummyCalendarEvent> = mutableListOf()
+//
+//	// short
+//	for(shortEvent in events.shortEvents) {
+//
+//
+//		val dummyCalendarEvent = DummyCalendarEvent(shortEvent.summary, shortEvent.startTime, shortEvent.endTime)
+//
+//		shortEvents.add(dummyCalendarEvent)
+//	}
+//	// long
+//	for(longEvent in events.longEvents) {
+//
+//	}
+//
+//	val dummyCalendarEventsList: DummyCalendarEventsList = TODO()
+//}
+
+
 @Composable
 fun MyContent(events: CalendarEventsList) {
 	val allEvents = events.shortEvents.plus(events.longEvents)
@@ -100,8 +130,7 @@ fun MyContent(events: CalendarEventsList) {
 		EventData(event.summary, start.format(formatter), end.format(formatter))
 	}
 
-	Scaffold(
-		modifier = GlanceModifier.padding(vertical = 16.dp, horizontal = 20.dp).background(Color.LightGray),
+	Scaffold(modifier = GlanceModifier.padding(vertical = 16.dp, horizontal = 20.dp).background(Color.LightGray),
 		titleBar = {
 			Row(modifier = GlanceModifier.padding(bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
 
@@ -112,13 +141,11 @@ fun MyContent(events: CalendarEventsList) {
 				)
 				Column(modifier = GlanceModifier.clickable { println("Open agenda") }) {
 					Text(
-						style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp),
-						text = "20 February"
+						style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp), text = "20 February"
 					)
 
 					Text(
-						modifier = GlanceModifier.cornerRadius(8.dp),
-						text = "5 all day events"
+						modifier = GlanceModifier.cornerRadius(8.dp), text = "5 all day events"
 					)
 				}
 				Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
@@ -168,6 +195,52 @@ fun MyContent(events: CalendarEventsList) {
 	}
 }
 
+/**
+ * simulate datastructure as we only need these three attributes
+ */
+data class DummyCalendarEvent(
+	val summary: String, val startTime: Long, val endTime: Long
+)
+
+data class DummyCalendarEventsList(
+	var shortEvents: List<DummyCalendarEvent>, var longEvents: List<DummyCalendarEvent>
+)
+
+@Preview
+@Composable
+fun MyContentPreview() {
+	// preview cant use data from sdk so it needs dummy data to work
+	// TODO() use proper type for time
+	val dummyEvents = DummyCalendarEventsList(
+		shortEvents = listOf(
+			DummyCalendarEvent(summary = "Meeting", startTime = 800, endTime = 900)
+		), longEvents = listOf(
+			DummyCalendarEvent(summary = "Conference", startTime = 1000, endTime = 800)
+		)
+	)
+
+	// MyContent(dummyEvents)
+	DummyStaticWidgetContent()
+}
+
+/**
+ * test how and if preview works
+ */
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Composable
+fun DummyStaticWidgetContent() {
+	Column(
+		modifier = GlanceModifier.fillMaxSize().padding(16.dp),
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalAlignment = Alignment.CenterHorizontally
+	) {
+		Text("Hello Calendar Widget!")
+		Row {
+			Text("Button A here :)")
+			Text("  Button B here ;)")
+		}
+	}
+}
 
 
 
