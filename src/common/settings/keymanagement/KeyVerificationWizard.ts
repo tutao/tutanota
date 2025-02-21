@@ -9,6 +9,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button"
 import { MethodSelectionPage } from "./dialogpages/MethodSelectionPage"
 import { VerificationByTextPage } from "./dialogpages/VerificationByTextPage"
+import { KeyVerificationModel } from "./KeyVerificationModel"
 
 export type KeyVerificationWizardData = {
 	keyVerificationFacade: KeyVerificationFacade
@@ -75,6 +76,7 @@ export async function showKeyVerificationWizard(
 	// 	wizard.show()
 	// })
 
+	const model = new KeyVerificationModel()
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationWizardPages>(KeyVerificationWizardPages.CHOOSE_METHOD)
 		.buildDialog(
 			(currentPage, dialog, navigateToPage, _) => {
@@ -88,7 +90,7 @@ export async function showKeyVerificationWizard(
 						})
 					case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: // TODO: rename to EMAIL INPUT METHOD?
 						return m(VerificationByTextPage, {
-							keyVerificationFacade,
+							model,
 						})
 				}
 			},

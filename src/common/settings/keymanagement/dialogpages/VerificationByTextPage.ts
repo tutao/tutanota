@@ -10,31 +10,18 @@ import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { noOp } from "@tutao/tutanota-utils"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
+import { KeyVerificationModel } from "../KeyVerificationModel"
 
 type VerificationByTextPageAttrs = {
-	keyVerificationFacade: KeyVerificationFacade
+	model: KeyVerificationModel
 }
 
 export class VerificationByTextPage implements Component<VerificationByTextPageAttrs> {
 	private dom: HTMLElement | null = null
-	private mailAddress: string = "" // TODO put this in some model
 	private buttonDisabled: boolean = true
 
-	private validateMailAddress(mailAddress: string): TranslationKey | null {
-		/* TODO:
-        Properly validate mail address. Only Tuta domains are reasonable for this problem space
-        so only those should be considered valid. */
-
-		// validate email address (syntactically)
-		if (getCleanedMailAddress(mailAddress) == null) {
-			return "mailAddressInvalid_msg"
-		}
-
-		return null // null means OK
-	}
-
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
-		const { keyVerificationFacade } = vnode.attrs
+		const { model } = vnode.attrs
 
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [m("", m(".h4.mb-0", "Verify with text"), m("p.mt-xs.mb-s", "Enter the Tuta email address of the contact you want to verify."))]),
@@ -53,16 +40,16 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 							icon: Icons.At,
 							color: getColors(ButtonColor.Content).button,
 						},
-						value: this.mailAddress, // vnode.attrs.mailAddress,
+						value: model.mailAddress, // vnode.attrs.mailAddress,
 						type: TextFieldType.Text,
 
 						oninput: async (newValue) => {
 							console.log("text input, new value: ", newValue)
-							this.mailAddress = newValue
+							model.mailAddress = newValue
 
 							let invalidMailAddress = true
 
-							if (this.validateMailAddress(this.mailAddress) == null) {
+							if (model.validateMailAddress(model.mailAddress) == null) {
 								invalidMailAddress = false
 								// try {
 								//     attrs.data.publicKeyFingerprint = assertNotNull(
