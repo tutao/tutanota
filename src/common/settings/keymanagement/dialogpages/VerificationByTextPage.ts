@@ -90,10 +90,15 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 				? null
 				: m(
 						Card,
+						m(
+							"",
+							"Compare the fingerprint displayed below to the one you received from the contact. Click on “Mark as verified” only if both fingerprints match.",
+						),
 						m(MonospaceTextDisplay, {
 							text: "123 123", // attrs.data.publicKeyFingerprint?.fingerprint || "",
 							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
 							chunkSize: 4,
+							border: false,
 						}),
 				  ),
 			m(
