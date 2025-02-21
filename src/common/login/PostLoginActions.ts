@@ -54,6 +54,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly showSetupWizard: () => unknown,
 		private readonly syncExternalCalendars: () => unknown,
 		private readonly setUpClientOnlyCalendars: () => unknown,
+		private readonly updateClient: () => unknown,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -181,7 +182,14 @@ export class PostLoginActions implements PostLoginAction {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+			if (receiveInfoServicePostOut && receiveInfoServicePostOut.outdatedVersion) {
+				return Dialog.updateReminder(lang.get("updateNeeded_msg"), lang.get("outdatedClient_msg"), true).then((confirmed) => {
+					if (confirmed) {
+						this.updateClient()
+					}
+				})
+			}
 		}
 
 		this.enforcePasswordChange()
@@ -263,7 +271,7 @@ export class PostLoginActions implements PostLoginAction {
 
 	private async showUpgradeReminderIfNeeded(): Promise<void> {
 		if (await shouldShowUpgradeReminder(this.logins.getUserController(), new Date(this.dateProvider.now()))) {
-			const confirmed = await Dialog.reminder(lang.get("upgradeReminderTitle_msg"), lang.get("premiumOffer_msg"))
+			const confirmed = await Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), lang.get("premiumOffer_msg"))
 			if (confirmed) {
 				const wizard = await import("../subscription/UpgradeSubscriptionWizard.js")
 				await wizard.showUpgradeWizard(this.logins)

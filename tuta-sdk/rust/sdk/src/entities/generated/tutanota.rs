@@ -2313,6 +2313,22 @@ impl Entity for ReceiveInfoServiceData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ReceiveInfoServicePostOut {
+	pub _format: i64,
+	pub outdatedVersion: bool,
+}
+
+impl Entity for ReceiveInfoServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "ReceiveInfoServicePostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct Recipients {
 	pub _id: Option<CustomId>,
 	pub bccRecipients: Vec<MailAddress>,
