@@ -14,8 +14,6 @@ type MethodSelectionPageAttrs = {
 const DEFAULT_HEIGHT = 666
 
 export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
-	private dom: HTMLElement | null = null
-
 	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
 		const makeOption = (name: MaybeTranslation, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
 			name,
@@ -68,7 +66,3 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 		})
 	}
 }
-
-//     headerTitle(): MaybeTranslation {
-//         return "keyManagement.selectMethodShort_label"
-//     }

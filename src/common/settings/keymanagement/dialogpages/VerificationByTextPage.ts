@@ -1,24 +1,21 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
-import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
-import { KeyVerificationFacade } from "../../../api/worker/facades/lazy/KeyVerificationFacade"
+import { lang } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
-import { noOp } from "@tutao/tutanota-utils"
-import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { KeyVerificationModel } from "../KeyVerificationModel"
+import { KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 }
 
 export class VerificationByTextPage implements Component<VerificationByTextPageAttrs> {
-	private dom: HTMLElement | null = null
-	private buttonDisabled: boolean = true
+	private fingerprintLoaded: boolean = false
 
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
 		const { model } = vnode.attrs
@@ -40,40 +37,26 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 							icon: Icons.At,
 							color: getColors(ButtonColor.Content).button,
 						},
-						value: model.mailAddress, // vnode.attrs.mailAddress,
+						value: model.mailAddress,
 						type: TextFieldType.Text,
 
 						oninput: async (newValue) => {
-							console.log("text input, new value: ", newValue)
 							model.mailAddress = newValue
 
-							let invalidMailAddress = true
-
 							if (model.validateMailAddress(model.mailAddress) == null) {
-								invalidMailAddress = false
-								// try {
-								//     attrs.data.publicKeyFingerprint = assertNotNull(
-								//         await keyVerificationFacade.getFingerprint(attrs.data.mailAddress, KeyVerificationSourceOfTruth.PublicKeyService),
-								//     )
-								//     invalidMailAddress = false
-								// } catch (e) {
-								//     invalidMailAddress = true
-								// }
+								try {
+									await model.loadFingerprint(KeyVerificationSourceOfTruth.PublicKeyService)
+									this.fingerprintLoaded = true
+								} catch (e) {
+									// TODO recipient not found, maybe?
+								}
 							}
-
-							if (invalidMailAddress) {
-								this.buttonDisabled = true
-								// attrs.data.publicKeyFingerprint = null
-							} else {
-								this.buttonDisabled = false
-							}
-
-							// m.redraw()
+							m.redraw() // otherwise we get a very noticeable delay
 						},
 					}),
 				),
 			),
-			this.buttonDisabled
+			!this.fingerprintLoaded
 				? null
 				: m(
 						Card,
@@ -82,7 +65,7 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 							"Compare the fingerprint displayed below to the one you received from the contact. Click on “Mark as verified” only if both fingerprints match.",
 						),
 						m(MonospaceTextDisplay, {
-							text: "123 123", // attrs.data.publicKeyFingerprint?.fingerprint || "",
+							text: model.getFingerprint(),
 							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
 							chunkSize: 4,
 							border: false,
@@ -92,14 +75,10 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 				".align-self-center.full-width",
 				m(LoginButton, {
 					label: "keyManagement.markAsVerified_action",
-					onclick: noOp,
-					disabled: this.buttonDisabled,
+					onclick: () => model.trust(), // TODO also go to results page
+					disabled: !this.fingerprintLoaded,
 				}),
 			),
 		])
 	}
 }
-
-//     headerTitle(): MaybeTranslation {
-//         return "keyManagement.selectMethodShort_label"
-//     }

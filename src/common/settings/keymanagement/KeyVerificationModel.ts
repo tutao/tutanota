@@ -1,8 +1,13 @@
 import { TranslationKey } from "../../misc/LanguageViewModel"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
+import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 
 export class KeyVerificationModel {
 	mailAddress: string = ""
+	publicKeyFingerprint: PublicKeyFingerprint | null = null
+	constructor(readonly keyVerificationFacade: KeyVerificationFacade) {}
 
 	public validateMailAddress(mailAddress: string): TranslationKey | null {
 		/* TODO:
@@ -15,5 +20,18 @@ export class KeyVerificationModel {
 		}
 
 		return null // null means OK
+	}
+
+	public async loadFingerprint(source: KeyVerificationSourceOfTruth) {
+		this.publicKeyFingerprint = assertNotNull(await this.keyVerificationFacade.getFingerprint(this.mailAddress, source))
+	}
+
+	public getFingerprint(): string {
+		return this.publicKeyFingerprint?.fingerprint ?? ""
+	}
+
+	public async trust() {
+		const fingerprint = assertNotNull(this.publicKeyFingerprint)
+		await this.keyVerificationFacade.trust(this.mailAddress, fingerprint.fingerprint, fingerprint.keyVersion, fingerprint.keyPairType)
 	}
 }

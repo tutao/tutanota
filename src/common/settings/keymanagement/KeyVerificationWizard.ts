@@ -76,7 +76,7 @@ export async function showKeyVerificationWizard(
 	// 	wizard.show()
 	// })
 
-	const model = new KeyVerificationModel()
+	const model = new KeyVerificationModel(keyVerificationFacade)
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationWizardPages>(KeyVerificationWizardPages.CHOOSE_METHOD)
 		.buildDialog(
 			(currentPage, dialog, navigateToPage, _) => {
