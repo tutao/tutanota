@@ -1,6 +1,6 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, contains, first, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -101,7 +101,7 @@ export function getMailHeaders(headers: Header): string {
 	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
-export async function loadMailHeaders(mailDetails: MailDetails): Promise<string | null> {
+export function loadMailHeaders(mailDetails: MailDetails): string | null {
 	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 
