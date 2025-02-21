@@ -1,9 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
 import { RadioSelectorOption } from "../../../gui/base/RadioSelector"
-import { MaybeTranslation } from "../../../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
-import { px } from "../../../gui/size"
+import { px, size } from "../../../gui/size"
+import { Card } from "../../../gui/base/Card"
 
 type MethodSelectionPageAttrs = {
 	goToEmailInputPage: () => void
@@ -22,20 +23,34 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 		})
 
 		return m(
-			"",
+			".pt.pb.flex.col.gap-vpad",
 			{
 				style: {
 					height: px(DEFAULT_HEIGHT),
 				},
 			},
 			m(
-				"p",
-				"This would be a good place to explain how this process works and ",
-				"guide the user to some resources that might help them pick the right method. ",
-				"We could also display a cute little graphic. Test test 123 blah blah blah.",
-			), // TODO: translate
-			this.renderTextMethodButton(() => vnode.attrs.goToEmailInputPage()),
-			this.renderQRMethodButton(() => vnode.attrs.goToQrScanPage()),
+				Card,
+				{ shouldDivide: true },
+
+				m(
+					"section.pt-s.pb-s",
+					{
+						style: {
+							padding: px(size.vpad_small),
+						},
+					},
+					[
+						m(".h4.mb-0", lang.get("keyManagement.selectMethodShort_label")),
+						m(
+							"p.mt-xs.mb-s",
+							"Pick a verification method to get started. If you are meeting in-person and both of you own a camera-enabled device, it is recommended to choose QR code for verification.\n" +
+								"Otherwise, use the text option.", // TODO: translate
+						),
+					],
+				),
+				[this.renderTextMethodButton(() => vnode.attrs.goToEmailInputPage()), this.renderQRMethodButton(() => vnode.attrs.goToQrScanPage())],
+			),
 		)
 	}
 

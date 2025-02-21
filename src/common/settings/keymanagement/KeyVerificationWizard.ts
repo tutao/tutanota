@@ -95,9 +95,9 @@ export async function showKeyVerificationWizard(
 			{
 				getPageTitle: (currentPage) => {
 					switch (currentPage) {
-						case KeyVerificationWizardPages.CHOOSE_METHOD: {
-							return { testId: "back_action", text: lang.get("keyManagement.selectMethodShort_label") }
-						}
+						// case KeyVerificationWizardPages.CHOOSE_METHOD: {
+						// 	return { testId: "back_action", text: lang.get("keyManagement.selectMethodShort_label") }
+						// }
 						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: {
 							return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
 						}
