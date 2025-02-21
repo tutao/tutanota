@@ -12,7 +12,6 @@ import { client } from "../../../common/misc/ClientDetector.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getFolderIcon } from "./MailGuiUtils"
-import { getFolderName } from "../model/MailUtils"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -28,6 +27,7 @@ export type MailFolderRowAttrs = {
 	isLastSibling: boolean
 	editMode: boolean
 	onHover: () => void
+	fullFolderPath: string
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
@@ -105,7 +105,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 							// the zIndex is so the hierarchy lines never get drawn over the icon
 							zIndex: 3,
 						},
-						"data-testid": `btn:icon:${getFolderName(folder)}`,
+						"data-testid": `btn:icon:${vnode.attrs.fullFolderPath}`,
 						"data-expanded": vnode.attrs.expanded ? "true" : "false",
 						onclick: vnode.attrs.onExpanderClick,
 						onkeydown: handleBackwardsTab,

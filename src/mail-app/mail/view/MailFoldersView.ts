@@ -19,7 +19,6 @@ import { px, size } from "../../../common/gui/size.js"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton.js"
 import { MailModel } from "../model/MailModel.js"
 import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
-import { getFolderIcon } from "./MailGuiUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { DropData } from "../../../common/gui/base/GuiUtils"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
@@ -96,8 +95,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		for (let system of subSystems) {
 			const id = getElementId(system.folder)
 			const folderName = getFolderName(system.folder)
+			const fullFolderPath = folders.getPathToFolderAsString(system.folder)
 			const button: NavButtonAttrs = {
-				label: lang.makeTranslation(`folder:${folderName}`, folderName),
+				label: lang.makeTranslation(`folder:${fullFolderPath}`, folderName),
 				href: () => {
 					if (attrs.inEditMode) {
 						return m.route.get()
@@ -155,6 +155,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						onHover: () => {
 							this.visibleRow = id
 						},
+						fullFolderPath: fullFolderPath,
 					}),
 					childResult.children,
 				],
