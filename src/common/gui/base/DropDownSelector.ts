@@ -92,6 +92,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 								m.redraw()
 							},
 							selected: a.selectedValue === item.value,
+							icon: item.icon,
 						}
 					})
 			},

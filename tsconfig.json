@@ -8,7 +8,7 @@
 		"incremental": true,
 		"rootDir": "."
 	},
-	"include": ["src/", "libs/*.ts", "types/*.d.ts"],
+	"include": ["src/", "libs/*.ts", "types/*.d.ts", "showcase/"],
 	"exclude": ["src/calendar-app.ts"],
 	"references": [
 		{
