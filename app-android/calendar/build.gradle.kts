@@ -228,7 +228,7 @@ dependencies {
 	androidTestImplementation("androidx.room:room-testing:2.4.2")
 
 	// Setup for Jetpack Compose
-	val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
+	val composeBom = platform("androidx.compose:compose-bom:2025.01.01")
 	implementation(composeBom)
 	androidTestImplementation(composeBom)
 	implementation("androidx.compose.material3:material3")
@@ -248,9 +248,21 @@ dependencies {
 	// Optional - Add window size utils
 	// implementation("androidx.compose.material3.adaptive:adaptive")
 
-	// For AppWidgets support
-	implementation("androidx.glance:glance-appwidget:1.1.0")
+	// Optional - Integration with activities
+	implementation("androidx.activity:activity-compose:1.10.0")
+	// Optional - Integration with ViewModels
+	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+	// Optional - Integration with LiveData
+	implementation("androidx.compose.runtime:runtime-livedata")
+	// Optional - Integration with RxJava
+	implementation("androidx.compose.runtime:runtime-rxjava2")
+
 	// For interop APIs with Material 3
 	implementation("androidx.glance:glance-material3:1.1.0")
 
+	// For AppWidgets support and preview
+	implementation("androidx.glance:glance:1.1.1")
+	implementation("androidx.glance:glance-appwidget:1.1.1")
+	implementation("androidx.glance:glance-appwidget-preview:1.1.1")
+	implementation("androidx.glance:glance-preview:1.1.1")
 }
