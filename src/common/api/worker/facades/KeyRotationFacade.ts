@@ -736,6 +736,10 @@ export class KeyRotationFacade {
 			)
 			for (const member of members) {
 				const userGroupInfoForMember = userGroupInfos.find((ugi) => isSameId(ugi._id, member.userGroupInfo))
+				if (userGroupInfoForMember?.deleted) {
+					membersToRemove.push(member)
+					continue
+				}
 				const memberMailAddress = assertNotNull(userGroupInfoForMember?.mailAddress) // user group info must always have a mail address
 				const bucketKey = this.cryptoWrapper.aes256RandomKey()
 				const sessionKey = this.cryptoWrapper.aes256RandomKey()
