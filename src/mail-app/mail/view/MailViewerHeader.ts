@@ -720,20 +720,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		//			{             alert("Email is from a trusted sender. Proceeding as usual.");         }
 		//			else
 		//			{ alert("Warning! This email is NOT from a trusted sender."); } }, };
-<<<<<<< HEAD
-		//		console.log("this is a test of the button",[mobyPhishButton, showButton, ...maybeDropdownButtons] );
-=======
 		console.log("this is a test of the button" /*,[mobyPhishButton, showButton, ...maybeDropdownButtons] */)
->>>>>>> e570d2b45 (Weekly Commit)
 		return m(InfoBanner, {
 			message: "contentBlocked_msg", //this is the referenced string in en_chunk that we want to change to "
 			icon: Icons.Picture,
 			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
-<<<<<<< HEAD
 			buttons: [/*mobyPhishButton,*/ showButton, ...maybeDropdownButtons], //added mobyPhish 2/16/25
-=======
-			buttons: [showButton, /*mobyPhishButton*/ ...maybeDropdownButtons],
->>>>>>> e570d2b45 (Weekly Commit)
 		})
 	}
 
