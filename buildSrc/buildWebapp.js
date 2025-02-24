@@ -94,22 +94,22 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				webassemblyLibraries: [
 					{
 						name: "liboqs.wasm",
-						command: "make -f Makefile_liboqs build",
+						command: "make -f Makefile_liboqs build CXXFLAGS='-s USE_BULK_MEMORY=1'",
 						workingDir: "libs/webassembly/",
 						outputPath: path.join(resolvedBuildDir, "wasm/liboqs.wasm"),
 						fallback: {
-							command: "make -f Makefile_liboqs fallback",
+							command: "make -f Makefile_liboqs fallback CXXFLAGS='-s USE_BULK_MEMORY=1'",
 							workingDir: "libs/webassembly/",
 							outputPath: path.join(resolvedBuildDir, "wasm/liboqs.js"),
 						},
 					},
 					{
 						name: "argon2.wasm",
-						command: "make -f Makefile_argon2 build fallback",
+						command: "make -f Makefile_argon2 build CXXFLAGS='-s USE_BULK_MEMORY=1'",
 						workingDir: "libs/webassembly/",
 						outputPath: path.join(resolvedBuildDir, "wasm/argon2.wasm"),
 						fallback: {
-							command: "make -f Makefile_argon2 fallback",
+							command: "make -f Makefile_argon2 fallback CXXFLAGS='-s USE_BULK_MEMORY=1'",
 							workingDir: "libs/webassembly/",
 							outputPath: path.join(resolvedBuildDir, "wasm/argon2.js"),
 						},
