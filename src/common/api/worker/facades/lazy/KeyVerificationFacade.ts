@@ -101,6 +101,11 @@ export class KeyVerificationFacade {
 	 * Determines whether the trust database contains an entry for a given mail address.
 	 */
 	async isTrusted(mailAddress: string): Promise<boolean> {
+		// This has to happen before we ask for the local trust status, as there is no SQLite in the browser environment.
+		if (isBrowser()) {
+			return false
+		}
+
 		const { query, params } = sql`SELECT * FROM trusted_identities WHERE mailAddress = ${mailAddress}`
 		const result = await this.sqlCipherFacade.get(query, params)
 		return result !== null
@@ -187,8 +192,8 @@ export class KeyVerificationFacade {
 		return publicKeyFingerprint
 	}
 
-		// This has to happen before we ask for the local trust status, as there is no SQLite in the browser environment.
 	async resolveVerificationState(mailAddress: string, publicKey: Versioned<PublicKey> | null): Promise<KeyVerificationState> {
+		// SQLite database is unavailable in a browser environment, so for now it does not make sense to continue resolving.
 		if (isBrowser()) {
 			return KeyVerificationState.NO_ENTRY
 		}
