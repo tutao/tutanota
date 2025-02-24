@@ -9,7 +9,6 @@ import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { KeyVerificationFacade, KeyVerificationState } from "../worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyIdentifierType } from "../common/TutanotaConstants"
 import { IServiceExecutor } from "../common/ServiceRequest"
 import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
 
@@ -240,14 +239,6 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	private async resolveVerification(mailAddress: string): Promise<KeyVerificationState> {
-		if (await this.keyVerificationFacade.isTrusted(mailAddress)) {
-			const publicKey = await this.publicKeyProvider.loadCurrentPubKey({
-				identifier: mailAddress,
-				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			})
-			return await this.keyVerificationFacade.resolveVerificationState(mailAddress, publicKey)
-		} else {
-			return KeyVerificationState.NO_ENTRY
-		}
+		return this.keyVerificationFacade.resolveVerificationState(mailAddress, null)
 	}
 }
