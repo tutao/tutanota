@@ -187,8 +187,8 @@ export class KeyVerificationFacade {
 		return publicKeyFingerprint
 	}
 
-	async resolveVerificationState(mailAddress: string, publicKey: Versioned<PublicKey>): Promise<KeyVerificationState> {
 		// This has to happen before we ask for the local trust status, as there is no SQLite in the browser environment.
+	async resolveVerificationState(mailAddress: string, publicKey: Versioned<PublicKey> | null): Promise<KeyVerificationState> {
 		if (isBrowser()) {
 			return KeyVerificationState.NO_ENTRY
 		}
@@ -198,8 +198,22 @@ export class KeyVerificationFacade {
 			return KeyVerificationState.NO_ENTRY
 		}
 
-		const expectedFingerprint = this.calculateFingerprint(publicKey)
-		if (await this.confirmFingerprint(mailAddress, expectedFingerprint.fingerprint, KeyVerificationSourceOfTruth.LocalTrusted)) {
+		let untrustedFingerprint: PublicKeyFingerprint
+		if (publicKey == null) {
+			const fingerprintFromPublicKeySource = await this.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.PublicKeyService)
+
+			// If the fingerprint received from the public key service is null, we return MISMATCH, as the fingerprint belongs to an identity that has been
+			// trusted and that we therefore expect to be returned by the public key service.
+			if (fingerprintFromPublicKeySource == null) {
+				return KeyVerificationState.MISMATCH
+			} else {
+				untrustedFingerprint = fingerprintFromPublicKeySource
+			}
+		} else {
+			untrustedFingerprint = this.calculateFingerprint(publicKey)
+		}
+
+		if (await this.confirmFingerprint(mailAddress, untrustedFingerprint.fingerprint, KeyVerificationSourceOfTruth.LocalTrusted)) {
 			return KeyVerificationState.VERIFIED
 		} else {
 			return KeyVerificationState.MISMATCH
