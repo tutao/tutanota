@@ -234,6 +234,7 @@ export class Dropdown implements ModalComponent {
 							this.domInput.focus()
 						}
 					},
+					"data-testid": "dropdown:menu",
 				},
 				[inputField(), contents(), closeBtn()],
 			)
