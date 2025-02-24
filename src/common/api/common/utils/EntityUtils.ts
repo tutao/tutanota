@@ -241,8 +241,8 @@ export function elementIdPart(id: IdTuple): Id {
  * Takes an iterator of list element entities and returns their ids in an array.
  * @param entities
  */
-export function getIdTuples<T extends ListElement>(entities: Iterable<T>): IdTuple[] {
-	const ids: IdTuple[] = []
+export function getIds<T extends SomeEntity>(entities: Iterable<T>): Array<T["_id"]> {
+	const ids: Array<T["_id"]> = []
 	for (const entity of entities) {
 		ids.push(entity._id)
 	}

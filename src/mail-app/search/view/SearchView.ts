@@ -84,7 +84,7 @@ import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
-import { getElementId, getIdTuples, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
+import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../common/gui/base/Checkbox.js"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
@@ -109,7 +109,6 @@ import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/
 import { PosRect } from "../../../common/gui/base/Dropdown"
 import { editDraft, getMailViewerMoreActions, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft } from "../../mail/model/MailChecks"
-import { client } from "../../../common/misc/ClientDetector"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -433,7 +432,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
-					getUnreadState: null,
+					isUnread: null,
 					editDraftAction: this.getEditDraftAction(),
 					exportAction: this.getExportAction(),
 					replyAction: null,
@@ -475,7 +474,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
-					getUnreadState: () => this.getUnreadState(),
+					isUnread: this.getUnreadState(),
 					editDraftAction: this.getEditDraftAction(),
 					exportAction: this.getExportAction(),
 					replyAction: this.getReplyAction(conversationViewModel, false),
@@ -549,25 +548,27 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
 		const viewModel = conversationViewModel.primaryViewModel()
-		if (isDraft(viewModel.mail) || viewModel.isAnnouncement() || !viewModel.canForwardOrMove()) {
-			return null
-		} else {
+		if (viewModel.canForward()) {
 			return () => viewModel.forward().catch(ofClass(UserError, showUserError))
+		} else {
+			return null
 		}
 	}
 
 	private getReplyAction(conversationViewModel: ConversationViewModel, replyAll: boolean): (() => void) | null {
 		const viewModel = conversationViewModel.primaryViewModel()
-		if (isDraft(viewModel.mail) || viewModel.isAnnouncement()) {
-			return null
-		} else {
+
+		const canReply = replyAll ? viewModel.canReplyAll() : viewModel.canReply()
+		if (canReply) {
 			return () => viewModel.reply(replyAll)
+		} else {
+			return null
 		}
 	}
 
 	private getExportAction(): (() => void) | null {
 		const mails = this.searchViewModel.listModel.getSelectedAsArray() ?? []
-		if (client.isMobileDevice() || !mailLocator.mailModel.isExportingMailsAllowed() || isEmpty(mails)) {
+		if (!this.searchViewModel.isExportingMailsAllowed() || isEmpty(mails)) {
 			return null
 		}
 
@@ -702,7 +703,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				moveMailsAction: this.getMoveMailsAction(),
 				applyLabelsAction: this.getLabelsAction(),
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
-				getUnreadState: () => this.getUnreadState(),
+				isUnread: this.getUnreadState(),
 				editDraftAction: this.getEditDraftAction(),
 				exportAction: this.getExportAction(),
 				replyAction: this.getReplyAction(conversationViewModel, false),
@@ -1117,7 +1118,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			archiveMails(getIdTuples(selectedMails))
+			archiveMails(getIds(selectedMails))
 		}
 	}
 
@@ -1129,7 +1130,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			moveToInbox(getIdTuples(selectedMails))
+			moveToInbox(getIds(selectedMails))
 		}
 	}
 

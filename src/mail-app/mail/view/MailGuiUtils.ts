@@ -40,7 +40,7 @@ import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { getIdTuples } from "../../../common/api/common/utils/EntityUtils"
+import { getIds } from "../../../common/api/common/utils/EntityUtils"
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
@@ -100,9 +100,9 @@ export async function promptAndDeleteMails(mailModel: MailModel, mails: Readonly
 
 	try {
 		if (action === DeleteConfirmationResult.TrashOnly) {
-			await mailModel.simpleMoveMails(getIdTuples(actionableMails), MailSetKind.TRASH)
+			await mailModel.simpleMoveMails(getIds(actionableMails), MailSetKind.TRASH)
 		} else if (action === DeleteConfirmationResult.FinallyDelete) {
-			await mailModel.finallyDeleteMails(getIdTuples(actionableMails))
+			await mailModel.finallyDeleteMails(getIds(actionableMails))
 		}
 		return true
 	} catch (e) {

@@ -38,7 +38,7 @@ import {
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
 } from "../../../common/api/common/TutanotaConstants.js"
-import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getIdTuples, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, GENERATED_MAX_ID, getElementId, getIds, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -330,7 +330,7 @@ export class MailModel {
 			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
 
 			if (sourceMailFolder) {
-				await this.moveMailsFromFolder(getIdTuples(mailsInFolder), sourceMailFolder._id, targetMailFolder._id)
+				await this.moveMailsFromFolder(getIds(mailsInFolder), sourceMailFolder._id, targetMailFolder._id)
 			} else {
 				console.log("Move mail: no mail folder for folder id", folderId)
 			}

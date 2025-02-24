@@ -80,7 +80,6 @@ import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
 import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
-import { client } from "../../../common/misc/ClientDetector"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 
@@ -276,7 +275,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			deleteMailsAction: () => this.deleteSelectedMails(),
 			applyLabelsAction: this.getLabelsAction(),
 			setUnreadStateAction: this.getSetUnreadStateAction(),
-			getUnreadState: this.getGetUnreadState(),
+			isUnread: this.getUnreadState(),
 			editDraftAction: this.getEditDraftAction(viewModel),
 			exportAction: this.getExportAction(),
 			replyAction: this.getReplyAction(viewModel, false),
@@ -323,7 +322,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			moveMailsAction: this.getMoveMailsAction(),
 			applyLabelsAction: this.getLabelsAction(),
 			setUnreadStateAction: this.getSetUnreadStateAction(),
-			getUnreadState: null,
+			isUnread: null,
 			editDraftAction: null,
 			exportAction: this.getExportAction(),
 			replyAction: null,
@@ -405,7 +404,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								moveMailsAction: this.getMoveMailsAction(),
 								applyLabelsAction: this.getLabelsAction(),
 								setUnreadStateAction: this.getSetUnreadStateAction(),
-								getUnreadState: this.getGetUnreadState(),
+								isUnread: this.getUnreadState(),
 								editDraftAction: this.getEditDraftAction(this.conversationViewModel),
 								exportAction: this.getExportAction(),
 								replyAction: this.getReplyAction(this.conversationViewModel, false),
@@ -431,19 +430,26 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			? conversationViewModel.getLatestMail()?.viewModel
 			: conversationViewModel.primaryViewModel()
 
-		if (viewModel == null || isDraft(viewModel.mail) || viewModel.isAnnouncement() || !viewModel.canForwardOrMove()) {
-			return null
-		} else {
+		if (viewModel != null && viewModel.canForward()) {
 			return () => viewModel.forward().catch(ofClass(UserError, showUserError))
+		} else {
+			return null
 		}
 	}
 
-	private getReplyAction(viewModel: ConversationViewModel, replyAll: boolean): (() => void) | null {
-		const replyMailModel = this.mailViewModel.groupMailsByConversation() ? viewModel.getLatestMail()?.viewModel : viewModel.primaryViewModel()
-		if (replyMailModel == null || replyMailModel.isAnnouncement()) {
+	private getReplyAction(conversationViewModel: ConversationViewModel, replyAll: boolean): (() => void) | null {
+		const viewModel = this.mailViewModel.groupMailsByConversation()
+			? conversationViewModel.getLatestMail()?.viewModel
+			: conversationViewModel.primaryViewModel()
+		if (viewModel == null) {
 			return null
+		}
+
+		const canReply = replyAll ? viewModel.canReplyAll() : viewModel.canReply()
+		if (canReply) {
+			return () => viewModel.reply(replyAll)
 		} else {
-			return () => replyMailModel.reply(replyAll)
+			return null
 		}
 	}
 
@@ -473,12 +479,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private getGetUnreadState(): (() => boolean) | null {
+	private getUnreadState(): boolean | null {
 		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
 		if (mails.length !== 1) {
 			return null
 		}
-		return () => getFirstOrThrow(mails)?.unread ?? false
+		return getFirstOrThrow(mails).unread
 	}
 
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
@@ -972,7 +978,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private getExportAction(): (() => void) | null {
 		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (client.isMobileDevice() || !mailLocator.mailModel.isExportingMailsAllowed() || isEmpty(mails)) {
+		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(mails)) {
 			return null
 		}
 

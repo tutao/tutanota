@@ -14,7 +14,7 @@ export interface MobileMailActionBarAttrs {
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
-	getUnreadState: (() => boolean) | null
+	isUnread: boolean | null
 	editDraftAction: (() => void) | null
 	exportAction: (() => void) | null
 	replyAction: (() => void) | null
@@ -37,10 +37,10 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				},
 			},
 			[
-				this.editButton(attrs) || this.replyButton(attrs) || this.placeholder(),
+				this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
 				this.forwardButton(attrs),
 				this.deleteButton(attrs),
-				this.moveButton(attrs) || this.placeholder(),
+				this.moveButton(attrs) ?? this.placeholder(),
 				this.moreButton(attrs),
 			],
 		)
@@ -73,7 +73,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, getUnreadState, mailViewerMoreActions }: MobileMailActionBarAttrs) {
+	private moreButton({ exportAction, applyLabelsAction, setUnreadStateAction, isUnread, mailViewerMoreActions }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -103,8 +103,10 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 							click: () => setUnreadStateAction(true),
 							icon: Icons.NoEye,
 						}
-						if (getUnreadState != null) {
-							if (getUnreadState()) {
+
+						// isUnread means we are viewing one mail; otherwise, it is coming from a MultiViewer
+						if (isUnread != null) {
+							if (isUnread) {
 								moreButtons.push(readButton)
 							} else {
 								moreButtons.push(unreadButton)
