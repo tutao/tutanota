@@ -29,6 +29,11 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
 
+/**
+ * Time range for loading.
+ * Start is <i>*inclusive*</i> older timestamp.
+ * End is <i>*exclusive*</i> newer timestamp.
+ */
 export type TimeRange = [number, number]
 
 export interface MailWithMailDetails {
