@@ -93,7 +93,8 @@ export function isEventHappyMoment(now: Date, deviceConfig: DeviceConfig): boole
 }
 
 export type TriggerType = "Mail" | "Calendar" | "Upgrade"
-export type RatingButtonType = "LoveIt" | "NeedsWork" | "NotNow"
+export type EvaluationButtonType = "LoveIt" | "NeedsWork" | "NotNow"
+export type RatingButtonType = "RateUs" | "MaybeLater"
 
 enum RatingUsageTestStage {
 	TRIGGER,
@@ -113,31 +114,25 @@ export function completeTriggerStage(triggerType: TriggerType) {
 		name: "triggerType",
 		value: triggerType,
 	})
-
 	void stage.complete()
 }
 
-export function completeEvaluationStage(triggerType: TriggerType, buttonType: RatingButtonType) {
+export function completeEvaluationStage(triggerType: TriggerType, buttonType: EvaluationButtonType) {
 	const stage = getRatingUsageTestStage(RatingUsageTestStage.EVALUATION)
 
 	stage.setMetric({
-		name: "triggerType",
-		value: triggerType,
-	})
-	stage.setMetric({
 		name: "button",
-		value: buttonType,
+		value: buttonType + "_" + triggerType,
 	})
 	void stage.complete()
 }
 
-export function completeRatingStage(triggerType: TriggerType) {
+export function completeRatingStage(triggerType: TriggerType, buttonType: RatingButtonType) {
 	const stage = getRatingUsageTestStage(RatingUsageTestStage.RATING)
 
 	stage.setMetric({
-		name: "triggerType",
-		value: triggerType,
+		name: "button",
+		value: buttonType + "_" + triggerType,
 	})
-
 	void stage.complete()
 }
