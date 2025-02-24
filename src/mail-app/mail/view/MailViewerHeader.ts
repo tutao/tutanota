@@ -751,21 +751,22 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						icon: Icons.Trash,
 					})
 				} else {
-					if (viewModel.canForwardOrMove()) {
+					if (viewModel.canReply()) {
 						actionButtons.push({
 							label: "reply_action",
 							click: () => viewModel.reply(false),
 							icon: Icons.Reply,
 						})
+					}
+					if (viewModel.canReplyAll()) {
+						actionButtons.push({
+							label: "replyAll_action",
+							click: () => viewModel.reply(true),
+							icon: Icons.ReplyAll,
+						})
+					}
 
-						if (viewModel.canReplyAll()) {
-							actionButtons.push({
-								label: "replyAll_action",
-								click: () => viewModel.reply(true),
-								icon: Icons.ReplyAll,
-							})
-						}
-
+					if (viewModel.canForwardOrMove()) {
 						actionButtons.push({
 							label: "forward_action",
 							click: () => viewModel.forward(),
