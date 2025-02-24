@@ -95,7 +95,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		for (let system of subSystems) {
 			const id = getElementId(system.folder)
 			const folderName = getFolderName(system.folder)
-			const fullFolderPath = folders.getPathToFolderAsString(system.folder)
+			const fullFolderPath = this.getPathToFolderAsString(folders, system.folder)
 			const button: NavButtonAttrs = {
 				label: lang.makeTranslation(`folder:${fullFolderPath}`, folderName),
 				href: () => {
@@ -180,6 +180,17 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
 			},
 		})
+	}
+
+	/**
+	 * Get a full path to a folder with colons in between,
+	 * Used for data-testids
+	 */
+	private getPathToFolderAsString(folderSystem: FolderSystem, currentFolder: MailFolder): string {
+		return folderSystem
+			.getPathToFolder(currentFolder._id)
+			.map((f) => getFolderName(f))
+			.join(":")
 	}
 
 	private getTotalFolderCounter(counters: Counters, system: FolderSubtree): number {

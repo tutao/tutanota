@@ -78,14 +78,6 @@ export class FolderSystem {
 		return this.getPathToFolderInSubtrees(this.systemSubtrees, folderId) ?? this.getPathToFolderInSubtrees(this.customSubtrees, folderId) ?? []
 	}
 
-	/**
-	 * Get a full path to a folder with colons in between,
-	 * Used for data-testids
-	 */
-	getPathToFolderAsString(currentFolder: MailFolder): string {
-		return this.getPathToFolder(currentFolder._id).join(":")
-	}
-
 	checkFolderForAncestor(folder: MailFolder, potentialAncestorId: IdTuple): boolean {
 		let currentFolderPointer: MailFolder | null = folder
 		while (true) {
