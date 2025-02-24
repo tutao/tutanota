@@ -7,8 +7,8 @@ import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "../../../../../src/comm
 import { concat, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
-import { PublicKey, KeyPairType, PQPublicKeys } from "@tutao/tutanota-crypto"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
+import { KeyPairType, PQPublicKeys, PublicKey } from "@tutao/tutanota-crypto"
+import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
 
 const { anything } = matchers
 
@@ -38,6 +38,25 @@ const PUBLIC_KEY_FINGERPRINT: PublicKeyFingerprint = {
 	keyVersion: 0,
 }
 
+const PUBLIC_KEY_FINGERPRINT_SQL_RESULT: Record<string, TaggedSqlValue> = {
+	mailAddress: {
+		type: SqlType.String,
+		value: "test@example.com",
+	},
+	fingerprint: {
+		type: SqlType.String,
+		value: PUBLIC_KEY_FINGERPRINT_HASH,
+	},
+	keyVersion: {
+		type: SqlType.Number,
+		value: 0,
+	},
+	keyType: {
+		type: SqlType.Number,
+		value: KeyPairType.TUTA_CRYPT,
+	},
+}
+
 o.spec("KeyVerificationFacadeTest", function () {
 	let keyVerification: KeyVerificationFacade
 	let sqlCipherFacade: SqlCipherFacade
@@ -49,46 +68,8 @@ o.spec("KeyVerificationFacadeTest", function () {
 		publicKeyProvider = object()
 
 		keyVerification = new KeyVerificationFacade(sqlCipherFacade, publicKeyProvider)
-		when(sqlCipherFacade.get(anything(), anything())).thenResolve(null)
-		when(
-			sqlCipherFacade.get(
-				anything(),
-				matchers.argThat((params) => {
-					return params[0].value == "test@example.com"
-				}),
-			),
-		).thenResolve({
-			mailAddress: {
-				type: SqlType.String,
-				value: "test@example.com",
-			},
-			fingerprint: {
-				type: SqlType.String,
-				value: PUBLIC_KEY_FINGERPRINT_HASH,
-			},
-			keyVersion: {
-				type: SqlType.Number,
-				value: 0,
-			},
-			keyType: {
-				type: SqlType.Number,
-				value: KeyPairType.TUTA_CRYPT,
-			},
-		})
 
 		when(publicKeyProvider.convertFromPublicKeyGetOut(PUBLIC_KEY_GET_OUT)).thenReturn(PUBLIC_KEY)
-		when(
-			publicKeyProvider.loadCurrentPubKey({
-				identifier: "test@example.com",
-				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			}),
-		).thenResolve(PUBLIC_KEY)
-		when(
-			publicKeyProvider.loadCurrentPubKey({
-				identifier: "missing@example.com",
-				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			}),
-		).thenReject(new NotFoundError(""))
 	})
 
 	o.spec("confirm trusted identity database works as intended", function () {
@@ -147,11 +128,67 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 	o.spec("verification state gets resolved correctly", function () {
 		o("untrusted keys result in NO_ENTRY", async function () {
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(null)
+
 			const state = await keyVerification.resolveVerificationState("noentry@example.com", PUBLIC_KEY)
 			o(state).equals(KeyVerificationState.NO_ENTRY)
 		})
 
+		o("request a public key when none is supplied", async function () {
+			when(publicKeyProvider.loadCurrentPubKey(anything())).thenResolve(PUBLIC_KEY)
+
+			await keyVerification.resolveVerificationState("test@example.com", null)
+
+			verify(
+				publicKeyProvider.loadCurrentPubKey({
+					identifier: "test@example.com",
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				} as PublicKeyIdentifier),
+			)
+		})
+
+		o("missing public key responses result in MISMATCH", async function () {
+			when(
+				sqlCipherFacade.get(
+					anything(),
+					matchers.argThat((params: TaggedSqlValue[]) => {
+						return typeof params[0] !== "undefined" && params[0].value == "missing@example.com"
+					}),
+				),
+			).thenResolve({
+				mailAddress: {
+					type: SqlType.String,
+					value: "missing@example.com",
+				},
+				fingerprint: {
+					type: SqlType.String,
+					value: PUBLIC_KEY_FINGERPRINT_HASH,
+				},
+				keyVersion: {
+					type: SqlType.Number,
+					value: 0,
+				},
+				keyType: {
+					type: SqlType.Number,
+					value: KeyPairType.TUTA_CRYPT,
+				},
+			})
+
+			// Fail to receive the public key
+			when(
+				publicKeyProvider.loadCurrentPubKey({
+					identifier: "missing@example.com",
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				}),
+			).thenReject(new NotFoundError(""))
+
+			const state = await keyVerification.resolveVerificationState("missing@example.com", null)
+			o(state).equals(KeyVerificationState.MISMATCH)
+		})
+
 		o("trusted and verified keys result in VERIFIED", async function () {
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
+
 			const state = await keyVerification.resolveVerificationState("test@example.com", PUBLIC_KEY)
 			o(state).equals(KeyVerificationState.VERIFIED)
 		})
@@ -171,6 +208,8 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 	o.spec("fingerprint acquisition", function () {
 		o("acquire existing fingerprint from trust database", async function () {
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
+
 			const result = await keyVerification.getFingerprint("test@example.com", KeyVerificationSourceOfTruth.LocalTrusted)
 			o(result).deepEquals(PUBLIC_KEY_FINGERPRINT)
 
@@ -191,6 +230,8 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("acquire existing fingerprint from public key provider", async function () {
+			when(publicKeyProvider.loadCurrentPubKey(anything())).thenResolve(PUBLIC_KEY)
+
 			const result = await keyVerification.getFingerprint("test@example.com", KeyVerificationSourceOfTruth.PublicKeyService)
 			o(result).deepEquals(PUBLIC_KEY_FINGERPRINT)
 
@@ -198,6 +239,13 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("acquire non-existing fingerprint from public key provider", async function () {
+			when(
+				publicKeyProvider.loadCurrentPubKey({
+					identifier: "missing@example.com",
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				}),
+			).thenReject(new NotFoundError(""))
+
 			const result = await keyVerification.getFingerprint("missing@example.com", KeyVerificationSourceOfTruth.PublicKeyService)
 			o(result).equals(null)
 
