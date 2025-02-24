@@ -75,6 +75,7 @@ import { MailModel } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { isDraft } from "../model/MailChecks"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1081,11 +1082,19 @@ export class MailViewerViewModel {
 		return attachmentType === AttachmentType.CONTACT || attachmentType === AttachmentType.CALENDAR
 	}
 
+	canReply(): boolean {
+		return !isDraft(this.mail) && !this.isAnnouncement()
+	}
+
 	canReplyAll(): boolean {
 		return (
 			this.logins.getUserController().isInternalUser() &&
 			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1
 		)
+	}
+
+	canForward(): boolean {
+		return !isDraft(this.mail) && !this.isAnnouncement() && this.canForwardOrMove()
 	}
 
 	canForwardOrMove(): boolean {

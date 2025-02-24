@@ -79,6 +79,7 @@ import { CalendarEventsRepository } from "../../../common/calendar/date/Calendar
 import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
+import { client } from "../../../common/misc/ClientDetector"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -256,6 +257,10 @@ export class SearchViewModel {
 
 	getRestriction(): SearchRestriction {
 		return this.router.getRestriction()
+	}
+
+	isExportingMailsAllowed(): boolean {
+		return mailLocator.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
 	}
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {

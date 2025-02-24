@@ -36,9 +36,12 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
 
-type MailViewerMoreActionsNames = "disallowExternalContentAction" | "showImagesAction" | "unsubscribeAction" | "printAction" | "reportMailAction"
 export type MailViewerMoreActions = {
-	[key in MailViewerMoreActionsNames]?: () => void
+	disallowExternalContentAction?: () => void
+	showImagesAction?: () => void
+	unsubscribeAction?: () => void
+	printAction?: () => void
+	reportMailAction?: () => void
 }
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {

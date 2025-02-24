@@ -45,6 +45,7 @@ import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
+import { client } from "../../../common/misc/ClientDetector"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -348,6 +349,10 @@ export class MailViewModel {
 		} else {
 			return mails
 		}
+	}
+
+	isExportingMailsAllowed(): boolean {
+		return this.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
 	}
 
 	private async getFolderForUserInbox(): Promise<MailFolder> {

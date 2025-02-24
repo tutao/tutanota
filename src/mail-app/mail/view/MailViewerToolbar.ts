@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { assertNotNull, getFirstOrThrow, isEmpty } from "@tutao/tutanota-utils"
+import { isEmpty } from "@tutao/tutanota-utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
@@ -18,7 +18,7 @@ export interface MailViewerToolbarAttrs {
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
-	getUnreadState: (() => boolean) | null
+	isUnread: boolean | null
 	editDraftAction: (() => void) | null
 	exportAction: (() => void) | null
 	replyAction: (() => void) | null
@@ -98,7 +98,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		)
 	}
 
-	private renderReadButton({ setUnreadStateAction, getUnreadState }: MailViewerToolbarAttrs): Children {
+	private renderReadButton({ setUnreadStateAction, isUnread }: MailViewerToolbarAttrs): Children {
 		if (setUnreadStateAction == null) {
 			return null
 		}
@@ -114,9 +114,9 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			icon: Icons.NoEye,
 		})
 
-		// getUnreadState means we are viewing one mail; otherwise, it is coming from a MultiViewer
-		if (getUnreadState != null) {
-			if (getUnreadState()) {
+		// isUnread means we are viewing one mail; otherwise, it is coming from a MultiViewer
+		if (isUnread != null) {
+			if (isUnread) {
 				return markReadButton
 			} else {
 				return markUnreadButton
@@ -169,13 +169,6 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 		if (isEmpty(actions)) {
 			return null
-		} else if (actions.length === 1) {
-			const { label, icon, click } = getFirstOrThrow(actions)
-			return m(IconButton, {
-				title: label,
-				icon: assertNotNull(icon),
-				click: assertNotNull(click),
-			})
 		} else {
 			return m(IconButton, {
 				title: "more_label",
