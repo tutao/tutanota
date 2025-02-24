@@ -72,7 +72,12 @@ pub enum EncryptionAuthStatus {
 
 	/// The entity was sent by the user and doesn't need authenticated.
 	TutacryptSender = 4,
+
+	/// the entity was encrypted with RSA although TutaCrypt keys were available.
+	RsaDespiteTutacrypt = 5,
 }
+
+pub const SYSTEM_GROUP_MAIL_ADDRESS: &str = "system@tutanota.de";
 
 /// Used for identifying the protocol version used for encrypting a session key.
 #[derive(Debug, Clone, TryFromPrimitive, PartialEq, Eq)]
