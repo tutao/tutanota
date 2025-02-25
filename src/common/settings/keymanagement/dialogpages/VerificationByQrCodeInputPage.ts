@@ -29,7 +29,7 @@ type VerificationByQrCodePageAttrs = {
 	goToSuccessPage: () => void
 }
 
-export class VerificationByQrCodePage implements Component<VerificationByQrCodePageAttrs> {
+export class VerificationByQrCodeInputPage implements Component<VerificationByQrCodePageAttrs> {
 	private dom: HTMLElement | null = null
 	qrVideo: HTMLVideoElement | null = null
 	qrMediaStream: MediaStream | null = null
