@@ -61,22 +61,25 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 			return { ...domainConfigs }
 		} else {
 			const url = new URL(host)
-			const { protocol, hostname, port } = url
+			const { protocol, hostname } = url
+			const port = parseInt(url.port)
+			// the URL object does not include the port if it is the schema's default
+			const uri = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`
 			return {
 				...domainConfigs,
 				[url.hostname]: {
 					firstPartyDomain: true,
-					partneredDomainTransitionUrl: `${protocol}//${hostname}:${port}`,
-					apiUrl: `${protocol}//${hostname}:${port}`,
-					paymentUrl: `${protocol}//${hostname}:${port}/braintree.html`,
-					webauthnUrl: `${protocol}//${hostname}:${port}/webauthn`,
-					legacyWebauthnUrl: `${protocol}//${hostname}:${port}/webauthn`,
-					webauthnMobileUrl: `${protocol}//${hostname}:${port}/webauthnmobile`,
-					legacyWebauthnMobileUrl: `${protocol}//${hostname}:${port}/webauthnmobile`,
-					webauthnRpId: `${hostname}`,
-					u2fAppId: `${protocol}//${hostname}:${port}/u2f-appid.json`,
-					giftCardBaseUrl: `${protocol}//${hostname}:${port}/giftcard`,
-					referralBaseUrl: `${protocol}//${hostname}:${port}/signup`,
+					partneredDomainTransitionUrl: uri,
+					apiUrl: uri,
+					paymentUrl: `${uri}/braintree.html`,
+					webauthnUrl: `${uri}/webauthn`,
+					legacyWebauthnUrl: `${uri}/webauthn`,
+					webauthnMobileUrl: `${uri}/webauthnmobile`,
+					legacyWebauthnMobileUrl: `${uri}/webauthnmobile`,
+					webauthnRpId: hostname,
+					u2fAppId: `${uri}/u2f-appid.json`,
+					giftCardBaseUrl: `${uri}/giftcard`,
+					referralBaseUrl: `${uri}/signup`,
 					websiteBaseUrl: "https://tuta.com",
 				},
 			}
