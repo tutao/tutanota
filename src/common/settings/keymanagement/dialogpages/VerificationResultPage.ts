@@ -28,5 +28,5 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 
 type VerificationResultPageAttrs = {
 	model: KeyVerificationModel
-	back: () => void
+	close: () => void
 }
