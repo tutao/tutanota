@@ -17,16 +17,19 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 
 1. Clone this repository: `git clone https://github.com/msa20006/sdptutanota.git`
 2. Switch into the repository directory: `cd sdptutanota`
-3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
-4. Initialize liboqs and argon2 submodules: `git submodule init`
-5. Synchronize submodules: `git submodule sync --recursive`
-6. Update submodules: `git submodule update`
-7. run `npm ci` to install dependencies.
-8. Build packages: `npm run build-packages`
-9. Build the web part: `node webapp prod`
-10. Switch into the build directory: `cd build`
-11. Run the local server e.g. `npx serve build -s -p 9000` or `python -m SimpleHTTPServer 9000`.
-12. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
+3. Add the upstream tutao/tutanota branches with `git remote add upstream https://github.com/tutao/tutanota.git`
+4. Fetch the official Tuta Mail release branches with `git fetch upstream`
+5. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
+6. Run 'git fetch' again
+7. Initialize liboqs and argon2 submodules: `git submodule init`
+8. Synchronize submodules: `git submodule sync --recursive`
+9. Update submodules: `git submodule update`
+10. run `npm ci` to install dependencies.
+11. Build packages: `npm run build-packages`
+12. Build the web part: `node webapp prod`
+13. Switch into the build directory: `cd build`
+14. Run the local server e.g. `npx serve build -s -p 9000` or `python -m SimpleHTTPServer 9000`.
+15. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
 > If you try building without initializing the submodules, you might end up with
 > the following error:
