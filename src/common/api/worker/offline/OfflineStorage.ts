@@ -223,6 +223,15 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 	}
 
+	/**
+	 * Remove all ranges (and only ranges, without associated data) for the specified {@param typeRef}.
+	 * Does not lock the ranges.
+	 */
+	async deleteAllRangesOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
+		const type = getTypeId(typeRef)
+		await this.deleteAllRangesForType(type)
+	}
+
 	private async deleteAllRangesForType(type: string): Promise<void> {
 		const { query, params } = sql`DELETE
 									  FROM ranges
