@@ -10,7 +10,7 @@ import { ButtonType } from "../../gui/base/Button"
 import { MethodSelectionPage } from "./dialogpages/MethodSelectionPage"
 import { VerificationByTextPage } from "./dialogpages/VerificationByTextPage"
 import { KeyVerificationModel } from "./KeyVerificationModel"
-import { VerificationResultPage } from "./wizardpages/VerificationResultPage"
+import { VerificationResultPage } from "./dialogpages/VerificationResultPage"
 import { VerificationByQrCodePage } from "./dialogpages/VerificationByQrCodePage"
 
 export type KeyVerificationWizardData = {
@@ -69,29 +69,20 @@ export async function showKeyVerificationWizard(
 								navigateToPage(KeyVerificationWizardPages.SUCCESS)
 							},
 						})
-					case KeyVerificationWizardPages.SUCCESS:
+					case KeyVerificationWizardPages.SUCCESS: {
+						reloadParent()
 						return m(VerificationResultPage, {
 							model,
-							back: () => navigateToPage(KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD),
+							back: () => {
+								navigateToPage(KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD)
+							},
 						})
+					}
 				}
 			},
 			{
 				getPageTitle: (currentPage) => {
-					switch (currentPage) {
-						// case KeyVerificationWizardPages.CHOOSE_METHOD: {
-						// 	return { testId: "back_action", text: lang.get("keyManagement.selectMethodShort_label") }
-						// }
-						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: {
-							return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
-						}
-						default: {
-							return {
-								text: lang.get("keyManagement.keyVerification_label"),
-								testId: "back_action",
-							}
-						}
-					}
+					return { testId: "back_action", text: lang.get("keyManagement.keyVerification_label") }
 				},
 				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
 					switch (currentPage) {
@@ -99,8 +90,8 @@ export async function showKeyVerificationWizard(
 							return {
 								type: ButtonType.Secondary,
 								click: () => dialog.close(),
-								label: "close_alt",
-								title: "close_alt",
+								label: "back_action",
+								title: "back_action",
 							}
 						case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD:
 							return {
@@ -116,6 +107,10 @@ export async function showKeyVerificationWizard(
 								label: "back_action",
 								title: "back_action",
 							}
+					}
+				},
+				getRightAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
 						case KeyVerificationWizardPages.SUCCESS:
 							return {
 								type: ButtonType.Secondary,
