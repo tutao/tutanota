@@ -665,7 +665,46 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static reminder(title: string, message: string): Promise<boolean> {
+	static updateReminder(title: string, message: string, allowDefer: boolean): Promise<boolean> {
+		return new Promise((resolve) => {
+			let dialog: Dialog
+
+			const closeAction = (res: boolean) => {
+				dialog.close()
+				setTimeout(() => resolve(res), DefaultAnimationTime)
+			}
+
+			const buttonAttrs: Array<ButtonAttrs> = []
+
+			if (allowDefer) {
+				buttonAttrs.push({
+					label: "upgradeReminderCancel_action",
+					click: () => closeAction(false),
+					type: ButtonType.Secondary,
+				})
+			}
+
+			buttonAttrs.push({
+				label: "update_action",
+				click: () => closeAction(true),
+				type: ButtonType.Primary,
+			})
+			dialog = this.reminderDialog(title, message, HabReminderImage, buttonAttrs)
+			if (allowDefer) {
+				dialog
+					.setCloseHandler(() => closeAction(false))
+					.addShortcut({
+						key: Keys.ESC,
+						shift: false,
+						exec: () => closeAction(false),
+						help: "cancel_action",
+					})
+			}
+			dialog.show()
+		})
+	}
+
+	static upgradeReminder(title: string, message: string): Promise<boolean> {
 		return new Promise((resolve) => {
 			let dialog: Dialog
 
@@ -686,25 +725,8 @@ export class Dialog implements ModalComponent {
 					type: ButtonType.Primary,
 				},
 			]
-			dialog = new Dialog(DialogType.Reminder, {
-				view: () => [
-					m(".dialog-contentButtonsBottom.text-break.scroll", [
-						m(".h2.pb", title),
-						m(".flex-direction-change.items-center", [
-							m("#dialog-message.pb", message),
-							m("img[src=" + HabReminderImage + "].dialog-img.mb.bg-white.border-radius", {
-								style: {
-									"min-width": "150px",
-								},
-							}),
-						]),
-					]),
-					m(
-						".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-						buttonAttrs.map((a) => m(Button, a)),
-					),
-				],
-			})
+			dialog = this.reminderDialog(title, message, HabReminderImage, buttonAttrs)
+			dialog
 				.setCloseHandler(() => closeAction(false))
 				.addShortcut({
 					key: Keys.ESC,
@@ -713,6 +735,29 @@ export class Dialog implements ModalComponent {
 					help: "cancel_action",
 				})
 				.show()
+		})
+	}
+
+	static reminderDialog(title: string, message: string | lazy<Children>, image: string, buttonAttrs: Array<ButtonAttrs>): Dialog {
+		return new Dialog(DialogType.Reminder, {
+			view: () => [
+				m(".dialog-contentButtonsBottom.text-break.scroll", [
+					m(".h2.pb", title),
+					m(".flex-direction-change.items-center", [
+						m("#dialog-message.pb.selectable", typeof message == "function" ? message() : message),
+						m("img.dialog-img.mb.bg-white.border-radius", {
+							style: {
+								"min-width": "150px",
+							},
+							src: image,
+						}),
+					]),
+				]),
+				m(
+					".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
+					buttonAttrs.map((a) => m(Button, a)),
+				),
+			],
 		})
 	}
 
