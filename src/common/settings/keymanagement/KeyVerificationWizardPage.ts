@@ -20,8 +20,6 @@ export class KeyVerificationWizardPage implements Component<KeyVerificationWizar
 					label: attrs.nextButtonLabel ?? "next_action",
 					class: "wizard-next-button",
 					onclick: async (_, dom) => {
-						attrs.beforeNextPageHook?.()
-
 						let continueWizard = true
 						if (attrs.beforeNextPageHook !== undefined) {
 							continueWizard = await attrs.beforeNextPageHook()
