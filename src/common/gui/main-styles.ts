@@ -331,6 +331,9 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.hpad_large),
 			"margin-right": px(size.hpad_large),
 		},
+		".mr-xsm": {
+			"margin-right": px(size.vpad_xsm),
+		},
 		".mr-s": {
 			"margin-right": px(size.vpad_small),
 		},

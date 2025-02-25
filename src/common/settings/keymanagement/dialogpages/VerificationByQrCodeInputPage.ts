@@ -15,6 +15,8 @@ import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { TextFieldType } from "../../../gui/base/TextField"
+import { Icon } from "../../../gui/base/Icon"
+import { theme } from "../../../gui/theme"
 
 enum QrCameraState {
 	STOPPED,
@@ -65,6 +67,16 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 						goToSuccessPage()
 					},
 					disabled: model.result !== KeyVerificationResultType.QR_OK,
+					icon:
+						model.result !== KeyVerificationResultType.QR_OK
+							? undefined
+							: m(Icon, {
+									icon: Icons.Checkmark,
+									class: "mr-xsm",
+									style: {
+										fill: theme.content_button_icon_selected,
+									},
+							  }),
 				}),
 			),
 		])

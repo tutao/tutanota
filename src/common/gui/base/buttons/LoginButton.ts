@@ -11,6 +11,7 @@ export type LoginButtonAttrs = Pick<BaseButtonAttrs, "onclick" | "class"> & {
 	label: MaybeTranslation
 	disabled?: boolean
 	type?: LoginButtonType
+	icon?: Children
 }
 
 export class LoginButton implements Component<LoginButtonAttrs> {
@@ -18,6 +19,7 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 		let classes = this.resolveClasses(attrs)
 
 		return m(BaseButton, {
+			icon: attrs.icon,
 			label: attrs.label,
 			text: lang.getTranslationText(attrs.label),
 
