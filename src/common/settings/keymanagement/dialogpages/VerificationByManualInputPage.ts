@@ -86,6 +86,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 						goToSuccessPage()
 					}, // TODO also go to results page
 					disabled: isFingerprintMissing(model),
+					icon: Icons.Checkmark,
 				}),
 			),
 		])
