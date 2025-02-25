@@ -15,8 +15,8 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 
 #### Build steps:
 
-1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
-2. Switch into the repository directory: `cd tutanota`
+1. Clone this repository: `git clone https://github.com/msa20006/sdptutanota.git`
+2. Switch into the repository directory: `cd sdptutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
 4. Initialize liboqs and argon2 submodules: `git submodule init`
 5. Synchronize submodules: `git submodule sync --recursive`
