@@ -171,8 +171,6 @@ export class VerificationByQrCodePage implements Component<VerificationByQrCodeP
 		const canvas = document.createElement("canvas")
 		const context2d = assertNotNull(canvas.getContext("2d", { willReadFrequently: true }))
 
-		const thisScanner = Date.now()
-
 		requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, model))
 	}
 
@@ -230,9 +228,8 @@ export class VerificationByQrCodePage implements Component<VerificationByQrCodeP
 					} finally {
 						// await this.reloadParent()
 
-						if (model.result === KeyVerificationResultType.QR_OK) {
-							m.redraw()
-						}
+						this.cleanupVideo()
+						m.redraw()
 					}
 				}
 			}
