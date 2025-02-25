@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { first, getFirstOrThrow, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -1004,8 +1004,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private deleteSelectedMails() {
-		if (this.mailViewModel.listModel != null) {
-			this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isNotEmpty(selectedMails)) {
+			this.deleteMails(selectedMails)
 		}
 	}
 
