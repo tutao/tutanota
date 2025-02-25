@@ -222,3 +222,21 @@ export function mockFetchRequest(mock: typeof undiciFetch, url: string, headers:
 export function textIncludes(match: string): (text: string) => { pass: true } | { pass: false; message: string } {
 	return (text) => (text.includes(match) ? { pass: true } : { pass: false, message: `should include: "${match}"` })
 }
+
+export function equalToArray<A extends any[]>(
+	expectedArray: A,
+): (value: A) =>
+	| { pass: false; message: string }
+	| {
+			pass: true
+	  } {
+	return (value) =>
+		deepEqual(value, expectedArray)
+			? { pass: true }
+			: {
+					pass: false,
+					message: `Arrays are different: Expected ${expectedArray.length} items but got ${value.length}.
+The first expected item is ${JSON.stringify(expectedArray[0])} but got ${JSON.stringify(value[0])}.
+The last expected item is ${JSON.stringify(expectedArray.at(-1))} but got ${JSON.stringify(value.at(-1))}`,
+			  }
+}
