@@ -193,6 +193,35 @@ export async function moveMailsFromFolder(
 	}
 }
 
+/**
+ * Moves the mails from a {@param sourceMailFolder} to a {@param targetSystemFolder} by type
+ * @return whether mails were actually moved
+ */
+export async function moveMailsToSystemFolder(
+	mailModel: MailModel,
+	mails: readonly IdTuple[],
+	sourceMailFolder: MailFolder,
+	targetSystemFolder: MailSetKind.INBOX | MailSetKind.ARCHIVE,
+): Promise<boolean> {
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(sourceMailFolder._ownerGroup))
+	const targetFolder = system?.getSystemFolderByType(targetSystemFolder)
+	if (targetFolder == null) {
+		return false
+	}
+
+	try {
+		await mailModel.moveMailsFromFolder(mails, sourceMailFolder._id, targetFolder._id)
+		return true
+	} catch (e) {
+		//LockedError should no longer be thrown!?!
+		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
+			return Dialog.message("operationStillActive_msg").then(() => false)
+		} else {
+			throw e
+		}
+	}
+}
+
 export async function archiveMails(mailIds: readonly IdTuple[]): Promise<void> {
 	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.ARCHIVE)
 }

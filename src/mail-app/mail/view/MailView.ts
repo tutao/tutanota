@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -20,12 +20,11 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
 import {
-	archiveMails,
 	getConversationTitle,
 	getMoveMailBounds,
 	LabelsPopupOpts,
 	moveMailsFromFolder,
-	moveToInbox,
+	moveMailsToSystemFolder,
 	promptAndDeleteMails,
 	showLabelsPopup,
 	ShowMoveMailsDropdownOpts,
@@ -543,7 +542,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.A,
 				exec: () => {
-					this.moveMailsToArchive()
+					this.moveMailsToSystemFolder(MailSetKind.ARCHIVE)
 				},
 				help: "archive_action",
 				enabled: () => locator.logins.isInternalUserLoggedIn(),
@@ -551,7 +550,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.I,
 				exec: () => {
-					this.moveMailsToInbox()
+					this.moveMailsToSystemFolder(MailSetKind.INBOX)
 				},
 				help: "moveToInbox_action",
 			},
@@ -655,24 +654,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async moveMailsToInbox() {
+	private async moveMailsToSystemFolder(targetFolder: MailSetKind.INBOX | MailSetKind.ARCHIVE) {
 		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
+		const currentFolder = this.mailViewModel.getFolder()
+		if (isEmpty(mails) || currentFolder == null) {
 			return
 		}
 
 		const actionableMails = await this.mailViewModel.getActionableMails(mails)
-		moveToInbox(actionableMails)
-	}
-
-	private async moveMailsToArchive() {
-		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
-			return
-		}
-
-		const actionableMails = await this.mailViewModel.getActionableMails(mails)
-		archiveMails(actionableMails)
+		moveMailsToSystemFolder(mailLocator.mailModel, actionableMails, currentFolder, targetFolder)
 	}
 
 	private moveMailsFromFolder(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
