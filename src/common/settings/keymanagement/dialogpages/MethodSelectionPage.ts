@@ -40,11 +40,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 					},
 					[
 						m(".h4.mb-0.pl-vpad-s", lang.get("keyManagement.selectMethodShort_label")),
-						m(
-							"p.mt-xs.mb-s.pl-vpad-s",
-							"Pick a verification method to get started. If you are meeting in-person and both of you own a camera-enabled device, it is recommended to choose QR code for verification.\n" +
-								"Otherwise, use the text option.", // TODO: translate
-						),
+						m("p.mt-xs.mb-s.pl-vpad-s", lang.get("keyManagement.selectMethodLong_label")),
 					],
 				),
 				[this.renderTextMethodButton(() => vnode.attrs.goToEmailInputPage()), this.renderQRMethodButton(() => vnode.attrs.goToQrScanPage())],

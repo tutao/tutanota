@@ -851,7 +851,7 @@ export default {
 		"keyManagement.qrVerification_label": "Verify with QR code",
 		"keyManagement.verificationByQrCodeScan_label": "Scan the QR code you received from your contact.",
 		"keyManagement.selectMethodShort_label": "Select a method",
-		"keyManagement.selectMethodLong_label": "Select a verification method",
+		"keyManagement.selectMethodLong_label": "Pick a verification method to get started. If you are meeting in-person and both of you own a camera-enabled device, it is recommended to choose QR code for verification.\nOtherwise, use the text option.",
 		"keyManagement.showFingerprintAs_label": "Display fingerprint as",
 		"keyManagement.text_label": "Text",
 		"keyManagement.textVerification_label": "Verify with text",
