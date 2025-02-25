@@ -20,7 +20,7 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 3. Add the upstream tutao/tutanota branches with `git remote add upstream https://github.com/tutao/tutanota.git`
 4. Fetch the official Tuta Mail release branches with `git fetch upstream`
 5. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
-6. Run 'git fetch' again
+6. Run `git fetch` again
 7. Initialize liboqs and argon2 submodules: `git submodule init`
 8. Synchronize submodules: `git submodule sync --recursive`
 9. Update submodules: `git submodule update`
