@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, isApp, isDesktop, isIOSApp } from "../../common/api/common/Env"
+import { assertMainOrNode, isApp, isBrowser, isDesktop, isIOSApp } from "../../common/api/common/Env"
 import { ColumnType, ViewColumn } from "../../common/gui/base/ViewColumn"
 import { ViewSlider } from "../../common/gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
@@ -139,23 +139,28 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => new NotificationSettingsViewer(),
 				undefined,
 			),
-			new SettingsFolder(
-				() => "keyManagement_label",
-				() => Icons.Key,
-				"keymanagement",
-				() => {
-					var settingsViewer = new KeyManagementSettingsViewer(
-						locator.keyVerificationFacade,
-						locator.systemFacade,
-						locator.logins.getUserController(),
-						locator.usageTestController,
-					)
-					settingsViewer.init()
-					return settingsViewer
-				},
-				undefined,
-			),
 		]
+
+		if (!isBrowser()) {
+			this._userFolders.push(
+				new SettingsFolder(
+					() => "keyManagement_label",
+					() => Icons.Key,
+					"keymanagement",
+					() => {
+						const settingsViewer = new KeyManagementSettingsViewer(
+							locator.keyVerificationFacade,
+							locator.systemFacade,
+							locator.logins.getUserController(),
+							locator.usageTestController,
+						)
+						settingsViewer.init()
+						return settingsViewer
+					},
+					undefined,
+				),
+			)
+		}
 
 		if (isDesktop()) {
 			this._userFolders.push(
