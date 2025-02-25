@@ -10,7 +10,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize"
 import { KeyVerificationFacade, MailAddress, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector"
 import { KeyVerificationMethodOptions, KeyVerificationMethodType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
-import { showKeyVerificationWizard } from "./KeyVerificationWizard"
+import { showKeyVerificationDialog } from "./KeyVerificationDialog"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
@@ -111,7 +111,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 							m(IconButton, {
 								title: "keyManagement.verifyMailAddress_action",
 								click: async () => {
-									await showKeyVerificationWizard(this.keyVerificationFacade, this.mobileSystemFacade, this.usageTestController, () =>
+									await showKeyVerificationDialog(this.keyVerificationFacade, this.mobileSystemFacade, this.usageTestController, () =>
 										obj.reload(),
 									)
 								},

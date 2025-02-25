@@ -19,7 +19,7 @@ function isFingerprintMissing(model: KeyVerificationModel): boolean {
 	return model.getFingerprint() === ""
 }
 
-export class VerificationByTextPage implements Component<VerificationByTextPageAttrs> {
+export class VerificationByManualInputPage implements Component<VerificationByTextPageAttrs> {
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
 		const { model, goToSuccessPage } = vnode.attrs
 
