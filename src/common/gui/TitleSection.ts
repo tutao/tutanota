@@ -2,16 +2,11 @@ import { AllIcons, Icon, IconSize } from "./base/Icon"
 import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "./base/Card"
 
-// export enum SectionSize {
-// 	DIALOG,
-// 	SETTINGS,
-// }
-
 export type SettingsTitleSectionAttrsType = {
 	icon?: AllIcons
+	iconOptions?: { color: string }
 	title: string
 	subTitle: string
-	// size: SectionSize
 }
 
 export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
@@ -33,6 +28,9 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 						? m(Icon, {
 								icon: attrs.icon,
 								size: IconSize.XXL,
+								style: {
+									fill: attrs.iconOptions?.color,
+								},
 						  })
 						: null,
 				),

@@ -29,16 +29,18 @@ enum QrCameraState {
 type VerificationByQrCodePageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
+	goToErrorPage: () => void
 }
 
 export class VerificationByQrCodeInputPage implements Component<VerificationByQrCodePageAttrs> {
-	private dom: HTMLElement | null = null
 	qrVideo: HTMLVideoElement | null = null
 	qrMediaStream: MediaStream | null = null
 	qrCameraState: QrCameraState = QrCameraState.STOPPED
+	goToErrorPage: (() => void) | null = null
 
 	oncreate(vnode: VnodeDOM<VerificationByQrCodePageAttrs>): any {
 		this.requestCameraPermission(vnode.attrs.model).then((r) => m.redraw())
+		this.goToErrorPage = vnode.attrs.goToErrorPage
 	}
 
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
@@ -55,7 +57,6 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			]),
 			m(Card, {
 				style: { padding: "0" },
-				// TODO: move QR stuff from MethodExecutionPage
 			}),
 			model.result === KeyVerificationResultType.QR_OK ? this.renderConfirmation(model) : this.renderQrVideoStream(model),
 			m(
@@ -238,9 +239,12 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 							throw e
 						}
 					} finally {
-						// await this.reloadParent()
-
 						this.cleanupVideo()
+
+						if (model.result !== KeyVerificationResultType.QR_OK) {
+							this.goToErrorPage?.()
+						}
+
 						m.redraw()
 					}
 				}

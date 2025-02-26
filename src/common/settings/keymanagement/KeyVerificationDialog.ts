@@ -1,8 +1,8 @@
 import { Dialog } from "../../gui/base/Dialog"
-import { Keys, KeyVerificationMethodType, KeyVerificationResultType } from "../../api/common/TutanotaConstants"
-import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
+import { Keys } from "../../api/common/TutanotaConstants"
+import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
-import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
+import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
@@ -12,12 +12,14 @@ import { VerificationByManualInputPage } from "./dialogpages/VerificationByManua
 import { KeyVerificationModel } from "./KeyVerificationModel"
 import { VerificationResultPage } from "./dialogpages/VerificationResultPage"
 import { VerificationByQrCodeInputPage } from "./dialogpages/VerificationByQrCodeInputPage"
+import { VerificationErrorPage } from "./dialogpages/VerificationErrorPage"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD,
 	MANUAL_INPUT_METHOD,
 	QR_CODE_INPUT_METHOD,
 	SUCCESS,
+	ERROR,
 }
 
 export async function showKeyVerificationDialog(
@@ -47,6 +49,7 @@ export async function showKeyVerificationDialog(
 						return m(VerificationByQrCodeInputPage, {
 							model,
 							goToSuccessPage: () => navigateToPage(KeyVerificationDialogPages.SUCCESS),
+							goToErrorPage: () => navigateToPage(KeyVerificationDialogPages.ERROR),
 						})
 					case KeyVerificationDialogPages.SUCCESS: {
 						reloadParent()
@@ -57,11 +60,19 @@ export async function showKeyVerificationDialog(
 							},
 						})
 					}
+					case KeyVerificationDialogPages.ERROR:
+						return m(VerificationErrorPage, {
+							model,
+							retryAction: () => navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD),
+						})
 				}
 			},
 			{
 				getPageTitle: (currentPage) => {
-					return { testId: "keyManagement.keyVerification_label", text: lang.get("keyManagement.keyVerification_label") }
+					return {
+						testId: "keyManagement.keyVerification_label",
+						text: lang.get("keyManagement.keyVerification_label"),
+					}
 				},
 				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
 					switch (currentPage) {
