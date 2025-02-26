@@ -1,16 +1,16 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
-import { Translation, MaybeTranslation } from "../../misc/LanguageViewModel"
+import { MaybeTranslation, Translation } from "../../misc/LanguageViewModel"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { BaseButton } from "./buttons/BaseButton.js"
 
-export interface BubbleTextFieldAttrs {
+export interface BubbleTextFieldAttrs<T> {
 	label: MaybeTranslation
-	items: Array<string>
-	renderBubbleText: (item: string) => Translation
-	getBubbleDropdownAttrs: (item: string) => Promise<DropdownChildAttrs[]>
+	items: ReadonlyArray<T>
+	renderBubbleText: (item: T) => Translation
+	getBubbleDropdownAttrs: (item: T) => Promise<DropdownChildAttrs[]>
 	text: string
 	onInput: (text: string) => void
 	onBackspace: () => boolean
@@ -24,11 +24,11 @@ export interface BubbleTextFieldAttrs {
 	helpLabel?: lazy<Children> | null
 }
 
-export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
+export class BubbleTextField<T> implements ClassComponent<BubbleTextFieldAttrs<T>> {
 	private active: boolean = false
 	private domInput: HTMLInputElement | null = null
 
-	view({ attrs }: Vnode<BubbleTextFieldAttrs>) {
+	view({ attrs }: Vnode<BubbleTextFieldAttrs<T>>) {
 		return m(".bubble-text-field", [
 			m(TextField, {
 				label: attrs.label,
