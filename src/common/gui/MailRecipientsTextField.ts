@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BubbleTextField, BubbleTextFieldAttrs } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
 import { px, size } from "./size.js"
-import { Icon, progressIcon } from "./base/Icon.js"
+import { Icon, IconSize, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
@@ -74,14 +74,40 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				}
 			},
 			items: attrs.recipients,
+			getBubbleIcon: (recipient: Recipient) => {
+				if (recipient.verificationState === KeyVerificationState.MISMATCH) {
+					return m(Icon, {
+						icon: Icons.AlertCircle,
+						//container: "div",
+						//class: "center-h",
+						size: IconSize.Medium,
+						style: {
+							fill: theme.content_accent,
+							visibility: attrs.disabled ? "hidden" : "visible",
+						},
+					})
+				} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
+					return m(Icon, {
+						icon: Icons.Shield,
+						//container: "div",
+						class: "center-v",
+						//size: IconSize.Medium,
+						style: {
+							fill: theme.content_accent,
+							visibility: attrs.disabled ? "hidden" : "visible",
+							position: "relative",
+							top: "2px",
+							right: "1px",
+						},
+					})
+				} else {
+					return null
+				}
+			},
 			renderBubbleText: (recipient: Recipient) => {
 				const name = recipient.name
 				let verified: string = ""
-				if (recipient.verificationState === KeyVerificationState.MISMATCH) {
-					verified = " ✘"
-				} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
-					verified = " ✔"
-				}
+
 				return lang.makeTranslation(recipient.address, getMailAddressDisplayText(name, recipient.address, false) + verified)
 			},
 			getBubbleDropdownAttrs: async (recipient) => (await attrs.getRecipientClickedDropdownAttrs?.(recipient.address)) ?? [],
