@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { first, getFirstOrThrow, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -20,16 +20,13 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
 import {
-	archiveMails,
 	getConversationTitle,
 	getMoveMailBounds,
 	LabelsPopupOpts,
-	moveMailsFromFolder,
-	moveToInbox,
 	promptAndDeleteMails,
 	showLabelsPopup,
+	showMailFolderDropdown,
 	ShowMoveMailsDropdownOpts,
-	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
@@ -68,7 +65,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
-import { getFolderName, mailInFolder } from "../model/MailUtils.js"
+import { getFolderName, getMoveTargetFolderSystemsForMailsInFolder } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, startExport } from "./MailViewerUtils.js"
 import { isDraft, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
@@ -82,6 +79,7 @@ import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/G
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
+import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 
 assertMainOrNode()
 
@@ -543,7 +541,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.A,
 				exec: () => {
-					this.moveMailsToArchive()
+					this.moveMailsToSystemFolder(MailSetKind.ARCHIVE)
 				},
 				help: "archive_action",
 				enabled: () => locator.logins.isInternalUserLoggedIn(),
@@ -551,7 +549,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.I,
 				exec: () => {
-					this.moveMailsToInbox()
+					this.moveMailsToSystemFolder(MailSetKind.INBOX)
 				},
 				help: "moveToInbox_action",
 			},
@@ -655,39 +653,33 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async moveMailsToInbox() {
+	private async moveMailsToSystemFolder(targetSystemFolder: MailSetKind.INBOX | MailSetKind.ARCHIVE) {
 		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
+		const currentFolder = this.mailViewModel.getFolder()
+		if (isEmpty(mails) || currentFolder == null) {
 			return
 		}
 
-		const actionableMails = await this.mailViewModel.getActionableMails(mails)
-		moveToInbox(actionableMails)
-	}
-
-	private async moveMailsToArchive() {
-		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
+		const system = mailLocator.mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
+		const targetFolder = system?.getSystemFolderByType(targetSystemFolder)
+		if (targetFolder == null) {
 			return
 		}
 
-		const actionableMails = await this.mailViewModel.getActionableMails(mails)
-		archiveMails(actionableMails)
+		this.mailViewModel.moveMailsFromMailSet(mails, currentFolder, targetFolder)
 	}
 
 	private moveMailsFromFolder(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
-		const currentFolder = this.mailViewModel.getFolder()
-		if (currentFolder == null) {
-			return
-		}
-
 		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
+		const currentFolder = this.mailViewModel.getFolder()
+		if (isEmpty(mails) || currentFolder == null) {
 			return
 		}
 
-		const actionableMails = () => this.mailViewModel.getActionableMails(mails)
-		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, opts)
+		const onTargetFolderSelection = (f: IndentedFolder) => this.mailViewModel.moveMailsFromMailSet(mails, currentFolder, f.folder)
+		getMoveTargetFolderSystemsForMailsInFolder(mailLocator.mailModel, currentFolder).then((folders) =>
+			showMailFolderDropdown(origin, folders, onTargetFolderSelection, opts),
+		)
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
@@ -888,10 +880,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				mailsToMove.push(entity)
 			}
 		}
-
-		if (!isEmpty(mailsToMove)) {
-			const actionableMails = await this.mailViewModel.getActionableMails(mailsToMove)
-			moveMailsFromFolder(locator.mailboxModel, mailLocator.mailModel, actionableMails, currentFolder, targetFolder)
+		if (isNotEmpty(mailsToMove)) {
+			this.mailViewModel.moveMailsFromMailSet(mailsToMove, currentFolder, targetFolder)
 		}
 	}
 
@@ -997,9 +987,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async deleteMails(mails: Mail[]): Promise<boolean> {
-		const actionableMails = await this.mailViewModel.getLoadedActionableMails(mails)
 		const currentFolder = this.mailViewModel.getFolder()
-		const actionableMailsInFolder = currentFolder ? actionableMails.filter((mail) => mailInFolder(mail, currentFolder._id)) : actionableMails
+		const actionableMailsInFolder = await this.mailViewModel.getLoadedActionableMails(mails, currentFolder)
 		return promptAndDeleteMails(mailLocator.mailModel, actionableMailsInFolder, noOp)
 	}
 
