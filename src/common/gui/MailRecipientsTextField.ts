@@ -15,6 +15,7 @@ import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { KeyVerificationState } from "../api/worker/facades/lazy/KeyVerificationFacade"
+import { WARNING_RED } from "./builtinThemes"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -78,23 +79,20 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				if (recipient.verificationState === KeyVerificationState.MISMATCH) {
 					return m(Icon, {
 						icon: Icons.AlertCircle,
-						//container: "div",
-						//class: "center-h",
-						size: IconSize.Medium,
+						size: IconSize.Large, // we want 20px
 						style: {
-							fill: theme.content_accent,
-							visibility: attrs.disabled ? "hidden" : "visible",
+							fill: WARNING_RED,
+							position: "relative",
+							top: "4px",
+							right: "1px",
 						},
 					})
 				} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
 					return m(Icon, {
 						icon: Icons.Shield,
-						//container: "div",
-						class: "center-v",
-						//size: IconSize.Medium,
+						size: IconSize.Normal,
 						style: {
 							fill: theme.content_accent,
-							visibility: attrs.disabled ? "hidden" : "visible",
 							position: "relative",
 							top: "2px",
 							right: "1px",

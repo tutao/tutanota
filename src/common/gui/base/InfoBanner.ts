@@ -10,8 +10,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { Icons } from "./icons/Icons.js"
 import { px, size } from "../size.js"
-
-const WARNING_RED = "#ca0606"
+import { WARNING_RED } from "../builtinThemes"
 
 export const enum BannerType {
 	Info = "info",
