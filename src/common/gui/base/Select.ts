@@ -70,6 +70,18 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	 * }
 	 */
 	iconColor?: string
+	/**
+	 * tabIndex is a powerful
+	 * @example
+	 * const attrs = {
+	 *     ...
+	 *     tabIndex: Number(TabIndex.Programmatic),
+	 *     ...
+	 * }
+	 * @see {@link TabIndex}
+	 *
+	 * {@link https://webaim.org/techniques/keyboard/tabindex#overview webaim.org - Tabindex Overview}
+	 */
 	tabIndex?: number
 	onclose?: () => void
 	oncreate?: (...args: any[]) => unknown
@@ -91,25 +103,25 @@ export interface SelectState {
  *
  * interface CalendarSelectItem extends SelectOption<string> {
  *   color: string
- * 	 name: string
+ *     name: string
  * }
  *
  * m(Select<CalendarSelectItem, string>, {
  *   classes: ["custom-margins"],
  *   onChange: (val) => {
- * 	   this.selected = val
+ *       this.selected = val
  *   },
- * 	 options: this.options,
- * 	 expanded: true,
- * 	 selected: this.selected,
- * 	 renderOption: (option) => {
- * 	   return m(".flex.items-center.gap-vpad-xs", [
- * 	     m("div", { style: { width: "24px", height: "24px", borderRadius: "50%", backgroundColor: option.color } }),
+ *     options: this.options,
+ *     expanded: true,
+ *     selected: this.selected,
+ *     renderOption: (option) => {
+ *       return m(".flex.items-center.gap-vpad-xs", [
+ *         m("div", { style: { width: "24px", height: "24px", borderRadius: "50%", backgroundColor: option.color } }),
  *       m("span", option.name),
- * 	   ])
- * 	 },
- * 	 renderDisplay: (option) => m("span", { style: { color: "red" } }, option.name),
- * 	 ariaLabel: "Calendar"
+ *       ])
+ *     },
+ *     renderDisplay: (option) => m("span", { style: { color: "red" } }, option.name),
+ *     ariaLabel: "Calendar"
  * }),
  */
 export class Select<U extends SelectOption<T>, T> implements ClassComponent<SelectAttributes<U, T>> {
@@ -314,18 +326,18 @@ class OptionListContainer implements ClassComponent {
 	origin: DomRectReadOnlyPolyfilled | null = null
 
 	/*
-		Visual representation
-		╔══════════════════════╗
-		║     domDropdown      ║
-		║  ╔════════════════╗  ║
-		║  ║                ║  ║
-		║  ║  domDropdown   ║  ║
-		║  ║  Contents      ║  ║
-		║  ║                ║  ║
-		║  ║                ║  ║
-		║  ╚════════════════╝  ║
-		╚══════════════════════╝
-	*/
+        Visual representation
+        ╔══════════════════════╗
+        ║     domDropdown      ║
+        ║  ╔════════════════╗  ║
+        ║  ║                ║  ║
+        ║  ║  domDropdown   ║  ║
+        ║  ║  Contents      ║  ║
+        ║  ║                ║  ║
+        ║  ║                ║  ║
+        ║  ╚════════════════╝  ║
+        ╚══════════════════════╝
+    */
 
 	private domDropdown: HTMLElement | null = null
 	private domDropdownContents: HTMLElement | null = null

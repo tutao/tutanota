@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TabIndex, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
+import { Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import { IntervalOption } from "../CalendarGuiUtils.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
@@ -56,7 +56,6 @@ export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorA
 						options: this.repetitionOptions,
 						noIcon: false,
 						expanded: false,
-						tabIndex: Number(TabIndex.Programmatic),
 						classes: ["no-appearance"],
 						responsive: true,
 						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", option.name)]),

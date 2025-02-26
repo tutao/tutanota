@@ -33,6 +33,7 @@ export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
 			".flex-space-around.weekday-selector",
 			{
 				style: this.isMobile ? { margin: "8px 12px" } : {},
+				ariaMultiselectable: true,
 			},
 			vnode.attrs.items.map((item) => {
 				return m(WeekdaySelectorButton, {
@@ -90,6 +91,7 @@ class WeekdaySelectorButton implements Component<WeekdaySelectorButtonAttrs> {
 			"button.rel.click.flex.items-center.justify-center.flex-grow-shrink-0",
 			{
 				role: "option",
+				ariaSelected: this.isToggled,
 				onclick: () => {
 					this.toggle()
 					vnode.attrs.onSelectionChanged(this.value)

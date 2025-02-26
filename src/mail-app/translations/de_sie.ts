@@ -1957,6 +1957,7 @@ export default {
         "zoomOut_action": "Herauszoomen",
         "onDays_label": "Am {days}",
         "weekScrollTime_label": "Standardzeit",
-        "weekScrollTime_msg": "Standardzeit für Drei-Tage- und Wochen-Ansichten zum Blättern zu"
+        "weekScrollTime_msg": "Standardzeit für Drei-Tage- und Wochen-Ansichten zum Blättern zu",
+        "frequency_title": "Frequenz",
     }
 }

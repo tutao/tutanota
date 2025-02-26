@@ -31,7 +31,7 @@ import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequire
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 
-import { createRepeatRuleFrequencyValues, formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
+import { formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 
@@ -267,10 +267,10 @@ export function getLocationUrl(text: string): URL {
 
 export function formatRepetitionFrequency(repeatRule: RepeatRule): string | null {
 	if (repeatRule.interval === "1") {
-		const frequency = createRepeatRuleFrequencyValues().find((frequency) => frequency.value === repeatRule.frequency)
+		const frequency = repeatRuleOptions.find((frequency) => frequency.value === repeatRule.frequency)
 
 		if (frequency) {
-			const freq = frequency.name
+			const freq = lang.getTranslationText(frequency.name)
 			const readable = buildAdvancedRepetitionRuleDescription(repeatRule.advancedRules, downcast(repeatRule.frequency))
 
 			return `${freq}. ${readable}`.trim()

@@ -1942,17 +1942,18 @@ export default {
         "withCustomRules_label": "With custom repeat rules",
         "unsupportedAdvancedRules_msg": "This event contains one or more unsupported Advanced Recurrence Rules, any changes will result in the loss of these rules",
         "sameDay_label": "Same day",
-		// Put in temporarily, will be removed soon
-		"localAdminGroup_label": "Local admin group",
-		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
-		"localAdminGroups_label": "Local admin groups",
-		"threeDays_label": "Three Days",
-		"prevThreeDays_label": "Previous three days",
-		"nextThreeDays_label": "Next three days",
+        // Put in temporarily, will be removed soon
+        "localAdminGroup_label": "Local admin group",
+        "assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
+        "localAdminGroups_label": "Local admin groups",
+        "threeDays_label": "Three Days",
+        "prevThreeDays_label": "Previous three days",
+        "nextThreeDays_label": "Next three days",
         "zoomIn_action": "Zoom In",
         "zoomOut_action": "Zoom Out",
         "weekScrollTime_label": "Default time",
         "weekScrollTime_msg": "Default time for Three Days and Week views to scroll to",
-		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & Drop isn't available for events containing Advanced Recurrence Rules",
-	}
+        "dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & Drop isn't available for events containing Advanced Recurrence Rules",
+        "frequency_title": "Frequency",
+    }
 }

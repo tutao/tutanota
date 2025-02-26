@@ -6,12 +6,12 @@ import { EndType, Keys, RepeatPeriod, TabIndex, Weekday } from "../../../../comm
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
-	createCustomEndTypeOptions,
 	createIntervalValues,
-	createRepeatRuleOptions,
 	createRepetitionValuesForWeekday,
+	endTypeOptions,
 	getByDayRulesFromAdvancedRules,
 	IntervalOption,
+	repeatRuleOptions,
 	weekdayToTranslation,
 } from "../CalendarGuiUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
@@ -96,7 +96,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			[
 				this.hasUnsupportedRules ? this.renderUnsupportedAdvancedRulesWarning() : null,
 				m(".flex.col", [
-					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, "Frequency"), // TODO add label
+					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.getTranslationText("frequency_title")),
 					m(
 						Card,
 						{
@@ -107,7 +107,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						m(RadioGroup, {
 							ariaLabel: "calendarRepeating_label",
 							name: "calendarRepeating_label",
-							options: createRepeatRuleOptions(),
+							options: repeatRuleOptions,
 							selectedOption: this.repeatRuleType,
 							onOptionSelected: (option: RepeatRuleOption) => {
 								this.repeatRuleType = option
@@ -150,7 +150,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					m(RadioGroup, {
 						ariaLabel: "calendarRepeatStopCondition_label",
 						name: "calendarRepeatStopCondition_label",
-						options: createCustomEndTypeOptions(),
+						options: endTypeOptions,
 						selectedOption: attrs.model.repeatEndType,
 						onOptionSelected: (option: EndType) => {
 							attrs.model.repeatEndType = option
@@ -169,7 +169,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("intervalFrequency_label")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("interval_title")),
 			m(
 				Card,
 				{
@@ -232,7 +232,13 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		return injectionMap
 	}
 
-	private updateCustomRule(whenModel: CalendarEventWhenModel, customRule: Partial<{ interval: number; intervalFrequency: RepeatPeriod }>) {
+	private updateCustomRule(
+		whenModel: CalendarEventWhenModel,
+		customRule: Partial<{
+			interval: number
+			intervalFrequency: RepeatPeriod
+		}>,
+	) {
 		const { interval, intervalFrequency } = customRule
 
 		if (interval && !isNaN(interval)) {
@@ -270,12 +276,15 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 							m.redraw.sync()
 						},
 						onclose: () => {},
-						selected: { value: this.repeatInterval, name: this.repeatInterval.toString(), ariaValue: this.repeatInterval.toString() },
+						selected: {
+							value: this.repeatInterval,
+							name: this.repeatInterval.toString(),
+							ariaValue: this.repeatInterval.toString(),
+						},
 						ariaLabel: lang.get("repeatsEvery_label"),
 						options: this.intervalOptions,
 						noIcon: false,
 						expanded: false,
-						tabIndex: Number(TabIndex.Programmatic),
 						classes: ["no-appearance"],
 						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
 						renderOption: (option) =>
@@ -335,7 +344,11 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					this.occurrencesExpanded = false
 					this.occurrencesExpanded = false
 				},
-				selected: { value: this.repeatOccurrences, name: this.repeatOccurrences.toString(), ariaValue: this.repeatOccurrences.toString() },
+				selected: {
+					value: this.repeatOccurrences,
+					name: this.repeatOccurrences.toString(),
+					ariaValue: this.repeatOccurrences.toString(),
+				},
 				ariaLabel: lang.get("occurrencesCount_label"),
 				options: this.intervalOptions,
 				noIcon: true,
