@@ -165,7 +165,10 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
 
 	if (newPlanType === PlanType.Free) {
-		for (const importedMailSet of mailLocator.mailModel.getImportedMailSets()) mailLocator.mailModel.finallyDeleteCustomMailFolder(importedMailSet)
+		if (mailLocator.mailModel) {
+			// there is no mailLocator for the calendar app
+			for (const importedMailSet of mailLocator.mailModel.getImportedMailSets()) mailLocator.mailModel.finallyDeleteCustomMailFolder(importedMailSet)
+		}
 	}
 }
 
