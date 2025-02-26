@@ -62,7 +62,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const obj: KeyManagementSettingsViewer = this
 
 		const selfMailAddress = assertNotNull(this.mailAddress)
-		const selfFingerprint = assertNotNull(this.publicKeyHash)
+		const selfFingerprint = this.publicKeyHash
 
 		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, publicKeyFingerprint]: [string, PublicKeyFingerprint]) => {
 			return m(FingerprintRow, {
@@ -100,7 +100,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 						title: lang.get("keyManagement.keyVerification_label"),
 						subTitle: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
 					}),
-					this.renderQrTextMethod(selfMailAddress, selfFingerprint),
+					selfFingerprint ? this.renderQrTextMethod(selfMailAddress, selfFingerprint) : null,
 					m(".small.text-break.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
