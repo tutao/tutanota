@@ -860,6 +860,7 @@ export default {
 		"keyManagement.verificationByTextMailAdress_label": "Enter the Tuta email address of the contact you want to verify.",
 		"keyManagement.verificationPool_label": "Email addresses monitored for verification",
 		"keyManagement.verifyMailAddress_action": "Add and verify an email address",
+		"keyManagement.verificationErrorTitle_label": "Contact verification failed",
 		"keyManagement.waitingForVideo_msg": "waiting for video ...",
         "keywords_label": "Keywords",
         "knowledgebase_label": "Knowledgebase",

@@ -1985,3 +1985,4 @@ export type TranslationKeyType =
 	| "keyManagement.verificationByTextMailAdress_label"
 	| "keyManagement.contactVerificationConfirmationTitle_label"
 	| "keyManagement.verificationByQrCodeScan_label"
+	| "keyManagement.verificationErrorTitle_label"
