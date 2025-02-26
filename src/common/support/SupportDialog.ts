@@ -193,7 +193,7 @@ function filterCategories(supportData: SupportData) {
 		supportCategory.topics = filteredTopics
 	}
 
-	return categories
+	return categories.filter((cat) => cat.topics.length > 0)
 }
 
 enum SupportPages {
