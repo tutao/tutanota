@@ -119,7 +119,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
 					chunkSize: 4,
 					border: false,
-					classes: ".mb-s",
+					classes: ".mb-s.mt-s",
 				}),
 			),
 		)
