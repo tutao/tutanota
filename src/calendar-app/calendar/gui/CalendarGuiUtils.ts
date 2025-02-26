@@ -401,125 +401,81 @@ export function formatEventDuration(event: CalendarEventTimes, zone: string, inc
 	}
 }
 
-export const createRepeatRuleFrequencyValues = (): SelectorItemList<RepeatPeriod | null> => {
-	return [
-		{
-			name: lang.get("calendarRepeatIntervalNoRepeat_label"),
-			value: null,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalDaily_label"),
-			value: RepeatPeriod.DAILY,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalWeekly_label"),
-			value: RepeatPeriod.WEEKLY,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalMonthly_label"),
-			value: RepeatPeriod.MONTHLY,
-		},
-		{
-			name: lang.get("calendarRepeatIntervalAnnually_label"),
-			value: RepeatPeriod.ANNUALLY,
-		},
-	]
-}
-export const createRepeatRuleOptions = (): ReadonlyArray<RadioGroupOption<RepeatPeriod | null>> => {
-	return [
-		{
-			name: "calendarRepeatIntervalNoRepeat_label",
-			value: null,
-		},
-		{
-			name: "calendarRepeatIntervalDaily_label",
-			value: RepeatPeriod.DAILY,
-		},
-		{
-			name: "calendarRepeatIntervalWeekly_label",
-			value: RepeatPeriod.WEEKLY,
-		},
-		{
-			name: "calendarRepeatIntervalMonthly_label",
-			value: RepeatPeriod.MONTHLY,
-		},
-		{
-			name: "calendarRepeatIntervalAnnually_label",
-			value: RepeatPeriod.ANNUALLY,
-		},
-	]
-}
-
-export const customFrequenciesOptions = [
+export const repeatRuleOptions: ReadonlyArray<RadioGroupOption<RepeatPeriod | null>> = [
 	{
-		name: { singular: "day_label", plural: "days_label" },
+		name: "calendarRepeatIntervalNoRepeat_label",
+		value: null,
+	},
+	{
+		name: "calendarRepeatIntervalDaily_label",
 		value: RepeatPeriod.DAILY,
 	},
 	{
-		name: { singular: "week_label", plural: "weeks_label" },
+		name: "calendarRepeatIntervalWeekly_label",
 		value: RepeatPeriod.WEEKLY,
 	},
 	{
-		name: { singular: "month_label", plural: "months_label" },
+		name: "calendarRepeatIntervalMonthly_label",
 		value: RepeatPeriod.MONTHLY,
 	},
 	{
-		name: { singular: "year_label", plural: "years_label" },
+		name: "calendarRepeatIntervalAnnually_label",
 		value: RepeatPeriod.ANNUALLY,
 	},
 ]
 
-export const createCustomEndTypeOptions = (): ReadonlyArray<RadioGroupOption<EndType>> => {
-	return [
-		{
-			name: "calendarRepeatStopConditionNever_label",
-			value: EndType.Never,
-		},
-		{
-			name: "calendarRepeatStopConditionOccurrences_label",
-			value: EndType.Count,
-		},
-		{
-			name: "calendarRepeatStopConditionDate_label",
-			value: EndType.UntilDate,
-		},
-	]
-}
+export const endTypeOptions: ReadonlyArray<RadioGroupOption<EndType>> = [
+	{
+		name: "calendarRepeatStopConditionNever_label",
+		value: EndType.Never,
+	},
+	{
+		name: "calendarRepeatStopConditionOccurrences_label",
+		value: EndType.Count,
+	},
+	{
+		name: "calendarRepeatStopConditionDate_label",
+		value: EndType.UntilDate,
+	},
+]
 
-export const weekdayToTranslation = (): Array<WeekdayToTranslation> => {
-	return [
-		{
-			value: Weekday.MONDAY,
-			label: lang.get("monday_label"),
-		},
-		{
-			value: Weekday.TUESDAY,
-			label: lang.get("tuesday_label"),
-		},
-		{
-			value: Weekday.WEDNESDAY,
-			label: lang.get("wednesday_label"),
-		},
-		{
-			value: Weekday.THURSDAY,
-			label: lang.get("thursday_label"),
-		},
-		{
-			value: Weekday.FRIDAY,
-			label: lang.get("friday_label"),
-		},
-		{
-			value: Weekday.SATURDAY,
-			label: lang.get("saturday_label"),
-		},
-		{
-			value: Weekday.SUNDAY,
-			label: lang.get("sunday_label"),
-		},
-	]
-}
+export const weekdayToTranslation = (): ReadonlyArray<WeekdayToTranslation> => [
+	{
+		value: Weekday.MONDAY,
+		label: lang.get("monday_label"),
+	},
+	{
+		value: Weekday.TUESDAY,
+		label: lang.get("tuesday_label"),
+	},
+	{
+		value: Weekday.WEDNESDAY,
+		label: lang.get("wednesday_label"),
+	},
+	{
+		value: Weekday.THURSDAY,
+		label: lang.get("thursday_label"),
+	},
+	{
+		value: Weekday.FRIDAY,
+		label: lang.get("friday_label"),
+	},
+	{
+		value: Weekday.SATURDAY,
+		label: lang.get("saturday_label"),
+	},
+	{
+		value: Weekday.SUNDAY,
+		label: lang.get("sunday_label"),
+	},
+]
 
-export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).map((n) => ({ name: String(n), value: n, ariaValue: String(n) }))
+export const createIntervalValues = (): IntervalOption[] =>
+	numberRange(1, 256).map((n) => ({
+		name: String(n),
+		value: n,
+		ariaValue: String(n),
+	}))
 
 /**
  * Returns an array of IntervalOptions based on the given Weekday.
@@ -528,38 +484,52 @@ export const createIntervalValues = (): IntervalOption[] => numberRange(1, 256).
  * @param weekday
  * @param numberOfWeekdaysInMonth how many times this Weekday occurs in the current month. Per default assume 4.
  */
-export const createRepetitionValuesForWeekday = (weekday: number, numberOfWeekdaysInMonth: number = 4): { options: IntervalOption[]; weekday: number } => {
+export const createRepetitionValuesForWeekday = (
+	weekday: number,
+	numberOfWeekdaysInMonth: number = 4,
+): {
+	options: IntervalOption[]
+	weekday: number
+} => {
 	const weekdayLabel = weekdayToTranslation()[weekday - 1].label
 	const options: IntervalOption[] = [
 		{
 			value: 0,
-			ariaValue: "same day",
+			ariaValue: lang.get("sameDay_label"),
 			name: lang.get("sameDay_label"),
 		},
 		{
 			value: 1,
-			ariaValue: "first",
+			ariaValue: lang.get("firstOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 			name: lang.get("firstOfPeriod_label", {
 				"{day}": weekdayLabel,
 			}),
 		},
 		{
 			value: 2,
-			ariaValue: "second",
+			ariaValue: lang.get("secondOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 			name: lang.get("secondOfPeriod_label", {
 				"{day}": weekdayLabel,
 			}),
 		},
 		{
 			value: 3,
-			ariaValue: "third",
+			ariaValue: lang.get("thirdOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 			name: lang.get("thirdOfPeriod_label", {
 				"{day}": weekdayLabel,
 			}),
 		},
 		{
 			value: -1,
-			ariaValue: "last",
+			ariaValue: lang.get("lastOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 			name: lang.get("lastOfPeriod_label", {
 				"{day}": weekdayLabel,
 			}),

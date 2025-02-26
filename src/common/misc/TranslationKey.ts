@@ -1954,3 +1954,4 @@ export type TranslationKeyType =
 	| "nextThreeDays_label"
 	| "weekScrollTime_label"
 	| "weekScrollTime_msg"
+	| "frequency_title"

@@ -438,7 +438,7 @@ export class CalendarEventWhenModel {
 		if (areAllAdvancedRepeatRulesValid(this.advancedRules, this.repeatPeriod)) {
 			const bydayRules = this.advancedRules.filter((rule) => rule.ruleType == ByRule.BYDAY)
 			const weekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(date).weekday - 1]
-			const regex = /^-?\d/g // Regex for extracting the first digit from interval
+			const regex = /^[+-]?\d/g // Regex for extracting the first digit from interval
 			const interval = Array.from(bydayRules[0].interval.matchAll(regex)).flat()[0] // collect interval
 
 			this.advancedRules = this.createAdvancedRulesFromWeekdays([weekday], parseInt(interval))
