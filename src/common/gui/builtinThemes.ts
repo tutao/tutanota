@@ -9,6 +9,15 @@ import { client } from "../misc/ClientDetector.js"
 assertMainOrNodeBoot()
 
 /**
+ * semantic colors light as defined in Figma primitives
+ */
+const SONNE = "#FFCB00"
+/**
+ * semantic colors dark as defined in Figma primitives
+ */
+const SONNE_70 = "#FFECB7"
+
+/**
  *      light theme background
  */
 const light_white = "#ffffff"
@@ -33,9 +42,9 @@ const light_gold = "#F5D799"
  *      dark theme background
  *
  *      Assuming the background is black #000000 (rgb(0,0,0)) and text is white #000000 (rgb(255, 255, 255)) and recommended opacity of 87%
- *	    we get (x1 being foreground, x2 being background, x3 being result)
- *		x3 = x2 + (x1-x2)*a1 or x3 = 0 + (255 - 0) * 0.87 = 221
- *		rgb(221, 221, 221) = #DDDDDD
+ *        we get (x1 being foreground, x2 being background, x3 being result)
+ *        x3 = x2 + (x1-x2)*a1 or x3 = 0 + (255 - 0) * 0.87 = 221
+ *        rgb(221, 221, 221) = #DDDDDD
  *      https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
  *
  */
@@ -116,6 +125,7 @@ export const themes = (): Themes => {
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
+		error_color: SONNE,
 	})
 	const darkRed = Object.freeze({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -155,6 +165,7 @@ export const themes = (): Themes => {
 		navigation_button_icon_selected: light_lighter_0,
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
+		error_color: SONNE_70,
 	})
 	const lightBlue = Object.freeze({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -193,6 +204,7 @@ export const themes = (): Themes => {
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
+		error_color: SONNE,
 	})
 	const darkBlue = Object.freeze({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -232,6 +244,7 @@ export const themes = (): Themes => {
 		navigation_button_icon_selected: light_lighter_0,
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
+		error_color: SONNE_70,
 	})
 
 	return {
