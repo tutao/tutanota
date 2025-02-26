@@ -231,8 +231,8 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		}
 	}
 
-	private wrap(children: Children) {
-		return m("", { style: { width: px(this.pageWidth) } }, children)
+	private wrap(children: Children, key: number) {
+		return m("", { key: `page-${key}`, style: { width: px(this.pageWidth) } }, children)
 	}
 
 	private getFillerPage(currentPage: TPages, stack: TPages[]): stream<TPages> {
@@ -240,15 +240,18 @@ class MultiPageDialogViewWrapper<TPages> implements Component<Props<TPages>> {
 		return stream(page ?? currentPage)
 	}
 
-	private renderPage(vnode: Vnode<Props<TPages>>) {
-		const fillerPageStream = this.getFillerPage(vnode.attrs.currentPageStream(), vnode.attrs.stackStream())
+	private renderPage({ attrs: { renderContent, stackStream, currentPageStream, isAnimating } }: Vnode<Props<TPages>>) {
+		const fillerPageStream = this.getFillerPage(currentPageStream(), stackStream())
 
-		const pages = [this.wrap(vnode.attrs.renderContent(fillerPageStream)), this.wrap(vnode.attrs.renderContent(vnode.attrs.currentPageStream))]
+		const fillerPage = fillerPageStream() as number
+		const currentPage = currentPageStream() as number
 
-		if (vnode.attrs.isAnimating()) {
+		const pages = [this.wrap(renderContent(fillerPageStream), fillerPage), this.wrap(renderContent(currentPageStream), currentPage)]
+
+		if (isAnimating()) {
 			return this.slideDirection === SlideDirection.RIGHT ? pages : pages.reverse()
 		} else {
-			return this.wrap(vnode.attrs.renderContent(vnode.attrs.currentPageStream))
+			return this.wrap(renderContent(currentPageStream), currentPage)
 		}
 	}
 
