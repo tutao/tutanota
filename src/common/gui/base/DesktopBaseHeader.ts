@@ -8,7 +8,13 @@ import { theme } from "../theme.js"
  */
 export class DesktopBaseHeader implements ClassComponent {
 	view(vnode: Vnode): Children {
-		return m(".header-nav.flex.items-center.rel", [this.renderLogo(), vnode.children])
+		return m(
+			".header-nav.flex.items-center.rel",
+			{
+				"data-testid": "nav:header",
+			},
+			[this.renderLogo(), vnode.children],
+		)
 	}
 
 	private renderLogo() {

@@ -40,18 +40,22 @@ function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 function attrToSecondLine(a: OfflineIndicatorAttrs): Children {
 	switch (a.state) {
 		case OfflineIndicatorState.Online:
-			return m("span", lang.get("upToDate_label"))
+			return m("span", { "data-testid": lang.getTestId("upToDate_label") }, lang.get("upToDate_label"))
 		case OfflineIndicatorState.Offline:
 			if (a.lastUpdate) {
-				return m("span", lang.get("lastSync_label", { "{date}": formatDate(a.lastUpdate) }))
+				return m("span", { "data-testid": lang.getTestId("lastSync_label") }, lang.get("lastSync_label", { "{date}": formatDate(a.lastUpdate) }))
 			} else {
 				// never synced, don't show last sync label
 				return null
 			}
 		case OfflineIndicatorState.Synchronizing:
-			return m("span", lang.get("synchronizing_label", { "{progress}": formatPercentage(a.progress) }))
+			return m(
+				"span",
+				{ "data-testid": lang.getTestId("synchronizing_label") },
+				lang.get("synchronizing_label", { "{progress}": formatPercentage(a.progress) }),
+			)
 		case OfflineIndicatorState.Connecting:
-			return m("span", lang.get("reconnecting_label"))
+			return m("span", { "data-testid": lang.getTestId("reconnecting_label") }, lang.get("reconnecting_label"))
 	}
 }
 
