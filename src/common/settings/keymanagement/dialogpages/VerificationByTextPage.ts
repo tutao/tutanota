@@ -81,8 +81,8 @@ export class VerificationByTextPage implements Component<VerificationByTextPageA
 				".align-self-center.full-width",
 				m(LoginButton, {
 					label: markAsVerifiedTranslationKey,
-					onclick: () => {
-						model.trust()
+					onclick: async () => {
+						await model.trust()
 						goToSuccessPage()
 					}, // TODO also go to results page
 					disabled: isFingerprintMissing(model),

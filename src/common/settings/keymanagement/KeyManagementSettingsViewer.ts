@@ -49,7 +49,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		m.redraw()
+		// noop operation because key trusted entities are not stored only locally and will not trigger an entity event.
 		return Promise.resolve()
 	}
 

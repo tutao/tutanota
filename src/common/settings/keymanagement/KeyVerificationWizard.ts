@@ -40,17 +40,6 @@ export async function showKeyVerificationWizard(
 	const usageTest = usageTestController.getTest("crypto.keyVerification")
 	// const stage = usageTest.getStage(0)
 	// await completeStageNow(stage)
-	//
-	const data: KeyVerificationWizardData = {
-		keyVerificationFacade: keyVerificationFacade,
-		mobileSystemFacade: mobileSystemFacade,
-		method: KeyVerificationMethodType.text, // will be overwritten by the wizard
-		reloadParent: reloadParent, // will be called after a key has been pinned
-		mailAddress: "",
-		publicKeyFingerprint: null,
-		result: null,
-		usageTest: usageTest,
-	}
 
 	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade)
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationWizardPages>(KeyVerificationWizardPages.CHOOSE_METHOD)
@@ -67,12 +56,18 @@ export async function showKeyVerificationWizard(
 					case KeyVerificationWizardPages.BY_TEXT_INPUT_METHOD: // TODO: rename to EMAIL INPUT METHOD?
 						return m(VerificationByTextPage, {
 							model,
-							goToSuccessPage: () => navigateToPage(KeyVerificationWizardPages.SUCCESS),
+							goToSuccessPage: () => {
+								reloadParent()
+								navigateToPage(KeyVerificationWizardPages.SUCCESS)
+							},
 						})
 					case KeyVerificationWizardPages.BY_QR_CODE_INPUT_METHOD:
 						return m(VerificationByQrCodePage, {
 							model,
-							goToSuccessPage: () => navigateToPage(KeyVerificationWizardPages.SUCCESS),
+							goToSuccessPage: () => {
+								reloadParent()
+								navigateToPage(KeyVerificationWizardPages.SUCCESS)
+							},
 						})
 					case KeyVerificationWizardPages.SUCCESS:
 						return m(VerificationResultPage, {

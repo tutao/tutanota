@@ -60,8 +60,8 @@ export class VerificationByQrCodePage implements Component<VerificationByQrCodeP
 				".align-self-center.full-width",
 				m(LoginButton, {
 					label: markAsVerifiedTranslationKey,
-					onclick: () => {
-						model.trust()
+					onclick: async () => {
+						await model.trust()
 						goToSuccessPage()
 					},
 					disabled: model.result !== KeyVerificationResultType.QR_OK,
