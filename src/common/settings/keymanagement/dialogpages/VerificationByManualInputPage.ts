@@ -9,6 +9,8 @@ import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
+import { Icon } from "../../../gui/base/Icon"
+import { theme } from "../../../gui/theme"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -86,7 +88,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 						goToSuccessPage()
 					}, // TODO also go to results page
 					disabled: isFingerprintMissing(model),
-					icon: Icons.Checkmark,
+					icon: m(Icon, {
+						icon: Icons.Checkmark,
+						class: "mr-xsm",
+						style: {
+							fill: theme.content_button_icon_selected,
+						},
+					}),
 				}),
 			),
 		])
