@@ -39,6 +39,7 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	_createNewIndexUpdate,
+	benchmarkFunction,
 	encryptIndexKeyBase64,
 	filterMailMemberships,
 	getPerformanceTimestamp,
@@ -61,7 +62,7 @@ import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
-import { BulkMailLoader } from "./BulkMailLoader.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
@@ -447,44 +448,67 @@ export class MailIndexer {
 		progress: ProgressMonitor,
 		indexLoader: BulkMailLoader,
 	): Promise<void> {
-		// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
-		const batchEnd = clamp(rangeStart - MAIL_INDEX_BATCH_INTERVAL, rangeEnd, rangeStart)
+		const mailboxesToWrite = mailboxIndexDatas.filter((mboxData) => rangeEnd < mboxData.newestTimestamp)
 
-		const mailboxesToWrite = mailboxIndexDatas.filter((mboxData) => batchEnd < mboxData.newestTimestamp)
-		const batchRange = [rangeStart, batchEnd] as TimeRange
+		let mailSetEntriesToProcess: MailSetEntry[] = []
+		let currentIndexUpdate = indexUpdate
+		let batchStart = rangeStart
 
-		// rangeStart is what we have indexed at the previous step. If it's equals to rangeEnd then we're done.
-		// If it's less then we overdid a little bit but we've covered the range and we will write down rangeStart so
-		// we will continue from it next time.
-		if (rangeStart <= rangeEnd) {
-			// all ranges have been processed
-			const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
-				groupId: data.ownerGroup,
-				indexTimestamp: this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : rangeStart,
-			}))
-			await this.writeIndexUpdate(indexTimestampPerGroup, indexUpdate)
-			progress.workDone(rangeStart - batchEnd)
-			return
-		}
+		while (batchStart > rangeEnd && !isEmpty(mailboxesToWrite)) {
+			// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
+			const batchEnd = clamp(batchStart - MAIL_INDEX_BATCH_INTERVAL, rangeEnd, batchStart)
+			const timeRange: TimeRange = [batchStart, batchEnd]
+			const finalIteration = batchEnd <= rangeEnd
 
-		await this._prepareMailDataForTimeBatch(mailboxesToWrite, batchRange, indexUpdate, indexLoader)
-		const nextRange = [batchEnd, rangeEnd] as TimeRange
+			const mailsetLoadTime = await benchmarkFunction(async () => {
+				const allMails: MailSetEntry[] = (
+					await promiseMap(
+						mailboxesToWrite,
+						async (mailbox: MboxIndexData) => {
+							const mails = await promiseMap(
+								mailbox.mailSetListDatas,
+								async (data) => {
+									return await indexLoader.loadMailSetEntriesForTimeRange(data, timeRange)
+								},
+								{ concurrency: 4 },
+							)
+							return mails.flat()
+						},
+						{ concurrency: 2 },
+					)
+				).flat()
+				mailSetEntriesToProcess.push(...allMails)
+			})
+			this._core._stats.preparingTime += mailsetLoadTime
 
-		if (this.processedEnoughForIndexWrite(indexUpdate)) {
-			// only write to database if we have collected enough entities
-			const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
-				groupId: data.ownerGroup,
-				indexTimestamp: this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : batchEnd,
-			}))
-			await this.writeIndexUpdate(indexTimestampPerGroup, indexUpdate)
-			progress.workDone(rangeStart - batchEnd)
+			// If we've reached critical mass (MAIL_INDEXER_CHUNK) or it's the last iteration, process mails.
+			if (finalIteration || mailSetEntriesToProcess.length >= MAIL_INDEXER_CHUNK) {
+				const processTime = await benchmarkFunction(async () => {
+					const mailCount = await this.processIndexMails(mailSetEntriesToProcess, indexUpdate, indexLoader)
+					this._core._stats.mailcount += mailCount
+				})
+				this._core._stats.preparingTime += processTime
 
-			const newIndexUpdate = _createNewIndexUpdate(indexUpdate.typeInfo)
+				mailSetEntriesToProcess = []
 
-			return this.indexMailListsInTimeBatches(mailboxIndexDatas, nextRange, newIndexUpdate, progress, indexLoader)
-		} else {
-			progress.workDone(rangeStart - batchEnd)
-			return this.indexMailListsInTimeBatches(mailboxIndexDatas, nextRange, indexUpdate, progress, indexLoader)
+				if (finalIteration || this.processedEnoughForIndexWrite(currentIndexUpdate)) {
+					// only write to database if we have collected enough entities, or it's the last iteration
+					const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
+						groupId: data.ownerGroup,
+						indexTimestamp: this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : batchEnd,
+					}))
+					await this.writeIndexUpdate(indexTimestampPerGroup, currentIndexUpdate)
+					currentIndexUpdate = _createNewIndexUpdate(currentIndexUpdate.typeInfo)
+				}
+			} else {
+				// We don't want to keep going if we've cancelled before reaching our threshold
+				this.assertNotCancelled()
+			}
+
+			const processMailEnd = getPerformanceTimestamp()
+
+			progress.workDone(batchStart - batchEnd)
+			batchStart = batchEnd
 		}
 	}
 
@@ -525,7 +549,7 @@ export class MailIndexer {
 	}
 
 	private async processIndexMails(mailSetEntries: Array<MailSetEntry>, indexUpdate: IndexUpdate, indexLoader: BulkMailLoader): Promise<number> {
-		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
+		this.assertNotCancelled()
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries)
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
 		console.log(TAG, `_processIndexMails ${mails.at(0)?._id.at(0)} ${mails.length}`)
@@ -547,6 +571,10 @@ export class MailIndexer {
 		}
 		console.log(TAG, `_processIndexMails done ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		return mailsWithMailDetailsAndFiles.length
+	}
+
+	private assertNotCancelled() {
+		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
 	}
 
 	private async writeIndexUpdate(

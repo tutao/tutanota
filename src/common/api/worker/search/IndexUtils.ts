@@ -326,6 +326,13 @@ const HTML_ENTITIES = {
 	"&piv;": "ϖ",
 }
 
+export async function benchmarkFunction(fn: () => void | Promise<void>): Promise<number> {
+	const start = getPerformanceTimestamp()
+	await fn()
+	const end = getPerformanceTimestamp()
+	return end - start
+}
+
 export function getPerformanceTimestamp(): number {
 	return typeof performance === "undefined" ? Date.now() : performance.now() // performance is not available in Safari 10 worker scope
 }
