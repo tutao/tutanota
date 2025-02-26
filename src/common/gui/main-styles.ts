@@ -331,6 +331,9 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.hpad_large),
 			"margin-right": px(size.hpad_large),
 		},
+		".mr-xsm": {
+			"margin-right": px(size.vpad_xsm),
+		},
 		".mr-s": {
 			"margin-right": px(size.vpad_small),
 		},
@@ -1435,7 +1438,7 @@ styles.registerStyle("main", () => {
 			"z-index": 2,
 		},
 		".bottom-nav": {
-			/* 
+			/*
             this class is sometimes on a nav element, which has a default box-sizing
             to set all nav elements to border-box, we must make sure to not break any existing styling
             */
