@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, endsWith, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, endsWith, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -27,13 +27,7 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel } from "../model/MailModel.js"
 import { hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import {
-	FolderInfo,
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getMoveTargetFolderSystems,
-	getMoveTargetFolderSystemsForMailsInFolder,
-} from "../model/MailUtils.js"
+import { FolderInfo, getFolderName, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
@@ -41,11 +35,6 @@ import type { FolderSystem, IndentedFolder } from "../../../common/api/common/ma
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
 import { getIds } from "../../../common/api/common/utils/EntityUtils"
-
-/**
- * A function that returns an array of mails, or a promise that eventually returns one.
- */
-export type LazyMailIdResolver = () => $Promisable<readonly IdTuple[]>
 
 export enum DeleteConfirmationResult {
 	Cancel,
@@ -178,9 +167,6 @@ export async function moveMailsFromFolder(
 	}
 	try {
 		await mailModel.moveMailsFromFolder(mails, sourceMailFolder._id, targetMailFolder._id)
-		if (!isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) || !isReportable) {
-			return true
-		}
 		const resolveMails = () => mailModel.loadAllMails(mails)
 		return await reportMails(system, targetMailFolder, isReportable, resolveMails, mailboxModel, mailModel)
 	} catch (e) {
@@ -370,26 +356,6 @@ export interface ShowMoveMailsDropdownOpts {
 	width?: number
 	withBackground?: boolean
 	onSelected?: () => unknown
-}
-
-export async function showMoveMailsFromFolderDropdown(
-	mailboxModel: MailboxModel,
-	mailModel: MailModel,
-	origin: PosRect,
-	currentFolder: MailFolder,
-	mails: LazyMailIdResolver,
-	opts?: ShowMoveMailsDropdownOpts,
-): Promise<void> {
-	const folders = await getMoveTargetFolderSystemsForMailsInFolder(mailModel, currentFolder)
-	await showMailFolderDropdown(
-		origin,
-		folders,
-		async (f) => {
-			const resolvedMails = await mails()
-			return moveMailsFromFolder(mailboxModel, mailModel, resolvedMails, currentFolder, f.folder)
-		},
-		opts,
-	)
 }
 
 export async function showMoveMailsDropdown(

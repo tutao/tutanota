@@ -37,7 +37,7 @@ import { Router } from "../../../common/gui/ScopedRouter.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel } from "../model/MailModel.js"
-import { assertSystemFolderOfType } from "../model/MailUtils.js"
+import { assertSystemFolderOfType, mailInFolder } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
@@ -46,6 +46,7 @@ import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 import { client } from "../../../common/misc/ClientDetector"
+import { moveMails, moveMailsFromFolder } from "./MailGuiUtils"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -339,13 +340,15 @@ export class MailViewModel {
 	}
 
 	/**
-	 * If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
+	 * If ConversationInListView is active, returns all conversation mails in the {@param currentMailSet}.
 	 * If not, only the primary mail is returned, since that is the one being looked at/interacted with.
 	 */
-	async getLoadedActionableMails(mails: readonly Mail[]): Promise<ReadonlyArray<Mail>> {
+	async getLoadedActionableMails(mails: readonly Mail[], currentMailSet: MailFolder | null): Promise<ReadonlyArray<Mail>> {
 		if (this.groupMailsByConversation()) {
 			const actionableMailIds = await this.mailModel.resolveConversationsForMails(mails)
-			return this.mailModel.loadAllMails(actionableMailIds)
+			const loadedMails = await this.mailModel.loadAllMails(actionableMailIds)
+
+			return currentMailSet ? loadedMails.filter((mail) => mailInFolder(mail, currentMailSet._id)) : loadedMails
 		} else {
 			return mails
 		}
@@ -715,6 +718,25 @@ export class MailViewModel {
 			} else {
 				throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
 			}
+		}
+	}
+
+	/**
+	 * When {@param currentMailSet} is a label, moves all mails in conversation with that label.
+	 * When {@param currentMailSet} is a folder, moves all conversation mails in that folder.
+	 */
+	async moveMailsFromMailSet(mailsToMove: readonly Mail[], currentMailSet: MailFolder, targetMailFolder: MailFolder): Promise<boolean> {
+		if (currentMailSet.folderType === MailSetKind.LABEL) {
+			const loadedMails = await this.getLoadedActionableMails(mailsToMove, currentMailSet)
+			return moveMails({
+				mailboxModel: this.mailboxModel,
+				mailModel: this.mailModel,
+				mails: loadedMails,
+				targetMailFolder,
+			})
+		} else {
+			const actionableMails = await this.getActionableMails(mailsToMove)
+			return moveMailsFromFolder(this.mailboxModel, this.mailModel, actionableMails, currentMailSet, targetMailFolder)
 		}
 	}
 

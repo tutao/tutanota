@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMailsFromFolder, promptAndDeleteMails } from "./MailGuiUtils"
+import { promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -30,7 +30,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
-import { assertSystemFolderOfType, mailInFolder } from "../model/MailUtils.js"
+import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
@@ -420,9 +420,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const actionableMails = await this.mailViewModel.getLoadedActionableMails([listElement])
 		const currentFolder = this.mailViewModel.getFolder()
-		const actionableMailsInFolder = currentFolder ? actionableMails.filter((mail) => mailInFolder(mail, currentFolder._id)) : actionableMails
+		const actionableMailsInFolder = await this.mailViewModel.getLoadedActionableMails([listElement], currentFolder)
 		const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMailsInFolder, () => this.mailViewModel.listModel?.selectNone())
 		return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 	}
@@ -442,8 +441,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					: assertNotNull(folders.getSystemFolderByType(this.showingArchive ? MailSetKind.INBOX : MailSetKind.ARCHIVE))
 				const currentFolder = assertNotNull(this.mailViewModel.getFolder())
 
-				const actionableMails = await this.mailViewModel.getActionableMails([listElement])
-				const wereMoved = await moveMailsFromFolder(locator.mailboxModel, mailLocator.mailModel, actionableMails, currentFolder, targetMailFolder)
+				const wereMoved = await this.mailViewModel.moveMailsFromMailSet([listElement], currentFolder, targetMailFolder)
 				return wereMoved ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 			} else {
 				return ListSwipeDecision.Cancel
