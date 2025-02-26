@@ -86,15 +86,17 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					onclick: async () => {
 						await model.trust()
 						goToSuccessPage()
-					}, // TODO also go to results page
+					},
 					disabled: isFingerprintMissing(model),
-					icon: m(Icon, {
-						icon: Icons.Checkmark,
-						class: "mr-xsm",
-						style: {
-							fill: theme.content_button_icon_selected,
-						},
-					}),
+					icon: isFingerprintMissing(model)
+						? undefined
+						: m(Icon, {
+								icon: Icons.Checkmark,
+								class: "mr-xsm",
+								style: {
+									fill: theme.content_button_icon_selected,
+								},
+						  }),
 				}),
 			),
 		])
