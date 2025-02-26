@@ -1,8 +1,8 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { BubbleTextField } from "./base/BubbleTextField.js"
+import { BubbleTextField, BubbleTextFieldAttrs } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
 import { px, size } from "./size.js"
-import { Icon, progressIcon } from "./base/Icon.js"
+import { Icon, IconSize, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
@@ -11,11 +11,11 @@ import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
 import { getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
 import { Dialog } from "./base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
-import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { KeyVerificationState } from "../api/worker/facades/lazy/KeyVerificationFacade"
+import { WARNING_RED } from "./builtinThemes"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -47,7 +47,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	}
 
 	private renderTextField(attrs: MailRecipientsTextFieldAttrs): Children {
-		return m(BubbleTextField, {
+		const bubbleTextFieldAttrs: BubbleTextFieldAttrs<Recipient> = {
 			label: attrs.label,
 			text: attrs.text,
 			helpLabel: attrs.helpLabel,
@@ -74,23 +74,41 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 					attrs.onTextChanged(remainingText)
 				}
 			},
-			items: attrs.recipients.map((recipient) => recipient.address),
-			renderBubbleText: (address: string) => {
-				const recipient = findRecipientWithAddress(attrs.recipients, address)
-				if (recipient == null) {
-					return lang.makeTranslation(address, getMailAddressDisplayText(null, address, false))
+			items: attrs.recipients,
+			getBubbleIcon: (recipient: Recipient) => {
+				if (recipient.verificationState === KeyVerificationState.MISMATCH) {
+					return m(Icon, {
+						icon: Icons.AlertCircle,
+						size: IconSize.Large, // we want 20px
+						style: {
+							fill: WARNING_RED,
+							position: "relative",
+							top: "4px",
+							right: "1px",
+						},
+					})
+				} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
+					return m(Icon, {
+						icon: Icons.Shield,
+						size: IconSize.Normal,
+						style: {
+							fill: theme.content_accent,
+							position: "relative",
+							top: "2px",
+							right: "1px",
+						},
+					})
 				} else {
-					const name = recipient.name
-					let verified: string = ""
-					if (recipient.verificationState === KeyVerificationState.MISMATCH) {
-						verified = " ✘"
-					} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
-						verified = " ✔"
-					}
-					return lang.makeTranslation(address, getMailAddressDisplayText(name, address, false) + verified)
+					return null
 				}
 			},
-			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
+			renderBubbleText: (recipient: Recipient) => {
+				const name = recipient.name
+				let verified: string = ""
+
+				return lang.makeTranslation(recipient.address, getMailAddressDisplayText(name, recipient.address, false) + verified)
+			},
+			getBubbleDropdownAttrs: async (recipient) => (await attrs.getRecipientClickedDropdownAttrs?.(recipient.address)) ?? [],
 			onBackspace: () => {
 				if (attrs.text === "" && attrs.recipients.length > 0) {
 					const { address } = attrs.recipients.slice().pop()!
@@ -136,7 +154,9 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				),
 				attrs.injectionsRight,
 			]),
-		})
+		}
+
+		return m(BubbleTextField, bubbleTextFieldAttrs)
 	}
 
 	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {

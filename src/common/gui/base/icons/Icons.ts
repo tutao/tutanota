@@ -108,6 +108,7 @@ export const enum Icons {
 	SpeechBubbleFill = "SpeechBubbleFill",
 	KeyboardFill = "KeyboardFill",
 	Shield = "Shield",
+	AlertCircle = "AlertCircle",
 }
 
 export const IconsSvg: Record<Icons, string> = Object.freeze({
@@ -220,6 +221,7 @@ export const IconsSvg: Record<Icons, string> = Object.freeze({
 	SpeechBubbleFill: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><path d="M23.34 10.932a10.28 10.28 0 0 0-3.62-5.844 10.66 10.66 0 0 0-6.665-2.336c-2.855 0-5.522 1.1-7.516 3.098-1.927 1.933-2.984 4.485-2.975 7.185 0 1.979.581 3.915 1.671 5.567l.204.283-1.125 4.867 5.381-1.339s.108.036.188.067c.08.03.765.293 1.493.496.604.17 1.862.422 2.848.422 2.796 0 5.407-1.082 7.352-3.05a10.33 10.33 0 0 0 2.988-7.308c0-.708-.075-1.415-.224-2.108m-14.776 3.82a1.5 1.5 0 1 1 0-2.999 1.5 1.5 0 0 1 0 2.999m4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/></svg>`,
 	KeyboardFill: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><path fill-rule="evenodd" d="M23.564 20.255v-15a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v15a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3m-8-4v3h-5v-3h-4l6.5-6 6.5 6zm-9-8h13v-2h-13z" clip-rule="evenodd"/></svg>`,
 	Shield: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22"><path d="m19.959 4.55-.035-.56-.552-.098c-3.862-.693-5.474-1.194-9.078-2.822L10 .937l-.294.133C6.102 2.698 4.49 3.2.628 3.892l-.552.099-.035.559c-.172 2.728.195 5.27 1.09 7.556a15.6 15.6 0 0 0 3.2 5.023c2.386 2.532 4.92 3.632 5.404 3.827l.268.108.268-.108c.483-.195 3.018-1.295 5.405-3.827a15.6 15.6 0 0 0 3.192-5.023c.896-2.286 1.263-4.828 1.09-7.556M8.668 14.193l-3.25-3.186 1-1.02 2.164 2.12L13.5 6.428l1.08.935z"/></svg>`,
+	AlertCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2.25c-5.376 0-9.75 4.374-9.75 9.75s4.374 9.75 9.75 9.75 9.75-4.374 9.75-9.75S17.376 2.25 12 2.25m.938 14.996h-1.876V15.37h1.876zm-.188-2.996h-1.5l-.281-7.5h2.062z"/></svg>`,
 } as const)
 
 export const SecondFactorImage =

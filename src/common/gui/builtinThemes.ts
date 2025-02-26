@@ -8,6 +8,8 @@ import { client } from "../misc/ClientDetector.js"
 
 assertMainOrNodeBoot()
 
+export const WARNING_RED = "#ca0606"
+
 /**
  *      light theme background
  */
