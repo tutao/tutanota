@@ -101,8 +101,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 						subTitle: lang.get("keyManagement.keyVerification_subtitle_label"),
 					}),
 					selfFingerprint ? this.renderQrTextMethod(selfMailAddress, selfFingerprint) : null,
-					m(".small.text-break.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
-
+					m(".small.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
 					m(
 						Card,
