@@ -98,7 +98,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					m(TitleSection, {
 						icon: Icons.KeyRegular,
 						title: lang.get("keyManagement.keyVerification_label"),
-						subTitle: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+						subTitle: lang.get("keyManagement.keyVerification_subtitle_label"),
 					}),
 					selfFingerprint ? this.renderQrTextMethod(selfMailAddress, selfFingerprint) : null,
 					m(".small.text-break.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
