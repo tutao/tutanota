@@ -1986,3 +1986,4 @@ export type TranslationKeyType =
 	| "keyManagement.contactVerificationConfirmationTitle_label"
 	| "keyManagement.verificationByQrCodeScan_label"
 	| "keyManagement.verificationErrorTitle_label"
+	| "keyManagement.keyVerification_subtitle_label"
