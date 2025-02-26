@@ -40,7 +40,7 @@ export interface MailViewerToolbarAttrs {
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
 export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	view(vnode: Vnode<MailViewerToolbarAttrs>) {
-		return m(".flex.ml-between-s.items-center", [
+		return m(".flex.ml-between-s.items-center", { "data-testid": "nav:action_bar" }, [
 			this.renderSingleMailActions(vnode.attrs),
 			vnode.attrs.mailViewerViewModel ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),

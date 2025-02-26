@@ -1,6 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { ButtonAttrs } from "./Button.js"
-import { Button } from "./Button.js"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 
