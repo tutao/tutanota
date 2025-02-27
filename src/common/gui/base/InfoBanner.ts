@@ -10,7 +10,6 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { Icons } from "./icons/Icons.js"
 import { px, size } from "../size.js"
-import { WARNING_RED } from "../builtinThemes"
 
 export const enum BannerType {
 	Info = "info",
@@ -47,7 +46,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 			".center-vertically.border-bottom.pr-s.pl.border-radius.mt-xs",
 			{
 				style: {
-					border: `solid 2px ${type === BannerType.Warning ? WARNING_RED : theme.content_border}`,
+					border: `solid 2px ${type === BannerType.Warning ? theme.error_color : theme.content_border}`,
 					// keep the distance to the bottom of the banner the same in the case that buttons aren't present
 					minHeight: buttons.length > 0 ? undefined : px(37),
 				},
@@ -70,7 +69,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 		return m(Icon, {
 			icon,
 			style: {
-				fill: type === BannerType.Warning ? WARNING_RED : theme.content_button,
+				fill: type === BannerType.Warning ? theme.error_color : theme.content_button,
 				display: "block",
 			},
 		})

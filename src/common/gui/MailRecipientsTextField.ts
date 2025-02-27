@@ -15,7 +15,6 @@ import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { KeyVerificationState } from "../api/worker/facades/lazy/KeyVerificationFacade"
-import { WARNING_RED } from "./builtinThemes"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -81,7 +80,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 						icon: Icons.AlertCircle,
 						size: IconSize.Large, // we want 20px
 						style: {
-							fill: WARNING_RED,
+							fill: theme.error_color,
 							position: "relative",
 							top: "4px",
 							right: "1px",
