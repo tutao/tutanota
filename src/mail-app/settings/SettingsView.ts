@@ -356,7 +356,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.navigation_bg,
-						columnLayout: m(".mlr-safe-inset.fill-absolute.content-bg", this.detailsViewer ? this.detailsViewer.renderView() : m("")),
+						columnLayout: m(
+							`.mlr-safe-inset.fill-absolute${this.detailsViewer ? ".content-bg" : ""}`,
+							this.detailsViewer ? this.detailsViewer.renderView() : m(""),
+						),
 						mobileHeader: () =>
 							m(MobileHeader, {
 								...vnode.attrs.header,
