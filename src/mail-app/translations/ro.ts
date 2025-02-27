@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2025-02-18T14:59:58Z",
+	"updated_at": "2025-02-20T15:43:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1015,6 +1015,7 @@ export default {
 		"matchingKeywords_label": "Cuvinte cheie potrivite:",
 		"maximumLabelsPerMailReached_msg": "A fost atins numărul maxim de etichete permise pentru un e-mail.",
 		"maybeAttending_label": "Poate voi participa",
+		"maybeLater_action": "Poate mai târziu",
 		"maybe_label": "Poate",
 		"menu_label": "Opțiuni",
 		"mergeAllSelectedContacts_msg": "Chiar vrei să unești contactele alese?",
@@ -1404,8 +1405,11 @@ export default {
 		"quit_action": "Oprește",
 		"rateAppStore_action": "Evaluează în App Store",
 		"rateGooglePlay_action": "Evaluează în Google Play",
+		"rateUs_action": "Evaluează",
 		"ratingExplanation_msg": "Fie că-ți place Tuta sau crezi că trebuie îmbunătățită, spune-ne!",
-		"ratingHowAreWeDoing_title": "Îți place Tuta?",
+		"ratingGooglePlay_msg": "Vrei să-ți împărtășești aprecierea? Acordă un moment pentru a ne evalua în Google Play.",
+		"ratingGooglePlay_title": "Ne bucurăm că-ți place Tuta!",
+		"ratingHowAreWeDoing_title": "Părerea ta contează!",
 		"ratingLoveIt_label": "Îmi place!",
 		"ratingNeedsWork_label": "Trebuie îmbunătățită",
 		"readResponse_action": "Citiți răspunsul ",
@@ -1923,6 +1927,8 @@ export default {
 		"yourCalendars_label": "Calendarele tale",
 		"yourFolders_action": "DOSARELE TALE",
 		"yourMessage_label": "Mesajul tău",
-		"you_label": "Dvs"
+		"you_label": "Dvs",
+		"zoomIn_action": "Mărește",
+		"zoomOut_action": "Micșorează"
 	}
 }
