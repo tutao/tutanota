@@ -18,7 +18,7 @@ import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
+import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -68,8 +68,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		}
 
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
-		const shouldApplyCyberMonday = isYearly && isCyberMonday
+		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
+		const shouldHighlight = isYearly && isTutaBirthdayCampaign
 
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			[PlanType.Free]: () => {
@@ -80,8 +80,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			},
 			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
 			[PlanType.Legend]: () => ({
-				label: shouldApplyCyberMonday ? "pricing.cyber_monday_select_action" : "pricing.select_action",
-				class: shouldApplyCyberMonday ? "accent-bg-cyber-monday" : undefined,
+				label: shouldHighlight ? "pricing.cyber_monday_select_action" : "pricing.select_action",
+				class: shouldHighlight ? "accent-bg-cyber-monday" : undefined,
 				onclick: () => this.setNonFreeDataAndGoToNextPage(data, PlanType.Legend),
 			}),
 			[PlanType.Essential]: this.createUpgradeButton(data, PlanType.Essential),

@@ -739,7 +739,7 @@ styles.registerStyle("main", () => {
 			color: theme.content_button_icon_selected,
 		},
 		".accent-bg-cyber-monday": {
-			"background-color": theme.content_accent_cyber_monday,
+			"background-color": theme.content_accent_tuta_bday,
 			color: theme.content_button_icon_selected,
 		},
 		".accent-fg": {
@@ -1435,7 +1435,7 @@ styles.registerStyle("main", () => {
 			"z-index": 2,
 		},
 		".bottom-nav": {
-			/* 
+			/*
             this class is sometimes on a nav element, which has a default box-sizing
             to set all nav elements to border-box, we must make sure to not break any existing styling
             */
@@ -1828,9 +1828,6 @@ styles.registerStyle("main", () => {
 			"padding-left": px(0),
 			"padding-right": px(0),
 		},
-		".segmentControl-border-active-cyber-monday": {
-			border: `2px solid ${theme.content_accent_cyber_monday}`,
-		},
 		".segmentControlItem": {
 			cursor: "pointer",
 			background: "transparent",
@@ -2009,10 +2006,6 @@ styles.registerStyle("main", () => {
 			border: `2px solid ${theme.content_accent}`,
 			padding: px(9),
 		},
-		".buyOptionBox.highlighted.cyberMonday": {
-			border: `2px solid ${theme.content_accent_cyber_monday}`,
-			padding: px(9),
-		},
 		".info-badge": {
 			"border-radius": px(8),
 			"line-height": px(16),
@@ -2076,7 +2069,7 @@ styles.registerStyle("main", () => {
 			color: theme.content_bg,
 		},
 		".ribbon-horizontal-cyber-monday": {
-			background: theme.content_bg_cyber_monday,
+			background: theme.content_bg_tuta_bday,
 			color: theme.content_bg,
 		},
 		".ribbon-horizontal:after": {
@@ -2090,7 +2083,7 @@ styles.registerStyle("main", () => {
 			right: 0,
 		},
 		".ribbon-horizontal-cyber-monday:after": {
-			"border-left": `6px solid ${theme.content_bg_cyber_monday}`,
+			"border-left": `6px solid ${theme.content_bg_tuta_bday}`,
 		},
 		".ribbon-horizontal:before": {
 			content: '""',
@@ -2103,7 +2096,7 @@ styles.registerStyle("main", () => {
 			left: 0,
 		},
 		".ribbon-horizontal-cyber-monday:before": {
-			"border-right": `6px solid ${theme.content_bg_cyber_monday}`,
+			"border-right": `6px solid ${theme.content_bg_tuta_bday}`,
 		},
 		// calendar
 		".flex-end-on-child .button-content": {

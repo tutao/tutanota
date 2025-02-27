@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../gui/size"
-import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
@@ -12,8 +12,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
-import { isReferenceDateWithinCyberMondayCampaign } from "../misc/CyberMondayUtils.js"
-import { client } from "../misc/ClientDetector"
+import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { isIOSApp } from "../api/common/Env"
 
 export type BuyOptionBoxAttr = {
@@ -43,6 +42,7 @@ export type BuyOptionBoxAttr = {
 	 * Nullable because of the gift card component compatibility
 	 */
 	targetSubscription?: AvailablePlanType
+	isCampaign?: boolean
 }
 
 export type BuyOptionDetailsAttr = {
@@ -142,10 +142,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const { attrs } = vnode
 
-		const isCyberMonday = isReferenceDateWithinCyberMondayCampaign(Const.CURRENT_DATE ?? new Date())
+		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
 		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
-		const shouldApplyCyberMondayDesign = isLegendPlan && isCyberMonday && isYearly
+		const shouldApplyCampaignColor =
+			attrs.highlighted && attrs.isCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
 
 		return m(
 			".fg-black",
@@ -158,7 +159,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			},
 			[
 				m(
-					".buyOptionBox" + (attrs.highlighted ? (shouldApplyCyberMondayDesign ? ".highlighted.cyberMonday" : ".highlighted") : ""),
+					".buyOptionBox" + (attrs.highlighted ? ".highlighted" : ""),
 					{
 						style: {
 							display: "flex",
@@ -166,15 +167,22 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							"min-height": px(attrs.height),
 							"border-radius": "3px",
 							height: "100%",
+							...(attrs.highlighted &&
+								isLegendPlan &&
+								isTutaBirthdayCampaign &&
+								isYearly && {
+									border: `2px solid ${theme.content_accent_tuta_bday}`,
+									padding: px(9),
+								}),
 						},
 					},
 					[
-						shouldApplyCyberMondayDesign ? this.renderCyberMondayRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
-						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
-						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
+						isLegendPlan && isTutaBirthdayCampaign && isYearly ? this.renderCampaignRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
+						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
+						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined, shouldApplyCampaignColor),
 						m(".small.text-center", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, shouldApplyCyberMondayDesign),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && isTutaBirthdayCampaign && isYearly),
 						attrs.actionButton
 							? m(
 									".button-min-height",
@@ -192,7 +200,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderPrice(price: string, strikethroughPrice?: string) {
+	private renderPrice(price: string, strikethroughPrice?: string, shouldApplyCampaignColor?: boolean) {
 		return m(
 			".pt-ml.text-center",
 			{ style: { display: "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center" } },
@@ -201,7 +209,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						".span.strike",
 						{
 							style: {
-								color: theme.content_button,
+								color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : theme.content_button,
 								fontSize: px(size.font_size_base),
 								justifySelf: "end",
 								margin: "auto 0.4em 0 0",
@@ -224,12 +232,28 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, text))
 	}
 
-	private renderCyberMondayRibbon(): Children {
+	private renderCampaignRibbon(): Children {
 		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
-		return m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { padding: px(3) } }, text))
+		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)" } }, [
+			// Birthday cake
+			m("img.block.abs.z1", {
+				src: `${window.tutao.appState.prefixWithoutFile}/images/birthday/party-cake.png`,
+				alt: "",
+				rel: "noreferrer",
+				loading: "lazy",
+				decoding: "async",
+				style: {
+					width: "35%",
+					bottom: px(-75.5),
+					right: px(-5),
+				},
+			}),
+			// Ribbon
+			m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { color: theme.content_accent_secondary_tuta_bday } }, text)),
+		])
 	}
 
-	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null, shouldApplyCyberMonday: boolean): Children {
+	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null, shouldApplyCampaignColor: boolean): Children {
 		const paymentIntervalItems = [
 			{ name: lang.get("pricing.yearly_label"), value: PaymentInterval.Yearly },
 			{ name: lang.get("pricing.monthly_label"), value: PaymentInterval.Monthly },
@@ -242,18 +266,19 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						paymentInterval?.(v)
 						m.redraw()
 					},
-					shouldApplyCyberMonday,
+					shouldApplyCampaignColor: shouldApplyCampaignColor,
 			  })
 			: null
 	}
 
-	private renderHeading(heading: string): Children {
+	private renderHeading(heading: string, shouldApplyCampaignColor?: boolean): Children {
 		return m(
 			// we need some margin for the discount banner for longer translations shown on the website
-			`.h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header`,
+			".h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header",
 			{
 				style: {
 					"font-size": heading.length > 20 ? "smaller" : undefined,
+					color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : null,
 				},
 			},
 			heading,

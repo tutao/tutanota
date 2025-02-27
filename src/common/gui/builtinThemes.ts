@@ -26,8 +26,8 @@ const dunkel = "#410002"
 const blue = "#013E85"
 const secondary_blue = "#4282FF"
 const light_blue = "#ACC7FF"
-const dark_gold = "#7D612A"
-const light_gold = "#F5D799"
+const dark_purple = "#AC3E80"
+const light_purple = "#FCBFDE"
 
 /**
  *      dark theme background
@@ -91,11 +91,11 @@ export const themes = (): Themes => {
 		content_button_icon: light_white,
 		content_button_icon_selected: light_white,
 		content_accent: red,
-		content_accent_cyber_monday: dark_gold,
+		content_accent_tuta_bday: dark_purple,
+		content_accent_secondary_tuta_bday: light_purple,
 		content_bg: light_white,
-		content_bg_cyber_monday: dark,
+		content_bg_tuta_bday: dark,
 		content_border: grey_lighter_1,
-		content_border_cyber_monday: dark_gold,
 		content_message_bg: grey_lighter_0,
 		header_bg: light_white,
 		header_box_shadow_bg: grey_lighter_1,
@@ -129,11 +129,11 @@ export const themes = (): Themes => {
 		content_button_icon: light_lighter_1,
 		content_button_icon_selected: dark_lighter_0,
 		content_accent: light_red,
-		content_accent_cyber_monday: light_gold,
+		content_accent_tuta_bday: light_purple,
+		content_accent_secondary_tuta_bday: dark_purple,
 		content_bg: dark_darker_0,
-		content_bg_cyber_monday: light_white,
+		content_bg_tuta_bday: light_white,
 		content_border: dark_lighter_1,
-		content_border_cyber_monday: light_gold,
 		content_message_bg: dark_lighter_2,
 		header_bg: dark,
 		header_box_shadow_bg: dark_darker_0,
@@ -168,11 +168,11 @@ export const themes = (): Themes => {
 		content_button_icon: light_white,
 		content_button_icon_selected: light_white,
 		content_accent: blue,
-		content_accent_cyber_monday: dark_gold,
+		content_accent_tuta_bday: dark_purple,
+		content_accent_secondary_tuta_bday: light_purple,
 		content_bg: light_white,
-		content_bg_cyber_monday: dark,
+		content_bg_tuta_bday: dark,
 		content_border: grey_lighter_1,
-		content_border_cyber_monday: light_gold,
 		content_message_bg: grey_lighter_0,
 		header_bg: light_white,
 		header_box_shadow_bg: grey_lighter_1,
@@ -206,11 +206,11 @@ export const themes = (): Themes => {
 		content_button_icon: light_lighter_1,
 		content_button_icon_selected: dark_lighter_0,
 		content_accent: light_blue,
-		content_accent_cyber_monday: light_gold,
+		content_accent_tuta_bday: light_purple,
+		content_accent_secondary_tuta_bday: dark_purple,
 		content_bg: dark_darker_0,
-		content_bg_cyber_monday: light_white,
+		content_bg_tuta_bday: light_white,
 		content_border: dark_lighter_1,
-		content_border_cyber_monday: light_gold,
 		content_message_bg: dark_lighter_2,
 		header_bg: dark,
 		header_box_shadow_bg: dark_darker_0,
