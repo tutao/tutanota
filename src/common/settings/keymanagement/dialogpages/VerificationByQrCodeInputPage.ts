@@ -47,6 +47,10 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		this.goToErrorPage = vnode.attrs.goToErrorPage
 	}
 
+	onremove(): any {
+		this.cleanupVideo()
+	}
+
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
 		const { model, goToSuccessPage } = vnode.attrs
 
