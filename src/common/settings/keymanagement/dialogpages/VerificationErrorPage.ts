@@ -44,6 +44,10 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 				subTitle = lang.get("keyManagement.qrFingerprintMismatch_msg")
 				break
 			}
+			case "video_source_error": {
+				title = lang.get("keyManagement.verificationErrorTitle_label")
+				subTitle = lang.get("keyManagement.videoSourceError_msg")
+			}
 			default: {
 				break
 			}
