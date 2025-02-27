@@ -1,4 +1,3 @@
-import m from "mithril"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import {
 	completeEvaluationStage,
@@ -12,65 +11,45 @@ import {
 import { isApp } from "../api/common/Env.js"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
 import { HowAreWeDoingPage } from "./pages/HowAreWeDoingPage.js"
+import m from "mithril"
+import { DateTime } from "luxon"
 import { ButtonType } from "../gui/base/Button.js"
 import { AndroidPlayStorePage } from "./pages/AndroidPlayStorePage.js"
-import { DateTime } from "luxon"
-
-export enum RatingPages {
-	HOW_ARE_WE_DOING,
-	ANDROID_PLAY_STORE,
-}
 
 export function showAppRatingDialog(triggerType: TriggerType): void {
 	completeTriggerStage(triggerType)
 
-	let currentPage: RatingPages = RatingPages.HOW_ARE_WE_DOING
-
-	const dialog = new MultiPageDialog<RatingPages>(currentPage).buildDialog(
-		(page, dialog, navigateToPage) => {
-			currentPage = page
-			switch (page) {
-				case RatingPages.HOW_ARE_WE_DOING:
-					return m(HowAreWeDoingPage, { triggerType, dialog, goToAndroidPlayStorePage: () => navigateToPage(RatingPages.ANDROID_PLAY_STORE) })
-				case RatingPages.ANDROID_PLAY_STORE:
-					return m(AndroidPlayStorePage, { triggerType, dialog })
-			}
-		},
-		{
-			getPageTitle: (_) => {
-				return "emptyString_msg"
+	const dialog = new MultiPageDialog<"howAreWeDoing" | "androidPlayStore">("howAreWeDoing", (dialog, navigateToPage, _) => ({
+		howAreWeDoing: {
+			content: m(HowAreWeDoingPage, {
+				triggerType,
+				dialog,
+				goToAndroidPlayStorePage: () => navigateToPage("androidPlayStore"),
+			}),
+			rightAction: {
+				label: "notNow_label",
+				click: () => {
+					dialog.close()
+					deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
+					completeEvaluationStage(triggerType, "NotNow")
+				},
+				title: "notNow_label",
+				type: ButtonType.Secondary,
 			},
-			getRightAction: (currentPage, dialog) => {
-				if (currentPage == RatingPages.HOW_ARE_WE_DOING) {
-					return {
-						label: "notNow_label",
-						click: () => {
-							dialog.close()
-							deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
-							completeEvaluationStage(triggerType, "NotNow")
-						},
-						title: "notNow_label",
-						type: ButtonType.Secondary,
-					}
-				}
-			},
-		},
-	)
-
-	dialog.setCloseHandler(() => {
-		dialog.close()
-		switch (currentPage) {
-			case RatingPages.HOW_ARE_WE_DOING: {
+			onClose: () => {
+				dialog.close()
 				deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
 				completeEvaluationStage(triggerType, "NotNow")
-				return
-			}
-			case RatingPages.ANDROID_PLAY_STORE: {
+			},
+		},
+		androidPlayStore: {
+			content: m(AndroidPlayStorePage, { triggerType, dialog }),
+			onClose: () => {
+				dialog.close()
 				deviceConfig.setRetryRatingPromptAfter(DateTime.now().plus({ months: 1 }).toJSDate())
-				return
-			}
-		}
-	})
+			},
+		},
+	})).getDialog()
 
 	dialog.show()
 }
