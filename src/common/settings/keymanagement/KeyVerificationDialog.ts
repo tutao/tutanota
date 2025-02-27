@@ -11,7 +11,7 @@ import { MethodSelectionPage } from "./dialogpages/MethodSelectionPage"
 import { VerificationByManualInputPage } from "./dialogpages/VerificationByManualInputPage"
 import { KeyVerificationModel } from "./KeyVerificationModel"
 import { VerificationResultPage } from "./dialogpages/VerificationResultPage"
-import { VerificationByQrCodeInputPage } from "./dialogpages/VerificationByQrCodeInputPage"
+import { QrCodePageErrorType, VerificationByQrCodeInputPage } from "./dialogpages/VerificationByQrCodeInputPage"
 import { VerificationErrorPage } from "./dialogpages/VerificationErrorPage"
 
 enum KeyVerificationDialogPages {
@@ -29,6 +29,7 @@ export async function showKeyVerificationDialog(
 	reloadParent: () => Promise<void>,
 ): Promise<void> {
 	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade)
+	let lastError: QrCodePageErrorType | null = null
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(KeyVerificationDialogPages.CHOOSE_METHOD)
 		.buildDialog(
 			(currentPage, dialog, navigateToPage, _) => {
@@ -49,7 +50,10 @@ export async function showKeyVerificationDialog(
 						return m(VerificationByQrCodeInputPage, {
 							model,
 							goToSuccessPage: () => navigateToPage(KeyVerificationDialogPages.SUCCESS),
-							goToErrorPage: () => navigateToPage(KeyVerificationDialogPages.ERROR),
+							goToErrorPage: (err: QrCodePageErrorType) => {
+								lastError = err
+								navigateToPage(KeyVerificationDialogPages.ERROR)
+							},
 						})
 					case KeyVerificationDialogPages.SUCCESS: {
 						reloadParent()
@@ -63,6 +67,7 @@ export async function showKeyVerificationDialog(
 					case KeyVerificationDialogPages.ERROR:
 						return m(VerificationErrorPage, {
 							model,
+							error: lastError,
 							retryAction: () => navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD),
 						})
 				}
