@@ -46,6 +46,7 @@ import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 import { client } from "../../../common/misc/ClientDetector"
+import { moveMailsFromFolder } from "./MailGuiUtils"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -723,6 +724,16 @@ export class MailViewModel {
 				throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
 			}
 		}
+	}
+
+	// FIXME figure out where this is supposed to be used
+	/**
+	 * When {@param currentMailSet} is a label, moves all mails in conversation with that label.
+	 * When {@param currentMailSet} is a folder, moves all conversation mails in that folder.
+	 */
+	async moveMailsFromMailSet(mailsToMove: readonly Mail[], currentMailSet: MailFolder, targetMailFolder: MailFolder): Promise<boolean> {
+		const actionableMails = await this.getActionableMails(mailsToMove)
+		return moveMailsFromFolder(this.mailboxModel, this.mailModel, actionableMails, currentMailSet, targetMailFolder)
 	}
 
 	onSingleSelection(mail: Mail) {
