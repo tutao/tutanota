@@ -18,7 +18,14 @@ import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 
-export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "qr_code_mistmatch" | "camera_not_found" | "unknown"
+export type QrCodePageErrorType =
+	| "camera_permission_denied"
+	| "malformed_qr"
+	| "email_not_found"
+	| "qr_code_mistmatch"
+	| "camera_not_found"
+	| "video_source_error"
+	| "unknown"
 
 export type GoToErrorPageHandler = (et: QrCodePageErrorType) => void
 
@@ -47,7 +54,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		this.goToErrorPage = vnode.attrs.goToErrorPage
 	}
 
-	onremove(): any {
+	onremove() {
 		this.cleanupVideo()
 	}
 
@@ -147,14 +154,15 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					} catch (e) {
 						if (e instanceof DOMException && e.name === "AbortError") {
 							// Operation cancelled by user. Nothing we can really do about it.
-							this.cleanupVideo()
 						} else if (e instanceof DOMException && e.name === "NotAllowedError") {
-							this.cleanupVideo()
 							this.qrCameraState = QrCameraState.PERMISSION_DENIED
 							this.goToErrorPage?.("camera_permission_denied")
 							m.redraw()
-						} else if (e instanceof DOMException && e.name === "NotFoundError" && e.message === "Requested device not found") {
+						} else if (e instanceof DOMException && e.name === "NotFoundError") {
 							this.goToErrorPage?.("camera_not_found")
+							m.redraw()
+						} else if (e instanceof DOMException && e.name === "NotReadableError") {
+							this.goToErrorPage?.("video_source_error")
 							m.redraw()
 						} else {
 							throw e
@@ -251,8 +259,6 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 							throw e
 						}
 					} finally {
-						this.cleanupVideo()
-
 						if (model.result !== KeyVerificationResultType.QR_OK) {
 							this.goToErrorPage?.(this.resultToErrorType(model.result))
 						}
