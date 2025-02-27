@@ -836,6 +836,7 @@ export default {
         "invoice_label": "Rechnung",
         "IpAddress_label": "IP-Adresse",
         "keyboardShortcuts_title": "Tastatur-Kürzel",
+        "keyManagement.cameraNotFound_title": "Keine Kamera.",
 		"keyManagement_label": "Schlüsselverwaltung",
 		"keyManagement.contactVerificationConfirmation_label": "Dieser Kontakt wurde verifiziert:",
 		"keyManagement.fingerprint_label": "Fingerabdruck",
