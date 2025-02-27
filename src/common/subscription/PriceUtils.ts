@@ -216,9 +216,9 @@ export class PriceAndConfigProvider {
 					}
 
 					return { displayPrice: revolutionaryPlanPrice.displayYearlyPerYear, rawPrice: revolutionaryPlanPrice.rawYearlyPerYear }
+				} else {
+					return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear }
 				}
-
-				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear }
 			}
 		}
 	}
