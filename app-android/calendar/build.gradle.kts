@@ -15,10 +15,10 @@ android {
 	namespace = "de.tutao.calendar"
 
 	defaultConfig {
-		compileSdk = 34
+		compileSdk = 35
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
-		targetSdk = 34
+		targetSdk = 35
 		versionCode = 94
 		versionName = "270.250214.0"
 
@@ -253,12 +253,13 @@ dependencies {
 	// Optional - Integration with RxJava
 	implementation("androidx.compose.runtime:runtime-rxjava2")
 
-	// For interop APIs with Material 3
-	implementation("androidx.glance:glance-material3:1.1.0")
 
 	// For AppWidgets support and preview
 	implementation("androidx.glance:glance:1.1.1")
 	implementation("androidx.glance:glance-appwidget:1.1.1")
-	implementation("androidx.glance:glance-appwidget-preview:1.1.1")
 	implementation("androidx.glance:glance-preview:1.1.1")
+	implementation("androidx.glance:glance-appwidget-preview:1.1.1")
+	implementation("androidx.glance:glance-material3:1.1.1")
+
+
 }
