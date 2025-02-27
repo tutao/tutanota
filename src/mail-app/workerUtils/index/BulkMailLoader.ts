@@ -57,8 +57,8 @@ export class BulkMailLoader {
 		let mailDetailsBlobMails = mails.filter((m) => !isDraft(m))
 		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsBlobMails,
-			(m) => assertNotNull(m.mailDetails)[0],
-			(m) => neverNull(m.mailDetails)[1],
+			(m) => listIdPart(assertNotNull(m.mailDetails)),
+			(m) => elementIdPart(neverNull(m.mailDetails)),
 		)
 		for (let [listId, ids] of listIdToMailDetailsBlobIds) {
 			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
@@ -80,8 +80,8 @@ export class BulkMailLoader {
 		let mailDetailsDraftMails = mails.filter((m) => isDraft(m))
 		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsDraftMails,
-			(m) => assertNotNull(m.mailDetailsDraft)[0],
-			(m) => neverNull(m.mailDetailsDraft)[1],
+			(m) => listIdPart(assertNotNull(m.mailDetailsDraft)),
+			(m) => elementIdPart(neverNull(m.mailDetailsDraft)),
 		)
 		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
 			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
@@ -107,18 +107,10 @@ export class BulkMailLoader {
 		for (const mail of mails) {
 			attachmentIds.push(...mail.attachments)
 		}
-		const filesByList = groupBy(attachmentIds, (a) => a[0])
+		const filesByList = groupBy(attachmentIds, listIdPart)
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		for (const [listId, fileIds] of filesByList.entries()) {
-			fileLoadingPromises.push(
-				this.loadInChunks(
-					FileTypeRef,
-					listId,
-					fileIds.map((f) => f[1]),
-					undefined,
-					options,
-				),
-			)
+			fileLoadingPromises.push(this.loadInChunks(FileTypeRef, listId, fileIds.map(elementIdPart), undefined, options))
 		}
 		const filesResults = await Promise.all(fileLoadingPromises)
 		return filesResults.flat()
