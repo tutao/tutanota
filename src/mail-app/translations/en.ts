@@ -876,6 +876,7 @@ export default {
         "keyManagement.verificationErrorTitle_label": "Contact verification failed",
         "keyManagement.verificationPool_label": "Email addresses monitored for verification",
         "keyManagement.verifyMailAddress_action": "Add and verify an email address",
+        "keyManagement.videoSourceError_msg": "We could not start the video stream from your camera.",
         "keyManagement.waitingForVideo_msg": "waiting for video ...",
         "keywords_label": "Keywords",
 		"knowledgebase_label": "Knowledgebase",

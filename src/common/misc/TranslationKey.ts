@@ -854,6 +854,7 @@ export type TranslationKeyType =
 	| "keyManagement.unverifiedRecipient_msg"
 	| "keyManagement.verificationPool_label"
 	| "keyManagement.verifyMailAddress_action"
+	| "keyManagement.videoSourceError_msg"
 	| "keyManagement.waitingForVideo_msg"
 	| "keywords_label"
 	| "knowledgebase_label"
