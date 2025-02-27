@@ -47,6 +47,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 			case "video_source_error": {
 				title = lang.get("keyManagement.verificationErrorTitle_label")
 				subTitle = lang.get("keyManagement.videoSourceError_msg")
+				break
 			}
 			default: {
 				break
