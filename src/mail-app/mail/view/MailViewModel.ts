@@ -606,7 +606,6 @@ export class MailViewModel {
 
 			let selectedFolder = this.getFolder()
 			if (selectedFolder != null && isSameId(importMailState.targetFolder, selectedFolder?._id)) {
-				const listModelOfImport = this.listModelForFolder(getElementId(selectedFolder))
 				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
 					return listModelOfImport.handleEntityUpdate({
 						instanceId: elementIdPart(importedMailSetEntry._id),
