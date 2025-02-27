@@ -18,6 +18,10 @@ import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 
+export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "qr_code_mistmatch" | "camera_not_found" | "unknown"
+
+export type GoToErrorPageHandler = (et: QrCodePageErrorType) => void
+
 enum QrCameraState {
 	STOPPED,
 	PERMISSION_CHECK,
@@ -29,14 +33,14 @@ enum QrCameraState {
 type VerificationByQrCodePageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
-	goToErrorPage: () => void
+	goToErrorPage: GoToErrorPageHandler
 }
 
 export class VerificationByQrCodeInputPage implements Component<VerificationByQrCodePageAttrs> {
 	qrVideo: HTMLVideoElement | null = null
 	qrMediaStream: MediaStream | null = null
 	qrCameraState: QrCameraState = QrCameraState.STOPPED
-	goToErrorPage: (() => void) | null = null
+	goToErrorPage: GoToErrorPageHandler | null = null
 
 	oncreate(vnode: VnodeDOM<VerificationByQrCodePageAttrs>): any {
 		this.requestCameraPermission(vnode.attrs.model).then((r) => m.redraw())
@@ -143,6 +147,10 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 						} else if (e instanceof DOMException && e.name === "NotAllowedError") {
 							this.cleanupVideo()
 							this.qrCameraState = QrCameraState.PERMISSION_DENIED
+							this.goToErrorPage?.("camera_permission_denied")
+							m.redraw()
+						} else if (e instanceof DOMException && e.name === "NotFoundError" && e.message === "Requested device not found") {
+							this.goToErrorPage?.("camera_not_found")
 							m.redraw()
 						} else {
 							throw e
@@ -242,7 +250,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 						this.cleanupVideo()
 
 						if (model.result !== KeyVerificationResultType.QR_OK) {
-							this.goToErrorPage?.()
+							this.goToErrorPage?.(this.resultToErrorType(model.result))
 						}
 
 						m.redraw()
@@ -256,6 +264,21 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				this.runQrScannerTick(video, canvas, context2d, model)
 			}
 		})
+	}
+
+	resultToErrorType(kr: KeyVerificationResultType | undefined): QrCodePageErrorType {
+		switch (kr) {
+			case KeyVerificationResultType.QR_FINGERPRINT_MISMATCH: {
+				return "qr_code_mistmatch"
+			}
+			case KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND: {
+				return "email_not_found"
+			}
+			case KeyVerificationResultType.QR_MALFORMED_PAYLOAD: {
+				return "malformed_qr"
+			}
+		}
+		return "unknown"
 	}
 
 	async requestCameraPermission(model: KeyVerificationModel): Promise<void> {
