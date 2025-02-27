@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2025-02-18T14:59:58Z",
+	"updated_at": "2025-02-27T04:53:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1402,8 +1402,8 @@ export default {
 		"quit_action": "Pechar sesión",
 		"rateAppStore_action": "Valorar na App Store",
 		"rateGooglePlay_action": "Valorar en Google Play",
-		"ratingExplanation_msg": "Tanto se adoras Tuta como se cres que podemos mellorar, fáinolo saber!",
-		"ratingHowAreWeDoing_title": "Como che gusta Tuta?",
+		"ratingExplanation_msg": "Tanto se adoras Tuta como se cres que podemos mellorar, fáinolo saber.",
+		"ratingHowAreWeDoing_title": "A túa opinión é importante!",
 		"ratingLoveIt_label": "Adoro!",
 		"ratingNeedsWork_label": "Precisa mellorar",
 		"readResponse_action": "Ler resposta",
