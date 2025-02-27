@@ -25,8 +25,9 @@ export class KeyVerificationModel {
 		return null // null means OK
 	}
 
-	public async loadFingerprint(source: KeyVerificationSourceOfTruth) {
-		this.publicKeyFingerprint = assertNotNull(await this.keyVerificationFacade.getFingerprint(this.mailAddress, source))
+	public async loadFingerprintFromPublicKeyService(mailAddress: string) {
+		this.publicKeyFingerprint = await this.keyVerificationFacade.getFingerprint(mailAddress, KeyVerificationSourceOfTruth.PublicKeyService)
+		this.mailAddress = mailAddress
 	}
 
 	public getFingerprint(): string {

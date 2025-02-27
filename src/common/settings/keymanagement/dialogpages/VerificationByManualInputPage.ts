@@ -11,6 +11,7 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import { KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
+import { debounce } from "@tutao/tutanota-utils"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -20,6 +21,12 @@ type VerificationByTextPageAttrs = {
 function isFingerprintMissing(model: KeyVerificationModel): boolean {
 	return model.getFingerprint() === ""
 }
+
+const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
+	const result = await model.loadFingerprintFromPublicKeyService(mailAddress)
+	m.redraw()
+	return result
+})
 
 export class VerificationByManualInputPage implements Component<VerificationByTextPageAttrs> {
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
@@ -54,14 +61,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					oninput: async (newValue) => {
 						model.mailAddress = newValue
 
-						if (model.validateMailAddress(model.mailAddress) == null) {
+						if (model.validateMailAddress(newValue) == null) {
 							try {
-								await model.loadFingerprint(KeyVerificationSourceOfTruth.PublicKeyService)
+								await debouncedFingerprintRequest(model, newValue)
 							} catch (e) {
-								// TODO recipient not found, maybe?
+								console.error("error while trying to fetch the public key service: ", e)
 							}
 						}
-						m.redraw() // otherwise we get a very noticeable delay
 					},
 				}),
 			),
