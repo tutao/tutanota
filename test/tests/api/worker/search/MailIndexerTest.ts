@@ -12,7 +12,12 @@ import {
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
 import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { _getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
+import {
+	_getCurrentIndexTimestamp,
+	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
+	MailIndexer,
+	MboxIndexData,
+} from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
 import {
 	BodyTypeRef,
 	EncryptedMailAddressTypeRef,
@@ -30,15 +35,18 @@ import {
 	MailFolder,
 	MailFolderRefTypeRef,
 	MailFolderTypeRef,
+	MailSetEntry,
+	MailSetEntryTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { mock, spy } from "@tutao/tutanota-test-utils"
 import { browserDataStub, createTestEntity, makeCore } from "../../../TestUtils.js"
-import { downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, downcast, getDayShifted, getStartOfDay, neverNull } from "@tutao/tutanota-utils"
 import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
 import { createSearchIndexDbStub } from "./DbStub.js"
 import {
+	constructMailSetEntryId,
 	getElementId,
 	getListId,
 	LEGACY_BCC_RECIPIENTS_ID,
@@ -51,15 +59,16 @@ import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { LocalTimeDateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
-import { ExposedCacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { object, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { typeModels } from "../../../../../src/common/api/entities/tutanota/TypeModels.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { BulkMailLoader } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
+import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
+import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -91,7 +100,7 @@ o.spec("MailIndexer test", () => {
 	o.beforeEach(function () {
 		entityMock = new EntityRestClientMock()
 		entityClient = new EntityClient(entityMock)
-		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock), object() satisfies ExposedCacheStorage)
+		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock))
 		dateProvider = new LocalTimeDateProvider()
 		mailFacade = object()
 	})
@@ -228,12 +237,12 @@ o.spec("MailIndexer test", () => {
 	})
 	o("processNewMail", function () {
 		const [mailListId, mailElementId] = ["mail-list-id", "mail-element-id"]
-		const { mail, mailDetailsBlob, files } = createMailInstances(
-			mailFacade,
-			[mailListId, mailElementId],
-			["details-list-id", "details-id"],
-			["file-list-id", "file-id"],
-		)
+		const { mail, mailDetailsBlob, files } = createMailInstances(mailFacade, {
+			mailSetEntryId: ["mailSetListId", "mailListEntryId"],
+			mailId: [mailListId, mailElementId],
+			mailDetailsBlobId: ["details-list-id", "details-id"],
+			attachmentIds: [["file-list-id", "file-id"]],
+		})
 		let keyToIndexEntries = new Map()
 		let event: EntityUpdate = {
 			instanceListId: mailListId,
@@ -474,11 +483,13 @@ o.spec("MailIndexer test", () => {
 	}
 
 	o.spec("_indexMailLists", function () {
+		// now = 2019-04-04T22:00:00.000Z
+		// rangeEnd = "2019-03-07T23:00:00.000Z"
 		// now                                  now - 28d      now - 29d       now - 30d
 		//  |--------------------------------------|---------------|---------------|
 		//  rangeStart                           rangeEnd      rangeEnd2          rangeEndShifted2Days
-		//                     m4    m3        m2     m1                            m0
-		const rangeStart = 1554415200000
+		//                           m3      m4  m2     m1                            m0
+		const rangeStart = 1554415200000 // "2019-04-04T22:00:00.000Z"
 		// Simulating time zone changes by adding/subtracting one hour
 		const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime() + 60 * 60 * 1000
 		const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime() - 60 * 60 * 1000
@@ -486,7 +497,22 @@ o.spec("MailIndexer test", () => {
 		const mailGroup = "mail-group-id"
 		let mailbox: MailBox
 		let folder1: MailFolder, folder2: MailFolder
-		let mail0, details0, mail1, details1, mail2, details2, files, mail3, details3, mail4, details4
+		let mail0,
+			details0,
+			mailEntry0,
+			mail1,
+			details1,
+			mailEntry1,
+			mail2,
+			details2,
+			mailEntry2,
+			files,
+			mail3,
+			details3,
+			mailEntry3,
+			mail4,
+			details4,
+			mailEntry4
 		let transaction, core, indexer, db
 		o.beforeEach(() => {
 			mailbox = createTestEntity(MailBoxTypeRef)
@@ -499,48 +525,88 @@ o.spec("MailIndexer test", () => {
 			mailbox.folders = folderRef
 			folder1 = _addFolder(mailbox)
 			folder2 = _addFolder(mailbox)
-			;({ mail: mail0, mailDetailsBlob: details0 } = createMailInstances(
-				mailFacade,
-				[mailBagMailListId, timestampToGeneratedId(rangeEndShifted2Days, 1)],
-				["details-list-id", entityMock.getNextId()],
-			))
-			;({ mail: mail1, mailDetailsBlob: details1 } = createMailInstances(
-				mailFacade,
-				[mailBagMailListId, timestampToGeneratedId(rangeEnd - 1, 1)],
-				["details-list-id", entityMock.getNextId()],
-			))
+
+			// "2019-03-05T23:00:00.000Z" a.k.a Match 6th
+			const mail0Id = timestampToGeneratedId(rangeEndShifted2Days, 1)
+			;({
+				mail: mail0,
+				mailDetailsBlob: details0,
+				mailSetEntry: mailEntry0,
+			} = createMailInstances(mailFacade, {
+				mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(rangeEndShifted2Days), mail0Id)],
+				mailId: [mailBagMailListId, mail0Id],
+				mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+			}))
+
+			// "2019-03-07T22:59:00.000Z" a.k.a one minute before March 8th
+			const mail1Timestamp = rangeEnd - 60 * 60 * 1000
+			const mail1Id = timestampToGeneratedId(mail1Timestamp, 1)
+			;({
+				mail: mail1,
+				mailDetailsBlob: details1,
+				mailSetEntry: mailEntry1,
+			} = createMailInstances(mailFacade, {
+				mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail1Timestamp), mail1Id)],
+				mailId: [mailBagMailListId, mail1Id],
+				mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+			}))
+
+			// "2019-03-07T23:01:00.000Z" a.k.a one second after March 8th
+			const mail2Timestamp = rangeEnd + 60 * 60 * 1000
+			const mail2Id = timestampToGeneratedId(mail2Timestamp, 1)
 			;({
 				mail: mail2,
 				mailDetailsBlob: details2,
+				mailSetEntry: mailEntry2,
 				files,
-			} = createMailInstances(
-				mailFacade,
-				[mailBagMailListId, timestampToGeneratedId(rangeEnd + 1, 1)],
-				["details-list-id", entityMock.getNextId()],
-				["attachment-listId", entityMock.getNextId()],
-				["attachment-listId1", entityMock.getNextId()],
-			))
-			;({ mail: mail3, mailDetailsBlob: details3 } = createMailInstances(
-				mailFacade,
-				[mailBagMailListId, timestampToGeneratedId(rangeEnd + 3 * 24 * 60 * 60 * 1000, 1)],
-				["details-list-id", entityMock.getNextId()],
-			))
-			;({ mail: mail4, mailDetailsBlob: details4 } = createMailInstances(
-				mailFacade,
-				[mailBagMailListId, timestampToGeneratedId(rangeEnd + 5, 1)],
-				["details-list-id", entityMock.getNextId()],
-			))
+			} = createMailInstances(mailFacade, {
+				mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail2Timestamp), mail2Id)],
+				mailId: [mailBagMailListId, mail2Id],
+				mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+				attachmentIds: [
+					["attachment-listId", entityMock.getNextId()],
+					["attachment-listId1", entityMock.getNextId()],
+				],
+			}))
+
+			// "2019-03-10T23:00:00.000Z" a.k.a March 11th
+			const mail3Timestamp = rangeEnd + 3 * 24 * 60 * 60 * 1000
+			const mail3Id = timestampToGeneratedId(mail3Timestamp, 1)
+			;({
+				mail: mail3,
+				mailDetailsBlob: details3,
+				mailSetEntry: mailEntry3,
+			} = createMailInstances(mailFacade, {
+				mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail3Timestamp), mail3Id)],
+				mailId: [mailBagMailListId, mail3Id],
+				mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+			}))
+
+			// "2019-03-07T23:05:00.000Z" a.k.a 5 seconds after March 8th
+			const mail4Timestamp = rangeEnd + 5 * 60 * 60 * 1000
+			const mail4Id = timestampToGeneratedId(mail4Timestamp, 1)
+			;({
+				mail: mail4,
+				mailDetailsBlob: details4,
+				mailSetEntry: mailEntry4,
+			} = createMailInstances(mailFacade, {
+				mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail4Timestamp), mail4Id)],
+				mailId: [mailBagMailListId, mail4Id],
+				mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+			}))
+
 			entityMock.addBlobInstances(details0, details1, details2, details3, details4)
 			entityMock.addElementInstances(mailbox)
 			entityMock.addListInstances(mail0, mail1, mail2, mail3, mail4, folder1, folder2, ...files)
+			entityMock.addListInstances(mailEntry0, mailEntry1, mailEntry2, mailEntry3, mailEntry4)
 			transaction = createSearchIndexDbStub().createTransaction()
 			db = {
 				key: aes256RandomKey(),
 				iv: fixedIv,
 				dbFacade: {
 					createTransaction: () => Promise.resolve(transaction),
-				},
-			} as any
+				} as Partial<DbFacade> as DbFacade,
+			} as Partial<Db>
 			core = mock(
 				new IndexerCore(
 					db,
@@ -572,7 +638,7 @@ o.spec("MailIndexer test", () => {
 			)
 			o(core.writeIndexUpdate.callCount).equals(1)
 			const [mailboxesData1, indexUpdate1] = core.writeIndexUpdate.args
-			o(indexUpdate1.create.encInstanceIdToElementData.size).equals(3)
+			o(indexUpdate1.create.encInstanceIdToElementData.size).equals(3)("encInstanceIdToElementData size")
 
 			_checkMailsInIndexUpdate(db, indexUpdate1, mail2, mail3, mail4)
 
@@ -610,9 +676,9 @@ o.spec("MailIndexer test", () => {
 		})
 		o("one mailbox extend till end", async function () {
 			transaction.put(GroupDataOS, mailGroup, {
-				indexTimestamp: rangeEnd2,
+				indexTimestamp: rangeEnd2, // "2019-03-06T22:00:00.000Z" a.k.a
 			})
-			// next index update - finish indexing
+			// next index update - finish indexing "2019-03-05T22:00:00.000Z"
 			const rangeEnd3 = getDayShifted(new Date(rangeEnd2), -1).getTime()
 			await indexer._indexMailLists(
 				[
@@ -822,6 +888,91 @@ o.spec("MailIndexer test", () => {
 			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
 		})
 	})
+
+	o.spec("_indexMailListsInTimeBatches", () => {
+		o.test("processed in fixed batches", async () => {
+			const loadMailDataRequests = 5
+			const totalMails = MAIL_INDEXER_CHUNK * loadMailDataRequests
+			const rangeStart = DAY_IN_MILLIS * totalMails
+			const rangeEnd = 0
+
+			const core = makeCore()
+			core.encryptSearchIndexEntries = () => {}
+			core.writeIndexUpdate = () => Promise.resolve()
+
+			const db: Db = object()
+			const infoMessageHandler: InfoMessageHandler = object()
+			const bulkMailLoaderMock: BulkMailLoader = object()
+			const entityClient: EntityClient = object()
+			const dateProvider: DateProvider = object()
+			const mailFacade: MailFacade = object()
+			const initialIndexUpdate = _createNewIndexUpdate(object())
+
+			const lotsOfMails: Mail[] = []
+			const lotsOfMailDetailsAndMails: MailWithMailDetails[] = []
+			for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
+				const _id: IdTuple = ["helloooo", "I'm a mail!"]
+				const mail: Mail = createTestEntity(MailTypeRef, {
+					_id,
+				})
+				lotsOfMails.push(mail)
+				lotsOfMailDetailsAndMails.push({
+					mail,
+					mailDetails: createTestEntity(MailDetailsTypeRef, {
+						recipients: createTestEntity(RecipientsTypeRef, {
+							toRecipients: [],
+							ccRecipients: [],
+							bccRecipients: [],
+						}),
+						body: createTestEntity(BodyTypeRef, {
+							compressedText: "tiiiiiiiiiiiiiny",
+						}),
+					}),
+				})
+			}
+
+			// one mail per day
+			when(bulkMailLoaderMock.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenResolve([
+				createTestEntity(MailSetEntryTypeRef),
+			])
+
+			when(bulkMailLoaderMock.loadMailsFromMultipleLists(matchers.anything())).thenResolve(lotsOfMails)
+			when(bulkMailLoaderMock.loadMailDetails(matchers.anything())).thenResolve(lotsOfMailDetailsAndMails)
+			when(bulkMailLoaderMock.loadAttachments(matchers.anything())).thenResolve([]) // doesn't matter for this test
+
+			const indexer = new MailIndexer(core, db, infoMessageHandler, () => bulkMailLoaderMock, entityClient, dateProvider, mailFacade)
+
+			const mboxData: MboxIndexData[] = [
+				{
+					mailSetListDatas: [
+						{
+							listId: "helloooo",
+							lastLoadedId: null,
+							loadedButUnusedEntries: [],
+							loadedCompletely: false,
+						},
+					],
+					newestTimestamp: rangeStart,
+					ownerGroup: "hi I'm an owner group",
+				},
+			]
+
+			let progress = 0
+			const progressMonitor: ProgressMonitor = object()
+			when(progressMonitor.workDone(matchers.anything())).thenDo((amt: number) => {
+				progress += amt
+			})
+
+			await indexer._indexMailListsInTimeBatches(mboxData, [rangeStart, rangeEnd], initialIndexUpdate, progressMonitor, bulkMailLoaderMock)
+
+			o(progress).equals(rangeStart - rangeEnd)
+			o(core._stats.mailcount).equals(totalMails)
+			verify(bulkMailLoaderMock.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: totalMails })
+			verify(bulkMailLoaderMock.loadMailDetails(matchers.anything()), { times: loadMailDataRequests })
+			verify(bulkMailLoaderMock.loadAttachments(matchers.anything()), { times: loadMailDataRequests })
+			verify(bulkMailLoaderMock.loadMailsFromMultipleLists(matchers.anything()), { times: loadMailDataRequests })
+		})
+	})
 })
 
 function createUpdate(type: OperationType, listId: Id, instanceId: Id, eventId?: Id) {
@@ -875,7 +1026,7 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	} as any
 	const infoMessageHandler = object<InfoMessageHandler>()
 	const entityClient = new EntityClient(entityMock)
-	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, null)
+	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient)
 	const indexer = mock(
 		new MailIndexer(core, db, infoMessageHandler, () => bulkMailLoader, entityClient, new LocalTimeDateProvider(), null as any),
 		(mock) => {
@@ -946,13 +1097,18 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 		},
 	)
 	let mailFacade: MailFacade = object()
-	const { mail, mailDetailsBlob } = createMailInstances(mailFacade, ["new-mail-list", mailId], ["details-list-id", "details-id"])
+	const mailSetEntryId = ["mailSetListId", "mailSetEntryId"] as const
+	const { mail, mailDetailsBlob } = createMailInstances(mailFacade, {
+		mailSetEntryId: mailSetEntryId,
+		mailId: ["new-mail-list", mailId],
+		mailDetailsBlobId: ["details-list-id", "details-id"],
+	})
 	mail.state = mailState
 	const entityMock = new EntityRestClientMock()
 	entityMock.addBlobInstances(mailDetailsBlob)
 	entityMock.addListInstances(mail)
 	const entityClient = new EntityClient(entityMock)
-	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, null)
+	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient)
 	return mock(new MailIndexer(core, db, null as any, () => bulkMailLoader, entityClient, new LocalTimeDateProvider(), mailFacade), (mocked) => {
 		mocked.processNewMail = spy(mocked.processNewMail.bind(mocked))
 		mocked.processMovedMail = spy(mocked.processMovedMail.bind(mocked))
@@ -962,14 +1118,27 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 
 function createMailInstances(
 	mailFacade: MailFacade,
-	mailId: IdTuple,
-	mailDetailsBlobId: IdTuple,
-	...attachmentIds: Array<IdTuple>
+	{
+		mailSetEntryId,
+		mailId,
+		mailDetailsBlobId,
+		attachmentIds = [],
+	}: {
+		mailSetEntryId: IdTuple
+		mailId: IdTuple
+		mailDetailsBlobId: IdTuple
+		attachmentIds?: Array<IdTuple>
+	},
 ): {
 	mail: Mail
 	mailDetailsBlob: MailDetailsBlob
+	mailSetEntry: MailSetEntry
 	files: Array<TutanotaFile>
 } {
+	const mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
+		_id: mailSetEntryId,
+		mail: mailId,
+	})
 	let mail = createTestEntity(MailTypeRef, {
 		_id: mailId,
 		_ownerEncSessionKey: new Uint8Array(),
@@ -992,6 +1161,7 @@ function createMailInstances(
 	return {
 		mail,
 		mailDetailsBlob,
+		mailSetEntry,
 		files: files,
 	}
 }

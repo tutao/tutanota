@@ -1,6 +1,7 @@
 import {
 	FULL_INDEXED_TIMESTAMP,
 	ImportStatus,
+	isFolder,
 	MailSetKind,
 	MailState,
 	NOTHING_INDEXED_TIMESTAMP,
@@ -19,12 +20,26 @@ import {
 	MailDetailsDraftTypeRef,
 	MailFolder,
 	MailFolderTypeRef,
+	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
-import { assertNotNull, first, groupBy, isEmpty, isNotNull, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	clamp,
+	DAY_IN_MILLIS,
+	findAllAndRemove,
+	first,
+	groupBy,
+	isEmpty,
+	isNotNull,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+} from "@tutao/tutanota-utils"
 import {
 	deconstructMailSetEntryId,
 	elementIdPart,
@@ -37,6 +52,7 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	_createNewIndexUpdate,
+	benchmarkFunction,
 	encryptIndexKeyBase64,
 	filterMailMemberships,
 	getPerformanceTimestamp,
@@ -59,11 +75,13 @@ import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
-import { BulkMailLoader } from "./BulkMailLoader.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-const MAIL_INDEX_BATCH_INTERVAL = 1000 * 60 * 60 * 24 // one day
+const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
+
+const TAG = "MailIndexer"
 
 export class MailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
@@ -104,6 +122,7 @@ export class MailIndexer {
 		this._dateProvider = dateProvider
 	}
 
+	/** @private visibleForTesting */
 	createMailIndexEntries(mail: Mail, mailDetails: MailDetails, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
 
@@ -155,6 +174,7 @@ export class MailIndexer {
 		return keyToIndexEntries
 	}
 
+	/** @private visibleForTesting */
 	processNewMail(mailId: IdTuple): Promise<{
 		mail: Mail
 		keyToIndexEntries: Map<string, SearchIndexEntry[]>
@@ -217,6 +237,7 @@ export class MailIndexer {
 			)
 	}
 
+	/** @private visibleForTesting */
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId, this._db.iv)
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
@@ -391,7 +412,8 @@ export class MailIndexer {
 		}
 	}
 
-	_indexMailLists(
+	/** @private visibleForTesting */
+	async _indexMailLists(
 		mailBoxes: Array<{
 			mbox: MailBox
 			newestTimestamp: number
@@ -415,121 +437,101 @@ export class MailIndexer {
 
 		const indexLoader = this.bulkLoaderFactory()
 
-		return promiseMap(mailBoxes, (mBoxData) => {
-			return this._loadMailListIds(mBoxData.mbox).then((mailListIds) => {
-				return {
-					mailListIds,
-					newestTimestamp: mBoxData.newestTimestamp,
-					ownerGroup: neverNull(mBoxData.mbox._ownerGroup),
-				}
-			})
-		}).then((mailboxData) => this._indexMailListsInTimeBatches(mailboxData, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader))
+		const mailboxIndexDatas: Array<MboxIndexData> = await promiseMap(mailBoxes, async (mailboxData) => {
+			const mailSetListIds = await this.loadMailFolderListIds(mailboxData.mbox)
+			return {
+				mailSetListDatas: mailSetListIds.map((listId) => {
+					return { loadedCompletely: false, lastLoadedId: null, loadedButUnusedEntries: [], listId }
+				}),
+				newestTimestamp: mailboxData.newestTimestamp,
+				ownerGroup: assertNotNull(mailboxData.mbox._ownerGroup),
+			}
+		})
+		return this._indexMailListsInTimeBatches(mailboxIndexDatas, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader)
 	}
 
-	_processedEnough(indexUpdate: IndexUpdate): boolean {
+	private processedEnoughForIndexWrite(indexUpdate: IndexUpdate): boolean {
 		return indexUpdate.create.encInstanceIdToElementData.size > 500
 	}
 
-	_indexMailListsInTimeBatches(
-		dataPerMailbox: Array<MboxIndexData>,
-		timeRange: TimeRange,
+	// @VisibleForTesting
+	async _indexMailListsInTimeBatches(
+		mailboxIndexDatas: readonly MboxIndexData[],
+		[rangeStart, rangeEnd]: TimeRange,
 		indexUpdate: IndexUpdate,
 		progress: ProgressMonitor,
 		indexLoader: BulkMailLoader,
 	): Promise<void> {
-		const [rangeStart, rangeEnd] = timeRange
-		let batchEnd = rangeStart - MAIL_INDEX_BATCH_INTERVAL
+		const mailboxesToWrite = mailboxIndexDatas.filter((mboxData) => rangeEnd < mboxData.newestTimestamp)
 
-		// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
-		if (batchEnd < rangeEnd) {
-			batchEnd = rangeEnd
-		}
+		let mailSetEntriesToProcess: MailSetEntry[] = []
+		let currentIndexUpdate = indexUpdate
+		let batchStart = rangeStart
 
-		const mailboxesToWrite = dataPerMailbox.filter((mboxData) => batchEnd < mboxData.newestTimestamp)
-		const batchRange = [rangeStart, batchEnd] as TimeRange
+		while (batchStart > rangeEnd && !isEmpty(mailboxesToWrite)) {
+			// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
+			const batchEnd = clamp(batchStart - MAIL_INDEX_BATCH_INTERVAL, rangeEnd, batchStart)
+			const timeRange: TimeRange = [batchStart, batchEnd]
+			const finalIteration = batchEnd <= rangeEnd
 
-		// rangeStart is what we have indexed at the previous step. If it's equals to rangeEnd then we're done.
-		// If it's less then we overdid a little bit but we've covered the range and we will write down rangeStart so
-		// we will continue from it next time.
-		if (rangeStart <= rangeEnd) {
-			// all ranges have been processed
-			const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
-				groupId: data.ownerGroup,
-				indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : rangeStart,
-			}))
-			return this._writeIndexUpdate(indexTimestampPerGroup, indexUpdate).then(() => {
-				progress.workDone(rangeStart - batchEnd)
+			const mailsetLoadTime = await benchmarkFunction(async () => {
+				const allMails: MailSetEntry[] = (
+					await promiseMap(
+						mailboxesToWrite,
+						async (mailbox: MboxIndexData) => {
+							const mails = await promiseMap(mailbox.mailSetListDatas, (data) => indexLoader.loadMailSetEntriesForTimeRange(data, timeRange), {
+								concurrency: 5,
+							})
+							return mails.flat()
+						},
+						{ concurrency: 2 },
+					)
+				).flat()
+				mailSetEntriesToProcess.push(...allMails)
 			})
-		}
+			this._core._stats.preparingTime += mailsetLoadTime
 
-		return this._prepareMailDataForTimeBatch(mailboxesToWrite, batchRange, indexUpdate, indexLoader).then(() => {
-			const nextRange = [batchEnd, rangeEnd] as TimeRange
-
-			if (this._processedEnough(indexUpdate)) {
-				// only write to database if we have collected enough entities
-				const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
-					groupId: data.ownerGroup,
-					indexTimestamp: data.mailListIds.length === 0 ? FULL_INDEXED_TIMESTAMP : batchEnd,
-				}))
-				return this._writeIndexUpdate(indexTimestampPerGroup, indexUpdate).then(() => {
-					progress.workDone(rangeStart - batchEnd)
-
-					const newIndexUpdate = _createNewIndexUpdate(indexUpdate.typeInfo)
-
-					return this._indexMailListsInTimeBatches(dataPerMailbox, nextRange, newIndexUpdate, progress, indexLoader)
+			// If we've reached critical mass (MAIL_INDEXER_CHUNK) or it's the last iteration, process mails.
+			if (finalIteration || mailSetEntriesToProcess.length >= MAIL_INDEXER_CHUNK) {
+				const processTime = await benchmarkFunction(async () => {
+					const mailCount = await this.processIndexMails(mailSetEntriesToProcess, currentIndexUpdate, indexLoader)
+					this._core._stats.mailcount += mailCount
 				})
+				this._core._stats.preparingTime += processTime
+
+				mailSetEntriesToProcess = []
+
+				if (finalIteration || this.processedEnoughForIndexWrite(currentIndexUpdate)) {
+					// only write to database if we have collected enough entities, or it's the last iteration
+					const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
+						groupId: data.ownerGroup,
+						indexTimestamp: this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : batchEnd,
+					}))
+					await this.writeIndexUpdate(indexTimestampPerGroup, currentIndexUpdate)
+					currentIndexUpdate = _createNewIndexUpdate(currentIndexUpdate.typeInfo)
+
+					// If there aren't any more mails in a mailbox that we can retrieve, we're done with those.
+					findAllAndRemove(mailboxesToWrite, (data) => this.isMailboxLoadedCompletely(data))
+				}
 			} else {
-				progress.workDone(rangeStart - batchEnd)
-				return this._indexMailListsInTimeBatches(dataPerMailbox, nextRange, indexUpdate, progress, indexLoader)
+				// We don't want to keep going if we've cancelled before reaching our threshold
+				this.assertNotCancelled("indexMailListsInTimeBatches")
 			}
-		})
+
+			progress.workDone(batchStart - batchEnd)
+			batchStart = batchEnd
+		}
 	}
 
-	/**
-	 * @return Number of processed emails?
-	 * @private
-	 */
-	async _prepareMailDataForTimeBatch(
-		mboxDataList: Array<MboxIndexData>,
-		timeRange: TimeRange,
-		indexUpdate: IndexUpdate,
-		indexLoader: BulkMailLoader,
-	): Promise<void> {
-		const startTimeLoad = getPerformanceTimestamp()
-		return promiseMap(
-			mboxDataList,
-			(mboxData) => {
-				return promiseMap(
-					mboxData.mailListIds.slice(),
-					async (listId) => {
-						// We use caching here because we may load same emails twice
-						const { elements: mails, loadedCompletely } = await indexLoader.loadMailsInRangeWithCache(listId, timeRange)
-						// If we loaded mail list completely, don't try to load from it anymore
-						if (loadedCompletely) {
-							mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
-						}
-
-						this._core._stats.mailcount += mails.length
-						// Remove all processed entities from cache
-						await Promise.all(mails.map((m) => indexLoader.removeFromCache(m._id)))
-						return this._processIndexMails(mails, indexUpdate, indexLoader)
-					},
-					{
-						concurrency: 2,
-					},
-				)
-			},
-			{
-				concurrency: 5,
-			},
-		).then(() => {
-			this._core._stats.preparingTime += getPerformanceTimestamp() - startTimeLoad
-		})
+	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
+		return data.mailSetListDatas.every((data) => data.loadedCompletely && isEmpty(data.loadedButUnusedEntries))
 	}
 
-	async _processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: BulkMailLoader): Promise<number> {
-		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
+	private async processIndexMails(mailSetEntries: Array<MailSetEntry>, indexUpdate: IndexUpdate, indexLoader: BulkMailLoader): Promise<number> {
+		this.assertNotCancelled("processIndexMails")
+		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries)
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
+		console.log(TAG, `processIndexMails ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		const mailsWithMailDetails = await indexLoader.loadMailDetails(mailsWithoutErros)
 		const files = await indexLoader.loadAttachments(mailsWithoutErros)
 		const mailsWithMailDetailsAndFiles = mailsWithMailDetails
@@ -546,17 +548,24 @@ export class MailIndexer {
 
 			this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 		}
+		console.log(TAG, `processIndexMails done ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		return mailsWithMailDetailsAndFiles.length
 	}
 
-	_writeIndexUpdate(
+	private assertNotCancelled(where: string) {
+		if (this._indexingCancelled) throw new CancelledError(`cancelled indexing in ${where}`)
+	}
+
+	private async writeIndexUpdate(
 		dataPerGroup: Array<{
 			groupId: Id
 			indexTimestamp: number
 		}>,
 		indexUpdate: IndexUpdate,
 	): Promise<void> {
-		return this._core.writeIndexUpdate(dataPerGroup, indexUpdate)
+		console.log(TAG, "writeIndexUpdate")
+		await this._core.writeIndexUpdate(dataPerGroup, indexUpdate)
+		console.log(TAG, "writeIndexUpdate done")
 	}
 
 	updateCurrentIndexTimestamp(user: User): Promise<void> {
@@ -585,12 +594,14 @@ export class MailIndexer {
 	}
 
 	/**
-	 * Provides all mail list ids of the given mailbox
+	 * Provides all mail set list ids of the given mailbox
 	 */
-	async _loadMailListIds(mailbox: MailBox): Promise<Id[]> {
-		return [mailbox.currentMailBag!, ...mailbox.archivedMailBags].map((mailbag) => mailbag.mails)
+	private async loadMailFolderListIds(mailbox: MailBox): Promise<Id[]> {
+		const mailSets = await this.entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
+		return mailSets.filter(isFolder).map((set) => set.entries)
 	}
 
+	/** @private visibleForTesting */
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
 		return this.entityClient
 			.load(MailboxGroupRootTypeRef, mailGroup.group)
@@ -668,7 +679,6 @@ export class MailIndexer {
 	 * @param groupId
 	 * @param batchId
 	 * @param indexUpdate which will be populated with operations
-	 * @returns {Promise<*>} Indication that we're done.
 	 */
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
@@ -716,7 +726,7 @@ export class MailIndexer {
 	}
 }
 
-// export just for testing
+// visibleForTesting
 export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): number {
 	let currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 	for (const [index, t] of groupIndexTimestamps.entries()) {
@@ -739,8 +749,16 @@ export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): numbe
 }
 
 type TimeRange = [number, number]
-type MboxIndexData = {
-	mailListIds: Array<Id>
+
+interface MailSetListData {
+	listId: Id
+	lastLoadedId: Id | null
+	loadedButUnusedEntries: MailSetEntry[]
+	loadedCompletely: boolean
+}
+
+export type MboxIndexData = {
+	mailSetListDatas: MailSetListData[]
 	newestTimestamp: number
 	ownerGroup: Id
 }

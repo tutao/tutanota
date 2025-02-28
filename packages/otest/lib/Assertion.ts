@@ -64,7 +64,7 @@ export class Assertion<T> {
 	satisfies(check: (value: T) => { pass: false; message: string } | { pass: true }): AssertionDescriber {
 		const result = check(this.actual)
 		if (!result.pass) {
-			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
+			return this.addError(`expected to satisfy condition: "${result.message}"`)
 		}
 		return noop
 	}
@@ -75,7 +75,7 @@ export class Assertion<T> {
 	async asyncSatisfies(check: (value: T) => Promise<{ pass: boolean; message: string }>): Promise<AssertionDescriber> {
 		const result = await check(this.actual)
 		if (!result.pass) {
-			return this.addError(`expected "${asString(this.actual)}" to satisfy condition: "${result.message}"`)
+			return this.addError(`expected to satisfy condition: "${result.message}"`)
 		}
 		return noop
 	}
