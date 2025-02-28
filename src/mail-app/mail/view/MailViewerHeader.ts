@@ -745,9 +745,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail]),
 						icon: Icons.Folder,
 					})
+					// FIXME trahs/delete actions
 					actionButtons.push({
 						label: "delete_action",
-						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail._id], noOp),
 						icon: Icons.Trash,
 					})
 				} else {
@@ -800,9 +801,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						})
 					}
 
+					// FIXME trash/delete
 					actionButtons.push({
 						label: "delete_action",
-						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+						click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail._id], noOp),
 						icon: Icons.Trash,
 					})
 

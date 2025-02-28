@@ -21,6 +21,7 @@ import {
 	ConversationEntry,
 	ConversationEntryTypeRef,
 	Mail,
+	MailBox,
 	MailboxGroupRoot,
 	MailboxProperties,
 	MailFolder,
@@ -38,7 +39,7 @@ import {
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
 } from "../../../common/api/common/TutanotaConstants.js"
-import { CUSTOM_MIN_ID, elementIdPart, getElementId, getIds, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -299,14 +300,6 @@ export class MailModel {
 	}
 
 	/**
-	 * Moves all given mails which are assumed to be in the same folder
-	 * Caller must ensure that mails are only from one folder
-	 */
-	async moveMailsFromFolder(mails: readonly IdTuple[], sourceFolder: IdTuple, targetFolder: IdTuple): Promise<void> {
-		await this.mailFacade.moveMails(mails, targetFolder, sourceFolder)
-	}
-
-	/**
 	 * Move all given mails to the target folder kind in their respective mailbox(es)
 	 *
 	 * This will only work for mails in
@@ -318,23 +311,16 @@ export class MailModel {
 	}
 
 	/**
-	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
-	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
+	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
-		const mailsPerFolder = groupBy(mails, (mail) => {
-			return this.getMailFolderForMail(mail)?._id?.[1]
-		})
+	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple): Promise<void> {
+		const folderSystem = await this.getMailboxFoldersForId(listIdPart(targetFolder))
+		const sentFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))
+		await this.mailFacade.moveMails(mails, targetFolder, sentFolder._id)
+	}
 
-		for (const [folderId, mailsInFolder] of mailsPerFolder) {
-			const sourceMailFolder = this.getMailFolderForMail(mailsInFolder[0])
-
-			if (sourceMailFolder) {
-				await this.moveMailsFromFolder(getIds(mailsInFolder), sourceMailFolder._id, targetMailFolder._id)
-			} else {
-				console.log("Move mail: no mail folder for folder id", folderId)
-			}
-		}
+	async trashMails(mails: readonly IdTuple[]): Promise<void> {
+		await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH)
 	}
 
 	/**

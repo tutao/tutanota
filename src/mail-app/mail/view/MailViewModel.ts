@@ -24,7 +24,7 @@ import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { getMailSetKind, ImportStatus, MailSetKind, OperationType } from "../../../common/api/common/TutanotaConstants.js"
+import { getMailSetKind, ImportStatus, MailSetKind, OperationType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { WsConnectionState } from "../../../common/api/main/WorkerClient.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -46,7 +46,6 @@ import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 import { client } from "../../../common/misc/ClientDetector"
-import { moveMailsFromFolder } from "./MailGuiUtils"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -331,12 +330,25 @@ export class MailViewModel {
 	 * If ConversationInListView is active in the current folder, Ids of all mails in the conversation are returned
 	 * If not, only Id of the primary mail is returned
 	 */
-	async getActionableMails(mails: readonly Mail[]): Promise<ReadonlyArray<IdTuple>> {
+	async getActionableMails(mails: readonly Mail[]): Promise<readonly IdTuple[]> {
 		if (this.groupMailsByConversation()) {
 			return this.mailModel.resolveConversationsForMails(mails)
 		} else {
 			return mails.map((m) => m._id)
 		}
+	}
+
+	async getSelectedActionableMails(): Promise<readonly IdTuple[]> {
+		const mails = this.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return []
+		}
+		return await this.getActionableMails(mails)
+	}
+
+	currentFolderDeletesPermanently(): boolean {
+		const folder = this.getFolder()
+		return folder != null && (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM)
 	}
 
 	/**
@@ -647,7 +659,7 @@ export class MailViewModel {
 		}
 	}
 
-	async switchToFolder(folderType: Omit<MailSetKind, MailSetKind.CUSTOM>): Promise<void> {
+	async switchToFolder(folderType: SystemFolderType): Promise<void> {
 		const state = {}
 		this.currentShowTargetMarker = state
 		const mailboxDetail = assertNotNull(await this.getMailboxDetails())
@@ -724,16 +736,6 @@ export class MailViewModel {
 				throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
 			}
 		}
-	}
-
-	// FIXME figure out where this is supposed to be used
-	/**
-	 * When {@param currentMailSet} is a label, moves all mails in conversation with that label.
-	 * When {@param currentMailSet} is a folder, moves all conversation mails in that folder.
-	 */
-	async moveMailsFromMailSet(mailsToMove: readonly Mail[], currentMailSet: MailFolder, targetMailFolder: MailFolder): Promise<boolean> {
-		const actionableMails = await this.getActionableMails(mailsToMove)
-		return moveMailsFromFolder(this.mailboxModel, this.mailModel, actionableMails, currentMailSet, targetMailFolder)
 	}
 
 	onSingleSelection(mail: Mail) {

@@ -11,6 +11,7 @@ import { noOp } from "@tutao/tutanota-utils"
 
 export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
+	trashMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts: LabelsPopupOpts) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
@@ -39,7 +40,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			[
 				this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
 				this.forwardButton(attrs),
-				this.deleteButton(attrs),
+				this.deleteButton(attrs) ?? this.trashButton(attrs),
 				this.moveButton(attrs) ?? this.placeholder(),
 				this.moreButton(attrs),
 			],
@@ -130,6 +131,17 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			m(IconButton, {
 				title: "delete_action",
 				click: deleteMailsAction,
+				icon: Icons.DeleteForever,
+			})
+		)
+	}
+
+	private trashButton({ trashMailsAction }: MobileMailActionBarAttrs): Children {
+		return (
+			trashMailsAction &&
+			m(IconButton, {
+				title: "trash_action",
+				click: trashMailsAction,
 				icon: Icons.Trash,
 			})
 		)

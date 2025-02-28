@@ -65,15 +65,14 @@ import { MobileHeader, MobileHeaderMenuButton } from "../../../common/gui/Mobile
 import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import {
-	archiveMails,
 	getConversationTitle,
 	getMoveMailBounds,
 	LabelsPopupOpts,
-	moveToInbox,
-	promptAndDeleteMails,
 	showLabelsPopup,
 	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
+	simpleMoveToArchive,
+	simpleMoveToInbox,
 } from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
@@ -425,10 +424,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 			const conversationViewModel = this.searchViewModel.conversationViewModel
 			if (this.searchViewModel.listModel.state.inMultiselect || !conversationViewModel) {
+				const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
 				const actions = m(MailViewerActions, {
 					selectedMails: selectedMails,
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
-					deleteMailsAction: () => this.deleteSelected(),
+					trashMailsAction: trashAction,
+					deleteMailAction: deleteAction,
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
@@ -468,9 +469,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					}),
 				})
 			} else {
+				const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
 				const actions = m(MailViewerActions, {
 					selectedMails: [conversationViewModel.primaryMail],
-					deleteMailsAction: () => this.deleteSelected(),
+					trashMailsAction: trashAction,
+					deleteMailAction: deleteAction,
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
@@ -698,8 +701,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const isInMultiselect = this.searchViewModel.listModel.state.inMultiselect ?? false
 
 		if (this.viewSlider.focusedColumn === this.resultDetailsColumn && conversationViewModel) {
+			const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
 			return m(MobileMailActionBar, {
-				deleteMailsAction: () => this.deleteSelected(),
+				deleteMailsAction: deleteAction,
+				trashMailsAction: trashAction,
 				moveMailsAction: this.getMoveMailsAction(),
 				applyLabelsAction: this.getLabelsAction(),
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
@@ -764,9 +769,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			}
 		} else if (isInMultiselect) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
+				const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
 				return m(MobileMailMultiselectionActionBar, {
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
-					deleteMailsAction: () => this.deleteSelected(),
+					deleteMailsAction: deleteAction,
+					trashMailsAction: trashAction,
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
@@ -978,61 +985,72 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return Dialog.confirm("continueSearchMailbox_msg", "search_label")
 	}
 
-	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => [
-		...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
-		{
-			key: Keys.N,
-			exec: () => {
-				const type = this.searchViewModel.searchedType
+	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => {
+		const deleteTrashActions = this.getDeleteAndTrashActions()
+		return [
+			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
+			{
+				key: Keys.N,
+				exec: () => {
+					const type = this.searchViewModel.searchedType
 
-				if (isSameTypeRef(type, MailTypeRef)) {
-					newMailEditor()
-						.then((editor) => editor.show())
-						.catch(ofClass(PermissionError, noOp))
-				} else if (isSameTypeRef(type, ContactTypeRef)) {
-					locator.contactModel.getContactListId().then((contactListId) => {
-						new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
-					})
-				}
+					if (isSameTypeRef(type, MailTypeRef)) {
+						newMailEditor()
+							.then((editor) => editor.show())
+							.catch(ofClass(PermissionError, noOp))
+					} else if (isSameTypeRef(type, ContactTypeRef)) {
+						locator.contactModel.getContactListId().then((contactListId) => {
+							new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
+						})
+					}
+				},
+				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
+				help: "newMail_action",
 			},
-			enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
-			help: "newMail_action",
-		},
-		{
-			key: Keys.DELETE,
-			exec: () => this.deleteSelected(),
-			help: "delete_action",
-		},
-		{
-			key: Keys.BACKSPACE,
-			exec: () => this.deleteSelected(),
-			help: "delete_action",
-		},
-		{
-			key: Keys.A,
-			exec: () => this.archiveSelected(),
-			help: "archive_action",
-			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-		},
-		{
-			key: Keys.I,
-			exec: () => this.moveSelectedToInbox(),
-			help: "moveToInbox_action",
-			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-		},
-		{
-			key: Keys.V,
-			exec: () => this.move(),
-			help: "move_action",
-			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-		},
-		{
-			key: Keys.U,
-			exec: () => this.toggleUnreadStatus(),
-			help: "toggleUnread_action",
-			enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-		},
-	])
+			{
+				key: Keys.DELETE,
+				exec: () => {
+					;(deleteTrashActions.deleteAction ?? deleteTrashActions.trashAction)?.()
+					return true
+				},
+				// FIXME: help
+				help: "delete_action",
+			},
+			{
+				key: Keys.BACKSPACE,
+				exec: () => {
+					;(deleteTrashActions.deleteAction ?? deleteTrashActions.trashAction)?.()
+					return true
+				},
+				// FIXME: help
+				help: "delete_action",
+			},
+			{
+				key: Keys.A,
+				exec: () => this.archiveSelected(),
+				help: "archive_action",
+				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+			},
+			{
+				key: Keys.I,
+				exec: () => this.moveSelectedToInbox(),
+				help: "moveToInbox_action",
+				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+			},
+			{
+				key: Keys.V,
+				exec: () => this.move(),
+				help: "move_action",
+				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+			},
+			{
+				key: Keys.U,
+				exec: () => this.toggleUnreadStatus(),
+				help: "toggleUnread_action",
+				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+			},
+		]
+	})
 
 	async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
@@ -1118,7 +1136,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			archiveMails(getIds(selectedMails))
+			simpleMoveToArchive(getIds(selectedMails))
 		}
 	}
 
@@ -1130,7 +1148,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			moveToInbox(getIds(selectedMails))
+			simpleMoveToInbox(getIds(selectedMails))
 		}
 	}
 
@@ -1159,41 +1177,52 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	// return value: false means it has been handled
-	private deleteSelected(): boolean {
-		if (this.searchViewModel.listModel.state.selectedItems.size > 0) {
-			if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
-				const selected = this.searchViewModel.getSelectedMails()
-				console.log(`Deleting ${selected.length} mails!`)
-				promptAndDeleteMails(mailLocator.mailModel, selected, () => {
-					if (selected.length > 1) {
-						// is needed for correct selection behavior on mobile
-						this.searchViewModel.listModel.selectNone()
-					}
-				})
-				return false
-			} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
-				Dialog.confirm("deleteContacts_msg").then((confirmed) => {
-					const selected = this.searchViewModel.getSelectedContacts()
-					if (confirmed) {
-						if (selected.length > 1) {
-							// is needed for correct selection behavior on mobile
-							this.searchViewModel.listModel.selectNone()
-						}
-
-						for (const contact of selected) {
-							locator.entityClient.erase(contact).catch(
-								ofClass(NotFoundError, (_) => {
-									// ignore because the delete key shortcut may be executed again while the contact is already deleted
-								}),
-							)
-						}
-					}
-				})
-				return false
+	private getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
+		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
+			const selected = this.searchViewModel.getSelectedMails()
+			// FIXME memoize this in ViewModel
+			const allTrashed = selected.every((mail) => {
+				const folder = mailLocator.mailModel.getMailFolderForMail(mail)
+				return folder != null && (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM)
+			})
+			if (allTrashed) {
+				return { deleteAction: () => {} /*FIXME delete*/, trashAction: null }
+			} else {
+				return {
+					deleteAction: null,
+					trashAction: () => {
+						// FIXME trash
+					},
+				}
 			}
+		} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
+			// FIXME: extract
+			return { deleteAction: () => this.deleteContacts(), trashAction: null }
+		} else {
+			// FIXME: why?
+			return { deleteAction: null, trashAction: null }
 		}
-		return true
+	}
+
+	private deleteContacts() {
+		Dialog.confirm("deleteContacts_msg").then((confirmed) => {
+			const selected = this.searchViewModel.getSelectedContacts()
+			if (confirmed) {
+				if (selected.length > 1) {
+					// is needed for correct selection behavior on mobile
+					this.searchViewModel.listModel.selectNone()
+				}
+
+				for (const contact of selected) {
+					locator.entityClient.erase(contact).catch(
+						ofClass(NotFoundError, (_) => {
+							// ignore because the delete key shortcut may be executed again while the contact is already deleted
+						}),
+					)
+				}
+			}
+		})
+		return false
 	}
 
 	private renderFilterButton(): Children {

@@ -99,6 +99,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		])
 	}
 
+	// FIXME: trash?
 	private _onDeleteClicked(minimizedEditor: MinimizedEditor, viewModel: MinimizedMailEditorViewModel) {
 		const model = minimizedEditor.sendMailModel
 		viewModel.removeMinimizedEditor(minimizedEditor)
@@ -108,7 +109,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				const draft = model.draft
 
 				if (draft) {
-					await promptAndDeleteMails(mailLocator.mailModel, [draft], noOp)
+					await promptAndDeleteMails(mailLocator.mailModel, [draft._id], noOp)
 				}
 			}
 		})

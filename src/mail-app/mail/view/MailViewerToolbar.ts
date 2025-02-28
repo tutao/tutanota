@@ -14,7 +14,8 @@ import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 export interface MailViewerToolbarAttrs {
 	selectedMails: Mail[]
 	selectNone?: () => void
-	deleteMailsAction: (() => void) | null
+	trashMailsAction: (() => void) | null
+	deleteMailAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
@@ -42,7 +43,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	private renderActions(attrs: MailViewerToolbarAttrs): Children {
 		if (attrs.selectedMails.length > 0) {
 			return [
-				this.renderDeleteButton(attrs),
+				this.renderDeleteButton(attrs) ?? this.renderTrashButton(attrs),
 				this.renderMoveButton(attrs),
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
@@ -63,13 +64,24 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return [this.renderEditButton(editDraftAction), this.renderReplyButton(replyAction, replyAllAction), this.renderForwardButton(forwardAction)]
 	}
 
-	private renderDeleteButton({ deleteMailsAction }: MailViewerToolbarAttrs): Children {
+	private renderTrashButton({ trashMailsAction }: MailViewerToolbarAttrs): Children {
 		return (
-			deleteMailsAction &&
+			trashMailsAction &&
+			m(IconButton, {
+				title: "trash_action",
+				click: trashMailsAction,
+				icon: Icons.Trash,
+			})
+		)
+	}
+
+	private renderDeleteButton({ deleteMailAction }: MailViewerToolbarAttrs): Children {
+		return (
+			deleteMailAction &&
 			m(IconButton, {
 				title: "delete_action",
-				click: deleteMailsAction,
-				icon: Icons.Trash,
+				click: deleteMailAction,
+				icon: Icons.DeleteForever,
 			})
 		)
 	}

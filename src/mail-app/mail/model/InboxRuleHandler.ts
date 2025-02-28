@@ -26,7 +26,8 @@ async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
 		await promiseMap(mailChunks, (mailChunk) => {
 			moveToTargetFolder.mails = mailChunk
-			return mailFacade.moveMails(mailChunk, moveToTargetFolder.targetFolder, moveToTargetFolder.filterSet)
+			// FIXME: check this
+			return mailFacade.moveMails(mailChunk, moveToTargetFolder.targetFolder, null)
 		})
 			.catch(
 				ofClass(LockedError, (e) => {
@@ -123,9 +124,9 @@ export class InboxRuleHandler {
 						moveMailData.mails.push(mail._id)
 					} else {
 						moveMailData = createMoveMailData({
-							filterSet: inboxFolder._id,
 							targetFolder: inboxRule.targetFolder,
 							mails: [mail._id],
+							excludeMailSet: null,
 						})
 						moveMailDataPerFolder.push(moveMailData)
 					}
