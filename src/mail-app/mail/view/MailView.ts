@@ -454,7 +454,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts: ShowMoveMailsDropdownOpts) => void) | null {
-		return mailLocator.mailModel.isMovingMailsAllowed() ? (origin, opts) => this.moveMailsFromFolder(origin, opts) : null
+		return (origin, opts) => this.moveMailsFromFolder(origin, opts)
 	}
 
 	getViewSlider(): ViewSlider | null {
