@@ -1651,7 +1651,7 @@ export type MoveMailData = {
 
 	_format: NumberString;
 
-	filterSet: null | IdTuple;
+	excludeMailSet: null | IdTuple;
 	mails: IdTuple[];
 	targetFolder: IdTuple;
 }

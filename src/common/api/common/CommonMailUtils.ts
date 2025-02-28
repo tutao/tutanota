@@ -1,8 +1,8 @@
 import type { FolderSystem } from "./mail/FolderSystem.js"
 import { Body, Mail, MailFolder } from "../entities/tutanota/TypeRefs.js"
-import { MailSetKind } from "./TutanotaConstants.js"
+import { MailSetKind, SystemFolderType } from "./TutanotaConstants.js"
 
-export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: MailSetKind): boolean {
+export function isSubfolderOfType(system: FolderSystem, folder: MailFolder, type: SystemFolderType): boolean {
 	const systemFolder = system.getSystemFolderByType(type)
 	return systemFolder != null && system.checkFolderForAncestor(folder, systemFolder._id)
 }

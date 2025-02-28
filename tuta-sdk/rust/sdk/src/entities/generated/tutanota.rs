@@ -2074,7 +2074,7 @@ impl Entity for ManageLabelServicePostIn {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MoveMailData {
 	pub _format: i64,
-	pub filterSet: Option<IdTupleGenerated>,
+	pub excludeMailSet: Option<IdTupleGenerated>,
 	pub mails: Vec<IdTupleGenerated>,
 	pub targetFolder: IdTupleGenerated,
 }

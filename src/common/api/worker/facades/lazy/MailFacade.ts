@@ -372,8 +372,11 @@ export class MailFacade {
 		return deferredUpdatePromiseWrapper.promise
 	}
 
-	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, filterSet: IdTuple | null): Promise<void> {
-		if (isEmpty(mails) || (filterSet && isSameId(filterSet, targetFolder))) {
+	/**
+	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
+	 */
+	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<void> {
+		if (isEmpty(mails)) {
 			return
 		}
 
@@ -387,7 +390,7 @@ export class MailFacade {
 					MoveMailService,
 					createMoveMailData({
 						mails,
-                        filterSet,
+						excludeMailSet,
 						targetFolder,
 					}),
 				)

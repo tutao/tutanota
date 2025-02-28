@@ -5,7 +5,7 @@ import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -101,7 +101,7 @@ export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: M
  *
  * Use with caution.
  */
-export function assertSystemFolderOfType(system: FolderSystem, type: Omit<MailSetKind, MailSetKind.CUSTOM>): MailFolder {
+export function assertSystemFolderOfType(system: FolderSystem, type: SystemFolderType): MailFolder {
 	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
 }
 

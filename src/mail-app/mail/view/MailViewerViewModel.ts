@@ -523,8 +523,8 @@ export class MailViewerViewModel {
 			await moveMails({
 				mailboxModel: this.mailboxModel,
 				mailModel: this.mailModel,
-				mails: [this.mail],
-				targetMailFolder: spamFolder,
+				mailIds: [this.mail._id],
+				targetFolder: spamFolder,
 				isReportable: false,
 			})
 		} catch (e) {

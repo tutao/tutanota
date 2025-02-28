@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, endsWith, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, endsWith, first, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -13,6 +13,7 @@ import {
 	MailSetKind,
 	MailState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
+	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
 import { reportMailsAutomatically } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
@@ -36,11 +37,11 @@ import {
 } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { getIds } from "../../../common/api/common/utils/EntityUtils"
+import { getIds, getListId } from "../../../common/api/common/utils/EntityUtils"
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
@@ -53,73 +54,30 @@ export enum DeleteConfirmationResult {
 	FinallyDelete,
 }
 
-async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<{
-	action: DeleteConfirmationResult
-	actionableMails: Mail[]
-}> {
-	let trashMails: Mail[] = []
-	let moveMails: Mail[] = []
-	for (let mail of mails) {
-		const folder = mailLocator.mailModel.getMailFolderForMail(mail)
-		const folders = await mailLocator.mailModel.getMailboxFoldersForMail(mail)
-		if (folders == null) {
-			continue
-		}
-		const isFinalDelete = folder && isSpamOrTrashFolder(folders, folder)
-		if (isFinalDelete) {
-			trashMails.push(mail)
-		} else {
-			moveMails.push(mail)
-		}
-	}
-
-	// Avoid deleting and trashing mails at the same time...
-	if (isEmpty(moveMails) && !isEmpty(trashMails)) {
-		const shouldDeletePermanently = await Dialog.confirm("finallyDeleteSelectedEmails_msg", "ok_action")
-		if (shouldDeletePermanently) {
-			return { action: DeleteConfirmationResult.FinallyDelete, actionableMails: trashMails }
-		} else {
-			return { action: DeleteConfirmationResult.Cancel, actionableMails: [] }
-		}
-	}
-
-	// We only want to return mails that need moved; mails in spam/trash should stay put.
-	return { action: DeleteConfirmationResult.TrashOnly, actionableMails: moveMails }
-}
-
 /**
  * @return whether emails were deleted
  */
-export async function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
-	const { action, actionableMails } = await showDeleteConfirmationDialog(mails)
-	if (action === DeleteConfirmationResult.Cancel) {
+export async function promptAndDeleteMails(mailModel: MailModel, mailIds: readonly IdTuple[], onConfirm: () => void): Promise<boolean> {
+	const shouldDeletePermanently = await Dialog.confirm("finallyDeleteSelectedEmails_msg", "ok_action")
+	if (!shouldDeletePermanently) {
 		return false
 	}
 
 	onConfirm()
 
 	try {
-		if (action === DeleteConfirmationResult.TrashOnly) {
-			await mailModel.simpleMoveMails(getIds(actionableMails), MailSetKind.TRASH)
-		} else if (action === DeleteConfirmationResult.FinallyDelete) {
-			await mailModel.finallyDeleteMails(getIds(actionableMails))
-		}
+		await mailModel.finallyDeleteMails(mailIds)
 		return true
 	} catch (e) {
-		//LockedError should no longer be thrown!?!
-		if (e instanceof PreconditionFailedError || e instanceof LockedError) {
-			return Dialog.message("operationStillActive_msg").then(() => false)
-		} else {
-			throw e
-		}
+		return handleMoveError(e)
 	}
 }
 
 interface MoveMailsParams {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
-	mails: ReadonlyArray<Mail>
-	targetMailFolder: MailFolder
+	mailIds: ReadonlyArray<IdTuple>
+	targetFolder: MailFolder
 	isReportable?: boolean
 }
 
@@ -142,14 +100,15 @@ async function reportMails(
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({ mailboxModel, mailModel, mails, targetMailFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
-	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
+export async function moveMails({ mailboxModel, mailModel, mailIds, targetFolder, isReportable = true }: MoveMailsParams): Promise<boolean> {
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 	if (system == null) {
 		return false
 	}
 	try {
-		await mailModel.moveMails(mails, targetMailFolder)
-		return await reportMails(system, targetMailFolder, isReportable, async () => mails, mailboxModel, mailModel)
+		await mailModel.moveMails(mailIds, targetFolder._id)
+		const resolveMails = () => mailModel.loadAllMails(mailIds)
+		return await reportMails(system, targetFolder, isReportable, resolveMails, mailboxModel, mailModel)
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
 		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
@@ -160,45 +119,47 @@ export async function moveMails({ mailboxModel, mailModel, mails, targetMailFold
 	}
 }
 
-/**
- * Moves the mails and reports them as spam if the user or settings allow it.
- * @return whether mails were actually moved
- */
-export async function moveMailsFromFolder(
-	mailboxModel: MailboxModel,
-	mailModel: MailModel,
-	mails: readonly IdTuple[],
-	sourceMailFolder: MailFolder,
-	targetMailFolder: MailFolder,
-	isReportable: boolean = true,
-): Promise<boolean> {
-	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
-	if (system == null) {
-		return false
-	}
-	try {
-		await mailModel.moveMailsFromFolder(mails, sourceMailFolder._id, targetMailFolder._id)
-		if (!isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) || !isReportable) {
-			return true
-		}
-		const resolveMails = () => mailModel.loadAllMails(mails)
-		return await reportMails(system, targetMailFolder, isReportable, resolveMails, mailboxModel, mailModel)
-	} catch (e) {
-		//LockedError should no longer be thrown!?!
-		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
-			return Dialog.message("operationStillActive_msg").then(() => false)
-		} else {
-			throw e
-		}
+export async function moveMailsToSystemFolder({
+	mailboxModel,
+	mailModel,
+	mailIds,
+	targetFolderType,
+	currentFolder,
+	isReportable,
+}: {
+	mailboxModel: MailboxModel
+	mailModel: MailModel
+	mailIds: ReadonlyArray<IdTuple>
+	targetFolderType: SystemFolderType
+	currentFolder: MailFolder
+	isReportable?: boolean
+}): Promise<boolean> {
+	const folderSystem = await mailModel.getMailboxFoldersForId(getListId(currentFolder))
+	const targetFolder = folderSystem.getSystemFolderByType(targetFolderType)
+	if (targetFolder == null) return false
+	return await moveMails({ mailboxModel, mailModel, mailIds, targetFolder, isReportable })
+}
+
+function handleMoveError(err: Error) {
+	//LockedError should no longer be thrown!?!
+	if (err instanceof LockedError || err instanceof PreconditionFailedError) {
+		return Dialog.message("operationStillActive_msg").then(() => false)
+	} else {
+		throw err
 	}
 }
 
-export async function archiveMails(mailIds: readonly IdTuple[]): Promise<void> {
-	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.ARCHIVE)
+export async function trashMails(mailModel: MailModel, mailIds: readonly IdTuple[]): Promise<boolean> {
+	await mailModel.trashMails(mailIds).catch(handleMoveError)
+	return true
 }
 
-export async function moveToInbox(mailIds: readonly IdTuple[]): Promise<void> {
-	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.INBOX)
+export async function simpleMoveToArchive(mailIds: readonly IdTuple[]): Promise<void> {
+	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.ARCHIVE).catch(handleMoveError)
+}
+
+export async function simpleMoveToInbox(mailIds: readonly IdTuple[]): Promise<void> {
+	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.INBOX).catch(handleMoveError)
 }
 
 export function getFolderIconByType(folderType: MailSetKind): AllIcons {
@@ -386,7 +347,12 @@ export async function showMoveMailsFromFolderDropdown(
 		folders,
 		async (f) => {
 			const resolvedMails = await mails()
-			return moveMailsFromFolder(mailboxModel, mailModel, resolvedMails, currentFolder, f.folder)
+			moveMails({
+				mailboxModel,
+				mailModel,
+				mailIds: resolvedMails,
+				targetFolder: f.folder,
+			})
 		},
 		opts,
 	)
@@ -394,22 +360,25 @@ export async function showMoveMailsFromFolderDropdown(
 
 export async function showMoveMailsDropdown(
 	mailboxModel: MailboxModel,
-	model: MailModel,
+	mailModel: MailModel,
 	origin: PosRect,
 	mails: readonly Mail[],
 	opts?: ShowMoveMailsDropdownOpts,
 ): Promise<void> {
-	const folders = await getMoveTargetFolderSystems(model, mails)
+	const firstMail = first(mails)
+	if (firstMail == null) return
+	const folders = await getMoveTargetFolderSystems(mailModel, mails)
 	await showMailFolderDropdown(
 		origin,
 		folders,
-		(f) =>
+		(f) => {
 			moveMails({
 				mailboxModel,
-				mailModel: model,
-				mails: mails,
-				targetMailFolder: f.folder,
-			}),
+				mailModel: mailModel,
+				mailIds: getIds(mails),
+				targetFolder: f.folder,
+			})
+		},
 		opts,
 	)
 }
