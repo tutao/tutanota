@@ -195,6 +195,7 @@ export class SearchViewModel {
 	currentQuery: string = ""
 
 	private extendIndexConfirmationCallback: (() => Promise<boolean>) | null = null
+	private freeToAskAboutExtendingIndex: boolean = true
 
 	constructor(
 		readonly router: SearchRouter,
@@ -512,12 +513,15 @@ export class SearchViewModel {
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
 		if (
+			this.freeToAskAboutExtendingIndex &&
 			startDate &&
 			this.getCategory() === SearchCategoryTypes.mail &&
 			startDate.getTime() < this.search.indexState().currentMailIndexTimestamp &&
 			startDate
 		) {
+			this.freeToAskAboutExtendingIndex = false
 			const confirmed = (await this.extendIndexConfirmationCallback?.()) ?? true
+			this.freeToAskAboutExtendingIndex = true
 			if (confirmed) {
 				this._startDate = startDate
 				this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
