@@ -96,6 +96,7 @@ import {
 import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/InAppRatingDialog.js"
+import { showKeyVerificationDialog } from "../../../common/settings/keymanagement/KeyVerificationDialog"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -754,6 +755,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			if (recipient.contact && recipient.contact._id) {
 				contextButtons.push({
 					label: "editContact_label",
+					icon: Icons.Edit,
 					click: () => {
 						import("../../contacts/ContactEditor").then(({ ContactEditor }) => new ContactEditor(entity, recipient.contact).show())
 					},
@@ -761,6 +763,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			} else {
 				contextButtons.push({
 					label: "createContact_action",
+					icon: Icons.Add,
 					click: () => {
 						// contact list
 						contactModel.getContactListId().then((contactListId: Id) => {
@@ -778,7 +781,27 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		if (canRemoveBubble) {
 			contextButtons.push({
 				label: "remove_action",
+				icon: Icons.Trash,
 				click: () => this.sendMailModel.removeRecipient(recipient, field, false),
+			})
+		}
+
+		// TODO: condition for key verification
+		if (true) {
+			contextButtons.push({
+				label: "keyManagement.keyVerification_label",
+				icon: Icons.KeySolid,
+				click: () => {
+					showKeyVerificationDialog(
+						locator.keyVerificationFacade,
+						locator.systemFacade,
+						locator.usageTestController,
+						async () => {
+							this.sendMailModel.markAsChangedIfNecessary(true)
+						},
+						recipient.address,
+					)
+				},
 			})
 		}
 

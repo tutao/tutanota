@@ -110,8 +110,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 							m(IconButton, {
 								title: "keyManagement.verifyMailAddress_action",
 								click: async () => {
-									await showKeyVerificationDialog(this.keyVerificationFacade, this.mobileSystemFacade, this.usageTestController, () =>
-										obj.reload(),
+									await showKeyVerificationDialog(
+										this.keyVerificationFacade,
+										this.mobileSystemFacade,
+										this.usageTestController,
+										() => obj.reload(),
+										null,
 									)
 								},
 								icon: Icons.Add,

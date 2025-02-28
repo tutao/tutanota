@@ -8,7 +8,6 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
@@ -67,6 +66,11 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							} catch (e) {
 								console.error("error while trying to fetch the public key service: ", e)
 							}
+						}
+					},
+					oncreate: async (vnode) => {
+						if (model.mailAddress !== "") {
+							await debouncedFingerprintRequest(model, model.mailAddress)
 						}
 					},
 				}),

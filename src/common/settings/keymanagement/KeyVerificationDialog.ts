@@ -27,9 +27,15 @@ export async function showKeyVerificationDialog(
 	mobileSystemFacade: MobileSystemFacade,
 	usageTestController: UsageTestController,
 	reloadParent: () => Promise<void>,
+	prepopulatedMailAddress: string | null,
 ): Promise<void> {
 	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade)
 	let lastError: QrCodePageErrorType | null = null
+
+	if (prepopulatedMailAddress) {
+		model.mailAddress = prepopulatedMailAddress
+	}
+
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(KeyVerificationDialogPages.CHOOSE_METHOD)
 		.buildDialog(
 			(currentPage, dialog, navigateToPage, _) => {
