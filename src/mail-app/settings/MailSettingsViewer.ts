@@ -329,6 +329,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 							this._indexStateWatch.end(true)
 						}
 					},
+					"data-testid": "section:email-settings",
 				},
 				[
 					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0

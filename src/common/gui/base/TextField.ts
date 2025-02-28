@@ -112,6 +112,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 				"aria-haspopup": a.hasPopup,
+				"data-testid": `tf:${lang.getTestId(a.label)}`,
 				class: a.class != null ? a.class : "pt" + " " + getOperatingClasses(a.disabled),
 				style: maxWidth
 					? {
@@ -200,7 +201,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						marginTop: px(inputMarginTop),
 						lineHeight: px(inputLineHeight),
 					},
-					"data-testid": `tf:${lang.getTestId(a.label)}`,
+					"data-testid": `tfi:${lang.getTestId(a.label)}`,
 				},
 				a.value,
 			)
@@ -300,7 +301,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							lineHeight: px(inputLineHeight),
 							fontSize: a.fontSize,
 						},
-						"data-testid": `tf:${lang.getTestId(a.label)}`,
+						"data-testid": `tfi:${lang.getTestId(a.label)}`,
 					}),
 				]),
 			)
