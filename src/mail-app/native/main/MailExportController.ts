@@ -163,7 +163,7 @@ export class MailExportController {
 					break
 				}
 
-				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails)
+				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails, this.getServerUrl())
 				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails, this.getServerUrl())
 				for (const { mail, mailDetails } of downloadedMailDetails) {
 					if (this._state().type !== "exporting") {

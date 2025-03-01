@@ -1,4 +1,4 @@
-import { RestClient, SuspensionBehavior } from "./RestClient"
+import type { RestClient, SuspensionBehavior } from "./RestClient"
 import type { CryptoFacade } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
@@ -288,7 +288,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			let json: string
 			if (typeModel.type === Type.BlobElement) {
-				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts.suspensionBehavior)
+				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
 					queryParams,
@@ -309,7 +309,7 @@ export class EntityRestClient implements EntityRestInterface {
 		headers: Dict | undefined,
 		path: string,
 		typeRef: TypeRef<any>,
-		suspensionBehavior?: SuspensionBehavior,
+		opts: EntityRestClientLoadOptions = {},
 	): Promise<string> {
 		if (archiveId == null) {
 			throw new Error("archiveId must be set to load BlobElementTypes")
@@ -322,8 +322,19 @@ export class EntityRestClient implements EntityRestInterface {
 				queryParams,
 			)
 			const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, additionalRequestParams, typeRef)
+
+			let serversToTry = blobServerAccessInfo.servers
+			if (opts.baseUrl) {
+				const preferredServer = blobServerAccessInfo.servers.find((server) => server.url === opts.baseUrl)
+
+				if (preferredServer) {
+					// preferredServer takes precedence over the rest
+					serversToTry = [preferredServer].concat(blobServerAccessInfo.servers.filter((server) => server.url !== opts.baseUrl))
+				}
+			}
+
 			return tryServers(
-				blobServerAccessInfo.servers,
+				serversToTry,
 				async (serverUrl) =>
 					this.restClient.request(path, HttpMethod.GET, {
 						queryParams: allParams,
@@ -331,7 +342,7 @@ export class EntityRestClient implements EntityRestInterface {
 						responseType: MediaType.Json,
 						baseUrl: serverUrl,
 						noCORS: true,
-						suspensionBehavior,
+						suspensionBehavior: opts.suspensionBehavior,
 					}),
 				`can't load instances from server `,
 			)
