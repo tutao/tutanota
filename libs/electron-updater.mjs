@@ -136,7 +136,7 @@ CancellationToken$1.CancellationError = CancellationError;
 
 var httpExecutor = {};
 
-var src = {exports: {}};
+var src$1 = {exports: {}};
 
 var browser = {exports: {}};
 
@@ -1333,12 +1333,12 @@ function requireNode () {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	src.exports = requireBrowser();
+	src$1.exports = requireBrowser();
 } else {
-	src.exports = requireNode();
+	src$1.exports = requireNode();
 }
 
-var srcExports = src.exports;
+var srcExports = src$1.exports;
 
 var error = {};
 
@@ -10747,6 +10747,7 @@ var debug_1 = debug$1;
 	const re = exports.re = [];
 	const safeRe = exports.safeRe = [];
 	const src = exports.src = [];
+	const safeSrc = exports.safeSrc = [];
 	const t = exports.t = {};
 	let R = 0;
 
@@ -10779,6 +10780,7 @@ var debug_1 = debug$1;
 	  debug(name, index, value);
 	  t[name] = index;
 	  src[index] = value;
+	  safeSrc[index] = safe;
 	  re[index] = new RegExp(value, isGlobal ? 'g' : undefined);
 	  safeRe[index] = new RegExp(safe, isGlobal ? 'g' : undefined);
 	};
@@ -10998,7 +11000,7 @@ var identifiers$1 = {
 
 const debug = debug_1;
 const { MAX_LENGTH, MAX_SAFE_INTEGER } = constants$1;
-const { safeRe: re$1, t: t$1 } = reExports;
+const { safeRe: re$1, safeSrc: src, t: t$1 } = reExports;
 
 const parseOptions = parseOptions_1;
 const { compareIdentifiers } = identifiers$1;
@@ -11008,7 +11010,7 @@ let SemVer$d = class SemVer {
 
     if (version instanceof SemVer) {
       if (version.loose === !!options.loose &&
-          version.includePrerelease === !!options.includePrerelease) {
+        version.includePrerelease === !!options.includePrerelease) {
         return version
       } else {
         version = version.version;
@@ -11174,6 +11176,20 @@ let SemVer$d = class SemVer {
   // preminor will bump the version up to the next minor release, and immediately
   // down to pre-release. premajor and prepatch work the same way.
   inc (release, identifier, identifierBase) {
+    if (release.startsWith('pre')) {
+      if (!identifier && identifierBase === false) {
+        throw new Error('invalid increment argument: identifier is empty')
+      }
+      // Avoid an invalid semver results
+      if (identifier) {
+        const r = new RegExp(`^${this.options.loose ? src[t$1.PRERELEASELOOSE] : src[t$1.PRERELEASE]}$`);
+        const match = `-${identifier}`.match(r);
+        if (!match || match[1] !== identifier) {
+          throw new Error(`invalid identifier: ${identifier}`)
+        }
+      }
+    }
+
     switch (release) {
       case 'premajor':
         this.prerelease.length = 0;
@@ -11203,6 +11219,12 @@ let SemVer$d = class SemVer {
           this.inc('patch', identifier, identifierBase);
         }
         this.inc('pre', identifier, identifierBase);
+        break
+      case 'release':
+        if (this.prerelease.length === 0) {
+          throw new Error(`version ${this.raw} is not a prerelease`)
+        }
+        this.prerelease.length = 0;
         break
 
       case 'major':
@@ -11246,10 +11268,6 @@ let SemVer$d = class SemVer {
       // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
       case 'pre': {
         const base = Number(identifierBase) ? 1 : 0;
-
-        if (!identifier && identifierBase === false) {
-          throw new Error('invalid increment argument: identifier is empty')
-        }
 
         if (this.prerelease.length === 0) {
           this.prerelease = [base];
@@ -11379,20 +11397,13 @@ const diff$1 = (version1, version2) => {
       return 'major'
     }
 
-    // Otherwise it can be determined by checking the high version
-
-    if (highVersion.patch) {
-      // anything higher than a patch bump would result in the wrong version
+    // If the main part has no difference
+    if (lowVersion.compareMain(highVersion) === 0) {
+      if (lowVersion.minor && !lowVersion.patch) {
+        return 'minor'
+      }
       return 'patch'
     }
-
-    if (highVersion.minor) {
-      // anything higher than a minor bump would result in the wrong version
-      return 'minor'
-    }
-
-    // bumping major/minor/patch all have same result
-    return 'major'
   }
 
   // add the `pre` prefix if we are going to a prerelease version
