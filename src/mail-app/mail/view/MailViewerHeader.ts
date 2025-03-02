@@ -682,6 +682,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return null
 		}
 
+		const testButton: BannerButtonAttrs = {
+			label: "blockExternalContentSender_action",
+			click: () => console.log("Test Button Clicked!"),
+		};
+
 		const showButton: BannerButtonAttrs = {
 			label: "showBlockedContent_action",
 			click: () => attrs.viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
@@ -717,7 +722,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
 			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
-			buttons: [showButton, ...maybeDropdownButtons],
+			buttons: [showButton, testButton, ...maybeDropdownButtons],
 		})
 	}
 
