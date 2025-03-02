@@ -683,7 +683,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		const testButton: BannerButtonAttrs = {
-			label: "blockExternalContentSender_action",
+			label: "testButton_action",
 			click: () => console.log("Test Button Clicked!"),
 		};
 
