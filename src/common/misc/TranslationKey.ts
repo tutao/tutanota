@@ -1759,6 +1759,7 @@ export type TranslationKeyType =
 	| "termsAcceptedNeutral_msg"
 	| "termsAndConditionsLink_label"
 	| "termsAndConditions_label"
+	| "testButton_action"
 	| "textTooLong_msg"
 	| "theme_label"
 	| "theme_title"

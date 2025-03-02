@@ -1776,6 +1776,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Please accept the terms & conditions.",
 		"termsAndConditionsLink_label": "General terms and conditions",
 		"termsAndConditions_label": "I have read and agree to the following documents:",
+		"testButton_action": "Trusted sender",
 		"textTooLong_msg": "The entered text is too long",
 		"theme_label": "Theme",
 		"theme_title": "Which theme would you like to use?",
