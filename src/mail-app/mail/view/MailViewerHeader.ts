@@ -288,7 +288,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
 			),
 			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
-			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(attrs)), // Add Moby Phish Banner
+			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 		].filter(Boolean)
 	}
