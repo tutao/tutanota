@@ -684,7 +684,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const testButton: BannerButtonAttrs = {
 			label: "testButton_action",
-			click: () => console.log("Test Button Clicked!"),
+			click: () => {
+		        console.log("Test Button Clicked!");
+		        console.log("viewModel:", attrs.viewModel); // Logs the full object
+		        console.log("viewModel.mail:", attrs.viewModel.mail); // Logs the mail object if available
+		    },
 		};
 
 		const showButton: BannerButtonAttrs = {
