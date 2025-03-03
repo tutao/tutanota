@@ -732,7 +732,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			},
 		};
 	
-		return m(InfoBanner as Component<any>, {
+		return m(InfoBanner as any, {
 			message: "Moby Phish Banner - Security Feature",
 			icon: Icons.Warning, // Use appropriate icon
 			buttons: [mobyPhishButton],
