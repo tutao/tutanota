@@ -723,19 +723,21 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	//moby phish banner
-	private renderMobyPhishBanner(attrs: MailViewerHeaderAttrs): Children | null {
+	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
 		const mobyPhishButton: BannerButtonAttrs = {
 			label: "mobyPhish_action",
 			click: () => {
 				console.log("Moby Phish Button Clicked!");
-				console.log("viewModel:", attrs.viewModel);
+				console.log("viewModel:", viewModel);
 			},
 		};
 
 		return m(InfoBanner, {
-			message: "contentBlocked_msg",
-			icon: Icons.Picture,
+			message: "phishingMessageBody_msg",
+			icon: Icons.Warning,
+			type: BannerType.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 			buttons: [mobyPhishButton],
 		})
 	}
