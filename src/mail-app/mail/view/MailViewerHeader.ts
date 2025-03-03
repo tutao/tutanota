@@ -281,6 +281,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (viewModel.isCollapsed()) return null
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [
+			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(attrs)), // Add Moby Phish Banner
 			m(
 				"." + responsiveCardHMargin(),
 				this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed()
@@ -682,15 +683,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return null
 		}
 
-		const testButton: BannerButtonAttrs = {
-			label: "testButton_action",
-			click: () => {
-		        console.log("Test Button Clicked!");
-		        console.log("viewModel:", attrs.viewModel); // Logs the full object
-		        console.log("viewModel.mail:", attrs.viewModel.mail); // Logs the mail object if available
-		    },
-		};
-
 		const showButton: BannerButtonAttrs = {
 			label: "showBlockedContent_action",
 			click: () => attrs.viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
@@ -726,8 +718,25 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
 			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
-			buttons: [showButton, testButton, ...maybeDropdownButtons],
+			buttons: [showButton, ...maybeDropdownButtons],
 		})
+	}
+
+	//moby phish banner
+	private renderMobyPhishBanner(attrs: MailViewerHeaderAttrs): Children {
+	    const mobyPhishButton: BannerButtonAttrs = {
+	        label: lang.get("mobyPhish_action"), // Custom label
+	        click: () => {
+	            console.log("Moby Phish Button Clicked!");
+	            console.log("viewModel:", attrs.viewModel);
+	        },
+	    };
+
+	    return m(InfoBanner, {
+	        message: "Moby Phish Banner - Security Feature",
+	        icon: Icons.Warning, // Use an appropriate icon
+	        buttons: [mobyPhishButton],
+	    });
 	}
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
