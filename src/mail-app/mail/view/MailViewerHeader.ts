@@ -281,7 +281,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (viewModel.isCollapsed()) return null
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [
-			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(attrs)), // Add Moby Phish Banner
 			m(
 				"." + responsiveCardHMargin(),
 				this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed()
@@ -289,6 +288,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
 			),
 			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
+			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(attrs)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 		].filter(Boolean)
 	}
@@ -723,7 +723,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	//moby phish banner
-	private renderMobyPhishBanner(attrs: MailViewerHeaderAttrs): Children {
+	private renderMobyPhishBanner(attrs: MailViewerHeaderAttrs): Children | null {
+
 		const mobyPhishButton: BannerButtonAttrs = {
 			label: "mobyPhish_action",
 			click: () => {
@@ -731,14 +732,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				console.log("viewModel:", attrs.viewModel);
 			},
 		};
-	
-		return m(InfoBanner as any, {
-			message: "Moby Phish Banner - Security Feature",
-			icon: Icons.Warning, // Use appropriate icon
+
+		return m(InfoBanner, {
+			message: "contentBlocked_msg",
+			icon: Icons.Picture,
+			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
 			buttons: [mobyPhishButton],
-		});
+		})
 	}
-	
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
