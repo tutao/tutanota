@@ -24,6 +24,12 @@ impl<T> Versioned<T> {
 	pub fn new(object: T, version: u64) -> Versioned<T> {
 		Versioned { object, version }
 	}
+	pub fn as_ref(&self) -> Versioned<&T> {
+		Versioned {
+			object: &self.object,
+			version: self.version,
+		}
+	}
 }
 
 pub fn convert_version_to_u64(version: i64) -> u64 {

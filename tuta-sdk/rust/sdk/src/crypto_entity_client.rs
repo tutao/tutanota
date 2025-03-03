@@ -226,31 +226,31 @@ impl CryptoEntityClient {
 
 		match &mail.bucketKey {
 			None => None,
-			Some(bucket_key) => Some(
-				self.authenticate_main_instance(
-					sender_identity_pub_key
-						.as_ref()
-						.map(|sender_identity_pub_key| Versioned {
+			Some(bucket_key) => {
+				Some(
+					self.authenticate_main_instance(
+						sender_identity_pub_key.map(|sender_identity_pub_key| Versioned {
 							version: convert_version_to_u64(bucket_key.senderKeyVersion.expect(
 								"sender key version should be set on TutaCrypt bucket key",
 							)),
 							object: sender_identity_pub_key,
 						}),
-					mail,
-					bucket_key
-						.keyGroup
-						.as_ref()
-						.expect("key group should be set on TutaCrypt bucket key"),
+						mail,
+						bucket_key
+							.keyGroup
+							.as_ref()
+							.expect("key group should be set on TutaCrypt bucket key"),
+					)
+					.await,
 				)
-				.await,
-			),
+			},
 		}
 	}
 
 	/// @return None if not a main instance, the EncryptionAuthStatus from the asymmetric decryption otherwise
-	async fn authenticate_main_instance<'a>(
+	async fn authenticate_main_instance(
 		&self,
-		sender_identity_pub_key: Option<Versioned<&'a EccPublicKey>>,
+		sender_identity_pub_key: Option<Versioned<EccPublicKey>>,
 		mail: &Mail,
 		recipient_group: &GeneratedId,
 	) -> EncryptionAuthStatus {
@@ -289,10 +289,10 @@ impl CryptoEntityClient {
 		}
 	}
 
-	async fn tuta_crypt_authenticate_sender_of_main_instance<'a>(
+	async fn tuta_crypt_authenticate_sender_of_main_instance(
 		&self,
 		sender_mail_address: String,
-		sender_identity_pub_key: Versioned<&'a EccPublicKey>,
+		sender_identity_pub_key: Versioned<EccPublicKey>,
 	) -> EncryptionAuthStatus {
 		let result = self
 			.asymmetric_crypto_facade
@@ -301,7 +301,7 @@ impl CryptoEntityClient {
 					identifier: sender_mail_address,
 					identifier_type: PublicKeyIdentifierType::MailAddress,
 				},
-				sender_identity_pub_key,
+				sender_identity_pub_key.as_ref(),
 			)
 			.await;
 		match result {
