@@ -736,7 +736,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
-			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
 			buttons: [mobyPhishButton],
 		})
 	}
