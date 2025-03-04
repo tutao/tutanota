@@ -65,10 +65,6 @@ export function sortOutParsedEvents(
 	eventsForCreation: Array<EventWrapper>
 } {
 	const instanceIdentifierToEventMap = new Map()
-	for (const existingEvent of existingEvents) {
-		if (existingEvent.uid == null) continue
-		instanceIdentifierToEventMap.set(makeInstanceIdentifier(existingEvent), existingEvent)
-	}
 
 	const rejectedEvents: RejectedEvents = new Map()
 	const eventsForCreation: Array<{ event: CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
