@@ -7,3 +7,7 @@ class MyAppWidgetReceiver : GlanceAppWidgetReceiver() {
 	// Let MyAppWidgetReceiver know which GlanceAppWidget to use
 	override val glanceAppWidget: GlanceAppWidget = MyAppWidget()
 }
+
+class MyAppWidgetOption2Receiver : GlanceAppWidgetReceiver() {
+	override val glanceAppWidget: GlanceAppWidget = MyAppWidgetOption2()
+}

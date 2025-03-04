@@ -159,6 +159,7 @@ android {
 }
 
 dependencies {
+	implementation("androidx.appcompat:appcompat:1.7.0")
 	val room_version = "2.4.2"
 	val lifecycle_version = "2.4.1"
 	val activity_version = "1.4.0"

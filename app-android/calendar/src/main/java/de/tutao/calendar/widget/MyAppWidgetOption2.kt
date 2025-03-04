@@ -52,7 +52,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class MyAppWidget : GlanceAppWidget() {
+class MyAppWidgetOption2 : GlanceAppWidget() {
 
 
 	object MyAppWidgetGlanceColorScheme {
@@ -112,20 +112,20 @@ class MyAppWidget : GlanceAppWidget() {
 			val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime.toLong()), zoneId)
 			val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime.toLong()), zoneId)
 			val formatter = DateTimeFormatter.ofPattern("HH:mm")
-			EventData(event.summary, start.format(formatter), end.format(formatter))
+			EventDataOption2(event.summary, start.format(formatter), end.format(formatter))
 		}
 		provideContent {
 			GlanceTheme(
 				colors = MyAppWidgetGlanceColorScheme.colors
 			) {
 				// create your AppWidget here
-				MyContent(eventsData)
+				MyContentOption2(eventsData)
 			}
 		}
 	}
 }
 
-data class EventData(
+data class EventDataOption2(
 	val summary: String,
 	val startTime: String,
 	val endTime: String,
@@ -133,7 +133,7 @@ data class EventData(
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun MyContent(eventsData: List<EventData>) {
+fun MyContentOption2(eventsData: List<EventDataOption2>) {
 	Scaffold(
 		modifier = GlanceModifier
 			.padding(horizontal = 20.dp),
@@ -163,15 +163,15 @@ fun MyContent(eventsData: List<EventData>) {
 
 					// all day events
 					// TODO() border is thicker in the corners. should probably switch to xml or no border
-					BorderedContent(borderWidth = 1) {
+					BorderedContentOption2(borderWidth = 1) {
 						Text(
 							modifier = GlanceModifier
-								.padding(horizontal = 8.dp, vertical = 4.dp),
+								.padding(vertical = 4.dp),
 							style = TextStyle(
 								color = GlanceTheme.colors.onBackground,
 								fontSize = 14.sp
 							),
-							text = "57 all day events"
+							text = "57 all day"
 						)
 					}
 				}
@@ -185,7 +185,7 @@ fun MyContent(eventsData: List<EventData>) {
 						imageProvider = ImageProvider(R.drawable.ic_add),
 						contentDescription = "Add event button",
 						modifier = GlanceModifier
-							.size(63.dp),
+							.size(44.dp),
 						onClick = { println("Open event creator") },
 						backgroundColor = ColorProvider(R.color.blue) // TODO() proper color
 
@@ -199,7 +199,7 @@ fun MyContent(eventsData: List<EventData>) {
 		LazyColumn {
 			itemsIndexed(eventsData, itemId = { index, _ -> index.toLong() }) { _, event ->
 				Column {
-					EventCard(event)
+					EventCardOption2(event)
 					Spacer(modifier = GlanceModifier.height(8.dp))
 				}
 			}
@@ -209,7 +209,7 @@ fun MyContent(eventsData: List<EventData>) {
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun EventCard(event: EventData) {
+fun EventCardOption2(event: EventDataOption2) {
 	Row(
 		modifier = GlanceModifier.padding(8.dp)
 			.background(GlanceTheme.colors.secondary)
@@ -217,7 +217,7 @@ fun EventCard(event: EventData) {
 			.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically
 	) {
-		Circle()
+		CircleOption2()
 
 		// event title and time
 		Column(
@@ -259,7 +259,7 @@ fun EventCard(event: EventData) {
 }
 
 @Composable
-fun Circle(radius: Int = 20, color: Color = Color.Blue) {
+fun CircleOption2(radius: Int = 20, color: Color = Color.Blue) {
 	Column(
 		modifier = GlanceModifier
 			.width(radius.dp)
@@ -276,7 +276,7 @@ fun Circle(radius: Int = 20, color: Color = Color.Blue) {
  */
 @SuppressLint("RestrictedApi")
 @Composable
-fun BorderedContent(
+fun BorderedContentOption2(
 	borderColor: ColorProvider = GlanceTheme.colors.onBackground,
 	borderWidth: Int,
 	content: @Composable () -> Unit
@@ -285,12 +285,12 @@ fun BorderedContent(
 	Column(
 		modifier = GlanceModifier
 			.background(borderColor)
-			.padding(borderWidth.dp)
-			.cornerRadius(8.dp)
+			.padding(top = borderWidth.dp)
+//			.cornerRadius(8.dp)
 	) {
 		Column(
 			modifier = GlanceModifier
-				.cornerRadius(8.dp)
+//				.cornerRadius(8.dp)
 				.background(GlanceTheme.colors.background)
 		) {
 			content()
@@ -303,11 +303,11 @@ fun BorderedContent(
 @Preview(widthDp = 200, heightDp = 422)
 @Preview(widthDp = 400, heightDp = 500)
 @Composable
-fun MyContentPreview() {
-	val eventData = ArrayList<EventData>()
+fun MyContentOption2Preview() {
+	val eventData = ArrayList<EventDataOption2>()
 	for (i in 1..7) {
 		eventData.add(
-			EventData(
+			EventDataOption2(
 				"Hello Widget $i",
 				"08:00",
 				"17:00"
@@ -315,13 +315,13 @@ fun MyContentPreview() {
 		)
 	}
 	eventData.add(
-		EventData(
+		EventDataOption2(
 			"Summery",
 			"Start Time",
 			"End Time"
 		)
 	)
-	MyContent(eventData)
+	MyContentOption2(eventData)
 }
 
 
