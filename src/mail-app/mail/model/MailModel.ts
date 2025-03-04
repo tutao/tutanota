@@ -378,6 +378,13 @@ export class MailModel {
 		return !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
 
+	/**
+	 * @return true if the user is allowed to use conversation views (listing and viewing mails)
+	 */
+	canUseConversationView(): boolean {
+		return this.logins.getUserController().isInternalUser()
+	}
+
 	async markMails(mails: readonly IdTuple[], unread: boolean): Promise<void> {
 		await this.mailFacade.markMails(mails, unread)
 	}
