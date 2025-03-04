@@ -1100,11 +1100,7 @@ export class MailViewerViewModel {
 	}
 
 	canForward(): boolean {
-		return !isDraft(this.mail) && !this.isAnnouncement() && this.canForwardOrMove()
-	}
-
-	canForwardOrMove(): boolean {
-		return this.logins.getUserController().isInternalUser()
+		return !isDraft(this.mail) && !this.isAnnouncement() && this.logins.getUserController().isInternalUser()
 	}
 
 	shouldDelayRendering(): boolean {
