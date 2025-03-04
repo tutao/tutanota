@@ -319,23 +319,27 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 	private renderSignupPage(model: RedeemGiftCardModel): Children {
 		return m(SignupForm, {
 			// After having an account created we log them in to be in the same state as if they had selected an existing account
-			onComplete: (newAccountData) => {
-				showProgressDialog(
-					"pleaseWait_msg",
-					model
-						.handleNewSignup(newAccountData)
-						.then(() => {
-							emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
-							m.redraw()
-						})
-						.catch((e) => {
-							// TODO when would login fail here and how does it get handled? can we attempt to login again?
-							Dialog.message("giftCardLoginError_msg")
-							m.route.set("/login", {
-								noAutoLogin: true,
+			onComplete: (signupResult) => {
+				if (signupResult.type === "success") {
+					showProgressDialog(
+						"pleaseWait_msg",
+						model
+							.handleNewSignup(signupResult.newAccountData)
+							.then(() => {
+								emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
+								m.redraw()
 							})
-						}),
-				)
+							.catch((e) => {
+								// TODO when would login fail here and how does it get handled? can we attempt to login again?
+								Dialog.message("giftCardLoginError_msg")
+								m.route.set("/login", {
+									noAutoLogin: true,
+								})
+							}),
+					)
+				} else {
+					emitWizardEvent(this.domElement, WizardEventType.CLOSE_DIALOG)
+				}
 			},
 			onChangePlan: () => {
 				emitWizardEvent(this.domElement, WizardEventType.SHOW_PREVIOUS_PAGE)
