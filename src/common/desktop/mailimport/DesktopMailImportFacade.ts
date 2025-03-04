@@ -90,7 +90,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 
 	constructor(private readonly electron: ElectronExports, private readonly notifier: DesktopNotifier, private readonly lang: LanguageViewModel) {
 		ImporterApi.initLog()
-		electron.app.on("before-quit", () => ImporterApi.deinitLog())
+		electron.app.on("quit", () => ImporterApi.deinitLog())
 		this.configDirectory = electron.app.getPath("userData")
 	}
 
