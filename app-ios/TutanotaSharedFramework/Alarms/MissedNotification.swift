@@ -6,6 +6,11 @@ public struct MissedNotification: Codable {
 	/// Is needed to only request new information from the server
 	public let lastProcessedNotificationId: String
 
+	public init(alarmNotifications: [EncryptedAlarmNotification], lastProcessedNotificationId: String) {
+		self.alarmNotifications = alarmNotifications
+		self.lastProcessedNotificationId = lastProcessedNotificationId
+	}
+
     enum CodingKeys: String, CodingKey {
         case alarmNotifications = "1703"
         case lastProcessedNotificationId = "1722"

@@ -47,7 +47,9 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			alarmScheduler: SystemAlarmScheduler(),
 			alarmCalculator: alarmModel
 		)
-		self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage)
+		// FIXME: do not use observable http client
+		let httpClient = URLSessionHttpClient(session: observableUrlSession())
+		self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage, httpClient: httpClient)
 		self.window = UIWindow(frame: UIScreen.main.bounds)
 
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
