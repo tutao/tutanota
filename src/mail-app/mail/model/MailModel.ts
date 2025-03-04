@@ -362,7 +362,7 @@ export class MailModel {
 		}
 	}
 
-	isMovingMailsAllowed(): boolean {
+	isMovingMailsFromSearchAllowed(): boolean {
 		return this.logins.getUserController().isInternalUser()
 	}
 

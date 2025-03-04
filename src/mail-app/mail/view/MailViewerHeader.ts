@@ -775,25 +775,21 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						})
 					}
 
-					if (viewModel.canForwardOrMove()) {
+					if (viewModel.canForward()) {
 						actionButtons.push({
 							label: "forward_action",
 							click: () => viewModel.forward(),
 							icon: Icons.Forward,
 						})
-						actionButtons.push({
-							label: "move_action",
-							click: (_: MouseEvent, dom: HTMLElement) =>
-								showMoveMailsDropdown(
-									viewModel.mailboxModel,
-									viewModel.mailModel,
-									dom.getBoundingClientRect(),
-									[viewModel.mail],
-									MoveMode.Mails,
-								),
-							icon: Icons.Folder,
-						})
 					}
+
+					actionButtons.push({
+						label: "move_action",
+						click: (_: MouseEvent, dom: HTMLElement) =>
+							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], MoveMode.Mails),
+						icon: Icons.Folder,
+					})
+
 					if (viewModel.mailModel.canAssignLabels()) {
 						actionButtons.push({
 							label: "assignLabel_action",
