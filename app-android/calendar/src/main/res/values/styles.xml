@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
 	<!-- Base application theme. -->
 	<style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
@@ -14,6 +14,10 @@
 		<item name="android:windowBackground">@drawable/splash_background</item>
 		<item name="android:statusBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
+	</style>
+	<!--	remove widget scrollbar-->
+	<style name="Glance.AppWidget.List" parent="" tools:ignore="PrivateResource">
+		<item name="android:scrollbars">none</item>
 	</style>
 
 </resources>
