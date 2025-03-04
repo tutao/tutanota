@@ -37,6 +37,7 @@ o.spec("ConversationViewModel", function () {
 	let redraw: () => unknown
 	let loadingDefer: DeferredObject<void>
 	let eventCallback: EntityEventsListener
+	let canUseConversationView: boolean
 
 	const listId = "listId"
 
@@ -116,6 +117,12 @@ o.spec("ConversationViewModel", function () {
 		mailboxDetail = object()
 		mailModel = object()
 
+		// by default this should be true, as having it false is an exceptional case (secure external recipients)
+		canUseConversationView = true
+		when(mailModel.canUseConversationView()).thenDo(() => {
+			return canUseConversationView
+		})
+
 		entityRestClientMock = new EntityRestClientMock()
 
 		prefProvider = object()
@@ -144,6 +151,15 @@ o.spec("ConversationViewModel", function () {
 			o(numMailsDisplayed).equals(conversation.length)(
 				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
 			)
+		})
+
+		o("when option is on but conversation view is not allowed only show selected mail", async function () {
+			canUseConversationView = false
+			viewModel.init(Promise.resolve())
+			await loadingDefer.promise
+
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
 		o("when the option is off it only shows selected mail", async function () {
@@ -288,6 +304,31 @@ o.spec("ConversationViewModel", function () {
 
 		o("when conversation mode is turned off and a new mail comes in, nothing added to conversation", async function () {
 			when(prefProvider.getConversationViewShowOnlySelectedMail()).thenReturn(true)
+
+			viewModel.init(Promise.resolve())
+			await loadingDefer.promise
+
+			const yetAnotherMail = addMail("yetAnotherMailId")
+
+			await eventCallback(
+				[
+					{
+						application: "tutanota",
+						type: "ConversationEntry",
+						operation: OperationType.CREATE,
+						instanceListId: listId,
+						instanceId: yetAnotherMail.conversationEntry[1],
+					},
+				],
+				"mailGroupId",
+			)
+
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
+		})
+
+		o("when conversation mode is disabled and a new mail comes in, nothing added to conversation", async function () {
+			canUseConversationView = false
 
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
