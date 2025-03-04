@@ -3,7 +3,7 @@ import { AccessExpiredError } from "../../../common/api/common/error/RestError.j
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "@tutao/tutanota-utils"
 import type { MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
+import { keyManager, KeyPress, Shortcut } from "../../../common/misc/KeyManager.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { asKdfType, KdfType, Keys } from "../../../common/api/common/TutanotaConstants.js"
@@ -95,7 +95,14 @@ export class ExternalLoginViewModel {
 	}
 
 	private async resumeSession(credentials: UnencryptedCredentials): Promise<void> {
-		const result = await locator.logins.resumeSession(credentials, { salt: this.urlData.salt, kdfType: this.urlData.kdfType }, null)
+		const result = await locator.logins.resumeSession(
+			credentials,
+			{
+				salt: this.urlData.salt,
+				kdfType: this.urlData.kdfType,
+			},
+			null,
+		)
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
@@ -251,6 +258,14 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 				value: this.viewModel.password,
 				autocompleteAs: Autocomplete.currentPassword,
 				oninput: (input) => (this.viewModel.password = input),
+				keyHandler: (e) => {
+					if (e.key != null && e.key.toLowerCase() === Keys.RETURN.code) {
+						this.viewModel.formLogin()
+						return false
+					} else {
+						return true
+					}
+				},
 			}),
 			m(Checkbox, {
 				label: () => lang.get("storePassword_action"),
