@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
-import type { TranslationKey, MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
+import type { MaybeTranslation, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { px } from "../../../../common/gui/size.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -325,13 +325,12 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	})
 
 	private handleInputKeyEvents(key: KeyPress, disabled: boolean | undefined, onDateSelected: (date: Date) => unknown) {
-		if (isKeyPressed(key.key, Keys.DOWN)) {
+		if (isKeyPressed(key.key, Keys.RETURN)) {
 			if (!disabled && !key.shift && !key.ctrl && !key.meta) {
 				this.showingDropdown = true
 			}
-		} else if (isKeyPressed(key.key, Keys.RETURN)) {
-			this.handleInput(this.inputText, onDateSelected)
 		}
+
 		return this.handleEscapePress(key)
 	}
 

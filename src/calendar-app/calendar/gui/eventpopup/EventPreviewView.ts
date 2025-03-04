@@ -325,6 +325,8 @@ function buildAdvancedRepetitionRuleDescription(advancedRules: AdvancedRepeatRul
 			translationKey = "firstOfPeriod_label"
 		} else if (leadingValue === 2) {
 			translationKey = "secondOfPeriod_label"
+		} else if (leadingValue === 3) {
+			translationKey = "thirdOfPeriod_label"
 		} else if (leadingValue === -1) {
 			translationKey = "lastOfPeriod_label"
 		} else if (!Number.isNaN(leadingValue)) {
