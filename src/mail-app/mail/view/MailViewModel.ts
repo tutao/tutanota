@@ -807,7 +807,7 @@ export class MailViewModel {
 	 * @param folder the folder to check or, by default, the current folder
 	 */
 	groupMailsByConversation(folder: MailFolder | null = this._folder) {
-		return listByConversationInFolder(this.conversationPrefProvider, folder)
+		return this.mailModel.canUseConversationView() && listByConversationInFolder(this.conversationPrefProvider, folder)
 	}
 
 	getMoveMode(folder: MailFolder): MoveMode {

@@ -66,7 +66,7 @@ export class ConversationViewModel {
 		// conversation entry is deleted only when every email in the conversation is deleted (the whole conversation list will be deleted)
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ConversationEntryTypeRef, update) && update.instanceListId === this.conversationListId()) {
-				if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
+				if (!this.showFullConversation()) {
 					// no need to handle CREATE because we only show a single item and we don't want to add new ones
 					// no need to handle UPDATE because the only update that can happen is when email gets deleted and then we should be closed from the
 					// outside anyway
@@ -195,7 +195,7 @@ export class ConversationViewModel {
 
 	private async loadConversation() {
 		try {
-			if (this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()) {
+			if (!this.showFullConversation()) {
 				this.conversation = this.conversationItemsForSelectedMailOnly()
 			} else {
 				// Catch errors but only for loading conversation entries.
@@ -353,5 +353,9 @@ export class ConversationViewModel {
 				}
 			}
 		}
+	}
+
+	private showFullConversation(): boolean {
+		return this.mailModel.canUseConversationView() && !this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
 	}
 }
