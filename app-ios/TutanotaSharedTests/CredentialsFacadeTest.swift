@@ -1,15 +1,17 @@
 import Mockingbird
+import Testing
 import TutanotaSharedFramework
-import XCTest
 
-final class CredentialsFacadeTest: XCTestCase {
+struct CredentialsFacadeTest {
 	private let keychainEncryption = mock(KeychainEncryption.self)
 		.initialize(keychainManager: mock(KeychainManager.self).initialize(keyGenerator: mock(KeyGenerator.self).initialize()))
 	private let credentialsDb = mock(CredentialsStorage.self)
 	private let cryptoFns = mock(CryptoFunctions.self).initialize()
 	private var facade: IosNativeCredentialsFacade!
 
-	override func setUpWithError() throws {
+	init() {
+		initMockingbird()
+
 		facade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: cryptoFns)
 		given(keychainEncryption.requiresKeyAccessMigration()).willReturn(false)
 	}
@@ -50,31 +52,31 @@ final class CredentialsFacadeTest: XCTestCase {
 	private let decCredentialsKey = Data([0x0d])
 	private let reEncryptedCredentialsKey = Data([0x03])
 
-	func test_deleteByUserId_deletes_it_from_the_db() async throws {
+	@Test func test_deleteByUserId_deletes_it_from_the_db() async throws {
 		let userId = "user1"
 		try await facade.deleteByUserId(userId)
 		verify(credentialsDb.delete(userId: userId)).wasCalled()
 	}
 
-	func test_GetCredentialEncryptionode_returns_null_from_the_db() async throws {
+	@Test func test_GetCredentialEncryptionode_returns_null_from_the_db() async throws {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(nil)
 		let mode = try await facade.getCredentialEncryptionMode()
 		XCTAssertNil(mode)
 	}
 
-	func test_GetCredentialEncryptionode_returns_value_from_the_db() async throws {
+	@Test func test_GetCredentialEncryptionode_returns_value_from_the_db() async throws {
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(.systemPassword)
 		let mode = try await facade.getCredentialEncryptionMode()
 		XCTAssertEqual(CredentialEncryptionMode.systemPassword, mode)
 	}
 
-	func test_loadAll_returns_credentials_from_the_db() async throws {
+	@Test func test_loadAll_returns_credentials_from_the_db() async throws {
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
 		let loadedCredentials = try await facade.loadAll()
 		XCTAssertEqual([encryptedCredentials1, encryptedCredentials2], loadedCredentials)
 	}
 
-	func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_wo_passphraseKey() async throws {
+	@Test func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_wo_passphraseKey() async throws {
 		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
@@ -83,10 +85,10 @@ final class CredentialsFacadeTest: XCTestCase {
 		given(cryptoFns.aesDecryptData(encryptedCredentials1.accessToken.data, withKey: decCredentialsKey))
 			.willReturn(decryptedCredentials1.accessToken.data(using: .utf8)!)
 		let loadedCredential = try await facade.loadByUserId("user1")
-		XCTAssertEqual(decryptedCredentials1, loadedCredential)
+		#expect(decryptedCredentials1 == loadedCredential)
 	}
 
-	func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_w_passphraseKey() async throws {
+	@Test func test_loadByUserId_$_when_there_is_a_key_it_is_used_to_decrypt_credentials_w_passphraseKey() async throws {
 		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1, encryptedCredentials2])
@@ -98,7 +100,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		XCTAssertEqual(decryptedCredentials2, loadedCredential)
 	}
 
-	func test_loadByUserId_$_when_another_mode_is_selected_the_migration_is_done() async throws {
+	@Test func test_loadByUserId_$_when_another_mode_is_selected_the_migration_is_done() async throws {
 		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.systemPassword)
 		given(credentialsDb.getAll()).willReturn([encryptedCredentials1])
@@ -112,7 +114,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: reEncryptedCredentialsKey)).wasCalled()
 	}
 
-	func test_loadByUserId_$_when_key_access_migration_is_required_the_migration_is_done() async throws {
+	@Test func test_loadByUserId_$_when_key_access_migration_is_required_the_migration_is_done() async throws {
 		given(credentialsDb.getCredentialEncryptionKey()).willReturn(encCredentialsKey)
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
 		given(keychainEncryption.requiresKeyAccessMigration()).willReturn(true)
@@ -127,7 +129,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: reEncryptedCredentialsKey)).wasCalled()
 	}
 
-	func test_store_$_when_there_is_no_key_it_generates_and_stores_one() async throws {
+	@Test func test_store_$_when_there_is_no_key_it_generates_and_stores_one() async throws {
 		given(credentialsDb.getCredentialEncryptionKey()).willReturn(nil)
 		given(cryptoFns.aesGenerateKey()).willReturn(decCredentialsKey)
 		given(credentialsDb.getCredentialEncryptionMode()).willReturn(CredentialEncryptionMode.deviceLock)
@@ -141,7 +143,7 @@ final class CredentialsFacadeTest: XCTestCase {
 		verify(credentialsDb.store(credentials: encryptedCredentials1)).wasCalled()
 	}
 
-	func test_migrate_stores_everything() async throws {
+	@Test func test_migrate_stores_everything() async throws {
 		try await facade.migrateToNativeCredentials([encryptedCredentials1, encryptedCredentials2], .biometrics, encCredentialsKey.wrap())
 		verify(credentialsDb.setCredentialEncryptionKey(encryptionKey: encCredentialsKey)).wasCalled()
 		verify(credentialsDb.setCredentialEncryptionMode(encryptionMode: .biometrics)).wasCalled()
@@ -150,20 +152,20 @@ final class CredentialsFacadeTest: XCTestCase {
 	}
 }
 
-extension CredentialsInfo: Equatable {
+extension CredentialsInfo: @retroactive Equatable {
 	public static func == (lhs: CredentialsInfo, rhs: CredentialsInfo) -> Bool { lhs.login == rhs.login && lhs.userId == rhs.userId && lhs.type == rhs.type }
 }
 
-extension DataWrapper: Equatable { public static func == (lhs: DataWrapper, rhs: DataWrapper) -> Bool { lhs.data == rhs.data } }
+extension DataWrapper: @retroactive Equatable { public static func == (lhs: DataWrapper, rhs: DataWrapper) -> Bool { lhs.data == rhs.data } }
 
-extension PersistedCredentials: Equatable {
+extension PersistedCredentials: @retroactive Equatable {
 	public static func == (lhs: PersistedCredentials, rhs: PersistedCredentials) -> Bool {
 		lhs.credentialInfo == rhs.credentialInfo && lhs.accessToken == rhs.accessToken && lhs.databaseKey == rhs.databaseKey
 			&& lhs.encryptedPassword == rhs.encryptedPassword
 	}
 }
 
-extension UnencryptedCredentials: Equatable {
+extension UnencryptedCredentials: @retroactive Equatable {
 	public static func == (lhs: UnencryptedCredentials, rhs: UnencryptedCredentials) -> Bool {
 		lhs.credentialInfo == rhs.credentialInfo && lhs.accessToken == rhs.accessToken && lhs.databaseKey == rhs.databaseKey
 			&& lhs.encryptedPassword == rhs.encryptedPassword

@@ -31,7 +31,7 @@ targets:
       base:
         PRODUCT_NAME: "TutanotaShareExtension"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaShareExtension"
-        IPHONEOS_DEPLOYMENT_TARGET: "15.5" # Github might be running on slightly lower iOS version
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0" # Github might be running on slightly lower iOS version
         INFOPLIST_FILE: "TutanotaShareExtension/Info.plist"
         HEADER_SEARCH_PATHS: '"${PROJECT_DIR}/tutanota/include"/**'
         MARKETING_VERSION: "3.104.5"
@@ -91,12 +91,13 @@ targets:
       VERSIONING_SYSTEM: "apple-generic"
       GCC_NO_COMMON_BLOCKS: "YES"
       CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
-      ENABLE_MODULE_VERIFIER: "YES"
+      ENABLE_MODULE_VERIFIER: "NO"
       MODULE_VERIFIER_SUPPORTED_LANGUAGES: "objective-c objective-c++"
       MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS: "$(GCC_C_LANGUAGE_STANDARD) $(CLANG_CXX_LANGUAGE_STANDARD)"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
       SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
+      IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     dependencies:
       - package: DictionaryCoding
         product: "DictionaryCoding"
@@ -120,6 +121,7 @@ targets:
         INFOPLIST_FILE: "TutanotaNotificationExtension/Info.plist"
         GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaNotificationExtension"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
       groups:
         - "codeSigning"
         - "extension"
