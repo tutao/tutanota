@@ -262,7 +262,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				},
 			},
 			[
-				m(".flex-grow", "Every"),
+				m(".flex-grow", lang.get("repeatsEvery_label")),
 				m(
 					".rel",
 					m(Select<IntervalOption, number>, {
