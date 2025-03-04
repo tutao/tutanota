@@ -597,7 +597,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
 		const mailModel = mailLocator.mailModel
-		return mailModel.isMovingMailsAllowed() ? (origin) => this.moveMails(origin) : null
+		return mailModel.isMovingMailsFromSearchAllowed() ? (origin) => this.moveMails(origin) : null
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
