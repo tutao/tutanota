@@ -169,7 +169,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		if (!time) {
 			return Time.fromDate(getNextHalfHour()).toString(false)
 		}
-		return Time.fromDateTime({ hour: time.hours, minute: 0 } as DateTime).toString(false)
+		return Time.fromDateTime({ hour: time.hours, minute: time.minutes === 30 ? 30 : 0 } as DateTime).toString(false)
 	}
 
 	private renderTimeSelectInput(attrs: TimePickerAttrs) {
