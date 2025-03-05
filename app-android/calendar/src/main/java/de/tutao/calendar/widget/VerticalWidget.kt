@@ -1,6 +1,5 @@
 package de.tutao.calendar.widget
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -28,7 +27,6 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.material3.ColorProviders
 import androidx.glance.preview.ExperimentalGlancePreviewApi
@@ -38,6 +36,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import de.tutao.calendar.R
+import de.tutao.calendar.widget.VerticalWidget.MyAppWidgetGlanceColorScheme
 import de.tutao.tutasdk.CalendarEvent
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -52,19 +51,20 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class MyAppWidget : GlanceAppWidget() {
+class VerticalWidget : GlanceAppWidget() {
 
 
 	object MyAppWidgetGlanceColorScheme {
 		private val LightColors = lightColorScheme(
-			primary = Color(0xFFF6F6F6),
-			onPrimary = Color(0xFF303030),
-			secondary = Color(0xFFFFFFFF),
-			onSecondary = Color(0xFF303030),
+			primary = Color(0xFF013E85),
+			onPrimary = Color(0xFFFFFFFF),
+			secondary = Color(0xFF303030),
+			onSecondary = Color(0xFF013E85),
 			background = Color(0xFFF6F6F6),
 			onBackground = Color(0xFF303030),
 			surface = Color(0xFFFFFFFF),
 			onSurface = Color(0xFF303030),
+			primaryContainer = Color(0xFF000000)
 		)
 
 		private val DarkColors = darkColorScheme(
@@ -76,6 +76,7 @@ class MyAppWidget : GlanceAppWidget() {
 			onBackground = Color(0xFFDDDDDD),
 			surface = Color(0xFF4D4D4D),
 			onSurface = Color(0xFFDDDDDD),
+			primaryContainer = Color(0xFFFFFFFF)
 		)
 		val colors = ColorProviders(
 			light = LightColors,
@@ -93,7 +94,7 @@ class MyAppWidget : GlanceAppWidget() {
 
 		val crypto = AndroidNativeCryptoFacade(context)
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-		val credentials = nativeCredentialsFacade.loadByUserId("OKVQTu1----0")!!
+		val credentials = nativeCredentialsFacade.loadByUserId("OKV2uY3----4")!!
 			.toSdkCredentials() // FIXME Get the user from config page
 
 		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
@@ -112,132 +113,123 @@ class MyAppWidget : GlanceAppWidget() {
 			val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime.toLong()), zoneId)
 			val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime.toLong()), zoneId)
 			val formatter = DateTimeFormatter.ofPattern("HH:mm")
-			EventData(event.summary, start.format(formatter), end.format(formatter))
+			Event(event.summary, start.format(formatter), end.format(formatter))
 		}
 		provideContent {
 			GlanceTheme(
 				colors = MyAppWidgetGlanceColorScheme.colors
 			) {
 				// create your AppWidget here
-				MyContent(eventsData)
+				WidgetBody(eventsData)
 			}
 		}
 	}
 }
 
-data class EventData(
+data class Event(
 	val summary: String,
 	val startTime: String,
 	val endTime: String,
 )
 
-@SuppressLint("RestrictedApi")
 @Composable
-fun MyContent(eventsData: List<EventData>) {
+fun WidgetBody(eventsData: List<Event>) {
 	Scaffold(
 		modifier = GlanceModifier
 			.padding(horizontal = 20.dp),
 		backgroundColor = GlanceTheme.colors.background,
 		horizontalPadding = 0.dp,
 		titleBar = {
-			Spacer(modifier = GlanceModifier.height(16.dp))
 			Row(
+				modifier = GlanceModifier.padding(vertical = 16.dp),
 				verticalAlignment = Alignment.CenterVertically
 			) {
-				Column(
-					modifier = GlanceModifier
-						.clickable { println("Open agenda") }
-				) {
-					// date e.g. 20 February
-					Text(
-						style = TextStyle(
-							fontWeight = FontWeight.Bold,
-							fontSize = 16.sp,
-							color = GlanceTheme.colors.onBackground
-						),
-						text = "20 February", // TODO() fetch data
-						maxLines = 1,
-					)
-
-					Spacer(modifier = GlanceModifier.height(4.dp))
-
-					// all day events
-					// TODO() border is thicker in the corners. should probably switch to xml or no border
-					BorderedContent(borderWidth = 1) {
-						Text(
-							modifier = GlanceModifier
-								.padding(horizontal = 8.dp, vertical = 4.dp),
-							style = TextStyle(
-								color = GlanceTheme.colors.onBackground,
-								fontSize = 14.sp
-							),
-							text = "57 all day events"
-						)
-					}
-				}
-				// create event button
-				Column(
-					modifier = GlanceModifier
-						.fillMaxWidth(),
-					horizontalAlignment = Alignment.End
-				) {
-					SquareIconButton(
-						imageProvider = ImageProvider(R.drawable.ic_add),
-						contentDescription = "Add event button",
-						modifier = GlanceModifier
-							.size(63.dp),
-						onClick = { println("Open event creator") },
-						backgroundColor = ColorProvider(R.color.blue) // TODO() proper color
-
-					)
-				}
+				Header()
 			}
-			Spacer(modifier = GlanceModifier.height(16.dp))
-		}) {
+		}
+	) {
 		// calendar events
 		// we remove the scrollbar in res/values/styles.xml
 		LazyColumn {
 			itemsIndexed(eventsData, itemId = { index, _ -> index.toLong() }) { _, event ->
 				Column {
 					EventCard(event)
-					Spacer(modifier = GlanceModifier.height(8.dp))
+					Spacer(modifier = GlanceModifier.height(4.dp))
 				}
 			}
 		}
 	}
 }
 
-@SuppressLint("RestrictedApi")
 @Composable
-fun EventCard(event: EventData) {
+private fun Header() {
+	Column(
+		modifier = GlanceModifier
+			.clickable { println("Open agenda") }
+	) {
+		// date e.g. 20 February
+		Text(
+			style = TextStyle(
+				fontWeight = FontWeight.Bold,
+				fontSize = 16.sp,
+				color = GlanceTheme.colors.secondary
+			),
+			text = "20 February", // TODO() fetch data
+			maxLines = 1,
+			modifier = GlanceModifier.padding(bottom = 4.dp)
+		)
+		// all day events
+		// TODO() border is thicker in the corners. should probably switch to xml or no border
+		Spacer(modifier = GlanceModifier.background(GlanceTheme.colors.primaryContainer).height(1.dp))
+		Text(
+			modifier = GlanceModifier
+				.padding(top = 4.dp),
+			style = TextStyle(
+				color = GlanceTheme.colors.secondary,
+				fontSize = 14.sp
+			),
+			text = "57 all day"
+		)
+	}
+	// create event button
+	Column(
+		modifier = GlanceModifier
+			.fillMaxWidth(),
+		horizontalAlignment = Alignment.End
+	) {
+		SquareIconButton(
+			imageProvider = ImageProvider(R.drawable.ic_add),
+			contentDescription = "Add event button",
+			onClick = { println("Open event creator") },
+			backgroundColor = GlanceTheme.colors.primary
+		)
+	}
+}
+
+@Composable
+fun EventCard(event: Event) {
 	Row(
 		modifier = GlanceModifier.padding(8.dp)
-			.background(GlanceTheme.colors.secondary)
+			.background(GlanceTheme.colors.surface)
 			.cornerRadius(8.dp)
 			.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically
 	) {
-		Circle()
+		CalendarIndicator()
 
 		// event title and time
-		Column(
-			modifier = GlanceModifier
-				.padding(8.dp)
-		) {
+		Column(modifier = GlanceModifier.padding(start = 8.dp)) {
 			// title
 			// TODO() display limited amount of characters and handle overflow with dots e.g. "Hello Widget..."
 			Text(
 				event.summary,
-				modifier = GlanceModifier
-					.clickable { println("Open event details") },
+				modifier = GlanceModifier.clickable { println("Open event details") },
 				style = TextStyle(
-					color = GlanceTheme.colors.onSecondary,
+					color = GlanceTheme.colors.onSurface,
 					fontWeight = FontWeight.Bold,
 					fontSize = 14.sp
 				)
 			)
-
-			Spacer(modifier = GlanceModifier.height(8.dp))
 
 			// start and end time
 			Row(
@@ -248,7 +240,7 @@ fun EventCard(event: EventData) {
 					event.startTime + " - " + event.endTime,
 					modifier = GlanceModifier,
 					style = TextStyle(
-						color = GlanceTheme.colors.onSecondary,
+						color = GlanceTheme.colors.onSurface,
 						fontSize = 14.sp
 					),
 				)
@@ -259,25 +251,22 @@ fun EventCard(event: EventData) {
 }
 
 @Composable
-fun Circle(radius: Int = 20, color: Color = Color.Blue) {
+fun CalendarIndicator(radius: Int = 20, color: Color = Color.Blue) {
 	Column(
 		modifier = GlanceModifier
 			.width(radius.dp)
 			.height(radius.dp)
 			.background(color)
 			.cornerRadius((radius / 2).dp),
-	) {
-
-	}
+	) { }
 }
 
 /**
  * get a boarder around your content as glance doesn't support this natively
  */
-@SuppressLint("RestrictedApi")
 @Composable
 fun BorderedContent(
-	borderColor: ColorProvider = GlanceTheme.colors.onBackground,
+	borderColor: ColorProvider = GlanceTheme.colors.primaryContainer,
 	borderWidth: Int,
 	content: @Composable () -> Unit
 
@@ -285,12 +274,10 @@ fun BorderedContent(
 	Column(
 		modifier = GlanceModifier
 			.background(borderColor)
-			.padding(borderWidth.dp)
-			.cornerRadius(8.dp)
+			.padding(top = borderWidth.dp)
 	) {
 		Column(
 			modifier = GlanceModifier
-				.cornerRadius(8.dp)
 				.background(GlanceTheme.colors.background)
 		) {
 			content()
@@ -303,11 +290,11 @@ fun BorderedContent(
 @Preview(widthDp = 200, heightDp = 422)
 @Preview(widthDp = 400, heightDp = 500)
 @Composable
-fun MyContentPreview() {
-	val eventData = ArrayList<EventData>()
+fun VerticalWidgetPreview() {
+	val eventData = ArrayList<Event>()
 	for (i in 1..7) {
 		eventData.add(
-			EventData(
+			Event(
 				"Hello Widget $i",
 				"08:00",
 				"17:00"
@@ -315,13 +302,14 @@ fun MyContentPreview() {
 		)
 	}
 	eventData.add(
-		EventData(
+		Event(
 			"Summery",
 			"Start Time",
 			"End Time"
 		)
 	)
-	MyContent(eventData)
+
+	GlanceTheme(colors = MyAppWidgetGlanceColorScheme.colors) { WidgetBody(eventData) }
 }
 
 
