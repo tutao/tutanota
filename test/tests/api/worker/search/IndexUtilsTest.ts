@@ -126,7 +126,7 @@ o.spec("Index Utils", () => {
 		user.memberships.push(createTestEntity(GroupMembershipTypeRef))
 		user.memberships[0].groupType = GroupType.Admin
 		o(userIsGlobalAdmin(user)).equals(true)
-		user.memberships[0].groupType = GroupType.LocalAdmin
+		user.memberships[0].groupType = GroupType.Deprecated_LocalAdmin
 		o(userIsGlobalAdmin(user)).equals(false)
 		user.memberships[0].groupType = GroupType.Mail
 		o(userIsGlobalAdmin(user)).equals(false)
