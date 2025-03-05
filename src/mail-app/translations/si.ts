@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1591,7 +1591,6 @@ export default {
 		"unsubscribe_action": "දායකත්‍වය අහෝසිය",
 		"unsuccessfulDrop_msg": "දත්ත බාගැනීම නිම වී නැති නිසා ඇද දැමීම සාර්ථක නොවිණි. ප්‍රගති තීරුව පිරුණු පසු ඔබට යළි උත්සාහ කළ හැකිය.",
 		"until_label": "තෙක්",
-		"updateAdminshipGlobalAdmin_msg": "ගෝලීය පරිපාලකයෙකුගේ පරිපාලකත්වය ඔබට වෙනස් කළ නොහැකිය.",
 		"updateAllCalendarEvents_action": "සියළු සිදුවීම් යාවත්කාල කරන්න",
 		"updateAvailable_label": "ටුටානෝටා වැඩතලයට යාවත්කාලයක් තිබේ ({version})",
 		"updateFound_label": "නව අනුවාදයක් තිබේ.",

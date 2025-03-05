@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-02-27T10:00:20Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1857,7 +1857,6 @@ export default {
 		"unsuccessfulDrop_msg": "Sürükle ve bırak, verilerin indirilmesi tamamlanmadığı için başarısız oldu. İlerleme çubuğu dolduğunda tekrar deneyebilirsiniz.",
 		"unsupportedAdvancedRules_msg": "Bu etkinlik bir veya daha fazla desteklenmeyen Gelişmiş Tekrar Kuralları içeriyor, herhangi bir değişiklik bu kuralların kaybolmasına yol açacaktır.",
 		"until_label": "tarihine kadar",
-		"updateAdminshipGlobalAdmin_msg": "Genel bir yöneticinin yöneticiliğini değiştiremezsiniz.",
 		"updateAllCalendarEvents_action": "Tüm etkinlikleri güncelle",
 		"updateAvailable_label": "Tuta Masaüstü ({version}) güncellemesi mevcut",
 		"updateFound_label": "yeni sürüm mevcut",

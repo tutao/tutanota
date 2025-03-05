@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1563,7 +1563,6 @@ export default {
 		"unsubscribe_action": "Отпиши",
 		"unsuccessfulDrop_msg": "Неуспешно изтегляне и пускане, защото данните не са приключили изтеглянето си. Опитате отново, след като лентата за напредъка приключи.",
 		"until_label": "до",
-		"updateAdminshipGlobalAdmin_msg": "Не можете да променяте администрирането на глобален администратор.",
 		"updateAllCalendarEvents_action": "Обновяване на всички събития",
 		"updateAvailable_label": "Има ново обновление на Tuta за настолната версия ({version})",
 		"updateFound_label": "Достъпна е нова версия",

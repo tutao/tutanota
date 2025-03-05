@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1325,7 +1325,6 @@ export default {
 		"unsubscribe_action": "إلغاء الاشتراك",
 		"unsuccessfulDrop_msg": "لم ينجح السحب والإفلات لأن البيانات لم تنته من التنزيل. يمكنك المحاولة مرة أخرى بمجرد انتهاء شريط التقدم.",
 		"until_label": "حتى",
-		"updateAdminshipGlobalAdmin_msg": "لا يمكنك تغيير إدارة المشرف العام.",
 		"updateAvailable_label": "يتوفر التحديث  لـ توتانوتا سطح المكتب({version})",
 		"updateFound_label": "الإصدار الجديد متوفر.",
 		"updateOwnAdminship_msg": "لا يمكنك تغيير إدارة مستخدمك الخاص.",

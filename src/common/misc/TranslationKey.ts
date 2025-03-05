@@ -1836,7 +1836,6 @@ export type TranslationKeyType =
 	| "unsuccessfulDrop_msg"
 	| "unsupportedAdvancedRules_msg"
 	| "until_label"
-	| "updateAdminshipGlobalAdmin_msg"
 	| "updateAllCalendarEvents_action"
 	| "updateAvailable_label"
 	| "updateFound_label"
@@ -1935,4 +1934,3 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
-	| "updateNeeded_msg"

@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-02-18T14:59:58Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1792,7 +1792,6 @@ export default {
 		"unsubscribe_action": "Адпісацца",
 		"unsuccessfulDrop_msg": "Перацягванне было няўдалым, бо даныя не былі цалкам спампаваныя. Паспрабуй ізноў, калі запоўніцца індыкатар выканання.",
 		"until_label": "да",
-		"updateAdminshipGlobalAdmin_msg": "Ты ня можаш змяніць адміна глабальнага адміна.",
 		"updateAllCalendarEvents_action": "Абнавіць усе падзеі",
 		"updateAvailable_label": "Даступна абнаўленне для Tuta Desktop ({version})",
 		"updateFound_label": "Даступная новая версія-",

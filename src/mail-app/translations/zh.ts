@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1091,7 +1091,6 @@ export default {
 		"unsubscribeFailed_msg": "无法取消订阅或邮件列表。",
 		"unsubscribeSuccessful_msg": "通讯或邮件列表以成功取消！",
 		"unsubscribe_action": "取消订阅",
-		"updateAdminshipGlobalAdmin_msg": "您无法更改全局管理员的管理员权限。",
 		"updateAvailable_label": "新版本{version}可用",
 		"updateFound_label": "已经可以使用新版本。",
 		"updateOwnAdminship_msg": "您无法更改自己用户的管理权限。",

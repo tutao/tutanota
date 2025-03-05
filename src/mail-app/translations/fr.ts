@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2025-02-22T08:45:05Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1789,7 +1789,6 @@ export default {
 		"unsubscribe_action": "Se désabonner",
 		"unsuccessfulDrop_msg": "Le glisser-déposer n'a pas abouti car le téléchargement des données n'était pas terminé. Vous pouvez réessayer une fois que la barre de progression est terminée.",
 		"until_label": "jusqu'à",
-		"updateAdminshipGlobalAdmin_msg": "Vous ne pouvez pas changer le statut d'admin d'un admin global.",
 		"updateAllCalendarEvents_action": "Mettre à jour tous les évènements",
 		"updateAvailable_label": "Mise à jour disponible ({version})",
 		"updateFound_label": "Une nouvelle version est disponible. ",

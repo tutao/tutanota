@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1041,7 +1041,6 @@ export default {
 		"unsubscribeFailed_msg": "Neizdevās atcelt jaunumu saņemšanu vai atrakstīšanos no mailinglistes.",
 		"unsubscribeSuccessful_msg": "Jaunumu saņemšana ir atcelta veiksmīgi!",
 		"unsubscribe_action": "Anulēt abonementu",
-		"updateAdminshipGlobalAdmin_msg": "Jūs nevarat mainīt globālā administratora administrēšanu/administratoru.",
 		"updateAvailable_label": "Ir pieejama Tuta Desktop jauna versija: ({version})",
 		"updateFound_label": "Ir pieejama jauna versija.",
 		"updateOwnAdminship_msg": "Jūs nevarat mainīt jūsu paša lietotāja administrēšanu/administratoru.",

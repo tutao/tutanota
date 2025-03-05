@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2025-02-18T14:59:58Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1810,7 +1810,6 @@ export default {
 		"unsubscribe_action": "Avbestill",
 		"unsuccessfulDrop_msg": "Dra og slipp mislyktes fordi dataene ikke var fullført. Du kan prøve igjen når fremdriftslinjen er ferdig.",
 		"until_label": "til",
-		"updateAdminshipGlobalAdmin_msg": "Du kan ikke forandre administratorstatus på en global administrator.",
 		"updateAllCalendarEvents_action": "Oppdater alle hendelser",
 		"updateAvailable_label": "Oppdatering for Tuta tilgjengelig ({version})",
 		"updateFound_label": "Ny versjon er tilgjengelig.",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1483,7 +1483,6 @@ export default {
 		"unsubscribe_action": "Ngừng theo dõi",
 		"unsuccessfulDrop_msg": "Việc kéo & thả đã không thành công vì dữ liệu chưa tải xuống xong. Bạn có thể thử lại khi thanh tiến độ hoàn tất.",
 		"until_label": "đến",
-		"updateAdminshipGlobalAdmin_msg": "Bạn không thể thay đổi quyền quản trị của QTV chung.",
 		"updateAllCalendarEvents_action": "Cập nhật tất cả các sự kiện",
 		"updateAvailable_label": "Đã có bản cập nhật cho Tuta Máy tính ({version})",
 		"updateFound_label": "Đã có phiên bản mới.",

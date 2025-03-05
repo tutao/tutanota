@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1642,7 +1642,6 @@ export default {
 		"unsubscribe_action": "Berhenti berlangganan",
 		"unsuccessfulDrop_msg": "Seret & lepas tidak berhasil karena data belum selesai diunduh.  Anda dapat mencoba lagi setelah progres bar selesai.",
 		"until_label": "hingga",
-		"updateAdminshipGlobalAdmin_msg": "Anda tidak dapat mengubah status administratif dari administrator global.",
 		"updateAllCalendarEvents_action": "Perbarui semua acara",
 		"updateAvailable_label": "Pembaruan untuk Desktop Tuta tersedia ({version})",
 		"updateFound_label": "Versi baru tersedia.",

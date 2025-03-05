@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1699,7 +1699,6 @@ export default {
 		"unsubscribe_action": "Cancel·la la subscripció",
 		"unsuccessfulDrop_msg": "L'arrossegar i deixar anar no s'ha pogut fer perquè les dades no s'havien acabat de baixar. Podeu tornar-ho a provar un cop acabi la barra de progrés.",
 		"until_label": "fins",
-		"updateAdminshipGlobalAdmin_msg": "No podeu canviar l'administració d'un administrador global.",
 		"updateAllCalendarEvents_action": "Actualització de tots els esdeveniments",
 		"updateAvailable_label": "Actualització per Tuta d'escriptori disponible ({version})",
 		"updateFound_label": "Hi ha una nova versió disponible.",

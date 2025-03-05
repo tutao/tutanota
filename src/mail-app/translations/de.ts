@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-02-27T09:06:30Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -704,7 +704,7 @@ export default {
 		"giftCardUpgradeNotifyDebit_msg": "Ein  Teil des Preises des ersten Jahres ({price}) wird von dem Guthaben des Gutscheins beglichen. Bitte bezahle den Restbetrag ({amount}) unter 'Einstellungen' ⇨ 'Bezahlung'.",
 		"giftCardUpgradeNotifyRevolutionary_msg": "Dein Account wird automatisch auf einen Revolutionary-Account mit einem jährlichen Abo umgestellt.",
 		"giftCard_label": "Gutschein",
-		"globalAdmin_label": "Globaler Admin",
+		"globalAdmin_label": "Admin",
 		"globalSettings_label": "Globale Einstellungen",
 		"goPremium_msg": "Als zahlende*r Nutzer*in kannst du links im Menü deine Suchfilter anpassen.",
 		"grantContactPermissionAction": "Erlaubnis zum Zugriff auf Kontakte erteilen",
@@ -1857,7 +1857,6 @@ export default {
 		"unsuccessfulDrop_msg": "Das Drag & Drop war nicht erfolgreich, weil die Daten noch nicht heruntergeladen worden sind. Bitte versuche es erneut, wenn der Fortschrittsbalken vollständig ist.",
 		"unsupportedAdvancedRules_msg": "Dieser Termin enthält eine oder mehrere nicht unterstützte benutzerdefinierte Wiederholungsregeln. Jede Änderung an diesem Termin führt zum Verlust dieser Regeln.",
 		"until_label": "bis",
-		"updateAdminshipGlobalAdmin_msg": "Du kannst nicht den Admin eines globalen Admins ändern.",
 		"updateAllCalendarEvents_action": "Alle Termine aktualisieren",
 		"updateAvailable_label": "Neue Version für Tuta Desktop verfügbar ({version})",
 		"updateFound_label": "Es ist eine neue Version verfügbar.",
@@ -1954,6 +1953,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",		        "updateNeeded_msg": "Update needed"
+		"zoomOut_action": "Herauszoomen"
 	}
 }
