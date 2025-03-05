@@ -41,7 +41,7 @@ import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { getIds, getListId } from "../../../common/api/common/utils/EntityUtils"
+import { getIds } from "../../../common/api/common/utils/EntityUtils"
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
@@ -137,8 +137,8 @@ export async function moveMailsToSystemFolder({
 	moveMode: MoveMode
 	isReportable?: boolean
 }): Promise<boolean> {
-	const folderSystem = await mailModel.getMailboxFoldersForId(getListId(currentFolder))
-	const targetFolder = folderSystem.getSystemFolderByType(targetFolderType)
+	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
+	const targetFolder = folderSystem?.getSystemFolderByType(targetFolderType)
 	if (targetFolder == null) return false
 	return await moveMails({ mailboxModel, mailModel, mailIds, targetFolder, isReportable, moveMode })
 }

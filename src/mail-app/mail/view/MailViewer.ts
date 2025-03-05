@@ -544,6 +544,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			},
 			{
 				key: Keys.I,
+				shift: true,
 				enabled: () => !this.viewModel.isDraftMail(),
 				exec: () => {
 					showSourceDialog(this.viewModel.getMailBody())
