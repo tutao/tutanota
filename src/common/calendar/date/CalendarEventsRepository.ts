@@ -15,12 +15,12 @@ import {
 	isBirthdayEvent,
 	isClientOnlyCalendar,
 } from "./CalendarUtils.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { Birthday, CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { findAllAndRemove, incrementDate, isNotNull, stringToBase64 } from "@tutao/tutanota-utils"
+import { findAllAndRemove, incrementDate, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
 import { CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, OperationType, RepeatPeriod } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -41,6 +41,11 @@ export type DaysToEvents = ReadonlyMap<number, ReadonlyArray<CalendarEvent>>
 export type BirthdayEventRegistry = {
 	baseYear: number | null
 	event: CalendarEvent
+}
+
+interface ContactWrapper {
+	contact: Contact
+	birthday: Birthday
 }
 
 /**
@@ -267,7 +272,7 @@ export class CalendarEventsRepository {
 		return newEvent
 	}
 
-	async loadContactsBirthdays(forceReload: boolean = false) {
+	async loadContactsBirthdays(forceReload: boolean = false): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
 		// Do not reload birthdays
 		if (this.clientOnlyEvents.size > 0 && !forceReload) {
 			return
@@ -277,26 +282,43 @@ export class CalendarEventsRepository {
 		this.clientOnlyEvents.clear()
 
 		const listId = await this.contactModel.getContactListId()
-		if (listId == null) return []
+		if (listId == null) return { valid: [], invalid: [] }
 
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
-		const filteredContacts = contacts
-			.filter((contact) => contact.birthdayIso)
-			.sort((a, b) => {
-				const birthdayContactA = isoDateToBirthday(a.birthdayIso!)
-				const birthdayContactB = isoDateToBirthday(b.birthdayIso!)
-				return (
-					new Date(`${birthdayContactA.month}/${birthdayContactA.day}`).getTime() -
-					new Date(`${birthdayContactB.month}/${birthdayContactB.day}`).getTime()
-				)
-			})
+		const invalidContacts: Contact[] = []
 
-		for (const contact of filteredContacts) {
+		const filteredContacts = mapAndFilterNull<Contact, ContactWrapper>(contacts, (contact) => {
+			if (!contact.birthdayIso) {
+				return null
+			}
+
+			const parsedContact = this.validateContactBirthday(contact)
+			if (!parsedContact) {
+				invalidContacts.push(contact)
+				return null
+			}
+
+			return parsedContact
+		}).sort((a, b) => new Date(`${a.birthday.month}/${a.birthday.day}`).getTime() - new Date(`${b.birthday.month}/${b.birthday.day}`).getTime())
+
+		for (const { contact } of filteredContacts) {
 			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
 			this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 		}
 
-		return filteredContacts
+		return { valid: filteredContacts, invalid: invalidContacts }
+	}
+
+	private validateContactBirthday(contact: Contact): ContactWrapper | null {
+		try {
+			const parsedBirthday = isoDateToBirthday(contact.birthdayIso!)
+			return {
+				contact,
+				birthday: parsedBirthday,
+			}
+		} catch (_) {
+			return null
+		}
 	}
 
 	refreshBirthdayCalendar(date: Date) {
