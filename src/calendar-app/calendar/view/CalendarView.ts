@@ -526,7 +526,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
 			onTap: (_event, dom) => {
-				if (this.currentViewType !== CalendarViewType.MONTH && styles.isSingleColumnLayout()) {
+				if (this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY && styles.isSingleColumnLayout()) {
 					this.viewModel.setDaySelectorExpanded(!this.viewModel.isDaySelectorExpanded())
 					return
 				}
