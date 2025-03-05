@@ -344,6 +344,7 @@ class OptionListContainer implements ClassComponent {
 	private maxHeight: number | null = null
 	private children: Children[] = []
 	private isDropdownOpen = false
+	private isInitialFocusTriggered = false
 	private oldShortcut = keyManager.getShortcutForKey(Keys.ESC)
 	private shortcuts: Shortcut[] = [
 		{
@@ -391,13 +392,16 @@ class OptionListContainer implements ClassComponent {
 						oncreate: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents = vnode.dom as HTMLElement
 							this.domDropdownContents.addEventListener("focusout", this.handleDropdownLoseFocus)
+							this.domDropdownContents.addEventListener("focusin", this.handleDropdownFocusIn)
 							keyManager.registerModalShortcuts(this.shortcuts)
 						},
 						onremove: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents?.removeEventListener("focusout", this.handleDropdownLoseFocus)
+							this.domDropdownContents?.removeEventListener("focusin", this.handleDropdownFocusIn)
 							keyManager.unregisterModalShortcuts(this.shortcuts)
 
 							this.handleShortcutRestore()
+							this.isInitialFocusTriggered = false
 							this.isDropdownOpen = false
 						},
 						onupdate: (vnode: VnodeDOM<HTMLElement>) => {
@@ -415,7 +419,7 @@ class OptionListContainer implements ClassComponent {
 
 								if (this.origin) {
 									// Set the scroll before showing the dropdown to avoid flickering issues
-									const selectedOption = vnode.dom.querySelector("[data-target='true'], [aria-selected='true']") as HTMLElement | null
+									const selectedOption = vnode.dom.querySelector("[aria-selected='true'], [data-target='true']") as HTMLElement | null
 									if (selectedOption && this.domDropdown) {
 										this.domDropdown.scroll({ top: selectedOption.offsetTop, behavior: "instant" })
 									}
@@ -463,6 +467,14 @@ class OptionListContainer implements ClassComponent {
 		}
 
 		this.onClose()
+	}
+
+	private handleDropdownFocusIn = () => {
+		const selectedOption = this.domDropdownContents?.querySelector("[aria-selected='true'], [data-target='true']") as HTMLElement | null
+		if (selectedOption && !this.isInitialFocusTriggered) {
+			selectedOption.focus()
+			this.isInitialFocusTriggered = true
+		}
 	}
 
 	private handleShortcutRestore() {
