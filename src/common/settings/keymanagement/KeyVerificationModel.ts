@@ -2,15 +2,23 @@ import { TranslationKey } from "../../misc/LanguageViewModel"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
+import { KeyVerificationMethodType, KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
+import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 
 export class KeyVerificationModel {
 	mailAddress: string = ""
 	publicKeyFingerprint: PublicKeyFingerprint | null = null
 	result: KeyVerificationResultType | undefined
 
-	constructor(readonly keyVerificationFacade: KeyVerificationFacade, readonly mobileSystemFacade: MobileSystemFacade) {}
+	// Relevant for the regret usage test only. Can be removed after testing is done.
+	chosenMethod: KeyVerificationMethodType | null = null
+
+	constructor(
+		readonly keyVerificationFacade: KeyVerificationFacade,
+		readonly mobileSystemFacade: MobileSystemFacade,
+		readonly test: KeyVerificationUsageTestUtils,
+	) {}
 
 	public validateMailAddress(mailAddress: string): TranslationKey | null {
 		/* TODO:
@@ -37,5 +45,14 @@ export class KeyVerificationModel {
 	public async trust() {
 		const fingerprint = assertNotNull(this.publicKeyFingerprint)
 		await this.keyVerificationFacade.trust(this.mailAddress, fingerprint.fingerprint, fingerprint.keyVersion, fingerprint.keyPairType)
+	}
+
+	public async handleMethodSwitchForUsageTest(newMethod: KeyVerificationMethodType) {
+		if (this.chosenMethod != null && this.chosenMethod !== newMethod) {
+			// user regrets their previous choice
+			await this.test.regret()
+		}
+
+		this.chosenMethod = newMethod
 	}
 }

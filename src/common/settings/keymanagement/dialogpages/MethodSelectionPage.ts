@@ -5,8 +5,10 @@ import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 import { px, size } from "../../../gui/size"
 import { Card } from "../../../gui/base/Card"
+import { KeyVerificationModel } from "../KeyVerificationModel"
 
 type MethodSelectionPageAttrs = {
+	model: KeyVerificationModel
 	goToEmailInputPage: () => void
 	goToQrScanPage: () => void
 }
@@ -15,6 +17,9 @@ const DEFAULT_HEIGHT = 666
 
 export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
 	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
+		const model = vnode.attrs.model
+		const test = model.test
+
 		const makeOption = (name: MaybeTranslation, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
 			name,
 			value,
@@ -43,7 +48,18 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 						m("p.mt-xs.mb-s.pl-vpad-s", lang.get("keyManagement.selectMethodLong_label")),
 					],
 				),
-				[this.renderTextMethodButton(() => vnode.attrs.goToEmailInputPage()), this.renderQRMethodButton(() => vnode.attrs.goToQrScanPage())],
+				[
+					this.renderTextMethodButton(async () => {
+						await model.handleMethodSwitchForUsageTest(KeyVerificationMethodType.text)
+						await test.start(KeyVerificationMethodType.text)
+						vnode.attrs.goToEmailInputPage()
+					}),
+					this.renderQRMethodButton(async () => {
+						await model.handleMethodSwitchForUsageTest(KeyVerificationMethodType.qr)
+						await test.start(KeyVerificationMethodType.qr)
+						vnode.attrs.goToQrScanPage()
+					}),
+				],
 			),
 		)
 	}

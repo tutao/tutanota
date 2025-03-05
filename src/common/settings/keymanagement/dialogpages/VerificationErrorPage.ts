@@ -6,6 +6,7 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { theme } from "../../../gui/theme"
 import { QrCodePageErrorType } from "./VerificationByQrCodeInputPage"
+import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
 
 type VerificationErrorPageAttrs = {
 	model: KeyVerificationModel
@@ -63,7 +64,12 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 			}),
 			m(LoginButton, {
 				label: "retry_action",
-				onclick: () => vnode.attrs.retryAction(),
+				onclick: async () => {
+					// we're treating this like a fresh usage test invocation
+					await vnode.attrs.model.test.start(KeyVerificationMethodType.qr)
+
+					vnode.attrs.retryAction()
+				},
 			}),
 		])
 	}

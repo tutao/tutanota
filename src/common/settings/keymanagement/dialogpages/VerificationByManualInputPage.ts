@@ -8,10 +8,10 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
+import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -91,6 +91,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					label: markAsVerifiedTranslationKey,
 					onclick: async () => {
 						await model.trust()
+						await model.test.verified(KeyVerificationMethodType.text)
 						goToSuccessPage()
 					},
 					disabled: isFingerprintMissing(model),

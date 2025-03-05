@@ -13,6 +13,7 @@ import { KeyVerificationModel } from "./KeyVerificationModel"
 import { VerificationResultPage } from "./dialogpages/VerificationResultPage"
 import { QrCodePageErrorType, VerificationByQrCodeInputPage } from "./dialogpages/VerificationByQrCodeInputPage"
 import { VerificationErrorPage } from "./dialogpages/VerificationErrorPage"
+import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD,
@@ -28,7 +29,12 @@ export async function showKeyVerificationDialog(
 	usageTestController: UsageTestController,
 	reloadParent: () => Promise<void>,
 ): Promise<void> {
-	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade)
+	const textUsageTest = usageTestController.getTest("crypto.keyVerification.text")
+	const qrUsageTest = usageTestController.getTest("crypto.keyVerification.qr")
+	const regretUsageTest = usageTestController.getTest("crypto.keyVerification.regret")
+	const keyVerificationUsageTestUtils = new KeyVerificationUsageTestUtils(textUsageTest, qrUsageTest, regretUsageTest)
+
+	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationUsageTestUtils)
 	let lastError: QrCodePageErrorType | null = null
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(KeyVerificationDialogPages.CHOOSE_METHOD)
 		.buildDialog(
@@ -36,6 +42,7 @@ export async function showKeyVerificationDialog(
 				switch (currentPage) {
 					case KeyVerificationDialogPages.CHOOSE_METHOD:
 						return m(MethodSelectionPage, {
+							model,
 							goToEmailInputPage: () => {
 								navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD)
 							},
@@ -44,19 +51,24 @@ export async function showKeyVerificationDialog(
 					case KeyVerificationDialogPages.MANUAL_INPUT_METHOD:
 						return m(VerificationByManualInputPage, {
 							model,
-							goToSuccessPage: () => navigateToPage(KeyVerificationDialogPages.SUCCESS),
+							goToSuccessPage: async () => {
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							},
 						})
 					case KeyVerificationDialogPages.QR_CODE_INPUT_METHOD:
 						return m(VerificationByQrCodeInputPage, {
 							model,
-							goToSuccessPage: () => navigateToPage(KeyVerificationDialogPages.SUCCESS),
+							goToSuccessPage: async () => {
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							},
 							goToErrorPage: (err: QrCodePageErrorType) => {
 								lastError = err
 								navigateToPage(KeyVerificationDialogPages.ERROR)
 							},
 						})
 					case KeyVerificationDialogPages.SUCCESS: {
-						reloadParent()
 						return m(VerificationResultPage, {
 							model,
 							close: () => {
