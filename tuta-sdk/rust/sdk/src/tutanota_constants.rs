@@ -21,7 +21,8 @@ pub enum GroupType {
 	Mail = 5,
 	Contact = 6,
 	File = 7,
-	LocalAdmin = 8,
+	#[allow(non_camel_case_types)]
+	Deprecated_LocalAdmin = 8,
 	Calendar = 9,
 	Template = 10,
 	ContactList = 11,
