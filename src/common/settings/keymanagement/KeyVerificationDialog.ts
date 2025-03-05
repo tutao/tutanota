@@ -51,19 +51,24 @@ export async function showKeyVerificationDialog(
 					case KeyVerificationDialogPages.MANUAL_INPUT_METHOD:
 						return m(VerificationByManualInputPage, {
 							model,
-							goToSuccessPage: () => navigateToPage(KeyVerificationDialogPages.SUCCESS),
+							goToSuccessPage: async () => {
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							},
 						})
 					case KeyVerificationDialogPages.QR_CODE_INPUT_METHOD:
 						return m(VerificationByQrCodeInputPage, {
 							model,
-							goToSuccessPage: () => navigateToPage(KeyVerificationDialogPages.SUCCESS),
+							goToSuccessPage: async () => {
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							},
 							goToErrorPage: (err: QrCodePageErrorType) => {
 								lastError = err
 								navigateToPage(KeyVerificationDialogPages.ERROR)
 							},
 						})
 					case KeyVerificationDialogPages.SUCCESS: {
-						reloadParent()
 						return m(VerificationResultPage, {
 							model,
 							close: () => {

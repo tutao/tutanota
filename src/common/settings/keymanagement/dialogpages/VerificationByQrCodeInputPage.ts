@@ -62,6 +62,13 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
 		const { model, goToSuccessPage } = vnode.attrs
 
+		// When having successfully scanned a QR code, we stay on this page, therefore
+		// the onremove() hook does not fire and video won't be stopped. This is why it needs
+		// to be done explicitly in this case.
+		if (model.result === KeyVerificationResultType.QR_OK) {
+			this.cleanupVideo()
+		}
+
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
