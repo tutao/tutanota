@@ -7,7 +7,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
 import { KeyVerificationQrPayload } from "../KeyVerificationQrPayload"
 import { MalformedQrPayloadError } from "../../../api/common/error/MalformedQrPayloadError"
-import { KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
+import { KeyVerificationMethodType, KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
 import { PermissionType } from "../../../native/common/generatedipc/PermissionType"
 import { isApp } from "../../../api/common/Env"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
@@ -17,6 +17,7 @@ import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
+import { KeyVerificationScanCompleteMetric } from "../KeyVerificationUsageTestUtils"
 
 export type QrCodePageErrorType =
 	| "camera_permission_denied"
@@ -80,6 +81,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					label: markAsVerifiedTranslationKey,
 					onclick: async () => {
 						await model.trust()
+						await model.test.verified(KeyVerificationMethodType.qr)
 						goToSuccessPage()
 					},
 					disabled: model.result !== KeyVerificationResultType.QR_OK,
@@ -259,7 +261,10 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 							throw e
 						}
 					} finally {
-						if (model.result !== KeyVerificationResultType.QR_OK) {
+						if (model.result === KeyVerificationResultType.QR_OK) {
+							await model.test.scan_complete(KeyVerificationMethodType.qr, KeyVerificationScanCompleteMetric.Success)
+						} else {
+							await model.test.scan_complete(KeyVerificationMethodType.qr, KeyVerificationScanCompleteMetric.Failure)
 							this.goToErrorPage?.(this.resultToErrorType(model.result))
 						}
 

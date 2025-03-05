@@ -5,8 +5,10 @@ import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 import { px, size } from "../../../gui/size"
 import { Card } from "../../../gui/base/Card"
+import { KeyVerificationModel } from "../KeyVerificationModel"
 
 type MethodSelectionPageAttrs = {
+	model: KeyVerificationModel
 	goToEmailInputPage: () => void
 	goToQrScanPage: () => void
 }
@@ -19,6 +21,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 			name,
 			value,
 		})
+		const test = vnode.attrs.model.test
 
 		return m(
 			".pt.pb.flex.col.gap-vpad",
@@ -43,7 +46,16 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 						m("p.mt-xs.mb-s.pl-vpad-s", lang.get("keyManagement.selectMethodLong_label")),
 					],
 				),
-				[this.renderTextMethodButton(() => vnode.attrs.goToEmailInputPage()), this.renderQRMethodButton(() => vnode.attrs.goToQrScanPage())],
+				[
+					this.renderTextMethodButton(async () => {
+						await test.start(KeyVerificationMethodType.text)
+						vnode.attrs.goToEmailInputPage()
+					}),
+					this.renderQRMethodButton(async () => {
+						await test.start(KeyVerificationMethodType.qr)
+						vnode.attrs.goToQrScanPage()
+					}),
+				],
 			),
 		)
 	}

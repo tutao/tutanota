@@ -4,13 +4,18 @@ import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/fa
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
+import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 
 export class KeyVerificationModel {
 	mailAddress: string = ""
 	publicKeyFingerprint: PublicKeyFingerprint | null = null
 	result: KeyVerificationResultType | undefined
 
-	constructor(readonly keyVerificationFacade: KeyVerificationFacade, readonly mobileSystemFacade: MobileSystemFacade) {}
+	constructor(
+		readonly keyVerificationFacade: KeyVerificationFacade,
+		readonly mobileSystemFacade: MobileSystemFacade,
+		readonly test: KeyVerificationUsageTestUtils,
+	) {}
 
 	public validateMailAddress(mailAddress: string): TranslationKey | null {
 		/* TODO:
