@@ -56,7 +56,8 @@ pub const MAX_BLOB_SERVICE_BYTES: usize = MAX_BLOB_SIZE_BYTES;
 /// Denotes if an entity was authenticated successfully.
 ///
 /// Not all decryption methods use authentication.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, TryFromPrimitive, PartialEq, Eq)]
+#[repr(i64)]
 pub enum EncryptionAuthStatus {
 	/// The entity was decrypted with RSA which does not use authentication.
 	RSANoAuthentication = 0,

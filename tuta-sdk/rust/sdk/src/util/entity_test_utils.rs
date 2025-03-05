@@ -2,6 +2,7 @@ use crate::crypto::aes::Iv;
 use crate::crypto::key::GenericAesKey;
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
+use crate::entities::generated::sys::BucketKey;
 use crate::entities::generated::tutanota::{Mail, MailAddress};
 use crate::entities::Entity;
 use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
@@ -17,6 +18,7 @@ pub fn generate_email_entity(
 	subject: String,
 	sender_name: String,
 	recipient_name: String,
+	bucket_key: Option<BucketKey>,
 ) -> (ParsedEntity, ParsedEntity) {
 	let original_mail = Mail {
 		_id: Some(IdTupleGenerated {
@@ -32,11 +34,12 @@ pub fn generate_email_entity(
 			..create_test_entity()
 		}),
 		sender: MailAddress {
-			address: "hello@tutao.de".to_owned(),
+			address: "sender@tutao.de".to_owned(),
 			name: sender_name,
 			..create_test_entity()
 		},
 		listUnsubscribe: false,
+		bucketKey: bucket_key,
 		..create_test_entity()
 	};
 

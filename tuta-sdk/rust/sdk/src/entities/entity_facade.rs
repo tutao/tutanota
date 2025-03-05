@@ -793,7 +793,6 @@ mod tests {
 		let type_model = type_model_provider
 			.get_type_model(type_ref.app, type_ref.type_)
 			.unwrap();
-
 		let decrypted_mail = entity_facade
 			.decrypt_and_map(
 				type_model,
@@ -1134,6 +1133,7 @@ mod tests {
 			String::from("Hello, world!"),
 			String::from("Hanover"),
 			String::from("Munich"),
+			None,
 		);
 
 		// removes finalIvs for easy comparison as well as setting the aggregate _id fields
@@ -1303,6 +1303,7 @@ mod tests {
 			String::from("Hello, world!"),
 			String::from("Hanover"),
 			String::from("Munich"),
+			None,
 		);
 
 		// set separate finalIv for some field
@@ -1370,6 +1371,7 @@ mod tests {
 			default_subject.clone(),
 			String::from("Hanover"),
 			String::from("Munich"),
+			None,
 		);
 
 		let encrypted_mail = entity_facade

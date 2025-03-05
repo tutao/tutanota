@@ -1,5 +1,6 @@
 use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
+use std::fmt::Debug;
 
 #[cfg(test)]
 pub mod entity_test_utils;
@@ -14,7 +15,8 @@ pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
 	copy
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this might print a key
 pub struct Versioned<T> {
 	pub object: T,
 	pub version: u64,
