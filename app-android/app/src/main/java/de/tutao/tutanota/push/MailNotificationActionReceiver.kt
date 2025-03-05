@@ -14,6 +14,7 @@ import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.push.toSdkCredentials
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
