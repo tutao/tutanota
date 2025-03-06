@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-02-27T09:06:30Z",
+	"updated_at": "2025-03-06T09:28:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -704,7 +704,7 @@ export default {
 		"giftCardUpgradeNotifyDebit_msg": "Ein  Teil des Preises des ersten Jahres ({price}) wird von dem Guthaben des Gutscheins beglichen. Bitte bezahle den Restbetrag ({amount}) unter 'Einstellungen' ⇨ 'Bezahlung'.",
 		"giftCardUpgradeNotifyRevolutionary_msg": "Dein Account wird automatisch auf einen Revolutionary-Account mit einem jährlichen Abo umgestellt.",
 		"giftCard_label": "Gutschein",
-		"globalAdmin_label": "Globaler Admin",
+		"globalAdmin_label": "Admin",
 		"globalSettings_label": "Globale Einstellungen",
 		"goPremium_msg": "Als zahlende*r Nutzer*in kannst du links im Menü deine Suchfilter anpassen.",
 		"grantContactPermissionAction": "Erlaubnis zum Zugriff auf Kontakte erteilen",
@@ -1274,7 +1274,7 @@ export default {
 		"pricing.admin_tooltip": "Administrations-Konsole zur Verwaltung deines Teams, zum Zurücksetzen von Passwörtern und zweiten Faktoren, zur Definition mehrerer Administrator-Rollen und zur zentralen Abrechnung.",
 		"pricing.attachmentSize_label": "25 MB Anhänge",
 		"pricing.billing_label": "Zentralisierte Abrechnung",
-		"pricing.billing_tooltip": "Alle globalen Administratoren haben Zugriff auf die Verwaltungs-Konsole, in der die Abrechnung für das gesamte Konto zentral verwaltet wird.",
+		"pricing.billing_tooltip": "Alle Administratoren haben Zugriff auf die Verwaltungs-Konsole, in der die Abrechnung für das gesamte Konto zentral verwaltet wird.",
 		"pricing.businessShareTemplates_msg": "Teile E-Mail-Vorlagen",
 		"pricing.businessShareTemplates_tooltip": "Erstelle und verwalte E-Mail-Vorlagen für einheitliche Antworten auf ähnliche Anfragen. Erstelle eine oder mehrere Vorlagenlisten, die du mit anderen Teammitgliedern teilen kannst, um eine einheitliche Kommunikation in deinem Unternehmen zu gewährleisten.",
 		"pricing.businessSLA_label": "99.95% SLA",
@@ -1371,7 +1371,7 @@ export default {
 		"pricing.platforms_label": "Web, mobile & Desktop Apps",
 		"pricing.privateUse_label": "Privat",
 		"pricing.roles_label": "Mehrere Admin-Rollen",
-		"pricing.roles_tooltip": "Definiere globale Administratoren, die Zugriff auf alles haben.",
+		"pricing.roles_tooltip": "Du kannst Administratoren festlegen. Diese Zugriff auf alles haben.",
 		"pricing.saveAmount_label": "Spare {amount}",
 		"pricing.search_msg": "Unbegrenzte Suche",
 		"pricing.search_tooltip": "Vertrauliche Suche in deiner gesamten Mailbox mit Hilfe unseres verschlüsselten Suchindexes.",
@@ -1857,10 +1857,10 @@ export default {
 		"unsuccessfulDrop_msg": "Das Drag & Drop war nicht erfolgreich, weil die Daten noch nicht heruntergeladen worden sind. Bitte versuche es erneut, wenn der Fortschrittsbalken vollständig ist.",
 		"unsupportedAdvancedRules_msg": "Dieser Termin enthält eine oder mehrere nicht unterstützte benutzerdefinierte Wiederholungsregeln. Jede Änderung an diesem Termin führt zum Verlust dieser Regeln.",
 		"until_label": "bis",
-		"updateAdminshipGlobalAdmin_msg": "Du kannst nicht den Admin eines globalen Admins ändern.",
 		"updateAllCalendarEvents_action": "Alle Termine aktualisieren",
 		"updateAvailable_label": "Neue Version für Tuta Desktop verfügbar ({version})",
 		"updateFound_label": "Es ist eine neue Version verfügbar.",
+		"updateNeeded_msg": "Update erforderlich",
 		"updateOneCalendarEvent_action": "Nur diesen Termin aktualisieren",
 		"updateOwnAdminship_msg": "Du kannst den Admin nicht ändern.",
 		"updatePaymentDataBusy_msg": "Die Bezahldaten werden überprüft. Bitte habe etwas Geduld, dies kann bis zu einer Minute dauern.",
@@ -1954,6 +1954,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",		        "updateNeeded_msg": "Update needed"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

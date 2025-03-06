@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1670,7 +1670,6 @@ export default {
 		"unsubscribe_action": "Annulla iscrizione",
 		"unsuccessfulDrop_msg": "Il drag & drop non è riuscito perché il download dei dati non è stato completato. Puoi riprovare una volta terminata la barra di avanzamento.",
 		"until_label": "fino a",
-		"updateAdminshipGlobalAdmin_msg": "Non è possibile modificare l'amministrazione di un amministratore globale.",
 		"updateAllCalendarEvents_action": "Aggiornare tutti gli eventi",
 		"updateAvailable_label": "Aggiornamento disponibile per Tuta Desktop ({version})",
 		"updateFound_label": "Una nuova versione è disponibile.",

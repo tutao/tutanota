@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1430,7 +1430,6 @@ export default {
 		"unsubscribe_action": "ביטול מנוי",
 		"unsuccessfulDrop_msg": "גרירת הקובץ לא הושלמה כי הורדת המידע לא הסתיימה. נסה שוב לאחר שמד ההתקדמות יראה על סיום.",
 		"until_label": "עד",
-		"updateAdminshipGlobalAdmin_msg": "אין באפשרותכם לשנות את ההנהלה של מנהל גלובלי.",
 		"updateAllCalendarEvents_action": "עדכון כל האירועים",
 		"updateAvailable_label": "קיים עדכון ל-Tuta עבור שולחן עבודה ({version})",
 		"updateFound_label": "גרסה חדשה זמינה",

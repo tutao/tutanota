@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-02-27T09:06:30Z",
+	"updated_at": "2025-03-06T09:28:56Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -700,7 +700,7 @@ export default {
 		"giftCardUpgradeNotifyDebit_msg": "The cost of the first year ({price}) will be partially paid for with your gift card. Please go to 'Settings' ⇨ 'Payment' to pay the remaining value ({amount}).",
 		"giftCardUpgradeNotifyRevolutionary_msg": "You will be automatically upgraded to a Revolutionary account with a yearly subscription.",
 		"giftCard_label": "Gift card",
-		"globalAdmin_label": "Global admin",
+		"globalAdmin_label": "Admin",
 		"globalSettings_label": "Global settings",
 		"goPremium_msg": "As a paid user you can adjust your search filters in the menu to the left.",
 		"grantContactPermissionAction": "Grant permission to access contacts",
@@ -1270,7 +1270,7 @@ export default {
 		"pricing.admin_tooltip": "Admin console that lets you manage your Team, reset passwords and second factors, define multiple admin roles, centralized billing.",
 		"pricing.attachmentSize_label": "25 MB attachments size",
 		"pricing.billing_label": "Centralized billing",
-		"pricing.billing_tooltip": "All global admins have access to the admin console where the billing is managed centrally for the whole account.",
+		"pricing.billing_tooltip": "All admins have access to the admin console where the billing is managed centrally for the whole account.",
 		"pricing.businessShareTemplates_msg": "Share email templates",
 		"pricing.businessShareTemplates_tooltip": "Create and manage email templates for consistent replies to similar requests. Create one or several template lists that you can share with other team members for consistent communication throughout your organization.",
 		"pricing.businessSLA_label": "99.95% SLA",
@@ -1367,7 +1367,7 @@ export default {
 		"pricing.platforms_label": "Web, mobile & desktop apps",
 		"pricing.privateUse_label": "Personal",
 		"pricing.roles_label": "Multiple admin roles",
-		"pricing.roles_tooltip": "Define global administrators who have access to everything.",
+		"pricing.roles_tooltip": "You can define administrators who have access to everything.",
 		"pricing.saveAmount_label": "Save {amount}",
 		"pricing.search_msg": "Unlimited search",
 		"pricing.search_tooltip": "Search your entire mailbox confidentially via our encrypted search index.",
@@ -1853,10 +1853,10 @@ export default {
 		"unsuccessfulDrop_msg": "The drag & drop was unsuccessful because the data had not finished downloading. You may try again once the progress bar is finished.",
 		"unsupportedAdvancedRules_msg": "This event contains one or more unsupported Advanced Repeat Rules, any changes will result in the loss of these rules.",
 		"until_label": "until",
-		"updateAdminshipGlobalAdmin_msg": "You can't change the adminship of a global administrator.",
 		"updateAllCalendarEvents_action": "Update all events",
 		"updateAvailable_label": "Update for Tuta Desktop available ({version})",
 		"updateFound_label": "New version is available.",
+		"updateNeeded_msg": "Update needed",
 		"updateOneCalendarEvent_action": "Update this event only",
 		"updateOwnAdminship_msg": "You can't change the adminship of your own user.",
 		"updatePaymentDataBusy_msg": "Verifying payment data. Please be patient, this can take up to one minute.",
@@ -1950,7 +1950,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"updateNeeded_msg": "Update needed"
+		"zoomOut_action": "Zoom Out"
 	}
 }

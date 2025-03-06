@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1666,7 +1666,6 @@ export default {
 		"unsubscribe_action": "購読を解除",
 		"unsuccessfulDrop_msg": "データのダウンロードが完了していないため、ドラッグ＆ドロップは失敗しました。進行状況バーの完了後に再度お試しください。",
 		"until_label": "まで",
-		"updateAdminshipGlobalAdmin_msg": "グローバル管理者の管理者権限を変更することはできません。",
 		"updateAllCalendarEvents_action": "すべてのイベントを更新",
 		"updateAvailable_label": "Tutaのデスクトップ用クライアントの更新があります（{version}）",
 		"updateFound_label": "新しいバージョンが利用できます。",

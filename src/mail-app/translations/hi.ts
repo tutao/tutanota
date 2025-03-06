@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2025-02-09T12:30:28Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1262,7 +1262,6 @@ export default {
 		"unsubscribe_action": "सदस्यता रद्ध करें। ",
 		"unsuccessfulDrop_msg": "ड्रैग एंड ड्रॉप असफल रहा क्योंकि डेटा डाउनलोड होना समाप्त नहीं हुआ था। प्रगति पट्टी समाप्त होने के बाद आप पुन: प्रयास कर सकते हैं।",
 		"until_label": "जब तक",
-		"updateAdminshipGlobalAdmin_msg": "आप विश्वव्यस्थापक की एडमिनशिप नहीं बदल सकते। ",
 		"updateAvailable_label": "टूटानोटा डेस्कटाॅप का नवीनतम संस्करण({version}) उपलब्ध। ",
 		"updateFound_label": "नया संस्करण उपलब्ध",
 		"updateOwnAdminship_msg": "आप अपने उपभोगता की एडमिनशिप नहीं बदल सकते। ",

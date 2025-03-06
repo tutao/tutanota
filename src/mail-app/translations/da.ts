@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2025-02-14T16:56:51Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1276,7 +1276,6 @@ export default {
 		"unsubscribe_action": "Afmeld",
 		"unsuccessfulDrop_msg": "Denne Træk & Slip operation kunne ikke lade sig gøre fordi alle data ikke er hentet endnu. Pørv igen senere når status er komplet.",
 		"until_label": "til",
-		"updateAdminshipGlobalAdmin_msg": "Du må ikke skifte administratortilhørighed på en global administrator.",
 		"updateAllCalendarEvents_action": "Opdater alle begivenheder",
 		"updateAvailable_label": "Opdatering til Tuta Desktop tilgængelig ({version})",
 		"updateFound_label": "Ny version er tilgængelig.",

@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1415,7 +1415,6 @@ export default {
 		"unsubscribe_action": "Откажи",
 		"unsuccessfulDrop_msg": "Превлачење и испуштање није успело јер преузимање података није завршено. Можете покушати поново када се трака напретка заврши.",
 		"until_label": "док",
-		"updateAdminshipGlobalAdmin_msg": "Неможете променити администрацију глобалног администратора",
 		"updateAllCalendarEvents_action": "Ажурирајте све догађаје",
 		"updateAvailable_label": "Надоградња за Tuta је доступна {version}",
 		"updateFound_label": "Нова верзија је доступна.",

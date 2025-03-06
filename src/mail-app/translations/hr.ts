@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2025-02-18T14:59:58Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1751,7 +1751,6 @@ export default {
 		"unsubscribe_action": "Otkaži pretplatu",
 		"unsuccessfulDrop_msg": "Drag and drop nije uspjelo jer se podatci još nisu u potpunosti preuzeli. Možete pokušati ponovo nakon što traka napretka bude završena.",
 		"until_label": "do",
-		"updateAdminshipGlobalAdmin_msg": "Ne možete promijeniti administraciju globalnog administratora.",
 		"updateAllCalendarEvents_action": "Ažurirajte sve događaje",
 		"updateAvailable_label": "Dostupno je ažuriranje za Tuta Desktop ({version})",
 		"updateFound_label": "Dostupna je nova verzija.",

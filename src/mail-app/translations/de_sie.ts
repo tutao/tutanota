@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-02-27T09:06:31Z",
+	"updated_at": "2025-03-06T09:28:41Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -704,7 +704,7 @@ export default {
 		"giftCardUpgradeNotifyDebit_msg": "Ein  Teil des Preises des ersten Jahres ({price}) wird von dem Guthaben des Gutscheins beglichen. Bitte bezahlen Sie den Restbetrag ({amount}) unter 'Einstellungen' ⇨ 'Bezahlung'.",
 		"giftCardUpgradeNotifyRevolutionary_msg": "Ihr Account wird automatisch auf einen Revolutionary-Account mit einem jährlichen Abonnement umgestellt.",
 		"giftCard_label": "Gutschein",
-		"globalAdmin_label": "Globaler Admin",
+		"globalAdmin_label": "Admin",
 		"globalSettings_label": "Globale Einstellungen",
 		"goPremium_msg": "Als zahlende*r Nutzer*in können Sie links im Menü Ihre Suchfilter anpassen.",
 		"grantContactPermissionAction": "Erlaubnis zum Zugriff auf Kontakte erteilen",
@@ -1274,7 +1274,7 @@ export default {
 		"pricing.admin_tooltip": "Administrationskonsole zur Verwaltung Ihres Teams, zum Zurücksetzen von Passwörtern und zweiten Faktoren, zur Definition mehrerer Administratorrollen und zur zentralen Abrechnung.",
 		"pricing.attachmentSize_label": "25 MB Anhänge",
 		"pricing.billing_label": "Zentralisierte Abrechnung",
-		"pricing.billing_tooltip": "Alle globalen Administratoren haben Zugriff auf die Verwaltungskonsole, in der die Abrechnung für das gesamte Konto zentral verwaltet wird.",
+		"pricing.billing_tooltip": "Alle Administratoren haben Zugriff auf die Verwaltungskonsole, in der die Abrechnung für das gesamte Konto zentral verwaltet wird.",
 		"pricing.businessShareTemplates_msg": "Teilen Sie E-Mail-Vorlagen",
 		"pricing.businessShareTemplates_tooltip": "Erstellen und verwalten Sie E-Mail-Vorlagen für einheitliche Antworten auf ähnliche Anfragen. Erstellen Sie eine oder mehrere Vorlagenlisten, die Sie mit anderen Teammitgliedern teilen können, um eine einheitliche Kommunikation in Ihrem Unternehmen zu gewährleisten.",
 		"pricing.businessSLA_label": "99.95% SLA",
@@ -1371,7 +1371,7 @@ export default {
 		"pricing.platforms_label": "Web, mobile & Desktop Apps",
 		"pricing.privateUse_label": "Privat",
 		"pricing.roles_label": "Mehrere Admin-Rollen",
-		"pricing.roles_tooltip": "Definieren Sie globale Administratoren, die Zugriff auf alles haben, und lokale Administratoren, die nur bestimmte Teammitglieder verwalten können.",
+		"pricing.roles_tooltip": "Sie können Administratoren festlegen. Diese Zugriff auf alles haben.",
 		"pricing.saveAmount_label": "Sparen Sie {amount}",
 		"pricing.search_msg": "Unbegrenzte Suche",
 		"pricing.search_tooltip": "Vertrauliche Suche in Ihrer gesamten Mailbox mit Hilfe unseres verschlüsselten Suchindexes.",
@@ -1857,10 +1857,10 @@ export default {
 		"unsuccessfulDrop_msg": "Das Drag & Drop war nicht erfolgreich, weil die Daten noch nicht heruntergeladen worden sind. Bitte versuchen Sie es erneut, wenn der Fortschrittsbalken vollständig ist.",
 		"unsupportedAdvancedRules_msg": "Dieser Termin enthält eine oder mehrere nicht unterstützte benutzerdefinierte Wiederholungsregeln. Jede Änderung an diesem Termin führt zum Verlust dieser Regeln.",
 		"until_label": "bis",
-		"updateAdminshipGlobalAdmin_msg": "Sie können nicht den Admin eines globalen Admins ändern.",
 		"updateAllCalendarEvents_action": "Alle Termine aktualisieren",
 		"updateAvailable_label": "Neue Version für Tuta Desktop verfügbar ({version})",
 		"updateFound_label": "Es ist eine neue Version verfügbar.",
+		"updateNeeded_msg": "Update erforderlich",
 		"updateOneCalendarEvent_action": "Nur diesen Termin aktualisieren",
 		"updateOwnAdminship_msg": "Sie können den Admin nicht ändern.",
 		"updatePaymentDataBusy_msg": "Die Bezahldaten werden überprüft. Bitte haben Sie etwas Geduld, dies kann bis zu einer Minute dauern.",
@@ -1954,7 +1954,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"updateNeeded_msg": "Update needed"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

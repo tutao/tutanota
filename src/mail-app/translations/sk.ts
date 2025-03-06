@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1420,7 +1420,6 @@ export default {
 		"unsubscribe_action": "Zrušiť predplatné",
 		"unsuccessfulDrop_msg": "Akcia drag & drop bola neúspešná, pretože sa nedokončilo sťahovanie údajov. Skús to znova, keď bude z ukazovateľa priebehu jasné, že sťahovanie je dokončené.",
 		"until_label": "do",
-		"updateAdminshipGlobalAdmin_msg": "Nemôžeš zmeniť správcovstvo globálneho správcu.",
 		"updateAllCalendarEvents_action": "Aktualizovať všetky udalosti",
 		"updateAvailable_label": "Je k dispozícii aktualizácia Tuta Desktop ({version})",
 		"updateFound_label": "Je dostupná nová verzia.",

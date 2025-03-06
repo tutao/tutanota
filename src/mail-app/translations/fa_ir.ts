@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-02-04T09:05:39Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1408,7 +1408,6 @@ export default {
 		"unsubscribe_action": "لغو عضویت",
 		"unsuccessfulDrop_msg": "از آن‌جایی که دانلود داده‌ها تمام نشده، فرآیند کشیدن و رها کردن موفقیت‌آمیز نبود. می‌توانید پس از تکمیل دانلود، مجددا تلاش کنید.",
 		"until_label": "تا",
-		"updateAdminshipGlobalAdmin_msg": "نمی‌توانید مقام مدیریت‌  یک  مدیرسراسری  را تغییر دهید.",
 		"updateAllCalendarEvents_action": "همه رویدادها را به روز کن",
 		"updateAvailable_label": "به روز رسانی نسخه دسکتاپ توتانوتا  در دسترس است {version}.",
 		"updateFound_label": "نسخۀ جدید قابل دسترسی است.",

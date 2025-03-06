@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2025-02-11T11:21:41Z",
+	"updated_at": "2025-03-03T15:45:02Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1459,7 +1459,6 @@ export default {
 		"unsubscribe_action": "구독해지",
 		"unsuccessfulDrop_msg": "데이터 다운로드가 완료되지 않아서 드래그 & 드롭에 실패했습니다. 진행률 표시줄이 완료되면 다시 시도할 수 있습니다.",
 		"until_label": "까지",
-		"updateAdminshipGlobalAdmin_msg": "전역 관리자의 관리 권한을 변경할 수 없습니다.",
 		"updateAllCalendarEvents_action": "모든 이벤트 업데이트하기",
 		"updateAvailable_label": "Tuta 데스크톱용 업데이트 사용 가능 ({version})",
 		"updateFound_label": "새 버전을 사용할 수 있습니다.",
