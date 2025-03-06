@@ -418,6 +418,10 @@ export class MailViewerViewModel {
 		this.mail.phishingStatus = status
 	}
 
+	isMailAuthenticationStatusLoaded(): boolean {
+		return this.mail.authStatus != null || this.mailDetails != null
+	}
+
 	checkMailAuthenticationStatus(status: MailAuthenticationStatus): boolean {
 		if (this.mail.authStatus != null) {
 			return this.mail.authStatus === status
