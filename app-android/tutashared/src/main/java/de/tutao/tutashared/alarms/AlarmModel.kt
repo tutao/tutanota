@@ -5,6 +5,7 @@ import de.tutao.tutasdk.ByRuleType
 import de.tutao.tutasdk.DateTime
 import de.tutao.tutasdk.EventFacade
 import de.tutao.tutasdk.EventRepeatRule
+import de.tutao.tutashared.isAllDayEventByTimes
 import java.time.Instant
 import java.util.Calendar
 import java.util.Date
@@ -196,15 +197,6 @@ object AlarmModel {
 		)
 		calendar.set(Calendar.MILLISECOND, 0)
 		return calendar.time
-	}
-
-	private fun isAllDayEventByTimes(startDate: Date, endDate: Date): Boolean {
-		val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-		calendar.time = startDate
-		val startFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
-		calendar.time = endDate
-		val endFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
-		return startFits && endFits
 	}
 
 	fun interface AlarmIterationCallback {
