@@ -42,11 +42,15 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 		}
 	
 	 public func openCalendar(
-		_ userId: String
+		_ userId: String,
+		_ action: CalendarOpenAction,
+		_ dateIso: String?
 	) async throws -> Void
 		{
 		var args = [String]()
 		args.append(toJson(userId))
+		args.append(toJson(action))
+		args.append(toJson(dateIso))
 		let encodedFacadeName = toJson("CommonNativeFacade")
 		let encodedMethodName = toJson("openCalendar")
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)

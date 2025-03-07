@@ -1,5 +1,5 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
-import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -17,6 +17,7 @@ import { AppType } from "../../misc/ClientConstants.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { isDesktop } from "../../api/common/Env"
 import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
+import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -27,7 +28,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		private readonly pushService: lazyAsync<NativePushServiceApp>,
 		private readonly fileImportHandler: (filesUris: ReadonlyArray<string>) => unknown,
 		readonly openMailBox: (userId: string, address: string, requestedPath: string | null) => Promise<void>,
-		readonly openCalendar: (userId: string) => Promise<void>,
+		readonly openCalendar: (userId: string, action: CalendarOpenAction, date: string | null) => Promise<void>,
 		private readonly appType: AppType,
 		readonly openSettings: (path: string) => Promise<void>,
 	) {}
