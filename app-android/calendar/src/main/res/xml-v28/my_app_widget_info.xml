@@ -6,7 +6,7 @@
 					android:initialLayout="@layout/glance_default_loading_layout"
 					android:resizeMode="horizontal|vertical"
 					android:widgetCategory="home_screen"
-					android:configure="de.tutao.calendar.widget.MyAppWidgetConfigurationActivity"
+					android:configure="de.tutao.calendar.widget.WidgetConfigActivity"
 					android:widgetFeatures="reconfigurable">
 	>
 
