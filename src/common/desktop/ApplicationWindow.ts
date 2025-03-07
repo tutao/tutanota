@@ -19,6 +19,7 @@ import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
+import { CalendarOpenAction } from "../native/common/generatedipc/CalendarOpenAction.js"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -518,7 +519,7 @@ export class ApplicationWindow {
 
 	// open at date?
 	async openCalendar(info: UserInfo): Promise<void> {
-		await this._commonNativeFacade.openCalendar(info.userId)
+		await this._commonNativeFacade.openCalendar(info.userId, CalendarOpenAction.Agenda, null)
 		this.show()
 	}
 

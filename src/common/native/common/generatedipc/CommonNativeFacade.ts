@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+import { CalendarOpenAction } from "./CalendarOpenAction.js"
 /**
  * Common operations used by all native platforms.
  */
@@ -14,7 +15,7 @@ export interface CommonNativeFacade {
 	 */
 	openMailBox(userId: string, address: string, requestedPath: string | null): Promise<void>
 
-	openCalendar(userId: string): Promise<void>
+	openCalendar(userId: string, action: CalendarOpenAction, dateIso: string | null): Promise<void>
 
 	openContactEditor(contactId: string): Promise<void>
 
