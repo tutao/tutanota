@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-03-05T10:59:25Z",
+	"updated_at": "2025-03-07T09:21:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1857,6 +1857,7 @@ export default {
 		"updateAllCalendarEvents_action": "Aktualizovat všechny události",
 		"updateAvailable_label": "Aktualizace Tuta Desktopu je dostupná ({version})",
 		"updateFound_label": "Je k dispozici nová verze.",
+		"updateNeeded_msg": "Nutná akutalizace",
 		"updateOneCalendarEvent_action": "Aktualizovat pouze tuto událost",
 		"updateOwnAdminship_msg": "Nemůžete změnit správcovství vlastního uživatele.",
 		"updatePaymentDataBusy_msg": "Ověřování platebních údajů. Prosíme vás o trpělivost, může to chvíli trvat.",
