@@ -2,8 +2,6 @@ package de.tutao.calendar.widget
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -30,7 +28,6 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
-import androidx.glance.material3.ColorProviders
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
@@ -38,7 +35,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
-import de.tutao.calendar.widget.VerticalWidget.WidgetThemes
 import de.tutao.tutasdk.CalendarEvent
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -58,36 +54,6 @@ import java.util.Date
 
 
 class VerticalWidget : GlanceAppWidget() {
-	object WidgetThemes {
-		private val LightColors = lightColorScheme(
-			primary = Color(0xFF013E85),
-			onPrimary = Color(0xFFFFFFFF),
-			secondary = Color(0xFF303030),
-			onSecondary = Color(0xFF013E85),
-			background = Color(0xFFF6F6F6),
-			onBackground = Color(0xFF303030),
-			surface = Color(0xFFFFFFFF),
-			onSurface = Color(0xFF303030),
-			primaryContainer = Color(0xFF000000),
-		)
-
-		private val DarkColors = darkColorScheme(
-			primary = Color(0xFFACC7FF),
-			onPrimary = Color(0xFF232323),
-			secondary = Color(0xFFDDDDDD),
-			onSecondary = Color(0xFFACC7FF),
-			background = Color(0xFF232323),
-			onBackground = Color(0xFFDDDDDD),
-			surface = Color(0xFF111111),
-			onSurface = Color(0xFFDDDDDD),
-			primaryContainer = Color(0xFF111111)
-		)
-		val colors = ColorProviders(
-			light = LightColors,
-			dark = DarkColors
-		)
-	}
-
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
 		// Load data needed to render the AppWidget.
 		// Use `withContext` to switch to another thread for long running
@@ -142,7 +108,7 @@ class VerticalWidget : GlanceAppWidget() {
 
 		provideContent {
 			GlanceTheme(
-				colors = WidgetThemes.colors
+				colors = AppTheme.colors
 			) {
 				WidgetBody(
 					WidgetData(normalEvents, allDayEvents),
@@ -368,14 +334,15 @@ fun VerticalWidgetPreview() {
 		)
 	)
 
-	GlanceTheme(colors = WidgetThemes.colors) {
+	GlanceTheme(colors = AppTheme.colors) {
 		WidgetBody(
 			WidgetData(
 				allDayEvents = allDayEvents,
 				normalEvents = eventData,
 			),
-			headerCallback = {}
-		) {}
+			headerCallback = {},
+			newEventCallback = {}
+		)
 	}
 }
 
