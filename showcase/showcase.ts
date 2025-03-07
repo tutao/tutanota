@@ -19,6 +19,8 @@ import { AllIcons, Icon, IconSize } from "../src/common/gui/base/Icon"
 import { client } from "../src/common/misc/ClientDetector"
 import { BootIconsSvg } from "../src/common/gui/base/icons/BootIcons"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../src/common/gui/base/buttons/LoginButton"
+import { pureComponent } from "../src/common/gui/base/PureComponent"
+import * as colors from "../src/common/gui/colors"
 
 window.tutao = {
 	appState: { prefixWithoutFile: "" },
@@ -92,6 +94,7 @@ class Showcase implements Component {
 						m(ConfigurableLoginButton),
 					]),
 					this.renderSection("Icons", [m(IconsShowcase)]),
+					this.renderSection("Colors", [m(ColorsShowcase)]),
 				],
 			),
 		)
@@ -101,6 +104,45 @@ class Showcase implements Component {
 		return m(".flex.col", [m("h2.mb", header), m(".flex.column-gap", children)])
 	}
 }
+
+class ColorsShowcase implements Component {
+	view(): Children {
+		return m(".flex.col", [
+			m(
+				".flex.col",
+				Object.entries(theme).map(([name, value]) => {
+					if (value.startsWith("#")) {
+						return m(ColorSwatch, { name, value })
+					} else {
+						return null
+					}
+				}),
+			),
+			m("hr"),
+			Object.entries(colors).map(([name, value]) => {
+				if (value.startsWith("#")) {
+					return m(ColorSwatch, { name, value })
+				} else {
+					return null
+				}
+			}),
+		])
+	}
+}
+
+const ColorSwatch = pureComponent(({ name, value }: { name: string; value: string }) => {
+	return m(
+		".flex",
+		m("b", name),
+		m("", {
+			style: {
+				width: "60px",
+				height: "20px",
+				backgroundColor: value,
+			},
+		}),
+	)
+})
 
 class IconsShowcase implements Component {
 	view(): Children {

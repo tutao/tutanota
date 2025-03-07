@@ -5,51 +5,49 @@ import { getCalendarLogoSvg, getMailLogoSvg, getTutaLogoSvg } from "./base/Logo"
 import type { Theme, ThemeId } from "./theme"
 import { assertMainOrNodeBoot, isApp } from "../api/common/Env"
 import { client } from "../misc/ClientDetector.js"
+import {
+	light_white,
+	grey_lighter_4,
+	grey_lighter_3,
+	grey_lighter_2,
+	grey_lighter_1,
+	grey_lighter_0,
+	grey,
+	grey_darker_0,
+	grey_darker_1,
+	red,
+	secondary_red,
+	dunkel,
+	blue,
+	secondary_blue,
+	light_blue,
+	dark_gold,
+	light_gold,
+
+	/**
+	 *      dark theme background
+	 *
+	 *      Assuming the background is black #000000 (rgb(0,0,0)) and text is white #000000 (rgb(255, 255, 255)) and recommended opacity of 87%
+	 *        we get (x1 being foreground, x2 being background, x3 being result)
+	 *        x3 = x2 + (x1-x2)*a1 or x3 = 0 + (255 - 0) * 0.87 = 221
+	 *        rgb(221, 221, 221) = #DDDDDD
+	 *      https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
+	 *
+	 */
+	light_lighter_1,
+	light_lighter_0,
+	light_grey,
+	dark_lighter_2,
+	dark_lighter_1,
+	dark_lighter_0,
+	dark,
+	dark_darker_0,
+	light_red,
+	logo_text_bright_grey,
+	black,
+} from "./colors"
 
 assertMainOrNodeBoot()
-
-/**
- *      light theme background
- */
-const light_white = "#ffffff"
-const grey_lighter_4 = "#f6f6f6"
-const grey_lighter_3 = "#eaeaea"
-const grey_lighter_2 = "#e1e1e1"
-const grey_lighter_1 = "#d5d5d5"
-const grey_lighter_0 = "#b8b8b8"
-const grey = "#868686"
-const grey_darker_0 = "#707070"
-const grey_darker_1 = "#303030"
-const red = "#850122"
-const secondary_red = "#FF2222"
-const dunkel = "#410002"
-const blue = "#013E85"
-const secondary_blue = "#4282FF"
-const light_blue = "#ACC7FF"
-const dark_gold = "#7D612A"
-const light_gold = "#F5D799"
-
-/**
- *      dark theme background
- *
- *      Assuming the background is black #000000 (rgb(0,0,0)) and text is white #000000 (rgb(255, 255, 255)) and recommended opacity of 87%
- *	    we get (x1 being foreground, x2 being background, x3 being result)
- *		x3 = x2 + (x1-x2)*a1 or x3 = 0 + (255 - 0) * 0.87 = 221
- *		rgb(221, 221, 221) = #DDDDDD
- *      https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
- *
- */
-const light_lighter_1 = "#DDDDDD"
-const light_lighter_0 = "#aeaeae"
-const light_grey = "#999999"
-const dark_lighter_2 = "#4e4e4e"
-const dark_lighter_1 = "#363636"
-const dark_lighter_0 = "#232323"
-const dark = "#222222"
-const dark_darker_0 = "#111111"
-const light_red = "#E99497"
-const logo_text_bright_grey = "#c5c7c7"
-const black = "#000000"
 
 // These are constants that have been chosen because they work across themes
 // This is even lighter than hover, for special cases like inactive search bar background
