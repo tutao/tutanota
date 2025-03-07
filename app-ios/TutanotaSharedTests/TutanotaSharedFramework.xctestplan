@@ -16,7 +16,7 @@
       "parallelizable" : true,
       "target" : {
         "containerPath" : "container:tutanota.xcodeproj",
-        "identifier" : "3D2671D52BEA8A020022C12F",
+        "identifier" : "2A73340EEC75AAC93905DA0D",
         "name" : "TutanotaSharedTests"
       }
     }
