@@ -118,6 +118,8 @@ impl CalendarFacade {
 					.to_owned(),
 			));
 		}
+
+		//FIXME Gracefully handle this unwrap
 		let membership: &GroupMembership = memberships
 			.iter()
 			.find(|membership| membership.group == id)
