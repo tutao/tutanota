@@ -425,7 +425,7 @@ export class MailFacade {
 		await this.serviceExecutor.post(ReportMailService, postData)
 	}
 
-	async deleteMails(mails: readonly IdTuple[]): Promise<void> {
+	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
 		if (isEmpty(mails)) {
 			return
 		}
@@ -437,7 +437,7 @@ export class MailFacade {
 			for (const mailChunk of mailChunks) {
 				const deleteMailData = createDeleteMailData({
 					mails: mailChunk,
-					folder: null,
+					folder: filterMailSet,
 				})
 				await this.serviceExecutor.delete(MailService, deleteMailData)
 			}

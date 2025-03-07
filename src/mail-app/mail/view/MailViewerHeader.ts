@@ -737,7 +737,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				const deleteOrTrashAction: DropdownButtonAttrs = viewModel.isDeletableMail()
 					? {
 							label: "delete_action",
-							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail._id], noOp),
+							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail._id], null, noOp),
 							icon: Icons.DeleteForever,
 					  }
 					: {
