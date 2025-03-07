@@ -57,6 +57,7 @@ import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
+import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
 import de.tutao.tutashared.ipc.MobileFacade
@@ -123,8 +124,8 @@ class MainActivity : FragmentActivity() {
 
 		val db = AppDatabase.getDatabase(this, false)
 		sseStorage = SseStorage(
-				db,
-				createAndroidKeyStoreFacade()
+			db,
+			createAndroidKeyStoreFacade()
 		)
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
@@ -134,16 +135,16 @@ class MainActivity : FragmentActivity() {
 
 
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage,
-				cryptoFacade,
-				SystemAlarmFacade(this),
-				localNotificationsFacade
+			sseStorage,
+			cryptoFacade,
+			SystemAlarmFacade(this),
+			localNotificationsFacade
 		)
 		val nativePushFacade = AndroidNativePushFacade(
-				this,
-				sseStorage,
-				alarmNotificationsManager,
-				localNotificationsFacade,
+			this,
+			sseStorage,
+			alarmNotificationsManager,
+			localNotificationsFacade,
 		)
 
 		val ipcJson = Json { ignoreUnknownKeys = true }
@@ -170,10 +171,10 @@ class MainActivity : FragmentActivity() {
 			webauthnFacade,
 		)
 		remoteBridge = RemoteBridge(
-				ipcJson,
-				this,
-				globalDispatcher,
-				commonSystemFacade,
+			ipcJson,
+			this,
+			globalDispatcher,
+			commonSystemFacade,
 		)
 
 		themeFacade.applyCurrentTheme()
@@ -204,11 +205,11 @@ class MainActivity : FragmentActivity() {
 			cacheMode = WebSettings.LOAD_NO_CACHE
 			// needed for external content in mail
 			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-				// Safe browsing is not needed because we are loading our own resources only.
-				// Also we don't want to report every URL that we load to Google.
-				// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
-				safeBrowsingEnabled = false
-			}
+			// Safe browsing is not needed because we are loading our own resources only.
+			// Also we don't want to report every URL that we load to Google.
+			// Also it causes random lag in loading resources, see https://github.com/tutao/tutanota/issues/5830
+			safeBrowsingEnabled = false
+		}
 
 		webView.clearCache(true)
 
@@ -228,7 +229,7 @@ class MainActivity : FragmentActivity() {
 					startActivity(intent)
 				} catch (e: ActivityNotFoundException) {
 					Toast.makeText(this@MainActivity, "Could not open link: $url", Toast.LENGTH_SHORT)
-							.show()
+						.show()
 				}
 				return true
 			}
@@ -238,16 +239,16 @@ class MainActivity : FragmentActivity() {
 				return if (request.method == "OPTIONS") {
 					Log.v(TAG, "replacing OPTIONS response to $url")
 					WebResourceResponse(
-							"text/html",
-							"UTF-8",
-							200,
-							"OK",
-							mutableMapOf(
-									"Access-Control-Allow-Origin" to "*",
-									"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
-									"Access-Control-Allow-Headers" to "*"
-							),
-							null
+						"text/html",
+						"UTF-8",
+						200,
+						"OK",
+						mutableMapOf(
+							"Access-Control-Allow-Origin" to "*",
+							"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
+							"Access-Control-Allow-Headers" to "*"
+						),
+						null
 					)
 				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
 					Log.v(TAG, "replacing asset GET response to ${url.path}")
@@ -258,22 +259,22 @@ class MainActivity : FragmentActivity() {
 						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
 						val mimeType = getMimeTypeForUrl(url.toString())
 						WebResourceResponse(
-								mimeType,
-								null,
-								200,
-								"OK",
-								null,
-								assets.open(assetPath)
+							mimeType,
+							null,
+							200,
+							"OK",
+							null,
+							assets.open(assetPath)
 						)
 					} catch (e: IOException) {
 						Log.w(TAG, "Resource not found ${url.path}")
 						WebResourceResponse(
-								null,
-								null,
-								404,
-								"Not Found",
-								null,
-								null
+							null,
+							null,
+							404,
+							"Not Found",
+							null,
+							null
 						)
 					}
 				} else {
@@ -317,7 +318,7 @@ class MainActivity : FragmentActivity() {
 							commonNativeFacade.invalidateAlarms()
 						}
 					}
-				}
+			}
 
 			startWebApp(queryParameters)
 		}
@@ -705,7 +706,11 @@ class MainActivity : FragmentActivity() {
 
 	private suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
-		commonNativeFacade.openCalendar(userId)
+		val action = CalendarOpenAction.fromValue(intent.getStringExtra(OPEN_CALENDAR_IN_APP_ACTION_KEY) ?: "")
+			?: CalendarOpenAction.AGENDA
+		val date = intent.getStringExtra(OPEN_CALENDAR_DATE_KEY)
+
+		commonNativeFacade.openCalendar(userId, action, date)
 	}
 
 	private fun onBackPressedCallback() {
@@ -763,6 +768,9 @@ class MainActivity : FragmentActivity() {
 		const val OPEN_CALENDAR_ACTION = "de.tutao.calendar.OPEN_CALENDAR_ACTION"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
+		const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"
+		const val OPEN_CALENDAR_DATE_KEY = "targetDate"
+
 		private const val TAG = "MainActivity"
 		private var requestId = 0
 

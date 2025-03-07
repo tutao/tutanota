@@ -36,7 +36,6 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.VerticalWidget.WidgetThemes
@@ -47,6 +46,7 @@ import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.push.toSdkCredentials
@@ -58,8 +58,6 @@ import java.util.Date
 
 
 class VerticalWidget : GlanceAppWidget() {
-
-
 	object WidgetThemes {
 		private val LightColors = lightColorScheme(
 			primary = Color(0xFF013E85),
@@ -70,7 +68,7 @@ class VerticalWidget : GlanceAppWidget() {
 			onBackground = Color(0xFF303030),
 			surface = Color(0xFFFFFFFF),
 			onSurface = Color(0xFF303030),
-			primaryContainer = Color(0xFF000000)
+			primaryContainer = Color(0xFF000000),
 		)
 
 		private val DarkColors = darkColorScheme(
@@ -146,18 +144,42 @@ class VerticalWidget : GlanceAppWidget() {
 			GlanceTheme(
 				colors = WidgetThemes.colors
 			) {
-				// create your AppWidget here
-				WidgetBody(WidgetData(normalEvents, allDayEvents)) {
-					val openCalendarEventIntent = Intent(context, MainActivity::class.java)
-					openCalendarEventIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-					openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
-					openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
-
-					startActivity(context, openCalendarEventIntent, null)
-				}
+				WidgetBody(
+					WidgetData(normalEvents, allDayEvents),
+					headerCallback = { openCalendarAgenda(context, userId) },
+					newEventCallback = { openCalendarEditor(context, userId) })
 			}
 		}
+	}
+
+	private fun openCalendarEditor(context: Context, userId: String) {
+		val openCalendarEventIntent = Intent(context, MainActivity::class.java)
+		openCalendarEventIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
+		openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+		openCalendarEventIntent.putExtra(
+			MainActivity.OPEN_CALENDAR_IN_APP_ACTION_KEY,
+			CalendarOpenAction.EVENT_EDITOR.value
+		)
+		openCalendarEventIntent.putExtra(
+			MainActivity.OPEN_CALENDAR_DATE_KEY,
+			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+		)
+
+		startActivity(context, openCalendarEventIntent, null)
+	}
+
+	private fun openCalendarAgenda(context: Context, userId: String) {
+		val openCalendarEventIntent = Intent(context, MainActivity::class.java)
+		openCalendarEventIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
+		openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+		openCalendarEventIntent.putExtra(
+			MainActivity.OPEN_CALENDAR_DATE_KEY,
+			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+		)
+
+		startActivity(context, openCalendarEventIntent, null)
 	}
 }
 
@@ -175,7 +197,7 @@ data class WidgetData(
 )
 
 @Composable
-fun WidgetBody(data: WidgetData, headerCallback: () -> Unit) {
+fun WidgetBody(data: WidgetData, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
 	Scaffold(
 		modifier = GlanceModifier
 			.padding(horizontal = 20.dp),
@@ -186,7 +208,11 @@ fun WidgetBody(data: WidgetData, headerCallback: () -> Unit) {
 				modifier = GlanceModifier.padding(vertical = 16.dp),
 				verticalAlignment = Alignment.CenterVertically
 			) {
-				Header(allDayEventsCount = data.allDayEventsCount, onTap = headerCallback)
+				Header(
+					allDayEventsCount = data.allDayEventsCount,
+					onTap = headerCallback,
+					onNewEvent = newEventCallback
+				)
 			}
 		}
 	) {
@@ -204,12 +230,11 @@ fun WidgetBody(data: WidgetData, headerCallback: () -> Unit) {
 }
 
 @Composable
-private fun Header(allDayEventsCount: Int, onTap: () -> Unit) {
+private fun Header(allDayEventsCount: Int, onTap: () -> Unit, onNewEvent: () -> Unit) {
 	Column(
 		modifier = GlanceModifier
-			.clickable { onTap() }
+			.clickable(rippleOverride = R.drawable.transparent_ripple) { onTap() }
 	) {
-		// date e.g. 20 February
 		Text(
 			style = TextStyle(
 				fontWeight = FontWeight.Bold,
@@ -245,7 +270,7 @@ private fun Header(allDayEventsCount: Int, onTap: () -> Unit) {
 		SquareIconButton(
 			imageProvider = ImageProvider(R.drawable.ic_add),
 			contentDescription = "Add event button",
-			onClick = { println("Open event creator") },
+			onClick = { onNewEvent() },
 			backgroundColor = GlanceTheme.colors.primary
 		)
 	}
@@ -263,12 +288,13 @@ fun EventCard(event: Event) {
 		CalendarIndicator()
 
 		// event title and time
-		Column(modifier = GlanceModifier.padding(start = 8.dp)) {
+		Column(
+			modifier = GlanceModifier.padding(start = 8.dp)
+				.clickable(rippleOverride = R.drawable.transparent_ripple) { }) {
 			// title
 			// TODO() display limited amount of characters and handle overflow with dots e.g. "Hello Widget..."
 			Text(
 				event.summary,
-				modifier = GlanceModifier.clickable { println("Open event details") },
 				style = TextStyle(
 					color = GlanceTheme.colors.onSurface,
 					fontWeight = FontWeight.Bold,
@@ -306,33 +332,7 @@ fun CalendarIndicator(radius: Int = 20, color: Color = Color.Blue) {
 	) { }
 }
 
-/**
- * get a boarder around your content as glance doesn't support this natively
- */
-@Composable
-fun BorderedContent(
-	borderColor: ColorProvider = GlanceTheme.colors.primaryContainer,
-	borderWidth: Int,
-	content: @Composable () -> Unit
-
-) {
-	Column(
-		modifier = GlanceModifier
-			.background(borderColor)
-			.padding(top = borderWidth.dp)
-	) {
-		Column(
-			modifier = GlanceModifier
-				.background(GlanceTheme.colors.background)
-		) {
-			content()
-		}
-	}
-
-}
-
 @OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 180, heightDp = 275)
 @Preview(widthDp = 200, heightDp = 422)
 @Preview(widthDp = 400, heightDp = 500)
 @Composable
@@ -373,7 +373,8 @@ fun VerticalWidgetPreview() {
 			WidgetData(
 				allDayEvents = allDayEvents,
 				normalEvents = eventData,
-			)
+			),
+			headerCallback = {}
 		) {}
 	}
 }

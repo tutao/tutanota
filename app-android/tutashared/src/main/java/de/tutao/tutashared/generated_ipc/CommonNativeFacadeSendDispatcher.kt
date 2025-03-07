@@ -45,11 +45,15 @@ class CommonNativeFacadeSendDispatcher (
 	
 	override suspend fun openCalendar(
 		userId: String,
+		action: CalendarOpenAction,
+		dateIso: String?,
 	): Unit
 	{
 		val encodedMethod = json.encodeToString("openCalendar")
 		val args : MutableList<String> = mutableListOf()
 		args.add(json.encodeToString(userId))
+		args.add(json.encodeToString(action))
+		args.add(json.encodeToString(dateIso))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	

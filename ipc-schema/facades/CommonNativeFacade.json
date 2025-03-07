@@ -45,6 +45,12 @@
 			"arg": [
 				{
 					"userId": "string"
+				},
+				{
+					"action": "CalendarOpenAction"
+				},
+				{
+					"dateIso": "string?"
 				}
 			],
 			"ret": "void"

@@ -12,7 +12,8 @@ import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import {
-	areAllAdvancedRepeatRulesValid, ByRule,
+	areAllAdvancedRepeatRulesValid,
+	ByRule,
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 	RENDER_TYPE_TRANSLATION_MAP,

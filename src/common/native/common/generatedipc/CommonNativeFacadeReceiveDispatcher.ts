@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+import { CalendarOpenAction } from "./CalendarOpenAction.js"
 import { CommonNativeFacade } from "./CommonNativeFacade.js"
 
 export class CommonNativeFacadeReceiveDispatcher {
@@ -22,7 +23,9 @@ export class CommonNativeFacadeReceiveDispatcher {
 			}
 			case "openCalendar": {
 				const userId: string = arg[0]
-				return this.facade.openCalendar(userId)
+				const action: CalendarOpenAction = arg[1]
+				const dateIso: string | null = arg[2]
+				return this.facade.openCalendar(userId, action, dateIso)
 			}
 			case "openContactEditor": {
 				const contactId: string = arg[0]
