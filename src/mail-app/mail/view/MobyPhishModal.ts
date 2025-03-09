@@ -1,6 +1,7 @@
 import m, { Children, Vnode } from "mithril";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
-import type { Shortcut } from "../../../common/misc/KeyManager.js"; // Import Shortcut
+import type { Shortcut } from "../../../common/misc/KeyManager.js";
+import { Keys } from "../../../common/api/common/TutanotaConstants"; // ✅ Import Keys enum
 import { animations, opacity } from "../../../common/gui/animation/Animations.js";
 
 export class MobyPhishModal implements ModalComponent {
@@ -60,10 +61,10 @@ export class MobyPhishModal implements ModalComponent {
     shortcuts(): Shortcut[] {
         return [
             {
-                key: "Escape",
+                key: Keys.ESC, // ✅ FIXED: Use `Keys.ESC` instead of string "Escape"
                 shift: false,
                 exec: () => this.onClose(),
-                help: "close_modal",
+                help: "close_alt", // ✅ FIXED: "close_modal" → "close_alt"
             },
         ];
     }
