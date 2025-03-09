@@ -725,13 +725,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//moby phish banner
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
-		const mobyPhishButton: BannerButtonAttrs = {
-			label: "mobyPhish_action",
-			click: () => {
-				console.log("Moby Phish Button Clicked!");
-				console.log("viewModel:", viewModel);
-			},
-		};
+		// const mobyPhishButton: BannerButtonAttrs = {
+		// 	label: "mobyPhish_action",
+		// 	click: () => {
+		// 		console.log("Moby Phish Button Clicked!");
+		// 		console.log("viewModel:", viewModel);
+		// 	},
+		// };
 		
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
@@ -752,7 +752,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			icon: Icons.Warning,
 			type: BannerType.Warning,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-			buttons: [mobyPhishButton, confirmButton, denyButton],
+			buttons: [confirmButton, denyButton],
 		})
 	}
 
