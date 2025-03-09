@@ -1189,7 +1189,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			if (deletable) {
 				return {
 					deleteAction: () => {
-						promptAndDeleteMails(mailLocator.mailModel, getIds(selected), () => this.searchViewModel.listModel.selectNone())
+						promptAndDeleteMails(mailLocator.mailModel, getIds(selected), null, () => this.searchViewModel.listModel.selectNone())
 					},
 					trashAction: null,
 				}

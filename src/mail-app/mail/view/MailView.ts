@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { first, getFirstOrThrow, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -1025,7 +1025,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async deleteSelectedMails() {
 		const actionableMails = await this.mailViewModel.getSelectedActionableMails()
-		await promptAndDeleteMails(mailLocator.mailModel, actionableMails, noOp)
+		const currentFolder = assertNotNull(this.mailViewModel.getFolder())
+		await promptAndDeleteMails(mailLocator.mailModel, actionableMails, currentFolder._id, noOp)
 	}
 
 	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) {
