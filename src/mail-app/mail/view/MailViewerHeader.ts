@@ -756,30 +756,30 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	// 	})
 	// }
 
-	private showPopup: boolean = false; // State variable to track popup visibility
-	private popupMessage: string = ""; // Store message to display in popup
+	private modalVisible = false; // Controls if the modal is displayed
+	private modalMessage = ""; // Message to show in the modal
 
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
 			click: () => {
 				console.log("Moby Phish Confirm Button Clicked!");
-				this.popupMessage = "This sender has been marked as trusted.";
-				this.showPopup = true;
-				m.redraw(); // Trigger Mithril to update the UI
+				this.modalMessage = "This sender has been marked as trusted.";
+				this.modalVisible = true;
+				m.redraw(); // Forces Mithril to update the UI
 			},
 		};
-
+	
 		const denyButton: BannerButtonAttrs = {
 			label: "mobyPhish_deny",
 			click: () => {
 				console.log("Moby Phish Deny Button Clicked!");
-				this.popupMessage = "This sender has been marked as untrusted.";
-				this.showPopup = true;
+				this.modalMessage = "This sender has been marked as untrusted.";
+				this.modalVisible = true;
 				m.redraw();
 			},
 		};
-
+	
 		return [
 			m(InfoBanner, {
 				message: "mobyPhish_is_trusted",
@@ -788,25 +788,24 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 				buttons: [confirmButton, denyButton],
 			}),
-			this.showPopup ? this.renderPopup() : null // Conditionally render the popup
+			this.modalVisible ? this.renderModal() : null // Show modal when state is true
 		];
 	}
 
-	private renderPopup(): Children {
-		return m(".popup-overlay", [
-			m(".popup-content", [
+	private renderModal(): Children {
+		return m(".modal-overlay", [
+			m(".modal-content", [
 				m("h3", "Action Confirmation"),
-				m("p", this.popupMessage),
+				m("p", this.modalMessage),
 				m("button", {
 					onclick: () => {
-						this.showPopup = false;
-						m.redraw(); // Close the popup and update UI
+						this.modalVisible = false; // Close modal
+						m.redraw();
 					},
 				}, "Close")
 			])
 		]);
 	}
-	
 
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
