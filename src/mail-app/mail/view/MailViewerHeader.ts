@@ -726,6 +726,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
+	//
+	//
+	//
 	//moby phish banner
 	// private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
@@ -759,6 +762,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	// 		buttons: [confirmButton, denyButton],
 	// 	})
 	// }
+	//
+	//
+	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
