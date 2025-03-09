@@ -32,6 +32,7 @@ import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.j
 import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
+
 import { MobyPhishModal } from "./MobyPhishModal"; // MobyPhish modal
 
 export type MailAddressDropdownCreator = (args: {
