@@ -609,7 +609,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderPhishingWarning(viewModel: MailViewerViewModel): Children | null {
-		if (viewModel.isMailSuspicious()) {
+		//if (viewModel.isMailSuspicious()) {
 			return m(InfoBanner, {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
@@ -622,7 +622,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					},
 				],
 			})
-		}
+		//}
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
