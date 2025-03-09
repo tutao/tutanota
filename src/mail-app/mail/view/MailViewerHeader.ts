@@ -748,7 +748,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		};
 
 		return m(InfoBanner, {
-			message: "phishingMessageBody_msg",
+			message: "mobyPhish_is_trusted",
 			icon: Icons.Warning,
 			type: BannerType.Warning,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
