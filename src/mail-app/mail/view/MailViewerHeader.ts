@@ -723,38 +723,91 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	//moby phish banner
-	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
+	// private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
-		// const mobyPhishButton: BannerButtonAttrs = {
-		// 	label: "mobyPhish_action",
-		// 	click: () => {
-		// 		console.log("Moby Phish Button Clicked!");
-		// 		console.log("viewModel:", viewModel);
-		// 	},
-		// };
+	// 	// const mobyPhishButton: BannerButtonAttrs = {
+	// 	// 	label: "mobyPhish_action",
+	// 	// 	click: () => {
+	// 	// 		console.log("Moby Phish Button Clicked!");
+	// 	// 		console.log("viewModel:", viewModel);
+	// 	// 	},
+	// 	// };
 		
+	// 	const confirmButton: BannerButtonAttrs = {
+	// 		label: "mobyPhish_confirm",
+	// 		click: () => {
+	// 			console.log("Moby Phish Confirm Button Clicked!");
+	// 		},
+	// 	};
+		
+	// 	const denyButton: BannerButtonAttrs = {
+	// 		label: "mobyPhish_deny",
+	// 		click: () => {
+	// 			console.log("Moby Phish Deny Button Clicked!");
+	// 		},
+	// 	};
+
+	// 	return m(InfoBanner, {
+	// 		message: "mobyPhish_is_trusted",
+	// 		icon: Icons.Warning,
+	// 		type: BannerType.Warning,
+	// 		helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+	// 		buttons: [confirmButton, denyButton],
+	// 	})
+	// }
+
+	private showPopup: boolean = false; // State variable to track popup visibility
+	private popupMessage: string = ""; // Store message to display in popup
+
+	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
 			click: () => {
 				console.log("Moby Phish Confirm Button Clicked!");
+				this.popupMessage = "This sender has been marked as trusted.";
+				this.showPopup = true;
+				m.redraw(); // Trigger Mithril to update the UI
 			},
 		};
-		
+
 		const denyButton: BannerButtonAttrs = {
 			label: "mobyPhish_deny",
 			click: () => {
 				console.log("Moby Phish Deny Button Clicked!");
+				this.popupMessage = "This sender has been marked as untrusted.";
+				this.showPopup = true;
+				m.redraw();
 			},
 		};
 
-		return m(InfoBanner, {
-			message: "mobyPhish_is_trusted",
-			icon: Icons.Warning,
-			type: BannerType.Warning,
-			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-			buttons: [confirmButton, denyButton],
-		})
+		return [
+			m(InfoBanner, {
+				message: "mobyPhish_is_trusted",
+				icon: Icons.Warning,
+				type: BannerType.Warning,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+				buttons: [confirmButton, denyButton],
+			}),
+			this.showPopup ? this.renderPopup() : null // Conditionally render the popup
+		];
 	}
+
+	private renderPopup(): Children {
+		return m(".popup-overlay", [
+			m(".popup-content", [
+				m("h3", "Action Confirmation"),
+				m("p", this.popupMessage),
+				m("button", {
+					onclick: () => {
+						this.showPopup = false;
+						m.redraw(); // Close the popup and update UI
+					},
+				}, "Close")
+			])
+		]);
+	}
+	
+
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
