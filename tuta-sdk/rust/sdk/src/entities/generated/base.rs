@@ -16,7 +16,7 @@ impl Entity for PersistenceResourcePostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: "base",
-			type_: "PersistenceResourcePostReturn",
+			type_id: 0,
 		}
 	}
 }

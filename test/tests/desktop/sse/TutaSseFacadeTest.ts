@@ -9,7 +9,12 @@ import { fetch as undiciFetch } from "undici"
 import { typeModels } from "../../../../src/common/api/entities/sys/TypeModels.js"
 import { deepEqual } from "@tutao/tutanota-utils"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
-import { createIdTupleWrapper, createMissedNotification, createNotificationInfo } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	createIdTupleWrapper,
+	createMissedNotification,
+	createNotificationInfo,
+	MissedNotificationTypeRef,
+} from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification.js"
 import { mockFetchRequest } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
@@ -57,7 +62,7 @@ o.spec("TutaSseFacade", () => {
 						return (
 							opts.url.toString() === url.toString() &&
 							deepEqual(opts.headers, {
-								v: typeModels.MissedNotification.version,
+								v: typeModels[MissedNotificationTypeRef.typeId].version,
 								cv: APP_V,
 							})
 						)
@@ -92,7 +97,7 @@ o.spec("TutaSseFacade", () => {
 		o.test("downloads and handles notification", async () => {
 			const headers: Record<string, string> = {
 				userIds: "userId",
-				v: typeModels.MissedNotification.version,
+				v: typeModels[MissedNotificationTypeRef.typeId].version,
 				cv: APP_V,
 			}
 			const sseInfo = setupSseInfo()
@@ -136,7 +141,7 @@ o.spec("TutaSseFacade", () => {
 			const newLastProcessedNotificationId = "newLastProcessedNotificationId"
 			const headers: Record<string, string> = {
 				userIds: "userId",
-				v: typeModels.MissedNotification.version,
+				v: typeModels[MissedNotificationTypeRef.typeId].version,
 				cv: APP_V,
 				lastProcessedNotificationId: previousLastProcessedNotificationId,
 			}

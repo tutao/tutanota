@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
+use crate::type_model_provider::TypeId;
 use serde::Deserialize;
 
 /// A kind of element that can appear in the model
@@ -109,7 +110,7 @@ pub struct ModelAssociation {
 	pub association_type: AssociationType,
 	pub cardinality: Cardinality,
 	/// Name of the type it is referencing
-	pub ref_type: &'static str,
+	pub ref_type_id: TypeId,
 	/// Can it be changed
 	#[serde(rename = "final")]
 	pub is_final: bool,

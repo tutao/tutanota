@@ -46,6 +46,7 @@ import { sys119 } from "./migrations/sys-v119.js"
 import { sys120 } from "./migrations/sys-v120.js"
 import { tutanota83 } from "./migrations/tutanota-v83.js"
 import { sys121 } from "./migrations/sys-v121.js"
+import { sys124 } from "./migrations/sys-v124"
 import { tutanota84 } from "./migrations/tutanota-v84"
 
 export interface OfflineMigration {
@@ -106,6 +107,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	tutanota83,
 	sys121,
 	tutanota84,
+	sys124,
 ]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)

@@ -346,9 +346,9 @@ o.spec("ConversationListModelTest", () => {
 
 			o(model.getLabelsForMail(someMail.mail)[1]).notDeepEquals(labels[1])
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailFolderTypeRef.app,
-				type: MailFolderTypeRef.type,
+				typeId: MailFolderTypeRef.typeId,
 				instanceListId: getListId(labels[1]),
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
@@ -367,9 +367,9 @@ o.spec("ConversationListModelTest", () => {
 			await setUpTestData(PageSize, [labels[0]], false, 1)
 			await model.loadInitial()
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailFolderTypeRef.app,
-				type: MailFolderTypeRef.type,
+				typeId: MailFolderTypeRef.typeId,
 				instanceListId: getListId(labels[1]),
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
@@ -386,9 +386,9 @@ o.spec("ConversationListModelTest", () => {
 			const someIndex = 22 // a random number
 			const someMail: LoadedMail = model._getMailMap().get(elementIdPart(makeMailId(someIndex)))!
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailSetEntryTypeRef.app,
-				type: MailSetEntryTypeRef.type,
+				typeId: MailSetEntryTypeRef.typeId,
 				instanceListId: listIdPart(someMail.mailSetEntryId),
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
@@ -424,9 +424,9 @@ o.spec("ConversationListModelTest", () => {
 				mail: newMail._id,
 			})
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailSetEntryTypeRef.app,
-				type: MailSetEntryTypeRef.type,
+				typeId: MailSetEntryTypeRef.typeId,
 				instanceListId: getListId(newEntry),
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
@@ -508,9 +508,9 @@ o.spec("ConversationListModelTest", () => {
 			const oldItems = model.items
 			const newItems = [...oldItems]
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailSetEntryTypeRef.app,
-				type: MailSetEntryTypeRef.type,
+				typeId: MailSetEntryTypeRef.typeId,
 				instanceListId: mailSetEntriesListId,
 				instanceId: makeMailSetElementId(0),
 				operation: OperationType.DELETE,
@@ -534,9 +534,9 @@ o.spec("ConversationListModelTest", () => {
 			const oldItems = model.items
 			const newItems = [oldMails[1]]
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailSetEntryTypeRef.app,
-				type: MailSetEntryTypeRef.type,
+				typeId: MailSetEntryTypeRef.typeId,
 				instanceListId: mailSetEntriesListId,
 				instanceId: makeMailSetElementId(2),
 				operation: OperationType.DELETE,
@@ -560,9 +560,9 @@ o.spec("ConversationListModelTest", () => {
 			const oldItems = model.items
 			const newItems = [oldMails[1]]
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailSetEntryTypeRef.app,
-				type: MailSetEntryTypeRef.type,
+				typeId: MailSetEntryTypeRef.typeId,
 				instanceListId: mailSetEntriesListId,
 				instanceId: makeMailSetElementId(1),
 				operation: OperationType.DELETE,
@@ -597,9 +597,9 @@ o.spec("ConversationListModelTest", () => {
 			mail.subject = "hey it's a subject"
 			mail.sets = [mailSet._id] // remove all labels
 
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailTypeRef.app,
-				type: MailTypeRef.type,
+				typeId: MailTypeRef.typeId,
 				instanceListId: getListId(mail),
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
@@ -616,9 +616,9 @@ o.spec("ConversationListModelTest", () => {
 			await setUpTestData(PageSize, labels, false, 1)
 			await model.loadInitial()
 			const mail = { ...model.mails[2] }
-			const entityUpdateData = {
+			const entityUpdateData: EntityUpdateData = {
 				application: MailTypeRef.app,
-				type: MailTypeRef.type,
+				typeId: MailTypeRef.typeId,
 				instanceListId: getListId(mail),
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
