@@ -288,7 +288,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
 			),
 			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
-			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
+			//m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 		].filter(Boolean)
 	}
@@ -723,24 +723,24 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	//moby phish banner
-	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
+	// private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
-		const mobyPhishButton: BannerButtonAttrs = {
-			label: "mobyPhish_action",
-			click: () => {
-				console.log("Moby Phish Button Clicked!");
-				console.log("viewModel:", viewModel);
-			},
-		};
+	// 	const mobyPhishButton: BannerButtonAttrs = {
+	// 		label: "mobyPhish_action",
+	// 		click: () => {
+	// 			console.log("Moby Phish Button Clicked!");
+	// 			console.log("viewModel:", viewModel);
+	// 		},
+	// 	};
 
-		return m(InfoBanner, {
-			message: "phishingMessageBody_msg",
-			icon: Icons.Warning,
-			type: BannerType.Warning,
-			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-			buttons: [mobyPhishButton],
-		})
-	}
+	// 	return m(InfoBanner, {
+	// 		message: "phishingMessageBody_msg",
+	// 		icon: Icons.Warning,
+	// 		type: BannerType.Warning,
+	// 		helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+	// 		buttons: [mobyPhishButton],
+	// 	})
+	// }
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
