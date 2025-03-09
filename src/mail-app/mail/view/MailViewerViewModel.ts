@@ -686,6 +686,8 @@ export class MailViewerViewModel {
 	private async loadAttachments(mail: Mail, inlineCids: string[]): Promise<void> {
 		if (mail.attachments.length === 0) {
 			this.loadingAttachments = false
+			//Setting attachments to empty when we remove the last attachment from the list
+			this.attachments = []
 			m.redraw()
 		} else {
 			this.loadingAttachments = true
