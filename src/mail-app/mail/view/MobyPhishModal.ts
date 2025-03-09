@@ -1,5 +1,7 @@
 import m, { Children, Vnode } from "mithril";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
+import type { Shortcut } from "../../../common/misc/KeyManager.js"; // Import Shortcut
+
 
 export class MobyPhishModal implements ModalComponent {
     private message: string;
