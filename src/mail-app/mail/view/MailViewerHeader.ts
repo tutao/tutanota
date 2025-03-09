@@ -32,8 +32,9 @@ import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.j
 import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
-import { modal } from "../../../common/gui/base/Modal.js"; // Import modal
-import { MobyPhishModal } from "./MobyPhishModal"; // Import MobyPhishModal
+import { MobyPhishModal } from "./MobyPhishModal";
+import { modal } from "../../../common/gui/base/Modal";
+
 
 
 export type MailAddressDropdownCreator = (args: {
@@ -758,21 +759,20 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	// 		buttons: [confirmButton, denyButton],
 	// 	})
 	// }
-
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
-			click: () => {
+			click: (event: MouseEvent) => {
 				console.log("Moby Phish Confirm Button Clicked!");
-				modal.display(new MobyPhishModal("This sender has been marked as trusted."));
+				modal.display(new MobyPhishModal("This sender has been marked as trusted.", event.currentTarget as HTMLElement));
 			}
 		};
 	
 		const denyButton: BannerButtonAttrs = {
 			label: "mobyPhish_deny",
-			click: () => {
+			click: (event: MouseEvent) => {
 				console.log("Moby Phish Deny Button Clicked!");
-				modal.display(new MobyPhishModal("This sender has been marked as untrusted."));
+				modal.display(new MobyPhishModal("This sender has been marked as untrusted.", event.currentTarget as HTMLElement));
 			}
 		};
 	
@@ -783,8 +783,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 			buttons: [confirmButton, denyButton],
 		});
-	}		
-
+	}
+	
+	
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
