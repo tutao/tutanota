@@ -32,6 +32,7 @@ import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.j
 import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
+import { MobyPhishModal } from "./MobyPhishModal"; // MobyPhish modal
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -756,56 +757,31 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	// 	})
 	// }
 
-	private modalVisible = false; // Controls if the modal is displayed
-	private modalMessage = ""; // Message to show in the modal
-
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
 			click: () => {
 				console.log("Moby Phish Confirm Button Clicked!");
-				this.modalMessage = "This sender has been marked as trusted.";
-				this.modalVisible = true;
-				m.redraw(); // Forces Mithril to update the UI
-			},
+				modal.display(new MobyPhishModal("This sender has been marked as trusted."));
+			}
 		};
 	
 		const denyButton: BannerButtonAttrs = {
 			label: "mobyPhish_deny",
 			click: () => {
 				console.log("Moby Phish Deny Button Clicked!");
-				this.modalMessage = "This sender has been marked as untrusted.";
-				this.modalVisible = true;
-				m.redraw();
-			},
+				modal.display(new MobyPhishModal("This sender has been marked as untrusted."));
+			}
 		};
 	
-		return [
-			m(InfoBanner, {
-				message: "mobyPhish_is_trusted",
-				icon: Icons.Warning,
-				type: BannerType.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-				buttons: [confirmButton, denyButton],
-			}),
-			this.modalVisible ? this.renderModal() : null // Show modal when state is true
-		];
-	}
-
-	private renderModal(): Children {
-		return m(".modal-overlay", [
-			m(".modal-content", [
-				m("h3", "Action Confirmation"),
-				m("p", this.modalMessage),
-				m("button", {
-					onclick: () => {
-						this.modalVisible = false; // Close modal
-						m.redraw();
-					},
-				}, "Close")
-			])
-		]);
-	}
+		return m(InfoBanner, {
+			message: "mobyPhish_is_trusted",
+			icon: Icons.Warning,
+			type: BannerType.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+			buttons: [confirmButton, denyButton],
+		});
+	}		
 
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
