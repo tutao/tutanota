@@ -582,12 +582,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getEditDraftAction(): (() => void) | null {
-		const mails = this.searchViewModel.getSelectedMails()
-		if (mails.length !== 1) {
+		// conversationViewModel is not there if we are in multiselect or if nothing is selected
+		const conversationViewModel = this.searchViewModel.conversationViewModel
+		if (conversationViewModel == null) {
 			return null
 		}
 
-		const conversationViewModel = assertNotNull(this.searchViewModel.conversationViewModel)
 		if (!isDraft(conversationViewModel.primaryMail)) {
 			return null
 		}
